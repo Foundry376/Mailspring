@@ -1,9 +1,11 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { Mark } from 'slate';
 import { CompactPicker } from 'react-color';
 import { RetinaImg } from 'mailspring-component-kit';
 import { Actions } from 'mailspring-exports';
 import FontSizePopover from './font-size-popover';
+import ButtonValuePickerPopover from './button-value-picker-popover';
 
 // Helper Functions
 
@@ -106,7 +108,7 @@ export function applyValueForMark(value, type, markValue) {
 
 // React Component Factories
 
-export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle, svgName = '', isVisible = ()=>true } }) {
+export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle, svgName = '', isVisible = ()=>true, hideWhenCrowded = false } }) {
   return ({ value, onChange, className }) => {
     if(!isVisible()){
       return null;
@@ -117,19 +119,22 @@ export function BuildToggleButton({ type, button: { iconClass, isActive, onToggl
       e.preventDefault();
     };
     if(svgName){
-      return (<button className={`${className} ${active ? 'active' : ''}`} onMouseDown={onMouseDown}>
+      return (<button className={`${className} ${active ? 'active' : ''} ${hideWhenCrowded ? 'hide-when-crowded' : ''}`} onMouseDown={onMouseDown}>
         <RetinaImg style={{width: 18}} name={svgName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
       </button>)
     }
     return (
-      <button className={`${className} ${active ? 'active' : ''}`} onMouseDown={onMouseDown}>
+      <button className={`${className} ${active ? 'active' : ''} ${hideWhenCrowded ? 'hide-when-crowded' : ''}`} onMouseDown={onMouseDown}>
         <i title={type} className={iconClass} />
       </button>
     );
   };
 }
 
-export function BuildMarkButtonWithValuePicker(config) {
+export function BuildMarkButtonWithValuePicker(
+  config,
+  { alwaysShow = false, anchorEl = null } = {}
+) {
   return class ToolbarMarkDataPicker extends React.Component {
     constructor(props) {
       super(props);
@@ -140,28 +145,54 @@ export function BuildMarkButtonWithValuePicker(config) {
       };
     }
 
+    _onExpandStateChange = () => {
+      const el = ReactDOM.findDOMNode(this._el);
+      if (!el && !anchorEl) {
+        AppEnv.reportError(new Error('BuildMarkButtonWithValuePicker cannot find node'));
+        return;
+      }
+      if (this.state.expanded) {
+        Actions.openPopover(
+          <ButtonValuePickerPopover
+            value={this.state.fieldValue}
+            onBlur={this.onBlur}
+            onConfirm={this.onConfirm}
+            config={config}
+            active={getMarkOfType(this.props.value, config.type)}
+          />,
+          {
+            originRect: anchorEl ? anchorEl : el.getBoundingClientRect(),
+            direction: 'down',
+            closeOnAppBlur: true,
+          }
+        );
+      } else {
+        Actions.closePopover();
+      }
+    };
+
     onPrompt = e => {
       e.preventDefault();
       const active = getMarkOfType(this.props.value, config.type);
       const fieldValue = (active && active.data.get(config.field)) || '';
       this.setState({ expanded: true, fieldValue: fieldValue }, () => {
-        setTimeout(() => {
-          this._inputEl.focus();
-          this._inputEl.select();
-        }, 0);
+        this._onExpandStateChange();
+        // setTimeout(() => {
+        //   this._inputEl.focus();
+        //   this._inputEl.select();
+        // }, 0);
       });
     };
 
-    onConfirm = e => {
-      e.preventDefault();
+    onConfirm = inputValue => {
 
       // attach the URL value to the LINK that was created when we opened the link modal
       const { value, onChange } = this.props;
-      const { fieldValue } = this.state;
+      const fieldValue = inputValue;
 
       if (fieldValue.trim() === '') {
-        this.onRemove(e);
-        this.setState({ expanded: false, fieldValue: '' });
+        this.onRemove();
+        this.setState({ expanded: false, fieldValue: '' }, this._onExpandStateChange);
         return;
       }
 
@@ -201,11 +232,10 @@ export function BuildMarkButtonWithValuePicker(config) {
         );
       }
 
-      this.setState({ expanded: false, fieldValue: '' });
+      this.setState({ expanded: false, fieldValue: '' }, this._onExpandStateChange);
     };
 
-    onRemove = e => {
-      e.preventDefault();
+    onRemove = () => {
       const { value, onChange } = this.props;
       const active = getMarkOfType(this.props.value, config.type);
       if (value.selection.isCollapsed) {
@@ -218,9 +248,7 @@ export function BuildMarkButtonWithValuePicker(config) {
     };
 
     onBlur = e => {
-      if (!this._el.contains(e.relatedTarget)) {
-        this.setState({ expanded: false });
-      }
+        this.setState({ expanded: false }, this._onExpandStateChange);
     };
 
     render() {
@@ -228,10 +256,9 @@ export function BuildMarkButtonWithValuePicker(config) {
       const active = getMarkOfType(this.props.value, config.type);
       return (
         <div
-          className={`${this.props.className} link-picker`}
+          className={`${this.props.className} link-picker ${alwaysShow ? '' : 'hide-when-crowded'}`}
           ref={el => (this._el = el)}
           tabIndex={-1}
-          onBlur={this.onBlur}
         >
           {active ? (
             <button className="active" onMouseDown={this.onPrompt}>
@@ -242,24 +269,24 @@ export function BuildMarkButtonWithValuePicker(config) {
                 <i className={config.iconClassOff} />
               </button>
             )}
-          {expanded && (
-            <div className="dropdown">
-              <input
-                type="text"
-                placeholder={config.placeholder}
-                value={this.state.fieldValue}
-                ref={el => (this._inputEl = el)}
-                onBlur={this.onBlur}
-                onChange={e => this.setState({ fieldValue: e.target.value })}
-                onKeyDown={e => {
-                  if (e.which === 13) {
-                    this.onConfirm(e);
-                  }
-                }}
-              />
-              <button onMouseDown={this.onConfirm}>{active ? 'Save' : 'Add'}</button>
-            </div>
-          )}
+          {/*{expanded && (*/}
+          {/*  <div className="dropdown">*/}
+          {/*    <input*/}
+          {/*      type="text"*/}
+          {/*      placeholder={config.placeholder}*/}
+          {/*      value={this.state.fieldValue}*/}
+          {/*      ref={el => (this._inputEl = el)}*/}
+          {/*      onBlur={this.onBlur}*/}
+          {/*      onChange={e => this.setState({ fieldValue: e.target.value })}*/}
+          {/*      onKeyDown={e => {*/}
+          {/*        if (e.which === 13) {*/}
+          {/*          this.onConfirm(e);*/}
+          {/*        }*/}
+          {/*      }}*/}
+          {/*    />*/}
+          {/*    <button onMouseDown={this.onConfirm}>{active ? 'Save' : 'Add'}</button>*/}
+          {/*  </div>*/}
+          {/*)}*/}
         </div>
       );
     }
@@ -367,11 +394,12 @@ export function BuildFontSizePicker(config){
     render() {
       return (
         <button
-          style={{ padding: 0, paddingRight: 6, width: 40 }}
-          className={`${this.props.className} `}
+          style={{ padding: '6px, 0px', width: 40 }}
+          className={`${this.props.className} pull-right with-popup`}
           onClick={this.onClick}
         >
-          <i className={config.iconClass + ' with-popup'} />
+          <i className={config.iconClass} />
+          <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       );
     }

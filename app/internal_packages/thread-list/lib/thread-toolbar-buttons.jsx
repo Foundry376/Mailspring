@@ -419,7 +419,7 @@ export class ToggleUnreadButton extends React.Component {
       >
         <button
           tabIndex={-1}
-          className="btn btn-toolbar"
+          className="btn btn-toolbar btn-hide-when-crowded"
           title={`Mark as ${fragment}`}
           onClick={this._onClick}
         >
@@ -546,22 +546,52 @@ export class MoreButton extends React.Component {
   _more = () => {
     const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
     const menu = new Menu();
+    if (WorkspaceStore.hiddenLocations().length === 0) {
+      const targetUnread = this.props.items.every(t => t.unread === false);
+      const unreadTitle = targetUnread ? 'Mark as unread' : 'Mark as read';
+      menu.append(new MenuItem({
+          label: unreadTitle,
+          click: () => {
+            if (targetUnread) {
+              AppEnv.commands.dispatch('core:mark-as-unread', targetUnread);
+            } else {
+              AppEnv.commands.dispatch('core:mark-as-read', targetUnread);
+            }
+          },
+        }),
+      );
+      menu.append(new MenuItem({
+          label: 'Move to Folder',
+          click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
+        }),
+      );
+      const account = AccountStore.accountForItems(this.props.items);
+      if (account && account.usesLabels()) {
+        menu.append(new MenuItem({
+            label: 'Apply Labels',
+            click: () => AppEnv.commands.dispatch('core:change-labels', this._anchorEl),
+          }),
+        );
+      }
+    }
     menu.append(new MenuItem({
-      label: `Print Thread`,
-      click: () => this._onPrintThread(),
-    }),
+        label: `Print Thread`,
+        click: () => this._onPrintThread(),
+      })
     );
     menu.append(new MenuItem({
-      label: expandTitle,
-      click: () => Actions.toggleAllMessagesExpanded(),
-    }),
+        label: expandTitle,
+        click: () => Actions.toggleAllMessagesExpanded(),
+      })
     );
     menu.popup({});
   };
 
+
   render() {
     return (
-      <button tabIndex={-1} className="btn btn-toolbar btn-more" onClick={this._more}>
+      <button tabIndex={-1} className="btn btn-toolbar btn-more" onClick={this._more}
+              ref={el => (this._anchorEl = el)}>
         <RetinaImg
           name="more.svg"
           style={{ width: 24, height: 24 }}

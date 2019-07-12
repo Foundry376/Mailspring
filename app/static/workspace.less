@@ -709,6 +709,11 @@ body.platform-win32 {
   .message-list-toolbar {
     height: 41px;
     border-bottom: 1px solid transparent;
+    &.hide-btn-when-crowded{
+     .btn-hide-when-crowded{
+       display: none;
+     }
+    }
     &.has-shadow {
       transition: box-shadow 0.2s ease-in-out;
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);

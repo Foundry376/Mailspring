@@ -106,6 +106,7 @@ export const BLOCK_CONFIG = {
     tagNames: ['blockquote'],
     render: props => <blockquote {...props.attributes}>{props.children}</blockquote>,
     button: {
+      hideWhenCrowded: true,
       iconClass: 'dt-icon dt-icon-quote',
       isActive: value => {
         return isBlockTypeOrWithinType(value, BLOCK_CONFIG.blockquote.type);
@@ -133,6 +134,7 @@ export const BLOCK_CONFIG = {
       </code>
     ),
     button: {
+      hideWhenCrowded: true,
       isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.code.type,
       iconClass: 'fa fa-sticky-note-o',
       svgName: 'code.svg',
@@ -147,6 +149,7 @@ export const BLOCK_CONFIG = {
     tagNames: ['ol'],
     render: props => <ol {...props.attributes}>{props.children}</ol>,
     button: {
+      hideWhenCrowded: true,
       iconClass: 'dt-icon dt-icon-num-list',
       isActive: value => {
         const list = EditListPlugin.utils.getCurrentList(value);
@@ -160,6 +163,7 @@ export const BLOCK_CONFIG = {
     tagNames: ['ul'],
     render: props => <ul {...props.attributes}>{props.children}</ul>,
     button: {
+      hideWhenCrowded: true,
       iconClass: 'dt-icon dt-icon-bull-list',
       isActive: value => {
         const list = EditListPlugin.utils.getCurrentList(value);

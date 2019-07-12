@@ -8,6 +8,7 @@ import {
   DraftStore,
   AttachmentStore,
   MessageStore,
+  WorkspaceStore,
 } from 'mailspring-exports';
 import {
   DropZone,
@@ -73,11 +74,13 @@ export default class ComposerView extends React.Component {
       isDeleting: false,
       editorSelection: null,
       editorSelectedText: '',
+      isCrowded: false
     };
     this._deleteTimer = null;
     this._unlisten = [
       Actions.destroyDraftFailed.listen(this._onDestroyedDraftProcessed, this),
       Actions.destroyDraftSucceeded.listen(this._onDestroyedDraftProcessed, this),
+      WorkspaceStore.listen(this._onWorkspaceChange)
     ];
   }
 
@@ -98,6 +101,8 @@ export default class ComposerView extends React.Component {
     }
     if (AppEnv.isComposerWindow()) {
       Actions.setCurrentWindowTitle(this._getToName(this.props.draft));
+    } else {
+      this._onWorkspaceChange();
     }
   }
   _getToName(participants){
@@ -301,6 +306,7 @@ export default class ComposerView extends React.Component {
         onBlur={this._onEditorBlur}
         readOnly={this.props.session ? this.props.session.isPopout() : true}
         onChange={this._onEditorChange}
+        isCrowded={this.state.isCrowded}
       />
     );
   }
@@ -626,6 +632,15 @@ export default class ComposerView extends React.Component {
         }
         this._deleteTimer = null;
       }, buttonTimer);
+    }
+  };
+  _onWorkspaceChange = () => {
+    const hiddenLocations = WorkspaceStore.hiddenLocations();
+    const isCrowded =
+      hiddenLocations.findIndex(item => item.id === 'MessageListSidebar') === -1 &&
+      !AppEnv.isComposerWindow();
+    if (isCrowded !== this.state.isCrowded) {
+      this.setState({ isCrowded });
     }
   };
 

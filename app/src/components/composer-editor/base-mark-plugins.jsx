@@ -34,6 +34,10 @@ export const DEFAULT_FONT_FACE_OPTIONS = [
 const PT_TO_SIZE = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 7];
 
 let plugins = null;
+export const Divider = (key = 'divider') => (
+  <div className="divider " key={key} />
+);
+Divider.displayName = 'Divider';
 
 function isMeaningfulColor(color) {
   const meaningless = ['black', 'rgb(0,0,0)', 'rgba(0,0,0,1)', '#000', '#000000'];
@@ -259,6 +263,7 @@ export default [
       .map(BuildToggleButton)
       .concat([
         BuildColorPicker({ type: 'color', default: '#000000' }),
+        Divider,
         BuildFontPicker({
           type: 'face',
           default: DEFAULT_FONT_FACE,
@@ -276,6 +281,7 @@ export default [
             return opt ? opt.value : 'sans-serif';
           },
         }),
+        Divider,
         BuildFontSizePicker({
           type: 'size',
           iconClass: 'dt-icon dt-icon-font-size',

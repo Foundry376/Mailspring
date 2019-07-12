@@ -261,7 +261,7 @@ function onKeyUp(event, change, editor) {
   }
 }
 
-const ToolbarEmojiButton = ({ value, onChange }) => {
+const ToolbarEmojiButton = ({ value, onChange, anchorEl = null, closePopover = null }) => {
   const onInsertEmoji = name => {
     const inline = {
       object: 'inline',
@@ -269,7 +269,9 @@ const ToolbarEmojiButton = ({ value, onChange }) => {
       isVoid: true,
       data: { name },
     };
-    Actions.closePopover();
+    if (!closePopover) {
+      Actions.closePopover();
+    }
     setTimeout(() => {
       onChange(
         value
@@ -280,14 +282,32 @@ const ToolbarEmojiButton = ({ value, onChange }) => {
       );
     }, 100);
   };
+  const onClick = originRect => {
+    if (closePopover) {
+      closePopover();
+      setTimeout(() => {
+        Actions.openPopover(<EmojiToolbarPopover onInsertEmoji={onInsertEmoji}/>, {
+          originRect: originRect,
+          direction: 'up',
+        });
+      });
+    } else {
+      Actions.openPopover(<EmojiToolbarPopover onInsertEmoji={onInsertEmoji}/>, {
+        originRect: originRect,
+        direction: 'up',
+      });
+    }
+  };
 
   return (
     <button
+      className="hide-when-crowded"
       onClick={e => {
-        Actions.openPopover(<EmojiToolbarPopover onInsertEmoji={onInsertEmoji} />, {
-          originRect: e.target.getBoundingClientRect(),
-          direction: 'up',
-        });
+        if (anchorEl) {
+          onClick(anchorEl);
+        } else {
+          onClick(e.target.getBoundingClientRect());
+        }
       }}
     >
       <i className="dt-icon dt-icon-emoji" />

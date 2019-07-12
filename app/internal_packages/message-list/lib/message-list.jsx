@@ -9,7 +9,8 @@ import {
   MessageStore,
   SearchableComponentStore,
   SearchableComponentMaker,
-  EmailAvatar
+  EmailAvatar,
+  WorkspaceStore
 } from 'mailspring-exports';
 
 import {
@@ -105,6 +106,7 @@ class MessageList extends React.Component {
       MessageStore.listen(this._onChange),
       Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
       Actions.composeReply.listen(this._onCreatingDraft, this),
+      WorkspaceStore.listen(this._onChange)
     ];
   }
 
@@ -473,6 +475,7 @@ class MessageList extends React.Component {
       currentThread: MessageStore.thread(),
       loading: MessageStore.itemsLoading(),
       popedOut: MessageStore.isPopedOut(),
+      hiddenLocations: WorkspaceStore.hiddenLocations()
     };
   }
   _onSelectText = e => {
@@ -647,6 +650,10 @@ class MessageList extends React.Component {
     }
   };
 
+  _hideButtons() {
+    return this.state.hiddenLocations.findIndex(item => item.id === 'MessageListSidebar') === -1;
+  }
+
   render() {
     if (!this.state.currentThread) {
       return <div className="empty" />;
@@ -661,15 +668,16 @@ class MessageList extends React.Component {
       'message-list': true,
       'height-fix': SearchableComponentStore.searchTerm !== null,
     });
+    const hideButtons = this._hideButtons() ? ' hide-btn-when-crowded' : '';
 
     return (
       <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
         <FindInThread />
-        <div className="message-list-toolbar" id="message-list-toolbar">
+        <div className={'message-list-toolbar' + hideButtons} id="message-list-toolbar">
           <InjectedComponentSet
             className="item-container"
             matching={{ role: 'MessageListToolbar' }}
-            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages }}
+            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages, hiddenLocations: WorkspaceStore.hiddenLocations()}}
           />
         </div>
         <div className={messageListClass} id="message-list">

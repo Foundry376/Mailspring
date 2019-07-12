@@ -75,21 +75,31 @@ class MovePicker extends React.Component {
     Actions.closePopover();
   };
 
-  _onOpenMovePopover = () => {
+  _onOpenMovePopover = anchorEl => {
     if (!(this.props.items.length > 0)) {
       return;
     }
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
+    let originRect;
+    if (anchorEl && anchorEl.target && anchorEl.target.getBoundingClientRect) {
+      originRect = anchorEl.target.getBoundingClientRect();
+    } else if (this._moveEl && this._moveEl.getBoundingClientRect) {
+      originRect = this._moveEl.getBoundingClientRect();
+    } else {
+      AppEnv.reportError(new Error('Can not get anchor element for Move picker'));
+      return;
+    }
+    const onCreate = this.state.isFolder ? this._onCreateFolder : this._onCreateLabel;
     Actions.openPopover(<MovePickerPopover threads={this.props.items}
-      account={this._account}
-      onClose={this._onCloseMoveFolderPopout}
-      onCreate={this.state.isFolder ? this._onCreateFolder : this._onCreateLabel} />, {
-        originRect: this._moveEl.getBoundingClientRect(),
-        direction: 'down',
-        disablePointer: true,
-      });
+                                           account={this._account}
+                                           onClose={this._onCloseMoveFolderPopout}
+                                           onCreate={onCreate}/>, {
+      originRect: originRect,
+      direction: 'down',
+      disablePointer: true,
+    });
   };
   _onCloseMoveFolderPopout = () => {
     Actions.closePopover();
@@ -110,14 +120,14 @@ class MovePicker extends React.Component {
     }
 
     return (
-      <div className="button-group" style={{ order: -108 }}>
+      <div className="button-group " style={{ order: -108 }}>
         <KeyCommandsRegion globalHandlers={handlers}>
           <button
             tabIndex={-1}
             ref={el => (this._moveEl = el)}
             title={'Move to Folder'}
             onClick={this._onOpenMovePopover}
-            className={'btn btn-toolbar btn-category-picker'}
+            className={'btn btn-toolbar btn-category-picker btn-hide-when-crowded'}
           >
             <RetinaImg name={'folder.svg'} style={{ width: 24, height: 24 }} isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
@@ -128,7 +138,7 @@ class MovePicker extends React.Component {
               ref={el => (this._labelEl = el)}
               title={'Apply Labels'}
               onClick={this._onOpenLabelsPopover}
-              className={'btn btn-toolbar btn-category-picker'}
+              className={'btn btn-toolbar btn-category-picker btn-hide-when-crowded'}
             >
               <RetinaImg name={'label.svg'} style={{ width: 24, height: 24 }} isIcon
                 mode={RetinaImg.Mode.ContentIsMask} />

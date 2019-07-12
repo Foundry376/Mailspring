@@ -60,7 +60,7 @@ export default class ComposerEditorToolbar extends React.Component {
   };
 
   render() {
-    const { value, onChange, plugins, readOnly } = this.props;
+    const { value, onChange, plugins, readOnly, isCrowded = false } = this.props;
     let sectionItems = [];
 
     if (!this.state.visible) {
@@ -86,20 +86,23 @@ export default class ComposerEditorToolbar extends React.Component {
             onChange={onChange}
             className={toolbarSectionClass}
             disabled={readOnly}
+            isCrowded={isCrowded}
           />
         ))
       );
-      if (idx < pluginsWithToolbars.length - 1) {
-        sectionItems.push(
-          <div key={`${idx}-divider`} className={`divider ${toolbarSectionClass}`} />
-        );
-      }
+      // if (idx < pluginsWithToolbars.length - 1) {
+      //   sectionItems.push(
+      //     <div key={`${idx}-divider`} className={`divider ${toolbarSectionClass}`} />
+      //   );
+      // }
     });
 
     return (
       <div ref={el => (this._el = el)} className="RichEditor-toolbar">
         <div ref={el => (this._floatingEl = el)} className="floating-container">
-          <div className="inner display-deferrable">{sectionItems}</div>
+          <div className={'inner display-deferrable ' + (isCrowded ? 'active-crowded-state' : '')}>
+            {sectionItems}
+          </div>
         </div>
       </div>
     );

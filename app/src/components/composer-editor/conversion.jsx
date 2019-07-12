@@ -10,6 +10,7 @@ import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
 import EmojiPlugins from './emoji-plugins';
+import CrowdedButtons from './crowded-buttons';
 
 // Note: order is important here because we deserialize HTML with rules
 // in this order. <code class="var"> before <code>, etc.
@@ -23,6 +24,7 @@ export const plugins = [
   ...BaseBlockPlugins,
   ...MarkdownPlugins,
   ...SpellcheckPlugins,
+  ...CrowdedButtons
 ];
 
 const cssValueIsZero = val => {

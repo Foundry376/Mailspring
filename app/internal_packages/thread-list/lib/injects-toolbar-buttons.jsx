@@ -14,7 +14,7 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
   const roles = [ToolbarRole].concat(extraRoles);
 
   class ComposedComponent extends Component {
-    static displayName = ToolbarComponent.displayName;
+    static displayName = `${ToolbarComponent.displayName}`;
 
     static propTypes = {
       items: PropTypes.array,

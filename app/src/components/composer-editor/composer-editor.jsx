@@ -230,7 +230,7 @@ export default class ComposerEditor extends React.Component {
         className={`RichEditor-root ${className || ''}`}
         localHandlers={this._pluginKeyHandlers}
       >
-        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} readOnly={this.props.readOnly}/>
+        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} readOnly={this.props.readOnly} isCrowded={this.props.isCrowded}/>
         <div
           className="RichEditor-content"
           onClick={this.onFocusIfBlurred}
