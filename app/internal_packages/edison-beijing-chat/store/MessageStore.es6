@@ -222,6 +222,7 @@ class MessageStore extends MailspringStore {
   };
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
+    debugger
     let body;
     let convJid = payload.from.bare;
     if (aes) {
@@ -264,6 +265,7 @@ class MessageStore extends MailspringStore {
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
+      console.log( 'MessageStore: downloadFile: ', aes, msgBody, thumbPath);
       if (msgBody.thumbObjectId) {
         downloadFile(aes, msgBody.thumbObjectId, thumbPath, err => {
           if (err) {

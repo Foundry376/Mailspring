@@ -1,7 +1,6 @@
 import Stanza, { Client } from '../../../src/xmpp/stanza.io';
 import EventEmitter3 from 'eventemitter3';
 import { Observable } from 'rxjs/Observable';
-// import { log } from '../utils/log-util';
 
 /**
  * The interval between requests to join rooms
