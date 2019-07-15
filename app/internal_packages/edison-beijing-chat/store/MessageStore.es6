@@ -388,7 +388,7 @@ class MessageStore extends MailspringStore {
     const rooms = await RoomStore.getRooms();
     const body = parseMessageBody(payload.body);
     at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-    if (rooms[payload.from.bare] && rooms[payload.from.bare].name) {
+    if (rooms && rooms[payload.from.bare] && rooms[payload.from.bare].name) {
       name = rooms[payload.from.bare].name;
     } else {
       let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
