@@ -48,6 +48,10 @@ export default class Account extends ModelWithMetadata {
       modelKey: 'settings',
     }),
 
+    mailsync: Attributes.Object({
+      modelKey: 'mailsync',
+    }),
+
     label: Attributes.String({
       modelKey: 'label',
     }),

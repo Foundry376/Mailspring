@@ -863,6 +863,12 @@ export default class Application extends EventEmitter {
         }
       }
     });
+    ipcMain.on('mailsync-config', (event, options) => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send(`mailsync-config`, options);
+      }
+    });
 
     // Theme Error Handling
 

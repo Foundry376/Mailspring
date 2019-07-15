@@ -150,6 +150,7 @@ export async function expandAccountWithCommonSettings(account) {
       smtp_allow_insecure_ssl: false,
     };
     populated.settings = Object.assign(defaults, populated.settings);
+    populated.mailsync = Object.assign(AppEnv.config.get('core.mailsync'), populated.mailsync);
     return populated;
   }
 
@@ -182,6 +183,7 @@ export async function expandAccountWithCommonSettings(account) {
     smtp_allow_insecure_ssl: template.smtp_allow_insecure_ssl || false,
   };
   populated.settings = Object.assign(defaults, populated.settings);
+  populated.mailsync = Object.assign(AppEnv.config.get('core.mailsync'), populated.mailsync);
   return populated;
 }
 
@@ -537,6 +539,9 @@ export async function finalizeAndValidateAccount(account) {
   proc.account = account;
   const { response } = await proc.test();
   const newAccount = response.account;
+  if (account.mailsync) {
+    newAccount.mailsync = account.mailsync;
+  }
   // preload mail data
   proc.sync();
   return new Account(newAccount);

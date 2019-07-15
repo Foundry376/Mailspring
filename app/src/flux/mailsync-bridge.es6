@@ -7,8 +7,6 @@ import Task from './tasks/task';
 import SetObservableRangeTask from './models/set-observable-range-task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
-
-// import Thread from './models/thread';
 import Account from './models/account';
 import AccountStore from './stores/account-store';
 import DatabaseStore from './stores/database-store';
@@ -127,6 +125,7 @@ export default class MailsyncBridge {
     Actions.syncFolders.listen(this._onSyncFolders, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
     Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
+    ipcRenderer.on('mailsync-config', this._onMailsyncConfigUpdate);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     // ipcRenderer.on('thread-close-window', this._onNewWindowClose);
 
@@ -705,6 +704,29 @@ export default class MailsyncBridge {
       }
     }
   }
+
+  _onMailsyncConfigUpdate = (event, mailsyncConfig = null) => {
+    if (!mailsyncConfig) {
+      const defaultSettings = AppEnv.config.get('core.mailsync');
+      const accounts = AppEnv.config.get('accounts');
+      if (!Array.isArray(accounts) || accounts.length === 0) {
+        return;
+      }
+      mailsyncConfig = {};
+      for (let account of accounts) {
+        if (account.mailsync) {
+          mailsyncConfig[account.id] = Object.assign({}, defaultSettings, account.mailsync);
+        } else {
+          mailsyncConfig[account.id] = Object.assign({}, defaultSettings);
+        }
+      }
+    }
+    for (const accountId of Object.keys(this._clients)) {
+      if (mailsyncConfig[accountId]) {
+        this.sendMessageToAccount(accountId, { type: 'mailsync-config', settings: mailsyncConfig[accountId] });
+      }
+    }
+  };
 
   _sortMessagesByAccount({ messages = [] } = {}) {
     const byAccount = {};

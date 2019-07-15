@@ -12,6 +12,18 @@ export default {
           },
         },
       },
+      mailsync: {
+        type: 'object',
+        properties: {
+          fetchEmailRange: {
+            type: 'integer',
+            default: 365,
+            enum: [7, 30, 90, 365, -1],
+            enumLabels: ['Within 7 Days', 'Within 30 days', 'Within 3 Month', 'Within a Year', 'All'],
+            title: 'How far back would you like to sync your old email',
+          },
+        },
+      },
       workspace: {
         type: 'object',
         properties: {

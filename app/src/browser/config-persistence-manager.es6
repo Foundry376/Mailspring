@@ -16,6 +16,7 @@ export default class ConfigPersistenceManager {
     this.userWantsToPreserveErrors = false;
     this.saveRetries = 0;
     this.configFilePath = path.join(this.configDirPath, 'config.json');
+    this.mailsyncConfigFilePath = path.join(this.configDirPath, 'mailsync.json');
     this.settings = {};
 
     this.initializeConfigDirectory();
@@ -137,11 +138,25 @@ export default class ConfigPersistenceManager {
       return;
     }
     const allSettings = { '*': this.settings };
+    let mailsyncSettings = {};
+    if (this.settings) {
+      if (this.settings.core && this.settings.core.mailsync) {
+        mailsyncSettings = this.settings.core.mailsync;
+      }
+      if (Array.isArray(this.settings.accounts)) {
+        mailsyncSettings.accounts = {};
+        for (let account of this.settings.accounts) {
+          mailsyncSettings.accounts[account.id] = account.mailsync ? account.mailsync : {};
+        }
+      }
+    }
+    const mailsyncSettingsJSON = JSON.stringify(mailsyncSettings, null, 2);
     const allSettingsJSON = JSON.stringify(allSettings, null, 2);
     this.lastSaveTimestamp = Date.now();
 
     try {
       atomicWriteFileSync(this.configFilePath, allSettingsJSON);
+      atomicWriteFileSync(this.mailsyncConfigFilePath, mailsyncSettingsJSON);
       this.saveRetries = 0;
     } catch (error) {
       if (this.saveRetries >= RETRY_SAVES) {

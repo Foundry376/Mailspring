@@ -155,6 +155,11 @@ const WorkspaceSection = props => {
         keyPath="core.workspace.use24HourClock"
         config={props.config}
       />
+      <ConfigSchemaItem
+        configSchema={props.configSchema.properties.mailsync.properties.fetchEmailRange}
+        keyPath="core.mailsync.fetchEmailRange"
+        config={props.config}
+      />
 
       <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.interfaceZoom}

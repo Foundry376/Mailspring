@@ -206,6 +206,48 @@ class PreferencesAccountDetails extends Component {
         return null;
     }
   }
+  _onFetchEmailRangeUpdate= event => {
+    try{
+      const fetchRange = parseInt(event.target.value, 10);
+      const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || { fetchEmailRange: 365 };
+      let mailsyncSettings = this.state.account.mailsync;
+      if (defalutMailsyncSettings && !mailsyncSettings) {
+        mailsyncSettings = defalutMailsyncSettings;
+      }
+      const newSettings = Object.assign({}, mailsyncSettings, { fetchEmailRange: fetchRange });
+      this._setState({ mailsync: newSettings });
+      const data = {};
+      data[this.state.account.id] = newSettings;
+      ipcRenderer.send('mailsync-config', data);
+    } catch (e) {
+      AppEnv.reportError(e);
+    }
+  };
+  _renderMailFetchRange(){
+    const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || {fetchEmailRange: 365};
+    let mailsyncSettings = this.state.account.mailsync;
+    if(defalutMailsyncSettings && !mailsyncSettings){
+      mailsyncSettings = defalutMailsyncSettings;
+    }else if(!mailsyncSettings){
+      AppEnv.reportError(new Error('fetchEmailRange do not have value'));
+      mailsyncSettings = {fetchEmailRange: 365};
+    }
+    return <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
+      Oldest email to fetch
+      <select
+        style={{ marginTop: 0 }}
+        value={mailsyncSettings.fetchEmailRange.toString()}
+        onChange={this._onFetchEmailRangeUpdate}
+        onBlur={this._saveChanges}
+      >
+        <option value='7'>Within 7 days</option>
+        <option value='30'>Within 30 days</option>
+        <option value='90'>Within 3 month</option>
+        <option value='365'>Within 1 year</option>
+        <option value='-1'>All</option>
+      </select>:
+    </div>
+  }
 
   render() {
     const { account } = this.state;
@@ -248,6 +290,8 @@ class PreferencesAccountDetails extends Component {
           onDeleteItem={this._onAccountAliasRemoved}
         />
         {this._renderDefaultAliasSelector(account)}
+        <h3>Advance Settings</h3>
+        {this._renderMailFetchRange()}
       </div>
     );
   }
