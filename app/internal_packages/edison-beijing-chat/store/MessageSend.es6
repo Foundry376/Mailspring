@@ -50,7 +50,6 @@ class MessageSend {
     if (!message.ediEncrypted) {
       message.body = strBody;
     }
-    console.log('occupants.message', message);
     xmpp.sendMessage(message, from);
   };
 
@@ -59,7 +58,6 @@ class MessageSend {
     if (isGroup) {
       const occupants = await RoomStore.getConversationOccupants(to, from);
       const e2ees = await E2eeStore.find(occupants);
-      console.log('occupants', occupants, e2ees);
       if (e2ees && e2ees.length == occupants.length) {
         e2ees.forEach((e2ee => {
           let device = {};
