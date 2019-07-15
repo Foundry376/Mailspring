@@ -37,6 +37,7 @@ const {
 } = ComposerSupport.BaseBlockPlugins;
 const buttonTimer = 700;
 const newDraftTimeDiff = 3000;
+const TOOLBAR_MIN_WIDTH = 540;
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
 // Composer with new props.
@@ -80,7 +81,7 @@ export default class ComposerView extends React.Component {
     this._unlisten = [
       Actions.destroyDraftFailed.listen(this._onDestroyedDraftProcessed, this),
       Actions.destroyDraftSucceeded.listen(this._onDestroyedDraftProcessed, this),
-      WorkspaceStore.listen(this._onWorkspaceChange)
+      WorkspaceStore.listen(this._onResize)
     ];
   }
 
@@ -101,12 +102,12 @@ export default class ComposerView extends React.Component {
     }
     if (AppEnv.isComposerWindow()) {
       Actions.setCurrentWindowTitle(this._getToName(this.props.draft));
-    } else {
-      this._onWorkspaceChange();
     }
+    window.addEventListener('resize', this._onResize, true);
+    this._onResize();
   }
-  _getToName(participants){
-    if(!participants || !Array.isArray(participants.to) || participants.to.length === 0){
+  _getToName(participants) {
+    if (!participants || !Array.isArray(participants.to) || participants.to.length === 0) {
       return '';
     }
     return participants.to[0].name;
@@ -131,11 +132,26 @@ export default class ComposerView extends React.Component {
     for (let unlisten of this._unlisten) {
       unlisten();
     }
+    window.removeEventListener('resize', this._onResize, true);
     // In the future, we should clean up the draft session entirely, or give it
     // the same lifecycle as the composer view. For now, just make sure we free
     // up all the memory used for undo/redo.
-    const { draft, session } = this.props;
+    // const { draft, session } = this.props;
     // session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
+  }
+
+  _onResize = () => {
+    const container = document.querySelector('.RichEditor-toolbar');
+    if (!container) {
+      return;
+    }
+    let isCrowded = false;
+    if (container.clientWidth <= TOOLBAR_MIN_WIDTH) {
+      isCrowded = true;
+    }
+    if (isCrowded !== this.state.isCrowded) {
+      this.setState({ isCrowded });
+    }
   }
 
   focus() {
@@ -438,11 +454,11 @@ export default class ComposerView extends React.Component {
         >
           {this.state.isDeleting ?
             <LottieImg name={'loading-spinner-blue'}
-                       size={{ width: 24, height: 24 }} /> :
+              size={{ width: 24, height: 24 }} /> :
             <RetinaImg name={'trash.svg'}
-                       style={{ width: 24, height: 24 }}
-                       isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
             />}
         </button>
       </div>
@@ -632,15 +648,6 @@ export default class ComposerView extends React.Component {
         }
         this._deleteTimer = null;
       }, buttonTimer);
-    }
-  };
-  _onWorkspaceChange = () => {
-    const hiddenLocations = WorkspaceStore.hiddenLocations();
-    const isCrowded =
-      hiddenLocations.findIndex(item => item.id === 'MessageListSidebar') === -1 &&
-      !AppEnv.isComposerWindow();
-    if (isCrowded !== this.state.isCrowded) {
-      this.setState({ isCrowded });
     }
   };
 

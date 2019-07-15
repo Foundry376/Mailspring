@@ -222,7 +222,6 @@ class MessageStore extends MailspringStore {
   };
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
-    debugger
     let body;
     let convJid = payload.from.bare;
     if (aes) {
@@ -260,7 +259,6 @@ class MessageStore extends MailspringStore {
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
-      console.log( 'MessageStore: downloadFile: ', aes, msgBody, thumbPath);
       if (msgBody.thumbObjectId) {
         downloadFile(aes, msgBody.thumbObjectId, thumbPath, err => {
           if (err) {
@@ -390,7 +388,7 @@ class MessageStore extends MailspringStore {
     const rooms = await RoomStore.getRooms();
     const body = parseMessageBody(payload.body);
     at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-    if (rooms[payload.from.bare] && rooms[payload.from.bare].name) {
+    if (rooms && rooms[payload.from.bare] && rooms[payload.from.bare].name) {
       name = rooms[payload.from.bare].name;
     } else {
       let roomsInfo = await xmpp.getRoomList(null, payload.curJid);

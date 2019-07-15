@@ -6,6 +6,9 @@
 const _ = require('underscore');
 const Actions = require('../actions').default;
 const MailspringStore = require('mailspring-store').default;
+import {
+  FocusedContentStore
+} from 'mailspring-exports';
 
 let Sheet = {};
 let Location = {};
@@ -140,10 +143,14 @@ class WorkspaceStore extends MailspringStore {
     if (mode === this._preferredLayoutMode) {
       return;
     }
+    const focused = FocusedContentStore.focused('thread') || null;
     this._preferredLayoutMode = mode;
     AppEnv.config.set('core.workspace.mode', this._preferredLayoutMode);
     this._rebuildShortcuts();
     this.popToRootSheet();
+    if (focused) {
+      Actions.setFocus({ collection: 'thread', item: focused });
+    }
     this.trigger();
   };
 
