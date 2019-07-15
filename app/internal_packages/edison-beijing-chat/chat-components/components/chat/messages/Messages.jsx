@@ -38,7 +38,7 @@ export default class Messages extends Component {
 
   state = {
     shouldScrollBottom: true,
-    nowIsInBottom: false,
+    nowIsInBottom: true,
     progress: {
       savedFiles: [],
       downQueue: [],
