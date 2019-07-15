@@ -59,7 +59,7 @@ class UserCacheStore extends MailspringStore {
           info: member,
         });
       }
-      this.fetchAllAvatars(members);
+      await this.fetchAllAvatars(members);
       this.refreshUserCache();
     }
   };
