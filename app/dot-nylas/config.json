@@ -17,7 +17,10 @@
         "composer-mail-merge",
         "send-and-archive",
         "main-calendar"
-      ]
+      ],
+      "mailsync": {
+        "fetchEmailRange": 365
+      }
     }
   }
 }
