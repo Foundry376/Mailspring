@@ -541,6 +541,7 @@ export async function finalizeAndValidateAccount(account) {
   const newAccount = response.account;
   if (account.mailsync) {
     newAccount.mailsync = account.mailsync;
+    delete newAccount.mailsync.accounts;
   }
   // preload mail data
   proc.sync();

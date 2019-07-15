@@ -214,6 +214,7 @@ class PreferencesAccountDetails extends Component {
       if (defalutMailsyncSettings && !mailsyncSettings) {
         mailsyncSettings = defalutMailsyncSettings;
       }
+      delete mailsyncSettings.accounts;
       const newSettings = Object.assign({}, mailsyncSettings, { fetchEmailRange: fetchRange });
       this._setState({ mailsync: newSettings });
       const data = {};
