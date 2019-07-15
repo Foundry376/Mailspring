@@ -19,8 +19,14 @@ export default class FontSizePopover extends React.Component {
       if (this.props.selectedValue === option.value) {
         className += 'selected';
       }
-      return <div key={option.value} className={className}
-                  onClick={this.onSelect.bind(this, option.value)}>{option.name}</div>;
+      return (
+        <div
+          key={option.value}
+          className={className}
+          onClick={this.onSelect.bind(this, option.value)}>
+          {option.name}
+        </div>
+      );
     });
   }
 

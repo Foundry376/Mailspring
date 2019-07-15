@@ -108,9 +108,9 @@ export function applyValueForMark(value, type, markValue) {
 
 // React Component Factories
 
-export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle, svgName = '', isVisible = ()=>true, hideWhenCrowded = false } }) {
+export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle, svgName = '', isVisible = () => true, hideWhenCrowded = false } }) {
   return ({ value, onChange, className }) => {
-    if(!isVisible()){
+    if (!isVisible()) {
       return null;
     }
     const active = isActive(value);
@@ -118,9 +118,9 @@ export function BuildToggleButton({ type, button: { iconClass, isActive, onToggl
       onChange(onToggle(value, active));
       e.preventDefault();
     };
-    if(svgName){
+    if (svgName) {
       return (<button className={`${className} ${active ? 'active' : ''} ${hideWhenCrowded ? 'hide-when-crowded' : ''}`} onMouseDown={onMouseDown}>
-        <RetinaImg style={{width: 18}} name={svgName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg style={{ width: 18 }} name={svgName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
       </button>)
     }
     return (
@@ -248,7 +248,7 @@ export function BuildMarkButtonWithValuePicker(
     };
 
     onBlur = e => {
-        this.setState({ expanded: false }, this._onExpandStateChange);
+      this.setState({ expanded: false }, this._onExpandStateChange);
     };
 
     render() {
@@ -359,7 +359,7 @@ export function BuildColorPicker(config) {
             }}
           />
           {expanded && (
-            <div className="dropdown" style={{top: 30}}>
+            <div className="dropdown" style={{ top: 30 }}>
               <CompactPicker color={color} onChangeComplete={this._onChangeComplete} />
             </div>
           )}
@@ -368,7 +368,7 @@ export function BuildColorPicker(config) {
     }
   };
 }
-export function BuildFontSizePicker(config){
+export function BuildFontSizePicker(config) {
   return class FontPicker extends React.Component {
     _onSetValue = item => {
       const { onChange, value } = this.props;
@@ -387,19 +387,25 @@ export function BuildFontSizePicker(config){
     }
     onClick = e => {
       const value = getActiveValueForMark(this.props.value, config.type) || config.default;
-      Actions.openPopover(<FontSizePopover options={config.options} selectedValue={value} onSelect={this._onSetValue} />, {
-        originRect: e.target.getBoundingClientRect(),
-        direction: 'down',
-        closeOnAppBlur: true
-      });
+      Actions.openPopover((
+        <FontSizePopover
+          options={config.options}
+          selectedValue={value}
+          onSelect={this._onSetValue} />
+      ), {
+          originRect: this.fontSizeBtn.getBoundingClientRect(),
+          direction: 'down',
+          closeOnAppBlur: true
+        });
     };
 
     render() {
       return (
         <button
           style={{ padding: '6px, 0px', width: 40 }}
-          className={`${this.props.className} pull-right with-popup`}
+          className={`${this.props.className || ''} pull-right with-popup`}
           onClick={this.onClick}
+          ref={el => this.fontSizeBtn = el}
         >
           <i className={config.iconClass} />
           <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -449,6 +455,7 @@ export function BuildFontPicker(config) {
               </option>
             ))}
           </select>
+          <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       );
     }
