@@ -15,12 +15,10 @@ import { RoomStore, MessageStore, ConversationStore, OnlineUserStore } from 'cha
 const flattenMsgIds = groupedMessages =>
   groupedMessages
     .map(group => group.messages.map(message => message.id))
-    .reduce(
-      (acc, curr) => {
-        curr.forEach(id => acc.add(id));
-        return acc;
-      }, new Set()
-    );
+    .reduce((acc, curr) => {
+      curr.forEach(id => acc.add(id));
+      return acc;
+    }, new Set());
 const MESSAGE_COUNTS_EACH_PAGE = 25;
 const MAX_COUNTS = 2000;
 export default class Messages extends Component {
@@ -31,7 +29,7 @@ export default class Messages extends Component {
       jid: PropTypes.string.isRequired,
       isGroup: PropTypes.bool.isRequired,
     }),
-  }
+  };
 
   static defaultProps = {
     referenceTime: new Date().getTime(),
@@ -40,6 +38,7 @@ export default class Messages extends Component {
 
   state = {
     shouldScrollBottom: true,
+    nowIsInBottom: false,
     progress: {
       savedFiles: [],
       downQueue: [],
@@ -48,8 +47,8 @@ export default class Messages extends Component {
     },
     members: [],
     groupedMessages: [],
-    shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE
-  }
+    shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE,
+  };
 
   static timer;
 
@@ -62,7 +61,7 @@ export default class Messages extends Component {
     if (currentJid !== nextJid) {
       this.setState({
         shouldScrollBottom: true,
-        shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE
+        shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE,
       });
       await this.getRoomMembers(nextConv);
       return;
@@ -77,28 +76,28 @@ export default class Messages extends Component {
       shouldScrollBottom: areNewMessages,
     });
     return true;
-  }
+  };
 
-  getRoomMembers = async (conv) => {
+  getRoomMembers = async conv => {
     if (conv.isGroup) {
       const members = await RoomStore.getRoomMembers(conv.jid, conv.curJid);
       this.setState({ members });
     }
-  }
+  };
 
   componentDidMount = async () => {
     this._listenToStore();
     const { selectedConversation: conv = {} } = this.props;
     await this.getRoomMembers(conv);
     this._onDataChanged('message');
-  }
+  };
 
   _listenToStore = () => {
     this._unsubs = [];
     this._unsubs.push(MessageStore.listen(() => this._onDataChanged('message')));
-  }
+  };
 
-  _onDataChanged = async (changedDataName) => {
+  _onDataChanged = async changedDataName => {
     if (changedDataName === 'message') {
       let groupedMessages = [];
       const selectedConversation = await ConversationStore.getSelectedConversation();
@@ -114,20 +113,19 @@ export default class Messages extends Component {
         });
       }
     }
-  }
+  };
 
   componentDidUpdate = async () => {
-    if (this.state.shouldScrollBottom) {
+    // 如果滚动条是在屏幕底部，需要自动滚动，否则当用户手动滚动到某个位置，则新消息来了不自动滚动
+    if (this.state.shouldScrollBottom && this.state.nowIsInBottom) {
       this.scrollToMessagesBottom();
     }
-  }
+  };
   componentWillUnmount() {
     for (const unsub of this._unsubs) {
       unsub();
-    };
-    const {
-      groupedMessages
-    } = this.state;
+    }
+    const { groupedMessages } = this.state;
   }
 
   messagesTopBar = null;
@@ -140,7 +138,7 @@ export default class Messages extends Component {
       // dom render spend some time, so add a timeout here.
       setTimeout(() => {
         this.messagePanelEnd.scrollIntoView();
-      }, 20)
+      }, 20);
       this.setState({ shouldScrollBottom: false });
     }
   }
@@ -164,7 +162,7 @@ export default class Messages extends Component {
         jid,
         name: self['name'],
         email: self['email'],
-      }
+      };
     }
 
     const { jid: convJid, name, email } = selectedConversation;
@@ -172,23 +170,30 @@ export default class Messages extends Component {
       return { jid, name, email };
     }
     return { jid, name: '', email: '' };
-  }
+  };
 
   getContactAvatar = member => {
     if (member) {
       const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
       return (
-        <ContactAvatar jid={memberJid} name={member.name} conversation={this.props.selectedConversation}
-          email={member.email} avatar={member.avatar} size={32} />
-      )
+        <ContactAvatar
+          jid={memberJid}
+          name={member.name}
+          conversation={this.props.selectedConversation}
+          email={member.email}
+          avatar={member.avatar}
+          size={32}
+        />
+      );
     }
     return null;
-  }
+  };
   calcTimeLabel = _.throttle(() => {
     if (!this.messagesPanel) {
       return;
     }
     const scrollTop = this.messagesPanel.scrollTop;
+
     if (!this.messagesTopBar) {
       this.messagesTopBar = document.querySelector('.messages-top-bar');
     }
@@ -204,7 +209,10 @@ export default class Messages extends Component {
     const messageGroups = this.messagesPanel.children;
     for (const msgGrp of messageGroups) {
       if (msgGrp.className.indexOf('message-group') !== -1) {
-        if (msgGrp.offsetTop - 50 < scrollTop && scrollTop < msgGrp.offsetTop + msgGrp.offsetHeight - 70) {
+        if (
+          msgGrp.offsetTop - 50 < scrollTop &&
+          scrollTop < msgGrp.offsetTop + msgGrp.offsetHeight - 70
+        ) {
           msgGrp.className = 'message-group time-label-fix';
         } else {
           msgGrp.className = 'message-group';
@@ -214,12 +222,25 @@ export default class Messages extends Component {
     if (scrollTop < window.screen.height * 1.5) {
       const counts = this.state.shouldDisplayMessageCounts + MESSAGE_COUNTS_EACH_PAGE;
       this.setState({
-        shouldDisplayMessageCounts: counts > MAX_COUNTS ? MAX_COUNTS : counts
+        shouldDisplayMessageCounts: counts > MAX_COUNTS ? MAX_COUNTS : counts,
       });
+    }
+
+    const { nowIsInBottom } = this.state;
+    if (
+      scrollTop + this.messagesPanel.offsetHeight < this.messagesPanel.scrollHeight &&
+      nowIsInBottom
+    ) {
+      this.setState({ nowIsInBottom: false });
+    } else if (
+      scrollTop + this.messagesPanel.offsetHeight >= this.messagesPanel.scrollHeight &&
+      !nowIsInBottom
+    ) {
+      this.setState({ nowIsInBottom: true });
     }
   }, 20);
 
-  download = (msgBody) => {
+  download = msgBody => {
     event.stopPropagation();
     event.preventDefault();
     const fileName = msgBody.path ? path.basename(msgBody.path) : '';
@@ -230,8 +251,8 @@ export default class Messages extends Component {
     const loadConfig = {
       msgBody,
       filepath: pathForSave,
-      type: 'download'
-    }
+      type: 'download',
+    };
     const { queueLoadMessage } = this.props;
     queueLoadMessage(loadConfig);
   };
@@ -241,14 +262,16 @@ export default class Messages extends Component {
       selectedConversation: { jid },
     } = this.props;
     const { groupedMessages, members, shouldDisplayMessageCounts } = this.state;
-    groupedMessages.map(group => group.messages.map(message => {
-      members.map(member => {
-        const jid = member.jid.bare || member.jid;
-        if (jid === message.sender) {
-          message.senderNickname = member.nickname || message.senderNickname;
-        }
-      });
-    }));
+    groupedMessages.map(group =>
+      group.messages.map(message => {
+        members.map(member => {
+          const jid = member.jid.bare || member.jid;
+          if (jid === message.sender) {
+            message.senderNickname = member.nickname || message.senderNickname;
+          }
+        });
+      })
+    );
     if (jid === NEW_CONVERSATION) {
       return null;
     }
@@ -256,14 +279,16 @@ export default class Messages extends Component {
     return (
       <div
         className="messages"
-        ref={element => { this.messagesPanel = element; }}
+        ref={element => {
+          this.messagesPanel = element;
+        }}
         onKeyDown={this.onKeyDown}
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
         <div className="messages-wrap">
           <SecurePrivate />
-          {groupedMessages.map((group) => (
+          {groupedMessages.map(group => (
             <Group
               conversation={this.props.selectedConversation}
               group={group}
@@ -271,17 +296,20 @@ export default class Messages extends Component {
               getContactInfoByJid={this.getContactInfoByJid}
               members={this.state.members}
               shouldDisplayMessageCounts={shouldDisplayMessageCounts}
-              key={group.time}>
-            </Group>
-          ))
-          }
+              key={group.time}
+            ></Group>
+          ))}
           <MessageImagePopup
             {...this.props}
             groupedMessages={groupedMessages}
             getContactInfoByJid={this.getContactInfoByJid}
             getContactAvatar={this.getContactAvatar}
           />
-          <div ref={element => { this.messagePanelEnd = element; }} />
+          <div
+            ref={element => {
+              this.messagePanelEnd = element;
+            }}
+          />
         </div>
       </div>
     );
