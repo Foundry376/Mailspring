@@ -281,6 +281,7 @@ export default class MessagesPanel extends Component {
           const str = `${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`;
           console.error(str);
           log('load', `MessagePanel.loadMessage: error: ` + str);
+          body.uploadFailed = true;
           body = JSON.stringify(body);
           const message = {
             id: messageId,
