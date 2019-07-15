@@ -15,8 +15,8 @@ export default class DestroyDraftTask extends Task {
   constructor({ messageIds = [], ...rest } = {}) {
     super(rest);
     this.messageIds = messageIds;
-    if (this.canBeUndone === undefined) {
-      this.canBeUndone = true;
+    if (this.canBeUndone) {
+      this.canBeUndone = false;
     }
   }
 
