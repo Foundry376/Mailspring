@@ -318,19 +318,30 @@ export default class Msg extends PureComponent {
     const i = id.indexOf('$');
     id = id.substr(0, i);
     const { msgBody } = this.state;
-    MessageSend.sendMessage(msgBody, conversation, id);
+    if (msgBody.localFile && !msgBody.uploadFailed) {
+      const loadConfig = {
+        conversation,
+        messageId: msg.id,
+        msgBody,
+        filepath: msgBody.localFile,
+        type: 'upload'
+      };
+      const { queueLoadMessage } = this.props;
+      queueLoadMessage(loadConfig)
+    } else {
+      MessageSend.sendMessage(msgBody, conversation, id);
+    }
   }
 
   render() {
     const { msg, conversation } = this.props;
     const { isEditing, msgImgPath, msgBody, currentUserJid } = this.state;
-    console.log( 'Msg.render: ', msg, msgBody);
     const isCurrentUser = msg.sender === currentUserJid;
     const color = colorForString(msg.sender);
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
-    const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED';
+    const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED' && isCurrentUser;
     let textContent = msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody;
     if (msgBody.deleted) {
       return null;

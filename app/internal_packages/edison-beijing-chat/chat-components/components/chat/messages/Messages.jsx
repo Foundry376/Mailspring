@@ -61,6 +61,7 @@ export default class Messages extends Component {
     if (currentJid !== nextJid) {
       this.setState({
         shouldScrollBottom: true,
+        nowIsInBottom: true,
         shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE,
       });
       await this.getRoomMembers(nextConv);
