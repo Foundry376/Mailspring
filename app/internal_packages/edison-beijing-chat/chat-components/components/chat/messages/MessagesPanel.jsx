@@ -109,6 +109,7 @@ export default class MessagesPanel extends Component {
   };
 
   componentDidMount = async () => {
+    window.addEventListener("online", this.onLine);
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
     document.body.onclick = this._closePreview;
@@ -118,6 +119,13 @@ export default class MessagesPanel extends Component {
       selectedConversation,
     });
   };
+
+  onLine = e => {
+    const { progress } = ProgressBarStore;
+    if (progress.loading && progress.failed) {
+      this.retryLoadMessage();
+    }
+  }
 
   _closePreview = e => {
     if (e.target.tagName === 'IMG') {
@@ -137,6 +145,7 @@ export default class MessagesPanel extends Component {
   };
 
   componentWillUnmount() {
+    window.removeEventListener("online", this.onLine);
     for (const unsub of this._unsubs) {
       unsub();
     }
@@ -284,7 +293,6 @@ export default class MessagesPanel extends Component {
           MessageStore.saveMessagesAndRefresh([message]);
           return;
         } else {
-          console.log( 'MessageSend.sendMessage: ', body, conversation, messageId, loadConfig.aes);
           MessageSend.sendMessage(body, conversation, messageId, false, loadConfig.aes);
         }
       }
@@ -301,7 +309,6 @@ export default class MessagesPanel extends Component {
       }
       ChatActions.updateProgress({ percent });
     };
-
     if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
@@ -325,7 +332,6 @@ export default class MessagesPanel extends Component {
       }
     } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
       // the file is an image and it has been downloaded to local while the message was received
-      debugger
       let imgpath = msgBody.path.replace('file://', '');
       if (imgpath === filepath) {
         loadCallback();
@@ -391,6 +397,9 @@ export default class MessagesPanel extends Component {
         ChatActions.updateProgress({ failed: true });
       }
     }, 10000);
+    if (!navigator.onLine) {
+      ChatActions.updateProgress({ offline: true, failed: true });
+    }
   };
 
   cancelLoadMessage = () => {
