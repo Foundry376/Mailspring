@@ -82,6 +82,19 @@ class MessageSend {
 
   };
 
+  getAESKey = async (conversation) => {
+    const { curJid, jid, isGroup } = conversation;
+    let devices = await this.getDevices(curJid, jid, isGroup);
+    if (devices && devices.length > 0) {
+      let aeskey = generateAESKey();
+      let keys = this.addKeys(devices, aeskey);
+      if (keys && keys.length > 0) {
+        return aeskey;
+      }
+    }
+    return null;
+  }
+
   getEncrypted = (body, devices, deviceId, aes) => {
     let aeskey = aes;
     if (!aeskey) { aeskey = generateAESKey(); }
