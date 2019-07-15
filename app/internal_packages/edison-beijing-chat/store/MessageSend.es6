@@ -77,7 +77,6 @@ class MessageSend {
       }
     }
     return devices;
-
   };
 
   getAESKey = async (conversation) => {

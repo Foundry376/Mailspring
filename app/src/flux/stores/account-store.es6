@@ -181,32 +181,35 @@ class AccountStore extends MailspringStore {
   _onRemoveAccount = async id => {
     const account = this._accounts.find(a => a.id === id);
     if (!account) return;
-    let chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    let chatAccount = chatAccounts[account.emailAddress];
-    delete chatAccounts[account.emailAddress];
-    AppEnv.config.set('chatAccounts', chatAccounts);
-    if (chatAccount) {//If there is an chat account
-      let jid = chatAccount.userId + '@im.edison.tech';
-      const conversations = await ConversationStore.findConversationsByCondition({ curJid: jid });
-      for (const conv of conversations) {
-        ConversationStore.removeConversation(conv.jid);
-      }
-      let configDirPath = AppEnv.getConfigDirPath();
-      let dbpath = path.join(configDirPath, 'edisonmail.db');
-      const sqldb = sqlite(dbpath);
-      let stmt = sqldb.prepare(`SELECT * FROM contact where accountId = "${id}"`);
-      let emailContacts = stmt.all();
-      const emails = emailContacts.map(contact => contact.email);
-      sqldb.close();
-      await ContactModel.destroy({
-        where: {
-          email: {[Op.in]: emails}
+    if (AppEnv.config.get(`chatEnable`)) {
+      let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+      let chatAccount = chatAccounts[account.emailAddress];
+      delete chatAccounts[account.emailAddress];
+      AppEnv.config.set('chatAccounts', chatAccounts);
+      if (chatAccount) {//If there is an chat account
+        let jid = chatAccount.userId + '@im.edison.tech';
+        const conversations = await ConversationStore.findConversationsByCondition({ curJid: jid });
+        for (const conv of conversations) {
+          ConversationStore.removeConversation(conv.jid);
         }
-      });
-      ContactStore.refreshContacts();
-      xmpp.removeXmpp(jid);
-      removeMyApps(chatAccount.userId);
-      AppEnv.config.set(`${chatAccount.userId}_message_ts`, null)
+        let configDirPath = AppEnv.getConfigDirPath();
+        let dbpath = path.join(configDirPath, 'edisonmail.db');
+        const sqldb = sqlite(dbpath);
+        let stmt = sqldb.prepare(`SELECT * FROM contact where accountId = "${id}"`);
+        let emailContacts = stmt.all();
+        const emails = emailContacts.map(contact => contact.email);
+        sqldb.close();
+        await ContactModel.destroy({
+          where: {
+            email: {[Op.in]: emails}
+          }
+        });
+
+        ContactStore.refreshContacts();
+        xmpp.removeXmpp(jid);
+        removeMyApps(chatAccount.userId);
+        AppEnv.config.set(`${chatAccount.userId}_message_ts`, null)
+      }
     }
 
     this._caches = {};
@@ -273,9 +276,12 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-    await registerLoginEmailAccountForChat(account);
-    await AppStore.refreshAppsEmailContacts();
-    await MessageStore.saveMessagesAndRefresh([]);
+    
+    if (AppEnv.config.get(`chatEnable`)) {
+      await registerLoginEmailAccountForChat(account);
+      await AppStore.refreshAppsEmailContacts();
+      await MessageStore.saveMessagesAndRefresh([]);
+    }
   };
 
   _cachedGetter(key, fn) {

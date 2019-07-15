@@ -338,12 +338,15 @@ export function BuildColorPicker(config) {
           tabIndex="-1"
           onBlur={this._onBlur}
           ref={el => (this._el = el)}
-          className={this.props.className}
+          className={this.props.className + ' color-picker'}
           style={{ display: 'inline-block', position: 'relative' }}
         >
           <button
             onClick={this._onToggleExpanded}
             style={{
+              position: 'absolute',
+              top: 9,
+              left: 6,
               cursor: 'pointer',
               width: 14,
               height: 14,
@@ -356,7 +359,7 @@ export function BuildColorPicker(config) {
             }}
           />
           {expanded && (
-            <div className="dropdown">
+            <div className="dropdown" style={{top: 30}}>
               <CompactPicker color={color} onChangeComplete={this._onChangeComplete} />
             </div>
           )}

@@ -39,7 +39,7 @@ const CrowdedButton = ({ value, onChange, isCrowded = false }) => {
         });
       }}
     >
-      <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />
+      <RetinaImg isIcon name="arrow-dropdown.svg" mode={RetinaImg.Mode.ContentIsMask} />
     </button>
   ];
 };

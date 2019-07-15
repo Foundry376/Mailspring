@@ -325,16 +325,28 @@ export default class MessagesPanel extends Component {
       }
     } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
       // the file is an image and it has been downloaded to local while the message was received
+      debugger
       let imgpath = msgBody.path.replace('file://', '');
-      if (imgpath !== filepath) {
-        if (!fs.existsSync(imgpath)) {
-          alert(
-            'The file does not exist, probably it is failed to be received, please try to receive this message again.'
+      if (imgpath === filepath) {
+        loadCallback();
+      } else {
+        if (fs.existsSync(imgpath)) {
+          fs.copyFileSync(imgpath, filepath);
+          loadCallback();
+          // alert(
+          //   'The file does not exist, probably it is failed to be received, please try to receive this message again.'
+          // );
+        } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+          // the file is on aws
+          loadConfig.request = downloadFile(
+            msgBody.aes,
+            msgBody.mediaObjectId,
+            filepath,
+            loadCallback,
+            loadProgressCallback
           );
         }
-        fs.copyFileSync(imgpath, filepath);
       }
-      loadCallback();
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
       loadConfig.request = downloadFile(
