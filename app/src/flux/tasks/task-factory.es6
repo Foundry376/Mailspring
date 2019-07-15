@@ -9,6 +9,8 @@ import Message from '../models/message';
 import Label from '../models/label';
 import _ from 'underscore';
 import DeleteThreadsTask from './delete-threads-task';
+import ExpungeAllInFolderTask from './expunge-all-in-folder-task';
+import ExpungeMessagesTask from './expunge-messages-task';
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
@@ -153,7 +155,7 @@ const TaskFactory = {
     if (messages.length > 0 && messages[0] instanceof Message) {
       tasks.push(
         ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
-          return new DeleteThreadsTask({
+          return new ExpungeMessagesTask({
             accountId: accountId,
             messageIds: messages.map(msg => msg.id),
             source,

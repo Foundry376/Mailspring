@@ -111,6 +111,7 @@ lazyLoadAndRegisterTask(`ChangeRoleMappingTask`, 'change-role-mapping-task');
 lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-task');
 lazyLoadAndRegisterTask(`UndoTask`, 'undo-task');
 lazyLoadAndRegisterTask('AnalyzeDBTask', 'analyze-db-task');
+lazyLoadAndRegisterTask('ExpungeMessagesTask', 'expunge-messages-task');
 lazyLoadAndRegisterTask('DeleteThreadsTask', 'delete-threads-task');
 lazyLoadAndRegisterTask('CalendarTask', 'calendar-task');
 
