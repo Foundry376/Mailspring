@@ -138,7 +138,7 @@ class FocusedContentStore extends MailspringStore {
     const keyboardCursorEnabled = WorkspaceStore.layoutMode() === 'list';
     if (keyboardCursorEnabled !== this._keyboardCursorEnabled) {
       this._keyboardCursorEnabled = keyboardCursorEnabled;
-      this._focused = {};
+      // this._focused = {};
       //TODO need permanent fix for message/participant view clear issue
       // if (keyboardCursorEnabled) {
       //   for (const [collection, item] of Object.entries(this._focused)) {
