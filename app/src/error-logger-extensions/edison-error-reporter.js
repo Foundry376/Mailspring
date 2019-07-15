@@ -1,5 +1,5 @@
 /* eslint global-require: 0 */
-const { getDeviceHash } = require('../system-utils');
+const { getDeviceHash, getOSInfo } = require('../system-utils');
 const _ = require('underscore');
 var https = require('https');
 module.exports = class EdisonErrorReporter {
@@ -13,7 +13,10 @@ module.exports = class EdisonErrorReporter {
 
     if (!this.inSpecMode) {
       try {
-        this.deviceHash = getDeviceHash();
+        this.deviceHash = '';
+        getDeviceHash().then(value => {
+          this.deviceHash = value;
+        });
       } catch (err) {
         console.error(err);
       }
@@ -28,37 +31,90 @@ module.exports = class EdisonErrorReporter {
     if (this.inSpecMode || this.inDevMode) {
       return;
     }
-    this._sendErrorToServer({
-      app: "DESKTOP",
-      platform: process.platform,
-      device_id: this.deviceHash,
-      level: "ERROR",
-      time: new Date().getTime(),
-      version: this.getVersion(),
-      data: {
+    if (!extra.osInfo) {
+      extra.osInfo = getOSInfo();
+    }
+    if (this.deviceHash === '') {
+      getDeviceHash().then(value => {
+        this.deviceHash = value;
+        return Promise.resolve();
+      }, () => {
+        this.deviceHash = 'Unknown Device Hash';
+      }).then(() => {
+        this._sendErrorToServer({
+          app: 'DESKTOP',
+          platform: process.platform,
+          device_id: this.deviceHash,
+          level: 'ERROR',
+          time: new Date().getTime(),
+          version: this.getVersion(),
+          data: {
+            version: this.getVersion(),
+            error: err,
+            extra: extra,
+          },
+        });
+      });
+    } else {
+      this._sendErrorToServer({
+        app: 'DESKTOP',
+        platform: process.platform,
+        device_id: this.deviceHash,
+        level: 'ERROR',
+        time: new Date().getTime(),
         version: this.getVersion(),
-        error: err,
-        extra: extra
-      }
-    })
+        data: {
+          version: this.getVersion(),
+          error: err,
+          extra: extra,
+        },
+      });
+    }
   }
+
   reportWarning(err, extra) {
-    if (this.inSpecMode || this.inDevMode) {
+    if (this.inSpecMode) {
       return;
     }
-    this._sendErrorToServer({
-      app: "DESKTOP",
-      platform: process.platform,
-      device_id: this.deviceHash,
-      level: "WARNING",
-      time: new Date().getTime(),
-      version: this.getVersion(),
-      data: {
+    if (!extra.osInfo) {
+      extra.osInfo = getOSInfo();
+    }
+    if (this.deviceHash === '') {
+      getDeviceHash().then(value => {
+        this.deviceHash = value;
+        return Promise.resolve();
+      }, () => {
+        this.deviceHash = 'Unknown Device Hash';
+      }).then(() => {
+        this._sendErrorToServer({
+          app: 'DESKTOP',
+          platform: process.platform,
+          device_id: this.deviceHash,
+          level: 'WARNING',
+          time: new Date().getTime(),
+          version: this.getVersion(),
+          data: {
+            version: this.getVersion(),
+            error: err,
+            extra: extra,
+          },
+        });
+      });
+    } else {
+      this._sendErrorToServer({
+        app: 'DESKTOP',
+        platform: process.platform,
+        device_id: this.deviceHash,
+        level: 'WARNING',
+        time: new Date().getTime(),
         version: this.getVersion(),
-        error: err,
-        extra: extra
-      }
-    })
+        data: {
+          version: this.getVersion(),
+          error: err,
+          extra: extra,
+        },
+      });
+    }
   }
 
   _sendErrorToServer(post_data) {
@@ -75,21 +131,21 @@ module.exports = class EdisonErrorReporter {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': content.length
-      }
+        'Content-Length': content.length,
+      },
     };
 
-    var req = https.request(options, function (res) {
+    var req = https.request(options, function(res) {
       var _data = '';
-      res.on('error', function (error) {
+      res.on('error', function(error) {
         console.error(error);
       });
 
-      res.on('data', function (chunk) {
+      res.on('data', function(chunk) {
         _data += chunk;
       });
 
-      res.on('end', function () {
+      res.on('end', function() {
         // console.log("\n--->>\nresult:", _data);
       });
     });
