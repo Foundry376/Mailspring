@@ -36,6 +36,11 @@ export default {
             default: true,
             title: 'Show unread counts for all folders / labels',
           },
+          chatEnable: {
+            type: 'boolean',
+            default: false,
+            title: 'enable chat feature',
+          },
           use24HourClock: {
             type: 'boolean',
             default: false,

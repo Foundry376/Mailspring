@@ -22,7 +22,7 @@ const isChatTest = isChatTestUser();
 
 module.exports = {
   activate() {
-    if (AppEnv.config.get(`chatEnable`) === 1) {
+    if (AppEnv.config.get(`chatEnable`)) {
       WorkspaceStore.defineSheet('ChatView', { root: true }, {
         list: ['RootSidebar', 'ChatView'],
         split: ['RootSidebar', 'ChatView']
@@ -54,7 +54,7 @@ module.exports = {
   },
 
   deactivate() {
-    if (AppEnv.config.get(`chatEnable`) === 1) {
+    if (AppEnv.config.get(`chatEnable`)) {
       const { devMode } = AppEnv.getLoadSettings();
       if (true || devMode || isChatTest) {
         if (AppEnv.isMainWindow()) {
