@@ -73,7 +73,7 @@ module.exports = class EdisonErrorReporter {
   }
 
   reportWarning(err, extra) {
-    if (this.inSpecMode) {
+    if (this.inSpecMode || this.inDevMode) {
       return;
     }
     if (!extra.osInfo) {
