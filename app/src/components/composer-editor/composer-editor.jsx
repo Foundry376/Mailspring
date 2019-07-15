@@ -181,16 +181,15 @@ export default class ComposerEditor extends React.Component {
       }
     }
 
-    // DC-145
-    // Removed because we will be relying on electron's paste with style
-    // const html = event.clipboardData.getData('text/html');
-    // if (html) {
-    //   const value = convertFromHTML(html);
-    //   if (value && value.document) {
-    //     change.insertFragment(value.document);
-    //     return true;
-    //   }
-    // }
+    // Reinstated because the bug is causing more trouble than it's worth.
+    const html = event.clipboardData.getData('text/html');
+    if (html) {
+      const value = convertFromHTML(html);
+      if (value && value.document) {
+        change.insertFragment(value.document);
+        return true;
+      }
+    }
   };
 
   openContextMenu = ({ word, sel, hasSelectedText }) => {
