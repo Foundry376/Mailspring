@@ -276,7 +276,7 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-    
+
     if (AppEnv.config.get(`chatEnable`)) {
       await registerLoginEmailAccountForChat(account);
       await AppStore.refreshAppsEmailContacts();

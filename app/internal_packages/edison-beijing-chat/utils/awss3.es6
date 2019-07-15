@@ -42,7 +42,6 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
         } else {
           if (aes) {
             //fs.writeFileSync('./files/src' + name, data.Body);
-            　console.log( 'downloadFile: ', aes, data);
             fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
           } else {
             fs.writeFileSync(name, data.Body);
