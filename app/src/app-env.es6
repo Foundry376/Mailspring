@@ -249,9 +249,6 @@ export default class AppEnvConstructor {
   //
   reportError(error, extra = {}, { noWindows } = {}) {
     try {
-      if (Array.isArray(AppEnv.config.get('accounts'))) {
-        extra.accounts = AppEnv.config.get('accounts').map(ac => ac.emailAddress);
-      }
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
       extra.pluginIds = this._findPluginsFromError(error);
@@ -282,9 +279,6 @@ export default class AppEnvConstructor {
 
   reportWarning(error, extra = {}, { noWindows } = {}) {
     try {
-      if (Array.isArray(AppEnv.config.get('accounts'))) {
-        extra.accounts = AppEnv.config.get('accounts').map(ac => ac.emailAddress);
-      }
       getOSInfo = getOSInfo | require('./system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
       extra.pluginIds = this._findPluginsFromError(error);
@@ -313,32 +307,79 @@ export default class AppEnvConstructor {
     this.errorLogger.reportWarning(error, extra);
   }
 
+  _stripSensitiveData(str) {
+    const _stripData = (key, strData) => {
+      let leftStr = '"';
+      let rightStr = '"';
+      if (key !== 'body' && key !== 'subject' && key !== 'snippet' && key !== 'emailAddress' && key !== 'imap_username' && key !== 'smtp_username' && key !== 'access_token' && key !== 'refresh_token') {
+        leftStr = '[';
+        rightStr = ']';
+      }
+      const keyStartIndex = strData.indexOf(`"${key}":${leftStr}`);
+      if (keyStartIndex !== -1) {
+        const endKeyIndex = strData.indexOf(`${rightStr},"`, keyStartIndex);
+        if (endKeyIndex !== -1) {
+          return (
+            strData.slice(0, keyStartIndex) +
+            `"${key}":${leftStr + rightStr},"` +
+            strData.slice(endKeyIndex + 3)
+          );
+        }
+      }
+      return strData;
+    };
+    const sensitiveKeys = [
+      'emailAddress',
+      'imap_username',
+      'smtp_username',
+      'access_token',
+      'refresh_token',
+      'body',
+      'subject',
+      'snippet',
+      'to',
+      'from',
+      'cc',
+      'bcc',
+      'replyTo',
+    ];
+    for (let i = 0; i < sensitiveKeys.length; i++) {
+      const key = sensitiveKeys[i];
+      str = _stripData(key, str);
+    }
+    return str;
+  }
+
   logError(error) {
     if (this.inDevMode()) {
       console.error(error);
     }
-    LOG.error(error.toLocaleString());
+    let str = this._stripSensitiveData(error.toLocaleString());
+    LOG.error(str);
   }
 
   logWarning(log) {
     if (this.inDevMode()) {
       console.warn(log);
     }
-    LOG.warn(log.toLocaleString());
+    const str = this._stripSensitiveData(log.toLocaleString());
+    LOG.warn(str);
   }
 
   logDebug(log) {
     if (this.inDevMode()) {
       console.log(log);
     }
-    LOG.debug(log.toLocaleString());
+    const str = this._stripSensitiveData(log.toLocaleString());
+    LOG.debug(str);
   }
 
   logInfo(log) {
     if (this.inDevMode()) {
       console.log(log);
     }
-    LOG.info(log.toLocaleString());
+    const str = this._stripSensitiveData(log.toLocaleString());
+    LOG.info(str);
   }
 
   _findPluginsFromError(error) {
