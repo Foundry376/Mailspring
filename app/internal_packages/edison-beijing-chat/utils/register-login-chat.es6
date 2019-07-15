@@ -2,7 +2,7 @@ import keyMannager from '../../../src/key-manager';
 import { register } from './restjs';
 import auth from '../xmpp/auth';
 import { OnlineUserStore } from 'chat-exports';
-import { log2 } from './log-util';
+import { log } from './log';
 
 export default async function registerLoginChat() {
   let accounts = AppEnv.config.get('accounts');
@@ -37,7 +37,7 @@ export async function registerLoginEmailAccountForChat(account) {
     console.log("registerLoginChat account.settings.refresh_token, account.settings.imap_password, account: ", account.settings.refresh_token, account.settings.imap_password, account);
     if (account.settings && !account.settings.imap_password && !account.settings.refresh_token) {
       console.error('email account passwords in keychain lost! ', account);
-      log2(`registerLoginEmailAccountForChat: email account passwords in keychain lost!`);
+      log('register-login', `registerLoginEmailAccountForChat: email account passwords in keychain lost!`);
       return;
     }
     let type;

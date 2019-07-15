@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import registerLoginChat from '../../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ChatActions, OnlineUserStore } from 'chat-exports';
-import { log, log2 } from '../../../../utils/log-util';
+import { log } from '../../../../utils/log';
 
 export default class OnlineStatus extends Component {
   static propTypes = {
@@ -42,7 +42,7 @@ export default class OnlineStatus extends Component {
     }
     const str = JSON.stringify(OnlineUserStore.onlineAccounts);
     const str2 = JSON.stringify(OnlineUserStore.authingAccounts);
-    log(`OnlineStatus._onDataChanged, chat_online: ${chat_online}, isAuthenticating: ${isAuthenticating}: onlineAccounts: ${str}, authingAccounts: ${str2}`);
+    log('connect', `OnlineStatus._onDataChanged, chat_online: ${chat_online}, isAuthenticating: ${isAuthenticating}: onlineAccounts: ${str}, authingAccounts: ${str2}`);
     this.setState({
       chat_online,
       isAuthenticating
@@ -114,7 +114,7 @@ export default class OnlineStatus extends Component {
   };
 
   onLine = () => {
-    log(`MessagePanel: chat online`);
+    log('connect', `MessagePanel: chat online`);
     // connect to chat server
     if (!this.state.chat_online) {
       this.reconnect();
@@ -129,7 +129,7 @@ export default class OnlineStatus extends Component {
   };
 
   offLine = () => {
-    log(`MessagePanel: chat offline`);
+    log('connect', `MessagePanel: chat offline`);
     ChatActions.updateProgress({ offline: true, failed: true });
     this.setState({
       online: false

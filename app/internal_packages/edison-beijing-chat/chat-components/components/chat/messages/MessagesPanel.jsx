@@ -37,7 +37,7 @@ import { sendFileMessage } from '../../../../utils/message';
 import { getToken } from '../../../../utils/appmgt';
 import { LocalStorage } from 'chat-exports';
 import { alert } from '../../../../utils/electron';
-import { log2 } from '../../../../utils/log-util';
+import { log } from '../../../../utils/log';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -221,7 +221,7 @@ export default class MessagesPanel extends Component {
     registerLoginChat();
   };
 
-  queueLoadMessage = loadConfig => {
+  queueLoadMessage = async loadConfig => {
     let { progress } = ProgressBarStore;
     progress = Object.assign({}, progress);
     let { loading } = progress;
@@ -236,11 +236,11 @@ export default class MessagesPanel extends Component {
       { onCancel: this.cancelLoadMessage, onRetry: this.retryLoadMessage }
     );
     if (!loading) {
-      this.loadMessage();
+      await this.loadMessage();
     }
   };
 
-  loadMessage = () => {
+  loadMessage =  async () => {
     const { progress } = ProgressBarStore;
     let { loadConfig } = progress;
     ChatActions.updateProgress({
@@ -251,9 +251,7 @@ export default class MessagesPanel extends Component {
       visible: true,
     });
     const { msgBody, filepath } = loadConfig;
-    log2(
-      `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`
-    );
+    log('load', `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
     const loadCallback = (...args) => {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
@@ -269,11 +267,11 @@ export default class MessagesPanel extends Component {
         let body = loadConfig.msgBody;
         body.isUploading = false;
         body.mediaObjectId = myKey;
-        log2(`MessagePanel.loadMessage: mediaObjectId: `, myKey);
+        log('load', `MessagePanel.loadMessage: mediaObjectId: `, myKey);
         if (err) {
           const str = `${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`;
           console.error(str);
-          log2(`MessagePanel.loadMessage: error: ` + str);
+          log('load', `MessagePanel.loadMessage: error: ` + str);
           body = JSON.stringify(body);
           const message = {
             id: messageId,
@@ -286,12 +284,13 @@ export default class MessagesPanel extends Component {
           MessageStore.saveMessagesAndRefresh([message]);
           return;
         } else {
+          console.log( 'MessageSend.sendMessage: ', body, conversation, messageId, loadConfig.aes);
           MessageSend.sendMessage(body, conversation, messageId, false, loadConfig.aes);
         }
       }
     };
 
-    const loadProgressCallback = progress => {
+    const loadProgressCallback =  progress => {
       const { loaded, total } = progress;
       const percent = Math.floor((+loaded * 100.0) / +total);
       if (loadConfig.type === 'upload' && +loaded === +total) {
@@ -307,7 +306,7 @@ export default class MessagesPanel extends Component {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
-      const aes = generateAESKey();
+      const aes = await MessageSend.getAESKey(conversation);
       loadConfig.aes = aes;
       try {
         loadConfig.request = uploadFile(
@@ -326,16 +325,28 @@ export default class MessagesPanel extends Component {
       }
     } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
       // the file is an image and it has been downloaded to local while the message was received
+      debugger
       let imgpath = msgBody.path.replace('file://', '');
-      if (imgpath !== filepath) {
-        if (!fs.existsSync(imgpath)) {
-          alert(
-            'The file does not exist, probably it is failed to be received, please try to receive this message again.'
+      if (imgpath === filepath) {
+        loadCallback();
+      } else {
+        if (fs.existsSync(imgpath)) {
+          fs.copyFileSync(imgpath, filepath);
+          loadCallback();
+          // alert(
+          //   'The file does not exist, probably it is failed to be received, please try to receive this message again.'
+          // );
+        } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+          // the file is on aws
+          loadConfig.request = downloadFile(
+            msgBody.aes,
+            msgBody.mediaObjectId,
+            filepath,
+            loadCallback,
+            loadProgressCallback
           );
         }
-        fs.copyFileSync(imgpath, filepath);
       }
-      loadCallback();
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
       loadConfig.request = downloadFile(
@@ -410,8 +421,8 @@ export default class MessagesPanel extends Component {
 
   retryLoadMessage = () => {
     ChatActions.updateProgress({ failed: false });
-    setTimeout(() => {
-      this.loadMessage();
+    setTimeout(async () => {
+      await this.loadMessage();
     });
   };
 

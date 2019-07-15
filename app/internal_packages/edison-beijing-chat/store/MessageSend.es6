@@ -50,7 +50,6 @@ class MessageSend {
     if (!message.ediEncrypted) {
       message.body = strBody;
     }
-    console.log('occupants.message', message);
     xmpp.sendMessage(message, from);
   };
 
@@ -59,7 +58,6 @@ class MessageSend {
     if (isGroup) {
       const occupants = await RoomStore.getConversationOccupants(to, from);
       const e2ees = await E2eeStore.find(occupants);
-      console.log('occupants', occupants, e2ees);
       if (e2ees && e2ees.length == occupants.length) {
         e2ees.forEach((e2ee => {
           let device = {};
@@ -81,6 +79,19 @@ class MessageSend {
     return devices;
 
   };
+
+  getAESKey = async (conversation) => {
+    const { curJid, jid, isGroup } = conversation;
+    let devices = await this.getDevices(curJid, jid, isGroup);
+    if (devices && devices.length > 0) {
+      let aeskey = generateAESKey();
+      let keys = this.addKeys(devices, aeskey);
+      if (keys && keys.length > 0) {
+        return aeskey;
+      }
+    }
+    return null;
+  }
 
   getEncrypted = (body, devices, deviceId, aes) => {
     let aeskey = aes;

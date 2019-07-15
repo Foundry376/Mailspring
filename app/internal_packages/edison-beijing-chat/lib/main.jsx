@@ -4,7 +4,6 @@ import ChatViewLeft from './chat-view-left';
 import ChatAccountSidebarFiller from '../chat-components/components/chat/chat-account-sidebar-filler';
 import {LocalStorage} from 'chat-exports';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
-import { init, quit } from '../utils/log-util';
 import '../model/';
 const osLocale = require('os-locale');
 const CHAT_COUNTRIES = [
@@ -50,11 +49,9 @@ module.exports = {
       //   });
       // }
     }
-    init();
   },
 
   deactivate() {
-    quit();
     const { devMode } = AppEnv.getLoadSettings();
     if (true || devMode || isChatTest) {
       if (AppEnv.isMainWindow()) {

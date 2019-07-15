@@ -222,6 +222,7 @@ class MessageStore extends MailspringStore {
   };
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
+    debugger
     let body;
     let convJid = payload.from.bare;
     if (aes) {
@@ -243,14 +244,9 @@ class MessageStore extends MailspringStore {
     if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // a link
       msgBody.path = msgBody.mediaObjectId;
-      // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
-    } else if (
-      msgBody.mediaObjectId &&
-      (msgBody.type === FILE_TYPE.IMAGE ||
-        msgBody.type === FILE_TYPE.GIF ||
-        msgBody.type === FILE_TYPE.OTHER_FILE)
-    ) {
-      // file on aws
+    } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
+      // file on aws and it is image
+      // do not download other document, maybe it is big document
       let name = msgBody.mediaObjectId || '';
       if (name && name.indexOf('/') !== -1) {
         name = name.substr(name.lastIndexOf('/') + 1);
@@ -264,6 +260,7 @@ class MessageStore extends MailspringStore {
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
+      console.log( 'MessageStore: downloadFile: ', aes, msgBody, thumbPath);
       if (msgBody.thumbObjectId) {
         downloadFile(aes, msgBody.thumbObjectId, thumbPath, err => {
           if (err) {
