@@ -29,6 +29,7 @@ import { remote } from 'electron';
 const { Menu, MenuItem } = remote;
 
 const buttonTimeout = 700;
+const TOOLBAR_MIN_WIDTH = 595;
 
 class MessageListScrollTooltip extends React.Component {
   static displayName = 'MessageListScrollTooltip';
@@ -92,6 +93,7 @@ class MessageList extends React.Component {
     this.state.isReplyAlling = false;
     this.state.isReplying = false;
     this.state.isForwarding = false;
+    this.state.hideButtons = false;
     this._replyTimer = null;
     this._replyAllTimer = null;
     this._forwardTimer = null;
@@ -108,6 +110,8 @@ class MessageList extends React.Component {
       Actions.composeReply.listen(this._onCreatingDraft, this),
       WorkspaceStore.listen(this._onChange)
     ];
+    window.addEventListener('resize', this._onResize, true);
+    this._onResize();
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -119,14 +123,30 @@ class MessageList extends React.Component {
   }
 
   componentWillUnmount() {
-    // console.log('unmounting message-list');
     for (const unsubscribe of this._unsubscribers) {
       unsubscribe();
     }
     this._mounted = false;
+    window.removeEventListener('resize', this._onResize, true);
     clearTimeout(this._forwardTimer);
     clearTimeout(this._replyAllTimer);
     clearTimeout(this._replyTimer);
+  }
+
+  _onResize = () => {
+    const container = document.querySelector('#message-list-toolbar .item-container');
+    if (!container) {
+      return;
+    }
+    let hideButtons = false;
+    if (container.clientWidth <= TOOLBAR_MIN_WIDTH) {
+      hideButtons = true;
+    }
+    if (this.state.hideButtons !== hideButtons) {
+      this.setState({
+        hideButtons
+      })
+    }
   }
 
   _timeoutButton = (type) => {
@@ -463,6 +483,7 @@ class MessageList extends React.Component {
     if ((this.state.currentThread || {}).id !== (newState.currentThread || {}).id) {
       newState.minified = true;
     }
+    this._onResize();
     this.setState(newState);
   };
 
@@ -475,7 +496,6 @@ class MessageList extends React.Component {
       currentThread: MessageStore.thread(),
       loading: MessageStore.itemsLoading(),
       popedOut: MessageStore.isPopedOut(),
-      hiddenLocations: WorkspaceStore.hiddenLocations()
     };
   }
   _onSelectText = e => {
@@ -650,10 +670,6 @@ class MessageList extends React.Component {
     }
   };
 
-  _hideButtons() {
-    return this.state.hiddenLocations.findIndex(item => item.id === 'MessageListSidebar') === -1;
-  }
-
   render() {
     if (!this.state.currentThread) {
       return <div className="empty" />;
@@ -668,7 +684,7 @@ class MessageList extends React.Component {
       'message-list': true,
       'height-fix': SearchableComponentStore.searchTerm !== null,
     });
-    const hideButtons = this._hideButtons() ? ' hide-btn-when-crowded' : '';
+    const hideButtons = this.state.hideButtons ? ' hide-btn-when-crowded' : '';
 
     return (
       <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
@@ -677,7 +693,7 @@ class MessageList extends React.Component {
           <InjectedComponentSet
             className="item-container"
             matching={{ role: 'MessageListToolbar' }}
-            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages, hiddenLocations: WorkspaceStore.hiddenLocations()}}
+            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages, hiddenLocations: WorkspaceStore.hiddenLocations() }}
           />
         </div>
         <div className={messageListClass} id="message-list">
