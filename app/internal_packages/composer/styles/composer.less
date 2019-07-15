@@ -115,6 +115,22 @@
   font-size: 14px;
   user-select: none;
   position: relative;
+  .color-picker {
+    padding: 4px 5px;
+    border: none;
+    background: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 17px;
+    flex: 1;
+    flex-shrink: 0;
+    max-width: 34px;
+    transition: background 0.4s;
+    &:hover{
+      color: @medium-grey;
+      background: @off-white;
+    }
+  }
   .active-crowded-state{
     .hide-when-crowded{
       display: none;
@@ -150,8 +166,8 @@
     width: 1px;
     height: 22px;
     border-right: 1px solid @border-color-divider;
-    margin-right: 1px;
-    padding-right: 1px;
+    margin-right: 6px;
+    margin-left: 6px;
   }
 
   button {
@@ -191,10 +207,11 @@
         cursor: pointer;
         border: none;
         color: fadeout(@gray, 30%);
-        background: none;
         margin: 0;
         min-width: 72px;
         max-width: 92px;
+        background: url("../static/images/composer/icon-composer-dropdown@1x.png") no-repeat right transparent;
+        -webkit-appearance: none;
         &:hover {
           color: fadeout(@black, 5%);
         }
