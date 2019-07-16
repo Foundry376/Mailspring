@@ -27,7 +27,7 @@ const startXmpp = xmpp => {
   let pullMessage = (ts, jid) => {
     xmpp.pullMessage(ts, jid).then(data => {
       const jidLocal = jid.split('@')[0];
-      if (data && data.edipull && data.edipull.more == "true") {
+      if (data && data.edipull && data.edipull.more == 'true') {
         saveLastTs2(jidLocal, data.edipull.since);
         pullMessage(data.edipull.since, jid);
       } else {
@@ -116,7 +116,7 @@ const startXmpp = xmpp => {
 
   xmpp.on('message:error', async data => {
     if (data.error && data.error.code == 403 && data.id) {
-      let msgInDb = await MessageStore.getMessageById(data.id + '$' + data.from.bare);
+      let msgInDb = await MessageStore.getMessageById(data.id, data.from.bare);
       if (!msgInDb) {
         return;
       }
@@ -131,7 +131,7 @@ const startXmpp = xmpp => {
     }
   });
   xmpp.on('message:success', async data => {
-    let msgInDb = await MessageStore.getMessageById(data.$received.id + '$' + data.from.bare);
+    let msgInDb = await MessageStore.getMessageById(data.$received.id, data.from.bare);
     if (!msgInDb) {
       return;
     }
@@ -142,7 +142,7 @@ const startXmpp = xmpp => {
 
   xmpp.on('message:failed', async message => {
     console.log('message:failed: ', message);
-    // let msgInDb = await MessageStore.getMessageById(data.$received.id + '$' + data.from.bare);
+    // let msgInDb = await MessageStore.getMessageById(data.$received.id, data.from.bare);
     // if (!msgInDb) {
     //   return;
     // }

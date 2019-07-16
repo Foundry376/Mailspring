@@ -20,7 +20,6 @@ import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
 
-const SEPARATOR = '$';
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
 export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT';
 export const FILE_TYPE = {
@@ -41,10 +40,11 @@ class MessageStore extends MailspringStore {
   }
 
   _registerListeners() {}
-  getMessageById = async id => {
+  getMessageById = async (id, conversationJid) => {
     return await MessageModel.findOne({
       where: {
         id,
+        conversationJid,
       },
     });
   };
@@ -82,16 +82,10 @@ class MessageStore extends MailspringStore {
   };
 
   removeMessageById = async (id, convJid) => {
-    const $index = id.lastIndexOf('$');
-    if ($index > 0) {
-      convJid = id.substr($index + 1);
-    } else {
-      if (!convJid) {
-        convJid = this.conversationJid;
-      }
-      id += '$' + convJid;
+    if (!convJid) {
+      convJid = this.conversationJid;
     }
-    await MessageModel.destroy({ where: { id } });
+    await MessageModel.destroy({ where: { id, conversationJid: convJid } });
     if (convJid === this.conversationJid) {
       await this.retrieveSelectedConversationMessages(convJid);
     }
@@ -193,11 +187,7 @@ class MessageStore extends MailspringStore {
         convJid = message.from.bare;
       }
     }
-    let msgId = message.id;
-    if (msgId.indexOf('$') < 0) {
-      msgId = msgId + '$' + convJid;
-    }
-    const messageInDb = await this.getMessageById(msgId);
+    const messageInDb = await this.getMessageById(message.id, convJid);
     if (messageInDb) {
       // if already exist in db, skip it
       if (messageInDb.body === message.body) {
@@ -269,7 +259,7 @@ class MessageStore extends MailspringStore {
             msgBody.content = `the file ${name} failed to be downloaded`;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id + '$' + convJid,
+              id: payload.id,
               conversationJid: convJid,
               body,
               status: 'MESSAGE_STATUS_TRANSFER_FAILED',
@@ -285,7 +275,7 @@ class MessageStore extends MailspringStore {
                 msgBody.downloading = false;
                 body = JSON.stringify(msgBody);
                 const msg = {
-                  id: payload.id + '$' + convJid,
+                  id: payload.id,
                   conversationJid: convJid,
                   body,
                   status: 'MESSAGE_STATUS_TRANSFER_FAILED',
@@ -297,7 +287,7 @@ class MessageStore extends MailspringStore {
                 msgBody.downloading = false;
                 body = JSON.stringify(msgBody);
                 const msg = {
-                  id: payload.id + '$' + convJid,
+                  id: payload.id,
                   conversationJid: convJid,
                   body,
                   status: 'MESSAGE_STATUS_RECEIVED',
@@ -315,7 +305,7 @@ class MessageStore extends MailspringStore {
             msgBody.downloading = false;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id + '$' + convJid,
+              id: payload.id,
               conversationJid: convJid,
               body,
               status: 'MESSAGE_STATUS_TRANSFER_FAILED',
@@ -327,7 +317,7 @@ class MessageStore extends MailspringStore {
             msgBody.downloading = false;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id + '$' + convJid,
+              id: payload.id,
               conversationJid: convJid,
               body,
               status: 'MESSAGE_STATUS_RECEIVED',
@@ -582,14 +572,13 @@ class MessageStore extends MailspringStore {
     for (const msg of messages) {
       if (!msg.conversationJid) {
         console.error(`msg did not have conversationJid`, msg);
+        msg.conversationJid = this.conversationJid;
       }
-      // update message id: uuid + conversationJid
-      if (msg.id.indexOf(SEPARATOR) === -1) {
-        msg.id += SEPARATOR + msg.conversationJid;
-      }
+
       const messageInDb = await MessageModel.findOne({
         where: {
           id: msg.id,
+          conversationJid: msg.conversationJid,
         },
       });
       if (messageInDb) {
@@ -627,6 +616,7 @@ class MessageStore extends MailspringStore {
         const messageInDb = await MessageModel.findOne({
           where: {
             id: msg.id,
+            conversationJid: msg.conversationJid,
           },
         });
         if (messageInDb && messageInDb.status === 'MESSAGE_STATUS_SENDING') {
@@ -718,8 +708,8 @@ const getLastMessageInfo = async message => {
     });
 
     if (lastMessage) {
-      const id = message.id.split('$')[0];
-      const lastid = lastMessage.id.split('$')[0];
+      const id = message.id;
+      const lastid = lastMessage.id;
       if (id != lastid) {
         sender = lastMessage.sender;
         lastMessageTime = lastMessage.sentTime;

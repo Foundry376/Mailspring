@@ -36,7 +36,7 @@ class ConversationStore extends MailspringStore {
     if (jids.length > 1 && selectedIndex > 0) {
       this.setSelectedConversation(jids[selectedIndex - 1]);
     }
-  }
+  };
 
   nextConversation = async () => {
     const jid = this.selectedConversation ? this.selectedConversation.jid : null;
@@ -45,25 +45,25 @@ class ConversationStore extends MailspringStore {
     if (selectedIndex === -1 || selectedIndex < jids.length - 1) {
       this.setSelectedConversation(jids[selectedIndex + 1]);
     }
-  }
+  };
 
-  removeConversation = async (jid) => {
+  removeConversation = async jid => {
     await ConversationModel.destroy({
       where: {
-        jid
-      }
+        jid,
+      },
     });
     this.refreshConversations();
     MessageStore.removeMessagesByConversationJid(jid);
-  }
+  };
 
   deselectConversation = async () => {
     this.selectedConversation = null;
     MessageStore.conversationJid = null;
     this._triggerDebounced();
-  }
+  };
 
-  setSelectedConversation = async (jid) => {
+  setSelectedConversation = async jid => {
     if (jid === NEW_CONVERSATION) {
       this.selectedConversation = {
         jid: jid,
@@ -78,33 +78,33 @@ class ConversationStore extends MailspringStore {
       return;
     }
     // the same conversation, skip refresh
-    if (this.selectedConversation && (this.selectedConversation.jid === jid)) {
+    if (this.selectedConversation && this.selectedConversation.jid === jid) {
       if (this.selectedConversation.unreadMessages) {
         await this._clearUnreadCount(jid);
       }
       return;
     }
     // refresh message store
-    if (!this.selectedConversation || (this.selectedConversation.jid !== jid)) {
+    if (!this.selectedConversation || this.selectedConversation.jid !== jid) {
       MessageStore.retrieveSelectedConversationMessages(jid);
     }
     await this._clearUnreadCount(jid);
     const conv = await this.getConversationByJid(jid);
     this.selectedConversation = conv;
     this._triggerDebounced();
-  }
+  };
 
-  setSelectedConversationsCurJid = async (curJid) => {
+  setSelectedConversationsCurJid = async curJid => {
     if (this.selectedConversation && this.selectedConversation.jid) {
       await this.updateConversationByJid({ curJid }, this.selectedConversation.jid);
       this.refreshConversations();
     }
-  }
+  };
 
-  _clearUnreadCount = async (jid) => {
-    await ConversationModel.update({ unreadMessages: 0 }, { where: { jid } })
+  _clearUnreadCount = async jid => {
+    await ConversationModel.update({ unreadMessages: 0 }, { where: { jid } });
     this.refreshConversations();
-  }
+  };
 
   getSelectedConversation() {
     return this.selectedConversation;
@@ -120,7 +120,7 @@ class ConversationStore extends MailspringStore {
         this.deselectConversation();
       }
     }
-  }
+  };
   goToMostRecentConvorsation = () => {
     const conversation = this.getMostRecentConversation();
     if (conversation) {
@@ -131,7 +131,7 @@ class ConversationStore extends MailspringStore {
     return this.conversations.length > 0 ? this.conversations[0] : null;
   };
 
-  getConversationByJid = async (jid) => {
+  getConversationByJid = async jid => {
     for (const conv of this.conversations) {
       if (conv.jid === jid) {
         return conv;
@@ -139,40 +139,38 @@ class ConversationStore extends MailspringStore {
     }
     return await ConversationModel.findOne({
       where: {
-        jid
-      }
+        jid,
+      },
     });
-  }
+  };
 
-  findConversationsByCondition = async (condition) => {
+  findConversationsByCondition = async condition => {
     return await ConversationModel.findAll({
-      where: condition
+      where: condition,
     });
-  }
+  };
 
   refreshConversations = async () => {
     this.conversations = await ConversationModel.findAll({
-      order: [
-        ['lastMessageTime', 'desc']
-      ]
+      order: [['lastMessageTime', 'desc']],
     });
     if (this.selectedConversation && this.selectedConversation.jid !== NEW_CONVERSATION) {
       this.selectedConversation = await this.getConversationByJid(this.selectedConversation.jid);
     }
     this._triggerDebounced();
-    let count = 0
-    this.conversations.forEach(item => count += item.unreadMessages);
+    let count = 0;
+    this.conversations.forEach(item => (count += item.unreadMessages));
     this.setTrayChatUnreadCount(count);
-  }
+  };
 
   setTrayChatUnreadCount = _.debounce(count => AppEnv.setTrayChatUnreadCount(count), 500);
 
-  saveConversations = async (convs) => {
+  saveConversations = async convs => {
     for (const conv of convs) {
       const convInDb = await ConversationModel.findOne({
         where: {
-          jid: conv.jid
-        }
+          jid: conv.jid,
+        },
       });
       // if exists in db, don't update curJid
       if (convInDb) {
@@ -182,18 +180,18 @@ class ConversationStore extends MailspringStore {
       await ConversationModel.upsert(conv);
     }
     this.refreshConversations();
-  }
+  };
 
   updateConversationByJid = async (data, jid) => {
     await ConversationModel.update(data, {
       where: {
-        jid
-      }
+        jid,
+      },
     });
     this.refreshConversations();
-  }
+  };
 
-  createGroupConversation = async (payload) => {
+  createGroupConversation = async payload => {
     await RoomStore.createGroupChatRoom(payload);
     const { contacts, roomId, name, curJid } = payload;
     const content = '';
@@ -204,20 +202,23 @@ class ConversationStore extends MailspringStore {
       name: name,
       isGroup: true,
       unreadMessages: 0,
-      lastMessageTime: (new Date(timeSend)).getTime(),
+      lastMessageTime: new Date(timeSend).getTime(),
       lastMessageText: content,
-      lastMessageSender: curJid
+      lastMessageSender: curJid,
     };
     let avatarMembers = contacts;
     avatarMembers = avatarMembers.filter(contact => contact);
-    avatarMembers = [avatarMembers.find(contact => contact.jid === conversation.curJid), contacts.find(contact => contact.jid !== conversation.curJid)];
+    avatarMembers = [
+      avatarMembers.find(contact => contact.jid === conversation.curJid),
+      contacts.find(contact => contact.jid !== conversation.curJid),
+    ];
     avatarMembers = [avatarMembers[0], avatarMembers[1]];
     conversation.avatarMembers = avatarMembers;
     await this.saveConversations([conversation]);
     await this.setSelectedConversation(roomId);
-  }
+  };
 
-  createPrivateConversation = async (contact) => {
+  createPrivateConversation = async contact => {
     const jid = contact.jid;
     let conversation = await this.getConversationByJid(jid);
     if (conversation) {
@@ -233,36 +234,35 @@ class ConversationStore extends MailspringStore {
       unreadMessages: 0,
       lastMessageSender: contact.curJid,
       lastMessageText: '',
-      lastMessageTime: (new Date()).getTime()
-    }
+      lastMessageTime: new Date().getTime(),
+    };
     await this.saveConversations([conversation]);
     await this.setSelectedConversation(jid);
-  }
+  };
 
-  onChangeConversationName = async (data) => {
+  onChangeConversationName = async data => {
     // called by xmpp.on('edimucconfig', data => {...})
     if (!data || !data.edimucevent || !data.edimucevent.edimucconfig) {
       return;
     }
     const config = data.edimucevent.edimucconfig;
     const convJid = data.from.bare;
-    const id = data.id + '$' + convJid;
     let contact = await ContactStore.findContactByJid(config.actorJid);
     if (!contact) {
       contact = UserCacheStore.getUserInfoByJid(config.actorJid);
     }
-    const name = contact && (contact.name || contact.email) || config.actorJid.split('@')[0];
+    const name = (contact && (contact.name || contact.email)) || config.actorJid.split('@')[0];
     const body = {
       content: `${name} changes the group name to ${config.name}`,
-      type: 'change-group-name'
+      type: 'change-group-name',
     };
     const msg = {
-      id,
+      id: data.id,
       conversationJid: convJid,
       sender: config.actorJid,
       body: JSON.stringify(body),
-      sentTime: (new Date()).getTime(),
-      status: MESSAGE_STATUS_RECEIVED
+      sentTime: new Date().getTime(),
+      status: MESSAGE_STATUS_RECEIVED,
     };
     MessageStore.saveMessagesAndRefresh([msg]);
     await this.saveConversationName(convJid, config.name);
@@ -279,14 +279,13 @@ class ConversationStore extends MailspringStore {
 
       setTimeout(async () => {
         let obj = this.convName[jid];
-        if ((new Date().getTime() - obj.ts) > 45) {
+        if (new Date().getTime() - obj.ts > 45) {
           await conv.update({ name });
           this.refreshConversations();
         }
       }, 50);
     }
   };
-
 }
 
 module.exports = new ConversationStore();
