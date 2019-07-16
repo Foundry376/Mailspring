@@ -83,8 +83,9 @@ export default class EmailFrame extends React.Component {
     if (!doc) {
       return;
     }
-    const { body, snippet } = this.props.message;
-    const isPlainBody = body && body.trim().replace(/(\r\n|\r|\n)/g, ' ').substr(0, 20) == snippet.trim().substr(0, 20);
+    const { isPlainText = 0 } = this.props.message;
+    const isPlainBody = isPlainText === 1;
+    // const isPlainBody = body && body.trim().replace(/(\r\n|\r|\n)/g, ' ').substr(0, 20) == snippet.trim().substr(0, 20);
     doc.open();
 
     // NOTE: The iframe must have a modern DOCTYPE. The lack of this line

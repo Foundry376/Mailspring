@@ -35,9 +35,10 @@ Section: Database
 export default class AttributeJoinedData extends Attribute {
   static NullPlaceholder = NullPlaceholder;
 
-  constructor({ modelKey, jsonKey, modelTable, queryable }) {
+  constructor({ modelKey, jsonKey, modelTable, queryable, joinTableColumn = null }) {
     super({ modelKey, jsonKey, queryable });
     this.modelTable = modelTable;
+    this.joinTableColumn = joinTableColumn;
   }
 
   serialize(thisValue, val) {
@@ -55,11 +56,15 @@ export default class AttributeJoinedData extends Attribute {
   fromJSON(val) {
     return val === null || val === undefined || val === false ? null : `${val}`;
   }
+  tableName(){
+    return this.modelTable;
+  }
 
   selectSQL() {
     // NullPlaceholder is necessary because if the LEFT JOIN returns nothing, it leaves the field
     // blank, and it comes through in the result row as "" rather than NULL
-    return `IFNULL(\`${this.modelTable}\`.\`value\`, '${NullPlaceholder}') AS \`${this.modelKey}\``;
+    const tableColumn = this.joinTableColumn ? this.joinTableColumn : 'value';
+    return `IFNULL(\`${this.modelTable}\`.\`${tableColumn}\`, '${NullPlaceholder}') AS \`${this.modelKey}\``;
   }
 
   includeSQL(klass) {
