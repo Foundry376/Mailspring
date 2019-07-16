@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import Button from '../../common/Button';
 import TopBar from '../../common/TopBar';
-import { NEW_CONVERSATION } from '../../../actions/chat';
+import { NEW_CONVERSATION } from '../../../../utils/constant';
 import { WorkspaceStore, Actions } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 import { ConversationStore, AppStore } from 'chat-exports';

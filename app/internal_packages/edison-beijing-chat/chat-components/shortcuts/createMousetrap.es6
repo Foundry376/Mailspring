@@ -24,7 +24,7 @@ export const validateShorcutActionMap = shortcutActionMap => {
  * @returns {Middleware}                    Returns a redux middleware that dispatches actions when
  *                                          a predefined shortcut is triggered
  */
-export const createMousetrapMiddleware = (mousetrap, shortcutActionMap) => {
+export const createMousetrap = (mousetrap, shortcutActionMap) => {
   return store => {
     Object.entries(shortcutActionMap)
       .forEach(([shortcut, actionCreator]) =>
@@ -34,4 +34,4 @@ export const createMousetrapMiddleware = (mousetrap, shortcutActionMap) => {
   };
 };
 
-export default createMousetrapMiddleware;
+export default createMousetrap;

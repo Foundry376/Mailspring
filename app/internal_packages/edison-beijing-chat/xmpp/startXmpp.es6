@@ -1,4 +1,4 @@
-import { Xmpp } from '..';
+import { Xmpp } from '.';
 import {
   ChatActions,
   MessageStore,
@@ -8,7 +8,7 @@ import {
   E2eeStore,
   BlockStore,
 } from 'chat-exports';
-import { registerLoginEmailAccountForChat } from '../../utils/register-login-chat';
+import { registerLoginEmailAccountForChat } from '../utils/register-login-chat';
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -19,23 +19,9 @@ import { registerLoginEmailAccountForChat } from '../../utils/register-login-cha
  * @throws  {Error}                   Throws an error if xmpp is not an instance of Xmpp
  * @returns {Middleware}              The redux middleware function
  */
-export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
+const startXmpp = xmpp => {
   if (!(xmpp instanceof Xmpp)) {
     throw Error('xmpp must be an instance of Xmpp');
-  }
-  if (typeof eventActionMap !== 'object') {
-    throw Error('eventActionMap must be an object');
-  }
-
-  const map = eventActionMap; // Ensure map is not modified while iterating over keys
-  if (map) {
-    Object.entries(map).forEach(([eventname, action]) =>
-      xmpp.on(eventname, data => {
-        if (action) {
-          store.dispatch(action(data));
-        }
-      })
-    );
   }
 
   let pullMessage = (ts, jid) => {
@@ -191,4 +177,4 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   return next => action => next(action);
 };
 
-export default createXmppMiddleware;
+export default startXmpp;

@@ -29,4 +29,4 @@ const mapStateToProps = ({
 
 const mapDispatchToProps = dispatch => bindActionCreators(actionCreators, dispatch);
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChatPage);
+export default ChatPage;

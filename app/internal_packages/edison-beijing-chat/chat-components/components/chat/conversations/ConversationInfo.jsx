@@ -6,7 +6,7 @@ import { remote } from 'electron';
 import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore, AppStore, LocalStorage } from 'chat-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { FixedPopover } from 'mailspring-component-kit';
-import { NEW_CONVERSATION } from '../../../actions/chat';
+import { NEW_CONVERSATION } from '../../../../utils/constant';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
 import { name } from '../../../../utils/name';

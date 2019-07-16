@@ -1,6 +1,6 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
-import Root from '../chat-components/containers/Root';
+import ChatPage from '../chat-components/components/chat/ChatPage';
 
 export default class ChatView extends Component {
   static displayName = 'ChatView';
@@ -8,7 +8,7 @@ export default class ChatView extends Component {
   render() {
     return (
       <div className="chat-view-container">
-        <Root store={chatReduxStore} />
+        <ChatPage/>
       </div>
     )
   }

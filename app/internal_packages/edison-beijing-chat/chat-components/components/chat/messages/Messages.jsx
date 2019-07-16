@@ -5,12 +5,12 @@ import PropTypes from 'prop-types';
 import { remote } from 'electron';
 const { dialog } = remote;
 import ContactAvatar from '../../common/ContactAvatar';
-import { NEW_CONVERSATION } from '../../../actions/chat';
 import MessageImagePopup from './MessageImagePopup';
 import Group from './Group';
 import SecurePrivate from './SecurePrivate';
 import _ from 'underscore';
 import { RoomStore, MessageStore, ConversationStore, OnlineUserStore } from 'chat-exports';
+import { NEW_CONVERSATION } from '../../../../utils/constant';
 
 const flattenMsgIds = groupedMessages =>
   groupedMessages

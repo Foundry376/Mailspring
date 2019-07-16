@@ -4,9 +4,8 @@ import uuid from 'uuid/v4';
 import { dateFormat } from '../../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
 import MessageCommand from './MessageCommand';
-import { beginSendingMessage } from '../../../actions/chat';
 import { FILE_TYPE } from '../../../../utils/filetypes';
-import { MessageStore, ContactStore } from 'chat-exports';
+import { MessageStore, ContactStore, MessageSend } from 'chat-exports';
 
 export default class MessagePrivateApp extends PureComponent {
   static propTypes = {
@@ -47,7 +46,7 @@ export default class MessagePrivateApp extends PureComponent {
     msgBody.deleted = true;
     msg.body = JSON.stringify(msgBody);
     MessageStore.saveMessagesAndRefresh([msg]);
-    chatReduxStore.dispatch(beginSendingMessage(conversation, JSON.stringify(body), messageId, false));
+    MessageSend.sendMessage(body, conversation, messageId);
   }
   toggleCommands = ()  => {
     const commandsVisible = !this.state.commandsVisible;

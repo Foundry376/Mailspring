@@ -5,7 +5,10 @@ import ChatAccountSidebarFiller from '../chat-components/components/chat/chat-ac
 import { LocalStorage } from 'chat-exports';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 import '../model/';
+import startXmpp from '../xmpp/startXmpp';
+
 const osLocale = require('os-locale');
+
 const CHAT_COUNTRIES = [
   "CN"
 ];
@@ -23,6 +26,7 @@ const isChatTest = isChatTestUser();
 module.exports = {
   activate() {
     if (AppEnv.config.get(`chatEnable`)) {
+      startXmpp(xmpp);
       WorkspaceStore.defineSheet('ChatView', { root: true }, {
         list: ['RootSidebar', 'ChatView'],
         split: ['RootSidebar', 'ChatView']

@@ -8,4 +8,4 @@ const Root = ({ store, history }) => ( // eslint-disable-line react/prop-types
   </Provider>
 );
 
-export default Root;
+export default Routes;

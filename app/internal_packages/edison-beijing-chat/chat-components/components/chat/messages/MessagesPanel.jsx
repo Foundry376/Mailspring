@@ -9,9 +9,7 @@ import Messages from './Messages';
 import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
 import { downloadFile, uploadFile } from '../../../../utils/awss3';
-import { generateAESKey } from '../../../../utils/aes';
 import uuid from 'uuid/v4';
-import { NEW_CONVERSATION } from '../../../actions/chat';
 import registerLoginChat from '../../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
 import {
@@ -41,10 +39,11 @@ import { log } from '../../../../utils/log';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
+import { NEW_CONVERSATION } from '../../../../utils/constant';
+
 
 export default class MessagesPanel extends Component {
   static propTypes = {
-    sendMessage: PropTypes.func.isRequired,
     currentUserId: PropTypes.string,
     referenceTime: PropTypes.number,
   };
