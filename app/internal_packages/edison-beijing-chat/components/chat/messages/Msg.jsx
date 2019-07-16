@@ -260,14 +260,16 @@ export default class Msg extends PureComponent {
   }
   msgFile = () => {
     const { msg } = this.props;
-    const { currentUserJid, msgBody, msgImgPath } = this.state;
+    const { msgBody } = this.state;
 
     if (this.shouldInlineImg()) {
       return (
         <div className="message-image">
           <img
             src={msgBody.path}
-            title={msgBody.localFile || msgBody.mediaObjectId}
+            onError={e => {
+              e.target.src = '../static/images/chat/image-not-found.png'
+            }}
             onClick={this.onClickImage}
           />
           {this.messageToolbar(msg, msgBody, true)}
