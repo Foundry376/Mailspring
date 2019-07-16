@@ -233,8 +233,8 @@ class XmppEx extends EventEmitter3 {
     });
     this.client.on('session:prebind', (bind) => {
       if (!window.edisonChatServerDiffTime) {
-        window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
-          - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
+        window.edisonChatServerDiffTime = parseInt(parseInt(bind.serverTimestamp)
+          - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp));
         this._log('xmpp session:difftime:' + edisonChatServerDiffTime, `jid: ${this.connectedJid},state: ${this.connectState},retyTimes: ${this.retryTimes},ts: ${this.getTime()}`);
       }
     });
