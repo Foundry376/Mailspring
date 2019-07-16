@@ -11,6 +11,17 @@ import {
   BlockStore,
 } from 'chat-exports';
 
+const TIGASE_PROD = 'wss://tigase.edison.tech';
+const TIGASE_DEV = 'wss://tigase.stag.easilydo.cc';
+
+function getTigaseURL() {
+  if (AppEnv.config.get(`chatProdEnv`)) {
+    return TIGASE_PROD;
+  } else {
+    return TIGASE_DEV;
+  }
+}
+
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
   let resBare = jid;
@@ -25,8 +36,7 @@ export const auth = async ({ jid, password }) => {
     jid,
     password,
     transport: 'websocket',
-    //wsURL: 'ws://192.168.1.103:5290'
-    wsURL: 'wss://tigase.stag.easilydo.cc',
+    wsURL: getTigaseURL(),
     resource: deviceId && deviceId.replace(/-/g, ''),
     deviceId: deviceId,
     timestamp: new Date().getTime(),
@@ -73,6 +83,7 @@ export const auth = async ({ jid, password }) => {
 
     await delay(200);
     const e2ees = await xmpp.getE2ee('', resBare);
+    console.log('e2ee', e2ees)
     E2eeStore.saveE2ees(e2ees, resBare);
 
     await delay(200);

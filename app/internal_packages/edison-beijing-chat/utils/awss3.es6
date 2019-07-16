@@ -23,109 +23,118 @@ var s3 = new AWS.S3();
 // 存储桶名称在所有 S3 用户中必须是独一无二的
 
 var path = require('path');
-var myBucket = 'edison-media-stag';
-var ENCRYPTED_SUFFIX = ".encrypted";
+const BUCKET_DEV = 'edison-media-stag';
+const BUCKET_PROD = 'edison-media';
+const ENCRYPTED_SUFFIX = ".encrypted";
+
+function getMyBucket() {
+  if (AppEnv.config.get(`chatProdEnv`)) {
+    return BUCKET_PROD;
+  } else {
+    return BUCKET_DEV;
+  }
+}
 
 export const downloadFile = (aes, key, name, callback, progressBack) => {
-    var params = {
-        Bucket: myBucket,
-        Key: key
-    };
+  var params = {
+    Bucket: getMyBucket(),
+    Key: key
+  };
   let request;
   if (!progressBack) {
     request = s3.getObject(params, function (err, data) {
-        if (err) {
-          console.error('fail to down file in message: key, name, err, err.stack: ', key, name, err, err.stack);
-          if (callback) {
-            callback(err);
-          }
+      if (err) {
+        console.error('fail to down file in message: key, name, err, err.stack: ', key, name, err, err.stack);
+        if (callback) {
+          callback(err);
+        }
+      } else {
+        if (aes) {
+          //fs.writeFileSync('./files/src' + name, data.Body);
+          fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
         } else {
-          if (aes) {
-            //fs.writeFileSync('./files/src' + name, data.Body);
-            fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
-          } else {
-            fs.writeFileSync(name, data.Body);
+          fs.writeFileSync(name, data.Body);
+        }
+        if (callback) {
+          callback();
+        }
+        console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
+      }
+    });
+  } else {
+    request = s3.getObject(params);
+    request.on('httpDownloadProgress', function (progress) {
+      if (progressBack) {
+        progressBack(progress);
+      }
+      if (+progress.loaded == +progress.total) {
+        console.log(`finish downloadFile aws3 file ${key} to ${name}`, request);
+        const err = request.response.error;
+        if (err) {
+          console.log(err, err.stack);
+        } else {
+          let res = request.response;
+          let data = res.data;
+          res = res.httpResponse;
+          const buffers = res && res.buffers;
+          let body;
+          if (data) {
+            body = data && data.body;
+          } else if (buffers) {
+            body = Buffer.concat(buffers);
           }
+          if (aes) {
+            body = decryptByAESFile(aes, body);
+          }
+          fs.writeFileSync(name, body);
           if (callback) {
             callback();
           }
-          console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
-        }
-      });
-    } else {
-      request = s3.getObject(params);
-      request.on('httpDownloadProgress', function (progress) {
-        if (progressBack) {
-          progressBack(progress);
-        }
-        if (+progress.loaded == +progress.total) {
-          console.log(`finish downloadFile aws3 file ${key} to ${name}`, request);
-          const err = request.response.error;
-          if (err) {
-            console.log(err, err.stack);
-          } else {
-            let res = request.response;
-            let data = res.data;
-            res = res.httpResponse;
-            const buffers = res && res.buffers;
-            let body;
-            if (data) {
-              body = data && data.body;
-            } else if (buffers) {
-              body = Buffer.concat(buffers);
-            }
-            if (aes) {
-              body = decryptByAESFile(aes, body);
-            }
-            fs.writeFileSync(name, body);
-            if (callback) {
-              callback();
-            }
-            console.log(`succeed downloading aws3 file ${key} to ${name}`);
-          }
-        }
-      });
-      request.send();
-    }
-    return request;
-}
-
-export const uploadFile = (oid, aes, file, callback, progressCallback) => {
-
-    let filename = path.basename(file);
-    let myKey = oid + '/' + uuid.v4() + path.extname(file);
-    let data = fs.readFileSync(file);
-    if (aes) {
-      data = encryptByAESFile(aes, data);
-      myKey = myKey + ENCRYPTED_SUFFIX;
-    }
-    var uploadParams = { Bucket: myBucket, Key: myKey, Body: data };
-    const request = s3.upload(uploadParams);
-    request.on('httpUploadProgress', function (progress) {
-      if (progressCallback) {
-        progressCallback(progress)
-      }
-      if (+progress.loaded === +progress.total) {
-        console.log("Upload Finished. ");
-        if (callback) {
-          callback(null, filename, myKey, progress.loaded);
+          console.log(`succeed downloading aws3 file ${key} to ${name}`);
         }
       }
     });
     request.send();
-    return request;
+  }
+  return request;
+}
+
+export const uploadFile = (oid, aes, file, callback, progressCallback) => {
+
+  let filename = path.basename(file);
+  let myKey = oid + '/' + uuid.v4() + path.extname(file);
+  let data = fs.readFileSync(file);
+  if (aes) {
+    data = encryptByAESFile(aes, data);
+    myKey = myKey + ENCRYPTED_SUFFIX;
+  }
+  var uploadParams = { Bucket: getMyBucket(), Key: myKey, Body: data };
+  const request = s3.upload(uploadParams);
+  request.on('httpUploadProgress', function (progress) {
+    if (progressCallback) {
+      progressCallback(progress)
+    }
+    if (+progress.loaded === +progress.total) {
+      console.log("Upload Finished. ");
+      if (callback) {
+        callback(null, filename, myKey, progress.loaded);
+      }
+    }
+  });
+  request.send();
+  return request;
 }
 
 function getSize(len) {
-    if (len < 1024) {
-        return len + ' B';
-    } else if (len < 1024 * 1024) {
-        return (len / 1024).toFixed(2) + ' KB';
-    }
-    else if (len < 1024 * 1024 * 1024) {
-        return (len / (1024 * 1024)).toFixed(2) + ' MB';
-    } else {
-        return (len / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-    }
+  if (len < 1024) {
+    return len + ' B';
+  } else if (len < 1024 * 1024) {
+    return (len / 1024).toFixed(2) + ' KB';
+  }
+  else if (len < 1024 * 1024 * 1024) {
+    return (len / (1024 * 1024)).toFixed(2) + ' MB';
+  } else {
+    return (len / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  }
 }
 

@@ -207,7 +207,7 @@ export default class Messages extends Component {
         this.messagesTopBar.className = this.messagesTopBar.className.replace(' has-shadow', '');
       }
     }
-    const messageGroups = this.messagesPanel.children;
+    const messageGroups = this.messagesPanel.children[0].children;
     for (const msgGrp of messageGroups) {
       if (msgGrp.className.indexOf('message-group') !== -1) {
         if (
