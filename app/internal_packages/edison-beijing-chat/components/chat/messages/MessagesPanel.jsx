@@ -325,7 +325,7 @@ export default class MessagesPanel extends Component {
         );
       } catch (e) {
         console.error('upload file:', e);
-        alert('failed to send file: ${loadConfig.filepath}: ${e}');
+        alert(`failed to send file: ${loadConfig.filepath}: ${e}`);
         this.cancelLoadMessage();
         ChatActions.updateProgress({ failed: true, loading: false, visible: false });
         return;

@@ -1,7 +1,6 @@
 import {ChatActions} from 'chat-exports';
 
 const defaultShortcutActionMap = {
-  // esc: ChatActions.deselectConversation,
   'option+left': ChatActions.deselectConversation,
   'option+up': ChatActions.goToPreviousConversation,
   'option+down': ChatActions.goToNextConversation,
