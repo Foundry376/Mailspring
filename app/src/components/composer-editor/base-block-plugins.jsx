@@ -199,6 +199,13 @@ function renderNode(props) {
   const config = BLOCK_CONFIG[props.node.type];
   return config && config.render(props);
 }
+// function renderConsecutiveSpaces(text){
+//   const match = text.match(/\s{2,}/g);
+//   if(!match){
+//     return;
+//   }
+//   return <span>{text.replace(/\s{2,}/g, "\u00A0 ")}</span>;
+// }
 
 const rules = [
   {
@@ -238,6 +245,9 @@ const rules = [
       }
     },
     serialize(obj, children) {
+      // if(obj.object === 'string') {
+      //   return renderConsecutiveSpaces(children);
+      // }
       if (obj.object !== 'block') return;
       return renderNode({ node: obj, children, targetIsHTML: true });
     },
@@ -422,7 +432,7 @@ export default [
         }
       }
       event.preventDefault();
-      change.insertText('\t');
+      change.insertText('\u00A0\u00A0\u00A0 ');
       return change;
     }
   },
