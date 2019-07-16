@@ -25,7 +25,7 @@ export const auth = async ({ jid, password }) => {
     jid,
     password,
     transport: 'websocket',
-    //wsURL: 'ws://192.168.1.103:5290'
+    // wsURL: 'wss://tigase.edison.tech',//_prod
     wsURL: 'wss://tigase.stag.easilydo.cc',
     resource: deviceId && deviceId.replace(/-/g, ''),
     deviceId: deviceId,
@@ -73,6 +73,7 @@ export const auth = async ({ jid, password }) => {
 
     await delay(200);
     const e2ees = await xmpp.getE2ee('', resBare);
+    console.log('e2ee', e2ees)
     E2eeStore.saveE2ees(e2ees, resBare);
 
     await delay(200);
