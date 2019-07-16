@@ -5,7 +5,7 @@ import { sendCmd2App2, getToken } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 const sanitizeHtml = require('sanitize-html');
 import { RetinaImg } from 'mailspring-component-kit';
-import { ContactStore, UserCacheStore } from 'chat-exports';
+const a11yEmoji = require('a11y-emoji');
 import { getName } from '../../../utils/name';
 
 export default class MessageApp extends PureComponent {
@@ -25,7 +25,7 @@ export default class MessageApp extends PureComponent {
         const senderName = await getName(msg.sender);
         this.setState({ senderName });
     }
-    componentWillReceiveProps =  async (nextProps) => {
+    componentWillReceiveProps = async (nextProps) => {
         const { msg } = nextProps;
         const senderName = await getName(msg.sender);
         this.setState({ senderName });
@@ -54,9 +54,9 @@ export default class MessageApp extends PureComponent {
 
     }
 
-    toggleCommands = ()  => {
+    toggleCommands = () => {
         const commandsVisible = !this.state.commandsVisible;
-        this.setState({commandsVisible});
+        this.setState({ commandsVisible });
     };
 
     render() {
@@ -66,8 +66,8 @@ export default class MessageApp extends PureComponent {
         let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
         const { sentTime } = msg;
         const options = {
-            allowedTags: ['html', 'head', 'body', 'br', 'del', 's', 'strike', 'ins', 'em', 'b', 'strong', 'i', 'u', 'a',
-
+            allowedTags: ['html', 'head', 'body', 'br', 'del', 's',
+                'strike', 'ins', 'em', 'b', 'strong', 'i', 'u', 'a',
                 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'p', 'div', 'span', 'hr',
                 'article', 'section', 'header', 'footer', 'summary', 'aside', 'details',
                 'ul', 'ol', 'li', 'dir', 'dl', 'dt', 'dd',
@@ -84,7 +84,7 @@ export default class MessageApp extends PureComponent {
             allowedSchemesAppliedToAttributes: ['href', 'src', 'cite'],
         };
         if (htmlBody) {
-            htmlBody = sanitizeHtml(htmlBody, options);
+            htmlBody = a11yEmoji(sanitizeHtml(htmlBody, options));
         }
         const { getContactAvatar } = this.props;
 
@@ -92,7 +92,8 @@ export default class MessageApp extends PureComponent {
         let commands = null;
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
-            commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.conversation}
+            commands = arrCmds.map((item, idx) => <MessageCommand
+                conversation={this.props.conversation}
                 appJid={appJid}
                 templateText={item.command}
                 key={idx}>
@@ -111,13 +112,16 @@ export default class MessageApp extends PureComponent {
                     </div>
                     <div className="messageBody">
                         <div className="text-content">
-                            {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }} /> : content}
+                            <div className="text">
+                                {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }} /> : content}
+                            </div>
                         </div>
-                        {commands && commands.length ? <RetinaImg name={'expand-more.svg'}
-                                   onClick={this.toggleCommands}
-                                   style={{ width: 26, height: 26 }}
-                                   isIcon
-                                   mode={RetinaImg.Mode.ContentIsMask} /> : null }
+                        {commands && commands.length ? <RetinaImg
+                            name={'expand-more.svg'}
+                            onClick={this.toggleCommands}
+                            style={{ width: 26, height: 26 }}
+                            isIcon
+                            mode={RetinaImg.Mode.ContentIsMask} /> : null}
                         {commandsVisible ? <div>{commands}</div> : null}
                     </div>
                 </div>
