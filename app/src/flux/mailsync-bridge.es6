@@ -137,7 +137,6 @@ export default class MailsyncBridge {
     this._cachedFetchBodies = {};
     this._cachedFetchAttachments = {};
     this._setObservableRangeTimer = {};
-    this._cachedSetObservableRangeTask = {};
     this._cachedObservableThreadIds = {};
     this._cachedObservableMessageIds = {};
     this._cachedObservableTTL = 30000;
@@ -609,6 +608,60 @@ export default class MailsyncBridge {
     );
   };
 
+  _observableCacheFilter({ accountId = null, missingIds = [], priority = 0 } = {}, dataCache, ttl) {
+    if (!accountId) {
+      return [];
+    }
+    const now = Date.now();
+    const clientStartTime = this._clientsStartTime[accountId] || now - 1;
+    if (!dataCache[accountId]) {
+      dataCache[accountId] = [];
+    }
+    if (dataCache[accountId].length === 0) {
+      for (const id of missingIds) {
+        dataCache[accountId].push({ id: id, lastSend: now, priority });
+      }
+      return missingIds;
+    } else {
+      const missingIdsMap = missingIds.map(id => {
+        return { id: id, isNew: true };
+      });
+      const missing = [];
+      const newCache = [];
+      for (let cache of dataCache[accountId]) {
+        let cacheUpdated = false;
+        for (let i = 0; i < missingIdsMap.length; i++) {
+          if (missingIdsMap[i].id === cache.id) {
+            if (now - cache.lastSend > ttl || cache.lastSend < clientStartTime) {
+              cache.lastSend = now;
+              cache.priority = priority;
+              missing.push(cache.id);
+            } else if (priority > cache.priority) {
+              cache.lastSend = now;
+              cache.priority = priority;
+              missing.push(cache.id);
+            }
+            newCache.push(cache);
+            cacheUpdated = true;
+            missingIdsMap[i].isNew = false;
+            break;
+          }
+        }
+        if (now - cache.lastSend <= ttl && cache.lastSend > clientStartTime && !cacheUpdated) {
+          newCache.push(cache);
+        }
+      }
+      for (const idMap of missingIdsMap) {
+        if (idMap.isNew) {
+          newCache.push({ id: idMap.id, lastSend: now, priority });
+          missing.push(idMap.id);
+        }
+      }
+      dataCache[accountId] = newCache;
+      return missing;
+    }
+  }
+
   _fetchCacheFilter({ accountId = null, missingIds = [], priority = 0 } = {}, dataCache, ttl) {
     if (!accountId) {
       return [];
@@ -637,7 +690,7 @@ export default class MailsyncBridge {
               cache.lastSend = now;
               cache.priority = priority;
               missing.push(cache.id);
-            } else if (priority > cache.priority) {
+            } else if (priority > cache.priority || priority === 0 ) {
               cache.lastSend = now;
               cache.priority = priority;
               missing.push(cache.id);
@@ -770,12 +823,12 @@ export default class MailsyncBridge {
     }
     if (this._setObservableRangeTimer[accountId]) {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
-        const threadIds = this._fetchCacheFilter(
+        const threadIds = this._observableCacheFilter(
           { accountId, missingIds: missingThreadIds },
           this._cachedObservableThreadIds,
           this._cachedObservableTTL,
         );
-        const messageIds = this._fetchCacheFilter(
+        const messageIds = this._observableCacheFilter(
           { accountId, missingIds: missingMessageIds },
           this._cachedObservableMessageIds,
           this._cachedObservableTTL,
@@ -793,12 +846,12 @@ export default class MailsyncBridge {
         clearTimeout(this._setObservableRangeTimer[accountId].id);
         this._setObservableRangeTimer[accountId] = {
           id: setTimeout(() => {
-            const threadIds = this._fetchCacheFilter(
+            const threadIds = this._observableCacheFilter(
               { accountId, missingIds: missingThreadIds },
               this._cachedObservableThreadIds,
               this._cachedObservableTTL,
             );
-            const messageIds = this._fetchCacheFilter(
+            const messageIds = this._observableCacheFilter(
               { accountId, missingIds: missingMessageIds },
               this._cachedObservableMessageIds,
               this._cachedObservableTTL,
@@ -815,12 +868,12 @@ export default class MailsyncBridge {
     } else {
       this._setObservableRangeTimer[accountId] = {
         id: setTimeout(() => {
-          const threadIds = this._fetchCacheFilter(
+          const threadIds = this._observableCacheFilter(
             { accountId, missingIds: missingThreadIds },
             this._cachedObservableThreadIds,
             this._cachedObservableTTL,
           );
-          const messageIds = this._fetchCacheFilter(
+          const messageIds = this._observableCacheFilter(
             { accountId, missingIds: missingMessageIds },
             this._cachedObservableMessageIds,
             this._cachedObservableTTL,

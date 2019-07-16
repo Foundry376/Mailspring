@@ -331,8 +331,9 @@ class ListTabular extends Component {
       if (animatingCount > 8 || animatingCount === Object.keys(this.state.items).length) {
         animatingOut = {};
       }
+    }else{
+      this.sendObservableRangeTask(dataSource, items);
     }
-    this.sendObservableRangeTask(dataSource, items);
     return {
       items,
       animatingOut,
