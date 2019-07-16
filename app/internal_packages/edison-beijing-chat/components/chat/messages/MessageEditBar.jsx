@@ -275,6 +275,7 @@ export default class MessageEditBar extends PureComponent {
     }
     this.sendMessage();
     this.hide();
+    this.props.cancelEdit();
   }
 
   render() {
