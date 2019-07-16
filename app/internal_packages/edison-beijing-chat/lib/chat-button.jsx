@@ -5,18 +5,12 @@ import {
   Actions,
   WorkspaceStore
 } from 'mailspring-exports';
-const { configureStore } = require('../chat-components/store/configureStore').default;
-const store = configureStore();
 
 export default class ChatButton extends Component {
   static displayName = 'ChatButton';
   toggleChatPanel = () => {
     Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
   }
-
-  // componentDidMount() {
-  //   Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
-  // }
   render() {
     return (
       <div className="toolbar-chat" style={{ display: 'none' }}>

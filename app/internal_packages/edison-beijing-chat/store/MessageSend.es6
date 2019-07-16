@@ -16,12 +16,8 @@ class MessageSend {
     const { curJid, jid, isGroup } = conversation;
     const from = curJid, to = jid;
     messageId = messageId || uuid();
-    let dbMessageId;
-    if (messageId.indexOf('$') < 0) {
-      dbMessageId = messageId + '$' + from;
-    } else {
-      dbMessageId = messageId;
-    }
+    messageId = messageId.split('$')[0];
+    let dbMessageId = messageId + '$' + to;
     const strBody = JSON.stringify(body);
     const dbMsg = await MessageStore.getMessageById(dbMessageId);
     const sentTime = updating ? dbMsg && dbMsg.sentTime : new Date().getTime() + window.edisonChatServerDiffTime;
@@ -31,7 +27,7 @@ class MessageSend {
       sender: from,
       sentTime,
       status: MESSAGE_STATUS_SENDING,
-      id: `${messageId}$${to}`
+      id: `${dbMessageId}`
     };
     MessageStore.saveMessagesAndRefresh([msg]);
     let message = {
@@ -57,20 +53,25 @@ class MessageSend {
     let devices = [];
     if (isGroup) {
       const occupants = await RoomStore.getConversationOccupants(to, from);
-      const e2ees = await E2eeStore.find(occupants);
+      const e2ees = await E2eeStore.find(occupants, from);
       if (e2ees && e2ees.length == occupants.length) {
         e2ees.forEach((e2ee => {
-          let device = {};
-          device.dk = e2ee.devices;
-          device.jid = e2ee.jid;
-          devices.push(device);
+          if (e2ee.devices && e2ee.devices.length > 0) {
+            let device = {};
+            device.dk = e2ee.devices;
+            device.jid = e2ee.jid;
+            devices.push(device);
+          }
         }));
+        if (e2ees.length != devices.length) {
+          devices = [];
+        }
       }
     } else {
-      let e2ee = await E2eeStore.findOne(to);
-      if (e2ee) {
+      let e2ee = await E2eeStore.findOne(to, from);
+      if (e2ee && e2ee.devices && e2ee.devices.length > 0) {
         devices.push({ dk: e2ee.devices, jid: to });
-        e2ee = await E2eeStore.findOne(from);
+        e2ee = await E2eeStore.findOne(from, from);
         if (e2ee) {
           devices.push({ dk: e2ee.devices, jid: from });
         }

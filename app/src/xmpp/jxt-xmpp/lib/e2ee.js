@@ -55,14 +55,15 @@ exports['default'] = function (JXT) {
                         if (value) {
                             let child = this.xml;
                             Utils.setSubAttribute(child, '', 'user', 'jid', value.jid);
+                            if (value.did) {
+                                child = child.children[0];
+                                Utils.setSubAttribute(child, '', 'device', 'id', value.did);
 
-                            child = child.children[0];
-                            Utils.setSubAttribute(child, '', 'device', 'id', value.did);
-
-                            child = child.children[0];
-                            Utils.setSubAttribute(child, '', 'key', 'id', '1');
-                            child = child.children[0];
-                            Utils.setText(child, value.key);
+                                child = child.children[0];
+                                Utils.setSubAttribute(child, '', 'key', 'id', '1');
+                                child = child.children[0];
+                                Utils.setText(child, value.key);
+                            }
                         }
                     }
                 }
