@@ -1,11 +1,13 @@
 import ChatButton from './chat-button';
 import ChatView from './chat-view';
 import ChatViewLeft from './chat-view-left';
-import ChatAccountSidebarFiller from '../chat-components/components/chat/chat-account-sidebar-filler';
+import ChatAccountSidebarFiller from '../components/chat/chat-account-sidebar-filler';
 import { LocalStorage } from 'chat-exports';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 import '../model/';
 import startXmpp from '../xmpp/startXmpp';
+import Mousetrap from 'mousetrap'
+import bindMousetrap from '../shortcuts/bindMousetrap'
 
 const osLocale = require('os-locale');
 
@@ -27,6 +29,7 @@ module.exports = {
   activate() {
     if (AppEnv.config.get(`chatEnable`)) {
       startXmpp(xmpp);
+      bindMousetrap(Mousetrap);
       WorkspaceStore.defineSheet('ChatView', { root: true }, {
         list: ['RootSidebar', 'ChatView'],
         split: ['RootSidebar', 'ChatView']
