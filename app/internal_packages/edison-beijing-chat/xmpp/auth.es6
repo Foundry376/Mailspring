@@ -11,6 +11,17 @@ import {
   BlockStore,
 } from 'chat-exports';
 
+const TIGASE_PROD = 'wss://tigase.edison.tech';
+const TIGASE_DEV = 'wss://tigase.stag.easilydo.cc';
+
+function getTigaseURL() {
+  if (AppEnv.config.get(`chatProdEnv`)) {
+    return TIGASE_PROD;
+  } else {
+    return TIGASE_DEV;
+  }
+}
+
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
   let resBare = jid;
@@ -25,8 +36,7 @@ export const auth = async ({ jid, password }) => {
     jid,
     password,
     transport: 'websocket',
-    // wsURL: 'wss://tigase.edison.tech',//_prod
-    wsURL: 'wss://tigase.stag.easilydo.cc',
+    wsURL: getTigaseURL(),
     resource: deviceId && deviceId.replace(/-/g, ''),
     deviceId: deviceId,
     timestamp: new Date().getTime(),

@@ -8,9 +8,7 @@ import fs from 'fs';
 const download = require('download');
 let configDirPath = AppEnv.getConfigDirPath();
 let logoDirPath = path.join(configDirPath, 'logo_cache');
-let avatarDirPath = path.join(configDirPath, 'chat_avatar_cache');
 
-const { devMode } = AppEnv.getLoadSettings();
 const domain = {
   dev: {
     rest: 'https://restxmpp.stag.easilydo.cc'
@@ -21,10 +19,10 @@ const domain = {
 }
 function getBaseDomain(kind) {
   let chatObj = {};
-  if (devMode) {
-    chatObj = domain.dev;
-  } else {
+  if (AppEnv.config.get(`chatProdEnv`)) {
     chatObj = domain.prod;
+  } else {
+    chatObj = domain.dev;
   }
   return chatObj[kind];
 }

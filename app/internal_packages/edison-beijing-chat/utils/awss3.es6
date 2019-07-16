@@ -23,13 +23,21 @@ var s3 = new AWS.S3();
 // 存储桶名称在所有 S3 用户中必须是独一无二的
 
 var path = require('path');
-var myBucket = 'edison-media-stag';
-// var myBucket = 'edison-media';//_prod
-var ENCRYPTED_SUFFIX = ".encrypted";
+const BUCKET_DEV = 'edison-media-stag';
+const BUCKET_PROD = 'edison-media';
+const ENCRYPTED_SUFFIX = ".encrypted";
+
+function getMyBucket() {
+  if (AppEnv.config.get(`chatProdEnv`)) {
+    return BUCKET_PROD;
+  } else {
+    return BUCKET_DEV;
+  }
+}
 
 export const downloadFile = (aes, key, name, callback, progressBack) => {
   var params = {
-    Bucket: myBucket,
+    Bucket: getMyBucket(),
     Key: key
   };
   let request;
