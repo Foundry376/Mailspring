@@ -7,11 +7,10 @@ const defaultShortcutActionMap = {
   'option+down': ChatActions.goToNextConversation,
 };
 
-export const bindMousetrap = (mousetrap, shortcutActionMap) => {
-  shortcutActionMap = shortcutActionMap || defaultShortcutActionMap;
+export const bindMousetrap = (mousetrap, shortcutActionMap = defaultShortcutActionMap) => {
   Object.entries(shortcutActionMap)
-    .forEach(([shortcut, actionCreator]) =>
-      mousetrap.bind(shortcut, () => actionCreator())
+    .forEach(([shortcut, action]) =>
+      mousetrap.bind(shortcut, action)
     );
 };
 

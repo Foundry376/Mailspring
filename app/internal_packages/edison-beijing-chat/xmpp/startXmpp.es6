@@ -36,7 +36,7 @@ const startXmpp = xmpp => {
     });
   };
   let saveLastTs2 = (jidLocal, ts) => {
-    const msgTs = parseInt(ts);
+    let msgTs = parseInt(ts);
     if (msgTs) {
       AppEnv.config.set(jidLocal + '_message_ts', msgTs);
     }
