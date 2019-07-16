@@ -1,7 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import { Actions } from 'mailspring-exports';
-import ConversationsPanel from '../chat-components/components/chat/conversations/ConversationsPanel';
+import ConversationsPanel from '../components/chat/conversations/ConversationsPanel';
 import registerLoginChat from '../utils/register-login-chat';
 const BOTTOM_OFFSET = 0;
 export default class ChatViewLeft extends Component {

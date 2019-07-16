@@ -11,7 +11,6 @@ import MailspringStore from '../../global/mailspring-store';
 import Utils from '../models/utils';
 import Query from '../models/query';
 import DatabaseChangeRecord from './database-change-record';
-import App from '../../../internal_packages/edison-beijing-chat/chat-components/containers/App';
 
 const debug = createDebug('app:RxDB');
 const debugVerbose = createDebug('app:RxDB:all');
