@@ -108,7 +108,7 @@ export const uploadFile = (oid, aes, file, callback, progressCallback) => {
     data = encryptByAESFile(aes, data);
     myKey = myKey + ENCRYPTED_SUFFIX;
   }
-  var uploadParams = { Bucket: myBucket, Key: myKey, Body: data };
+  var uploadParams = { Bucket: getMyBucket(), Key: myKey, Body: data };
   const request = s3.upload(uploadParams);
   request.on('httpUploadProgress', function (progress) {
     if (progressCallback) {
