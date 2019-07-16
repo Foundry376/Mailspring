@@ -40,7 +40,7 @@ class MessageStore extends MailspringStore {
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
   }
 
-  _registerListeners() { }
+  _registerListeners() {}
   getMessageById = async id => {
     return await MessageModel.findOne({
       where: {
@@ -177,7 +177,7 @@ class MessageStore extends MailspringStore {
           json.htmlBody = message.htmlBody;
           json.ctxCmds = message.ctxCmds;
           message.body = JSON.stringify(json);
-        } catch (e) { }
+        } catch (e) {}
       }
     }
     return message;
@@ -193,7 +193,10 @@ class MessageStore extends MailspringStore {
         convJid = message.from.bare;
       }
     }
-    let msgId = message.id + '$' + convJid;
+    let msgId = message.id;
+    if (msgId.indexOf('$') < 0) {
+      msgId = msgId + '$' + convJid;
+    }
     const messageInDb = await this.getMessageById(msgId);
     if (messageInDb) {
       // if already exist in db, skip it
@@ -468,8 +471,8 @@ class MessageStore extends MailspringStore {
         contactNameList.length > 4
           ? contactNameList.slice(0, 3).join(', ') + ' & ' + `${contactNameList.length - 3} others`
           : contactNameList.slice(0, contactNameList.length - 1).join(', ') +
-          ' & ' +
-          contactNameList[contactNameList.length - 1];
+            ' & ' +
+            contactNameList[contactNameList.length - 1];
       conv.name = fallbackName;
     }
     await ConversationStore.saveConversations([conv]);
