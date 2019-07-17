@@ -19,16 +19,11 @@ import _ from 'underscore';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
+import {FILE_TYPE} from '../utils/filetypes'
 
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
 export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT';
-export const FILE_TYPE = {
-  TEXT: 1,
-  IMAGE: 2,
-  GIF: 5,
-  STICKER: 12,
-  OTHER_FILE: 9,
-};
+
 
 class MessageStore extends MailspringStore {
   constructor() {
