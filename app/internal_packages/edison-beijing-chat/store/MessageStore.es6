@@ -19,16 +19,11 @@ import _ from 'underscore';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
+import {FILE_TYPE} from '../utils/filetypes'
 
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
 export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT';
-export const FILE_TYPE = {
-  TEXT: 1,
-  IMAGE: 2,
-  GIF: 5,
-  STICKER: 12,
-  OTHER_FILE: 9,
-};
+
 
 class MessageStore extends MailspringStore {
   constructor() {
@@ -514,6 +509,13 @@ class MessageStore extends MailspringStore {
 
   shouldShowNotification = async payload => {
     if (this._isWindowFocused()) {
+      return false;
+    }
+    // update and delete dont notice
+    if (
+      (payload.body && payload.body.indexOf('"deleted":true') >= 0) ||
+      (payload.body && payload.body.indexOf('"updating":true') >= 0)
+    ) {
       return false;
     }
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
