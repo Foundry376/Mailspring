@@ -1,6 +1,5 @@
 import { ListTabular } from 'mailspring-component-kit';
 import Actions from '../actions';
-import SetObservableRangeTask from '../models/set-observable-range-task';
 import Message from '../models/message';
 
 /**

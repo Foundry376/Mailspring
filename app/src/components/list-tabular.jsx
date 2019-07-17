@@ -120,6 +120,7 @@ class ListTabular extends Component {
 
     this._unlisten = () => {
     };
+    this.newItemsCache = {};
     this.state = this.buildStateForRange({ start: -1, end: -1 });
     this._scrollTimer = null;
   }
@@ -304,7 +305,7 @@ class ListTabular extends Component {
     if (this.state && start === this.state.renderedRangeStart) {
       const nextIds = Object.values(items).map(a => a && a.id);
       animatingOut = {};
-
+      const newItems = {};
       // Keep items which are still animating out and are still not in the set
       Object.entries(this.state.animatingOut).forEach(([recordIdx, record]) => {
         if (Date.now() < record.end && !nextIds.includes(record.item.id)) {
@@ -323,7 +324,6 @@ class ListTabular extends Component {
           end: Date.now() + 125,
         };
       });
-
       // If we think /all/ the items are animating out, or a lot of them,
       // the user probably switched to an entirely different perspective.
       // Don't bother trying to animate.
@@ -331,8 +331,30 @@ class ListTabular extends Component {
       if (animatingCount > 8 || animatingCount === Object.keys(this.state.items).length) {
         animatingOut = {};
       }
+      // Add items that were not in previous set and send observable-ids
+      for(let currentItemIndex of Object.keys(items)){
+        let tmpIndex = -1;
+        if(currentItemIndex == -1 || !items[currentItemIndex]){
+          break;
+        }
+        for(let previousIndex of Object.keys(this.state.items)){
+          const previousItem = this.state.items[previousIndex];
+          if(previousItem && previousItem.id === items[currentItemIndex].id){
+            tmpIndex = -1;
+            break;
+          }
+          tmpIndex = currentItemIndex;
+        }
+        if(tmpIndex !== -1){
+          newItems[tmpIndex] = items[tmpIndex];
+        }
+      }
+      if(Object.keys(newItems).length > 0){
+        console.log(`new items available ${Object.keys(newItems)}`);
+        this.sendObservableRangeTask(dataSource, newItems);
+      }
     }else{
-      this.sendObservableRangeTask(dataSource, items);
+      this.sendObservableRangeTask(dataSource, items, true);
     }
     return {
       items,
@@ -344,15 +366,21 @@ class ListTabular extends Component {
       empty: dataSource.empty(),
     };
   }
-  sendObservableRangeTask = (dataSource, items) => {
+  sendObservableRangeTask = (dataSource, items, forceUpdate = false) => {
     // Sometimes setObservableRangeTask is undefined(I'm not sure why),
     // so we check to make sure it is defined
+    if(forceUpdate){
+      this.newItemsCache = items;
+    }else{
+      Object.assign(this.newItemsCache, items);
+    }
     if (dataSource.setObservableRangeTask) {
       if (this._scrollTimer) {
         clearTimeout(this._scrollTimer);
       }
       this._scrollTimer = setTimeout(() => {
-        dataSource.setObservableRangeTask({ items });
+        dataSource.setObservableRangeTask({ items: this.newItemsCache });
+        this.newItemsCache = {};
       }, 700);
     }
   };
