@@ -100,7 +100,7 @@ class DraftStore extends MailspringStore {
   }
 
   findByHeaderMessageIdWithBody({ headerMessageId }) {
-    return this.findByHeaderMessageId({ headerMessageId }).include(Message.attributes.body).includes(Message.attributes.isPlainText);
+    return this.findByHeaderMessageId({ headerMessageId }).include(Message.attributes.body).include(Message.attributes.isPlainText);
   }
 
   findAllWithBodyInDescendingOrder() {
