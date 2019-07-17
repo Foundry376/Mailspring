@@ -91,6 +91,8 @@ const startXmpp = xmpp => {
     let ts = AppEnv.config.get(data.local + '_message_ts');
     if (ts) {
       pullMessage(ts, data.bare);
+    } else {
+      xmpp.tmpData[data.local + '_tmp_message_state'] = false;
     }
   });
   // Chat account offline
