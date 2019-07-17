@@ -776,7 +776,7 @@ export default class MailsyncBridge {
     }
     for (const accountId of Object.keys(this._clients)) {
       if (mailsyncConfig[accountId]) {
-        this.sendMessageToAccount(accountId, { type: 'mailsync-config', settings: mailsyncConfig[accountId] });
+        this.sendMessageToAccount(accountId, { type: 'config-change', settings: mailsyncConfig[accountId] });
       }
     }
   };
