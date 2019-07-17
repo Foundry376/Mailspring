@@ -3,7 +3,7 @@
 import _ from 'underscore';
 
 import MailspringStore from 'mailspring-store';
-import { MessageStore, ConversationStore, ContactStore, ContactModel, AppStore } from 'chat-exports';
+import { MessageStore, ConversationStore, ContactStore, ConversationModel, ContactModel, AppStore } from 'chat-exports';
 import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
@@ -184,27 +184,22 @@ class AccountStore extends MailspringStore {
     if (AppEnv.config.get(`chatEnable`)) {
       let chatAccounts = AppEnv.config.get('chatAccounts') || {};
       let chatAccount = chatAccounts[account.emailAddress];
-      delete chatAccounts[account.emailAddress];
-      AppEnv.config.set('chatAccounts', chatAccounts);
-      if (chatAccount) {//If there is an chat account
+      if (chatAccount) {
+        //If there is an chat account
+        delete chatAccounts[account.emailAddress];
+        AppEnv.config.set('chatAccounts', chatAccounts);
         let jid = chatAccount.userId + '@im.edison.tech';
-        const conversations = await ConversationStore.findConversationsByCondition({ curJid: jid });
-        for (const conv of conversations) {
-          ConversationStore.removeConversation(conv.jid);
-        }
-        let configDirPath = AppEnv.getConfigDirPath();
-        let dbpath = path.join(configDirPath, 'edisonmail.db');
-        const sqldb = sqlite(dbpath);
-        let stmt = sqldb.prepare(`SELECT * FROM contact where accountId = "${id}"`);
-        let emailContacts = stmt.all();
-        const emails = emailContacts.map(contact => contact.email);
-        sqldb.close();
-        await ContactModel.destroy({
+        await ConversationModel.destroy({
           where: {
-            email: {[Op.in]: emails}
+            curJid: jid
           }
         });
-
+        ConversationStore.refreshConversations();
+        await ContactModel.destroy({
+          where: {
+            curJid: jid
+          }
+        });
         ContactStore.refreshContacts();
         xmpp.removeXmpp(jid);
         removeMyApps(chatAccount.userId);
