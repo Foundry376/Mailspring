@@ -516,6 +516,13 @@ class MessageStore extends MailspringStore {
     if (this._isWindowFocused()) {
       return false;
     }
+    // update and delete dont notice
+    if (
+      (payload.body && payload.body.indexOf('"deleted":true') >= 0) ||
+      (payload.body && payload.body.indexOf('"updating":true') >= 0)
+    ) {
+      return false;
+    }
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const conv = await ConversationStore.getConversationByJid(payload.from.bare);
     const fromUserId = payload.from.resource;
