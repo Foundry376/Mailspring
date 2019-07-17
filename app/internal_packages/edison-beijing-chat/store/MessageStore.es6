@@ -60,9 +60,29 @@ class MessageStore extends MailspringStore {
       return;
     }
 
-    await this.processPrivateMessage(message);
-    const conv = await this.storePrivateConversation(message);
-    // if current selection, refresh messages
+    await this.prepareForSaveMessage(message, RECEIVE_PRIVATECHAT);
+    const conv = await this.processPrivateMessage(message);
+    if (!conv) {
+      return;
+    }
+    if (conv.jid === this.conversationJid) {
+      this.retrieveSelectedConversationMessages(conv.jid);
+    }
+    this.showNotification(message);
+  };
+
+  reveiveGroupChat = async message => {
+    let jidLocal = message.curJid.split('@')[0];
+    message = await this.decrypteBody(message, jidLocal);
+    if (!message || (await this._isExistInDb(message, true))) {
+      return;
+    }
+
+    await this.prepareForSaveMessage(message, RECEIVE_GROUPCHAT);
+    const conv = await this.processGroupMessage(message);
+    if (!conv) {
+      return;
+    }
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
@@ -92,10 +112,6 @@ class MessageStore extends MailspringStore {
   };
 
   processPrivateMessage = async payload => {
-    await this.prepareForSaveMessage(payload, RECEIVE_PRIVATECHAT);
-  };
-
-  storePrivateConversation = async payload => {
     let name;
     let timeSend = new Date().getTime();
     if (payload.from.bare === payload.curJid) {
@@ -195,23 +211,6 @@ class MessageStore extends MailspringStore {
       }
     }
     return false;
-  };
-
-  reveiveGroupChat = async message => {
-    let jidLocal = message.curJid.split('@')[0];
-    message = await this.decrypteBody(message, jidLocal);
-    if (!message || (await this._isExistInDb(message, true))) {
-      return;
-    }
-
-    const conv = await this.processGroupMessage(message);
-    if (!conv) {
-      return;
-    }
-    if (conv.jid === this.conversationJid) {
-      this.retrieveSelectedConversationMessages(conv.jid);
-    }
-    this.showNotification(message);
   };
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
@@ -374,7 +373,6 @@ class MessageStore extends MailspringStore {
   };
 
   processGroupMessage = async payload => {
-    await this.prepareForSaveMessage(payload, RECEIVE_GROUPCHAT);
     let at = false;
     let name = payload.from.local;
     // get the room name and whether you are '@'
