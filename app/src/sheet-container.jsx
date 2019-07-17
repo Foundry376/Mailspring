@@ -97,14 +97,30 @@ export default class SheetContainer extends React.Component {
       return <div />;
     }
     let rootSheet = null;
-    if (!topSheet.id.includes('Preference')) {
-      rootSheet = <Sheet depth={this.state.stack.length - 1}
-                         data={this.state.stack[this.state.stack.length - 1]}
-                         key="root"
-                         onColumnSizeChanged={this._onColumnSizeChanged}/>;
+    let popSheet = null
+    if (["Preferences", "Thread"].includes(topSheet.id)) {
+      rootSheet = (
+        <Sheet
+          depth={0}
+          data={this.state.stack[0]}
+          key="root"
+          onColumnSizeChanged={this._onColumnSizeChanged}
+        />);
+      popSheet = (
+        <Sheet
+          depth={this.state.stack.length - 1}
+          data={this.state.stack[this.state.stack.length - 1]}
+          key="top"
+          onColumnSizeChanged={this._onColumnSizeChanged}
+        />);
     } else {
-      rootSheet = <Sheet depth={0} data={this.state.stack[0]} key="root"
-                         onColumnSizeChanged={this._onColumnSizeChanged}/>;
+      rootSheet = (
+        <Sheet
+          depth={this.state.stack.length - 1}
+          data={this.state.stack[this.state.stack.length - 1]}
+          key="root"
+          onColumnSizeChanged={this._onColumnSizeChanged}
+        />);
     }
 
     return (
@@ -125,10 +141,7 @@ export default class SheetContainer extends React.Component {
 
         <div id="Center" name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {rootSheet}
-          {topSheet.id === 'Preferences' ? <Sheet depth={this.state.stack.length - 1}
-                                                 data={this.state.stack[this.state.stack.length - 1]}
-                                                 key="top"
-                                                 onColumnSizeChanged={this._onColumnSizeChanged}/> : null}
+          {popSheet}
         </div>
 
         <div name="Footer" style={{ order: 3, zIndex: 4 }}>

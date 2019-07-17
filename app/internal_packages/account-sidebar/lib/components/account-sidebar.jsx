@@ -21,6 +21,10 @@ class AccountSidebar extends React.Component {
   }
 
   componentDidMount() {
+    const pos = window.sessionStorage.getItem('sidebar_scroll_position');
+    if (pos) {
+      this._accountSideBarWrapEl.scrollTop = pos;
+    }
     this.unsubscribers = [];
     this.unsubscribers.push(SidebarStore.listen(this._onStoreChange));
     return this.unsubscribers.push(AccountStore.listen(this._onStoreChange));
@@ -30,7 +34,17 @@ class AccountSidebar extends React.Component {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
+  // when pop Thread sheet, should set root sheet's account-sidebar position 
+  _setScrollbarPosition = () => {
+    const accountSidebar = document.querySelector("[data-id='Threads'] .account-sidebar .scroll-region-content");
+    const pos = window.sessionStorage.getItem('sidebar_scroll_position');
+    if (accountSidebar && pos) {
+      accountSidebar.scrollTop = pos;
+    }
+  }
+
   componentWillUnmount() {
+    this._setScrollbarPosition();
     return this.unsubscribers.map(unsubscribe => unsubscribe());
   }
 
@@ -50,13 +64,25 @@ class AccountSidebar extends React.Component {
   _renderUserSections(sections) {
     return sections.map(section => <OutlineView key={section.title} {...section} />);
   }
+  _onScroll = (e) => {
+    if (e.target) {
+      window.sessionStorage.setItem('sidebar_scroll_position', e.target.scrollTop);
+    }
+  }
 
   render() {
     const { accounts, sidebarAccountIds, userSections, standardSection } = this.state;
 
     return (
       <Flexbox direction="column" style={{ order: 1, flexShrink: 1, flex: 1 }}>
-        <ScrollRegion className="account-sidebar" style={{ order: 2 }}>
+        <ScrollRegion
+          onScroll={this._onScroll}
+          ref={el => {
+            this._accountSideBarWrapEl = el;
+          }}
+          className="account-sidebar"
+          style={{ order: 2 }}
+        >
           {/*<AccountSwitcher accounts={accounts} sidebarAccountIds={sidebarAccountIds} />*/}
           <div className="account-sidebar-sections">
             <OutlineView {...standardSection} />

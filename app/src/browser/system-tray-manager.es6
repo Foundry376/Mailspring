@@ -77,8 +77,10 @@ class SystemTrayManager {
       return;
     }
     if (enabled && !created) {
-      this._trayChat = new Tray(_getIcon(this._iconChatPath));
-      this._trayChat.addListener('click', this._onChatClick);
+      if (this._application.config.get(`chatEnable`)) {
+        this._trayChat = new Tray(_getIcon(this._iconChatPath));
+        this._trayChat.addListener('click', this._onChatClick);
+      }
       this._tray = new Tray(_getIcon(this._iconPath));
       this._tray.setToolTip(_getTooltip(this._unreadString));
       this._tray.addListener('click', this._onClick);
