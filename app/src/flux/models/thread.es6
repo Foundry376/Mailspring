@@ -150,7 +150,7 @@ export default class Thread extends ModelWithMetadata {
   async messages({ includeHidden } = {}) {
     const messages = await DatabaseStore.findAll(Message)
       .where({ threadId: this.id }).where([Message.attributes.state.in([Message.messageState.saving, Message.messageState.normal])])
-      .include(Message.attributes.body);
+      .include(Message.attributes.body).include(Message.attributes.isPlainText);
 
     if (!includeHidden) {
       return messages.filter(message => !message.isHidden());

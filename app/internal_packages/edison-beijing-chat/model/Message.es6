@@ -27,49 +27,46 @@ const db = getdb();
 
 export const getStatusWeight = status => STATUS_WEIGHTS[status];
 
-export default class Message extends Model { }
-Message.init({
-  // attributes
-  id: {
-    type: Sequelize.STRING,
-    primaryKey: true
+export default class Message extends Model {}
+Message.init(
+  {
+    // attributes
+    id: {
+      type: Sequelize.STRING,
+      primaryKey: true,
+    },
+    conversationJid: {
+      type: Sequelize.STRING,
+      primaryKey: true,
+    },
+    sender: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    body: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    sentTime: {
+      type: Sequelize.INTEGER, //cxm: sentTime is the first sentTime
+      allowNull: false,
+    },
+    updateTime: {
+      type: Sequelize.INTEGER, //cxm: updateTime is the last sentTime(including edit sent messages)
+    },
+    readTime: {
+      type: Sequelize.INTEGER, //cxm: readTime is set at the time while message.jsx.componentWillUnmount
+    },
+    status: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
   },
-  conversationJid: {
-    type: Sequelize.STRING,
-    index: true
-  },
-  sender: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  body: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  sentTime: {
-    type: Sequelize.INTEGER, //cxm: sentTime is the first sentTime
-    allowNull: false
-  },
-  updateTime: {
-    type: Sequelize.INTEGER, //cxm: updateTime is the last sentTime(including edit sent messages)
-  },
-  readTime: {
-    type: Sequelize.INTEGER, //cxm: readTime is set at the time while message.jsx.componentWillUnmount
-  },
-  status: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-}, {
-    sequelize:db,
-    indexes: [
-      {
-        name: 'conversation_jid_index',
-        fields: ['conversationJid']
-      }
-    ],
-    modelName: 'messages'
+  {
+    sequelize: db,
+    modelName: 'messages_v2',
     // options
-  });
+  }
+);
 Message.sync();
 db.messages = Message;

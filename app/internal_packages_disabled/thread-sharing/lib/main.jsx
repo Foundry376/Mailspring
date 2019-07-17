@@ -118,7 +118,7 @@ export const syncThreadToWeb = async thread => {
   let messages = await DatabaseStore.findAll(Message, {
     threadId: thread.id,
     accountId: thread.accountId,
-  }).include(Message.attributes.body);
+  }).include(Message.attributes.body).include(Message.attributes.isPlainText);
 
   // hide reminder notifications, deleted emails, etc.
   messages = messages.filter(m => !m.isHidden());

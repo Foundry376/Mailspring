@@ -464,11 +464,14 @@ export default class ModelQuery {
         joins.push(join);
       }
     });
-
+    const joinedDataTableNames = [];
     this._includeJoinedData.forEach(attr => {
-      const join = attr.includeSQL(this._klass);
-      if (join) {
-        joins.push(join);
+      if(!joinedDataTableNames.includes(attr.tableName())){
+        joinedDataTableNames.push(attr.tableName());
+        const join = attr.includeSQL(this._klass);
+        if (join) {
+          joins.push(join);
+        }
       }
     });
 

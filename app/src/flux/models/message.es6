@@ -132,6 +132,12 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'body',
     }),
 
+    isPlainText: Attributes.JoinedData({
+      modelTable: 'MessageBody',
+      modelKey: 'isPlainText',
+      joinTableColumn: 'type',
+    }),
+
     files: Attributes.Collection({
       modelKey: 'files',
       itemClass: File,
