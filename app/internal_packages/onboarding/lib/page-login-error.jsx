@@ -6,7 +6,7 @@ const { RetinaImg, Flexbox, ConfigPropContainer, LottieImg } = require('mailspri
 const { AccountStore, IdentityStore } = require('mailspring-exports');
 const OnboardingActions = require('./onboarding-actions').default;
 
-class InitialDonePage extends React.Component {
+class LoginErrorPage extends React.Component {
   static displayName = 'LoginErrorPage';
 
   constructor(props) {
@@ -53,4 +53,4 @@ class InitialDonePage extends React.Component {
   };
 }
 
-module.exports = InitialDonePage;
+module.exports = LoginErrorPage;

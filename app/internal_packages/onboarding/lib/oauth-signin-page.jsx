@@ -8,6 +8,7 @@ import url from 'url';
 import FormErrorMessage from './form-error-message';
 import { LOCAL_SERVER_PORT } from './onboarding-helpers';
 
+
 export default class OAuthSignInPage extends React.Component {
   static displayName = 'OAuthSignInPage';
 
@@ -29,6 +30,7 @@ export default class OAuthSignInPage extends React.Component {
   constructor(props) {
     super(props);
     this._mounted = false;
+    this.randomNum = window.crypto.getRandomValues(new Uint32Array(1))[0];
     this.state = {
       authStage: 'initial',
       showAlternative: false,
@@ -42,7 +44,8 @@ export default class OAuthSignInPage extends React.Component {
   _openInWebView(url) {
     this.setState({
       open: true,
-      url
+      url,
+      authStage: 'initial',
     });
   }
 
@@ -110,14 +113,13 @@ export default class OAuthSignInPage extends React.Component {
     if (this._server) this._server.close();
   }
 
-  componentWillUpdate = () => {
-    if (this.state.authStage === 'error') {
-      OnboardingActions.moveToPage('login-error');
-    }
+  moveToLoginError(){
+    OnboardingActions.moveToPage('login-error');
   }
 
   _onError(err) {
     this.setState({ authStage: 'error', errorMessage: err.message });
+    this.moveToLoginError();
     AppEnv.reportError(err);
   }
 
@@ -225,11 +227,19 @@ export default class OAuthSignInPage extends React.Component {
     contents.selectAll();
   }
 
-  _webviewDidFailLoad = () => {
+  _webviewDidFailLoad = (event) => {
+    // For some reason, yahoo oauth page will cause webview to throw load-did-fail with errorCode of -3 when
+    // navigating to permission granting view. Thus we want to capture that and ignore it.
+    if(this.state.isYahoo){
+      if(event && event.errorCode === -3){
+        return;
+      }
+    }
     this.setState({
       authStage: 'error',
       errorMessage: 'Network Error.'
     })
+    this.moveToLoginError();
   }
 
   _setupWebview = () => {
@@ -238,7 +248,7 @@ export default class OAuthSignInPage extends React.Component {
       return;
     }
     const listeners = {
-      // 'did-fail-load': this._webviewDidFailLoad,
+      'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,
@@ -253,26 +263,26 @@ export default class OAuthSignInPage extends React.Component {
       webview.addEventListener(event, listeners[event]);
     }
 
-    if (this.state.isYahoo) {
-      webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
-      webview.getWebContents().executeJavaScript(`
-      function deleteAllCookies() {
-          var cookies = document.cookie.split(";");
-          if (cookies.length > 0) {
-              for (var i = 0; i < cookies.length; i++) {
-                  var cookie = cookies[i];
-                  var eqPos = cookie.indexOf("=");
-                  var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                  name = name.trim();
-                  document.cookie = name + "=;expires=" + new Date(0).toUTCString() + "; path=/; domain=.yahoo.com";
-              }
-          }
-      }
-      deleteAllCookies();
-    `, false, () => {
-          webview.reload();
-        });
-    }
+    // if (this.state.isYahoo) {
+    //   webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
+    //   webview.getWebContents().executeJavaScript(`
+    //   function deleteAllCookies() {
+    //       var cookies = document.cookie.split(";");
+    //       if (cookies.length > 0) {
+    //           for (var i = 0; i < cookies.length; i++) {
+    //               var cookie = cookies[i];
+    //               var eqPos = cookie.indexOf("=");
+    //               var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    //               name = name.trim();
+    //               document.cookie = name + "=;expires=" + new Date(0).toUTCString() + "; path=/; domain=.yahoo.com";
+    //           }
+    //       }
+    //   }
+    //   deleteAllCookies();
+    // `, false, () => {
+    //     webview.reload();
+    //   });
+    // }
   }
 
   _loaded = () => {
@@ -325,7 +335,7 @@ export default class OAuthSignInPage extends React.Component {
         {authStage === 'buildingAccount' && Validating}
         {authStage === 'accountSuccess' && Success}
         {!(['buildingAccount', 'accountSuccess', 'error'].includes(authStage)) && (
-          <webview ref='webview' src={this.state.url} partition="in-memory-only" style={
+          <webview key={this.randomNum} ref='webview' src={this.state.url} partition={`in-memory-only${this.randomNum}`} style={
             isYahoo ? yahooOptions : defaultOptions
           } />
         )}
@@ -334,14 +344,14 @@ export default class OAuthSignInPage extends React.Component {
             size={{ width: 65, height: 65 }}
             style={{ margin: '200px auto 0' }} />
         )}
-        {/* {authStage === 'error' && (
+        {authStage === 'error' && (
           <div style={{ marginTop: 100 }} >
             <h2>Sorry, we had trouble logging you in</h2>
             <div className="error-region">
               <FormErrorMessage message={this.state.errorMessage} />
             </div>
           </div>
-        )} */}
+        )}
       </div>
     );
   }
