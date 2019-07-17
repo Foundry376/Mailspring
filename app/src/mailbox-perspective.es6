@@ -301,7 +301,14 @@ export default class MailboxPerspective {
     const accounts = AccountStore.accountsForItems(threads);
     return (
       accounts.every(acc => acc.canArchiveThreads()) &&
-      threads.some(thread => thread.labels.some(label => label.role === 'inbox'))
+      threads.every(thread => {
+        const account = AccountStore.accountForId(thread.accountId);
+        if (account && account.provider === 'gmail') {
+          return thread.labels.some(label => label.role === 'inbox');
+        } else {
+          return true;
+        }
+      })
     );
   }
 
