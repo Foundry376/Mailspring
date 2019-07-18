@@ -6,14 +6,14 @@ import {
   MESSAGE_STATUS_DELIVERED,
 } from '../model/Message';
 import uuid from 'uuid/v4';
-import { MessageStore, E2eeStore, RoomStore, ConversationStore } from 'chat-exports';
+import { MessageStore, E2eeStore, RoomStore } from 'chat-exports';
 import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getDeviceId } from '../utils/e2ee';
 
 class MessageSend {
   sendMessage = async (body, conversation, messageId, updating, aes) => {
-    const { curJid: from, jid: to, isGroup, name: convName } = conversation;
+    const { curJid: from, jid: to, isGroup } = conversation;
     const msgId = messageId || uuid();
     const strBody = JSON.stringify(body);
     const dbMsg = await MessageStore.getMessageById(msgId, to);
@@ -28,25 +28,7 @@ class MessageSend {
       status: MESSAGE_STATUS_SENDING,
       id: `${msgId}`,
     };
-    await MessageStore.saveMessagesAndRefresh([msg]);
-
-    const refreshConv = await MessageStore.getRefreshConv(to);
-    const conv = {
-      jid: to,
-      curJid: from,
-      name: refreshConv.name || convName,
-      isGroup,
-      unreadMessages: 0,
-      lastMessageTime: refreshConv.lastMessageTime || sentTime,
-      lastMessageText: refreshConv.lastMessageText || body.content,
-      lastMessageSender: refreshConv.sender || from,
-      at: false,
-    };
-    if (isGroup) {
-      conv.avatarMembers = refreshConv.avatarMembers || [];
-    }
-    await ConversationStore.saveConversations([conv]);
-
+    MessageStore.saveMessagesAndRefresh([msg]);
     let message = {
       id: msgId,
       to,
