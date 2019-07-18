@@ -180,6 +180,19 @@ const CreatePageForForm = FormComponent => {
             account.settings.imap_allow_insecure_ssl = true;
             account.settings.smtp_allow_insecure_ssl = true;
           }
+          const errorAccount = Object.assign({}, account);
+          delete errorAccount.name;
+          delete errorAccount.emailAddress;
+          delete errorAccount.label;
+          delete errorAccount.autoaddress;
+          delete errorAccount.aliases;
+          if(errorAccount.settings){
+            delete errorAccount.settings.imap_username;
+            delete errorAccount.settings.imap_password;
+            delete errorAccount.settings.smtp_username;
+            delete errorAccount.settings.smtp_password;
+          }
+          AppEnv.reportError(err, {account: errorAccount});
 
           this.setState({
             errorMessage: err.message,
