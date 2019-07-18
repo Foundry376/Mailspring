@@ -1,6 +1,6 @@
 import Html from 'slate-html-serializer';
 import { Value } from 'slate';
-
+import React from 'react';
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins from './template-plugins';
 import SpellcheckPlugins from './spellcheck-plugins';
