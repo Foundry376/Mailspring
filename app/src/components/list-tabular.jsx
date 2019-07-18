@@ -332,28 +332,27 @@ class ListTabular extends Component {
         animatingOut = {};
       }
       // Add items that were not in previous set and send observable-ids
-      for(let currentItemIndex of Object.keys(items)){
+      for (let currentItemIndex of Object.keys(items)) {
         let tmpIndex = -1;
-        if(currentItemIndex == -1 || !items[currentItemIndex]){
+        if (currentItemIndex == -1 || !items[currentItemIndex]) {
           break;
         }
-        for(let previousIndex of Object.keys(this.state.items)){
+        for (let previousIndex of Object.keys(this.state.items)) {
           const previousItem = this.state.items[previousIndex];
-          if(previousItem && previousItem.id === items[currentItemIndex].id){
+          if (previousItem && previousItem.id === items[currentItemIndex].id) {
             tmpIndex = -1;
             break;
           }
           tmpIndex = currentItemIndex;
         }
-        if(tmpIndex !== -1){
+        if (tmpIndex !== -1) {
           newItems[tmpIndex] = items[tmpIndex];
         }
       }
-      if(Object.keys(newItems).length > 0){
-        console.log(`new items available ${Object.keys(newItems)}`);
+      if (Object.keys(newItems).length > 0) {
         this.sendObservableRangeTask(dataSource, newItems);
       }
-    }else{
+    } else {
       this.sendObservableRangeTask(dataSource, items, true);
     }
     return {
