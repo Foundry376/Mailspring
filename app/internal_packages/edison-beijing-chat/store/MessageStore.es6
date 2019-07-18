@@ -54,9 +54,29 @@ class MessageStore extends MailspringStore {
       return;
     }
 
-    await this.processPrivateMessage(message);
-    const conv = await this.storePrivateConversation(message);
-    // if current selection, refresh messages
+    await this.prepareForSaveMessage(message, RECEIVE_PRIVATECHAT);
+    const conv = await this.processPrivateMessage(message);
+    if (!conv) {
+      return;
+    }
+    if (conv.jid === this.conversationJid) {
+      this.retrieveSelectedConversationMessages(conv.jid);
+    }
+    this.showNotification(message);
+  };
+
+  reveiveGroupChat = async message => {
+    let jidLocal = message.curJid.split('@')[0];
+    message = await this.decrypteBody(message, jidLocal);
+    if (!message || (await this._isExistInDb(message, true))) {
+      return;
+    }
+
+    await this.prepareForSaveMessage(message, RECEIVE_GROUPCHAT);
+    const conv = await this.processGroupMessage(message);
+    if (!conv) {
+      return;
+    }
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
@@ -86,56 +106,28 @@ class MessageStore extends MailspringStore {
   };
 
   processPrivateMessage = async payload => {
-    await this.prepareForSaveMessage(payload, RECEIVE_PRIVATECHAT);
-  };
-
-  storePrivateConversation = async payload => {
     let name;
-    let timeSend = new Date().getTime();
-    if (payload.from.bare === payload.curJid) {
-      name = null;
-    } else {
-      name = payload.from.local;
-    }
-    const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
-    if (payload.body) {
-      timeSend = JSON.parse(payload.body).timeSend;
-    }
-    // if not current conversation, unreadMessages + 1
-    let unreadMessages = 0;
-    const selectedConversation = await ConversationStore.getSelectedConversation();
-    if (
-      !selectedConversation ||
-      selectedConversation.jid !== payload.from.bare ||
-      !this._isWindowFocused()
-    ) {
-      unreadMessages = 1;
-    }
     let jid;
-    console.log(payload.from.bare, payload.curJid);
     if (payload.from.bare === payload.curJid) {
       jid = payload.to.bare;
+      name = null;
     } else {
       jid = payload.from.bare;
+      name = payload.from.local;
     }
+    const refreshConv = await this.getRefreshConv(jid);
     const contact = await ContactStore.findContactByJid(jid);
     const coversation = {
       jid,
       curJid: payload.curJid,
       name: contact ? contact.name : name,
       isGroup: false,
-      unreadMessages: unreadMessages,
-      lastMessageTime,
-      lastMessageText,
-      lastMessageSender: sender || payload.from.bare,
+      unreadMessages: refreshConv.unreadMessages,
+      lastMessageTime: refreshConv.lastMessageTime || parseInt(payload.ts),
+      lastMessageText: refreshConv.lastMessageText || getMessageContent(payload),
+      lastMessageSender: refreshConv.sender || payload.from.bare,
       at: false,
     };
-    const convInDb = await ConversationStore.getConversationByJid(jid);
-    if (convInDb) {
-      if (unreadMessages) {
-        coversation.unreadMessages = convInDb.unreadMessages + 1;
-      }
-    }
 
     await ConversationStore.saveConversations([coversation]);
     return coversation;
@@ -189,23 +181,6 @@ class MessageStore extends MailspringStore {
       }
     }
     return false;
-  };
-
-  reveiveGroupChat = async message => {
-    let jidLocal = message.curJid.split('@')[0];
-    message = await this.decrypteBody(message, jidLocal);
-    if (!message || (await this._isExistInDb(message, true))) {
-      return;
-    }
-
-    const conv = await this.processGroupMessage(message);
-    if (!conv) {
-      return;
-    }
-    if (conv.jid === this.conversationJid) {
-      this.retrieveSelectedConversationMessages(conv.jid);
-    }
-    this.showNotification(message);
   };
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
@@ -368,26 +343,23 @@ class MessageStore extends MailspringStore {
   };
 
   processGroupMessage = async payload => {
-    await this.prepareForSaveMessage(payload, RECEIVE_GROUPCHAT);
-    let at = false;
+    const body = parseMessageBody(payload.body);
+    const at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
+
     let name = payload.from.local;
     // get the room name and whether you are '@'
     const rooms = await RoomStore.getRooms();
-    const body = parseMessageBody(payload.body);
-    at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
     if (rooms && rooms[payload.from.bare] && rooms[payload.from.bare].name) {
       name = rooms[payload.from.bare].name;
     } else {
-      let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
-      RoomStore.saveRooms(roomsInfo);
-      roomsInfo = roomsInfo || {
-        curJid: payload.curJid,
-        discoItems: { items: [] },
-      };
-      const {
-        discoItems: { items },
-      } = roomsInfo;
-      if (items) {
+      let items = [];
+      const roomsInfo = await xmpp.getRoomList(null, payload.curJid);
+      if (roomsInfo) {
+        RoomStore.saveRooms(roomsInfo);
+        items = roomsInfo.discoItems ? roomsInfo.discoItems.items : [];
+      }
+
+      if (items && items.length) {
         for (const item of items) {
           if (payload.from.local === item.jid.local) {
             name = item.name;
@@ -396,41 +368,25 @@ class MessageStore extends MailspringStore {
         }
       }
     }
-    const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
-    // if not current conversation, unreadMessages + 1
-    let unreadMessages = 0;
-    const selectedConversation = await ConversationStore.getSelectedConversation();
-    if (
-      !selectedConversation ||
-      selectedConversation.jid !== payload.from.bare ||
-      !this._isWindowFocused()
-    ) {
-      unreadMessages = 1;
-    }
+    const refreshConv = await this.getRefreshConv(payload.from.bare);
     let conv = {
       jid: payload.from.bare,
       curJid: payload.curJid,
-      name: name,
+      name: refreshConv.name || name, // DC-581, DC-519,
       isGroup: true,
-      unreadMessages,
-      lastMessageTime,
-      lastMessageText,
-      lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
+      avatarMembers: refreshConv.avatarMembers || [],
+      unreadMessages: refreshConv.unreadMessages,
+      lastMessageTime: refreshConv.lastMessageTime || parseInt(payload.ts),
+      lastMessageText: refreshConv.lastMessageText || getMessageContent(payload),
+      lastMessageSender: refreshConv.sender || payload.from.resource + '@im.edison.tech',
       at,
     };
-    const convInDb = await ConversationStore.getConversationByJid(conv.jid);
-    if (convInDb) {
-      conv.avatarMembers = convInDb.avatarMembers || [];
-      if (unreadMessages) {
-        conv.unreadMessages = convInDb.unreadMessages + 1;
-      }
-      // if conversation's curJid is not equal to payload's curJid, skip it.
-      if (convInDb.curJid !== payload.curJid) {
-        return;
-      }
-    } else {
-      conv.avatarMembers = [];
+
+    // if conversation's curJid is not equal to payload's curJid, skip it.
+    if (refreshConv.curJid && refreshConv.curJid !== payload.curJid) {
+      return;
     }
+
     const { contact, roomMembers } = await RoomStore.getMemeberInfo(
       conv.jid,
       conv.curJid,
@@ -442,8 +398,8 @@ class MessageStore extends MailspringStore {
     }
     // add last sender to avatar
     addToAvatarMembers(conv, contact);
-    conv.name = (convInDb && convInDb.name) || conv.name; // DC-581, DC-519
-    // fallback
+
+    // conv name fallback
     if (!conv.name) {
       const contactNameList = roomMembers
         .filter(member => {
@@ -632,6 +588,48 @@ class MessageStore extends MailspringStore {
       }, 5000);
     }
   };
+
+  getRefreshConv = async jid => {
+    let refreshConv = {
+      curJid: null,
+      name: null,
+      unreadMessages: 0,
+      sender: null,
+      lastMessageTime: null,
+      lastMessageText: '',
+      avatarMembers: [],
+    };
+    const convInDb = await ConversationStore.getConversationByJid(jid);
+    const selectedConversation = await ConversationStore.getSelectedConversation();
+
+    if (!selectedConversation || selectedConversation.jid !== jid || !this._isWindowFocused()) {
+      refreshConv.unreadMessages = convInDb ? convInDb.unreadMessages + 1 : 1;
+    }
+
+    if (convInDb) {
+      refreshConv.avatarMembers = convInDb.avatarMembers || [];
+      refreshConv.curJid = convInDb.curJid;
+      refreshConv.name = convInDb.name;
+    }
+
+    const lastMessage = await MessageModel.findOne({
+      where: {
+        conversationJid: jid,
+      },
+      order: [['sentTime', 'DESC']],
+    });
+    if (lastMessage) {
+      let lastMessageText = getMessageContent(lastMessage);
+      if (lastMessage.body.indexOf('"deleted":true') >= 0) {
+        lastMessageText = '';
+      }
+      refreshConv.sender = lastMessage.sender;
+      refreshConv.lastMessageTime = lastMessage.sentTime;
+      refreshConv.lastMessageText = lastMessageText;
+    }
+
+    return refreshConv;
+  };
 }
 
 // TODO
@@ -678,54 +676,6 @@ const addToAvatarMembers = (conv, contact) => {
     conv.avatarMembers[0] = contact;
     return conv;
   }
-};
-
-const getLastMessageInfo = async message => {
-  let body,
-    lastMessageText,
-    sender = null,
-    lastMessageTime = new Date().getTime();
-  body = message.body;
-  if (!body) {
-    return { sender, lastMessageTime, lastMessageText };
-  }
-  if (isJsonStr(body)) {
-    body = JSON.parse(body);
-  }
-  if (body.updating || body.deleted) {
-    let conv = message.conversation;
-    if (!conv) {
-      conv = await ConversationStore.getConversationByJid(message.from.bare);
-      if (!conv) {
-        lastMessageText = getMessageContent(message);
-        return { sender, lastMessageTime, lastMessageText };
-      }
-    }
-    let lastMessage = await MessageModel.findOne({
-      where: {
-        conversationJid: conv.jid,
-      },
-      order: [['sentTime', 'DESC']],
-    });
-
-    if (lastMessage) {
-      const id = message.id;
-      const lastid = lastMessage.id;
-      if (id != lastid) {
-        sender = lastMessage.sender;
-        lastMessageTime = lastMessage.sentTime;
-        lastMessageText = getMessageContent(lastMessage);
-      } else if (body.deleted) {
-        lastMessageTime = lastMessage.sentTime || lastMessageTime;
-        lastMessageText = '';
-      } else {
-        lastMessageText = body.content;
-      }
-    }
-  } else {
-    lastMessageText = body.content;
-  }
-  return { sender, lastMessageTime, lastMessageText };
 };
 
 const getMessageContent = message => {
