@@ -13,7 +13,7 @@ import { getDeviceId } from '../utils/e2ee';
 
 class MessageSend {
   sendMessage = async (body, conversation, messageId, updating, aes) => {
-    const { curJid: from, jid: to, isGroup, convName } = conversation;
+    const { curJid: from, jid: to, isGroup, name: convName } = conversation;
     const msgId = messageId || uuid();
     const strBody = JSON.stringify(body);
     const dbMsg = await MessageStore.getMessageById(msgId, to);
