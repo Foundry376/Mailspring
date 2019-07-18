@@ -13,7 +13,7 @@ export default class EmailAvatar extends Component {
     if (props.thread) {
       const messages = props.thread.__messages;
       if (messages && messages.length) {
-        from = messages[0].from[0];
+        from = messages[messages.length - 1].from[0];
       }
       from = from || {};
     } else if (props.from) {
