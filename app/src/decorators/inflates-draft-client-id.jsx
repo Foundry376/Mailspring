@@ -71,9 +71,13 @@ function InflatesDraftClientId(ComposedComponent) {
       }
       DraftStore.sessionForClientId(headerMessageId).then(session => {
         const shouldSetState = () => {
+          if (!session) {
+            AppEnv.reportError(new Error('session not available'));
+            return this._mounted;
+          }
           const draft = session.draft();
           let sameDraftWithNewID = false; // account for when draft gets new id because of being from remote
-          if (draft.referenceMessageId) {
+          if (draft && draft.referenceMessageId) {
             sameDraftWithNewID = draft.referenceMessageId === messageId;
           }
           return (

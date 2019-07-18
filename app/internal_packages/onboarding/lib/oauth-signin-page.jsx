@@ -120,7 +120,7 @@ export default class OAuthSignInPage extends React.Component {
   _onError(err) {
     this.setState({ authStage: 'error', errorMessage: err.message });
     this.moveToLoginError();
-    AppEnv.reportError(err);
+    AppEnv.reportError(err, {oAuthURL: this.props.providerAuthPageUrl});
   }
 
   async _onReceivedCode(code) {
@@ -163,19 +163,20 @@ export default class OAuthSignInPage extends React.Component {
         </div>
       );
     }
+    return <div />;
 
     // Error
-    return (
-      <div>
-        <h2>Sorry, we had trouble logging you in</h2>
-        <div className="error-region">
-          <FormErrorMessage message={this.state.errorMessage} />
-          <div className="btn" style={{ marginTop: 20 }} onClick={this.props.onTryAgain}>
-            Try Again
-          </div>
-        </div>
-      </div>
-    );
+    // return (
+    //   <div>
+    //     <h2>Sorry, we had trouble logging you in</h2>
+    //     <div className="error-region">
+    //       <FormErrorMessage message={this.state.errorMessage} />
+    //       <div className="btn" style={{ marginTop: 20 }} onClick={this.props.onTryAgain}>
+    //         Try Again
+    //       </div>
+    //     </div>
+    //   </div>
+    // );
   }
 
   _renderAlternative() {

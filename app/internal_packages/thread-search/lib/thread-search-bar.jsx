@@ -374,17 +374,17 @@ class ThreadSearchBar extends Component {
             {suggestions === TokenSuggestionsForEmpty && (
               <div className="footer">
                 Pro tip: Combine search terms with AND and OR to create complex queries.{' '}
-                <a
-                  onMouseDown={e => {
-                    AppEnv.windowEventHandler.openLink({
-                      href: LearnMoreURL,
-                      metaKey: e.metaKey,
-                    });
-                    e.preventDefault();
-                  }}
-                >
-                  Learn more >
-                </a>
+                {/*<a*/}
+                {/*  onMouseDown={e => {*/}
+                {/*    AppEnv.windowEventHandler.openLink({*/}
+                {/*      href: LearnMoreURL,*/}
+                {/*      metaKey: e.metaKey,*/}
+                {/*    });*/}
+                {/*    e.preventDefault();*/}
+                {/*  }}*/}
+                {/*>*/}
+                {/*  Learn more >*/}
+                {/*</a>*/}
               </div>
             )}
           </div>
