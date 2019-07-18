@@ -95,8 +95,14 @@ export class TrashButton extends React.Component {
     return;
   };
   _onExpunge = event => {
+    let messages = [];
+    this.props.items.forEach( thread => {
+        if (Array.isArray(thread.__messages ) && thread.__messages.length > 0){
+          messages = messages.concat(thread.__messages)
+        }
+    });
     const tasks = TaskFactory.tasksForExpungingThreadsOrMessages({
-      threads: this.props.items,
+      messages: messages,
       source: 'Toolbar Button: Thread List',
     });
     Actions.queueTasks(tasks);
@@ -125,7 +131,7 @@ export class TrashButton extends React.Component {
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
-          title="Move to Trash"
+          title={canMove ? 'Move to Trash' : 'Expunge Thread'}
           onClick={actionCallBack}
         >
           <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
