@@ -116,7 +116,7 @@ export default class EmailFrame extends React.Component {
     iframeNode.addEventListener('load', this._onLoad);
 
     // disabled by quanzs
-    // autolink(doc, { async: true });
+    autolink(doc, { async: true });
     adjustImages(doc);
 
     for (const extension of MessageStore.extensions()) {
