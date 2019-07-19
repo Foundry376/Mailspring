@@ -60,6 +60,9 @@ class CalendarStore extends MailspringStore {
     if (!e) {
       return false;
     }
+    if (!e.organizer || e.organizer.email === '') {
+      return false;
+    }
     return e.needToRsvpByEmail(account.emailAddress);
   }
   _rsvpEventFailed(task) {
@@ -110,7 +113,7 @@ class CalendarStore extends MailspringStore {
       } else {
         me = me[0];
       }
-      if (!organizer) {
+      if (!organizer || organizer.email === '') {
         return null;
       }
       AttachmentStore.createNewFile({
@@ -289,6 +292,8 @@ class CalendarStore extends MailspringStore {
           let iCal = null;
           try {
             iCal = Calender.parse(data);
+          } catch (e) {
+            AppEnv.reportError(e, {icalData: data});
           } finally {
             resolve(iCal);
           }

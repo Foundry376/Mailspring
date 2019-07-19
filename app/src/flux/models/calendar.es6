@@ -45,7 +45,11 @@ class Attendee {
   }
 
   get email() {
-    return Attendee._parseEmailTo(this._attendee.getFirstValue());
+    const value = Attendee._parseEmailTo(this._attendee.getFirstValue());
+    if (value.length === 0) {
+      return this._attendee.getFirstParameter('email');
+    }
+    return value;
   }
 
   get language() {
@@ -236,10 +240,18 @@ class Attendee {
   }
 
   static _parseEmailTo(str) {
-    if (typeof str !== 'string' || !str.toLocaleLowerCase().includes('mailto:')) {
+    if (
+      typeof str !== 'string' ||
+      (!str.toLocaleLowerCase().includes('mailto:') &&
+      !str.toLocaleLowerCase().includes('email:') )
+    ) {
       return '';
     }
-    return str.split(':')[1];
+    if (str.toLocaleLowerCase().includes('mailto:')) {
+      return str.split(':')[1];
+    } else {
+      return str.split('=')[1];
+    }
   }
 
   get role() {
@@ -384,7 +396,10 @@ class VEvent extends ICAL.Event {
     this._geo = this.getFirstPropertyValue('geo');
     this._lastMod = this.getFirstPropertyValue('last-modified');
     this._location = this.getFirstProperty('location');
-    this._organizer = new Organizer(this.getFirstProperty('organizer'));
+    this._attendees = this.getAllProperties('attendee').map(
+      attendee => new Attendee(attendee, 'event'),
+    );
+    this._organizer = this._parseOrganizer(this.getFirstProperty('organizer'));
     this._priority = this.getFirstPropertyValue('priority');
     this._seq = this.getFirstPropertyValue('sequence');
     this._status = this.getFirstPropertyValue('status');
@@ -392,9 +407,6 @@ class VEvent extends ICAL.Event {
     this._url = this.getFirstPropertyValue('url');
     this._rrule = this.getFirstPropertyValue('rrule');
     this._attaches = this.getAllProperties('attach');
-    this._attendees = this.getAllProperties('attendee').map(
-      attendee => new Attendee(attendee, 'event'),
-    );
     // this._categories = vEvent.getAllProperties('categories');
     // this._comments = vEvent.getAllProperties('comment');
     // this._contacts = vEvent.getAllProperties('contact');
@@ -403,6 +415,20 @@ class VEvent extends ICAL.Event {
     // this._relatedes = vEvent.getAllProperties('related-to');
     // this._resources = vEvent.getAllProperties('resources');
     // this._rdates = vEvent.getAllProperties('rdate');
+  }
+
+  _parseOrganizer(organizer) {
+    if (organizer) {
+      return new Organizer(organizer);
+    } else {
+      if (Array.isArray(this._attendees) && this._attendees.length > 0) {
+        organizer = this.filterAttendeesBy({ criteria: 'role', value: 'CHAIR' });
+        if (organizer && organizer.length === 1 && organizer[0]) {
+          return organizer[0];
+        }
+      }
+      return null;
+    }
   }
 
   _findTimezonByTZId(TZId) {

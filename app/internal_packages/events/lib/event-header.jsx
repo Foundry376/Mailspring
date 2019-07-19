@@ -94,7 +94,7 @@ class EventHeader extends React.Component {
                 Location: {this.state.event.location ? this.state.event.location : 'Unknown'}
               </div>
               <div className="event-organizer">
-                Organizer: {this.state.event.organizer.name }
+                Organizer: {this.state.event.organizer ? this.state.event.organizer.name : 'Unknown'}
               </div>
             </div>
             {this._renderEventActions()}
