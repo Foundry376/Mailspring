@@ -305,7 +305,7 @@ class XmppEx extends EventEmitter3 {
     xmpp.tmpData[self.connectedJid.split('@')[0] + '_tmp_message_state'] = true;
     if (!self.pingState) {
       self.pingState = true;
-      self.ping();
+      setTimeout(self.ping.bind(self), 25000 + Math.random() * 10000);
     }
     self._log('xmpp session:connecting');
     self.retryTimes++;

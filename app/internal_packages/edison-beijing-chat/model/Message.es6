@@ -1,5 +1,6 @@
 // For messages from current user
 import Conversation from './Conversation';
+import { tableCompletedSync } from '../utils/databaseCompleteInt';
 
 export const MESSAGE_STATUS_FILE_UPLOADING = 'MESSAGE_STATUS_FILE_UPLOADING';
 export const MESSAGE_STATUS_SENDING = 'MESSAGE_STATUS_SENDING';
@@ -68,5 +69,5 @@ Message.init(
     // options
   }
 );
-Message.sync();
+Message.sync().then(tableCompletedSync);
 db.messages = Message;

@@ -134,7 +134,7 @@ const RegExpUtils = {
       // one of:
       '(',
       // domain with common tld
-      `([a-zA-Z0-9-_]+\\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\\.(?:${commonTlds.join('|')})`,
+      `([a-zA-Z0-9-_]+\\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\\.(?:${commonTlds.join('|')})$`,
 
       '|',
 
