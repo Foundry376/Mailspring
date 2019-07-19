@@ -238,6 +238,9 @@ class SidebarItem {
         cats.push(tmp);
       }
     }
+    if(cats.length === 0){
+      return null;
+    }
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');
     opts.categoryIds = this.getCategoryIds(accountIds, 'sent');
@@ -253,6 +256,9 @@ class SidebarItem {
         cats.push(tmp);
       }
     }
+    if(cats.length === 0){
+      return null;
+    }
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');
     opts.categoryIds = this.getCategoryIds(accountIds, 'spam');
@@ -267,6 +273,9 @@ class SidebarItem {
       if (tmp) {
         cats.push(tmp);
       }
+    }
+    if (cats.length === 0) {
+      return null;
     }
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');
@@ -285,6 +294,9 @@ class SidebarItem {
       if (tmp) {
         cats.push(tmp);
       }
+    }
+    if(cats.length === 0){
+      return null;
     }
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');

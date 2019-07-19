@@ -62,9 +62,13 @@ class SidebarSection {
     items.splice(1, 0, unreadItem, starredItem);
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
-      items.push(archiveMail);
+      if(archiveMail){
+        items.push(archiveMail);
+      }
     }
-    items.push(draftsItem);
+    if(draftsItem){
+      items.push(draftsItem);
+    }
     items.push(...this.accountUserCategories(account));
 
     ExtensionRegistry.AccountSidebar.extensions()
@@ -153,27 +157,38 @@ class SidebarSection {
     //   children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
     // });
     // const attchmentsMail = SidebarItem.forAttachments(accountIds);
-    const snoozedMail = SidebarItem.forSnoozed(accountIds, { displayName: 'Snoozed' });
-    const archiveMail = SidebarItem.forArchived(accountIds, { displayName: 'All Archive', name: 'allArchive' });
-    const spamMail = SidebarItem.forSpam(accountIds, { dispalyName: 'Spam' });
-    const sentMail = SidebarItem.forSentMails(accountIds, { dispalyName: 'All Sent' });
-    const allInboxes = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
-    const starredItem = SidebarItem.forStarred(accountIds, { displayName: 'Flagged' });
-    const unreadItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
-    const draftsItem = SidebarItem.forDrafts(accountIds, { displayName: 'All Drafts' });
-    //
-    // // Order correctly: Inbox, Unread, Starred, rest... , Drafts
-    items.unshift(allInboxes);
-    items.push(
-      starredItem,
-      unreadItem,
-      snoozedMail,
-      // attchmentsMail,
-      spamMail,
-      archiveMail,
-      draftsItem,
-      sentMail,
-    );
+    let folderItem = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
+    if (folderItem) {
+      items.unshift(folderItem);
+    }
+    folderItem = SidebarItem.forStarred(accountIds, { displayName: 'Flagged' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSnoozed(accountIds, { displayName: 'Snoozed' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSpam(accountIds, { dispalyName: 'Spam' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forDrafts(accountIds, { displayName: 'All Drafts' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forArchived(accountIds, { displayName: 'All Archive', name: 'allArchive' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSentMails(accountIds, { dispalyName: 'All Sent' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
 
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
