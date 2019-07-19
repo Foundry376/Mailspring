@@ -30,6 +30,7 @@ export default class ContactAvatar extends Component {
   }
 
   componentWillUnmount() {
+    this.mounted = false;
     this._unsub();
   }
 

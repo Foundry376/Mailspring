@@ -233,12 +233,51 @@ class MultiselectToolbar extends Component {
     </button>;
   }
 
+  _switchSingleDomDisplay(selector, shouldShow, displayType) {
+    const el = document.querySelector(selector);
+    if (el) {
+      el.style.display = shouldShow ? displayType : 'none';
+    }
+  }
+
+  _switchQuickSidebar = (shouldShow) => {
+    this._switchSingleDomDisplay('.column-QuickSidebar', shouldShow, 'flex');
+    this._switchSingleDomDisplay('.column-MessageListSidebar', shouldShow, 'block');
+    this._switchSingleDomDisplay('.toolbar-QuickSidebar', shouldShow, 'inherit');
+    this._switchSingleDomDisplay('.toolbar-MessageListSidebar', shouldShow, 'inherit');
+    this.recomputeLayout();
+  }
+
+  recomputeLayout() {
+    // Find our item containers that are tied to specific columns
+    const columnToolbarEls = document.querySelectorAll('.sheet-toolbar-container  [data-column]');
+
+    // Find the top sheet in the stack
+    const sheet = document.querySelectorAll("[name='Sheet']")[0];
+    if (!sheet) {
+      return;
+    }
+
+    // Position item containers so they have the position and width
+    // as their respective columns in the top sheet
+    for (const columnToolbarEl of columnToolbarEls) {
+      const column = columnToolbarEl.dataset.column;
+      const columnEl = sheet.querySelector(`[data-column='${column}']`);
+      if (!columnEl) {
+        continue;
+      }
+      columnToolbarEl.style.left = `${columnEl.offsetLeft}px`;
+      columnToolbarEl.style.width = `${columnEl.offsetWidth}px`;
+    }
+  }
+
   renderToolbar() {
     const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
     let totalCount = 0;
     if (dataSource) {
       totalCount = dataSource.count();
     } else {
+      this._switchQuickSidebar(false);
       return <span />;
     }
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
@@ -257,6 +296,12 @@ class MultiselectToolbar extends Component {
           threadCounts += ThreadCountsStore.unreadCountForCategoryId(cat.id);
         }
       }
+    }
+
+    if (threadCounts > 0) {
+      this._switchQuickSidebar(true);
+    } else {
+      this._switchQuickSidebar(false);
     }
     const classes = classnames({
       'multiselect-toolbar-root': true,

@@ -54,15 +54,15 @@ export const auth = async ({ jid, password }) => {
     }
     // fetch and saveRoom infomation
     await delay(200);
-    RoomStore.refreshRoomsFromXmpp(resBare);
+    await RoomStore.refreshRoomsFromXmpp(resBare);
 
     await delay(200);
-    BlockStore.refreshBlocksFromXmpp(resBare);
+    await BlockStore.refreshBlocksFromXmpp(resBare);
 
     await delay(200);
     const contacts = await xmpp.getRoster(resBare);
     if (contacts && contacts.roster && contacts.roster.items) {
-      ContactStore.saveContacts(contacts.roster.items, resBare);
+      await ContactStore.saveContacts(contacts.roster.items, resBare);
     }
 
     await delay(200);
@@ -77,17 +77,17 @@ export const auth = async ({ jid, password }) => {
         resBare
       );
       if (resp && resp.type == 'result' && resp.e2ee) {
-        updateFlag(resLocal);
+        await updateFlag(resLocal);
       }
     }
 
     await delay(200);
     const e2ees = await xmpp.getE2ee('', resBare);
     console.log('e2ee', e2ees)
-    E2eeStore.saveE2ees(e2ees, resBare);
+    await E2eeStore.saveE2ees(e2ees, resBare);
 
     await delay(200);
-    AppsStore.saveMyAppsAndEmailContacts({ curJid: resBare, local: resLocal });
+    await AppsStore.saveMyAppsAndEmailContacts({ curJid: resBare, local: resLocal });
   } catch (error) {
     log('connect', `auth connect error: ${JSON.stringify(error)}`);
     window.console.warn('connect error', error);
