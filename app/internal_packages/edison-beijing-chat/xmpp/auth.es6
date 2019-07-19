@@ -54,10 +54,10 @@ export const auth = async ({ jid, password }) => {
     }
     // fetch and saveRoom infomation
     await delay(200);
-    RoomStore.refreshRoomsFromXmpp(resBare);
+    await RoomStore.refreshRoomsFromXmpp(resBare);
 
     await delay(200);
-    BlockStore.refreshBlocksFromXmpp(resBare);
+    await BlockStore.refreshBlocksFromXmpp(resBare);
 
     await delay(200);
     const contacts = await xmpp.getRoster(resBare);
