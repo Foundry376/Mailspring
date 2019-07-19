@@ -110,7 +110,7 @@ export default class ComposerView extends React.Component {
     if (!participants || !Array.isArray(participants.to) || participants.to.length === 0) {
       return '';
     }
-    return participants.to[0].name;
+    return participants.to[0].name || '';
   }
 
   componentDidUpdate() {

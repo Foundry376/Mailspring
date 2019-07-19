@@ -370,7 +370,7 @@ class MessageStore extends MailspringStore {
 
   setWindowTitle(title) {
     if (AppEnv.isComposerWindow()) {
-      if (title.length > 0) {
+      if (title && title.length > 0) {
         title = `Draft to: ${title.trim()}`;
       } else {
         title = 'New Draft';
