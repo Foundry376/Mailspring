@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
 const { getdb } = require('../db/index');
 const db = getdb();
+const { tableCompletedSync } = require('../utils/databaseCompleteInt');
 
 export default class Block extends Model {}
 Block.init(
@@ -23,5 +24,5 @@ Block.init(
     modelName: 'block',
   }
 );
-Block.sync();
+Block.sync().then(tableCompletedSync);
 db.block = Block;
