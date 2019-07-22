@@ -10,7 +10,7 @@ import Account from '../models/account';
 import Utils from '../models/utils';
 import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/utils/appmgt';
 import { registerLoginEmailAccountForChat } from '../../../internal_packages/edison-beijing-chat/utils/register-login-chat';
-import path from "path";
+const ipcRenderer = require('electron').ipcRenderer;
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
@@ -43,6 +43,14 @@ class AccountStore extends MailspringStore {
       this._loadAccounts();
       const accountIds = this._accounts.map(a => a.id);
       const newAccountIds = _.difference(accountIds, oldAccountIds);
+
+      if (AppEnv.isMainWindow()) {
+        ipcRenderer.on('add-chat-account', async (event, account) => {
+          await registerLoginEmailAccountForChat(account);
+          await AppStore.refreshAppsEmailContacts();
+          await MessageStore.saveMessagesAndRefresh([]);
+        });
+      }
 
       if (AppEnv.isMainWindow() && newAccountIds.length > 0) {
         const newId = newAccountIds[0];
@@ -225,8 +233,7 @@ class AccountStore extends MailspringStore {
 
     if (remainingAccounts.length === 0) {
       // Clear everything and logout
-      const ipc = require('electron').ipcRenderer;
-      ipc.send('command', 'application:reset-database', {});
+      ipcRenderer.send('command', 'application:reset-database', {});
     } else {
       // Clear the cached data for the account and reset secrets once that has completed
       AppEnv.mailsyncBridge.resetCacheForAccount(account, { silent: true }).then(() => {
@@ -271,12 +278,7 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-
-    if (AppEnv.config.get(`chatEnable`)) {
-      await registerLoginEmailAccountForChat(account);
-      await AppStore.refreshAppsEmailContacts();
-      await MessageStore.saveMessagesAndRefresh([]);
-    }
+    ipcRenderer.send('add-chat-account', account);
   };
 
   _cachedGetter(key, fn) {
