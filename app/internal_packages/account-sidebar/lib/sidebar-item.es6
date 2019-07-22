@@ -375,6 +375,9 @@ class SidebarItem {
     opts.iconName = 'drafts.svg';
     const perspective = MailboxPerspective.forDrafts(accountIds);
     opts.categoryIds = this.getCategoryIds(accountIds, 'drafts');
+    if (!Array.isArray(opts.categoryIds) || opts.categoryIds.length === 0) {
+      return null;
+    }
     const id = `Drafts-${opts.name}`;
     // return this.forPerspective(id, perspective, opts);
     return SidebarItem.appendSubPathByAccounts(

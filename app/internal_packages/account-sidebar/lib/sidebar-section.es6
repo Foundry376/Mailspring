@@ -62,11 +62,11 @@ class SidebarSection {
     items.splice(1, 0, unreadItem, starredItem);
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
-      if(archiveMail){
+      if (archiveMail) {
         items.push(archiveMail);
       }
     }
-    if(draftsItem){
+    if (draftsItem) {
       items.push(draftsItem);
     }
     items.push(...this.accountUserCategories(account));
