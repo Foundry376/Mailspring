@@ -76,7 +76,6 @@ class AppsStore extends MailspringStore {
     log('contact', `saveEmailContacts: emails: `+emails.join(', '));
     queryProfile({ accessToken, emails }, async (err, res) => {
       if (!res) {
-        console.log('fail to login to queryProfile');
         log('contact', `fail to login to queryProfile: err： `+JSON.stringify(err));
         return;
       }
@@ -99,7 +98,6 @@ class AppsStore extends MailspringStore {
         return contact;
       });
       emailContacts = emailContacts.filter(contact => !!contact.curJid);
-      console.log('saveEmailContacts: emailContacts: ', emailContacts);
       log('contact', `saveEmailContacts: emails 2: `+emailContacts.map(contact=> contact.email).join(', '));
       await ContactStore.saveContacts(emailContacts, payload.curJid);
       return;

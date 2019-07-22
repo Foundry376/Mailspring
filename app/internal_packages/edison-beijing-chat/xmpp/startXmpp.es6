@@ -74,19 +74,16 @@ const startXmpp = xmpp => {
   });
   // user online
   xmpp.on('available', data => {
-    console.log('xmpp:available: ', data);
     OnlineUserStore.addOnlineUser(data);
     ChatActions.userOnlineStatusChanged(data.from.bare);
   });
   // user online
   xmpp.on('unavailable', data => {
-    console.log('xmpp:unavailable: ', data);
     OnlineUserStore.removeOnlineUser(data);
     ChatActions.userOnlineStatusChanged(data.from.bare);
   });
   // Chat account online
   xmpp.on('session:started', data => {
-    console.log('xmpp:session:started: ', data);
     OnlineUserStore.addOnLineAccount(data);
     let ts = AppEnv.config.get(data.local + '_message_ts');
     if (ts) {
@@ -112,7 +109,6 @@ const startXmpp = xmpp => {
   });
 
   xmpp.on('message:ext-e2ee', data => {
-    //console.log('message:ext-e2ee', data);
     E2eeStore.saveE2ee(data);
   });
 
@@ -143,14 +139,6 @@ const startXmpp = xmpp => {
   });
 
   xmpp.on('message:failed', async message => {
-    console.log('message:failed: ', message);
-    // let msgInDb = await MessageStore.getMessageById(data.$received.id, data.from.bare);
-    // if (!msgInDb) {
-    //   return;
-    // }
-    // const msg = msgInDb.get({ plain: true });
-    // msg.status = 'MESSAGE_STATUS_FAILED';
-    // MessageStore.saveMessagesAndRefresh([msg]);
   });
 
   xmpp.on('auth:failed', async data => {

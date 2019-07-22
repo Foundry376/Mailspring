@@ -266,7 +266,6 @@ export default class MessagesSendBar extends PureComponent {
         if (selectedConversation.isGroup) {
           roomId = jidLocal;
         } else {
-          //console.log('yazz-test88', jidLocal, curJidLocal);
           if (jidLocal != app[0].id) {
             peerUserId = jidLocal;
           }

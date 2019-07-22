@@ -76,7 +76,6 @@ export default class MessageImagePopup extends Component {
       return;
     }
     if (msgBody.path.match(/^file:\/\//)) {
-      // console.log('downloadImage: ', msgBody.path);
       let imgpath = msgBody.path.replace('file://', '');
       fs.copyFileSync(imgpath, path);
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {

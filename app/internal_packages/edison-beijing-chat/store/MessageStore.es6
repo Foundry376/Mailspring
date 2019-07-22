@@ -141,14 +141,14 @@ class MessageStore extends MailspringStore {
         let text = keys[jidLocal][deviceId];
         if (text) {
           let aes = decrypte(text, prikey); //window.localStorage.priKey);
-          const result = this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, message);
+          const result = await this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, message);
           if (!result) {
             return null;
           }
         }
       }
     } else {
-      this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, null, message);
+      await this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, null, message);
       if (message.appJid) {
         try {
           let json = JSON.parse(message.body);
@@ -183,9 +183,13 @@ class MessageStore extends MailspringStore {
     return false;
   };
 
-  downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
+  downloadAndTagImageFileInMessage = async (chatType, aes, payload, startOnRender) => {
     let body;
-    let convJid = payload.from.bare;
+    let convJid = payload.from && payload.from.bare || payload.conversationJid;
+    const msg = await this.getMessageById(payload.id, convJid);
+    if (msg && !startOnRender) {
+      return;
+    }
     if (aes) {
       body = decryptByAES(aes, payload.payload);
       if (!body) {
@@ -201,6 +205,8 @@ class MessageStore extends MailspringStore {
       console.error('downloadAndTagImageFileInMessage error:', e, body);
       return;
     }
+
+    aes = aes || msgBody.aes;
 
     if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // a link
@@ -220,6 +226,7 @@ class MessageStore extends MailspringStore {
       }
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
+      console.trace( 'downloadAndTagImageFileInMessage: ', msgBody);
       msgBody.downloading = true;
       if (msgBody.thumbObjectId) {
         downloadFile(aes, msgBody.thumbObjectId, thumbPath, err => {
@@ -303,15 +310,6 @@ class MessageStore extends MailspringStore {
     payload.body = JSON.stringify(msgBody);
     return true;
   };
-
-  // retrievingMessages = (jid) => {
-  //   console.log('****retrievingMessages', jid);
-  //   if (this.conversationJid != jid) {
-  //     saveGroupMessages(this.groupedMessages);
-  //   }
-  //   this.conversationJid = jid;
-  //   this.retrieveSelectedConversationMessages(jid);
-  // }
 
   retrieveSelectedConversationMessages = async (jid, limit, offset) => {
     const condistion = {
