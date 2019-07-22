@@ -68,7 +68,6 @@ export default class ConversationInfo extends Component {
     for (const member of members) {
       member.name = name(member.jid);
     }
-    console.log('refreshRoomMembers: ', members);
     members.sort((a, b) => (a.affiliation + a.name) > (b.affiliation + b.name) ? 1 : -1);
     this.setState({
       members,

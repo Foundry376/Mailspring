@@ -274,6 +274,7 @@ export default class MessagesPanel extends Component {
         const messageId = loadConfig.messageId;
         let body = loadConfig.msgBody;
         body.isUploading = false;
+        body.aes = loadConfig.aes;
         body.mediaObjectId = myKey;
         log('load', `MessagePanel.loadMessage: mediaObjectId: `, myKey);
         if (err) {
@@ -334,7 +335,18 @@ export default class MessagesPanel extends Component {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
       if (imgpath === filepath) {
-        loadCallback();
+        if (fs.existsSync(imgpath)) {
+          loadCallback();
+        } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+          // the file is on aws
+          loadConfig.request = downloadFile(
+            msgBody.aes,
+            msgBody.mediaObjectId,
+            filepath,
+            loadCallback,
+            loadProgressCallback
+          );
+        }
       } else {
         if (fs.existsSync(imgpath)) {
           fs.copyFileSync(imgpath, filepath);

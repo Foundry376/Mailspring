@@ -17,7 +17,7 @@ import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../utils/filetypes';
-import { MessageModel, MessageSend } from 'chat-exports';
+import { MessageModel, MessageSend, MessageStore } from 'chat-exports';
 import { name } from '../../../utils/name';
 
 export default class Msg extends PureComponent {
@@ -45,14 +45,14 @@ export default class Msg extends PureComponent {
     const { msg, conversation } = props;
     const msgBody = isJsonStr(msg.body) ? JSON.parse(msg.body) : msg.body;
     const currentUserJid = conversation.curJid;
+    let msgImgPath;
     if (typeof msgBody !== 'string') {
-      if (msg.sender === currentUserJid) {
-        msgBody.path = msgBody.localFile || msgBody.path;
-      } else {
-        msgBody.path = msgBody.path || msgBody.localFile;
+      msgImgPath = this.getImageFilePath(msgBody);
+      if (msgBody.mediaObjectId && !msgImgPath) {
+        MessageStore.downloadAndTagImageFileInMessage(null, null, msg, 'startOnRender');
       }
     }
-    const msgImgPath = msgBody.path;
+    msgBody.path = msgImgPath;
     return {
       msgBody,
       msgImgPath,
@@ -153,9 +153,11 @@ export default class Msg extends PureComponent {
     });
   };
   update(imgId) {
-    const { mediaObjectId, thumbObjectId } = this.state.msgBody;
+    const { msgBody } = this.state
+    const { mediaObjectId, thumbObjectId } = msgBody;
+    const msgImgPath = this.getImageFilePath(msgBody);
     if (imgId === mediaObjectId || imgId === thumbObjectId) {
-      this.setState({ imgId });
+      this.setState({ imgId, msgImgPath });
     }
   }
   download = () => {
@@ -339,9 +341,21 @@ export default class Msg extends PureComponent {
     }
   };
 
+  getImageFilePath = msgBody => {
+     const localFile = msgBody.localFile && msgBody.localFile.replace('file://', '');
+    if (localFile && fs.existsSync(localFile)) {
+      return localFile
+    }
+    const bodyPath = msgBody.path && msgBody.path.replace('file://', '');
+    if (bodyPath && fs.existsSync(bodyPath)) {
+      return bodyPath
+    }
+  }
+
+
   render() {
     const { msg, conversation } = this.props;
-    const { isEditing, msgImgPath, msgBody, currentUserJid } = this.state;
+    const { isEditing, msgBody, msgImgPath, currentUserJid } = this.state;
     const isCurrentUser = msg.sender === currentUserJid;
     const color = colorForString(msg.sender);
     const member = this.senderContact();
@@ -399,36 +413,45 @@ export default class Msg extends PureComponent {
               <span className="username">{senderName}</span>
               <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
             </div>
-            {msgBody &&
-            (msgBody.isUploading ||
-              (msgBody.downloading && !fs.existsSync(msgImgPath.replace('file://', '')))) ? (
+            {(msgBody ?
+              (this.isImage(msgBody.type) ?
+              (msgImgPath ?
+              <div className="messageBody">
+                <div className="message-image">
+                  <img src={msgImgPath} onClick={this.onClickImage} />
+                </div>
+              </div>
+            : ( msgBody.downloading ?
               <div className="messageBody loading">
-                {msgBody.downloading && (
-                  <div>
-                    {' '}
-                    Downloading...
-                    <RetinaImg
-                      name="inline-loading-spinner.gif"
-                      mode={RetinaImg.Mode.ContentPreserve}
-                    />
+                  <div> Downloading...
                   </div>
-                )}
-                {msgBody.isUploading && (
+                  <RetinaImg
+                    name="inline-loading-spinner.gif"
+                    mode={RetinaImg.Mode.ContentPreserve}
+                  />
+
+              </div>
+            : ( msgBody.isUploading ?
+                <div className="msgBody loading">
                   <div>
                     Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
                     <RetinaImg
                       name="inline-loading-spinner.gif"
                       mode={RetinaImg.Mode.ContentPreserve}
                     />
-                    {this.isImage(msgBody.type) && (
-                      <div className="message-image">
-                        <img src={msgBody.localFile} onClick={this.onClickImage} />
-                      </div>
-                    )}
                   </div>
-                )}
-              </div>
-            ) : isEditing ? (
+                </div>
+            : <div className="messageBody">
+                    <div>
+                      {msgBody.content}
+                    </div>
+                      <RetinaImg
+                        name="image-not-found.png"
+                        style={{ width: 24, height: 24 }}
+                        mode={RetinaImg.Mode.ContentPreserve}
+                      />
+                  </div>)))
+           : (isEditing ?
               <div onKeyDown={this.onKeyDown}>
                 <MessageEditBar
                   msg={msg}
@@ -438,26 +461,28 @@ export default class Msg extends PureComponent {
                   deleteMessage={this.deleteMessage}
                 />
               </div>
-            ) : (
+             :
               <div className="messageBody">
                 <div className="text-content">
                   <div className="text" ref={el => (this.contentEl = el)}>
                     {textContent}
                   </div>
-                  {!msgFile &&
+                  { !this.isImage(msgBody.type) &&
+                    !msgFile &&
                     isCurrentUser &&
                     !isEditing &&
                     this.messageToolbar(msg, msgBody, false)}
                 </div>
-              </div>
-            )}
+              </div> ) )
+              :null)
+            }
+          </div>
 
-            {msgBody.mediaObjectId && (
+            {msgBody.mediaObjectId && !this.isImage(msgBody.type) && (
               <div className="messageMeta">
                 <div>{msgFile}</div>
               </div>
             )}
-          </div>
           {messageFail ? (
             <div className="message-retry" onClick={this.retrySend}>
               {' '}
