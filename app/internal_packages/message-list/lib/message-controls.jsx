@@ -2,6 +2,7 @@
 import { remote } from 'electron';
 import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, TaskFactory } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
+import MessageTimestamp from './message-timestamp';
 
 const buttonTimeout = 700;
 export default class MessageControls extends React.Component {
@@ -220,10 +221,10 @@ export default class MessageControls extends React.Component {
     if (event) {
       event.stopPropagation();
     }
-    if(this.props.selection){
+    if (this.props.selection) {
       this.props.selection.clear();
     }
-    if(this.props.messages && this.props.messages && this.props.messages.length === 1){
+    if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
       Actions.popSheet();
     }
     return;
@@ -237,7 +238,7 @@ export default class MessageControls extends React.Component {
     if (event) {
       event.stopPropagation();
     }
-    if(this.props.messages && this.props.messages && this.props.messages.length === 1){
+    if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
       Actions.popSheet();
     }
     return;
@@ -309,6 +310,11 @@ export default class MessageControls extends React.Component {
     const items = this._items();
     return (
       <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
+        <MessageTimestamp
+          className="message-time"
+          isDetailed
+          date={this.props.message.date}
+        />
         <ButtonDropdown
           primaryItem={<RetinaImg
             name={items[0].image}

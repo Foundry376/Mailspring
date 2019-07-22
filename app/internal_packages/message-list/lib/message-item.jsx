@@ -95,8 +95,8 @@ export default class MessageItem extends React.Component {
     Actions.toggleMessageIdExpanded(this.props.message.id);
   };
 
-  _onCalendarStoreChange = () =>{
-    this.setState({calendar: CalendarStore.getCalendarByMessageId(this.props.message.id)});
+  _onCalendarStoreChange = () => {
+    this.setState({ calendar: CalendarStore.getCalendarByMessageId(this.props.message.id) });
   }
 
   _onDownloadStoreChange = () => {
@@ -198,8 +198,8 @@ export default class MessageItem extends React.Component {
     const attachedFiles = files.filter(f => {
       return (
         (!f.contentId ||
-        !(body || '').includes(`cid:${f.contentId}`) )&&
-          !(f.contentType || '').toLocaleLowerCase().includes('text/calendar')
+          !(body || '').includes(`cid:${f.contentId}`)) &&
+        !(f.contentType || '').toLocaleLowerCase().includes('text/calendar')
       );
     });
 
@@ -278,23 +278,18 @@ export default class MessageItem extends React.Component {
               onClick={this._onClickParticipants}
               isDetailed={this.state.detailedHeaders}
             />
-            <MessageTimestamp
-              className="message-time"
-              isDetailed
-              date={message.date}
+            <MessageParticipants
+              detailFrom={message.from}
+              to={message.to}
+              cc={message.cc}
+              bcc={message.bcc}
+              replyTo={message.replyTo.filter(c => !message.from.find(fc => fc.email === c.email))}
+              onClick={this._onClickParticipants}
+              isDetailed={this.state.detailedHeaders}
             />
             {this._renderHeaderDetailToggle()}
           </div>
         </div>
-        <MessageParticipants
-          detailFrom={message.from}
-          to={message.to}
-          cc={message.cc}
-          bcc={message.bcc}
-          replyTo={message.replyTo.filter(c => !message.from.find(fc => fc.email === c.email))}
-          onClick={this._onClickParticipants}
-          isDetailed={this.state.detailedHeaders}
-        />
         {/* {this._renderFolder()} */}
       </header>
     );
