@@ -42,7 +42,18 @@ const TEXT_RULE_IMPROVED = {
 
     if (el.nodeName === '#text') {
       if (el.nodeValue && el.nodeValue.match(/<!--.*?-->/)) return;
-      if (el.nodeValue && el.nodeValue.match(/\s{2,}/g)) {
+      if (el.nodeValue && el.nodeValue.match(/\s{2,}/)) {
+        return {
+          object: 'text',
+          leaves: [
+            {
+              object: 'leaf',
+              text: el.nodeValue.replace(/\t/g, '\u00A0\u00A0\u00A0 ').replace(/([ ]+) /g, (str, match) => match.replace(/ /g, '\u00A0') + ' ')
+            },
+          ],
+        };
+      }
+      if (el.nodeValue && el.nodeValue.match(/\t/)) {
         return {
           object: 'text',
           leaves: [
