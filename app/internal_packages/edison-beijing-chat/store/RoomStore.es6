@@ -85,7 +85,6 @@ class RoomStore extends MailspringStore {
     if (force) {
       members = await this.getRoomMembersFromXmpp(roomId, curJid);
     }
-    // console.log('refreshRoomMember: ', roomId, curJid, force, members);
     if (!members) {
       members = this.getRoomMembersFromCache(roomId, curJid);
       if (members) {

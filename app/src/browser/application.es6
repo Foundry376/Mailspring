@@ -1037,6 +1037,12 @@ export default class Application extends EventEmitter {
       }
       event.returnValue = true;
     });
+    ipcMain.on('add-chat-account', (event, account) => {
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('add-chat-account', account);
+      }
+    });
   }
 
   // Public: Executes the given command.

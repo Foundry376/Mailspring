@@ -327,6 +327,7 @@ body.platform-win32 {
 
     .avatar-icon {
       width: 40px;
+      min-width: 40px;
       height: 40px;
       border-radius: 50%;
       color: @white;
@@ -512,6 +513,8 @@ body.platform-win32 {
       transition-timing-function: ease-in-out;
       opacity: 1;
       text-align: left;
+      flex-direction: row;
+      align-items: center;
       .primary-item,
       .secondary-picker,
       .secondary-items .item {
@@ -555,6 +558,7 @@ body.platform-win32 {
 
     .message-time {
       z-index: 2;
+      top: 1px;
       position: relative;
       display: inline-block;
       min-width: 125px;
@@ -755,9 +759,8 @@ body.platform-win32 {
   }
 
   &.to-participants {
-    width: 100%;
-    margin-top: 10px;
-
+    width: calc(~'100% + 180px');
+    position: relative;
     .collapsed-participants {
       width: 100%;
     }

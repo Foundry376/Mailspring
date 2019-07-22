@@ -115,17 +115,18 @@ WSConnection.prototype.connect = function (opts) {
     // console.log('ws.11', self.conn, opts.wsOptions);
     self.conn.onerror = function (e) {
         e.preventDefault();
-        console.warn(`websocket error:${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()},`, e);
+        // console.warn(`websocket error:${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()},`, e);
         //self.emit('disconnected', self);
     };
 
     self.conn.onclose = function () {
-        console.warn(`websocket onclose,${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
+        // console.warn(`websocket onclose,ts:${self.ts},${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
         self.emit('disconnected', self);
     };
 
     self.conn.onopen = function () {
         self.sm.started = false;
+        // console.warn(`websocket onopen,ts:${self.ts},${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
         self.emit('connected', self);
     };
 

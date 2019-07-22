@@ -279,6 +279,18 @@
     white-space: pre-line;
     word-break: break-word;
     display: inline-block;
+    .message-image {
+      padding-right: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      .message-toolbar {
+        top: 10px;
+      }
+      & > img {
+        height: 220px;
+        cursor: zoom-in;
+      }
+    }
     .text-content {
       position: relative;
       padding-right: 50px;
@@ -321,18 +333,7 @@
         // }
       }
     }
-    .message-image {
-      padding-right: 0;
-      border-radius: 10px;
-      overflow: hidden;
-      .message-toolbar {
-        top: 10px;
-      }
-      & > img {
-        height: 220px;
-        cursor: zoom-in;
-      }
-    }
+
     .file-info {
       display: flex;
       flex-direction: row;
