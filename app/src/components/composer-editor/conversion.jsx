@@ -73,7 +73,9 @@ const TEXT_RULE_IMPROVED = {
         // In a long run of spaces, all but the last space are converted to &nbsp;.
         // Note: This text is pushed through React's HTML serializer after we're done,
         // so we need to use `\u00A0` which is the unicode character for &nbsp;
-        text = text.replace(/([ ]{2,}) /g, (str, match) => match.replace(/ /g, '\u00A0') + ' ');
+        text = text
+          .replace(/([ ]{2,}) /g, (str, match) => match.replace(/ /g, '\u00A0') + ' ')
+          .replace(/\t/g, '\u00A0\u00A0\u00A0 ');
         // END CHANGE
         array.push(text);
         return array;
