@@ -2,13 +2,16 @@ import fs from 'fs';
 import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+
 const a11yEmoji = require('a11y-emoji');
 import { colorForString } from '../../../utils/colors';
 import { dateFormat } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
+
 const { AttachmentStore } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
+
 const { dialog, Menu, MenuItem } = remote;
 import { isJsonStr } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
@@ -48,7 +51,7 @@ export default class Msg extends PureComponent {
     let msgImgPath;
     if (typeof msgBody !== 'string') {
       msgImgPath = this.getImageFilePath(msgBody);
-      if (msgBody.mediaObjectId && !msgImgPath) {
+      if (msgBody.mediaObjectId && !msgImgPath && this.isImage(msgBody.type)) {
         MessageStore.downloadAndTagImageFileInMessage(null, null, msg, 'startOnRender');
       }
     }
@@ -85,9 +88,7 @@ export default class Msg extends PureComponent {
 
   shouldDisplayFileIcon = () => {
     const { msgBody } = this.state;
-    return (
-      msgBody.mediaObjectId && msgBody.type == FILE_TYPE.OTHER_FILE && !this.isImage(msgBody.type)
-    );
+    return msgBody.mediaObjectId && msgBody.type == FILE_TYPE.OTHER_FILE;
   };
 
   static timer;
@@ -152,14 +153,16 @@ export default class Msg extends PureComponent {
       isEditing: false,
     });
   };
+
   update(imgId) {
-    const { msgBody } = this.state
+    const { msgBody } = this.state;
     const { mediaObjectId, thumbObjectId } = msgBody;
     const msgImgPath = this.getImageFilePath(msgBody);
     if (imgId === mediaObjectId || imgId === thumbObjectId) {
       this.setState({ imgId, msgImgPath });
     }
   }
+
   download = () => {
     const msgBody = this.state.msgBody;
     event.stopPropagation();
@@ -178,22 +181,22 @@ export default class Msg extends PureComponent {
     queueLoadMessage(loadConfig);
   };
 
-  showPopupMenu = isFile => {
+  showPopupMenu = () => {
     event.stopPropagation();
     event.preventDefault();
+
     this.menu = new Menu();
+
     let menuItem;
-    if (!isFile) {
-      menuItem = new MenuItem({
-        label: 'Edit text',
-        click: () => {
-          const state = Object.assign({}, this.state, { isEditing: true });
-          this.setState(state);
-          this.menu.closePopup();
-        },
-      });
-      this.menu.append(menuItem);
-    }
+    menuItem = new MenuItem({
+      label: 'Edit text',
+      click: () => {
+        this.setState({ isEditing: true });
+        this.menu.closePopup();
+      },
+    });
+    this.menu.append(menuItem);
+
     menuItem = new MenuItem({
       label: 'Delete message',
       click: () => {
@@ -202,10 +205,11 @@ export default class Msg extends PureComponent {
       },
     });
     this.menu.append(menuItem);
+
     this.menu.popup({ x: event.clientX, y: event.clientY });
   };
 
-  messageToolbar = (msg, msgBody, isFile) => {
+  messageToolbar = (msg, msgBody, isFile, isCurrentUser) => {
     const { currentUserJid } = this.state;
     const isSystemEvent = ['error403', 'memberschange', 'change-group-name'].includes(msgBody.type);
 
@@ -221,11 +225,11 @@ export default class Msg extends PureComponent {
             />
           </span>
         )}
-        {msg.sender === currentUserJid && !isSystemEvent && (
+        {isCurrentUser && !isSystemEvent && (
           <span
             className="inplace-edit-img"
-            onClick={() => this.showPopupMenu(isFile)}
-            onContextMenu={() => this.showPopupMenu(isFile)}
+            onClick={() => this.showPopupMenu()}
+            onContextMenu={() => this.showPopupMenu()}
           >
             <RetinaImg
               name={'expand-more.svg'}
@@ -238,6 +242,7 @@ export default class Msg extends PureComponent {
       </div>
     );
   };
+
   getMessageClasses = () => {
     const { currentUserJid } = this.state;
     const { msg } = this.props;
@@ -249,15 +254,7 @@ export default class Msg extends PureComponent {
     }
     return messageStyles.join(' ');
   };
-  isUnreadUpdatedMessage = () => {
-    const { msg } = this.props;
-    if (!msg.updateTime) {
-      return false;
-    } else {
-      const readTime = msg.readTime || 0;
-      return readTime < msg.updateTime;
-    }
-  };
+
   onClickImage = e => {
     e.preventDefault();
     e.stopPropagation();
@@ -265,52 +262,12 @@ export default class Msg extends PureComponent {
       this._previewAttachment(decodeURI(e.target.src).replace('file://', ''));
     }
   };
+
   _previewAttachment(filePath) {
     const currentWin = AppEnv.getCurrentWindow();
     currentWin.previewFile(filePath);
   }
-  msgFile = () => {
-    const { msg } = this.props;
-    const { msgBody } = this.state;
 
-    if (this.shouldInlineImg()) {
-      return (
-        <div className="message-image">
-          <img
-            src={msgBody.path}
-            onError={e => {
-              e.target.src = '../static/images/chat/image-not-found.png'
-            }}
-            onClick={this.onClickImage}
-          />
-          {this.messageToolbar(msg, msgBody, true)}
-        </div>
-      );
-    } else if (this.shouldDisplayFileIcon()) {
-      const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-      let extName = path.extname(msgBody.path || 'x.doc').slice(1);
-      let iconName = '';
-      if (msgBody.path) {
-        iconName = AttachmentStore.getExtIconName(msgBody.path);
-      }
-      return (
-        <div className="message-file">
-          <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
-            <div className="file-icon">
-              <RetinaImg name={iconName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
-            </div>
-            <div>
-              <div className="file-name">{fileName}</div>
-              <div className="ext">{extName.toUpperCase()}</div>
-            </div>
-          </div>
-          {this.messageToolbar(msg, msgBody, true)}
-        </div>
-      );
-    } else {
-      return null;
-    }
-  };
 
   senderContact = () => {
     const { msg } = this.props;
@@ -342,13 +299,119 @@ export default class Msg extends PureComponent {
   };
 
   getImageFilePath = msgBody => {
-     const localFile = msgBody.localFile && msgBody.localFile.replace('file://', '');
+    const localFile = msgBody.localFile && msgBody.localFile.replace('file://', '');
     if (localFile && fs.existsSync(localFile)) {
-      return localFile
+      return localFile;
     }
     const bodyPath = msgBody.path && msgBody.path.replace('file://', '');
+    if (bodyPath && bodyPath.match(/^http/)) {
+      return bodyPath;
+    }
     if (bodyPath && fs.existsSync(bodyPath)) {
-      return bodyPath
+      return bodyPath;
+    }
+  };
+
+  renderImage() {
+    const { msgBody, msgImgPath } = this.state;
+    if (msgImgPath) {
+      return (
+        <div className="message-image">
+          <img src={msgImgPath} onClick={this.onClickImage}/>
+        </div>
+      );
+    } else if (msgBody.downloading) {
+      return (
+        <div className="loading">
+          <div> Downloading...
+          </div>
+          <RetinaImg
+            name="inline-loading-spinner.gif"
+            mode={RetinaImg.Mode.ContentPreserve}
+          />
+        </div>
+      );
+    } else if (msgBody.isUploading) {
+      return (
+          <div>
+            Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
+            <RetinaImg
+              name="inline-loading-spinner.gif"
+              mode={RetinaImg.Mode.ContentPreserve}
+            />
+          </div>
+      );
+    } else {
+      return (
+        <div>
+          <div>
+            {msgBody.content}
+          </div>
+          <RetinaImg
+            name="image-not-found.png"
+            style={{ width: 24, height: 24 }}
+            mode={RetinaImg.Mode.ContentPreserve}
+          />
+        </div>
+      );
+    }
+  }
+
+  renderFile = () => {
+    const { msgBody } = this.state;
+
+    if (!this.shouldDisplayFileIcon()){
+      return null;
+    }
+    const fileName = msgBody.path ? path.basename(msgBody.path) : '';
+    let extName = path.extname(msgBody.path || 'x.doc').slice(1);
+    let iconName = '';
+    if (msgBody.path) {
+      iconName = AttachmentStore.getExtIconName(msgBody.path);
+    }
+    return (
+      <div className="message-file">
+        <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
+          <div className="file-icon">
+            <RetinaImg name={iconName} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+          </div>
+          <div>
+            <div className="file-name">{fileName}</div>
+            <div className="ext">{extName.toUpperCase()}</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  renderContent() {
+    const { msg, conversation } = this.props;
+    const { isEditing, msgBody, currentUserJid } = this.state;
+    const textContent = (msgBody.path && path.basename(msgBody.path)) || msgBody.content || msgBody;
+    if (isEditing) {
+      return (<div onKeyDown={this.onKeyDown}>
+          <MessageEditBar
+            msg={msg}
+            cancelEdit={this.cancelEdit}
+            value={msgBody.content || msgBody}
+            conversation={conversation}
+            deleteMessage={this.deleteMessage}
+          />
+        </div>
+      );
+    } else if (msgBody.mediaObjectId) {
+      if (this.isImage(msgBody.type)) {
+        return this.renderImage();
+      } else {
+        return this.renderFile();
+      }
+    } else {
+      return (
+        <div className="text-content">
+          <div className="text" ref={el => (this.contentEl = el)}>
+            {textContent}
+          </div>
+        </div>);
     }
   }
 
@@ -360,9 +423,8 @@ export default class Msg extends PureComponent {
     const color = colorForString(msg.sender);
     const member = this.senderContact();
     const senderName = this.senderName();
-    const msgFile = this.msgFile();
     const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED' && isCurrentUser;
-    let textContent = (msgBody.path && path.basename(msgBody.path)) || msgBody.content || msgBody;
+
     if (msgBody.deleted) {
       return null;
     } else if (msgBody.isAppprivateCommand) {
@@ -389,7 +451,7 @@ export default class Msg extends PureComponent {
       );
     } else {
       const isSystemEvent = ['error403', 'memberschange', 'change-group-name'].includes(
-        msgBody.type
+        msgBody.type,
       );
       return (
         <div
@@ -404,7 +466,7 @@ export default class Msg extends PureComponent {
         >
           {!isSystemEvent ? (
             <div className="messageIcons">
-              {messageFail ? <div className="messageFailed" title="Not Delivered" /> : null}
+              {messageFail ? <div className="messageFailed" title="Not Delivered"/> : null}
               <div className="messageSender">{this.getContactAvatar(member)}</div>
             </div>
           ) : null}
@@ -413,80 +475,14 @@ export default class Msg extends PureComponent {
               <span className="username">{senderName}</span>
               <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
             </div>
-            {(msgBody ?
-              (this.isImage(msgBody.type) ?
-              (msgImgPath ?
-              <div className="messageBody">
-                <div className="message-image">
-                  <img src={msgImgPath} onClick={this.onClickImage} />
-                </div>
-              </div>
-            : ( msgBody.downloading ?
-              <div className="messageBody loading">
-                  <div> Downloading...
-                  </div>
-                  <RetinaImg
-                    name="inline-loading-spinner.gif"
-                    mode={RetinaImg.Mode.ContentPreserve}
-                  />
-
-              </div>
-            : ( msgBody.isUploading ?
-                <div className="msgBody loading">
-                  <div>
-                    Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
-                    <RetinaImg
-                      name="inline-loading-spinner.gif"
-                      mode={RetinaImg.Mode.ContentPreserve}
-                    />
-                  </div>
-                </div>
-            : <div className="messageBody">
-                    <div>
-                      {msgBody.content}
-                    </div>
-                      <RetinaImg
-                        name="image-not-found.png"
-                        style={{ width: 24, height: 24 }}
-                        mode={RetinaImg.Mode.ContentPreserve}
-                      />
-                  </div>)))
-           : (isEditing ?
-              <div onKeyDown={this.onKeyDown}>
-                <MessageEditBar
-                  msg={msg}
-                  cancelEdit={this.cancelEdit}
-                  value={msgBody.content || msgBody}
-                  conversation={conversation}
-                  deleteMessage={this.deleteMessage}
-                />
-              </div>
-             :
-              <div className="messageBody">
-                <div className="text-content">
-                  <div className="text" ref={el => (this.contentEl = el)}>
-                    {textContent}
-                  </div>
-                  { !this.isImage(msgBody.type) &&
-                    !msgFile &&
-                    isCurrentUser &&
-                    !isEditing &&
-                    this.messageToolbar(msg, msgBody, false)}
-                </div>
-              </div> ) )
-              :null)
-            }
+            <div className="messageBody">
+              {this.renderContent()}
+            { this.messageToolbar(msg, msgBody, !!msgBody.mediaObjectId, isCurrentUser) }
+            </div>
           </div>
-
-            {msgBody.mediaObjectId && !this.isImage(msgBody.type) && (
-              <div className="messageMeta">
-                <div>{msgFile}</div>
-              </div>
-            )}
           {messageFail ? (
             <div className="message-retry" onClick={this.retrySend}>
-              {' '}
-              Try Again{' '}
+              {' Try Again '}
             </div>
           ) : null}
         </div>
