@@ -482,7 +482,7 @@ export default class Msg extends PureComponent {
           </div>
           {messageFail ? (
             <div className="message-retry" onClick={this.retrySend}>
-              {' Try Again '}
+              Try Again
             </div>
           ) : null}
         </div>
