@@ -72,6 +72,9 @@ const startXmpp = xmpp => {
     saveLastTs(data);
     MessageStore.reveivePrivateChat(data);
   });
+  xmpp.on('message:received', data => {
+    saveLastTs(data);
+  });
   // user online
   xmpp.on('available', data => {
     OnlineUserStore.addOnlineUser(data);
