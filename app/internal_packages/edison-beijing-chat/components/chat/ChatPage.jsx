@@ -4,8 +4,6 @@ import MessagesPanel from './messages/MessagesPanel';
 
 export default class ChatPage extends PureComponent {
   static propTypes = {
-    // sendMessage: PropTypes.func.isRequired,
-    // setReferenceTime: PropTypes.func.isRequired,
     currentUserId: PropTypes.string,
     referenceTime: PropTypes.number
   }
@@ -28,7 +26,6 @@ export default class ChatPage extends PureComponent {
       currentUserId,
       groupedMessages,
       referenceTime,
-      online,
       isAuthenticating
     } = this.props;
 

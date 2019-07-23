@@ -1,7 +1,3 @@
-/* eslint global-require: 0 */
-/* eslint import/no-dynamic-require: 0 */
-import DatabaseObjectRegistry from '../registries/database-object-registry';
-
 // This module exports an empty object, with a ton of defined properties that
 // `require` files the first time they're called.
 module.exports = exports = window.$c = {};
@@ -41,12 +37,6 @@ const load = (klassName, path) => {
 
 // Actions
 lazyLoad(`ChatActions`, 'actions/actions');
-
-// API Endpoints
-//lazyLoad(`MailspringAPIRequest`, 'flux/mailspring-api-request');
-// The Database
-//lazyLoad(`Matcher`, 'flux/attributes/matcher');
-//lazyLoad(`DatabaseStore`, 'flux/stores/database-store');
 
 // Stores
 // These need to be required immediately since some Stores are
