@@ -5,7 +5,6 @@ import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
 // import FocusedContentStore from './focused-content-store';
-import CategoryStore from './category-store';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import SyncbackMetadataTask from '../tasks/syncback-metadata-task';
 import SendDraftTask from '../tasks/send-draft-task';
@@ -19,7 +18,6 @@ import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import MessageStore from './message-store';
 import UndoRedoStore from './undo-redo-store';
-import ChangeFolderTask from '../tasks/change-folder-task';
 
 const { DefaultSendActionKey } = SendActionsStore;
 const SendDraftTimeout = 300000;
@@ -200,8 +198,13 @@ class DraftStore extends MailspringStore {
   };
 
   _doneWithSession(session) {
+    if (!session) {
+      AppEnv.reportError(new Error('Calling _doneWithSession when session is null'));
+      return;
+    }
     session.teardown();
     delete this._draftSessions[session.headerMessageId];
+    AppEnv.debugLog(`Session for ${session.headerMessageId} removed`);
   }
 
   _cleanupAllSessions() {
@@ -687,7 +690,7 @@ class DraftStore extends MailspringStore {
       if (session) {
         this._doneWithSession(session);
       } else {
-        console.error(`session not found for ${headerMessageId} at window: ${windowLevel}`);
+        AppEnv.reportError(new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`));
       }
       this._startSendingDraftTimeout({ headerMessageId });
       this.trigger({ headerMessageId });
