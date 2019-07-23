@@ -165,9 +165,6 @@
     flex-direction: column;
     border-width: 2px;
     font-size: 12px;
-    &:hover .message-toolbar {
-      display: flex;
-    }
   }
 
   .message.system-event {
@@ -273,27 +270,26 @@
   }
 
   .messageBody {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
     align-self: flex-start;
-    flex-grow: 1;
+    flex-direction: row;
     text-align: left;
     white-space: pre-line;
     word-break: break-word;
-    display: inline-block;
     .message-image {
+      display:inline-block;
       padding-right: 0;
       border-radius: 10px;
       overflow: hidden;
-      .message-toolbar {
-        top: 10px;
-      }
-      & > img {
+       & > img {
         height: 220px;
         cursor: zoom-in;
       }
     }
     .text-content {
-      position: relative;
-      padding-right: 50px;
+      display: inline-block;
       line-height: 22px;
       .text {
         line-height: 26px;
@@ -303,6 +299,10 @@
           top: 5px;
         }
       }
+    }
+    &:hover .message-toolbar {
+      display: inline-block;
+      top: 0px;
     }
   }
 
@@ -316,22 +316,10 @@
       width: 100%;
       overflow: hidden;
     }
-    &:hover .message-toolbar {
-      display: flex;
-    }
     .message-image,
     .message-file {
       position: relative;
       display: inline-block;
-      .message-toolbar {
-        width: 90px;
-        top: 15px;
-        right: 10px;
-        justify-content: flex-end;
-        // .inplace-edit-img {
-        //   display: none;
-        // }
-      }
     }
 
     .file-info {
@@ -387,11 +375,8 @@
   }
   .message-toolbar {
     display: none;
-    position: absolute;
     z-index: 8;
     opacity: 1;
-    top: -7px;
-    right: 0;
   }
   .download-img,
   .inplace-edit-img {
