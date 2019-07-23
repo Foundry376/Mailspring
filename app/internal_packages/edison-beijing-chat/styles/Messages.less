@@ -278,6 +278,7 @@
     text-align: left;
     white-space: pre-line;
     word-break: break-word;
+
     .message-image {
       display:inline-block;
       padding-right: 0;
@@ -288,34 +289,7 @@
         cursor: zoom-in;
       }
     }
-    .text-content {
-      display: inline-block;
-      line-height: 22px;
-      .text {
-        line-height: 26px;
-        span {
-          font-size: 26px;
-          position: relative;
-          top: 5px;
-        }
-      }
-    }
-    &:hover .message-toolbar {
-      display: inline-block;
-      top: 0px;
-    }
-  }
 
-  .messageMeta {
-    align-self: flex-end;
-    font-size: 0.7em;
-    position: relative;
-    display: flex;
-    max-width: 90%;
-    & > div {
-      width: 100%;
-      overflow: hidden;
-    }
     .message-image,
     .message-file {
       position: relative;
@@ -352,7 +326,38 @@
         line-height: 20px;
       }
     }
+
+    .text-content {
+      display: inline-block;
+      line-height: 22px;
+      min-height: 35px;
+      .text {
+        line-height: 26px;
+        span {
+          font-size: 26px;
+          position: relative;
+          top: 5px;
+        }
+      }
+    }
+    &:hover .message-toolbar {
+      display: inline-block;
+      top: 0px;
+    }
   }
+
+  .messageMeta {
+    align-self: flex-end;
+    font-size: 0.7em;
+    position: relative;
+    display: flex;
+    max-width: 90%;
+    & > div {
+      width: 100%;
+      overflow: hidden;
+    }
+    }
+
   .messageFailed {
     position: relative;
   }
