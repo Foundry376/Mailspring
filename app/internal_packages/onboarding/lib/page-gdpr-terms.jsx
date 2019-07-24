@@ -115,8 +115,8 @@ class GdprTerms extends Component {
             Select All
           </div>
         </div>
-        <div className="row">
-          <a onClick={() => this.toggleCheckbox('gdpr_checks', 0, 'gdpr_check_all')}>
+        <div className="row" onClick={() => this.toggleCheckbox('gdpr_checks', 0, 'gdpr_check_all')}>
+          <a>
             {this._renderCheckbox(gdpr_checks[0])}
           </a>
           <div className="label">
@@ -124,8 +124,8 @@ class GdprTerms extends Component {
             use the smart features in the Edison Mail app.
           </div>
         </div>
-        <div className="row">
-          <a onClick={() => this.toggleCheckbox('gdpr_checks', 1, 'gdpr_check_all')}>
+        <div className="row" onClick={() => this.toggleCheckbox('gdpr_checks', 1, 'gdpr_check_all')}>
+          <a>
             {this._renderCheckbox(gdpr_checks[1])}
           </a>
           <div className="label">
