@@ -8,7 +8,7 @@ import { colorForString } from '../../../utils/colors';
 import { dateFormat } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
 
-const { AttachmentStore } = require('mailspring-exports');
+const { AttachmentStore, AccountStore } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
 
@@ -19,7 +19,7 @@ import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
-import { FILE_TYPE } from '../../../utils/filetypes';
+import { FILE_TYPE, isImage } from '../../../utils/filetypes';
 import { MessageModel, MessageSend, MessageStore } from 'chat-exports';
 import { name } from '../../../utils/name';
 
@@ -51,9 +51,6 @@ export default class Msg extends PureComponent {
     let msgImgPath;
     if (typeof msgBody !== 'string') {
       msgImgPath = this.getImageFilePath(msgBody);
-      if (msgBody.mediaObjectId && !msgImgPath && this.isImage(msgBody.type)) {
-        MessageStore.downloadAndTagImageFileInMessage(null, null, msg, 'startOnRender');
-      }
     }
     msgBody.path = msgImgPath;
     return {
@@ -73,10 +70,6 @@ export default class Msg extends PureComponent {
     });
   };
 
-  isImage = type => {
-    return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
-  };
-
   shouldDisplayFileIcon = () => {
     const { msgBody } = this.state;
     return msgBody.mediaObjectId && msgBody.type == FILE_TYPE.OTHER_FILE;
@@ -85,6 +78,7 @@ export default class Msg extends PureComponent {
   static timer;
 
   componentDidMount() {
+    this.testImgHasDownloaded();
     this.unlisten = ChatActions.updateDownload.listen(this.update, this);
     if (this.contentEl) {
       this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
@@ -172,6 +166,14 @@ export default class Msg extends PureComponent {
     queueLoadMessage(loadConfig);
   };
 
+  testImgHasDownloaded = () => {
+    const { msg } = this.props;
+    const { msgBody, msgImgPath } = this.state;
+    if (isImage(msgBody.type) && msgBody.mediaObjectId && !msgImgPath) {
+      MessageStore.downloadAndTagImageFileInMessage(msg);
+    }
+  };
+
   showPopupMenu = () => {
     event.stopPropagation();
     event.preventDefault();
@@ -249,7 +251,14 @@ export default class Msg extends PureComponent {
     e.preventDefault();
     e.stopPropagation();
     if (e.target.src) {
-      this._previewAttachment(decodeURI(e.target.src).replace('file://', ''));
+      const originalPath = decodeURI(e.target.src)
+        .replace('file://', '')
+        .replace('thumbnail-', '');
+      this._previewAttachment(originalPath);
+
+      if (!fs.existsSync(originalPath)) {
+        this.testImgHasDownloaded();
+      }
     }
   };
 
@@ -257,7 +266,6 @@ export default class Msg extends PureComponent {
     const currentWin = AppEnv.getCurrentWindow();
     currentWin.previewFile(filePath);
   }
-
 
   senderContact = () => {
     const { msg } = this.props;
@@ -289,9 +297,33 @@ export default class Msg extends PureComponent {
   };
 
   getImageFilePath = msgBody => {
-    const bodyPath = msgBody.path && msgBody.path.replace('file://', '');
-    if (bodyPath && (bodyPath.match(/^http/) || fs.existsSync(bodyPath))) {
-      return bodyPath;
+    const senderInfo = this.senderContact();
+    const isSendByMyself = AccountStore.isMyEmail(senderInfo.email);
+    // 本地图片
+    const localFile = msgBody.localFile && msgBody.localFile.replace('file://', '');
+    // 原图
+    const originalPath = msgBody.path && msgBody.path.replace('file://', '');
+    // 缩略图
+    const thumbPath = originalPath && originalPath.replace('/download/', '/download/thumbnail-');
+
+    // 网络地址
+    if (originalPath && originalPath.match(/^http/)) {
+      return originalPath;
+    }
+    if (isSendByMyself && localFile && fs.existsSync(localFile)) {
+      return localFile;
+    }
+    // 不是图片
+    if (!isImage(msgBody.type)) {
+      return originalPath;
+    }
+    // 有缩略图用缩略图
+    if (thumbPath && fs.existsSync(thumbPath)) {
+      return thumbPath;
+    }
+    // 没有缩略图用原图
+    if (originalPath && fs.existsSync(originalPath)) {
+      return originalPath;
     }
   };
 
@@ -300,36 +332,27 @@ export default class Msg extends PureComponent {
     if (msgImgPath) {
       return (
         <div className="message-image">
-          <img src={msgImgPath} onClick={this.onClickImage}/>
+          <img src={msgImgPath} onClick={this.onClickImage} />
         </div>
       );
     } else if (msgBody.downloading) {
       return (
         <div className="loading">
-          <div> Downloading...
-          </div>
-          <RetinaImg
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentPreserve}
-          />
+          <div> Downloading...</div>
+          <RetinaImg name="inline-loading-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
         </div>
       );
     } else if (msgBody.isUploading) {
       return (
-          <div>
-            Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
-            <RetinaImg
-              name="inline-loading-spinner.gif"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-          </div>
+        <div>
+          Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
+          <RetinaImg name="inline-loading-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
+        </div>
       );
     } else {
       return (
         <div>
-          <div>
-            {msgBody.content}
-          </div>
+          <div>{msgBody.content}</div>
           <RetinaImg
             name="image-not-found.png"
             style={{ width: 24, height: 24 }}
@@ -343,7 +366,7 @@ export default class Msg extends PureComponent {
   renderFile = () => {
     const { msgBody } = this.state;
 
-    if (!this.shouldDisplayFileIcon()){
+    if (!this.shouldDisplayFileIcon()) {
       return null;
     }
     const filepath = msgBody.localFile || msgBody.path;
@@ -357,7 +380,7 @@ export default class Msg extends PureComponent {
       <div className="message-file">
         <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
           <div className="file-icon">
-            <RetinaImg name={iconName} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+            <RetinaImg name={iconName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </div>
           <div>
             <div className="file-name">{fileName}</div>
@@ -373,7 +396,8 @@ export default class Msg extends PureComponent {
     const { isEditing, msgBody, currentUserJid } = this.state;
     const textContent = (msgBody.path && path.basename(msgBody.path)) || msgBody.content || msgBody;
     if (isEditing) {
-      return (<div onKeyDown={this.onKeyDown}>
+      return (
+        <div onKeyDown={this.onKeyDown}>
           <MessageEditBar
             msg={msg}
             cancelEdit={this.cancelEdit}
@@ -384,7 +408,7 @@ export default class Msg extends PureComponent {
         </div>
       );
     } else if (msgBody.mediaObjectId) {
-      if (this.isImage(msgBody.type)) {
+      if (isImage(msgBody.type)) {
         return this.renderImage();
       } else {
         return this.renderFile();
@@ -395,10 +419,10 @@ export default class Msg extends PureComponent {
           <div className="text" ref={el => (this.contentEl = el)}>
             {textContent}
           </div>
-        </div>);
+        </div>
+      );
     }
   }
-
 
   render() {
     const { msg, conversation } = this.props;
@@ -435,7 +459,7 @@ export default class Msg extends PureComponent {
       );
     } else {
       const isSystemEvent = ['error403', 'memberschange', 'change-group-name'].includes(
-        msgBody.type,
+        msgBody.type
       );
       return (
         <div
@@ -450,7 +474,7 @@ export default class Msg extends PureComponent {
         >
           {!isSystemEvent ? (
             <div className="messageIcons">
-              {messageFail ? <div className="messageFailed" title="Not Delivered"/> : null}
+              {messageFail ? <div className="messageFailed" title="Not Delivered" /> : null}
               <div className="messageSender">{this.getContactAvatar(member)}</div>
             </div>
           ) : null}
@@ -461,7 +485,7 @@ export default class Msg extends PureComponent {
             </div>
             <div className="messageBody">
               {this.renderContent()}
-            { this.messageToolbar(msg, msgBody, !!msgBody.mediaObjectId, isCurrentUser) }
+              {this.messageToolbar(msg, msgBody, !!msgBody.mediaObjectId, isCurrentUser)}
             </div>
           </div>
           {messageFail ? (

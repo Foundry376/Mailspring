@@ -19,7 +19,7 @@ import _ from 'underscore';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
-import { FILE_TYPE } from '../utils/filetypes';
+import { FILE_TYPE, isImage } from '../utils/filetypes';
 
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
 export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT';
@@ -135,31 +135,47 @@ class MessageStore extends MailspringStore {
 
   decrypteBody = async (message, jidLocal) => {
     const { deviceId, prikey } = await getPriKey();
+    let bodyStr = message.body;
+    let aes;
     if (message.payload) {
-      let keys = message.keys; //JSON.parse(msg.body);
+      let keys = message.keys;
       if (keys && keys[jidLocal] && keys[jidLocal][deviceId]) {
         let text = keys[jidLocal][deviceId];
         if (text) {
-          let aes = decrypte(text, prikey); //window.localStorage.priKey);
-          const result = await this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, message);
-          if (!result) {
-            return null;
+          aes = decrypte(text, prikey); //window.localStorage.priKey);
+          if (aes) {
+            bodyStr = decryptByAES(aes, message.payload);
+            try {
+              const bodyStrToJson = JSON.parse(bodyStr);
+              bodyStr = JSON.stringify({ ...bodyStrToJson, aes });
+            } catch (err) {
+              console.error('decrypteBody error:', e, bodyStr);
+              return;
+            }
           }
         }
       }
-    } else {
-      await this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, null, message);
-      if (message.appJid) {
-        try {
-          let json = JSON.parse(message.body);
-          json.appJid = message.appJid;
-          json.appName = message.appName;
-          json.htmlBody = message.htmlBody;
-          json.ctxCmds = message.ctxCmds;
-          message.body = JSON.stringify(json);
-        } catch (e) {}
-      }
     }
+    if (!bodyStr) {
+      return;
+    }
+    const bodyJson = this.downloadAndTagImageFileInMessage({
+      id: message.id,
+      conversationJid: message.from.bare,
+      body: bodyStr,
+    });
+    if (!bodyJson) {
+      return;
+    }
+
+    if (message.appJid) {
+      bodyJson.appJid = message.appJid;
+      bodyJson.appName = message.appName;
+      bodyJson.htmlBody = message.htmlBody;
+      bodyJson.ctxCmds = message.ctxCmds;
+    }
+    message.body = JSON.stringify(bodyJson);
+
     return message;
   };
 
@@ -183,132 +199,84 @@ class MessageStore extends MailspringStore {
     return false;
   };
 
-  downloadAndTagImageFileInMessage = async (chatType, aes, payload, startOnRender) => {
-    let body;
-    let convJid = payload.from && payload.from.bare || payload.conversationJid;
-    const msg = await this.getMessageById(payload.id, convJid);
-    if (msg && !startOnRender) {
-      return;
-    }
-    if (aes) {
-      body = decryptByAES(aes, payload.payload);
-      if (!body) {
-        return false;
-      }
-    } else {
-      body = payload.body;
-    }
+  downloadAndTagImageFileInMessage = message => {
     let msgBody;
     try {
-      msgBody = JSON.parse(body);
+      msgBody = JSON.parse(message.body);
     } catch (e) {
-      console.error('downloadAndTagImageFileInMessage error:', e, body);
+      console.error('downloadAndTagImageFileInMessage error:', e, message.body);
       return;
     }
 
-    aes = aes || msgBody.aes;
+    msgBody.path = generateMsgPath(msgBody);
 
-    if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
-      // a link
-      msgBody.path = msgBody.mediaObjectId;
-    } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
-      // file on aws and it is image
-      // do not download other document, maybe it is big document
-      let name = msgBody.mediaObjectId || '';
-      if (name && name.indexOf('/') !== -1) {
-        name = name.substr(name.lastIndexOf('/') + 1);
-      }
-      name = (name && name.replace(/\.encrypted$/, '')) || '';
-      let path = AppEnv.getConfigDirPath();
-      let downpath = path + '/download/';
-      if (!fs.existsSync(downpath)) {
-        fs.mkdirSync(downpath);
-      }
-      const thumbPath = downpath + name;
-      msgBody.path = 'file://' + thumbPath;
-      console.trace( 'downloadAndTagImageFileInMessage: ', msgBody);
+    const aes = msgBody.aes || null;
+    if (aes) {
+      msgBody.aes = aes;
+    }
+
+    if (
+      isImage(msgBody.type) &&
+      msgBody.mediaObjectId &&
+      !msgBody.mediaObjectId.match(/^https?:\/\//)
+    ) {
+      // 原图路径
+      const originalPath = msgBody.path && msgBody.path.replace('file://', '');
+      // 缩略图路径
+      const thumbPath = originalPath && originalPath.replace('/download/', '/download/thumbnail-');
       msgBody.downloading = true;
+      message.body = JSON.stringify(msgBody);
+      this.saveMessagesAndRefresh([message]);
+      const downloadResult = [];
+
+      const testDownloadSuccess = () => {
+        msgBody.downloading = false;
+        // downloadResult不为空就代表成功了
+        if (downloadResult.length) {
+          message.body = JSON.stringify(msgBody);
+          message.status = 'MESSAGE_STATUS_RECEIVED';
+          // 优先使用缩略图
+          ChatActions.updateDownload(downloadResult[0]);
+        } else {
+          msgBody.content = `the file ${name} failed to be downloaded`;
+          message.body = JSON.stringify(msgBody);
+          message.status = 'MESSAGE_STATUS_TRANSFER_FAILED';
+          ChatActions.updateDownload(msgBody.mediaObjectId);
+        }
+        this.saveMessagesAndRefresh([message]);
+      };
+
       if (msgBody.thumbObjectId) {
         downloadFile(aes, msgBody.thumbObjectId, thumbPath, err => {
-          if (err) {
-            msgBody.downloading = false;
-            msgBody.content = `the file ${name} failed to be downloaded`;
-            body = JSON.stringify(msgBody);
-            const msg = {
-              id: payload.id,
-              conversationJid: convJid,
-              body,
-              status: 'MESSAGE_STATUS_TRANSFER_FAILED',
-            };
-            this.saveMessagesAndRefresh([msg]);
-            ChatActions.updateDownload(msgBody.mediaObjectId);
-            return;
-          } else if (fs.existsSync(thumbPath)) {
-            ChatActions.updateDownload(msgBody.thumbObjectId);
-            downloadFile(aes, msgBody.mediaObjectId, thumbPath, err => {
-              if (err) {
-                msgBody.content = `the file ${name} failed to be downloaded`;
-                msgBody.downloading = false;
-                body = JSON.stringify(msgBody);
-                const msg = {
-                  id: payload.id,
-                  conversationJid: convJid,
-                  body,
-                  status: 'MESSAGE_STATUS_TRANSFER_FAILED',
-                };
-                this.saveMessagesAndRefresh([msg]);
-                ChatActions.updateDownload(msgBody.mediaObjectId);
-                return;
-              } else if (fs.existsSync(thumbPath)) {
-                msgBody.downloading = false;
-                body = JSON.stringify(msgBody);
-                const msg = {
-                  id: payload.id,
-                  conversationJid: convJid,
-                  body,
-                  status: 'MESSAGE_STATUS_RECEIVED',
-                };
-                this.saveMessagesAndRefresh([msg]);
-                ChatActions.updateDownload(msgBody.mediaObjectId);
+          // 成功就往结果中推入ObjectId
+          if (!err && fs.existsSync(thumbPath)) {
+            downloadResult.push(msgBody.thumbObjectId);
+            // 缩略图下载成功就算成功
+            testDownloadSuccess();
+            downloadFile(aes, msgBody.mediaObjectId, originalPath, err => {
+              downloadResult.push(msgBody.mediaObjectId);
+            });
+          } else {
+            // 缩略图下载失败，原图下载成功才算成功
+            downloadFile(aes, msgBody.mediaObjectId, originalPath, err => {
+              if (!err && fs.existsSync(originalPath)) {
+                downloadResult.push(msgBody.mediaObjectId);
               }
+              testDownloadSuccess();
             });
           }
         });
       } else {
-        downloadFile(aes, msgBody.mediaObjectId, thumbPath, err => {
-          if (err) {
-            msgBody.content = `the file ${name} failed to be downloaded`;
-            msgBody.downloading = false;
-            body = JSON.stringify(msgBody);
-            const msg = {
-              id: payload.id,
-              conversationJid: convJid,
-              body,
-              status: 'MESSAGE_STATUS_TRANSFER_FAILED',
-            };
-            this.saveMessagesAndRefresh([msg]);
-            ChatActions.updateDownload(msgBody.mediaObjectId);
-            return;
-          } else if (fs.existsSync(thumbPath)) {
-            msgBody.downloading = false;
-            body = JSON.stringify(msgBody);
-            const msg = {
-              id: payload.id,
-              conversationJid: convJid,
-              body,
-              status: 'MESSAGE_STATUS_RECEIVED',
-            };
-            this.saveMessagesAndRefresh([msg]);
-            ChatActions.updateDownload(msgBody.mediaObjectId);
+        downloadFile(aes, msgBody.mediaObjectId, originalPath, err => {
+          if (!err && fs.existsSync(originalPath)) {
+            downloadResult.push(msgBody.mediaObjectId);
           }
+          testDownloadSuccess();
         });
       }
     }
-    if (aes) {
-      msgBody.aes = aes;
-    }
-    payload.body = JSON.stringify(msgBody);
-    return true;
+
+    return msgBody;
   };
 
   retrieveSelectedConversationMessages = async (jid, limit, offset) => {
@@ -629,6 +597,26 @@ class MessageStore extends MailspringStore {
     return refreshConv;
   };
 }
+
+// 根据msgbody生成msg.path
+const generateMsgPath = msgBody => {
+  if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
+    return msgBody.mediaObjectId;
+  } else if (msgBody.type && msgBody.type !== FILE_TYPE.TEXT) {
+    let name = msgBody.mediaObjectId || '';
+    if (name && name.indexOf('/') !== -1) {
+      name = name.substr(name.lastIndexOf('/') + 1);
+    }
+    name = (name && name.replace(/\.encrypted$/, '')) || '';
+    let path = AppEnv.getConfigDirPath();
+    let downpath = path + '/download/';
+    if (!fs.existsSync(downpath)) {
+      fs.mkdirSync(downpath);
+    }
+    return `file://${downpath}${name}`;
+  }
+  return '';
+};
 
 // TODO
 // 这里为什么要加上阅读时间
