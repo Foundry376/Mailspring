@@ -77,15 +77,6 @@ export default class Msg extends PureComponent {
     return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
   };
 
-  shouldInlineImg = () => {
-    const { msgBody } = this.state;
-    let path = msgBody.path;
-    return (
-      this.isImage(msgBody.type) &&
-      ((path && path.match(/^https?:\/\//)) || fs.existsSync(path && path.replace('file://', '')))
-    );
-  };
-
   shouldDisplayFileIcon = () => {
     const { msgBody } = this.state;
     return msgBody.mediaObjectId && msgBody.type == FILE_TYPE.OTHER_FILE;
@@ -210,7 +201,6 @@ export default class Msg extends PureComponent {
   };
 
   messageToolbar = (msg, msgBody, isFile, isCurrentUser) => {
-    const { currentUserJid } = this.state;
     const isSystemEvent = ['error403', 'memberschange', 'change-group-name'].includes(msgBody.type);
 
     return (
@@ -299,15 +289,8 @@ export default class Msg extends PureComponent {
   };
 
   getImageFilePath = msgBody => {
-    const localFile = msgBody.localFile && msgBody.localFile.replace('file://', '');
-    if (localFile && fs.existsSync(localFile)) {
-      return localFile;
-    }
     const bodyPath = msgBody.path && msgBody.path.replace('file://', '');
-    if (bodyPath && bodyPath.match(/^http/)) {
-      return bodyPath;
-    }
-    if (bodyPath && fs.existsSync(bodyPath)) {
+    if (bodyPath && (bodyPath.match(/^http/) || fs.existsSync(bodyPath))) {
       return bodyPath;
     }
   };
