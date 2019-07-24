@@ -59,16 +59,19 @@ class TaskQueue extends MailspringStore {
     this._completed = tasks.filter(t => finished.includes(t.status));
     const all = [].concat(this._queue, this._completed);
 
-    this._waitingForLocal.filter(({ task, resolve }) => {
+    this._waitingForLocal = this._waitingForLocal.filter(({ task, resolve, timer = null }) => {
       const match = all.find(t => task.id === t.id);
       if (match) {
+        if (!timer) {
+          clearTimeout(timer);
+        }
         resolve(match);
         return false;
       }
       return true;
     });
 
-    this._waitingForRemote.filter(({ task, resolve }) => {
+    this._waitingForRemote = this._waitingForRemote.filter(({ task, resolve }) => {
       const match = this._completed.find(t => task.id === t.id);
       if (match) {
         resolve(match);
@@ -109,14 +112,33 @@ class TaskQueue extends MailspringStore {
     return matches;
   }
 
-  waitForPerformLocal = task => {
+  waitForPerformLocal = (task, timeout = 800) => {
     const upToDateTask = [].concat(this._queue, this._completed).find(t => t.id === task.id);
     if (upToDateTask && upToDateTask.status !== Task.Status.Local) {
       return Promise.resolve(upToDateTask);
     }
 
-    return new Promise(resolve => {
-      this._waitingForLocal.push({ task, resolve });
+    return new Promise((resolve, reject) => {
+      let timer = null;
+      if (timeout > 0) {
+        timer = setTimeout(() => {
+          const all = [].concat(this._queue, this._completed);
+          let matchFound = false;
+          this._waitingForLocal = this._waitingForLocal.filter(({ task, resolve }) => {
+            const match = all.find(t => task.id === t.id);
+            if (match) {
+              matchFound = true;
+              resolve(match);
+              return false;
+            }
+            return true;
+          });
+          if (!matchFound) {
+            reject(task);
+          }
+        }, timeout);
+      }
+      this._waitingForLocal.push({ task, resolve, timer });
     });
   };
 

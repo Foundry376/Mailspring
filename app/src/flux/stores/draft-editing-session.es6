@@ -313,7 +313,6 @@ export default class DraftEditingSession extends MailspringStore {
   }
 
   _registerListeners = () => {
-    console.log('registering listeners');
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
     ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
@@ -470,12 +469,14 @@ export default class DraftEditingSession extends MailspringStore {
         });
       // console.log('syncback draft from ensure account');
       Actions.queueTask(create);
-      await TaskQueue.waitForPerformLocal(create);
-      if (destroy) {
-        // console.log('destroyed');
-        Actions.destroyDraft(draft, { switchingAccount: true });
-      } else {
-        // console.log('did not destroy', draft);
+      try {
+        await TaskQueue.waitForPerformLocal(create);
+        if (destroy) {
+          // console.log('destroyed');
+          Actions.destroyDraft(draft, { switchingAccount: true });
+        }
+      } catch (e) {
+        AppEnv.reportError(new Error(e));
       }
     }
     return this;
@@ -677,7 +678,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
   };
 
-  async changeSetCommit(arg) {
+  async changeSetCommit(reason='') {
     if (this._destroyed || !this._draft || this._popedOut) {
       return;
     }
@@ -692,7 +693,7 @@ export default class DraftEditingSession extends MailspringStore {
       this._draft.remoteUID &&
       (!this._draft.msgOrigin ||
         (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID)) &&
-      arg === 'unload'
+      reason === 'unload'
     ) {
       this._draft.setOrigin(Message.EditExistingDraft);
       this._draft.referenceMessageId = this._draft.id;
@@ -713,15 +714,19 @@ export default class DraftEditingSession extends MailspringStore {
       // console.error('Message with remoteUID but origin is not edit existing draft');
       this._draft.setOrigin(Message.EditExistingDraft);
     }
-    if (arg === 'unload') {
+    if (reason === 'unload') {
       this._draft.hasNewID = false;
       this._draft.needUpload = false;
     }
     // console.error('commit sync back draft');
-    const task = new SyncbackDraftTask({ draft: this._draft });
-    task.saveOnRemote = arg === 'unload';
+    const task = new SyncbackDraftTask({ draft: this._draft, source: reason });
+    task.saveOnRemote = reason === 'unload';
     Actions.queueTask(task);
-    await TaskQueue.waitForPerformLocal(task);
+    try {
+      await TaskQueue.waitForPerformLocal(task);
+    } catch (e) {
+      AppEnv.reportError(new Error(e));
+    }
   }
   duplicateCurrentDraft() {
     if (this._draft) {

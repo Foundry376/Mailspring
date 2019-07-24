@@ -282,7 +282,10 @@ class DraftStore extends MailspringStore {
       // We may not be able to save the draft once the main window has closed
       // and the mailsync bridge is unavailable, don't want to hang forever.
       setTimeout(() => {
-        if (done) done();
+        if (done) {
+          console.log('we waited long enough');
+          done();
+        }
       }, 700);
       Promise.all(promises).then(() => {
         if (done) done();
@@ -353,6 +356,8 @@ class DraftStore extends MailspringStore {
         Actions.queueTask(t);
         TaskQueue.waitForPerformLocal(t).then(() => {
           Actions.sendDraft(draft.headerMessageId);
+        }).catch(e =>{
+          AppEnv.reportError(new Error(e));
         });
       });
   };
@@ -436,15 +441,20 @@ class DraftStore extends MailspringStore {
     // console.error('sync back from finalize');
     Actions.queueTask(task);
 
-    return TaskQueue.waitForPerformLocal(task).then(() => {
-      if (popout) {
-        this._onPopoutDraft(draft.headerMessageId);
-      }
-      if (originalMessageId) {
-        Actions.draftReplyForwardCreated({ messageId: originalMessageId, type: messageType });
-      }
-      return { headerMessageId: draft.headerMessageId, draft };
-    });
+    return TaskQueue.waitForPerformLocal(task)
+      .then(() => {
+        if (popout) {
+          this._onPopoutDraft(draft.headerMessageId);
+        }
+        if (originalMessageId) {
+          Actions.draftReplyForwardCreated({ messageId: originalMessageId, type: messageType });
+        }
+        return { headerMessageId: draft.headerMessageId, draft };
+      })
+      .catch(t => {
+        AppEnv.reportError(new Error(t));
+        return { headerMessageId: draft.headerMessageId, draft };
+      });
   }
 
   _createSession(headerMessageId, draft) {
@@ -674,13 +684,13 @@ class DraftStore extends MailspringStore {
       this.trigger({ headerMessageId });
     }
   };
-  _startSendingDraftTimeout = ({ headerMessageId }) => {
+  _startSendingDraftTimeout = ({ headerMessageId, source = '' }) => {
     if (this._draftSendindTimeouts[headerMessageId]) {
       clearTimeout(this._draftSendindTimeouts[headerMessageId]);
     }
     this._draftsSending[headerMessageId] = true;
     this._draftSendindTimeouts[headerMessageId] = setTimeout(() => {
-      this._cancelSendingDraftTimeout({ headerMessageId, trigger: true, changeSendStatus: false });
+      this._cancelSendingDraftTimeout({ headerMessageId, trigger: true, changeSendStatus: false , source});
     }, SendDraftTimeout);
   };
   _onSendingDraft = async ({ headerMessageId, windowLevel }) => {
@@ -757,7 +767,7 @@ class DraftStore extends MailspringStore {
     if (sendLaterMetadataValue) {
       session.changes.addPluginMetadata('send-later', sendLaterMetadataValue);
     }
-    await session.changes.commit();
+    await session.changes.commit('send draft');
     await session.teardown();
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
