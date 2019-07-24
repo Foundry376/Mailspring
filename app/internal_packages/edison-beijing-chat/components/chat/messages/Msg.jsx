@@ -346,11 +346,12 @@ export default class Msg extends PureComponent {
     if (!this.shouldDisplayFileIcon()){
       return null;
     }
-    const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-    let extName = path.extname(msgBody.path || 'x.doc').slice(1);
-    let iconName = '';
-    if (msgBody.path) {
-      iconName = AttachmentStore.getExtIconName(msgBody.path);
+    const filepath = msgBody.localFile || msgBody.path;
+    const fileName = filepath ? path.basename(filepath) : '';
+    let extName = path.extname(filepath || 'x.doc').slice(1);
+    let iconName;
+    if (filepath) {
+      iconName = AttachmentStore.getExtIconName(filepath);
     }
     return (
       <div className="message-file">
