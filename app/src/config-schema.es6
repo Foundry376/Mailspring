@@ -12,6 +12,16 @@ export default {
           },
         },
       },
+      support: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            default: '',
+            title: 'Support Id',
+          },
+        },
+      },
       mailsync: {
         type: 'object',
         properties: {
