@@ -3,14 +3,20 @@ const FILE_TYPE = {
   IMAGE: 2,
   GIF: 5,
   STICKER: 12,
-  OTHER_FILE: 9
-}
+  OTHER_FILE: 9,
+};
 
 const MESSAGE_TYPE = {
   CHAT: 'chat',
-  GROUP: 'groupchat'
-}
+  GROUP: 'groupchat',
+};
+
+const isImage = type => {
+  return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
+};
 
 export default module.exports = {
-  FILE_TYPE, MESSAGE_TYPE
-}
+  FILE_TYPE,
+  MESSAGE_TYPE,
+  isImage,
+};

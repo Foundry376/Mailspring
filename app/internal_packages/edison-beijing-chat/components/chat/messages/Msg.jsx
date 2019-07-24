@@ -19,7 +19,7 @@ import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
-import { FILE_TYPE } from '../../../utils/filetypes';
+import { FILE_TYPE, isImage } from '../../../utils/filetypes';
 import { MessageModel, MessageSend, MessageStore } from 'chat-exports';
 import { name } from '../../../utils/name';
 
@@ -51,9 +51,6 @@ export default class Msg extends PureComponent {
     let msgImgPath;
     if (typeof msgBody !== 'string') {
       msgImgPath = this.getImageFilePath(msgBody);
-      if (msgBody.mediaObjectId && !msgImgPath && this.isImage(msgBody.type)) {
-        MessageStore.downloadAndTagImageFileInMessage(null, null, msg, 'startOnRender');
-      }
     }
     msgBody.path = msgImgPath;
     return {
@@ -73,10 +70,6 @@ export default class Msg extends PureComponent {
     });
   };
 
-  isImage = type => {
-    return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
-  };
-
   shouldDisplayFileIcon = () => {
     const { msgBody } = this.state;
     return msgBody.mediaObjectId && msgBody.type == FILE_TYPE.OTHER_FILE;
@@ -85,6 +78,7 @@ export default class Msg extends PureComponent {
   static timer;
 
   componentDidMount() {
+    this.testImgHasDownloaded()
     this.unlisten = ChatActions.updateDownload.listen(this.update, this);
     if (this.contentEl) {
       this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
@@ -172,6 +166,14 @@ export default class Msg extends PureComponent {
     queueLoadMessage(loadConfig);
   };
 
+  testImgHasDownloaded = () => {
+    const { msg } = this.props;
+    const { msgBody, msgImgPath } = this.state;
+    if (isImage(msgBody.type) && msgBody.mediaObjectId && !msgImgPath) {
+      MessageStore.downloadAndTagImageFileInMessage(msg);
+    }
+  };
+
   showPopupMenu = () => {
     event.stopPropagation();
     event.preventDefault();
@@ -249,7 +251,14 @@ export default class Msg extends PureComponent {
     e.preventDefault();
     e.stopPropagation();
     if (e.target.src) {
-      this._previewAttachment(decodeURI(e.target.src).replace('file://', ''));
+      const originalPath = decodeURI(e.target.src)
+        .replace('file://', '')
+        .replace('thumbnail-', ''); 
+      this._previewAttachment(originalPath);
+
+      if (!fs.existsSync(originalPath)) {
+        this.testImgHasDownloaded();
+      }
     }
   };
 
@@ -289,9 +298,22 @@ export default class Msg extends PureComponent {
   };
 
   getImageFilePath = msgBody => {
-    const bodyPath = msgBody.path && msgBody.path.replace('file://', '');
-    if (bodyPath && (bodyPath.match(/^http/) || fs.existsSync(bodyPath))) {
-      return bodyPath;
+    // 原图
+    const originalPath = msgBody.path && msgBody.path.replace('file://', '');
+    // 缩略图
+    const thumbPath = originalPath && originalPath.replace('/download/', '/download/thumbnail-');
+    
+     // 不是图片或者是网络地址
+     if (!isImage(msgBody.type) || (originalPath && originalPath.match(/^http/))) {
+      return originalPath;
+    }
+    // 有缩略图用缩略图
+    if (thumbPath && fs.existsSync(thumbPath)) {
+      return thumbPath;
+    }
+    // 没有缩略图用原图
+    if (originalPath && fs.existsSync(originalPath)) {
+      return originalPath;
     }
   };
 
@@ -384,7 +406,7 @@ export default class Msg extends PureComponent {
         </div>
       );
     } else if (msgBody.mediaObjectId) {
-      if (this.isImage(msgBody.type)) {
+      if (isImage(msgBody.type)) {
         return this.renderImage();
       } else {
         return this.renderFile();
