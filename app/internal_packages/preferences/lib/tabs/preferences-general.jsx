@@ -15,11 +15,39 @@ class PreferencesGeneral extends React.Component {
     config: PropTypes.object,
     configSchema: PropTypes.object,
   };
+  constructor(props){
+    super(props);
+    this.state = {};
+    this.state.displaySupportPopup = false;
+    this.timer = null;
+    this.mounted = false;
+  }
+  componentDidMount() {
+    this.mounted = true;
+  }
+  componentWillUnmount() {
+    this.mounted = false;
+    clearTimeout(this.timer);
+  }
 
   _onReboot = () => {
     const app = require('electron').remote.app;
     app.relaunch();
     app.quit();
+  };
+
+  _onCopySupportId = event => {
+    navigator.clipboard.writeText(this.props.config.core.support.id).then(() => {
+      this.setState({ displaySupportPopup: true });
+      if (!this.timer) {
+        this.timer = setTimeout(() => {
+          this.timer = null;
+          if (this.mounted) {
+            this.setState({ displaySupportPopup: false });
+          }
+        }, 1600);// Same as popupFrames animation length
+      }
+    });
   };
 
   _onResetAccountsAndSettings = () => {
@@ -87,6 +115,12 @@ class PreferencesGeneral extends React.Component {
             Reset Accounts and Settings
           </div>
         </div>
+
+        <section className="support">
+          <h6>Support Id</h6>
+          <div className="popup" style={{display: `${this.state.displaySupportPopup ? 'inline-block' : 'none'}`}}>ID Copied</div>
+          <div className="btn" onClick={this._onCopySupportId}>{this.props.config.core.support.id}</div>
+        </section>
       </div>
     );
   }

@@ -11,6 +11,7 @@ import WindowEventHandler from './window-event-handler';
 import ICAL from 'ical.js';
 const LOG = require('electron-log');
 let getOSInfo = null;
+let getDeviceHash = null;
 
 function ensureInteger(f, fallback) {
   let int = f;
@@ -157,6 +158,7 @@ export default class AppEnvConstructor {
         }
       }, 1000 * 60 * 5); // 5 minutes
     }
+    this.initSupportInfo();
   }
 
   // This ties window.onerror and process.uncaughtException,handledRejection
@@ -229,8 +231,7 @@ export default class AppEnvConstructor {
   }
 
   debugLog(msg) {
-    const fileName = path.join(this.getConfigDirPath(), `ui-kill-${new Date().getTime()}.txt`);
-    fs.writeFileSync(fileName, msg);
+    this.logDebug(msg);
   }
 
   mockDiskLow() {
@@ -241,6 +242,18 @@ export default class AppEnvConstructor {
   _onUnhandledRejection = (error, sourceMapCache) => {
     this.reportError(error);
   };
+  _expandReportLog(error, extra = {}){
+    try {
+      getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
+      extra.osInfo = getOSInfo();
+      extra.chatEnabled = this.config.get('chatEnable');
+      extra.pluginIds = this._findPluginsFromError(error);
+    } catch (err) {
+      // can happen when an error is thrown very early
+      extra.pluginIds = [];
+    }
+    return extra;
+  }
 
   // Public: report an error through the `ErrorLogger`
   //
@@ -248,14 +261,7 @@ export default class AppEnvConstructor {
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
   reportError(error, extra = {}, { noWindows } = {}) {
-    try {
-      getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
-      extra.osInfo = getOSInfo();
-      extra.pluginIds = this._findPluginsFromError(error);
-    } catch (err) {
-      // can happen when an error is thrown very early
-      extra.pluginIds = [];
-    }
+    extra = this._expandReportLog(error, extra);
 
     if (error instanceof APIError) {
       // API Errors are logged by our backend and happen all the time (offline, etc.)
@@ -278,14 +284,7 @@ export default class AppEnvConstructor {
   }
 
   reportWarning(error, extra = {}, { noWindows } = {}) {
-    try {
-      getOSInfo = getOSInfo | require('./system-utils').getOSInfo;
-      extra.osInfo = getOSInfo();
-      extra.pluginIds = this._findPluginsFromError(error);
-    } catch (err) {
-      // can happen when an error is thrown very early
-      extra.pluginIds = [];
-    }
+    extra = this._expandReportLog(error, extra);
 
     if (error instanceof APIError) {
       // API Errors are logged by our backend and happen all the time (offline, etc.)
@@ -305,6 +304,23 @@ export default class AppEnvConstructor {
     }
     this.logWarning(error);
     this.errorLogger.reportWarning(error, extra);
+  }
+
+  initSupportInfo() {
+    if (!getDeviceHash) {
+      getDeviceHash = require('./system-utils').getDeviceHash;
+    }
+    const deviceHash = this.config.get('core.support.id');
+    if (!deviceHash || deviceHash === 'Unknown') {
+      getDeviceHash()
+        .then(id => {
+          this.config.set('core.support.id', id);
+        })
+        .catch(e => {
+          AppEnv.reportError(new Error('failed to init support id'));
+          this.config.set('core.support.id', 'Unknown');
+        });
+    }
   }
 
   _stripSensitiveData(str) {
@@ -1093,100 +1109,5 @@ export default class AppEnvConstructor {
       delete ret.emailAddress;
     }
     return ret;
-  }
-
-  mockIcal() {
-    /**
-     * Welcome to ICAL.js fiddle
-     */
-    var iCalendarData = [
-      'BEGIN:VCALENDAR',
-    'PRODID:-//Google Inc//Google Calendar 70.9054//EN',
-      'VERSION:2.0',
-    'CALSCALE:GREGORIAN',
-    'METHOD:REQUEST',
-    'BEGIN:VEVENT',
-    'DTSTART:20190630T143000Z',
-    'DTEND:20190630T200000Z',
-    'DTSTAMP:20190627T032420Z',
-    'ORGANIZER;CN=jing@edison.tech:mailto:jing@edison.tech',
-    'UID:44dj14md6q5k817i3866t7baa8@google.com',
-    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE;CN=jing@edison.tech;X-NUM-GUESTS=0:mailto:jing@edison.tech',
-    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=beijing;X-NUM-GUESTS=0:mailto:beijing@edison.tech',
-    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=zhansheng@edison.tech;X-NUM-GUESTS=0:mailto:zhansheng@edison.tech',
-    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=ShuhaoZhang;X-NUM-GUESTS=0:mailto:shuhao@edison.tech',
-    'X-MICROSOFT-CDO-OWNERAPPTID:1245465387',
-    'CREATED:20190627T032415Z',
-    'DESCRIPTION:Hi，All1.\n-::~:~::~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~::~:~::-',
-                                            'LAST-MODIFIED:20190627T032419Z',
-                                            'LOCATION:北京超玩汇轰趴馆(水长城店)',
-      'SEQUENCE:0',
-      'STATUS:CONFIRMED',
-                                            'SUMMARY:Team Building',
-                                            'TRANSP:OPAQUE',
-                                            'END:VEVENT',
-                                            'END:VCALENDAR',
-  ].join('\r\n');
-
-    // var iCalendarData = [
-    //   'BEGIN:VCALENDAR',
-    //   'CALSCALE:GREGORIAN',
-    //   'VERSION:2.0',
-    //   'X-WR-CALNAME:Flag Day',
-    //   'METHOD:PUBLISH',
-    //   'PRODID:-//Apple Inc.//Mac OS X 10.14.5//EN',
-    //   'BEGIN:VEVENT',
-    //   'TRANSP:TRANSPARENT',
-    //   'DTEND;VALUE=DATE:20180615',
-    //   'X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC',
-    //   'UID:fdc817f4-1e63-3669-abeb-3a4adf767698',
-    //   'DTSTAMP:20190531T224633Z',
-    //   'SEQUENCE:0',
-    //   'CLASS:PUBLIC',
-    //   'X-APPLE-UNIVERSAL-ID:bfc1642a-310f-205e-e7ea-5cfae2283834',
-    //   'CATEGORIES:Holidays',
-    //   'SUMMARY;LANGUAGE=en-US:Flag Day',
-    //   'LAST-MODIFIED:20190610T072131Z',
-    //   'ORGANIZER;CN=No Name;SENT-BY="mailto:jane_doe@example.com":mailto:jsmith@example.com',
-    //   'LOCATION:Beijing',
-    //   'DTSTART;VALUE=DATE:20180614',
-    //   'CREATED:20190506T002539Z',
-    //   'RECURRENCE-ID;VALUE=DATE:19960401',
-    //   'RRULE:FREQ=YEARLY;COUNT=5',
-    //   'ATTENDEE;MEMBER="mailto:projectA@example.com","mailto:projectB@example.com":mailto:janedoe@example.com',
-    //   'STATUS:CONFIRMED',
-    //   'BEGIN:VALARM',
-    //   'X-WR-ALARMUID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
-    //   'UID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
-    //   'TRIGGER:-PT15H',
-    //   'ATTACH;VALUE=URI:Chord',
-    //   'X-APPLE-LOCAL-DEFAULT-ALARM:TRUE',
-    //   'ACTION:AUDIO',
-    //   'X-APPLE-DEFAULT-ALARM:TRUE',
-    //   'END:VALARM',
-    //   'END:VEVENT',
-    //   'END:VCALENDAR',
-    // ].join('\r\n');
-
-
-    var jcalData = ICAL.parse(iCalendarData);
-    const Calendar = require('./flux/models/calendar').default;
-    var vcalendar = new Calendar(jcalData);
-    var summary = vcalendar.getFirstTimeZone();
-    // var vcalendar = new ICAL.Component(jcalData);
-    // var vevent = vcalendar.getFirstSubcomponent('vevent');
-    // var summary = vevent.getFirstProperty('attendee');
-    // console.log('location: ', summary);
-    return vcalendar;
-    // console.log('stringfy: ' + vcalendar.toString());
-    // const CalendarTask = require('./flux/tasks/calendar-task').default;
-    // this.mailsyncBridge._onQueueTask(
-    //   new CalendarTask({
-    //     accountId: 'cb6f2148',
-    //     fileId: 'abc',
-    //     targetStatus: 1,
-    //     messageId: 'bbc',
-    //   })
-    // );
   }
 }
