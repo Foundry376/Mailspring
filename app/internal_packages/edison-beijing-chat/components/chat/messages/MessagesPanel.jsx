@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
-import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
 import OnlineStatus from './OnlineStatus';
 import NewConversationTopBar from './NewConversationTopBar';
@@ -18,9 +17,7 @@ import {
   MessageStore,
   ConversationStore,
   ContactStore,
-  RoomStore,
   UserCacheStore,
-  OnlineUserStore,
   MemberProfileStore,
   MessageSend,
 } from 'chat-exports';
@@ -43,19 +40,6 @@ import { NEW_CONVERSATION } from '../../../utils/constant';
 
 
 export default class MessagesPanel extends Component {
-  static propTypes = {
-    currentUserId: PropTypes.string,
-    referenceTime: PropTypes.number,
-  };
-
-  static defaultProps = {
-    availableUsers: [],
-    currentUserId: null,
-    referenceTime: new Date().getTime(),
-  };
-
-  apps = [];
-
   constructor(props) {
     super(props);
     this.state = {
@@ -248,7 +232,7 @@ export default class MessagesPanel extends Component {
     }
   };
 
-  loadMessage =  async () => {
+  loadMessage = async () => {
     const { progress } = ProgressBarStore;
     let { loadConfig } = progress;
     ChatActions.updateProgress({
@@ -298,8 +282,8 @@ export default class MessagesPanel extends Component {
         }
       }
     };
-    console.log( 'download: aes: ',  msgBody.aes);
-    const loadProgressCallback =  progress => {
+    console.log('download: aes: ', msgBody.aes);
+    const loadProgressCallback = progress => {
       const { loaded, total } = progress;
       const percent = Math.floor((+loaded * 100.0) / +total);
       if (loadConfig.type === 'upload' && +loaded === +total) {
@@ -387,14 +371,14 @@ export default class MessagesPanel extends Component {
       } else {
         request = http;
       }
-      request.get(msgBody.mediaObjectId, function(res) {
+      request.get(msgBody.mediaObjectId, function (res) {
         var imgData = '';
         res.setEncoding('binary');
-        res.on('data', function(chunk) {
+        res.on('data', function (chunk) {
           imgData += chunk;
         });
-        res.on('end', function() {
-          fs.writeFile(filepath, imgData, 'binary', function(err) {
+        res.on('end', function () {
+          fs.writeFile(filepath, imgData, 'binary', function (err) {
             if (err) {
               console.error('down fail', err);
             } else {
@@ -471,7 +455,6 @@ export default class MessagesPanel extends Component {
 
   render() {
     const { showConversationInfo, selectedConversation, contacts } = this.state;
-    const { sendMessage, availableUsers, referenceTime } = this.props;
     const currentUserId =
       selectedConversation && selectedConversation.curJid
         ? selectedConversation.curJid
@@ -483,12 +466,10 @@ export default class MessagesPanel extends Component {
       },
       onInfoPressed: () =>
         this.setState({ showConversationInfo: !this.state.showConversationInfo }),
-      availableUsers,
       selectedConversation,
     };
     const messagesProps = {
       currentUserId,
-      referenceTime,
       selectedConversation,
       queueLoadMessage: this.queueLoadMessage,
     };
@@ -524,13 +505,12 @@ export default class MessagesPanel extends Component {
         onDrop={this.onDrop}
       >
         {selectedConversation ? (
-          <div className="chat">
-            <div className={`split-panel ${className}`}>
-              {selectedConversation.jid === NEW_CONVERSATION ? (
-                <div className="newConversationPanel">
-                  <NewConversationTopBar {...newConversationProps} />
-                </div>
-              ) : (
+          <div className={`split-panel ${className}`}>
+            {selectedConversation.jid === NEW_CONVERSATION ? (
+              <div className="newConversationPanel">
+                <NewConversationTopBar {...newConversationProps} />
+              </div>
+            ) : (
                 <div className="chatPanel">
                   <MessagesTopBar {...topBarProps} />
                   <Messages {...messagesProps} sendBarProps={sendBarProps} />
@@ -540,27 +520,26 @@ export default class MessagesPanel extends Component {
                   </div>
                 </div>
               )}
-              <Divider type="vertical" />
-              <CSSTransitionGroup
-                transitionName="transition-slide"
-                transitionLeaveTimeout={250}
-                transitionEnterTimeout={250}
-              >
-                {showConversationInfo && selectedConversation.jid !== NEW_CONVERSATION && (
-                  <div className="infoPanel">
-                    <ConversationInfo {...infoProps} />
-                  </div>
-                )}
-              </CSSTransitionGroup>
-            </div>
+            <Divider type="vertical" />
+            <CSSTransitionGroup
+              transitionName="transition-slide"
+              transitionLeaveTimeout={250}
+              transitionEnterTimeout={250}
+            >
+              {showConversationInfo && selectedConversation.jid !== NEW_CONVERSATION && (
+                <div className="infoPanel">
+                  <ConversationInfo {...infoProps} />
+                </div>
+              )}
+            </CSSTransitionGroup>
           </div>
         ) : (
-          <div className="unselectedHint">
-            <span>
-              <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
-            </span>
-          </div>
-        )}
+            <div className="unselectedHint">
+              <span>
+                <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
+              </span>
+            </div>
+          )}
         <OnlineStatus conversation={selectedConversation}></OnlineStatus>
         <MemberProfile
           conversation={selectedConversation}
