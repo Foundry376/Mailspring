@@ -220,7 +220,7 @@ export default class MessagesPanel extends Component {
     if (loading) {
       loadConfig = progress.loadConfig;
       const loadText = loadConfig.type === 'upload' ? 'An upload' : ' A download';
-      alert('${loadText} is processing, please wait it to be finished!');
+      alert(`${loadText} is processing, please wait it to be finished!`);
       return;
     }
     ChatActions.updateProgress(
@@ -305,6 +305,7 @@ export default class MessagesPanel extends Component {
         aes = null;
       }
       loadConfig.aes = aes;
+      console.log( 'upload file: aes: ', aes);
       try {
         loadConfig.request = uploadFile(
           jidLocal,
