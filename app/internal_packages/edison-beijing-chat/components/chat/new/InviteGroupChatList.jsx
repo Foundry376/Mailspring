@@ -59,7 +59,7 @@ export default class InviteGroupChatList extends Component {
       >
         <div className="chip">
           <ContactAvatar jid={contact.jid} name={contact.name}
-            email={contact.email} avatar={contact.avatar} size={32} />
+            email={contact.email} size={32} />
           <span className="contact-name">{contact.name}</span>
           <span className="contact-email">{contact.email}</span>
         </div>

@@ -128,7 +128,6 @@ ContactAvatar.propTypes = {
   jid: PropTypes.string.isRequired,
   name: PropTypes.string,
   email: PropTypes.string,
-  avatar: PropTypes.string,
   size: PropTypes.number,
 };
 

@@ -102,41 +102,44 @@ export default class MessagesTopBar extends Component {
     const { conversationName } = this.state;
 
     return (
-      <div>
-        <TopBar
-          className="messages-top-bar"
-          left={
-            <div className='conv-name'>
-              <div className="conversation-name">
-                {conversationName}
-                {conversation.isGroup && (
-                  <input
-                    type="text"
-                    ref={el => this.inputEl = el}
-                    value={conversationName}
-                    onChange={this._onChange}
-                    onKeyDown={this._onkeyDown}
-                    onBlur={this._onBlur}
-                    maxLength="32"
-                  />
-                )}
-              </div>
+      <TopBar
+        className="messages-top-bar"
+        left={
+          <div className='conv-name'>
+            <div className="conversation-name">
+              {conversationName}
+              {conversation.isGroup && (
+                <input
+                  type="text"
+                  ref={el => this.inputEl = el}
+                  value={conversationName}
+                  onChange={this._onChange}
+                  onKeyDown={this._onkeyDown}
+                  onBlur={this._onBlur}
+                  maxLength="32"
+                />
+              )}
             </div>
-          }
-          right={
-            <div className="avatar-search">
-              <div id="open-info" onClick={() => onInfoPressed()}>
-                {conversation.isGroup ?
-                  <GroupChatAvatar conversation={conversation} size={35} /> :
-                  <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
-                    email={conversation.email} avatar={conversation.avatar} size={35} />
-                }
-              </div>
-              <ThreadSearchBar />
+          </div>
+        }
+        right={
+          <div className="avatar-search">
+            <div id="open-info" onClick={onInfoPressed}>
+              {conversation.isGroup ?
+                <GroupChatAvatar conversation={conversation} size={35} /> :
+                <ContactAvatar
+                  conversation={conversation}
+                  jid={conversation.jid}
+                  name={conversation.name}
+                  email={conversation.email}
+                  size={35}
+                />
+              }
             </div>
-          }
-        />
-      </div>
+            <ThreadSearchBar />
+          </div>
+        }
+      />
     );
   }
 }
