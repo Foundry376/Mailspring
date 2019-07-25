@@ -38,9 +38,22 @@ module.exports = class MultiselectListInteractionHandler {
     this.onSetCursorPosition(item);
   };
 
+  onCheckMarkClick = item => {
+    this.onMetaClick(item);
+  };
+
   onShiftClick = item => {
-    this.props.dataSource.selection.expandTo(item);
-    this.onSetCursorPosition(item);
+    let selectedIds = this.props.dataSource.selection.ids();
+    const selected = selectedIds.includes(item.id);
+    if (item.id === this.props.focusedId && !selected) {
+      this.props.dataSource.selection.expandTo(item);
+      this.onSetCursorPosition(item);
+    } else {
+      this.props.dataSource.selection.toggle(item);
+      if (selected) {
+        this.props.dataSource.selection.remove([item]);
+      }
+    }
   };
 
   onEnter = () => {

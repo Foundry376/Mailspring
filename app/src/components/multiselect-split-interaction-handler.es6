@@ -55,10 +55,39 @@ module.exports = class MultiselectSplitInteractionHandler {
       this.onFocusItem(item);
     }
   };
+  onCheckMarkClick = item => {
+    let selectedIds = this.props.dataSource.selection.ids();
+    const selected = selectedIds.includes(item.id);
+    if (item.id === this.props.focusedId && !selected) {
+      this.props.dataSource.selection.expandTo(item);
+    } else {
+      this.props.dataSource.selection.toggle(item);
+      if (selected) {
+        this.props.dataSource.selection.remove([item]);
+      }
+    }
+    selectedIds = this.props.dataSource.selection.ids();
+    if (
+      Array.isArray(selectedIds) &&
+      selectedIds.includes(this.props.focusedId) &&
+      selectedIds.length > 1
+    ) {
+      this.onFocusItem(null);
+    }
+  };
 
   onShiftClick = item => {
     this._turnFocusIntoSelection();
-    this.props.dataSource.selection.expandTo(item);
+    let selectedIds = this.props.dataSource.selection.ids();
+    const selected = selectedIds.includes(item.id);
+    if (item.id === this.props.focusedId && !selected) {
+      this.props.dataSource.selection.expandTo(item);
+    } else {
+      this.props.dataSource.selection.toggle(item);
+      if (selected) {
+        this.props.dataSource.selection.remove([item]);
+      }
+    }
     this._checkSelectionAndFocusConsistency();
   };
 

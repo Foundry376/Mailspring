@@ -249,11 +249,7 @@ class MultiselectList extends React.Component {
       name: 'Check',
       resolver: item => {
         const toggle = event => {
-          if (event.shiftKey) {
-            this.state.handler.onShiftClick(item);
-          } else {
-            this.state.handler.onMetaClick(item);
-          }
+          this.state.handler.onCheckMarkClick(item);
           event.stopPropagation();
         };
         return (
