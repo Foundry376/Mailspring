@@ -120,6 +120,34 @@ export default class Msg extends PureComponent {
     return null;
   };
 
+  clickFileCoordinate = filePath => {
+    this._clickTime = (this._clickTime || 0) + 1;
+    setTimeout(() => {
+      if (this._clickTime === 1) {
+        // 单击事件
+        this.downloadOtherFile(filePath);
+      } else if (this._clickTime === 2) {
+        // 双击事件
+        this.openFile(filePath);
+      }
+      this._clickTime = 0;
+    }, 300);
+  };
+
+  downloadOtherFile(filePath) {
+    const msgBody = this.state.msgBody;
+    if (!filePath || typeof filePath !== 'string') {
+      return;
+    }
+    const loadConfig = {
+      msgBody,
+      filepath: filePath,
+      type: 'download',
+    };
+    const { queueLoadMessage } = this.props;
+    queueLoadMessage(loadConfig);
+  }
+
   openFile(filePath) {
     shell.openItem(filePath);
   }
@@ -378,7 +406,7 @@ export default class Msg extends PureComponent {
     }
     return (
       <div className="message-file">
-        <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
+        <div className="file-info" onClick={() => this.clickFileCoordinate(msgBody.path)}>
           <div className="file-icon">
             <RetinaImg name={iconName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </div>
