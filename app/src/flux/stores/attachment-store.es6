@@ -120,6 +120,15 @@ class AttachmentStore extends MailspringStore {
     return extName ? `attachment-${extName}.svg` : 'drafts.svg';
   }
 
+  isVideo(filePath) {
+    if (!filePath) {
+      return false;
+    }
+    let extName = path.extname(filePath).slice(1);
+    extName = extMapping[extName && extName.toLowerCase()];
+    return extName === 'video';
+  }
+
   getDownloadDataForFile() {
     // fileId
     // if we ever support downloads again, put this back
@@ -516,9 +525,9 @@ class AttachmentStore extends MailspringStore {
   // Handlers
 
   _onSelectAttachment = ({
-                           headerMessageId, onCreated = () => {
+    headerMessageId, onCreated = () => {
     }, type = '*',
-                         }) => {
+  }) => {
     this._assertIdPresent(headerMessageId);
 
     // When the dialog closes, it triggers `Actions.addAttachment`
@@ -541,8 +550,8 @@ class AttachmentStore extends MailspringStore {
     }
     return AppEnv.showOpenDialog({ properties: ['openFile', 'multiSelections'] }, cb);
   };
-  _onAddAttachments = async ({ headerMessageId, inline = false, filePaths = [], onCreated = () => {} }) => {
-    if(!Array.isArray(filePaths) || filePaths.length === 0){
+  _onAddAttachments = async ({ headerMessageId, inline = false, filePaths = [], onCreated = () => { } }) => {
+    if (!Array.isArray(filePaths) || filePaths.length === 0) {
       throw new Error('_onAddAttachments must have an array of filePaths');
     }
     this._assertIdPresent(headerMessageId);
@@ -587,12 +596,12 @@ class AttachmentStore extends MailspringStore {
   }
 
   _onAddAttachment = async ({
-                              headerMessageId,
-                              filePath,
-                              inline = false,
-                              onCreated = () => {
-                              },
-                            }) => {
+    headerMessageId,
+    filePath,
+    inline = false,
+    onCreated = () => {
+    },
+  }) => {
     this._assertIdPresent(headerMessageId);
 
     try {
