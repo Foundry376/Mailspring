@@ -72,11 +72,9 @@ export default class ChatViewLeft extends Component {
   render() {
     return (
       <div className="chat-view-container chat-left-panel-container">
-        <div className="chatPageContainer">
-          <div className="leftPanel">
-            <div onDoubleClick={this.resetHeight} onMouseDown={this.onDragStart} className="resizeBar"></div>
-            <ConversationsPanel />
-          </div>
+        <div className="left-panel">
+          <div onDoubleClick={this.resetHeight} onMouseDown={this.onDragStart} className="resizeBar"></div>
+          <ConversationsPanel />
         </div>
       </div>
     )
