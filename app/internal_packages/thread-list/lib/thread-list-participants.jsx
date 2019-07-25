@@ -49,7 +49,7 @@ class ThreadListParticipants extends React.Component {
     for (let idx = 0; idx < items.length; idx++) {
       const { spacer, contact, unread } = items[idx];
       if (spacer) {
-        accumulate('...');
+        accumulate(' ...');
       } else {
         var short;
         if (contact.name && contact.name.length > 0) {
@@ -61,10 +61,21 @@ class ThreadListParticipants extends React.Component {
         } else {
           short = contact.email;
         }
-        if (idx < items.length - 1 && !items[idx + 1].spacer) {
-          short += ', ';
+        let truncatedText = short;
+        if (truncatedText.length > 12 && idx !== items.length - 1) {
+          truncatedText = truncatedText.slice(0, 12);
+          if (items.length > 2) {
+            truncatedText += '.';
+          } else {
+            truncatedText += '... ';
+          }
         }
-        accumulate(short, unread);
+        if (idx < items.length - 1 && items.length > 2) {
+          truncatedText += ', ';
+        } else if (idx < items.length - 1 && truncatedText === short) {
+          truncatedText += ', ';
+        }
+        accumulate(truncatedText, unread);
       }
     }
 
@@ -153,14 +164,13 @@ class ThreadListParticipants extends React.Component {
 
     // We only ever want to show three. Ben...Kevin... Marty
     // But we want the *right* three.
-    if (list.length > 3) {
+    if (list.length > 2) {
       const listTrimmed = [
         // Always include the first item
         list[0],
         { spacer: true },
 
-        // Always include last two items
-        list[list.length - 2],
+        // Always include last item
         list[list.length - 1],
       ];
       list = listTrimmed;

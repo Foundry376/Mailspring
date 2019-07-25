@@ -737,6 +737,12 @@ export default class ComposerView extends React.Component {
                 <div className="tooltips-container" />
                 {this._renderActionsRegion()}
               </div>
+              {AppEnv.isMainWindow() && (
+                <div id="sendbar-for-dock" style={{ display: 'none' }} className="composer-action-bar-wrap" data-tooltips-anchor>
+                  <div className="tooltips-container" />
+                  {this._renderActionsRegion()}
+                </div>
+              )}
             </DropZone>
           </TabGroupRegion>
         </KeyCommandsRegion>

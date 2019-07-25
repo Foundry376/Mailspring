@@ -17,6 +17,47 @@ const ThreadSearchBarWithTip = HasTutorialTip(ThreadSearchBar, {
 
 class TitleSearchBar extends Component {
   static displayName = 'TitleSearchBar';
+  MIN_FONT_SIZE = 14;
+  INITIAL_FONT_SIZE = 32;
+  constructor(props) {
+    super(props);
+    this.state = {
+      fontSize: this.props.fontSize || this.INITIAL_FONT_SIZE
+    }
+  }
+
+  componentWillReceiveProps() {
+    this.state.fontSize = this.props.fontSize || this.INITIAL_FONT_SIZE
+  }
+
+  componentDidMount() {
+    setTimeout(() => {
+      const container = this.titleEl.closest('.item-container');
+      this.containerWidth = container ? container.clientWidth : 0;
+      this.adjustFontSize();
+    }, 200);
+
+  }
+
+  componentDidUpdate() {
+    this.adjustFontSize();
+  }
+
+  adjustFontSize() {
+    const minFontSize = this.props.minFontSize || this.MIN_FONT_SIZE;
+    if (this.titleEl.offsetWidth > this.containerWidth) {
+      const newSize = this.state.fontSize - 1;
+      if (newSize < minFontSize) {
+        this.titleEl.style.visibility = 'visible';
+        return;
+      }
+      this.setState({
+        fontSize: newSize
+      })
+    } else {
+      this.titleEl.style.visibility = 'visible';
+    }
+  }
 
   render() {
     const current = FocusedPerspectiveStore.current();
@@ -31,7 +72,13 @@ class TitleSearchBar extends Component {
     return (
       <div className="title-search-bar">
         <div className='thread-title'>
-          <h1>{title}</h1>
+          <h1
+            style={{
+              width: 'max-content',
+              fontSize: this.state.fontSize
+            }}
+            ref={el => this.titleEl = el}
+          >{title}</h1>
         </div>
       </div>
     );

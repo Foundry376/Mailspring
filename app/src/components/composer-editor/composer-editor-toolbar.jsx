@@ -23,8 +23,11 @@ export default class ComposerEditorToolbar extends React.Component {
         const parentScrollRegion = this._el.closest('.scroll-region-content');
         if (parentScrollRegion) {
           this._topClip = parentScrollRegion.getBoundingClientRect().top;
+          this._bottomClip = parentScrollRegion.getBoundingClientRect().bottom;
+          this._onScroll();
         } else {
           this._topClip = 0;
+          this._bottomClip = 0;
         }
 
         this._el.style.height = `${this._floatingEl.clientHeight}px`;
@@ -49,13 +52,37 @@ export default class ComposerEditorToolbar extends React.Component {
     if (!this._el) return;
     let { top, height } = this._el.getBoundingClientRect();
     const max = this._el.parentElement.clientHeight - height;
-
     if (top < this._topClip) {
       this._floatingEl.style.position = 'absolute';
       this._floatingEl.style.top = `${Math.min(max, this._topClip - top)}px`;
     } else {
       this._floatingEl.style.position = 'relative';
       this._floatingEl.style.top = '0px';
+    }
+
+    // when send bar is out of screen, make it dock to bottom
+    if (AppEnv.isMainWindow()) {
+      if (!this.sendbarForDock) {
+        this.sendbarForDock = document.querySelector('#sendbar-for-dock');
+        this.sendToolbar = document.querySelector('.composer-action-bar-wrap');
+        this.composer = this.sendbarForDock && this.sendbarForDock.parentElement;
+      }
+      if (this.sendbarForDock && this.sendToolbar && this.composer && this._bottomClip !== undefined) {
+        let { top, height, left } = this.sendToolbar.getBoundingClientRect();
+        let { top: composerTop } = this.composer.getBoundingClientRect();
+        if (top > this._bottomClip - height) {
+          const topForDock = this._bottomClip - composerTop - height;
+          if (topForDock < 100) {
+            this.sendbarForDock.style.display = 'none';
+          } else {
+            this.sendbarForDock.style.display = 'block';
+            this.sendbarForDock.style.left = left + 'px';
+            this.sendbarForDock.style.width = this.sendToolbar.offsetWidth + 'px';
+          }
+        } else {
+          this.sendbarForDock.style.display = 'none';
+        }
+      }
     }
   };
 

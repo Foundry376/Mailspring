@@ -378,8 +378,10 @@ class MessageStore extends MailspringStore {
     } else {
       title = title.trim();
     }
+    if (title.length > 37) {
+      title = `${title.slice(0, 37).trim()}...`;
+    }
     electron.remote.getCurrentWindow().setTitle(title);
-    // AppEnv.setWindowDisplayTitle(title);
   }
 
   _setWindowTitle() {
@@ -390,6 +392,9 @@ class MessageStore extends MailspringStore {
       title = 'Thread' + (this._thread ? ' · ' + this._thread.subject : '');
     } else {
       title = 'EdisonMail' + (this._thread ? ' · ' + this._thread.subject : '');
+    }
+    if (title.length > 37) {
+      title = `${title.slice(0, 37).trim()}...`;
     }
     electron.remote.getCurrentWindow().setTitle(title);
   }

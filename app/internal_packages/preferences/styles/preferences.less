@@ -150,6 +150,42 @@
         border-radius: 5px;
       }
     }
+    .support {
+      position: relative;
+      .popup{
+        padding: 0 0.8em;
+        border-radius: 10px;
+        border: 0;
+        cursor: default;
+        color: @black;
+        background: @gray-light;
+        box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15), 0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 0.5px 1px rgba(0, 0, 0, 0.15);
+        height: 1.9em;
+        line-height: 1.9em;
+        font-size: 12.09px;
+        position: absolute;
+        top: -8px;
+        left: 180px;
+        animation: popupFrames 1.6s linear;
+      }
+      @keyframes popupFrames {
+        0% {
+          opacity: 0.1;
+        }
+        50% {
+          opacity: 0.8;
+        }
+        100% {
+          opacity: 0.1;
+        }
+      }
+      .btn {
+        margin: 4px 0 0 8px;
+        border: 1px solid @dropdown-default-border-color;
+        box-shadow: none;
+        border-radius: 5px;
+      }
+    }
   }
 
   .container-appearance {
