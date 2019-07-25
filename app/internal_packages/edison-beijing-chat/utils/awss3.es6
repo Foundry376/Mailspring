@@ -41,61 +41,30 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
     Key: key
   };
   let request;
-  if (!progressBack) {
-    request = s3.getObject(params, function (err, data) {
-      if (err) {
-        console.error('fail to down file in message: key, name, err, err.stack: ', key, name, err, err.stack);
-        if (callback) {
-          callback(err);
-        }
-      } else {
-        if (aes) {
-          //fs.writeFileSync('./files/src' + name, data.Body);
-          fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
-        } else {
-          fs.writeFileSync(name, data.Body);
-        }
-        if (callback) {
-          callback();
-        }
-        console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
+  const done = function (err, data) {
+    if (err) {
+      console.error('fail to down file in message: key, name, err, err.stack: ', key, name, err, err.stack);
+      if (callback) {
+        callback(err);
       }
-    });
-  } else {
-    request = s3.getObject(params);
-    request.on('httpDownloadProgress', function (progress) {
-      if (progressBack) {
-        progressBack(progress);
+    } else {
+      if (aes) {
+        data.Body = decryptByAESFile(aes, data.Body);
       }
-      if (+progress.loaded == +progress.total) {
-        console.log(`finish downloadFile aws3 file ${key} to ${name}`, request);
-        const err = request.response.error;
-        if (err) {
-          console.log(err, err.stack);
-        } else {
-          let res = request.response;
-          let data = res.data;
-          res = res.httpResponse;
-          const buffers = res && res.buffers;
-          let body;
-          if (data) {
-            body = data && data.body;
-          } else if (buffers) {
-            body = Buffer.concat(buffers);
-          }
-          if (aes) {
-            body = decryptByAESFile(aes, body);
-          }
-          fs.writeFileSync(name, body);
-          if (callback) {
-            callback();
-          }
-          console.log(`succeed downloading aws3 file ${key} to ${name}`);
-        }
+      fs.writeFileSync(name, data.Body);
+      if (callback) {
+        callback();
       }
-    });
-    request.send();
+      console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
+    }
   }
+  request = s3.getObject(params, done);
+  request.on('httpDownloadProgress', function (progress) {
+    if (progressBack) {
+      progressBack(progress);
+    }
+  });
+  request.send();
   return request;
 }
 

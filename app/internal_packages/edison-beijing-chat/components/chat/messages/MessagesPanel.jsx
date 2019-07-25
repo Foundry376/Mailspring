@@ -298,7 +298,7 @@ export default class MessagesPanel extends Component {
         }
       }
     };
-
+    console.log( 'download: aes: ',  msgBody.aes);
     const loadProgressCallback =  progress => {
       const { loaded, total } = progress;
       const percent = Math.floor((+loaded * 100.0) / +total);
