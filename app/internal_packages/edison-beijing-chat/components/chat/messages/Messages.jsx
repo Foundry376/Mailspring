@@ -104,13 +104,22 @@ export default class Messages extends Component {
       const selectedConversation = await ConversationStore.getSelectedConversation();
       if (selectedConversation) {
         groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
-        const { groupedMessages: currentMsgs = [] } = this.state;
+        let { groupedMessages: currentMsgs = [], shouldDisplayMessageCounts } = this.state;
         const currentIds = flattenMsgIds(currentMsgs);
         const nextIds = flattenMsgIds(groupedMessages);
-        const areNewMessages = currentIds.size < nextIds.size;
+        let areNewMessages = currentIds.size < nextIds.size;
+        // if switched to new conversation
+        if (selectedConversation.jid !== this.props.selectedConversation.jid) {
+          shouldDisplayMessageCounts = MESSAGE_COUNTS_EACH_PAGE;
+          areNewMessages = true;
+        } else {
+          shouldDisplayMessageCounts += (nextIds.size - currentIds.size);
+        }
         this.setState({
           groupedMessages,
+          messageCounts: nextIds.size,
           shouldScrollBottom: areNewMessages,
+          shouldDisplayMessageCounts
         });
       }
     }
@@ -220,10 +229,14 @@ export default class Messages extends Component {
       }
     }
     if (scrollTop < window.screen.height * 1.5) {
-      const counts = this.state.shouldDisplayMessageCounts + MESSAGE_COUNTS_EACH_PAGE;
-      this.setState({
-        shouldDisplayMessageCounts: counts > MAX_COUNTS ? MAX_COUNTS : counts,
-      });
+      let { shouldDisplayMessageCounts, messageCounts } = this.state;
+      let newCounts = shouldDisplayMessageCounts + MESSAGE_COUNTS_EACH_PAGE;
+      newCounts = Math.min(newCounts, messageCounts, MAX_COUNTS);
+      if (newCounts !== shouldDisplayMessageCounts) {
+        this.setState({
+          shouldDisplayMessageCounts: newCounts,
+        });
+      }
     }
 
     const { nowIsInBottom } = this.state;
