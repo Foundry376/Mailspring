@@ -25,7 +25,7 @@ class ThreadListEmptyFolderBar extends React.Component {
     const { folders, count } = this.props;
     const idx = remote.dialog.showMessageBox({
       type: 'question',
-      buttons: ['Cancel', 'Okay'],
+      buttons: ['Cancel', 'Delete'],
       message: 'Are you sure?',
       detail:
         `This action will permanently affect ${(count / 1).toLocaleString()} ${count > 1 ? 'messages' : 'message'}. Are you sure you want to continue?`,
