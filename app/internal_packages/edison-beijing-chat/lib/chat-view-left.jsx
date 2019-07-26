@@ -15,7 +15,7 @@ export default class ChatViewLeft extends Component {
     const sidebarPanelHeight = accSidebar.parentNode.offsetHeight;
     const onMouseMove = (e) => {
       distance = startY - e.clientY;
-      const panelNewHeight = sidebarPanelHeight - (height + distance);
+      const panelNewHeight = sidebarPanelHeight - distance;
       if (panelNewHeight < 10) {
         return;
       }
