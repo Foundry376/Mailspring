@@ -48,6 +48,7 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
         callback(err);
       }
     } else {
+      console.log( 'finished downloadFile: ', aes, key, name, data.Body.size, data.Body);
       if (aes) {
         data.Body = decryptByAESFile(aes, data.Body);
       }
@@ -64,7 +65,6 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
       progressBack(progress);
     }
   });
-  request.send();
   return request;
 }
 

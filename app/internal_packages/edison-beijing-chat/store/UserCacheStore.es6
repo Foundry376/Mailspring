@@ -34,7 +34,15 @@ class UserCacheStore extends MailspringStore {
     // 从Contact中取数据，优先级要高于UserCache中的数据
     const ContactDatas = await ContactStore.getContacts();
     for (const item of ContactDatas) {
-      this.userCache[item.jid] = item;
+      let avatar;
+      // 如果userCache表中有avatar数据，使用userCache表中的。
+      if (this.userCache[item.jid] && this.userCache[item.jid].avatar) {
+        avatar = this.userCache[item.jid].avatar;
+      }
+      else if (item.avatar && item.avatar.indexOf('http') === -1) {
+        avatar = "https://s3.us-east-2.amazonaws.com/edison-profile-stag/" + item.avatar;
+      }
+      this.userCache[item.jid] = Object.assign({}, item.dataValues, { avatar });
     }
 
     this._triggerDebounced();

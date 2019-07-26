@@ -182,7 +182,6 @@ export default class Messages extends Component {
           name={member.name}
           conversation={this.props.selectedConversation}
           email={member.email}
-          avatar={member.avatar}
           size={32}
         />
       );

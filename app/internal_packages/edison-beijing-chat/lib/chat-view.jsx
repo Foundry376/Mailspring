@@ -1,6 +1,6 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
-import ChatPage from '../components/chat/ChatPage';
+import MessagesPanel from '../components/chat/messages/MessagesPanel';
 
 export default class ChatView extends Component {
   static displayName = 'ChatView';
@@ -8,7 +8,7 @@ export default class ChatView extends Component {
   render() {
     return (
       <div className="chat-view-container">
-        <ChatPage/>
+        <MessagesPanel />
       </div>
     )
   }

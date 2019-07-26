@@ -150,17 +150,17 @@ export default class MemberProfile extends Component {
     menus.push(
       isBlocked
         ? {
-            label: `Unblock this Contact`,
-            click: () => {
-              this.unblockContact();
-            },
-          }
+          label: `Unblock this Contact`,
+          click: () => {
+            this.unblockContact();
+          },
+        }
         : {
-            label: `Block this Contact`,
-            click: () => {
-              this.blockContact();
-            },
-          }
+          label: `Block this Contact`,
+          click: () => {
+            this.blockContact();
+          },
+        }
     );
 
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
@@ -249,7 +249,6 @@ export default class MemberProfile extends Component {
             jid={jid}
             name={member.name}
             email={member.email}
-            avatar={member.avatar || ''}
             size={140}
           />
           <div className="name-buttons">

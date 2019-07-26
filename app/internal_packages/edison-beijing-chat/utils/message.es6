@@ -95,6 +95,12 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     // the file is selected from the local file system
     filepath = file;
   }
+  const stats = fs.statSync(filepath);
+  const fileSizeInBytes = stats.size;
+  if (fileSizeInBytes > 100000000) {
+    alert('It is NOT supported to send the file which size is bigger than 100M.');
+    return;
+  }
   const isdir = fs.lstatSync(filepath).isDirectory();
   if (isdir) {
     alert('Not support to send folder.');

@@ -139,7 +139,7 @@ export default class SheetContainer extends React.Component {
           />
         </div> */}
 
-        <div id="Center" name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+        <div id="Center" name="Center" style={{ height: '100%', order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {rootSheet}
           {popSheet}
         </div>
