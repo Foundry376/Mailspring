@@ -299,11 +299,6 @@ export default class MessagesPanel extends Component {
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
       let aes = await MessageSend.getAESKey(conversation);
-      const stats = fs.statSync(loadConfig.filepath);
-      const fileSizeInBytes = stats.size;
-      if (fileSizeInBytes > 50000000) {
-        aes = null;
-      }
       loadConfig.aes = aes;
       console.log( 'upload file: aes: ', aes);
       try {
