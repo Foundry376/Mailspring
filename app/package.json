@@ -66,7 +66,7 @@
     "slate-html-serializer": "0.7.39",
     "slate-plain-serializer": "0.6.39",
     "slate-prop-types": "0.5.30",
-    "slate-react": "0.21.22",
+    "slate-react": "github:bengotow/slate#0.45.1-react",
     "slate-soft-break": "^0.9.0",
     "slate-when": "^0.2.0",
     "snarkdown": "1.2.2",
