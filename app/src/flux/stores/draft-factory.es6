@@ -69,6 +69,37 @@ class DraftFactory {
 
     return new Message(merged);
   }
+  async createOutboxDraftForEdit(draft){
+    const uniqueId = uuid();
+    const account = AccountStore.accountForId(draft.accountId);
+    if (!account) {
+      throw new Error(
+        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.',
+      );
+    }
+    const defaults = Object.assign({}, draft, {
+      body: draft.body,
+      version: 0,
+      unread: false,
+      starred: false,
+      headerMessageId: `${uniqueId}@edison.tech`,
+      id: uniqueId,
+      date: new Date(),
+      pristine: false,
+      msgOrigin: draft.msgOrigin,
+      hasNewID: false,
+      accountId: account.id,
+      state: Message.messageState.normal
+    });
+    const autoContacts = await ContactStore.parseContactsInString(account.autoaddress.value);
+    if (account.autoaddress.type === 'cc') {
+      defaults.cc = (defaults.cc || []).concat(autoContacts);
+    }
+    if (account.autoaddress.type === 'bcc') {
+      defaults.bcc = (defaults.bcc || []).concat(autoContacts);
+    }
+    return new Message(defaults);
+  }
 
   async copyDraftToAccount(draft, from) {
     const uniqueId = uuid();

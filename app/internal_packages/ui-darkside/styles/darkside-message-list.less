@@ -1,10 +1,11 @@
 @import 'ui-variables';
-
+#outbox-message,
 #message-list {
   background: @messagelist-bg;
 }
 
 // Make toolbars match panels
+.column-OutboxMessage,
 .column-MessageList,
 .toolbar-MessageList,
 .column-MessageListSidebar,
@@ -15,12 +16,16 @@
 }
 
 // Message List top and bottom spacing
-#message-list .messages-wrap .scroll-region-content-inner {
+#outbox-message .messages-wrap .scroll-region-content-inner,
+#message-list .messages-wrap .scroll-region-content-inner{
   padding: 20px;
   padding-bottom: 40vh;
 }
 
 // Reset padding
+#outbox-message .message-header,
+#outbox-message .message-item-wrap.collapsed .message-item-white-wrap,
+#outbox-message .message-item-wrap.collapsed .message-item-area,
 #message-list .message-header,
 #message-list .message-item-wrap.collapsed .message-item-white-wrap,
 #message-list .message-item-wrap.collapsed .message-item-area {
@@ -28,16 +33,19 @@
 }
 
 // Make padding uniform
+#outbox-message .message-item-area,
+#outbox-message .footer-reply-area-wrap .footer-reply-area,
 #message-list .message-item-area,
-#message-list .footer-reply-area-wrap .footer-reply-area {
+#message-list .footer-reply-area-wrap .footer-reply-area{
   padding: 20px !important;
 }
-
+#outbox-message .message-item-wrap.collapsed .message-item-area .collapsed-attachment,
 #message-list .message-item-wrap.collapsed .message-item-area .collapsed-attachment {
   padding: 10px;
 }
 
 // Adjusting position of thread participants toggle
+#outbox-message .header-toggle-control,
 #message-list .header-toggle-control {
   top: 6px !important;
   left: -11px !important;
@@ -47,6 +55,7 @@
 }
 
 // Reducing size and overriding invalid -webkit-mask-repeat- property
+#outbox-message .header-toggle-control img,
 #message-list .header-toggle-control img {
   zoom: 0.35 !important;
   -webkit-mask-repeat: no-repeat !important;
@@ -65,6 +74,7 @@
   margin-right: 6px;
 }
 
+#outbox-message .message-item-wrap .message-item-white-wrap,
 #message-list .message-item-wrap .message-item-white-wrap,
 #message-list .minified-bundle .msg-line,
 #message-list .minified-bundle .num-messages,

@@ -11,6 +11,9 @@ import _ from 'underscore';
 import DeleteThreadsTask from './delete-threads-task';
 import ExpungeAllInFolderTask from './expunge-all-in-folder-task';
 import ExpungeMessagesTask from './expunge-messages-task';
+import DestroyDraftTask from './destroy-draft-task';
+import ResendDraftTask from './resend-draft-task';
+import CancelOutboxDraftTask from './cancel-outbox-draft-task';
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
@@ -175,6 +178,51 @@ const TaskFactory = {
       tasks.push(
         ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
           return new ExpungeMessagesTask({
+            accountId: accountId,
+            messageIds: messages.map(msg => msg.id),
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
+  },
+  tasksForDestroyingDraft({ messages = [], source = '' }) {
+    const tasks = [];
+    if (messages.length > 0 && messages[0] instanceof Message) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new DestroyDraftTask({
+            accountId: accountId,
+            messageIds: messages.map(msg => msg.id),
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
+  },
+  tasksForCancellingOutboxDrafts({ messages = [], source = '' }) {
+    const tasks = [];
+    if (messages.length > 0 && messages[0] instanceof Message) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new CancelOutboxDraftTask({
+            accountId: accountId,
+            messageIds: messages.map(msg => msg.id),
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
+  },
+  tasksForResendingDraft({ messages = [], source = '' }) {
+    const tasks = [];
+    if (messages.length > 0 && messages[0] instanceof Message) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new ResendDraftTask({
             accountId: accountId,
             messageIds: messages.map(msg => msg.id),
             source,

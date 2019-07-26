@@ -74,8 +74,27 @@ export default class Message extends ModelWithMetadata {
     deleted: '1',
     saving: '2',
     sending: '3',
-    pulling: '4',// Updating data from server
+    pulling: '4', // Updating data from server
+    failing: '-2', // This state indicates that draft first attempt at sending is taking too long, thus should
+    // display in
+    // outbox
+    failed: '-1', // This state indicates that draft have failed to send.
   };
+  static compareMessageState(currentState, targetState){
+    try {
+      const current = parseInt(currentState);
+      const target = parseInt(targetState);
+      return current === target;
+    } catch (e) {
+      AppEnv.reportError(new Error('currentState or targetState cannot be converted to int'), {
+        errorData: {
+          current: currentState,
+          target: targetState,
+        },
+      });
+      return false;
+    }
+  }
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     // load id column into json
     id: Attributes.String({

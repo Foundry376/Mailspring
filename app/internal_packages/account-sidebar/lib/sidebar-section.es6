@@ -12,6 +12,7 @@ const {
   Label,
   ExtensionRegistry,
   RegExpUtils,
+  OutboxStore,
 } = require('mailspring-exports');
 
 const SidebarItem = require('./sidebar-item');
@@ -91,8 +92,14 @@ class SidebarSection {
   }
 
   static standardSectionForAccounts(accounts) {
-    let children;
     const items = [];
+    const outboxCount = OutboxStore.count();
+    let outbox;
+    if (accounts.length === 1) {
+      outbox = SidebarItem.forOutbox([accounts[0].id]);
+    } else {
+      outbox = SidebarItem.forOutbox(accounts.map(act => act.id));
+    }
     if (!accounts || accounts.length === 0) {
       return this.empty('All Accounts');
     }
@@ -100,8 +107,17 @@ class SidebarSection {
       return this.empty('All Accounts');
     }
     if (accounts.length === 1) {
-      return this.standardSectionForAccount(accounts[0]);
+      const ret = this.standardSectionForAccount(accounts[0]);
+      if (outboxCount.failed > 0) {
+        ret.items.unshift(outbox);
+      } else if (outboxCount.total > 0) {
+        ret.items.push(outbox);
+      }
+      return ret;
     } else {
+      if (outboxCount.failed > 0) {
+        items.push(outbox);
+      }
       accounts.forEach(acc => {
         items.push(
           SidebarItem.forSingleInbox([acc.id], {
@@ -217,7 +233,9 @@ class SidebarSection {
           items.push(item);
         }
       });
-
+    if (outboxCount.failed === 0 && outboxCount.total > 0) {
+      items.push(outbox);
+    }
     return {
       title: 'MAILBOXES',
       items,

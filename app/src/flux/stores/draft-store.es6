@@ -40,6 +40,10 @@ class DraftStore extends MailspringStore {
     this.listenTo(DatabaseStore, this._onDataChanged);
     this.listenTo(Actions.composeReply, this._onComposeReply);
     this.listenTo(Actions.composeForward, this._onComposeForward);
+    this.listenTo(Actions.cancelOutboxDrafts, this._onCancelDraft);
+    this.listenTo(Actions.resendDrafts,this._onResendDraft);
+    this.listenTo(Actions.editOutboxDraft, this._onEditOutboxDraft);
+    this.listenTo(Actions.composeFailedPopoutDraft, this._onPopoutDraft);
     this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
     this.listenTo(Actions.composeNewBlankDraft, this._onPopoutBlankDraft);
     this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
@@ -96,7 +100,15 @@ class DraftStore extends MailspringStore {
     return DatabaseStore.findBy(Message, {
       headerMessageId: headerMessageId,
       draft: true,
-    }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
+    }).where([
+      Message.attributes.state.in([
+        Message.messageState.normal,
+        Message.messageState.saving,
+        Message.messageState.sending,
+        Message.messageState.failed,
+        Message.messageState.failing,
+      ]),
+    ]);
   }
 
   findByHeaderMessageIdWithBody({ headerMessageId }) {
@@ -224,6 +236,44 @@ class DraftStore extends MailspringStore {
       this._draftSessions[options.headerMessageId].setPopout(false);
     }
   };
+
+  _onCancelDraft = ({ messages = [], source } = {}) => {
+    const tasks = TaskFactory.tasksForCancellingOutboxDrafts({ messages, source });
+    if(tasks && tasks.length > 0){
+      Actions.queueTasks(tasks);
+    }else {
+      AppEnv.reportError(new Error('Tasks for cancellingOutboxDraft is empty'), {errorData: {
+        messages
+        }});
+    }
+    messages.forEach(message => {
+      if (message) {
+        const session = this._draftSessions[message.headerMessageId];
+        if (session) {
+          this._doneWithSession(session);
+        }
+        const sending = this._draftsSending[message.headerMessageId];
+        if (sending) {
+          this._onSendDraftCancelled({ headerMessageId: message.headerMessageId });
+        }
+        const deleting = this._draftsDeleting[message.headerMessageId];
+        if (deleting) {
+          delete this._draftsDeleting[message.headerMessageId];
+        }
+      }
+    });
+  };
+
+  _onResendDraft = ({messages = [], source} = {}) => {
+    const tasks = TaskFactory.tasksForResendingDraft({messages, source});
+    if(tasks && tasks.length > 0){
+      Actions.queueTasks(tasks);
+    }else {
+      AppEnv.reportError(new Error('Tasks for cancellingOutboxDraft is empty'), {errorData: {
+          messages
+        }});
+    }
+  }
 
   _onBeforeUnload = readyToUnload => {
     // console.log(`draft store close window @ window ${this._getCurrentWindowLevel()}`);
@@ -493,6 +543,34 @@ class DraftStore extends MailspringStore {
     const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
     await this._onPopoutDraft(headerMessageId, { newDraft: true });
     Actions.composedNewBlankDraft();
+  };
+
+  _onEditOutboxDraft = async (headerMessageId, options = {}) => {
+    if (headerMessageId == null) {
+      throw new Error('DraftStore::onPopoutDraftId - You must provide a headerMessageId');
+    }
+    const session = await this.sessionForClientId(headerMessageId);
+    const oldDraft = session.draft();
+    if(!oldDraft){
+      AppEnv.reportError(
+        new Error(
+          `DraftStore::editOutboxDraft - session.draft() is false, draft not exist. headerMessageId: ${headerMessageId}`
+        ),
+      );
+      return;
+    }else if(!Message.compareMessageState(oldDraft.state, Message.messageState.failed)){
+      AppEnv.reportError(
+        new Error(
+          `DraftStore::editOutboxDraft - session.draft() is false, draft not exist. headerMessageId: ${headerMessageId}`
+        ),
+      );
+    }else {
+      session.freezeSession();
+      const newDraft = await DraftFactory.createOutboxDraftForEdit(oldDraft);
+      await this._finalizeAndPersistNewMessage(newDraft);
+      this._onDestroyDrafts([oldDraft], { canBeUndone: false });
+      this._onPopoutDraft(newDraft.headerMessageId, options);
+    }
   };
 
   _onPopoutDraft = async (headerMessageId, options = {}) => {

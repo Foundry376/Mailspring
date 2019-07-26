@@ -399,6 +399,7 @@ class Actions {
   Actions.composePopoutDraft(messageId)
   ```
   */
+  static composeFailedPopoutDraft = ActionScopeMainWindow;
   static composePopoutDraft = ActionScopeWindow;
 
   /*
@@ -454,6 +455,9 @@ class Actions {
 
   *Scope: Window*
   */
+  static editOutboxDraft = ActionScopeMainWindow;
+  static resendDrafts = ActionScopeMainWindow;
+  static cancelOutboxDrafts = ActionScopeMainWindow;
   static destroyDraft = ActionScopeWindow;
   static destroyDraftSucceeded = ActionScopeMainWindow;
   static destroyDraftFailed = ActionScopeMainWindow;
