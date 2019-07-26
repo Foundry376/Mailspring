@@ -149,6 +149,7 @@ class Token extends React.Component {
         draggable={!this.props.disabled}
         onDoubleClick={this._onDoubleClick}
         onClick={this._onClick}
+        onContextMenu={this._onAction}
       >
         {actionButton}
         {this.props.children}
@@ -717,15 +718,29 @@ export default class TokenizingTextField extends React.Component {
   };
 
   _showDefaultTokenMenu = token => {
+    const selectedTokens = this._selectedTokens();
+    if (this.props.onTokenAction) {
+      if (selectedTokens.length === 0) {
+        this.props.onTokenAction([token]);
+      } else {
+        this.props.onTokenAction(selectedTokens);
+      }
+      return;
+    }
     const menu = new remote.Menu();
     menu.append(
       new remote.MenuItem({
-        click: () => this._removeTokens([token]),
+        click: () => {
+          if(selectedTokens.length === 0){
+            this._removeTokens([token]);
+          }else {
+            this._removeTokens(this._selectedTokens());
+          }
+        },
         label: 'Remove',
       })
     );
-
-    if (this.props.onEditMotion) {
+    if (this.props.onEditMotion && selectedTokens.length < 2) {
       menu.append(
         new remote.MenuItem({
           label: 'Edit',
@@ -886,7 +901,6 @@ export default class TokenizingTextField extends React.Component {
       tokenIsValid,
       tokenRenderer,
       tokenClassNames,
-      onTokenAction,
       onEdit,
     } = this.props;
 
@@ -895,7 +909,7 @@ export default class TokenizingTextField extends React.Component {
       const valid = tokenIsValid ? tokenIsValid(item) : true;
 
       const TokenRenderer = tokenRenderer;
-      const onAction = onTokenAction === false ? null : onTokenAction || this._showDefaultTokenMenu;
+      const onAction = this._showDefaultTokenMenu;
 
       return (
         <Token
