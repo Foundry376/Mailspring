@@ -378,7 +378,7 @@ class MessageStore extends MailspringStore {
     } else {
       title = title.trim();
     }
-    if (title.length > 37) {
+    if (title && title.length > 37) {
       title = `${title.slice(0, 37).trim()}...`;
     }
     electron.remote.getCurrentWindow().setTitle(title);
