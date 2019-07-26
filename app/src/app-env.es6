@@ -365,8 +365,6 @@ export default class AppEnvConstructor {
       //     );
       //   }
       // }
-      console.log(`/"${key}":${leftRegStr}(\s|\S)*?${rightRegStr},"/`);
-      console.log(strData);
       const reg = new RegExp(`"${key}":${leftRegStr}(\\s|\\S)*?${rightRegStr},"`);
       return strData.replace(reg, (str, match) => {
         return `"${key}":${leftStr}${createHash('md5').update(str).digest('hex')}${rightStr},"`;
