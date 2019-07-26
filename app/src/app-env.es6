@@ -8,7 +8,7 @@ import { mapSourcePosition } from 'source-map-support';
 import fs from 'fs';
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
-import ICAL from 'ical.js';
+import { createHash } from 'crypto';
 const LOG = require('electron-log');
 let getOSInfo = null;
 let getDeviceHash = null;
@@ -280,6 +280,12 @@ export default class AppEnvConstructor {
       }
     }
     this.logError(error);
+    try {
+      const strippedError = this._stripSensitiveData(error);
+      error = strippedError;
+    } catch (e) {
+      console.log(e);
+    }
     this.errorLogger.reportError(error, extra);
   }
 
@@ -303,6 +309,12 @@ export default class AppEnvConstructor {
       }
     }
     this.logWarning(error);
+    try {
+      const strippedError = this._stripSensitiveData();
+      error = strippedError;
+    } catch (e) {
+      console.log(e);
+    }
     this.errorLogger.reportWarning(error, extra);
   }
 
@@ -326,23 +338,39 @@ export default class AppEnvConstructor {
   _stripSensitiveData(str) {
     const _stripData = (key, strData) => {
       let leftStr = '"';
+      let leftRegStr = leftStr;
       let rightStr = '"';
-      if (key !== 'body' && key !== 'subject' && key !== 'snippet' && key !== 'emailAddress' && key !== 'imap_username' && key !== 'smtp_username' && key !== 'access_token' && key !== 'refresh_token') {
-        leftStr = '[';
-        rightStr = ']';
+      let rightRegStr = rightStr;
+      if (
+        key !== 'body' &&
+        key !== 'subject' &&
+        key !== 'snippet' &&
+        key !== 'emailAddress' &&
+        key !== 'imap_username' &&
+        key !== 'smtp_username' &&
+        key !== 'access_token' &&
+        key !== 'refresh_token'
+      ) {
+        leftRegStr = '\\[';
+        rightRegStr = '\\]';
       }
-      const keyStartIndex = strData.indexOf(`"${key}":${leftStr}`);
-      if (keyStartIndex !== -1) {
-        const endKeyIndex = strData.indexOf(`${rightStr},"`, keyStartIndex);
-        if (endKeyIndex !== -1) {
-          return (
-            strData.slice(0, keyStartIndex) +
-            `"${key}":${leftStr + rightStr},"` +
-            strData.slice(endKeyIndex + 3)
-          );
-        }
-      }
-      return strData;
+      // const keyStartIndex = strData.indexOf(`"${key}":${leftStr}`);
+      // if (keyStartIndex !== -1) {
+      //   const endKeyIndex = strData.indexOf(`${rightStr},"`, keyStartIndex);
+      //   if (endKeyIndex !== -1) {
+      //     return (
+      //       strData.slice(0, keyStartIndex) +
+      //       `"${key}":${leftStr + rightStr},"` +
+      //       strData.slice(endKeyIndex + 3)
+      //     );
+      //   }
+      // }
+      console.log(`/"${key}":${leftRegStr}(\s|\S)*?${rightRegStr},"/`);
+      console.log(strData);
+      const reg = new RegExp(`"${key}":${leftRegStr}(\\s|\\S)*?${rightRegStr},"`);
+      return strData.replace(reg, (str, match) => {
+        return `"${key}":${leftStr}${createHash('md5').update(str).digest('hex')}${rightStr},"`;
+      });
     };
     const sensitiveKeys = [
       'emailAddress',
@@ -359,9 +387,16 @@ export default class AppEnvConstructor {
       'bcc',
       'replyTo',
     ];
+    const notString = typeof str !== 'string';
+    if(notString){
+      str = str.toLocaleString();
+    }
     for (let i = 0; i < sensitiveKeys.length; i++) {
       const key = sensitiveKeys[i];
       str = _stripData(key, str);
+    }
+    if(notString){
+      str = Error(str);
     }
     return str;
   }
