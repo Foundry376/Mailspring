@@ -30,12 +30,16 @@ export default class SyncbackDraftTask extends Task {
       return;
     }
     if (key === 'no-drafts-folder') {
-      AppEnv.showErrorDialog({
-        title: 'Drafts folder not found',
-        message:
-          'Edison Mail can\'t find your Drafts folder. To create and send mail, visit Preferences > Folders and' +
-          ' choose a Drafts folder.',
-      });
+      const previousError = AppEnv.filterTaskErrorCounter({accountId: this.accountId, identityKey: 'type', value: 'SyncBackDraft'});
+      if(previousError.length === 0) {
+        AppEnv.showErrorDialog({
+          title: 'Drafts folder not found',
+          message:
+            'Edison Mail can\'t find your Drafts folder. To create and send mail, visit Preferences > Folders and' +
+            ' choose a Drafts folder.',
+        });
+        AppEnv.pushTaskErrorCounter({ data: { type: 'SyncBackDraft' }, accountId: this.accountId });
+      }
     } else {
       if (key === 'ErrorAccountNotConnected') {
         let accounts = AppEnv.config.get('accounts');
