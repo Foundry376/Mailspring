@@ -1032,6 +1032,10 @@ body.platform-win32 {
     }
     .emoji-tab {
       background-color: @gray-light;
+      cursor: pointer;
+      &:hover {
+        background-color: @component-active-color;
+      }
       &.active {
         background-color: @component-active-color;
       }

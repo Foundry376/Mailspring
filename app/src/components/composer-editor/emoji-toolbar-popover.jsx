@@ -228,7 +228,7 @@ export default class EmojiToolbarPopover extends React.Component {
         className += ' active';
       }
       tabs.push(
-        <div key={`${category} container`} style={{ flex: 1 }}>
+        <div key={`${category} container`} style={{ flex: 1}} >
           <RetinaImg
             key={`${category} tab`}
             className={className}
