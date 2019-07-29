@@ -159,6 +159,7 @@ export default class AppEnvConstructor {
       }, 1000 * 60 * 5); // 5 minutes
     }
     this.initSupportInfo();
+    this.initTaskErrorCounter();
   }
 
   // This ties window.onerror and process.uncaughtException,handledRejection
@@ -1142,5 +1143,56 @@ export default class AppEnvConstructor {
       delete ret.emailAddress;
     }
     return ret;
+  }
+  initTaskErrorCounter(){
+    this._taskErrorCounter = {};
+  }
+
+  pushTaskErrorCounter({data = {}, accountId=''} = {}) {
+    if(!this._taskErrorCounter){
+      this._taskErrorCounter = {};
+    }
+    if (!accountId || accountId.length === 0) {
+      return;
+
+      if (!this._taskErrorCounter[accountId]) {
+        this._taskErrorCounter[accountId] = [];
+      }
+      this._taskErrorCounter[accountId].push(data);
+    }
+  }
+
+  filterTaskErrorCounter({ accountId = '', identityKey = '', value = null }) {
+    if(!this._taskErrorCounter){
+      this._taskErrorCounter = {};
+      return [];
+    }
+    if (!this._taskErrorCounter[accountId]) {
+      return [];
+    }
+    return this._taskErrorCounter[accountId].filter(data => {
+      if (data.hasOwnProperty(identityKey)) {
+        return data[identityKey] === value;
+      }
+      return false;
+    });
+  }
+
+  replaceTaskErrorCounter({ accountId = '', identityKey = '', value = null, data = {} }) {
+    if(!this._taskErrorCounter){
+      this._taskErrorCounter = {};
+    }
+    if (!this._taskErrorCounter[accountId]) {
+      return [];
+    }
+    for (let i = 0; i < this._taskErrorCounter[accountId].length; i++) {
+      const tmp = this._taskErrorCounter[accountId][i];
+      if (tmp.hasOwnProperty(identityKey)) {
+        if (tmp[identityKey] === value) {
+          this._taskErrorCounter[accountId][i] = Object.assign({}, data);
+          break;
+        }
+      }
+    }
   }
 }
