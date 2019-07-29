@@ -215,7 +215,7 @@ export default class Messages extends Component {
         this.messagesTopBar.className = this.messagesTopBar.className.replace(' has-shadow', '');
       }
     }
-    const messageGroups = this.messagesPanel.children[0].children;
+    const messageGroups = this.messagesPanel.children;
     for (const msgGrp of messageGroups) {
       if (msgGrp.className.indexOf('message-group') !== -1) {
         if (
@@ -292,14 +292,15 @@ export default class Messages extends Component {
     return (
       <div
         className="messages"
-        ref={element => {
-          this.messagesPanel = element;
-        }}
-        onKeyDown={this.onKeyDown}
-        onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
-        <div className="messages-wrap">
+        <div
+          className="messages-wrap"
+          ref={element => {
+            this.messagesPanel = element;
+          }}
+          onScroll={this.calcTimeLabel}
+        >
           <SecurePrivate />
           {groupedMessages.map(group => (
             <Group

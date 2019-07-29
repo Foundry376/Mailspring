@@ -42,7 +42,6 @@
 
   .messages {
     flex-grow: 1;
-    overflow-y: scroll;
     -webkit-app-region: no-drag;
     height: 100%;
     display: flex;
@@ -51,21 +50,22 @@
     .messages-wrap {
       width: 100%;
       max-height: 100%;
-    }
-    &:hover {
-      &::-webkit-scrollbar-thumb {
-        visibility: visible;
-        opacity: 1;
+      overflow-y: scroll;
+      &:hover {
+        &::-webkit-scrollbar-thumb {
+          visibility: visible;
+          opacity: 1;
+        }
       }
-    }
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      visibility: hidden;
-      opacity: 0;
-      -webkit-border-radius: 2px;
-      background: rgba(150, 150, 150, 0.33);
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+      &::-webkit-scrollbar-thumb {
+        visibility: hidden;
+        opacity: 0;
+        -webkit-border-radius: 2px;
+        background: rgba(150, 150, 150, 0.33);
+      }
     }
     .loading {
       img {
