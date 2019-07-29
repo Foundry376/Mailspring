@@ -300,7 +300,6 @@ export default class MessagesPanel extends Component {
       let jidLocal = conversation.jid.slice(0, atIndex);
       let aes = await MessageSend.getAESKey(conversation);
       loadConfig.aes = aes;
-      console.log( 'upload file: aes: ', aes);
       try {
         loadConfig.request = uploadFile(
           jidLocal,

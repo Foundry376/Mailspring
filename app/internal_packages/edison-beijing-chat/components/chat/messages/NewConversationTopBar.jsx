@@ -5,7 +5,7 @@ import Select, { Option } from 'rc-select';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import { Actions, WorkspaceStore } from 'mailspring-exports';
-import { ChatActions } from 'chat-exports';
+import { ChatActions, ConversationStore } from 'chat-exports';
 
 export default class NewConversationTopBar extends Component {
   constructor() {
@@ -81,7 +81,13 @@ export default class NewConversationTopBar extends Component {
 
   _close = () => {
     Actions.popSheet();
-    ChatActions.deselectConversation();
+    const conv = ConversationStore.selectedConversationBeforeNew;
+    if (conv) {
+      ConversationStore.setSelectedConversation(conv.jid);
+    } else {
+      ChatActions.deselectConversation();
+    }
+    ConversationStore.selectedConversationBeforeNew = null;
   };
 
   onKeyUp = (event) => {

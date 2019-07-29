@@ -91,6 +91,15 @@ export default class Messages extends Component {
     const { selectedConversation: conv = {} } = this.props;
     await this.getRoomMembers(conv);
     this._onDataChanged('message');
+    setTimeout(() => {
+      // setTimeout is a necessary workaround
+      //otherwise the code below failed to work as expected
+      if (ConversationStore.messagePanelScrollTopBeforeNew) {
+        this.messagesPanel.scrollTo(0, ConversationStore.messagePanelScrollTopBeforeNew);
+        this.messagesPanel.scrollTop = ConversationStore.messagePanelScrollTopBeforeNew;
+        ConversationStore.messagePanelScrollTopBeforeNew = null;
+      }
+    }, 50);
   };
 
   _listenToStore = () => {
