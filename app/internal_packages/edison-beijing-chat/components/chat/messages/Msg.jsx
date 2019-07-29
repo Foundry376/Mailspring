@@ -79,7 +79,7 @@ export default class Msg extends PureComponent {
   static timer;
 
   componentDidMount() {
-    this.testImgHasDownloaded();
+    this.checkImgHasDownloaded();
     this.unlisten = [];
     this.unlisten.push(ChatActions.updateDownload.listen(this.updateDownload, this));
     this.unlisten.push(ChatActions.updateProgress.listen(this.updateProgress, this));
