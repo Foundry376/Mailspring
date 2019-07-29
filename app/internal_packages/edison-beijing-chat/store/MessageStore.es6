@@ -33,7 +33,7 @@ class MessageStore extends MailspringStore {
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
   }
 
-  _registerListeners() {}
+  _registerListeners() { }
   getMessageById = async (id, conversationJid) => {
     return await MessageModel.findOne({
       where: {
@@ -47,7 +47,7 @@ class MessageStore extends MailspringStore {
     return this.groupedMessages;
   };
 
-  reveivePrivateChat = async message => {
+  receivePrivateChat = async message => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
     if (!message || (await this._isExistInDb(message, false))) {
@@ -65,7 +65,7 @@ class MessageStore extends MailspringStore {
     this.showNotification(message);
   };
 
-  reveiveGroupChat = async message => {
+  receiveGroupChat = async message => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
     if (!message || (await this._isExistInDb(message, true))) {
@@ -377,8 +377,8 @@ class MessageStore extends MailspringStore {
         contactNameList.length > 4
           ? contactNameList.slice(0, 3).join(', ') + ' & ' + `${contactNameList.length - 3} others`
           : contactNameList.slice(0, contactNameList.length - 1).join(', ') +
-            ' & ' +
-            contactNameList[contactNameList.length - 1];
+          ' & ' +
+          contactNameList[contactNameList.length - 1];
       conv.name = fallbackName;
     }
     await ConversationStore.saveConversations([conv]);
