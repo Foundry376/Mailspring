@@ -1,6 +1,5 @@
 var AWS = require('aws-sdk');
-let hls3 = require('s3');
-const { decryptByAESFile, encryptByAESFile } = require('./aes');
+const { CipherFileStream, DecryptFileStream } = require('./aes');
 import fs from 'fs';
 import uuid from 'uuid';
 
@@ -40,9 +39,10 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
     Bucket: getMyBucket(),
     Key: key,
   };
-  let request;
-  const done = function(err, data) {
-    if (err) {
+
+  // 获取对象信息，为了获取长度刷新进度组件
+  s3.headObject(params, (err, data) => {
+    if (err || !data) {
       console.error(
         'fail to down file in message: key, name, err, err.stack: ',
         key,
@@ -53,35 +53,56 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
       if (callback) {
         callback(err);
       }
-    } else {
-      console.log('finished downloadFile: ', aes, key, name, data.Body.size, data.Body);
-      if (aes) {
-        data.Body = decryptByAESFile(aes, data.Body);
-      }
-      fs.writeFileSync(name, data.Body);
+      return;
+    }
+    const fileLength = data.ContentLength;
+    const readStream = s3.getObject(params).createReadStream();
+    const writeStream = fs.createWriteStream(name);
+
+    writeStream.on('finish', () => {
+      console.log('finished downloadFile: ', aes, key, name);
       if (callback) {
         callback();
       }
-      console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
-    }
-  };
-  request = s3.getObject(params, done);
-  request.on('httpDownloadProgress', function(progress) {
-    if (progressBack) {
-      progressBack(progress);
-    }
+    });
+    writeStream.on('error', error => {
+      console.error(
+        'fail to down file in message: key, name, err, err.stack: ',
+        key,
+        name,
+        error,
+        error.stack
+      );
+      if (callback) {
+        callback(error);
+      }
+    });
+
+    // 流解密
+    const decryptStream = new DecryptFileStream(aes);
+    decryptStream.on('process', loaded => {
+      if (progressBack && fileLength >= loaded) {
+        progressBack({
+          loaded,
+          total: fileLength,
+        });
+      }
+    });
+    // 流传递
+    readStream.pipe(decryptStream).pipe(writeStream);
   });
-  return request;
 };
 
 export const uploadFile = (oid, aes, file, callback, progressCallback) => {
-  let filename = path.basename(file);
+  const filename = path.basename(file);
   let myKey = oid + '/' + uuid.v4() + path.extname(file);
-  let data = fs.readFileSync(file);
+  const readS = fs.createReadStream(file);
   if (aes) {
-    data = encryptByAESFile(aes, data);
     myKey = myKey + ENCRYPTED_SUFFIX;
   }
+  // 流加密
+  const cipherStream = new CipherFileStream(aes);
+  const data = readS.pipe(cipherStream);
   var uploadParams = { Bucket: getMyBucket(), Key: myKey, Body: data };
   const request = s3.upload(uploadParams);
   request.on('httpUploadProgress', function(progress) {
