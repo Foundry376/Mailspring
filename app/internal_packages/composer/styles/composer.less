@@ -130,6 +130,7 @@
     flex-shrink: 0;
     max-width: 34px;
     transition: background 0.4s;
+    cursor: pointer;
     &:hover{
       color: @medium-grey;
       background: @off-white;
@@ -164,6 +165,7 @@
     flex-wrap: wrap;
     align-items: center;
     width: 100%;
+    cursor: default;
   }
 
   .divider {
@@ -393,7 +395,7 @@ body.platform-win32 {
       padding: 0 9px;
       white-space: nowrap;
       position: relative;
-
+      cursor: pointer;
       img.content-mask {
         position: relative;
         z-index: 2;
@@ -447,6 +449,7 @@ body.platform-win32 {
       transition: all 0.2s;
       font-weight: bold;
       padding: 0 15px 0 13px;
+      cursor: pointer;
       span {
         div[role='button']{
           float: left;
@@ -984,6 +987,7 @@ body.platform-win32 {
     height: @dropdown-default-option-height;
     display: flex;
     align-items: center;
+    cursor: pointer;
     &.selected{
       &::before {
         display: block;
@@ -1028,6 +1032,10 @@ body.platform-win32 {
     }
     .emoji-tab {
       background-color: @gray-light;
+      cursor: pointer;
+      &:hover {
+        background-color: @component-active-color;
+      }
       &.active {
         background-color: @component-active-color;
       }

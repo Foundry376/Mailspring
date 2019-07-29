@@ -245,11 +245,11 @@ export default class MessagesPanel extends Component {
     const { msgBody, filepath } = loadConfig;
     log('load', `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
     const loadCallback = (...args) => {
-      ChatActions.updateProgress({ loading: false, finished: true, visible: true, mediaObjectId: msgBody.mediaObjectId });
+      ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
       setTimeout(() => {
         if (!ProgressBarStore.progress.loading) {
-          ChatActions.updateProgress({ loading: false, finished: true, visible: false, mediaObjectId: msgBody.mediaObjectId });
+          ChatActions.updateProgress({ loading: false, finished: true, visible: false });
         }
       }, 3000);
       if (loadConfig.type === 'upload') {
@@ -300,7 +300,6 @@ export default class MessagesPanel extends Component {
       let jidLocal = conversation.jid.slice(0, atIndex);
       let aes = await MessageSend.getAESKey(conversation);
       loadConfig.aes = aes;
-      console.log('upload file: aes: ', aes);
       try {
         loadConfig.request = uploadFile(
           jidLocal,

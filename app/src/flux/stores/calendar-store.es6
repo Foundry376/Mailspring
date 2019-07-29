@@ -210,8 +210,8 @@ class CalendarStore extends MailspringStore {
       };
     }
     if (
-      (!this._calendarCache[message.id].processing ||
-        !this._calendarCache[message.id].calendar) &&
+      !this._calendarCache[message.id].processing &&
+      !this._calendarCache[message.id].calendar &&
       this._calendarCache[message.id].file
     ) {
       this._calendarCache[message.id].processing = true;
@@ -250,6 +250,7 @@ class CalendarStore extends MailspringStore {
   }
 
   _popQueue(messageId) {
+    console.error('pop queue');
     const queue = this._processingQueue[messageId];
     delete this._processingQueue[messageId];
     if (queue) {
@@ -267,6 +268,7 @@ class CalendarStore extends MailspringStore {
   }
 
   _addToQueue(message, action) {
+    console.log('add to queue');
     this._processingQueue[message.id] = { message, action };
   }
 

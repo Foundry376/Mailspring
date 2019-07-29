@@ -1195,4 +1195,38 @@ export default class AppEnvConstructor {
       }
     }
   }
+  mockCal(){
+     const calData = [
+       "BEGIN:VCALENDAR",
+    "PRODID:-//Google Inc//Google Calendar 70.9054//EN",
+      "VERSION:2.0",
+    "CALSCALE:GREGORIAN",
+    "METHOD:REQUEST",
+    "BEGIN:VEVENT",
+    "DTSTART:20190805T233000Z",
+    "DTEND:20190806T023000Z",
+    "DTSTAMP:20190729T072426Z",
+    "ORGANIZER;CN=gaogest@gmail.com:mailto:gaogest@gmail.com",
+    "UID:6com6p1j70s30bb36ooj8b9kc4r68b9ocos3cbb46cqmap316crjedhgc8@google.com",
+    "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE;CN=gaogest@gmail.com;X-NUM-GUESTS=0:mailto:gaogest@gmail.com",
+    "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=ruoxi@edison.tech;X-NUM-GUESTS=0:mailto:ruoxi@edison.tech",
+    "CREATED:20190729T072421Z",
+    "LAST-MODIFIED:20190729T072424Z",
+    "LOCATION:Antarctica",
+    "SEQUENCE:0",
+    "STATUS:CONFIRMED",
+    "SUMMARY:Testing",
+     "TRANSP:OPAQUE",
+     "END:VEVENT",
+     "END:VCALENDAR"].join('\r\n');
+     const Calendar = require('./flux/models/calendar').default;
+     const repeat = 300;
+     const start = Date.now();
+     for (let i =0; i< repeat; i++){
+       const calendar = Calendar.parse(calData);
+       const Event = calendar.getFirstEvent();
+       console.log(Event.organizer);
+     }
+     console.log(`used ${Date.now() - start}ms`);
+  }
 }

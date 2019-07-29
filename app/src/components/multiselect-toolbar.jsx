@@ -224,7 +224,7 @@ class MultiselectToolbar extends Component {
           mode={RetinaImg.Mode.ContentIsMask} />
       </div>;
     }
-    return <button tabIndex={-1}
+    return <button tabIndex={-1} style={{cursor: 'pointer'}}
       className="btn btn-toolbar btn-list-more" title='Refresh'
       onClick={this.refreshPerspective}>
       <RetinaImg name='refresh.svg'

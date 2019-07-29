@@ -229,7 +229,7 @@ class MessageStore extends MailspringStore {
       this.saveMessagesAndRefresh([message]);
       const downloadResult = [];
 
-      const testDownloadSuccess = () => {
+      const checkDownloadSuccess = () => {
         msgBody.downloading = false;
         // downloadResult不为空就代表成功了
         if (downloadResult.length) {
@@ -252,7 +252,7 @@ class MessageStore extends MailspringStore {
           if (!err && fs.existsSync(thumbPath)) {
             downloadResult.push(msgBody.thumbObjectId);
             // 缩略图下载成功就算成功
-            testDownloadSuccess();
+            checkDownloadSuccess();
             downloadFile(aes, msgBody.mediaObjectId, originalPath, err => {
               downloadResult.push(msgBody.mediaObjectId);
             });
@@ -262,7 +262,7 @@ class MessageStore extends MailspringStore {
               if (!err && fs.existsSync(originalPath)) {
                 downloadResult.push(msgBody.mediaObjectId);
               }
-              testDownloadSuccess();
+              checkDownloadSuccess();
             });
           }
         });
@@ -271,7 +271,7 @@ class MessageStore extends MailspringStore {
           if (!err && fs.existsSync(originalPath)) {
             downloadResult.push(msgBody.mediaObjectId);
           }
-          testDownloadSuccess();
+          checkDownloadSuccess();
         });
       }
     }

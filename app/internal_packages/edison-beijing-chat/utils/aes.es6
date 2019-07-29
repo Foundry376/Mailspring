@@ -1,4 +1,6 @@
 import uuid from 'uuid/v4';
+import { Transform } from 'stream';
+import crypto from 'crypto';
 // 导入 crypto-js 包
 const CryptoJS = require('crypto-js');
 
@@ -48,22 +50,6 @@ const aesDecrypt = (encrypted, key) => {
 };
 
 /**
- * 定义文件的解密函数
- * @param {string} encrypted - 加密的数据;
- * @param {string} key - 加密使用的 key
- */
-const aesDecryptFile = (encrypted, key) => {
-  const restoreBase64 = encrypted;
-  const decipher = CryptoJS.AES.decrypt(restoreBase64, key, {
-    mode: CryptoJS.mode.ECB,
-    padding: CryptoJS.pad.Pkcs7,
-    iv: '',
-  });
-  const resultDecipher = CryptoJS.enc.Base64.stringify(decipher);
-  return new Buffer(resultDecipher, 'Base64');
-};
-
-/**
  * 消息加密
  * @param {Aes key} key
  * @param {message body} buffer
@@ -90,19 +76,60 @@ export const decryptByAES = (key, buffer) => {
   }
 };
 
-// 文件加密
-export const encryptByAESFile = (key, buffer) => {
-  const k = CryptoJS.enc.Base64.parse(key);
-  const encrypted = aesEncrypt(CryptoJS.enc.Base64.parse(buffer.toString('base64')), k);
-  return new Buffer(encrypted, 'base64');
+// 文件流加密
+export class CipherFileStream extends Transform {
+  constructor(aes) {
+    super();
+    this._loaded = 0;
+    if (aes) {
+      const key = Buffer.from(aes, 'base64');
+      const decipher = crypto.createCipheriv('aes-128-ecb', key, '');
+      decipher.setAutoPadding(true);
+      this._decipher = decipher;
+    } else {
+      this._decipher = null;
+    }
+  }
+}
+
+CipherFileStream.prototype._transform = function(data, encoding, callback) {
+  if (this._decipher) {
+    this.push(this._decipher.update(data));
+  } else {
+    this.push(data);
+  }
+  this._loaded += data.length;
+  // 触发进度事件
+  this.emit('process', this._loaded);
+  callback();
 };
 
-// 文件解密
-export const decryptByAESFile = (key, buffer) => {
-  const k = CryptoJS.enc.Base64.parse(key);
-  const b = buffer.toString('base64');
-  const decrypted = aesDecryptFile(b, k);
-  return decrypted;
+// 文件流解密
+export class DecryptFileStream extends Transform {
+  constructor(aes) {
+    super();
+    this._loaded = 0;
+    if (aes) {
+      const key = Buffer.from(aes, 'base64');
+      const decipher = crypto.createDecipheriv('aes-128-ecb', key, '');
+      decipher.setAutoPadding(true);
+      this._decipher = decipher;
+    } else {
+      this._decipher = null;
+    }
+  }
+}
+
+DecryptFileStream.prototype._transform = function(data, encoding, callback) {
+  if (this._decipher) {
+    this.push(this._decipher.update(data));
+  } else {
+    this.push(data);
+  }
+  this._loaded += data.length;
+  // 触发进度事件
+  this.emit('process', this._loaded);
+  callback();
 };
 
 export const generateAESKey = () => {
@@ -119,7 +146,5 @@ export const generateAESKey = () => {
 export default {
   encryptByAES,
   decryptByAES,
-  encryptByAESFile,
-  decryptByAESFile,
   generateAESKey,
 };

@@ -380,6 +380,7 @@
     color: @red;
   }
   .message-retry {
+    cursor: pointer;
     position: absolute;
     top: 35%;
     right: 20px;
@@ -410,6 +411,7 @@
     }
   }
   .download-img {
+    cursor: pointer;
     border-radius: @border-radius;
     background: rgba(255, 255, 255, 0.9);
     img.content-mask {
@@ -422,6 +424,7 @@
     }
   }
   .inplace-edit-img {
+    cursor: pointer;
     img.content-mask {
       background-color: @gray;
     }
@@ -474,6 +477,7 @@
       font-size: 14px;
 
       .download-btn {
+        cursor: pointer;
         display: inline-block;
         flex: 0 0 auto;
         width: 34px;
@@ -530,8 +534,12 @@
         flex-direction: row;
         line-height: 34px;
         font-weight: bold;
+        .cancelButton {
+          cursor: pointer;
+        }
 
         svg {
+          cursor: pointer;
           width: 16px;
           height: 16px;
           margin: 9px 0 0 13.5px;
@@ -555,6 +563,7 @@
     padding: 0 0 0 20px;
     z-index: 9;
     .view-btn {
+      cursor: pointer;
       position: absolute;
       right: 35px;
       height: 30px;
@@ -569,6 +578,7 @@
       border: none;
     }
     .hide-btn {
+      cursor: pointer;
       position: absolute;
       right: 5px;
       width: 15px;
