@@ -100,15 +100,16 @@ const c2 = new ListTabular.Column({
     let draft = null;
     const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
-      draft = (
-        <RetinaImg
-          name="pencil.svg"
-          isIcon
-          style={{ width: 16, height: 16 }}
-          className="thread-icon thread-icon-pencil"
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
-      );
+      // draft = (
+      //   <RetinaImg
+      //     name="pencil.svg"
+      //     isIcon
+      //     style={{ width: 16, height: 16 }}
+      //     className="thread-icon thread-icon-pencil"
+      //     mode={RetinaImg.Mode.ContentIsMask}
+      //   />
+      // );
+      draft = <span className="draft-icon">Draft</span>;
     }
 
     let attachment = null;
@@ -122,8 +123,8 @@ const c2 = new ListTabular.Column({
       return (
         <div style={{ display: 'flex' }}>
           <ThreadListParticipants thread={thread} />
-          {attachment}
           {draft}
+          {attachment}
         </div>
       );
     } else {
@@ -201,15 +202,16 @@ const cNarrow = new ListTabular.Column({
 
     const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
-      pencil = (
-        <RetinaImg
-          name="pencil.svg"
-          isIcon
-          style={{ width: 16, height: 16 }}
-          className="thread-icon-pencil"
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
-      );
+      // pencil = (
+      //   <RetinaImg
+      //     name="pencil.svg"
+      //     isIcon
+      //     style={{ width: 16, height: 16 }}
+      //     className="thread-icon-pencil"
+      //     mode={RetinaImg.Mode.ContentIsMask}
+      //   />
+      // );
+      pencil = <span className="draft-icon">Draft</span>;
     }
 
     // TODO We are limiting the amount on injected icons in narrow mode to 1
@@ -222,8 +224,8 @@ const cNarrow = new ListTabular.Column({
         <div className="thread-info-column">
           <div className="participants-wrapper">
             <ThreadListParticipants thread={thread} />
-            {attachment}
             {pencil}
+            {attachment}
             <span style={{ flex: 1 }} />
             <InjectedComponent
               key="thread-injected-timestamp"
