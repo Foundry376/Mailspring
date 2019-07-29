@@ -109,7 +109,7 @@ export default class Messages extends Component {
         const nextIds = flattenMsgIds(groupedMessages);
         let areNewMessages = currentIds.size < nextIds.size;
         // if switched to new conversation
-        if (selectedConversation.jid !== this.props.selectedConversation.jid) {
+        if (selectedConversation.jid !== this.props.selectedConversation.jid || currentIds.size === 0) {
           shouldDisplayMessageCounts = MESSAGE_COUNTS_EACH_PAGE;
           areNewMessages = true;
         } else {
