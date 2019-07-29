@@ -78,7 +78,7 @@ export default class Msg extends PureComponent {
   static timer;
 
   componentDidMount() {
-    this.testImgHasDownloaded();
+    this.checkImgHasDownloaded();
     this.unlisten = ChatActions.updateDownload.listen(this.update, this);
     if (this.contentEl) {
       this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
@@ -122,19 +122,24 @@ export default class Msg extends PureComponent {
 
   clickFileCoordinate = filePath => {
     this._clickTime = (this._clickTime || 0) + 1;
-    setTimeout(() => {
-      if (this._clickTime === 1) {
-        // 单击事件
-        this.downloadOtherFile(filePath);
+    this._clickTimeout = setTimeout(() => {
+      if (this._clickTimeout) {
+        clearTimeout(this._clickTimeout);
+        this._clickTimeout = null;
+      }
+      const fileHasDownload = fs.existsSync(filePath);
+      if (!fileHasDownload) {
+        // 下载文件
+        this.downloadFile(filePath);
       } else if (this._clickTime === 2) {
-        // 双击事件
+        // 打开文件
         this.openFile(filePath);
       }
       this._clickTime = 0;
     }, 300);
   };
 
-  downloadOtherFile(filePath) {
+  downloadFile(filePath) {
     const msgBody = this.state.msgBody;
     if (!filePath || typeof filePath !== 'string') {
       return;
@@ -194,7 +199,7 @@ export default class Msg extends PureComponent {
     queueLoadMessage(loadConfig);
   };
 
-  testImgHasDownloaded = () => {
+  checkImgHasDownloaded = () => {
     const { msg } = this.props;
     const { msgBody, msgImgPath } = this.state;
     if (isImage(msgBody.type) && msgBody.mediaObjectId && !msgImgPath) {
@@ -285,7 +290,7 @@ export default class Msg extends PureComponent {
       this._previewAttachment(originalPath);
 
       if (!fs.existsSync(originalPath)) {
-        this.testImgHasDownloaded();
+        this.checkImgHasDownloaded();
       }
     }
   };
