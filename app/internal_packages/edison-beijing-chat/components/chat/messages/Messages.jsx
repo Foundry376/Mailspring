@@ -99,7 +99,7 @@ export default class Messages extends Component {
         this.messagesPanel.scrollTop = ConversationStore.messagePanelScrollTopBeforeNew;
         ConversationStore.messagePanelScrollTopBeforeNew = null;
       }
-    }, 50);
+    }, 200);
   };
 
   _listenToStore = () => {
