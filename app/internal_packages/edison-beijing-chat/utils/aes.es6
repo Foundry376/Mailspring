@@ -104,6 +104,13 @@ CipherFileStream.prototype._transform = function(data, encoding, callback) {
   callback();
 };
 
+CipherFileStream.prototype._flush = function(callback) {
+  if (this._decipher) {
+    this.push(this._decipher.final());
+  }
+  callback();
+};
+
 // 文件流解密
 export class DecryptFileStream extends Transform {
   constructor(aes) {
@@ -129,6 +136,13 @@ DecryptFileStream.prototype._transform = function(data, encoding, callback) {
   this._loaded += data.length;
   // 触发进度事件
   this.emit('process', this._loaded);
+  callback();
+};
+
+DecryptFileStream.prototype._flush = function(callback) {
+  if (this._decipher) {
+    this.push(this._decipher.final());
+  }
   callback();
 };
 
