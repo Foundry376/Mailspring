@@ -7,7 +7,16 @@ class GroupChatAvatar extends Component {
     super(props);
   }
   render() {
-    const { conversation: { avatarMembers } } = this.props;
+    const {conversation, size} = this.props;
+    const {members, avatarMembers} = conversation;
+    if (members && members.length === 1) {
+      const member = members[0]
+      return (<ContactAvatar
+        conversation={conversation}
+        jid={member.jid}
+        name={member.name}
+        email={member.email} size={size} />)
+    }
     if (!avatarMembers) {
       return null;
     }

@@ -23,6 +23,7 @@ class RoomStore extends MailspringStore {
     for (const item of data) {
       this.rooms[item.jid] = item;
     }
+    ConversationStore.refreshConversations();
   }
 
   createGroupChatRoom = async (payload) => {
@@ -93,6 +94,10 @@ class RoomStore extends MailspringStore {
         console.warn('***members is null', roomId, curJid, force);
         members = await this.getRoomMembersFromXmpp(roomId, curJid, true);
       }
+    }
+    const room = this.rooms && this.rooms[roomId];
+    if (room) {
+      room.members = members;
     }
     await this.loadRooms();
     UserCacheStore.saveUserCache(members);
@@ -209,7 +214,7 @@ class RoomStore extends MailspringStore {
     const fromName = item.from.nickname || item.from.name || item.from.email || fromcontact && fromcontact.email || fromjid;
     const byName = item.by.nickname || item.by.name || item.by.email || byjid;
     if (payload.type === 'join') {
-      content = `${byName} invited ${fromName} to join the group chat.`;
+      content = `${byName} invited ${fromName} to join the conversation.`;
     } else {
       if (fromName === byName) {
         content = `${fromName} left the conversation.`;
@@ -220,6 +225,8 @@ class RoomStore extends MailspringStore {
       // update curJid to other self use
       await this.updateConversationCurJid(fromjid, conversationJid);
     }
+    const conversation = await ConversationStore.getConversationByJid(conversationJid);
+    await this.refreshRoomMember(conversationJid, conversation.curJid, true);
     const body = {
       content,
       type: 'memberschange'

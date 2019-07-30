@@ -132,16 +132,25 @@ class ConversationStore extends MailspringStore {
   };
 
   getConversationByJid = async jid => {
+    let result;
     for (const conv of this.conversations) {
       if (conv.jid === jid) {
-        return conv;
+        result = conv;
+        break;
       }
     }
-    return await ConversationModel.findOne({
+    result = await ConversationModel.findOne({
       where: {
         jid,
       },
     });
+    if (result && result.isGroup) {
+      const room = RoomStore.rooms && RoomStore.rooms[result.jid];
+      if (room) {
+        result.members = room.dataValues? room.dataValues.members: room.members;
+      }
+    }
+    return result;
   };
 
   findConversationsByCondition = async condition => {
@@ -159,7 +168,15 @@ class ConversationStore extends MailspringStore {
     }
     this._triggerDebounced();
     let count = 0;
-    this.conversations.forEach(item => (count += item.unreadMessages));
+    this.conversations.forEach( item => {
+      count += item.unreadMessages;
+      if (item.isGroup) {
+        const room = RoomStore.rooms && RoomStore.rooms[item.jid];
+        if (room) {
+          item.members = room.dataValues? room.dataValues.members: room.members;
+        }
+      }
+    });
     this.setTrayChatUnreadCount(count);
   };
 
