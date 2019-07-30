@@ -42,6 +42,7 @@ export default class Msg extends PureComponent {
   constructor(props) {
     super(props);
     this.state = this.receiveProps(props);
+    this.state.file_downloaded = false;
   }
 
   receiveProps = props => {
@@ -79,7 +80,9 @@ export default class Msg extends PureComponent {
 
   componentDidMount() {
     this.checkImgHasDownloaded();
-    this.unlisten = ChatActions.updateDownload.listen(this.update, this);
+    this.unlisten = [];
+    this.unlisten.push(ChatActions.updateDownload.listen(this.updateDownload, this));
+    this.unlisten.push(ChatActions.updateProgress.listen(this.updateProgress, this));
     if (this.contentEl) {
       this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
     }
@@ -95,7 +98,9 @@ export default class Msg extends PureComponent {
   };
 
   componentWillUnmount() {
-    this.unlisten();
+    for (let unlisten of this.unlisten) {
+      unlisten();
+    }
   }
 
   getContactInfoByJid = jid => {
@@ -172,12 +177,23 @@ export default class Msg extends PureComponent {
     });
   };
 
-  update(imgId) {
+  updateDownload(imgId) {
     const { msgBody } = this.state;
     const { mediaObjectId, thumbObjectId } = msgBody;
     const msgImgPath = this.getImageFilePath(msgBody);
     if (imgId === mediaObjectId || imgId === thumbObjectId) {
       this.setState({ imgId, msgImgPath });
+    }
+  }
+
+  updateProgress(progress) {
+    const { msgBody } = this.state;
+    if (progress.finished &&
+      msgBody.mediaObjectId &&
+      msgBody.mediaObjectId === progress.mediaObjectId) {
+      this.setState({
+        file_downloaded: true
+      })
     }
   }
 
@@ -409,6 +425,7 @@ export default class Msg extends PureComponent {
     if (filepath) {
       iconName = AttachmentStore.getExtIconName(filepath);
     }
+    let isVideo = AttachmentStore.isVideo(filepath);
     return (
       <div className="message-file">
         <div className="file-info" onClick={() => this.clickFileCoordinate(msgBody.path)}>
@@ -420,6 +437,13 @@ export default class Msg extends PureComponent {
             <div className="ext">{extName.toUpperCase()}</div>
           </div>
         </div>
+        {
+          isVideo && fs.existsSync(msgBody.path) && (
+            <div className="video-wrapper">
+              <video controls src={msgBody.path}></video>
+            </div>
+          )
+        }
       </div>
     );
   };

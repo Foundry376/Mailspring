@@ -458,6 +458,16 @@ class SanitizeTransformer {
     if (nodeName === '#comment') {
       return false; // always strip comments
     }
+    if (nodeName === 'img') {
+      node.setAttribute('alt', '');
+      const style = node.style;
+      if (style && style.width) {
+        node.style.minWidth = style.width;
+      }
+      if (style && style.height) {
+        node.style.minHeight = style.height;
+      }
+    }
 
     if (!settings.allowedTags.hasOwnProperty(nodeName)) {
       // this node isn't allowed - what should we do with it?

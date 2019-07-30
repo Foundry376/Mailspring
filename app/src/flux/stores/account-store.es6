@@ -278,7 +278,9 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-    ipcRenderer.send('add-chat-account', account);
+    if (AppEnv.config.get(`chatEnable`)) {
+      ipcRenderer.send('add-chat-account', account);
+    }
   };
 
   _cachedGetter(key, fn) {

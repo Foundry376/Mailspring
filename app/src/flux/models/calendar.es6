@@ -387,7 +387,7 @@ class Organizer {
 }
 
 class VEvent extends ICAL.Event {
-  constructor(vEvent, timezones = null) {
+  constructor(vEvent, timezones = []) {
     super(vEvent);
     this._timezones = timezones;
     this._dtstamp = this.getFirstPropertyValue('dtstamp');
@@ -432,7 +432,7 @@ class VEvent extends ICAL.Event {
   }
 
   _findTimezonByTZId(TZId) {
-    if (!this._timezones) {
+    if (!Array.isArray(this._timezones) || this._timezones.length === 0) {
       return null;
     }
     const timezone = this._timezones.filter(tz => tz.tzid === TZId);
@@ -771,27 +771,16 @@ class VEvent extends ICAL.Event {
 export default class Calendar {
   constructor(jcalData) {
     this._vCalendar = new ICAL.Component(jcalData);
-    this._VTimeZones = this._vCalendar
-      .getAllSubcomponents('vtimezone')
-      .map(timezone => new ICAL.Timezone(timezone, timezone.getFirstPropertyValue('tzid')));
-    this._VEvents = this._vCalendar.getAllSubcomponents('vevent').map(e => new VEvent(e, this._VTimeZones));
-    this._VTodos = this._vCalendar.getAllSubcomponents('vtodo').map(todo => new VTodo(todo));
-    this._VJournals = this._vCalendar
-      .getAllSubcomponents('vjournal')
-      .map(journal => new VJournal(journal));
-
-    this._VFreeBusys = this._vCalendar
-      .getAllSubcomponents('vfreebusy')
-      .map(freebusy => new VFreeBusy(freebusy));
-    this._productId = this._vCalendar.getFirstPropertyValue('prodid');
-    this._version = this._vCalendar.getFirstPropertyValue('version');
-    this._calenderScale = this._vCalendar.getFirstPropertyValue('calscale');
-    this._method = this._vCalendar.getFirstPropertyValue('method');
+    this._VTimeZones = null;
+    this._VEvents = null;
+    this._VTodos = null;
+    this._VJournals = null;
+    this._VFreeBusys = null;
   }
 
   toString() {
     // For some reason, when setting attendee property value, Component.updatePropertyWithValue uses ":" instead of
-    // ";', we mannually replace
+    // ";', we need to manually replace them
     return this._vCalendar.toString().replace('ATTENDEE:', 'ATTENDEE;');
   }
 
@@ -811,59 +800,90 @@ export default class Calendar {
   }
 
   get VEvents() {
+    if (!this._vCalendar) {
+      return [];
+    }
+    if (!this._VEvents) {
+      this._VEvents = this._vCalendar.getAllSubcomponents('vevent').map(e => new VEvent(e, this.VTimeZones));
+    }
     return this._VEvents;
   }
 
   getFirstEvent() {
-    if (this._VEvents.length > 0) {
-      return this._VEvents[0];
+    if (this.VEvents.length > 0) {
+      return this.VEvents[0];
     } else {
       return null;
     }
   }
-  getTimeZones(){
-    return this._VTimeZones;
-  }
-  getTimeZoneString(){
-    return this._VTimeZones.map(tz => tz.component.toString()).join('\r\n');
+  getTimeZoneString() {
+    return this.VTimeZones.map(tz => tz.component.toString()).join('\r\n');
   }
 
   get VTodos() {
+    if (!this._vCalendar) {
+      return [];
+    }
+    if (!this._VTodos){
+      this._VTodos = this._vCalendar.getAllSubcomponents('vtodo').map(todo => new VTodo(todo));
+    }
     return this._VTodos;
   }
 
   get VJournals() {
+    if (!this._vCalendar) {
+      return [];
+    }
+    if (!this._VJournals) {
+      this._VJournals = this._vCalendar.getAllSubcomponents('vjournal').map(journal => new VJournal(journal));
+    }
     return this._VJournals;
   }
 
   get VTimeZones() {
+    if (!this._vCalendar) {
+      return [];
+    }
+    if (!this._VTimeZones) {
+      this._VTimeZones = this._vCalendar
+        .getAllSubcomponents('vtimezone')
+        .map(timezone => new ICAL.Timezone(timezone, timezone.getFirstPropertyValue('tzid')));
+    }
     return this._VTimeZones;
   }
 
   getFirstTimeZone() {
-    if (this._VTimeZones.length > 0) {
-      return this._VTimeZones[0];
+    if (this.VTimeZones.length > 0) {
+      return this.VTimeZones[0];
     }
     return null;
   }
 
   get VFreeBusys() {
+    if (!this._vCalendar) {
+      return [];
+    }
+    if (!this._VFreeBusys) {
+      this._VFreeBusys = this._vCalendar
+        .getAllSubcomponents('vfreebusy')
+        .map(freebusy => new VFreeBusy(freebusy));
+    }
     return this._VFreeBusys;
   }
 
   get productId() {
-    return this._productId;
+    return this._vCalendar.getFirstPropertyValue('prodid');
   }
 
   get version() {
-    return this._version;
+    return this._vCalendar.getFirstPropertyValue('version');
   }
 
   get calenderScale() {
-    return this._calenderScale;
+    return this._vCalendar.getFirstPropertyValue('calscale');
   }
 
   get method() {
-    return this._method;
+    return this._vCalendar.getFirstPropertyValue('method');
   }
 }

@@ -8,7 +8,7 @@ import { mapSourcePosition } from 'source-map-support';
 import fs from 'fs';
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
-import ICAL from 'ical.js';
+import { createHash } from 'crypto';
 const LOG = require('electron-log');
 let getOSInfo = null;
 let getDeviceHash = null;
@@ -159,6 +159,7 @@ export default class AppEnvConstructor {
       }, 1000 * 60 * 5); // 5 minutes
     }
     this.initSupportInfo();
+    this.initTaskErrorCounter();
   }
 
   // This ties window.onerror and process.uncaughtException,handledRejection
@@ -280,6 +281,12 @@ export default class AppEnvConstructor {
       }
     }
     this.logError(error);
+    try {
+      const strippedError = this._stripSensitiveData(error);
+      error = strippedError;
+    } catch (e) {
+      console.log(e);
+    }
     this.errorLogger.reportError(error, extra);
   }
 
@@ -303,6 +310,12 @@ export default class AppEnvConstructor {
       }
     }
     this.logWarning(error);
+    try {
+      const strippedError = this._stripSensitiveData();
+      error = strippedError;
+    } catch (e) {
+      console.log(e);
+    }
     this.errorLogger.reportWarning(error, extra);
   }
 
@@ -323,26 +336,40 @@ export default class AppEnvConstructor {
     }
   }
 
-  _stripSensitiveData(str) {
+  _stripSensitiveData(str = '') {
     const _stripData = (key, strData) => {
       let leftStr = '"';
+      let leftRegStr = leftStr;
       let rightStr = '"';
-      if (key !== 'body' && key !== 'subject' && key !== 'snippet' && key !== 'emailAddress' && key !== 'imap_username' && key !== 'smtp_username' && key !== 'access_token' && key !== 'refresh_token') {
-        leftStr = '[';
-        rightStr = ']';
+      let rightRegStr = rightStr;
+      if (
+        key !== 'body' &&
+        key !== 'subject' &&
+        key !== 'snippet' &&
+        key !== 'emailAddress' &&
+        key !== 'imap_username' &&
+        key !== 'smtp_username' &&
+        key !== 'access_token' &&
+        key !== 'refresh_token'
+      ) {
+        leftRegStr = '\\[';
+        rightRegStr = '\\]';
       }
-      const keyStartIndex = strData.indexOf(`"${key}":${leftStr}`);
-      if (keyStartIndex !== -1) {
-        const endKeyIndex = strData.indexOf(`${rightStr},"`, keyStartIndex);
-        if (endKeyIndex !== -1) {
-          return (
-            strData.slice(0, keyStartIndex) +
-            `"${key}":${leftStr + rightStr},"` +
-            strData.slice(endKeyIndex + 3)
-          );
-        }
-      }
-      return strData;
+      // const keyStartIndex = strData.indexOf(`"${key}":${leftStr}`);
+      // if (keyStartIndex !== -1) {
+      //   const endKeyIndex = strData.indexOf(`${rightStr},"`, keyStartIndex);
+      //   if (endKeyIndex !== -1) {
+      //     return (
+      //       strData.slice(0, keyStartIndex) +
+      //       `"${key}":${leftStr + rightStr},"` +
+      //       strData.slice(endKeyIndex + 3)
+      //     );
+      //   }
+      // }
+      const reg = new RegExp(`"${key}":${leftRegStr}(\\s|\\S)*?${rightRegStr},"`);
+      return strData.replace(reg, (str, match) => {
+        return `"${key}":${leftStr}${createHash('md5').update(str).digest('hex')}${rightStr},"`;
+      });
     };
     const sensitiveKeys = [
       'emailAddress',
@@ -359,43 +386,51 @@ export default class AppEnvConstructor {
       'bcc',
       'replyTo',
     ];
+    const notString = typeof str !== 'string';
+    if (notString) {
+      str = str.toLocaleString();
+    }
     for (let i = 0; i < sensitiveKeys.length; i++) {
       const key = sensitiveKeys[i];
       str = _stripData(key, str);
     }
+    if (notString) {
+      str = Error(str);
+    }
     return str;
   }
 
-  logError(error) {
-    if (this.inDevMode()) {
-      console.error(error);
-    }
-    let str = this._stripSensitiveData(error.toLocaleString());
-    LOG.error(str);
+  logError(log) {
+    this._log(log, 'error');
   }
 
   logWarning(log) {
-    if (this.inDevMode()) {
-      console.warn(log);
-    }
-    const str = this._stripSensitiveData(log.toLocaleString());
-    LOG.warn(str);
+    this._log(log, 'warn');
   }
 
   logDebug(log) {
-    if (this.inDevMode()) {
-      console.log(log);
-    }
-    const str = this._stripSensitiveData(log.toLocaleString());
-    LOG.debug(str);
+    this._log(log, 'debug');
   }
 
   logInfo(log) {
+    this._log(log, 'info');
+  }
+
+  _log(message, logType = 'log') {
     if (this.inDevMode()) {
-      console.log(log);
+      if (logType === 'error') {
+        console.error(message);
+      } else if (logType === 'warn') {
+        console.warn(message);
+      } else {
+        console.log(message);
+      }
     }
-    const str = this._stripSensitiveData(log.toLocaleString());
-    LOG.info(str);
+    let str = message;
+    if (str && str.toLocaleString) {
+      str = this._stripSensitiveData(str.toLocaleString());
+    }
+    LOG[logType](str);
   }
 
   _findPluginsFromError(error) {
@@ -1109,5 +1144,90 @@ export default class AppEnvConstructor {
       delete ret.emailAddress;
     }
     return ret;
+  }
+  initTaskErrorCounter(){
+    this._taskErrorCounter = {};
+  }
+
+  pushTaskErrorCounter({data = {}, accountId=''} = {}) {
+    if(!this._taskErrorCounter){
+      this._taskErrorCounter = {};
+    }
+    if (!accountId || accountId.length === 0) {
+      return;
+
+      if (!this._taskErrorCounter[accountId]) {
+        this._taskErrorCounter[accountId] = [];
+      }
+      this._taskErrorCounter[accountId].push(data);
+    }
+  }
+
+  filterTaskErrorCounter({ accountId = '', identityKey = '', value = null }) {
+    if(!this._taskErrorCounter){
+      this._taskErrorCounter = {};
+      return [];
+    }
+    if (!this._taskErrorCounter[accountId]) {
+      return [];
+    }
+    return this._taskErrorCounter[accountId].filter(data => {
+      if (data.hasOwnProperty(identityKey)) {
+        return data[identityKey] === value;
+      }
+      return false;
+    });
+  }
+
+  replaceTaskErrorCounter({ accountId = '', identityKey = '', value = null, data = {} }) {
+    if(!this._taskErrorCounter){
+      this._taskErrorCounter = {};
+    }
+    if (!this._taskErrorCounter[accountId]) {
+      return [];
+    }
+    for (let i = 0; i < this._taskErrorCounter[accountId].length; i++) {
+      const tmp = this._taskErrorCounter[accountId][i];
+      if (tmp.hasOwnProperty(identityKey)) {
+        if (tmp[identityKey] === value) {
+          this._taskErrorCounter[accountId][i] = Object.assign({}, data);
+          break;
+        }
+      }
+    }
+  }
+  mockCal(){
+     const calData = [
+       "BEGIN:VCALENDAR",
+    "PRODID:-//Google Inc//Google Calendar 70.9054//EN",
+      "VERSION:2.0",
+    "CALSCALE:GREGORIAN",
+    "METHOD:REQUEST",
+    "BEGIN:VEVENT",
+    "DTSTART:20190805T233000Z",
+    "DTEND:20190806T023000Z",
+    "DTSTAMP:20190729T072426Z",
+    "ORGANIZER;CN=gaogest@gmail.com:mailto:gaogest@gmail.com",
+    "UID:6com6p1j70s30bb36ooj8b9kc4r68b9ocos3cbb46cqmap316crjedhgc8@google.com",
+    "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE;CN=gaogest@gmail.com;X-NUM-GUESTS=0:mailto:gaogest@gmail.com",
+    "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=ruoxi@edison.tech;X-NUM-GUESTS=0:mailto:ruoxi@edison.tech",
+    "CREATED:20190729T072421Z",
+    "LAST-MODIFIED:20190729T072424Z",
+    "LOCATION:Antarctica",
+    "SEQUENCE:0",
+    "STATUS:CONFIRMED",
+    "SUMMARY:Testing",
+     "TRANSP:OPAQUE",
+     "END:VEVENT",
+     "END:VCALENDAR"].join('\r\n');
+     const Calendar = require('./flux/models/calendar').default;
+     const repeat = 300;
+     const start = Date.now();
+     for (let i =0; i< repeat; i++){
+       const calendar = Calendar.parse(calData);
+       const Event = calendar.getFirstEvent();
+       console.log(Event.organizer);
+     }
+     console.log(`used ${Date.now() - start}ms`);
   }
 }

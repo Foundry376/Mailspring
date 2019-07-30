@@ -618,6 +618,7 @@ body.platform-win32 {
 
   .btn {
     border-radius: 0;
+    cursor: pointer;
   }
 
   .flexbox-handle-vertical {
@@ -703,6 +704,11 @@ body.platform-win32 {
   &>div.empty {
     height: 100%;
     background: url(../static/images/chat/default-empty-mail.png) no-repeat center center;
+    background-size: 250px auto;
+  }
+  &>div.empty.offline {
+    height: 100%;
+    background: url(../static/images/chat/no-connection.png) no-repeat center center;
     background-size: 250px auto;
   }
 

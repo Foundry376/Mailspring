@@ -161,18 +161,27 @@ export default class ParticipantsTextField extends React.Component {
     return '';
   };
 
-  _onShowContextMenu = participant => {
+  _onShowContextMenu = participants => {
     // Warning: Menu is already initialized as Menu.es6!
     const MenuClass = remote.Menu;
     const MenuItem = remote.MenuItem;
 
     const menu = new MenuClass();
-    menu.append(
-      new MenuItem({
-        label: `Copy ${participant.email}`,
-        click: () => clipboard.writeText(participant.email),
-      })
-    );
+    if(participants.length === 1){
+      menu.append(
+        new MenuItem({
+          label: `Copy ${participants[0].email}`,
+          click: () => clipboard.writeText(participants[0].email),
+        })
+      );
+    }else {
+      menu.append(
+        new MenuItem({
+          label: `Copy`,
+          click: () => clipboard.writeText(participants.map( t => t.email).join(', ')),
+        })
+      );
+    }
     menu.append(
       new MenuItem({
         type: 'separator',
@@ -181,7 +190,7 @@ export default class ParticipantsTextField extends React.Component {
     menu.append(
       new MenuItem({
         label: 'Remove',
-        click: () => this._remove([participant]),
+        click: () => this._remove(participants),
       })
     );
     menu.popup({});

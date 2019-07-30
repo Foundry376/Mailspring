@@ -98,12 +98,57 @@ function mxRecordsForDomain(domain) {
   });
 }
 
-export async function expandAccountWithCommonSettings(account) {
+export function validateEmailAddressForProvider(
+  emailAddress = '',
+  provider = null
+) {
+  if (!provider) {
+    return { ret: false, message: 'Email entered is not valid.' };
+  }
+  if (provider.provider === 'imap') {
+    return { ret: true };
+  }
+  const domain = emailAddress
+    .split('@')
+    .pop()
+    .toLowerCase();
+  // const mxRecords = await mxRecordsForDomain(domain);
+  let template = MailcoreProviderSettings[provider.provider];
+  if (template) {
+    for (const test of template['domain-match'] || []) {
+      if (new RegExp(`^${test}$`).test(domain)) {
+        return { ret: true };
+      }
+    }
+    // for (const test of template['mx-match'] || []) {
+    //   const reg = new RegExp(`^${test}$`);
+    //   if (mxRecords.some(record => reg.test(record))) {
+    //     return { ret: true };
+    //   }
+    // }
+  }
+  template = MailspringProviderSettings[provider.defaultDomain];
+  if (template && template.alias) {
+    template = MailspringProviderSettings[template.alias];
+  }
+  if (template) {
+    let tmp = MailspringProviderSettings[domain];
+    if (tmp && tmp.imap_host === template.imap_host) {
+      return { ret: true };
+    }
+    if(provider.incorrectEmail){
+      return { ret: false, message: provider.incorrectEmail}
+    }
+  }
+  return { ret: false, message: `Entered email is not a valid ${provider.displayName} address.` };
+}
+
+export async function expandAccountWithCommonSettings(account, forceDomain = null) {
   const domain = account.emailAddress
     .split('@')
     .pop()
     .toLowerCase();
-  const mxRecords = await mxRecordsForDomain(domain);
+  const mxRecords = await mxRecordsForDomain(forceDomain || domain);
   const populated = account.clone();
 
   const usernameWithFormat = format => {
@@ -117,7 +162,7 @@ export async function expandAccountWithCommonSettings(account) {
   // "foundry376.com" uses Google Apps, for example.
   let template = Object.values(MailcoreProviderSettings).find(p => {
     for (const test of p['domain-match'] || []) {
-      if (new RegExp(`^${test}$`).test(domain)) {
+      if (new RegExp(`^${test}$`).test(forceDomain || domain)) {
         return true;
       }
     }
@@ -155,9 +200,9 @@ export async function expandAccountWithCommonSettings(account) {
   }
 
   // find matching template by domain or provider in the old lookup tables
-  // this matches the acccount type presets ("yahoo") and common domains against
+  // this matches the account type presets ("yahoo") and common domains against
   // data derived from Thunderbirds ISPDB.
-  template = MailspringProviderSettings[domain] || MailspringProviderSettings[account.provider];
+  template = MailspringProviderSettings[forceDomain || domain] || MailspringProviderSettings[account.provider];
   if (template) {
     if (template.alias) {
       template = MailspringProviderSettings[template.alias];

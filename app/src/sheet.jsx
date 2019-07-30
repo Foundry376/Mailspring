@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import { Utils, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import InjectedComponentSet from './components/injected-component-set';
+import InjectedComponent from './components/injected-component';
 import ResizableRegion from './components/resizable-region';
 import Flexbox from './components/flexbox';
 
@@ -260,6 +261,7 @@ export default class Sheet extends React.Component {
         <Flexbox direction="row" style={{ overflow: 'hidden' }}>
           {this._columnFlexboxElements()}
         </Flexbox>
+        <InjectedComponent matching={{ role: 'OfflineNotification' }} />
       </div>
     );
   }

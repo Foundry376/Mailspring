@@ -10,14 +10,12 @@ export default class OnlineStatus extends Component {
     conversation: PropTypes.object,
   }
 
-  apps = []
-
   constructor(props) {
     super(props);
     this.state = {
       online: true,
       chat_online: true,
-      isAuthenticating:false,
+      isAuthenticating: false,
 
     }
     this._listenToStore();
@@ -29,7 +27,7 @@ export default class OnlineStatus extends Component {
   }
 
   _onDataChanged = async () => {
-    const {conversation} = this.props;
+    const { conversation } = this.props;
     let chat_online, isAuthenticating;
     if (conversation) {
       const { curJid } = conversation;
@@ -54,7 +52,7 @@ export default class OnlineStatus extends Component {
   componentDidMount = async () => {
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
-    const {conversation} = this.props;
+    const { conversation } = this.props;
     let chat_online, isAuthenticating;
     if (conversation) {
       const { curJid } = conversation;
@@ -71,10 +69,29 @@ export default class OnlineStatus extends Component {
     }, () => {
       this.setPanelClassName();
     });
+    // set offline notification left position
+    this._resetLeftPosition();
   }
 
+  componentDidUpdate = () => {
+    // set offline notification left position
+    this._resetLeftPosition();
+  }
+
+  _resetLeftPosition() {
+    // set offline notification left position
+    const offlineNotifs = document.querySelectorAll('.network-offline');
+    if (offlineNotifs) {
+      const columnEl = document.querySelector('.column-RootSidebar');
+      for (const notif of offlineNotifs) {
+        notif.style.left = `${columnEl.offsetWidth}px`;
+      }
+    }
+  }
+
+
   componentWillReceiveProps = async (nextProps, nextContext) => {
-    const {conversation} = nextProps;
+    const { conversation } = nextProps;
     let chat_online, isAuthenticating;
     if (conversation) {
       const { curJid } = conversation;
@@ -147,33 +164,20 @@ export default class OnlineStatus extends Component {
     if (!isOffLine) {
       return null;
     }
-    return (<div className="network-offline">
-            {this.state.online ? (
-              this.state.isAuthenticating ? (
-                <div>
-                  <RetinaImg name={'no-network.svg'}
-                    style={{ width: 16 }}
-                    isIcon
-                    mode={RetinaImg.Mode.ContentIsMask} />
-                  <span>Your computer appears to be disconnected. Edison Mail is trying to reconnect. </span>
-                </div>
-              ) : (
-                  <div>
-                    <RetinaImg name={'no-network.svg'}
-                      style={{ width: 16 }}
-                      isIcon
-                      mode={RetinaImg.Mode.ContentIsMask} />
-                    <span>There appears to be a problem with your connection. Please click to reconnect: </span>
-                    <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
-                  </div>
-                )
-            ) : (<div>
-              <RetinaImg name={'no-network.svg'}
-                style={{ width: 16 }}
-                isIcon
-                mode={RetinaImg.Mode.ContentIsMask} />
-              <span>Your computer appears to be offline. Please check your network connection.</span>
-            </div>)}
-          </div>)
+    return (
+      <div className="network-offline">
+        <RetinaImg name={'no-network.svg'}
+          style={{ width: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+        <span>
+          Edison Mail is offline. Please check your network connection.
+          {this.state.isAuthenticating ? ' Trying to reconnect...' : ''}
+        </span>
+        {this.state.online ? (
+          <span className="reconnect" onClick={this.reconnect}>Reconnect</span>
+        ) : null}
+      </div>
+    )
   }
 }

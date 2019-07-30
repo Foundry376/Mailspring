@@ -234,6 +234,43 @@
   }
 }
 
+.network-offline {
+  position: fixed;
+  top: 78px;
+  left: 16px;
+  margin-left: 16px;
+  right: 16px;
+  height: 35px;
+  line-height: 35px;
+  background-color: @red;
+  z-index: 101;
+  opacity: 0.97;
+  border-radius: 10px;
+  box-shadow: 0 2px 7px 0 rgba(0, 0, 0, 0.2);
+  color: @white;
+  text-align: left;
+  padding: 0 15px;
+  font-size: 14px;
+  &.email-offline {
+    z-index: 100;
+  }
+  img.content-mask {
+    background-color: @white;
+    margin: -3px 15px 0px 0px;
+  }
+  .reconnect {
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    float: right;
+  }
+}
+div[data-id=Preferences] {
+  .network-offline {
+    display: none;
+  }
+}
+
 // Windows Changes
 
 body.platform-win32 {

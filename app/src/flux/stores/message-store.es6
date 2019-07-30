@@ -254,7 +254,7 @@ class MessageStore extends MailspringStore {
   };
 
   _onPerspectiveChanged() {
-    // console.log('on perspective change', arguments);
+    this._onWindowClose();
     return this.trigger();
   }
 
@@ -308,6 +308,13 @@ class MessageStore extends MailspringStore {
       // console.log('sending out thread arp');
       ipcRenderer.send('arp', {
         threadId: thread.id,
+        arpType: 'thread',
+        windowLevel: this._getCurrentWindowLevel(),
+      });
+    } else {
+      //We use threadId='null' to indicates that no thread selected, triggering draft upload check
+      ipcRenderer.send('arp', {
+        threadId: 'null',
         arpType: 'thread',
         windowLevel: this._getCurrentWindowLevel(),
       });
@@ -378,7 +385,7 @@ class MessageStore extends MailspringStore {
     } else {
       title = title.trim();
     }
-    if (title.length > 37) {
+    if (title && title.length > 37) {
       title = `${title.slice(0, 37).trim()}...`;
     }
     electron.remote.getCurrentWindow().setTitle(title);

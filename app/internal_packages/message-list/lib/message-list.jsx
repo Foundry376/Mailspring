@@ -10,7 +10,8 @@ import {
   SearchableComponentStore,
   SearchableComponentMaker,
   EmailAvatar,
-  WorkspaceStore
+  WorkspaceStore,
+  OnlineStatusStore
 } from 'mailspring-exports';
 
 import {
@@ -108,7 +109,8 @@ class MessageList extends React.Component {
       MessageStore.listen(this._onChange),
       Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
       Actions.composeReply.listen(this._onCreatingDraft, this),
-      WorkspaceStore.listen(this._onChange)
+      WorkspaceStore.listen(this._onChange),
+      OnlineStatusStore.listen(this._onlineStatusChange),
     ];
     window.addEventListener('resize', this._onResize, true);
     this._onResize();
@@ -120,6 +122,14 @@ class MessageList extends React.Component {
 
   componentDidUpdate() {
     // cannot remove
+  }
+
+  _onlineStatusChange = () => {
+    if (this.state.isOnline !== OnlineStatusStore.isOnline()) {
+      this.setState({
+        isOnline: OnlineStatusStore.isOnline()
+      })
+    }
   }
 
   componentWillUnmount() {
@@ -496,6 +506,7 @@ class MessageList extends React.Component {
       currentThread: MessageStore.thread(),
       loading: MessageStore.itemsLoading(),
       popedOut: MessageStore.isPopedOut(),
+      isOnline: OnlineStatusStore.isOnline(),
     };
   }
   _onSelectText = e => {
@@ -672,7 +683,7 @@ class MessageList extends React.Component {
 
   render() {
     if (!this.state.currentThread) {
-      return <div className="empty" />;
+      return <div className={`empty ${this.state.isOnline ? '' : 'offline'}`} />;
     }
 
     const wrapClass = classNames({

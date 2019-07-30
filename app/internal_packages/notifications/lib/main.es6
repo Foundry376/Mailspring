@@ -21,13 +21,12 @@ const notifications = [
   DevModeNotification,
   PleaseSubscribeNotification,
   DisabledMailRulesNotification,
-  OfflineNotification,
   UpdateNotification,
   DiskUsageNotification,
 ];
 
 export function activate() {
-  if(AppEnv.inDevMode()){
+  if (AppEnv.inDevMode()) {
     ComponentRegistry.register(ActivitySidebar, { location: WorkspaceStore.Location.RootSidebar });
   }
   ComponentRegistry.register(NotifWrapper, { location: WorkspaceStore.Sheet.Global.Footer });
@@ -35,12 +34,13 @@ export function activate() {
   for (const notification of notifications) {
     ComponentRegistry.register(notification, { role: 'RootSidebar:Notifications' });
   }
+  ComponentRegistry.register(OfflineNotification, { role: 'OfflineNotification' });
 }
 
 export function serialize() { }
 
 export function deactivate() {
-  if(AppEnv.inDevMode()){
+  if (AppEnv.inDevMode()) {
     ComponentRegistry.unregister(ActivitySidebar);
   }
   ComponentRegistry.unregister(NotifWrapper);

@@ -32,7 +32,14 @@ export default class Group extends PureComponent {
 
   render() {
     const { group, shouldDisplayMessageCounts } = this.props;
-    group.messages = _.uniqBy(group.messages, msg => msg.dataValues.body + Math.floor(msg.sentTime/100000))
+    const messages = group.messages = _.uniqBy(group.messages, msg => msg.dataValues.body + Math.floor(msg.sentTime / 100000));
+    // if out of range, don't display
+    if (messages &&
+      messages.length &&
+      messages[0].rowNum > shouldDisplayMessageCounts &&
+      messages[messages.length - 1].rowNum > shouldDisplayMessageCounts) {
+      return null;
+    }
     return (
       <div className="message-group">
         <div className="day-label">
@@ -51,7 +58,7 @@ export default class Group extends PureComponent {
             }
           </label>
         </div>
-        {group.messages.map(msg => {
+        {messages.map(msg => {
           return msg.rowNum <= shouldDisplayMessageCounts && (
             <Msg
               conversation={this.props.conversation}

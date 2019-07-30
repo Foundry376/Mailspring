@@ -65,12 +65,12 @@ const startXmpp = xmpp => {
   // receive group chat
   xmpp.on('groupchat', data => {
     saveLastTs(data);
-    MessageStore.reveiveGroupChat(data);
+    MessageStore.receiveGroupChat(data);
   });
   // receive private chat
   xmpp.on('chat', data => {
     saveLastTs(data);
-    MessageStore.reveivePrivateChat(data);
+    MessageStore.receivePrivateChat(data);
   });
   xmpp.on('message:received', data => {
     saveLastTs(data);

@@ -25,6 +25,7 @@ export default class ComposerEditorToolbar extends React.Component {
           this._topClip = parentScrollRegion.getBoundingClientRect().top;
           this._bottomClip = parentScrollRegion.getBoundingClientRect().bottom;
           this._onScroll();
+          window.addEventListener('resize', this._resetRectClip);
         } else {
           this._topClip = 0;
           this._bottomClip = 0;
@@ -33,6 +34,15 @@ export default class ComposerEditorToolbar extends React.Component {
         this._el.style.height = `${this._floatingEl.clientHeight}px`;
       });
     }, 400);
+  }
+
+  _resetRectClip = () => {
+    const parentScrollRegion = this._el.closest('.scroll-region-content');
+    if (parentScrollRegion) {
+      this._topClip = parentScrollRegion.getBoundingClientRect().top;
+      this._bottomClip = parentScrollRegion.getBoundingClientRect().bottom;
+      this._onScroll();
+    }
   }
 
   componentDidUpdate() {
@@ -47,6 +57,7 @@ export default class ComposerEditorToolbar extends React.Component {
     for (const el of document.querySelectorAll('.scroll-region-content')) {
       el.removeEventListener('scroll', this._onScroll);
     }
+    window.removeEventListener('resize', this._resetRectClip);
   }
   _onScroll = () => {
     if (!this._el) return;
