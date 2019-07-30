@@ -60,7 +60,6 @@ export default class ComposerEditorToolbar extends React.Component {
     window.removeEventListener('resize', this._resetRectClip);
   }
   _onScroll = () => {
-    // console.log('****on resize');
     if (!this._el) return;
     let { top, height } = this._el.getBoundingClientRect();
     const max = this._el.parentElement.clientHeight - height;
