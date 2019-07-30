@@ -336,7 +336,7 @@ export default class AppEnvConstructor {
     }
   }
 
-  _stripSensitiveData(str) {
+  _stripSensitiveData(str = '') {
     const _stripData = (key, strData) => {
       let leftStr = '"';
       let leftRegStr = leftStr;
@@ -387,49 +387,50 @@ export default class AppEnvConstructor {
       'replyTo',
     ];
     const notString = typeof str !== 'string';
-    if(notString){
+    if (notString) {
       str = str.toLocaleString();
     }
     for (let i = 0; i < sensitiveKeys.length; i++) {
       const key = sensitiveKeys[i];
       str = _stripData(key, str);
     }
-    if(notString){
+    if (notString) {
       str = Error(str);
     }
     return str;
   }
 
-  logError(error) {
-    if (this.inDevMode()) {
-      console.error(error);
-    }
-    let str = this._stripSensitiveData(error.toLocaleString());
-    LOG.error(str);
+  logError(log) {
+    this._log(log, 'error');
   }
 
   logWarning(log) {
-    if (this.inDevMode()) {
-      console.warn(log);
-    }
-    const str = this._stripSensitiveData(log.toLocaleString());
-    LOG.warn(str);
+    this._log(log, 'warn');
   }
 
   logDebug(log) {
-    if (this.inDevMode()) {
-      console.log(log);
-    }
-    const str = this._stripSensitiveData(log.toLocaleString());
-    LOG.debug(str);
+    this._log(log, 'debug');
   }
 
   logInfo(log) {
+    this._log(log, 'info');
+  }
+
+  _log(message, logType = 'log') {
     if (this.inDevMode()) {
-      console.log(log);
+      if (logType === 'error') {
+        console.error(message);
+      } else if (logType === 'warn') {
+        console.warn(message);
+      } else {
+        console.log(message);
+      }
     }
-    const str = this._stripSensitiveData(log.toLocaleString());
-    LOG.info(str);
+    let str = message;
+    if (str && str.toLocaleString) {
+      str = this._stripSensitiveData(str.toLocaleString());
+    }
+    LOG[logType](str);
   }
 
   _findPluginsFromError(error) {

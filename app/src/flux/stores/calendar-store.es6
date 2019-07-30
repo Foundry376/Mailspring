@@ -250,7 +250,6 @@ class CalendarStore extends MailspringStore {
   }
 
   _popQueue(messageId) {
-    console.error('pop queue');
     const queue = this._processingQueue[messageId];
     delete this._processingQueue[messageId];
     if (queue) {
