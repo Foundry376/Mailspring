@@ -279,6 +279,12 @@ export default class Toolbar extends React.Component {
         if (leftChatPanel) {
           leftChatPanel.style.width = `${columnEl.offsetWidth - 1}px`;
         }
+        const offlineNotifs = document.querySelectorAll('.network-offline');
+        if (offlineNotifs) {
+          for (const notif of offlineNotifs) {
+            notif.style.left = `${columnEl.offsetWidth}px`;
+          }
+        }
         const notifications = document.querySelector('.notifications');
         if (notifications) {
           notifications.style.width = `${columnEl.offsetWidth - 1}px`;
