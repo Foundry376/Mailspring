@@ -9,6 +9,7 @@ import Utils from '../models/utils';
 import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';
+import FocusedPerspectiveStore from './focused-perspective-store';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
@@ -320,6 +321,7 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.on('new-window', this._onDraftNewWindow);
     ipcRenderer.on('draft-delete', this._onDraftDelete);
     this.listenTo(Actions.popSheet, this._onThreadClose);
+    // this.listenTo(FocusedPerspectiveStore, this._onThreadClose);
   };
   _removeListeners = () => {
     this.stopListeningToAll();
