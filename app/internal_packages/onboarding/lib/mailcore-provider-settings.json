@@ -166,7 +166,7 @@
 			"juno\\.com"
 		]
 	},
-	"mobileme": {
+	"icloud": {
 		"servers": {
 			"imap": [{
 					"port": 993,

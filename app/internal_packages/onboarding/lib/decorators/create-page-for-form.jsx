@@ -306,6 +306,7 @@ const CreatePageForForm = FormComponent => {
             onFieldChange={this.onFieldChange}
             onFieldKeyPress={this.onFieldKeyPress}
             onConnect={this.onConnect}
+            providerConfig={providerConfig}
           />
           <FormErrorMessage
             log={errorLog}

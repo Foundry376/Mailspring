@@ -34,6 +34,8 @@ const AccountProviders = [
     icon: 'account-logo-icloud.png',
     headerIcon: 'setup-icon-provider-icloud.png',
     color: '#61bfe9',
+    defaultDomain: 'icloud.com',
+    incorrectEmail: 'Make sure to use your "@icloud.com" address, not your icloud Id.',
   },
   {
     provider: 'outlook',
@@ -65,7 +67,8 @@ const AccountProviders = [
     icon: 'account-logo-aol.png',
     headerIcon: 'setup-icon-provider-yahoo.png',
     color: '#a76ead',
-    twoStep
+    twoStep,
+    defaultDomain: 'aol.com',
   },
   {
     provider: 'hotmail',
@@ -73,7 +76,8 @@ const AccountProviders = [
     icon: 'account-logo-hotmail.png',
     headerIcon: 'setup-icon-provider-yahoo.png',
     color: '#a76ead',
-    twoStep
+    twoStep,
+    defaultDomain: 'hotmail.com',
   },
   {
     provider: 'att',
@@ -81,7 +85,8 @@ const AccountProviders = [
     icon: 'account-logo-att.png',
     headerIcon: 'setup-icon-provider-yahoo.png',
     color: '#a76ead',
-    twoStep
+    twoStep,
+    defaultDomain: 'att.net',
   },
   // {
   //   provider: 'yandex',

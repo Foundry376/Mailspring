@@ -2,8 +2,9 @@ import { Account, React, PropTypes, RegExpUtils } from 'mailspring-exports';
 
 import OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';
-import { expandAccountWithCommonSettings } from './onboarding-helpers';
+import { expandAccountWithCommonSettings, validateEmailAddressForProvider } from './onboarding-helpers';
 import FormField from './form-field';
+import AccountProviders from './account-providers';
 
 class AccountBasicSettingsForm extends React.Component {
   static displayName = 'AccountBasicSettingsForm';
@@ -15,6 +16,8 @@ class AccountBasicSettingsForm extends React.Component {
     onConnect: PropTypes.func,
     onFieldChange: PropTypes.func,
     onFieldKeyPress: PropTypes.func,
+    forceDomain: PropTypes.string,
+    providerConfig: PropTypes.object,
   };
 
   static submitLabel = account => {
@@ -37,6 +40,7 @@ class AccountBasicSettingsForm extends React.Component {
   };
 
   static validateAccount = account => {
+    const providerConfig = AccountProviders.find(({ provider }) => provider === account.provider);
     const errorFieldNames = [];
     let errorMessage = null;
 
@@ -48,10 +52,14 @@ class AccountBasicSettingsForm extends React.Component {
       errorFieldNames.push('email');
       errorMessage = 'Please provide a valid email address.';
     }
-    // if (!account.name) {
-    //   errorFieldNames.push('name');
-    //   errorMessage = 'Please provide your name.';
-    // }
+    const emailValidate = validateEmailAddressForProvider(
+      account.emailAddress,
+      providerConfig
+    );
+    if (!emailValidate.ret) {
+      errorFieldNames.push('email');
+      errorMessage = emailValidate.message;
+    }
     if (!account.settings.imap_password) {
       errorFieldNames.push('password');
       errorMessage = 'Please provide a password for your account.';
@@ -66,9 +74,22 @@ class AccountBasicSettingsForm extends React.Component {
 
   async submit() {
     // create a new account with expanded settings and just the three fields
-    const { name, emailAddress, provider, settings: { imap_password, exchangeServer } } = this.props.account;
-    let account = new Account({ name, emailAddress, provider, settings: { imap_password, exchangeServer } });
-    account = await expandAccountWithCommonSettings(account);
+    const {
+      name,
+      emailAddress,
+      provider,
+      settings: { imap_password, exchangeServer },
+    } = this.props.account;
+    let account = new Account({
+      name,
+      emailAddress,
+      provider,
+      settings: { imap_password, exchangeServer },
+    });
+    account = await expandAccountWithCommonSettings(
+      account,
+      this.props.providerConfig ? this.props.providerConfig.defaultDomain : null
+    );
     OnboardingActions.setAccount(account);
 
     if ((account.settings.imap_host && account.settings.smtp_host) || provider === 'exchange') {
