@@ -3,6 +3,7 @@
 import _ from 'underscore';
 
 import MailspringStore from 'mailspring-store';
+import { FocusedPerspectiveStore } from 'mailspring-exports';
 import { MessageStore, ConversationStore, ContactStore, ConversationModel, ContactModel, AppStore } from 'chat-exports';
 import KeyManager from '../../key-manager';
 import Actions from '../actions';
@@ -45,10 +46,15 @@ class AccountStore extends MailspringStore {
       const newAccountIds = _.difference(accountIds, oldAccountIds);
 
       if (AppEnv.isMainWindow()) {
-        ipcRenderer.on('add-chat-account', async (event, account) => {
-          await registerLoginEmailAccountForChat(account);
-          await AppStore.refreshAppsEmailContacts();
-          await MessageStore.saveMessagesAndRefresh([]);
+        ipcRenderer.on('after-add-account', async (event, account) => {
+          // refresh thread list
+          FocusedPerspectiveStore.trigger();
+          // add chat account
+          if (AppEnv.config.get(`chatEnable`)) {
+            await registerLoginEmailAccountForChat(account);
+            await AppStore.refreshAppsEmailContacts();
+            await MessageStore.saveMessagesAndRefresh([]);
+          }
         });
       }
 
@@ -278,9 +284,7 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-    if (AppEnv.config.get(`chatEnable`)) {
-      ipcRenderer.send('add-chat-account', account);
-    }
+    ipcRenderer.send('after-add-account', account);
   };
 
   _cachedGetter(key, fn) {

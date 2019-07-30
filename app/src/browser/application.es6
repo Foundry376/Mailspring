@@ -1037,10 +1037,10 @@ export default class Application extends EventEmitter {
       }
       event.returnValue = true;
     });
-    ipcMain.on('add-chat-account', (event, account) => {
+    ipcMain.on('after-add-account', (event, account) => {
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {
-        main.sendMessage('add-chat-account', account);
+        main.sendMessage('after-add-account', account);
       }
     });
   }
