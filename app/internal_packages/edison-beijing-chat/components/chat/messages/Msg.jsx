@@ -188,12 +188,14 @@ export default class Msg extends PureComponent {
 
   updateProgress(progress) {
     const { msgBody } = this.state;
-    if (progress.finished &&
+    if (
+      progress.finished &&
       msgBody.mediaObjectId &&
-      msgBody.mediaObjectId === progress.mediaObjectId) {
+      msgBody.mediaObjectId === progress.mediaObjectId
+    ) {
       this.setState({
-        file_downloaded: true
-      })
+        file_downloaded: true,
+      });
     }
   }
 
@@ -378,17 +380,17 @@ export default class Msg extends PureComponent {
 
   renderImage() {
     const { msgBody, msgImgPath } = this.state;
-    if (msgImgPath) {
-      return (
-        <div className="message-image">
-          <img src={msgImgPath} onClick={this.onClickImage} />
-        </div>
-      );
-    } else if (msgBody.downloading) {
+    if (msgBody.downloading) {
       return (
         <div className="loading">
           <div> Downloading...</div>
           <RetinaImg name="inline-loading-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
+        </div>
+      );
+    } else if (msgImgPath) {
+      return (
+        <div className="message-image">
+          <img src={msgImgPath} onClick={this.onClickImage} />
         </div>
       );
     } else if (msgBody.isUploading) {
@@ -437,13 +439,11 @@ export default class Msg extends PureComponent {
             <div className="ext">{extName.toUpperCase()}</div>
           </div>
         </div>
-        {
-          isVideo && fs.existsSync(msgBody.path) && (
-            <div className="video-wrapper">
-              <video controls src={msgBody.path}></video>
-            </div>
-          )
-        }
+        {isVideo && fs.existsSync(msgBody.path) && (
+          <div className="video-wrapper">
+            <video controls src={msgBody.path}></video>
+          </div>
+        )}
       </div>
     );
   };
