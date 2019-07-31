@@ -14,17 +14,20 @@ export default class DestroyDraftTask extends Task {
 
   constructor({ messageIds = [], ...rest } = {}) {
     super(rest);
-    this.messageIds = messageIds;
+    this.messageIds = Array.isArray(messageIds) ? messageIds : [messageIds];
     if (this.canBeUndone === undefined) {
       this.canBeUndone = true;
     }
   }
 
   label() {
+    if (this.messageIds.length > 1) {
+      return `Deleting ${this.messageIds.length} drafts`;
+    }
     return 'Deleting draft';
   }
   description() {
-    return 'Deleting draft';
+    return this.label();
   }
 
   onSuccess() {

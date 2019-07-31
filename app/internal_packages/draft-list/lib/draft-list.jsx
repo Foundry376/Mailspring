@@ -90,9 +90,7 @@ class DraftList extends React.Component {
     if (!this.state.isDeleting && !this._deletingTimer) {
       this._changeBackToNotDeleting();
       this.setState({ isDeleting: true });
-      for (const draft of DraftListStore.dataSource().selection.items()) {
-        Actions.destroyDraft(draft);
-      }
+      Actions.destroyDraft(DraftListStore.dataSource().selection.items());
     }
   };
 }

@@ -672,7 +672,7 @@ export default class ComposerView extends React.Component {
     if (!this.state.isDeleting && !this._deleteTimer) {
       this._timoutButton();
       this.setState({ isDeleting: true });
-      Actions.destroyDraft(this.props.draft);
+      Actions.destroyDraft([this.props.draft]);
     }
   };
 

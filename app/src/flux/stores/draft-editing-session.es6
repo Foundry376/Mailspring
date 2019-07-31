@@ -475,7 +475,7 @@ export default class DraftEditingSession extends MailspringStore {
         await TaskQueue.waitForPerformLocal(create);
         if (destroy) {
           // console.log('destroyed');
-          Actions.destroyDraft(draft, { switchingAccount: true });
+          Actions.destroyDraft([draft], { switchingAccount: true });
         }
       } catch (e) {
         AppEnv.reportError(new Error(e));
@@ -548,12 +548,14 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   _onDraftDelete = (event, options) => {
-    if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
+    if (
+      Array.isArray(options.headerMessageIds) &&
+      options.headerMessageIds.includes(this.headerMessageId)
+    ) {
       this.changes.cancelCommit();
       this._destroyed = true;
       this._removeListeners();
     }
-    console.log('draft deleted');
   };
 
   _onDraftChanged = change => {
@@ -574,6 +576,12 @@ export default class DraftEditingSession extends MailspringStore {
         this.trigger();
       } else {
         // console.log('header message id not equal');
+      }
+      return;
+    }
+    if (Array.isArray(change.headerMessageIds)) {
+      if (change.headerMessageIds.includes(this.draft.headerMessageId)) {
+        this.trigger();
       }
       return;
     }
