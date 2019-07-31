@@ -4,8 +4,8 @@ import RoomModel from '../model/Room';
 import xmpp from '../xmpp';
 import { jidlocal } from '../utils/jid';
 import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
-import { MessageStore, ContactStore, UserCacheStore, ConfigStore, ConversationStore } from 'chat-exports';
-
+import { MessageStore, ContactStore, UserCacheStore, ConfigStore, ConversationStore, ChatActions } from 'chat-exports';
+import delay from '../utils/delay'
 
 const ROOM_MEMBER_VER = 'room_member_ver_';
 const ROOM_LIST_VER = 'room_list_ver_';
@@ -23,7 +23,7 @@ class RoomStore extends MailspringStore {
     for (const item of data) {
       this.rooms[item.jid] = item;
     }
-    ConversationStore.refreshConversations();
+    // ConversationStore.refreshConversations();
   }
 
   createGroupChatRoom = async (payload) => {
@@ -225,8 +225,12 @@ class RoomStore extends MailspringStore {
       // update curJid to other self use
       await this.updateConversationCurJid(fromjid, conversationJid);
     }
-    const conversation = await ConversationStore.getConversationByJid(conversationJid);
-    await this.refreshRoomMember(conversationJid, conversation.curJid, true);
+    const conv = await ConversationStore.getConversationByJid(conversationJid);
+    await this.refreshRoomMember(conversationJid, conv.curJid, true);
+    await ConversationStore.refreshConversations();
+    if (ConversationStore.selectedConversation.jid === conversationJid) {
+      ChatActions.memberChange(conversationJid);
+    }
     const body = {
       content,
       type: 'memberschange'

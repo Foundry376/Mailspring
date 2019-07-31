@@ -139,15 +139,17 @@ class ConversationStore extends MailspringStore {
         break;
       }
     }
-    result = await ConversationModel.findOne({
-      where: {
-        jid,
-      },
-    });
+    if (!result) {
+      result = await ConversationModel.findOne({
+        where: {
+          jid,
+        },
+      });
+    }
     if (result && result.isGroup) {
       const room = RoomStore.rooms && RoomStore.rooms[result.jid];
       if (room) {
-        result.members = room.dataValues? room.dataValues.members: room.members;
+        result.members = room.dataValues ? room.dataValues.members : room.members;
       }
     }
     return result;
@@ -168,14 +170,14 @@ class ConversationStore extends MailspringStore {
     }
     this._triggerDebounced();
     let count = 0;
-    this.conversations.forEach( item => {
+    this.conversations.forEach(item => {
       count += item.unreadMessages;
-      if (item.isGroup) {
-        const room = RoomStore.rooms && RoomStore.rooms[item.jid];
-        if (room) {
-          item.members = room.dataValues? room.dataValues.members: room.members;
-        }
-      }
+      // if (item.isGroup) {
+      //   const room = RoomStore.rooms && RoomStore.rooms[item.jid];
+      //   if (room) {
+      //     item.members = room.dataValues? room.dataValues.members: room.members;
+      //   }
+      // }
     });
     this.setTrayChatUnreadCount(count);
   };
