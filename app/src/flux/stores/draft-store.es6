@@ -620,7 +620,7 @@ class DraftStore extends MailspringStore {
     );
     if (tasks.length > 0) {
       Actions.queueTasks(tasks);
-      if (AppEnv.isComposerWindow() && !opts.switchingAccount && messages.length === 0) {
+      if (AppEnv.isComposerWindow() && !opts.switchingAccount && messages.length === 1) {
         AppEnv.close({
           headerMessageId: messages[0].headerMessageId,
           threadId: messages[0].threadId,
