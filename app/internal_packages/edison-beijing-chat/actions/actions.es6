@@ -15,6 +15,7 @@ class Actions {
   static goToNextConversation = ActionScopeWindow;
   static updateDownload = ActionScopeWindow;
   static userOnlineStatusChanged = ActionScopeWindow;
+  static memberChange = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above
