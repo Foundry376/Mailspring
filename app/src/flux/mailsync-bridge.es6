@@ -257,11 +257,17 @@ export default class MailsyncBridge {
     this._analyzeDBTimer = setTimeout(this.analyzeDataBase, checkInterval);
   };
 
-  sendSyncMailNow() {
-    console.warn('Sending `wake` to all mailsync workers...');
-    if (this._clients) {
-      for (const client of Object.values(this._clients)) {
-        client.sendMessage({ type: 'wake-workers' });
+  sendSyncMailNow(accountId) {
+    if (accountId) {
+      if (this._clients && this._clients[accountId]) {
+        this._clients[accountId].sendMessage({ type: 'wake-workers' });
+      }
+    } else {
+      if (this._clients) {
+        console.warn('Sending `wake` to all mailsync workers...');
+        for (const client of Object.values(this._clients)) {
+          client.sendMessage({ type: 'wake-workers' });
+        }
       }
     }
   }

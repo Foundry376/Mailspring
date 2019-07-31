@@ -143,23 +143,16 @@ export default class AppEnvConstructor {
     this.onWindowPropsReceived(() => {
       process.title = `EdisonMail ${this.getWindowType()}`;
     });
-
-    if (this.isMainWindow()) {
-      // auto call sync mail timely
-      if (this.timer) {
-        clearInterval(this.timer);
-      }
-      this.timer = setInterval(() => {
-        if (navigator.onLine) {
-          console.log(`sync mail:` + new Date().toISOString());
-          this.mailsyncBridge.sendSyncMailNow();
-        } else {
-          console.log(`network is offline. skip sync.`);
-        }
-      }, 1000 * 60 * 5); // 5 minutes
-    }
     this.initSupportInfo();
     this.initTaskErrorCounter();
+  }
+  sendSyncMailNow(accountId){
+    if (navigator.onLine) {
+      console.log(`sync mail to ${accountId}:` + new Date().toISOString());
+      this.mailsyncBridge.sendSyncMailNow(accountId);
+    } else {
+      console.log(`network is offline. skip sync.`);
+    }
   }
 
   // This ties window.onerror and process.uncaughtException,handledRejection

@@ -206,35 +206,73 @@ class PreferencesAccountDetails extends Component {
         return null;
     }
   }
-  _onFetchEmailRangeUpdate= event => {
-    try{
-      const fetchRange = parseInt(event.target.value, 10);
-      const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || { fetchEmailRange: 365 };
+  _onUpdateMailSyncSettings = ({value, key, defaultData = {}}) => {
+    try {
+      const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || defaultData;
       let mailsyncSettings = this.state.account.mailsync;
       if (defalutMailsyncSettings && !mailsyncSettings) {
         mailsyncSettings = defalutMailsyncSettings;
       }
       delete mailsyncSettings.accounts;
-      const newSettings = Object.assign({}, mailsyncSettings, { fetchEmailRange: fetchRange });
-      this._setState({ mailsync: newSettings });
+      const tmp = {};
+      tmp[key] = value;
+      const newSettings = Object.assign({}, mailsyncSettings, tmp);
       const data = {};
       data[this.state.account.id] = newSettings;
       ipcRenderer.send('mailsync-config', data);
+      return newSettings;
     } catch (e) {
       AppEnv.reportError(e);
     }
   };
-  _renderMailFetchRange(){
-    const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || {fetchEmailRange: 365};
+  _onFetchEmailIntervalUpdate = event => {
+    try {
+      const fetchInterval = parseInt(event.target.value, 10);
+      const newSettings = this._onUpdateMailSyncSettings({
+        value: fetchInterval,
+        key: 'fetchEmailInterval',
+        defaultData: { fetchEmailInterval: 1 },
+      });
+      if (newSettings) {
+        this._setState({ mailsync: newSettings });
+      }
+    } catch (e) {
+      AppEnv.reportError(e);
+    }
+  };
+  _onFetchEmailRangeUpdate = event => {
+    try {
+      const fetchRange = parseInt(event.target.value, 10);
+      const newSettings = this._onUpdateMailSyncSettings({
+        value: fetchRange,
+        key: 'fetchEmailRange',
+        defaultData: { fetchEmailRange: 365 },
+      });
+      if (newSettings) {
+        this._setState({ mailsync: newSettings });
+      }
+    } catch (e) {
+      AppEnv.reportError(e);
+    }
+  };
+
+  _renderMailFetchRange() {
+    const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || {
+      fetchEmailRange: 365,
+      fetchEmailInterval: 1,
+    };
     let mailsyncSettings = this.state.account.mailsync;
-    if(defalutMailsyncSettings && !mailsyncSettings){
+    if (defalutMailsyncSettings && !mailsyncSettings) {
       mailsyncSettings = defalutMailsyncSettings;
-    }else if(!mailsyncSettings){
+    } else if (!mailsyncSettings || !mailsyncSettings.fetchEmailRange) {
       AppEnv.reportError(new Error('fetchEmailRange do not have value'));
-      mailsyncSettings = {fetchEmailRange: 365};
+      mailsyncSettings = {
+        fetchEmailRange: 365,
+        fetchEmailInterval: 1,
+      };
     }
     return <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
-      Oldest email to fetch
+      <span style={{width: '120px'}}>Oldest mail to fetch</span>
       <select
         style={{ marginTop: 0 }}
         value={mailsyncSettings.fetchEmailRange.toString()}
@@ -246,8 +284,38 @@ class PreferencesAccountDetails extends Component {
         <option value='90'>Within 3 month</option>
         <option value='365'>Within 1 year</option>
         <option value='-1'>All</option>
-      </select>:
-    </div>
+      </select>
+    </div>;
+  }
+
+  _renderMailFetchInterval() {
+    const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || {
+      fetchEmailRange: 365,
+      fetchEmailInterval: 1,
+    };
+    let mailsyncSettings = this.state.account.mailsync;
+    if (defalutMailsyncSettings && !mailsyncSettings) {
+      mailsyncSettings = defalutMailsyncSettings;
+    } else if (!mailsyncSettings || !mailsyncSettings.fetchEmailInterval) {
+      AppEnv.reportError(new Error('fetchEmailInterval do not have value'));
+      mailsyncSettings = {
+        fetchEmailRange: 365,
+        fetchEmailInterval: 1,
+      };
+    }
+    return <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
+      <span style={{width: '120px'}}>Fetch mail interval</span>
+      <select
+        style={{ marginTop: 0 }}
+        value={mailsyncSettings.fetchEmailInterval.toString()}
+        onChange={this._onFetchEmailIntervalUpdate}
+        onBlur={this._saveChanges}
+      >
+        <option value='1'>Every minute</option>
+        <option value='3'>Every 3 minutes</option>
+        <option value='5'>Every 5 minutes</option>
+      </select>
+    </div>;
   }
 
   render() {
@@ -293,6 +361,7 @@ class PreferencesAccountDetails extends Component {
         {this._renderDefaultAliasSelector(account)}
         <h3>Advance Settings</h3>
         {this._renderMailFetchRange()}
+        {this._renderMailFetchInterval()}
       </div>
     );
   }

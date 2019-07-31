@@ -19,7 +19,8 @@
         "main-calendar"
       ],
       "mailsync": {
-        "fetchEmailRange": 365
+        "fetchEmailRange": 365,
+        "fetchEmailInterval": 1
       }
     }
   }
