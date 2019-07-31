@@ -61,9 +61,7 @@ class DraftDeleteButton extends React.Component {
     if (!this.state.isDeleting && !this._deletingTimer) {
       this._changeBackToNotDeleting();
       this.setState({ isDeleting: true });
-      for (const item of this.props.selection.items()) {
-        Actions.destroyDraft(item);
-      }
+      Actions.destroyDraft(this.props.selection.items());
       this.props.selection.clear();
     }
     return;

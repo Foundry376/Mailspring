@@ -18,6 +18,7 @@ import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import MessageStore from './message-store';
 import UndoRedoStore from './undo-redo-store';
+import TaskFactory from '../tasks/task-factory';
 
 const { DefaultSendActionKey } = SendActionsStore;
 const SendDraftTimeout = 300000;
@@ -48,11 +49,12 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.sendingDraft, this._onSendingDraft);
     this.listenTo(Actions.destroyDraftFailed, this._onDestroyDraftFailed);
     this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
-    this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);    // Remember that these two actions only fire in the current window and
+    this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
+    // Remember that these two actions only fire in the current window and
     // are picked up by the instance of the DraftStore in the current
     // window.
     this.listenTo(Actions.sendDraft, this._onSendDraft);
-    this.listenTo(Actions.destroyDraft, this._onDestroyDraft);
+    this.listenTo(Actions.destroyDraft, this._onDestroyDrafts);
 
     if (AppEnv.isMainWindow()) {
       ipcRenderer.on('new-message', () => {
@@ -151,13 +153,15 @@ class DraftStore extends MailspringStore {
     const newDraft = await DraftFactory.copyDraftToAccount(oldDraft, newParticipants.from);
     await this._finalizeAndPersistNewMessage(newDraft);
     Actions.changeDraftAccountComplete({ newDraftJSON: newDraft.toJSON() });
-    this._onDestroyDraft(
-      {
-        accountId: oldDraft.accountId,
-        headerMessageId: originalHeaderMessageId,
-        id: originalMessageId,
-        threadId: oldDraft.threadId,
-      },
+    this._onDestroyDrafts(
+      [
+        new Message(
+          Object.assign({}, oldDraft, {
+            headerMessageId: originalHeaderMessageId,
+            id: originalMessageId,
+          })
+        ),
+      ],
       { switchingAccount: true, canBeUndone: false },
     );
   };
@@ -244,7 +248,7 @@ class DraftStore extends MailspringStore {
         // console.log(`draft to be destroyed @ ${this._getCurrentWindowLevel()}`);
         if (!this._draftsDeleting[draft.id]) {
           console.log('sending out destroy draft in onbefore load');
-          promises.push(Actions.destroyDraft(draft, { canBeUndone: false }));
+          promises.push(Actions.destroyDraft([draft], { canBeUndone: false }));
         }
       } else if (
         AppEnv.isMainWindow() &&
@@ -576,6 +580,58 @@ class DraftStore extends MailspringStore {
     }
   };
 
+  _onDestroyDrafts = (messages = [], opts = {}) => {
+    const tasks = [];
+    if (!Array.isArray(messages) && messages instanceof Message) {
+      messages = [messages];
+      AppEnv.reportError(new Error('destroy draft still using single draft'));
+    } else if (!Array.isArray(messages)) {
+      return;
+    }
+    messages.forEach(message => {
+      this._onDestroyDraft(message, opts);
+    });
+    tasks.push(
+      ...TaskFactory.tasksForMessagesByAccount(messages, ({ accountId, messages: msgs }) => {
+        const headerMessageIds = [];
+        const threadIds = [];
+        const ids = [];
+        msgs.forEach(msg => {
+          headerMessageIds.push(msg.headerMessageId);
+          ids.push(msg.id);
+          threadIds.push(msg.threadId);
+        });
+        return new DestroyDraftTask({
+          canBeUndone: opts.canBeUndone,
+          accountId,
+          messageIds: ids,
+          needToBroadcastBeforeSendTask: {
+            channel: 'draft-delete',
+            options: {
+              accountId,
+              messageIds: ids,
+              threadIds: threadIds,
+              headerMessageIds: headerMessageIds,
+              windowLevel: this._getCurrentWindowLevel(),
+            },
+          },
+        });
+      }),
+    );
+    if (tasks.length > 0) {
+      Actions.queueTasks(tasks);
+      if (AppEnv.isComposerWindow() && !opts.switchingAccount && messages.length === 0) {
+        AppEnv.close({
+          headerMessageId: messages[0].headerMessageId,
+          threadId: messages[0].threadId,
+          windowLevel: this._getCurrentWindowLevel(),
+          additionalChannelParam: 'draft',
+          deleting: true,
+        });
+      }
+    }
+  };
+
   _onDestroyDraft = (message = {}, opts = {}) => {
     // console.log('on destroy draft');
     const { accountId, headerMessageId, id, threadId } = message;
@@ -616,56 +672,41 @@ class DraftStore extends MailspringStore {
       if (!draftDeleting) {
         delete this._draftsPopedOut[headerMessageId];
         this.trigger({ headerMessageId });
-        Actions.queueTask(
-          new DestroyDraftTask({
-            canBeUndone: opts.canBeUndone,
-            accountId,
-            messageIds: [id],
-            headerMessageId,
-            needToBroadcastBeforeSendTask: {
-              channel: 'draft-delete',
-              options: {
-                accountId,
-                messageIds: [id],
-                threadId,
-                headerMessageId: headerMessageId,
-                windowLevel: this._getCurrentWindowLevel(),
-              },
-            },
-          }),
-        );
       }
     } else {
       AppEnv.reportError(new Error('Tried to delete a draft that had no ID assigned yet.'));
     }
-    if (AppEnv.isComposerWindow() && !opts.switchingAccount) {
-      AppEnv.close({
-        headerMessageId,
-        threadId,
-        windowLevel: this._getCurrentWindowLevel(),
-        additionalChannelParam: 'draft',
-        deleting: true,
-      });
-    }
   };
   _onDraftDeleting = (event, options) => {
-    if (Array.isArray(options.messageIds) && options.headerMessageId) {
-      this._draftsDeleting[options.messageIds[0]] = options.headerMessageId;
+    if (Array.isArray(options.messageIds) && Array.isArray(options.headerMessageIds) && options.messageIds.length === options.headerMessageIds.length) {
+      for(let i = 0; i< options.messageIds.length; i++){
+        this._draftsDeleting[options.messageIds[i]] = options.headerMessageIds[i];
+      }
     }
   };
   _onDestroyDraftSuccess = ({ messageIds }) => {
     if (Array.isArray(messageIds)) {
-      const headerMessageId = this._draftsDeleting[messageIds[0]];
-      delete this._draftsDeleting[messageIds[0]];
-      this.trigger({ headerMessageId });
+      const headerMessageIds = [];
+      messageIds.forEach(id =>{
+        if(id){
+          headerMessageIds.push(this._draftsDeleting[id]);
+          delete this._draftsDeleting[id];
+        }
+      });
+      this.trigger({ headerMessageIds });
     }
   };
 
   _onDestroyDraftFailed = ({ messageIds, key, debuginfo }) => {
     if (Array.isArray(messageIds)) {
-      const headerMessageId = this._draftsDeleting[messageIds[0]];
-      delete this._draftsDeleting[messageIds[0]];
-      this.trigger({ headerMessageId });
+      const headerMessageIds = [];
+      messageIds.forEach(id =>{
+        if(id){
+          headerMessageIds.push(this._draftsDeleting[id]);
+          delete this._draftsDeleting[id];
+        }
+      });
+      this.trigger({ headerMessageIds });
     }
   };
   _cancelSendingDraftTimeout = ({ headerMessageId, trigger = false, changeSendStatus = true }) => {

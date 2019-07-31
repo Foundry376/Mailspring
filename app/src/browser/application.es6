@@ -676,17 +676,25 @@ export default class Application extends EventEmitter {
       if (mainWindow && mainWindow.browserWindow.webContents) {
         mainWindow.browserWindow.webContents.send(channel, options);
       }
-      if (options.threadId) {
-        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
-        if (threadWindow && threadWindow.browserWindow.webContents) {
-          threadWindow.browserWindow.webContents.send(channel, options);
-        }
+      if (Array.isArray(options.threadIds)) {
+        options.threadIds.forEach(threadId =>{
+          if(threadId){
+            const threadWindow = this.windowManager.get(`thread-${threadId}`);
+            if (threadWindow && threadWindow.browserWindow.webContents) {
+              threadWindow.browserWindow.webContents.send(channel, options);
+            }
+          }
+        });
       }
-      if (options.headerMessageId) {
-        const composerWindow = this.windowManager.get(`composer-${options.headerMessageId}`);
-        if (composerWindow && composerWindow.browserWindow.webContents) {
-          composerWindow.browserWindow.webContents.send(channel, options);
-        }
+      if (Array.isArray(options.headerMessageIds)) {
+        options.headerMessageIds.forEach(headerMessageId => {
+          if(headerMessageId){
+            const composerWindow = this.windowManager.get(`composer-${headerMessageId}`);
+            if (composerWindow && composerWindow.browserWindow.webContents) {
+              composerWindow.browserWindow.webContents.send(channel, options);
+            }
+          }
+        });
       }
       event.returnValue = '';
     });
