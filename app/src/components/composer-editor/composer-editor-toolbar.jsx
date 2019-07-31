@@ -25,7 +25,7 @@ export default class ComposerEditorToolbar extends React.Component {
           this._topClip = parentScrollRegion.getBoundingClientRect().top;
           this._bottomClip = parentScrollRegion.getBoundingClientRect().bottom;
           this._onScroll();
-          window.addEventListener('resize', this._resetRectClip);
+          // window.addEventListener('resize', this._resetRectClip);
         } else {
           this._topClip = 0;
           this._bottomClip = 0;
@@ -36,14 +36,14 @@ export default class ComposerEditorToolbar extends React.Component {
     }, 400);
   }
 
-  _resetRectClip = () => {
-    const parentScrollRegion = this._el.closest('.scroll-region-content');
-    if (parentScrollRegion) {
-      this._topClip = parentScrollRegion.getBoundingClientRect().top;
-      this._bottomClip = parentScrollRegion.getBoundingClientRect().bottom;
-      this._onScroll();
-    }
-  }
+  // _resetRectClip = () => {
+  //   const parentScrollRegion = this._el.closest('.scroll-region-content');
+  //   if (parentScrollRegion) {
+  //     this._topClip = parentScrollRegion.getBoundingClientRect().top;
+  //     this._bottomClip = parentScrollRegion.getBoundingClientRect().bottom;
+  //     this._onScroll();
+  //   }
+  // }
 
   componentDidUpdate() {
     if (this._el) {
@@ -57,7 +57,7 @@ export default class ComposerEditorToolbar extends React.Component {
     for (const el of document.querySelectorAll('.scroll-region-content')) {
       el.removeEventListener('scroll', this._onScroll);
     }
-    window.removeEventListener('resize', this._resetRectClip);
+    // window.removeEventListener('resize', this._resetRectClip);
   }
   _onScroll = () => {
     if (!this._el) return;
@@ -72,29 +72,29 @@ export default class ComposerEditorToolbar extends React.Component {
     }
 
     // when send bar is out of screen, make it dock to bottom
-    if (AppEnv.isMainWindow()) {
-      if (!this.sendbarForDock) {
-        this.sendbarForDock = document.querySelector('#sendbar-for-dock');
-        this.sendToolbar = document.querySelector('.composer-action-bar-wrap');
-        this.composer = this.sendbarForDock && this.sendbarForDock.parentElement;
-      }
-      if (this.sendbarForDock && this.sendToolbar && this.composer && this._bottomClip !== undefined) {
-        let { top, height, left } = this.sendToolbar.getBoundingClientRect();
-        let { top: composerTop } = this.composer.getBoundingClientRect();
-        if (top > this._bottomClip - height) {
-          const topForDock = this._bottomClip - composerTop - height;
-          if (topForDock < 100) {
-            this.sendbarForDock.style.display = 'none';
-          } else {
-            this.sendbarForDock.style.display = 'block';
-            this.sendbarForDock.style.left = left + 'px';
-            this.sendbarForDock.style.width = this.sendToolbar.offsetWidth + 'px';
-          }
-        } else {
-          this.sendbarForDock.style.display = 'none';
-        }
-      }
-    }
+    // if (AppEnv.isMainWindow()) {
+    //   if (!this.sendbarForDock) {
+    //     this.sendbarForDock = document.querySelector('#sendbar-for-dock');
+    //     this.sendToolbar = document.querySelector('.composer-action-bar-wrap');
+    //     this.composer = this.sendbarForDock && this.sendbarForDock.parentElement;
+    //   }
+    //   if (this.sendbarForDock && this.sendToolbar && this.composer && this._bottomClip !== undefined) {
+    //     let { top, height, left } = this.sendToolbar.getBoundingClientRect();
+    //     let { top: composerTop } = this.composer.getBoundingClientRect();
+    //     if (top > this._bottomClip - height) {
+    //       const topForDock = this._bottomClip - composerTop - height;
+    //       if (topForDock < 100) {
+    //         this.sendbarForDock.style.display = 'none';
+    //       } else {
+    //         this.sendbarForDock.style.display = 'block';
+    //         this.sendbarForDock.style.left = left + 'px';
+    //         this.sendbarForDock.style.width = this.sendToolbar.offsetWidth + 'px';
+    //       }
+    //     } else {
+    //       this.sendbarForDock.style.display = 'none';
+    //     }
+    //   }
+    // }
   };
 
   render() {

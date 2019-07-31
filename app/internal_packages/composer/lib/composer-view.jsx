@@ -696,7 +696,13 @@ export default class ComposerView extends React.Component {
 
   render() {
     const dropCoverDisplay = this.state.isDropping ? 'block' : 'none';
-
+    const composerActionBar = (
+      <div className="composer-action-bar-wrap" data-tooltips-anchor>
+        <div className="tooltips-container" />
+        {this._renderActionsRegion()}
+      </div>
+    );
+    const isMainWindow = AppEnv.isMainWindow();
     return (
       <div className={this.props.className}>
         <KeyCommandsRegion
@@ -732,19 +738,19 @@ export default class ComposerView extends React.Component {
               <div className="composer-action-bar-workspace-wrap">
                 {this._renderActionsWorkspaceRegion()}
               </div>
-
-              <div className="composer-action-bar-wrap" data-tooltips-anchor>
-                <div className="tooltips-container" />
-                {this._renderActionsRegion()}
-              </div>
-              {AppEnv.isMainWindow() && (
-                <div id="sendbar-for-dock" style={{ display: 'none' }} className="composer-action-bar-wrap" data-tooltips-anchor>
-                  <div className="tooltips-container" />
-                  {this._renderActionsRegion()}
-                </div>
+              {!isMainWindow && (
+                composerActionBar
               )}
             </DropZone>
           </TabGroupRegion>
+          {isMainWindow && (
+            <div id="sendbar-for-dock">
+              <div className="action-bar-wrapper">
+                {composerActionBar}
+              </div>
+              <div className="wrapper-space"></div>
+            </div>
+          )}
         </KeyCommandsRegion>
       </div>
     );
