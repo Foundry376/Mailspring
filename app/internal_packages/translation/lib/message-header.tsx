@@ -151,7 +151,7 @@ export class TranslateMessageHeader extends React.Component<
 
     this.setState({ translating: mode });
     const targetLanguage = getCurrentLocale().split('-')[0];
-    const translated = await translateMessageBody(message.body, targetLanguage);
+    const translated = await translateMessageBody(message.body, targetLanguage, mode === 'auto');
     if (this._mounted) {
       this.setState({ translating: false });
     }

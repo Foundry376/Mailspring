@@ -229,7 +229,12 @@ module.exports = {
 
     {
       label: localized('Help'),
-      submenu: [{ label: localized('Mailspring Help'), command: 'application:view-help' }],
+      submenu: [
+        { label: localized('Mailspring Help'), command: 'application:view-help' },
+        { type: 'separator' },
+        { label: localized('Getting Started Guide'), command: 'application:view-getting-started' },
+        { label: localized('Frequently Asked Questions'), command: 'application:view-faq' },
+      ],
     },
   ],
 };

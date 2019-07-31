@@ -393,6 +393,17 @@ export default class Application extends EventEmitter {
       shell.openExternal(helpUrl);
     });
 
+    this.on('application:view-getting-started', () => {
+      const helpUrl = 'https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started';
+      shell.openExternal(helpUrl);
+    });
+
+
+    this.on('application:view-faq', () => {
+      const helpUrl = 'https://foundry376.zendesk.com/hc/en-us/sections/115000521892-Frequently-Asked-Questions';
+      shell.openExternal(helpUrl);
+    });
+
     this.on('application:open-preferences', () => {
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {

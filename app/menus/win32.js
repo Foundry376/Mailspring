@@ -174,6 +174,11 @@ module.exports = {
       label: localized('Help') + '...',
       command: 'application:view-help',
     },
+    {
+      label: localized('Getting Started Guide') + '...',
+      command: 'application:view-getting-started',
+    },
+    { label: localized('Frequently Asked Questions') + '...', command: 'application:view-faq' },
     { type: 'separator' },
     { label: localized('Sync New Mail Now'), command: 'window:sync-mail-now' },
     { type: 'separator' },

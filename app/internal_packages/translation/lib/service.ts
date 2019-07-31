@@ -126,7 +126,8 @@ export const TranslationsUsedLexicon = {
 
 export async function translateMessageBody(
   html: string,
-  targetLang?: string
+  targetLang?: string,
+  silent: boolean = false
 ): Promise<string | false> {
   const text = QuotedHTMLTransformer.removeQuotedHTML(html);
 
@@ -142,8 +143,10 @@ export async function translateMessageBody(
     });
   } catch (error) {
     Actions.closePopover();
-    const dialog = require('electron').remote.dialog;
-    dialog.showErrorBox(localized('Language Conversion Failed'), error.toString());
+    if (!silent) {
+      const dialog = require('electron').remote.dialog;
+      dialog.showErrorBox(localized('Language Conversion Failed'), error.toString());
+    }
     return false;
   }
 
