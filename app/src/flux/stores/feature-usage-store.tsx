@@ -9,7 +9,7 @@ import { localized } from '../../intl';
 
 class NoProAccessError extends Error {}
 
-const UsageRecordedServerSide = ['contact-profiles'];
+const UsageRecordedServerSide = ['contact-profiles', 'translation'];
 
 /**
  * FeatureUsageStore is backed by the IdentityStore

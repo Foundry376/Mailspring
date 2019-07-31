@@ -50,6 +50,7 @@ const lazyLoadAndRegisterTask = (klassName, path) => {
 lazyLoadWithGetter(`localized`, () => require('../intl').localized);
 lazyLoadWithGetter(`localizedReactFragment`, () => require('../intl').localizedReactFragment);
 lazyLoadWithGetter(`getAvailableLanguages`, () => require('../intl').getAvailableLanguages);
+lazyLoadWithGetter(`getCurrentLocale`, () => require('../intl').getCurrentLocale);
 lazyLoadWithGetter(`isRTL`, () => require('../intl').isRTL);
 
 // Actions

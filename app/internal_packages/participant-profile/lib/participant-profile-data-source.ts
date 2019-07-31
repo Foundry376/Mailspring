@@ -37,7 +37,7 @@ class ParticipantProfileDataSource {
         path: `/api/info-for-email-v2/${email}?phrase=${encodeURIComponent(name)}`,
       });
     } catch (err) {
-      // we don't care about errors returned by this clearbit proxy
+      // we don't care about errors
       return {};
     }
 

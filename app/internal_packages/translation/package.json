@@ -1,5 +1,5 @@
 {
-  "name": "composer-translate",
+  "name": "translation",
   "version": "0.2.0",
   "main": "./lib/main",
 

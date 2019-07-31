@@ -2,7 +2,8 @@
 
 .autoload-images-header {
   background-color: mix(@background-primary, #ffcc11, 80%);
-  border: 1px solid darken(mix(@background-primary, #ffcc11, 50%), 25%);
+  border: 1px solid mix(@black, mix(@background-primary, #ffcc11, 50%), 25%);
+  border-radius: @border-radius-base;
   color: mix(@text-color-subtle, #ffcc11, 40%);
   margin: @padding-base-vertical 0;
   padding: @padding-base-vertical @padding-base-horizontal;
@@ -14,6 +15,6 @@
     color: fade(mix(@text-color-subtle, #ffcc11, 80%), 70%);
   }
   .option:hover {
-    color: mix(@text-color-subtle, #ffcc11, 80%);
+    color: mix(@black, mix(@text-color-subtle, #ffcc11, 80%), 25%);
   }
 }

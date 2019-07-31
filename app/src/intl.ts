@@ -245,6 +245,10 @@ export function localizedReactFragment(en, ...subs) {
 
 // For Preferences UI:
 
+export function getCurrentLocale() {
+  return locale;
+}
+
 export function getAvailableLanguages() {
   const localeToItem = f => ({ key: f, name: LANG_NAMES[f] || f });
 

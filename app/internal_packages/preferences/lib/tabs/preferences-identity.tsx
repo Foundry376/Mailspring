@@ -126,6 +126,14 @@ const ProTourFeatures = [
       `Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.`
     ),
   },
+  {
+    link: 'https://foundry376.zendesk.com/hc/en-us/articles/360031102452',
+    icon: `pro-feature-translation.png`,
+    title: localized(`Automatic Translation`),
+    text: localized(
+      `Instantly translate messages you receive into your preferred reading language.`
+    ),
+  },
 ];
 
 class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {

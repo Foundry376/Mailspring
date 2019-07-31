@@ -1,0 +1,94 @@
+@import 'ui-variables';
+@import 'ui-mixins';
+
+@feature-tint: #0095ff;
+
+.translate-language-picker {
+  .footer-container {
+    display: none;
+  }
+  .content-container {
+    height: 185px;
+    width: 170px;
+    overflow: scroll;
+  }
+}
+
+.translate-message-header {
+  display: flex;
+  align-items: stretch;
+  background-color: mix(@background-primary, @feature-tint, 90%);
+  color: mix(@text-color-subtle, @feature-tint, 40%);
+  margin: 10px 0;
+
+  .message {
+    flex: 1;
+    border: 1px solid darken(mix(@background-primary, @feature-tint, 50%), 25%);
+    border-radius: @border-radius-base;
+
+    &.with-actions {
+      border-right: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    padding: 2px 8px;
+    display: flex;
+    align-items: center;
+    .message-centered {
+      .note {
+        font-size: 0.85rem;
+        opacity: 0.7;
+      }
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+
+    .action {
+      padding: 0 8px;
+      min-height: 27px;
+      background: mix(@background-primary, @feature-tint, 80%);
+      border: 1px solid darken(mix(@background-primary, @feature-tint, 50%), 25%);
+      border-bottom: 0;
+      display: flex;
+      align-items: center;
+      min-width: 90px;
+      flex: 1;
+      &:active {
+        background: mix(@background-primary, @feature-tint, 70%);
+      }
+    }
+
+    .action.button-dropdown {
+      display: inline-block;
+      padding: 0;
+      .only-item {
+        border: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        background: transparent;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 100%;
+        padding: 0 8px;
+
+        img.content-mask {
+          background: mix(@text-color-subtle, @feature-tint, 40%);
+        }
+      }
+    }
+    .action:first-child {
+      border-top-right-radius: @border-radius-base;
+    }
+    .action:last-child {
+      border-bottom-right-radius: @border-radius-base;
+      border-bottom: 1px solid darken(mix(@background-primary, @feature-tint, 50%), 25%);
+    }
+  }
+}

@@ -1,6 +1,8 @@
 
   export type localized = typeof import('../intl').localized;
   export const localized: localized; 
+  export type getCurrentLocale = typeof import('../intl').getCurrentLocale;
+  export const getCurrentLocale: getCurrentLocale; 
   export type localizedReactFragment = typeof import('../intl').localizedReactFragment;
   export const localizedReactFragment: localizedReactFragment; 
   export type getAvailableLanguages = typeof import('../intl').getAvailableLanguages;

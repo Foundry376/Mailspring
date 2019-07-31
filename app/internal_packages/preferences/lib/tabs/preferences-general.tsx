@@ -8,7 +8,7 @@ import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
 import LanguageSection from './language-section';
 import { ConfigLike, ConfigSchemaLike } from '../types';
-import {remote} from "electron";
+import { remote } from 'electron';
 
 class PreferencesGeneral extends React.Component<{
   config: ConfigLike;
@@ -100,7 +100,7 @@ class PreferencesGeneral extends React.Component<{
 
         <div className="local-data">
           <h6>{localized('Local Data')}</h6>
-          <div className="btn" onClick={this._onResetEmailCache}>
+          <div className="btn" onClick={this._onResetEmailCache} style={{ marginLeft: 0 }}>
             {localized('Reset Cache')}
           </div>
           <div className="btn" onClick={this._onResetAccountsAndSettings}>
