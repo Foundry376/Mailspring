@@ -38,7 +38,6 @@ const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 import { NEW_CONVERSATION } from '../../../utils/constant';
 
-
 export default class MessagesPanel extends Component {
   constructor(props) {
     super(props);
@@ -92,7 +91,7 @@ export default class MessagesPanel extends Component {
   };
 
   componentDidMount = async () => {
-    window.addEventListener("online", this.onLine);
+    window.addEventListener('online', this.onLine);
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
     document.body.onclick = this._closePreview;
@@ -108,7 +107,7 @@ export default class MessagesPanel extends Component {
     if (progress.loading && progress.failed) {
       this.retryLoadMessage();
     }
-  }
+  };
 
   _closePreview = e => {
     if (e.target.tagName === 'IMG') {
@@ -128,7 +127,7 @@ export default class MessagesPanel extends Component {
   };
 
   componentWillUnmount() {
-    window.removeEventListener("online", this.onLine);
+    window.removeEventListener('online', this.onLine);
     for (const unsub of this._unsubs) {
       unsub();
     }
@@ -243,7 +242,10 @@ export default class MessagesPanel extends Component {
       visible: true,
     });
     const { msgBody, filepath } = loadConfig;
-    log('load', `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
+    log(
+      'load',
+      `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`
+    );
     const loadCallback = (...args) => {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
@@ -293,6 +295,7 @@ export default class MessagesPanel extends Component {
       }
       ChatActions.updateProgress({ percent });
     };
+
     if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
@@ -314,74 +317,50 @@ export default class MessagesPanel extends Component {
         ChatActions.updateProgress({ failed: true, loading: false, visible: false });
         return;
       }
-    } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
-      // the file is an image and it has been downloaded to local while the message was received
-      let imgpath = msgBody.path.replace('file://', '');
-      if (imgpath === filepath) {
-        if (fs.existsSync(imgpath)) {
-          loadCallback();
-        } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
-          // the file is on aws
-          loadConfig.request = downloadFile(
-            msgBody.aes,
-            msgBody.mediaObjectId,
-            filepath,
-            loadCallback,
-            loadProgressCallback
-          );
-        }
-      } else {
-        if (fs.existsSync(imgpath)) {
-          fs.copyFileSync(imgpath, filepath);
-          loadCallback();
-          // alert(
-          //   'The file does not exist, probably it is failed to be received, please try to receive this message again.'
-          // );
-        } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
-          // the file is on aws
-          loadConfig.request = downloadFile(
-            msgBody.aes,
-            msgBody.mediaObjectId,
-            filepath,
-            loadCallback,
-            loadProgressCallback
-          );
-        }
-      }
-    } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
-      // the file is on aws
-      loadConfig.request = downloadFile(
-        msgBody.aes,
-        msgBody.mediaObjectId,
-        filepath,
-        loadCallback,
-        loadProgressCallback
-      );
     } else {
-      // the file is a link to the web outside aws
-      let request;
-      if (msgBody.mediaObjectId.match(/^https/)) {
-        request = https;
+      const tempFilePath = msgBody.path && msgBody.path.replace('file://', '');
+
+      if (tempFilePath && !tempFilePath.match(/^https?:/) && fs.existsSync(tempFilePath)) {
+        // the file has been downloaded to local
+        if (tempFilePath !== filepath) {
+          fs.copyFileSync(tempFilePath, filepath);
+        }
+        loadCallback();
+      } else if (msgBody.mediaObjectId && !msgBody.mediaObjectId.match(/^https?:\/\//)) {
+        // the file is on aws
+        loadConfig.request = downloadFile(
+          msgBody.aes,
+          msgBody.mediaObjectId,
+          filepath,
+          loadCallback,
+          loadProgressCallback
+        );
       } else {
-        request = http;
-      }
-      request.get(msgBody.mediaObjectId, function (res) {
-        var imgData = '';
-        res.setEncoding('binary');
-        res.on('data', function (chunk) {
-          imgData += chunk;
-        });
-        res.on('end', function () {
-          fs.writeFile(filepath, imgData, 'binary', function (err) {
-            if (err) {
-              console.error('down fail', err);
-            } else {
-              console.log('down success');
-            }
-            loadCallback();
+        // the file is a link to the web outside aws
+        let request;
+        if (msgBody.mediaObjectId.match(/^https/)) {
+          request = https;
+        } else {
+          request = http;
+        }
+        request.get(msgBody.mediaObjectId, function(res) {
+          var imgData = '';
+          res.setEncoding('binary');
+          res.on('data', function(chunk) {
+            imgData += chunk;
+          });
+          res.on('end', function() {
+            fs.writeFile(filepath, imgData, 'binary', function(err) {
+              if (err) {
+                console.error('down fail', err);
+              } else {
+                console.log('down success');
+              }
+              loadCallback();
+            });
           });
         });
-      });
+      }
     }
 
     if (this.loadTimer) {
@@ -505,15 +484,15 @@ export default class MessagesPanel extends Component {
                 <NewConversationTopBar {...newConversationProps} />
               </div>
             ) : (
-                <div className="chatPanel">
-                  <MessagesTopBar {...topBarProps} />
-                  <Messages {...messagesProps} sendBarProps={sendBarProps} />
-                  {this.state.dragover && <div id="message-dragdrop-override"></div>}
-                  <div>
-                    <MessagesSendBar {...sendBarProps} />
-                  </div>
+              <div className="chatPanel">
+                <MessagesTopBar {...topBarProps} />
+                <Messages {...messagesProps} sendBarProps={sendBarProps} />
+                {this.state.dragover && <div id="message-dragdrop-override"></div>}
+                <div>
+                  <MessagesSendBar {...sendBarProps} />
                 </div>
-              )}
+              </div>
+            )}
             <Divider type="vertical" />
             <CSSTransitionGroup
               transitionName="transition-slide"
@@ -528,12 +507,12 @@ export default class MessagesPanel extends Component {
             </CSSTransitionGroup>
           </div>
         ) : (
-            <div className="unselectedHint">
-              <span>
-                <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
-              </span>
-            </div>
-          )}
+          <div className="unselectedHint">
+            <span>
+              <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
+            </span>
+          </div>
+        )}
         <OnlineStatus conversation={selectedConversation}></OnlineStatus>
         <MemberProfile
           conversation={selectedConversation}

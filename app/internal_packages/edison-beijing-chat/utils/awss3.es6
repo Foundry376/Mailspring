@@ -40,57 +40,59 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
     Key: key,
   };
 
+  const request = s3.getObject(params);
+  // 创建可读流、可写流和解密流
+  const readStream = request.createReadStream();
+  const writeStream = fs.createWriteStream(name);
+  const decryptStream = new DecryptFileStream(aes);
+
+  const onError = error => {
+    // 发生错误关闭所有通道和流，避免内存泄漏
+    readStream.unpipe();
+    readStream.destroy();
+    decryptStream.destroy();
+    writeStream.destroy();
+    if (callback) {
+      callback;
+    }
+    // 发生错误删除文件
+    if (fs.existsSync(name)) {
+      fs.unlinkSync(name);
+    }
+  };
+
+  // 监听错误事件
+  readStream.on('error', onError);
+  decryptStream.on('error', onError);
+  writeStream.on('error', onError);
+
   // 获取对象信息，为了获取长度刷新进度组件
   s3.headObject(params, (err, data) => {
-    if (err || !data) {
-      console.error(
-        'fail to down file in message: key, name, err, err.stack: ',
-        key,
-        name,
-        err,
-        err.stack
-      );
-      if (callback) {
-        callback(err);
-      }
+    if (err) {
+      onError(err);
       return;
     }
     const fileLength = data.ContentLength;
-    const readStream = s3.getObject(params).createReadStream();
-    const writeStream = fs.createWriteStream(name);
 
-    writeStream.on('finish', () => {
-      console.log('finished downloadFile: ', aes, key, name);
-      if (callback) {
-        callback();
-      }
-    });
-    writeStream.on('error', error => {
-      console.error(
-        'fail to down file in message: key, name, err, err.stack: ',
-        key,
-        name,
-        error,
-        error.stack
-      );
-      if (callback) {
-        callback(error);
-      }
-    });
-
-    // 流解密
-    const decryptStream = new DecryptFileStream(aes);
+    // 进度事件
     decryptStream.on('process', loaded => {
-      if (progressBack && fileLength >= loaded) {
+      if (progressBack && fileLength > loaded) {
         progressBack({
           loaded,
           total: fileLength,
         });
+      } else if (callback && fileLength === loaded) {
+        console.log('finished downloadFile: ', aes, key, name);
+        callback();
       }
     });
     // 流传递
-    readStream.pipe(decryptStream).pipe(writeStream);
+    if (decryptStream.writable && writeStream.writable) {
+      readStream.pipe(decryptStream).pipe(writeStream);
+    }
   });
+
+  return request;
 };
 
 export const uploadFile = (oid, aes, file, callback, progressCallback) => {
