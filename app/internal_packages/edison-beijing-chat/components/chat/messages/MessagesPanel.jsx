@@ -398,7 +398,7 @@ export default class MessagesPanel extends Component {
       //body.localFile = null;
       body = JSON.stringify(body);
     }
-    ChatActions.updateProgress({ loading: false, failed: true });
+    ChatActions.updateProgress({ loading: false, visible: false });
     clearInterval(this.loadTimer);
   };
 
