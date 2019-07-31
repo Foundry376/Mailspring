@@ -26,11 +26,16 @@ interface TranslateMessageHeaderState {
 
 let RecentlyTranslatedBodies: {
   id: string;
-  translated: string;
   enabled: boolean;
   fromLang: string;
   toLang: string;
 }[] = [];
+
+try {
+  RecentlyTranslatedBodies = JSON.parse(window.localStorage.getItem('translated-index') || '[]');
+} catch (err) {
+  // no saved translations
+}
 
 function getPrefs() {
   return {
@@ -47,7 +52,8 @@ function setPrefs(opts: { disabled: string[]; automatic: string[] }) {
 export class TranslateMessageExtension extends MessageViewExtension {
   static formatMessageBody = ({ message }) => {
     const result = RecentlyTranslatedBodies.find(o => o.id === message.id);
-    if (result && result.enabled) message.body = result.translated;
+    if (result && result.enabled)
+      message.body = window.localStorage.getItem(`translated-${message.id}`);
   };
 }
 
@@ -125,7 +131,7 @@ export class TranslateMessageHeader extends React.Component<
       const prefs = getPrefs();
       if (prefs.disabled.includes(detected)) return;
       this.setState({ detected });
-      if (prefs.automatic.includes(detected)) {
+      if (prefs.automatic.includes(detected) && IdentityStore.hasProFeatures()) {
         this._onTranslate('auto');
       }
     });
@@ -155,18 +161,27 @@ export class TranslateMessageHeader extends React.Component<
     if (this._mounted) {
       this.setState({ translating: false });
     }
-    if (!translated) return;
-
-    if (RecentlyTranslatedBodies.length > 50) {
-      RecentlyTranslatedBodies.shift();
+    if (translated) {
+      this._onPersistTranslation(targetLanguage, translated);
     }
+  };
+
+  _onPersistTranslation = (targetLanguage: string, translated: string) => {
+    const { message } = this.props;
+
+    if (RecentlyTranslatedBodies.length > 100) {
+      const element = RecentlyTranslatedBodies.shift();
+      localStorage.removeItem(`translated-${element.id}`);
+    }
+
     RecentlyTranslatedBodies.push({
       id: message.id,
-      translated,
       enabled: true,
       fromLang: this.state.detected,
       toLang: targetLanguage,
     });
+    localStorage.setItem(`translated-${message.id}`, translated);
+    localStorage.setItem(`translated-index`, JSON.stringify(RecentlyTranslatedBodies));
 
     MessageBodyProcessor.updateCacheForMessage(message);
   };
@@ -184,16 +199,19 @@ export class TranslateMessageHeader extends React.Component<
     this.forceUpdate();
   };
 
-  _onAlwaysForLanguage = () => {
+  _onAlwaysForLanguage = async () => {
     if (!IdentityStore.hasProFeatures()) {
-      FeatureUsageStore.displayUpgradeModal('translation', {
-        headerText: localized('Translate automatically with Mailspring Pro'),
-        rechargeText: `${localized(
-          "Unfortunately, translation services bill per character and we can't offer this feature for free."
-        )} ${localized('Upgrade to Pro today!')}`,
-        iconUrl: 'mailspring://translation/assets/ic-translation-modal@2x.png',
-      });
-      return;
+      try {
+        await FeatureUsageStore.displayUpgradeModal('translation', {
+          headerText: localized('Translate automatically with Mailspring Pro'),
+          rechargeText: `${localized(
+            "Unfortunately, translation services bill per character and we can't offer this feature for free."
+          )} ${localized('Upgrade to Pro today!')}`,
+          iconUrl: 'mailspring://translation/assets/ic-translation-modal@2x.png',
+        });
+      } catch (err) {
+        return;
+      }
     }
 
     const prefs = getPrefs();
