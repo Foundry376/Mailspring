@@ -133,6 +133,31 @@ export const MARK_CONFIG = {
       <font style={{ fontFamily: mark.data.value || mark.data.get('value') }}>{children}</font>
     ),
   },
+  clearFormatting: {
+    type: 'clear formatting',
+    tagNames: [],
+    render: props => <strong>{props.children}</strong>,
+    button: {
+      isActive: value => false,
+      onToggle: value => {
+        const change = value.change();
+        const marks = value.marks;
+        for (const mark of marks) {
+          change.removeMark(mark.type);
+        }
+        const selection = window.getSelection();
+        if (selection) {
+          const content = selection.toString();
+          if (content) {
+            change.delete();
+            change.insertText(content);
+          }
+        }
+        return change;
+      },
+      iconClass: 'dt-icon dt-icon-clear-formatting',
+    },
+  },
 };
 
 function renderMark(props) {
