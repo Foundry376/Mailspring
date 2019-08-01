@@ -15,12 +15,14 @@ let imageData = null;
 let iconsData = null;
 let lottieData = null;
 
+const CALENDAR_TYPES = ['text/calendar', 'application/ics'];
+
 module.exports = Utils = {
   waitFor(latch, options = {}) {
     const timeout = options.timeout || 400;
     const expire = Date.now() + timeout;
-    return new Promise(function(resolve, reject) {
-      var attempt = function() {
+    return new Promise(function (resolve, reject) {
+      var attempt = function () {
         if (Date.now() > expire) {
           return reject(new Error(`Utils.waitFor hit timeout (${timeout}ms) without firing.`));
         }
@@ -37,7 +39,7 @@ module.exports = Utils = {
     if (!(files instanceof Array)) {
       return false;
     }
-    return files.find(f => !f.contentId || f.size > 12 * 1024);
+    return files.find(f => (!f.contentId || f.size > 12 * 1024) && !CALENDAR_TYPES.includes(f.contentType));
   },
 
   extractTextFromHtml(html, param = {}) {
@@ -182,7 +184,7 @@ module.exports = Utils = {
   // And the original source here: https://github.com/angular/angular.js/blob/master/src/ngSanitize/sanitize.js#L451
   encodeHTMLEntities(value) {
     const SURROGATE_PAIR_REGEXP = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
-    const pairFix = function(value) {
+    const pairFix = function (value) {
       const hi = value.charCodeAt(0);
       const low = value.charCodeAt(1);
       return `&#${(hi - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000};`;
@@ -222,7 +224,7 @@ module.exports = Utils = {
     }
     return id.slice(0, 6) === 'local-';
   },
-  lottieNamed(fullname, resourcePath){
+  lottieNamed(fullname, resourcePath) {
     const [name, ext] = fullname.split('.');
 
     if (DefaultResourcePath == null) {
@@ -262,7 +264,7 @@ module.exports = Utils = {
     }
     return null;
   },
-  iconNamed(fullname, resourcePath){
+  iconNamed(fullname, resourcePath) {
     const [name, ext] = fullname.split('.');
 
     if (DefaultResourcePath == null) {

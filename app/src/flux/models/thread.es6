@@ -137,6 +137,12 @@ export default class Thread extends ModelWithMetadata {
       modelKey: 'state',
       queryable: true,
     }),
+    hasCalendar: Attributes.Number({
+      modelKey: 'hasCalendar',
+      jsonKey: 'hasCalendar',
+      queryable: true,
+      loadFromColumn: true
+    }),
   });
 
   static sortOrderAttribute = () => {

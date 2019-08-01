@@ -112,6 +112,12 @@ const c2 = new ListTabular.Column({
       draft = <span className="draft-icon">Draft</span>;
     }
 
+    let calendar = null;
+    const hasCalendar = thread.hasCalendar;
+    if (hasCalendar) {
+      calendar = <div className="thread-icon thread-icon-calendar" />;
+    }
+
     let attachment = null;
     const haveAttachments =
       thread.attachmentCount > 0 && messages.find(m => Utils.showIconForAttachments(m.files));
@@ -119,11 +125,12 @@ const c2 = new ListTabular.Column({
       attachment = <div className="thread-icon thread-icon-attachment" />;
     }
 
-    if (hasDraft || haveAttachments) {
+    if (hasDraft || haveAttachments || hasCalendar) {
       return (
         <div style={{ display: 'flex' }}>
           <ThreadListParticipants thread={thread} />
           {draft}
+          {calendar}
           {attachment}
         </div>
       );
@@ -194,6 +201,12 @@ const cNarrow = new ListTabular.Column({
     let attachment = false;
     const messages = thread.__messages || [];
 
+    let calendar = null;
+    const hasCalendar = thread.hasCalendar;
+    if (hasCalendar) {
+      calendar = <div className="thread-icon thread-icon-calendar" />;
+    }
+
     const hasAttachments =
       thread.attachmentCount > 0 && messages.find(m => Utils.showIconForAttachments(m.files));
     if (hasAttachments) {
@@ -225,6 +238,7 @@ const cNarrow = new ListTabular.Column({
           <div className="participants-wrapper">
             <ThreadListParticipants thread={thread} />
             {pencil}
+            {calendar}
             {attachment}
             <span style={{ flex: 1 }} />
             <InjectedComponent
