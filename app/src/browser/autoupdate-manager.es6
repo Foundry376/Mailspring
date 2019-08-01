@@ -3,6 +3,7 @@ import { dialog } from 'electron';
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs';
+import {getDeviceHash} from '../system-utils';
 
 let autoUpdater = null;
 
@@ -24,6 +25,7 @@ export default class AutoUpdateManager extends EventEmitter {
     this.config = config;
     this.specMode = specMode;
     this.preferredChannel = preferredChannel;
+    this.supportId = '';
 
     this.updateFeedURL();
     this.config.onDidChange('identity.id', this.updateFeedURL);
@@ -42,11 +44,30 @@ export default class AutoUpdateManager extends EventEmitter {
     if (params.platform === 'darwin') {
       params.platform = 'mac';
     }
-
-    let host = process.env.updateServer || `https://cp.stag.easilydo.cc/api/ota/checkUpdate`;
-    this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}`;
-    if (autoUpdater) {
-      autoUpdater.setFeedURL(this.feedURL);
+    const host = process.env.updateServer || `https://cp.stag.easilydo.cc/api/ota/checkUpdate`;
+    if (this.supportId === '') {
+      getDeviceHash().then(hash => {
+          this.supportId = hash;
+          return Promise.resolve();
+        },
+        e => {
+          this.supportId = '';
+          return Promise.resolve();
+        },
+      )
+        .then(() => {
+          this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}&supportId=${this.supportId}`;
+          if (autoUpdater) {
+            autoUpdater.setFeedURL(this.feedURL);
+          }
+          return Promise.resolve();
+        });
+    } else {
+      this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}&supportId=${this.supportId}`;
+      if (autoUpdater) {
+        autoUpdater.setFeedURL(this.feedURL);
+      }
+      return Promise.resolve();
     }
   };
 
@@ -137,12 +158,13 @@ export default class AutoUpdateManager extends EventEmitter {
   }
 
   check({ hidePopups } = {}) {
-    this.updateFeedURL();
-    if (!hidePopups) {
-      autoUpdater.once('update-not-available', this.onUpdateNotAvailable);
-      autoUpdater.once('error', this.onUpdateError);
-    }
-    autoUpdater.checkForUpdates();
+    this.updateFeedURL().then(()=>{
+      if (!hidePopups) {
+        autoUpdater.once('update-not-available', this.onUpdateNotAvailable);
+        autoUpdater.once('error', this.onUpdateError);
+      }
+      autoUpdater.checkForUpdates();
+    });
   }
 
   install() {
