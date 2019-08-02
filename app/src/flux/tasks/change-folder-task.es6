@@ -57,16 +57,16 @@ export default class ChangeFolderTask extends ChangeMailTask {
     if (this.folder && !(this.folder instanceof Folder)) {
       throw new Error('ChangeFolderTask: You must provide a single folder.');
     }
-    if(!this.accountId){
-      const obj = {
-        toLocaleString: ()=>{
-          return JSON.stringify({
-            threads: data.threads,
-            messages: data.messages});
-        },
-      };
-      AppEnv.reportError(obj);
-    }
+    // if(!this.accountId){
+    //   const obj = {
+    //     toLocaleString: ()=>{
+    //       return JSON.stringify({
+    //         threads: data.threads,
+    //         messages: data.messages});
+    //     },
+    //   };
+    //   AppEnv.reportError(obj);
+    // }
   }
 
   label() {

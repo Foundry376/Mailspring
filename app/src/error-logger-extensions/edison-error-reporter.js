@@ -34,6 +34,7 @@ module.exports = class EdisonErrorReporter {
     if (!extra.osInfo) {
       extra.osInfo = getOSInfo();
     }
+    const now = Date.now();
     if (this.deviceHash === '') {
       getDeviceHash().then(value => {
         this.deviceHash = value;
@@ -46,9 +47,10 @@ module.exports = class EdisonErrorReporter {
           platform: process.platform,
           device_id: this.deviceHash,
           level: 'ERROR',
-          time: new Date().getTime(),
+          time: now,
           version: this.getVersion(),
           data: {
+            time: now,
             version: this.getVersion(),
             error: err,
             extra: extra,
@@ -61,9 +63,10 @@ module.exports = class EdisonErrorReporter {
         platform: process.platform,
         device_id: this.deviceHash,
         level: 'ERROR',
-        time: new Date().getTime(),
+        time: now,
         version: this.getVersion(),
         data: {
+          time: now,
           version: this.getVersion(),
           error: err,
           extra: extra,
@@ -79,6 +82,7 @@ module.exports = class EdisonErrorReporter {
     if (!extra.osInfo) {
       extra.osInfo = getOSInfo();
     }
+    const now = Date.now();
     if (this.deviceHash === '') {
       getDeviceHash().then(value => {
         this.deviceHash = value;
@@ -91,9 +95,10 @@ module.exports = class EdisonErrorReporter {
           platform: process.platform,
           device_id: this.deviceHash,
           level: 'WARNING',
-          time: new Date().getTime(),
+          time: now,
           version: this.getVersion(),
           data: {
+            time: now,
             version: this.getVersion(),
             error: err,
             extra: extra,
@@ -106,9 +111,10 @@ module.exports = class EdisonErrorReporter {
         platform: process.platform,
         device_id: this.deviceHash,
         level: 'WARNING',
-        time: new Date().getTime(),
+        time: now,
         version: this.getVersion(),
         data: {
+          time: now,
           version: this.getVersion(),
           error: err,
           extra: extra,
