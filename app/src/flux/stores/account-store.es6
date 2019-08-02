@@ -91,40 +91,40 @@ class AccountStore extends MailspringStore {
     return false;
   }
   _updateWakeWorkerTimer = (accountId, interval) => {
-    if(!AppEnv.isMainWindow()){
+    if (!AppEnv.isMainWindow()) {
       return;
     }
-    if( !this._wakeWorkerTimer){
+    if (!this._wakeWorkerTimer) {
       this._wakeWorkerTimer = {};
     }
-    if(this._wakeWorkerTimer[accountId]){
+    if (this._wakeWorkerTimer[accountId]) {
       clearInterval(this._wakeWorkerTimer[accountId].timer);
     }
-    this._wakeWorkerTimer[accountId] = {timer: null};
-    this._wakeWorkerTimer[accountId].timer = setInterval(()=> {
+    this._wakeWorkerTimer[accountId] = { timer: null };
+    this._wakeWorkerTimer[accountId].timer = setInterval(() => {
       AppEnv.sendSyncMailNow(accountId);
     }, interval);
   };
   _removeWakeWorkerTimer = accountId => {
-    if(!this._wakeWorkerTimer){
-      this._wakeWorkerTimer={};
+    if (!this._wakeWorkerTimer) {
+      this._wakeWorkerTimer = {};
     }
-    if(this._wakeWorkerTimer[accountId]){
+    if (this._wakeWorkerTimer[accountId]) {
       clearInterval(this._wakeWorkerTimer[accountId]);
     }
     delete this._wakeWorkerTimer[accountId];
   };
   _removeDeleteAccountTimers = () => {
-    if(!AppEnv.isMainWindow()){
+    if (!AppEnv.isMainWindow()) {
       return;
     }
-    if(!this._wakeWorkerTimer){
+    if (!this._wakeWorkerTimer) {
       return;
     }
     const accountIds = this._accounts.map(act => act.id);
     const timerIds = Object.keys(this._wakeWorkerTimer);
-    timerIds.forEach(id=>{
-      if(!accountIds.includes(id)){
+    timerIds.forEach(id => {
+      if (!accountIds.includes(id)) {
         clearInterval(this._wakeWorkerTimer[id].timer);
         delete this._wakeWorkerTimer[id];
       }
@@ -139,10 +139,10 @@ class AccountStore extends MailspringStore {
       for (const json of AppEnv.config.get(configAccountsKey) || []) {
         this._accounts.push(new Account().fromJSON(json));
         let fetchEmailInterval = 60000;
-        if(json.mailsync && json.mailsync.fetchEmailInterval){
-          try{
+        if (json.mailsync && json.mailsync.fetchEmailInterval) {
+          try {
             fetchEmailInterval = parseInt(json.mailsync.fetchEmailInterval, 10) * 60000;
-          }catch (e){
+          } catch (e) {
             AppEnv.reportError(e);
           }
         }
@@ -399,8 +399,10 @@ class AccountStore extends MailspringStore {
         aliases.push(acc.me());
         for (const alias of acc.aliases) {
           const aliasContact = acc.meUsingAlias(alias);
-          aliasContact.isAlias = true;
-          aliases.push(aliasContact);
+          if (aliasContact) {
+            aliasContact.isAlias = true;
+            aliases.push(aliasContact);
+          }
         }
       }
       return aliases;

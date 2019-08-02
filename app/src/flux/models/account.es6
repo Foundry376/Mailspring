@@ -126,13 +126,15 @@ export default class Account extends ModelWithMetadata {
     if (!alias) {
       return this.me();
     }
-    return Contact.fromString(alias, {
+    const meAlias = Contact.fromString(alias, {
       accountId: this.id,
     });
+
+    return meAlias || this.me();
   }
 
   defaultMe() {
-    if (this.defaultAlias) {
+    if (this.defaultAlias && this.meUsingAlias(this.defaultAlias)) {
       return this.meUsingAlias(this.defaultAlias);
     }
     return this.me();

@@ -338,9 +338,11 @@ export default class Contact extends Model {
     const emailRegex = RegExpUtils.emailRegex();
     const match = emailRegex.exec(string);
     if (emailRegex.exec(string)) {
-      throw new Error(
-        'Error while calling Contact.fromString: string contains more than one email'
-      );
+      const errMsg = `Error while calling Contact.fromString: string contains more than one email:${string}`;
+      console.error(errMsg);
+      const e = new Error(errMsg);
+      AppEnv.reportError(e);
+      return null;
     }
     const email = match[0];
     let name = string.substr(0, match.index - 1);
