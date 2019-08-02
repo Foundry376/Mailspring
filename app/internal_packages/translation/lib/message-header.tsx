@@ -51,9 +51,17 @@ function setPrefs(opts: { disabled: string[]; automatic: string[] }) {
 
 export class TranslateMessageExtension extends MessageViewExtension {
   static formatMessageBody = ({ message }) => {
-    const result = RecentlyTranslatedBodies.find(o => o.id === message.id);
-    if (result && result.enabled)
+    // retrieve from cache and push to the end to ensure the least recently viewed message is
+    // removed from the cache first.
+    const idx = RecentlyTranslatedBodies.findIndex(o => o.id === message.id);
+    if (idx === -1) return;
+
+    const [result] = RecentlyTranslatedBodies.splice(idx, 1);
+    RecentlyTranslatedBodies.push(result);
+
+    if (result.enabled) {
       message.body = window.localStorage.getItem(`translated-${message.id}`);
+    }
   };
 }
 
