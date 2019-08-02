@@ -199,7 +199,9 @@ class UndoSendContent extends BasicContent {
     clearTimeout(this.timer);
   };
   onMouseLeave = () => {
-    this.timer = setTimeout(()=>this.props.onClose(), 400);
+    if(this.state.sendStatus !== 'sending'){
+      this.timer = setTimeout(()=>this.props.onClose(), 400);
+    }
   };
 
   render() {
