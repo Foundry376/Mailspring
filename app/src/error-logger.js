@@ -1,5 +1,5 @@
 var ErrorLogger, _, app, remote;
-
+const path = require('path');
 let ipcRenderer = null;
 if (process.type === 'renderer') {
   ipcRenderer = require('electron').ipcRenderer;
@@ -156,14 +156,22 @@ module.exports = ErrorLogger = (function () {
   /////////////////////////////////////////////////////////////////////
 
   ErrorLogger.prototype._startCrashReporter = function (args) {
+    const crashPath = path.join(this.resourcePath, 'crashReport');
+    let serverURL = '';
+    if(process.env.NODE_ENV !== 'production'){
+      serverURL = `http://tiger:1127/post`;
+    }else{
+      serverURL = `https://cp.stag.easilydo.cc/api/log/`;
+    }
     crashReporter.start({
-      productName: 'Edison Mail',
+      productName: 'EdisonMail',
       companyName: 'Edison Tech',
-      submitURL: `https://cp.stag.easilydo.cc/api/log/`,
+      submitURL: serverURL,
       uploadToServer: true,
       autoSubmit: true,
+      crashesDirectory: crashPath,
       extra: {
-        ver: appVersion,
+        version: appVersion,
         platform: process.platform,
       },
     });
