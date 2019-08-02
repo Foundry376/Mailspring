@@ -139,7 +139,7 @@ input:focus {
   }
 
   .list-item {
-    background-color: @read-bg-color;
+    background-color: @list-bg;
     line-height: 55px;
   }
 
@@ -645,7 +645,7 @@ body.platform-win32 {
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left;
-    color: @black;
+    color: @text-color;
     margin-right: @scrollbar-margin;
     padding-right: 20px;
     position: relative;
@@ -737,8 +737,8 @@ body.platform-win32 {
 .thread-list.handler-split {
   .list-item {
     &.selected:not(:hover) {
-      background: @list-focused-bg;
-      color: @list-focused-color;
+      background: @list-selected-bg;
+      color: @list-selected-color;
       border-right: 0;
       .inverseContent;
     }
