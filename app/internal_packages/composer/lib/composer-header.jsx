@@ -11,7 +11,7 @@ import Fields from './fields';
 const ScopedFromField = ListensToFluxStore(AccountContactField, {
   stores: [AccountStore],
   getStateFromStores: props => {
-    const savedOrReplyToThread = !!props.draft.threadId;
+    const savedOrReplyToThread = !!props.draft.referenceMessageId;
     if (savedOrReplyToThread) {
       return { accounts: [AccountStore.accountForId(props.draft.accountId)] };
     }
