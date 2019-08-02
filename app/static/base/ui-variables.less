@@ -32,6 +32,7 @@
 
 @white: #ffffff;
 @off-white: #f4f6f8;
+@off-white-light: #f8f8fa;
 
 @blue: #1293fd;;
 @blue-dark: @blue;
@@ -57,7 +58,7 @@
 
 @background-primary: @white;
 @background-off-primary: @off-white;
-@background-secondary: #f8f8fa;
+@background-secondary: @off-white-light;
 @background-tertiary: @background-off-primary;
 
 @color-info: @blue-dark;
@@ -230,16 +231,16 @@
 //== Account Sidebar
 @panel-background-color: @white;
 @source-list-bg: @panel-background-color;
-@source-list-active-bg:  #F8F8FA;
+@source-list-active-bg:  @off-white-light;
 @source-list-active-color: @component-active-color;
 @arrow-color: @gray-lighter;
 
 //== Thread List (e.g, `.list-group-item`, `.list-item`)
-@list-bg: @white;
+@list-bg: #fbfbfd;
 @list-border: @border-color-divider;
 @list-hover-bg: darken(@list-bg, 4%);
 @list-focused-color: inherit;
-@list-focused-bg: @background-secondary;
+@list-focused-bg: #EBF2FA;
 @list-focused-border: @border-color-divider;
 @list-selected-color: inherit;
 @list-selected-bg: @background-secondary;

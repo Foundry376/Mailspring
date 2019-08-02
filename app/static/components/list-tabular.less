@@ -128,7 +128,7 @@
           display: block;
           height: 24px;
           width: 24px;
-          .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
+          .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
         }
       }
 
@@ -320,7 +320,7 @@
           display: block;
           height: 24px;
           width: 24px;
-          .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
+          .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
         }
       }
 
@@ -512,7 +512,7 @@
       .inner {
         width: 18px;
         height: 18px;
-        .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
+        .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
         &::after {
           display: none;
         }
@@ -551,7 +551,7 @@
     transition-duration: 0.3s;
 
     &:hover {
-      background-color: #FFF;
+      background-color: @white;
       z-index: 9;
       box-shadow: 0 2px 10px rgba(0,0,0,0.12);
       // &:after {
@@ -576,7 +576,7 @@
     }
 
     &.focused {
-      background: @blue-light;
+      background: @list-focused-bg;
       color: @list-focused-color;
       border-bottom: 1px solid @border-color-secondary;
     }
@@ -651,7 +651,7 @@
       .inner {
         width: 18px;
         height: 18px;
-        .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
+        .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
         border: none;
       }
     }
