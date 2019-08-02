@@ -47,7 +47,6 @@ const getDeviceHash = () => {
 };
 const getOSInfo = () => {
   return {
-    priority: os.getPriority(),
     cpuModel: os.cpus(),
     platform: os.platform(),
     arch: os.arch(),
