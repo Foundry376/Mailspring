@@ -87,6 +87,9 @@ export class TranslateMessageHeader extends React.Component<
   _detectLanguageIfReady = async () => {
     if (this._detectionStarted) return;
 
+    // we do not translate messages that YOU sent, because you can probably read them.
+    if (this.props.message.isFromMe()) return;
+
     // load the previous translation result if this message is already translated
     const result = RecentlyTranslatedBodies.find(o => o.id === this.props.message.id);
     if (result) {
@@ -169,7 +172,7 @@ export class TranslateMessageHeader extends React.Component<
   _onPersistTranslation = (targetLanguage: string, translated: string) => {
     const { message } = this.props;
 
-    if (RecentlyTranslatedBodies.length > 100) {
+    if (RecentlyTranslatedBodies.length > 150) {
       const element = RecentlyTranslatedBodies.shift();
       localStorage.removeItem(`translated-${element.id}`);
     }
