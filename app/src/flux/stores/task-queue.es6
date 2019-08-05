@@ -3,6 +3,7 @@ import MailspringStore from 'mailspring-store';
 import { Rx } from 'mailspring-exports';
 import Task from '../tasks/task';
 import DatabaseStore from './database-store';
+import Actions from '../actions';
 
 /**
 Public: The TaskQueue is a Flux-compatible Store that manages a queue of {Task}
@@ -49,11 +50,17 @@ class TaskQueue extends MailspringStore {
 
     this._waitingForLocal = [];
     this._waitingForRemote = [];
-
-    Rx.Observable.fromQuery(DatabaseStore.findAll(Task)).subscribe(this._onQueueChangedDebounced);
+    if (AppEnv.isMainWindow()) {
+      Rx.Observable.fromQuery(DatabaseStore.findAll(Task)).subscribe(this._onQueueChangedDebounced);
+    } else {
+      this.listenTo(Actions.rebroadcastTasksQueueResults, this._onQueueChangedDebounced);
+    }
   }
 
   _onQueueChangedDebounced = _.throttle(tasks => {
+    if(AppEnv.isMainWindow()){
+      Actions.rebroadcastTasksQueueResults(tasks);
+    }
     const finished = [Task.Status.Complete, Task.Status.Cancelled];
     this._queue = tasks.filter(t => !finished.includes(t.status));
     this._completed = tasks.filter(t => finished.includes(t.status));
@@ -62,7 +69,7 @@ class TaskQueue extends MailspringStore {
     this._waitingForLocal = this._waitingForLocal.filter(({ task, resolve, timer = null }) => {
       const match = all.find(t => task.id === t.id);
       if (match) {
-        if (!timer) {
+        if (timer) {
           clearTimeout(timer);
         }
         resolve(match);

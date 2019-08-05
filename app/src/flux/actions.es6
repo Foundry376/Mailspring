@@ -88,6 +88,11 @@ class Actions {
   *Scope: Main Window*
   */
   static queueTasks = ActionScopeMainWindow;
+
+  /*
+  Broadcast tasks queue results to non mainWindow for task process.
+   */
+  static rebroadcastTasksQueueResults = ActionScopeGlobal;
   /*
   Public: Cancel a specific {Task} in the {TaskQueue}.
 
