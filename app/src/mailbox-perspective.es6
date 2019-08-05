@@ -44,6 +44,15 @@ export default class MailboxPerspective {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
 
+  static forAllTrash(accountsOrIds){
+    const categories = CategoryStore.getCategoriesWithRoles(accountsOrIds, 'trash');
+    if(Array.isArray(categories) && categories.length > 0){
+      return this.forCategories(categories);
+    }else{
+      return null;
+    }
+  }
+
   static forAttachments(accountIds) {
     return new AttachementMailboxPerspective(accountIds);
   }

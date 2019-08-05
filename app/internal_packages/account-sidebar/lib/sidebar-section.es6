@@ -177,6 +177,10 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
+    folderItem = SidebarItem.forAllTrash(accountIds, { dispalyName: 'Spam' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
     folderItem = SidebarItem.forDrafts(accountIds, { displayName: 'All Drafts' });
     if (folderItem) {
       items.push(folderItem);
