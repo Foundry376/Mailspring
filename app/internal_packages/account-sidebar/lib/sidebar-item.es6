@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const _str = require('underscore.string');
-const { OutlineViewItem } = require('mailspring-component-kit');
+const { OutlineViewItem, RetinaImg } = require('mailspring-component-kit');
 const {
   MailboxPerspective,
   FocusedPerspectiveStore,
@@ -10,13 +10,14 @@ const {
   WorkspaceStore,
   Actions,
   RegExpUtils,
+  AccountStore
 } = require('mailspring-exports');
 
 const SidebarActions = require('./sidebar-actions');
 
 const idForCategories = categories => _.pluck(categories, 'id').join('-');
 
-const countForItem = function(perspective) {
+const countForItem = function (perspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
   if (perspective.isInbox() || perspective.isDrafts() || unreadCountEnabled) {
     return perspective.unreadCount();
@@ -53,7 +54,7 @@ const isItemSelected = (perspective, children = []) => {
   return isChildrenSelected(children, FocusedPerspectiveStore.current());
 };
 
-const isItemCollapsed = function(id) {
+const isItemCollapsed = function (id) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
     return AppEnv.savedState.sidebarKeysCollapsed[id];
   } else {
@@ -61,14 +62,14 @@ const isItemCollapsed = function(id) {
   }
 };
 
-const toggleItemCollapsed = function(item) {
+const toggleItemCollapsed = function (item) {
   if (!(item.children.length > 0)) {
     return;
   }
   SidebarActions.setKeyCollapsed(item.id, !isItemCollapsed(item.id));
 };
 
-const onDeleteItem = function(item) {
+const onDeleteItem = function (item) {
   if (item.deleted === true) {
     return;
   }
@@ -96,7 +97,7 @@ const onDeleteItem = function(item) {
   );
 };
 
-const onEditItem = function(item, value) {
+const onEditItem = function (item, value) {
   let newDisplayName;
   if (!value) {
     return;
@@ -238,7 +239,7 @@ class SidebarItem {
         cats.push(tmp);
       }
     }
-    if(cats.length === 0){
+    if (cats.length === 0) {
       return null;
     }
     const perspective = MailboxPerspective.forCategories(cats);
@@ -256,7 +257,7 @@ class SidebarItem {
         cats.push(tmp);
       }
     }
-    if(cats.length === 0){
+    if (cats.length === 0) {
       return null;
     }
     const perspective = MailboxPerspective.forCategories(cats);
@@ -295,7 +296,7 @@ class SidebarItem {
         cats.push(tmp);
       }
     }
-    if(cats.length === 0){
+    if (cats.length === 0) {
       return null;
     }
     const perspective = MailboxPerspective.forCategories(cats);
@@ -338,6 +339,12 @@ class SidebarItem {
     const perspective = MailboxPerspective.forInbox(accountId);
     opts.categoryIds = this.getCategoryIds(accountId, 'inbox');
     const id = [accountId].join('-');
+    const account = AccountStore.accountForId(accountId);
+    if (account) {
+      opts.iconName = `account-logo-${account.provider}.png`;
+      opts.fallback = `account-logo-other.png`;
+      opts.mode = RetinaImg.Mode.ContentPreserve;
+    }
     return this.forPerspective(id, perspective, opts);
   }
 
