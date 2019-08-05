@@ -195,7 +195,7 @@ input:focus {
       padding-right: @padding-base-horizontal;
       text-overflow: ellipsis;
       overflow: hidden;
-
+      color: @gray-darker;
       // Shrink, but only after snippet has shrunk
       flex-shrink: 0.1;
     }
@@ -262,6 +262,14 @@ input:focus {
     // is noticeable.
     .participants {
       font-weight: @font-weight-semi-bold;
+    }
+    .subject {
+      color: @black;
+      font-weight: @font-weight-semi-bold;
+      span {
+        color: @black;
+        font-weight: @font-weight-semi-bold;
+      }
     }
   }
 
@@ -559,6 +567,7 @@ body.platform-win32 {
     width: 66px;
     margin-right: 3px;
     cursor: pointer;
+    padding-left: 20px;
     &::after {
       content: '';
       height: 18px;
@@ -650,7 +659,7 @@ body.platform-win32 {
     padding-right: 20px;
     position: relative;
     span {
-      opacity: 0.7;
+      color: @gray-darker;
     }
     .thread-icon {
       position: absolute;
