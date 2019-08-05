@@ -85,11 +85,22 @@
       width: 55px;
       height: 55px;
       overflow: hidden;
+      background-color: @off-white-light;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
       .file-icon {
         width: 100%;
       }
       img {
         width: 100%;
+        &.content-mask {
+          width: 30px;
+          margin: 0;
+          margin-top: -2px;
+          background-color: @gray;
+        }
       }
       .file-thumbnail-preview {
         height: 100%;
@@ -117,6 +128,7 @@
       }
       .file-size {
         color: @gray-light;
+        font-weight: bold;
       }
     }
     .file-icon {
