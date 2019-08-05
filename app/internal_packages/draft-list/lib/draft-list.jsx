@@ -42,7 +42,8 @@ class DraftList extends React.Component {
           <MultiselectList
             className="draft-list"
             columns={DraftListColumns.Wide}
-            onDoubleClick={this._onDoubleClick}
+            // onDoubleClick={this._onDoubleClick}
+            onClick={this._onDoubleClick}
             EmptyComponent={EmptyListState}
             keymapHandlers={this._keymapHandlers()}
             itemPropsProvider={this._itemPropsProvider}
