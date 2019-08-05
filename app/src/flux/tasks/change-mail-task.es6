@@ -36,9 +36,13 @@ export default class ChangeMailTask extends Task {
     this.threadIds = this.threadIds || threads.map(i => i.id);
     this.messageIds = this.messageIds || messages.map(i => i.id);
     this.accountId = this.accountId || (threads[0] || messages[0] || {}).accountId;
-
     if (this.canBeUndone === undefined) {
       this.canBeUndone = true;
+    }
+    if ((!!threads[0] || !!messages[0]) && !this.accountId) {
+      AppEnv.reportLog(new Error(`Mail Task missing accountId`), {
+        errorData: { thread: threads[0], message: messages[0] },
+      });
     }
   }
 

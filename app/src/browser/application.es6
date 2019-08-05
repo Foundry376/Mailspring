@@ -1045,6 +1045,19 @@ export default class Application extends EventEmitter {
       }
       event.returnValue = true;
     });
+    ipcMain.on('report-log', (event, params = {}) => {
+      try {
+        const errorParams = JSON.parse(params.errorJSON || '{}');
+        const extra = JSON.parse(params.extra || '{}');
+        let err = new Error();
+        err = Object.assign(err, errorParams);
+        global.errorLogger.reportLog(err, extra);
+      } catch (parseError) {
+        console.error(parseError);
+        global.errorLogger.reportError(parseError, {});
+      }
+      event.returnValue = true;
+    });
     ipcMain.on('after-add-account', (event, account) => {
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {

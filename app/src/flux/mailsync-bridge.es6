@@ -467,6 +467,11 @@ export default class MailsyncBridge {
       );
     }
     if (!task.accountId) {
+      try {
+        AppEnv.reportError(new Error(`Task ${task.constructor.name} have no accountId`), { errorData: task.toJSON() });
+      }catch (e){
+        console.log(e);
+      }
       throw new Error(
         `Tasks must have an accountId. Check your instance of ${task.constructor.name}.`,
       );
