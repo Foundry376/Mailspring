@@ -72,6 +72,8 @@ function AttachmentActionIcon(props) {
     onRemoveAttachment,
     onDownloadAttachment,
     disabled,
+    isIcon,
+    style
   } = props;
 
   const isRemovable = (onRemoveAttachment != null) && !disabled;
@@ -94,7 +96,7 @@ function AttachmentActionIcon(props) {
   return (
     <div className="file-action-icon" onClick={onClickActionIcon}>
       {!isDownloading ?
-        <RetinaImg name={actionIconName} mode={retinaImgMode} /> : null
+        <RetinaImg isIcon={isIcon} style={style} name={actionIconName} mode={retinaImgMode} /> : null
       }
     </div>
   );
@@ -288,7 +290,9 @@ export class AttachmentItem extends Component {
                     <div className="file-action-icon">
                       <RetinaImg
                         className="quicklook-icon"
-                        name="attachment-quicklook.png"
+                        isIcon
+                        style={{ width: 20, height: 20 }}
+                        name="preview.svg"
                         mode={RetinaImg.Mode.ContentIsMask}
                         onClick={!disabled ? this._onClickQuicklookIcon : null}
                       />
@@ -297,8 +301,10 @@ export class AttachmentItem extends Component {
                   <AttachmentActionIcon
                     {...this.props}
                     isDownloading={this.state.isDownloading || this.props.isDownloading}
-                    removeIcon="remove-attachment.png"
-                    downloadIcon="icon-attachment-download.png"
+                    removeIcon="close.svg"
+                    downloadIcon="download.svg"
+                    isIcon
+                    style={{ width: 20, height: 20 }}
                     retinaImgMode={RetinaImg.Mode.ContentIsMask}
                   />
                 </div>
