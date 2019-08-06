@@ -93,8 +93,14 @@ function AttachmentActionIcon(props) {
     }
   };
 
+  const fileActionIconStyle = {};
+  if (actionIconName === removeIcon) {
+    fileActionIconStyle.opacity = 1;
+    fileActionIconStyle.transform = 'scale(0.7)';
+  }
+
   return (
-    <div className="file-action-icon" onClick={onClickActionIcon}>
+    <div className="file-action-icon" onClick={onClickActionIcon} style={fileActionIconStyle}>
       {!isDownloading ?
         <RetinaImg isIcon={isIcon} style={style} name={actionIconName} mode={retinaImgMode} /> : null
       }
