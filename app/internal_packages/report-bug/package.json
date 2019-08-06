@@ -1,0 +1,15 @@
+{
+  "name": "bugReport",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "Report Bug",
+  "syncInit": true,
+  "license": "GPL-3.0",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "bugreport": true
+  }
+}

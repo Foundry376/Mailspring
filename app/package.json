@@ -12,6 +12,7 @@
   "dependencies": {
     "a11y-emoji": "^1.0.1",
     "alt-sasl-digest-md5": "^1.0.0",
+    "archiver": "^3.1.1",
     "async": "^2.5.0",
     "aws-sdk": "latest",
     "babel-core": "6.22.0",

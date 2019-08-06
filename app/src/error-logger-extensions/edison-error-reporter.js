@@ -42,7 +42,7 @@ module.exports = class EdisonErrorReporter {
     this._report(err, extra, 'WARNING');
   }
   reportLog(err, extra){
-    if (this.inSpecMode ) {
+    if (this.inSpecMode || this.inDevMode) {
       return;
     }
     this._report(err, extra, 'LOG');
@@ -133,16 +133,15 @@ module.exports = class EdisonErrorReporter {
         }
       }
       if (data && data.error) {
-        if (data.error.stack) {
-          ret.stack = data.error.stack;
-        }
-        if (data.error.message) {
-          ret.message = data.error.message;
+        try {
+          ret.error = JSON.stringify(data.error);
+        } catch (e) {
+          console.log(e);
         }
       }
-      if (Array.isArray(obj.files)) {
+      if (data && Array.isArray(obj.data.files)) {
         ret.files = [];
-        obj.files.forEach(filePath => {
+        obj.data.files.forEach(filePath => {
           ret.files.push(fs.createReadStream(filePath));
         });
       }

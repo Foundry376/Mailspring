@@ -179,6 +179,7 @@
     "submenu": [
       { "label": "Help Center", "command": "application:view-help" },
       { "label": "Send Feedback...", "command": "application:view-help" },
+      { "label": "Report Bug", "command": "application:bug-report" },
       {"type":  "separator"},
       { "label": "Restart and Install Update", "command": "application:install-update", "visible": false},
       { "label": "Check for Update", "command": "application:check-for-update", "visible": false},

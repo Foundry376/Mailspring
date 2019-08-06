@@ -8,7 +8,7 @@ if (process.type === 'renderer') {
 } else {
   app = require('electron').app;
 }
-
+const { getDeviceHash } = require('./system-utils');
 var appVersion = app.getVersion();
 var crashReporter = require('electron').crashReporter;
 // var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter');
@@ -203,23 +203,22 @@ module.exports = ErrorLogger = (function () {
 
   ErrorLogger.prototype._startCrashReporter = function (args) {
     const crashPath = path.join(this.resourcePath, 'crashReport');
-    let serverURL = '';
-    if(process.env.NODE_ENV !== 'production'){
-      serverURL = `http://tiger:1127/post`;
-    }else{
-      serverURL = `https://cp.stag.easilydo.cc/api/log/`;
-    }
-    crashReporter.start({
-      productName: 'EdisonMail',
-      companyName: 'Edison Tech',
-      submitURL: serverURL,
-      uploadToServer: true,
-      autoSubmit: true,
-      crashesDirectory: crashPath,
-      extra: {
-        version: appVersion,
-        platform: process.platform,
-      },
+    // const serverURL = `http://tiger:1127/post`;
+    const serverURL = `https://cp.stag.easilydo.cc/api/log2/`;
+    getDeviceHash().then(deviceId=>{
+      crashReporter.start({
+        productName: 'EdisonMail',
+        companyName: 'Edison Tech',
+        submitURL: serverURL,
+        uploadToServer: true,
+        autoSubmit: true,
+        crashesDirectory: crashPath,
+        extra: {
+          version: appVersion,
+          platform: process.platform,
+          deviceId: deviceId
+        },
+      });
     });
   };
 

@@ -2,14 +2,16 @@
 /* eslint import/no-dynamic-require: 0 */
 import _ from 'underscore';
 import path from 'path';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer, remote, desktopCapturer } from 'electron';
 import { Emitter } from 'event-kit';
 import { mapSourcePosition } from 'source-map-support';
 import fs from 'fs';
+import stream from 'stream';
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
 import { createHash } from 'crypto';
 const LOG = require('electron-log');
+const archiver = require('archiver');
 let getOSInfo = null;
 let getDeviceHash = null;
 
@@ -523,6 +525,9 @@ export default class AppEnvConstructor {
     loadSettings.title = title;
     this.loadSettings = loadSettings;
     this.emitter.emit('window-props-received', this.loadSettings.windowProps)
+  }
+  setWindowTitle(title){
+    this.getCurrentWindow().setTitle(title);
   }
 
   /*
@@ -1122,6 +1127,91 @@ export default class AppEnvConstructor {
     Event.prototype.isPropagationStopped = function isPropagationStopped() {
       return this.propagationStopped;
     };
+  }
+
+  captureScreen() {
+    return new Promise((resolve, reject) => {
+      const resourcePath = this.getConfigDirPath();
+      desktopCapturer.getSources(
+        {
+          types: ['window'],
+          thumbnailSize: { width: 1200, height: 1200 },
+        },
+        (error, sources) => {
+          if (error) {
+            reject(error);
+          }
+          const ourApp = sources.filter(source => {
+            return source.name === 'EdisonMail';
+          });
+          if (ourApp.length === 0) {
+            resolve('');
+          }
+          const img = ourApp[0].thumbnail;
+          if (!img.isEmpty()) {
+            const outputPath = path.join(resourcePath, `${ourApp[0].name}.png`);
+            const output = fs.createWriteStream(outputPath);
+            const pass = new stream.PassThrough();
+            pass.end(img.toPNG());
+            pass.pipe(output);
+            output.on('close', function() {
+              output.close();
+              resolve(outputPath);
+            });
+            output.on('end', function() {
+              output.close();
+              reject();
+            });
+            output.on('error', function() {
+              output.close();
+              reject();
+            });
+          }
+        }
+      );
+    });
+  }
+  grabLogs(fileName = '') {
+    return new Promise((resolve, reject) => {
+      const resourcePath = this.getConfigDirPath();
+      const logPath = path.dirname(LOG.transports.file.findLogPath());
+      if(fileName === ''){
+        fileName = parseInt(Date.now());
+      }
+      const outputPath = path.join(resourcePath, `logs-${fileName}.zip`);
+      const output = fs.createWriteStream(outputPath);
+      const archive = archiver('zip', {
+        zlib: { level: 9 } // Sets the compression level.
+      });
+
+      output.on('close', function() {
+        console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
+        console.log('archiver has been finalized and the output file descriptor has closed.');
+        resolve(outputPath);
+      });
+      output.on('end', function() {
+        console.log('\n----->\nData has been drained');
+        resolve(outputPath);
+      });
+      archive.on('warning', function(err) {
+        if (err.code === 'ENOENT') {
+          console.log(err);
+        } else {
+          output.close();
+          console.log(err);
+          reject(err)
+        }
+      });
+      archive.on('error', function(err) {
+        output.close();
+        console.log(err);
+        reject(err);
+      });
+      archive.pipe(output);
+      archive.directory(logPath, 'uiLog');
+      archive.glob(path.join(resourcePath, '*.log'), {}, { prefix: 'nativeLog' });
+      archive.finalize();
+    });
   }
 
   anonymizeAccount(account) {

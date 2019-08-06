@@ -5,6 +5,7 @@ import WindowLauncher from './window-launcher';
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
 const ONBOARDING_WINDOW = 'onboarding';
+const BUG_REPORT_WINDOW = 'bugreport';
 
 export default class WindowManager {
   constructor({
@@ -260,6 +261,19 @@ export default class WindowManager {
       width: 685,
       height: 700,
     };
+    coreWinOpts[WindowManager.BUG_REPORT_WINDOW] = {
+      windowKey: WindowManager.BUG_REPORT_WINDOW,
+      windowType: WindowManager.BUG_REPORT_WINDOW,
+      title: 'Bug Report',
+      name: 'Bug Report',
+      // hidden: true, // Displayed by PageRouter::_initializeWindowSize
+      hidden: false,
+      frame: true, // Always false on Mac, explicitly set for Win & Linux
+      toolbar: false,
+      resizable: false,
+      width: 685,
+      height: 700,
+    };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript
     coreWinOpts[WindowManager.SPEC_WINDOW] = {
@@ -282,3 +296,4 @@ export default class WindowManager {
 WindowManager.MAIN_WINDOW = MAIN_WINDOW;
 WindowManager.SPEC_WINDOW = SPEC_WINDOW;
 WindowManager.ONBOARDING_WINDOW = ONBOARDING_WINDOW;
+WindowManager.BUG_REPORT_WINDOW = BUG_REPORT_WINDOW;
