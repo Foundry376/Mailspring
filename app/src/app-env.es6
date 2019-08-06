@@ -241,7 +241,10 @@ export default class AppEnvConstructor {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
       extra.chatEnabled = this.config.get('chatEnable');
-      extra.pluginIds = this._findPluginsFromError(error);
+      extra.pluginIds = JSON.stringify(this._findPluginsFromError(error));
+      if (!!extra.errorData) {
+        extra.errorData = JSON.stringify(extra.errorData);
+      }
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];
@@ -255,35 +258,17 @@ export default class AppEnvConstructor {
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
   reportError(error, extra = {}, { noWindows } = {}) {
-    extra = this._expandReportLog(error, extra);
-
-    if (error instanceof APIError) {
-      // API Errors are logged by our backend and happen all the time (offline, etc.)
-      // Don't clutter the front-end metrics with these.
-      return;
-    }
-
-    if (this.inSpecMode()) {
-      if (global.jasmine || window.jasmine) {
-        jasmine.getEnv().currentSpec.fail(error);
-      }
-    } else if (this.inDevMode() && !noWindows) {
-      if (!this.isDevToolsOpened()) {
-        this.openDevTools();
-        this.executeJavaScriptInDevTools('DevToolsAPI.showPanel(\'console\')');
-      }
-    }
-    this.logError(error);
-    try {
-      const strippedError = this._stripSensitiveData(error);
-      error = strippedError;
-    } catch (e) {
-      console.log(e);
-    }
-    this.errorLogger.reportError(error, extra);
+    this._reportLog(error, extra, { noWindows }, 'error');
   }
 
   reportWarning(error, extra = {}, { noWindows } = {}) {
+    this._reportLog(error, extra, { noWindows }, 'warning');
+  }
+  reportLog(error, extra = {}, { noWindows } = {}) {
+    this._reportLog(error, extra, { noWindows }, 'log');
+  }
+
+  _reportLog(error, extra = {}, { noWindows } = {}, type = '') {
     extra = this._expandReportLog(error, extra);
 
     if (error instanceof APIError) {
@@ -302,14 +287,29 @@ export default class AppEnvConstructor {
         this.executeJavaScriptInDevTools('DevToolsAPI.showPanel(\'console\')');
       }
     }
-    this.logWarning(error);
+    if (type.toLocaleLowerCase() === 'error') {
+      this.logError(error);
+    } else if (type.toLocaleLowerCase() === 'warning') {
+      this.logWarning(error);
+    } else {
+      this.logDebug(error);
+    }
     try {
       const strippedError = this._stripSensitiveData();
       error = strippedError;
+      if (!!extra.errorData) {
+        extra.errorData = this._stripSensitiveData(extra.errorData);
+      }
     } catch (e) {
       console.log(e);
     }
-    this.errorLogger.reportWarning(error, extra);
+    if (type.toLocaleLowerCase() === 'error') {
+      this.errorLogger.reportError(error, extra);
+    } else if (type.toLocaleLowerCase() === 'warning') {
+      this.errorLogger.reportWarning(error, extra);
+    } else {
+      this.errorLogger.reportLog(error, extra);
+    }
   }
 
   initSupportInfo() {

@@ -393,6 +393,21 @@ class SidebarItem {
     );
   }
 
+  static forAllTrash(accountIds, opts = {}) {
+    opts.iconName = 'trash.svg';
+    const perspective = MailboxPerspective.forAllTrash(accountIds);
+    opts.categoryIds = this.getCategoryIds(accountIds, 'trash');
+    if (!Array.isArray(opts.categoryIds) || opts.categoryIds.length === 0) {
+      return null;
+    }
+    const id = `AllTrash-${opts.name}`;
+    // return this.forPerspective(id, perspective, opts);
+    return SidebarItem.appendSubPathByAccounts(
+      accountIds,
+      this.forPerspective(id, perspective, opts)
+    );
+  }
+
   static appendSubPathByAccounts(accountIds, parentPerspective) {
     for (const accountId of accountIds) {
       const paths = parentPerspective.path.filter(p => p.accountId === accountId);
