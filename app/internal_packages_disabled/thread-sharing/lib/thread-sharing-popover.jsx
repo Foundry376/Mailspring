@@ -25,7 +25,7 @@ export default class ThreadSharingPopover extends React.Component {
       url: sharingURLForThread(props.thread),
       saving: false,
     };
-    this._disposable = { dispose: () => {} };
+    this._disposable = { dispose: () => { } };
   }
 
   componentDidMount() {
@@ -75,7 +75,7 @@ export default class ThreadSharingPopover extends React.Component {
       AppEnv.reportError(error);
       AppEnv.showErrorDialog(
         `Sorry, we were unable to contact the EdisonMail servers to share this thread.\n\n${
-          error.message
+        error.message
         }`
       );
     }
@@ -106,25 +106,25 @@ export default class ThreadSharingPopover extends React.Component {
               />
               Syncing...
               <div className="meta">
-                Mailspring is syncing this thread and it's attachments to the cloud. For long
+                EdisonMail is syncing this thread and it's attachments to the cloud. For long
                 threads, this may take a moment.
               </div>
             </label>
           ) : (
-            <label htmlFor="shareCheckbox">
-              <input
-                type="checkbox"
-                id="shareCheckbox"
-                checked={!!url}
-                onChange={this._onToggleShared}
-              />
-              Share this thread
+              <label htmlFor="shareCheckbox">
+                <input
+                  type="checkbox"
+                  id="shareCheckbox"
+                  checked={!!url}
+                  onChange={this._onToggleShared}
+                />
+                Share this thread
               <div className="meta">
-                Sync this conversation to the cloud and anyone with the secret link can read it and
-                download attachments.
+                  Sync this conversation to the cloud and anyone with the secret link can read it and
+                  download attachments.
               </div>
-            </label>
-          )}
+              </label>
+            )}
           <div className="meta">
             <a href="https://foundry376.zendesk.com/hc/en-us/articles/360002360771">Learn More</a>
           </div>

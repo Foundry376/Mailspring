@@ -296,7 +296,7 @@ export default class SidebarParticipantProfile extends React.Component {
     return (
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <p>
-          The contact sidebar in Mailspring Pro shows information about the people and companies
+          The contact sidebar in EdisonMail Pro shows information about the people and companies
           you're emailing with.
         </p>
         <div className="btn" onClick={!this.state.loading ? this._onClickedToTry : null}>
