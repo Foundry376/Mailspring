@@ -281,11 +281,11 @@
     word-break: break-word;
 
     .message-image {
-      display:inline-block;
+      display: inline-block;
       padding-right: 0;
       border-radius: 10px;
       overflow: hidden;
-       & > img {
+      & > img {
         height: 220px;
         cursor: zoom-in;
       }
@@ -365,7 +365,7 @@
       width: 100%;
       overflow: hidden;
     }
-    }
+  }
 
   .messageFailed {
     position: relative;
@@ -518,6 +518,7 @@
             top: 0;
             left: 0;
             background-color: @white;
+            transition: width 0.3s;
           }
 
           .progress-background {
