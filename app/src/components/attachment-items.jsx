@@ -239,7 +239,7 @@ export class AttachmentItem extends Component {
       'has-preview': filePreviewPath,
       [className]: className,
     });
-    let iconName = AttachmentStore.getExtIconName(displayName);
+    let { iconName, color } = AttachmentStore.getExtIconName(displayName);
     if (isImage) {
       if (fs.existsSync(filePath)) {
         filePreviewPath = filePath;
@@ -282,11 +282,13 @@ export class AttachmentItem extends Component {
                       ref={cm => {
                         this._fileIconComponent = cm;
                       }}
+                      style={{ backgroundColor: color }}
                       className="file-icon"
                       fallback="drafts.svg"
                       name={iconName}
                       isIcon
-                      mode={RetinaImg.Mode.ContentIsMask} />
+                      mode={RetinaImg.Mode.ContentIsMask}
+                    />
                   )}
               </div>
               <div className="attachment-info">

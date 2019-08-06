@@ -424,15 +424,23 @@ export default class Msg extends PureComponent {
     const fileName = filepath ? path.basename(filepath) : '';
     let extName = path.extname(filepath || 'x.doc').slice(1);
     let iconName;
+    let style = {};
     if (filepath) {
-      iconName = AttachmentStore.getExtIconName(filepath);
+      iconInfo = AttachmentStore.getExtIconName(filepath);
+      iconName = iconInfo.iconName;
+      style.backgroundColor = iconInfo.color;
     }
     let isVideo = AttachmentStore.isVideo(filepath);
     return (
       <div className="message-file">
         <div className="file-info" onClick={() => this.clickFileCoordinate(msgBody.path)}>
           <div className="file-icon">
-            <RetinaImg name={iconName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg
+              name={iconName}
+              style={style}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
           </div>
           <div>
             <div className="file-name">{fileName}</div>

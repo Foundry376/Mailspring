@@ -143,9 +143,11 @@ class RetinaImg extends React.Component {
     }
 
     for (const key of Object.keys(style)) {
-      const val = style[key].toString();
-      if (StylesImpactedByZoom.indexOf(key) !== -1 && val.indexOf('%') === -1) {
-        style[key] = val.replace('px', '') / style.zoom;
+      if (style[key]) {
+        const val = style[key].toString();
+        if (StylesImpactedByZoom.indexOf(key) !== -1 && val.indexOf('%') === -1) {
+          style[key] = val.replace('px', '') / style.zoom;
+        }
       }
     }
 
