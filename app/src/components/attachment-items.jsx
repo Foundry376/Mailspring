@@ -163,13 +163,19 @@ export class AttachmentItem extends Component {
       event.preventDefault();
     }
   };
-  _onClick = () => {
+  _onClick = (e) => {
     if (this.state.isDownloading || this.props.isDownloading) {
       return;
     }
     if (this.props.missing && !this.state.isDownloading) {
       this.setState({ isDownloading: true, download: { state: 'downloading', percent: 100 } });
       MessageStore.fetchMissingAttachmentsByFileIds({ fileIds: [this.props.fileId] });
+    } else {
+      if (fs.existsSync(this.props.filePath)) {
+        this._onClickQuicklookIcon(e);
+        e.preventDefault();
+        e.stopPropagation();
+      }
     }
   };
 
@@ -204,6 +210,9 @@ export class AttachmentItem extends Component {
   };
 
   _onClickQuicklookIcon = event => {
+    if (!this._canPreview()) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     this._previewAttachment();
