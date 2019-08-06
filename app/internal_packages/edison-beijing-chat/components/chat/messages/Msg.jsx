@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 const a11yEmoji = require('a11y-emoji');
 import { colorForString } from '../../../utils/colors';
-import { dateFormat } from '../../../utils/time';
+const { DateUtils } = require('mailspring-exports');
 import { RetinaImg } from 'mailspring-component-kit';
 
 const { AttachmentStore, AccountStore } = require('mailspring-exports');
@@ -441,7 +441,7 @@ export default class Msg extends PureComponent {
         </div>
         {isVideo && fs.existsSync(msgBody.path) && (
           <div className="video-wrapper">
-            <video controls src={msgBody.path}></video>
+            <video controls src={msgBody.path} />
           </div>
         )}
       </div>
@@ -538,7 +538,7 @@ export default class Msg extends PureComponent {
           <div className="message-content">
             <div className="message-header">
               <span className="username">{senderName}</span>
-              <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
+              <span className="time">{DateUtils.shortTimeString(msg.sentTime)}</span>
             </div>
             <div className="messageBody">
               {this.renderContent()}
