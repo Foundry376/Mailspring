@@ -43,14 +43,16 @@ const extMapping = {
   pdf: 'pdf',
   xls: 'xls',
   xlsx: 'xls',
-  zip: 'zip',
   ppt: 'ppt',
   pptx: 'ppt',
   doc: 'doc',
   docx: 'doc',
+  mpeg4: 'video',
   mp4: 'video',
   avi: 'video',
   mov: 'video',
+  rar: 'zip',
+  zip: 'zip',
   gz: 'zip',
   tar: 'zip',
   '7z': 'zip',
@@ -62,6 +64,7 @@ const extMapping = {
   coffee: 'code',
   pl: 'code',
   js: 'code',
+  ts: 'code',
   html: 'code',
   htm: 'code',
   py: 'code',
@@ -70,6 +73,21 @@ const extMapping = {
   ifb: 'calendar',
   pkpass: 'pass',
 };
+
+const colorMapping = {
+  xls: '#2AC941', // Spreadsheet
+  video: '#FF475F', // Video
+  ppt: '#FFA115', // Slides
+  pdf: '#FC3259', // PDF
+  calendar: '#FC3259', // Calendar
+  code: '#59DCE4', // Code
+  doc: '#1393FC', // Doc
+  Book: '#FFA115',
+  Image: '#b6bdc2',
+  Audio: '#648096',
+  Font: '#b6bdc2',
+  other: '#b6bdc2', // Other
+}
 
 const PREVIEW_FILE_SIZE_LIMIT = 2000000; // 2mb
 const THUMBNAIL_WIDTH = 320;
@@ -117,7 +135,11 @@ class AttachmentStore extends MailspringStore {
   getExtIconName(filePath) {
     let extName = path.extname(filePath).slice(1);
     extName = extMapping[extName && extName.toLowerCase()];
-    return extName ? `attachment-${extName}.svg` : 'drafts.svg';
+    const color = colorMapping[extName || 'other'];
+    return {
+      iconName: extName ? `attachment-${extName}.svg` : 'drafts.svg',
+      color
+    };
   }
 
   isVideo(filePath) {

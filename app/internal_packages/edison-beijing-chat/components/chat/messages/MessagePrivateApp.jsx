@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import uuid from 'uuid/v4';
-import { dateFormat } from '../../../utils/time';
+const { DateUtils } = require('mailspring-exports');
 import { RetinaImg } from 'mailspring-component-kit';
 import MessageCommand from './MessageCommand';
 import { FILE_TYPE } from '../../../utils/filetypes';
@@ -23,7 +23,7 @@ export default class MessagePrivateApp extends PureComponent {
     this.state = state;
   };
 
-  sendImageLink = (url) => {
+  sendImageLink = url => {
     const { conversation } = this.props;
     let fileType;
     if (url.match(/gif$/)) {
@@ -34,11 +34,11 @@ export default class MessagePrivateApp extends PureComponent {
       fileType = FILE_TYPE.OTHER_FILE;
     }
     const body = {
-      "type": fileType,
-      "mediaObjectId": url,
+      type: fileType,
+      mediaObjectId: url,
       timeSend: new Date().getTime() + edisonChatServerDiffTime,
       path: url,
-      content: 'sent'
+      content: 'sent',
     };
     const messageId = uuid();
     const msg = this.props.msg;
@@ -47,10 +47,10 @@ export default class MessagePrivateApp extends PureComponent {
     msg.body = JSON.stringify(msgBody);
     MessageStore.saveMessagesAndRefresh([msg]);
     MessageSend.sendMessage(body, conversation, messageId);
-  }
-  toggleCommands = ()  => {
+  };
+  toggleCommands = () => {
     const commandsVisible = !this.state.commandsVisible;
-    this.setState({commandsVisible});
+    this.setState({ commandsVisible });
   };
 
   render() {
@@ -66,9 +66,7 @@ export default class MessagePrivateApp extends PureComponent {
       return null;
     }
     let { type, mimeType, content, contents, htmlBody, ctxCommands } = data;
-    const {
-      getContactAvatar,
-    } = this.props;
+    const { getContactAvatar } = this.props;
     const member = { jid: appJid, name: '' };
     let commands = null;
     if (ctxCommands) {
@@ -78,43 +76,60 @@ export default class MessagePrivateApp extends PureComponent {
       } else {
         arrCmds = ctxCommands;
       }
-      commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.conversation}
-        appJid={appJid}
-        commandType={2}
-        appName={appName}
-        templateText={item.command}
-        key={idx}></MessageCommand>);
+      commands = arrCmds.map((item, idx) => (
+        <MessageCommand
+          conversation={this.props.conversation}
+          appJid={appJid}
+          commandType={2}
+          appName={appName}
+          templateText={item.command}
+          key={idx}
+        />
+      ));
     }
     if (mimeType.match(/^image/)) {
-      contents = contents.map((item, idx) => <img src={item} style={{ maxWidth: '100px', maxHeight: '100px' }} onClick={e => this.sendImageLink(item)} key={idx} />)
+      contents = contents.map((item, idx) => (
+        <img
+          src={item}
+          style={{ maxWidth: '100px', maxHeight: '100px' }}
+          onClick={e => this.sendImageLink(item)}
+          key={idx}
+        />
+      ));
     } else if (type === 'url') {
-      contents = contents.map((item, idx) => <a href={item} key={idx} />)
+      contents = contents.map((item, idx) => <a href={item} key={idx} />);
     } else {
       contents = null;
     }
     return (
       <div className="message otherUser">
-        <div className="messageSender">
-          {getContactAvatar(member)}
-        </div>
+        <div className="messageSender">{getContactAvatar(member)}</div>
         <div className="message-content">
           <div className="message-header">
             <span className="username">{appName}</span>
             <span className="username">{this.state.installerName}</span>
-            <span className="time">{dateFormat(sentTime, 'LT')}</span>
+            <span className="time">{DateUtils.shortTimeString(sentTime)}</span>
           </div>
           <div className="messageBody">
             <div className="text-content">
-              {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }} /> : <div> {content} </div>}
+              {htmlBody ? (
+                <div dangerouslySetInnerHTML={{ __html: htmlBody }} />
+              ) : (
+                <div> {content} </div>
+              )}
               {contents}
               <br />
               {contents && contents.length ? <h6>click a image to send it</h6> : null}
             </div>
-            {commands && commands.length ? <RetinaImg name={'expand-more.svg'}
-                                                      onClick={this.toggleCommands}
-                                                      style={{ width: 26, height: 26 }}
-                                                      isIcon
-                                                      mode={RetinaImg.Mode.ContentIsMask} /> : null }
+            {commands && commands.length ? (
+              <RetinaImg
+                name={'expand-more.svg'}
+                onClick={this.toggleCommands}
+                style={{ width: 26, height: 26 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
+            ) : null}
             {commandsVisible ? <div>{commands}</div> : null}
           </div>
         </div>

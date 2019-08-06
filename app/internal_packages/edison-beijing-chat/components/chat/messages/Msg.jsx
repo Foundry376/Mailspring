@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 const a11yEmoji = require('a11y-emoji');
 import { colorForString } from '../../../utils/colors';
-import { dateFormat } from '../../../utils/time';
+const { DateUtils } = require('mailspring-exports');
 import { RetinaImg } from 'mailspring-component-kit';
 
 const { AttachmentStore, AccountStore } = require('mailspring-exports');
@@ -424,15 +424,23 @@ export default class Msg extends PureComponent {
     const fileName = filepath ? path.basename(filepath) : '';
     let extName = path.extname(filepath || 'x.doc').slice(1);
     let iconName;
+    let style = {};
     if (filepath) {
-      iconName = AttachmentStore.getExtIconName(filepath);
+      iconInfo = AttachmentStore.getExtIconName(filepath);
+      iconName = iconInfo.iconName;
+      style.backgroundColor = iconInfo.color;
     }
     let isVideo = AttachmentStore.isVideo(filepath);
     return (
       <div className="message-file">
         <div className="file-info" onClick={() => this.clickFileCoordinate(msgBody.path)}>
           <div className="file-icon">
-            <RetinaImg name={iconName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg
+              name={iconName}
+              style={style}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
           </div>
           <div>
             <div className="file-name">{fileName}</div>
@@ -441,7 +449,7 @@ export default class Msg extends PureComponent {
         </div>
         {isVideo && fs.existsSync(msgBody.path) && (
           <div className="video-wrapper">
-            <video controls src={msgBody.path}></video>
+            <video controls src={msgBody.path} />
           </div>
         )}
       </div>
@@ -538,7 +546,7 @@ export default class Msg extends PureComponent {
           <div className="message-content">
             <div className="message-header">
               <span className="username">{senderName}</span>
-              <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
+              <span className="time">{DateUtils.shortTimeString(msg.sentTime)}</span>
             </div>
             <div className="messageBody">
               {this.renderContent()}

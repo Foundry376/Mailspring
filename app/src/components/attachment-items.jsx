@@ -93,8 +93,14 @@ function AttachmentActionIcon(props) {
     }
   };
 
+  const fileActionIconStyle = {};
+  if (actionIconName === removeIcon) {
+    fileActionIconStyle.opacity = 1;
+    fileActionIconStyle.transform = 'scale(0.7)';
+  }
+
   return (
-    <div className="file-action-icon" onClick={onClickActionIcon}>
+    <div className="file-action-icon" onClick={onClickActionIcon} style={fileActionIconStyle}>
       {!isDownloading ?
         <RetinaImg isIcon={isIcon} style={style} name={actionIconName} mode={retinaImgMode} /> : null
       }
@@ -163,13 +169,19 @@ export class AttachmentItem extends Component {
       event.preventDefault();
     }
   };
-  _onClick = () => {
+  _onClick = (e) => {
     if (this.state.isDownloading || this.props.isDownloading) {
       return;
     }
     if (this.props.missing && !this.state.isDownloading) {
       this.setState({ isDownloading: true, download: { state: 'downloading', percent: 100 } });
       MessageStore.fetchMissingAttachmentsByFileIds({ fileIds: [this.props.fileId] });
+    } else {
+      if (fs.existsSync(this.props.filePath)) {
+        this._onClickQuicklookIcon(e);
+        e.preventDefault();
+        e.stopPropagation();
+      }
     }
   };
 
@@ -204,6 +216,9 @@ export class AttachmentItem extends Component {
   };
 
   _onClickQuicklookIcon = event => {
+    if (!this._canPreview()) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     this._previewAttachment();
@@ -230,7 +245,7 @@ export class AttachmentItem extends Component {
       'has-preview': filePreviewPath,
       [className]: className,
     });
-    let iconName = AttachmentStore.getExtIconName(displayName);
+    let { iconName, color } = AttachmentStore.getExtIconName(displayName);
     if (isImage) {
       if (fs.existsSync(filePath)) {
         filePreviewPath = filePath;
@@ -273,11 +288,13 @@ export class AttachmentItem extends Component {
                       ref={cm => {
                         this._fileIconComponent = cm;
                       }}
+                      style={{ backgroundColor: color }}
                       className="file-icon"
                       fallback="drafts.svg"
                       name={iconName}
                       isIcon
-                      mode={RetinaImg.Mode.ContentIsMask} />
+                      mode={RetinaImg.Mode.ContentIsMask}
+                    />
                   )}
               </div>
               <div className="attachment-info">
