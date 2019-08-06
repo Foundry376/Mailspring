@@ -3,7 +3,7 @@ import { dialog } from 'electron';
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs';
-import {getDeviceHash} from '../system-utils';
+import { getDeviceHash, syncGetDeviceHash } from '../system-utils';
 
 let autoUpdater = null;
 
@@ -25,12 +25,12 @@ export default class AutoUpdateManager extends EventEmitter {
     this.config = config;
     this.specMode = specMode;
     this.preferredChannel = preferredChannel;
-    this.supportId = '';
+    this.supportId = syncGetDeviceHash();
 
-    this.updateFeedURL();
+    this.updateFeedURL().then(() => {
+      setTimeout(() => this.setupAutoUpdater(), 0);
+    });
     this.config.onDidChange('identity.id', this.updateFeedURL);
-
-    setTimeout(() => this.setupAutoUpdater(), 0);
   }
 
   updateFeedURL = () => {
@@ -45,30 +45,34 @@ export default class AutoUpdateManager extends EventEmitter {
       params.platform = 'mac';
     }
     const host = process.env.updateServer || `https://cp.stag.easilydo.cc/api/ota/checkUpdate`;
-    if (this.supportId === '') {
-      getDeviceHash().then(hash => {
-          this.supportId = hash;
-          return Promise.resolve();
-        },
-        e => {
-          this.supportId = '';
-          return Promise.resolve();
-        },
-      )
-        .then(() => {
-          this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}&supportId=${this.supportId}`;
-          if (autoUpdater) {
-            autoUpdater.setFeedURL(this.feedURL);
-          }
-          return Promise.resolve();
-        });
-    } else {
-      this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}&supportId=${this.supportId}`;
-      if (autoUpdater) {
-        autoUpdater.setFeedURL(this.feedURL);
+    return new Promise(resolve => {
+      if (this.supportId === '') {
+        getDeviceHash()
+          .then(
+            hash => {
+              this.supportId = hash;
+              return Promise.resolve();
+            },
+            e => {
+              this.supportId = '';
+              return Promise.resolve();
+            },
+          )
+          .then(() => {
+            this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}&supportId=${this.supportId}`;
+            if (autoUpdater) {
+              autoUpdater.setFeedURL(this.feedURL);
+            }
+            resolve();
+          });
+      } else {
+        this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}&supportId=${this.supportId}`;
+        if (autoUpdater) {
+          autoUpdater.setFeedURL(this.feedURL);
+        }
+        resolve();
       }
-      return Promise.resolve();
-    }
+    });
   };
 
   setupAutoUpdater() {
@@ -125,6 +129,7 @@ export default class AutoUpdateManager extends EventEmitter {
       }
       this.check({ hidePopups: true });
     }, 1000 * 60 * 30);
+    console.log(`\n------->\nupdater set feedURL ${this.feedURL}`);
   }
 
   emitUpdateAvailableEvent() {

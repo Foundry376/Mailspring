@@ -2,6 +2,7 @@ const os = require('os');
 const crypto = require('crypto');
 const serialNumber = require('serial-number');
 let deviceSerial = '';
+let deviceHash = '';
 const getDeviceHash = () => {
   return new Promise(resolve => {
     if (deviceSerial === '') {
@@ -11,20 +12,18 @@ const getDeviceHash = () => {
         } else {
           deviceSerial = value;
         }
-        resolve(
-          crypto
-            .createHash('sha256')
-            .update(`${os.arch()}-${os.cpus()[0].model}-${deviceSerial}-${os.platform()}`)
-            .digest('hex')
-        );
-      });
-    } else {
-      resolve(
-        crypto
+        deviceHash = crypto
           .createHash('sha256')
           .update(`${os.arch()}-${os.cpus()[0].model}-${deviceSerial}-${os.platform()}`)
-          .digest('hex')
-      );
+          .digest('hex');
+        resolve(deviceHash);
+      });
+    } else {
+      deviceHash = crypto
+        .createHash('sha256')
+        .update(`${os.arch()}-${os.cpus()[0].model}-${deviceSerial}-${os.platform()}`)
+        .digest('hex');
+      resolve(deviceHash);
     }
     // const networks = os.networkInterfaces();
     // const macs = Object.keys(networks)
@@ -61,8 +60,16 @@ const getOSInfo = () => {
     loadAvg: JSON.stringify(os.loadavg()),
   };
 };
+const syncGetDeviceHash = () => {
+  if (deviceHash === '') {
+    getDeviceHash();
+  }
+  return deviceHash;
+};
+syncGetDeviceHash();
 
 module.exports = {
   getDeviceHash: getDeviceHash,
   getOSInfo: getOSInfo,
+  syncGetDeviceHash: syncGetDeviceHash,
 };
