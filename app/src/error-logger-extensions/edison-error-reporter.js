@@ -29,7 +29,7 @@ module.exports = class EdisonErrorReporter {
   }
 
   reportError(err, extra) {
-    if (this.inSpecMode ) {
+    if (this.inSpecMode || this.inDevMode) {
       return;
     }
     this._report(err, extra, 'ERROR');
