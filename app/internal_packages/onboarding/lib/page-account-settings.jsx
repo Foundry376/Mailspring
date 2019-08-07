@@ -52,13 +52,15 @@ class AccountBasicSettingsForm extends React.Component {
       errorFieldNames.push('email');
       errorMessage = 'Please provide a valid email address.';
     }
-    const emailValidate = validateEmailAddressForProvider(
-      account.emailAddress,
-      providerConfig
-    );
-    if (!emailValidate.ret) {
-      errorFieldNames.push('email');
-      errorMessage = emailValidate.message;
+    if(providerConfig && providerConfig.provider === 'icloud'){
+      const emailValidate = validateEmailAddressForProvider(
+        account.emailAddress,
+        providerConfig
+      );
+      if (!emailValidate.ret) {
+        errorFieldNames.push('email');
+        errorMessage = emailValidate.message;
+      }
     }
     if (!account.settings.imap_password) {
       errorFieldNames.push('password');

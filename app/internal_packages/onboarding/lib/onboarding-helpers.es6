@@ -112,28 +112,38 @@ export function validateEmailAddressForProvider(
     .split('@')
     .pop()
     .toLowerCase();
-  // const mxRecords = await mxRecordsForDomain(domain);
   let template = MailcoreProviderSettings[provider.provider];
+  mxRecordsForDomain(domain).then(mxRecords => {
+    if(template){
+      for (const test of template['mx-match'] || []) {
+        const reg = new RegExp(`^${test}$`);
+        if (mxRecords.some(record => reg.test(record))) {
+          return { ret: true };
+        }
+      }
+    }
+  });
   if (template) {
     for (const test of template['domain-match'] || []) {
       if (new RegExp(`^${test}$`).test(domain)) {
         return { ret: true };
       }
     }
-    // for (const test of template['mx-match'] || []) {
-    //   const reg = new RegExp(`^${test}$`);
-    //   if (mxRecords.some(record => reg.test(record))) {
-    //     return { ret: true };
-    //   }
-    // }
   }
   template = MailspringProviderSettings[provider.defaultDomain];
+  let provideAlias = '';
+  let fromAlias = false;
   if (template && template.alias) {
+    provideAlias = template.alias;
+    fromAlias = true;
     template = MailspringProviderSettings[template.alias];
   }
   if (template) {
     let tmp = MailspringProviderSettings[domain];
-    if (tmp && tmp.imap_host === template.imap_host) {
+    if (tmp && tmp.imap_host && tmp.imap_host === template.imap_host && !fromAlias) {
+      return { ret: true };
+    }
+    if (tmp && !tmp.imap_host && (tmp.alias === provider.defaultDomain || tmp.alias === provideAlias)) {
       return { ret: true };
     }
     if(provider.incorrectEmail){
