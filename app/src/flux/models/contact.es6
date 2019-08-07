@@ -337,8 +337,8 @@ export default class Contact extends Model {
   static fromString(string, { accountId } = {}) {
     const emailRegex = RegExpUtils.emailRegex();
     const match = emailRegex.exec(string);
-    if (emailRegex.exec(string)) {
-      const errMsg = `Error while calling Contact.fromString: string contains more than one email:${string}`;
+    if (!match || emailRegex.exec(string)) {
+      const errMsg = `Error while calling Contact.fromString: string didn't contains only one email:${string}`;
       console.error(errMsg);
       const e = new Error(errMsg);
       AppEnv.reportError(e);
