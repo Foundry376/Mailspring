@@ -11,7 +11,7 @@ let _ = require('underscore');
 _ = Object.assign(_, require('./config-utils'));
 const { remote } = require('electron');
 const { Emitter } = require('event-kit');
-
+const crypto = require('crypto');
 if (process.type === 'renderer') {
   app = remote.getGlobal('application');
   webContentsId = remote.getCurrentWebContents().getId();
@@ -347,6 +347,63 @@ class Config {
         this.updateSettings(settings);
       });
     }
+  }
+
+  cloneForErrorLog() {
+    const ret = JSON.parse(
+      JSON.stringify({
+        settings: this.settings,
+        defaultSettings: this.defaultSettings,
+        schema: this.schema,
+      }),
+    );
+    const stripAccountData = account => {
+      const sensitveData = [
+        'emailAddress',
+        'label',
+        'name',
+        'access_token',
+        'ews_password',
+        'ews_username',
+        'imap_username',
+        'smtp_username',
+      ];
+      const ret = {};
+      const hash = str => {
+        return crypto
+          .createHash('sha256')
+          .update(str)
+          .digest('hex');
+      };
+      for (let key in account) {
+        if (key !== 'aliases' && key !== 'settings' && !sensitveData.includes(key)) {
+          ret[key] = account[key];
+        } else if (key === 'aliases') {
+          ret.aliases = [];
+          account.aliases.forEach(alias => {
+            ret.aliases.push(hash(alias));
+          });
+        } else if (key === 'settings') {
+          ret.settings = {};
+          for (let settingKey in account.settings) {
+            if (sensitveData.includes(settingKey)) {
+              ret.settings[settingKey] = hash(account.settings[settingKey]);
+            } else {
+              ret.settings[settingKey] = account.settings[settingKey];
+            }
+          }
+        } else {
+          ret[key] = hash(account[key]);
+        }
+      }
+      return ret;
+    };
+    if (ret.settings && Array.isArray(ret.settings.accounts)) {
+      ret.settings.accounts = ret.settings.accounts.map(account => {
+        return stripAccountData(account);
+      });
+    }
+    return ret;
   }
 
   _logError(prefix, error) {

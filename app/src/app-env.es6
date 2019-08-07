@@ -243,6 +243,7 @@ export default class AppEnvConstructor {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
       extra.chatEnabled = this.config.get('chatEnable');
+      extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       extra.pluginIds = JSON.stringify(this._findPluginsFromError(error));
       if (!!extra.errorData) {
         extra.errorData = JSON.stringify(extra.errorData);
@@ -297,7 +298,7 @@ export default class AppEnvConstructor {
       this.logDebug(error);
     }
     try {
-      const strippedError = this._stripSensitiveData();
+      const strippedError = this._stripSensitiveData(error);
       error = strippedError;
       if (!!extra.errorData) {
         extra.errorData = this._stripSensitiveData(extra.errorData);
@@ -363,7 +364,7 @@ export default class AppEnvConstructor {
       // }
       const reg = new RegExp(`"${key}":${leftRegStr}(\\s|\\S)*?${rightRegStr},"`);
       return strData.replace(reg, (str, match) => {
-        return `"${key}":${leftStr}${createHash('md5').update(str).digest('hex')}${rightStr},"`;
+        return `"${key}":${leftStr}${createHash('md5').update(str.replace(`"${key}":${leftStr}`, '').replace(`${rightRegStr},"`, '')).digest('hex')}${rightStr},"`;
       });
     };
     const sensitiveKeys = [

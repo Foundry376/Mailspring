@@ -40,7 +40,7 @@ export default class ChangeMailTask extends Task {
       this.canBeUndone = true;
     }
     if ((!!threads[0] || !!messages[0]) && !this.accountId) {
-      AppEnv.reportLog(new Error(`Mail Task missing accountId`), {
+      AppEnv.reportError(new Error(`Mail Task missing accountId`), {
         errorData: { thread: threads[0], message: messages[0] },
       });
     }

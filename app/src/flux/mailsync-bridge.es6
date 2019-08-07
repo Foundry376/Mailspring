@@ -461,15 +461,29 @@ export default class MailsyncBridge {
       );
     }
     if (!task.id) {
-      console.log(task);
+      try {
+        AppEnv.reportError(new Error(`Task ${task.constructor.name} have no id`), {
+          errorData: {
+            task: task.toJSON(),
+            account: JSON.stringify(AccountStore.accountsForErrorLog()),
+          },
+        });
+      } catch (e) {
+        console.log(e);
+      }
       throw new Error(
         'Tasks must have an ID prior to being queued. Check that your Task constructor is calling `super`',
       );
     }
     if (!task.accountId) {
       try {
-        AppEnv.reportError(new Error(`Task ${task.constructor.name} have no accountId`), { errorData: task.toJSON() });
-      }catch (e){
+        AppEnv.reportError(new Error(`Task ${task.constructor.name} have no accountId`), {
+          errorData: {
+            task: task.toJSON(),
+            account: JSON.stringify(AccountStore.accountsForErrorLog()),
+          },
+        });
+      } catch (e) {
         console.log(e);
       }
       throw new Error(
@@ -487,10 +501,7 @@ export default class MailsyncBridge {
           console.log('client is already dead, we are ignoring this sync call');
           return;
         }
-        ipcRenderer.sendSync(
-          `mainProcess-sync-call`,
-          task.needToBroadcastBeforeSendTask,
-        );
+        ipcRenderer.sendSync(`mainProcess-sync-call`, task.needToBroadcastBeforeSendTask);
       }
     }
 
