@@ -3,6 +3,7 @@
 import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
 
 import fs from 'fs-plus';
+import rimraf from 'rimraf';
 import url from 'url';
 import path from 'path';
 import glob from 'glob';
@@ -152,6 +153,7 @@ export default class Application extends EventEmitter {
     if (!fs.existsSync(avatarPath)) {
       fs.mkdirSync(avatarPath);
     }
+    this.clearOldLogs();
   }
   getOpenWindows(){
     return this.windowManager.getOpenWindows();
@@ -205,6 +207,38 @@ export default class Application extends EventEmitter {
       for (const urlToOpen of urlsToOpen) {
         this.openUrl(urlToOpen);
       }
+    }
+  }
+
+  clearOldLogs() {
+    const logPath = path.join(this.configDirPath, 'ui-log');
+    const uploadPath = path.join(this.configDirPath, 'upload-log');
+    rimraf(uploadPath, err => {
+      if(err){
+        console.log('\n------\npath cannot be removed');
+        console.log(err);
+      }else{
+        console.log('\n------\npath removed')
+      }
+      fs.mkdir(uploadPath, err=>{
+        if(err){
+          console.log('\n------\npath cannot be made');
+          console.log(err);
+        }else{
+          console.log('\n------\npath made');
+        }
+      });
+    });
+    if (!fs.existsSync(logPath)) {
+      fs.mkdirSync(logPath);
+    } else {
+      console.log('\n-----\nremoving ui logs');
+      rimraf(logPath, () => {
+        console.log('\n-----\nremoved ui logs');
+        fs.mkdir(logPath, err => {
+          console.log(`\n-----\nui log path creaded \n${err}`);
+        });
+      });
     }
   }
 

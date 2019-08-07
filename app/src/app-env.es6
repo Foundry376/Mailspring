@@ -82,13 +82,14 @@ export default class AppEnvConstructor {
     this.enabledBackgroundQueryLog = true;
     this.enabledLocalQueryLog = true;
     this.enabledXmppLog = true;
-    LOG.transports.file.fileName = `ui-log-${Date.now()}.log`;
+    // LOG.transports.file.fileName = `ui-log-${Date.now()}.log`;
+    LOG.transports.file.file = path.join(this.getConfigDirPath(),'ui-log', `ui-log-${Date.now()}.log`);
     LOG.transports.console.level = false;
-    if (devMode) {
-      LOG.transports.file.appName = 'EdisonMail-dev';
-    } else {
-      LOG.transports.file.appName = 'EdisonMail';
-    }
+    // if (devMode) {
+    //   LOG.transports.file.appName = 'EdisonMail-dev';
+    // } else {
+    //   LOG.transports.file.appName = 'EdisonMail';
+    // }
     // }
 
     // Setup config and load it immediately so it's available to our singletons
@@ -1179,7 +1180,7 @@ export default class AppEnvConstructor {
       if(fileName === ''){
         fileName = parseInt(Date.now());
       }
-      const outputPath = path.join(resourcePath, `logs-${fileName}.zip`);
+      const outputPath = path.join(resourcePath, 'upload-log', `logs-${fileName}.zip`);
       const output = fs.createWriteStream(outputPath);
       const archive = archiver('zip', {
         zlib: { level: 9 } // Sets the compression level.
