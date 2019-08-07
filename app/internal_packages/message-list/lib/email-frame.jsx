@@ -79,6 +79,9 @@ export default class EmailFrame extends React.Component {
 
   _writeContent = () => {
     const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
+    if (!iframeNode) {
+      return;
+    }
     const doc = iframeNode.contentDocument;
     if (!doc) {
       return;
