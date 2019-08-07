@@ -112,7 +112,7 @@ module.exports = class EdisonErrorReporter {
     const formify = obj => {
       const ret = {};
       for (let key in obj){
-        if (key !== 'data' && key !== 'files') {
+        if (key !== 'data') {
           ret[key] = obj[key];
         }
       }
@@ -125,10 +125,12 @@ module.exports = class EdisonErrorReporter {
           delete data.extra.osInfo;
         }
         for(let key in data.extra){
-          if(typeof data.extra[key] !== 'string' && typeof data.extra[key] !== 'number'){
-            ret[key] = JSON.stringify(data.extra[key]);
-          }else{
-            ret[key] = data.extra[key];
+          if(key !== 'files'){
+            if(typeof data.extra[key] !== 'string' && typeof data.extra[key] !== 'number'){
+              ret[key] = JSON.stringify(data.extra[key]);
+            }else{
+              ret[key] = data.extra[key];
+            }
           }
         }
       }
@@ -139,10 +141,9 @@ module.exports = class EdisonErrorReporter {
           console.log(e);
         }
       }
-      if (data && Array.isArray(obj.data.files)) {
-        ret.files = [];
-        obj.data.files.forEach(filePath => {
-          ret.files.push(fs.createReadStream(filePath));
+      if (data && data.extra && Array.isArray(data.extra.files)) {
+        data.extra.files.forEach( (filePath, index) => {
+          ret[`files${index}`] = fs.createReadStream(filePath);
         });
       }
       return ret;
