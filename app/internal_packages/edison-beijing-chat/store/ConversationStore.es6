@@ -5,8 +5,7 @@ import ConversationModel from '../model/Conversation';
 import _ from 'underscore';
 import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import { setTimeout } from 'timers';
-
-export const NEW_CONVERSATION = 'NEW_CONVERSATION';
+import { NEW_CONVERSATION } from '../utils/constant';
 
 class ConversationStore extends MailspringStore {
   constructor() {
