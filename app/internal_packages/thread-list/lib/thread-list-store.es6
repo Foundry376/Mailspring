@@ -98,8 +98,8 @@ class ThreadListStore extends MailspringStore {
       };
 
       if (viewModeAutofocuses && focused && notInSet(focused)) {
-        Actions.setFocus({ collection: 'thread', item: null });
-        // Actions.setFocus({ collection: 'thread', item: nextItemFromIndex(focusedIndex) });
+        // Actions.setFocus({ collection: 'thread', item: null });
+        Actions.setFocus({ collection: 'thread', item: nextItemFromIndex(focusedIndex) });
       }
 
       if (keyboard && notInSet(keyboard)) {
