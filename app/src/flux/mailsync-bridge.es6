@@ -569,28 +569,13 @@ export default class MailsyncBridge {
         console.log('---------------------From native END------------------------');
       }
       const models = modelJSONs.map(Utils.convertToModel);
-      //DC-866 It seems that because native notified us too quickly, new thread data have not fully flushed to
-      // sqlite(maybe it's only in cache file?), either way, we manually add a 50ms delay to hopefully allow time
-      // for sqlite to sync up data for all sessions.
-      if(modelClass === 'Thread'){
-        setTimeout(()=>{
-          this._onIncomingChangeRecord(
-            new DatabaseChangeRecord({
-              type, // TODO BG move to "model" naming style, finding all uses might be tricky
-              objectClass: modelClass,
-              objects: models,
-            }),
-          );
-        }, 50);
-      }else {
-        this._onIncomingChangeRecord(
-          new DatabaseChangeRecord({
-            type, // TODO BG move to "model" naming style, finding all uses might be tricky
-            objectClass: modelClass,
-            objects: models,
-          }),
-        );
-      }
+      this._onIncomingChangeRecord(
+        new DatabaseChangeRecord({
+          type, // TODO BG move to "model" naming style, finding all uses might be tricky
+          objectClass: modelClass,
+          objects: models,
+        }),
+      );
     }
   };
   _recordErrorToConsole = task => {
@@ -727,7 +712,7 @@ export default class MailsyncBridge {
               cache.lastSend = now;
               cache.priority = priority;
               missing.push(cache.id);
-            } else if (priority > cache.priority || priority === 0 ) {
+            } else if (priority > cache.priority || priority === 0) {
               cache.lastSend = now;
               cache.priority = priority;
               missing.push(cache.id);
