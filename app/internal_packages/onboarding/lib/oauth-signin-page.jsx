@@ -239,10 +239,10 @@ export default class OAuthSignInPage extends React.Component {
     this.setState({
       authStage: 'error',
       errorMessage: 'Network Error.'
-    })
+    });
     this.moveToLoginError();
-    AppEnv.reportError(new Error('webview failed to load'), {oAuthURL: this.props.providerAuthPageUrl});
-  }
+    AppEnv.reportError(new Error('webview failed to load'), {oAuthURL: this.props.providerAuthPageUrl, oAuthEvent: event});
+  };
 
   _setupWebview = () => {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
