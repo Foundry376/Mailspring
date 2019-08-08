@@ -153,9 +153,25 @@ export default class ThreadListContextMenu {
           label: 'Expunge',
           click: () => {
             const tasks = TaskFactory.tasksForExpungingThreadsOrMessages({
-              source: 'Context Menu: Thread List',
+              source: 'Context Menu: Thread List, Expunge',
               threads: this.threads,
             });
+            if (Array.isArray(tasks) && tasks.length > 0) {
+              tasks.forEach(task => {
+                if (!task.accountId) {
+                  try {
+                    AppEnv.reportError(new Error(`Expunge Task no accountId`), {
+                      errorData: {
+                        task: task.toJSON(),
+                        threads: JSON.stringify(this.threads),
+                      },
+                    });
+                  } catch (e) {
+
+                  }
+                }
+              });
+            }
             Actions.queueTasks(tasks);
           },
         };
@@ -166,9 +182,25 @@ export default class ThreadListContextMenu {
       label: 'Trash',
       click: () => {
         const tasks = TaskFactory.tasksForMovingToTrash({
-          source: 'Context Menu: Thread List',
+          source: 'Context Menu: Thread List, Trash',
           threads: this.threads,
         });
+        if (Array.isArray(tasks) && tasks.length > 0) {
+          tasks.forEach(task => {
+            if (!task.accountId) {
+              try {
+                AppEnv.reportError(new Error(`Trash Task no accountId`), {
+                  errorData: {
+                    task: task.toJSON(),
+                    threads: JSON.stringify(this.threads),
+                  },
+                });
+              } catch (e) {
+
+              }
+            }
+          });
+        }
         Actions.queueTasks(tasks);
       },
     };

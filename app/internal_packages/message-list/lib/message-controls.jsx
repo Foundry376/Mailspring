@@ -215,8 +215,20 @@ export default class MessageControls extends React.Component {
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       messages: [this.props.message],
-      source: 'Toolbar Button: Message List',
+      source: 'Toolbar Button: Message List: Remove',
     });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasks.forEach(task => {
+        if (!task.accountId) {
+          AppEnv.reportError(new Error(`Expunge Task no accountId`), {
+            errorData: {
+              task: task.toJSON(),
+              message: JSON.stringify(this.props.message),
+            },
+          });
+        }
+      });
+    }
     Actions.queueTasks(tasks);
     if (event) {
       event.stopPropagation();
@@ -234,6 +246,18 @@ export default class MessageControls extends React.Component {
       messages: [this.props.message],
       source: 'Toolbar Button: Message List',
     });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasks.forEach(task => {
+        if (!task.accountId) {
+          AppEnv.reportError(new Error(`Expunge Task no accountId`), {
+            errorData: {
+              task: task.toJSON(),
+              message: JSON.stringify(this.props.message),
+            },
+          });
+        }
+      });
+    }
     Actions.queueTasks(tasks);
     if (event) {
       event.stopPropagation();

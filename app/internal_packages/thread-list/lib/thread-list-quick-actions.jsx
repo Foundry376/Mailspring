@@ -38,9 +38,25 @@ class ThreadArchiveQuickAction extends React.Component {
 
   _onArchive = event => {
     const tasks = TaskFactory.tasksForArchiving({
-      source: 'Quick Actions: Thread List',
+      source: 'Quick Actions: Thread List: Archive',
       threads: [this.props.thread],
     });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasks.forEach(task => {
+        if (task && !task.accountId) {
+          try {
+            AppEnv.reportError(new Error(`Archive Task no accountId`), {
+              errorData: {
+                task: task.toJSON(),
+                thread: JSON.stringify(this.props.thread),
+              },
+            });
+          } catch (e) {
+
+          }
+        }
+      });
+    }
     Actions.queueTasks(tasks);
 
     // Don't trigger the thread row click
@@ -80,9 +96,25 @@ class ThreadTrashQuickAction extends React.Component {
 
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
-      source: 'Quick Actions: Thread List',
+      source: 'Quick Actions: Thread List: Trash',
       threads: [this.props.thread],
     });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasks.forEach(task => {
+        if (task && !task.accountId) {
+          try {
+            AppEnv.reportError(new Error(`Trash Task no accountId`), {
+              errorData: {
+                task: task.toJSON(),
+                thread: JSON.stringify(this.props.thread),
+              },
+            });
+          } catch (e) {
+
+          }
+        }
+      });
+    }
     Actions.queueTasks(tasks);
 
     // Don't trigger the thread row click
@@ -115,12 +147,27 @@ class ThreadStarQuickAction extends React.Component {
   }
 
   _onToggleStar = event => {
-    Actions.queueTasks(
-      TaskFactory.taskForInvertingStarred({
-        threads: [this.props.thread],
-        source: 'Quick Actions: Thread List',
-      })
-    );
+    const tasks = TaskFactory.taskForInvertingStarred({
+      threads: [this.props.thread],
+      source: 'Quick Actions: Thread List: ToggleStar',
+    });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasks.forEach(task => {
+        if (task && !task.accountId) {
+          try {
+            AppEnv.reportError(new Error(`Toggle Star Task no accountId`), {
+              errorData: {
+                task: task.toJSON(),
+                thread: JSON.stringify(this.props.thread),
+              },
+            });
+          } catch (e) {
+
+          }
+        }
+      });
+    }
+    Actions.queueTasks(tasks);
     // Don't trigger the thread row click
     return event.stopPropagation();
   };
@@ -147,12 +194,23 @@ class ThreadUnreadQuickAction extends React.Component {
   }
 
   _onToggleUnread = event => {
-    Actions.queueTasks([
-      TaskFactory.taskForInvertingUnread({
-        threads: [this.props.thread],
-        source: 'Quick Actions: Thread List',
-      })
-    ]);
+    const task = TaskFactory.taskForInvertingUnread({
+      threads: [this.props.thread],
+      source: 'Quick Actions: Thread List',
+    });
+    if (task && !task.accountId) {
+      try {
+        AppEnv.reportError(new Error(`Unread Task no accountId`), {
+          errorData: {
+            task: task.toJSON(),
+            thread: JSON.stringify(this.props.thread),
+          },
+        });
+      } catch (e) {
+
+      }
+    }
+    Actions.queueTasks([task]);
     // Don't trigger the thread row click
     return event.stopPropagation();
   };

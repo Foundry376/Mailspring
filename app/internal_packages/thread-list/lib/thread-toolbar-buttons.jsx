@@ -84,6 +84,22 @@ export class TrashButton extends React.Component {
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
     });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasks.forEach(task => {
+        if (!task.accountId) {
+          try {
+            AppEnv.reportError(new Error(`Trash Task no accountId`), {
+              errorData: {
+                task: task.toJSON(),
+                threads: JSON.stringify(this.props.items),
+              },
+            });
+          } catch (e) {
+
+          }
+        }
+      });
+    }
     Actions.queueTasks(tasks);
     Actions.popSheet();
     if (event) {
@@ -105,6 +121,22 @@ export class TrashButton extends React.Component {
       messages: messages,
       source: 'Toolbar Button: Thread List',
     });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasks.forEach(task => {
+        if (!task.accountId) {
+          try {
+            AppEnv.reportError(new Error(`Trash Task no accountId`), {
+              errorData: {
+                task: task.toJSON(),
+                messages: JSON.stringify(messages),
+              },
+            });
+          } catch (e) {
+
+          }
+        }
+      });
+    }
     Actions.queueTasks(tasks);
     Actions.popSheet();
     if (event) {
