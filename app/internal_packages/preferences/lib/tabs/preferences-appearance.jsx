@@ -202,7 +202,7 @@ class PreferencesAppearance extends React.Component {
           <h6 htmlFor="change-layout">Layout</h6>
           <AppearanceModeSwitch id="change-layout" config={this.props.config} />
         </section>
-        {/* <section>
+        <section>
           <h6 htmlFor="change-layout" style={{ marginTop: 10 }}>
             Theme and Style
           </h6>
@@ -211,7 +211,7 @@ class PreferencesAppearance extends React.Component {
               Change theme...
             </button>
           </div>
-        </section> */}
+        </section>
         <MenubarStylePicker config={this.props.config} />
         <section>
           <h6 htmlFor="change-scale">Scaling</h6>

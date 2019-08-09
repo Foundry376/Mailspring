@@ -51,17 +51,19 @@ class ThemePicker extends React.Component {
 
   _renderThemeOptions() {
     const internalThemes = [
-      'ui-less-is-more',
-      'ui-ubuntu',
-      'ui-taiga',
-      'ui-darkside',
+      // 'ui-less-is-more',
+      // 'ui-ubuntu',
+      // 'ui-taiga',
+      // 'ui-darkside',
       'ui-dark',
       'ui-light',
     ];
-    const sortedThemes = [].concat(this.state.themes);
+    let sortedThemes = [].concat(this.state.themes);
     sortedThemes.sort((a, b) => {
       return (internalThemes.indexOf(a.name) - internalThemes.indexOf(b.name)) * -1;
     });
+    // only show light and dark mode
+    sortedThemes = sortedThemes.filter(item => internalThemes.includes(item.name));
     return sortedThemes.map(theme => (
       <ThemeOption
         key={theme.name}
@@ -89,14 +91,14 @@ class ThemePicker extends React.Component {
               {this._renderThemeOptions()}
             </Flexbox>
           </ScrollRegion>
-          <div className="create-theme">
+          {/* <div className="create-theme">
             <a
               href="https://github.com/agent8/Mailspring-Theme-Starter"
               style={{ color: '#3187e1' }}
             >
               Create a Theme
             </a>
-          </div>
+          </div> */}
         </Flexbox>
       </div>
     );
