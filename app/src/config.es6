@@ -357,6 +357,12 @@ class Config {
         schema: this.schema,
       }),
     );
+    const hash = str => {
+      return crypto
+        .createHash('sha256')
+        .update(str)
+        .digest('hex');
+    };
     const stripAccountData = account => {
       const sensitveData = [
         'emailAddress',
@@ -369,12 +375,7 @@ class Config {
         'smtp_username',
       ];
       const ret = {};
-      const hash = str => {
-        return crypto
-          .createHash('sha256')
-          .update(str)
-          .digest('hex');
-      };
+
       for (let key in account) {
         if (key !== 'aliases' && key !== 'settings' && !sensitveData.includes(key)) {
           ret[key] = account[key];
@@ -402,6 +403,33 @@ class Config {
       ret.settings.accounts = ret.settings.accounts.map(account => {
         return stripAccountData(account);
       });
+    }
+    if (ret.settings && ret.settings.defaultSignatures) {
+      const tmp = {};
+      for (let key in ret.settings.defaultSignatures) {
+        tmp[hash(key)] = ret.settings.defaultSignatures[key];
+      }
+      ret.settings.defaultSignatures = tmp;
+    }
+    if (ret.settings && ret.settings.signatures) {
+      for (let key in ret.settings.signatures) {
+        const tmp = ret.settings.signatures[key];
+        if (tmp.body) {
+          tmp.body = hash(tmp.body);
+        }
+        if (tmp.title) {
+          tmp.title = hash(tmp.title);
+        }
+        if (tmp.data) {
+          if (tmp.data.title) {
+            tmp.data.title = hash(tmp.data.title);
+          }
+          if (tmp.data.templateName) {
+            tmp.data.templateName = hash(tmp.data.templateName);
+          }
+        }
+        ret.settings.signatures[key] = tmp;
+      }
     }
     return ret;
   }
