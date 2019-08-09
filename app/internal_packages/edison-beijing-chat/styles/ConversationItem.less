@@ -45,12 +45,12 @@
   }
 
   .item:hover {
-    background-color: #EFEFEF;
+    background-color: @active;
   }
 
   .selected {
     background-color: @source-list-active-bg !important;
-    color: @blue;
+    color: @source-list-active-color;
     .headerText {
       font-weight: 600;
     }
@@ -108,7 +108,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    color: #333;
     display: none;
   }
 
@@ -116,7 +115,7 @@
     height: 22px;
     width: 22px;
     font-size: 12px;
-    color: @white;
+    color: @text-color-inverse;
     line-height: 22px;
     text-align: center;
     position: absolute;
