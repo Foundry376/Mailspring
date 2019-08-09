@@ -46,62 +46,17 @@ class WindowTitle extends React.Component {
     return <div className="window-title">{this.state.title}</div>;
   }
 }
-//Moved ToolbarBack to separate component, and exported to component-kit
-// class ToolbarBack extends React.Component {
-//   static displayName = 'ToolbarBack';
-//
-//   // These stores are only required when this Toolbar is actually needed.
-//   // This is because loading these stores has database side effects.
-//   constructor(props) {
-//     super(props);
-//     Category = Category || require('./flux/models/category').default;
-//     FocusedPerspectiveStore =
-//       FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
-//     this.state = {
-//       categoryName: FocusedPerspectiveStore.current().name,
-//     };
-//   }
-//
-//   componentDidMount() {
-//     this._unsubscriber = FocusedPerspectiveStore.listen(() =>
-//       this.setState({ categoryName: FocusedPerspectiveStore.current().name })
-//     );
-//   }
-//
-//   componentWillUnmount() {
-//     if (this._unsubscriber) {
-//       this._unsubscriber();
-//     }
-//   }
-//
-//   _onClick = () => {
-//     Actions.popSheet();
-//   };
-//
-//   render() {
-//     let title = 'Back';
-//     if (this.state.categoryName === Category.AllMailName) {
-//       title = 'All Mail';
-//     } else if (this.state.categoryName === 'INBOX') {
-//       title = 'Inbox';
-//     } else {
-//       title = this.state.categoryName;
-//     }
-//     return (
-//       <div className="item-back" onClick={this._onClick} title={`Return to ${title}`}>
-//         <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentIsMask} />
-//         <div className="item-back-title">{title}</div>
-//       </div>
-//     );
-//   }
-// }
 
 class ToolbarWindowControls extends React.Component {
   static displayName = 'ToolbarWindowControls';
 
   constructor(props) {
     super(props);
-    this.state = { alt: false };
+    this.state = {
+      alt: false,
+      isFullScreen: AppEnv.isFullScreen(),
+      isMaximized: AppEnv.isMaximixed(),
+    };
   }
 
   componentDidMount() {
@@ -119,16 +74,22 @@ class ToolbarWindowControls extends React.Component {
   }
 
   _onAlt = event => {
-    if (this.state.alt !== event.altKey) {
+    if (!this.state.isFullScreen && event.key === 'Alt') {
       this.setState({ alt: event.altKey });
     }
   };
 
   _onMaximize = event => {
-    if (process.platform === 'darwin' && !event.altKey) {
-      AppEnv.setFullScreen(!AppEnv.isFullScreen());
-    } else {
-      AppEnv.maximize();
+    if (process.platform === 'darwin' && (!event.altKey || this.state.isFullScreen)) {
+      AppEnv.setFullScreen(!this.state.isFullScreen);
+      this.setState({ isFullScreen: !this.state.isFullScreen });
+    } else if(!this.state.isFullScreen){
+      if(AppEnv.isMaximixed()){
+        AppEnv.unmaximize();
+      }else{
+        AppEnv.maximize();
+      }
+      this.setState({alt: false});
     }
   };
 
@@ -141,12 +102,25 @@ class ToolbarWindowControls extends React.Component {
     if (!enabled) {
       return <span />;
     }
-
+    let maxButton = <button tabIndex={-1} className='fullscreen' onClick={this._onMaximize} />;
+    if(this.state.alt){
+      maxButton = <button tabIndex={-1} className='maximize' onClick={this._onMaximize} />
+    }else if(this.state.isFullScreen){
+      maxButton = <button tabIndex={-1} className='unmaximize' onClick={this._onMaximize} >
+        <RetinaImg
+          name='system-collapse.svg'
+          isIcon={true}
+          style={{height: 12, width: 12}}
+          fallback={'folder.svg'}
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>;
+    }
     return (
       <div name="ToolbarWindowControls" className={`toolbar-window-controls alt-${this.state.alt}`}>
         <button tabIndex={-1} className="close" onClick={() => AppEnv.close()} />
-        <button tabIndex={-1} className="minimize" onClick={() => AppEnv.minimize()} />
-        <button tabIndex={-1} className="maximize" onClick={this._onMaximize} />
+        <button tabIndex={-1} className={`minimize${this.state.isFullScreen ? ' disabled' : ''}`} onClick={() => AppEnv.minimize()} />
+        {maxButton}
       </div>
     );
   }
