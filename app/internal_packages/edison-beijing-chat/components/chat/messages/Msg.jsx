@@ -426,7 +426,7 @@ export default class Msg extends PureComponent {
     let iconName;
     let style = {};
     if (filepath) {
-      iconInfo = AttachmentStore.getExtIconName(filepath);
+      let iconInfo = AttachmentStore.getExtIconName(filepath);
       iconName = iconInfo.iconName;
       style.backgroundColor = iconInfo.color;
     }
