@@ -180,16 +180,16 @@ class ThreadList extends React.Component {
     };
 
     // edison feature disabled
-    // props.onSwipeRight = function (callback) {
-    //   const perspective = FocusedPerspectiveStore.current();
-    //   const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
-    //   if (tasks.length === 0) {
-    //     callback(false);
-    //   }
-    //   Actions.closePopover();
-    //   Actions.queueTasks(tasks);
-    //   callback(true);
-    // };
+    props.onSwipeRight = function (callback) {
+      const perspective = FocusedPerspectiveStore.current();
+      const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
+      if (tasks.length === 0) {
+        callback(false);
+      }
+      Actions.closePopover();
+      Actions.queueTasks(tasks);
+      callback(true);
+    };
 
     const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
     if (disabledPackages.includes('thread-snooze')) {
@@ -197,10 +197,10 @@ class ThreadList extends React.Component {
     }
 
     if (FocusedPerspectiveStore.current().isInbox()) {
-      props.onSwipeLeftClass = 'swipe-snooze';
-      props.onSwipeCenter = () => {
-        Actions.closePopover();
-      };
+      // props.onSwipeLeftClass = 'swipe-snooze';
+      // props.onSwipeCenter = () => {
+      //   Actions.closePopover();
+      // };
       // edison feature disabled
       // props.onSwipeLeft = callback => {
       //   // TODO this should be grabbed from elsewhere
