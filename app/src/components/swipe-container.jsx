@@ -81,6 +81,7 @@ export default class SwipeContainer extends React.Component {
     this.mounted = true;
     window.addEventListener('scroll-touch-begin', this._onScrollTouchBegin);
     window.addEventListener('scroll-touch-end', this._onScrollTouchEnd);
+    this.listWrapper = this.container ? this.container.closest(".scroll-region") : null
   }
 
   componentWillReceiveProps() {
@@ -114,6 +115,11 @@ export default class SwipeContainer extends React.Component {
   };
 
   _onWheel = e => {
+    // if is scrolling, don't not swipe
+    const isScrolling = this.listWrapper ? this.listWrapper.className.indexOf("scrolling") !== -1 : false;
+    if (isScrolling) {
+      return;
+    }
     let velocity = e.deltaX / 3;
     if (SwipeInverted) {
       velocity = -velocity;
@@ -346,6 +352,7 @@ export default class SwipeContainer extends React.Component {
     }
     return (
       <div
+        ref={el => this.container = el}
         onWheel={this._onWheel}
         onTouchStart={this._onTouchStart}
         onTouchMove={this._onTouchMove}
