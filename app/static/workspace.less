@@ -102,6 +102,14 @@ img.icon-small{
     button {
       background-position: 0 -12px;
     }
+    .unmaximize{
+      background-color: #29CC41;
+      img{
+        position: relative;
+        top: -5px;
+        background-color: #006300;
+      }
+    }
   }
 
   button {
@@ -126,9 +134,19 @@ img.icon-small{
   }
   .minimize {
     background-image: url('images/application-frame/minimize@1x.png');
+    &.disabled{
+      background-position: 0 -36px;
+    }
   }
-  .maximize {
+  .fullscreen {
     background-image: url('images/application-frame/fullscreen@1x.png');
+  }
+  .unmaximize{
+    border-radius: 6px;
+    background-color: #29CC41;
+    img{
+      visibility: none;
+    }
   }
   &.alt-true {
     .maximize {
@@ -145,8 +163,15 @@ img.icon-small{
     .minimize {
       background-image: url('images/application-frame/minimize@2x.png');
     }
-    .maximize {
+    .fullscreen {
       background-image: url('images/application-frame/fullscreen@2x.png');
+    }
+    .unmaximize{
+      border-radius: 6px;
+      background-color: #29CC41;;
+      img{
+        visibility: none;
+      }
     }
     &.alt-true {
       .maximize {
@@ -163,6 +188,13 @@ body.is-blurred {
     }
   }
   .sheet-toolbar-container {
+    .unmaximize{
+      border-radius: 6px;
+      background-color: #DEDEDE;
+      img{
+        visibility: none;
+      }
+    }
 
     .btn.btn-toolbar {
       img {

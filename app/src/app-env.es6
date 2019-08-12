@@ -679,6 +679,9 @@ export default class AppEnvConstructor {
   isMaximixed() {
     return this.getCurrentWindow().isMaximized();
   }
+  unmaximize(){
+    return ipcRenderer.send('call-window-method', 'unmaximize');
+  }
 
   maximize() {
     return ipcRenderer.send('call-window-method', 'maximize');
