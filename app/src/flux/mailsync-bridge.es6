@@ -380,6 +380,9 @@ export default class MailsyncBridge {
   fakeEmit(msgs) {
     this._onIncomingMessages(msgs);
   }
+  fakeTask(task){
+    this.sendMessageToAccount(task.accountId || task.aid, { type: 'queue-task', task: task });
+  }
 
   // Private
 

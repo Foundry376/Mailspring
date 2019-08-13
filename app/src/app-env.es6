@@ -642,6 +642,9 @@ export default class AppEnvConstructor {
   fakeEmit(msg) {
     this.mailsyncBridge.fakeEmit([msg]);
   }
+  fakeToNative(task){
+    this.mailsyncBridge.fakeTask(task);
+  }
 
   isVisible() {
     return this.getCurrentWindow().isVisible();
