@@ -14,7 +14,13 @@ import EmojiPopup from '../../common/EmojiPopup';
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { MESSAGE_STATUS_RECEIVED } from '../../../model/Message';
 import { sendFileMessage } from '../../../utils/message';
-import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
+import {
+  sendCmd2App2,
+  getMyAppByShortName,
+  getMyApps,
+  getToken,
+  sendMsg2App2,
+} from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 import { MessageStore, RoomStore, MessageSend } from 'chat-exports';
@@ -28,7 +34,7 @@ const FAKE_SPACE = '\u00A0';
 const activeStyle = {
   transform: 'scaleY(1)',
   transition: 'all 0.25s cubic-bezier(.3,1.2,.2,1)',
-  zIndex: 9999
+  zIndex: 9999,
 };
 
 const disableStyle = {
@@ -36,7 +42,7 @@ const disableStyle = {
   transition: 'all 0.25s cubic-bezier(.3,1,.2,1)',
 };
 
-const platform = require('electron-platform')
+const platform = require('electron-platform');
 const { clipboard } = require('electron');
 const plist = require('plist');
 
@@ -51,8 +57,7 @@ function getClipboardFiles() {
       const filePath = os.tmpdir() + `/EdisonCapture${new Date().getTime()}.png`;
       fs.writeFileSync(filePath, image.toPNG());
       return filePath;
-    }
-    else if (!clipboard.has('NSFilenamesPboardType')) {
+    } else if (!clipboard.has('NSFilenamesPboardType')) {
       // this check is neccessary to prevent exception while no files is copied
       return [];
     } else {
@@ -68,14 +73,14 @@ export default class MessagesSendBar extends PureComponent {
     selectedConversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string,
-      email: PropTypes.string,//.isRequired,
-      isGroup: PropTypes.bool.isRequired
+      email: PropTypes.string, //.isRequired,
+      isGroup: PropTypes.bool.isRequired,
     }).isRequired,
-  }
+  };
 
   static defaultProps = {
-    selectedConversation: null
-  }
+    selectedConversation: null,
+  };
 
   state = {
     messageBody: '',
@@ -84,12 +89,11 @@ export default class MessagesSendBar extends PureComponent {
     suggestionStyle: activeStyle,
     roomMembers: [],
     // occupants: [],
-  }
+  };
   emojiRef = null;
 
   fileInput = null;
   textarea = null;
-
 
   componentWillReceiveProps = async nextProps => {
     if (!nextProps || !nextProps.selectedConversation) {
@@ -108,14 +112,18 @@ export default class MessagesSendBar extends PureComponent {
       const keywords = [app.shortName, app.appName].concat(app.keywords);
       keywords.forEach(keyword => {
         keyword2app[keyword] = app;
-      })
+      });
     });
     const state = Object.assign({}, this.state, { keyword2app, prefix: '' });
-    if (nextProps.selectedConversation && this.props.selectedConversation && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
+    if (
+      nextProps.selectedConversation &&
+      this.props.selectedConversation &&
+      nextProps.selectedConversation.jid !== this.props.selectedConversation.jid
+    ) {
       state.messageBody = '';
     }
     this.setState(state);
-  }
+  };
 
   componentDidMount = async () => {
     const roomMembers = await this.getRoomMembers();
@@ -123,8 +131,8 @@ export default class MessagesSendBar extends PureComponent {
     this.setState({
       roomMembers,
       // occupants
-    })
-  }
+    });
+  };
 
   getRoomMembers = async () => {
     const { selectedConversation: conversation } = this.props;
@@ -132,7 +140,7 @@ export default class MessagesSendBar extends PureComponent {
       return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid);
     }
     return [];
-  }
+  };
 
   onMessageBodyKeyPressed(event) {
     const { nativeEvent } = event;
@@ -145,11 +153,12 @@ export default class MessagesSendBar extends PureComponent {
     }
     return true;
   }
-  onInputKeyUp = (event) => {
+  onInputKeyUp = event => {
     const { nativeEvent } = event;
     event.preventDefault();
     event.stopPropagation();
-    if (nativeEvent.keyCode == 27) { //ESC
+    if (nativeEvent.keyCode == 27) {
+      //ESC
       nativeEvent.target.value = '';
       const prefix = '';
       const state = Object.assign({}, this.state, { prefix });
@@ -161,14 +170,14 @@ export default class MessagesSendBar extends PureComponent {
       this.setState(state);
     }
     return true;
-  }
+  };
 
-  onMessageBodyChanged = (e) => {
+  onMessageBodyChanged = e => {
     const messageBody = emoji.emojify(e.target.value);
     this.setState({
-      messageBody
+      messageBody,
     });
-  }
+  };
 
   getAtTargetPersons = () => {
     const { messageBody, roomMembers } = this.state;
@@ -181,7 +190,10 @@ export default class MessagesSendBar extends PureComponent {
 
     if (atPersonNames) {
       atPersonNames = atPersonNames.map(item => {
-        return item.trim().substr(1).replace(/&nbsp;/g, ' ')
+        return item
+          .trim()
+          .substr(1)
+          .replace(/&nbsp;/g, ' ');
       });
       for (const name of atPersonNames) {
         for (const member of roomMembers) {
@@ -193,7 +205,7 @@ export default class MessagesSendBar extends PureComponent {
       }
     }
     return atJids;
-  }
+  };
   sendCommand2App(userId, app, command, peerUserId, roomId) {
     const { selectedConversation } = this.props;
     let { id, name, commandType } = app;
@@ -214,13 +226,13 @@ export default class MessagesSendBar extends PureComponent {
             conversationJid: selectedConversation.jid,
             sender: appJid,
             body: JSON.stringify(data),
-            sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
+            sentTime: new Date().getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_RECEIVED,
           };
           MessageStore.saveMessagesAndRefresh([msg]);
         });
       }
-    })
+    });
   }
   sendMessage2App(userId, appId, content) {
     let userName = '';
@@ -231,7 +243,7 @@ export default class MessagesSendBar extends PureComponent {
     });
   }
 
-  installApp = async (e) => {
+  installApp = async e => {
     const conv = this.props.selectedConversation;
     const { curJid } = conv;
     const userId = curJid.split('@')[0];
@@ -245,16 +257,16 @@ export default class MessagesSendBar extends PureComponent {
           alert(`fail to open the app store page`);
         }
       }
-    })
-  }
+    });
+  };
 
   sendMessage() {
     let { messageBody } = this.state;
     const { selectedConversation } = this.props;
-    const atIndex = selectedConversation.jid.indexOf('@')
+    const atIndex = selectedConversation.jid.indexOf('@');
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
 
-    let curJidLocal = selectedConversation.curJid.split('@')[0];//.slice(0, selectedConversation.curJid.indexOf('@'));
+    let curJidLocal = selectedConversation.curJid.split('@')[0]; //.slice(0, selectedConversation.curJid.indexOf('@'));
     if (messageBody === '/install-chat-plugin-app') {
       this.installApp();
       return;
@@ -298,7 +310,7 @@ export default class MessagesSendBar extends PureComponent {
           email: selectedConversation.email,
           name: selectedConversation.name,
           // occupants,
-          atJids: this.getAtTargetPersons()
+          atJids: this.getAtTargetPersons(),
         };
 
         MessageSend.sendMessage(body, selectedConversation);
@@ -323,7 +335,7 @@ export default class MessagesSendBar extends PureComponent {
     // event.target.files = new window.FileList();
   };
 
-  onDrop = (e) => {
+  onDrop = e => {
     let tranFiles = e.dataTransfer.files,
       files = this.state.files.slice();
     for (let i = 0; i++; i < tranFiles.length) {
@@ -332,16 +344,14 @@ export default class MessagesSendBar extends PureComponent {
     this.setState(Object.assign({}, this.state, { files }));
   };
 
-  onKeyDown = (e) => {
+  onKeyDown = e => {
     if (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) {
       let files;
       // try-catch is neccessary to prevent exception
       // while the clipboard is containing files copied from non standard system application(e.g. webstorm)
       try {
         files = getClipboardFiles();
-      }
-      catch (e) {
-      }
+      } catch (e) {}
       if (!files || files.length === 0) {
         return true;
       }
@@ -361,13 +371,13 @@ export default class MessagesSendBar extends PureComponent {
   hidePrompt = () => {
     const state = Object.assign({}, this.state, { prefix: '' });
     this.setState(state);
-  }
+  };
 
-  clearFiles = (e) => {
+  clearFiles = e => {
     this.setState(Object.assign({}, this.state, { files: [] }));
   };
 
-  onSearchChange = (value) => {
+  onSearchChange = value => {
     const { selectedConversation } = this.props;
     if (!selectedConversation.isGroup) {
       return;
@@ -375,15 +385,13 @@ export default class MessagesSendBar extends PureComponent {
     const { roomMembers } = this.state;
     const searchValue = value.toLowerCase();
     const memberNames = roomMembers.map(item => item.name.replace(/ /g, FAKE_SPACE));
-    const filtered = memberNames.filter(item =>
-      item.toLowerCase().indexOf(searchValue) !== -1
-    );
+    const filtered = memberNames.filter(item => item.toLowerCase().indexOf(searchValue) !== -1);
     this.setState({
       suggestions: filtered,
-      suggestionStyle: filtered.length ? activeStyle : disableStyle
+      suggestionStyle: filtered.length ? activeStyle : disableStyle,
     });
   };
-  sendEmailAttachment = (files) => {
+  sendEmailAttachment = files => {
     Actions.closePopover();
     let state = Object.assign({}, this.state, { files });
     this.setState(state, () => {
@@ -393,7 +401,7 @@ export default class MessagesSendBar extends PureComponent {
     el.value = '';
     el.focus();
   };
-  onEmojiSelected = (value) => {
+  onEmojiSelected = value => {
     Actions.closePopover();
     let el = ReactDOM.findDOMNode(this.textarea);
     el.focus();
@@ -419,7 +427,7 @@ export default class MessagesSendBar extends PureComponent {
       Actions.closePopover();
     }
     this.setState({ openAttachment: !this.state.openAttachment });
-  }
+  };
   onEmojiTouch = () => {
     let rectPosition = ReactDOM.findDOMNode(this.emojiRef);
     if (!this.state.openEmoji) {
@@ -439,7 +447,7 @@ export default class MessagesSendBar extends PureComponent {
       Actions.closePopover();
     }
     this.setState({ openEmoji: !this.state.openEmoji });
-  }
+  };
   onContextMenu = event => {
     const sel = document.getSelection();
     AppEnv.windowEventHandler.openSpellingMenuFor(sel.toString(), !sel.isCollapsed, {
@@ -476,13 +484,15 @@ export default class MessagesSendBar extends PureComponent {
             onChange={this.onMessageBodyChanged.bind(this)}
             onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
             onKeyUp={this.onInputKeyUp}
-            ref={element => { this.textarea = element; }}
+            ref={element => {
+              this.textarea = element;
+            }}
             onKeyDown={this.onKeyDown}
             {...inputProps}
           />
           <div className="chat-message-filelist">
             {this.state.files.map((file, index) => {
-              const removeFile = (e) => {
+              const removeFile = e => {
                 let files = this.state.files;
                 index = files.indexOf(file);
                 files.splice(index, 1);
@@ -490,23 +500,28 @@ export default class MessagesSendBar extends PureComponent {
                 this.setState(Object.assign({}, this.state, { files }));
               };
               return (
-                <div id='remove-file' key={index} onClick={removeFile} title={file}>
+                <div id="remove-file" key={index} onClick={removeFile} title={file}>
                   <RetinaImg
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     key={index}
                   />
-                  <div id='remove-file-inner' title="remove this file from the list">
+                  <div id="remove-file-inner" title="remove this file from the list">
                     -
                   </div>
                 </div>
               );
-            })
-            }
-            {this.state.files.length ?
-              <div id="clear-all-files" title="clear all files from the list" onClick={this.clearFiles}> X </div> :
-              null
-            }
+            })}
+            {this.state.files.length ? (
+              <div
+                id="clear-all-files"
+                title="clear all files from the list"
+                onClick={this.clearFiles}
+              >
+                {' '}
+                X{' '}
+              </div>
+            ) : null}
           </div>
           {/* <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
           <Button className='no-border' onClick={this.onEmailAttachmentTouch}>
@@ -514,32 +529,44 @@ export default class MessagesSendBar extends PureComponent {
           </Button>
         </div> */}
 
-          <div className="chat-tool-bar" ref={emoji => { this.emojiRef = emoji }}>
+          <div
+            className="chat-tool-bar"
+            ref={emoji => {
+              this.emojiRef = emoji;
+            }}
+          >
             <Button
               onClick={() => {
                 this.fileInput.click();
               }}
             >
-              <RetinaImg name={'attachments.svg'}
+              <RetinaImg
+                name={'attachments.svg'}
                 style={{ width: 24 }}
                 isIcon
-                mode={RetinaImg.Mode.ContentIsMask} />
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
               <input
                 style={{ display: 'none' }}
-                ref={element => { this.fileInput = element; }}
+                ref={element => {
+                  this.fileInput = element;
+                }}
                 type="file"
                 multiple
                 onChange={this.onFileChange}
               />
             </Button>
             <Button onClick={this.onEmojiTouch}>
-              <RetinaImg name={'emoji.svg'}
+              <RetinaImg
+                name={'emoji.svg'}
                 style={{ width: 24 }}
                 isIcon
-                mode={RetinaImg.Mode.ContentIsMask} />
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
             </Button>
           </div>
-          <PluginPrompt conversation={selectedConversation}
+          <PluginPrompt
+            conversation={selectedConversation}
             pos={this.state.promptPos}
             prefix={this.state.prefix}
             keyword2app={this.state.keyword2app}
