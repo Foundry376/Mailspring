@@ -28,15 +28,16 @@ const TaskFactory = {
 
     const tasks = [];
     Object.values(byAccount).forEach(({ accountThreads, accountId }) => {
-      const threadsByFolder = this._splitByFolder(accountThreads);
-      for (const item of threadsByFolder) {
-        const taskOrTasks = callback(item, accountId);
-        if (taskOrTasks && taskOrTasks instanceof Array) {
-          tasks.push(...taskOrTasks);
-        } else if (taskOrTasks) {
-          tasks.push(taskOrTasks);
-        }
+      const taskOrTasks = callback(accountThreads, accountId);
+      if (taskOrTasks && taskOrTasks instanceof Array) {
+        tasks.push(...taskOrTasks);
+      } else if (taskOrTasks) {
+        tasks.push(taskOrTasks);
       }
+      // const threadsByFolder = this._splitByFolder(accountThreads);
+      // for (const item of threadsByFolder) {
+      //
+      // }
     });
     return tasks;
   },
@@ -218,8 +219,8 @@ const TaskFactory = {
     const result = {};
     for (const accId of accountIds) {
       const threadsByAccount = threads.filter(item => item.accountId === accId);
-      const arr = this._splitByFolder(threadsByAccount);
-      result[accId] = arr;
+      // const arr = this._splitByFolder(threadsByAccount);
+      result[accId] = threadsByAccount;
     }
     return result;
   },
@@ -229,7 +230,7 @@ const TaskFactory = {
       if (folders && folders.length > 0) {
         return folders[0].id;
       } else {
-        console.warn(`ThreadId: ${id} have no folder attribute`);
+        AppEnv.reportWarning(new Error(`ThreadId: ${id} have no folder attribute`));
         return null;
       }
     }));
