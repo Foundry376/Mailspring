@@ -16,47 +16,48 @@ import {
   from './thread-toolbar-buttons';
 
 export function activate() {
-  ComponentRegistry.register(ThreadListEmptyFolderBar, {
-    // location: WorkspaceStore.Location.ThreadList,
-    role: 'ThreadListEmptyFolderBar'
-  });
+  if (AppEnv.isMainWindow()) {
+    ComponentRegistry.register(ThreadListEmptyFolderBar, {
+      // location: WorkspaceStore.Location.ThreadList,
+      role: 'ThreadListEmptyFolderBar'
+    });
 
-  ComponentRegistry.register(ThreadList, {
-    location: WorkspaceStore.Location.ThreadList,
-  });
+    ComponentRegistry.register(ThreadList, {
+      location: WorkspaceStore.Location.ThreadList,
+    });
 
-  ComponentRegistry.register(SelectedItemsStack, {
-    location: WorkspaceStore.Location.MessageList,
-    modes: ['split'],
-  });
+    ComponentRegistry.register(SelectedItemsStack, {
+      location: WorkspaceStore.Location.MessageList,
+      modes: ['split'],
+    });
 
-  // Toolbars
-  ComponentRegistry.register(ThreadListToolbar, {
-    location: WorkspaceStore.Location.ThreadList.Toolbar,
-    modes: ['list', 'split'],
-    role: 'ThreadListToolbar'
-  });
+    // Toolbars
+    ComponentRegistry.register(ThreadListToolbar, {
+      location: WorkspaceStore.Location.ThreadList.Toolbar,
+      modes: ['list', 'split'],
+      role: 'ThreadListToolbar'
+    });
 
+    ComponentRegistry.register(ThreadEmptyMoreButtons, {
+      modes: ['list'],
+      role: 'ThreadActionsToolbarButtonEmpty',
+    });
+
+    ComponentRegistry.register(NavButtons, {
+      role: 'MessageListToolbar'
+    });
+  }
   ComponentRegistry.register(MessageListToolbar, {
     role: 'MessageListToolbar'
   });
-
   ComponentRegistry.register(MoveButtons, {
     role: 'ThreadActionsToolbarButton',
   });
-
   ComponentRegistry.register(FlagButtons, {
     role: 'ThreadActionsToolbarButton',
   });
   ComponentRegistry.register(ThreadMoreButtons, {
     role: 'ThreadActionsToolbarButton',
-  });
-  ComponentRegistry.register(ThreadEmptyMoreButtons, {
-    modes: ['list'],
-    role: 'ThreadActionsToolbarButtonEmpty',
-  });
-  ComponentRegistry.register(NavButtons, {
-    role: 'MessageListToolbar'
   });
 }
 

@@ -743,130 +743,6 @@ body.platform-win32 {
     background: url(../static/images/chat/no-connection.png) no-repeat center center;
     background-size: 250px auto;
   }
-
-  .message-list-toolbar {
-    height: 41px;
-    border-bottom: 1px solid transparent;
-    &.hide-btn-when-crowded{
-     .btn-hide-when-crowded{
-       display: none;
-     }
-    }
-    &.has-shadow {
-      transition: box-shadow 0.2s ease-in-out;
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
-      border-bottom: 1px solid @gray-lighter;
-      position: relative;
-      z-index: 2;
-    }
-    .divider {
-      width: 1px;
-      height: 30px;
-      background: @border-color-divider;
-    }
-    .button-group {
-      align-items: center;
-      display: flex;
-    }
-    .item-container {
-      .item-spacer {
-        display: none;
-      }
-      img.content-mask {
-        background-color: @gray;
-      }
-      .btn-list-more {
-        display: none;
-      }
-      .message-toolbar-popout {
-        padding-right: 24px;
-      }
-      .message-toolbar-arrow {
-        display: flex;
-        align-items: center;
-        margin-left: 0;
-        margin-right: 0;
-        padding-left: 13px;
-        padding-right: 0;
-      }
-      .btn-toolbar {
-        position: relative;
-        margin-top: 0;
-        height: auto;
-        box-shadow: none;
-        background: none;
-        cursor: pointer;
-        &.flagged {
-          img.content-mask {
-            background-color: @orange;
-          }
-        }
-        &.disabled {
-          opacity: 0.3;
-          &:hover {
-            &:after {
-              display: none;
-            }
-          }
-        }
-        img {
-          position: relative;
-          z-index: 2;
-          transition: background-color 0.4s;
-        }
-        &:active {
-          background-color: @white;
-        }
-        &:hover {
-          &:after {
-            content: '';
-            height: 36px;
-            width: 36px;
-            border-radius: 50%;
-            background: @off-white;
-            display: block;
-            position: absolute;
-            top: -5px;
-            left: 7px;
-            animation: growUp 0.4s;
-          }
-          @keyframes growUp {
-            from {
-              opacity: 0.7;
-              transform: scale(0.5);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1);
-            }
-          }
-        }
-        &:active {
-          &:after {
-            background: @extra-light-grey;
-          }
-          img {
-            background-color: @dark-grey;
-          }
-        }
-      }
-      .message-toolbar-items {
-        flex: 1;
-        // border-bottom: 1px solid @extra-light-grey;
-        &:empty {
-          border-bottom: none;
-        }
-        .toolbar-buttons {
-          justify-content: flex-end;
-          align-items: center;
-          .key-commands-region {
-            white-space: nowrap;
-            height: auto;
-          }
-        }
-      }
-    }
-  }
 }
 
 .column-DraftList {
@@ -877,4 +753,148 @@ body.platform-win32 {
 
 .mode-list .column-ThreadList {
   flex: 1;
+}
+
+.layout-mode-popout .message-list-toolbar,
+.column-MessageList .message-list-toolbar {
+  height: 41px;
+  border-bottom: 1px solid transparent;
+  &.hide-btn-when-crowded{
+    .btn-hide-when-crowded{
+      display: none;
+    }
+  }
+  &.has-shadow {
+    transition: box-shadow 0.2s ease-in-out;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid @gray-lighter;
+    position: relative;
+    z-index: 2;
+  }
+  .divider {
+    width: 1px;
+    height: 30px;
+    background: @border-color-divider;
+  }
+  .button-group {
+    align-items: center;
+    display: flex;
+  }
+  .item-container {
+    .item-spacer {
+      display: none;
+    }
+    img.content-mask {
+      background-color: @gray;
+    }
+    .btn-list-more {
+      display: none;
+    }
+    .message-toolbar-popout {
+      padding-right: 24px;
+    }
+    .message-toolbar-arrow {
+      display: flex;
+      align-items: center;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 13px;
+      padding-right: 0;
+    }
+    .btn-toolbar {
+      position: relative;
+      margin-top: 0;
+      height: auto;
+      box-shadow: none;
+      background: none;
+      cursor: pointer;
+      &.flagged {
+        img.content-mask {
+          background-color: @orange;
+        }
+      }
+      &.disabled {
+        opacity: 0.3;
+        &:hover {
+          &:after {
+            display: none;
+          }
+        }
+      }
+      img {
+        position: relative;
+        z-index: 2;
+        transition: background-color 0.4s;
+      }
+      &:active {
+        background-color: @white;
+      }
+      &:hover {
+        &:after {
+          content: '';
+          height: 36px;
+          width: 36px;
+          border-radius: 50%;
+          background: @off-white;
+          display: block;
+          position: absolute;
+          top: -5px;
+          left: 7px;
+          animation: growUp 0.4s;
+        }
+        @keyframes growUp {
+          from {
+            opacity: 0.7;
+            transform: scale(0.5);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      }
+      &:active {
+        &:after {
+          background: @extra-light-grey;
+        }
+        img {
+          background-color: @dark-grey;
+        }
+      }
+    }
+    .message-toolbar-items {
+      flex: 1;
+      // border-bottom: 1px solid @extra-light-grey;
+      &:empty {
+        border-bottom: none;
+      }
+      .toolbar-buttons {
+        justify-content: flex-end;
+        align-items: center;
+        .key-commands-region {
+          white-space: nowrap;
+          height: auto;
+        }
+      }
+    }
+  }
+}
+
+// only effective in thread popout window
+.layout-mode-popout.thread-popout {
+  .sheet-toolbar {
+    width: 100px !important;
+    overflow: hidden;
+    height: 60px;
+    max-height: 60px;
+  }
+  #message-list-toolbar {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    height: 60px;
+    width: 100%;
+    z-index: 10;
+    -webkit-user-drag: drag;
+  }
 }

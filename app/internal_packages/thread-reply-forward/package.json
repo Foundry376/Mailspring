@@ -8,5 +8,9 @@
   "engines": {
     "mailspring": "*"
   },
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "windowTypes": {
+    "default": true,
+    "thread-popout": true
+  }
 }

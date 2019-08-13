@@ -114,6 +114,11 @@ class MessageList extends React.Component {
     ];
     window.addEventListener('resize', this._onResize, true);
     this._onResize();
+    // when thread-popout, add a className "thread-popout"
+    const sheetPopoutContainer = document.querySelector('.layout-mode-popout');
+    if (sheetPopoutContainer) {
+      sheetPopoutContainer.className += ` ${AppEnv.getWindowType()}`;
+    }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
