@@ -187,6 +187,10 @@ export default class MessagesSendBar extends PureComponent {
     const { roomMembers } = this.state;
     const messageHtml = emoji.emojify(value);
     const messageBody = getTextFromHtml(messageHtml);
+    const inputText = this._richText.getInputText();
+    console.log('^^^^^^^^^^^^^^');
+    console.log(inputText);
+    console.log('^^^^^^^^^^^^^^');
     const atJidList = getAtJidFromHtml(value);
     const atContacts = [
       {
@@ -384,11 +388,12 @@ export default class MessagesSendBar extends PureComponent {
   // --------------------------- at start ---------------------------
   chooseAtContact = contact => {
     const insertDom = document.createElement('span');
-    insertDom.innerHTML = `@${contact.name},`;
+    insertDom.innerHTML = `@${contact.name}`;
     insertDom.setAttribute('jid', contact.jid);
     insertDom.setAttribute('class', 'at-contact');
     this._richText.delNode(1);
     this._richText.addNode(insertDom);
+    this._richText.addNode(',');
     this.setState({ atVisible: false });
   };
 

@@ -68,11 +68,16 @@ export class RichText extends Component {
     return true;
   };
 
-  _onInputChange = event => {
+  _onInputChange = () => {
     const { onChange } = this.props;
     if (onChange && typeof onChange === 'function') {
-      onChange(event.target.innerHTML);
+      // emit change event
+      onChange(this.getNode());
     }
+  };
+
+  _autoFocus = () => {
+    this._richText.focus();
   };
 
   getNode = () => {
@@ -93,7 +98,7 @@ export class RichText extends Component {
       insertNode = document.createTextNode(content);
     }
 
-    this._richText.focus();
+    this._autoFocus();
 
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
@@ -107,21 +112,17 @@ export class RichText extends Component {
       sel.removeAllRanges();
       sel.addRange(contentRange);
     }
-    const { onChange } = this.props;
-    if (onChange && typeof onChange === 'function') {
-      onChange(this.getNode());
-    }
+    this._onInputChange();
   };
 
   clearNode = () => {
     this._richText.innerHTML = '';
-    const { onChange } = this.props;
-    if (onChange && typeof onChange === 'function') {
-      onChange(this.getNode());
-    }
+    this._onInputChange();
   };
 
   delNode = n => {
+    this._autoFocus();
+
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
       let range = sel.getRangeAt(0);
@@ -135,10 +136,20 @@ export class RichText extends Component {
       sel.removeAllRanges();
       sel.addRange(contentRange);
     }
-    const { onChange } = this.props;
-    if (onChange && typeof onChange === 'function') {
-      onChange(this.getNode());
+    this._onInputChange();
+  };
+
+  getInputText = () => {
+    this._autoFocus();
+
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+      let range = sel.getRangeAt(0);
+      if (!(range.startContainer instanceof HTMLElement)) {
+        return range.startContainer;
+      }
     }
+    return null;
   };
 
   render() {
