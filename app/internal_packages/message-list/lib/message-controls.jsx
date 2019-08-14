@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
-import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, TaskFactory } from 'mailspring-exports';
+import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, TaskFactory, FocusedPerspectiveStore } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 import MessageTimestamp from './message-timestamp';
 
@@ -215,7 +215,7 @@ export default class MessageControls extends React.Component {
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       messages: [this.props.message],
-      source: 'Toolbar Button: Message List: Remove',
+      source: 'Toolbar Button: Message List: Remove'
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
       tasks.forEach(task => {

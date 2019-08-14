@@ -40,6 +40,7 @@ class ThreadArchiveQuickAction extends React.Component {
     const tasks = TaskFactory.tasksForArchiving({
       source: 'Quick Actions: Thread List: Archive',
       threads: [this.props.thread],
+      currentPerspective: FocusedPerspectiveStore.current(),
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
       tasks.forEach(task => {
@@ -98,6 +99,7 @@ class ThreadTrashQuickAction extends React.Component {
     const tasks = TaskFactory.tasksForMovingToTrash({
       source: 'Quick Actions: Thread List: Trash',
       threads: [this.props.thread],
+      currentPerspective: this.props.currentPerspective,
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
       tasks.forEach(task => {

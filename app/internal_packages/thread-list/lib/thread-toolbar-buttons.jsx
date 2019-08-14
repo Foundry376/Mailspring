@@ -34,12 +34,14 @@ export class ArchiveButton extends React.Component {
 
   static propTypes = {
     items: PropTypes.array.isRequired,
+    currentPerspective: PropTypes.object
   };
 
   _onArchive = event => {
     const tasks = TaskFactory.tasksForArchiving({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
+      currentPerspective: this.props.currentPerspective
     });
     Actions.queueTasks(tasks);
     Actions.popSheet({reason: 'ToolbarButton:ThreadList:archive'});
@@ -77,11 +79,13 @@ export class TrashButton extends React.Component {
 
   static propTypes = {
     items: PropTypes.array.isRequired,
+    currentPerspective: PropTypes.object,
   };
 
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       threads: this.props.items,
+      currentPerspective: this.props.currentPerspective,
       source: 'Toolbar Button: Thread List',
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
@@ -283,6 +287,7 @@ export class MarkAsSpamButton extends React.Component {
 
   static propTypes = {
     items: PropTypes.array.isRequired,
+    currentPerspective: PropTypes.object,
   };
 
   _onNotSpam = event => {
@@ -290,6 +295,7 @@ export class MarkAsSpamButton extends React.Component {
     const tasks = TaskFactory.tasksForMarkingNotSpam({
       source: 'Toolbar Button: Thread List',
       threads: this.props.items,
+      currentPerspective: this.props.currentPerspective,
     });
     Actions.queueTasks(tasks);
     Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:NotSpam'});
@@ -306,6 +312,7 @@ export class MarkAsSpamButton extends React.Component {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
+      currentPerspective: this.props.currentPerspective,
     });
     Actions.queueTasks(tasks);
     Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:Spam'});

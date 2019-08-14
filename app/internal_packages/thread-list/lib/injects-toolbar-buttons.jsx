@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ListensToObservable, InjectedComponentSet } from 'mailspring-component-kit';
 import ThreadListStore from './thread-list-store';
+import {FocusedPerspectiveStore} from 'mailspring-exports';
 
 export const ToolbarRole = 'ThreadActionsToolbarButton';
 
@@ -33,6 +34,7 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
         selection,
         thread: items[0],
         dataSource,
+        currentPerspective: FocusedPerspectiveStore.current()
       };
       const injectedButtons = (
         <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }}

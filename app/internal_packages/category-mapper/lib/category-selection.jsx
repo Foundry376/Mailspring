@@ -76,8 +76,16 @@ export default class CategorySelection extends React.Component {
       </div>
     );
   };
+  renderDisabled(){
+    return <div className="category-picker-dropdown readonly">
+      {this._renderItem(this.props.current)}
+    </div>
+  }
 
   render() {
+    if(this.props.disabled){
+      return this.renderDisabled();
+    }
     const placeholder = this.props.accountUsesLabels ? 'Choose folder or label' : 'Choose folder';
 
     const headerComponents = [
