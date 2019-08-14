@@ -37,12 +37,15 @@ export default class BugReportRoot extends React.PureComponent {
       Promise.all(promises)
         .then(values => {
           for (let i = 0; i < values.length; i++) {
-            files.push(values[i]);
+            if( values[i].length > 0 ){
+              files.push(values[i]);
+            }
           }
           AppEnv.reportError({}, { errorData: this.state.description, files: files });
           AppEnv.close();
         })
         .catch(e => {
+          console.error('error file');
           AppEnv.reportError(e, { errorData: {message: 'upload error file failed', description: this.state.description} });
           AppEnv.close();
         });

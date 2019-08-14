@@ -1148,12 +1148,18 @@ export default class AppEnvConstructor {
         (error, sources) => {
           if (error) {
             reject(error);
+            return;
           }
           const ourApp = sources.filter(source => {
             return source.name === 'EdisonMail';
           });
           if (ourApp.length === 0) {
-            resolve('');
+            reject('NOT FOUND');
+            return;
+          }
+          if (!ourApp[0] || !ourApp[0].thumbnail){
+            reject('NOT FOUND');
+            return;
           }
           const img = ourApp[0].thumbnail;
           if (!img.isEmpty()) {
@@ -1174,6 +1180,8 @@ export default class AppEnvConstructor {
               output.close();
               reject();
             });
+          }else{
+            reject();
           }
         }
       );
