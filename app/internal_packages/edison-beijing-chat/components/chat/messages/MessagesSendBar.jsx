@@ -4,16 +4,14 @@ import Button from '../../common/Button';
 import os from 'os';
 import fs from 'fs';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
-import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
-import TextArea from 'react-autosize-textarea';
 import { FILE_TYPE } from '../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
-import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { MESSAGE_STATUS_RECEIVED } from '../../../model/Message';
 import { sendFileMessage } from '../../../utils/message';
+import { getName } from '../../../utils/name';
 import {
   sendCmd2App2,
   getMyAppByShortName,
@@ -21,27 +19,15 @@ import {
   getToken,
   sendMsg2App2,
 } from '../../../utils/appmgt';
+import { RichText } from '../../common/RichText';
+import AtList from '../../common/AtList';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
-import { MessageStore, RoomStore, MessageSend } from 'chat-exports';
+import { MessageStore, ConversationStore, RoomStore, MessageSend } from 'chat-exports';
 import { alert } from '../../../utils/electron';
-const { exec } = require('child_process');
 
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
-
-const FAKE_SPACE = '\u00A0';
-
-const activeStyle = {
-  transform: 'scaleY(1)',
-  transition: 'all 0.25s cubic-bezier(.3,1.2,.2,1)',
-  zIndex: 9999,
-};
-
-const disableStyle = {
-  transform: 'scaleY(0)',
-  transition: 'all 0.25s cubic-bezier(.3,1,.2,1)',
-};
-
+const { exec } = require('child_process');
 const platform = require('electron-platform');
 const { clipboard } = require('electron');
 const plist = require('plist');
@@ -85,21 +71,20 @@ export default class MessagesSendBar extends PureComponent {
   state = {
     messageBody: '',
     files: [],
-    suggestions: [],
-    suggestionStyle: activeStyle,
     roomMembers: [],
-    // occupants: [],
+    atContacts: [],
+    atPersons: [],
+    atActiveIndex: 0,
+    atVisible: false,
+    promptPos: null,
   };
-  emojiRef = null;
 
+  emojiRef = null;
   fileInput = null;
-  textarea = null;
+  _richText = null;
 
   componentWillReceiveProps = async nextProps => {
-    if (!nextProps || !nextProps.selectedConversation) {
-      return;
-    }
-    const { selectedConversation } = nextProps;
+    const selectedConversation = ConversationStore.selectedConversation;
     if (!selectedConversation.curJid) {
       return;
     }
@@ -120,92 +105,42 @@ export default class MessagesSendBar extends PureComponent {
       this.props.selectedConversation &&
       nextProps.selectedConversation.jid !== this.props.selectedConversation.jid
     ) {
-      state.messageBody = '';
+      this._richText.clearNode();
     }
     this.setState(state);
   };
 
   componentDidMount = async () => {
     const roomMembers = await this.getRoomMembers();
-    // const occupants = roomMembers.map(item => item.jid.bare);
     this.setState({
       roomMembers,
-      // occupants
+      atContacts: roomMembers,
     });
   };
 
   getRoomMembers = async () => {
-    const { selectedConversation: conversation } = this.props;
-    if (conversation.isGroup) {
-      return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid);
+    const conversation = ConversationStore.selectedConversation;
+    let members = [];
+    if (conversation && conversation.isGroup) {
+      members = await RoomStore.getRoomMembers(conversation.jid, conversation.curJid);
     }
-    return [];
+
+    const renameMembers = [];
+    for (const member of members) {
+      member.name = await getName(member.jid);
+      renameMembers.push(member);
+    }
+
+    return renameMembers;
   };
 
-  onMessageBodyKeyPressed(event) {
-    const { nativeEvent } = event;
-    if (nativeEvent.keyCode === 13 && !nativeEvent.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
-      const state = Object.assign({}, this.state, { prefix: '', messageBody: '' });
-      this.setState(state);
-      return false;
-    }
-    return true;
-  }
-  onInputKeyUp = event => {
-    const { nativeEvent } = event;
-    event.preventDefault();
-    event.stopPropagation();
-    if (nativeEvent.keyCode == 27) {
-      //ESC
-      nativeEvent.target.value = '';
-      const prefix = '';
-      const state = Object.assign({}, this.state, { prefix });
-      this.setState(state);
-    } else if (nativeEvent.keyCode != 13) {
-      const prefix = nativeEvent.target.value;
-      const promptPos = getCaretCoordinates(nativeEvent.target, nativeEvent.target.value.length);
-      const state = Object.assign({}, this.state, { prefix, promptPos });
-      this.setState(state);
-    }
-    return true;
-  };
-
-  onMessageBodyChanged = e => {
-    const messageBody = emoji.emojify(e.target.value);
+  onMessageBodyChanged = value => {
+    const messageBody = emoji.emojify(value);
     this.setState({
       messageBody,
     });
   };
 
-  getAtTargetPersons = () => {
-    const { messageBody, roomMembers } = this.state;
-    const { selectedConversation } = this.props;
-    if (!selectedConversation.isGroup) {
-      return [];
-    }
-    const atJids = [];
-    let atPersonNames = messageBody.match(/@[^ ]+ |@[^ ]+$/g);
-
-    if (atPersonNames) {
-      atPersonNames = atPersonNames.map(item => {
-        return item
-          .trim()
-          .substr(1)
-          .replace(/&nbsp;/g, ' ');
-      });
-      for (const name of atPersonNames) {
-        for (const member of roomMembers) {
-          if (member.name === name) {
-            atJids.push(member.jid.bare);
-            break;
-          }
-        }
-      }
-    }
-    return atJids;
-  };
   sendCommand2App(userId, app, command, peerUserId, roomId) {
     const { selectedConversation } = this.props;
     let { id, name, commandType } = app;
@@ -242,23 +177,6 @@ export default class MessagesSendBar extends PureComponent {
       });
     });
   }
-
-  installApp = async e => {
-    const conv = this.props.selectedConversation;
-    const { curJid } = conv;
-    const userId = curJid.split('@')[0];
-    let token = await getToken(userId);
-    xmpplogin(userId, token, (err, data) => {
-      if (data) {
-        data = JSON.parse(data);
-        if (data.data && data.data.url) {
-          exec('open ' + data.data.url);
-        } else {
-          alert(`fail to open the app store page`);
-        }
-      }
-    });
-  };
 
   sendMessage() {
     let { messageBody } = this.state;
@@ -344,90 +262,42 @@ export default class MessagesSendBar extends PureComponent {
     this.setState(Object.assign({}, this.state, { files }));
   };
 
-  onKeyDown = e => {
-    if (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) {
-      let files;
-      // try-catch is neccessary to prevent exception
-      // while the clipboard is containing files copied from non standard system application(e.g. webstorm)
-      try {
-        files = getClipboardFiles();
-      } catch (e) {}
-      if (!files || files.length === 0) {
-        return true;
-      }
-      files = this.state.files.concat(files);
-      this.setState(Object.assign({}, this.state, { files }), () => {
-        this.sendMessage();
-      });
-      e.preventDefault();
-      e.stopPropagation();
-    } else if (e.keyCode == 13 && (e.ctrlKey || e.metaKey)) {
-      this.sendMessage();
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
   hidePrompt = () => {
     const state = Object.assign({}, this.state, { prefix: '' });
     this.setState(state);
   };
 
-  clearFiles = e => {
-    this.setState(Object.assign({}, this.state, { files: [] }));
+  installApp = async e => {
+    const conv = this.props.selectedConversation;
+    const { curJid } = conv;
+    const userId = curJid.split('@')[0];
+    let token = await getToken(userId);
+    xmpplogin(userId, token, (err, data) => {
+      if (data) {
+        data = JSON.parse(data);
+        if (data.data && data.data.url) {
+          exec('open ' + data.data.url);
+        } else {
+          alert(`fail to open the app store page`);
+        }
+      }
+    });
   };
 
-  onSearchChange = value => {
-    const { selectedConversation } = this.props;
-    if (!selectedConversation.isGroup) {
-      return;
-    }
-    const { roomMembers } = this.state;
-    const searchValue = value.toLowerCase();
-    const memberNames = roomMembers.map(item => item.name.replace(/ /g, FAKE_SPACE));
-    const filtered = memberNames.filter(item => item.toLowerCase().indexOf(searchValue) !== -1);
-    this.setState({
-      suggestions: filtered,
-      suggestionStyle: filtered.length ? activeStyle : disableStyle,
+  onContextMenu = () => {
+    const sel = document.getSelection();
+    AppEnv.windowEventHandler.openSpellingMenuFor(sel.toString(), !sel.isCollapsed, {
+      onCorrect: correction => {
+        document.execCommand('insertText', false, correction);
+      },
     });
   };
-  sendEmailAttachment = files => {
-    Actions.closePopover();
-    let state = Object.assign({}, this.state, { files });
-    this.setState(state, () => {
-      this.sendMessage();
-    });
-    let el = ReactDOM.findDOMNode(this.textarea);
-    el.value = '';
-    el.focus();
-  };
+
   onEmojiSelected = value => {
     Actions.closePopover();
-    let el = ReactDOM.findDOMNode(this.textarea);
-    el.focus();
-    document.execCommand('insertText', false, value);
-    setTimeout(() => el.focus(), 10);
+    this._richText.addNode(value);
   };
-  onEmailAttachmentTouch = () => {
-    let attachmentEl = ReactDOM.findDOMNode(this.attachmentRef);
-    if (!this.state.openAttachment) {
-      Actions.openPopover(<EmailAttachmentPopup sendEmailAttachment={this.sendEmailAttachment} />, {
-        direction: 'up',
-        originRect: {
-          top: attachmentEl.getBoundingClientRect().top,
-          left: attachmentEl.getBoundingClientRect().left,
-          width: 250,
-        },
-        closeOnAppBlur: true,
-        onClose: () => {
-          this.setState({ openAttachment: false });
-        },
-      });
-    } else {
-      Actions.closePopover();
-    }
-    this.setState({ openAttachment: !this.state.openAttachment });
-  };
+
   onEmojiTouch = () => {
     let rectPosition = ReactDOM.findDOMNode(this.emojiRef);
     if (!this.state.openEmoji) {
@@ -448,86 +318,166 @@ export default class MessagesSendBar extends PureComponent {
     }
     this.setState({ openEmoji: !this.state.openEmoji });
   };
-  onContextMenu = event => {
-    const sel = document.getSelection();
-    AppEnv.windowEventHandler.openSpellingMenuFor(sel.toString(), !sel.isCollapsed, {
-      onCorrect: correction => {
-        document.execCommand('insertText', false, correction);
-      },
+
+  // --------------------------- at start ---------------------------
+  getAtTargetPersons = () => {
+    const { messageBody, roomMembers } = this.state;
+    const { selectedConversation } = this.props;
+    if (!selectedConversation.isGroup) {
+      return [];
+    }
+    const atJids = [];
+    let atPersonNames = messageBody.match(/@[^ ]+ |@[^ ]+$/g);
+
+    if (atPersonNames) {
+      atPersonNames = atPersonNames.map(item => {
+        return item
+          .trim()
+          .substr(1)
+          .replace(/&nbsp;/g, ' ');
+      });
+      for (const name of atPersonNames) {
+        for (const member of roomMembers) {
+          if (member.name === name) {
+            atJids.push(member.jid.bare);
+            break;
+          }
+        }
+      }
+    }
+    return atJids;
+  };
+
+  chooseAtContact = contact => {
+    const insertDom = document.createElement('span');
+    insertDom.innerHTML = `@${contact.name},`;
+    this._richText.delNode();
+    this._richText.addNode(insertDom);
+    this.setState({ atVisible: false });
+  };
+
+  onRichTextBlur = () => {
+    setTimeout(() => {
+      this.setState({ atVisible: false });
+    }, 200);
+  };
+
+  changeAtActiveIndex = index => {
+    const { atActiveIndex, atContacts } = this.state;
+    // 取模后的数的绝对值小于模数，因此加上模数可以保证为正数，在取模即可获得正模数
+    let nextIndex = ((index % atContacts.length) + atContacts.length) % atContacts.length;
+    if (nextIndex !== atActiveIndex) {
+      this.setState({ atActiveIndex: nextIndex });
+    }
+  };
+
+  // @ key event
+  EscKeyEvent = () => {
+    this.setState({ appPrefix: '', atVisible: false });
+  };
+
+  DownKeyEvent = () => {
+    const { atActiveIndex } = this.state;
+    this.changeAtActiveIndex(atActiveIndex + 1);
+  };
+
+  UpKeyEvent = () => {
+    const { atActiveIndex } = this.state;
+    this.changeAtActiveIndex(atActiveIndex - 1);
+  };
+
+  AtKeyEvent = () => {
+    const { selectedConversation } = this.props;
+    this.setState({
+      atVisible: selectedConversation.isGroup,
+      atPrefix: '',
     });
   };
 
+  EnterKeyEvent = funKeyIsOn => {
+    const { atVisible, atContacts, atActiveIndex } = this.state;
+    if (funKeyIsOn || !atVisible) {
+      this.sendMessage();
+    } else {
+      const contact = atContacts[atActiveIndex];
+      this.chooseAtContact(contact);
+    }
+  };
+  // ---------------------------- at end ----------------------------
+
   render() {
-    const inputProps = {};
     const { selectedConversation } = this.props;
+    const { atVisible, promptPos, atContacts, atActiveIndex } = this.state;
+    const keyMapping = [
+      {
+        keyCode: 13,
+        preventDefault: true,
+        stopPropagation: true,
+        altKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+        metaKey: false,
+        // enter
+        keyEvent: () => this.EnterKeyEvent(false),
+      },
+      {
+        keyCode: 13,
+        preventDefault: true,
+        stopPropagation: true,
+        altKey: true,
+        shiftKey: false,
+        // alt + enter
+        keyEvent: () => this.EnterKeyEvent(true),
+      },
+      {
+        keyCode: 13,
+        preventDefault: true,
+        stopPropagation: true,
+        ctrlKey: true,
+        shiftKey: false,
+        // ctrl + enter
+        keyEvent: () => this.EnterKeyEvent(true),
+      },
+      {
+        keyCode: 13,
+        preventDefault: true,
+        stopPropagation: true,
+        metaKey: true,
+        shiftKey: false,
+        // meta + enter
+        keyEvent: () => this.EnterKeyEvent(true),
+      },
+      {
+        keyCode: 27,
+        keyEvent: this.EscKeyEvent,
+      },
+      {
+        keyCode: 40,
+        keyEvent: this.DownKeyEvent,
+      },
+      {
+        keyCode: 38,
+        keyEvent: this.UpKeyEvent,
+      },
+      {
+        keyCode: 50,
+        shiftKey: true,
+        keyEvent: this.AtKeyEvent,
+      },
+    ];
     return (
       <KeyCommandsRegion>
         <div className="sendBar" onDrop={this.onDrop} onContextMenu={this.onContextMenu}>
-          {/* <Mention
-            style={{ width: '100%', height: '70px' }}
-            multiLines={true}
-            onChange={this.onMessageBodyChanged}
-            onSearchChange={this.onSearchChange}
-            suggestions={suggestions}
-            suggestionStyle={suggestionStyle}
-            prefixCls="rc-editor-mention"
-            notFoundContent="could not find"
-            ref="mention"
-            prefix="@"
-          /> */}
-          <TextArea
-            className="messageTextField"
+          <RichText
+            keyMapping={keyMapping}
             placeholder="Edison Chat"
-            rows={1}
             maxRows={5}
-            value={this.state.messageBody}
             onChange={this.onMessageBodyChanged.bind(this)}
-            onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
-            onKeyUp={this.onInputKeyUp}
             ref={element => {
-              this.textarea = element;
+              this._richText = element;
             }}
-            onKeyDown={this.onKeyDown}
-            {...inputProps}
+            onBlur={this.onRichTextBlur}
           />
-          <div className="chat-message-filelist">
-            {this.state.files.map((file, index) => {
-              const removeFile = e => {
-                let files = this.state.files;
-                index = files.indexOf(file);
-                files.splice(index, 1);
-                files = files.slice();
-                this.setState(Object.assign({}, this.state, { files }));
-              };
-              return (
-                <div id="remove-file" key={index} onClick={removeFile} title={file}>
-                  <RetinaImg
-                    name="fileIcon.png"
-                    mode={RetinaImg.Mode.ContentPreserve}
-                    key={index}
-                  />
-                  <div id="remove-file-inner" title="remove this file from the list">
-                    -
-                  </div>
-                </div>
-              );
-            })}
-            {this.state.files.length ? (
-              <div
-                id="clear-all-files"
-                title="clear all files from the list"
-                onClick={this.clearFiles}
-              >
-                {' '}
-                X{' '}
-              </div>
-            ) : null}
-          </div>
-          {/* <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
-          <Button className='no-border' onClick={this.onEmailAttachmentTouch}>
-            <InfoIcon className="icon" />
-          </Button>
-        </div> */}
 
           <div
             className="chat-tool-bar"
@@ -573,6 +523,15 @@ export default class MessagesSendBar extends PureComponent {
             hidePrompt={this.hidePrompt}
             installApp={this.installApp}
           />
+          {atVisible ? (
+            <AtList
+              pos={promptPos}
+              contacts={atContacts}
+              activeIndex={atActiveIndex}
+              chooseAtContact={this.chooseAtContact}
+              changeAtActiveIndex={this.changeAtActiveIndex}
+            />
+          ) : null}
         </div>
       </KeyCommandsRegion>
     );

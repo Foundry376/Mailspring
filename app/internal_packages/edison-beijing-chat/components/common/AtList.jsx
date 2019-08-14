@@ -39,7 +39,7 @@ export default class AtList extends Component {
     return (
       <div
         className="at-list-container"
-        style={{ bottom: pos.top + 33 + 'px', left: pos.left + 28 + 'px' }}
+        style={{ bottom: '48px', left: (pos && pos.left ? pos.left + 28 : 28) + 'px' }}
         ref={el => (this._scrollBox = el)}
         onMouseMove={event => {
           // 监听相对于列表外面的盒子的鼠标移动事件，利用事件捕获，将事件转移到列表元素上

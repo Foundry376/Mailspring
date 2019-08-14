@@ -18,7 +18,7 @@ export class RichText extends Component {
   }
 
   componentDidMount() {
-    const { keyMapping } = this.props;
+    const { keyMapping = [] } = this.props;
     const listenKeys = new Set();
     const listenKeysMapping = new Map();
     keyMapping.forEach(listenEvent => {
@@ -44,11 +44,13 @@ export class RichText extends Component {
     } else {
       const keyEventList = listenKeysMapping.get(keyCode) || [];
       for (const matchingKey of keyEventList) {
+        // 指定了功能键且相等或未指定功能键
         if (
-          !!matchingKey.altKey === !!event.altKey &&
-          !!matchingKey.ctrlKey === !!event.ctrlKey &&
-          !!matchingKey.shiftKey === !!event.shiftKey &&
-          !!matchingKey.metaKey === !!event.metaKey
+          (typeof matchingKey.altKey !== 'boolean' || !!matchingKey.altKey === !!event.altKey) &&
+          (typeof matchingKey.ctrlKey !== 'boolean' || !!matchingKey.ctrlKey === !!event.ctrlKey) &&
+          (typeof matchingKey.shiftKey !== 'boolean' ||
+            !!matchingKey.shiftKey === !!event.shiftKey) &&
+          (typeof matchingKey.metaKey !== 'boolean' || !!matchingKey.metaKey === !!event.metaKey)
         ) {
           if (matchingKey.preventDefault) {
             event.preventDefault();
