@@ -176,10 +176,8 @@ const TaskFactory = {
     const threadsByFolder = this._splitByAccount(threads);
     const tasks = [];
     for (const accId in threadsByFolder) {
-      for (const item of threadsByFolder[accId]) {
-        const t = new ChangeUnreadTask({ threads: item, unread, source, canBeUndone });
-        tasks.push(t);
-      }
+      const t = new ChangeUnreadTask({ threads: threadsByFolder[accId], unread, source, canBeUndone });
+      tasks.push(t);
     }
     return tasks;
   },
@@ -189,10 +187,8 @@ const TaskFactory = {
     const threadsByFolder = this._splitByAccount(threads);
     const tasks = [];
     for (const accId in threadsByFolder) {
-      for (const item of threadsByFolder[accId]) {
-        const t = new ChangeStarredTask({ threads: item, starred, source });
-        tasks.push(t);
-      }
+      const t = new ChangeStarredTask({ threads: threadsByFolder[accId], starred, source });
+      tasks.push(t);
     }
     return tasks;
   },
