@@ -249,6 +249,7 @@ export default class ComposerView extends React.Component {
     return (
       <a
         className="quoted-text-control"
+        title="Show trimmed content"
         onMouseDown={e => {
           if (e.target.closest('.remove-quoted-text')) return;
           e.preventDefault();
