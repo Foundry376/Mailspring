@@ -409,7 +409,7 @@ export default class MessagesSendBar extends PureComponent {
 
   // @ key event
   EscKeyEvent = () => {
-    this.setState({ appPrefix: '', atVisible: false });
+    this.setState({ atVisible: false });
   };
 
   DownKeyEvent = () => {
@@ -423,10 +423,10 @@ export default class MessagesSendBar extends PureComponent {
   };
 
   AtKeyEvent = () => {
+    const { atContacts } = this.state;
     const { selectedConversation } = this.props;
     this.setState({
-      atVisible: selectedConversation.isGroup,
-      atPrefix: '',
+      atVisible: selectedConversation.isGroup && !!atContacts.length,
     });
   };
 
