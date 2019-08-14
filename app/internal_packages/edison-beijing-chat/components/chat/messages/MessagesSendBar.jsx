@@ -32,6 +32,10 @@ const platform = require('electron-platform');
 const { clipboard } = require('electron');
 const plist = require('plist');
 
+const AT_BEGIN_CHAR = '\u0005';
+const AT_END_CHAR = '\u0004';
+const AT_INDEX_BASE = 0xf000;
+
 //linux is not implemented because no method was found after googling a lot
 // only be tested on mac, not be tested on Windows
 //https://github.com/electron/electron/issues/9035
@@ -52,6 +56,38 @@ function getClipboardFiles() {
   } else if (platform.isWin32) {
     clipboard.readBuffer('FileNameW').replace(RegExp(String.fromCharCode(0), 'g'), '');
   }
+}
+
+function getTextFromHtml(str) {
+  let strFormat = '';
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = str;
+  const childs = tempDiv.childNodes;
+  childs.forEach(el => {
+    if (el.nodeType === 3) {
+      strFormat += el.nodeValue;
+    } else if (el.nodeType === 1) {
+      const jid = el.getAttribute('jid');
+      strFormat += `${AT_BEGIN_CHAR}@${jid}${AT_END_CHAR}`;
+    }
+  });
+  return strFormat;
+}
+
+function getAtJidFromHtml(str) {
+  const atJidList = [];
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = str;
+  const childs = tempDiv.childNodes;
+  childs.forEach(el => {
+    if (el.nodeType === 1) {
+      const jid = el.getAttribute('jid');
+      if (jid) {
+        atJidList.push(jid);
+      }
+    }
+  });
+  return atJidList;
 }
 
 export default class MessagesSendBar extends PureComponent {
@@ -112,9 +148,17 @@ export default class MessagesSendBar extends PureComponent {
 
   componentDidMount = async () => {
     const roomMembers = await this.getRoomMembers();
+    const atContacts = [
+      {
+        affiliation: 'member',
+        jid: 'all',
+        name: 'all',
+      },
+      ...roomMembers,
+    ];
     this.setState({
       roomMembers,
-      atContacts: roomMembers,
+      atContacts,
     });
   };
 
@@ -135,9 +179,23 @@ export default class MessagesSendBar extends PureComponent {
   };
 
   onMessageBodyChanged = value => {
-    const messageBody = emoji.emojify(value);
+    const { roomMembers } = this.state;
+    const messageHtml = emoji.emojify(value);
+    const messageBody = getTextFromHtml(messageHtml);
+    const atJidList = getAtJidFromHtml(value);
+    const atContacts = [
+      {
+        affiliation: 'member',
+        jid: 'all',
+        name: 'all',
+      },
+      ...roomMembers,
+    ].filter(contact => {
+      return atJidList.indexOf(contact.jid) < 0;
+    });
     this.setState({
       messageBody,
+      atContacts,
     });
   };
 
@@ -227,13 +285,12 @@ export default class MessagesSendBar extends PureComponent {
           content: message,
           email: selectedConversation.email,
           name: selectedConversation.name,
-          // occupants,
-          atJids: this.getAtTargetPersons(),
         };
 
         MessageSend.sendMessage(body, selectedConversation);
       }
     }
+    this._richText.clearNode();
     this.setState({ messageBody: '', files: [] });
   }
 
@@ -320,38 +377,11 @@ export default class MessagesSendBar extends PureComponent {
   };
 
   // --------------------------- at start ---------------------------
-  getAtTargetPersons = () => {
-    const { messageBody, roomMembers } = this.state;
-    const { selectedConversation } = this.props;
-    if (!selectedConversation.isGroup) {
-      return [];
-    }
-    const atJids = [];
-    let atPersonNames = messageBody.match(/@[^ ]+ |@[^ ]+$/g);
-
-    if (atPersonNames) {
-      atPersonNames = atPersonNames.map(item => {
-        return item
-          .trim()
-          .substr(1)
-          .replace(/&nbsp;/g, ' ');
-      });
-      for (const name of atPersonNames) {
-        for (const member of roomMembers) {
-          if (member.name === name) {
-            atJids.push(member.jid.bare);
-            break;
-          }
-        }
-      }
-    }
-    return atJids;
-  };
-
   chooseAtContact = contact => {
     const insertDom = document.createElement('span');
     insertDom.innerHTML = `@${contact.name},`;
-    this._richText.delNode();
+    insertDom.setAttribute('jid', contact.jid);
+    this._richText.delNode(1);
     this._richText.addNode(insertDom);
     this.setState({ atVisible: false });
   };
@@ -453,10 +483,14 @@ export default class MessagesSendBar extends PureComponent {
       },
       {
         keyCode: 40,
+        preventDefault: true,
+        stopPropagation: true,
         keyEvent: this.DownKeyEvent,
       },
       {
         keyCode: 38,
+        preventDefault: true,
+        stopPropagation: true,
         keyEvent: this.UpKeyEvent,
       },
       {

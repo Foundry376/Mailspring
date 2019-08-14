@@ -115,6 +115,10 @@ export class RichText extends Component {
 
   clearNode = () => {
     this._richText.innerHTML = '';
+    const { onChange } = this.props;
+    if (onChange && typeof onChange === 'function') {
+      onChange(this.getNode());
+    }
   };
 
   delNode = n => {
@@ -130,6 +134,10 @@ export class RichText extends Component {
       let contentRange = range.cloneRange();
       sel.removeAllRanges();
       sel.addRange(contentRange);
+    }
+    const { onChange } = this.props;
+    if (onChange && typeof onChange === 'function') {
+      onChange(this.getNode());
     }
   };
 
