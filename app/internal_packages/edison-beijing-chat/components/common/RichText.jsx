@@ -145,11 +145,11 @@ export class RichText extends Component {
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
       let range = sel.getRangeAt(0);
-      if (!(range.startContainer instanceof HTMLElement)) {
-        return range.startContainer;
+      if (range.startContainer.nodeType === 3) {
+        return range.startContainer.nodeValue;
       }
     }
-    return null;
+    return '';
   };
 
   render() {

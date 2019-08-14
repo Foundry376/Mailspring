@@ -186,12 +186,18 @@ export default class MessagesSendBar extends PureComponent {
   onMessageBodyChanged = value => {
     const { roomMembers } = this.state;
     const messageHtml = emoji.emojify(value);
-    const messageBody = getTextFromHtml(messageHtml);
+    // Top nodevalue element nearest to cursor
     const inputText = this._richText.getInputText();
-    console.log('^^^^^^^^^^^^^^');
-    console.log(inputText);
-    console.log('^^^^^^^^^^^^^^');
+
+    // msgbody is a string, not a dom element
+    const messageBody = getTextFromHtml(messageHtml);
+    // at choose list should change when msg @ someone
     const atJidList = getAtJidFromHtml(value);
+
+    const inputTextHasAt = inputText.indexOf('@') >= 0;
+    const splitInputText = inputText.split('@');
+    const atFuzzyMatchingStr =
+      splitInputText.length > 1 ? splitInputText[splitInputText.length - 1] : '';
     const atContacts = [
       {
         affiliation: 'member',
@@ -200,9 +206,18 @@ export default class MessagesSendBar extends PureComponent {
       },
       ...roomMembers,
     ].filter(contact => {
-      return atJidList.indexOf(contact.jid) < 0;
+      // filter contact that has be at
+      const noBeAt = atJidList.indexOf(contact.jid) < 0;
+      // filter contact that dont match search string
+      const FuzzyMatching = contact.name.toLowerCase().includes(atFuzzyMatchingStr.toLowerCase());
+      return noBeAt && FuzzyMatching;
     });
+    // string dont have at or atList is null
+    if (!atContacts.length || !inputTextHasAt) {
+      this.setState({ atVisible: false });
+    }
     this.setState({
+      prefix: inputText,
       messageBody,
       atContacts,
     });
