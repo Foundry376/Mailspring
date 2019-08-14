@@ -625,7 +625,12 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     if (currentCat && myCat.id === currentCat.id) {
       return [];
     }
-
+    let previousFolder = null;
+    if(current){
+      previousFolder = current.categories().find(
+        cat => cat.accountId === accountId
+      );
+    }
     if (myCat.role === 'all' && currentCat && currentCat instanceof Label) {
       // dragging from a label into All Mail? Make this an "archive" by removing the
       // label. Otherwise (Since labels are subsets of All Mail) it'd have no effect.
@@ -635,6 +640,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           source: 'Dragged into list',
           labelsToAdd: [],
           labelsToRemove: [currentCat],
+          previousFolder,
         }),
       ];
     }
@@ -645,6 +651,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           threads,
           source: 'Dragged into list',
           folder: myCat,
+          previousFolder,
         }),
       ];
     }
@@ -661,11 +668,13 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           source: 'Dragged into list',
           labelsToAdd: [myCat],
           labelsToRemove: [],
+          previousFolder,
         }),
         new ChangeFolderTask({
           threads,
           source: 'Dragged into list',
           folder: CategoryStore.getCategoryByRole(accountId, 'all'),
+          currentPerspective: current,
         }),
       ];
     }
@@ -676,6 +685,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
         source: 'Dragged into list',
         labelsToAdd: [myCat],
         labelsToRemove: currentCat ? [currentCat] : [],
+        previousFolder,
       }),
     ];
   }
@@ -706,13 +716,20 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     }
 
     if (role === 'archive') {
-      return TaskFactory.tasksForMovingToTrash({ threads, source });
+      return TaskFactory.tasksForMovingToTrash({ threads, source, currentPerspective: this });
     }
 
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const acct = AccountStore.accountForId(accountId);
       const preferred = acct.preferredRemovalDestination();
       const cat = this.categories().find(c => c.accountId === accountId);
+      const currentPerspective = FocusedPerspectiveStore.current();
+      let previousFolder = null;
+      if(currentPerspective){
+        previousFolder = currentPerspective.categories().find(
+          cat => cat.accountId === accountId
+        );
+      }
       if (cat instanceof Label && preferred.role !== 'trash') {
         const inboxCat = CategoryStore.getInboxCategory(accountId);
         return new ChangeLabelsTask({
@@ -720,12 +737,14 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           labelsToAdd: [],
           labelsToRemove: [cat, inboxCat],
           source: source,
+          previousFolder,
         });
       }
       return new ChangeFolderTask({
         threads: accountThreads,
         folder: preferred,
         source: source,
+        previousFolder,
       });
     });
   }

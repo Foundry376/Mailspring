@@ -67,9 +67,16 @@ const TaskFactory = {
     return tasks;
   },
 
-  tasksForMarkingAsSpam({ threads, source }) {
+  tasksForMarkingAsSpam({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      let previousFolder = null;
+      if(currentPerspective){
+        previousFolder = currentPerspective.categories().find(
+          cat => cat.accountId === accountId
+        );
+      }
       return new ChangeFolderTask({
+        previousFolder,
         folder: CategoryStore.getSpamCategory(accountId),
         threads: accountThreads,
         source,
@@ -77,17 +84,25 @@ const TaskFactory = {
     });
   },
 
-  tasksForMarkingNotSpam({ threads, source }) {
+  tasksForMarkingNotSpam({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
+      let previousFolder = null;
+      if(currentPerspective){
+        previousFolder = currentPerspective.categories().find(
+          cat => cat.accountId === accountId
+        );
+      }
       if (inbox instanceof Label) {
         return new ChangeFolderTask({
+          previousFolder,
           folder: CategoryStore.getAllMailCategory(accountId),
           threads: accountThreads,
           source,
         });
       }
       return new ChangeFolderTask({
+        previousFolder,
         folder: inbox,
         threads: accountThreads,
         source,
@@ -95,11 +110,18 @@ const TaskFactory = {
     });
   },
 
-  tasksForArchiving({ threads, source }) {
+  tasksForArchiving({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
+      let previousFolder = null;
+      if(currentPerspective){
+        previousFolder = currentPerspective.categories().find(
+          cat => cat.accountId === accountId
+        );
+      }
       if (inbox instanceof Label) {
         return new ChangeLabelsTask({
+          previousFolder,
           labelsToRemove: [inbox],
           labelsToAdd: [],
           threads: accountThreads,
@@ -107,6 +129,7 @@ const TaskFactory = {
         });
       }
       return new ChangeFolderTask({
+        previousFolder,
         folder: CategoryStore.getArchiveCategory(accountId),
         threads: accountThreads,
         source,
@@ -114,16 +137,31 @@ const TaskFactory = {
     });
   },
 
-  tasksForMovingToTrash({ threads = [], messages = [], source }) {
+  tasksForMovingToTrash({ threads = [], messages = [], source, currentPerspective }) {
     const tasks = [];
     if (threads.length > 0 && (threads[0] instanceof Thread)) {
       tasks.push(
         ...this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-          return new ChangeFolderTask({
-            folder: CategoryStore.getTrashCategory(accountId),
-            threads: accountThreads,
-            source,
-          });
+          let previousFolder = null;
+          if(currentPerspective){
+            previousFolder = currentPerspective.categories().find(
+              cat => cat.accountId === accountId
+            );
+          }
+          if(previousFolder){
+            return new ChangeFolderTask({
+              previousFolder,
+              folder: CategoryStore.getTrashCategory(accountId),
+              threads: accountThreads,
+              source,
+            });
+          }else{
+            return new ChangeFolderTask({
+              folder: CategoryStore.getTrashCategory(accountId),
+              threads: accountThreads,
+              source,
+            });
+          }
         }),
       );
     }
@@ -193,9 +231,16 @@ const TaskFactory = {
     return tasks;
   },
 
-  tasksForChangeFolder({ threads, source, folder }) {
+  tasksForChangeFolder({ threads, source, folder, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      let previousFolder = null;
+      if(currentPerspective){
+        previousFolder = currentPerspective.categories().find(
+          cat => cat.accountId === accountId
+        );
+      }
       return new ChangeFolderTask({
+        previousFolder,
         folder,
         threads: accountThreads,
         source,

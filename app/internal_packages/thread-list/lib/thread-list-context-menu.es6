@@ -138,6 +138,7 @@ export default class ThreadListContextMenu {
         const tasks = TaskFactory.tasksForArchiving({
           source: 'Context Menu: Thread List',
           threads: this.threads,
+          currentPerspective: FocusedPerspectiveStore.current()
         });
         Actions.queueTasks(tasks);
       },
@@ -184,6 +185,7 @@ export default class ThreadListContextMenu {
         const tasks = TaskFactory.tasksForMovingToTrash({
           source: 'Context Menu: Thread List, Trash',
           threads: this.threads,
+          currentPerspective: FocusedPerspectiveStore.current(),
         });
         if (Array.isArray(tasks) && tasks.length > 0) {
           tasks.forEach(task => {
