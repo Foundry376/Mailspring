@@ -42,7 +42,7 @@ export class ArchiveButton extends React.Component {
       source: 'Toolbar Button: Thread List',
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ThreadList:archive'});
     if (event) {
       event.stopPropagation();
     }
@@ -101,7 +101,7 @@ export class TrashButton extends React.Component {
       });
     }
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ThreadList:remove'});
     if (event) {
       event.stopPropagation();
     }
@@ -138,7 +138,7 @@ export class TrashButton extends React.Component {
       });
     }
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ThreadList:expunge'});
     if (event) {
       event.stopPropagation();
     }
@@ -195,7 +195,7 @@ class HiddenGenericRemoveButton extends React.Component {
     const current = FocusedPerspectiveStore.current();
     const tasks = current.tasksForRemovingItems(this.props.items, 'Keyboard Shortcut');
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:HiddenGenericRemoveButton:removeFromView'});
   };
 
   render() {
@@ -292,7 +292,7 @@ export class MarkAsSpamButton extends React.Component {
       threads: this.props.items,
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:NotSpam'});
     if (event) {
       event.stopPropagation();
     }
@@ -308,7 +308,7 @@ export class MarkAsSpamButton extends React.Component {
       source: 'Toolbar Button: Thread List',
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:Spam'});
     if (event) {
       event.stopPropagation();
     }
@@ -432,7 +432,7 @@ export class ToggleUnreadButton extends React.Component {
         source: 'Toolbar Button: Thread List',
       }),
     );
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ToggleUnread:changeUnread'});
     if(this.props.selection){
       this.props.selection.clear() ;
     }

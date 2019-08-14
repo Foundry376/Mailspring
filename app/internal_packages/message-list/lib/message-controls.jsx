@@ -151,7 +151,7 @@ export default class MessageControls extends React.Component {
     Actions.popoutThread(this.props.thread);
     // This returns the single-pane view to the inbox, and does nothing for
     // double-pane view because we're at the root sheet.
-    Actions.popSheet();
+    Actions.popSheet({reason: 'Message-Controls:_onPopoutThread'});
   };
 
   _dropdownMenu(items) {
@@ -237,7 +237,7 @@ export default class MessageControls extends React.Component {
       this.props.selection.clear();
     }
     if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
-      Actions.popSheet();
+      Actions.popSheet({reason: 'MessageControls:_onRemove'});
     }
     return;
   };
@@ -263,7 +263,7 @@ export default class MessageControls extends React.Component {
       event.stopPropagation();
     }
     if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
-      Actions.popSheet();
+      Actions.popSheet({reason: 'MessageControls:_onExpunge'});
     }
     return;
   };

@@ -122,7 +122,7 @@ class WorkspaceStore extends MailspringStore {
           this.pushSheet(Sheet.Thread);
         }
         if (!item && this.topSheet() === Sheet.Thread) {
-          this.popSheet();
+          this.popSheet({reason: 'workspace-store:onSetFocus:collection-thread'});
         }
       }
     }
@@ -133,7 +133,7 @@ class WorkspaceStore extends MailspringStore {
           this.pushSheet(Sheet.File);
         }
         if (!item && this.topSheet() === Sheet.File) {
-          this.popSheet();
+          this.popSheet({reason: 'workspace-store:onSetFocus:collection-file'});
         }
       }
     }
@@ -147,7 +147,7 @@ class WorkspaceStore extends MailspringStore {
     this._preferredLayoutMode = mode;
     AppEnv.config.set('core.workspace.mode', this._preferredLayoutMode);
     this._rebuildShortcuts();
-    this.popToRootSheet();
+    this.popToRootSheet({ reason: 'WorkspaceStore:onSelectLayoutMode' });
     if (focused) {
       Actions.setFocus({ collection: 'thread', item: focused });
     }
@@ -162,7 +162,7 @@ class WorkspaceStore extends MailspringStore {
       document.body,
       Object.assign(
         {
-          'core:pop-sheet': () => this.popSheet(),
+          'core:pop-sheet': () => this.popSheet({reason: 'workspace-store:rebuildShortcuts:core:pop-sheet'}),
         },
         this._preferredLayoutMode === 'list'
           ? { 'navigation:select-split-mode': () => this._onSelectLayoutMode('split') }
@@ -297,12 +297,13 @@ class WorkspaceStore extends MailspringStore {
 
   // Remove the top sheet, with a quick animation. This method triggers,
   // allowing observers to update.
-  popSheet = () => {
+  popSheet = ( {reason = 'Unknown'} = {}) => {
     const sheet = this.topSheet();
 
     if (this._sheetStack.length > 1) {
       this._sheetStack.pop();
       this.trigger();
+      AppEnv.logDebug(`Sheet popped because ${reason}`);
     }
     // make toolbar display
     if ((this.topSheet() && ['Threads', 'Thread', 'Drafts', 'ChatView'].includes(this.topSheet().id))
@@ -319,11 +320,12 @@ class WorkspaceStore extends MailspringStore {
 
   // Return to the root sheet. This method triggers, allowing observers
   // to update.
-  popToRootSheet = () => {
+  popToRootSheet = ({ reason = 'Unknown' } = {}) => {
     const sheet = this.topSheet();
     if (this._sheetStack.length > 1) {
       this._sheetStack.length = 1;
       this.trigger();
+      AppEnv.logDebug(`Sheet popped to root because ${reason}`);
     }
     // make toolbar display
     setTimeout(() => {

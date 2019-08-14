@@ -345,7 +345,7 @@ class MessageList extends React.Component {
     Actions.popoutThread(this.state.currentThread);
     // This returns the single-pane view to the inbox, and does nothing for
     // double-pane view because we're at the root sheet.
-    Actions.popSheet();
+    Actions.popSheet({reason: 'MessageList:_onPopoutThread'});
   };
 
   _onClickReplyArea = () => {

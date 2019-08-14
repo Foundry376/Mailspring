@@ -91,7 +91,7 @@ class FocusedPerspectiveStore extends MailspringStore {
 
   gotoChat = () => {
     Actions.goToMostRecentChat();
-    Actions.popToRootSheet();
+    Actions.popToRootSheet({reason: 'FocusedPerspectiveStore:gotoChat'});
     Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
   };
 
@@ -236,7 +236,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     if (desired && WorkspaceStore.rootSheet() !== desired) {
       Actions.selectRootSheet(desired);
     }
-    Actions.popToRootSheet();
+    Actions.popToRootSheet({ reason: 'FocusedPerspectiveStore:setPerspective' });
   }
 
   _setPerspectiveByName(categoryName) {

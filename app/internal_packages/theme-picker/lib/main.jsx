@@ -5,7 +5,7 @@ import ThemePicker from './theme-picker';
 
 export function activate() {
   this.disposable = AppEnv.commands.add(document.body, 'window:launch-theme-picker', () => {
-    WorkspaceStore.popToRootSheet();
+    WorkspaceStore.popToRootSheet({reason: 'ThemePicker:activate'});
     Actions.openModal({
       component: <ThemePicker />,
       height: 390,
