@@ -297,7 +297,7 @@ class PreferencesAccountDetails extends Component {
     if (defalutMailsyncSettings && !mailsyncSettings) {
       mailsyncSettings = defalutMailsyncSettings;
     } else if (!mailsyncSettings || !mailsyncSettings.fetchEmailInterval) {
-      AppEnv.reportError(new Error('fetchEmailInterval do not have value'));
+      AppEnv.reportWarning(new Error('fetchEmailInterval do not have value'));
       mailsyncSettings = {
         fetchEmailRange: 365,
         fetchEmailInterval: 1,

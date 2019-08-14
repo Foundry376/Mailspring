@@ -582,9 +582,10 @@ export default class MailsyncBridge {
     }
   };
   _recordErrorToConsole = task => {
+    const warningKeys = ['ErrorConnection', 'ErrorAuthentication'];
+    let errorAccount = {};
     if (task && task.accountId) {
       const accounts = AppEnv.config.get('accounts');
-      let errorAccount = {};
       if (Array.isArray(accounts)) {
         for (let acc of accounts) {
           if (acc.id === task.aid || acc.id === task.accountId) {
@@ -593,7 +594,27 @@ export default class MailsyncBridge {
           }
         }
       }
-      AppEnv.reportError(new Error(`TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`));
+    }
+    if (task) {
+      if (task.error && task.error.retryable) {
+        AppEnv.reportWarning(
+          new Error(
+            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`,
+          ),
+        );
+      } else if (task.error && task.error.key && warningKeys.includes(task.error.key)) {
+        AppEnv.reportWarning(
+          new Error(
+            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`,
+          ),
+        );
+      } else {
+        AppEnv.reportError(
+          new Error(
+            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`,
+          ),
+        );
+      }
     }
   };
 
