@@ -68,7 +68,12 @@ function getTextFromHtml(str) {
       strFormat += el.nodeValue;
     } else if (el.nodeType === 1) {
       const jid = el.getAttribute('jid');
-      strFormat += `${AT_BEGIN_CHAR}@${jid}${AT_END_CHAR}`;
+      if (jid) {
+        strFormat += `${AT_BEGIN_CHAR}@${jid}${AT_END_CHAR}`;
+      }
+      if (el.nodeName === 'BR') {
+        strFormat += '\n';
+      }
     }
   });
   return strFormat;
@@ -381,6 +386,7 @@ export default class MessagesSendBar extends PureComponent {
     const insertDom = document.createElement('span');
     insertDom.innerHTML = `@${contact.name},`;
     insertDom.setAttribute('jid', contact.jid);
+    insertDom.setAttribute('class', 'at-contact');
     this._richText.delNode(1);
     this._richText.addNode(insertDom);
     this.setState({ atVisible: false });

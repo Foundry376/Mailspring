@@ -44,7 +44,7 @@ export class RichText extends Component {
     } else {
       const keyEventList = listenKeysMapping.get(keyCode) || [];
       for (const matchingKey of keyEventList) {
-        // 指定了功能键且相等或未指定功能键
+        // 指定了功能键就需要相等或未指定功能键
         if (
           (typeof matchingKey.altKey !== 'boolean' || !!matchingKey.altKey === !!event.altKey) &&
           (typeof matchingKey.ctrlKey !== 'boolean' || !!matchingKey.ctrlKey === !!event.ctrlKey) &&

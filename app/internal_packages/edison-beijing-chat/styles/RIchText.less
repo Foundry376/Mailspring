@@ -5,7 +5,6 @@
   border: none;
   box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
   padding: 8.5px 13px;
-  resize: none;
   position: relative;
   border-radius: 10px;
   transition: all 0.5s;
@@ -16,8 +15,9 @@
   box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
 }
 
-.rich-text-input span {
+.rich-text-input .at-contact {
   color: @blue;
+  word-break: keep-all;
 }
 
 .rich-text-input:empty:before {
