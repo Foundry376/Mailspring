@@ -80,7 +80,7 @@ export default class NewConversationTopBar extends Component {
   };
 
   _close = () => {
-    Actions.popSheet();
+    Actions.popSheet({reason: 'NewCoversationTopBar:_close'});
     const conv = ConversationStore.selectedConversationBeforeNew;
     if (conv) {
       ConversationStore.setSelectedConversation(conv.jid);

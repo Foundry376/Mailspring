@@ -131,7 +131,7 @@ export default class MovePickerPopover extends Component {
     } else {
       this._onMoveToCategory(item);
     }
-    Actions.popSheet();
+    Actions.popSheet({reason: 'Move-picker-popover:_onSelectCategory'});
     Actions.closePopover();
   };
   onCreate = (data) => {
