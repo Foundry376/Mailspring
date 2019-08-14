@@ -51,8 +51,10 @@ export default class SwipeContainer extends React.Component {
     children: PropTypes.object.isRequired,
     shouldEnableSwipe: PropTypes.func,
     onSwipeLeft: PropTypes.func,
+    onSwipeLeftStyle: PropTypes.func,
     onSwipeLeftClass: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
     onSwipeRight: PropTypes.func,
+    onSwipeRightStyle: PropTypes.func,
     onSwipeRightClass: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
     onSwipeCenter: PropTypes.func,
   };
@@ -74,6 +76,7 @@ export default class SwipeContainer extends React.Component {
       fullDistance: 'unknown',
       currentX: 0,
       targetX: 0,
+      swipeStep: 0
     };
   }
 
@@ -150,7 +153,7 @@ export default class SwipeContainer extends React.Component {
 
     if (fullDistance === 'unknown') {
       fullDistance = ReactDOM.findDOMNode(this).clientWidth;
-      thresholdDistance = 110;
+      thresholdDistance = 70;
     }
 
     const clipToMax = v => Math.max(-fullDistance, Math.min(fullDistance, v));
@@ -179,7 +182,21 @@ export default class SwipeContainer extends React.Component {
         targetX = fullDistance;
       }
     }
-    this.setState({ thresholdDistance, fullDistance, currentX, targetX, lastDragX });
+    let swipeStep = 0;
+    if (targetX) {
+      swipeStep = 1;
+      if (Math.abs(currentX) > thresholdDistance * 2) {
+        swipeStep = 2;
+      }
+    }
+    this.setState({
+      thresholdDistance,
+      fullDistance,
+      currentX,
+      targetX,
+      lastDragX,
+      swipeStep
+    });
   };
 
   _onScrollTouchBegin = () => {
@@ -283,7 +300,7 @@ export default class SwipeContainer extends React.Component {
   }
 
   _settle() {
-    const { targetX, settleStartTime, lastDragX } = this.state;
+    const { targetX, settleStartTime, lastDragX, swipeStep } = this.state;
     let { currentX } = this.state;
 
     const f = (Date.now() - settleStartTime) / 1400.0;
@@ -297,9 +314,9 @@ export default class SwipeContainer extends React.Component {
     if (shouldFire) {
       this.fired = true;
       if (targetX > 0) {
-        this.props.onSwipeRight(this._onSwipeActionCompleted);
+        this.props.onSwipeRight(this._onSwipeActionCompleted, swipeStep);
       } else if (targetX < 0) {
-        this.props.onSwipeLeft(this._onSwipeActionCompleted);
+        this.props.onSwipeLeft(this._onSwipeActionCompleted, swipeStep);
       } else if (targetX === 0 && this.props.onSwipeCenter) {
         this.props.onSwipeCenter();
       }
@@ -320,16 +337,18 @@ export default class SwipeContainer extends React.Component {
   }
 
   render() {
-    const { currentX, targetX } = this.state;
+    const { currentX, targetX, swipeStep } = this.state;
     const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
     const backingStyles = { top: 0, bottom: 0, position: 'absolute' };
     let backingClass = 'swipe-backing';
+    let style = {};
 
     if (currentX < 0 && this.trackingInitialTargetX <= 0) {
-      const { onSwipeLeftClass } = this.props;
+      const { onSwipeLeftClass, onSwipeLeftStyle } = this.props;
       const swipeLeftClass = _.isFunction(onSwipeLeftClass)
-        ? onSwipeLeftClass()
+        ? onSwipeLeftClass(swipeStep)
         : onSwipeLeftClass || '';
+      style = onSwipeLeftStyle(swipeStep);
 
       backingClass += ` ${swipeLeftClass}`;
       backingStyles.right = 0;
@@ -338,10 +357,11 @@ export default class SwipeContainer extends React.Component {
         backingClass += ' confirmed';
       }
     } else if (currentX > 0 && this.trackingInitialTargetX >= 0) {
-      const { onSwipeRightClass } = this.props;
-      const swipeRightClass = _.isFunction(onSwipeRightClass)
-        ? onSwipeRightClass()
+      const { onSwipeRightClass, onSwipeRightStyle } = this.props;
+      let swipeRightClass = _.isFunction(onSwipeRightClass)
+        ? onSwipeRightClass(swipeStep)
         : onSwipeRightClass || '';
+      style = onSwipeRightStyle(swipeStep);
 
       backingClass += ` ${swipeRightClass}`;
       backingStyles.left = 0;
@@ -350,6 +370,7 @@ export default class SwipeContainer extends React.Component {
         backingClass += ' confirmed';
       }
     }
+    Object.assign(backingStyles, style);
     return (
       <div
         ref={el => this.container = el}
