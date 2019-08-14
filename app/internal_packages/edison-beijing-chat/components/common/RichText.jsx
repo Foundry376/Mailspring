@@ -117,10 +117,15 @@ export class RichText extends Component {
     this._richText.innerHTML = '';
   };
 
-  delNode = () => {
+  delNode = n => {
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
       let range = sel.getRangeAt(0);
+      let newOffset = range.startOffset - n || 0;
+      if (newOffset > range.startContainer.length) {
+        newOffset = range.startContainer.length;
+      }
+      range.setStart(range.startContainer, newOffset);
       range.deleteContents();
       let contentRange = range.cloneRange();
       sel.removeAllRanges();
