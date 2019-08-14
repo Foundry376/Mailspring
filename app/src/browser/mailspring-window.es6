@@ -61,6 +61,7 @@ module.exports = class MailspringWindow extends EventEmitter {
         directWrite: true,
       },
       autoHideMenuBar,
+      backgroundColor: '#ffffff',
     };
 
     if (this.neverClose) {
@@ -146,7 +147,7 @@ module.exports = class MailspringWindow extends EventEmitter {
       this.browserWindow.focusOnWebView();
     }
   }
-  updateWindowKey(key){
+  updateWindowKey(key) {
     this.windowKey = key;
   }
 
