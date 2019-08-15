@@ -236,6 +236,14 @@ export default class DraftEditingSession extends MailspringStore {
             draft.waitingForBody = true;
             Actions.fetchBodies({ messages: [draft], source: 'draft' });
           }
+          if (Array.isArray(draft.from) && draft.from.length === 1) {
+            if (draft.from[0].email.length === 0) {
+              const currentAccount = AccountStore.accountForId(draft.accountId);
+              if (currentAccount) {
+                draft.from = [currentAccount.me()];
+              }
+            }
+          }
           hotwireDraftBodyState(draft);
           if (draft.remoteUID) {
             draft.setOrigin(Message.EditExistingDraft);
