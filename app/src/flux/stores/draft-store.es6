@@ -797,7 +797,7 @@ class DraftStore extends MailspringStore {
 
     // remove inline attachments that are no longer in the body
     const files = draft.files.filter(f => {
-      return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
+      return !(f.contentId && f.isInline && !draft.body.includes(`cid:${f.contentId}`));
     });
     if (files.length !== draft.files.length) {
       session.changes.add({ files });
