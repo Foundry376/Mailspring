@@ -146,7 +146,8 @@ export class RichText extends Component {
     if (sel.rangeCount > 0) {
       let range = sel.getRangeAt(0);
       if (range.startContainer.nodeType === 3) {
-        return range.startContainer.nodeValue;
+        const offset = range.startOffset;
+        return range.startContainer.nodeValue.slice(0, offset);
       }
     }
     return '';
