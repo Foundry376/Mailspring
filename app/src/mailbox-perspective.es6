@@ -169,6 +169,30 @@ export default class MailboxPerspective {
     this._displayName = null;
   }
 
+  get providers() {
+    if (this.accountIds.length > 0) {
+      return this.accountIds.map(aid => {
+        const account = AccountStore.accountForId(aid);
+        if (account) {
+          return { accountId: account.id, provider: account.provider };
+        } else {
+          return {};
+        }
+      });
+    } else {
+      return [];
+    }
+  }
+
+  providerByAccountId(accountId) {
+    if (!accountId) {
+      return null;
+    }
+    return this.providers.find(provider => {
+      return provider.accountId === accountId;
+    });
+  }
+
   get displayName() {
     return this._displayName;
   }
@@ -625,12 +649,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     if (currentCat && myCat.id === currentCat.id) {
       return [];
     }
-    let previousFolder = null;
-    if(current){
-      previousFolder = current.categories().find(
-        cat => cat.accountId === accountId
-      );
-    }
+    const previousFolder = TaskFactory.findPreviousFolder(current, accountId);
     if (myCat.role === 'all' && currentCat && currentCat instanceof Label) {
       // dragging from a label into All Mail? Make this an "archive" by removing the
       // label. Otherwise (Since labels are subsets of All Mail) it'd have no effect.
@@ -724,12 +743,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       const preferred = acct.preferredRemovalDestination();
       const cat = this.categories().find(c => c.accountId === accountId);
       const currentPerspective = FocusedPerspectiveStore.current();
-      let previousFolder = null;
-      if(currentPerspective){
-        previousFolder = currentPerspective.categories().find(
-          cat => cat.accountId === accountId
-        );
-      }
+      const previousFolder = TaskFactory.findPreviousFolder(currentPerspective, accountId);
       if (cat instanceof Label && preferred.role !== 'trash') {
         const inboxCat = CategoryStore.getInboxCategory(accountId);
         return new ChangeLabelsTask({
