@@ -562,7 +562,7 @@ export default class ComposerView extends React.Component {
           return;
         }
         match.contentId = Utils.generateContentId();
-        match.inline = true;
+        match.isInline = true;
         session.changes.add({
           files: [].concat(draft.files),
         });
@@ -581,7 +581,7 @@ export default class ComposerView extends React.Component {
         return;
       }
       match.contentId = Utils.generateContentId();
-      match.inline = true;
+      match.isInline = true;
       session.changes.add({
         files: [].concat(draft.files),
       });
