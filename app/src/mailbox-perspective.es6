@@ -724,6 +724,8 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   // - if finished category === "trash" move to trash folder, keep labels intact
   //
   tasksForRemovingItems(threads, source = 'Removed from list') {
+    FocusedPerspectiveStore =
+      FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
     ChangeLabelsTask = ChangeLabelsTask || require('./flux/tasks/change-labels-task').default;
     ChangeFolderTask = ChangeFolderTask || require('./flux/tasks/change-folder-task').default;
 
