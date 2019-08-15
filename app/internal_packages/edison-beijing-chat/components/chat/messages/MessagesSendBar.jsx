@@ -303,6 +303,14 @@ export default class MessagesSendBar extends PureComponent {
     } else {
       let message = getTextFromHtml(messageBody);
       message = message.trim();
+      let { _richText } = this;
+      console.log(' sendMessage: _richText: ', _richText);
+      _richText = _richText._richText;
+      const { innerHTML } = _richText;
+      console.log(' _richText.innerHTML: ', innerHTML);
+      const atJids = getAtJidFromHtml(innerHTML);
+      console.log(' sendMessage: atJids: ', atJids);
+
       if (message) {
         let body = {
           type: FILE_TYPE.TEXT,
@@ -310,6 +318,7 @@ export default class MessagesSendBar extends PureComponent {
           content: message,
           email: selectedConversation.email,
           name: selectedConversation.name,
+          atJids,
         };
 
         MessageSend.sendMessage(body, selectedConversation);

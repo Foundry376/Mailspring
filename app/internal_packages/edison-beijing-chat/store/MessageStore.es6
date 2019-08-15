@@ -33,7 +33,7 @@ class MessageStore extends MailspringStore {
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
   }
 
-  _registerListeners() { }
+  _registerListeners() {}
   getMessageById = async (id, conversationJid) => {
     return await MessageModel.findOne({
       where: {
@@ -310,8 +310,12 @@ class MessageStore extends MailspringStore {
 
   processGroupMessage = async payload => {
     const body = parseMessageBody(payload.body);
-    const at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-
+    console.log(' processGroupMessage: body: ', body, payload);
+    const { atJids } = body;
+    let at = !atJids || !atJids.includes(payload.curJid) ? false : true;
+    at = at || (atJids && atJids.includes('all'));
+    const { selectConversation } = ConversationStore;
+    at = at && (selectConversation && selectConversation.jid === payload.from.bare);
     let name = payload.from.local;
     // get the room name and whether you are '@'
     const rooms = await RoomStore.getRooms();
@@ -377,8 +381,8 @@ class MessageStore extends MailspringStore {
         contactNameList.length > 4
           ? contactNameList.slice(0, 3).join(', ') + ' & ' + `${contactNameList.length - 3} others`
           : contactNameList.slice(0, contactNameList.length - 1).join(', ') +
-          ' & ' +
-          contactNameList[contactNameList.length - 1];
+            ' & ' +
+            contactNameList[contactNameList.length - 1];
       conv.name = fallbackName;
     }
     await ConversationStore.saveConversations([conv]);

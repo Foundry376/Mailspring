@@ -494,6 +494,8 @@ export default class Msg extends PureComponent {
     const senderName = this.senderName();
     const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED' && isCurrentUser;
 
+    console.log(' Msg.render: msgBody: ', msgBody);
+
     if (msgBody.deleted) {
       return null;
     } else if (msgBody.isAppprivateCommand) {
