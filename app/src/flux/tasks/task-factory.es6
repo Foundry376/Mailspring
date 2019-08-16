@@ -69,12 +69,7 @@ const TaskFactory = {
 
   tasksForMarkingAsSpam({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      let previousFolder = null;
-      if(currentPerspective){
-        previousFolder = currentPerspective.categories().find(
-          cat => cat.accountId === accountId
-        );
-      }
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       return new ChangeFolderTask({
         previousFolder,
         folder: CategoryStore.getSpamCategory(accountId),
@@ -87,12 +82,7 @@ const TaskFactory = {
   tasksForMarkingNotSpam({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
-      let previousFolder = null;
-      if(currentPerspective){
-        previousFolder = currentPerspective.categories().find(
-          cat => cat.accountId === accountId
-        );
-      }
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       if (inbox instanceof Label) {
         return new ChangeFolderTask({
           previousFolder,
@@ -113,12 +103,7 @@ const TaskFactory = {
   tasksForArchiving({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
-      let previousFolder = null;
-      if(currentPerspective){
-        previousFolder = currentPerspective.categories().find(
-          cat => cat.accountId === accountId
-        );
-      }
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       if (inbox instanceof Label) {
         return new ChangeLabelsTask({
           previousFolder,
@@ -142,20 +127,15 @@ const TaskFactory = {
     if (threads.length > 0 && (threads[0] instanceof Thread)) {
       tasks.push(
         ...this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-          let previousFolder = null;
-          if(currentPerspective){
-            previousFolder = currentPerspective.categories().find(
-              cat => cat.accountId === accountId
-            );
-          }
-          if(previousFolder){
+          const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
+          if (previousFolder) {
             return new ChangeFolderTask({
               previousFolder,
               folder: CategoryStore.getTrashCategory(accountId),
               threads: accountThreads,
               source,
             });
-          }else{
+          } else {
             return new ChangeFolderTask({
               folder: CategoryStore.getTrashCategory(accountId),
               threads: accountThreads,
@@ -233,12 +213,7 @@ const TaskFactory = {
 
   tasksForChangeFolder({ threads, source, folder, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      let previousFolder = null;
-      if(currentPerspective){
-        previousFolder = currentPerspective.categories().find(
-          cat => cat.accountId === accountId
-        );
-      }
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       return new ChangeFolderTask({
         previousFolder,
         folder,
@@ -253,6 +228,21 @@ const TaskFactory = {
       throw new Error('Task must have id and accountId');
     }
     return new UndoTask({ referenceTaskId: task.id, accountId: task.accountId });
+  },
+  findPreviousFolder(currentPerspective, accountId) {
+    if (currentPerspective) {
+      let previousFolder = currentPerspective.categories().find(
+        cat => cat.accountId === accountId,
+      );
+      const provider = currentPerspective.providerByAccountId(accountId);
+      if (provider.provider === 'gmail') {
+        if (previousFolder && !['spam', 'trash', 'all'].includes(previousFolder.role)) {
+          previousFolder = CategoryStore.getAllMailCategory(accountId);
+        }
+      }
+      return previousFolder;
+    }
+    return null;
   },
 
   _splitByAccount(threads) {

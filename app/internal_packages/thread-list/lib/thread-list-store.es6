@@ -105,7 +105,7 @@ class ThreadListStore extends MailspringStore {
       if (keyboard && notInSet(keyboard)) {
         Actions.setCursorPosition({
           collection: 'thread',
-          item: null, // nextItemFromIndex(keyboardIndex),
+          item: nextItemFromIndex(keyboardIndex),
         });
       }
     }
