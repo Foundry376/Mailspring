@@ -27,7 +27,7 @@ export default function MessageText({ text }) {
       const nodeStr = el.innerHTML;
       // del AT_BEGIN_CHAR、AT_END_CHAR and @
       const jid = nodeStr.slice(2, -1);
-      el.innerHTML = getName(jid);
+      el.innerHTML = '@' + getName(jid);
     }
   });
   return <div className="msg-text-with-at" dangerouslySetInnerHTML={{ __html: dom.innerHTML }} />;
