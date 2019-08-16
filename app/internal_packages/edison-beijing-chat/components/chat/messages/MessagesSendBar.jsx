@@ -301,8 +301,7 @@ export default class MessagesSendBar extends PureComponent {
     if (this.state.files.length) {
       this.state.files.map((file, index) => sendFileMessage(file, index, this, messageBody));
     } else {
-      let message = getTextFromHtml(messageBody);
-      message = message.trim();
+      let message = messageBody.trim();
       let { _richText } = this;
       console.log(' sendMessage: _richText: ', _richText);
       _richText = _richText._richText;
