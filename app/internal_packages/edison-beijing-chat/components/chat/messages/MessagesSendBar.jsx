@@ -34,6 +34,7 @@ const plist = require('plist');
 
 const AT_BEGIN_CHAR = '\u0005';
 const AT_END_CHAR = '\u0004';
+const AT_EMPTY_CHAR = '\u200b';
 
 //linux is not implemented because no method was found after googling a lot
 // only be tested on mac, not be tested on Windows
@@ -406,6 +407,7 @@ export default class MessagesSendBar extends PureComponent {
     insertDom.innerHTML = `@${contact.name}`;
     insertDom.setAttribute('jid', contact.jid);
     insertDom.setAttribute('class', 'at-contact');
+    insertDom.setAttribute('contenteditable', false);
     this._richText.delNode(1);
     this._richText.addNode(insertDom);
     this._richText.addNode(',');
@@ -459,6 +461,13 @@ export default class MessagesSendBar extends PureComponent {
       this.chooseAtContact(contact);
     }
   };
+
+  ShiftEnterKeyEvent = () => {
+    const insertDom = document.createElement('br');
+    this._richText.addNode(insertDom);
+    // 换行将光标顶到下一行
+    this._richText.addNode(AT_EMPTY_CHAR);
+  };
   // ---------------------------- at end ----------------------------
 
   render() {
@@ -475,6 +484,14 @@ export default class MessagesSendBar extends PureComponent {
         metaKey: false,
         // enter
         keyEvent: () => this.EnterKeyEvent(false),
+      },
+      {
+        keyCode: 13,
+        preventDefault: true,
+        stopPropagation: true,
+        shiftKey: true,
+        // shift + enter
+        keyEvent: () => this.ShiftEnterKeyEvent(),
       },
       {
         keyCode: 13,

@@ -127,7 +127,6 @@ export class RichText extends Component {
     let insertNode;
     if (content instanceof HTMLElement) {
       insertNode = content;
-      insertNode.setAttribute('contenteditable', false);
     } else if (typeof content === 'string') {
       insertNode = document.createTextNode(content);
     }
