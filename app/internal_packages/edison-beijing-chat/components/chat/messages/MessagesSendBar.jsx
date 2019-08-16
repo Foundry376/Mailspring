@@ -76,7 +76,9 @@ function getTextFromHtml(str) {
       }
     }
   });
-  return strFormat;
+  const delEmptyStr = strFormat.replace(new RegExp(`${AT_EMPTY_CHAR}`, 'g'), '');
+
+  return delEmptyStr;
 }
 
 function getAtJidFromHtml(str) {
