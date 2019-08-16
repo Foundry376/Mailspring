@@ -11,6 +11,7 @@ export class RichText extends Component {
   constructor() {
     super();
     this.state = {
+      isFocus: false,
       listenKeys: new Set(),
       listenKeysMapping: new Map(),
     };
@@ -76,8 +77,44 @@ export class RichText extends Component {
     }
   };
 
+  _saveRange = e => {
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+      let range = sel.getRangeAt(0);
+      const rangeNode = range.startContainer;
+      if (rangeNode instanceof Node) {
+        this.setState({
+          rangeNode: rangeNode,
+          offset: range.startOffset,
+        });
+      }
+    }
+  };
+
   _autoFocus = () => {
+    const { rangeNode, offset, isFocus } = this.state;
+    if (isFocus) {
+      return;
+    }
     this._richText.focus();
+    if (rangeNode instanceof Node && typeof offset === 'number') {
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) {
+        let range = sel.getRangeAt(0);
+        const contentRange = range.cloneRange();
+        contentRange.setStart(rangeNode, offset);
+        sel.removeAllRanges();
+        sel.addRange(contentRange);
+      }
+    }
+  };
+
+  _focus = () => {
+    this.setState({ isFocus: true });
+  };
+
+  _blur = () => {
+    this.setState({ isFocus: false });
   };
 
   getNode = () => {
@@ -140,7 +177,10 @@ export class RichText extends Component {
   };
 
   getInputText = () => {
-    this._autoFocus();
+    const { isFocus } = this.state;
+    if (!isFocus) {
+      return '';
+    }
 
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
@@ -167,7 +207,10 @@ export class RichText extends Component {
         suppressContentEditableWarning="true"
         onBlur={onBlur}
         onKeyDown={this._onKeyDown}
+        onSelect={this._saveRange}
         onInput={this._onInputChange}
+        onFocus={this._focus}
+        onBlur={this._blur}
         ref={el => (this._richText = el)}
       />
     );

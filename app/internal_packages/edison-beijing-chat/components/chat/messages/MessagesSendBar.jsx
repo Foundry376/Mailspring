@@ -220,6 +220,7 @@ export default class MessagesSendBar extends PureComponent {
       prefix: inputText,
       messageBody,
       atContacts,
+      atActiveIndex: 0,
     });
   };
 
