@@ -201,7 +201,7 @@ export class RichText extends Component {
           maxHeight: `${17 + lineHeight * maxRows}px`,
         }}
         dataplaceholder={placeholder}
-        contentEditable="true"
+        contentEditable="plaintext-only"
         suppressContentEditableWarning="true"
         onBlur={onBlur}
         onKeyDown={this._onKeyDown}
