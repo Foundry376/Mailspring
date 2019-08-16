@@ -24,6 +24,9 @@ import { FILE_TYPE, isImage } from '../utils/filetypes';
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
 export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT';
 
+const AT_BEGIN_CHAR = '\u0005';
+const AT_END_CHAR = '\u0004';
+
 class MessageStore extends MailspringStore {
   constructor() {
     super();
@@ -310,12 +313,13 @@ class MessageStore extends MailspringStore {
 
   processGroupMessage = async payload => {
     const body = parseMessageBody(payload.body);
-    console.log(' processGroupMessage: body: ', body, payload);
-    const { atJids } = body;
-    let at = !atJids || !atJids.includes(payload.curJid) ? false : true;
-    at = at || (atJids && atJids.includes('all'));
+    const { content } = body;
     const { selectConversation } = ConversationStore;
-    at = at && (selectConversation && selectConversation.jid === payload.from.bare);
+    let at = !!(
+      (content.includes(AT_BEGIN_CHAR + '@' + payload.curJid + AT_END_CHAR) ||
+        content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR)) &&
+      (selectConversation && selectConversation.jid === payload.from.bare)
+    );
     let name = payload.from.local;
     // get the room name and whether you are '@'
     const rooms = await RoomStore.getRooms();

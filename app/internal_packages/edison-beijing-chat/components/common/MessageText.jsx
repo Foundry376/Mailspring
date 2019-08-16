@@ -28,9 +28,6 @@ export default class MessageText extends Component {
     while (i < text.length) {
       if (text[i] === AT_BEGIN_CHAR) {
         pieces.push({ text: text.substring(pos, i), type: 'normal' });
-        // const charCode = text.charCodeAt(i + 1);
-        // const jidIndex = charCode - AT_INDEX_BASE;
-        // jid = atJids[jidIndex];
         pos = i + 1;
       } else if (text[i] === AT_END_CHAR) {
         const jid = text.substring(pos + 1, i); // @jid
