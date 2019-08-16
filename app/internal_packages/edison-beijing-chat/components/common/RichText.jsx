@@ -83,26 +83,24 @@ export class RichText extends Component {
       let range = sel.getRangeAt(0);
       const rangeNode = range.startContainer;
       if (rangeNode instanceof Node) {
-        this.setState({
-          rangeNode: rangeNode,
-          offset: range.startOffset,
-        });
+        this.rangeNode = rangeNode;
+        this.offset = range.startOffset;
       }
     }
   };
 
   _autoFocus = () => {
-    const { rangeNode, offset, isFocus } = this.state;
+    const { isFocus } = this.state;
     if (isFocus) {
       return;
     }
     this._richText.focus();
-    if (rangeNode instanceof Node && typeof offset === 'number') {
+    if (this.rangeNode instanceof Node && typeof offset === 'number') {
       const sel = window.getSelection();
       if (sel.rangeCount > 0) {
         let range = sel.getRangeAt(0);
         const contentRange = range.cloneRange();
-        contentRange.setStart(rangeNode, offset);
+        contentRange.setStart(this.rangeNode, this.offset);
         sel.removeAllRanges();
         sel.addRange(contentRange);
       }
@@ -163,7 +161,7 @@ export class RichText extends Component {
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
       let range = sel.getRangeAt(0);
-      let newOffset = range.startOffset - n || 0;
+      let newOffset = range.startOffset - n > 0 ? range.startOffset - n : 0;
       if (newOffset > range.startContainer.length) {
         newOffset = range.startContainer.length;
       }
