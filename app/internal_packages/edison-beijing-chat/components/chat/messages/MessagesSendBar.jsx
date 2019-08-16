@@ -34,7 +34,6 @@ const plist = require('plist');
 
 const AT_BEGIN_CHAR = '\u0005';
 const AT_END_CHAR = '\u0004';
-const AT_INDEX_BASE = 0xf000;
 
 //linux is not implemented because no method was found after googling a lot
 // only be tested on mac, not be tested on Windows
@@ -302,11 +301,12 @@ export default class MessagesSendBar extends PureComponent {
     if (this.state.files.length) {
       this.state.files.map((file, index) => sendFileMessage(file, index, this, messageBody));
     } else {
-      let message = messageBody.trim();
+      let message = getTextFromHtml(messageBody);
+      message = message.trim();
       if (message) {
         let body = {
           type: FILE_TYPE.TEXT,
-          timeSend: new Date().getTime() + edisonChatServerDiffTime,
+          timeSend: new Date().getTime() + window.edisonChatServerDiffTime,
           content: message,
           email: selectedConversation.email,
           name: selectedConversation.name,
