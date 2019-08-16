@@ -16,6 +16,7 @@ export class RichText extends Component {
       listenKeysMapping: new Map(),
     };
     this._richText = null;
+    this.range = null;
   }
 
   componentDidMount() {
@@ -81,10 +82,8 @@ export class RichText extends Component {
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
       let range = sel.getRangeAt(0);
-      const rangeNode = range.startContainer;
-      if (rangeNode instanceof Node) {
-        this.rangeNode = rangeNode;
-        this.offset = range.startOffset;
+      if (range instanceof Range) {
+        this.range = range;
       }
     }
   };
@@ -95,12 +94,10 @@ export class RichText extends Component {
       return;
     }
     this._richText.focus();
-    if (this.rangeNode instanceof Node && typeof offset === 'number') {
+    if (this.range instanceof Range) {
       const sel = window.getSelection();
       if (sel.rangeCount > 0) {
-        let range = sel.getRangeAt(0);
-        const contentRange = range.cloneRange();
-        contentRange.setStart(this.rangeNode, this.offset);
+        const contentRange = this.range.cloneRange();
         sel.removeAllRanges();
         sel.addRange(contentRange);
       }
@@ -201,7 +198,7 @@ export class RichText extends Component {
           maxHeight: `${17 + lineHeight * maxRows}px`,
         }}
         dataplaceholder={placeholder}
-        contentEditable="plaintext-only"
+        contentEditable="true"
         suppressContentEditableWarning="true"
         onBlur={onBlur}
         onKeyDown={this._onKeyDown}
