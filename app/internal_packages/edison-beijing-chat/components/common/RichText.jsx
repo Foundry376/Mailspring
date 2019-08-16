@@ -11,12 +11,11 @@ export class RichText extends Component {
   constructor() {
     super();
     this.state = {
-      isFocus: false,
       listenKeys: new Set(),
       listenKeysMapping: new Map(),
     };
     this._richText = null;
-    this.range = null;
+    this._range = null;
   }
 
   componentDidMount() {
@@ -83,33 +82,36 @@ export class RichText extends Component {
     if (sel.rangeCount > 0) {
       let range = sel.getRangeAt(0);
       if (range instanceof Range) {
-        this.range = range;
+        this._range = range;
       }
     }
   };
 
   _autoFocus = () => {
-    const { isFocus } = this.state;
-    if (isFocus) {
+    if (this._isAlive()) {
       return;
     }
     this._richText.focus();
-    if (this.range instanceof Range) {
+    if (this._range instanceof Range) {
       const sel = window.getSelection();
       if (sel.rangeCount > 0) {
-        const contentRange = this.range.cloneRange();
+        const contentRange = this._range.cloneRange();
         sel.removeAllRanges();
         sel.addRange(contentRange);
       }
     }
   };
 
-  _focus = () => {
-    this.setState({ isFocus: true });
-  };
-
-  _blur = () => {
-    this.setState({ isFocus: false });
+  // is in focus?
+  _isAlive = () => {
+    const sel = window.getSelection();
+    if (
+      sel.rangeCount > 0 &&
+      (this._richText === sel.focusNode || this._richText.contains(sel.focusNode))
+    ) {
+      return true;
+    }
+    return false;
   };
 
   getNode = () => {
@@ -172,8 +174,7 @@ export class RichText extends Component {
   };
 
   getInputText = () => {
-    const { isFocus } = this.state;
-    if (!isFocus) {
+    if (!this._isAlive()) {
       return '';
     }
 
@@ -204,8 +205,6 @@ export class RichText extends Component {
         onKeyDown={this._onKeyDown}
         onSelect={this._saveRange}
         onInput={this._onInputChange}
-        onFocus={this._focus}
-        onBlur={this._blur}
         ref={el => (this._richText = el)}
       />
     );
