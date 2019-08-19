@@ -130,7 +130,7 @@ class ThreadStarQuickAction extends React.Component {
 
   render() {
     const className = this.props.thread.starred ? 'flagged' : 'flag-not-selected';
-    const title = this.props.thread.starred ? 'UnFlag' : 'Flag';
+    const title = this.props.thread.starred ? 'Unflag' : 'Flag';
     return (
       <div
         key="remove"

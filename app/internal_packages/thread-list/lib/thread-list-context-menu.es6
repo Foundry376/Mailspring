@@ -228,15 +228,13 @@ export default class ThreadListContextMenu {
   starItem() {
     const starred = this.threads.every(t => t.starred === false);
 
-    let dir = '';
-    let star = 'Star';
+    let dir = 'Flag';
     if (!starred) {
-      dir = 'Remove ';
-      star = this.threadIds.length > 1 ? 'Stars' : 'Star';
+      dir = 'Unflag';
     }
 
     return {
-      label: `${dir}${star}`,
+      label: `${dir}`,
       click: () => {
         Actions.queueTasks(
           TaskFactory.taskForInvertingStarred({
