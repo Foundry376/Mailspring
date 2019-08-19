@@ -111,11 +111,13 @@ export default class MessageEditBar extends PureComponent {
     newStr = newStr.replace(/\\n/g, '<br>');
     const domTemp = document.createElement('div');
     domTemp.innerHTML = newStr;
-    domTemp.childNodes.forEach(el => {
+    const childs = [...domTemp.childNodes];
+    childs.forEach(el => {
       if (el.nodeType === 1) {
         const nodeStr = el.innerHTML;
         // del AT_BEGIN_CHAR、AT_END_CHAR and @
         const jid = nodeStr.slice(2, -1);
+        el.setAttribute('jid', jid);
         if (jid === 'all') {
           el.innerHTML = 'all';
         } else {
@@ -305,8 +307,7 @@ export default class MessageEditBar extends PureComponent {
   EnterKeyEvent = funKeyIsOn => {
     const { atVisible, atContacts, atActiveIndex } = this.state;
     if (funKeyIsOn || !atVisible) {
-      this.sendMessage();
-      this.hide();
+      this.onSave();
     } else {
       const contact = atContacts[atActiveIndex];
       this.chooseAtContact(contact);
