@@ -9,6 +9,7 @@ import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import { RoomStore, MessageSend } from 'chat-exports';
+import { name } from '../../../utils/name';
 
 const AT_BEGIN_CHAR = '\u0005';
 const AT_END_CHAR = '\u0004';
@@ -105,12 +106,22 @@ export default class MessageEditBar extends PureComponent {
     const reg = new RegExp(regStr, 'g');
     let newStr = value.replace(
       reg,
-      `<span jid="${'$1'}" class="at-contact" contenteditable=false></span>`
+      `<span class="at-contact" contenteditable=false>${'$1'}</span>`
     );
     newStr = newStr.replace(/\\n/g, '<br>');
     const domTemp = document.createElement('div');
     domTemp.innerHTML = newStr;
     domTemp.childNodes.forEach(el => {
+      if (el.nodeType === 1) {
+        const nodeStr = el.innerHTML;
+        // del AT_BEGIN_CHAR、AT_END_CHAR and @
+        const jid = nodeStr.slice(2, -1);
+        if (jid === 'all') {
+          el.innerHTML = 'all';
+        } else {
+          el.innerHTML = name(jid);
+        }
+      }
       this._richText.addNode(el);
     });
   };
