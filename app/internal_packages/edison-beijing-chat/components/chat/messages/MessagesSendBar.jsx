@@ -116,7 +116,6 @@ export default class MessagesSendBar extends PureComponent {
     files: [],
     roomMembers: [],
     atContacts: [],
-    atPersons: [],
     atActiveIndex: 0,
     atVisible: false,
     promptPos: null,
