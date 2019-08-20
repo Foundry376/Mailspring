@@ -311,12 +311,12 @@ class MessageStore extends MailspringStore {
 
   processGroupMessage = async payload => {
     const body = parseMessageBody(payload.body);
+    console.log(' processGroupMessage: ', body);
     const { content } = body;
     const { selectedConversation } = ConversationStore;
     let at = !!(
       (content.includes(AT_BEGIN_CHAR + '@' + payload.curJid + AT_END_CHAR) ||
-        content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR)) // &&
-      (selectedConversation && selectedConversation.jid !== payload.from.bare)
+        content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR)
     );
     console.log(' processGroupMessage: ', selectedConversation, at);
     let name = payload.from.local;
