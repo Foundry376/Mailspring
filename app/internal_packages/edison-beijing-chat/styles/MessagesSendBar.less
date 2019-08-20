@@ -9,11 +9,11 @@
     }
     .edit-button-group {
       position: absolute;
-      right: 0;
+      left: 0;
       bottom: 0;
       display: flex;
       width: 300px;
-      justify-content: flex-end;
+      justify-content: flex-start;
       .button {
         border-radius: 10px;
         margin-left: 10px;
@@ -46,7 +46,6 @@
     width: 100%;
     display: flex;
     flex-direction: row;
-    align-items: flex-end;
     padding: 40px 21px 15px 20px;
     height: auto;
     background: @white;
@@ -58,7 +57,7 @@
       border: 1px solid @black;
       border-radius: 5px;
       padding: 4px;
-      box-shadow: 0 2px 7px 2px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 7px 2px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -132,8 +131,7 @@
   }
 
   .chat-message-filelist {
-    display:block;
+    display: block;
     align-self: left;
   }
-
 }

@@ -1,0 +1,27 @@
+@import 'ui-variables';
+
+.rich-text-input {
+  width: 100%;
+  border: none;
+  box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
+  padding: 8.5px 13px;
+  position: relative;
+  border-radius: 10px;
+  transition: all 0.5s;
+  overflow: auto;
+}
+
+.rich-text-input:focus {
+  box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
+}
+
+.rich-text-input .at-contact {
+  color: @blue;
+  word-break: keep-all;
+  font-weight: bold;
+}
+
+.rich-text-input:empty:before {
+  content: attr(dataplaceholder);
+  color: @text-color-very-subtle;
+}

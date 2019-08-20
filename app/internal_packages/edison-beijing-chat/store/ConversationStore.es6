@@ -101,7 +101,7 @@ class ConversationStore extends MailspringStore {
   };
 
   _clearUnreadCount = async jid => {
-    await ConversationModel.update({ unreadMessages: 0 }, { where: { jid } });
+    await ConversationModel.update({ unreadMessages: 0, at: false }, { where: { jid } });
     this.refreshConversations();
   };
 
@@ -184,6 +184,7 @@ class ConversationStore extends MailspringStore {
   setTrayChatUnreadCount = _.debounce(count => AppEnv.setTrayChatUnreadCount(count), 500);
 
   saveConversations = async convs => {
+    console.log(' saveConversations: ', convs);
     for (const conv of convs) {
       const convInDb = await ConversationModel.findOne({
         where: {

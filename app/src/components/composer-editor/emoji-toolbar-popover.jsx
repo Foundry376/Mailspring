@@ -51,6 +51,8 @@ export default class EmojiToolbarPopover extends React.Component {
   }
 
   onMouseDown = event => {
+    event.stopPropagation();
+    event.preventDefault();
     const emojiName = this.calcEmojiByPosition(this.calcPosition(event));
     if (!emojiName) return null;
     this.props.onInsertEmoji(emojiName);
