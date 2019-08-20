@@ -1,0 +1,29 @@
+@import 'ui-variables';
+
+.at-list-container {
+  position: absolute;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 200px;
+  width: 370px;
+  background: @white;
+  border-radius: 5px;
+  box-shadow: 0 0 2px 1px @gray-light;
+  padding: 5px 0;
+
+  .contact-row {
+    height: 30px;
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+
+    .contact-name {
+      margin: 0 4px;
+      font-weight: 500;
+    }
+  }
+  .contact-row.active {
+    background-color: @blue;
+    color: @white;
+  }
+}
