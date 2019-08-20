@@ -153,14 +153,15 @@ class MessageList extends React.Component {
     if (!container) {
       return;
     }
-    let hideButtons = false;
-    if (container.clientWidth <= TOOLBAR_MIN_WIDTH) {
-      hideButtons = true;
-    }
+    const hideButtons = container.clientWidth <= TOOLBAR_MIN_WIDTH;
     if (this.state.hideButtons !== hideButtons) {
-      this.setState({
-        hideButtons
-      })
+      this.setState({ hideButtons }, () => {
+        if (hideButtons) {
+          Actions.hideWorkspaceLocation({ id: 'MessageListMoveButtons' });
+        } else {
+          Actions.showWorkspaceLocation({ id: 'MessageListMoveButtons' });
+        }
+      });
     }
   }
 
@@ -709,7 +710,7 @@ class MessageList extends React.Component {
           <InjectedComponentSet
             className="item-container"
             matching={{ role: 'MessageListToolbar' }}
-            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages, hiddenLocations: WorkspaceStore.hiddenLocations() }}
+            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages }}
           />
         </div>
         <div className={messageListClass} id="message-list">

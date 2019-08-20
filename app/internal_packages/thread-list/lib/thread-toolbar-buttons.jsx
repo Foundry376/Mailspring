@@ -591,7 +591,10 @@ export class MoreButton extends React.Component {
   _more = () => {
     const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
     const menu = new Menu();
-    if (WorkspaceStore.hiddenLocations().length === 0) {
+    const messageListMoveButtons = WorkspaceStore.hiddenLocations().find(
+      loc => loc.id === 'MessageListMoveButtons'
+    );
+    if (messageListMoveButtons) {
       const targetUnread = this.props.items.every(t => t.unread === false);
       const unreadTitle = targetUnread ? 'Mark as unread' : 'Mark as read';
       menu.append(new MenuItem({

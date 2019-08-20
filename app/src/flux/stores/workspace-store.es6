@@ -3,12 +3,12 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const _ = require('underscore');
-const Actions = require('../actions').default;
-const MailspringStore = require('mailspring-store').default;
 import {
   FocusedContentStore
 } from 'mailspring-exports';
+const _ = require('underscore');
+const Actions = require('../actions').default;
+const MailspringStore = require('mailspring-store').default;
 
 let Sheet = {};
 let Location = {};
@@ -31,6 +31,8 @@ class WorkspaceStore extends MailspringStore {
     this.listenTo(Actions.selectRootSheet, this._onSelectRootSheet);
     this.listenTo(Actions.setFocus, this._onSetFocus);
     this.listenTo(Actions.toggleWorkspaceLocationHidden, this._onToggleLocationHidden);
+    this.listenTo(Actions.hideWorkspaceLocation, this._hideHiddenLocation);
+    this.listenTo(Actions.showWorkspaceLocation, this._showHiddenLocation);
     this.listenTo(Actions.popSheet, this.popSheet);
     this.listenTo(Actions.popToRootSheet, this.popToRootSheet);
     this.listenTo(Actions.pushSheet, this.pushSheet);
@@ -97,6 +99,27 @@ class WorkspaceStore extends MailspringStore {
     this._sheetStack = [];
     this._sheetStack.push(sheet);
     this.trigger(this);
+  };
+  _showHiddenLocation = location => {
+    if(!location.id){
+      throw new Error('Actions.showWorkspaceLocationHidden - pass a WorkspaceStore.Location without id');
+    }
+    if(this._hiddenLocations[location.id]){
+      delete this._hiddenLocations[location.id];
+      AppEnv.config.set('core.workspace.hiddenLocations', this._hiddenLocations);
+      this.trigger(this);
+    }
+  };
+
+  _hideHiddenLocation = location => {
+    if(!location.id){
+      throw new Error('Actions.hideWorkspaceLocationHidden - pass a WorkspaceStore.Location without id');
+    }
+    if(!this._hiddenLocations[location.id]){
+      this._hiddenLocations[location.id] = location;
+      AppEnv.config.set('core.workspace.hiddenLocations', this._hiddenLocations);
+      this.trigger(this);
+    }
   };
 
   _onToggleLocationHidden = location => {
