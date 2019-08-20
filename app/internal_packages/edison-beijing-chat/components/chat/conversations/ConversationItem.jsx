@@ -6,7 +6,7 @@ import GroupChatAvatar from '../../common/GroupChatAvatar';
 import Badge from './ConversationBadge';
 import { RetinaImg } from 'mailspring-component-kit';
 import { getApp, getToken } from '../../../utils/appmgt';
-import { ChatActions, MessageStore, ConversationStore } from 'chat-exports';
+import { ChatActions, MessageStore } from 'chat-exports';
 
 export default class ConversationItem extends PureComponent {
 
@@ -59,7 +59,7 @@ export default class ConversationItem extends PureComponent {
   render() {
     const { selected, conversation, referenceTime, onClick, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
-    const {selectedConversation} = ConversationStore;
+    const unreadMessage = !conversation.isHiddenNotification && conversation.unreadMessages ? conversation.unreadMessages : null;
     return (
       <div
         onClick={onClick}
@@ -80,11 +80,11 @@ export default class ConversationItem extends PureComponent {
           </div>
           <div className="content">
             <div className="headerRow">
-              {(conversation.at && selectedConversation.jid !== conversation.jid)? (<span className='at-me'>[@me]</span>) : null}
+              {conversation.at  && unreadMessage? (<span className='at-me'>[@me]</span>) : null}
               <span className="headerText">{this.state.appName || conversation.name}</span>
               {/* <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span> */}
               <span className="unread-count">
-                {!conversation.isHiddenNotification && conversation.unreadMessages ? conversation.unreadMessages : null}
+                {unreadMessage}
               </span>
             </div>
             <div className="subHeader">
