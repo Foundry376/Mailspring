@@ -6,7 +6,7 @@ import GroupChatAvatar from '../../common/GroupChatAvatar';
 import Badge from './ConversationBadge';
 import { RetinaImg } from 'mailspring-component-kit';
 import { getApp, getToken } from '../../../utils/appmgt';
-import { ChatActions, MessageStore } from 'chat-exports';
+import { ChatActions, MessageStore, ConversationStore } from 'chat-exports';
 
 export default class ConversationItem extends PureComponent {
 
