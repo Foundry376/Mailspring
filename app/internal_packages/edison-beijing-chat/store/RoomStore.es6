@@ -226,7 +226,9 @@ class RoomStore extends MailspringStore {
       await this.updateConversationCurJid(fromjid, conversationJid);
     }
     const conv = await ConversationStore.getConversationByJid(conversationJid);
-    await this.refreshRoomMember(conversationJid, conv.curJid, true);
+    if (conv) {
+      await this.refreshRoomMember(conversationJid, conv.curJid, true);
+    }
     await ConversationStore.refreshConversations();
     if (ConversationStore.selectedConversation.jid === conversationJid) {
       ChatActions.memberChange(conversationJid);
