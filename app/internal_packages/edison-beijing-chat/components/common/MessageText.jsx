@@ -1,9 +1,7 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
 import { name } from '../../utils/name';
-
-const AT_BEGIN_CHAR = '\u0005';
-const AT_END_CHAR = '\u0004';
+import { AT_BEGIN_CHAR, AT_END_CHAR } from '../../utils/message';
 
 function getName(jid) {
   if (jid === 'all') {
