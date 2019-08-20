@@ -79,6 +79,7 @@ export default class ConversationItem extends PureComponent {
           </div>
           <div className="content">
             <div className="headerRow">
+              {conversation.at ? (<span className='at-me'>[@me]</span>) : null}
               <span className="headerText">{this.state.appName || conversation.name}</span>
               {/* <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span> */}
               <span className="unread-count">
@@ -86,7 +87,6 @@ export default class ConversationItem extends PureComponent {
               </span>
             </div>
             <div className="subHeader">
-              {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}
               {
                 conversation.isGroup && conversation.lastMessageSenderName && conversation.lastMessageText ?
                   `${conversation.lastMessageSenderName}:` : null

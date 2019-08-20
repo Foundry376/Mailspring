@@ -315,9 +315,10 @@ class MessageStore extends MailspringStore {
     const { selectedConversation } = ConversationStore;
     let at = !!(
       (content.includes(AT_BEGIN_CHAR + '@' + payload.curJid + AT_END_CHAR) ||
-        content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR)) &&
+        content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR)) // &&
       (selectedConversation && selectedConversation.jid !== payload.from.bare)
     );
+    console.log(' processGroupMessage: ', selectedConversation, at);
     let name = payload.from.local;
     // get the room name and whether you are '@'
     const rooms = await RoomStore.getRooms();
