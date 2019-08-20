@@ -12,14 +12,6 @@ export default class AtList extends Component {
     this._scrollBox;
   }
 
-  componentDidMount() {
-    setTimeout(() => {
-      this.setState({
-        open: true,
-      });
-    }, 300);
-  }
-
   componentWillReceiveProps({ activeIndex }) {
     this.keepActiveRowInView(activeIndex);
   }
