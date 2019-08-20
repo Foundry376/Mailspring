@@ -312,11 +312,11 @@ class MessageStore extends MailspringStore {
   processGroupMessage = async payload => {
     const body = parseMessageBody(payload.body);
     const { content } = body;
-    const { selectConversation } = ConversationStore;
+    const { selectedConversation } = ConversationStore;
     let at = !!(
       (content.includes(AT_BEGIN_CHAR + '@' + payload.curJid + AT_END_CHAR) ||
         content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR)) &&
-      (selectConversation && selectConversation.jid === payload.from.bare)
+      (selectedConversation && selectedConversation.jid !== payload.from.bare)
     );
     let name = payload.from.local;
     // get the room name and whether you are '@'
