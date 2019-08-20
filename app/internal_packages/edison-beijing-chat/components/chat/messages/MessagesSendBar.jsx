@@ -147,12 +147,16 @@ export default class MessagesSendBar extends PureComponent {
       this.props.selectedConversation &&
       nextProps.selectedConversation.jid !== this.props.selectedConversation.jid
     ) {
-      this._richText.clearNode();
+      this.initAtContacts();
     }
     this.setState(state);
   };
 
-  componentDidMount = async () => {
+  componentDidMount = () => {
+    this.initAtContacts();
+  };
+
+  initAtContacts = async () => {
     const roomMembers = await this.getRoomMembers();
     const atContacts = [
       {
@@ -166,6 +170,7 @@ export default class MessagesSendBar extends PureComponent {
       roomMembers,
       atContacts,
     });
+    this._richText.clearNode();
   };
 
   getRoomMembers = async () => {
