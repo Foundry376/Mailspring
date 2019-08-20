@@ -10,10 +10,7 @@ import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import { RoomStore, MessageSend } from 'chat-exports';
 import { name } from '../../../utils/name';
-
-const AT_BEGIN_CHAR = '\u0005';
-const AT_END_CHAR = '\u0004';
-const AT_EMPTY_CHAR = '\u200b';
+import { AT_BEGIN_CHAR, AT_END_CHAR, AT_EMPTY_CHAR } from '../../../utils/message';
 
 function getTextFromHtml(str) {
   let strFormat = '';

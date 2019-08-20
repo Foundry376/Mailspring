@@ -1,7 +1,7 @@
 import { isImageFilePath, isJsonStr } from './stringUtils';
 import groupByTime from 'group-by-time';
-import path from "path";
-import fs from "fs";
+import path from 'path';
+import fs from 'fs';
 import uuid from 'uuid/v4';
 import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
@@ -11,11 +11,15 @@ import { alert } from './electron';
 
 var thumb = require('node-thumbnail').thumb;
 
+export const AT_BEGIN_CHAR = '\u2066';
+export const AT_END_CHAR = '\u2067';
+export const AT_EMPTY_CHAR = '\u200b';
+
 export const groupMessages = async messages => {
   const groupedMessages = [];
   const createGroup = message => ({
     sender: message.sender,
-    messages: [message]
+    messages: [message],
   });
   for (let index = 0; index < messages.length; index++) {
     let message = messages[index];
@@ -25,29 +29,29 @@ export const groupMessages = async messages => {
     } else {
       groupedMessages[lastIndex].messages.push(message);
     }
-  };
+  }
 
   return groupedMessages;
-}
+};
 
 /* kind: day, week, month */
 export const groupMessagesByTime = async (messages, key, kind) => {
   var groupedByDay = groupByTime(messages, key, kind);
-  const groupedMessages = []
+  const groupedMessages = [];
   if (groupedByDay) {
     for (const time in groupedByDay) {
-      groupedMessages.push({ time, messages: groupedByDay[time] })
+      groupedMessages.push({ time, messages: groupedByDay[time] });
     }
   }
   return groupedMessages;
-}
+};
 
-export const addMessagesSenderNickname = async (messages) => {
+export const addMessagesSenderNickname = async messages => {
   const nicknames = chatLocalStorage.nicknames;
   for (let message of messages) {
     message.senderNickname = nicknames[message.sender];
   }
-}
+};
 
 const getMessageContent = message => {
   let body = message.body;
@@ -59,14 +63,14 @@ const getMessageContent = message => {
   } else {
     return body.content;
   }
-}
+};
 
-export const parseMessageBody = (body) => {
+export const parseMessageBody = body => {
   if (isJsonStr(body)) {
     return JSON.parse(body);
   }
   return body;
-}
+};
 
 export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   let { progress } = ProgressBarStore;
@@ -88,7 +92,9 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     let configDirPath = AppEnv.getConfigDirPath();
     filepath = path.join(configDirPath, 'files', id.slice(0, 2), id.slice(2, 4), id, file.filename);
     if (!fs.existsSync(filepath)) {
-      alert(`the selected file to be sent is not downloaded  to this computer: ${filepath}, ${file.id}, ${file.filename}`);
+      alert(
+        `the selected file to be sent is not downloaded  to this computer: ${filepath}, ${file.id}, ${file.filename}`
+      );
       return;
     }
   } else {
@@ -106,7 +112,8 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     alert('Not support to send folder.');
     return;
   }
-  const messageId = uuid(), updating = false;
+  const messageId = uuid(),
+    updating = false;
   let message;
   if (index === 0) {
     message = messageBody.trim();
@@ -125,9 +132,9 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   let body = {
     type: filetype,
     isUploading: true,
-    content: path.basename(filepath) || "file",
+    content: path.basename(filepath) || 'file',
     timeSend: new Date().getTime() + edisonChatServerDiffTime,
-    localFile: filepath
+    localFile: filepath,
   };
   if (file !== filepath) {
     body.emailSubject = file.subject;
@@ -138,9 +145,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     messageId,
     msgBody: body,
     filepath,
-    type: 'upload'
-  }
+    type: 'upload',
+  };
   queueLoadMessage(loadConfig);
 };
-
-

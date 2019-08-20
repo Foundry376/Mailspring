@@ -20,12 +20,10 @@ import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
 import { FILE_TYPE, isImage } from '../utils/filetypes';
+import { AT_BEGIN_CHAR, AT_END_CHAR } from '../utils/message';
 
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
 export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT';
-
-const AT_BEGIN_CHAR = '\u0005';
-const AT_END_CHAR = '\u0004';
 
 class MessageStore extends MailspringStore {
   constructor() {

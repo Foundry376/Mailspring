@@ -25,16 +25,13 @@ import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 import { MessageStore, ConversationStore, RoomStore, MessageSend } from 'chat-exports';
 import { alert } from '../../../utils/electron';
+import { AT_BEGIN_CHAR, AT_END_CHAR, AT_EMPTY_CHAR } from '../../../utils/message';
 
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 const { exec } = require('child_process');
 const platform = require('electron-platform');
 const { clipboard } = require('electron');
 const plist = require('plist');
-
-const AT_BEGIN_CHAR = '\u0005';
-const AT_END_CHAR = '\u0004';
-const AT_EMPTY_CHAR = '\u200b';
 
 //linux is not implemented because no method was found after googling a lot
 // only be tested on mac, not be tested on Windows
