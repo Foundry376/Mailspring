@@ -24,7 +24,7 @@ const {
   FolderSyncProgressStore,
   AccountStore,
   CategoryStore,
-  WorkspaceStore
+  WorkspaceStore,
 } = require('mailspring-exports');
 
 const ThreadListColumns = require('./thread-list-columns');
@@ -79,7 +79,7 @@ class ThreadList extends React.Component {
     return <SyncingListState />;
   }
 
-  _calcScrollPosition = _.throttle((scrollTop) => {
+  _calcScrollPosition = _.throttle(scrollTop => {
     const toolbar = document.querySelector('.thread-list .thread-list-toolbar');
     if (toolbar) {
       if (scrollTop > 0) {
@@ -90,7 +90,7 @@ class ThreadList extends React.Component {
         toolbar.className = toolbar.className.replace(' has-shadow', '');
       }
     }
-  }, 100)
+  }, 100);
 
   _onScroll = e => {
     if (e.target) {
@@ -173,14 +173,16 @@ class ThreadList extends React.Component {
         task instanceof ChangeStarredTask
           ? 'unstar'
           : task instanceof ChangeFolderTask
-            ? task.folder.name
-            : task instanceof ChangeLabelsTask ? 'archive' : 'remove';
+          ? task.folder.name
+          : task instanceof ChangeLabelsTask
+          ? 'archive'
+          : 'remove';
 
       return `swipe-${name}`;
     };
 
     // edison feature disabled
-    props.onSwipeRight = function (callback) {
+    props.onSwipeRight = function(callback) {
       const perspective = FocusedPerspectiveStore.current();
       const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
       if (tasks.length === 0) {
@@ -205,7 +207,6 @@ class ThreadList extends React.Component {
       // props.onSwipeLeft = callback => {
       //   // TODO this should be grabbed from elsewhere
       //   const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
-
       //   const element = document.querySelector(`[data-item-id="${item.id}"]`);
       //   const originRect = element.getBoundingClientRect();
       //   Actions.openPopover(<SnoozePopover threads={[item]} swipeCallback={callback} />, {
@@ -240,7 +241,7 @@ class ThreadList extends React.Component {
       return {
         threadIds: [thread.id],
         accountIds: [thread.accountId],
-        threads: [thread]
+        threads: [thread],
       };
     }
   }
@@ -275,12 +276,14 @@ class ThreadList extends React.Component {
     event.dataTransfer.setData(`nylas-accounts=${data.accountIds.join(',')}`, '1');
   };
 
-  _onDragEnd = event => { };
+  _onDragEnd = event => {};
 
   _onResize = event => {
     const current = this.state.style;
+    const layoutMode = WorkspaceStore.layoutMode();
     // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
-    const desired = ReactDOM.findDOMNode(this).offsetWidth < 700 ? 'narrow' : 'wide';
+    const desired =
+      ReactDOM.findDOMNode(this).offsetWidth < 700 && layoutMode === 'split' ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }
