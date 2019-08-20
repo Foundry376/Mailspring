@@ -62,8 +62,7 @@ export default class ComposerView extends React.Component {
       'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
       'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => {
-      },
+      'composer:show-and-focus-from': () => {},
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
@@ -75,13 +74,13 @@ export default class ComposerView extends React.Component {
       isDeleting: false,
       editorSelection: null,
       editorSelectedText: '',
-      isCrowded: false
+      isCrowded: false,
     };
     this._deleteTimer = null;
     this._unlisten = [
       Actions.destroyDraftFailed.listen(this._onDestroyedDraftProcessed, this),
       Actions.destroyDraftSucceeded.listen(this._onDestroyedDraftProcessed, this),
-      WorkspaceStore.listen(this._onResize)
+      WorkspaceStore.listen(this._onResize),
     ];
   }
 
@@ -119,7 +118,10 @@ export default class ComposerView extends React.Component {
     // If the user has added an inline blockquote, show all the quoted text
     // note: this is necessary because it's hidden with CSS that can't be
     // made more specific.
-    if (this.state.quotedTextHidden && (hasNonTrailingBlockquote(draft.bodyEditorState) || isNewDraft)) {
+    if (
+      this.state.quotedTextHidden &&
+      (hasNonTrailingBlockquote(draft.bodyEditorState) || isNewDraft)
+    ) {
       this.setState({ quotedTextHidden: false });
     }
   }
@@ -152,7 +154,7 @@ export default class ComposerView extends React.Component {
     if (isCrowded !== this.state.isCrowded) {
       this.setState({ isCrowded });
     }
-  }
+  };
 
   focus() {
     if (!this._mounted) return;
@@ -224,8 +226,11 @@ export default class ComposerView extends React.Component {
           onMouseDown={this._onMouseDownComposerBody}
           onContextMenu={this._onEditorBodyContextMenu}
         >
-          {(this.props.draft && this.props.draft.waitingForBody) ?
-            <Spinner visible={true} /> : this._renderBodyRegions()}
+          {this.props.draft && this.props.draft.waitingForBody ? (
+            <Spinner visible={true} />
+          ) : (
+            this._renderBodyRegions()
+          )}
           {this._renderFooterRegions()}
         </div>
       </div>
@@ -261,7 +266,8 @@ export default class ComposerView extends React.Component {
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
         </span>
         <span
           className="remove-quoted-text"
@@ -285,23 +291,29 @@ export default class ComposerView extends React.Component {
   }
 
   _onEditorBlur = (event, editor, next) => {
-    this.setState({ editorSelection: editor.value.selection, editorSelectedText: editor.value.fragment.text });
+    this.setState({
+      editorSelection: editor.value.selection,
+      editorSelectedText: editor.value.fragment.text,
+    });
     this._onEditorChange(editor);
   };
   _onEditorChange = change => {
     // We minimize thrashing and disable editors in multiple windows by ensuring
     // non-value changes (eg focus) to the editorState don't trigger database saves
     if (!this.props.session.isPopout()) {
-      const skipSaving = change.operations.every(
-        ({ type, properties }) => {
-          return type === 'set_selection' || (type === 'set_value' && Object.keys(properties).every(k => {
-            if (k === 'schema') {
-              //In case we encountered more scheme change
-              // console.error('schema');
-            }
-            return (k === 'decorations' || k === 'schema');
-          }));
-        });
+      const skipSaving = change.operations.every(({ type, properties }) => {
+        return (
+          type === 'set_selection' ||
+          (type === 'set_value' &&
+            Object.keys(properties).every(k => {
+              if (k === 'schema') {
+                //In case we encountered more scheme change
+                // console.error('schema');
+              }
+              return k === 'decorations' || k === 'schema';
+            }))
+        );
+      });
       this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
     }
   };
@@ -410,13 +422,14 @@ export default class ComposerView extends React.Component {
             }
           }}
           tabIndex={-1}
-          style={{ order: -51 }}
+          style={{ order: -52 }}
           draft={this.props.draft}
           headerMessageId={this.props.draft.headerMessageId}
           session={this.props.session}
           isValidDraft={this._isValidDraft}
           disabled={this.props.session.isPopout()}
         />
+        <div className="divider-line" style={{ order: -51 }} />
         <button
           tabIndex={-1}
           className="btn btn-toolbar btn-attach"
@@ -425,10 +438,12 @@ export default class ComposerView extends React.Component {
           onClick={this._onSelectAttachment}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name={'attachments.svg'}
+          <RetinaImg
+            name={'attachments.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
         </button>
         <button
           tabIndex={-1}
@@ -438,12 +453,14 @@ export default class ComposerView extends React.Component {
           onClick={this._onSelectAttachment.bind(this, { type: 'image' })}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name={'inline-image.svg'}
+          <RetinaImg
+            name={'inline-image.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
         </button>
-
+        <div className="divider-line" style={{ order: 10 }} />
         <button
           tabIndex={-1}
           className="btn btn-toolbar btn-trash"
@@ -452,14 +469,16 @@ export default class ComposerView extends React.Component {
           onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
         >
-          {this.state.isDeleting ?
-            <LottieImg name={'loading-spinner-blue'}
-              size={{ width: 24, height: 24 }} /> :
-            <RetinaImg name={'trash.svg'}
+          {this.state.isDeleting ? (
+            <LottieImg name={'loading-spinner-blue'} size={{ width: 24, height: 24 }} />
+          ) : (
+            <RetinaImg
+              name={'trash.svg'}
               style={{ width: 24, height: 24 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask}
-            />}
+            />
+          )}
         </button>
       </div>
     );
@@ -738,16 +757,12 @@ export default class ComposerView extends React.Component {
               <div className="composer-action-bar-workspace-wrap">
                 {this._renderActionsWorkspaceRegion()}
               </div>
-              {!isMainWindow && (
-                composerActionBar
-              )}
+              {!isMainWindow && composerActionBar}
             </DropZone>
           </TabGroupRegion>
           {isMainWindow && (
             <div id="sendbar-for-dock">
-              <div className="action-bar-wrapper">
-                {composerActionBar}
-              </div>
+              <div className="action-bar-wrapper">{composerActionBar}</div>
               <div className="wrapper-space"></div>
             </div>
           )}

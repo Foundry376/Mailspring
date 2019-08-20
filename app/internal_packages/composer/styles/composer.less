@@ -62,7 +62,7 @@
     color: @text-color;
     overflow: scroll;
     font-size: 14px;
-    &>div {
+    & > div {
       min-width: 100%;
     }
   }
@@ -133,16 +133,16 @@
     max-width: 34px;
     transition: background 0.4s;
     cursor: pointer;
-    &:hover{
+    &:hover {
       color: @medium-grey;
       background: @off-white;
     }
   }
-  .active-crowded-state{
-    .hide-when-crowded{
+  .active-crowded-state {
+    .hide-when-crowded {
       display: none;
     }
-    .show-when-crowded{
+    .show-when-crowded {
       display: inline-block;
     }
   }
@@ -196,7 +196,7 @@
       color: @medium-grey;
       background: @off-white;
 
-      img.content-mask{
+      img.content-mask {
         background-color: @medium-grey;
       }
     }
@@ -204,7 +204,7 @@
       color: @dark-grey;
       background: @extra-light-grey;
 
-      img.content-mask{
+      img.content-mask {
         background-color: @dark-grey;
       }
     }
@@ -244,14 +244,14 @@
         margin-left: 2px;
       }
     }
-    img.content-mask{
+    img.content-mask {
       background-color: @medium-grey;
     }
   }
 
   button.active {
     color: @component-active-color;
-    img.content-mask{
+    img.content-mask {
       background-color: @component-active-color;
     }
   }
@@ -365,7 +365,7 @@ body.platform-win32 {
   background: transparent;
   border-top: 1px solid @border-color-divider;
   border-bottom: 0;
-  padding: 6px 0;
+  padding: 10px 0;
   z-index: 9;
 
   .action-bar-cover-gen;
@@ -432,12 +432,13 @@ body.platform-win32 {
     transition: all 0.2s;
     font-weight: bold;
     padding: 0 15px 0 13px;
+    margin: 0 5px;
     cursor: pointer;
     span {
-      div[role='button']{
+      div[role='button'] {
         float: left;
-        svg{
-          path{
+        svg {
+          path {
             stroke: @blue;
           }
         }
@@ -460,10 +461,10 @@ body.platform-win32 {
         display: none;
       }
       span {
-        div[role='button']{
+        div[role='button'] {
           float: left;
-          svg{
-            path{
+          svg {
+            path {
               stroke: @white;
             }
           }
@@ -490,6 +491,13 @@ body.platform-win32 {
 
     .composer-action-bar-plugins {
       flex-wrap: wrap;
+    }
+
+    .divider-line {
+      height: 25px;
+      width: 1px;
+      margin: 0 8px;
+      background: @gray-lighter;
     }
   }
 
@@ -872,7 +880,7 @@ body.platform-win32 {
     padding: 0 10px;
   }
   .content-container {
-    margin-left: 22px;
+    margin-left: 10px;
     width: calc(~'100% - 44px');
   }
   .button-dropdown {
@@ -1020,7 +1028,7 @@ body.platform-win32 {
     display: flex;
     align-items: center;
     cursor: pointer;
-    &.selected{
+    &.selected {
       &::before {
         display: block;
         margin-left: -22px;
