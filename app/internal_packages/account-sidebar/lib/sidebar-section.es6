@@ -59,15 +59,16 @@ class SidebarSection {
     // const attachmentsMail = SidebarItem.forAttachments([account.id]);
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
-    items.splice(1, 0, unreadItem, starredItem);
+    if (draftsItem) {
+      items.splice(1, 0, unreadItem, starredItem, draftsItem);
+    } else {
+      items.splice(1, 0, unreadItem, starredItem);
+    }
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
       if (archiveMail) {
         items.push(archiveMail);
       }
-    }
-    if (draftsItem) {
-      items.push(draftsItem);
     }
     items.push(...this.accountUserCategories(account));
 
@@ -161,11 +162,15 @@ class SidebarSection {
     if (folderItem) {
       items.unshift(folderItem);
     }
+    folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
     folderItem = SidebarItem.forStarred(accountIds, { displayName: 'Flagged' });
     if (folderItem) {
       items.push(folderItem);
     }
-    folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
+    folderItem = SidebarItem.forDrafts(accountIds, { displayName: 'All Drafts' });
     if (folderItem) {
       items.push(folderItem);
     }
@@ -181,10 +186,7 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
-    folderItem = SidebarItem.forDrafts(accountIds, { displayName: 'All Drafts' });
-    if (folderItem) {
-      items.push(folderItem);
-    }
+
     folderItem = SidebarItem.forArchived(accountIds, { displayName: 'All Archive', name: 'allArchive' });
     if (folderItem) {
       items.push(folderItem);
