@@ -99,7 +99,7 @@ class ThreadTrashQuickAction extends React.Component {
     const tasks = TaskFactory.tasksForMovingToTrash({
       source: 'Quick Actions: Thread List: Trash',
       threads: [this.props.thread],
-      currentPerspective: this.props.currentPerspective,
+      currentPerspective: FocusedPerspectiveStore.current(),
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
       tasks.forEach(task => {
