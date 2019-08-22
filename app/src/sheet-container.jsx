@@ -69,14 +69,18 @@ export default class SheetContainer extends React.Component {
       />
     ));
     return (
-      <div name="Toolbar" style={{
-        order: 0,
-        zIndex: 3,
-        position: 'fixed',
-        width: '100%',
-        left: 0,
-        top: 0,
-      }} className="sheet-toolbar">
+      <div
+        name="Toolbar"
+        style={{
+          order: 0,
+          zIndex: 3,
+          position: 'fixed',
+          width: '100%',
+          left: 0,
+          top: 0,
+        }}
+        className="sheet-toolbar"
+      >
         {components[0]}
         <CSSTransitionGroup
           transitionLeaveTimeout={125}
@@ -97,22 +101,24 @@ export default class SheetContainer extends React.Component {
       return <div />;
     }
     let rootSheet = null;
-    let popSheet = null
-    if (["Preferences", "Thread"].includes(topSheet.id)) {
+    let popSheet = null;
+    if (['Preferences', 'Thread'].includes(topSheet.id)) {
       rootSheet = (
         <Sheet
           depth={0}
           data={this.state.stack[0]}
           key="root"
           onColumnSizeChanged={this._onColumnSizeChanged}
-        />);
+        />
+      );
       popSheet = (
         <Sheet
           depth={this.state.stack.length - 1}
           data={this.state.stack[this.state.stack.length - 1]}
           key="top"
           onColumnSizeChanged={this._onColumnSizeChanged}
-        />);
+        />
+      );
     } else {
       rootSheet = (
         <Sheet
@@ -120,7 +126,8 @@ export default class SheetContainer extends React.Component {
           data={this.state.stack[this.state.stack.length - 1]}
           key="root"
           onColumnSizeChanged={this._onColumnSizeChanged}
-        />);
+        />
+      );
     }
 
     return (
@@ -139,7 +146,11 @@ export default class SheetContainer extends React.Component {
           />
         </div> */}
 
-        <div id="Center" name="Center" style={{ height: '100%', order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+        <div
+          id="Center"
+          name="Center"
+          style={{ height: '100%', order: 2, flex: 1, position: 'relative', zIndex: 1 }}
+        >
           {rootSheet}
           {popSheet}
         </div>

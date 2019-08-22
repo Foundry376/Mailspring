@@ -19,8 +19,7 @@ export default class Sheet extends React.Component {
   };
 
   static defaultProps = {
-    onColumnSizeChanged: () => {
-    },
+    onColumnSizeChanged: () => {},
   };
 
   static childContextTypes = {
@@ -50,9 +49,11 @@ export default class Sheet extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      ComponentRegistry.listen(() => this.setState(this._getStateFromStores(this.props))),
+      ComponentRegistry.listen(() => this.setState(this._getStateFromStores(this.props)))
     );
-    this.unlisteners.push(WorkspaceStore.listen(() => this.setState(this._getStateFromStores(this.props))));
+    this.unlisteners.push(
+      WorkspaceStore.listen(() => this.setState(this._getStateFromStores(this.props)))
+    );
   }
 
   componentWillReceiveProps(nextProps, nextContext) {
@@ -97,10 +98,7 @@ export default class Sheet extends React.Component {
           maxWidth={maxWidth}
           handle={handle}
         >
-          <InjectedComponentSet
-            direction="column"
-            matching={{ location: location, mode: mode }}
-          />
+          <InjectedComponentSet direction="column" matching={{ location: location, mode: mode }} />
         </ResizableRegion>
       );
     }
