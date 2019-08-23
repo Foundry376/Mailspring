@@ -44,8 +44,17 @@ class ComposerWithWindowProps extends React.Component {
 
   _onDraftChangeAccountComplete = ({ newDraftJSON }) => {
     const draft = new Message().fromJSON(newDraftJSON);
-    DraftStore._createSession(draft.headerMessageId, draft);
-    this.setState({ headerMessageId: draft.headerMessageId, messageId: draft.id });
+    if (draft.savedOnRemote) {
+      DraftStore.sessionForServerDraft(draft).then(session => {
+        const newDraft = session.draft();
+        if (newDraft) {
+          this.setState({ headerMessageId: newDraft.headerMessageId, messageId: newDraft.id });
+        }
+      });
+    } else {
+      DraftStore._createSession(draft.headerMessageId, draft);
+      this.setState({ headerMessageId: draft.headerMessageId, messageId: draft.id });
+    }
   };
 
   _onDraftGotNewId = (event, options) => {

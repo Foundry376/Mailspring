@@ -69,12 +69,17 @@ export default class Message extends ModelWithMetadata {
   static ReplyDraft = 3;
   static ForwardDraft = 4;
   static ReplyAllDraft = 5;
+  static draftType = {
+    reply: 1,
+    forward: 2,
+  };
   static messageState = {
     normal: '0',
     deleted: '1',
     saving: '2',
     sending: '3',
-    pulling: '4', // Updating data from server
+    updatingNoUID: '4', // Updating data from server
+    updatingHasUID: '5',
     failing: '-2', // This state indicates that draft first attempt at sending is taking too long, thus should
     // display in
     // outbox
@@ -224,10 +229,15 @@ export default class Message extends ModelWithMetadata {
     }),
 
     referenceMessageId: Attributes.String({
-      jsonKey: 'refMsgId',
+      jsonKey: 'refOldDraftHeaderMessageId',
       modelKey: 'referenceMessageId',
     }),
-
+    savedOnRemote: Attributes.Boolean({
+      modelKey: 'savedOnRemote',
+    }),
+    hasRefOldDraftOnRemote: Attributes.Boolean({
+      modelKey: 'hasRefOldDraftOnRemote',
+    }),
     folder: Attributes.Object({
       queryable: false,
       modelKey: 'folder',
@@ -239,6 +249,9 @@ export default class Message extends ModelWithMetadata {
       jsonKey: 'state',
       loadFromColumn: true,
       queryable: true,
+    }),
+    replyOrForward: Attributes.Integer({
+      modelKey: 'replyOrForward',
     }),
     msgOrigin: Attributes.Number({
       modelKey: 'msgOrigin',

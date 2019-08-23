@@ -71,9 +71,7 @@ class DraftList extends React.Component {
   };
 
   _onDoubleClick = draft => {
-    if (!draft.uploadTaskId) {
       Actions.composePopoutDraft(draft.headerMessageId);
-    }
   };
   _changeBackToNotDeleting = () => {
     if (this._deletingTimer) {

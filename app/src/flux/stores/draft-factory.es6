@@ -69,12 +69,36 @@ class DraftFactory {
 
     return new Message(merged);
   }
+  createNewDraftForEdit(draft){
+    const uniqueId = uuid();
+    const account = AccountStore.accountForId(draft.accountId);
+    if (!account) {
+      throw new Error(
+        'DraftEditingSession::createNewDraftForEdit - you can only send drafts from a configured account.',
+      );
+    }
+    const defaults = Object.assign({}, draft, {
+      body: draft.body,
+      version: 0,
+      headerMessageId: `${uniqueId}@edison.tech`,
+      id: uniqueId,
+      date: new Date(),
+      pristine: false,
+      hasNewID: false,
+      accountId: account.id,
+      savedOnRemote: false,
+      hasRefOldDraftOnRemote: true,
+      referenceMessageId: draft.headerMessageId,
+      state: Message.messageState.normal
+    });
+    return new Message(defaults);
+  }
   async createOutboxDraftForEdit(draft){
     const uniqueId = uuid();
     const account = AccountStore.accountForId(draft.accountId);
     if (!account) {
       throw new Error(
-        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.',
+        'DraftEditingSession::createOutboxDraftForEdit - you can only send drafts from a configured account.',
       );
     }
     const defaults = Object.assign({}, draft, {

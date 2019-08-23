@@ -138,6 +138,11 @@ class DraftStore extends MailspringStore {
     return this._draftSessions[headerMessageId];
   }
 
+  sessionForServerDraft(draft){
+    const newDraft = DraftFactory.createNewDraftForEdit(draft);
+    return DraftFactory.sessionForServerDraft(newDraft.headerMessageId);
+  }
+
   // Public: Look up the sending state of the given draft headerMessageId.
   // In popout windows the existance of the window is the sending state.
   isSendingDraft(headerMessageId) {

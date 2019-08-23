@@ -32,7 +32,11 @@ function InflatesDraftClientId(ComposedComponent) {
 
     componentDidMount() {
       this._mounted = true;
-      this._prepareForDraft(this.props.headerMessageId, this.props.messageId);
+      if(this.props.draft && this.props.draft.savedOnRemote){
+        this._prepareServerDraftForEdit(this.props.draft);
+      }else{
+        this._prepareForDraft(this.props.headerMessageId, this.props.messageId);
+      }
     }
 
     componentWillUnmount() {
@@ -48,7 +52,11 @@ function InflatesDraftClientId(ComposedComponent) {
       ) {
         // console.log(`new props: ${JSON.stringify(newProps)}`);
         this._teardownForDraft();
-        this._prepareForDraft(newProps.headerMessageId, newProps.messageId);
+        if(newProps.draft && newProps.draft.savedOnRemote){
+          this._prepareServerDraftForEdit(newProps.draft);
+        }else {
+          this._prepareForDraft(newProps.headerMessageId, newProps.messageId);
+        }
       }
     }
     _onDraftGotNewId = (event, options) => {
@@ -64,6 +72,11 @@ function InflatesDraftClientId(ComposedComponent) {
         });
       }
     };
+    _prepareServerDraftForEdit(draft) {
+      if(draft.savedOnRemote){
+        DraftStore.sessionForServerDraft(draft);
+      }
+    }
 
     _prepareForDraft(headerMessageId, messageId) {
       if (!headerMessageId && !messageId) {
