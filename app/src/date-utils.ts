@@ -149,10 +149,20 @@ function expandDateLikeString(dateLikeString: string) {
     return `${numWeeks} weeks`;
   }
 
-  // Short format: 2mo
+  // Short format: 2m
   if (/^\d+m$/.test(dateLikeString)) {
     const numMonths = dateLikeString.match(/^\d+/)[0]; // Extract number
     return `${numMonths} months`;
+  }
+
+  // Short format: t, to, tom => tomorrow
+  if (['t', 'to', 'tom'].indexOf(dateLikeString) >= 0) {
+    return `tomorrow morning`;
+  }
+
+  // Short format: nw, next week => next week
+  if (['nw', 'next week'].indexOf(dateLikeString) >= 0) {
+    return `next Monday`;
   }
 
   return dateLikeString; // Return original string if no match
