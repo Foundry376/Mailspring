@@ -149,8 +149,8 @@ function expandDateLikeString(dateLikeString: string) {
     return `${numWeeks} weeks`;
   }
 
-  // Short format: 2m
-  if (/^\d+m$/.test(dateLikeString)) {
+  // Short format: 2m, 2mo
+  if (/^\d+mo?$/.test(dateLikeString)) {
     const numMonths = dateLikeString.match(/^\d+/)[0]; // Extract number
     return `${numMonths} months`;
   }
