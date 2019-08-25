@@ -250,7 +250,7 @@ export default class Message extends ModelWithMetadata {
       loadFromColumn: true,
       queryable: true,
     }),
-    replyOrForward: Attributes.Integer({
+    replyOrForward: Attributes.Number({
       modelKey: 'replyOrForward',
     }),
     msgOrigin: Attributes.Number({
