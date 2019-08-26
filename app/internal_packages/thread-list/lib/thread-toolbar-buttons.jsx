@@ -41,7 +41,7 @@ export class ArchiveButton extends React.Component {
     const tasks = TaskFactory.tasksForArchiving({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
-      currentPerspective: this.props.currentPerspective
+      currentPerspective: FocusedPerspectiveStore.current()
     });
     Actions.queueTasks(tasks);
     Actions.popSheet({reason: 'ToolbarButton:ThreadList:archive'});
@@ -85,7 +85,7 @@ export class TrashButton extends React.Component {
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       threads: this.props.items,
-      currentPerspective: this.props.currentPerspective,
+      currentPerspective: FocusedPerspectiveStore.current(),
       source: 'Toolbar Button: Thread List',
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
@@ -295,7 +295,7 @@ export class MarkAsSpamButton extends React.Component {
     const tasks = TaskFactory.tasksForMarkingNotSpam({
       source: 'Toolbar Button: Thread List',
       threads: this.props.items,
-      currentPerspective: this.props.currentPerspective,
+      currentPerspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
     Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:NotSpam'});
@@ -312,7 +312,7 @@ export class MarkAsSpamButton extends React.Component {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
-      currentPerspective: this.props.currentPerspective,
+      currentPerspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
     Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:Spam'});
