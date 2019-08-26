@@ -49,7 +49,9 @@ export default class SheetContainer extends React.Component {
   };
 
   _onStoreChange = () => {
-    this.setState(this._getStateFromStores());
+    this.setState(this._getStateFromStores(), () => {
+      this._onColumnSizeChanged();
+    });
   };
 
   _toolbarContainerElement() {
