@@ -26,10 +26,10 @@ mailspring-workspace {
   // themes load and override each other correctly. Do not remove!
   background-color: @background-primary;
 }
-.layout-mode-popout{
+.layout-mode-popout {
   -webkit-app-region: no-drag;
 }
-.layout-mode-list{
+.layout-mode-list {
   -webkit-app-region: drag;
   .selection-bar div.multiselect-toolbar-root {
     border-right: none;
@@ -38,19 +38,19 @@ mailspring-workspace {
     }
   }
   .toolbar-MessageList .thread-search-bar,
-  .toolbar-ThreadList .thread-search-bar{
+  .toolbar-ThreadList .thread-search-bar {
     width: 50%;
     min-width: 220px;
   }
 }
-.layout-mode-split{
+.layout-mode-split {
   .toolbar-ThreadList .thread-search-bar {
     display: none;
   }
 }
 .sheet-container {
   height: 100%;
-  div[contenteditable]{
+  div[contenteditable] {
     -webkit-app-region: no-drag;
   }
 }
@@ -84,7 +84,7 @@ mailspring-workspace {
 .toolbar-menu-control {
   display: none;
 }
-img.icon-small{
+img.icon-small {
   width: @icon-small;
   height: @icon-small;
 }
@@ -102,9 +102,9 @@ img.icon-small{
     button {
       background-position: 0 -12px;
     }
-    .unmaximize{
-      background-color: #29CC41;
-      img{
+    .unmaximize {
+      background-color: #29cc41;
+      img {
         position: relative;
         top: -5px;
         background-color: #006300;
@@ -134,17 +134,17 @@ img.icon-small{
   }
   .minimize {
     background-image: url('images/application-frame/minimize@1x.png');
-    &.disabled{
+    &.disabled {
       background-position: 0 -36px;
     }
   }
   .fullscreen {
     background-image: url('images/application-frame/fullscreen@1x.png');
   }
-  .unmaximize{
+  .unmaximize {
     border-radius: 6px;
-    background-color: #29CC41;
-    img{
+    background-color: #29cc41;
+    img {
       visibility: none;
     }
   }
@@ -166,10 +166,10 @@ img.icon-small{
     .fullscreen {
       background-image: url('images/application-frame/fullscreen@2x.png');
     }
-    .unmaximize{
+    .unmaximize {
       border-radius: 6px;
-      background-color: #29CC41;;
-      img{
+      background-color: #29cc41;
+      img {
         visibility: none;
       }
     }
@@ -188,10 +188,10 @@ body.is-blurred {
     }
   }
   .sheet-toolbar-container {
-    .unmaximize{
+    .unmaximize {
       border-radius: 6px;
-      background-color: #DEDEDE;
-      img{
+      background-color: #dedede;
+      img {
         visibility: none;
       }
     }
@@ -716,10 +716,10 @@ body.platform-win32 {
   margin-top: @search-bar-height;
   padding-bottom: @search-bar-height;
   -webkit-app-region: no-drag;
-  div{
+  div {
     // This is for DC-182 reduce height because of thread-list-empty-bar
-    div:nth-child(2).key-commands-region.thread-list{
-      height: calc(~"100% - 40px");
+    div:nth-child(2).key-commands-region.thread-list {
+      height: calc(~'100% - 40px');
     }
   }
 }
@@ -733,12 +733,12 @@ body.platform-win32 {
   margin-top: 0;
   top: 68px;
   height: calc(~'100% - 40px') !important;
-  &>div.empty {
+  & > div.empty {
     height: 100%;
     background: url(../static/images/chat/default-empty-mail.png) no-repeat center center;
     background-size: 250px auto;
   }
-  &>div.empty.offline {
+  & > div.empty.offline {
     height: 100%;
     background: url(../static/images/chat/no-connection.png) no-repeat center center;
     background-size: 250px auto;
@@ -759,8 +759,8 @@ body.platform-win32 {
 .column-MessageList .message-list-toolbar {
   height: 41px;
   border-bottom: 1px solid transparent;
-  &.hide-btn-when-crowded{
-    .btn-hide-when-crowded{
+  &.hide-btn-when-crowded {
+    .btn-hide-when-crowded {
       display: none;
     }
   }
