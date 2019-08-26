@@ -12,7 +12,7 @@ export default class SheetContainer extends React.Component {
 
   constructor(props) {
     super(props);
-    this._toolbarComponents = {};
+    this._toolbarComponents = null;
     this.state = this._getStateFromStores();
   }
 
@@ -40,8 +40,8 @@ export default class SheetContainer extends React.Component {
     };
   }
 
-  _onColumnSizeChanged = sheet => {
-    const toolbar = this._toolbarComponents[sheet.props.depth];
+  _onColumnSizeChanged = () => {
+    const toolbar = this._toolbarComponents;
     if (toolbar) {
       toolbar.recomputeLayout();
     }
@@ -53,38 +53,37 @@ export default class SheetContainer extends React.Component {
   };
 
   _toolbarContainerElement() {
+    const rootSheet = this.state.stack[0];
     const { toolbar } = AppEnv.getLoadSettings();
     if (!toolbar) {
       return [];
     }
-
-    const components = this.state.stack.map((sheet, index) => (
-      <Toolbar
-        data={sheet}
-        ref={cm => {
-          this._toolbarComponents[index] = cm;
-        }}
-        key={`${index}:${sheet.id}:toolbar`}
-        depth={index}
-      />
-    ));
     return (
-      <div name="Toolbar" style={{
-        order: 0,
-        zIndex: 3,
-        position: 'fixed',
-        width: '100%',
-        left: 0,
-        top: 0,
-      }} className="sheet-toolbar">
-        {components[0]}
-        <CSSTransitionGroup
+      <div
+        name="Toolbar"
+        style={{
+          order: 0,
+          zIndex: 3,
+          position: 'fixed',
+          width: '100%',
+          left: 0,
+          top: 0,
+        }}
+        className="sheet-toolbar"
+      >
+        <Toolbar
+          data={rootSheet}
+          ref={cm => {
+            this._toolbarComponents = cm;
+          }}
+        />
+        {/* <CSSTransitionGroup
           transitionLeaveTimeout={125}
           transitionEnterTimeout={125}
           transitionName="opacity-125ms"
         >
           {components.slice(1)}
-        </CSSTransitionGroup>
+        </CSSTransitionGroup> */}
       </div>
     );
   }
@@ -97,22 +96,24 @@ export default class SheetContainer extends React.Component {
       return <div />;
     }
     let rootSheet = null;
-    let popSheet = null
-    if (["Preferences", "Thread"].includes(topSheet.id)) {
+    let popSheet = null;
+    if (['Preferences', 'Thread'].includes(topSheet.id)) {
       rootSheet = (
         <Sheet
           depth={0}
           data={this.state.stack[0]}
           key="root"
           onColumnSizeChanged={this._onColumnSizeChanged}
-        />);
+        />
+      );
       popSheet = (
         <Sheet
           depth={this.state.stack.length - 1}
           data={this.state.stack[this.state.stack.length - 1]}
           key="top"
           onColumnSizeChanged={this._onColumnSizeChanged}
-        />);
+        />
+      );
     } else {
       rootSheet = (
         <Sheet
@@ -120,7 +121,8 @@ export default class SheetContainer extends React.Component {
           data={this.state.stack[this.state.stack.length - 1]}
           key="root"
           onColumnSizeChanged={this._onColumnSizeChanged}
-        />);
+        />
+      );
     }
 
     return (
@@ -139,7 +141,11 @@ export default class SheetContainer extends React.Component {
           />
         </div> */}
 
-        <div id="Center" name="Center" style={{ height: '100%', order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+        <div
+          id="Center"
+          name="Center"
+          style={{ height: '100%', order: 2, flex: 1, position: 'relative', zIndex: 1 }}
+        >
           {rootSheet}
           {popSheet}
         </div>

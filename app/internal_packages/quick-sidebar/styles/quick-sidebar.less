@@ -14,7 +14,7 @@
 .thread-search-bar {
   overflow: visible;
   z-index: 99;
-  height:40px;
+  height: 40px;
   width: 90%;
   position: absolute;
   right: 20px;
@@ -51,7 +51,9 @@
     }
   }
   .search-accessory.clear {
-    float: right;
+    position: absolute;
+    top: 8px;
+    right: 5px;
   }
 
   .suggestions {
@@ -62,7 +64,7 @@
     line-height: 24px;
     background: @input-bg;
     box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
-    0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 4px 7px rgba(0, 0, 0, 0.15);
+      0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 4px 7px rgba(0, 0, 0, 0.15);
 
     padding-top: @padding-small-vertical;
 
@@ -98,8 +100,8 @@
 
   .tokenizing-contenteditable {
     height: 80%;
-    width:90%;
-    float:left;
+    width: 90%;
+    float: left;
     position: relative;
     overflow-x: scroll;
     white-space: nowrap;
@@ -134,5 +136,3 @@
     }
   }
 }
-
-
