@@ -270,7 +270,8 @@ class MultiselectToolbar extends Component {
     const columnToolbarEls = document.querySelectorAll('.sheet-toolbar-container  [data-column]');
 
     // Find the top sheet in the stack
-    const sheet = document.querySelectorAll("[name='Sheet']")[0];
+    const sheetList = document.querySelectorAll("[name='Sheet']") || [];
+    const sheet = sheetList[sheetList.length - 1];
     if (!sheet) {
       return;
     }

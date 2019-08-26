@@ -12,7 +12,7 @@ export default class SheetContainer extends React.Component {
 
   constructor(props) {
     super(props);
-    this._toolbarComponents = {};
+    this._toolbarComponents = null;
     this.state = this._getStateFromStores();
   }
 
@@ -40,8 +40,8 @@ export default class SheetContainer extends React.Component {
     };
   }
 
-  _onColumnSizeChanged = sheet => {
-    const toolbar = this._toolbarComponents[sheet.props.depth];
+  _onColumnSizeChanged = () => {
+    const toolbar = this._toolbarComponents;
     if (toolbar) {
       toolbar.recomputeLayout();
     }
@@ -53,21 +53,11 @@ export default class SheetContainer extends React.Component {
   };
 
   _toolbarContainerElement() {
+    const rootSheet = this.state.stack[0];
     const { toolbar } = AppEnv.getLoadSettings();
     if (!toolbar) {
       return [];
     }
-
-    const components = this.state.stack.map((sheet, index) => (
-      <Toolbar
-        data={sheet}
-        ref={cm => {
-          this._toolbarComponents[index] = cm;
-        }}
-        key={`${index}:${sheet.id}:toolbar`}
-        depth={index}
-      />
-    ));
     return (
       <div
         name="Toolbar"
@@ -81,14 +71,19 @@ export default class SheetContainer extends React.Component {
         }}
         className="sheet-toolbar"
       >
-        {components[0]}
-        <CSSTransitionGroup
+        <Toolbar
+          data={rootSheet}
+          ref={cm => {
+            this._toolbarComponents = cm;
+          }}
+        />
+        {/* <CSSTransitionGroup
           transitionLeaveTimeout={125}
           transitionEnterTimeout={125}
           transitionName="opacity-125ms"
         >
           {components.slice(1)}
-        </CSSTransitionGroup>
+        </CSSTransitionGroup> */}
       </div>
     );
   }

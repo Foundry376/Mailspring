@@ -237,7 +237,8 @@ export default class Toolbar extends React.Component {
     const columnToolbarEls = el.querySelectorAll('[data-column]');
 
     // Find the top sheet in the stack
-    const sheet = document.querySelectorAll("[name='Sheet']")[this.props.depth];
+    const sheetList = document.querySelectorAll("[name='Sheet']") || [];
+    const sheet = sheetList[sheetList.length - 1];
     if (!sheet) {
       return;
     }
