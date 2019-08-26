@@ -156,13 +156,17 @@ function expandDateLikeString(dateLikeString: string) {
   }
 
   // Short format: t, to, tom => tomorrow
-  if (['t', 'to', 'tom'].indexOf(dateLikeString) >= 0) {
+  if (['t', 'to', 'tom', 'tom '].indexOf(dateLikeString) >= 0) {
     return `tomorrow morning`;
   }
 
   // Short format: nw, next week => next week
   if (['nw', 'next week'].indexOf(dateLikeString) >= 0) {
     return `next Monday`;
+  }
+
+  if (dateLikeString.indexOf('tom ') === 0) {
+    return dateLikeString.replace('tom ', 'tomorrow ');
   }
 
   return dateLikeString; // Return original string if no match
