@@ -46,7 +46,7 @@
   .content-container {
     border: 1px solid @border-color-secondary;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    border-radius: @border-radius-base;
+    border-radius: 0 0 @border-radius-base @border-radius-base;
     background-color: @background-primary;
     position: absolute;
     z-index: 3;
@@ -80,21 +80,43 @@
     }
   }
 
-  .token {
-    display: inline-block;
-    position: relative;
+  &.focused .token {
+    background: @off-white;
+    cursor: default;
     color: @blue;
+    font-size: 15px;
     padding: 0 1.9em * 0.5;
     padding-right: 1.5em;
     margin: -2px 1px 1px 1px;
+    .action {
+      display: block;
+      img {
+        background-color: @blue;
+        opacity: 0.5;
+      }
+    }
+    .participant-primary::after {
+      content: '';
+    }
+  }
+
+  .token {
+    display: inline-block;
+    position: relative;
+    color: @text-color;
+    padding: 0;
     border-radius: 1.9em * 0.5;
     max-width: 100%;
     line-height: 1.9em;
-    font-size: 15px;
-
-    // background: linear-gradient(to bottom, @token-top 0%, @token-bottom 100%);
-    // box-shadow: @base-box-shadow;
     vertical-align: middle;
+
+    .participant-primary::after {
+      content: '，';
+    }
+
+    &:last-of-type .participant-primary::after {
+      content: '';
+    }
 
     .action {
       display: none;
@@ -111,35 +133,18 @@
       }
       font-size: 10px;
     }
-    &:hover {
-      background: @off-white;
-      // box-shadow: 0 0.5px 0 darken(@token-hover-bottom, 35%),
-      //   0 -0.5px 0 darken(@token-hover-top, 25%), 0.5px 0 0 darken(@token-hover-bottom, 25%),
-      //   -0.5px 0 0 darken(@token-hover-bottom, 25%), 0 1px 1px rgba(0, 0, 0, 0.07);
-      cursor: default;
-      .action {
-        display: block;
-        img {
-          background-color: @blue;
-          opacity: 0.5;
-        }
-      }
-    }
     &.invalid {
+      padding: 0 1.9em * 0.5;
+      padding-right: 1.5em;
       color: @red;
       margin-bottom: -1px;
-      background: transparent;
+      background: @off-white;
       .action {
         display: block;
         img {
           background-color: @red;
           opacity: 0.5;
         }
-      }
-      &:hover {
-        background: @off-white;
-        // box-shadow: 0 -0.5px 0 @token-invalid-selected-top, 0.5px 0 0 @token-invalid-selected-bottom,
-        //   -0.5px 0 0 @token-invalid-selected-bottom, 0 1px 1px rgba(0, 0, 0, 0.07);
       }
     }
     &.invalid.selected,
