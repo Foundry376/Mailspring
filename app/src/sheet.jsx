@@ -126,7 +126,7 @@ export default class Sheet extends React.Component {
     return (
       <InjectedComponentSet
         direction="column"
-        key={`${dataId}:${idx}`}
+        key={`${dataId}:${idx}:${location.id}`}
         name={`${dataId}:${idx}`}
         className={`column-${location.id}`}
         data-column={isPrevious ? `${idx}-previous` : idx}
