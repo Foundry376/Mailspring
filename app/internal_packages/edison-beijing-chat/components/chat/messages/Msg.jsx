@@ -479,7 +479,9 @@ export default class Msg extends PureComponent {
         <div className="text-content">
           <div className="text" ref={el => (this.contentEl = el)}>
             <MessageText text={textContent} />
-            {msgBody.failMessage ? <div className="fail-message-text"> { msgBody.failMessage } </div> : null}
+            {msgBody.failMessage ? (
+              <div className="fail-message-text"> {msgBody.failMessage} </div>
+            ) : null}
           </div>
         </div>
       );
@@ -494,8 +496,6 @@ export default class Msg extends PureComponent {
     const member = this.senderContact();
     const senderName = this.senderName();
     const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED' && isCurrentUser;
-    const otherSignout = msgBody.type == 'error-signout';
-    console.log(' msg.render: msgBody: ', msgBody);
 
     if (msgBody.deleted) {
       return null;
