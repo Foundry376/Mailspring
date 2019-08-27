@@ -46,17 +46,21 @@ input:focus {
 
 .thread-list,
 .draft-list {
+  font-family: 'SF UI Text', 'Nylas-Pro', 'Helvetica', sans-serif;
   .list-container,
   .scroll-region {
     width: 100%;
     height: 100%;
     -webkit-font-smoothing: subpixel-antialiased;
-    .scroll-region-content{
-      height: calc(~"100% - 40px");
+    .scrollbar-track {
+      height: calc(~'100% - 40px');
+    }
+    .scroll-region-content {
+      height: calc(~'100% - 40px');
     }
     &.has-empty-bar {
-      .scroll-region-content{
-        height: calc(~"100% - 75px");
+      .scroll-region-content {
+        height: calc(~'100% - 75px');
       }
     }
   }
@@ -368,7 +372,7 @@ input:focus {
       .icon-mixin('../static/icons/feed-forward.svg', @gray-light);
     }
     &.thread-icon-star {
-      .icon-mixin('../static/icons/flag.svg',@orange, 24px);
+      .icon-mixin('../static/icons/flag.svg', @orange, 24px);
     }
   }
   .star-button {
@@ -393,8 +397,7 @@ input:focus {
 .thread-list-empty-folder-bar {
   color: fade(@black, 60%);
   background-color: fade(@blue, 10%);
-  padding: @padding-base-vertical @padding-base-vertical @padding-base-vertical
-    21px;
+  padding: @padding-base-vertical @padding-base-vertical @padding-base-vertical 21px;
   align-items: center;
   display: flex;
   font-size: 0.9em;
@@ -440,9 +443,9 @@ input:focus {
     }
     img.content-mask {
       margin-top: -3px;
-       background-color: @gray;
-       position: relative;
-       z-index: 2;
+      background-color: @gray;
+      position: relative;
+      z-index: 2;
     }
     &:hover {
       &:after {
@@ -508,9 +511,9 @@ body.platform-win32 {
 
   .inner {
     position: relative;
-    width: 300px;
+    width: 250px;
     height: 100%;
-    left: -300px;
+    left: -250px;
     .thread-injected-quick-actions {
       margin-right: 16px;
     }
@@ -518,30 +521,15 @@ body.platform-win32 {
 }
 
 .thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@white, 0%) 0%,
-    @white 50%,
-    @white 100%
-  );
+  background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
 
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@white, 0%) 0%,
-    @white 50%,
-    @white 100%
-  );
+  background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
 
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@white, 0%) 0%,
-    @white 50%,
-    @white 100%
-  );
+  background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
   // .action {
   //   -webkit-filter: brightness(300%);
   // }
@@ -619,7 +607,7 @@ body.platform-win32 {
       height: 18px;
       width: 18px;
       border-radius: 50%;
-      background: rgba(0,0,0,0.15);
+      background: rgba(0, 0, 0, 0.15);
       display: none;
       position: absolute;
     }
@@ -766,8 +754,8 @@ body.platform-win32 {
       // .skeleton {
       //   height: 100%;
       //   background-repeat: no-repeat;
-      //   background-image: linear-gradient(red 16px, transparent 0), 
-      //   linear-gradient(white 20px, transparent 0), 
+      //   background-image: linear-gradient(red 16px, transparent 0),
+      //   linear-gradient(white 20px, transparent 0),
       //   linear-gradient(gray 36px, transparent 0);
       // }
     }
@@ -799,12 +787,7 @@ body.platform-win32 {
     }
   }
   .list-item.selected:hover .list-column-HoverActions .inner {
-    background-image: -webkit-linear-gradient(
-      left,
-      fade(@white, 0%) 0%,
-      @white 50%,
-      @white 100%
-    );
+    background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
     // .action {
     //   -webkit-filter: brightness(300%);
     // }

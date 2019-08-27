@@ -169,6 +169,30 @@ export default class MailboxPerspective {
     this._displayName = null;
   }
 
+  get providers() {
+    if (this.accountIds.length > 0) {
+      return this.accountIds.map(aid => {
+        const account = AccountStore.accountForId(aid);
+        if (account) {
+          return { accountId: account.id, provider: account.provider };
+        } else {
+          return {};
+        }
+      });
+    } else {
+      return [];
+    }
+  }
+
+  providerByAccountId(accountId) {
+    if (!accountId) {
+      return null;
+    }
+    return this.providers.find(provider => {
+      return provider.accountId === accountId;
+    });
+  }
+
   get displayName() {
     return this._displayName;
   }
@@ -625,7 +649,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     if (currentCat && myCat.id === currentCat.id) {
       return [];
     }
-
+    const previousFolder = TaskFactory.findPreviousFolder(current, accountId);
     if (myCat.role === 'all' && currentCat && currentCat instanceof Label) {
       // dragging from a label into All Mail? Make this an "archive" by removing the
       // label. Otherwise (Since labels are subsets of All Mail) it'd have no effect.
@@ -635,6 +659,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           source: 'Dragged into list',
           labelsToAdd: [],
           labelsToRemove: [currentCat],
+          previousFolder,
         }),
       ];
     }
@@ -645,6 +670,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           threads,
           source: 'Dragged into list',
           folder: myCat,
+          previousFolder,
         }),
       ];
     }
@@ -661,11 +687,13 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           source: 'Dragged into list',
           labelsToAdd: [myCat],
           labelsToRemove: [],
+          previousFolder,
         }),
         new ChangeFolderTask({
           threads,
           source: 'Dragged into list',
           folder: CategoryStore.getCategoryByRole(accountId, 'all'),
+          currentPerspective: current,
         }),
       ];
     }
@@ -676,6 +704,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
         source: 'Dragged into list',
         labelsToAdd: [myCat],
         labelsToRemove: currentCat ? [currentCat] : [],
+        previousFolder,
       }),
     ];
   }
@@ -695,6 +724,8 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   // - if finished category === "trash" move to trash folder, keep labels intact
   //
   tasksForRemovingItems(threads, source = 'Removed from list') {
+    FocusedPerspectiveStore =
+      FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
     ChangeLabelsTask = ChangeLabelsTask || require('./flux/tasks/change-labels-task').default;
     ChangeFolderTask = ChangeFolderTask || require('./flux/tasks/change-folder-task').default;
 
@@ -706,13 +737,15 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     }
 
     if (role === 'archive') {
-      return TaskFactory.tasksForMovingToTrash({ threads, source });
+      return TaskFactory.tasksForMovingToTrash({ threads, source, currentPerspective: this });
     }
 
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const acct = AccountStore.accountForId(accountId);
       const preferred = acct.preferredRemovalDestination();
       const cat = this.categories().find(c => c.accountId === accountId);
+      const currentPerspective = FocusedPerspectiveStore.current();
+      const previousFolder = TaskFactory.findPreviousFolder(currentPerspective, accountId);
       if (cat instanceof Label && preferred.role !== 'trash') {
         const inboxCat = CategoryStore.getInboxCategory(accountId);
         return new ChangeLabelsTask({
@@ -720,12 +753,14 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           labelsToAdd: [],
           labelsToRemove: [cat, inboxCat],
           source: source,
+          previousFolder,
         });
       }
       return new ChangeFolderTask({
         threads: accountThreads,
         folder: preferred,
         source: source,
+        previousFolder,
       });
     });
   }

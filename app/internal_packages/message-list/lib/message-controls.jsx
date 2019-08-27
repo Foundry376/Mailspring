@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
-import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, TaskFactory } from 'mailspring-exports';
+import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, TaskFactory, FocusedPerspectiveStore } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 import MessageTimestamp from './message-timestamp';
 
@@ -151,7 +151,7 @@ export default class MessageControls extends React.Component {
     Actions.popoutThread(this.props.thread);
     // This returns the single-pane view to the inbox, and does nothing for
     // double-pane view because we're at the root sheet.
-    Actions.popSheet();
+    Actions.popSheet({reason: 'Message-Controls:_onPopoutThread'});
   };
 
   _dropdownMenu(items) {
@@ -215,7 +215,7 @@ export default class MessageControls extends React.Component {
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       messages: [this.props.message],
-      source: 'Toolbar Button: Message List: Remove',
+      source: 'Toolbar Button: Message List: Remove'
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
       tasks.forEach(task => {
@@ -237,7 +237,7 @@ export default class MessageControls extends React.Component {
       this.props.selection.clear();
     }
     if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
-      Actions.popSheet();
+      Actions.popSheet({reason: 'MessageControls:_onRemove'});
     }
     return;
   };
@@ -263,7 +263,7 @@ export default class MessageControls extends React.Component {
       event.stopPropagation();
     }
     if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
-      Actions.popSheet();
+      Actions.popSheet({reason: 'MessageControls:_onExpunge'});
     }
     return;
   };
@@ -285,7 +285,7 @@ export default class MessageControls extends React.Component {
     // dynamically. Waiting to see if this will be used often.
     const menu = new SystemMenu();
     menu.append(new SystemMenuItem({ label: 'Log Data', click: this._onLogData }));
-    menu.append(new SystemMenuItem({ label: 'Show Original', click: this._onShowOriginal }));
+    // menu.append(new SystemMenuItem({ label: 'Show Original', click: this._onShowOriginal }));
     menu.append(
       new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard }),
     );

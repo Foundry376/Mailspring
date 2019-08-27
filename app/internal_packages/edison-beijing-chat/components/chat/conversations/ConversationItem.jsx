@@ -59,6 +59,7 @@ export default class ConversationItem extends PureComponent {
   render() {
     const { selected, conversation, referenceTime, onClick, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
+    const unreadMessage = !conversation.isHiddenNotification && conversation.unreadMessages ? conversation.unreadMessages : null;
     return (
       <div
         onClick={onClick}
@@ -79,14 +80,14 @@ export default class ConversationItem extends PureComponent {
           </div>
           <div className="content">
             <div className="headerRow">
+              {conversation.at  && unreadMessage? (<span className='at-me'>[@me]</span>) : null}
               <span className="headerText">{this.state.appName || conversation.name}</span>
               {/* <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span> */}
               <span className="unread-count">
-                {!conversation.isHiddenNotification && conversation.unreadMessages ? conversation.unreadMessages : null}
+                {unreadMessage}
               </span>
             </div>
             <div className="subHeader">
-              {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}
               {
                 conversation.isGroup && conversation.lastMessageSenderName && conversation.lastMessageText ?
                   `${conversation.lastMessageSenderName}:` : null

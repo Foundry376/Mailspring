@@ -361,7 +361,15 @@ class DraftStore extends MailspringStore {
         TaskQueue.waitForPerformLocal(t).then(() => {
           Actions.sendDraft(draft.headerMessageId);
         }).catch(e =>{
-          AppEnv.reportError(new Error(e));
+          AppEnv.grabLogs()
+            .then(filename => {
+              if (typeof filename === 'string' && filename.length > 0) {
+                AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: task, files: [filename] });
+              }
+            })
+            .catch(e => {
+              AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
+            });
         });
       });
   };
@@ -456,7 +464,15 @@ class DraftStore extends MailspringStore {
         return { headerMessageId: draft.headerMessageId, draft };
       })
       .catch(t => {
-        AppEnv.reportError(new Error(t));
+        AppEnv.grabLogs()
+          .then(filename => {
+            if (typeof filename === 'string' && filename.length > 0) {
+              AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: task, files: [filename] });
+            }
+          })
+          .catch(e => {
+            AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
+          });
         return { headerMessageId: draft.headerMessageId, draft };
       });
   }
@@ -584,7 +600,7 @@ class DraftStore extends MailspringStore {
     const tasks = [];
     if (!Array.isArray(messages) && messages instanceof Message) {
       messages = [messages];
-      AppEnv.reportError(new Error('destroy draft still using single draft'));
+      AppEnv.reportWarning(new Error('destroy draft still using single draft'));
     } else if (!Array.isArray(messages)) {
       return;
     }
@@ -717,9 +733,23 @@ class DraftStore extends MailspringStore {
     if (changeSendStatus) {
       delete this._draftsSending[headerMessageId];
     } else {
-      AppEnv.reportError(
-        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout / 1000} seconds`),
-      );
+      AppEnv.grabLogs()
+        .then(filename => {
+          if (typeof filename === 'string' && filename.length > 0) {
+            AppEnv.reportError(
+              new Error(
+                `Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout /
+                  1000} seconds`
+              ),
+              { files: [filename] }
+            );
+          }
+        })
+        .catch(e => {
+          AppEnv.reportError(
+            new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout / 1000} seconds`),
+          );
+        });
     }
     if (trigger) {
       this.trigger({ headerMessageId });
@@ -797,7 +827,7 @@ class DraftStore extends MailspringStore {
 
     // remove inline attachments that are no longer in the body
     const files = draft.files.filter(f => {
-      return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
+      return !(f.contentId && f.isInline && !draft.body.includes(`cid:${f.contentId}`));
     });
     if (files.length !== draft.files.length) {
       session.changes.add({ files });

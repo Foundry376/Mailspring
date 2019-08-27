@@ -137,7 +137,7 @@ class AttachmentStore extends MailspringStore {
     extName = extMapping[extName && extName.toLowerCase()];
     const color = colorMapping[extName || 'other'];
     return {
-      iconName: extName ? `attachment-${extName}.svg` : 'drafts.svg',
+      iconName: extName ? `attachment-${extName}.svg` : 'attachment-other.svg',
       color
     };
   }

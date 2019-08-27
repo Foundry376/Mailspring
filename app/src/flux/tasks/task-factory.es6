@@ -28,15 +28,16 @@ const TaskFactory = {
 
     const tasks = [];
     Object.values(byAccount).forEach(({ accountThreads, accountId }) => {
-      const threadsByFolder = this._splitByFolder(accountThreads);
-      for (const item of threadsByFolder) {
-        const taskOrTasks = callback(item, accountId);
-        if (taskOrTasks && taskOrTasks instanceof Array) {
-          tasks.push(...taskOrTasks);
-        } else if (taskOrTasks) {
-          tasks.push(taskOrTasks);
-        }
+      const taskOrTasks = callback(accountThreads, accountId);
+      if (taskOrTasks && taskOrTasks instanceof Array) {
+        tasks.push(...taskOrTasks);
+      } else if (taskOrTasks) {
+        tasks.push(taskOrTasks);
       }
+      // const threadsByFolder = this._splitByFolder(accountThreads);
+      // for (const item of threadsByFolder) {
+      //
+      // }
     });
     return tasks;
   },
@@ -66,9 +67,11 @@ const TaskFactory = {
     return tasks;
   },
 
-  tasksForMarkingAsSpam({ threads, source }) {
+  tasksForMarkingAsSpam({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       return new ChangeFolderTask({
+        previousFolder,
         folder: CategoryStore.getSpamCategory(accountId),
         threads: accountThreads,
         source,
@@ -76,17 +79,20 @@ const TaskFactory = {
     });
   },
 
-  tasksForMarkingNotSpam({ threads, source }) {
+  tasksForMarkingNotSpam({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       if (inbox instanceof Label) {
         return new ChangeFolderTask({
+          previousFolder,
           folder: CategoryStore.getAllMailCategory(accountId),
           threads: accountThreads,
           source,
         });
       }
       return new ChangeFolderTask({
+        previousFolder,
         folder: inbox,
         threads: accountThreads,
         source,
@@ -94,11 +100,13 @@ const TaskFactory = {
     });
   },
 
-  tasksForArchiving({ threads, source }) {
+  tasksForArchiving({ threads, source, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       if (inbox instanceof Label) {
         return new ChangeLabelsTask({
+          previousFolder,
           labelsToRemove: [inbox],
           labelsToAdd: [],
           threads: accountThreads,
@@ -106,6 +114,7 @@ const TaskFactory = {
         });
       }
       return new ChangeFolderTask({
+        previousFolder,
         folder: CategoryStore.getArchiveCategory(accountId),
         threads: accountThreads,
         source,
@@ -113,16 +122,26 @@ const TaskFactory = {
     });
   },
 
-  tasksForMovingToTrash({ threads = [], messages = [], source }) {
+  tasksForMovingToTrash({ threads = [], messages = [], source, currentPerspective }) {
     const tasks = [];
     if (threads.length > 0 && (threads[0] instanceof Thread)) {
       tasks.push(
         ...this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-          return new ChangeFolderTask({
-            folder: CategoryStore.getTrashCategory(accountId),
-            threads: accountThreads,
-            source,
-          });
+          const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
+          if (previousFolder) {
+            return new ChangeFolderTask({
+              previousFolder,
+              folder: CategoryStore.getTrashCategory(accountId),
+              threads: accountThreads,
+              source,
+            });
+          } else {
+            return new ChangeFolderTask({
+              folder: CategoryStore.getTrashCategory(accountId),
+              threads: accountThreads,
+              source,
+            });
+          }
         }),
       );
     }
@@ -175,10 +194,8 @@ const TaskFactory = {
     const threadsByFolder = this._splitByAccount(threads);
     const tasks = [];
     for (const accId in threadsByFolder) {
-      for (const item of threadsByFolder[accId]) {
-        const t = new ChangeUnreadTask({ threads: item, unread, source, canBeUndone });
-        tasks.push(t);
-      }
+      const t = new ChangeUnreadTask({ threads: threadsByFolder[accId], unread, source, canBeUndone });
+      tasks.push(t);
     }
     return tasks;
   },
@@ -188,17 +205,17 @@ const TaskFactory = {
     const threadsByFolder = this._splitByAccount(threads);
     const tasks = [];
     for (const accId in threadsByFolder) {
-      for (const item of threadsByFolder[accId]) {
-        const t = new ChangeStarredTask({ threads: item, starred, source });
-        tasks.push(t);
-      }
+      const t = new ChangeStarredTask({ threads: threadsByFolder[accId], starred, source });
+      tasks.push(t);
     }
     return tasks;
   },
 
-  tasksForChangeFolder({ threads, source, folder }) {
+  tasksForChangeFolder({ threads, source, folder, currentPerspective }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
       return new ChangeFolderTask({
+        previousFolder,
         folder,
         threads: accountThreads,
         source,
@@ -212,14 +229,29 @@ const TaskFactory = {
     }
     return new UndoTask({ referenceTaskId: task.id, accountId: task.accountId });
   },
+  findPreviousFolder(currentPerspective, accountId) {
+    if (currentPerspective) {
+      let previousFolder = currentPerspective.categories().find(
+        cat => cat.accountId === accountId,
+      );
+      const provider = currentPerspective.providerByAccountId(accountId);
+      if (provider.provider === 'gmail') {
+        if (previousFolder && !['spam', 'trash', 'all'].includes(previousFolder.role)) {
+          previousFolder = CategoryStore.getAllMailCategory(accountId);
+        }
+      }
+      return previousFolder;
+    }
+    return null;
+  },
 
   _splitByAccount(threads) {
     const accountIds = _.uniq(threads.map(({ accountId }) => accountId));
     const result = {};
     for (const accId of accountIds) {
       const threadsByAccount = threads.filter(item => item.accountId === accId);
-      const arr = this._splitByFolder(threadsByAccount);
-      result[accId] = arr;
+      // const arr = this._splitByFolder(threadsByAccount);
+      result[accId] = threadsByAccount;
     }
     return result;
   },
@@ -229,7 +261,7 @@ const TaskFactory = {
       if (folders && folders.length > 0) {
         return folders[0].id;
       } else {
-        console.warn(`ThreadId: ${id} have no folder attribute`);
+        AppEnv.reportWarning(new Error(`ThreadId: ${id} have no folder attribute`));
         return null;
       }
     }));

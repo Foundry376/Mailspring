@@ -34,13 +34,13 @@ class ConditionalQuotedTextControl extends React.Component {
       return null;
     }
     return (
-      <a className="quoted-text-control" onClick={this.props.onClick}>
+      <a className="quoted-text-control" title="Show trimmed content" onClick={this.props.onClick}>
         <span className="dots">
           <RetinaImg
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask}/>
+            mode={RetinaImg.Mode.ContentIsMask} />
         </span>
       </a>
     );

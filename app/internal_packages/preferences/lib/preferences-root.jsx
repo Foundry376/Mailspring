@@ -78,7 +78,7 @@ class PreferencesRoot extends React.Component {
     }
   }
   onBack = () => {
-    Actions.popSheet();
+    Actions.popSheet({reason: 'PreferencesRoot:onBack'});
   };
 
   render() {

@@ -13,12 +13,16 @@ const SELECTABLE_ROLES = ['inbox', 'sent', 'drafts', 'spam', 'archive', 'trash']
 export default class PreferencesCategoryMapper extends React.Component {
   constructor() {
     super();
-    this.state = this._getStateFromStores();
+    const states = this._getStateFromStores();
+    states.old_assignments = states.assignments;
+    this.state = states;
   }
 
   componentDidMount() {
     this._unlisten = CategoryStore.listen(() => {
-      this.setState(this._getStateFromStores());
+      const states = this._getStateFromStores();
+      states.old_assignments = states.assignments;
+      this.setState(states);
     });
   }
 
@@ -58,6 +62,7 @@ export default class PreferencesCategoryMapper extends React.Component {
     if (account.provider === 'gmail' && role === 'archive') {
       return false;
     }
+    const old = this.state.old_assignments && this.state.old_assignments[account.id] ? this.state.old_assignments[account.id][role] : false;
     return (
       <div className={"role-section " + role} key={`${account.id}-${role}`}>
         <div className="col-left">{`${role[0].toUpperCase()}${role.substr(1)}`}:</div>
@@ -67,6 +72,7 @@ export default class PreferencesCategoryMapper extends React.Component {
             current={this.state.assignments && this.state.assignments[account.id] ? this.state.assignments[account.id][role] : null}
             onSelect={category => this._onCategorySelection(account, role, category)}
             accountUsesLabels={account.usesLabels()}
+            disabled={!!old}
           />
         </div>
       </div>

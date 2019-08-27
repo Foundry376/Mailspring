@@ -320,7 +320,7 @@ class ThreadSearchBar extends Component {
             if (WorkspaceStore.layoutMode() === 'list') {
               AppEnv.commands.dispatch('multiselect-list:deselect-all');
             }
-            Actions.popSheet();
+            Actions.popSheet({ reason: 'ThreadSearch:KeyCommandsRegion' });
             this._fieldElFocus();
           },
         }}

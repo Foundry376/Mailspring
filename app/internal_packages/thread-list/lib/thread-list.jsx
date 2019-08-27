@@ -80,7 +80,7 @@ class ThreadList extends React.Component {
     return <SyncingListState />;
   }
 
-  _calcScrollPosition = _.throttle((scrollTop) => {
+  _calcScrollPosition = _.throttle(scrollTop => {
     const toolbar = document.querySelector('.thread-list .thread-list-toolbar');
     if (toolbar) {
       if (scrollTop > 0) {
@@ -91,7 +91,7 @@ class ThreadList extends React.Component {
         toolbar.className = toolbar.className.replace(' has-shadow', '');
       }
     }
-  }, 100)
+  }, 100);
 
   _onScroll = e => {
     if (e.target) {
@@ -374,7 +374,7 @@ class ThreadList extends React.Component {
       return {
         threadIds: [thread.id],
         accountIds: [thread.accountId],
-        threads: [thread]
+        threads: [thread],
       };
     }
   }
@@ -413,8 +413,10 @@ class ThreadList extends React.Component {
 
   _onResize = event => {
     const current = this.state.style;
+    const layoutMode = WorkspaceStore.layoutMode();
     // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
-    const desired = ReactDOM.findDOMNode(this).offsetWidth < 700 ? 'narrow' : 'wide';
+    const desired =
+      ReactDOM.findDOMNode(this).offsetWidth < 700 && layoutMode === 'split' ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }

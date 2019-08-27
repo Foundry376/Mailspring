@@ -8,6 +8,8 @@ import {
   E2eeStore,
   BlockStore,
 } from 'chat-exports';
+import { alert } from '../utils/electron';
+import { getName } from '../utils/name';
 import { registerLoginEmailAccountForChat } from '../utils/register-login-chat';
 
 /**
@@ -116,20 +118,31 @@ const startXmpp = xmpp => {
   });
 
   xmpp.on('message:error', async data => {
+    let msgInDb = await MessageStore.getMessageById(data.id, data.from && data.from.bare);
+    if (!msgInDb) {
+      return;
+    }
+    const msg = msgInDb.get({ plain: true });
+    let body = msg.body;
+    body = JSON.parse(body);
     if (data.error && data.error.code == 403 && data.id) {
-      let msgInDb = await MessageStore.getMessageById(data.id, data.from.bare);
-      if (!msgInDb) {
-        return;
-      }
-      const msg = msgInDb.get({ plain: true });
-      let body = msg.body;
-      body = JSON.parse(body);
       body.content = 'You are not in this conversation.';
       body.type = 'error403';
-      body = JSON.stringify(body);
-      msg.body = body;
-      MessageStore.saveMessagesAndRefresh([msg]);
+    } else if (
+      data.error &&
+      data.error.type === 'cancel' &&
+      data.from &&
+      data.from.bare &&
+      data.from.bare.match(/\d+@im/)
+    ) {
+      const name = await getName(data.from.bare);
+      const who = name || data.from.bare;
+      body.failMessage = `this message failed to be sent, because ${who} has signed out from edison chat system`;
+      body.type = 'error-signout';
     }
+    body = JSON.stringify(body);
+    msg.body = body;
+    MessageStore.saveMessagesAndRefresh([msg]);
   });
   xmpp.on('message:success', async data => {
     let msgInDb = await MessageStore.getMessageById(data.$received.id, data.from.bare);

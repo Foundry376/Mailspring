@@ -100,7 +100,10 @@ class PreferencesAccountDetails extends Component {
     this._setState({ autoaddress });
   };
   _onAccountLabelUpdated = event => {
-    this._setState({ label: event.target.value });
+    this._setState({ label: event.target.value, name: event.target.value });
+  };
+  _onAccountLabelUpdated = event => {
+    this._setState({ name: event.target.value });
   };
 
   _onAccountAliasCreated = newAlias => {
@@ -297,7 +300,7 @@ class PreferencesAccountDetails extends Component {
     if (defalutMailsyncSettings && !mailsyncSettings) {
       mailsyncSettings = defalutMailsyncSettings;
     } else if (!mailsyncSettings || !mailsyncSettings.fetchEmailInterval) {
-      AppEnv.reportError(new Error('fetchEmailInterval do not have value'));
+      AppEnv.reportWarning(new Error('fetchEmailInterval do not have value'));
       mailsyncSettings = {
         fetchEmailRange: 365,
         fetchEmailInterval: 1,
@@ -329,6 +332,13 @@ class PreferencesAccountDetails extends Component {
         <input
           type="text"
           value={account.label}
+          onBlur={this._saveChanges}
+          onChange={this._onAccountLabelUpdated}
+        />
+        <h3>Account Name</h3>
+        <input
+          type="text"
+          value={account.name || account.label}
           onBlur={this._saveChanges}
           onChange={this._onAccountLabelUpdated}
         />

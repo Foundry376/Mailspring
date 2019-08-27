@@ -138,6 +138,7 @@ export default class ThreadListContextMenu {
         const tasks = TaskFactory.tasksForArchiving({
           source: 'Context Menu: Thread List',
           threads: this.threads,
+          currentPerspective: FocusedPerspectiveStore.current()
         });
         Actions.queueTasks(tasks);
       },
@@ -184,6 +185,7 @@ export default class ThreadListContextMenu {
         const tasks = TaskFactory.tasksForMovingToTrash({
           source: 'Context Menu: Thread List, Trash',
           threads: this.threads,
+          currentPerspective: FocusedPerspectiveStore.current(),
         });
         if (Array.isArray(tasks) && tasks.length > 0) {
           tasks.forEach(task => {
@@ -226,15 +228,13 @@ export default class ThreadListContextMenu {
   starItem() {
     const starred = this.threads.every(t => t.starred === false);
 
-    let dir = '';
-    let star = 'Star';
+    let dir = 'Flag';
     if (!starred) {
-      dir = 'Remove ';
-      star = this.threadIds.length > 1 ? 'Stars' : 'Star';
+      dir = 'Unflag';
     }
 
     return {
-      label: `${dir}${star}`,
+      label: `${dir}`,
       click: () => {
         Actions.queueTasks(
           TaskFactory.taskForInvertingStarred({

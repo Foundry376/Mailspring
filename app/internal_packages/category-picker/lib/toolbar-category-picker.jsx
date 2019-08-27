@@ -48,8 +48,10 @@ class MovePicker extends React.Component {
       });
   };
   _onCreateLabel = (data, isMoveAction) => {
-    Actions.openPopover(<CreateNewLabelPopover threads={this.props.items}
+    Actions.openPopover(<CreateNewLabelPopover
+      threads={this.props.items}
       account={this._account}
+      currentPerspective={this.props.currentPerspective}
       name={data}
       isMoveAction={isMoveAction}
       onCancel={this._onCancelCreate} />, {
@@ -63,6 +65,7 @@ class MovePicker extends React.Component {
     Actions.openPopover(<CreateNewFolderPopover
       threads={this.props.items}
       account={this._account}
+      currentPerspective={this.props.currentPerspective}
       defaultValue={data}
       onCancel={this._onCancelCreate} />, {
         isFixedToWindow: true,

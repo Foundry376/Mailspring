@@ -182,6 +182,8 @@ class Actions {
   ```
   */
   static toggleWorkspaceLocationHidden = ActionScopeWindow;
+  static hideWorkspaceLocation = ActionScopeWindow;
+  static showWorkspaceLocation = ActionScopeWindow;
 
   /*
   Public: Focus the keyboard on an item in a collection. This action moves the

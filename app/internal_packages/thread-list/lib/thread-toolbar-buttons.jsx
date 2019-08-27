@@ -34,15 +34,17 @@ export class ArchiveButton extends React.Component {
 
   static propTypes = {
     items: PropTypes.array.isRequired,
+    currentPerspective: PropTypes.object
   };
 
   _onArchive = event => {
     const tasks = TaskFactory.tasksForArchiving({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
+      currentPerspective: FocusedPerspectiveStore.current()
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ThreadList:archive'});
     if (event) {
       event.stopPropagation();
     }
@@ -77,11 +79,13 @@ export class TrashButton extends React.Component {
 
   static propTypes = {
     items: PropTypes.array.isRequired,
+    currentPerspective: PropTypes.object,
   };
 
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       threads: this.props.items,
+      currentPerspective: FocusedPerspectiveStore.current(),
       source: 'Toolbar Button: Thread List',
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
@@ -101,7 +105,7 @@ export class TrashButton extends React.Component {
       });
     }
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ThreadList:remove'});
     if (event) {
       event.stopPropagation();
     }
@@ -138,7 +142,7 @@ export class TrashButton extends React.Component {
       });
     }
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ThreadList:expunge'});
     if (event) {
       event.stopPropagation();
     }
@@ -195,7 +199,7 @@ class HiddenGenericRemoveButton extends React.Component {
     const current = FocusedPerspectiveStore.current();
     const tasks = current.tasksForRemovingItems(this.props.items, 'Keyboard Shortcut');
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:HiddenGenericRemoveButton:removeFromView'});
   };
 
   render() {
@@ -283,6 +287,7 @@ export class MarkAsSpamButton extends React.Component {
 
   static propTypes = {
     items: PropTypes.array.isRequired,
+    currentPerspective: PropTypes.object,
   };
 
   _onNotSpam = event => {
@@ -290,9 +295,10 @@ export class MarkAsSpamButton extends React.Component {
     const tasks = TaskFactory.tasksForMarkingNotSpam({
       source: 'Toolbar Button: Thread List',
       threads: this.props.items,
+      currentPerspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:NotSpam'});
     if (event) {
       event.stopPropagation();
     }
@@ -306,9 +312,10 @@ export class MarkAsSpamButton extends React.Component {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
+      currentPerspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:MarkAsSpamButton:Spam'});
     if (event) {
       event.stopPropagation();
     }
@@ -432,7 +439,7 @@ export class ToggleUnreadButton extends React.Component {
         source: 'Toolbar Button: Thread List',
       }),
     );
-    Actions.popSheet();
+    Actions.popSheet({reason: 'ToolbarButton:ToggleUnread:changeUnread'});
     if(this.props.selection){
       this.props.selection.clear() ;
     }
@@ -584,7 +591,10 @@ export class MoreButton extends React.Component {
   _more = () => {
     const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
     const menu = new Menu();
-    if (WorkspaceStore.hiddenLocations().length === 0) {
+    const messageListMoveButtons = WorkspaceStore.hiddenLocations().find(
+      loc => loc.id === 'MessageListMoveButtons'
+    );
+    if (messageListMoveButtons) {
       const targetUnread = this.props.items.every(t => t.unread === false);
       const unreadTitle = targetUnread ? 'Mark as unread' : 'Mark as read';
       menu.append(new MenuItem({

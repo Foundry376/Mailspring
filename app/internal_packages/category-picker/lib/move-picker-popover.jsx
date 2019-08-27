@@ -131,7 +131,7 @@ export default class MovePickerPopover extends Component {
     } else {
       this._onMoveToCategory(item);
     }
-    Actions.popSheet();
+    Actions.popSheet({reason: 'Move-picker-popover:_onSelectCategory'});
     Actions.closePopover();
   };
   onCreate = (data) => {
@@ -159,13 +159,20 @@ export default class MovePickerPopover extends Component {
 
   _onMoveToCategory = ({ category }) => {
     const { threads } = this.props;
-
+    let previousFolder = null;
+    const currentPerspective = FocusedPerspectiveStore.current();
+    if(currentPerspective && Array.isArray(threads) && threads.length > 0){
+      previousFolder = currentPerspective.categories().find(
+        cat => cat.accountId === threads[0].accountId
+      );
+    }
     if (category instanceof Folder) {
       Actions.queueTasks(
         TaskFactory.tasksForChangeFolder({
           source: 'Category Picker: New Category',
           threads: threads,
           folder: category,
+          currentPerspective,
         }),
       );
     } else {
@@ -178,12 +185,14 @@ export default class MovePickerPopover extends Component {
           labelsToRemove: all,
           labelsToAdd: [],
           threads: threads,
+          previousFolder,
         }),
         new ChangeLabelsTask({
           source: 'Category Picker: New Category',
           labelsToRemove: [],
           labelsToAdd: [category],
           threads: threads,
+          previousFolder,
         }),
       ]);
     }

@@ -3,16 +3,11 @@ import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
-const a11yEmoji = require('a11y-emoji');
 import { colorForString } from '../../../utils/colors';
-const { DateUtils } = require('mailspring-exports');
 import { RetinaImg } from 'mailspring-component-kit';
-
-const { AttachmentStore, AccountStore } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
 
-const { dialog, Menu, MenuItem } = remote;
 import { isJsonStr } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
 import MessageEditBar from './MessageEditBar';
@@ -22,6 +17,12 @@ import { ChatActions } from 'chat-exports';
 import { FILE_TYPE, isImage } from '../../../utils/filetypes';
 import { MessageModel, MessageSend, MessageStore } from 'chat-exports';
 import { name } from '../../../utils/name';
+import MessageText from '../../common/MessageText';
+
+const a11yEmoji = require('a11y-emoji');
+const { DateUtils } = require('mailspring-exports');
+const { AttachmentStore, AccountStore } = require('mailspring-exports');
+const { dialog, Menu, MenuItem } = remote;
 
 export default class Msg extends PureComponent {
   static propTypes = {
@@ -435,12 +436,7 @@ export default class Msg extends PureComponent {
       <div className="message-file">
         <div className="file-info" onClick={() => this.clickFileCoordinate(msgBody.path)}>
           <div className="file-icon">
-            <RetinaImg
-              name={iconName}
-              style={style}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask}
-            />
+            <RetinaImg name={iconName} style={style} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </div>
           <div>
             <div className="file-name">{fileName}</div>
@@ -482,7 +478,10 @@ export default class Msg extends PureComponent {
       return (
         <div className="text-content">
           <div className="text" ref={el => (this.contentEl = el)}>
-            {textContent}
+            <MessageText text={textContent} />
+            {msgBody.failMessage ? (
+              <div className="fail-message-text"> {msgBody.failMessage} </div>
+            ) : null}
           </div>
         </div>
       );

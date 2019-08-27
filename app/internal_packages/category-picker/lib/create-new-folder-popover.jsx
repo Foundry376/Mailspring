@@ -7,6 +7,7 @@ import {
   TaskFactory,
   TaskQueue,
   Folder,
+  FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
 export default class CreateNewFolderPopover extends Component {
@@ -17,6 +18,7 @@ export default class CreateNewFolderPopover extends Component {
     left: PropTypes.number,
     top: PropTypes.number,
     defaultValue: PropTypes.string,
+    currentPerspective: PropTypes.object,
   };
   static defaultProps = {
     left: 490,
@@ -130,6 +132,7 @@ export default class CreateNewFolderPopover extends Component {
           source: 'Category Picker: New Category',
           threads: threads,
           folder: category,
+          currentPerspective: FocusedPerspectiveStore.current()
         }),
       );
       this.onCancel();
