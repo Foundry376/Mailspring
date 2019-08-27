@@ -1,6 +1,6 @@
 @import '../node_modules/rc-select/assets/index.css';
 @import 'ui-variables';
-@btn-disabled-color:#E1E4E6;
+@btn-disabled-color: #e1e4e6;
 
 @marginLeft: 18px;
 .chat-view-container {
@@ -9,7 +9,7 @@
     border-radius: 10px;
     margin: 10px 0 0;
     padding-left: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   }
   .new-conversation-header {
     margin: 0 auto;
@@ -166,11 +166,13 @@ li.rc-select-dropdown-menu-item-selected {
     overflow: hidden;
     display: flex;
     align-items: center;
-    &>div,
-    &>span{
+    & > div,
+    & > span {
       float: left;
     }
     .contact-name {
+      color: @text-color;
+      font-weighta: bold;
       font-size: 15px;
       margin: 0 20px;
     }
