@@ -150,12 +150,22 @@ const startXmpp = xmpp => {
       return;
     }
     const msg = msgInDb.get({ plain: true });
+    let body = msg.body;
+    body = JSON.parse(body);
+    console.log(' message:success: body.type: ', body.type);
+    if (body.type && body.type.match && body.type.match(/^error/)) {
+      delete body.type;
+    }
+    if (body.failMessage) {
+      delete body.failMessage;
+    }
+    body = JSON.stringify(body);
+    msg.body = body;
     msg.status = 'MESSAGE_STATUS_DELIVERED';
     MessageStore.saveMessagesAndRefresh([msg]);
   });
 
-  xmpp.on('message:failed', async message => {
-  });
+  xmpp.on('message:failed', async message => {});
 
   xmpp.on('auth:failed', async data => {
     const account = OnlineUserStore.getSelfAccountById(data.curJid);
