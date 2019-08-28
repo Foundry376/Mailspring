@@ -1,3 +1,4 @@
+import QuickActions from './quick-actions';
 const React = require('react');
 const {
   ListTabular,
@@ -174,39 +175,11 @@ const c5 = new ListTabular.Column({
   resolver: thread => {
     return (
       <div className="inner">
-        <InjectedComponentSet
-          key="injected-component-set"
-          inline={true}
-          containersRequired={false}
-          children={[
-            <ThreadUnreadQuickAction key="thread-unread-quick-action" thread={thread} />,
-            <ThreadStarQuickAction key="thread-star-quick-action" thread={thread} />,
-            <ThreadTrashQuickAction key="thread-trash-quick-action" thread={thread} />,
-            <ThreadArchiveQuickAction key="thread-archive-quick-action" thread={thread} />,
-          ]}
-          matching={{ role: 'ThreadListQuickAction' }}
-          className="thread-injected-quick-actions"
-          exposedProps={{ thread: thread }}
-        />
+        <QuickActions thread={thread} />
       </div>
     );
   },
 });
-
-function getActionButton(key, thread) {
-  const action = AppEnv.config.get(key);
-  switch (action) {
-    case 'read':
-      return <ThreadUnreadQuickAction key="thread-unread-quick-action" thread={thread} />;
-    case 'flag':
-      return <ThreadStarQuickAction key="thread-star-quick-action" thread={thread} />;
-    case 'trash':
-      return <ThreadTrashQuickAction key="thread-trash-quick-action" thread={thread} />;
-    case 'archive':
-      return <ThreadArchiveQuickAction key="thread-archive-quick-action" thread={thread} />;
-  }
-  return null;
-}
 
 const cNarrow = new ListTabular.Column({
   name: 'Item',
@@ -242,35 +215,6 @@ const cNarrow = new ListTabular.Column({
       pencil = <span className="draft-icon">Draft</span>;
     }
 
-    const hasQuickActions = AppEnv.config.get("core.quickActions.enabled");
-    let quickActions = null;
-    if (hasQuickActions) {
-      const actions = [];
-      for (let i = 1; i <= 4; i++) {
-        const action = getActionButton(`core.quickActions.quickAction${i}`, thread);
-        if (action) {
-          actions.push(action);
-        }
-      }
-      if (actions.length) {
-        quickActions = (
-          <div className="list-column-HoverActions">
-            <div className="inner quick-actions">
-              <InjectedComponentSet
-                key="injected-component-set"
-                inline={true}
-                containersRequired={false}
-                children={actions}
-                matching={{ role: 'ThreadListQuickAction' }}
-                className="thread-injected-quick-actions"
-                exposedProps={{ thread: thread }}
-              />
-            </div>
-          </div>
-        )
-      }
-    }
-
     // TODO We are limiting the amount on injected icons in narrow mode to 1
     // until we revisit the UI to accommodate more icons
     return (
@@ -292,7 +236,11 @@ const cNarrow = new ListTabular.Column({
               exposedProps={{ thread: thread }}
               matching={{ role: 'ThreadListTimestamp' }}
             />
-            {quickActions}
+            <div className="list-column-HoverActions">
+              <div className="inner quick-actions">
+                <QuickActions thread={thread} />
+              </div>
+            </div>
           </div>
           <div className="subject">
             <span>{subject(thread.subject)}</span>

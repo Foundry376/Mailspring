@@ -306,6 +306,7 @@ export default {
           },
           image: {
             type: 'component',
+            title: 'Show preview image',
           },
           quickAction1: {
             type: 'string',

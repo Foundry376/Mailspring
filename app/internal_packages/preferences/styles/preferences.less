@@ -4,6 +4,23 @@
 // Preferences Specific
 
 .preferences-wrap {
+  .button-dropdown {
+    margin-left: 8px;
+    &.bordered {
+      border: 1px solid @dropdown-default-border-color;
+      color: @dropdown-default-text-color;
+      background: @dropdown-default-bg-color;
+      border-radius: 5px;
+    }
+    .only-item {
+      margin-left: 8px;
+      -webkit-appearance: menulist;
+      appearance: menulist;
+      span + img {
+        visibility: hidden;
+      }
+    }
+  }
   .item-back {
     position:absolute;
     top: 30px;
@@ -144,6 +161,11 @@
     margin: 0 auto;
 
     .section-QuickActions {
+      .button-dropdown {
+        .only-item {
+          min-width: 160px;
+        }
+      }
       .quick-action-preview {
         position: relative;
         width: 500px;
