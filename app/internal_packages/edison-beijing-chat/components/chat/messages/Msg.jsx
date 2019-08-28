@@ -479,10 +479,10 @@ export default class Msg extends PureComponent {
         <div className="text-content">
           <div className="text" ref={el => (this.contentEl = el)}>
             <MessageText text={textContent} />
-            {msgBody.failMessage ? (
-              <div className="fail-message-text"> {msgBody.failMessage} </div>
-            ) : null}
           </div>
+          {msgBody.failMessage ? (
+            <div className="fail-message-text"> {msgBody.failMessage} </div>
+          ) : null}
         </div>
       );
     }
