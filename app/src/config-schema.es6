@@ -1,3 +1,18 @@
+import { RetinaImg } from 'mailspring-component-kit';
+import React from 'react';
+function actionOption(iconName, label) {
+  return (
+    <span>
+      <RetinaImg
+        name={iconName}
+        style={{ width: 24, height: 24 }}
+        isIcon
+        mode={RetinaImg.Mode.ContentIsMask}
+      />
+      {label}
+    </span>
+  )
+}
 export default {
   core: {
     type: 'object',
@@ -278,6 +293,71 @@ export default {
             title: 'Default spellcheck language',
             note:
               'If you write a draft in another language, Edison Mail will auto-detect it and use the correct spelling dictionary after a few sentences.',
+          },
+        },
+      },
+      quickActions: {
+        type: 'object',
+        properties: {
+          enabled: {
+            type: 'boolean',
+            default: true,
+            title: 'Show quick actions when hovering over emails in your list',
+          },
+          image: {
+            type: 'component',
+          },
+          quickAction1: {
+            type: 'string',
+            default: 'archive',
+            enum: ['', 'archive', 'trash', 'flag', 'read'],
+            enumLabels: [
+              actionOption('none.svg', 'None'),
+              actionOption('archive.svg', 'Archive'),
+              actionOption('trash.svg', 'Trash'),
+              actionOption('flag.svg', 'Flag'),
+              actionOption('read.svg', 'Mark Read/Unread'),
+            ],
+            title: 'Action 1',
+          },
+          quickAction2: {
+            type: 'string',
+            default: 'flag',
+            enum: ['', 'archive', 'trash', 'flag', 'read'],
+            enumLabels: [
+              actionOption('none.svg', 'None'),
+              actionOption('archive.svg', 'Archive'),
+              actionOption('trash.svg', 'Trash'),
+              actionOption('flag.svg', 'Flag'),
+              actionOption('read.svg', 'Mark Read/Unread'),
+            ],
+            title: 'Action 2',
+          },
+          quickAction3: {
+            type: 'string',
+            default: 'trash',
+            enum: ['', 'archive', 'trash', 'flag', 'read'],
+            enumLabels: [
+              actionOption('none.svg', 'None'),
+              actionOption('archive.svg', 'Archive'),
+              actionOption('trash.svg', 'Trash'),
+              actionOption('flag.svg', 'Flag'),
+              actionOption('read.svg', 'Mark Read/Unread'),
+            ],
+            title: 'Action 3',
+          },
+          quickAction4: {
+            type: 'string',
+            default: 'read',
+            enum: ['', 'archive', 'trash', 'flag', 'read'],
+            enumLabels: [
+              actionOption('none.svg', 'None'),
+              actionOption('archive.svg', 'Archive'),
+              actionOption('trash.svg', 'Trash'),
+              actionOption('flag.svg', 'Flag'),
+              actionOption('read.svg', 'Mark Read/Unread'),
+            ],
+            title: 'Action 4',
           },
         },
       },
