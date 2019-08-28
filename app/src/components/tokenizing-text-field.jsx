@@ -60,8 +60,17 @@ class SizeToFitInput extends React.Component {
   render() {
     return (
       <span>
-        <span className='hidden-span' ref="measure" style={{ visibility: 'hidden', position: 'absolute' }} />
-        <input ref="input" type="text" style={{ width: 1 }} {...this.props} />
+        <span
+          className="hidden-span"
+          ref="measure"
+          style={{ visibility: 'hidden', position: 'absolute' }}
+        />
+        <input
+          ref="input"
+          type="text"
+          style={{ width: 1, margin: '-2px 1px 1px 1px' }}
+          {...this.props}
+        />
       </span>
     );
   }
@@ -731,9 +740,9 @@ export default class TokenizingTextField extends React.Component {
     menu.append(
       new remote.MenuItem({
         click: () => {
-          if(selectedTokens.length === 0){
+          if (selectedTokens.length === 0) {
             this._removeTokens([token]);
-          }else {
+          } else {
             this._removeTokens(this._selectedTokens());
           }
         },
@@ -895,14 +904,7 @@ export default class TokenizingTextField extends React.Component {
   }
 
   _fieldComponents() {
-    const {
-      tokens,
-      tokenKey,
-      tokenIsValid,
-      tokenRenderer,
-      tokenClassNames,
-      onEdit,
-    } = this.props;
+    const { tokens, tokenKey, tokenIsValid, tokenRenderer, tokenClassNames, onEdit } = this.props;
 
     return tokens.map(item => {
       const key = tokenKey(item);
