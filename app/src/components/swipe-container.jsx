@@ -110,7 +110,9 @@ export default class SwipeContainer extends React.Component {
     if (this.isEnabled === null) {
       // Cache this value so we don't have to recalculate on every swipe
       this.isEnabled =
-        (this.props.onSwipeLeft || this.props.onSwipeRight) && this.props.shouldEnableSwipe();
+        (this.props.onSwipeLeft || this.props.onSwipeRight)
+        && this.props.shouldEnableSwipe()
+        && AppEnv.config.get("core.swipeActions.enabled");
     }
     return this.isEnabled;
   };
