@@ -68,7 +68,7 @@ class ConfigSchemaItem extends React.Component {
     if (this.props.configSchema.type === 'object') {
       return (
         <section className={`section-${this.props.keyName}`}>
-          <h6>{_str.humanize(this.props.keyName)}</h6>
+          <h6>{this.props.label || _str.humanize(this.props.keyName)}</h6>
           {Object.entries(this.props.configSchema.properties).map(([key, value]) => (
             <ConfigSchemaItem
               key={key}

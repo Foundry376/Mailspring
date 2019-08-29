@@ -68,21 +68,46 @@ input:focus {
   .swipe-backing {
     background-color: darken(@background-primary, 10%);
     &::after {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       color: fade(white, 90%);
-      padding-top: 45px;
       text-align: center;
       font-weight: 400;
       font-size: @font-size-small;
       position: absolute;
       top: 0;
       transform: translateX(0%);
-      width: 80px;
+      width: 160px;
       bottom: 0;
       opacity: 0.8;
       transition: opacity linear 150ms;
       background-repeat: no-repeat;
       background-position: 50% 35%;
       background-size: 24px 24px;
+    }
+
+    .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 44px) {
+      background-image: url(@svg-url);
+      background-size: @bgSize;
+      background-repeat: no-repeat;
+      background-position: right 10% center;
+    }
+
+    &.swipe-right {
+      &::after {
+        background-position: left 10% center !important;
+        left: 100%;
+        transform: translateX(-100%);
+        opacity: 1;
+      }
+      &.confirmed {
+        background-color: @action-color-orange;
+        &::after {
+          left: 0px !important;
+          transform: translateX(0) !important;
+        }
+      }
     }
 
     &.swipe-unflag, 
@@ -92,9 +117,10 @@ input:focus {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Flag';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
+        .icon-mixin('../static/icons/flag.svg', @white);
       }
       &.confirmed {
+        background-color: @action-color-orange;
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -107,7 +133,7 @@ input:focus {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Unflag';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
+        .icon-mixin('../static/icons/flag.svg', @white);
       }
     }
 
@@ -118,9 +144,10 @@ input:focus {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Read';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
+        .icon-mixin('../static/icons/read.svg', @white);
       }
       &.confirmed {
+        background-color: @action-color-blue;
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -133,7 +160,7 @@ input:focus {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Unread';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
+        .icon-mixin('../static/icons/unread.svg', @white);
       }
     }
 
@@ -143,9 +170,10 @@ input:focus {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Trash';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
+        .icon-mixin('../static/icons/trash.svg', @white);
       }
       &.confirmed {
+        background-color: @action-color-red;
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -160,9 +188,10 @@ input:focus {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Archive';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-archive@2x.png);
+        .icon-mixin('../static/icons/archive.svg', @white);
       }
       &.confirmed {
+        background-color: @action-color-green;
         &::after {
           left: 100%;
           transform: translateX(-100%);

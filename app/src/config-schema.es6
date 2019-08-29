@@ -4,8 +4,9 @@ function actionOption(iconName, label) {
   return (
     <span>
       <RetinaImg
-        name={iconName}
+        name={`${iconName}.svg`}
         style={{ width: 24, height: 24 }}
+        className={`color_${iconName}`}
         isIcon
         mode={RetinaImg.Mode.ContentIsMask}
       />
@@ -13,6 +14,14 @@ function actionOption(iconName, label) {
     </span>
   )
 }
+const actionValues = ['', 'archive', 'trash', 'flag', 'read'];
+const actionLabels = [
+  actionOption('none', 'None'),
+  actionOption('archive', 'Archive'),
+  actionOption('trash', 'Trash'),
+  actionOption('flag', 'Flag'),
+  actionOption('read', 'Mark Read/Unread'),
+]
 export default {
   core: {
     type: 'object',
@@ -311,54 +320,72 @@ export default {
           quickAction1: {
             type: 'string',
             default: 'archive',
-            enum: ['', 'archive', 'trash', 'flag', 'read'],
-            enumLabels: [
-              actionOption('none.svg', 'None'),
-              actionOption('archive.svg', 'Archive'),
-              actionOption('trash.svg', 'Trash'),
-              actionOption('flag.svg', 'Flag'),
-              actionOption('read.svg', 'Mark Read/Unread'),
-            ],
+            enum: actionValues,
+            enumLabels: actionLabels,
             title: 'Action 1',
           },
           quickAction2: {
             type: 'string',
             default: 'flag',
-            enum: ['', 'archive', 'trash', 'flag', 'read'],
-            enumLabels: [
-              actionOption('none.svg', 'None'),
-              actionOption('archive.svg', 'Archive'),
-              actionOption('trash.svg', 'Trash'),
-              actionOption('flag.svg', 'Flag'),
-              actionOption('read.svg', 'Mark Read/Unread'),
-            ],
+            enum: actionValues,
+            enumLabels: actionLabels,
             title: 'Action 2',
           },
           quickAction3: {
             type: 'string',
             default: 'trash',
-            enum: ['', 'archive', 'trash', 'flag', 'read'],
-            enumLabels: [
-              actionOption('none.svg', 'None'),
-              actionOption('archive.svg', 'Archive'),
-              actionOption('trash.svg', 'Trash'),
-              actionOption('flag.svg', 'Flag'),
-              actionOption('read.svg', 'Mark Read/Unread'),
-            ],
+            enum: actionValues,
+            enumLabels: actionLabels,
             title: 'Action 3',
           },
           quickAction4: {
             type: 'string',
             default: 'read',
-            enum: ['', 'archive', 'trash', 'flag', 'read'],
-            enumLabels: [
-              actionOption('none.svg', 'None'),
-              actionOption('archive.svg', 'Archive'),
-              actionOption('trash.svg', 'Trash'),
-              actionOption('flag.svg', 'Flag'),
-              actionOption('read.svg', 'Mark Read/Unread'),
-            ],
+            enum: actionValues,
+            enumLabels: actionLabels,
             title: 'Action 4',
+          },
+        },
+      },
+      swipeActions: {
+        type: 'object',
+        properties: {
+          enabled: {
+            type: 'boolean',
+            default: true,
+            title: 'Enable swipe actions',
+          },
+          image: {
+            type: 'component',
+            title: 'Show preview image',
+          },
+          leftShortAction: {
+            type: 'string',
+            default: 'archive',
+            enum: actionValues,
+            enumLabels: actionLabels,
+            title: 'Left short swipe',
+          },
+          leftLongAction: {
+            type: 'string',
+            default: 'flag',
+            enum: actionValues,
+            enumLabels: actionLabels,
+            title: 'Left long swipe',
+          },
+          rightShortAction: {
+            type: 'string',
+            default: 'trash',
+            enum: actionValues,
+            enumLabels: actionLabels,
+            title: 'Right short swipe',
+          },
+          rightLongAction: {
+            type: 'string',
+            default: 'read',
+            enum: actionValues,
+            enumLabels: actionLabels,
+            title: 'Right long swipe',
           },
         },
       },

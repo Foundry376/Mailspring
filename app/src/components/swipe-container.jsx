@@ -51,10 +51,8 @@ export default class SwipeContainer extends React.Component {
     children: PropTypes.object.isRequired,
     shouldEnableSwipe: PropTypes.func,
     onSwipeLeft: PropTypes.func,
-    onSwipeLeftStyle: PropTypes.func,
     onSwipeLeftClass: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
     onSwipeRight: PropTypes.func,
-    onSwipeRightStyle: PropTypes.func,
     onSwipeRightClass: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
     onSwipeCenter: PropTypes.func,
   };
@@ -341,36 +339,32 @@ export default class SwipeContainer extends React.Component {
     const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
     const backingStyles = { top: 0, bottom: 0, position: 'absolute' };
     let backingClass = 'swipe-backing';
-    let style = {};
 
     if (currentX < 0 && this.trackingInitialTargetX <= 0) {
-      const { onSwipeLeftClass, onSwipeLeftStyle } = this.props;
+      const { onSwipeLeftClass } = this.props;
       const swipeLeftClass = _.isFunction(onSwipeLeftClass)
         ? onSwipeLeftClass(swipeStep)
         : onSwipeLeftClass || '';
-      style = onSwipeLeftStyle(swipeStep);
 
-      backingClass += ` ${swipeLeftClass}`;
+      backingClass += ` swipe-left ${swipeLeftClass}`;
       backingStyles.right = 0;
       backingStyles.width = -currentX + 1;
       if (targetX < 0) {
         backingClass += ' confirmed';
       }
     } else if (currentX > 0 && this.trackingInitialTargetX >= 0) {
-      const { onSwipeRightClass, onSwipeRightStyle } = this.props;
+      const { onSwipeRightClass } = this.props;
       let swipeRightClass = _.isFunction(onSwipeRightClass)
         ? onSwipeRightClass(swipeStep)
         : onSwipeRightClass || '';
-      style = onSwipeRightStyle(swipeStep);
 
-      backingClass += ` ${swipeRightClass}`;
+      backingClass += ` swipe-right ${swipeRightClass}`;
       backingStyles.left = 0;
       backingStyles.width = currentX + 1;
       if (targetX > 0) {
         backingClass += ' confirmed';
       }
     }
-    Object.assign(backingStyles, style);
     return (
       <div
         ref={el => this.container = el}
@@ -381,7 +375,7 @@ export default class SwipeContainer extends React.Component {
         onTouchCancel={this._onTouchEnd}
         {...otherProps}
       >
-        <div style={backingStyles} className={backingClass} />
+        <div style={backingStyles} className={backingClass} ></div>
         <div style={{ transform: `translate3d(${currentX}px, 0, 0)` }}>{this.props.children}</div>
       </div>
     );

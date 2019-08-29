@@ -48,6 +48,13 @@ class PreferencesGeneral extends React.Component {
     )
   }
 
+  _renderActionColor = (idx) => {
+    const iconName = AppEnv.config.get(`core.swipeActions.${idx}`);
+    return (
+      <div className={`action_color color_${iconName}`}></div>
+    )
+  }
+
   _onCopySupportId = event => {
     navigator.clipboard.writeText(this.props.config.core.support.id).then(() => {
       this.setState({ displaySupportPopup: true });
@@ -112,6 +119,7 @@ class PreferencesGeneral extends React.Component {
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.quickActions}
           keyName="QuickActions"
+          label="Quick Actions"
           keyPath="core.quickActions"
           config={this.props.config}
           injectedComponent={
@@ -125,6 +133,27 @@ class PreferencesGeneral extends React.Component {
               {this._renderActionIcon(2)}
               {this._renderActionIcon(3)}
               {this._renderActionIcon(4)}
+            </div>
+          }
+        />
+
+        <ConfigSchemaItem
+          configSchema={this.props.configSchema.properties.swipeActions}
+          keyName="SwipeActions"
+          label="Swipe Actions"
+          keyPath="core.swipeActions"
+          config={this.props.config}
+          injectedComponent={
+            <div className="swipe-action-preview">
+              <RetinaImg
+                style={{ width: 500 }}
+                name={`prefs-swipe-colors.png`}
+                mode={RetinaImg.Mode.ContentPreserve}
+              />
+              {this._renderActionColor('leftShortAction')}
+              {this._renderActionColor('leftLongAction')}
+              {this._renderActionColor('rightShortAction')}
+              {this._renderActionColor('rightLongAction')}
             </div>
           }
         />

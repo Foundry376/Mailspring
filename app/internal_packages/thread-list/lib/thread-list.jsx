@@ -146,27 +146,28 @@ class ThreadList extends React.Component {
   }
 
   _getTasks(swipeKey, step, threads, needTask) {
+    const swipeLeftActions = [];
+    const swipeRightActions = [];
+    let action;
+    action = AppEnv.config.get(`core.swipeActions.leftShortAction`);
+    if (action) {
+      swipeLeftActions.push({ action });
+    }
+    action = AppEnv.config.get(`core.swipeActions.leftLongAction`);
+    if (action) {
+      swipeLeftActions.push({ action });
+    }
+    action = AppEnv.config.get(`core.swipeActions.rightShortAction`);
+    if (action) {
+      swipeRightActions.push({ action });
+    }
+    action = AppEnv.config.get(`core.swipeActions.rightLongAction`);
+    if (action) {
+      swipeRightActions.push({ action });
+    }
     const swipeOptions = {
-      'swipeLeft': [
-        {
-          action: 'read',
-          color: '#5756CE'
-        },
-        {
-          action: 'trash',
-          color: '#E55049'
-        },
-      ],
-      'swipeRight': [
-        {
-          action: 'archive',
-          color: '#EC994D'
-        },
-        {
-          action: 'flag',
-          color: '#61D570'
-        },
-      ]
+      'swipeLeft': swipeLeftActions,
+      'swipeRight': swipeRightActions
     }
     if (!swipeOptions[swipeKey] ||
       !swipeOptions[swipeKey].length) {
@@ -187,7 +188,6 @@ class ThreadList extends React.Component {
     if (!taskOption) {
       taskOption = actions[0];
     }
-    console.log('***threads', threads, step);
     if (needTask && taskOption) {
       let tasks = [];
       switch (taskOption.action) {
@@ -266,17 +266,6 @@ class ThreadList extends React.Component {
       return `swipe-${name}`;
     };
 
-    props.onSwipeRightStyle = (step = 0) => {
-      const taskOption = this._getTasks('swipeRight', step, [item]);
-      if (!taskOption || step === 0) {
-        return {};
-      }
-      let color = taskOption.color;
-      return {
-        backgroundColor: color
-      };
-    };
-
     props.onSwipeRight = (callback, step = 0) => {
       let tasks = [];
       const taskOption = this._getTasks('swipeRight', step, [item], true);
@@ -298,17 +287,6 @@ class ThreadList extends React.Component {
       }
       let name = taskOption.action;
       return `swipe-${name}`;
-    };
-
-    props.onSwipeLeftStyle = (step = 0) => {
-      const taskOption = this._getTasks('swipeLeft', step, [item]);
-      if (!taskOption || step === 0) {
-        return {};
-      }
-      let color = taskOption.color;
-      return {
-        backgroundColor: color
-      };
     };
 
     props.onSwipeLeft = (callback, step = 0) => {
