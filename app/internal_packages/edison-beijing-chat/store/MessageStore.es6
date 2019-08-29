@@ -16,7 +16,8 @@ import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import fs from 'fs';
 import _ from 'underscore';
-import { getPriKey, getDeviceId } from '../utils/e2ee';
+import { getPriKey } from '../utils/e2ee';
+import { getName } from '../utils/name';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
 import { FILE_TYPE, isImage } from '../utils/filetypes';
@@ -111,7 +112,7 @@ class MessageStore extends MailspringStore {
     let jid;
     if (payload.from.bare === payload.curJid) {
       jid = payload.to.bare;
-      name = null;
+      name = getName(jid);
     } else {
       jid = payload.from.bare;
       name = payload.from.local;
@@ -315,8 +316,8 @@ class MessageStore extends MailspringStore {
     const { content } = body;
     const { selectedConversation } = ConversationStore;
     let at = !!(
-      (content.includes(AT_BEGIN_CHAR + '@' + payload.curJid + AT_END_CHAR) ||
-        content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR))
+      content.includes(AT_BEGIN_CHAR + '@' + payload.curJid + AT_END_CHAR) ||
+      content.includes(AT_BEGIN_CHAR + '@all' + AT_END_CHAR)
     );
     console.log(' processGroupMessage: ', selectedConversation, at);
     let name = payload.from.local;
