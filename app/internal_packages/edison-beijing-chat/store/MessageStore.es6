@@ -112,7 +112,7 @@ class MessageStore extends MailspringStore {
     let jid;
     if (payload.from.bare === payload.curJid) {
       jid = payload.to.bare;
-      name = getName(jid);
+      name = await getName(jid);
     } else {
       jid = payload.from.bare;
       name = payload.from.local;
