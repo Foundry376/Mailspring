@@ -39,6 +39,137 @@ const NonPreviewableExtensions = [
   'ics',
 ];
 
+const attachmentCategoryMap = {
+  audio: {
+    extensions: [
+      'audio/aac',
+      'audio/midi',
+      'audio/x-midi',
+      'audio/ogg',
+      'audio/wav',
+      'audio/3gpp',
+      'audio/3gpp2',
+      'application/vnd.google-apps.audio',
+    ]
+  },
+  book: {
+    extensions: [
+      'application/vnd.amazon.ebook',
+      'application/epub+zip'
+    ],
+  },
+  calendar: {
+    extensions: ['text/calendar', 'application/ics'],
+  },
+  code: {
+    extensions: [
+      'application/x-csh',
+      'text/css',
+      'application/ecmascript',
+      'text/html',
+      'text/x-c-code',
+      'application/javascript',
+      'application/json',
+      'application/x-sh',
+      'application/x-shockwave-flash',
+      'application/typescript',
+      'application/xhtml+xml',
+      'application/xml',
+      'application/vnd.google-apps.script',
+    ],
+  },
+  doc: {
+    extensions: [
+      'application/x-abiword',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.oasis.opendocument.text',
+      'application/rtf',
+      'text/plain',
+      'application/vnd.google-apps.document',
+    ],
+  },
+  font: {
+    extensions: [
+      'application/vnd.ms-fontobject',
+      'font/otf',
+      'font/ttf',
+      'font/woff',
+      'font/woff2'
+    ],
+  },
+  image: {
+    extensions: [
+      'image/bmp',
+      'image/gif',
+      'image/x-icon',
+      'image/jpeg',
+      'image/png',
+      'image/svg+xml',
+      'image/tiff',
+      'image/webp',
+      'application/vnd.google-apps.drawing',
+      'application/vnd.google-apps.photo',
+    ],
+  },
+  pdf: {
+    extensions: ['application/pdf'],
+  },
+  ppt: {
+    extensions: [
+      'application/vnd.oasis.opendocument.presentation',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.google-apps.presentation',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ],
+  },
+  xls: {
+    extensions: [
+      'text/csv',
+      'application/vnd.oasis.opendocument.spreadsheet',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.google-apps.spreadsheet',
+    ],
+  },
+  video: {
+    extensions: [
+      'video/x-msvideo',
+      'video/mpeg',
+      'video/ogg',
+      'video/webm',
+      'video/3gpp',
+      'video/3gpp2',
+      'application/vnd.google-apps.video',
+      'video/mp4',
+    ],
+  },
+  zip: {
+    extensions: [
+      'application/x-bzip',
+      'application/x-bzip2',
+      'application/x-rar-compressed',
+      'application/x-tar',
+      'application/zip',
+      'application/x-7z-compressed',
+    ],
+  },
+  // Other: {
+  //   extensions: [
+  //     'application/octet-stream',
+  //     'application/java-archive',
+  //     'application/ogg',
+  //     'application/vnd.apple.installer+xml',
+  //     'application/vnd.visio',
+  //     'application/vnd.mozilla.xul+xml',
+  //     'application/vnd.google-apps.file',
+  //     'application/vnd.google-apps.folder',
+  //   ],
+  // },
+};
+
+
 const extMapping = {
   pdf: 'pdf',
   xls: 'xls',
@@ -76,16 +207,16 @@ const extMapping = {
 
 const colorMapping = {
   xls: '#2AC941', // Spreadsheet
-  video: '#FF475F', // Video
   ppt: '#FFA115', // Slides
+  video: '#FF475F', // Video
   pdf: '#FC3259', // PDF
   calendar: '#FC3259', // Calendar
   code: '#59DCE4', // Code
   doc: '#1393FC', // Doc
-  Book: '#FFA115',
-  Image: '#b6bdc2',
-  Audio: '#648096',
-  Font: '#b6bdc2',
+  book: '#FFA115',
+  image: '#b6bdc2',
+  audio: '#648096',
+  font: '#b6bdc2',
   other: '#b6bdc2', // Other
 }
 
@@ -138,6 +269,22 @@ class AttachmentStore extends MailspringStore {
     const color = colorMapping[extName || 'other'];
     return {
       iconName: extName ? `attachment-${extName}.svg` : 'attachment-other.svg',
+      color
+    };
+  }
+
+  getExtIconNameByContentType(contentType) {
+    contentType = contentType.toLowerCase();
+    let extName = 'other';
+    for (let key in attachmentCategoryMap) {
+      if (attachmentCategoryMap[key].extensions.includes(contentType)) {
+        extName = key;
+        break;
+      }
+    }
+    const color = colorMapping[extName];
+    return {
+      iconName: `attachment-${extName}.svg`,
       color
     };
   }

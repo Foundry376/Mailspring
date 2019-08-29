@@ -237,6 +237,7 @@ export class AttachmentItem extends Component {
       disabled,
       isImage,
       filePath,
+      contentType,
       ...extraProps
     } = this.props;
     const classes = classnames({
@@ -245,7 +246,7 @@ export class AttachmentItem extends Component {
       'has-preview': filePreviewPath,
       [className]: className,
     });
-    let { iconName, color } = AttachmentStore.getExtIconName(displayName);
+    let { iconName, color } = AttachmentStore.getExtIconNameByContentType(contentType);
     if (isImage) {
       if (fs.existsSync(filePath)) {
         filePreviewPath = filePath;
