@@ -25,6 +25,7 @@ const {
   AccountStore,
   CategoryStore,
   WorkspaceStore,
+  TaskFactory
 } = require('mailspring-exports');
 
 const ThreadListColumns = require('./thread-list-columns');
@@ -144,7 +145,103 @@ class ThreadList extends React.Component {
     );
   }
 
-  _threadPropsProvider(item) {
+  _getTasks(swipeKey, step, threads, needTask) {
+    const swipeLeftActions = [];
+    const swipeRightActions = [];
+    let action;
+    action = AppEnv.config.get(`core.swipeActions.leftShortAction`);
+    if (action) {
+      swipeLeftActions.push({ action });
+    }
+    action = AppEnv.config.get(`core.swipeActions.leftLongAction`);
+    if (action) {
+      swipeLeftActions.push({ action });
+    }
+    action = AppEnv.config.get(`core.swipeActions.rightShortAction`);
+    if (action) {
+      swipeRightActions.push({ action });
+    }
+    action = AppEnv.config.get(`core.swipeActions.rightLongAction`);
+    if (action) {
+      swipeRightActions.push({ action });
+    }
+    const swipeOptions = {
+      'swipeLeft': swipeLeftActions,
+      'swipeRight': swipeRightActions
+    }
+    if (!swipeOptions[swipeKey] ||
+      !swipeOptions[swipeKey].length) {
+      return;
+    }
+    const actions = [];
+    const perspective = FocusedPerspectiveStore.current();
+    for (const swipeAction of swipeOptions[swipeKey]) {
+      if (swipeAction.action === 'archive' && !perspective.canArchiveThreads(threads)) {
+        continue;
+      }
+      if (swipeAction.action === 'trash' && !perspective.canTrashThreads(threads)) {
+        continue;
+      }
+      actions.push(swipeAction);
+    }
+    let taskOption = actions[step - 1];
+    if (!taskOption) {
+      taskOption = actions[0];
+    }
+    if (needTask && taskOption) {
+      let tasks = [];
+      switch (taskOption.action) {
+        case 'flag':
+          tasks = TaskFactory.taskForInvertingStarred({
+            threads,
+            source: 'Swipe',
+          });
+          break;
+        case 'archive':
+          tasks = TaskFactory.tasksForArchiving({
+            threads,
+            source: 'Swipe',
+          });
+          break;
+        case 'trash':
+          tasks = TaskFactory.tasksForMovingToTrash({
+            threads,
+            source: 'Swipe',
+          });
+          break;
+        case 'read':
+          tasks.push(TaskFactory.taskForInvertingUnread({
+            threads,
+            source: 'Swipe',
+          }));
+          break;
+        default:
+          task = null;
+      }
+      taskOption.tasks = tasks;
+    }
+
+    if (taskOption) {
+      switch (taskOption.action) {
+        case 'flag':
+          const starred = threads.every(t => t.starred === false);
+          if (!starred) {
+            taskOption.action = 'unflag';
+          }
+          break;
+        case 'read':
+          const unread = threads.every(t => t.unread === false);
+          if (unread) {
+            taskOption.action = 'unread';
+          }
+          break;
+        default:
+      }
+    }
+    return taskOption;
+  }
+
+  _threadPropsProvider = (item) => {
     let classes = classnames({
       unread: item.unread,
     });
@@ -160,31 +257,21 @@ class ThreadList extends React.Component {
       return tasks.length > 0;
     };
 
-    props.onSwipeRightClass = () => {
-      const perspective = FocusedPerspectiveStore.current();
-      const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
-      if (tasks.length === 0) {
-        return null;
+    props.onSwipeRightClass = (step = 0) => {
+      const taskOption = this._getTasks('swipeRight', step, [item]);
+      if (!taskOption) {
+        return;
       }
-
-      // TODO this logic is brittle
-      const task = tasks[0];
-      const name =
-        task instanceof ChangeStarredTask
-          ? 'unstar'
-          : task instanceof ChangeFolderTask
-          ? task.folder.name
-          : task instanceof ChangeLabelsTask
-          ? 'archive'
-          : 'remove';
-
+      let name = taskOption.action;
       return `swipe-${name}`;
     };
 
-    // edison feature disabled
-    props.onSwipeRight = function(callback) {
-      const perspective = FocusedPerspectiveStore.current();
-      const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
+    props.onSwipeRight = (callback, step = 0) => {
+      let tasks = [];
+      const taskOption = this._getTasks('swipeRight', step, [item], true);
+      if (taskOption) {
+        tasks = taskOption.tasks;
+      }
       if (tasks.length === 0) {
         callback(false);
       }
@@ -193,29 +280,53 @@ class ThreadList extends React.Component {
       callback(true);
     };
 
-    const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
-    if (disabledPackages.includes('thread-snooze')) {
-      return props;
-    }
+    props.onSwipeLeftClass = (step = 0) => {
+      const taskOption = this._getTasks('swipeLeft', step, [item]);
+      if (!taskOption) {
+        return;
+      }
+      let name = taskOption.action;
+      return `swipe-${name}`;
+    };
 
-    if (FocusedPerspectiveStore.current().isInbox()) {
-      // props.onSwipeLeftClass = 'swipe-snooze';
-      // props.onSwipeCenter = () => {
-      //   Actions.closePopover();
-      // };
-      // edison feature disabled
-      // props.onSwipeLeft = callback => {
-      //   // TODO this should be grabbed from elsewhere
-      //   const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
-      //   const element = document.querySelector(`[data-item-id="${item.id}"]`);
-      //   const originRect = element.getBoundingClientRect();
-      //   Actions.openPopover(<SnoozePopover threads={[item]} swipeCallback={callback} />, {
-      //     originRect,
-      //     direction: 'right',
-      //     fallbackDirection: 'down',
-      //   });
-      // };
-    }
+    props.onSwipeLeft = (callback, step = 0) => {
+      let tasks = [];
+      const taskOption = this._getTasks('swipeLeft', step, [item], true);
+      if (taskOption) {
+        tasks = taskOption.tasks;
+      }
+      if (tasks.length === 0) {
+        callback(false);
+      }
+      Actions.closePopover();
+      Actions.queueTasks(tasks);
+      callback(true);
+    };
+
+    // const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
+    // if (disabledPackages.includes('thread-snooze')) {
+    //   return props;
+    // }
+
+    // if (FocusedPerspectiveStore.current().isInbox()) {
+    //   props.onSwipeLeftClass = 'swipe-snooze';
+    //   props.onSwipeCenter = () => {
+    //     Actions.closePopover();
+    //   };
+    //   // edison feature disabled
+    //   props.onSwipeLeft = callback => {
+    //     // TODO this should be grabbed from elsewhere
+    //     const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
+
+    //     const element = document.querySelector(`[data-item-id="${item.id}"]`);
+    //     const originRect = element.getBoundingClientRect();
+    //     Actions.openPopover(<SnoozePopover threads={[item]} swipeCallback={callback} />, {
+    //       originRect,
+    //       direction: 'right',
+    //       fallbackDirection: 'down',
+    //     });
+    //   };
+    // }
 
     return props;
   }
@@ -276,7 +387,7 @@ class ThreadList extends React.Component {
     event.dataTransfer.setData(`nylas-accounts=${data.accountIds.join(',')}`, '1');
   };
 
-  _onDragEnd = event => {};
+  _onDragEnd = event => { };
 
   _onResize = event => {
     const current = this.state.style;

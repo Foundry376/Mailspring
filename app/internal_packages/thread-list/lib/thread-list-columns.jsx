@@ -1,3 +1,4 @@
+import QuickActions from './quick-actions';
 const React = require('react');
 const {
   ListTabular,
@@ -174,20 +175,7 @@ const c5 = new ListTabular.Column({
   resolver: thread => {
     return (
       <div className="inner">
-        <InjectedComponentSet
-          key="injected-component-set"
-          inline={true}
-          containersRequired={false}
-          children={[
-            <ThreadUnreadQuickAction key="thread-unread-quick-action" thread={thread} />,
-            <ThreadStarQuickAction key="thread-star-quick-action" thread={thread} />,
-            <ThreadTrashQuickAction key="thread-trash-quick-action" thread={thread} />,
-            <ThreadArchiveQuickAction key="thread-archive-quick-action" thread={thread} />,
-          ]}
-          matching={{ role: 'ThreadListQuickAction' }}
-          className="thread-injected-quick-actions"
-          exposedProps={{ thread: thread }}
-        />
+        <QuickActions thread={thread} />
       </div>
     );
   },
@@ -250,20 +238,7 @@ const cNarrow = new ListTabular.Column({
             />
             <div className="list-column-HoverActions">
               <div className="inner quick-actions">
-                <InjectedComponentSet
-                  key="injected-component-set"
-                  inline={true}
-                  containersRequired={false}
-                  children={[
-                    <ThreadUnreadQuickAction key="thread-unread-quick-action" thread={thread} />,
-                    <ThreadStarQuickAction key="thread-star-quick-action" thread={thread} />,
-                    <ThreadTrashQuickAction key="thread-trash-quick-action" thread={thread} />,
-                    <ThreadArchiveQuickAction key="thread-archive-quick-action" thread={thread} />,
-                  ]}
-                  matching={{ role: 'ThreadListQuickAction' }}
-                  className="thread-injected-quick-actions"
-                  exposedProps={{ thread: thread }}
-                />
+                <QuickActions thread={thread} />
               </div>
             </div>
           </div>

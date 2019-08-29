@@ -308,6 +308,10 @@ class Config {
     }
     for (let type of types) {
       try {
+        // ignore unexist type
+        if (!this.schemaEnforcers[type]) {
+          continue;
+        }
         const enforcerFunctions = this.schemaEnforcers[type].concat(this.schemaEnforcers['*']);
         for (let enforcer of enforcerFunctions) {
           // At some point in one's life, one must call upon an enforcer.
@@ -1011,7 +1015,7 @@ Config.addSchemaEnforcers({
 var isPlainObject = value =>
   _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value);
 
-var splitKeyPath = function(keyPath) {
+var splitKeyPath = function (keyPath) {
   if (keyPath == null) {
     return [];
   }
@@ -1028,7 +1032,7 @@ var splitKeyPath = function(keyPath) {
   return keyPathArray;
 };
 
-var withoutEmptyObjects = function(object) {
+var withoutEmptyObjects = function (object) {
   let resultObject = undefined;
   if (isPlainObject(object)) {
     for (let key in object) {

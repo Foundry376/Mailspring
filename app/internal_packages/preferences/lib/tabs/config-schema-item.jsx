@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import _str from 'underscore.string';
+import { Menu, ButtonDropdown, RetinaImg } from 'mailspring-component-kit';
 
 /*
 This component renders input controls for a subtree of the Mailspring config-schema
@@ -34,10 +35,25 @@ class ConfigSchemaItem extends React.Component {
     event.target.blur();
   };
 
-  _onChangeValue = event => {
-    this.props.config.set(this.props.keyPath, event.target.value);
-    event.target.blur();
+  _onChangeValue = ([value, label]) => {
+    this.props.config.set(this.props.keyPath, value);
+    this._dropdownComponent.toggleDropdown();
   };
+
+  _renderMenuItem = ([value, label]) => {
+    return <span key={value}>{label}</span>;
+  }
+
+  getSelectedMenuItem(items) {
+    const selected = this.props.config.get(this.props.keyPath);
+    for (const item of items) {
+      const [value, label] = item;
+      if (value === selected) {
+        return this._renderMenuItem(item);
+      }
+    }
+    return null;
+  }
 
   render() {
     if (!this._appliesToPlatform()) return false;
@@ -51,8 +67,8 @@ class ConfigSchemaItem extends React.Component {
 
     if (this.props.configSchema.type === 'object') {
       return (
-        <section>
-          <h6>{_str.humanize(this.props.keyName)}</h6>
+        <section className={`section-${this.props.keyName}`}>
+          <h6>{this.props.label || _str.humanize(this.props.keyName)}</h6>
           {Object.entries(this.props.configSchema.properties).map(([key, value]) => (
             <ConfigSchemaItem
               key={key}
@@ -60,24 +76,33 @@ class ConfigSchemaItem extends React.Component {
               keyPath={`${this.props.keyPath}.${key}`}
               configSchema={value}
               config={this.props.config}
+              injectedComponent={this.props.injectedComponent}
             />
           ))}
           {note}
         </section>
       );
     } else if (this.props.configSchema.enum) {
+      const items = _.zip(this.props.configSchema.enum, this.props.configSchema.enumLabels);
+      const menu = (
+        <Menu
+          items={items}
+          itemKey={item => item}
+          itemContent={this._renderMenuItem}
+          onSelect={this._onChangeValue}
+        />
+      );
+
       return (
         <div className="item">
           <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}:</label>
-          <select onChange={this._onChangeValue} value={this.props.config.get(this.props.keyPath)}>
-            {_.zip(this.props.configSchema.enum, this.props.configSchema.enumLabels).map(
-              ([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              )
-            )}
-          </select>
+          <ButtonDropdown
+            ref={cm => {
+              this._dropdownComponent = cm;
+            }}
+            primaryItem={this.getSelectedMenuItem(items)}
+            menu={menu}
+          />
           {note}
         </div>
       );
@@ -94,6 +119,8 @@ class ConfigSchemaItem extends React.Component {
           {note}
         </div>
       );
+    } else if (this.props.configSchema.type === 'component' && this.props.injectedComponent) {
+      return this.props.injectedComponent;
     }
     return <span />;
   }
