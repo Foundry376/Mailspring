@@ -1,11 +1,12 @@
 import React from 'react';
-import { Utils, Message, DateUtils } from 'mailspring-exports';
-import { InjectedComponentSet, ListTabular, InjectedComponent } from 'mailspring-component-kit';
+import { Utils, Message, DateUtils, AccountStore } from 'mailspring-exports';
+import { InjectedComponentSet, ListTabular, InjectedComponent, LottieImg } from 'mailspring-component-kit';
 import {
   OutboxResendQuickAction,
   OutboxTrashQuickAction,
   OutboxEditQuickAction,
 } from './outbox-list-quick-actions';
+import RetinaImg from '../../../src/components/retina-img';
 function snippet(html) {
   if (!(html && typeof html === 'string')) {
     return '';
@@ -23,6 +24,27 @@ function subject(subj) {
   }
   return Utils.extractTextFromHtml(subj);
 }
+
+const SenderColumn = new ListTabular.Column({
+  name: 'Sender',
+  resolver: draft => {
+    const account = AccountStore.accountForId(draft.accountId);
+    let accountLogo = 'account-logo-imap.png';
+    if(account){
+      accountLogo = `account-logo-${account.provider}.png`;
+    }
+    const styles = {
+      backgroundPosition: 'center',
+      backgroundSize: 'cover',
+    };
+    return <div className="avatar-icon" style={styles}>
+      <RetinaImg mode={RetinaImg.Mode.ContentPreserve}
+                 name={accountLogo}
+                 style={{width: 40, height: 40}}
+                 />
+    </div>
+  }
+});
 
 const ParticipantsColumn = new ListTabular.Column({
   name: 'Participants',
@@ -154,7 +176,7 @@ const cNarrow = new ListTabular.Column({
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div className="icons-column">
-          {/*<EmailAvatar draft={draft} />*/}
+          {SenderColumn.resolver(draft)}
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">
@@ -196,6 +218,6 @@ const cNarrow = new ListTabular.Column({
 });
 
 module.exports = {
-  Wide: [ParticipantsColumn, ContentsColumn, StatusColumn, HoverActions],
+  Wide: [SenderColumn, ParticipantsColumn, ContentsColumn, StatusColumn, HoverActions],
   Narrow: [cNarrow],
 };

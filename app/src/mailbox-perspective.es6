@@ -393,6 +393,7 @@ class OutboxMailboxPerspective extends MailboxPerspective {
     this._categories = [];
   }
 
+
   categories() {
     return this._categories;
   }

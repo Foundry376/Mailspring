@@ -94,11 +94,14 @@ class SidebarSection {
   static standardSectionForAccounts(accounts) {
     const items = [];
     const outboxCount = OutboxStore.count();
+    const outboxOpts = {
+      counterStyle : outboxCount.failed > 0 ? 'critical' : 'alt'
+    }
     let outbox;
     if (accounts.length === 1) {
-      outbox = SidebarItem.forOutbox([accounts[0].id]);
+      outbox = SidebarItem.forOutbox([accounts[0].id], outboxOpts);
     } else {
-      outbox = SidebarItem.forOutbox(accounts.map(act => act.id));
+      outbox = SidebarItem.forOutbox(accounts.map(act => act.id), outboxOpts);
     }
     if (!accounts || accounts.length === 0) {
       return this.empty('All Accounts');

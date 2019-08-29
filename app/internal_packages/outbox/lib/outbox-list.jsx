@@ -1,6 +1,7 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import _ from 'underscore';
-import { Actions, OutboxStore, Message } from 'mailspring-exports';
+import { Actions, OutboxStore, Message, CanvasUtils, WorkspaceStore } from 'mailspring-exports';
 import {
   FluxContainer,
   FocusContainer,
@@ -13,7 +14,12 @@ const buttonTimer = 500;
 
 class OutboxList extends React.Component {
   static displayName = 'OutboxList';
-  static containerRequired = false;
+  static containerRequired = true;
+
+  static containerStyles = {
+    minWidth: 375,
+    maxWidth: 3000,
+  };
 
   constructor(props) {
     super(props);
@@ -26,13 +32,15 @@ class OutboxList extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
+    window.addEventListener('resize', this._onResize, true);
+    this._onResize();
   }
 
   componentWillUnmount() {
     this._mounted = false;
+    window.removeEventListener('resize', this._onResize, true);
     clearTimeout(this._deletingTimer);
   }
-
 
   _calcScrollPosition = _.throttle((scrollTop) => {
     const toolbar = document.querySelector('.outbox-list .outbox-list-toolbar');
@@ -53,6 +61,16 @@ class OutboxList extends React.Component {
     }
   };
 
+  _onResize = event => {
+    const current = this.state.style;
+    const layoutMode = WorkspaceStore.layoutMode();
+    // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
+    const desired =
+      ReactDOM.findDOMNode(this).offsetWidth < 700 && layoutMode === 'split' ? 'narrow' : 'wide';
+    if (current !== desired) {
+      this.setState({ style: desired });
+    }
+  };
   render() {
     const itemHeight = 105;
     return (
