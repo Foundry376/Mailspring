@@ -439,6 +439,7 @@ class Actions {
   */
   static sendDraft = ActionScopeWindow;
   static sendingDraft = ActionScopeGlobal;
+  static failingDraft = ActionScopeMainWindow;
   /*
   Public: Fired when a draft is successfully sent
   *Scope: Global*

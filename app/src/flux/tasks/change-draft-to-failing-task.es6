@@ -3,17 +3,32 @@ import Attributes from '../attributes';
 
 export default class ChangeDraftToFailingTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
-    messageIds: Attributes.Collection({
-      modelKey: 'messageIds',
+    headerMessageIds: Attributes.Collection({
+      modelKey: 'headerMessageIds',
     })
   });
 
-  constructor({ messageIds = [], ...rest } = {}) {
+  constructor({ messages = [], ...rest } = {}) {
     super(rest);
-    this.messageIds = Array.isArray(messageIds) ? messageIds : [messageIds];
-    if (this.canBeUndone ) {
+    this.headerMessageIds = [];
+    if (messages) {
+      this.messages = messages;
+      if (Array.isArray(messages)) {
+        this.headerMessageIds = this.headerMessageIds.concat(
+          ...messages.map(msg => {
+            return msg.headerMessageId;
+          })
+        );
+      } else {
+        this.headerMessageIds.push(messages.headerMessageId);
+      }
+    }
+    if (this.canBeUndone) {
       this.canBeUndone = false;
     }
+  }
+  get accountId(){
+    return this.messages[0].accountId;
   }
 
   label() {

@@ -4,7 +4,6 @@ import DraftEditingSession from './draft-editing-session';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
-// import FocusedContentStore from './focused-content-store';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import SyncbackMetadataTask from '../tasks/syncback-metadata-task';
 import SendDraftTask from '../tasks/send-draft-task';
@@ -19,9 +18,11 @@ import * as ExtensionRegistry from '../../registries/extension-registry';
 import MessageStore from './message-store';
 import UndoRedoStore from './undo-redo-store';
 import TaskFactory from '../tasks/task-factory';
+import ChangeDraftToFailingTask from '../tasks/change-draft-to-failing-task';
 
 const { DefaultSendActionKey } = SendActionsStore;
 const SendDraftTimeout = 300000;
+const DraftFailingBaseTimeout = 120000;
 
 /*
 Public: DraftStore responds to Actions that interact with Drafts and exposes
@@ -41,7 +42,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.composeReply, this._onComposeReply);
     this.listenTo(Actions.composeForward, this._onComposeForward);
     this.listenTo(Actions.cancelOutboxDrafts, this._onCancelDraft);
-    this.listenTo(Actions.resendDrafts,this._onResendDraft);
+    this.listenTo(Actions.resendDrafts, this._onResendDraft);
     this.listenTo(Actions.editOutboxDraft, this._onEditOutboxDraft);
     this.listenTo(Actions.composeFailedPopoutDraft, this._onPopoutDraft);
     this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
@@ -61,6 +62,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.destroyDraft, this._onDestroyDrafts);
 
     if (AppEnv.isMainWindow()) {
+      this.listenTo(Actions.failingDraft, this._startDraftFailingTimeout);
       ipcRenderer.on('new-message', () => {
         Actions.composeNewBlankDraft();
       });
@@ -89,6 +91,7 @@ class DraftStore extends MailspringStore {
     this._draftSessions = {};
     this._draftsSending = {};
     this._draftSendindTimeouts = {};
+    this._draftFailingTimeouts = {};
     this._draftsDeleting = {};
 
     this._draftsPopedOut = {};
@@ -847,6 +850,24 @@ class DraftStore extends MailspringStore {
       this._cancelSendingDraftTimeout({ headerMessageId, trigger: true, changeSendStatus: false , source});
     }, SendDraftTimeout);
   };
+  _cancelDraftFailingTimeout = ({ headerMessageId, source = ''}) =>{
+    if(this._draftFailingTimeouts[headerMessageId]){
+      clearTimeout(this._draftFailingTimeouts[headerMessageId]);
+    }
+  };
+  _startDraftFailingTimeout = ({ messages = [], source = ''}) => {
+    messages.forEach(msg => {
+      if (msg && msg.draft) {
+        if (this._draftFailingTimeouts[msg.headerMessageId]) {
+          clearTimeout(this._draftFailingTimeouts[msg.headerMessageId]);
+        }
+        this._draftFailingTimeouts[msg.headerMessageId] = setTimeout(() => {
+          const task = new ChangeDraftToFailingTask({ messages: [msg] });
+          Actions.queueTask(task);
+        }, DraftFailingBaseTimeout);
+      }
+    });
+  };
   _onSendingDraft = async ({ headerMessageId, windowLevel }) => {
     // console.log(`headerMessageId: ${headerMessageId}, from window: ${windowLevel}, at window ${this._getCurrentWindowLevel()}`);
     if (this._getCurrentWindowLevel() !== windowLevel) {
@@ -938,6 +959,7 @@ class DraftStore extends MailspringStore {
     this._doneWithSession(session);
     // Notify all windows that draft is being send out.
     Actions.sendingDraft({ headerMessageId, windowLevel: this._getCurrentWindowLevel() });
+    Actions.failingDraft({ messages: [draft] });
     // To be able to undo the send, we need to pretend that we added the send-later
     // metadata as it's own task so that the undo action is clear. We don't actually
     // want a separate SyncbackMetadataTask to be queued because a stray SyncbackDraftTask
@@ -971,15 +993,18 @@ class DraftStore extends MailspringStore {
 
   _onSendDraftSuccess = ({ headerMessageId }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
+    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
   };
   _onSendDraftCancelled = ({ headerMessageId }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
+    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
   };
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
+    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
 
     // if (AppEnv.isMainWindow()) {
