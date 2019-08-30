@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
+import ConfigSchemaItem from './config-schema-item';
 
 class AppearanceScaleSlider extends React.Component {
   static displayName = 'AppearanceScaleSlider';
@@ -198,6 +199,12 @@ class PreferencesAppearance extends React.Component {
   render() {
     return (
       <div className="container-appearance">
+        <ConfigSchemaItem
+          configSchema={this.props.configSchema.properties.appearance.properties.profile}
+          keyName="AppearanceProfileEnabled"
+          keyPath="core.appearance.profile"
+          config={this.props.config}
+        />
         <section>
           <h6 htmlFor="change-layout">Layout</h6>
           <AppearanceModeSwitch id="change-layout" config={this.props.config} />
