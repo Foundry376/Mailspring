@@ -588,7 +588,8 @@ class DraftStore extends MailspringStore {
     }
 
     const session = await this.sessionForClientId(headerMessageId);
-    if (!session.draft()) {
+    const draft = session.draft();
+    if (!draft) {
       AppEnv.reportError(
         new Error(
           `DraftStore::onPopoutDraft - session.draft() is false, draft not ready. headerMessageId: ${headerMessageId}`,
@@ -596,32 +597,56 @@ class DraftStore extends MailspringStore {
       );
       return;
     }
-    const messageId = session.draft().id;
-    if (this._draftsDeleting[messageId] || this.isSendingDraft(headerMessageId)) {
-      AppEnv.reportError(
-        new Error(
-          `Attempting to open draft-id:${messageId} when it is being deleted or sending. this._draftDeleting: ${this._draftsDeleting}, this._draftSending: ${this._draftsSending}`
-        )
-      );
-      return;
+    if(draft.savedOnRemote){
+      this._doneWithSession(session);
+      this.sessionForServerDraft(draft).then(newSession=>{
+        const newDraft = newSession.draft();
+        this._draftsPopedOut[newDraft.headerMessageId] = true;
+        newSession.setPopout(true);
+        const draftJSON = newSession.draft().toJSON();
+        // Since we pass a windowKey, if the popout composer draft already
+        // exists we'll simply show that one instead of spawning a whole new
+        // window.
+        // console.log(`popout draft ${headerMessageId}`);
+        AppEnv.newWindow({
+          hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
+          headerMessageId: newDraft.headerMessageId,
+          windowType: 'composer',
+          windowKey: `composer-${newDraft.headerMessageId}`,
+          windowProps: Object.assign(options, { headerMessageId: newDraft.headerMessageId, draftJSON }),
+          title: ' ',
+          threadId: newSession.draft().threadId,
+        });
+      });
+    }else{
+      const messageId = session.draft().id;
+      if (this._draftsDeleting[messageId] || this.isSendingDraft(headerMessageId)) {
+        AppEnv.reportError(
+          new Error(
+            `Attempting to open draft-id:${messageId} when it is being deleted or sending. this._draftDeleting: ${this._draftsDeleting}, this._draftSending: ${this._draftsSending}`
+          )
+        );
+        return;
+      }
+      await session.changes.commit();
+      this._draftsPopedOut[headerMessageId] = true;
+      session.setPopout(true);
+      const draftJSON = session.draft().toJSON();
+      // Since we pass a windowKey, if the popout composer draft already
+      // exists we'll simply show that one instead of spawning a whole new
+      // window.
+      // console.log(`popout draft ${headerMessageId}`);
+      AppEnv.newWindow({
+        hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
+        headerMessageId: headerMessageId,
+        windowType: 'composer',
+        windowKey: `composer-${headerMessageId}`,
+        windowProps: Object.assign(options, { headerMessageId, draftJSON }),
+        title: ' ',
+        threadId: session.draft().threadId,
+      });
     }
-    await session.changes.commit();
-    this._draftsPopedOut[headerMessageId] = true;
-    session.setPopout(true);
-    const draftJSON = session.draft().toJSON();
-    // Since we pass a windowKey, if the popout composer draft already
-    // exists we'll simply show that one instead of spawning a whole new
-    // window.
-    // console.log(`popout draft ${headerMessageId}`);
-    AppEnv.newWindow({
-      hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
-      headerMessageId: headerMessageId,
-      windowType: 'composer',
-      windowKey: `composer-${headerMessageId}`,
-      windowProps: Object.assign(options, { headerMessageId, draftJSON }),
-      title: ' ',
-      threadId: session.draft().threadId,
-    });
+
   };
 
   _onHandleMailtoLink = async (event, urlString) => {
