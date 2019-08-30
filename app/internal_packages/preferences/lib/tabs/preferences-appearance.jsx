@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
 import ConfigSchemaItem from './config-schema-item';
+import ThemeOption from './theme-option';
 
 class AppearanceScaleSlider extends React.Component {
   static displayName = 'AppearanceScaleSlider';
@@ -184,6 +185,7 @@ AppearanceModeOption.propTypes = {
   onClick: PropTypes.func,
 };
 
+
 class PreferencesAppearance extends React.Component {
   static displayName = 'PreferencesAppearance';
 
@@ -192,9 +194,57 @@ class PreferencesAppearance extends React.Component {
     configSchema: PropTypes.object,
   };
 
+  constructor(props) {
+    super(props);
+    this.themes = AppEnv.themes;
+    this.state = this._getState();
+  }
+
+  componentDidMount() {
+    this.disposable = this.themes.onDidChangeActiveThemes(() => {
+      this.setState(this._getState());
+    });
+  }
+
+  componentWillUnmount() {
+    this.disposable.dispose();
+  }
+
+  _getState() {
+    return {
+      themes: this.themes.getAvailableThemes(),
+      activeTheme: this.themes.getActiveTheme().name,
+    };
+  }
+
   onPickTheme = () => {
     AppEnv.commands.dispatch('window:launch-theme-picker');
   };
+
+  _renderThemeOptions() {
+    const internalThemes = [
+      'ui-dark',
+      'ui-light',
+    ];
+    let sortedThemes = [].concat(this.state.themes);
+    sortedThemes.sort((a, b) => {
+      return (internalThemes.indexOf(a.name) - internalThemes.indexOf(b.name)) * -1;
+    });
+    // only show light and dark mode
+    sortedThemes = sortedThemes.filter(item => internalThemes.includes(item.name));
+    return sortedThemes.map(theme => (
+      <ThemeOption
+        key={theme.name}
+        theme={theme}
+        active={this.state.activeTheme === theme.name}
+        onSelect={() => this._setActiveTheme(theme.name)}
+      />
+    ));
+  }
+
+  _setActiveTheme(theme) {
+    this.themes.setActiveTheme(theme);
+  }
 
   render() {
     return (
@@ -211,13 +261,16 @@ class PreferencesAppearance extends React.Component {
         </section>
         <section>
           <h6 htmlFor="change-layout" style={{ marginTop: 10 }}>
-            Theme and Style
+            Theme
           </h6>
-          <div>
+          <Flexbox direction="row" style={{ alignItems: 'center' }} className="item appearance-mode-switch">
+            {this._renderThemeOptions()}
+          </Flexbox>
+          {/* <div>
             <button className="btn btn-large" onClick={this.onPickTheme}>
               Change theme...
             </button>
-          </div>
+          </div> */}
         </section>
         <MenubarStylePicker config={this.props.config} />
         <section>
