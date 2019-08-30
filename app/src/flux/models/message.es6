@@ -74,7 +74,7 @@ export default class Message extends ModelWithMetadata {
     forward: 2,
   };
   static messageState = {
-    normal: 0,
+    normal: '0',
     deleted: '1',
     saving: '2',
     sending: '3',

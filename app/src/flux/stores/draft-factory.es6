@@ -88,8 +88,7 @@ class DraftFactory {
       accountId: account.id,
       savedOnRemote: false,
       hasRefOldDraftOnRemote: true,
-      refOldDraftHeaderMessageId: draft.headerMessageId,
-      state: Message.messageState.normal
+      refOldDraftHeaderMessageId: draft.headerMessageId
     });
     return new Message(defaults);
   }
@@ -112,8 +111,7 @@ class DraftFactory {
       pristine: false,
       msgOrigin: draft.msgOrigin,
       hasNewID: false,
-      accountId: account.id,
-      state: Message.messageState.normal
+      accountId: account.id
     });
     const autoContacts = await ContactStore.parseContactsInString(account.autoaddress.value);
     if (account.autoaddress.type === 'cc') {
