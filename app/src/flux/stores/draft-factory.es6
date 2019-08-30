@@ -88,7 +88,7 @@ class DraftFactory {
       accountId: account.id,
       savedOnRemote: false,
       hasRefOldDraftOnRemote: true,
-      referenceMessageId: draft.headerMessageId,
+      refOldDraftHeaderMessageId: draft.headerMessageId,
       state: Message.messageState.normal
     });
     return new Message(defaults);

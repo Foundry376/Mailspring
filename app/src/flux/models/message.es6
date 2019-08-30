@@ -228,9 +228,8 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'forwardedHeaderMessageId',
     }),
 
-    referenceMessageId: Attributes.String({
-      jsonKey: 'refOldDraftHeaderMessageId',
-      modelKey: 'referenceMessageId',
+    refOldDraftHeaderMessageId: Attributes.String({
+      modelKey: 'refOldDraftHeaderMessageId',
     }),
     savedOnRemote: Attributes.Boolean({
       modelKey: 'savedOnRemote',

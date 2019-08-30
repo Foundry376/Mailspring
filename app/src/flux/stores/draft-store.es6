@@ -141,9 +141,10 @@ class DraftStore extends MailspringStore {
     return this._draftSessions[headerMessageId];
   }
 
-  sessionForServerDraft(draft){
+  async sessionForServerDraft(draft){
     const newDraft = DraftFactory.createNewDraftForEdit(draft);
-    return DraftFactory.sessionForServerDraft(newDraft.headerMessageId);
+    await this._finalizeAndPersistNewMessage(newDraft);
+    return this._draftSessions[newDraft.headerMessageId];
   }
 
   // Public: Look up the sending state of the given draft headerMessageId.
