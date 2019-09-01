@@ -274,7 +274,7 @@ class AttachmentStore extends MailspringStore {
   }
 
   getExtIconNameByContentType(contentType) {
-    contentType = contentType.toLowerCase();
+    contentType = contentType && contentType.toLowerCase();
     let extName = 'other';
     for (let key in attachmentCategoryMap) {
       if (attachmentCategoryMap[key].extensions.includes(contentType)) {
