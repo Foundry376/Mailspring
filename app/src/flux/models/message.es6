@@ -70,8 +70,8 @@ export default class Message extends ModelWithMetadata {
   static ForwardDraft = 4;
   static ReplyAllDraft = 5;
   static draftType = {
-    reply: '1',
-    forward: '2',
+    reply: 1,
+    forward: 2,
   };
   static messageState = {
     normal: '0',
