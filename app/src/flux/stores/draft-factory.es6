@@ -257,6 +257,7 @@ class DraftFactory {
       from: [this._fromContactForReply(message)],
       threadId: thread.id,
       accountId: message.accountId,
+      replyOrForward: Message.draftType.reply,
       replyToHeaderMessageId: message.headerMessageId,
       msgOrigin: type === 'reply' ? Message.ReplyDraft : Message.ReplyAllDraft,
       body: `
@@ -309,6 +310,7 @@ class DraftFactory {
       threadId: thread.id,
       accountId: message.accountId,
       forwardedHeaderMessageId: message.id,
+      replyOrForward: Message.draftType.forward,
       msgOrigin: Message.ForwardDraft,
       body: `
         <br/>
