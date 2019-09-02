@@ -332,7 +332,7 @@ class Actions {
   Actions.sendQuickReply({threadId: '123', messageId: '234'}, "Thanks Ben!")
   ```
   */
-  static sendQuickReply = ActionScopeWindow;
+  static sendQuickReply = ActionScopeMainWindow;
 
   /*
   Public: Create a new reply to the provided threadId and messageId. Note that
@@ -349,7 +349,7 @@ class Actions {
   Actions.composeReply({threadId: '123', messageId: '123'})
   ```
   */
-  static composeReply = ActionScopeWindow;
+  static composeReply = ActionScopeMainWindow;
 
   /*
   Change the account of current draft.
@@ -360,7 +360,7 @@ class Actions {
   }
    */
 
-  static changeDraftAccount = ActionScopeWindow;
+  static changeDraftAccount = ActionScopeMainWindow;
 
   /*
   Change the account of current draft complete.
@@ -368,7 +368,7 @@ class Actions {
     newDraftJSON
   }
    */
-  static changeDraftAccountComplete = ActionScopeWindow;
+  static changeDraftAccountComplete = ActionScopeGlobal;
 
   /*
   Public: Create a new draft for forwarding the provided threadId and messageId. See
@@ -376,7 +376,7 @@ class Actions {
 
   *Scope: Window*
   */
-  static composeForward = ActionScopeWindow;
+  static composeForward = ActionScopeMainWindow;
 
   /*
   Public: Send a draft created action back to components, so disabled buttons can be enabled.
@@ -386,7 +386,7 @@ class Actions {
   }
   */
 
-  static draftReplyForwardCreated = ActionScopeWindow;
+  static draftReplyForwardCreated = ActionScopeMainWindow;
 
   /*
   Public: Pop out the draft with the provided ID so the user can edit it in another
@@ -400,7 +400,7 @@ class Actions {
   ```
   */
   static composeFailedPopoutDraft = ActionScopeMainWindow;
-  static composePopoutDraft = ActionScopeWindow;
+  static composePopoutDraft = ActionScopeMainWindow;
 
   /*
   Public: Open a new composer window for creating a new draft from scratch.
@@ -411,8 +411,8 @@ class Actions {
   Actions.composeNewBlankDraft()
   ```
   */
-  static composeNewBlankDraft = ActionScopeWindow;
-  static composedNewBlankDraft = ActionScopeWindow;
+  static composeNewBlankDraft = ActionScopeMainWindow;
+  static composedNewBlankDraft = ActionScopeMainWindow;
 
   /*
   Public: Open a new composer window for a new draft addressed to the given recipient
@@ -423,7 +423,7 @@ class Actions {
   Actions.composeNewDraftToRecipient(contact)
   ```
   */
-  static composeNewDraftToRecipient = ActionScopeWindow;
+  static composeNewDraftToRecipient = ActionScopeMainWindow;
 
   /*
   Public: Send the draft with the given ID. This Action is handled by the {DraftStore},
@@ -437,7 +437,7 @@ class Actions {
   Actions.sendDraft('123', {actionKey})
   ```
   */
-  static sendDraft = ActionScopeWindow;
+  static sendDraft = ActionScopeMainWindow;
   static sendingDraft = ActionScopeGlobal;
   static failingDraft = ActionScopeMainWindow;
   /*
@@ -456,12 +456,17 @@ class Actions {
 
   *Scope: Window*
   */
+  static syncDraftDataToMain = ActionScopeMainWindow;
+  static broadcastDraftData = ActionScopeGlobal;
   static editOutboxDraft = ActionScopeMainWindow;
   static resendDrafts = ActionScopeMainWindow;
   static cancelOutboxDrafts = ActionScopeMainWindow;
-  static destroyDraft = ActionScopeWindow;
+  static destroyDraft = ActionScopeGlobal;
   static destroyDraftSucceeded = ActionScopeMainWindow;
   static destroyDraftFailed = ActionScopeMainWindow;
+  static draftWindowClosing = ActionScopeMainWindow;
+  static draftOpenCount = ActionScopeMainWindow;
+  static draftOpenCountBroadcast = ActionScopeGlobal;
 
   /*
   Public: Submits the user's response to an RSVP event.

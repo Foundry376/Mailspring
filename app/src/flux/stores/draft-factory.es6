@@ -47,6 +47,7 @@ class DraftFactory {
       draft: true,
       pristine: true,
       msgOrigin: Message.NewDraft,
+      replyOrForward: Message.draftType.new,
       hasNewID: false,
       accountId: account.id,
     };
@@ -92,6 +93,29 @@ class DraftFactory {
     });
     return new Message(defaults);
   }
+  duplicateDraftBecauseOfNewId(draft){
+    const uniqueId = uuid();
+    const account = AccountStore.accountForId(draft.accountId);
+    if (!account) {
+      throw new Error(
+        'DraftEditingSession::createNewDraftForEdit - you can only send drafts from a configured account.',
+      );
+    }
+    const defaults = Object.assign({}, draft, {
+      body: draft.body,
+      version: 0,
+      headerMessageId: `${uniqueId}@edison.tech`,
+      id: uniqueId,
+      date: new Date(),
+      pristine: false,
+      hasNewID: false,
+      accountId: account.id,
+      savedOnRemote: false,
+      hasRefOldDraftOnRemote: false,
+      refOldDraftHeaderMessageId: ''
+    });
+    return new Message(defaults);
+  }
   async createOutboxDraftForEdit(draft){
     const uniqueId = uuid();
     const account = AccountStore.accountForId(draft.accountId);
@@ -109,7 +133,6 @@ class DraftFactory {
       id: uniqueId,
       date: new Date(),
       pristine: false,
-      msgOrigin: draft.msgOrigin,
       hasNewID: false,
       accountId: account.id
     });

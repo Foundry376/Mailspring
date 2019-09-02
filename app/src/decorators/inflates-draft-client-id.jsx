@@ -27,14 +27,21 @@ function InflatesDraftClientId(ComposedComponent) {
         session: null,
         draft: null,
       };
+      if (AppEnv.isMainWindow()) {
+        this._windowLevel = 1;
+      } else if (AppEnv.isComposerWindow()) {
+        this._windowLevel = 3;
+      } else {
+        this._windowLevel = 2;
+      }
       this._sessionUnlisten = null;
     }
 
     componentDidMount() {
       this._mounted = true;
-      if(this.props.draft && this.props.draft.savedOnRemote){
+      if (this.props.draft && this.props.draft.savedOnRemote) {
         this._prepareServerDraftForEdit(this.props.draft);
-      }else{
+      } else {
         this._prepareForDraft(this.props.headerMessageId, this.props.messageId);
       }
     }
@@ -42,7 +49,7 @@ function InflatesDraftClientId(ComposedComponent) {
     componentWillUnmount() {
       this._mounted = false;
       this._teardownForDraft();
-      this._deleteDraftIfEmpty();
+      // this._deleteDraftIfEmpty();
     }
 
     componentWillReceiveProps(newProps) {
@@ -52,13 +59,14 @@ function InflatesDraftClientId(ComposedComponent) {
       ) {
         // console.log(`new props: ${JSON.stringify(newProps)}`);
         this._teardownForDraft();
-        if(newProps.draft && newProps.draft.savedOnRemote){
+        if (newProps.draft && newProps.draft.savedOnRemote) {
           this._prepareServerDraftForEdit(newProps.draft);
-        }else {
+        } else {
           this._prepareForDraft(newProps.headerMessageId, newProps.messageId);
         }
       }
     }
+
     _onDraftGotNewId = (event, options) => {
       if (
         options.referenceMessageId &&
@@ -72,8 +80,9 @@ function InflatesDraftClientId(ComposedComponent) {
         });
       }
     };
+
     _prepareServerDraftForEdit(draft) {
-      if(draft.savedOnRemote){
+      if (draft.savedOnRemote) {
         DraftStore.sessionForServerDraft(draft).then(session => {
           const shouldSetState = () => {
             if (!session) {
@@ -98,13 +107,17 @@ function InflatesDraftClientId(ComposedComponent) {
               // console.log('------------------------------------- ');
               return;
             }
-            this.setState({ draft: session.draft() });
+            if(this._mounted){
+              this.setState({ draft: session.draft() });
+            }
           });
-          this.setState({
-            session: session,
-            draft: session.draft(),
-          });
-          this.props.onDraftReady();
+          if(this._mounted){
+            this.setState({
+              session: session,
+              draft: session.draft(),
+            });
+            this.props.onDraftReady();
+          }
         });
       }
     }
@@ -146,28 +159,34 @@ function InflatesDraftClientId(ComposedComponent) {
             // console.log('------------------------------------- ');
             return;
           }
-          this.setState({ draft: session.draft() });
+          if(this._mounted){
+            this.setState({ draft: session.draft() });
+          }else {
+            console.error(`component unmounted, session draft ${session.draft()}`);
+          }
         });
-
-        this.setState({
-          session: session,
-          draft: session.draft(),
-        });
-        this.props.onDraftReady();
+        if(this._mounted){
+          this.setState({
+            session: session,
+            draft: session.draft(),
+          });
+          this.props.onDraftReady();
+        } else {
+          console.error(`component unmounted, session draft ${session.draft()}`);
+        }
       });
     }
 
     _teardownForDraft() {
-      // We have moved session management inside draft store and draft editing session
-      // if (this.state.session) {
-      //   if (this.state.draft && !this.state.draft.pristine) {
-      //     // this.state.session.changes.commit();
-      //   } else {
-      //     // this.state.session.changes.commit();
-      //   }
-      // }
       if (this._sessionUnlisten) {
         this._sessionUnlisten();
+      }
+      if (this.state.draft) {
+        Actions.draftWindowClosing({
+          headerMessageIds: [this.state.draft.headerMessageId],
+          windowLevel: this._windowLevel,
+          source: 'componentWillUnmount',
+        });
       }
     }
 

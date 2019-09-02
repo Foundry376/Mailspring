@@ -156,7 +156,6 @@ export default class ComposerHeader extends React.Component {
     // Note: We need to physically add and remove these elements, not just hide them.
     // If they're hidden, shift-tab between fields breaks.
     const fields = [];
-
     fields.push(
       <ParticipantsTextField
         ref={el => {

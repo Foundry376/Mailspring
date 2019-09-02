@@ -70,6 +70,7 @@ export default class Message extends ModelWithMetadata {
   static ForwardDraft = 4;
   static ReplyAllDraft = 5;
   static draftType = {
+    new: 0,
     reply: 1,
     forward: 2,
   };
