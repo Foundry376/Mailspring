@@ -153,7 +153,7 @@ export default class SwipeContainer extends React.Component {
 
     if (fullDistance === 'unknown') {
       fullDistance = ReactDOM.findDOMNode(this).clientWidth;
-      thresholdDistance = 70;
+      thresholdDistance = 66;
     }
 
     const clipToMax = v => Math.max(-fullDistance, Math.min(fullDistance, v));

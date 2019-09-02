@@ -69,7 +69,6 @@ input:focus {
     background-color: darken(@background-primary, 10%);
     &::after {
       display: flex;
-      justify-content: center;
       align-items: center;
       color: fade(white, 90%);
       text-align: center;
@@ -78,7 +77,7 @@ input:focus {
       position: absolute;
       top: 0;
       transform: translateX(0%);
-      width: 160px;
+      width: 150px;
       bottom: 0;
       opacity: 0.8;
       transition: opacity linear 150ms;
@@ -86,20 +85,30 @@ input:focus {
       background-position: 50% 35%;
       background-size: 24px 24px;
     }
-
-    .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 44px) {
+    @label-padding: 54px;
+    @bgSize: 44px;
+    .icon-mixin(@svg-url, @bgColor: @gray-light) {
       background-image: url(@svg-url);
       background-size: @bgSize;
       background-repeat: no-repeat;
-      background-position: right 10% center;
+      background-position: right 10px center;
+    }
+
+    &.swipe-left {
+      &::after {
+        justify-content: flex-end;
+        padding-right: @label-padding;
+      }
     }
 
     &.swipe-right {
       &::after {
-        background-position: left 10% center !important;
+        background-position: left 10px center !important;
         left: 100%;
         transform: translateX(-100%);
         opacity: 1;
+        justify-content: flex-start;
+        padding-left: @label-padding;
       }
       &.confirmed {
         background-color: @action-color-orange;
@@ -588,6 +597,25 @@ body.platform-win32 {
   // .thread-list .list-item:hover .thread-icon-none {
   //   width: 25px;
   // }
+}
+.layout-mode-list {
+  .swipe-backing {
+    @label-padding: 48px;
+    @bgSize: 34px;
+    &::after {
+      background-size: @bgSize !important;
+    }
+    &.swipe-left {
+      &::after {
+        padding-right: @label-padding;
+      }
+    }
+    &.swipe-right {
+      &::after {
+        padding-left: @label-padding;
+      }
+    }
+  }
 }
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: url(../static/images/thread-list/icon-star-action-hover-@2x.png);
