@@ -86,7 +86,10 @@ class MovePicker extends React.Component {
       return;
     }
     let originRect;
-    if (anchorEl && anchorEl.target && anchorEl.target.getBoundingClientRect) {
+    if (anchorEl
+      && anchorEl.target
+      && anchorEl.target.getBoundingClientRect
+      && !(anchorEl instanceof CustomEvent)) {
       originRect = anchorEl.target.getBoundingClientRect();
     } else if (this._moveEl && this._moveEl.getBoundingClientRect) {
       originRect = this._moveEl.getBoundingClientRect();
@@ -96,13 +99,13 @@ class MovePicker extends React.Component {
     }
     const onCreate = this.state.isFolder ? this._onCreateFolder : this._onCreateLabel;
     Actions.openPopover(<MovePickerPopover threads={this.props.items}
-                                           account={this._account}
-                                           onClose={this._onCloseMoveFolderPopout}
-                                           onCreate={onCreate}/>, {
-      originRect: originRect,
-      direction: 'down',
-      disablePointer: true,
-    });
+      account={this._account}
+      onClose={this._onCloseMoveFolderPopout}
+      onCreate={onCreate} />, {
+        originRect: originRect,
+        direction: 'down',
+        disablePointer: true,
+      });
   };
   _onCloseMoveFolderPopout = () => {
     Actions.closePopover();

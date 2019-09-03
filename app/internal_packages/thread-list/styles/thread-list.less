@@ -67,6 +67,9 @@ input:focus {
 
   .swipe-backing {
     background-color: darken(@background-primary, 10%);
+    .button-group {
+      visibility: hidden;
+    }
     &::after {
       display: flex;
       align-items: center;
@@ -183,6 +186,23 @@ input:focus {
       }
       &.confirmed {
         background-color: @action-color-red;
+        &::after {
+          left: 100%;
+          transform: translateX(-100%);
+          opacity: 1;
+        }
+      }
+    }
+    &.swipe-folder {
+      transition: background-color linear 150ms;
+      &::after {
+        transition: left linear 150ms, transform linear 150ms;
+        content: 'Move';
+        left: 0;
+        .icon-mixin('../static/icons/folder.svg', @white);
+      }
+      &.confirmed {
+        background-color: @action-color-purple;
         &::after {
           left: 100%;
           transform: translateX(-100%);

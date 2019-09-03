@@ -27,6 +27,7 @@ const {
   WorkspaceStore,
   TaskFactory
 } = require('mailspring-exports');
+const ToolbarCategoryPicker = require('../../category-picker/lib/toolbar-category-picker');
 
 const ThreadListColumns = require('./thread-list-columns');
 const ThreadListScrollTooltip = require('./thread-list-scroll-tooltip');
@@ -144,7 +145,9 @@ class ThreadList extends React.Component {
       </FluxContainer>
     );
   }
-
+  _onCloseMoveFolderPopout = () => {
+    Actions.closePopover();
+  };
   _getTasks(swipeKey, step, threads, needTask) {
     const swipeLeftActions = [];
     const swipeRightActions = [];
@@ -215,8 +218,10 @@ class ThreadList extends React.Component {
             source: 'Swipe',
           }));
           break;
+        case 'folder':
+          AppEnv.commands.dispatch('core:change-folders');
+          break;
         default:
-          task = null;
       }
       taskOption.tasks = tasks;
     }
@@ -241,6 +246,30 @@ class ThreadList extends React.Component {
     return taskOption;
   }
 
+  _onSwipe = (callback, step = 0, item, direction) => {
+    let tasks = [];
+    const taskOption = this._getTasks(direction, step, [item], true);
+    if (taskOption) {
+      tasks = taskOption.tasks;
+    }
+    if (tasks.length === 0) {
+      callback(false);
+      return;
+    }
+    Actions.closePopover();
+    Actions.queueTasks(tasks);
+    callback(true);
+  };
+
+  _onSwipeClass = (step = 0, item, direction) => {
+    const taskOption = this._getTasks(direction, step, [item]);
+    if (!taskOption) {
+      return;
+    }
+    let name = taskOption.action;
+    return `swipe-${name}`;
+  };
+
   _threadPropsProvider = (item) => {
     let classes = classnames({
       unread: item.unread,
@@ -257,52 +286,15 @@ class ThreadList extends React.Component {
       return tasks.length > 0;
     };
 
-    props.onSwipeRightClass = (step = 0) => {
-      const taskOption = this._getTasks('swipeRight', step, [item]);
-      if (!taskOption) {
-        return;
-      }
-      let name = taskOption.action;
-      return `swipe-${name}`;
-    };
+    props.onSwipeRightClass = (step = 0) => this._onSwipeClass(step, item, 'swipeRight');
 
-    props.onSwipeRight = (callback, step = 0) => {
-      let tasks = [];
-      const taskOption = this._getTasks('swipeRight', step, [item], true);
-      if (taskOption) {
-        tasks = taskOption.tasks;
-      }
-      if (tasks.length === 0) {
-        callback(false);
-      }
-      Actions.closePopover();
-      Actions.queueTasks(tasks);
-      callback(true);
-    };
+    props.onSwipeRight = (callback, step = 0) => this._onSwipe(callback, step, item, 'swipeRight');
 
-    props.onSwipeLeftClass = (step = 0) => {
-      const taskOption = this._getTasks('swipeLeft', step, [item]);
-      if (!taskOption) {
-        return;
-      }
-      let name = taskOption.action;
-      return `swipe-${name}`;
-    };
+    props.onSwipeLeftClass = (step = 0) => this._onSwipeClass(step, item, 'swipeLeft');
 
-    props.onSwipeLeft = (callback, step = 0) => {
-      let tasks = [];
-      const taskOption = this._getTasks('swipeLeft', step, [item], true);
-      if (taskOption) {
-        tasks = taskOption.tasks;
-      }
-      if (tasks.length === 0) {
-        callback(false);
-      }
-      Actions.closePopover();
-      Actions.queueTasks(tasks);
-      callback(true);
-    };
+    props.onSwipeLeft = (callback, step = 0) => this._onSwipe(callback, step, item, 'swipeLeft');
 
+    props.move_folder_el = <ToolbarCategoryPicker items={[item]} currentPerspective={FocusedPerspectiveStore.current()} />
     // const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
     // if (disabledPackages.includes('thread-snooze')) {
     //   return props;

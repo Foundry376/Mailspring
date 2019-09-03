@@ -14,13 +14,14 @@ function actionOption(iconName, label) {
     </span>
   )
 }
-const actionValues = ['', 'archive', 'trash', 'flag', 'read'];
+const actionValues = ['', 'archive', 'trash', 'flag', 'read', 'folder'];
 const actionLabels = [
   actionOption('none', 'None'),
   actionOption('archive', 'Archive'),
   actionOption('trash', 'Trash'),
   actionOption('flag', 'Flag'),
   actionOption('read', 'Mark Read/Unread'),
+  actionOption('folder', 'Move to Folder'),
 ]
 export default {
   core: {
@@ -375,17 +376,17 @@ export default {
           },
           rightShortAction: {
             type: 'string',
-            default: 'trash',
-            enum: actionValues,
-            enumLabels: actionLabels,
-            title: 'Right short swipe',
-          },
-          rightLongAction: {
-            type: 'string',
             default: 'read',
             enum: actionValues,
             enumLabels: actionLabels,
-            title: 'Right long swipe',
+            title: 'Right Short swipe',
+          },
+          rightLongAction: {
+            type: 'string',
+            default: 'trash',
+            enum: actionValues,
+            enumLabels: actionLabels,
+            title: 'Right Long swipe',
           },
         },
       },

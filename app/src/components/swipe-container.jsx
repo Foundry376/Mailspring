@@ -342,6 +342,7 @@ export default class SwipeContainer extends React.Component {
     const backingStyles = { top: 0, bottom: 0, position: 'absolute' };
     let backingClass = 'swipe-backing';
 
+    let isConfirmed = false;
     if (currentX < 0 && this.trackingInitialTargetX <= 0) {
       const { onSwipeLeftClass } = this.props;
       const swipeLeftClass = _.isFunction(onSwipeLeftClass)
@@ -353,6 +354,7 @@ export default class SwipeContainer extends React.Component {
       backingStyles.width = -currentX + 1;
       if (targetX < 0) {
         backingClass += ' confirmed';
+        isConfirmed = true;
       }
     } else if (currentX > 0 && this.trackingInitialTargetX >= 0) {
       const { onSwipeRightClass } = this.props;
@@ -365,8 +367,10 @@ export default class SwipeContainer extends React.Component {
       backingStyles.width = currentX + 1;
       if (targetX > 0) {
         backingClass += ' confirmed';
+        isConfirmed = true;
       }
     }
+    const { move_folder_el } = this.props;
     return (
       <div
         ref={el => this.container = el}
@@ -377,7 +381,11 @@ export default class SwipeContainer extends React.Component {
         onTouchCancel={this._onTouchEnd}
         {...otherProps}
       >
-        <div style={backingStyles} className={backingClass} ></div>
+        <div style={backingStyles} className={backingClass} >
+          {isConfirmed && backingClass.indexOf('swipe-folder') !== -1 && move_folder_el ? (
+            move_folder_el
+          ) : null}
+        </div>
         <div style={{ transform: `translate3d(${currentX}px, 0, 0)` }}>{this.props.children}</div>
       </div>
     );
