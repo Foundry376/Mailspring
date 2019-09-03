@@ -3,8 +3,10 @@ import {
     ThreadUnreadQuickAction,
     ThreadStarQuickAction,
     ThreadArchiveQuickAction,
-    ThreadTrashQuickAction
+    ThreadTrashQuickAction,
+    ThreadMoveQuickAction
 } from './thread-list-quick-actions';
+import { FocusedPerspectiveStore } from 'mailspring-exports';
 
 const KEY = 'core.quickActions';
 
@@ -37,6 +39,8 @@ export default class QuickActions extends React.Component {
                 return <ThreadTrashQuickAction key={index} thread={thread} />;
             case 'archive':
                 return <ThreadArchiveQuickAction key={index} thread={thread} />;
+            case 'folder':
+                return <ThreadMoveQuickAction key={index} items={[thread]} currentPerspective={FocusedPerspectiveStore.current()} />;
         }
         return null;
     }
