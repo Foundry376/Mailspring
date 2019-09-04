@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import { gradientColorForString } from '../utils/colors';
 import { getLogo } from '../utils/restjs';
 import { LottieImg } from 'mailspring-component-kit';
-import { app } from 'electron';
 
 const ConfigProfileKey = 'core.appearance.profile';
 export default class EmailAvatar extends Component {
