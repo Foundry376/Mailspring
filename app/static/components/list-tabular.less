@@ -533,6 +533,10 @@
       background: @white;
     }
 
+    &:not(:hover) .list-column-Check .inner {
+      display: none;
+    }
+
     &.selected,
     &.selected.focused {
       .list-column-Check .checkmark .inner {
@@ -545,10 +549,6 @@
     .list-column-Check {
       height: 100%;
       display: block;
-
-      &:not(:hover) .inner {
-        display: none;
-      }
 
       .inner {
         display: block;
