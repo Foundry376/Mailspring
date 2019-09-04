@@ -2,30 +2,18 @@
 
 .selection-bar-absolute-enter {
   opacity: 0;
-  // .inner {
-  //   top: -100%;
-  // }
 }
 
 .selection-bar-absolute-enter.selection-bar-absolute-enter-active {
   opacity: 1;
-  // .inner {
-  //   top: 0;
-  // }
 }
 
 .selection-bar-absolute-leave {
   opacity: 1;
-  // .inner {
-  //   top: 0;
-  // }
 }
 
 .selection-bar-absolute-leave.selection-bar-absolute-leave-active {
   opacity: 0;
-  // .inner {
-  //   top: -100%;
-  // }
 }
 
 .thread-list-wide {
@@ -119,7 +107,7 @@
           height: 18px;
           width: 18px;
           border-radius: 50%;
-          background: rgba(0,0,0,0.15);
+          background: rgba(0, 0, 0, 0.15);
           display: none;
           position: absolute;
         }
@@ -132,7 +120,7 @@
         }
       }
 
-      &>div {
+      & > div {
         align-items: center;
       }
 
@@ -324,7 +312,7 @@
         }
       }
 
-      &>div {
+      & > div {
         align-items: center;
       }
 
@@ -440,13 +428,6 @@
 // split mode
 .thread-list-narrow {
   .list-tabular .list-tabular-item {
-    &.selected.focused,
-    &.selected {
-      .checkmark .inner {
-        .icon-mixin('../static/icons/check.svg', @blue, 24px);
-        border: none;
-      }
-    }
     &:hover .list-column-HoverActions {
       position: absolute;
       right: 0;
@@ -462,7 +443,6 @@
     }
   }
 
-
   .selection-label,
   .btn-clear-all,
   .btn-toggle-select-all {
@@ -471,10 +451,6 @@
 
   .list-tabular .selection-bar .multiselect-toolbar-root .inner .btn-toolbar.btn-selection-filter {
     left: 39px;
-  }
-
-  .list-column:first-child {
-    padding-left: 0;
   }
 
   .list-column.list-column-Check {
@@ -497,7 +473,7 @@
         height: 18px;
         width: 18px;
         border-radius: 50%;
-        background: rgba(0,0,0,0.15);
+        background: rgba(0, 0, 0, 0.15);
         display: none;
         position: absolute;
         top: 18px;
@@ -553,7 +529,7 @@
     &:hover {
       background-color: @white;
       z-index: 9;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
       // &:after {
       //   content: '';
       //   position: absolute;
@@ -565,7 +541,7 @@
       // }
     }
 
-    &.selected:not(:hover){
+    &.selected:not(:hover) {
       background: @list-selected-bg;
       color: @list-selected-color;
       border-bottom: 1px solid @border-color-secondary;
@@ -601,26 +577,11 @@
       background: @white;
     }
 
-    // &.keyboard-cursor {
-    //   border-left: 4px solid @list-focused-bg;
-    // }
-
-    &.selected {
-      .checkmark .inner {
-        .icon-mixin('../static/icons/check.svg', @blue, 24px);
-        border: none;
-      }
-    }
-
+    &.selected,
     &.selected.focused {
       .checkmark .inner {
         .icon-mixin('../static/icons/check.svg', @blue, 24px);
         border: none;
-      }
-    }
-    &.focused {
-      .checkmark .inner {
-        // border: 1px solid @accent-primary;
       }
     }
 
@@ -636,7 +597,7 @@
         height: 18px;
         width: 18px;
         border-radius: 50%;
-        background: rgba(0,0,0,0.15);
+        background: rgba(0, 0, 0, 0.15);
         display: none;
         position: absolute;
         top: 18px;
