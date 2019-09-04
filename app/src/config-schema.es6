@@ -446,6 +446,16 @@ export default {
           },
         },
       },
+      appearance: {
+        type: 'object',
+        properties: {
+          profile: {
+            type: 'boolean',
+            default: true,
+            title: 'Show profile pictures',
+          },
+        }
+      },
     },
   },
 };

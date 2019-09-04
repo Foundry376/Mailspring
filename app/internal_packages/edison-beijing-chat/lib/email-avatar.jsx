@@ -4,6 +4,7 @@ import { gradientColorForString } from '../utils/colors';
 import { getLogo } from '../utils/restjs';
 import { LottieImg } from 'mailspring-component-kit';
 
+const ConfigProfileKey = 'core.appearance.profile';
 export default class EmailAvatar extends Component {
   static displayName = 'EmailAvatar';
 
@@ -23,6 +24,8 @@ export default class EmailAvatar extends Component {
       };
     }
 
+    const isListModel = props.mode && props.mode === 'list';
+
     this.state = {
       name: (from.name || from.email || ' ')
         .trim()
@@ -31,30 +34,50 @@ export default class EmailAvatar extends Component {
       bgColor: gradientColorForString(from.email || ''),
       email: from.email,
       hasImage: false,
+      showPicture: AppEnv.config.get(ConfigProfileKey) || !isListModel,
     };
     this._mounted = false;
+
+    this.disposable = AppEnv.config.onDidChange(ConfigProfileKey, () => {
+      this.setState({
+        showPicture: AppEnv.config.get(ConfigProfileKey) || !isListModel,
+      });
+    });
   }
 
   componentDidMount = async () => {
     this._mounted = true;
-    if (this.state.email) {
-      const avatarUrl = await getLogo(this.state.email);
+    const { email, showPicture } = this.state;
+    if (!showPicture) {
+      return;
+    }
+    if (email) {
+      const avatarUrl = await getLogo(email);
       if (avatarUrl && this._mounted) {
-        this && this.setState({
-          bgColor: `url('${avatarUrl}')`,
-          hasImage: true,
-        });
+        this &&
+          this.setState({
+            bgColor: `url('${avatarUrl}')`,
+            hasImage: true,
+          });
       }
     }
   };
 
   componentWillUnmount() {
+    this.disposable.dispose();
     this._mounted = false;
   }
 
   render() {
-    const { name, bgColor, hasImage } = this.state;
-    let styles = { backgroundImage: bgColor, backgroundPosition: 'center', backgroundSize: 'cover' };
+    const { name, bgColor, hasImage, showPicture } = this.state;
+    if (!showPicture) {
+      return null;
+    }
+    let styles = {
+      backgroundImage: bgColor,
+      backgroundPosition: 'center',
+      backgroundSize: 'cover',
+    };
     if (this.props.styles) {
       styles = Object.assign(styles, this.props.styles);
     }
@@ -65,13 +88,17 @@ export default class EmailAvatar extends Component {
         lottieStyle.left = 0;
         lottieStyle.top = 15;
       }
-      return <div className="avatar-icon" style={styles}>
-        {!hasImage ? name : null}
-        <LottieImg name={'loading-spinner-blue'}
-          size={{ width: 50, height: 50 }}
-          isClickToPauseDisabled={true}
-          style={lottieStyle} />
-      </div>;
+      return (
+        <div className="avatar-icon" style={styles}>
+          {!hasImage ? name : null}
+          <LottieImg
+            name={'loading-spinner-blue'}
+            size={{ width: 50, height: 50 }}
+            isClickToPauseDisabled={true}
+            style={lottieStyle}
+          />
+        </div>
+      );
     }
     return (
       <div className="avatar-icon" style={styles}>
