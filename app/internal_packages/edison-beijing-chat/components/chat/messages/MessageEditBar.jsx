@@ -10,7 +10,12 @@ import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import { RoomStore, MessageSend } from 'chat-exports';
 import { name } from '../../../utils/name';
-import { AT_BEGIN_CHAR, AT_END_CHAR, AT_EMPTY_CHAR } from '../../../utils/message';
+import {
+  AT_BEGIN_CHAR,
+  AT_END_CHAR,
+  AT_EMPTY_CHAR,
+  removeTillAtChar,
+} from '../../../utils/message';
 
 function getTextFromHtml(str) {
   let strFormat = '';
@@ -252,7 +257,7 @@ export default class MessageEditBar extends PureComponent {
     insertDom.setAttribute('jid', contact.jid);
     insertDom.setAttribute('class', 'at-contact');
     insertDom.setAttribute('contenteditable', false);
-    this._richText.delNode(1);
+    removeTillAtChar();
     this._richText.addNode(insertDom);
     this._richText.addNode(',');
     this.setState({ atVisible: false });
