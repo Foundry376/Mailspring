@@ -15,6 +15,30 @@ export const AT_BEGIN_CHAR = '\u2066';
 export const AT_END_CHAR = '\u2067';
 export const AT_EMPTY_CHAR = '\u200b';
 
+export const removeTillAtChar = () => {
+  const sel = window.getSelection();
+  console.log(' removeTillAtChar: ', sel);
+  const focus = sel.focusNode;
+  const text = focus.textContent;
+  console.log(' removeTillAtChar: ', text);
+  const focusOffset = sel.focusOffset;
+  let i = focusOffset;
+  while (i >= 0) {
+    if (text[i] === '@') {
+      break;
+    }
+    i--;
+  }
+  focus.textContent = text.substring(0, i) + text.substring(focusOffset);
+  var range = document.createRange();
+  range.setStart(focus, i);
+  range.setEnd(focus, i); // here 0 and 4 is my location and length for the selection
+  // if my string is "This is test string" in my case its must select "This"
+  sel.removeAllRanges();
+  sel.addRange(range);
+  return;
+};
+
 export const groupMessages = async messages => {
   const groupedMessages = [];
   const createGroup = message => ({

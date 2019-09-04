@@ -246,7 +246,7 @@ export class AttachmentItem extends Component {
       'has-preview': filePreviewPath,
       [className]: className,
     });
-    let { iconName, color } = AttachmentStore.getExtIconNameByContentType(contentType);
+    let { iconName, color } = AttachmentStore.getExtIconName(displayName);
     if (isImage) {
       if (fs.existsSync(filePath)) {
         filePreviewPath = filePath;

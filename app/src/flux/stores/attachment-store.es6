@@ -9,6 +9,7 @@ import DraftStore from './draft-store';
 import Actions from '../actions';
 import File from '../models/file';
 import Utils from '../models/utils';
+import mime from 'mime-types';
 
 Promise.promisifyAll(fs);
 
@@ -264,17 +265,12 @@ class AttachmentStore extends MailspringStore {
   }
 
   getExtIconName(filePath) {
-    let extName = path.extname(filePath).slice(1);
-    extName = extMapping[extName && extName.toLowerCase()];
-    const color = colorMapping[extName || 'other'];
-    return {
-      iconName: extName ? `attachment-${extName}.svg` : 'attachment-other.svg',
-      color
-    };
+    const contentType = mime.lookup(filePath);
+    return this.getExtIconNameByContentType(contentType);
   }
 
   getExtIconNameByContentType(contentType) {
-    contentType = contentType.toLowerCase();
+    contentType = contentType && contentType.toLowerCase();
     let extName = 'other';
     for (let key in attachmentCategoryMap) {
       if (attachmentCategoryMap[key].extensions.includes(contentType)) {

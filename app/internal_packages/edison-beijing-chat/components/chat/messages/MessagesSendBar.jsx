@@ -10,7 +10,6 @@ import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import { MESSAGE_STATUS_RECEIVED } from '../../../model/Message';
-import { sendFileMessage } from '../../../utils/message';
 import { getName } from '../../../utils/name';
 import {
   sendCmd2App2,
@@ -25,7 +24,13 @@ import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 import { MessageStore, ConversationStore, RoomStore, MessageSend } from 'chat-exports';
 import { alert } from '../../../utils/electron';
-import { AT_BEGIN_CHAR, AT_END_CHAR, AT_EMPTY_CHAR } from '../../../utils/message';
+import {
+  sendFileMessage,
+  AT_BEGIN_CHAR,
+  AT_END_CHAR,
+  AT_EMPTY_CHAR,
+  removeTillAtChar,
+} from '../../../utils/message';
 
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 const { exec } = require('child_process');
@@ -411,7 +416,7 @@ export default class MessagesSendBar extends PureComponent {
     insertDom.setAttribute('jid', contact.jid);
     insertDom.setAttribute('class', 'at-contact');
     insertDom.setAttribute('contenteditable', false);
-    this._richText.delNode(1);
+    removeTillAtChar();
     this._richText.addNode(insertDom);
     this._richText.addNode(',');
     this.setState({ atVisible: false });

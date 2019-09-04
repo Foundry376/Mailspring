@@ -1329,4 +1329,7 @@ export default class AppEnvConstructor {
      }
      console.log(`used ${Date.now() - start}ms`);
   }
+  printChromeVersion(){
+    console.log(process.versions['chrome']);
+  }
 }

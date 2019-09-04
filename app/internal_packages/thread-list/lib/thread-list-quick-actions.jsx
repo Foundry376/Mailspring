@@ -6,6 +6,31 @@ const {
   FocusedPerspectiveStore,
 } = require('mailspring-exports');
 import { RetinaImg } from 'mailspring-component-kit';
+const ToolbarCategoryPicker = require('../../category-picker/lib/toolbar-category-picker');
+
+class ThreadMoveQuickAction extends ToolbarCategoryPicker {
+  render() {
+    if (!this._account) {
+      return <span />;
+    }
+
+    return (
+      <div
+        tabIndex={-1}
+        ref={el => (this._moveEl = el)}
+        title="Move to..."
+        onClick={this._onOpenMovePopover}
+        className="action action-folder"
+      >
+        <RetinaImg
+          name={'folder.svg'}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </div>
+    )
+  }
+}
 
 class ThreadArchiveQuickAction extends React.Component {
   static displayName = 'ThreadArchiveQuickAction';
@@ -218,4 +243,10 @@ class ThreadUnreadQuickAction extends React.Component {
   };
 }
 
-module.exports = { ThreadUnreadQuickAction, ThreadStarQuickAction, ThreadArchiveQuickAction, ThreadTrashQuickAction };
+module.exports = {
+  ThreadUnreadQuickAction,
+  ThreadStarQuickAction,
+  ThreadArchiveQuickAction,
+  ThreadTrashQuickAction,
+  ThreadMoveQuickAction
+};

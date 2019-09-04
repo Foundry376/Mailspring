@@ -11,12 +11,6 @@ const {
 
 const { FocusedPerspectiveStore, Utils, DateUtils, EmailAvatar } = require('mailspring-exports');
 
-const {
-  ThreadUnreadQuickAction,
-  ThreadStarQuickAction,
-  ThreadArchiveQuickAction,
-  ThreadTrashQuickAction,
-} = require('./thread-list-quick-actions');
 const ThreadListParticipants = require('./thread-list-participants');
 const ThreadListIcon = require('./thread-list-icon');
 
