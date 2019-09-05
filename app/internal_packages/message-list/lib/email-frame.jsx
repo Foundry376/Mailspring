@@ -168,7 +168,7 @@ export default class EmailFrame extends React.Component {
     // img fallback
     const imgFallbackList = doc.querySelectorAll('img');
     imgFallbackList.forEach(img => {
-      if (img.height === 0 || img.width === 0) {
+      if (img.src !== '' && (img.height === 0 || img.width === 0)) {
         img.src = '../static/images/chat/image-not-found.png';
         img.height = 25;
         img.width = 25;
