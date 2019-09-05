@@ -89,8 +89,7 @@
       .checkmark {
         margin: 0 17px 0 0;
         height: 18px;
-        width: 54px;
-        padding: 18px;
+        padding: 0 15px;
         border: none;
         display: flex;
         align-items: center;
@@ -114,8 +113,8 @@
         &:before {
           content: '';
           display: block;
-          height: 24px;
-          width: 24px;
+          height: 18px;
+          width: 18px;
           .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
         }
       }
@@ -449,18 +448,19 @@
     display: none;
   }
 
-  .list-tabular .selection-bar .multiselect-toolbar-root .inner .btn-toolbar.btn-selection-filter {
-    left: 39px;
-  }
-
   & .showAvatar {
-    .selection-bar .checkmark {
-      margin-left: 8px !important;
+    .selection-bar .multiselect-toolbar-root .inner {
+      .checkmark {
+        margin-left: 11px;
+      }
+      .btn-toolbar.btn-selection-filter {
+        left: 44px;
+      }
     }
     .list-column.list-column-Check {
       position: absolute;
       top: 43px;
-      left: 8px;
+      left: 11px;
     }
   }
 }
@@ -549,7 +549,19 @@
       }
     }
 
+    .list-column {
+      display: inherit;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      align-items: center;
+      &:last-child {
+        text-align: right;
+      }
+    }
+
     .list-column-Check {
+      width: 43px;
       height: 100%;
       display: block;
 
@@ -562,7 +574,7 @@
       }
 
       .checkmark {
-        padding: 18px 0 0 18px;
+        padding: 18.5px 0 0 15px;
         cursor: pointer;
         &::after {
           content: '';
@@ -572,8 +584,8 @@
           background: rgba(0, 0, 0, 0.15);
           display: none;
           position: absolute;
-          top: 18px;
-          left: 18px;
+          top: 18.5px;
+          left: 15px;
         }
         &:hover {
           &:after {
@@ -582,25 +594,6 @@
           }
         }
       }
-    }
-  }
-
-  .list-column {
-    // The width is set by React.
-    display: inherit;
-    padding-right: 7px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    align-items: center;
-
-    &:first-child {
-      // padding-left: @padding-base-horizontal - 4;
-      width: 47px;
-      overflow: visible;
-    }
-    &:last-child {
-      text-align: right;
     }
   }
 }
