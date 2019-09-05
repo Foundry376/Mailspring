@@ -456,6 +456,7 @@ class Actions {
 
   *Scope: Window*
   */
+  static removeQuoteText = ActionScopeGlobal;
   static syncDraftDataToMain = ActionScopeMainWindow;
   static broadcastDraftData = ActionScopeGlobal;
   static editOutboxDraft = ActionScopeMainWindow;
