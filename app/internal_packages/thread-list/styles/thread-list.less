@@ -252,12 +252,16 @@ input:focus {
   }
 
   .mail-important-icon {
-    margin-left: 6px;
+    margin: 0 4px 0 -6px;
     padding: 12px;
     vertical-align: initial;
     &:not(.active) {
       visibility: hidden;
     }
+  }
+
+  .showAvatar .mail-important-icon {
+    margin: 0 4px;
   }
 
   .message-count {
