@@ -77,7 +77,7 @@ class GdprTerms extends Component {
   }
 
   _onGDPRContinue = () => {
-    if (!this.state.gdpr_check_all) {
+    if (!this.state.gdpr_checks[0]) {
       return;
     }
     this.setState({
@@ -138,7 +138,7 @@ class GdprTerms extends Component {
         <div className="footer">
           <button
             key="next"
-            className={'btn btn-large btn-continue ' + (gdpr_check_all ? '' : 'btn-disabled')}
+            className={'btn btn-large btn-continue ' + (gdpr_checks[0] ? '' : 'btn-disabled')}
             onClick={this._onGDPRContinue}>
             Continue
           </button>
