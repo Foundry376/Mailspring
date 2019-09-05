@@ -629,7 +629,6 @@ body.platform-win32 {
 
   .footer-reply-area-wrap {
     overflow: hidden;
-    height: 44px;
     line-height: 42px;
     max-width: @message-max-width;
     margin: -3px auto 10px auto;
@@ -637,8 +636,6 @@ body.platform-win32 {
     position: relative;
     z-index: 2;
 
-    border: 1px solid @border-color-divider;
-    border-radius: 8px;
     background: @background-primary;
 
     color: @text-color-very-subtle;
@@ -650,11 +647,23 @@ body.platform-win32 {
       cursor: default;
     }
 
-    .footer-reply-area {
-      width: 100%;
-      max-width: @message-max-width;
-      margin: 0 auto;
+    .btn {
+      cursor: pointer;
+      display: inline-block;
+      width: 150px;
+      margin-right: 10px;
+      border: 1px solid @border-color-divider;
+      box-shadow: none;
+      border-radius: 8px;
       padding-left: 20px;
+      transition: background-color 0.2s;
+      &:hover {
+        background-color: @blue;
+        color: @text-color-inverse;
+        img.content-mask {
+          background-color: @text-color-inverse;
+        }
+      }
     }
     .reply-text {
       display: inline-block;

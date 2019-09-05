@@ -318,6 +318,11 @@ class MessageList extends React.Component {
     return 'reply';
   }
 
+  _canReplyAll() {
+    const lastMessage = this._lastMessage();
+    return lastMessage && lastMessage.canReplyAll();
+  }
+
   _onToggleAllMessagesExpanded = () => {
     Actions.toggleAllMessagesExpanded();
   };
@@ -346,14 +351,14 @@ class MessageList extends React.Component {
     Actions.popoutThread(this.state.currentThread);
     // This returns the single-pane view to the inbox, and does nothing for
     // double-pane view because we're at the root sheet.
-    Actions.popSheet({reason: 'MessageList:_onPopoutThread'});
+    Actions.popSheet({ reason: 'MessageList:_onPopoutThread' });
   };
 
-  _onClickReplyArea = () => {
+  _onClickReplyArea = (replyType = 'reply') => {
     if (!this.state.currentThread || this.state.isReplying || this.state.isReplyAlling || !this._mounted) {
       return;
     }
-    if (this._replyType() === 'reply-all') {
+    if (replyType === 'reply-all') {
       this.setState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
     } else {
       this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
@@ -361,7 +366,7 @@ class MessageList extends React.Component {
     Actions.composeReply({
       thread: this.state.currentThread,
       message: this._lastMessage(),
-      type: this._replyType(),
+      type: replyType,
       behavior: 'prefer-existing-if-pristine',
     });
   };
@@ -628,16 +633,34 @@ class MessageList extends React.Component {
   _renderReplyArea() {
     return (
       <div className="footer-reply-area-wrap"
-        onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
-        <div className="footer-reply-area">
+        onClick={this.state.popedOut ? this._onPopoutThread : null} key="reply-area">
+        <div className="btn" onClick={() => this._onClickReplyArea('reply')}>
           <RetinaImg
-            name={`${this._replyType()}.svg`}
+            name={`reply.svg`}
             style={{ width: 24 }}
             isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
-          <span className="reply-text">
-            {this._replyType() === 'reply-all' ? 'Reply All' : 'Reply'}
-          </span>
+          <span className="reply-text">Reply</span>
+        </div>
+        {
+          this._canReplyAll() && (
+            <div className="btn" onClick={() => this._onClickReplyArea('reply-all')}>
+              <RetinaImg
+                name={`reply-all.svg`}
+                style={{ width: 24 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask} />
+              <span className="reply-text">Reply All</span>
+            </div>
+          )
+        }
+        <div className="btn" onClick={this._onForward}>
+          <RetinaImg
+            name={`forward.svg`}
+            style={{ width: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
+          <span className="reply-text">Forward</span>
         </div>
       </div>
     );
