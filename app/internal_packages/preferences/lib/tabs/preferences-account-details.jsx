@@ -100,7 +100,10 @@ class PreferencesAccountDetails extends Component {
     this._setState({ autoaddress });
   };
   _onAccountLabelUpdated = event => {
-    this._setState({ label: event.target.value });
+    this._setState({ label: event.target.value});
+  };
+  _onAccountNameUpdated = event => {
+    this._setState({ name: event.target.value });
   };
 
   _onAccountAliasCreated = newAlias => {
@@ -331,6 +334,13 @@ class PreferencesAccountDetails extends Component {
           value={account.label}
           onBlur={this._saveChanges}
           onChange={this._onAccountLabelUpdated}
+        />
+        <h3>Account Name</h3>
+        <input
+          type="text"
+          value={account.name || account.label}
+          onBlur={this._saveChanges}
+          onChange={this._onAccountNameUpdated}
         />
         <h3>Account Settings</h3>
         <div className="btn" onClick={this._onReconnect}>

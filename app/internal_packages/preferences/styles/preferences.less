@@ -4,6 +4,23 @@
 // Preferences Specific
 
 .preferences-wrap {
+  .button-dropdown {
+    margin-left: 8px;
+    &.bordered {
+      border: 1px solid @dropdown-default-border-color;
+      color: @dropdown-default-text-color;
+      background: @dropdown-default-bg-color;
+      border-radius: 5px;
+    }
+    .only-item {
+      margin-left: 8px;
+      -webkit-appearance: menulist;
+      appearance: menulist;
+      span + img {
+        visibility: hidden;
+      }
+    }
+  }
   .item-back {
     position:absolute;
     top: 30px;
@@ -143,6 +160,89 @@
     min-width: 430px;
     margin: 0 auto;
 
+    .section-SwipeActions,
+    .section-QuickActions {
+      .color_archive {
+        background-color: @action-color-green;
+      }
+      .color_trash {
+        background-color: @action-color-red;
+      }
+      .color_flag {
+        background-color: @action-color-orange;
+      }
+      .color_read {
+        background-color: @action-color-blue;
+      }
+      .color_folder {
+        background-color: @action-color-purple;
+      }
+      .button-dropdown {
+        .only-item {
+          min-width: 160px;
+        }
+        .content-mask {
+          margin-right: 5px;
+        }
+      }
+      .quick-action-preview {
+        position: relative;
+        width: 500px;
+        .content-mask {
+          background-color: @gray;
+        }
+        .action_icon {
+          position: absolute;
+          top: 37px;
+        }
+        .action_1 {
+          right: 153px;
+        }
+        .action_2 {
+          right: 114px;
+        }
+        .action_3 {
+          right: 75px;
+        }
+        .action_4 {
+          right: 35px;
+        }
+      }
+      .swipe-action-preview {
+        position: relative;
+        width: 500px;
+        img {
+          position: relative;
+          z-index: 2;
+        }
+        .action_color {
+          position: absolute;
+          left: 18px;
+          right: 18px;
+          height: 36px;
+        }
+        .action_color:nth-of-type(1) {
+          top: 45px;
+        }
+        .action_color:nth-of-type(2) {
+          top: 90px;
+        }
+        .action_color:nth-of-type(3) {
+          top: 130px;
+        }
+        .action_color:nth-of-type(4) {
+          top: 173px;
+        }
+      }
+    }
+    .section-SwipeActions {
+      .swipe-action-preview ~ .item {
+        label {
+          display: inline-block;
+          min-width: 102px;
+        }
+      }
+    }
     .local-data {
       .btn {
         margin: 4px 0 0 8px;

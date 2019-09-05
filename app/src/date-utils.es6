@@ -341,6 +341,11 @@ const DateUtils = {
    * The returned date/time format depends on how long ago the timestamp is.
    */
   shortTimeString(datetime) {
+    let format = this._getFormat(datetime);
+    return moment(datetime).format(format);
+  },
+
+  _getFormat(datetime, full = false) {
     const now = moment();
     const diff = now.diff(datetime, 'days', true);
     const isSameDay = now.isSame(datetime, 'days');
@@ -350,7 +355,7 @@ const DateUtils = {
 
     if (diff <= 1 && isSameDay) {
       // Time if less than 1 day old
-      format = DateUtils.getTimeFormat(null);
+      format = '[Today]';
     } else if (isYesterday) {
       if (moment.locale() === 'en') {
         format = `[Yesterday]`;
@@ -364,10 +369,9 @@ const DateUtils = {
       format = 'MMM D';
     } else {
       // Month, day and year if over a year old
-      format = 'M/D/YY';
+      format = full ? 'MMMM D, YYYY' : 'M/D/YY';
     }
-
-    return moment(datetime).format(format);
+    return format;
   },
 
   /**
@@ -377,8 +381,8 @@ const DateUtils = {
    * @return {String} Formated date/time
    */
   mediumTimeString(datetime) {
-    let format = 'MMMM D, YYYY, ';
-    format += DateUtils.getTimeFormat({ seconds: false, upperCase: true, timeZone: false });
+    let format = this._getFormat(datetime, true);
+    format += ', ' + DateUtils.getTimeFormat({ seconds: false, upperCase: true, timeZone: false });
 
     return moment(datetime).format(format);
   },

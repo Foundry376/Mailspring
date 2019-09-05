@@ -237,6 +237,7 @@ export class AttachmentItem extends Component {
       disabled,
       isImage,
       filePath,
+      contentType,
       ...extraProps
     } = this.props;
     const classes = classnames({

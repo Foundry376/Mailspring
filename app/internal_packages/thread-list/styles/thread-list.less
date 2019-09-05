@@ -53,28 +53,35 @@ input:focus {
     width: 100%;
     height: 100%;
     -webkit-font-smoothing: subpixel-antialiased;
-    .scroll-region-content{
-      height: calc(~"100% - 40px");
+    .scrollbar-track {
+      height: calc(~'100% - 40px');
+    }
+    .scroll-region-content {
+      height: calc(~'100% - 40px');
     }
     &.has-empty-bar {
-      .scroll-region-content{
-        height: calc(~"100% - 75px");
+      .scroll-region-content {
+        height: calc(~'100% - 75px');
       }
     }
   }
 
   .swipe-backing {
     background-color: darken(@background-primary, 10%);
+    .button-group {
+      visibility: hidden;
+    }
     &::after {
+      display: flex;
+      align-items: center;
       color: fade(white, 90%);
-      padding-top: 45px;
       text-align: center;
       font-weight: 400;
       font-size: @font-size-small;
       position: absolute;
       top: 0;
       transform: translateX(0%);
-      width: 80px;
+      width: 150px;
       bottom: 0;
       opacity: 0.8;
       transition: opacity linear 150ms;
@@ -82,18 +89,121 @@ input:focus {
       background-position: 50% 35%;
       background-size: 24px 24px;
     }
+    @label-padding: 54px;
+    @bgSize: 44px;
+    .icon-mixin(@svg-url, @bgColor: @gray-light) {
+      background-image: url(@svg-url);
+      background-size: @bgSize;
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    &.swipe-left {
+      &::after {
+        justify-content: flex-end;
+        padding-right: @label-padding;
+      }
+    }
+
+    &.swipe-right {
+      &::after {
+        background-position: left 10px center !important;
+        left: 100%;
+        transform: translateX(-100%);
+        opacity: 1;
+        justify-content: flex-start;
+        padding-left: @label-padding;
+      }
+      &.confirmed {
+        background-color: @action-color-orange;
+        &::after {
+          left: 0px !important;
+          transform: translateX(0) !important;
+        }
+      }
+    }
+
+    &.swipe-unflag,
+    &.swipe-flag {
+      transition: background-color linear 150ms;
+      &::after {
+        transition: left linear 150ms, transform linear 150ms;
+        content: 'Flag';
+        left: 0;
+        .icon-mixin('../static/icons/flag.svg', @white);
+      }
+      &.confirmed {
+        background-color: @action-color-orange;
+        &::after {
+          left: 100%;
+          transform: translateX(-100%);
+          opacity: 1;
+        }
+      }
+    }
+    &.swipe-unflag {
+      &::after {
+        transition: left linear 150ms, transform linear 150ms;
+        content: 'Unflag';
+        left: 0;
+        .icon-mixin('../static/icons/flag.svg', @white);
+      }
+    }
+
+    &.swipe-unread,
+    &.swipe-read {
+      transition: background-color linear 150ms;
+      &::after {
+        transition: left linear 150ms, transform linear 150ms;
+        content: 'Read';
+        left: 0;
+        .icon-mixin('../static/icons/read.svg', @white);
+      }
+      &.confirmed {
+        background-color: @action-color-blue;
+        &::after {
+          left: 100%;
+          transform: translateX(-100%);
+          opacity: 1;
+        }
+      }
+    }
+    &.swipe-unread {
+      &::after {
+        transition: left linear 150ms, transform linear 150ms;
+        content: 'Unread';
+        left: 0;
+        .icon-mixin('../static/icons/unread.svg', @white);
+      }
+    }
 
     &.swipe-trash {
       transition: background-color linear 150ms;
-      background-color: mix(#f94040, @background-primary, 75%);
       &::after {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Trash';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
+        .icon-mixin('../static/icons/trash.svg', @white);
       }
       &.confirmed {
-        background-color: #f94040;
+        background-color: @action-color-red;
+        &::after {
+          left: 100%;
+          transform: translateX(-100%);
+          opacity: 1;
+        }
+      }
+    }
+    &.swipe-folder {
+      transition: background-color linear 150ms;
+      &::after {
+        transition: left linear 150ms, transform linear 150ms;
+        content: 'Move';
+        left: 0;
+        .icon-mixin('../static/icons/folder.svg', @white);
+      }
+      &.confirmed {
+        background-color: @action-color-purple;
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -104,15 +214,14 @@ input:focus {
     &.swipe-archive,
     &.swipe-all {
       transition: background-color linear 150ms;
-      background-color: mix(#57d56f, @background-primary, 75%);
       &::after {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Archive';
         left: 0;
-        background-image: url(../static/images/swipe/icon-swipe-archive@2x.png);
+        .icon-mixin('../static/icons/archive.svg', @white);
       }
       &.confirmed {
-        background-color: #57d56f;
+        background-color: @action-color-green;
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -122,7 +231,6 @@ input:focus {
     }
     &.swipe-snooze {
       transition: background-color linear 150ms;
-      background-color: mix(#fecb2f, @background-primary, 75%);
       &::after {
         transition: right linear 150ms, transform linear 150ms;
         content: 'Snooze';
@@ -130,7 +238,6 @@ input:focus {
         background-image: url(../static/images/swipe/icon-swipe-snooze@2x.png);
       }
       &.confirmed {
-        background-color: #fecb2f;
         &::after {
           right: 100%;
           transform: translateX(100%);
@@ -146,12 +253,16 @@ input:focus {
   }
 
   .mail-important-icon {
-    margin-left: 6px;
+    margin: 0 4px 0 -6px;
     padding: 12px;
     vertical-align: initial;
     &:not(.active) {
       visibility: hidden;
     }
+  }
+
+  .showAvatar .mail-important-icon {
+    margin: 0 4px;
   }
 
   .message-count {
@@ -324,7 +435,7 @@ input:focus {
       .icon-mixin('../static/icons/feed-forward.svg', @gray-light);
     }
     &.thread-icon-star {
-      .icon-mixin('../static/icons/flag.svg',@orange, 24px);
+      .icon-mixin('../static/icons/flag.svg', @orange, 24px);
     }
   }
   .star-button {
@@ -349,8 +460,7 @@ input:focus {
 .thread-list-empty-folder-bar {
   color: fade(@black, 60%);
   background-color: fade(@blue, 10%);
-  padding: @padding-base-vertical @padding-base-vertical @padding-base-vertical
-    21px;
+  padding: @padding-base-vertical @padding-base-vertical @padding-base-vertical 21px;
   align-items: center;
   display: flex;
   font-size: 0.9em;
@@ -396,9 +506,9 @@ input:focus {
     }
     img.content-mask {
       margin-top: -3px;
-       background-color: @gray;
-       position: relative;
-       z-index: 2;
+      background-color: @gray;
+      position: relative;
+      z-index: 2;
     }
     &:hover {
       &:after {
@@ -464,9 +574,9 @@ body.platform-win32 {
 
   .inner {
     position: relative;
-    width: 300px;
+    width: 250px;
     height: 100%;
-    left: -300px;
+    left: -250px;
     .thread-injected-quick-actions {
       margin-right: 16px;
     }
@@ -474,29 +584,14 @@ body.platform-win32 {
 }
 
 .thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@white, 0%) 0%,
-    @white 50%,
-    @white 100%
-  );
+  background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@white, 0%) 0%,
-    @white 50%,
-    @white 100%
-  );
+  background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
 
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@white, 0%) 0%,
-    @white 50%,
-    @white 100%
-  );
+  background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
   // .action {
   //   -webkit-filter: brightness(300%);
   // }
@@ -526,6 +621,25 @@ body.platform-win32 {
   // .thread-list .list-item:hover .thread-icon-none {
   //   width: 25px;
   // }
+}
+.layout-mode-list {
+  .swipe-backing {
+    @label-padding: 48px;
+    @bgSize: 34px;
+    &::after {
+      background-size: @bgSize !important;
+    }
+    &.swipe-left {
+      &::after {
+        padding-right: @label-padding;
+      }
+    }
+    &.swipe-right {
+      &::after {
+        padding-left: @label-padding;
+      }
+    }
+  }
 }
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: url(../static/images/thread-list/icon-star-action-hover-@2x.png);
@@ -565,16 +679,12 @@ body.platform-win32 {
     padding-left: 24px;
   }
   .list-tabular .selection-bar .multiselect-toolbar-root .inner .checkmark {
-    width: 66px;
-    margin-right: 3px;
-    cursor: pointer;
-    padding-left: 20px;
     &::after {
       content: '';
       height: 18px;
       width: 18px;
       border-radius: 50%;
-      background: rgba(0,0,0,0.15);
+      background: rgba(0, 0, 0, 0.15);
       display: none;
       position: absolute;
     }
@@ -589,11 +699,10 @@ body.platform-win32 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 40px;
-    margin: 0 15px;
     .avatar-icon {
       height: 40px;
       width: 40px;
+      margin: 0 15px;
       line-height: 40px;
       text-align: center;
       font-size: 24px;
@@ -721,8 +830,8 @@ body.platform-win32 {
       // .skeleton {
       //   height: 100%;
       //   background-repeat: no-repeat;
-      //   background-image: linear-gradient(red 16px, transparent 0), 
-      //   linear-gradient(white 20px, transparent 0), 
+      //   background-image: linear-gradient(red 16px, transparent 0),
+      //   linear-gradient(white 20px, transparent 0),
       //   linear-gradient(gray 36px, transparent 0);
       // }
     }
@@ -754,12 +863,7 @@ body.platform-win32 {
     }
   }
   .list-item.selected:hover .list-column-HoverActions .inner {
-    background-image: -webkit-linear-gradient(
-      left,
-      fade(@white, 0%) 0%,
-      @white 50%,
-      @white 100%
-    );
+    background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
     // .action {
     //   -webkit-filter: brightness(300%);
     // }

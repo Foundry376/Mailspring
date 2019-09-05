@@ -3,9 +3,7 @@ import React, { Component } from 'react';
 import { Utils, ComponentRegistry } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import {
-  FocusedPerspectiveStore,
-} from 'mailspring-exports';
+import { FocusedPerspectiveStore } from 'mailspring-exports';
 
 import ScrollRegion from './scroll-region';
 import Spinner from './spinner';
@@ -13,6 +11,8 @@ import Spinner from './spinner';
 import ListDataSource from './list-data-source';
 import ListSelection from './list-selection';
 import ListTabularItem from './list-tabular-item';
+
+const ConfigProfileKey = 'core.appearance.profile';
 
 class ListColumn {
   constructor({ name, resolver, flex, width }) {
@@ -114,15 +114,21 @@ class ListTabular extends Component {
     super(props);
     if (!props.itemHeight) {
       throw new Error(
-        'ListTabular: You must provide an itemHeight - raising to avoid divide by zero errors.',
+        'ListTabular: You must provide an itemHeight - raising to avoid divide by zero errors.'
       );
     }
 
-    this._unlisten = () => {
-    };
+    this._unlisten = () => {};
     this.newItemsCache = {};
     this.state = this.buildStateForRange({ start: -1, end: -1 });
+    this.state.profileAvatar = AppEnv.config.get(ConfigProfileKey);
     this._scrollTimer = null;
+
+    this.disposable = AppEnv.config.onDidChange(ConfigProfileKey, () => {
+      this.setState({
+        profileAvatar: AppEnv.config.get(ConfigProfileKey),
+      });
+    });
   }
 
   componentDidMount() {
@@ -161,6 +167,7 @@ class ListTabular extends Component {
   }
 
   componentWillUnmount() {
+    this.disposable.dispose();
     window.removeEventListener('resize', this.onWindowResize, true);
     if (this._cleanupAnimationTimeout) {
       window.clearTimeout(this._cleanupAnimationTimeout);
@@ -178,7 +185,7 @@ class ListTabular extends Component {
     this._onWindowResize();
   };
 
-  onScroll = (e) => {
+  onScroll = e => {
     // If we've shifted enough pixels from our previous scrollTop to require
     // new rows to be rendered, update our state!
     this.updateRangeState();
@@ -368,9 +375,9 @@ class ListTabular extends Component {
   sendObservableRangeTask = (dataSource, items, forceUpdate = false) => {
     // Sometimes setObservableRangeTask is undefined(I'm not sure why),
     // so we check to make sure it is defined
-    if(forceUpdate){
+    if (forceUpdate) {
       this.newItemsCache = items;
-    }else{
+    } else {
       Object.assign(this.newItemsCache, items);
     }
     if (dataSource.setObservableRangeTask) {
@@ -398,7 +405,7 @@ class ListTabular extends Component {
       onDragEnd,
       onDragStart,
       onDoubleClick,
-      dataSource
+      dataSource,
     } = this.props;
     const { count, loaded, empty } = this.state;
     const rows = this.getRowsToRender();
@@ -418,12 +425,15 @@ class ListTabular extends Component {
     } else{
       Toolbar = ComponentRegistry.findComponentsMatching({ role: 'ThreadListToolbar' })[0];
     }
-    let hasEmptyBar = ''
+    let hasEmptyBar = '';
     if (current && ['spam', 'trash'].includes(current.categoriesSharedRole())) {
       hasEmptyBar = 'has-empty-bar';
     }
+    const profileAvatarClass = this.state.profileAvatar ? 'showAvatar' : '';
     return (
-      <div className={`list-container list-tabular ${className} ${hasEmptyBar}`}>
+      <div
+        className={`list-container list-tabular ${className} ${hasEmptyBar} ${profileAvatarClass}`}
+      >
         {Toolbar ? <Toolbar /> : null}
         <ScrollRegion
           ref={cm => {

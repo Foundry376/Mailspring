@@ -112,7 +112,9 @@ export default class EmailFrame extends React.Component {
       `);
     }
     doc.write(
-      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent(isPlainBody)}</div>`,
+      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent(
+        isPlainBody
+      )}</div>`
     );
     doc.close();
 
@@ -162,6 +164,16 @@ export default class EmailFrame extends React.Component {
         inlineImgs[i].ondblclick = this._openInlineImage;
       }
     }
+
+    // img fallback
+    const imgFallbackList = doc.querySelectorAll('img');
+    imgFallbackList.forEach(img => {
+      if (img.src !== '' && (img.height === 0 || img.width === 0)) {
+        img.src = '../static/images/chat/image-not-found.png';
+        img.height = 25;
+        img.width = 25;
+      }
+    });
   };
 
   _openInlineImage(e) {

@@ -125,7 +125,7 @@ class RetinaImg extends React.Component {
     const pathIsRetina = path.indexOf('@2x') > 0;
     let className = this.props.className || '';
 
-    const style = this.props.style || {};
+    const style = this.props.style ? Object.assign({}, this.props.style) : {};
     style.WebkitUserDrag = 'none';
     style.zoom = pathIsRetina ? 0.5 : 1;
     if (style.width) style.width /= style.zoom;

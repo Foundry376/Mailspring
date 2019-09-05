@@ -83,13 +83,13 @@ class ToolbarWindowControls extends React.Component {
     if (process.platform === 'darwin' && (!event.altKey || this.state.isFullScreen)) {
       AppEnv.setFullScreen(!this.state.isFullScreen);
       this.setState({ isFullScreen: !this.state.isFullScreen });
-    } else if(!this.state.isFullScreen){
-      if(AppEnv.isMaximixed()){
+    } else if (!this.state.isFullScreen) {
+      if (AppEnv.isMaximixed()) {
         AppEnv.unmaximize();
-      }else{
+      } else {
         AppEnv.maximize();
       }
-      this.setState({alt: false});
+      this.setState({ alt: false });
     }
   };
 
@@ -102,24 +102,30 @@ class ToolbarWindowControls extends React.Component {
     if (!enabled) {
       return <span />;
     }
-    let maxButton = <button tabIndex={-1} className='fullscreen' onClick={this._onMaximize} />;
-    if(this.state.alt){
-      maxButton = <button tabIndex={-1} className='maximize' onClick={this._onMaximize} />
-    }else if(this.state.isFullScreen){
-      maxButton = <button tabIndex={-1} className='unmaximize' onClick={this._onMaximize} >
-        <RetinaImg
-          name='system-collapse.svg'
-          isIcon={true}
-          style={{height: 12, width: 12}}
-          fallback={'folder.svg'}
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
-      </button>;
+    let maxButton = <button tabIndex={-1} className="fullscreen" onClick={this._onMaximize} />;
+    if (this.state.alt) {
+      maxButton = <button tabIndex={-1} className="maximize" onClick={this._onMaximize} />;
+    } else if (this.state.isFullScreen) {
+      maxButton = (
+        <button tabIndex={-1} className="unmaximize" onClick={this._onMaximize}>
+          <RetinaImg
+            name="system-collapse.svg"
+            isIcon={true}
+            style={{ height: 12, width: 12 }}
+            fallback={'folder.svg'}
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
+        </button>
+      );
     }
     return (
       <div name="ToolbarWindowControls" className={`toolbar-window-controls alt-${this.state.alt}`}>
         <button tabIndex={-1} className="close" onClick={() => AppEnv.close()} />
-        <button tabIndex={-1} className={`minimize${this.state.isFullScreen ? ' disabled' : ''}`} onClick={() => AppEnv.minimize()} />
+        <button
+          tabIndex={-1}
+          className={`minimize${this.state.isFullScreen ? ' disabled' : ''}`}
+          onClick={() => AppEnv.minimize()}
+        />
         {maxButton}
       </div>
     );
@@ -156,7 +162,7 @@ class ToolbarMenuControl extends React.Component {
 
 ComponentRegistry.register(ToolbarWindowControls, {
   location: WorkspaceStore.Sheet.Global.Toolbar.Left,
-  role: 'ToolbarWindowControls'
+  role: 'ToolbarWindowControls',
 });
 
 ComponentRegistry.register(ToolbarMenuControl, {
@@ -231,7 +237,8 @@ export default class Toolbar extends React.Component {
     const columnToolbarEls = el.querySelectorAll('[data-column]');
 
     // Find the top sheet in the stack
-    const sheet = document.querySelectorAll("[name='Sheet']")[this.props.depth];
+    const sheetList = document.querySelectorAll("[name='Sheet']") || [];
+    const sheet = sheetList[sheetList.length - 1];
     if (!sheet) {
       return;
     }
@@ -295,7 +302,7 @@ export default class Toolbar extends React.Component {
         // display searchbar in draftlist
         if (loc.Toolbar.id === 'DraftList:Toolbar' || loc.Toolbar.id === 'Outbox:Toolbar') {
           const searchBar = ComponentRegistry.findComponentsMatching({
-            role: 'Search-Bar'
+            role: 'Search-Bar',
           });
           entries = [...entries, ...searchBar];
         }
@@ -356,7 +363,7 @@ export default class Toolbar extends React.Component {
       width: '100%',
       height: '100%',
       zIndex: 1,
-      background: 'transparent'
+      background: 'transparent',
     };
 
     const toolbars = this.state.columns.map((components, idx) => (

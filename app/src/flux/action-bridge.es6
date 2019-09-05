@@ -58,7 +58,7 @@ class ActionBridge {
 
   onIPCMessage(event, initiatorId, name, json) {
     if (AppEnv.isEmptyWindow()) {
-      throw new Error("Empty windows shouldn't receive IPC messages");
+      throw new Error(`Empty windows shouldn't receive IPC messages, received name: ${name}, json: ${json}, initiatorId: ${initiatorId}`);
     }
     // There's something very strange about IPC event handlers. The ReactRemoteParent
     // threw React exceptions when calling setState from an IPC callback, and the debugger

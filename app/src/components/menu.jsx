@@ -44,7 +44,11 @@ class MenuItem extends React.Component {
         disabled: this.props.disabled,
       });
       return (
-        <div className={className} onMouseDown={this.props.onMouseDown}>
+        <div
+          className={className}
+          onMouseDown={this.props.onMouseDown}
+          onMouseOver={this.props.onMouseOver}
+        >
           {this.props.content}
         </div>
       );
@@ -291,13 +295,17 @@ class Menu extends React.Component {
 
       const onMouseDown = event => {
         event.preventDefault();
-        if(item.disabled){
+        if (item.disabled) {
           return;
         }
         this.setState({ selectedIndex: i });
         if (this.props.onSelect) {
           return this.props.onSelect(item);
         }
+      };
+
+      const onMouseOver = () => {
+        this.setState({ selectedIndex: i });
       };
 
       const key = this.props.itemKey(item);
@@ -313,6 +321,7 @@ class Menu extends React.Component {
         <MenuItem
           key={key}
           onMouseDown={onMouseDown}
+          onMouseOver={onMouseOver}
           checked={this.props.itemChecked && this.props.itemChecked(item)}
           content={content}
           selected={this.state.selectedIndex === i}
@@ -324,8 +333,12 @@ class Menu extends React.Component {
       'content-container': true,
       empty: items.length === 0,
     });
-    if(this.props.maxHeight>0){
-      return <ScrollRegion className={contentClass} style={{height: this.props.maxHeight}}>{items}</ScrollRegion>;
+    if (this.props.maxHeight > 0) {
+      return (
+        <ScrollRegion className={contentClass} style={{ height: this.props.maxHeight }}>
+          {items}
+        </ScrollRegion>
+      );
     }
 
     return <div className={contentClass}>{items}</div>;

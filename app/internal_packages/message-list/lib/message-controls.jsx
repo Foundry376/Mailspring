@@ -285,7 +285,7 @@ export default class MessageControls extends React.Component {
     // dynamically. Waiting to see if this will be used often.
     const menu = new SystemMenu();
     menu.append(new SystemMenuItem({ label: 'Log Data', click: this._onLogData }));
-    menu.append(new SystemMenuItem({ label: 'Show Original', click: this._onShowOriginal }));
+    // menu.append(new SystemMenuItem({ label: 'Show Original', click: this._onShowOriginal }));
     menu.append(
       new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard }),
     );

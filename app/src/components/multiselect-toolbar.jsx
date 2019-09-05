@@ -122,9 +122,7 @@ class MultiselectToolbar extends Component {
     if (Date.now() - lastUpdate.getTime() < 2 * 60 * 1000) {
       return <span>Updated Just Now</span>;
     }
-    return (
-      <span>Updated {moment(lastUpdate).fromNow()}</span>
-    );
+    return <span>Updated {moment(lastUpdate).fromNow()}</span>;
   }
 
   _formatNumber(num) {
@@ -150,40 +148,45 @@ class MultiselectToolbar extends Component {
 
   onSelectWithFilter = () => {
     const menu = new Menu();
-    menu.append(new MenuItem({
-      label: `All`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('multiselect-list:select-all');
-      },
-    }),
+    menu.append(
+      new MenuItem({
+        label: `All`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('multiselect-list:select-all');
+        },
+      })
     );
-    menu.append(new MenuItem({
-      label: `None`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('multiselect-list:deselect-all');
-      },
-    }),
+    menu.append(
+      new MenuItem({
+        label: `None`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('multiselect-list:deselect-all');
+        },
+      })
     );
-    menu.append(new MenuItem({
-      label: `Unread`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('thread-list:select-unread');
-      },
-    }),
+    menu.append(
+      new MenuItem({
+        label: `Unread`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('thread-list:select-unread');
+        },
+      })
     );
-    menu.append(new MenuItem({
-      label: `Flagged`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('thread-list:select-starred');
-      },
-    }),
+    menu.append(
+      new MenuItem({
+        label: `Flagged`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('thread-list:select-starred');
+        },
+      })
     );
-    menu.append(new MenuItem({
-      label: `Important`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('thread-list:select-important');
-      },
-    }),
+    menu.append(
+      new MenuItem({
+        label: `Important`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('thread-list:select-important');
+        },
+      })
     );
     menu.popup({});
   };
@@ -233,20 +236,34 @@ class MultiselectToolbar extends Component {
       return null;
     }
     if (this.state.refreshingMessages) {
-      return <div style={{ padding: '0 5px' }}>
-        <RetinaImg name='refresh.svg'
-          className='infinite-rotation-linear'
-          style={{ width: 24, height: 24 }} isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
-      </div>;
+      return (
+        <div style={{ padding: '0 5px' }}>
+          <RetinaImg
+            name="refresh.svg"
+            className="infinite-rotation-linear"
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
+        </div>
+      );
     }
-    return <button tabIndex={-1} style={{cursor: 'pointer'}}
-      className="btn btn-toolbar btn-list-more" title='Refresh'
-      onClick={this.refreshPerspective}>
-      <RetinaImg name='refresh.svg'
-        style={{ width: 24, height: 24 }} isIcon
-        mode={RetinaImg.Mode.ContentIsMask} />
-    </button>;
+    return (
+      <button
+        tabIndex={-1}
+        style={{ cursor: 'pointer' }}
+        className="btn btn-toolbar btn-list-more"
+        title="Refresh"
+        onClick={this.refreshPerspective}
+      >
+        <RetinaImg
+          name="refresh.svg"
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>
+    );
   }
 
   _switchSingleDomDisplay(selector, shouldShow, displayType) {
@@ -256,20 +273,21 @@ class MultiselectToolbar extends Component {
     }
   }
 
-  _switchQuickSidebar = (shouldShow) => {
+  _switchQuickSidebar = shouldShow => {
     this._switchSingleDomDisplay('.column-QuickSidebar', shouldShow, 'flex');
     this._switchSingleDomDisplay('.column-MessageListSidebar', shouldShow, 'block');
     this._switchSingleDomDisplay('.toolbar-QuickSidebar', shouldShow, 'inherit');
     this._switchSingleDomDisplay('.toolbar-MessageListSidebar', shouldShow, 'inherit');
     this.recomputeLayout();
-  }
+  };
 
   recomputeLayout() {
     // Find our item containers that are tied to specific columns
     const columnToolbarEls = document.querySelectorAll('.sheet-toolbar-container  [data-column]');
 
     // Find the top sheet in the stack
-    const sheet = document.querySelectorAll("[name='Sheet']")[0];
+    const sheetList = document.querySelectorAll("[name='Sheet']") || [];
+    const sheet = sheetList[sheetList.length - 1];
     if (!sheet) {
       return;
     }
@@ -342,42 +360,47 @@ class MultiselectToolbar extends Component {
         <div className="inner">
           <div className={'checkmark ' + checkStatus} onClick={this.onToggleSelectAll}></div>
           {this.renderFilterSelection()}
-          {
-            selectionCount > 0 ? (
-              <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
-                <div className="selection-label">{this.selectionLabel()}</div>
-                {/* <button className="btn clickable btn-toggle-select-all" onClick={this._selectAll}>
+          {selectionCount > 0 ? (
+            <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
+              <div className="selection-label">{this.selectionLabel()}</div>
+              {/* <button className="btn clickable btn-toggle-select-all" onClick={this._selectAll}>
                   Select all {this._formatNumber(totalCount)}
                 </button>
                 <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
                 </button> */}
-                {WorkspaceStore.layoutMode() === 'list' ?
-                  <div className="divider" key='thread-list-tool-bar-divider' /> : null}
-                {toolbarElement}
-              </div>
-            ) : (
-                <div style={{
-                  display: 'flex', width: 'calc(100% - 66px)',
-                  justifyContent: 'space-between',
-                  marginRight: 10,
-                }}>
-                  {this.state.refreshingMessages ?
-                    <span className="updated-time">Checking for mail...</span>
-                    : <span className="updated-time">
-                      {this._renderLastUpdateLabel(lastUpdate)}
-                      {threadCounts > 0 && (
-                        <span className="toolbar-unread-count">({this._formatNumber(threadCounts)})</span>
-                      )}
+              {WorkspaceStore.layoutMode() === 'list' ? (
+                <div className="divider" key="thread-list-tool-bar-divider" />
+              ) : null}
+              {toolbarElement}
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                width: 'calc(100% - 66px)',
+                justifyContent: 'space-between',
+                marginRight: 10,
+              }}
+            >
+              {this.state.refreshingMessages ? (
+                <span className="updated-time">Checking for mail...</span>
+              ) : (
+                <span className="updated-time">
+                  {this._renderLastUpdateLabel(lastUpdate)}
+                  {threadCounts > 0 && (
+                    <span className="toolbar-unread-count">
+                      ({this._formatNumber(threadCounts)})
                     </span>
-                  }
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    {this.renderRefreshButton(current)}
-                    {onEmptyButtons}
-                  </div>
-                </div>
-              )
-          }
+                  )}
+                </span>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {this.renderRefreshButton(current)}
+                {onEmptyButtons}
+              </div>
+            </div>
+          )}
         </div>
         <InjectedComponentSet
           matching={{ role: 'ThreadListEmptyFolderBar' }}

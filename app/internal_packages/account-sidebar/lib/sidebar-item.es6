@@ -249,7 +249,6 @@ class SidebarItem {
   }
 
   static forSpam(accountIds, opts = {}) {
-    opts.iconName = 'junk.svg';
     let cats = [];
     for (let accountId of accountIds) {
       let tmp = CategoryStore.getCategoryByRole(accountId, 'spam');

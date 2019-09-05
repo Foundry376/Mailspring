@@ -177,15 +177,15 @@ body.platform-win32 {
   }
 
   .show-hidden-messages {
-    background-color: darken(@background-secondary, 4%);
-    border: 1px solid darken(@background-secondary, 8%);
-    border-radius: @border-radius-base;
+    background-color: @blue-light;
+    line-height: 25px;
     color: @text-color-very-subtle;
     margin-bottom: @padding-large-vertical;
     cursor: default;
     padding: @padding-base-vertical @padding-base-horizontal;
     a {
       float: right;
+      font-weight: @font-weight-semi-bold;
     }
   }
 
@@ -216,7 +216,7 @@ body.platform-win32 {
     display: flex;
     align-items: center;
     padding: 0 12px 0 14px;
-    &>div {
+    & > div {
       display: flex;
       align-items: center;
     }
@@ -562,7 +562,7 @@ body.platform-win32 {
       top: 1px;
       position: relative;
       display: inline-block;
-      min-width: 125px;
+      padding: 0 10px;
       cursor: default;
     }
     .msg-actions-tooltip {
@@ -629,7 +629,6 @@ body.platform-win32 {
 
   .footer-reply-area-wrap {
     overflow: hidden;
-    height: 44px;
     line-height: 42px;
     max-width: @message-max-width;
     margin: -3px auto 10px auto;
@@ -637,8 +636,6 @@ body.platform-win32 {
     position: relative;
     z-index: 2;
 
-    border: 1px solid @border-color-divider;
-    border-radius: 8px;
     background: @background-primary;
 
     color: @text-color-very-subtle;
@@ -650,11 +647,23 @@ body.platform-win32 {
       cursor: default;
     }
 
-    .footer-reply-area {
-      width: 100%;
-      max-width: @message-max-width;
-      margin: 0 auto;
+    .btn {
+      cursor: pointer;
+      display: inline-block;
+      width: 150px;
+      margin-right: 10px;
+      border: 1px solid @border-color-divider;
+      box-shadow: none;
+      border-radius: 8px;
       padding-left: 20px;
+      transition: background-color 0.2s;
+      &:hover {
+        background-color: @blue;
+        color: @text-color-inverse;
+        img.content-mask {
+          background-color: @text-color-inverse;
+        }
+      }
     }
     .reply-text {
       display: inline-block;
