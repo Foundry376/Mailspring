@@ -2,30 +2,18 @@
 
 .selection-bar-absolute-enter {
   opacity: 0;
-  // .inner {
-  //   top: -100%;
-  // }
 }
 
 .selection-bar-absolute-enter.selection-bar-absolute-enter-active {
   opacity: 1;
-  // .inner {
-  //   top: 0;
-  // }
 }
 
 .selection-bar-absolute-leave {
   opacity: 1;
-  // .inner {
-  //   top: 0;
-  // }
 }
 
 .selection-bar-absolute-leave.selection-bar-absolute-leave-active {
   opacity: 0;
-  // .inner {
-  //   top: -100%;
-  // }
 }
 
 .thread-list-wide {
@@ -119,7 +107,7 @@
           height: 18px;
           width: 18px;
           border-radius: 50%;
-          background: rgba(0,0,0,0.15);
+          background: rgba(0, 0, 0, 0.15);
           display: none;
           position: absolute;
         }
@@ -132,7 +120,7 @@
         }
       }
 
-      &>div {
+      & > div {
         align-items: center;
       }
 
@@ -324,7 +312,7 @@
         }
       }
 
-      &>div {
+      & > div {
         align-items: center;
       }
 
@@ -440,13 +428,6 @@
 // split mode
 .thread-list-narrow {
   .list-tabular .list-tabular-item {
-    &.selected.focused,
-    &.selected {
-      .checkmark .inner {
-        .icon-mixin('../static/icons/check.svg', @blue, 24px);
-        border: none;
-      }
-    }
     &:hover .list-column-HoverActions {
       position: absolute;
       right: 0;
@@ -462,7 +443,6 @@
     }
   }
 
-
   .selection-label,
   .btn-clear-all,
   .btn-toggle-select-all {
@@ -473,50 +453,14 @@
     left: 39px;
   }
 
-  .list-column:first-child {
-    padding-left: 0;
-  }
-
-  .list-column.list-column-Check {
-    left: 26px;
-    top: 61px;
-    width: 18px;
-    height: 18px;
-    position: absolute;
-    &::after {
-      display: none;
+  & .showAvatar {
+    .selection-bar .checkmark {
+      margin-left: 8px !important;
     }
-    .checkmark {
-      padding: 18px;
+    .list-column.list-column-Check {
       position: absolute;
-      top: -18px;
-      left: -18px;
-      cursor: pointer;
-      &::after {
-        content: '';
-        height: 18px;
-        width: 18px;
-        border-radius: 50%;
-        background: rgba(0,0,0,0.15);
-        display: none;
-        position: absolute;
-        top: 18px;
-        left: 18px;
-      }
-      &:hover {
-        &:after {
-          display: block;
-          animation: growUp 0.4s;
-        }
-      }
-      .inner {
-        width: 18px;
-        height: 18px;
-        .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
-        &::after {
-          display: none;
-        }
-      }
+      top: 43px;
+      left: 8px;
     }
   }
 }
@@ -553,19 +497,10 @@
     &:hover {
       background-color: @white;
       z-index: 9;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-      // &:after {
-      //   content: '';
-      //   position: absolute;
-      //   width: 100%;
-      //   top: -1px;
-      //   height: 1px;
-      //   display:block;
-      //   background: @white;
-      // }
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
     }
 
-    &.selected:not(:hover){
+    &.selected:not(:hover) {
       background: @list-selected-bg;
       color: @list-selected-color;
       border-bottom: 1px solid @border-color-secondary;
@@ -601,58 +536,51 @@
       background: @white;
     }
 
-    // &.keyboard-cursor {
-    //   border-left: 4px solid @list-focused-bg;
-    // }
-
-    &.selected {
-      .checkmark .inner {
-        .icon-mixin('../static/icons/check.svg', @blue, 24px);
-        border: none;
-      }
+    &:not(:hover) .list-column-Check .inner {
+      display: none;
     }
 
+    &.selected,
     &.selected.focused {
-      .checkmark .inner {
+      .list-column-Check .checkmark .inner {
         .icon-mixin('../static/icons/check.svg', @blue, 24px);
         border: none;
-      }
-    }
-    &.focused {
-      .checkmark .inner {
-        // border: 1px solid @accent-primary;
+        display: block;
       }
     }
 
-    .checkmark {
-      padding: (55px - 1px - 18px) / 2;
-      padding-left: 18px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      cursor: pointer;
-      &::after {
-        content: '';
-        height: 18px;
-        width: 18px;
-        border-radius: 50%;
-        background: rgba(0,0,0,0.15);
-        display: none;
-        position: absolute;
-        top: 18px;
-        left: 18px;
-      }
-      &:hover {
-        &:after {
-          display: block;
-          animation: growUp 0.4s;
-        }
-      }
+    .list-column-Check {
+      height: 100%;
+      display: block;
+
       .inner {
+        display: block;
         width: 18px;
         height: 18px;
         .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
         border: none;
+      }
+
+      .checkmark {
+        padding: 18px 0 0 18px;
+        cursor: pointer;
+        &::after {
+          content: '';
+          height: 18px;
+          width: 18px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.15);
+          display: none;
+          position: absolute;
+          top: 18px;
+          left: 18px;
+        }
+        &:hover {
+          &:after {
+            display: block;
+            animation: growUp 0.4s;
+          }
+        }
       }
     }
   }
