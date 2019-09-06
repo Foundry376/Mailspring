@@ -548,20 +548,24 @@ class DraftStore extends MailspringStore {
       .then(draft => {
         draft.body = `${body}\n\n${draft.body}`;
         draft.pristine = false;
-        const t = new SyncbackDraftTask({ draft });
-        // console.error('send quickly');
-        Actions.queueTask(t);
-        TaskQueue.waitForPerformLocal(t).then(() => {
+
+        // const t = new SyncbackDraftTask({ draft });
+        // // console.error('send quickly');
+        // Actions.queueTask(t);
+        // TaskQueue.waitForPerformLocal(t)
+
+        this._finalizeAndPersistNewMessage(draft).then(() => {
+          console.log('send draft');
           Actions.sendDraft(draft.headerMessageId);
         }).catch(e =>{
           AppEnv.grabLogs()
             .then(filename => {
               if (typeof filename === 'string' && filename.length > 0) {
-                AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: task, files: [filename] });
+                AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: e, files: [filename] });
               }
             })
             .catch(e => {
-              AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
+              AppEnv.reportError(new Error('Quick reply failed'));
             });
         });
       });
@@ -653,6 +657,7 @@ class DraftStore extends MailspringStore {
         if (originalMessageId) {
           Actions.draftReplyForwardCreated({ messageId: originalMessageId, type: messageType });
         }
+        console.log('data returned');
         return { headerMessageId: draft.headerMessageId, draft };
       })
       .catch(t => {
@@ -665,6 +670,7 @@ class DraftStore extends MailspringStore {
           .catch(e => {
             AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
           });
+        console.log('syncback did not returned');
         return { headerMessageId: draft.headerMessageId, draft };
       });
   }
