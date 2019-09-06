@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import DraftStore from '../flux/stores/draft-store';
 import Actions from '../flux/actions';
+import Message from '../flux/models/message';
 import Utils from '../flux/models/utils';
 
 function InflatesDraftClientId(ComposedComponent) {
@@ -39,10 +40,25 @@ function InflatesDraftClientId(ComposedComponent) {
 
     componentDidMount() {
       this._mounted = true;
-      if (this.props.draft && this.props.draft.savedOnRemote) {
+      if (
+        this.props.draft &&
+        this.props.draft.savedOnRemote &&
+        !Message.compareMessageState(this.props.draft.state, Message.messageState.sending) &&
+        !Message.compareMessageState(this.props.draft.state, Message.messageState.failing)
+      ) {
         this._prepareServerDraftForEdit(this.props.draft);
       } else {
-        this._prepareForDraft(this.props.headerMessageId, this.props.messageId);
+        if (
+          Message.compareMessageState(this.props.draft.state, Message.messageState.sending) ||
+          Message.compareMessageState(this.props.draft.state, Message.messageState.failing)
+        ) {
+          AppEnv.reportError(
+            new Error('Draft editing session should not have sending/failing state drafts'),
+            { errorData: this.props.draft }
+          );
+        } else {
+          this._prepareForDraft(this.props.headerMessageId, this.props.messageId);
+        }
       }
     }
 
@@ -59,7 +75,11 @@ function InflatesDraftClientId(ComposedComponent) {
       ) {
         // console.log(`new props: ${JSON.stringify(newProps)}`);
         this._teardownForDraft();
-        if (newProps.draft && newProps.draft.savedOnRemote) {
+        if (
+          newProps.draft &&
+          newProps.draft.savedOnRemote &&
+          !Message.compareMessageState(newProps.draft.state, Message.messageState.sending) &&
+          !Message.compareMessageState(newProps.draft.state, Message.messageState.failing)) {
           this._prepareServerDraftForEdit(newProps.draft);
         } else {
           this._prepareForDraft(newProps.headerMessageId, newProps.messageId);
