@@ -235,7 +235,14 @@ const TaskFactory = {
         cat => cat.accountId === accountId,
       );
       const provider = currentPerspective.providerByAccountId(accountId);
-      if (provider.provider === 'gmail') {
+      if (!provider) {
+        AppEnv.reportError(new Error('no provider found'), {
+          errorData: {
+            accountId: accountId,
+            previousFolder: previousFolder,
+          },
+        });
+      } else if (provider.provider === 'gmail') {
         if (previousFolder && !['spam', 'trash', 'all'].includes(previousFolder.role)) {
           previousFolder = CategoryStore.getAllMailCategory(accountId);
         }
