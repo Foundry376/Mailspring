@@ -428,6 +428,9 @@
 .outbox-list-narrow,
 .thread-list-narrow {
   .list-tabular .list-tabular-item {
+    .list-column {
+      display: block;
+    }
     &:hover .list-column-HoverActions {
       position: absolute;
       right: 0;
@@ -552,6 +555,7 @@
 
     .list-column {
       display: inherit;
+      padding-right: 7px;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
