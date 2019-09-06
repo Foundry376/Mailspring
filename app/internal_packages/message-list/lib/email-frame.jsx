@@ -11,6 +11,8 @@ import { autolink } from './autolinker';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
 import { shell } from 'electron';
+import fs from 'fs';
+import sharp from 'sharp';
 
 export default class EmailFrame extends React.Component {
   static displayName = 'EmailFrame';
@@ -167,11 +169,19 @@ export default class EmailFrame extends React.Component {
 
     // img fallback
     const imgFallbackList = doc.querySelectorAll('img');
-    imgFallbackList.forEach(img => {
+    imgFallbackList.forEach(async img => {
       if (img.src !== '' && (img.height === 0 || img.width === 0)) {
-        img.src = '../static/images/chat/image-not-found.png';
-        img.height = 25;
-        img.width = 25;
+        let fallbackSrc;
+        if (/^file:\/\/.*\.tiff$/.test(img.src)) {
+          fallbackSrc = await this._transformTiffToPng(img.src);
+        }
+        if (fallbackSrc) {
+          img.src = fallbackSrc;
+        } else {
+          img.src = '../static/images/chat/image-not-found.png';
+          img.height = 25;
+          img.width = 25;
+        }
       }
     });
   };
@@ -181,6 +191,29 @@ export default class EmailFrame extends React.Component {
       shell.openItem(decodeURIComponent(e.target.src.replace('file://', '')));
     }
   }
+
+  _transformTiffToPng = async src => {
+    const filePath = decodeURIComponent(src.replace('file://', ''));
+    const newFilePath = filePath.replace(/\.tiff$/, '.png');
+    try {
+      // has new .png file, return new path
+      fs.accessSync(newFilePath, fs.constants.R_OK);
+      return newFilePath;
+    } catch (err) {
+      // dont has new .png file, transform old file
+      try {
+        fs.accessSync(filePath, fs.constants.R_OK);
+        const fileBuffer = await sharp(filePath)
+          .png()
+          .toBuffer();
+        fs.writeFileSync(newFilePath, fileBuffer);
+        fs.accessSync(newFilePath, fs.constants.R_OK);
+        return newFilePath;
+      } catch (err) {
+        return '';
+      }
+    }
+  };
 
   _onMustRecalculateFrameHeight = () => {
     this._iframeComponent.setHeightQuietly(0);
