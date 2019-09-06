@@ -499,9 +499,12 @@ export default class ModelQuery {
     const allMatchers = this.matchersFlattened();
     const getJoinTableRef = attr => {
       return this._getMuidByJoinTableName(allMatchers, attr.modelTable);
-    }
-    this._orders.forEach(sort => {
+    };
+    this._orders.forEach((sort, index) => {
       sql += sort.orderBySQL(this._klass, getJoinTableRef);
+      if (index !== this._orders.length - 1 && this._orders.length > 1) {
+        sql += ' , ';
+      }
     });
     return sql;
   }

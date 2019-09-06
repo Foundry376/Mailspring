@@ -19,6 +19,7 @@ import PropTypes from 'prop-types';
 const CounterStyles = {
   Default: 'def',
   Alt: 'alt',
+  Critical: 'critical',
 };
 
 /*
@@ -302,6 +303,7 @@ class OutlineViewItem extends Component {
     const className = classnames({
       'item-count-box': true,
       'alt-count': item.counterStyle === CounterStyles.Alt,
+      'critical-count': item.counterStyle === CounterStyles.Critical,
     });
     return <div className={className}>{this._formatNumber(item.count)}</div>;
   };

@@ -1,0 +1,11 @@
+{
+  "name": "outbox-list",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "View outbox using React",
+  "license": "GPL-3.0",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  }
+}

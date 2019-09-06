@@ -3,9 +3,12 @@
 // Remove inverted color effects
 .thread-list .focused .thread-icon,
 .draft-list .focused .thread-icon,
+.outbox-list .focused .thread-icon,
 .thread-list .focused .draft-icon,
+.outbox-list .focused .draft-icon,
 .draft-list .focused .draft-icon,
 .thread-list .focused .mail-important-icon,
+.outbox-list .focused .mail-important-icon,
 .draft-list .focused .mail-important-icon,
 .thread-list.handler-split .list-item.selected .thread-icon,
 .thread-list.handler-split .list-item.selected .draft-icon,
@@ -63,6 +66,10 @@
 }
 
 // The gradient behind threadlist hover icons (Snooze, Arvhive Delete)
+.outbox-list .list-item:hover .list-column-HoverActions .inner,
+.outbox-list .list-item.focused:hover .list-column-HoverActions .inner,
+.outbox-list .list-item.selected:hover .list-column-HoverActions .inner,
+.outbox-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner,
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner,
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner,
@@ -75,11 +82,14 @@
   );
 }
 
+.outbox-list .list-item.focused:hover .list-column-HoverActions .inner .action,
+.outbox-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner .action,
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner .action,
 .thread-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner .action {
   -webkit-filter: none;
 }
 
+.outbox-list .list-item.focused:hover .list-column-HoverActions .inner .action.action-trash,
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner .action.action-trash {
   background: url('../static/images/thread-list-quick-actions/ic-quick-button-trash@2x.png') center
       no-repeat,

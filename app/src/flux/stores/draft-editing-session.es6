@@ -10,6 +10,7 @@ import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
+import FocusedContentStore from './focused-content-store';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
@@ -38,10 +39,9 @@ class DraftChangeSet extends EventEmitter {
     super();
     this.callbacks = callbacks;
     this._timer = null;
-    this._timerTime = null;
     this._lastModifiedTimes = {};
     this._lastCommitTime = 0;
-    this._lastUploadTime = 0;
+    this._draftDirty = false;
   }
 
   cancelCommit() {
@@ -76,7 +76,11 @@ class DraftChangeSet extends EventEmitter {
   }
 
   isDirty() {
-    return this.dirtyFields().length > 0;
+    return this.dirtyFields().length > 0 || this._draftDirty;
+  }
+  onNewDraftFromOtherWindow(){
+    this._draftDirty = true;
+    this.debounceCommit();
   }
 
   dirtyFields() {
@@ -86,6 +90,9 @@ class DraftChangeSet extends EventEmitter {
   }
 
   debounceCommit() {
+    if (!AppEnv.isMainWindow()) {
+      return;
+    }
     const now = Date.now();
 
     // If there's already a timer going and we started it recently,
@@ -100,7 +107,7 @@ class DraftChangeSet extends EventEmitter {
   }
 
   async commit(arg) {
-    if (this.dirtyFields().length === 0) {
+    if (this.dirtyFields().length === 0 && !this._draftDirty) {
       return;
     }
     if (this._timer) {
@@ -110,6 +117,7 @@ class DraftChangeSet extends EventEmitter {
     this._lastCommitTime = Date.now();
     this._timer = null;
     this._lastModifiedTimes = {};
+    this._draftDirty = false;
   }
 }
 
@@ -175,6 +183,18 @@ function fastCloneDraft(draft) {
   Object.defineProperty(next, 'bodyEditorState', next.__bodyEditorStatePropDescriptor);
   return next;
 }
+function cloneForSyncDraftData(draft){
+  const next = new Message();
+  for (const key of Object.getOwnPropertyNames(draft)) {
+    if (key === 'body' || key === 'bodyEditorState') {
+      continue;
+    }
+    next[key] = draft[key];
+  }
+  next['body'] = draft.body;
+  return next;
+}
+
 
 /**
  Public: DraftEditingSession is a small class that makes it easy to implement components
@@ -197,14 +217,21 @@ export default class DraftEditingSession extends MailspringStore {
     this._draft = false;
     this._destroyed = false;
     this._popedOut = popout;
-    this._popOutOrigin = {};
-    this._inView = true;
+    // this._popOutOrigin = {};
+    // this._inView = true;
+    let currentWindowLevel = 3;
     if (AppEnv.isMainWindow()) {
-      this._currentWindowLevel = 1;
+      currentWindowLevel = 1;
     } else if (AppEnv.isThreadWindow()) {
-      this._currentWindowLevel = 2;
+      currentWindowLevel = 2;
     } else if (AppEnv.isComposerWindow()) {
-      this._currentWindowLevel = 3;
+      currentWindowLevel = 3;
+    }
+    // Because new draft window will first shown as main window type,
+    // We need to check windowProps;
+    const windowProps = AppEnv.getWindowProps();
+    if(windowProps.draftJSON){
+      currentWindowLevel = 3;
     }
 
     this.headerMessageId = headerMessageId;
@@ -218,6 +245,19 @@ export default class DraftEditingSession extends MailspringStore {
       hotwireDraftBodyState(draft);
       this._draft = draft;
       this._draftPromise = Promise.resolve(draft);
+      const thread = FocusedContentStore.focused('thread');
+      const inFocusedThread = thread && thread.id === draft.threadId;
+      if( currentWindowLevel === 3){
+        // Because new drafts can't be viewed in main window, we don't add it towards open count, if we are in mainWin
+        // we want to trigger open count in composer window
+        Actions.draftOpenCount({headerMessageId, windowLevel: currentWindowLevel, source: `draft-editing-session, with draft level: ${currentWindowLevel}`})
+      }else if(draft.replyOrForward !== Message.draftType.new ){
+        if(currentWindowLevel === 2){
+          Actions.draftOpenCount({headerMessageId, windowLevel: currentWindowLevel, source: `draft-editing-session, with draft level: ${currentWindowLevel}`})
+        }else if(currentWindowLevel === 1 && inFocusedThread){
+          Actions.draftOpenCount({headerMessageId, windowLevel: currentWindowLevel, source: `draft-editing-session, with draft level: ${currentWindowLevel}`})
+        }
+      }
     } else {
       this._draftPromise = DraftStore.findByHeaderMessageIdWithBody({
         headerMessageId: this.headerMessageId,
@@ -225,11 +265,11 @@ export default class DraftEditingSession extends MailspringStore {
         .limit(1)
         .then(draft => {
           if (this._destroyed) {
-            console.warn(`Draft loaded but session has been torn down.`);
+            AppEnv.reportWarning(`Draft loaded but session has been torn down.`);
             return;
           }
           if (!draft) {
-            console.warn(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
+            AppEnv.reportWarning(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
             return;
           }
           if (!draft.body) {
@@ -250,15 +290,37 @@ export default class DraftEditingSession extends MailspringStore {
           }
           this._draft = draft;
           this._threadId = draft.threadId;
-          // console.log(`sending out draft-arp @ windowLevel ${this._currentWindowLevel}`);
-          ipcRenderer.send('draft-arp', {
-            headerMessageId: this.headerMessageId,
-            referenceMessageId: draft.referenceMessageId,
-            threadId: draft.threadId,
-            windowLevel: this._currentWindowLevel,
-          });
-          this.trigger(); // will this cause a race condition between draft arp and trigger?
+          // console.log(`sending out draft-arp @ windowLevel ${this.currentWindowLevel}`);
+          // ipcRenderer.send('draft-arp', {
+          //   headerMessageId: this.headerMessageId,
+          //   referenceMessageId: draft.referenceMessageId,
+          //   threadId: draft.threadId,
+          //   windowLevel: this.currentWindowLevel,
+          // });
+          const thread = FocusedContentStore.focused('thread');
+          const inFocusedThread = thread && thread.id === draft.threadId;
+          if(currentWindowLevel === 2 || currentWindowLevel ===1 && inFocusedThread){
+            console.log(`draft count send ${currentWindowLevel}`);
+            Actions.draftOpenCount({
+              headerMessageId,
+              windowLevel: currentWindowLevel,
+              source: `draft editing session, no draft ${currentWindowLevel}`,
+            });
+          }
+          this.trigger();
         });
+    }
+  }
+
+  get currentWindowLevel() {
+    if (AppEnv.isMainWindow()) {
+      return 1;
+    } else if (AppEnv.isThreadWindow()) {
+      return 2;
+    } else if (AppEnv.isComposerWindow()) {
+      return 3;
+    } else {
+      return 3;
     }
   }
 
@@ -279,29 +341,29 @@ export default class DraftEditingSession extends MailspringStore {
   isPopout() {
     return this._popedOut;
   }
-  inView() {
-    return this._inView;
-  }
+  // inView() {
+  //   return this._inView;
+  // }
   isDestroyed() {
     return this._destroyed;
   }
-  updateDraftId(id) {
-    this._draft.id = id;
-    ipcRenderer.send('draft-got-new-id', {
-      newHeaderMessageId: this._draft.headerMessageId,
-      oldHeaderMessageId: this._draft.headerMessageId,
-      newMessageId: this._draft.id,
-      referenceMessageId: this._draft.referenceMessageId,
-      threadId: this._draft.threadId,
-      windowLevel: this._currentWindowLevel,
-    });
-    this.trigger();
-  }
+  // updateDraftId(id) {
+  //   this._draft.id = id;
+  //   ipcRenderer.send('draft-got-new-id', {
+  //     newHeaderMessageId: this._draft.headerMessageId,
+  //     oldHeaderMessageId: this._draft.headerMessageId,
+  //     newMessageId: this._draft.id,
+  //     threadId: this._draft.threadId,
+  //     windowLevel: this.currentWindowLevel,
+  //   });
+  //   this.trigger();
+  // }
 
   setPopout(val) {
     if (val !== this._popedOut) {
-      if (this.changes) {
+      if (this.changes && !val) {
         this.changes.cancelCommit();
+        this.changeSetCommit();
       }
       this._popedOut = val;
       this.trigger();
@@ -320,24 +382,39 @@ export default class DraftEditingSession extends MailspringStore {
   resumeSession() {
     this._registerListeners();
   }
+  closeSession({ cancelCommits = false } = {}) {
+    if(cancelCommits){
+      this.changes.cancelCommit();
+    }else{
+      if(this.changes.isDirty() || this.needUpload){
+        this.changeSetCommit('unload');
+      }
+    }
+    this.teardown();
+  }
 
   _registerListeners = () => {
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
-    ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
-    ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
-    ipcRenderer.on('new-window', this._onDraftNewWindow);
-    ipcRenderer.on('draft-delete', this._onDraftDelete);
-    this.listenTo(Actions.popSheet, this._onThreadClose);
-    // this.listenTo(FocusedPerspectiveStore, this._onThreadClose);
+    // ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
+    // ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
+    // ipcRenderer.on('new-window', this._onDraftNewWindow);
+    // ipcRenderer.on('draft-delete', this._onDraftDelete);
+    // this.listenTo(Actions.popSheet, this._onThreadClose);
+    this.listenTo(Actions.draftOpenCountBroadcast, this.onDraftOpenCountChange);
+    if (!AppEnv.isMainWindow()) {
+      this.listenTo(Actions.broadcastDraftData, this._applySyncDraftData);
+    } else {
+      this.listenTo(Actions.syncDraftDataToMain, this._applySyncDraftData);
+    }
   };
   _removeListeners = () => {
     this.stopListeningToAll();
     this.changes.cancelCommit();
-    ipcRenderer.removeListener('new-window', this._onDraftNewWindow);
-    ipcRenderer.removeListener('draft-close-window', this._onDraftCloseWindow);
-    ipcRenderer.removeListener('draft-arp-reply', this._onDraftARPReply);
-    ipcRenderer.removeListener('draft-delete', this._onDraftDelete);
+    // ipcRenderer.removeListener('new-window', this._onDraftNewWindow);
+    // ipcRenderer.removeListener('draft-close-window', this._onDraftCloseWindow);
+    // ipcRenderer.removeListener('draft-arp-reply', this._onDraftARPReply);
+    // ipcRenderer.removeListener('draft-delete', this._onDraftDelete);
   };
 
   validateDraftForSending() {
@@ -425,11 +502,11 @@ export default class DraftEditingSession extends MailspringStore {
   // address.
   //
   async ensureCorrectAccount() {
-    if (this._popedOut) {
+    // if (this._popedOut) {
       // We do nothing if session have popouts
       // console.log('we are poped out');
-      return;
-    }
+      // return;
+    // }
     const draft = this.draft();
     const account = AccountStore.accountForEmail(draft.from[0].email);
     if (!account) {
@@ -492,79 +569,79 @@ export default class DraftEditingSession extends MailspringStore {
     return this;
   }
 
-  _onDraftARPReply = (event, options = {}) => {
-    if (
-      options.headerMessageId &&
-      this.headerMessageId === options.headerMessageId &&
-      options.windowLevel > this._currentWindowLevel
-    ) {
-      if (options.windowLevel === 2) {
-        this._popOutOrigin['threadPopout'] = true;
-      } else if (options.windowLevel === 3) {
-        this._popOutOrigin['composer'] = true;
-      }
-      this.setPopout(true);
-    }
-  };
-  _onThreadClose = ({ thread = null } = {}) => {
-    if (thread) {
-      if (thread.id === this._draft.threadId) {
-        this.onThreadChange({ threadId: 'nan' });
-      }
-    }
-  };
-
-  _onDraftCloseWindow = (event, options = {}) => {
-    // console.log('session on close window', options);
-    if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
-      if (options.deleting) {
-        this._destroyed = true;
-      }
-      if (this._currentWindowLevel === 2) {
-        delete this._popOutOrigin['composer'];
-        this.setPopout(false);
-      } else if (this._currentWindowLevel === 1) {
-        if (options.windowLevel === 3) {
-          delete this._popOutOrigin['composer'];
-        } else if (options.windowLevel === 2) {
-          delete this._popOutOrigin['threadPopout'];
-        }
-        this.setPopout(Object.keys(this._popOutOrigin).length > 0);
-      }
-    }
-  };
-
-  _onDraftNewWindow = (event, options = {}) => {
-    if (
-      options.headerMessageId &&
-      this._currentWindowLevel < 3 &&
-      this.headerMessageId === options.headerMessageId
-    ) {
-      this._popOutOrigin['composer'] = true;
-      this.setPopout(true);
-    } else if (
-      !options.headerMessageId &&
-      options.threadId &&
-      this._draft &&
-      options.windowType === 'thread-popout' &&
-      this._draft.threadId === options.threadId &&
-      this._currentWindowLevel === 1
-    ) {
-      this._popOutOrigin['threadPopout'] = true;
-      this.setPopout(true);
-    }
-  };
-
-  _onDraftDelete = (event, options) => {
-    if (
-      Array.isArray(options.headerMessageIds) &&
-      options.headerMessageIds.includes(this.headerMessageId)
-    ) {
-      this.changes.cancelCommit();
-      this._destroyed = true;
-      this._removeListeners();
-    }
-  };
+  // _onDraftARPReply = (event, options = {}) => {
+  //   if (
+  //     options.headerMessageId &&
+  //     this.headerMessageId === options.headerMessageId &&
+  //     options.windowLevel > this.currentWindowLevel
+  //   ) {
+  //     if (options.windowLevel === 2) {
+  //       this._popOutOrigin['threadPopout'] = true;
+  //     } else if (options.windowLevel === 3) {
+  //       this._popOutOrigin['composer'] = true;
+  //     }
+  //     this.setPopout(true);
+  //   }
+  // };
+  // _onThreadClose = ({ thread = null } = {}) => {
+  //   if (thread) {
+  //     if (thread.id === this._draft.threadId) {
+  //       this.onThreadChange({ threadId: 'nan' });
+  //     }
+  //   }
+  // };
+  //
+  // _onDraftCloseWindow = (event, options = {}) => {
+  //   // console.log('session on close window', options);
+  //   if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
+  //     if (options.deleting) {
+  //       this._destroyed = true;
+  //     }
+  //     if (this.currentWindowLevel === 2) {
+  //       delete this._popOutOrigin['composer'];
+  //       this.setPopout(false);
+  //     } else if (this.currentWindowLevel === 1) {
+  //       if (options.windowLevel === 3) {
+  //         delete this._popOutOrigin['composer'];
+  //       } else if (options.windowLevel === 2) {
+  //         delete this._popOutOrigin['threadPopout'];
+  //       }
+  //       this.setPopout(Object.keys(this._popOutOrigin).length > 0);
+  //     }
+  //   }
+  // };
+  //
+  // _onDraftNewWindow = (event, options = {}) => {
+  //   if (
+  //     options.headerMessageId &&
+  //     this.currentWindowLevel < 3 &&
+  //     this.headerMessageId === options.headerMessageId
+  //   ) {
+  //     this._popOutOrigin['composer'] = true;
+  //     this.setPopout(true);
+  //   } else if (
+  //     !options.headerMessageId &&
+  //     options.threadId &&
+  //     this._draft &&
+  //     options.windowType === 'thread-popout' &&
+  //     this._draft.threadId === options.threadId &&
+  //     this.currentWindowLevel === 1
+  //   ) {
+  //     this._popOutOrigin['threadPopout'] = true;
+  //     this.setPopout(true);
+  //   }
+  // };
+  //
+  // _onDraftDelete = (event, options) => {
+  //   if (
+  //     Array.isArray(options.headerMessageIds) &&
+  //     options.headerMessageIds.includes(this.headerMessageId)
+  //   ) {
+  //     this.changes.cancelCommit();
+  //     this._destroyed = true;
+  //     this._removeListeners();
+  //   }
+  // };
 
   _onDraftChanged = change => {
     if (change === undefined || change.type !== 'persist') {
@@ -572,7 +649,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
     if (!this._draft) {
       // We don't accept changes unless our draft object is loaded
-      console.log(`draft not ready @ windowLevel ${this._currentWindowLevel}`);
+      console.log(`draft not ready @ windowLevel ${this.currentWindowLevel}`);
       return;
     }
 
@@ -610,7 +687,7 @@ export default class DraftEditingSession extends MailspringStore {
         newMessageId: this._draft.id,
         referenceMessageId: this._draft.referenceMessageId,
         threadId: this._draft.threadId,
-        windowLevel: this._currentWindowLevel,
+        windowLevel: this.currentWindowLevel,
       });
       changed = true;
     }
@@ -669,35 +746,41 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   // We assume that when thread changes, we are switching view
-  onThreadChange = options => {
-    // console.log(`on thread change listener: ${this._threadId}`, options);
-    if (
-      this._draft &&
-      options.threadId &&
-      this._draft.threadId === options.threadId &&
-      !this._inView &&
-      !this._destroyed
-    ) {
-      this._inView = true;
-      this._registerListeners();
-    } else if (
-      this._draft &&
-      options.threadId &&
-      this._draft.threadId !== options.threadId &&
-      this._inView &&
-      !this.isPopout() &&
-      !this._destroyed
-    ) {
-      if (this.needUpload()) {
-        this.changeSetCommit('unload');
-      }
-      this._removeListeners();
-      this._inView = false;
-    }
-  };
+  // onThreadChange = options => {
+  //   // console.log(`on thread change listener: ${this._threadId}`, options);
+  //   if (
+  //     this._draft &&
+  //     options.threadId &&
+  //     this._draft.threadId === options.threadId &&
+  //     !this._inView &&
+  //     !this._destroyed
+  //   ) {
+  //     this._inView = true;
+  //     this._registerListeners();
+  //   } else if (
+  //     this._draft &&
+  //     options.threadId &&
+  //     this._draft.threadId !== options.threadId &&
+  //     this._inView &&
+  //     !this.isPopout() &&
+  //     !this._destroyed
+  //   ) {
+  //     if (this.needUpload()) {
+  //       this.changeSetCommit('unload');
+  //     }
+  //     this._removeListeners();
+  //     this._inView = false;
+  //   }
+  // };
+  cancelCommit(){
+    this.changes.cancelCommit();
+  }
 
   async changeSetCommit(reason='') {
-    if (this._destroyed || !this._draft || this._popedOut) {
+    // if (this._destroyed || !this._draft || this._popedOut) {
+    //   return;
+    // }
+    if (!this._draft){
       return;
     }
     //if id is empty, we assign uuid to id;
@@ -707,36 +790,36 @@ export default class DraftEditingSession extends MailspringStore {
       );
       this._draft.id = uuid();
     }
-    if (
-      this._draft.remoteUID &&
-      (!this._draft.msgOrigin ||
-        (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID)) &&
-      reason === 'unload'
-    ) {
-      this._draft.setOrigin(Message.EditExistingDraft);
-      this._draft.referenceMessageId = this._draft.id;
-      // this._draft.id = uuid();
-      const oldHMsgId = this._draft.headerMessageId;
-      // this._draft.headerMessageId = this._draft.id;
-      this.headerMessageId = this._draft.headerMessageId;
-      this._draft.hasNewID = true;
-      ipcRenderer.send('draft-got-new-id', {
-        newHeaderMessageId: this._draft.headerMessageId,
-        oldHeaderMessageId: oldHMsgId,
-        newMessageId: this._draft.id,
-        referenceMessageId: this._draft.referenceMessageId,
-        threadId: this._draft.threadId,
-        windowLevel: this._currentWindowLevel,
-      });
-    } else if (this._draft.remoteUID && this._draft.msgOrigin !== Message.EditExistingDraft) {
-      // console.error('Message with remoteUID but origin is not edit existing draft');
-      this._draft.setOrigin(Message.EditExistingDraft);
-    }
+    // if (
+    //   this._draft.remoteUID &&
+    //   (!this._draft.msgOrigin ||
+    //     (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID)) &&
+    //   reason === 'unload'
+    // ) {
+    //   this._draft.setOrigin(Message.EditExistingDraft);
+    //   this._draft.referenceMessageId = this._draft.id;
+    //   // this._draft.id = uuid();
+    //   const oldHMsgId = this._draft.headerMessageId;
+    //   // this._draft.headerMessageId = this._draft.id;
+    //   this.headerMessageId = this._draft.headerMessageId;
+    //   this._draft.hasNewID = true;
+    //   ipcRenderer.send('draft-got-new-id', {
+    //     newHeaderMessageId: this._draft.headerMessageId,
+    //     oldHeaderMessageId: oldHMsgId,
+    //     newMessageId: this._draft.id,
+    //     referenceMessageId: this._draft.referenceMessageId,
+    //     threadId: this._draft.threadId,
+    //     windowLevel: this.currentWindowLevel,
+    //   });
+    // } else if (this._draft.remoteUID && this._draft.msgOrigin !== Message.EditExistingDraft) {
+    //   // console.error('Message with remoteUID but origin is not edit existing draft');
+    //   this._draft.setOrigin(Message.EditExistingDraft);
+    // }
     if (reason === 'unload') {
       this._draft.hasNewID = false;
-      this._draft.needUpload = false;
+      this.needUpload = false;
+      this._draft.savedOnRemote = true;
     }
-    // console.error('commit sync back draft');
     const task = new SyncbackDraftTask({ draft: this._draft, source: reason });
     task.saveOnRemote = reason === 'unload';
     Actions.queueTask(task);
@@ -767,8 +850,11 @@ export default class DraftEditingSession extends MailspringStore {
       return { draft: null, oldHeaderMessageId: null, oldMessageId: null };
     }
   }
+  set needUpload(val) {
+    this._draft.needUpload = val;
+  }
 
-  needUpload() {
+  get needUpload() {
     return this._draft.needUpload;
   }
 
@@ -789,6 +875,62 @@ export default class DraftEditingSession extends MailspringStore {
         this._draft[key] = val;
       }
     }
+    this._syncDraftDataToMain();
     this.trigger();
+  };
+
+  _applySyncDraftData({ syncData = {}, sourceLevel = 0 } = {}) {
+    if (sourceLevel !== this.currentWindowLevel && syncData.id === this._draft.id) {
+      console.log('apply sync draft data');
+      const nothingChanged =
+        this._draft['body'] === syncData.body &&
+        JSON.stringify(this._draft.from) === JSON.stringify(syncData.from) &&
+        JSON.stringify(this._draft.to) === JSON.stringify(syncData.to) &&
+        JSON.stringify(this._draft.bcc) === JSON.stringify(syncData.bcc) &&
+        JSON.stringify(this._draft.cc) === JSON.stringify(syncData.cc);
+      for (const key of Object.getOwnPropertyNames(syncData)) {
+        if (key === 'body' || key === 'bodyEditorState') {
+          continue;
+        }
+        this._draft[key] = syncData[key];
+      }
+      this._draft['body'] = syncData.body;
+      this.trigger();
+      if (AppEnv.isMainWindow()) {
+        Actions.broadcastDraftData({ syncData, sourceLevel });
+        if(!nothingChanged){
+          console.log('things changed');
+          this.needUpload = true;
+          this.changes.onNewDraftFromOtherWindow();
+        }
+      }
+    }
+  }
+
+  _syncDraftDataToMain = () => {
+    if (!AppEnv.isMainWindow()) {
+      console.log('sync draft to main');
+      const syncData = cloneForSyncDraftData(this._draft);
+      Actions.syncDraftDataToMain({ syncData, sourceLevel: this.currentWindowLevel });
+    }
+  };
+  onDraftOpenCountChange = ({ headerMessageId, data = {} }) => {
+    console.log(`draft open count change ${headerMessageId}`);
+    if (this._draft && headerMessageId === this._draft.headerMessageId) {
+      console.log('draft open count change');
+      let level = 3;
+      let changedToTrue= false;
+      while (level > this.currentWindowLevel) {
+        if (data[level]) {
+          this.setPopout(true);
+          changedToTrue = true;
+          break;
+        }
+        level = level - 1;
+      }
+      if(!changedToTrue){
+        this.setPopout(false);
+      }
+    }
   };
 }

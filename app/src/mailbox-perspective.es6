@@ -40,6 +40,10 @@ export default class MailboxPerspective {
     return new SingleAccountMailboxPerspective(accountId);
   }
 
+  static forOutbox(accountsOrIds) {
+    return new OutboxMailboxPerspective(accountsOrIds);
+  }
+
   static forDrafts(accountsOrIds) {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
@@ -376,6 +380,55 @@ class SingleAccountMailboxPerspective extends MailboxPerspective {
   constructor(accountId) {
     super([accountId]);
     this.iconName = 'inbox.png';
+  }
+}
+
+
+class OutboxMailboxPerspective extends MailboxPerspective {
+  constructor(accountIds) {
+    super(accountIds);
+    this.name = 'Outbox';
+    this.iconName = 'outbox.svg';
+    this.outbox = true; // The OutboxStore looks for this
+    this._categories = [];
+  }
+
+
+  categories() {
+    return this._categories;
+  }
+
+  threads() {
+    return null;
+  }
+
+  unreadCount() {
+    const ret = OutboxStore.count();
+    if (ret.failed > 0) {
+      return ret.failed;
+    }
+    return ret.total;
+  }
+
+  canReceiveThreadsFromAccountIds() {
+    return false;
+  }
+  canArchiveThreads(threads) {
+    return false;
+  }
+  canMoveThreadsTo(threads, standardCategoryName) {
+    return true;
+  }
+
+  tasksForRemovingItems(messages, source) {
+    return TaskFactory.tasksForDestroyingDraft({ messages, source });
+  }
+
+  sheet() {
+    if (!WorkspaceStore || !WorkspaceStore.Sheet) {
+      WorkspaceStore = require('./flux/stores/workspace-store');
+    }
+    return WorkspaceStore.Sheet && WorkspaceStore.Sheet.Outbox;
   }
 }
 

@@ -114,6 +114,9 @@ lazyLoadAndRegisterTask('AnalyzeDBTask', 'analyze-db-task');
 lazyLoadAndRegisterTask('ExpungeMessagesTask', 'expunge-messages-task');
 lazyLoadAndRegisterTask('DeleteThreadsTask', 'delete-threads-task');
 lazyLoadAndRegisterTask('CalendarTask', 'calendar-task');
+lazyLoadAndRegisterTask('ResendDraftTask', 'resend-draft-task');
+lazyLoadAndRegisterTask('CancelOutboxDraftTask', 'cancel-outbox-draft-task');
+lazyLoadAndRegisterTask('ChangeDraftToFailingTask', 'change-draft-to-failing-task');
 
 // Stores
 // These need to be required immediately since some Stores are

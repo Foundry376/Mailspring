@@ -251,8 +251,10 @@ body.is-blurred {
   // to be one continuous bar.
   z-index: 10;
 
+  .toolbar-Outbox,
   .toolbar-DraftList,
   .toolbar-ThreadList,
+  .toolbar-OutboxMessage,
   .toolbar-MessageList {
     height: @search-bar-height;
     border-bottom: 1px solid @extra-light-grey;
@@ -710,6 +712,8 @@ body.platform-win32 {
   flex-shrink: 0;
 }
 
+.column-Outbox,
+.column-OutboxMessage,
 .column-ThreadList,
 .column-MessageList {
   margin-top: @search-bar-height;
@@ -722,12 +726,12 @@ body.platform-win32 {
     }
   }
 }
-
+.column-Outbox,
 .column-ThreadList {
   overflow-x: hidden;
   overflow-y: hidden;
 }
-
+.column-OutboxMessage,
 .column-MessageList {
   margin-top: 0;
   top: 68px;
@@ -749,12 +753,13 @@ body.platform-win32 {
   padding-bottom: @search-bar-height;
   -webkit-app-region: no-drag;
 }
-
+.mode-list .column-Outbox,
 .mode-list .column-ThreadList {
   flex: 1;
 }
 
 .layout-mode-popout .message-list-toolbar,
+.column-OutboxMessage .outbox-message-toolbar,
 .column-MessageList .message-list-toolbar {
   height: 41px;
   border-bottom: 1px solid transparent;
@@ -887,6 +892,7 @@ body.platform-win32 {
     height: 60px;
     max-height: 60px;
   }
+  #outbox-message-toolbar,
   #message-list-toolbar {
     position: fixed !important;
     left: 0;

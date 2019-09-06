@@ -346,6 +346,12 @@ class SidebarItem {
     }
     return this.forPerspective(id, perspective, opts);
   }
+  static forOutbox(accountIds, opts = {}){
+    opts.iconName = 'outbox.svg';
+    const perspective = MailboxPerspective.forOutbox(accountIds);
+    const id = 'outbox';
+    return this.forPerspective(id, perspective, opts);
+  }
 
   static forInbox(accountId, opts = {}) {
     opts.iconName = 'inbox.svg';

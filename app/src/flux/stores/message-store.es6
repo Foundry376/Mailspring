@@ -10,7 +10,7 @@ import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
-import electron, { ipcRenderer, remote } from 'electron';
+import electron, { ipcRenderer } from 'electron';
 import fs from 'fs';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
@@ -24,7 +24,7 @@ class MessageStore extends MailspringStore {
 
   findAll() {
     return DatabaseStore.findAll(Message)
-      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.pulling])]);
+      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.updatingHasUID, Message.messageState.updatingNoUID, Message.messageState.failing])]);
   }
 
   findAllInDescendingOrder() {
@@ -48,7 +48,7 @@ class MessageStore extends MailspringStore {
   }
 
   findByThreadId({ threadId }) {
-    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.pulling])]);
+    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.updatingHasUID, Message.messageState.updatingNoUID, Message.messageState.failing])]);
   }
 
   findByThreadIdAndAccountId({ threadId, accountId }) {
@@ -64,7 +64,7 @@ class MessageStore extends MailspringStore {
   }
 
   findByMessageId({ messageId }) {
-    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.pulling])]);
+    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.updatingHasUID, Message.messageState.updatingNoUID, Message.messageState.failing])]);
   }
 
   findByMessageIdWithBody({ messageId }) {

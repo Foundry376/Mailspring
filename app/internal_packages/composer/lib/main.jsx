@@ -29,11 +29,25 @@ class ComposerWithWindowProps extends React.Component {
       throw new Error('Initialize popout composer windows with valid draftJSON');
     }
     const draft = new Message().fromJSON(draftJSON);
-    DraftStore._createSession(headerMessageId, draft);
     this.state = windowProps;
-    this.state.messageId = draft.id;
     this._mounted = false;
     this._unlisten = Actions.changeDraftAccountComplete.listen(this._onDraftChangeAccountComplete, this);
+    if (draft.savedOnRemote) {
+      console.log('savedOnRemote');
+      DraftStore.sessionForServerDraft(draft).then(session => {
+        const newDraft = session.draft();
+        if (!this._mounted) {
+          console.log('changed messageId');
+          this.state.messageId = newDraft.id;
+        } else {
+          console.log('changing messageId');
+          this.setState({ messageId: newDraft.id });
+        }
+      });
+    } else {
+      DraftStore._createSession(headerMessageId, draft);
+      this.state.messageId = draft.id;
+    }
   }
   componentWillMount() {
     ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
@@ -44,17 +58,25 @@ class ComposerWithWindowProps extends React.Component {
 
   _onDraftChangeAccountComplete = ({ newDraftJSON }) => {
     const draft = new Message().fromJSON(newDraftJSON);
-    DraftStore._createSession(draft.headerMessageId, draft);
-    this.setState({ headerMessageId: draft.headerMessageId, messageId: draft.id });
+    if (draft.savedOnRemote) {
+      DraftStore.sessionForServerDraft(draft).then(session => {
+        const newDraft = session.draft();
+        if (newDraft) {
+          this.setState({ headerMessageId: newDraft.headerMessageId, messageId: newDraft.id });
+        }
+      });
+    } else {
+      DraftStore._createSession(draft.headerMessageId, draft);
+      this.setState({ headerMessageId: draft.headerMessageId, messageId: draft.id });
+    }
   };
 
   _onDraftGotNewId = (event, options) => {
     if (
-      (options.referenceMessageId || options.oldMessageId) &&
+      options.oldMessageId &&
       options.newHeaderMessageId &&
       options.newMessageId &&
-      (options.referenceMessageId === this.state.messageId ||
-        options.oldMessageId === this.state.messageId)
+      options.oldMessageId === this.state.messageId
     ) {
       this.setState({
         headerMessageId: options.newHeaderMessageId,
