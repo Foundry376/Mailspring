@@ -3,27 +3,40 @@ import Attributes from '../attributes';
 
 export default class CancelOutboxDraftTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
-    messageIds: Attributes.Collection({
-      modelKey: 'messageIds',
+    headerMessageIds: Attributes.Collection({
+      modelKey: 'headerMessageIds',
+    }),
+    refOldDraftHeaderMessageIds: Attributes.Collection({
+      modelKey: 'refOldDraftHeaderMessageIds',
     }),
     canBeUndone: Attributes.Boolean({
       modelKey: 'canBeUndone',
     })
   });
 
-  constructor({ messageIds = [], ...rest } = {}) {
+  constructor({ headerMessageIds = [], refOldDraftHeaderMessageIds = [], ...rest } = {}) {
     super(rest);
-    this.messageIds = Array.isArray(messageIds) ? messageIds : [messageIds];
+    this.headerMessageIds = Array.isArray(headerMessageIds) ? headerMessageIds : [headerMessageIds];
+    this.refOldDraftHeaderMessageIds = Array.isArray(refOldDraftHeaderMessageIds)
+      ? refOldDraftHeaderMessageIds
+      : [refOldDraftHeaderMessageIds];
+    if (this.headerMessageIds.length !== this.refOldDraftHeaderMessageIds.length) {
+      AppEnv.reportError(
+        new Error(
+          `CancelOutboxDraftTask have unequal length headerMessageIds and refOldDraftHeaderMessageIds`
+        )
+      );
+    }
     if (this.canBeUndone === undefined) {
       this.canBeUndone = true;
     }
   }
 
   label() {
-    if (this.messageIds.length > 1) {
-      return `Deleting ${this.messageIds.length} drafts`;
+    if (this.headerMessageIds.length > 1) {
+      return `Canceling ${this.headerMessageIds.length} drafts`;
     }
-    return 'Deleting draft';
+    return 'Canceling draft';
   }
   description() {
     return this.label();
@@ -31,7 +44,7 @@ export default class CancelOutboxDraftTask extends Task {
 
   onError({ key, debuginfo, retryable }) {
     if (retryable) {
-      console.warn(`Destroying draft failed because ${debuginfo}`);
+      AppEnv.reportError(new Error(`Canceling draft failed because ${debuginfo}`));
       return;
     }
   }

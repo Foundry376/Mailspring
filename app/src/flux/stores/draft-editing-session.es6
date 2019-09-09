@@ -2,14 +2,12 @@ import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 import { Conversion } from '../../components/composer-editor/composer-support';
 import RegExpUtils from '../../regexp-utils';
-
 import TaskQueue from './task-queue';
 import Message from '../models/message';
 import Utils from '../models/utils';
 import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';
-import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
@@ -107,7 +105,7 @@ class DraftChangeSet extends EventEmitter {
   }
 
   async commit(arg) {
-    if (this.dirtyFields().length === 0 && !this._draftDirty) {
+    if (this.dirtyFields().length === 0 && !this._draftDirty && arg !== 'force') {
       return;
     }
     if (this._timer) {
@@ -217,8 +215,6 @@ export default class DraftEditingSession extends MailspringStore {
     this._draft = false;
     this._destroyed = false;
     this._popedOut = popout;
-    // this._popOutOrigin = {};
-    // this._inView = true;
     let currentWindowLevel = 3;
     if (AppEnv.isMainWindow()) {
       currentWindowLevel = 1;
@@ -230,7 +226,7 @@ export default class DraftEditingSession extends MailspringStore {
     // Because new draft window will first shown as main window type,
     // We need to check windowProps;
     const windowProps = AppEnv.getWindowProps();
-    if(windowProps.draftJSON){
+    if (windowProps.draftJSON) {
       currentWindowLevel = 3;
     }
 
@@ -247,15 +243,27 @@ export default class DraftEditingSession extends MailspringStore {
       this._draftPromise = Promise.resolve(draft);
       const thread = FocusedContentStore.focused('thread');
       const inFocusedThread = thread && thread.id === draft.threadId;
-      if( currentWindowLevel === 3){
+      if (currentWindowLevel === 3) {
         // Because new drafts can't be viewed in main window, we don't add it towards open count, if we are in mainWin
         // we want to trigger open count in composer window
-        Actions.draftOpenCount({headerMessageId, windowLevel: currentWindowLevel, source: `draft-editing-session, with draft level: ${currentWindowLevel}`})
-      }else if(draft.replyOrForward !== Message.draftType.new ){
-        if(currentWindowLevel === 2){
-          Actions.draftOpenCount({headerMessageId, windowLevel: currentWindowLevel, source: `draft-editing-session, with draft level: ${currentWindowLevel}`})
-        }else if(currentWindowLevel === 1 && inFocusedThread){
-          Actions.draftOpenCount({headerMessageId, windowLevel: currentWindowLevel, source: `draft-editing-session, with draft level: ${currentWindowLevel}`})
+        Actions.draftOpenCount({
+          headerMessageId,
+          windowLevel: currentWindowLevel,
+          source: `draft-editing-session, with draft level: ${currentWindowLevel}`,
+        });
+      } else if (draft.replyOrForward !== Message.draftType.new) {
+        if (currentWindowLevel === 2) {
+          Actions.draftOpenCount({
+            headerMessageId,
+            windowLevel: currentWindowLevel,
+            source: `draft-editing-session, with draft level: ${currentWindowLevel}`,
+          });
+        } else if (currentWindowLevel === 1 && inFocusedThread) {
+          Actions.draftOpenCount({
+            headerMessageId,
+            windowLevel: currentWindowLevel,
+            source: `draft-editing-session, with draft level: ${currentWindowLevel}`,
+          });
         }
       }
     } else {
@@ -271,6 +279,10 @@ export default class DraftEditingSession extends MailspringStore {
           if (!draft) {
             AppEnv.reportWarning(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
             return;
+          }
+          if (Message.compareMessageState(draft.state, Message.messageState.failed)) {
+            AppEnv.logDebug(`Draft ${draft.headerMessageId} state is failed, setting it to normal`);
+            draft.state = Message.messageState.normal;
           }
           if (!draft.body) {
             draft.waitingForBody = true;
@@ -290,17 +302,9 @@ export default class DraftEditingSession extends MailspringStore {
           }
           this._draft = draft;
           this._threadId = draft.threadId;
-          // console.log(`sending out draft-arp @ windowLevel ${this.currentWindowLevel}`);
-          // ipcRenderer.send('draft-arp', {
-          //   headerMessageId: this.headerMessageId,
-          //   referenceMessageId: draft.referenceMessageId,
-          //   threadId: draft.threadId,
-          //   windowLevel: this.currentWindowLevel,
-          // });
           const thread = FocusedContentStore.focused('thread');
           const inFocusedThread = thread && thread.id === draft.threadId;
           if(currentWindowLevel === 2 || currentWindowLevel ===1 && inFocusedThread){
-            console.log(`draft count send ${currentWindowLevel}`);
             Actions.draftOpenCount({
               headerMessageId,
               windowLevel: currentWindowLevel,
@@ -341,9 +345,6 @@ export default class DraftEditingSession extends MailspringStore {
   isPopout() {
     return this._popedOut;
   }
-  // inView() {
-  //   return this._inView;
-  // }
   isDestroyed() {
     return this._destroyed;
   }
@@ -820,6 +821,9 @@ export default class DraftEditingSession extends MailspringStore {
       this.needUpload = false;
       this._draft.savedOnRemote = true;
     }
+    if(this.changes._draftDirty){
+      this.changes._draftDirty = false;
+    }
     const task = new SyncbackDraftTask({ draft: this._draft, source: reason });
     task.saveOnRemote = reason === 'unload';
     Actions.queueTask(task);
@@ -835,19 +839,6 @@ export default class DraftEditingSession extends MailspringStore {
         .catch(e => {
           AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
         });
-    }
-  }
-  duplicateCurrentDraft() {
-    if (this._draft) {
-      const draft = this._draft;
-      const oldHeaderMessageId = this._draft.headerMessageId;
-      const oldMessageId = this._draft.id;
-      draft.id = uuid();
-      const newHeaderMessageId = draft.id + '@edison.tech';
-      draft.headerMessageId = newHeaderMessageId;
-      return { draft, oldHeaderMessageId, oldMessageId };
-    } else {
-      return { draft: null, oldHeaderMessageId: null, oldMessageId: null };
     }
   }
   set needUpload(val) {

@@ -13,6 +13,7 @@ import {
   MutableQuerySubscription,
   ObservableListDataSource,
   FocusedContentStore,
+  AccountStore,
 } from 'mailspring-exports';
 
 class OutboxStore extends MailspringStore {
@@ -163,6 +164,10 @@ class OutboxStore extends MailspringStore {
       if (total !== this._totalInOutbox || failed !== this._totalFailedDrafts) {
         this._totalInOutbox = total;
         this._totalFailedDrafts = failed;
+        if(total === 0){
+          AppEnv.logDebug('Outbox no longer have data');
+          Actions.focusDefaultMailboxPerspectiveForAccounts(AccountStore.accounts());
+        }
         this.trigger();
       }
     }

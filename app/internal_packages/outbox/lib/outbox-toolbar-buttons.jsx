@@ -51,7 +51,7 @@ class OutboxDeleteButton extends React.Component {
       <button
         style={{ order: -100 }}
         className="btn btn-toolbar"
-        title="Delete"
+        title="Cancel"
         onClick={this._onDestroySelected}
       >
         <RetinaImg name={'trash.svg'}
