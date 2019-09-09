@@ -105,7 +105,8 @@ class DraftStore extends MailspringStore {
         Message.messageState.normal,
         Message.messageState.saving,
         Message.messageState.sending,
-        Message.messageState.failed,
+        Message.messageState.updatingNoUID,
+        Message.messageState.updatingHasUID,
         Message.messageState.failing,
       ]),
     ]);
