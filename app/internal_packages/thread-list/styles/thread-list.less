@@ -252,7 +252,7 @@ input:focus {
   }
 
   .mail-important-icon {
-    margin: 0 4px 0 -6px;
+    margin: 0 -3px 0 -6px;
     padding: 12px;
     vertical-align: initial;
     &:not(.active) {
@@ -261,7 +261,11 @@ input:focus {
   }
 
   .showAvatar .mail-important-icon {
-    margin: 0 4px;
+    margin-left: 4px;
+  }
+
+  &.thread-list-narrow .mail-important-icon {
+    margin-right: 0px;
   }
 
   .message-count {
