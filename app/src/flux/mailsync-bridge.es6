@@ -55,7 +55,7 @@ class CrashTracker {
       const logpath = path.join(AppEnv.getConfigDirPath(), logfile);
       const { size } = fs.statSync(logpath);
       const tailSize = Math.min(1200, size);
-      const buffer = new Buffer(tailSize);
+      const buffer = Buffer.alloc(tailSize);
       const fd = fs.openSync(logpath, 'r');
       fs.readSync(fd, buffer, 0, tailSize, size - tailSize);
       log = buffer.toString('UTF8');

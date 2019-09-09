@@ -121,7 +121,7 @@ require('source-map-support').install({
 
     let sourceMap = null;
     try {
-      sourceMap = JSON.parse(new Buffer(rawData, 'base64'));
+      sourceMap = JSON.parse(Buffer.from(rawData, 'base64'));
     } catch (error) {
       console.warn('Error parsing source map', error.stack);
       return null;

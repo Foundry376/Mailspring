@@ -28,7 +28,7 @@ module.exports = function (client, stanzas) {
         });
 
         self.on('sasl:challenge', 'sasl', function (challenge) {
-            mech.challenge(new Buffer(challenge.value, 'base64').toString());
+            mech.challenge(Buffer.from(challenge.value, 'base64').toString());
             return self.getCredentials(function (err, credentials) {
                 if (err) {
                     return self.send(new Abort());
@@ -37,7 +37,7 @@ module.exports = function (client, stanzas) {
                 var resp = mech.response(credentials);
                 if (resp || resp === '') {
                     self.send(new Response({
-                        value: new Buffer(resp).toString('base64')
+                        value: Buffer.from(resp).toString('base64')
                     }));
                 } else {
                     self.send(new Response());
@@ -49,7 +49,7 @@ module.exports = function (client, stanzas) {
                             return;
                         }
 
-                        self.config.credentials[key] = new Buffer(mech.cache[key]);
+                        self.config.credentials[key] = Buffer.from(mech.cache[key]);
                     });
 
                     self.emit('credentials:update', self.config.credentials);
@@ -79,7 +79,7 @@ module.exports = function (client, stanzas) {
                     return self.send(new Abort());
                 }
 
-                auth.value = new Buffer(mech.response(credentials)).toString('base64');
+                auth.value = Buffer.from(mech.response(credentials)).toString('base64');
                 self.send(new Auth(auth));
             });
         }

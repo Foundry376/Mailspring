@@ -139,7 +139,9 @@ class DraftStore extends MailspringStore {
       if (!draft) {
         AppEnv.reportWarning('session exist, but not draft');
       } else if (!this._draftsOpenCount[headerMessageId]) {
-        AppEnv.reportWarning('draft and session exist, but draftOpenCount not available');
+        AppEnv.reportLog(
+          `draft and session exist, but draftOpenCount not available, ${headerMessageId}, ${this._getCurrentWindowLevel()}`
+        );
       } else {
         const thread = FocusedContentStore.focused('thread');
         const inFocusedThread = thread && thread.id === draft.threadId;
