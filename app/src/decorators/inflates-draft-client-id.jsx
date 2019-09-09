@@ -49,8 +49,9 @@ function InflatesDraftClientId(ComposedComponent) {
         this._prepareServerDraftForEdit(this.props.draft);
       } else {
         if (
-          Message.compareMessageState(this.props.draft.state, Message.messageState.sending) ||
-          Message.compareMessageState(this.props.draft.state, Message.messageState.failing)
+          this.props.draft &&
+          (Message.compareMessageState(this.props.draft.state, Message.messageState.sending) ||
+          Message.compareMessageState(this.props.draft.state, Message.messageState.failing))
         ) {
           AppEnv.reportError(
             new Error('Draft editing session should not have sending/failing state drafts'),
