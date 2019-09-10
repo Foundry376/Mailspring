@@ -10,6 +10,7 @@
 @off-white: lighten(@white, 40%);
 @off-white-light: lighten(@white, 20%);
 @active: #000;
+@cards: #1e1e1f;
 
 @accent-primary: #1f9aff;
 @accent-primary-dark: darken(@accent-primary, 10%);
@@ -42,11 +43,11 @@
 @input-bg: #2e2e2e;
 @input-border: @border-color-divider;
 
-@list-bg: #333;
+@list-bg: @cards;
 @list-border: #383838;
 @list-selected-color: @text-color-inverse;
 @list-focused-color: @text-color;
-@list-focused-bg: #666;
+@list-focused-bg: #242933;
 
 @toolbar-background-color: #121212;
 @panel-background-color: #121212;
@@ -76,4 +77,7 @@ img.content-light {
 
 .thread-list .list-item:not(.unread):not(.selected):not(.focused) {
   color: #aaa;
+  // background-color: @cards;
 }
+
+@input-search-bg: @cards;
