@@ -1,0 +1,107 @@
+@import 'ui-variables';
+.app-message-toast-container {
+  position: absolute;
+  top: 70px;
+  order: 100;
+  z-index: 100;
+  text-align: center;
+  pointer-events: none;
+  .app-message-toast {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-around;
+    .content {
+      height: 48px;
+      opacity: 0.97;
+      border-radius: @border-radius-toast;
+      background: @blue;
+      color: @text-color-inverse;
+      white-space: nowrap;
+      cursor: default;
+      pointer-events: initial;
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      box-shadow: 0 2px 7px 0 rgba(0, 0, 0, 0.2);
+      padding: 11.5px 17.5px 11.5px 20px;
+      margin-bottom: 5px;
+      margin-left: 10px;
+      margin-right: auto;
+      .content-mask {
+        background-color: @text-color-inverse;
+        margin-left: -14px;
+        margin-right: 4px;
+      }
+    }
+    .error{
+      background: @red;
+    }
+
+    .message {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+      font-size: 14px;
+      letter-spacing: 0.34px;
+      height: 16px;
+      line-height: 16px;
+    }
+
+    .actions {
+      flex-shrink: 0;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      padding-left: 20.5px;
+      cursor: pointer;
+      .app-message-action-text {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.34px;
+        line-height: 14px;
+        height: 14px;
+        padding-right: 14.5px;
+      }
+
+      .content-mask {
+        height: 10px;
+        width: 10px;
+        background-color: fade(@black, 30%);
+        margin-left: unset;
+      }
+    }
+  }
+
+  body.platform-win32 {
+    .content {
+      border-radius: 0;
+    }
+  }
+
+  .app-message-toast-fade-enter {
+    opacity: 0.01;
+    transform: translate3d(0, 10px, 0);
+    transition: all 0.15s ease-out;
+  }
+
+  .app-message-toast-fade-enter.app-message-toast-fade-enter-active {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .app-message-toast-fade-leave {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition: all 0.15s ease-in;
+  }
+
+  .app-message-toast-fade-leave.app-message-toast-fade-leave-active {
+    transform: translate3d(0, 10px, 0);
+    opacity: 0.01;
+  }
+}
