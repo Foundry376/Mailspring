@@ -28,12 +28,14 @@ class AppearanceModeOption extends React.Component {
     }[this.props.mode];
 
     return (
-      <div className={classname} onClick={this.props.onClick}>
-        <RetinaImg
-          name={`appearance-mode-${this.props.mode}${active}.png`}
-          mode={RetinaImg.Mode.ContentPreserve}
-        />
-        <div>{label}</div>
+      <div className={classname}>
+        <div className={'imgbox'} onClick={this.props.onClick}>
+          <RetinaImg
+            name={`appearance-mode-${this.props.mode}${active}.png`}
+            mode={RetinaImg.Mode.ContentPreserve}
+          />
+        </div>
+        <div className={'label'}>{label}</div>
       </div>
     );
   }
@@ -97,9 +99,14 @@ class InitialPreferencesOptions extends React.Component {
     return (
       <div className="preferences">
         <div>
+          <p>1 of 2</p>
           <h1>How do you want to view your inbox?</h1>
-          <p>This will be the default view for your<br />mailbox lists.</p>
-          <Flexbox direction="row" style={{ alignItems: 'center', width: 418 }}>
+          {/* <p>
+            This will be the default view for your
+            <br />
+            mailbox lists.
+          </p> */}
+          <Flexbox direction="row" style={{ alignItems: 'center', width: 578 }}>
             {['list', 'split'].map(mode => (
               <AppearanceModeOption
                 mode={mode}
@@ -168,14 +175,14 @@ class InitialPreferencesPage extends React.Component {
         <div className="footer">
           <button className="btn btn-large btn-continue" onClick={this._onFinished}>
             Continue
-        </button>
+          </button>
         </div>
       </div>
     );
   }
 
   _onFinished = () => {
-    OnboardingActions.moveToPage('initial-done');
+    OnboardingActions.moveToPage('initial-preferences-profile');
   };
 }
 
