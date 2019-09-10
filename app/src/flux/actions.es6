@@ -469,6 +469,7 @@ class Actions {
   static draftWindowClosing = ActionScopeMainWindow;
   static draftOpenCount = ActionScopeMainWindow;
   static draftOpenCountBroadcast = ActionScopeGlobal;
+  static gotoOutbox = ActionScopeWindow;
 
   /*
   Public: Submits the user's response to an RSVP event.

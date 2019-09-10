@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
 import AccountStore from './account-store';
+import OutboxStore from './outbox-store';
 import WorkspaceStore from './workspace-store';
 import MailboxPerspective from '../../mailbox-perspective';
 import CategoryStore from './category-store';
@@ -66,6 +67,9 @@ class FocusedPerspectiveStore extends MailspringStore {
 
   _listenToCommands() {
     AppEnv.commands.add(document.body, {
+      'navigation:got-to-outbox': () => {
+        this.gotoOutbox();
+      },
       'navigation:go-to-all-unread': () => {
         this._setPerspective(MailboxPerspective.forUnreadByAccounts(this.sidebarAccountIds()));
       },
@@ -88,6 +92,13 @@ class FocusedPerspectiveStore extends MailspringStore {
       }, // TODO,
     });
   }
+  gotoOutbox = () => {
+    console.log('go to outbox');
+    const total = OutboxStore.count().total;
+    if (total > 0) {
+      this._setPerspective(MailboxPerspective.forOutbox(this.sidebarAccountIds()));
+    }
+  };
 
   gotoChat = () => {
     Actions.goToMostRecentChat();

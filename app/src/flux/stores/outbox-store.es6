@@ -5,7 +5,6 @@ import TaskQueue from './task-queue';
 import DatabaseStore from './database-store';
 import Message from '../models/message';
 import FocusedPerspectiveStore from './focused-perspective-store';
-import { ListTabular } from 'mailspring-component-kit';
 import {
   Rx,
   Actions,
@@ -47,6 +46,7 @@ class OutboxStore extends MailspringStore {
       this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
       this.listenTo(FocusedContentStore, this._onFocusedContentChanged);
       this.listenTo(DatabaseStore, this._onDataChanged);
+      this.listenTo(Actions.gotoOutbox, this._gotoOutbox);
       this._createListDataSource();
     }
   }
@@ -69,6 +69,13 @@ class OutboxStore extends MailspringStore {
   selectionObservable = () => {
     return Rx.Observable.fromListSelection(this);
   };
+
+  _gotoOutbox() {
+    console.log('go to outbox');
+    if (this.count().total > 0) {
+      FocusedPerspectiveStore.gotoOutbox();
+    }
+  }
 
   _onDataChanged(change) {
     const currentPerspective = FocusedPerspectiveStore.current();

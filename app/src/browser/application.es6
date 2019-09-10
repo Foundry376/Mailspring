@@ -563,6 +563,13 @@ export default class Application extends EventEmitter {
         main.sendMessage('command', 'navigation:go-to-all-inbox');
       }
     });
+    this.on('application:go-to-outbox', (event) => {
+      this.openWindowsForTokenState();
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('command', 'navigation:go-to-outbox');
+      }
+    });
     this.on('application:show-chat', (event) => {
       this.openWindowsForTokenState();
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
