@@ -52,6 +52,8 @@ export class Notifier {
       if (msg.unread !== true) continue;
       // ensure the message was just created (eg: this is not a modification)
       if (msg.version !== 1) continue;
+      // DC-944 In case unpersist message slips through
+      if (msg.type !== 'persist') continue;
       // ensure the message was received after the app launched (eg: not syncing an old email)
       if (!msg.date || msg.date.valueOf() < this.activationTime) continue;
       // ensure the message is not a loopback
