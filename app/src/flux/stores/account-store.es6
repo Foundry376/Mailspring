@@ -227,6 +227,7 @@ class AccountStore extends MailspringStore {
    * This will update the account with its updated sync state
    */
   _onUpdateAccount = (id, updated) => {
+    console.log('on update account');
     const idx = this._accounts.findIndex(a => a.id === id);
     let account = this._accounts[idx];
     if (!account) return;
@@ -234,7 +235,72 @@ class AccountStore extends MailspringStore {
     this._caches = {};
     this._accounts[idx] = account;
     this._save();
+    this._parseErrorAccount();
   };
+  _forceRelaunchClients(accts){
+    accts.forEach(acct=>{
+      AppEnv.mailsyncBridge.forceRelaunchClient(acct);
+    })
+  }
+  _reconnectAccount = async account => {
+    ipcRenderer.send('command', 'application:add-account', {
+      existingAccountJSON: await KeyManager.insertAccountSecrets(account),
+    });
+  };
+  _parseErrorAccount(){
+    const erroredAccounts = this._accounts.filter(a => a.hasSyncStateError());
+    if(erroredAccounts.length === 0){
+      return;
+    }else if(erroredAccounts.length > 1){
+      console.log('parse account error');
+      const message = {
+        level: 0,
+        description: 'Several of your accounts are having issues',
+        actions: [
+          {text: 'Check Again',
+          onClick: () => this._forceRelaunchClients(erroredAccounts)
+          },
+          {
+            text: 'Manage',
+            onClick: () => {
+              Actions.switchPreferencesTab('Accounts');
+              Actions.openPreferences();
+            }
+          }
+        ],
+        allowClose: false
+      };
+      Actions.pushAppMessage(message);
+    }else {
+      const erroredAccount = erroredAccounts[0];
+      const message = {allowClose: false, level: 0};
+      switch (erroredAccount.syncState) {
+        case Account.SYNC_STATE_AUTH_FAILED:
+          message.description = `Cannot authenticate with ${erroredAccount.emailAddress}`;
+          message.actions = [
+            {
+              text: 'Check Again',
+              onClick: () => this._forceRelaunchClients([erroredAccount])
+            },
+            {
+              text: 'Reconnect',
+              onClick: () => this._reconnectAccount(erroredAccount)
+            },
+          ];
+          break;
+        default: {
+          message.description = `We encountered an error while syncing ${erroredAccount.emailAddress}`;
+          message.actions = [
+            {
+              text: 'Try Again',
+              onClick: () => this._forceRelaunchClients([erroredAccount]),
+            },
+          ];
+        }
+      }
+      Actions.pushAppMessage(message);
+    }
+  }
 
   /**
    * When an account is removed from Mailspring, the AccountStore

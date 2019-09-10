@@ -15,7 +15,7 @@ import UpdateNotification from './items/update-notification';
 import DiskUsageNotification from './items/disk-usage-notification';
 
 const notifications = [
-  AccountErrorNotification,
+  // AccountErrorNotification,
   DefaultClientNotification,
   UnstableChannelNotification,
   DevModeNotification,

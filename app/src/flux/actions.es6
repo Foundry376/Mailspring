@@ -1,4 +1,5 @@
 import Reflux from 'reflux';
+import { Action } from 'rxjs/internal/scheduler/Action';
 
 const ActionScopeWindow = 'window';
 const ActionScopeGlobal = 'global';
@@ -573,6 +574,12 @@ class Actions {
   static updateLastSystemInfoCheck = ActionScopeMainWindow;
   static goToMostRecentChat = ActionScopeMainWindow;
   static setCurrentWindowTitle = ActionScopeWindow;
+
+  // App Message actions
+  static pushAppMessage = ActionScopeWindow;
+  static pushAppMessages = ActionScopeWindow;
+  static removeAppMessage = ActionScopeWindow;
+  static removeAppMessages = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above
