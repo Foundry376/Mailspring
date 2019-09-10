@@ -91,7 +91,7 @@ function generateVerString(info, hash) {
         });
     });
 
-    var ver = hashes.createHash(hash).update(new Buffer(S, 'utf8')).digest('base64');
+    var ver = hashes.createHash(hash).update(Buffer.from(S, 'utf8')).digest('base64');
     var padding = 4 - ver.length % 4;
     if (padding === 4) {
         padding = 0;

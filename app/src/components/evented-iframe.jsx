@@ -360,7 +360,7 @@ class EventedIFrame extends React.Component {
               oReq.open('GET', src, true);
               oReq.responseType = 'arraybuffer';
               oReq.onload = function() {
-                const buffer = new Buffer(new Uint8Array(oReq.response));
+                const buffer = Buffer.from(new Uint8Array(oReq.response));
                 fs.writeFile(path, buffer, err => shell.showItemInFolder(path));
               };
               oReq.send();

@@ -1,7 +1,7 @@
 {
   "name": "edisonmail",
   "productName": "EdisonMail",
-  "version": "0.3.102",
+  "version": "0.3.104",
   "commitHash": "COMMIT_INSERTED_DURING_PACKAGING",
   "description": "The best email app for people and teams at work",
   "license": "GPL-3.0",
@@ -119,6 +119,7 @@
     "saslmechanisms": "^0.1.1",
     "sequelize": "^5.8.9",
     "serial-number": "^1.3.0",
+    "sharp": "^0.23.0",
     "slate": "github:ruoxijiang/slate#77f6337",
     "slate-auto-replace": "0.9.0",
     "slate-base64-serializer": "0.2.19",

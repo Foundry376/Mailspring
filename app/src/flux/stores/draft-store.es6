@@ -105,7 +105,8 @@ class DraftStore extends MailspringStore {
         Message.messageState.normal,
         Message.messageState.saving,
         Message.messageState.sending,
-        Message.messageState.failed,
+        Message.messageState.updatingNoUID,
+        Message.messageState.updatingHasUID,
         Message.messageState.failing,
       ]),
     ]);
@@ -139,7 +140,9 @@ class DraftStore extends MailspringStore {
       if (!draft) {
         AppEnv.reportWarning('session exist, but not draft');
       } else if (!this._draftsOpenCount[headerMessageId]) {
-        AppEnv.reportWarning('draft and session exist, but draftOpenCount not available');
+        AppEnv.reportLog(
+          `draft and session exist, but draftOpenCount not available, ${headerMessageId}, ${this._getCurrentWindowLevel()}`
+        );
       } else {
         const thread = FocusedContentStore.focused('thread');
         const inFocusedThread = thread && thread.id === draft.threadId;
@@ -315,14 +318,14 @@ class DraftStore extends MailspringStore {
   };
   _onDraftOpenCount = ({ headerMessageId, windowLevel=0, source='' }) => {
     if(!AppEnv.isMainWindow()){
-      console.log(`open count not main window source: ${source}`);
+      AppEnv.logWarning(`open count not main window source: ${source}`);
       return;
     }
     if(windowLevel === 0){
       AppEnv.reportError(new Error('draftOpenCount action windowLevel is 0, wrong parameters'));
       return;
     }
-    console.log(`open count source: ${source} windowLevel: ${windowLevel}`);
+    AppEnv.logDebug(`open count source: ${source} windowLevel: ${windowLevel}`);
     if (!this._draftsOpenCount[headerMessageId]) {
       this._draftsOpenCount[headerMessageId] = {
         1: false,
@@ -657,7 +660,6 @@ class DraftStore extends MailspringStore {
         if (originalMessageId) {
           Actions.draftReplyForwardCreated({ messageId: originalMessageId, type: messageType });
         }
-        console.log('data returned');
         return { headerMessageId: draft.headerMessageId, draft };
       })
       .catch(t => {
@@ -670,7 +672,6 @@ class DraftStore extends MailspringStore {
           .catch(e => {
             AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
           });
-        console.log('syncback did not returned');
         return { headerMessageId: draft.headerMessageId, draft };
       });
   }

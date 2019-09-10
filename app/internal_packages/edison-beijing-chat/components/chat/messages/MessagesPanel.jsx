@@ -161,8 +161,6 @@ export default class MessagesPanel extends Component {
 
   sendFile(files) {
     const { selectedConversation } = this.state;
-    const atIndex = selectedConversation.jid.indexOf('@');
-    let jidLocal = selectedConversation.jid.slice(0, atIndex);
     files.map((file, index) => sendFileMessage(file, index, this, ' '));
   }
 

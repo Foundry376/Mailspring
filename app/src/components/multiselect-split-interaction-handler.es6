@@ -29,8 +29,9 @@ module.exports = class MultiselectSplitInteractionHandler {
   }
 
   onClick = item => {
+    console.log('on click');
     this.onFocusItem(item);
-    this.props.dataSource.selection.clear();
+    // this.props.dataSource.selection.clear();
     this._checkSelectionAndFocusConsistency();
   };
 
@@ -149,11 +150,13 @@ module.exports = class MultiselectSplitInteractionHandler {
     const { selection } = this.props.dataSource;
 
     if (focused && selection.count() > 0) {
+      console.log('focus, with selection');
       this.props.dataSource.selection.add(focused);
       this.onFocusItem(null);
     }
 
     if (selection.count() === 1 && !focused) {
+      console.log('selection = 1 && no focuse')
       this.onFocusItem(selection.items()[0]);
       // this.props.dataSource.selection.clear();
     }

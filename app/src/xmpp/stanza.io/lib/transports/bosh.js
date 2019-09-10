@@ -232,7 +232,7 @@ BOSHConnection.prototype.request = function (bosh) {
     bosh.rid = self.rid;
     bosh.sid = self.sid;
 
-    var body = new Buffer(bosh.toString(), 'utf8').toString();
+    var body = Buffer.from(bosh.toString(), 'utf8').toString();
 
     self.emit('raw:outgoing', body);
 
@@ -259,7 +259,7 @@ BOSHConnection.prototype.request = function (bosh) {
         });
 
         if (body) {
-            self.emit('raw:incoming', new Buffer(body, 'utf8').toString());
+            self.emit('raw:incoming', Buffer.from(body, 'utf8').toString());
         }
 
         // do not (re)start long polling if terminating, or request is pending, or before authentication
