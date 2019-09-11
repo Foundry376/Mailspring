@@ -49,24 +49,24 @@ function _getMenuTemplate(platform, application, accountTemplates, conversations
     });
   }
 
-  // if (application.config.get(`chatEnable`)) {
-  //   const convItemTemplates = conversations.map(conv => {
-  //     return {
-  //       label: 'chat',
-  //       click: () => console.log(conv),
-  //     };
-  //   });
-  //   templateChat.push(
-  //     {
-  //       type: 'separator',
-  //     },
-  //     ...convItemTemplates
-  //   );
-  //   templateNewMail.push({
-  //     label: 'New Message',
-  //     click: () => console.log('New Message'),
-  //   });
-  // }
+  if (application.config.get(`chatEnable`)) {
+    const convItemTemplates = conversations.map(conv => {
+      return {
+        label: 'chat',
+        click: () => console.log(conv),
+      };
+    });
+    templateChat.push(
+      {
+        type: 'separator',
+      },
+      ...convItemTemplates
+    );
+    templateNewMail.push({
+      label: 'New Message',
+      click: () => application.emit('application:new-conversation'),
+    });
+  }
 
   return [...templateAccount, ...templateChat, ...templateNewMail, ...templateSystem];
 }
