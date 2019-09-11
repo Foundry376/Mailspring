@@ -11,11 +11,19 @@ export default class ConversationsTopBar extends PureComponent {
     super();
     ConversationStore.setConversationTopBar(this);
   }
+
+  componentDidMount() {
+    this._mounted = true;
+  }
   componentWillUnmount() {
+    this._mounted = false;
     ConversationStore.setConversationTopBar(null);
   }
 
   newConversation = async () => {
+    if (!this._mounted) {
+      return;
+    }
     const messagePanel = document.querySelector('.messages');
     if (messagePanel) {
       ConversationStore.messagePanelScrollTopBeforeNew = messagePanel.scrollTop;
