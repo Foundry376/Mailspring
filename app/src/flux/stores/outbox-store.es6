@@ -47,6 +47,8 @@ class OutboxStore extends MailspringStore {
       this.listenTo(FocusedContentStore, this._onFocusedContentChanged);
       this.listenTo(DatabaseStore, this._onDataChanged);
       this.listenTo(Actions.gotoOutbox, this._gotoOutbox);
+      this.listenTo(Actions.cancelOutboxDrafts, this._onCancelOutboxDraft);
+      this.listenTo(Actions.editOutboxDraft, this._onEditOutboxDraft);
       this._createListDataSource();
     }
   }
@@ -68,6 +70,26 @@ class OutboxStore extends MailspringStore {
 
   selectionObservable = () => {
     return Rx.Observable.fromListSelection(this);
+  };
+  _onEditOutboxDraft = (headerMessageId) =>{
+    if(this._selectedDraft && headerMessageId === this._selectedDraft.headerMessageId){
+      this._selectedDraft = null;
+      console.log('draft edited');
+      this.trigger();
+    }
+  };
+  _onCancelOutboxDraft = ({messages = []}) => {
+    if(!this._selectedDraft){
+      return;
+    }
+    for(let i = 0; i< messages.length; i++){
+      if(messages[i].id === this._selectedDraft.id){
+        this._selectedDraft = null;
+        console.log('draft deleted');
+        this.trigger();
+        break;
+      }
+    }
   };
 
   _gotoOutbox() {

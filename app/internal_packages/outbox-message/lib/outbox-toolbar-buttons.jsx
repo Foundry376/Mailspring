@@ -84,10 +84,6 @@ export class EditButton extends React.Component {
   static displayName = 'EditButton';
   static containerRequired = false;
 
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
-
   _onEditOutboxDraft = event => {
     if (event) {
       event.stopPropagation();

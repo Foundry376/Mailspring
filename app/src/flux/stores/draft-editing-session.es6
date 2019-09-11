@@ -210,11 +210,11 @@ function cloneForSyncDraftData(draft){
 export default class DraftEditingSession extends MailspringStore {
   static DraftChangeSet = DraftChangeSet;
 
-  constructor(headerMessageId, draft = null, popout = false) {
+  constructor(headerMessageId, draft = null, options = {}) {
     super();
     this._draft = false;
     this._destroyed = false;
-    this._popedOut = popout;
+    this._popedOut = false;
     let currentWindowLevel = 3;
     if (AppEnv.isMainWindow()) {
       currentWindowLevel = 1;
@@ -267,11 +267,15 @@ export default class DraftEditingSession extends MailspringStore {
         }
       }
     } else {
-      this._draftPromise = DraftStore.findByHeaderMessageIdWithBody({
+      let localPromise = DraftStore.findByHeaderMessageIdWithBody({
         headerMessageId: this.headerMessageId,
-      })
-        .limit(1)
-        .then(draft => {
+      }).limit(1);
+      if (options.showFailed) {
+        localPromise = DraftStore.findFailedByHeaderMessageIdWithBody({
+          headerMessageId: this.headerMessageId,
+        }).limit(1);
+      }
+      this._draftPromise = localPromise.then(draft => {
           if (this._destroyed) {
             AppEnv.reportWarning(`Draft loaded but session has been torn down.`);
             return;
@@ -280,10 +284,10 @@ export default class DraftEditingSession extends MailspringStore {
             AppEnv.reportWarning(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
             return;
           }
-          if (Message.compareMessageState(draft.state, Message.messageState.failed)) {
-            AppEnv.logDebug(`Draft ${draft.headerMessageId} state is failed, setting it to normal`);
-            draft.state = Message.messageState.normal;
-          }
+          // if (Message.compareMessageState(draft.state, Message.messageState.failed)) {
+          //   AppEnv.logDebug(`Draft ${draft.headerMessageId} state is failed, setting it to normal`);
+          //   draft.state = Message.messageState.normal;
+          // }
           if (!draft.body) {
             draft.waitingForBody = true;
             Actions.fetchBodies({ messages: [draft], source: 'draft' });
@@ -569,80 +573,6 @@ export default class DraftEditingSession extends MailspringStore {
     }
     return this;
   }
-
-  // _onDraftARPReply = (event, options = {}) => {
-  //   if (
-  //     options.headerMessageId &&
-  //     this.headerMessageId === options.headerMessageId &&
-  //     options.windowLevel > this.currentWindowLevel
-  //   ) {
-  //     if (options.windowLevel === 2) {
-  //       this._popOutOrigin['threadPopout'] = true;
-  //     } else if (options.windowLevel === 3) {
-  //       this._popOutOrigin['composer'] = true;
-  //     }
-  //     this.setPopout(true);
-  //   }
-  // };
-  // _onThreadClose = ({ thread = null } = {}) => {
-  //   if (thread) {
-  //     if (thread.id === this._draft.threadId) {
-  //       this.onThreadChange({ threadId: 'nan' });
-  //     }
-  //   }
-  // };
-  //
-  // _onDraftCloseWindow = (event, options = {}) => {
-  //   // console.log('session on close window', options);
-  //   if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
-  //     if (options.deleting) {
-  //       this._destroyed = true;
-  //     }
-  //     if (this.currentWindowLevel === 2) {
-  //       delete this._popOutOrigin['composer'];
-  //       this.setPopout(false);
-  //     } else if (this.currentWindowLevel === 1) {
-  //       if (options.windowLevel === 3) {
-  //         delete this._popOutOrigin['composer'];
-  //       } else if (options.windowLevel === 2) {
-  //         delete this._popOutOrigin['threadPopout'];
-  //       }
-  //       this.setPopout(Object.keys(this._popOutOrigin).length > 0);
-  //     }
-  //   }
-  // };
-  //
-  // _onDraftNewWindow = (event, options = {}) => {
-  //   if (
-  //     options.headerMessageId &&
-  //     this.currentWindowLevel < 3 &&
-  //     this.headerMessageId === options.headerMessageId
-  //   ) {
-  //     this._popOutOrigin['composer'] = true;
-  //     this.setPopout(true);
-  //   } else if (
-  //     !options.headerMessageId &&
-  //     options.threadId &&
-  //     this._draft &&
-  //     options.windowType === 'thread-popout' &&
-  //     this._draft.threadId === options.threadId &&
-  //     this.currentWindowLevel === 1
-  //   ) {
-  //     this._popOutOrigin['threadPopout'] = true;
-  //     this.setPopout(true);
-  //   }
-  // };
-  //
-  // _onDraftDelete = (event, options) => {
-  //   if (
-  //     Array.isArray(options.headerMessageIds) &&
-  //     options.headerMessageIds.includes(this.headerMessageId)
-  //   ) {
-  //     this.changes.cancelCommit();
-  //     this._destroyed = true;
-  //     this._removeListeners();
-  //   }
-  // };
 
   _onDraftChanged = change => {
     if (change === undefined || change.type !== 'persist') {
