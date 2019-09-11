@@ -155,7 +155,7 @@ export default class Application extends EventEmitter {
     }
     this.clearOldLogs();
   }
-  getOpenWindows(){
+  getOpenWindows() {
     return this.windowManager.getOpenWindows();
   }
 
@@ -214,17 +214,17 @@ export default class Application extends EventEmitter {
     const logPath = path.join(this.configDirPath, 'ui-log');
     const uploadPath = path.join(this.configDirPath, 'upload-log');
     rimraf(uploadPath, err => {
-      if(err){
+      if (err) {
         console.log('\n------\npath cannot be removed');
         console.log(err);
-      }else{
-        console.log('\n------\npath removed')
+      } else {
+        console.log('\n------\npath removed');
       }
-      fs.mkdir(uploadPath, err=>{
-        if(err){
+      fs.mkdir(uploadPath, err => {
+        if (err) {
           console.log('\n------\npath cannot be made');
           console.log(err);
-        }else{
+        } else {
           console.log('\n------\npath made');
         }
       });
@@ -282,7 +282,7 @@ export default class Application extends EventEmitter {
     if (!addedToDock && appPath.includes('/Applications/') && appPath.includes('.app/')) {
       const appBundlePath = appPath.split('.app/')[0];
       proc.exec(
-        `defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>${appBundlePath}.app/</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"`,
+        `defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>${appBundlePath}.app/</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"`
       );
       this.config.set('addedToDock', true);
     }
@@ -292,8 +292,7 @@ export default class Application extends EventEmitter {
   // we close windows and log out, we need to wait for these processes to completely
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
-  deleteFileWithRetry(filePath, callback = () => {
-  }, retries = 5) {
+  deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -323,8 +322,7 @@ export default class Application extends EventEmitter {
     });
   }
 
-  renameFileWithRetry(filePath, newPath, callback = () => {
-  }, retries = 5) {
+  renameFileWithRetry(filePath, newPath, callback = () => {}, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -435,8 +433,7 @@ export default class Application extends EventEmitter {
           execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
             cwd: this.configDirPath,
           });
-          fs.unlink(path.join(this.configDirPath, sqlPath), () => {
-          });
+          fs.unlink(path.join(this.configDirPath, sqlPath), () => {});
         } else {
           // TODO in windows
           console.warn('in this system does not implement yet');
@@ -481,7 +478,7 @@ export default class Application extends EventEmitter {
             resourcePath: this.resourcePath,
             specDirectory: filenames[0],
           });
-        },
+        }
       );
     });
 
@@ -556,14 +553,14 @@ export default class Application extends EventEmitter {
       this.openWindowsForTokenState();
     });
 
-    this.on('application:show-all-inbox', (event) => {
+    this.on('application:show-all-inbox', event => {
       this.openWindowsForTokenState();
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {
         main.sendMessage('command', 'navigation:go-to-all-inbox');
       }
     });
-    this.on('application:show-chat', (event) => {
+    this.on('application:show-chat', event => {
       this.openWindowsForTokenState();
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {
@@ -668,40 +665,59 @@ export default class Application extends EventEmitter {
       this.systemTrayManager.updateTraySettings(...args);
     });
 
+    ipcMain.on('update-system-tray-account-menu', (event, ...args) => {
+      this.systemTrayManager.updateTrayAccountMenu(...args);
+    });
+
+    ipcMain.on('update-system-tray-conversation-menu', (event, ...args) => {
+      this.systemTrayManager.updateTrayConversationMenu(...args);
+    });
+
     ipcMain.on('update-system-tray-chat-unread-count', (event, ...args) => {
       this.systemTrayManager.updateTrayChatUnreadCount(...args);
     });
 
-    ipcMain.on('send-later-manager', (event, action, headerMessageId, delay, actionKey, threadId) => {
-      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
-      if (action === 'send-later') {
-        if (this._draftsSendLater[headerMessageId]) {
-          clearTimeout(this._draftsSendLater[headerMessageId]);
-        }
-        this._draftsSendLater[headerMessageId] = setTimeout(() => {
-          delete this._draftsSendLater[headerMessageId];
-          if (!mainWindow || !mainWindow.browserWindow.webContents) {
-            return;
+    ipcMain.on(
+      'send-later-manager',
+      (event, action, headerMessageId, delay, actionKey, threadId) => {
+        const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+        if (action === 'send-later') {
+          if (this._draftsSendLater[headerMessageId]) {
+            clearTimeout(this._draftsSendLater[headerMessageId]);
           }
-          mainWindow.browserWindow.webContents.send('action-send-now', headerMessageId, actionKey);
-        }, delay);
-      } else if (action === 'undo') {
-        const timer = this._draftsSendLater[headerMessageId];
-        clearTimeout(timer);
-        delete this._draftsSendLater[headerMessageId];
-        mainWindow.browserWindow.webContents.send(
-          'action-send-cancelled',
-          headerMessageId,
-          actionKey,
-        );
-        if (threadId) {
-          const threadWindow = this.windowManager.get(`thread-${threadId}`);
-          if (threadWindow && threadWindow.browserWindow.webContents) {
-            threadWindow.browserWindow.webContents.send('action-send-cancelled', headerMessageId, actionKey);
+          this._draftsSendLater[headerMessageId] = setTimeout(() => {
+            delete this._draftsSendLater[headerMessageId];
+            if (!mainWindow || !mainWindow.browserWindow.webContents) {
+              return;
+            }
+            mainWindow.browserWindow.webContents.send(
+              'action-send-now',
+              headerMessageId,
+              actionKey
+            );
+          }, delay);
+        } else if (action === 'undo') {
+          const timer = this._draftsSendLater[headerMessageId];
+          clearTimeout(timer);
+          delete this._draftsSendLater[headerMessageId];
+          mainWindow.browserWindow.webContents.send(
+            'action-send-cancelled',
+            headerMessageId,
+            actionKey
+          );
+          if (threadId) {
+            const threadWindow = this.windowManager.get(`thread-${threadId}`);
+            if (threadWindow && threadWindow.browserWindow.webContents) {
+              threadWindow.browserWindow.webContents.send(
+                'action-send-cancelled',
+                headerMessageId,
+                actionKey
+              );
+            }
           }
         }
       }
-    });
+    );
 
     ipcMain.on('set-badge-value', (event, value) => {
       if (app.dock && app.dock.setBadge) {
@@ -723,8 +739,8 @@ export default class Application extends EventEmitter {
         mainWindow.browserWindow.webContents.send(channel, options);
       }
       if (Array.isArray(options.threadIds)) {
-        options.threadIds.forEach(threadId =>{
-          if(threadId){
+        options.threadIds.forEach(threadId => {
+          if (threadId) {
             const threadWindow = this.windowManager.get(`thread-${threadId}`);
             if (threadWindow && threadWindow.browserWindow.webContents) {
               threadWindow.browserWindow.webContents.send(channel, options);
@@ -734,7 +750,7 @@ export default class Application extends EventEmitter {
       }
       if (Array.isArray(options.headerMessageIds)) {
         options.headerMessageIds.forEach(headerMessageId => {
-          if(headerMessageId){
+          if (headerMessageId) {
             const composerWindow = this.windowManager.get(`composer-${headerMessageId}`);
             if (composerWindow && composerWindow.browserWindow.webContents) {
               composerWindow.browserWindow.webContents.send(channel, options);
@@ -756,7 +772,7 @@ export default class Application extends EventEmitter {
       if (mainWindow && mainWindow.browserWindow.webContents) {
         mainWindow.browserWindow.webContents.send(
           `${additionalChannelParam}draft-got-new-id`,
-          options,
+          options
         );
       }
       if (options.threadId) {
@@ -764,20 +780,20 @@ export default class Application extends EventEmitter {
         if (threadWindow && threadWindow.browserWindow.webContents) {
           threadWindow.browserWindow.webContents.send(
             `${additionalChannelParam}draft-got-new-id`,
-            options,
+            options
           );
         }
       }
       if (options.oldHeaderMessageId && options.newHeaderMessageId) {
         this.windowManager.replaceWindowsKey(
           `composer-${options.oldHeaderMessageId}`,
-          `composer-${options.newHeaderMessageId}`,
+          `composer-${options.newHeaderMessageId}`
         );
         const composerWindow = this.windowManager.get(`composer-${options.newHeaderMessageId}`);
         if (composerWindow && composerWindow.browserWindow.webContents) {
           composerWindow.browserWindow.webContents.send(
             `${additionalChannelParam}draft-got-new-id`,
-            options,
+            options
           );
         } else {
           console.log(`draft got new id cannot find composer ${options.oldHeaderMessageId}`);
@@ -873,7 +889,6 @@ export default class Application extends EventEmitter {
     ipcMain.on('new-window', (event, options) => {
       const win = options.windowKey ? this.windowManager.get(options.windowKey) : null;
       if (win) {
-
         win.show();
         win.focus();
       } else {
@@ -891,7 +906,7 @@ export default class Application extends EventEmitter {
           if (threadWindow && threadWindow.browserWindow.webContents) {
             threadWindow.browserWindow.webContents.send(
               `${additionalChannelParam}new-window`,
-              options,
+              options
             );
           }
         }
@@ -912,7 +927,7 @@ export default class Application extends EventEmitter {
         if (threadWindow && threadWindow.browserWindow.webContents) {
           threadWindow.browserWindow.webContents.send(
             `${additionalChannelParam}close-window`,
-            options,
+            options
           );
         }
       }
@@ -1049,7 +1064,7 @@ export default class Application extends EventEmitter {
         main: WindowManager.MAIN_WINDOW,
       }[params.window];
       if (!targetWindowKey) {
-        throw new Error('We don\'t support running in that window');
+        throw new Error("We don't support running in that window");
       }
 
       const targetWindow = this.windowManager.get(targetWindowKey);
@@ -1105,11 +1120,10 @@ export default class Application extends EventEmitter {
       event.returnValue = true;
     });
     ipcMain.on('grab-log', (event, params = {}) => {
-      try{
-
+      try {
       } catch (e) {
         console.error(e);
-      }finally {
+      } finally {
         event.returnValue = true;
       }
     });
@@ -1259,11 +1273,11 @@ export default class Application extends EventEmitter {
     let bootstrapScript = null;
     try {
       bootstrapScript = require.resolve(
-        path.resolve(this.resourcePath, 'spec', 'spec-runner', 'spec-bootstrap'),
+        path.resolve(this.resourcePath, 'spec', 'spec-runner', 'spec-bootstrap')
       );
     } catch (error) {
       bootstrapScript = require.resolve(
-        path.resolve(__dirname, '..', '..', 'spec', 'spec-runner', 'spec-bootstrap'),
+        path.resolve(__dirname, '..', '..', 'spec', 'spec-runner', 'spec-bootstrap')
       );
     }
 

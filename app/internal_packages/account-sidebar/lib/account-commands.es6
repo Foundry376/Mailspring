@@ -3,6 +3,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { ipcRenderer } from 'electron';
 const { Actions, MenuHelpers } = require('mailspring-exports');
 
 let _commandsDisposable = null;
@@ -108,15 +109,21 @@ function registerMenuItems(accounts, sidebarAccountIds) {
   AppEnv.menu.update();
 }
 
+function registerTrayItems() {
+  ipcRenderer.send('update-system-tray-account-menu');
+}
+
 function register(accounts, sidebarAccountIds) {
   registerCommands(accounts);
   registerMenuItems(accounts, sidebarAccountIds);
+  registerTrayItems();
 }
 
 module.exports = {
   register,
   registerCommands,
   registerMenuItems,
+  registerTrayItems,
   menuTemplate,
   menuItem,
 };
