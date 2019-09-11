@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 import { Actions, WorkspaceStore } from 'mailspring-exports';
 import { ChatActions, MessageStore, ContactStore, RoomStore, UserCacheStore } from 'chat-exports';
@@ -15,6 +16,7 @@ class ConversationStore extends MailspringStore {
     this._registerListeners();
     this.refreshConversations();
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
+    this._conversationTopBar = null;
   }
 
   _registerListeners() {
@@ -26,6 +28,22 @@ class ConversationStore extends MailspringStore {
     this.listenTo(ChatActions.goToMostRecentConversation, this.goToMostRecentConvorsation);
     this.listenTo(Actions.goToMostRecentChat, this.goToMostRecentConvorsation);
     this.listenTo(WorkspaceStore, this.workspaceChanged);
+
+    if (AppEnv.isMainWindow()) {
+      ipcRenderer.on('new-conversation', () => {
+        this.showNewConversationSheet();
+      });
+    }
+  }
+
+  setConversationTopBar = el => {
+    this._conversationTopBar = el;
+  };
+
+  showNewConversationSheet() {
+    if (this._conversationTopBar) {
+      this._conversationTopBar.newConversation();
+    }
   }
 
   previousConversation = async () => {
