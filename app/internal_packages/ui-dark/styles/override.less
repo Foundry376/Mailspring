@@ -1,5 +1,35 @@
 @import 'ui-variables';
 
 .btn {
-    background: @list-focused-bg;
+    background: @cards;
+}
+
+.thread-list-narrow .subject span {
+    color: @off-white;
+}
+
+.nylas-outline-view .item.selected,
+.nylas-outline-view .item-container.selected {
+    background-color: @active;
+    &:before {
+        background-color: @active;
+    }
+}
+
+.skeleton div {
+    background-color: lighten(@cards, 10%) !important;
+}
+
+.layout-mode-popout .message-list-toolbar,
+.column-OutboxMessage .outbox-message-toolbar,
+.column-MessageList .message-list-toolbar {
+    &.has-shadow {
+        border-bottom: 1px solid transparent;
+    }
+}
+
+.message-participants .expanded-participants .participant-primary,
+.message-participants .expanded-participants .participant-secondary,
+.message-participants .collapsed-participants .participant-name {
+    color: @off-white;
 }

@@ -3,22 +3,35 @@ import Attributes from '../attributes';
 
 export default class ResendDraftTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
-    messageIds: Attributes.Collection({
-      modelKey: 'messageIds',
-    })
+    headerMessageIds: Attributes.Collection({
+      modelKey: 'headerMessageIds',
+    }),
+    refOldDraftHeaderMessageIds: Attributes.Collection({
+      modelKey: 'refOldDraftHeaderMessageIds',
+    }),
   });
 
-  constructor({ messageIds = [], ...rest } = {}) {
+  constructor({ headerMessageIds = [], refOldDraftHeaderMessageIds = [], ...rest } = {}) {
     super(rest);
-    this.messageIds = Array.isArray(messageIds) ? messageIds : [messageIds];
+    this.headerMessageIds = Array.isArray(headerMessageIds) ? headerMessageIds : [headerMessageIds];
+    this.refOldDraftHeaderMessageIds = Array.isArray(refOldDraftHeaderMessageIds)
+      ? refOldDraftHeaderMessageIds
+      : [refOldDraftHeaderMessageIds];
+    if (this.headerMessageIds.length !== this.refOldDraftHeaderMessageIds.length) {
+      AppEnv.reportError(
+        new Error(
+          `CancelOutboxDraftTask have unequal length headerMessageIds and refOldDraftHeaderMessageIds`
+        )
+      );
+    }
     if (this.canBeUndone) {
       this.canBeUndone = false;
     }
   }
 
   label() {
-    if (this.messageIds.length > 1) {
-      return `Resending ${this.messageIds.length} drafts`;
+    if (this.headerMessageIds.length > 1) {
+      return `Resending ${this.headerMessageIds.length} drafts`;
     }
     return 'Resending draft';
   }
@@ -28,7 +41,7 @@ export default class ResendDraftTask extends Task {
 
   onError({ key, debuginfo, retryable }) {
     if (retryable) {
-      console.warn(`Resending draft failed because ${debuginfo}`);
+      AppEnv.reportError(new Error(`Resending draft failed because ${debuginfo}`));
       return;
     }
   }

@@ -598,10 +598,9 @@ body.platform-win32 {
     padding-left: 24px;
   }
   .list-tabular .selection-bar .multiselect-toolbar-root .inner .checkmark {
-    width: 66px;
-    margin-right: 3px;
-    cursor: pointer;
-    padding-left: 20px;
+    //width: 66px;
+    //cursor: pointer;
+    //padding-left: 0px;
     &::after {
       content: '';
       height: 18px;
@@ -771,6 +770,11 @@ body.platform-win32 {
       .mail-important-icon {
         margin-bottom: -1px;
       }
+    }
+  }
+  & .hideAvatar {
+    .icons-column{
+      display: none;
     }
   }
 }

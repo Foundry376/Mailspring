@@ -5,7 +5,6 @@ import TaskQueue from './task-queue';
 import DatabaseStore from './database-store';
 import Message from '../models/message';
 import FocusedPerspectiveStore from './focused-perspective-store';
-import { ListTabular } from 'mailspring-component-kit';
 import {
   Rx,
   Actions,
@@ -13,6 +12,7 @@ import {
   MutableQuerySubscription,
   ObservableListDataSource,
   FocusedContentStore,
+  AccountStore,
 } from 'mailspring-exports';
 
 class OutboxStore extends MailspringStore {
@@ -46,6 +46,9 @@ class OutboxStore extends MailspringStore {
       this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
       this.listenTo(FocusedContentStore, this._onFocusedContentChanged);
       this.listenTo(DatabaseStore, this._onDataChanged);
+      this.listenTo(Actions.gotoOutbox, this._gotoOutbox);
+      this.listenTo(Actions.cancelOutboxDrafts, this._onCancelOutboxDraft);
+      this.listenTo(Actions.editOutboxDraft, this._onEditOutboxDraft);
       this._createListDataSource();
     }
   }
@@ -68,6 +71,33 @@ class OutboxStore extends MailspringStore {
   selectionObservable = () => {
     return Rx.Observable.fromListSelection(this);
   };
+  _onEditOutboxDraft = (headerMessageId) =>{
+    if(this._selectedDraft && headerMessageId === this._selectedDraft.headerMessageId){
+      this._selectedDraft = null;
+      console.log('draft edited');
+      this.trigger();
+    }
+  };
+  _onCancelOutboxDraft = ({messages = []}) => {
+    if(!this._selectedDraft){
+      return;
+    }
+    for(let i = 0; i< messages.length; i++){
+      if(messages[i].id === this._selectedDraft.id){
+        this._selectedDraft = null;
+        console.log('draft deleted');
+        this.trigger();
+        break;
+      }
+    }
+  };
+
+  _gotoOutbox() {
+    console.log('go to outbox');
+    if (this.count().total > 0) {
+      FocusedPerspectiveStore.gotoOutbox();
+    }
+  }
 
   _onDataChanged(change) {
     const currentPerspective = FocusedPerspectiveStore.current();
@@ -163,6 +193,10 @@ class OutboxStore extends MailspringStore {
       if (total !== this._totalInOutbox || failed !== this._totalFailedDrafts) {
         this._totalInOutbox = total;
         this._totalFailedDrafts = failed;
+        if(total === 0){
+          AppEnv.logDebug('Outbox no longer have data');
+          Actions.focusDefaultMailboxPerspectiveForAccounts(AccountStore.accounts());
+        }
         this.trigger();
       }
     }

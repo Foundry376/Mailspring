@@ -136,6 +136,7 @@ load(`ContactStore`, 'flux/stores/contact-store');
 load(`IdentityStore`, 'flux/stores/identity-store');
 load(`CategoryStore`, 'flux/stores/category-store');
 load(`UndoRedoStore`, 'flux/stores/undo-redo-store');
+load('AppMessageStore', 'flux/stores/app-message-store');
 load(`WorkspaceStore`, 'flux/stores/workspace-store');
 load(`MailRulesStore`, 'flux/stores/mail-rules-store');
 load(`SendActionsStore`, 'flux/stores/send-actions-store');

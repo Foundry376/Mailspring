@@ -207,9 +207,20 @@ const TaskFactory = {
     if (messages.length > 0 && messages[0] instanceof Message) {
       tasks.push(
         ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          const headerMessageIds = [];
+          const refOldDraftHeaderMessageIds = [];
+          messages.forEach(message => {
+            headerMessageIds.push(message.headerMessageId);
+            if (message.refOldDraftHeaderMessageId) {
+              refOldDraftHeaderMessageIds.push(message.refOldDraftHeaderMessageId);
+            } else {
+              refOldDraftHeaderMessageIds.push('');
+            }
+          });
           return new CancelOutboxDraftTask({
             accountId: accountId,
-            messageIds: messages.map(msg => msg.id),
+            headerMessageIds,
+            refOldDraftHeaderMessageIds,
             source,
           });
         }),
@@ -222,9 +233,20 @@ const TaskFactory = {
     if (messages.length > 0 && messages[0] instanceof Message) {
       tasks.push(
         ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          const headerMessageIds = [];
+          const refOldDraftHeaderMessageIds = [];
+          messages.forEach(message => {
+            headerMessageIds.push(message.headerMessageId);
+            if (message.refOldDraftHeaderMessageId) {
+              refOldDraftHeaderMessageIds.push(message.refOldDraftHeaderMessageId);
+            } else {
+              refOldDraftHeaderMessageIds.push('');
+            }
+          });
           return new ResendDraftTask({
             accountId: accountId,
-            messageIds: messages.map(msg => msg.id),
+            headerMessageIds,
+            refOldDraftHeaderMessageIds,
             source,
           });
         }),

@@ -53,7 +53,7 @@ class OutboxList extends React.Component {
         toolbar.className = toolbar.className.replace(' has-shadow', '');
       }
     }
-  }, 100)
+  }, 100);
 
   _onScroll = e => {
     if (e.target) {

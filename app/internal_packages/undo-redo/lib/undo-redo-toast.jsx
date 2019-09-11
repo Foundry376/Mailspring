@@ -1,11 +1,12 @@
 import {
   React,
   UndoRedoStore,
+  OutboxStore,
   SyncbackMetadataTask,
   ChangeUnreadTask,
   ChangeStarredTask,
   ChangeFolderTask,
-  Actions,
+  Actions
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
@@ -112,7 +113,7 @@ class BasicContent extends React.Component {
         <div className="message">{description}</div>
         <div className="action">
           <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-                     onClick={()=>onClose()}/>
+                     onClick={() => onClose()}/>
           <div className="undo-action-text" onClick={() => UndoRedoStore.undo({ block })}>Undo</div>
         </div>
       </div>
@@ -123,7 +124,7 @@ class BasicContent extends React.Component {
 class UndoSendContent extends BasicContent {
   constructor(props) {
     super(props);
-    this.state = { sendStatus: 'sending' };
+    this.state = { sendStatus: 'sending', failedDraft: null };
     this.unlisten = [
       Actions.draftDeliverySucceeded.listen(this.onSendSuccess, this),
       Actions.draftDeliveryFailed.listen(this.onSendFailed, this),
@@ -150,7 +151,7 @@ class UndoSendContent extends BasicContent {
       headerMessageId &&
       this.props.block.tasks[0].modelHeaderMessageId === headerMessageId
     ) {
-      this.setState({ sendStatus: 'success' });
+      this.setState({ sendStatus: 'success'});
       clearTimeout(this.timer);
       this.timer = setTimeout(() => {
         this.props.onClose(true);
@@ -158,13 +159,13 @@ class UndoSendContent extends BasicContent {
     }
   };
 
-  onSendFailed = ({ headerMessageId }) => {
+  onSendFailed = ({ headerMessageId, draft }) => {
     if (
       this.mounted &&
       headerMessageId &&
       this.props.block.tasks[0].modelHeaderMessageId === headerMessageId
     ) {
-      this.setState({ sendStatus: 'failed' });
+      this.setState({ sendStatus: 'failed', failedDraft: draft  });
       clearTimeout(this.timer);
       this.timer = setTimeout(() => {
         this.props.onClose(true);
@@ -179,7 +180,7 @@ class UndoSendContent extends BasicContent {
       clearTimeout(this.timer);
       setTimeout(() => {
         AppEnv.reportError(new Error(`Sending email failed, and user clicked view. headerMessageId: ${this.props.block.tasks[0].modelHeaderMessageId}`));
-        Actions.composePopoutDraft(this.props.block.tasks[0].modelHeaderMessageId);
+        Actions.gotoOutbox();
       }, 300);
       this.props.onClose(true);
     }
@@ -199,10 +200,28 @@ class UndoSendContent extends BasicContent {
     clearTimeout(this.timer);
   };
   onMouseLeave = () => {
-    if(this.state.sendStatus !== 'sending'){
-      this.timer = setTimeout(()=>this.props.onClose(), 400);
+    if (this.state.sendStatus !== 'sending') {
+      this.timer = setTimeout(() => this.props.onClose(), 400);
     }
   };
+
+  _generateFailedSendDraftMessage() {
+    if (this.state.failedDraft) {
+      const { to, bcc, cc } = this.state.failedDraft;
+      let recipiant;
+      if (to.length > 0) {
+        recipiant = to[0];
+      } else if (bcc.length > 0) {
+        recipiant = bcc[0];
+      } else if (cc.length > 0) {
+        recipiant = cc[0];
+      } else {
+        recipiant = { name: '', email: '' };
+      }
+      const additional = OutboxStore.count().failed > 1 ? `+ ${OutboxStore.count().failed } more` : '';
+      return `Mail to ${recipiant.name || recipiant.email} ${additional} failed to send.`;
+    }
+  }
 
   render() {
     const block = this.props.block;
@@ -210,7 +229,7 @@ class UndoSendContent extends BasicContent {
     if (this.state.sendStatus === 'success') {
       messageStatus = 'Message sent.';
     } else if (this.state.sendStatus === 'failed') {
-      messageStatus = 'Message failed to send.';
+      messageStatus = this._generateFailedSendDraftMessage();
     }
     return (
       <div
@@ -224,7 +243,7 @@ class UndoSendContent extends BasicContent {
             name="close_1.svg"
             isIcon
             mode={RetinaImg.Mode.ContentIsMask}
-            onClick={()=>this.props.onClose()}
+            onClick={() => this.props.onClose()}
           />
           {this.renderActionArea(block)}
         </div>

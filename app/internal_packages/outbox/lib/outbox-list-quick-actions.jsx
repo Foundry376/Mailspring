@@ -22,7 +22,7 @@ class OutboxTrashQuickAction extends React.Component {
     return (
       <div
         key="remove"
-        title="Trash"
+        title="Cancel"
         style={{ order: 3}}
         className="action action-trash"
         onClick={this._onRemove}

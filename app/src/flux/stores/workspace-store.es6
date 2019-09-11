@@ -336,7 +336,7 @@ class WorkspaceStore extends MailspringStore {
       AppEnv.logDebug(`Sheet popped because ${reason}`);
     }
     // make toolbar display
-    if ((this.topSheet() && ['Threads', 'Thread', 'Drafts', 'ChatView'].includes(this.topSheet().id))
+    if ((this.topSheet() && ['Threads', 'Thread', 'Drafts', 'ChatView', 'Outbox'].includes(this.topSheet().id))
       || sheet.id === "ChatView"
     ) {
       setTimeout(() => {

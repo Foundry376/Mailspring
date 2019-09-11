@@ -160,6 +160,7 @@ export default class SendDraftTask extends Task {
     Actions.draftDeliveryFailed({
       threadId: this.draft.threadId,
       headerMessageId: this.draft.headerMessageId,
+      draft: this.draft,
       errorMessage,
       errorDetail,
     });

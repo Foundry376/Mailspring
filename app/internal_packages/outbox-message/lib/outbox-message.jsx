@@ -5,21 +5,15 @@ import {
   ReactDOM,
   PropTypes,
   Utils,
-  Actions,
   OutboxStore,
   SearchableComponentStore,
   SearchableComponentMaker,
-  EmailAvatar,
   WorkspaceStore,
   OnlineStatusStore
 } from 'mailspring-exports';
 
 import {
-  Spinner,
-  RetinaImg,
-  MailLabelSet,
   ScrollRegion,
-  MailImportantIcon,
   KeyCommandsRegion,
   InjectedComponentSet,
 } from 'mailspring-component-kit';
@@ -350,34 +344,6 @@ class OutboxMessage extends React.Component {
       </div>
     );
   }
-
-  _renderIcons() {
-    return (
-      <div className="message-icons-wrap">
-        <div onClick={this._onPrintThread}>
-          <RetinaImg name={'print.svg'}
-            title="Print Thread"
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
-        </div>
-        {this._renderPopoutToggle()}
-      </div>
-    );
-  }
-
-  _renderPopoutToggle() {
-    return (
-      <div >
-        <RetinaImg name={'popout.svg'}
-          style={{ width: 24, height: 24 }}
-          title="Pop thread out"
-          isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
-      </div>
-    );
-  }
-
   _calcScrollPosition = _.throttle((scrollTop) => {
     const toolbar = document.querySelector('#message-list-toolbar');
     if (toolbar) {

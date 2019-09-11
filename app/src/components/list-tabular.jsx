@@ -429,7 +429,7 @@ class ListTabular extends Component {
     if (current && ['spam', 'trash'].includes(current.categoriesSharedRole())) {
       hasEmptyBar = 'has-empty-bar';
     }
-    const profileAvatarClass = this.state.profileAvatar ? 'showAvatar' : '';
+    const profileAvatarClass = this.state.profileAvatar ? 'showAvatar' : 'hideAvatar';
     return (
       <div
         className={`list-container list-tabular ${className} ${hasEmptyBar} ${profileAvatarClass}`}

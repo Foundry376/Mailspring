@@ -13,7 +13,7 @@ export class ResendButton extends React.Component {
   static containerRequired = false;
 
   static propTypes = {
-    draft: PropTypes.array.isRequired,
+    draft: PropTypes.object.isRequired,
   };
 
   _onResend = event => {
@@ -69,7 +69,7 @@ export class TrashButton extends React.Component {
       return <button
         tabIndex={-1}
         className="btn btn-toolbar"
-        title='Cancel Send'
+        title='Cancel'
         onClick={this._onRemove}
       >
         <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
@@ -83,10 +83,6 @@ export class TrashButton extends React.Component {
 export class EditButton extends React.Component {
   static displayName = 'EditButton';
   static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
 
   _onEditOutboxDraft = event => {
     if (event) {
