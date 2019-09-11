@@ -80,6 +80,7 @@ export default class ComposerView extends React.Component {
     this._unlisten = [
       Actions.destroyDraftFailed.listen(this._onDestroyedDraftProcessed, this),
       Actions.destroyDraftSucceeded.listen(this._onDestroyedDraftProcessed, this),
+      Actions.removeQuoteText.listen(this._onQuoteRemoved, this),
       WorkspaceStore.listen(this._onResize),
     ];
   }
@@ -155,6 +156,12 @@ export default class ComposerView extends React.Component {
       this.setState({ isCrowded });
     }
   };
+
+  _onQuoteRemoved({ headerMessageId = '' } = {}) {
+    if (this._mounted && this.props.draft && this.props.draft.headerMessageId === headerMessageId) {
+      this.setState({ quotedTextHidden: false, quotedTextPresent: false });
+    }
+  }
 
   focus() {
     if (!this._mounted) return;
@@ -278,6 +285,9 @@ export default class ComposerView extends React.Component {
             const { draft, session } = this.props;
             const change = removeQuotedText(draft.bodyEditorState);
             session.changes.add({ bodyEditorState: change.value });
+            if (draft) {
+              Actions.removeQuoteText({ headerMessageId: draft.headerMessageId });
+            }
             this.setState({ quotedTextHidden: false });
           }}
         >

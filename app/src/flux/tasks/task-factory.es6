@@ -11,6 +11,9 @@ import _ from 'underscore';
 import DeleteThreadsTask from './delete-threads-task';
 import ExpungeAllInFolderTask from './expunge-all-in-folder-task';
 import ExpungeMessagesTask from './expunge-messages-task';
+import DestroyDraftTask from './destroy-draft-task';
+import ResendDraftTask from './resend-draft-task';
+import CancelOutboxDraftTask from './cancel-outbox-draft-task';
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
@@ -184,6 +187,51 @@ const TaskFactory = {
     }
     return tasks;
   },
+  tasksForDestroyingDraft({ messages = [], source = '' }) {
+    const tasks = [];
+    if (messages.length > 0 && messages[0] instanceof Message) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new DestroyDraftTask({
+            accountId: accountId,
+            messageIds: messages.map(msg => msg.id),
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
+  },
+  tasksForCancellingOutboxDrafts({ messages = [], source = '' }) {
+    const tasks = [];
+    if (messages.length > 0 && messages[0] instanceof Message) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new CancelOutboxDraftTask({
+            accountId: accountId,
+            messageIds: messages.map(msg => msg.id),
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
+  },
+  tasksForResendingDraft({ messages = [], source = '' }) {
+    const tasks = [];
+    if (messages.length > 0 && messages[0] instanceof Message) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new ResendDraftTask({
+            accountId: accountId,
+            messageIds: messages.map(msg => msg.id),
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
+  },
 
   taskForInvertingUnread({ threads, source, canBeUndone }) {
     const unread = threads.every(t => t.unread === false);
@@ -235,7 +283,14 @@ const TaskFactory = {
         cat => cat.accountId === accountId,
       );
       const provider = currentPerspective.providerByAccountId(accountId);
-      if (provider.provider === 'gmail') {
+      if (!provider) {
+        AppEnv.reportError(new Error('no provider found'), {
+          errorData: {
+            accountId: accountId,
+            previousFolder: previousFolder,
+          },
+        });
+      } else if (provider.provider === 'gmail') {
         if (previousFolder && !['spam', 'trash', 'all'].includes(previousFolder.role)) {
           previousFolder = CategoryStore.getAllMailCategory(accountId);
         }

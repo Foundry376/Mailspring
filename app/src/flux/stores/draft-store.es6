@@ -4,7 +4,6 @@ import DraftEditingSession from './draft-editing-session';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
-// import FocusedContentStore from './focused-content-store';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import SyncbackMetadataTask from '../tasks/syncback-metadata-task';
 import SendDraftTask from '../tasks/send-draft-task';
@@ -19,9 +18,11 @@ import * as ExtensionRegistry from '../../registries/extension-registry';
 import MessageStore from './message-store';
 import UndoRedoStore from './undo-redo-store';
 import TaskFactory from '../tasks/task-factory';
-
+import ChangeDraftToFailingTask from '../tasks/change-draft-to-failing-task';
+import FocusedContentStore from './focused-content-store';
 const { DefaultSendActionKey } = SendActionsStore;
 const SendDraftTimeout = 300000;
+const DraftFailingBaseTimeout = 120000;
 
 /*
 Public: DraftStore responds to Actions that interact with Drafts and exposes
@@ -38,26 +39,30 @@ class DraftStore extends MailspringStore {
   constructor() {
     super();
     this.listenTo(DatabaseStore, this._onDataChanged);
-    this.listenTo(Actions.composeReply, this._onComposeReply);
-    this.listenTo(Actions.composeForward, this._onComposeForward);
-    this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
-    this.listenTo(Actions.composeNewBlankDraft, this._onPopoutBlankDraft);
-    this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
-    this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
     this.listenTo(Actions.sendingDraft, this._onSendingDraft);
     this.listenTo(Actions.destroyDraftFailed, this._onDestroyDraftFailed);
     this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
-    this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
-    // Remember that these two actions only fire in the current window and
-    // are picked up by the instance of the DraftStore in the current
-    // window.
-    this.listenTo(Actions.sendDraft, this._onSendDraft);
     this.listenTo(Actions.destroyDraft, this._onDestroyDrafts);
-
     if (AppEnv.isMainWindow()) {
+      this.listenTo(Actions.composeReply, this._onComposeReply);
+      this.listenTo(Actions.composeForward, this._onComposeForward);
+      this.listenTo(Actions.cancelOutboxDrafts, this._onCancelDraft);
+      this.listenTo(Actions.resendDrafts, this._onResendDraft);
+      this.listenTo(Actions.editOutboxDraft, this._onEditOutboxDraft);
+      this.listenTo(Actions.composeFailedPopoutDraft, this._onPopoutDraft);
+      this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
+      this.listenTo(Actions.composeNewBlankDraft, this._onPopoutBlankDraft);
+      this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
+      this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
+      this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
+      this.listenTo(Actions.sendDraft, this._onSendDraft);
+      this.listenTo(Actions.failingDraft, this._startDraftFailingTimeout);
+      this.listenTo(Actions.draftOpenCount, this._onDraftOpenCount);
+      this.listenTo(Actions.draftWindowClosing, this._onDraftWindowClosing);
       ipcRenderer.on('new-message', () => {
+        // From app menu and shortcut
         Actions.composeNewBlankDraft();
       });
 
@@ -65,7 +70,7 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
         Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
       });
-      ipcRenderer.on('thread-arp', this._onThreadChange);
+      // ipcRenderer.on('thread-arp', this._onThreadChange);
     }
     ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey) => {
       if (AppEnv.isMainWindow()) {
@@ -74,20 +79,19 @@ class DraftStore extends MailspringStore {
       this._onSendDraftCancelled({ headerMessageId });
     });
     // popout closed
-    ipcRenderer.on('draft-close-window', this._onPopoutClosed);
+    // ipcRenderer.on('draft-close-window', this._onPopoutClosed);
     // ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
-    ipcRenderer.on('draft-arp', this._onDraftArp);
-    ipcRenderer.on('draft-delete', this._onDraftDeleting);
-
-
+    // ipcRenderer.on('draft-arp', this._onDraftArp);
+    // ipcRenderer.on('draft-delete', this._onDraftDeleting);
     AppEnv.onBeforeUnload(this._onBeforeUnload);
 
     this._draftSessions = {};
     this._draftsSending = {};
     this._draftSendindTimeouts = {};
-    this._draftsDeleting = {};
-
-    this._draftsPopedOut = {};
+    this._draftFailingTimeouts = {};
+    this._draftsDeleting = {}; //Using message Id
+    this._draftsDeleted = {};
+    this._draftsOpenCount = {};
     ipcRenderer.on('mailto', this._onHandleMailtoLink);
     ipcRenderer.on('mailfiles', this._onHandleMailFiles);
   }
@@ -96,11 +100,22 @@ class DraftStore extends MailspringStore {
     return DatabaseStore.findBy(Message, {
       headerMessageId: headerMessageId,
       draft: true,
-    }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
+    }).where([
+      Message.attributes.state.in([
+        Message.messageState.normal,
+        Message.messageState.saving,
+        Message.messageState.sending,
+        Message.messageState.updatingNoUID,
+        Message.messageState.updatingHasUID,
+        Message.messageState.failing,
+      ]),
+    ]);
   }
 
   findByHeaderMessageIdWithBody({ headerMessageId }) {
-    return this.findByHeaderMessageId({ headerMessageId }).include(Message.attributes.body).include(Message.attributes.isPlainText);
+    return this.findByHeaderMessageId({ headerMessageId })
+      .include(Message.attributes.body)
+      .include(Message.attributes.isPlainText);
   }
 
   findAllWithBodyInDescendingOrder() {
@@ -120,10 +135,42 @@ class DraftStore extends MailspringStore {
     }
     if (!this._draftSessions[headerMessageId]) {
       this._draftSessions[headerMessageId] = this._createSession(headerMessageId);
+    } else {
+      const draft = this._draftSessions[headerMessageId].draft();
+      if (!draft) {
+        AppEnv.reportWarning('session exist, but not draft');
+      } else if (!this._draftsOpenCount[headerMessageId]) {
+        AppEnv.reportLog(
+          `draft and session exist, but draftOpenCount not available, ${headerMessageId}, ${this._getCurrentWindowLevel()}`
+        );
+      } else {
+        const thread = FocusedContentStore.focused('thread');
+        const inFocusedThread = thread && thread.id === draft.threadId;
+        if (
+          AppEnv.isMainWindow() &&
+          inFocusedThread &&
+          !this._draftsOpenCount[headerMessageId][1]
+        ) {
+          console.log(
+            `Only trigger open draft count if in main window, in focus thread, and current opencount is not set`
+          );
+          this._onDraftOpenCount({
+            headerMessageId,
+            windowLevel: this._getCurrentWindowLevel(),
+            source: `draft store, session already exist ${headerMessageId}, ${this._getCurrentWindowLevel()}`,
+          });
+        }
+      }
     }
     await this._draftSessions[headerMessageId].prepare();
-    ipcRenderer.send('draft-arp', { headerMessageId });
+    // ipcRenderer.send('draft-arp', { headerMessageId });
     return this._draftSessions[headerMessageId];
+  }
+
+  async sessionForServerDraft(draft){
+    const newDraft = DraftFactory.createNewDraftForEdit(draft);
+    await this._finalizeAndPersistNewMessage(newDraft);
+    return this._draftSessions[newDraft.headerMessageId];
   }
 
   // Public: Look up the sending state of the given draft headerMessageId.
@@ -167,39 +214,46 @@ class DraftStore extends MailspringStore {
   };
 
   //on Thread changed
-  _onThreadChange = (event, options = {}) => {
-    if (options.threadId) {
-      for (let headerMessageId in this._draftSessions) {
-        if (this._draftsDeleting[headerMessageId] || this._draftsSending[headerMessageId]) {
-          // If draft is sending or deleting, we don't do anything
-          continue;
-        }
-        if (
-          this._draftSessions[headerMessageId] &&
-          this._draftSessions[headerMessageId].draft()
-        ) {
-          this._draftSessions[headerMessageId].onThreadChange(options);
-        }
-      }
-    }
-  };
+  // _onThreadChange = (event, options = {}) => {
+  //   if (options.threadId) {
+  //     for (let headerMessageId in this._draftSessions) {
+  //       if (this._draftsDeleting[headerMessageId] || this._draftsSending[headerMessageId]) {
+  //         // If draft is sending or deleting, we don't do anything
+  //         continue;
+  //       }
+  //       if (
+  //         this._draftSessions[headerMessageId] &&
+  //         this._draftSessions[headerMessageId].draft()
+  //       ) {
+  //         this._draftSessions[headerMessageId].onThreadChange(options);
+  //       }
+  //     }
+  //   }
+  // };
 
   // Check if current store already have session
-  _onDraftArp = (event, options = {}) => {
-    // console.log(`draft arp ${JSON.stringify(options)} @ windowLevel ${this._getCurrentWindowLevel()}`);
-    if (options.headerMessageId && options.threadId && options.windowLevel) {
-      const currenttWindowsLevel = this._getCurrentWindowLevel();
-      if (
-        this._draftSessions[options.headerMessageId]
-      ) {
-        ipcRenderer.send('draft-arp-reply', {
-          headerMessageId: options.headerMessageId,
-          threadId: options.threadId,
-          windowLevel: currenttWindowsLevel,
-        });
-      }
+  // _onDraftArp = (event, options = {}) => {
+  //   // console.log(`draft arp ${JSON.stringify(options)} @ windowLevel ${this._getCurrentWindowLevel()}`);
+  //   if (options.headerMessageId && options.threadId && options.windowLevel) {
+  //     const currenttWindowsLevel = this._getCurrentWindowLevel();
+  //     if (
+  //       this._draftSessions[options.headerMessageId]
+  //     ) {
+  //       // ipcRenderer.send('draft-arp-reply', {
+  //       //   headerMessageId: options.headerMessageId,
+  //       //   threadId: options.threadId,
+  //       //   windowLevel: currenttWindowsLevel,
+  //       // });
+  //     }
+  //   }
+  // };
+
+  _doneWithDraft(headerMessageId){
+    const session = this._draftSessions[headerMessageId];
+    if(session){
+      this._doneWithSession(session);
     }
-  };
+  }
 
   _doneWithSession(session) {
     if (!session) {
@@ -217,62 +271,204 @@ class DraftStore extends MailspringStore {
     });
   }
 
-  _onPopoutClosed = (event, options = {}) => {
-    if (options.headerMessageId && this._draftSessions[options.headerMessageId]) {
-      // console.log(`popout closed with header ${options.headerMessageId}`);
-      delete this._draftsPopedOut[options.headerMessageId];
-      this._draftSessions[options.headerMessageId].setPopout(false);
+  // _onPopoutClosed = (event, options = {}) => {
+  //   if (options.headerMessageId && this._draftSessions[options.headerMessageId]) {
+  //     // console.log(`popout closed with header ${options.headerMessageId}`);
+  //     delete this._draftsOpenCount[options.headerMessageId];
+  //     this._draftSessions[options.headerMessageId].setPopout(false);
+  //   }
+  // };
+
+  _onCancelDraft = ({ messages = [], source } = {}) => {
+    const tasks = TaskFactory.tasksForCancellingOutboxDrafts({ messages, source });
+    if(tasks && tasks.length > 0){
+      Actions.queueTasks(tasks);
+    }else {
+      AppEnv.reportError(new Error('Tasks for cancellingOutboxDraft is empty'), {errorData: {
+        messages
+        }});
+    }
+    messages.forEach(message => {
+      if (message) {
+        const session = this._draftSessions[message.headerMessageId];
+        if (session) {
+          this._doneWithSession(session);
+        }
+        const sending = this._draftsSending[message.headerMessageId];
+        if (sending) {
+          this._onSendDraftCancelled({ headerMessageId: message.headerMessageId });
+        }
+        const deleting = this._draftsDeleting[message.headerMessageId];
+        if (deleting) {
+          delete this._draftsDeleting[message.headerMessageId];
+        }
+      }
+    });
+  };
+
+  _onResendDraft = ({messages = [], source} = {}) => {
+    const tasks = TaskFactory.tasksForResendingDraft({messages, source});
+    if(tasks && tasks.length > 0){
+      Actions.queueTasks(tasks);
+    }else {
+      AppEnv.reportError(new Error('Tasks for cancellingOutboxDraft is empty'), {errorData: {
+          messages
+        }});
+    }
+  };
+  _onDraftOpenCount = ({ headerMessageId, windowLevel=0, source='' }) => {
+    if(!AppEnv.isMainWindow()){
+      AppEnv.logWarning(`open count not main window source: ${source}`);
+      return;
+    }
+    if(windowLevel === 0){
+      AppEnv.reportError(new Error('draftOpenCount action windowLevel is 0, wrong parameters'));
+      return;
+    }
+    AppEnv.logDebug(`open count source: ${source} windowLevel: ${windowLevel}`);
+    if (!this._draftsOpenCount[headerMessageId]) {
+      this._draftsOpenCount[headerMessageId] = {
+        1: false,
+        2: false,
+        3: false,
+      };
+    }
+    this._draftsOpenCount[headerMessageId][windowLevel] = true;
+    if(AppEnv.isMainWindow()){
+      if(windowLevel >1 ){
+        const session = this._draftSessions[headerMessageId];
+        if(session){
+          session.setPopout(true);
+        }
+      }
+      Actions.draftOpenCountBroadcast({
+        headerMessageId,
+        data: this._draftsOpenCount[headerMessageId],
+      });
     }
   };
 
-  _onBeforeUnload = readyToUnload => {
-    // console.log(`draft store close window @ window ${this._getCurrentWindowLevel()}`);
-    const promises = [];
-
-    // Normally we'd just append all promises, even the ones already
-    // fulfilled (nothing to save), but in this case we only want to
-    // block window closing if we have to do real work. Calling
-    // window.close() within on onbeforeunload could do weird things.
-    Object.values(this._draftSessions).forEach(session => {
-      const draft = session.draft();
-      // if draft.id is empty, use headerMessageId
-      if (!draft.id && draft.headerMessageId) {
-        draft.id = draft.headerMessageId;
+  _onDraftWindowClosing = ({ headerMessageIds = [], windowLevel = 0, source = '' } = {}) => {
+    if (!AppEnv.isMainWindow()) {
+      AppEnv.logWarning(`draft closing, not main window source: ${source}`);
+      return;
+    }
+    // console.log(`draft closing ${source}, ${headerMessageIds}, ${windowLevel}`);
+    headerMessageIds.forEach(headerMessageId => {
+      if (this._draftsOpenCount[headerMessageId]) {
+        this._draftsOpenCount[headerMessageId][windowLevel] = false;
       }
-      if (!draft || !draft.id) {
+      const openDrafts = this._draftsOpenCount[headerMessageId];
+      if(!openDrafts){
         return;
       }
-
-      // Only delete pristine drafts if we're in popouts and is not from server, aka remoteUID=0.
-      if (draft.pristine && !session.isPopout() && !draft.remoteUID) {
-        // console.log(`draft to be destroyed @ ${this._getCurrentWindowLevel()}`);
-        if (!this._draftsDeleting[draft.id]) {
-          console.log('sending out destroy draft in onbefore load');
-          promises.push(Actions.destroyDraft([draft], { canBeUndone: false }));
-        }
-      } else if (
-        AppEnv.isMainWindow() &&
-        (session.changes.isDirty() || session.needUpload()) &&
-        !session.isPopout() &&
-        !this._draftsDeleting[draft.id]
-      ) {
-        promises.push(session.changes.commit('unload'));
-      } else if (
-        !AppEnv.isMainWindow() &&
-        (session.changes.isDirty() || session.needUpload()) &&
-        !session.isPopout() &&
-        !this._draftsDeleting[draft.id]
-      ) {
-        promises.push(session.changes.commit('unload'));
+      const allClosed = !openDrafts[`1`] && !openDrafts['2'] && !openDrafts['3'];
+      if (allClosed) {
+        delete this._draftsOpenCount[headerMessageId];
+        this._onLastOpenDraftClosed(headerMessageId);
+      }else{
+        Actions.draftOpenCountBroadcast({headerMessageId, data: this._draftsOpenCount[headerMessageId]});
       }
-      promises.push(ipcRenderer.send('close-window', {
-        headerMessageId: draft.headerMessageId,
-        threadId: draft.threadId,
-        windowLevel: this._getCurrentWindowLevel(),
-        additionalChannelParam: 'draft',
-      }));
     });
+  };
+  _onLastOpenDraftClosed = headerMessageId => {
+    if (this._draftsDeleted[headerMessageId] || this._draftsDeleting[headerMessageId]) {
+      AppEnv.logWarning('reason draft was delete');
+      delete this._draftsDeleted[headerMessageId];
+      this._doneWithDraft(headerMessageId);
+      return;
+    }
+    if(this._draftsSending[headerMessageId]){
+      AppEnv.logWarning('draft was sending');
+      this._doneWithDraft(headerMessageId);
+      return;
+    }
+    const session = this._draftSessions[headerMessageId];
+    if(!session){
+      AppEnv.reportError(`draft session not available, headerMessageId ${headerMessageId}`);
+    }
+    const draft = session.draft();
+    if(!draft){
+      AppEnv.reportError(`session has no draft, headerMessageId ${headerMessageId}`);
+    }
+    let cancelCommits = false;
+    if(draft.pristine && !draft.hasRefOldDraftOnRemote){
+      if(this._draftsDeleting[draft.headerMessageId] || this._draftsDeleted[draft.headerMessageId] ){
+        AppEnv.reportError(new Error(`Draft is deleting, should not have send delete again`));
+      }else if( this._draftsSending[draft.headerMessageId]){
+        AppEnv.reportError(new Error(`Draft is sending, should not have send delete again`));
+      }else{
+        // console.log('draft have no change and not on remote, destroying');
+        Actions.destroyDraft([draft], { canBeUndone: false });
+        cancelCommits = true;
+      }
+    }
+    session.closeSession({ cancelCommits });
+    this._doneWithDraft(headerMessageId);
+  };
 
+  _onBeforeUnload = readyToUnload => {
+    if(AppEnv.isOnboardingWindow() || AppEnv.isEmptyWindow()){
+      // console.log('onborading or emptyWindow');
+      return true;
+    }
+
+    // console.log(`draft store close window @ window ${this._getCurrentWindowLevel()}`);
+    const promises = [];
+    if(!AppEnv.isMainWindow()){
+          Actions.draftWindowClosing({
+            headerMessageIds: Object.keys(this._draftSessions),
+            source: 'beforeUnload',
+            windowLevel: this._getCurrentWindowLevel()
+          })
+    }else {
+      // Normally we'd just append all promises, even the ones already
+      // fulfilled (nothing to save), but in this case we only want to
+      // block window closing if we have to do real work. Calling
+      // window.close() within on onbeforeunload could do weird things.
+      Object.values(this._draftSessions).forEach(session => {
+        const draft = session.draft();
+        // if draft.id is empty, use headerMessageId
+        if (!draft.id && draft.headerMessageId) {
+          draft.id = draft.headerMessageId;
+        }
+        if (!draft || !draft.id) {
+          return;
+        }
+
+        // Only delete pristine drafts and is not from server, aka remoteUID=0.
+        // Because we are moving all actions to main window,
+        // thus if main window is closed, we should be closing all other windows.
+        if (draft.pristine && !draft.remoteUID) {
+          if (!this._draftsDeleting[draft.id]) {
+            promises.push(Actions.destroyDraft([draft], { canBeUndone: false }));
+          }
+        } else{
+          promises.push(session.closeSession());
+        }
+        // else if (
+        //   AppEnv.isMainWindow() &&
+        //   (session.changes.isDirty() || session.needUpload()) &&
+        //   !session.isPopout() &&
+        //   !this._draftsDeleting[draft.id]
+        // ) {
+        //   promises.push(session.changes.commit('unload'));
+        // } else if (
+        //   !AppEnv.isMainWindow() &&
+        //   (session.changes.isDirty() || session.needUpload()) &&
+        //   !session.isPopout() &&
+        //   !this._draftsDeleting[draft.id]
+        // ) {
+        //   promises.push(session.changes.commit('unload'));
+        // }
+        // promises.push(ipcRenderer.send('close-window', {
+        //   headerMessageId: draft.headerMessageId,
+        //   threadId: draft.threadId,
+        //   windowLevel: this._getCurrentWindowLevel(),
+        //   additionalChannelParam: 'draft',
+        // }));
+      });
+    }
     if (promises.length > 0) {
       let done = () => {
         done = null;
@@ -300,23 +496,23 @@ class DraftStore extends MailspringStore {
     // Continue closing
     return true;
   };
-  _onDraftIdChange = change => {
-    const draftsHeaderMessageId = Object.keys(this._draftSessions);
-    const nextDraft = change.objects
-      .filter(obj => draftsHeaderMessageId.includes(obj.headerMessageId))
-      .pop();
-
-    if (!nextDraft) {
-      return;
-    }
-    if (
-      this._draftSessions[nextDraft.headerMessageId] &&
-      this._draftSessions[nextDraft.headerMessageId].draft() &&
-      !this._draftSessions[nextDraft.headerMessageId].inView()
-    ) {
-      this._draftSessions[nextDraft.headerMessageId].updateDraftId(nextDraft.id);
-    }
-  };
+  // _onDraftIdChange = change => {
+  //   const draftsHeaderMessageId = Object.keys(this._draftSessions);
+  //   const nextDraft = change.objects
+  //     .filter(obj => draftsHeaderMessageId.includes(obj.headerMessageId))
+  //     .pop();
+  //
+  //   if (!nextDraft) {
+  //     return;
+  //   }
+  //   if (
+  //     this._draftSessions[nextDraft.headerMessageId] &&
+  //     this._draftSessions[nextDraft.headerMessageId].draft() &&
+  //     !this._draftSessions[nextDraft.headerMessageId].inView()
+  //   ) {
+  //     this._draftSessions[nextDraft.headerMessageId].updateDraftId(nextDraft.id);
+  //   }
+  // };
 
   _onDataChanged = change => {
     if (change.objectClass !== Message.name) {
@@ -341,7 +537,7 @@ class DraftStore extends MailspringStore {
     // allow draft editing sessions to update
     this.trigger(change);
     // update drafts that are not in view;
-    this._onDraftIdChange(change);
+    // this._onDraftIdChange(change);
   };
 
   _onSendQuickReply = ({ thread, threadId, message, messageId }, body) => {
@@ -355,20 +551,24 @@ class DraftStore extends MailspringStore {
       .then(draft => {
         draft.body = `${body}\n\n${draft.body}`;
         draft.pristine = false;
-        const t = new SyncbackDraftTask({ draft });
-        // console.error('send quickly');
-        Actions.queueTask(t);
-        TaskQueue.waitForPerformLocal(t).then(() => {
+
+        // const t = new SyncbackDraftTask({ draft });
+        // // console.error('send quickly');
+        // Actions.queueTask(t);
+        // TaskQueue.waitForPerformLocal(t)
+
+        this._finalizeAndPersistNewMessage(draft).then(() => {
+          console.log('send draft');
           Actions.sendDraft(draft.headerMessageId);
         }).catch(e =>{
           AppEnv.grabLogs()
             .then(filename => {
               if (typeof filename === 'string' && filename.length > 0) {
-                AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: task, files: [filename] });
+                AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: e, files: [filename] });
               }
             })
             .catch(e => {
-              AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
+              AppEnv.reportError(new Error('Quick reply failed'));
             });
         });
       });
@@ -450,7 +650,6 @@ class DraftStore extends MailspringStore {
     // doesn't need to do a query for it a second from now when the composer wants it.
     this._createSession(draft.headerMessageId, draft);
     const task = new SyncbackDraftTask({ draft });
-    // console.error('sync back from finalize');
     Actions.queueTask(task);
 
     return TaskQueue.waitForPerformLocal(task)
@@ -478,8 +677,8 @@ class DraftStore extends MailspringStore {
   }
 
   _createSession(headerMessageId, draft) {
+    // console.error('creat draft session');
     this._draftSessions[headerMessageId] = new DraftEditingSession(headerMessageId, draft);
-    ipcRenderer.send('draft-arp', { headerMessageId });
     return this._draftSessions[headerMessageId];
   }
 
@@ -495,13 +694,42 @@ class DraftStore extends MailspringStore {
     Actions.composedNewBlankDraft();
   };
 
+  _onEditOutboxDraft = async (headerMessageId, options = {}) => {
+    if (headerMessageId == null) {
+      throw new Error('DraftStore::onPopoutDraftId - You must provide a headerMessageId');
+    }
+    const session = await this.sessionForClientId(headerMessageId);
+    const oldDraft = session.draft();
+    if (!oldDraft) {
+      AppEnv.reportError(
+        new Error(
+          `DraftStore::editOutboxDraft - session.draft() is false, draft not exist. headerMessageId: ${headerMessageId}`,
+        ),
+      );
+      return;
+    } else if (!Message.compareMessageState(oldDraft.state, Message.messageState.failed)) {
+      AppEnv.reportError(
+        new Error(
+          `DraftStore::editOutboxDraft - session.draft() is false, draft not exist. headerMessageId: ${headerMessageId}`,
+        ),
+      );
+    } else {
+      session.freezeSession();
+      const newDraft = await DraftFactory.createOutboxDraftForEdit(oldDraft);
+      await this._finalizeAndPersistNewMessage(newDraft);
+      this._onDestroyDrafts([oldDraft], { canBeUndone: false });
+      this._onPopoutDraft(newDraft.headerMessageId, options);
+    }
+  };
+
   _onPopoutDraft = async (headerMessageId, options = {}) => {
     if (headerMessageId == null) {
       throw new Error('DraftStore::onPopoutDraftId - You must provide a headerMessageId');
     }
 
     const session = await this.sessionForClientId(headerMessageId);
-    if (!session.draft()) {
+    const draft = session.draft();
+    if (!draft) {
       AppEnv.reportError(
         new Error(
           `DraftStore::onPopoutDraft - session.draft() is false, draft not ready. headerMessageId: ${headerMessageId}`,
@@ -509,32 +737,50 @@ class DraftStore extends MailspringStore {
       );
       return;
     }
-    const messageId = session.draft().id;
-    if (this._draftsDeleting[messageId] || this.isSendingDraft(headerMessageId)) {
-      AppEnv.reportError(
-        new Error(
-          `Attempting to open draft-id:${messageId} when it is being deleted or sending. this._draftDeleting: ${this._draftsDeleting}, this._draftSending: ${this._draftsSending}`
-        )
-      );
-      return;
+    if(draft.savedOnRemote){
+      this._doneWithSession(session);
+      this.sessionForServerDraft(draft).then(newSession => {
+        const newDraft = newSession.draft();
+        newSession.setPopout(true);
+        const draftJSON = newSession.draft().toJSON();
+        AppEnv.newWindow({
+          hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
+          headerMessageId: newDraft.headerMessageId,
+          windowType: 'composer',
+          windowKey: `composer-${newDraft.headerMessageId}`,
+          windowProps: Object.assign(options, { headerMessageId: newDraft.headerMessageId, draftJSON }),
+          title: ' ',
+          threadId: newSession.draft().threadId,
+        });
+      });
+    }else{
+      const messageId = session.draft().id;
+      if (this._draftsDeleting[messageId] || this.isSendingDraft(headerMessageId)) {
+        AppEnv.reportError(
+          new Error(
+            `Attempting to open draft-id:${messageId} when it is being deleted or sending. this._draftDeleting: ${this._draftsDeleting}, this._draftSending: ${this._draftsSending}`
+          )
+        );
+        return;
+      }
+      await session.changes.commit();
+      session.setPopout(true);
+      const draftJSON = session.draft().toJSON();
+      // Since we pass a windowKey, if the popout composer draft already
+      // exists we'll simply show that one instead of spawning a whole new
+      // window.
+      // console.log(`popout draft ${headerMessageId}`);
+      AppEnv.newWindow({
+        hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
+        headerMessageId: headerMessageId,
+        windowType: 'composer',
+        windowKey: `composer-${headerMessageId}`,
+        windowProps: Object.assign(options, { headerMessageId, draftJSON }),
+        title: ' ',
+        threadId: session.draft().threadId,
+      });
     }
-    await session.changes.commit();
-    this._draftsPopedOut[headerMessageId] = true;
-    session.setPopout(true);
-    const draftJSON = session.draft().toJSON();
-    // Since we pass a windowKey, if the popout composer draft already
-    // exists we'll simply show that one instead of spawning a whole new
-    // window.
-    // console.log(`popout draft ${headerMessageId}`);
-    AppEnv.newWindow({
-      hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
-      headerMessageId: headerMessageId,
-      windowType: 'composer',
-      windowKey: `composer-${headerMessageId}`,
-      windowProps: Object.assign(options, { headerMessageId, draftJSON }),
-      title: ' ',
-      threadId: session.draft().threadId,
-    });
+
   };
 
   _onHandleMailtoLink = async (event, urlString) => {
@@ -568,35 +814,55 @@ class DraftStore extends MailspringStore {
       });
     });
   };
-  cancelDraftTasks = ({ headerMessageId }) => {
-    if (headerMessageId) {
-      TaskQueue.queue().forEach(task => {
-        if (task instanceof SyncbackDraftTask && task.headerMessageId === headerMessageId) {
-          Actions.cancelTask(task);
-        }
-        if (task instanceof SendDraftTask && task.headerMessageId === headerMessageId) {
-          Actions.cancelTask(task);
-        }
-      });
-    }
-  };
-
-  _onDraftGotNewId = (event, options) => {
-    console.log(`draft got new id ${options} @ window ${this._getCurrentWindowLevel()}`);
-    if (options.windowLevel && options.windowLevel === this._getCurrentWindowLevel()) {
-      if (this._draftSessions[options.oldHeaderMessageId] && options.newHeaderMessageId) {
-        if (!this._draftSessions[options.newHeaderMessageId]) {
-          this._draftSessions[options.newHeaderMessageId] = Object.assign(
-            {},
-            this._draftSessions[options.oldHeaderMessageId],
-          );
-        }
-        this._doneWithSession(this._draftSessions[options.oldHeaderMessageId]);
-      }
-    }
-  };
+  // cancelDraftTasks = ({ headerMessageId }) => {
+  //   if (headerMessageId) {
+  //     TaskQueue.queue().forEach(task => {
+  //       if (task instanceof SyncbackDraftTask && task.headerMessageId === headerMessageId) {
+  //         Actions.cancelTask(task);
+  //       }
+  //       if (task instanceof SendDraftTask && task.headerMessageId === headerMessageId) {
+  //         Actions.cancelTask(task);
+  //       }
+  //     });
+  //   }
+  // };
+  //
+  // _onDraftGotNewId = (event, options) => {
+  //   console.log(`draft got new id ${options} @ window ${this._getCurrentWindowLevel()}`);
+  //   if (options.windowLevel && options.windowLevel === this._getCurrentWindowLevel()) {
+  //     if (this._draftSessions[options.oldHeaderMessageId] && options.newHeaderMessageId) {
+  //       if (!this._draftSessions[options.newHeaderMessageId]) {
+  //         this._draftSessions[options.newHeaderMessageId] = Object.assign(
+  //           {},
+  //           this._draftSessions[options.oldHeaderMessageId],
+  //         );
+  //       }
+  //       this._doneWithSession(this._draftSessions[options.oldHeaderMessageId]);
+  //     }
+  //   }
+  // };
 
   _onDestroyDrafts = (messages = [], opts = {}) => {
+    if(AppEnv.isThreadWindow()){
+      // console.log('on destroy draft is thread window');
+      return;
+    }
+    if (AppEnv.isComposerWindow() && !opts.switchingAccount && messages.length === 1) {
+      // console.log('on destroy draft is composer window');
+      AppEnv.close({
+        headerMessageId: messages[0].headerMessageId,
+        threadId: messages[0].threadId,
+        windowLevel: this._getCurrentWindowLevel(),
+        additionalChannelParam: 'draft',
+        deleting: true,
+      });
+      return;
+    }
+    if(!AppEnv.isMainWindow()){
+      // console.log('on destroy draft is not main window');
+      return;
+    }
+    // console.log('destroying draft');
     const tasks = [];
     if (!Array.isArray(messages) && messages instanceof Message) {
       messages = [messages];
@@ -621,104 +887,110 @@ class DraftStore extends MailspringStore {
           canBeUndone: opts.canBeUndone,
           accountId,
           messageIds: ids,
-          needToBroadcastBeforeSendTask: {
-            channel: 'draft-delete',
-            options: {
-              accountId,
-              messageIds: ids,
-              threadIds: threadIds,
-              headerMessageIds: headerMessageIds,
-              windowLevel: this._getCurrentWindowLevel(),
-            },
-          },
+          // needToBroadcastBeforeSendTask: {
+          //   channel: 'draft-delete',
+          //   options: {
+          //     accountId,
+          //     messageIds: ids,
+          //     threadIds: threadIds,
+          //     headerMessageIds: headerMessageIds,
+          //     windowLevel: this._getCurrentWindowLevel(),
+          //   },
+          // },
         });
       }),
     );
     if (tasks.length > 0) {
       Actions.queueTasks(tasks);
-      if (AppEnv.isComposerWindow() && !opts.switchingAccount && messages.length === 1) {
-        AppEnv.close({
-          headerMessageId: messages[0].headerMessageId,
-          threadId: messages[0].threadId,
-          windowLevel: this._getCurrentWindowLevel(),
-          additionalChannelParam: 'draft',
-          deleting: true,
-        });
-      }
     }
   };
 
   _onDestroyDraft = (message = {}, opts = {}) => {
     // console.log('on destroy draft');
-    const { accountId, headerMessageId, id, threadId } = message;
+    const { headerMessageId, id } = message;
+    if(this._draftsDeleting[id] || this._draftsDeleted[headerMessageId]){
+      AppEnv.reportError(new Error(`Draft is already deleting`), {
+        errorData: { draftsDeleting: this._draftsDeleting, currentDraft: message },
+      });
+      return;
+    }
     let draftDeleting = false;
     if (id) {
       draftDeleting = !!this._draftsDeleting[id];
       this._draftsDeleting[id] = headerMessageId;
+      this._draftsDeleting[headerMessageId] = id;
     }
     const session = this._draftSessions[headerMessageId];
-    // Immediately reset any pending changes so no saves occur
     if (session && !draftDeleting) {
       if (this._draftsSending[headerMessageId]) {
         return;
       }
-      if (session.isPopout()) {
-        const { draft, oldHeaderMessageId, oldMessageId } = session.duplicateCurrentDraft();
-        if (draft) {
-          this._finalizeAndPersistNewMessage(draft).then(() => {
-            ipcRenderer.send('draft-got-new-id', {
-              newHeaderMessageId: draft.headerMessageId,
-              oldHeaderMessageId,
-              newMessageId: draft.id,
-              oldMessageId,
-              referenceMessageId: draft.referenceMessageId,
-              threadId: draft.threadId,
-              windowLevel: this._getCurrentWindowLevel(),
+      const openCount = this._draftsOpenCount[headerMessageId];
+      if(!openCount){
+        AppEnv.logError('no open count in destroy draft');
+      }else if (openCount['3'] && opts.allowNewDraft){
+        const oldDraft = session.draft();
+        if(!oldDraft){
+          AppEnv.logError('session does not have draft for composer opened draft');
+        }else{
+          // const oldHeaderMessageId = oldDraft.headerMessageId;
+          // const oldMessageId = oldDraft.id;
+          const draft = DraftFactory.duplicateDraftBecauseOfNewId(oldDraft);
+          if (draft) {
+            this._finalizeAndPersistNewMessage(draft).then(()=>{
+              // console.log('new draft');
+              this._onPopoutDraft(draft.headerMessageId, { newDraft: false });
             });
-          })
+          }
         }
       }
-      this._doneWithSession(session);
+      session.closeSession({ cancelCommits: true });
     }
-
-    // Stop any pending tasks related to the draft
-    this.cancelDraftTasks({ headerMessageId });
-    // Queue the task to destroy the draft
     if (id) {
       if (!draftDeleting) {
-        delete this._draftsPopedOut[headerMessageId];
         this.trigger({ headerMessageId });
       }
     } else {
       AppEnv.reportError(new Error('Tried to delete a draft that had no ID assigned yet.'));
     }
   };
-  _onDraftDeleting = (event, options) => {
-    if (Array.isArray(options.messageIds) && Array.isArray(options.headerMessageIds) && options.messageIds.length === options.headerMessageIds.length) {
-      for(let i = 0; i< options.messageIds.length; i++){
-        this._draftsDeleting[options.messageIds[i]] = options.headerMessageIds[i];
-      }
-    }
-  };
+  // _onDraftDeleting = (event, options) => {
+  //   if (Array.isArray(options.messageIds) && Array.isArray(options.headerMessageIds) && options.messageIds.length === options.headerMessageIds.length) {
+  //     for(let i = 0; i< options.messageIds.length; i++){
+  //       this._draftsDeleting[options.messageIds[i]] = options.headerMessageIds[i];
+  //     }
+  //   }
+  // };
   _onDestroyDraftSuccess = ({ messageIds }) => {
+    console.log('destroy draft succeeded');
     if (Array.isArray(messageIds)) {
       const headerMessageIds = [];
       messageIds.forEach(id =>{
         if(id){
-          headerMessageIds.push(this._draftsDeleting[id]);
+          const headerMessageId = this._draftsDeleting[id];
+          headerMessageIds.push(headerMessageId);
+          delete this._draftsDeleting[headerMessageId];
           delete this._draftsDeleting[id];
         }
       });
       this.trigger({ headerMessageIds });
+      headerMessageIds.forEach(headerMessageId => {
+        if(this._draftsOpenCount[headerMessageId]){
+          this._draftsDeleted[headerMessageId] = true;
+        }
+      });
     }
   };
 
   _onDestroyDraftFailed = ({ messageIds, key, debuginfo }) => {
+    console.log('destroy draft failed');
     if (Array.isArray(messageIds)) {
       const headerMessageIds = [];
       messageIds.forEach(id =>{
         if(id){
-          headerMessageIds.push(this._draftsDeleting[id]);
+          const headerMessageId = this._draftsDeleting[id];
+          headerMessageIds.push(headerMessageId);
+          delete this._draftsDeleting[headerMessageId];
           delete this._draftsDeleting[id];
         }
       });
@@ -764,8 +1036,34 @@ class DraftStore extends MailspringStore {
       this._cancelSendingDraftTimeout({ headerMessageId, trigger: true, changeSendStatus: false , source});
     }, SendDraftTimeout);
   };
+  _cancelDraftFailingTimeout = ({ headerMessageId, source = ''}) =>{
+    if(this._draftFailingTimeouts[headerMessageId]){
+      clearTimeout(this._draftFailingTimeouts[headerMessageId]);
+      delete this._draftFailingTimeouts[headerMessageId];
+    }
+  };
+  _startDraftFailingTimeout = ({ messages = [], source = ''}) => {
+    messages.forEach(msg => {
+      if (msg && msg.draft) {
+        if (this._draftFailingTimeouts[msg.headerMessageId]) {
+          clearTimeout(this._draftFailingTimeouts[msg.headerMessageId]);
+        }
+        this._draftFailingTimeouts[msg.headerMessageId] = setTimeout(() => {
+          const task = new ChangeDraftToFailingTask({ messages: [msg] });
+          Actions.queueTask(task);
+        }, DraftFailingBaseTimeout);
+      }
+    });
+  };
   _onSendingDraft = async ({ headerMessageId, windowLevel }) => {
-    // console.log(`headerMessageId: ${headerMessageId}, from window: ${windowLevel}, at window ${this._getCurrentWindowLevel()}`);
+    if (AppEnv.isComposerWindow()) {
+      AppEnv.close({
+        headerMessageId,
+        windowLevel: this._getCurrentWindowLevel(),
+      });
+      return;
+    }
+    // console.log(`on sending draft, not composer window ${windowLevel}`);
     if (this._getCurrentWindowLevel() !== windowLevel) {
       const session = await this.sessionForClientId(headerMessageId);
       if (session) {
@@ -774,24 +1072,23 @@ class DraftStore extends MailspringStore {
         AppEnv.reportError(new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`));
       }
       this._startSendingDraftTimeout({ headerMessageId });
-      this.trigger({ headerMessageId });
+      this.trigger({ headerMessageId});
     }
   };
 
   _onSendDraft = async (headerMessageId, options = {}) => {
-    if (this._draftsSending[headerMessageId]) {
-      if (AppEnv.isComposerWindow()) {
-        AppEnv.close({
-          headerMessageId,
-          threadId: this._draftsSending[headerMessageId].threadId,
-          additionalChannelParam: 'draft',
-          windowLevel: this._getCurrentWindowLevel(),
-        });
-      }
-      // delete this._draftsPendingSending[headerMessageId];
+    if(!AppEnv.isMainWindow()){
+      console.log('send draft, not main window');
       return;
     }
-    // this._draftsPendingSending[headerMessageId] = true;
+    if (this._draftsSending[headerMessageId]) {
+      AppEnv.reportError(new Error(`sending draft when draft is already sending ${headerMessageId}`));
+      return;
+    }
+    if(this._draftsDeleted[headerMessageId] || this._draftsDeleting[headerMessageId]){
+      AppEnv.reportError(new Error(`sending draft when draft is already deleting/deleted ${headerMessageId}`));
+      return;
+    }
     const {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,
@@ -808,18 +1105,26 @@ class DraftStore extends MailspringStore {
       isUndoSend: true,
       actionKey: actionKey,
     };
+    const session = this._draftSessions[headerMessageId];
+    if(!session){
+      AppEnv.reportError(new Error(`session missing ${headerMessageId}`), {errorData: {
+        sending: this._draftsSending, deleting: this._draftsDeleting, deleted: this._draftsDeleted, openCount: this._draftsOpenCount
+        }});
+      return;
+    }
+    session.cancelCommit();
 
     // get the draft session, apply any last-minute edits and get the final draft.
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
-    const session = await this.sessionForClientId(headerMessageId);
+    // const session = await this.sessionForClientId(headerMessageId);
     // if (session.isPopout()) {
     //   // Do nothing if session have popouts
     //   return;
     // }
 
     // move the draft to another account if necessary to match the from: field
-    await session.ensureCorrectAccount();
+    // await session.ensureCorrectAccount();
 
     let draft = session.draft();
 
@@ -839,7 +1144,6 @@ class DraftStore extends MailspringStore {
       session.changes.addPluginMetadata('send-later', sendLaterMetadataValue);
     }
     await session.changes.commit('send draft');
-    await session.teardown();
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
@@ -855,6 +1159,7 @@ class DraftStore extends MailspringStore {
     this._doneWithSession(session);
     // Notify all windows that draft is being send out.
     Actions.sendingDraft({ headerMessageId, windowLevel: this._getCurrentWindowLevel() });
+    this._startDraftFailingTimeout({ messages: [draft] });
     // To be able to undo the send, we need to pretend that we added the send-later
     // metadata as it's own task so that the undo action is clear. We don't actually
     // want a separate SyncbackMetadataTask to be queued because a stray SyncbackDraftTask
@@ -875,28 +1180,22 @@ class DraftStore extends MailspringStore {
       // Immediately send the draft
       // await sendAction.performSendAction({ draft });
     }
-
-    if (AppEnv.isComposerWindow()) {
-      AppEnv.close({
-        headerMessageId,
-        threadId: draft.threadId,
-        additionalChannelParam: 'draft',
-        windowLevel: this._getCurrentWindowLevel(),
-      });
-    }
   };
 
   _onSendDraftSuccess = ({ headerMessageId }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
+    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
   };
   _onSendDraftCancelled = ({ headerMessageId }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
+    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
   };
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
+    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
 
     // if (AppEnv.isMainWindow()) {

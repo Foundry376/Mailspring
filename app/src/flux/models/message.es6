@@ -69,13 +69,38 @@ export default class Message extends ModelWithMetadata {
   static ReplyDraft = 3;
   static ForwardDraft = 4;
   static ReplyAllDraft = 5;
+  static draftType = {
+    new: 0,
+    reply: 1,
+    forward: 2,
+  };
   static messageState = {
     normal: '0',
     deleted: '1',
     saving: '2',
     sending: '3',
-    pulling: '4',// Updating data from server
+    updatingNoUID: '4', // Updating data from server
+    updatingHasUID: '5',
+    failing: '-2', // This state indicates that draft first attempt at sending is taking too long, thus should
+    // display in
+    // outbox
+    failed: '-1', // This state indicates that draft have failed to send.
   };
+  static compareMessageState(currentState, targetState){
+    try {
+      const current = parseInt(currentState);
+      const target = parseInt(targetState);
+      return current === target;
+    } catch (e) {
+      AppEnv.reportError(new Error('currentState or targetState cannot be converted to int'), {
+        errorData: {
+          current: currentState,
+          target: targetState,
+        },
+      });
+      return false;
+    }
+  }
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     // load id column into json
     id: Attributes.String({
@@ -204,11 +229,15 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'forwardedHeaderMessageId',
     }),
 
-    referenceMessageId: Attributes.String({
-      jsonKey: 'refMsgId',
-      modelKey: 'referenceMessageId',
+    refOldDraftHeaderMessageId: Attributes.String({
+      modelKey: 'refOldDraftHeaderMessageId',
     }),
-
+    savedOnRemote: Attributes.Boolean({
+      modelKey: 'savedOnRemote',
+    }),
+    hasRefOldDraftOnRemote: Attributes.Boolean({
+      modelKey: 'hasRefOldDraftOnRemote',
+    }),
     folder: Attributes.Object({
       queryable: false,
       modelKey: 'folder',
@@ -220,6 +249,9 @@ export default class Message extends ModelWithMetadata {
       jsonKey: 'state',
       loadFromColumn: true,
       queryable: true,
+    }),
+    replyOrForward: Attributes.Number({
+      modelKey: 'replyOrForward',
     }),
     msgOrigin: Attributes.Number({
       modelKey: 'msgOrigin',

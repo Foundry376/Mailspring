@@ -465,6 +465,9 @@ export default class AppEnvConstructor {
   isThreadWindow() {
     return this.getWindowType() === 'thread-popout';
   }
+  isOnboardingWindow(){
+    return this.getWindowType() === 'onboarding';
+  }
 
   getWindowType() {
     return this.getLoadSettings().windowType;

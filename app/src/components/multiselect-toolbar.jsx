@@ -35,6 +35,14 @@ class MultiselectToolbar extends Component {
     onClearSelection: PropTypes.func.isRequired,
     selectionCount: PropTypes.node,
     dataSource: PropTypes.object,
+    renderFilterSelection: PropTypes.bool,
+    renderRefresh: PropTypes.bool,
+    selectAllSelectionFilter: PropTypes.func,
+  };
+  static defaultProps = {
+    renderFilterSelection: true,
+    renderRefresh: true,
+    selectAllSelectionFilter: null,
   };
 
   constructor(props) {
@@ -125,7 +133,12 @@ class MultiselectToolbar extends Component {
     const { dataSource } = this.props;
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     if (items) {
-      dataSource.selection.set(items);
+      if(this.props.selectAllSelectionFilter){
+        const filteredItems = items.filter(this.props.selectAllSelectionFilter);
+        dataSource.selection.set(filteredItems);
+      }else{
+        dataSource.selection.set(items);
+      }
     }
   };
 
@@ -213,6 +226,9 @@ class MultiselectToolbar extends Component {
   };
 
   renderRefreshButton(perspective) {
+    if(!this.props.renderRefresh){
+      return null;
+    }
     if (!perspective) {
       return null;
     }
@@ -288,6 +304,19 @@ class MultiselectToolbar extends Component {
       columnToolbarEl.style.width = `${columnEl.offsetWidth}px`;
     }
   }
+  renderFilterSelection(){
+    if(this.props.renderFilterSelection){
+      return <div onClick={this.onSelectWithFilter} title="Select" className="btn btn-toolbar btn-selection-filter">
+        <RetinaImg
+          name="arrow-dropdown.svg"
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 20 }}
+        />
+      </div>;
+    }
+    return null;
+  }
 
   renderToolbar() {
     const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
@@ -330,18 +359,7 @@ class MultiselectToolbar extends Component {
       <div className={classes} key="absolute">
         <div className="inner">
           <div className={'checkmark ' + checkStatus} onClick={this.onToggleSelectAll}></div>
-          <div
-            onClick={this.onSelectWithFilter}
-            title="Select"
-            className="btn btn-toolbar btn-selection-filter"
-          >
-            <RetinaImg
-              name="arrow-dropdown.svg"
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask}
-              style={{ width: 20 }}
-            />
-          </div>
+          {this.renderFilterSelection()}
           {selectionCount > 0 ? (
             <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
               <div className="selection-label">{this.selectionLabel()}</div>

@@ -18,7 +18,7 @@ export default function (JXT) {
                     action: 'data',
                     sid: Utils.getAttribute(data, 'sid'),
                     seq: parseInt(Utils.getAttribute(data, 'seq') || '0', 10),
-                    data: new Buffer(Utils.getText(data), 'base64')
+                    data: Buffer.from(Utils.getText(data), 'base64')
                 };
             }
 

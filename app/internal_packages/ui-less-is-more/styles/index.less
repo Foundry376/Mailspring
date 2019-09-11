@@ -50,6 +50,7 @@
 }
 
 // Message List padding
+.column-OutboxMessage,
 .column-MessageList {
   padding: 4.5em 2em 0;
 }
@@ -240,6 +241,7 @@
 //====================================================
 
 // Thread list overrides
+.column-Outbox,
 .column-ThreadList,
 .list-container .list-item,
 .list-container .list-item:hover {
@@ -251,6 +253,7 @@
 }
 
 // Thread list padding overrides
+.column-Outbox,
 .column-ThreadList {
   padding: 5em 2em 1em;
 }
@@ -272,6 +275,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Remove gradient on thread list during quick action hover
+.outbox-list .list-item.selected:hover .list-column-HoverActions .inner,
+.outbox-list .list-item:hover .list-column-HoverActions .inner,
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(
@@ -288,6 +293,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Remove gradients quick action buttons
+.outbox-list .list-item .list-column-HoverActions .action.action-trash,
 .thread-list .list-item .list-column-HoverActions .action.action-trash {
   background: url('../static/images/thread-list-quick-actions/ic-quick-button-trash@2x.png') center
       no-repeat,
@@ -295,6 +301,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Remove gradients quick action buttons
+.outbox-list .list-item .list-column-HoverActions .action.action-archive,
 .thread-list .list-item .list-column-HoverActions .action.action-archive {
   background: url('../static/images/thread-list-quick-actions/ic-quick-button-archive@2x.png')
       center no-repeat,
@@ -310,7 +317,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Change default color of star to gray
 .thread-list .thread-icon.thread-icon-star,
-.draft-list .thread-icon.thread-icon-star {
+.draft-list .thread-icon.thread-icon-star,
+.outbox-list .thread-icon.thread-icon-star{
   -webkit-filter: grayscale(100%);
 }
 
@@ -441,6 +449,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 // Adjust color of archive swipe to green
 .thread-list .swipe-backing.swipe-all,
 .thread-list .swipe-backing.swipe-archive,
+.outbox-list .swipe-backing.swipe-all,
+.outbox-list .swipe-backing.swipe-archive
 .draft-list .swipe-backing.swipe-all,
 .draft-list .swipe-backing.swipe-archive {
   background: @swipe-archive;
@@ -451,7 +461,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Adjust color of snooze swipe to yellow
 .thread-list .swipe-backing.swipe-snooze,
-.draft-list .swipe-backing.swipe-snooze {
+.outbox-list .swipe-backing.swipe-snooze,
+.draft-list .swipe-backing.swipe-snooze{
   background: @swipe-snooze;
   &.confirmed {
     background: saturate(@swipe-snooze, 10%);
@@ -460,6 +471,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Adjust color of trash swipe to red
 .thread-list .swipe-backing.swipe-trash,
+.outbox-list .swipe-backing.swipe-trash
 .draft-list .swipe-backing.swipe-trash {
   background: @swipe-trash;
   &.confirmed {

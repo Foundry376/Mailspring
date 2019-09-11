@@ -44,6 +44,7 @@ input:focus {
   outline: none;
 }
 
+.outbox-list,
 .thread-list,
 .draft-list {
   font-family: 'SF UI Text', 'Nylas-Pro', 'Helvetica', sans-serif;
@@ -585,7 +586,6 @@ body.platform-win32 {
 .thread-list .list-item:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
-
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
@@ -723,9 +723,6 @@ body.platform-win32 {
       align-items: center;
       min-height: 24px;
     }
-  }
-  .list-column {
-    display: block;
   }
   .list-tabular-item {
     line-height: 21px;

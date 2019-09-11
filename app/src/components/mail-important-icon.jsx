@@ -82,7 +82,7 @@ class MailImportantIcon extends React.Component {
   render() {
     let title;
     if (!this.state.visible) {
-      return false;
+      return <span> </span>;
     }
 
     const classes = classNames({

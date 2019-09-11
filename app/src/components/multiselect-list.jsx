@@ -26,6 +26,7 @@ class MultiselectList extends React.Component {
     dataSource: PropTypes.object,
     className: PropTypes.string.isRequired,
     columns: PropTypes.array.isRequired,
+    columnCheckProvider: PropTypes.func,
     itemPropsProvider: PropTypes.func.isRequired,
     keymapHandlers: PropTypes.object,
     onComponentDidUpdate: PropTypes.func,
@@ -250,13 +251,19 @@ class MultiselectList extends React.Component {
       resolver: item => {
         const toggle = event => {
           this.state.handler.onCheckMarkClick(item);
-          event.stopPropagation();
+          if(event && event.stopPropagation){
+            event.stopPropagation();
+          }
         };
-        return (
-          <div className="checkmark" onClick={toggle}>
-            <div className="inner" />
-          </div>
-        );
+        if (this.props.columnCheckProvider) {
+          return this.props.columnCheckProvider(item, toggle);
+        } else {
+          return (
+            <div className="checkmark" onClick={toggle}>
+              <div className="inner"/>
+            </div>
+          );
+        }
       },
     });
   };

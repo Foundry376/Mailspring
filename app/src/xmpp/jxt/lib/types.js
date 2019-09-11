@@ -69,13 +69,13 @@ exports.langAttribute = field(
 exports.b64Text = field(
     function (xml) {
         if (xml.textContent && xml.textContent !== '=') {
-            return new Buffer(xml.textContent, 'base64');
+            return Buffer.from(xml.textContent, 'base64');
         }
         return '';
     },
     function (xml, value) {
         if (typeof value === 'string') {
-            var b64 = (new Buffer(value)).toString('base64');
+            var b64 = (Buffer.from(value)).toString('base64');
             xml.textContent = b64 || '=';
         } else {
             xml.textContent = '';

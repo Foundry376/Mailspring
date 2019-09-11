@@ -34,7 +34,7 @@ function WSConnection(sm, stanzas) {
                 data = data.toString();
             }
 
-            data = new Buffer(data, 'utf8').toString();
+            data = Buffer.from(data, 'utf8').toString();
             self.emit('raw:outgoing', data);
             if (self.conn.readyState === WS_OPEN) {
                 self.conn.send(data);
@@ -131,7 +131,7 @@ WSConnection.prototype.connect = function (opts) {
     };
 
     self.conn.onmessage = function (wsMsg) {
-        self.emit('raw:incoming', new Buffer(wsMsg.data, 'utf8').toString());
+        self.emit('raw:incoming', Buffer.from(wsMsg.data, 'utf8').toString());
         if (!self.isCache) {
             return;
         }
@@ -149,10 +149,10 @@ WSConnection.prototype.connect = function (opts) {
                 setTimeout(function () { self.emit('session:started', self.config.jid) }, 20);
             }
             else if (wsMsg.data.indexOf("step='first'") > 0) {
-                self.emit('raw:incoming', new Buffer(feature1, 'utf-8').toString());
+                self.emit('raw:incoming', Buffer.from(feature1, 'utf-8').toString());
             }
             else {
-                self.emit('raw:incoming', new Buffer(feature2, 'utf-8').toString());
+                self.emit('raw:incoming', Buffer.from(feature2, 'utf-8').toString());
             }
         }
     };
