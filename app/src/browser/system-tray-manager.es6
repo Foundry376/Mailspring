@@ -1,10 +1,27 @@
 import { Tray, Menu, nativeImage } from 'electron';
 
-function _getMenuTemplate(platform, application) {
-  const template = [
+function _getMenuTemplate(platform, application, accountTemplates, conversations) {
+  // the template for account list
+  const templateAccount = [...accountTemplates];
+
+  // the template for chat group list
+  const templateChat = [];
+
+  // the template for new mail and new chat group
+  const templateNewMail = [
     {
-      label: 'New Message',
+      type: 'separator',
+    },
+    {
+      label: 'Compose Email',
       click: () => application.emit('application:new-message'),
+    },
+  ];
+
+  // the template for system
+  const templateSystem = [
+    {
+      type: 'separator',
     },
     {
       label: 'Preferences',
@@ -26,13 +43,32 @@ function _getMenuTemplate(platform, application) {
   ];
 
   if (platform !== 'win32') {
-    template.unshift({
-      label: 'Open Inbox',
+    templateAccount.unshift({
+      label: 'All Inboxes',
       click: () => application.emit('application:show-all-inbox'),
     });
   }
 
-  return template;
+  if (application.config.get(`chatEnable`)) {
+    const convItemTemplates = conversations.map(conv => {
+      return {
+        label: 'chat',
+        click: () => console.log(conv),
+      };
+    });
+    templateChat.push(
+      {
+        type: 'separator',
+      },
+      ...convItemTemplates
+    );
+    templateNewMail.push({
+      label: 'New Message',
+      click: () => application.emit('application:new-conversation'),
+    });
+  }
+
+  return [...templateAccount, ...templateChat, ...templateNewMail, ...templateSystem];
 }
 
 function _getTooltip(unreadString) {
@@ -50,6 +86,18 @@ function _getIcon(iconPath, isTemplateImg) {
   return icon;
 }
 
+function _formatAccountTemplates(accounts) {
+  const multiAccount = accounts.length > 1;
+
+  const accountTemplate = accounts
+    .filter(account => account.label)
+    .map((account, idx) => ({
+      label: account.label,
+      click: () => application.sendCommand(`window:select-account-${multiAccount ? idx + 1 : idx}`),
+    }));
+  return accountTemplate;
+}
+
 class SystemTrayManager {
   constructor(platform, application) {
     this._platform = platform;
@@ -58,7 +106,8 @@ class SystemTrayManager {
     this._iconChatPath = null;
     this._unreadString = null;
     this._tray = null;
-    this._trayChat = null;
+    this._accountTemplates = [];
+    this._conversationTemplates = [];
 
     this._application.config.onDidChange('core.workspace.systemTray', ({ newValue }) => {
       if (newValue === false) {
@@ -76,16 +125,20 @@ class SystemTrayManager {
     if (!Array.isArray(accounts) || accounts.length === 0) {
       return;
     }
+    this._accountTemplates = _formatAccountTemplates(accounts);
     if (enabled && !created) {
-      if (this._application.config.get(`chatEnable`)) {
-        this._trayChat = new Tray(_getIcon(this._iconChatPath));
-        this._trayChat.addListener('click', this._onChatClick);
-      }
       this._tray = new Tray(_getIcon(this._iconPath));
       this._tray.setToolTip(_getTooltip(this._unreadString));
       this._tray.addListener('click', this._onClick);
       this._tray.setContextMenu(
-        Menu.buildFromTemplate(_getMenuTemplate(this._platform, this._application))
+        Menu.buildFromTemplate(
+          _getMenuTemplate(
+            this._platform,
+            this._application,
+            this._accountTemplates,
+            this._conversationTemplates
+          )
+        )
       );
     }
   }
@@ -105,7 +158,7 @@ class SystemTrayManager {
     this._application.emit('application:show-chat');
   };
 
-  updateTraySettings(iconPath, unreadString, isTemplateImg, chatIconPath) {
+  updateTraySettings(iconPath, unreadString, isTemplateImg) {
     this.initTray();
     if (this._iconPath !== iconPath) {
       this._iconPath = iconPath;
@@ -117,13 +170,30 @@ class SystemTrayManager {
       this._unreadString = unreadString;
       if (this._tray) this._tray.setToolTip(_getTooltip(unreadString));
     }
-    if (this._iconChatPath !== chatIconPath) {
-      this._iconChatPath = chatIconPath;
-      if (this._trayChat) {
-        this._trayChat.setImage(_getIcon(this._iconChatPath, isTemplateImg));
-      }
-    }
   }
+
+  updateTrayAccountMenu = () => {
+    const accounts = this._application.config.get('accounts') || [];
+    this._accountTemplates = _formatAccountTemplates(accounts);
+    const newTemplate = _getMenuTemplate(
+      this._platform,
+      this._application,
+      this._accountTemplates,
+      this._conversationTemplates
+    );
+    this._tray.setContextMenu(Menu.buildFromTemplate(newTemplate));
+  };
+
+  updateTrayConversationMenu = () => {
+    this._conversationTemplates = conversationTemplates;
+    const newTemplate = _getMenuTemplate(
+      this._platform,
+      this._application,
+      this._accountTemplates,
+      this._conversationTemplates
+    );
+    this._tray.setContextMenu(Menu.buildFromTemplate(newTemplate));
+  };
 
   updateTrayChatUnreadCount(count) {
     if (this._trayChat && count !== undefined) {
@@ -143,11 +213,6 @@ class SystemTrayManager {
       this._tray.removeListener('click', this._onClick);
       this._tray.destroy();
       this._tray = null;
-    }
-    if (this._trayChat) {
-      this._trayChat.removeListener('click', this._onChatClick);
-      this._trayChat.destroy();
-      this._trayChat = null;
     }
   }
 }

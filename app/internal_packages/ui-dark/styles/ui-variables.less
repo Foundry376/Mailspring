@@ -1,13 +1,15 @@
 @import 'base/ui-variables';
 
-@gray-base: #ffffff;
-@gray-darker: darken(@gray-base, 13.5%);
-@gray-dark: darken(@gray-base, 20%);
-@gray: darken(@gray-base, 33.5%);
-@gray-light: darken(@gray-base, 46.7%);
-@gray-lighter: darken(@gray-base, 92.5%);
+@gray-base: #797d80;
+@gray-darker: #333;
+@gray-dark: #333;
+@gray: #797d80;
+@gray: #797d80;
+@gray-light: #b6bdc2;
+@gray-lighter: #e8ebed;
+@gray-lightest: #f4f6f8;
 @white: #111112;
-@off-white: lighten(@white, 40%);
+@off-white: #f8f8fa;
 @off-white-light: lighten(@white, 20%);
 @active: #000;
 @cards: #1e1e1f;
@@ -20,12 +22,12 @@
 @background-secondary: #121212;
 @background-tertiary: #6d7987;
 
-@border-color-primary: lighten(@background-primary, 10%);
+@border-color-primary: #292a2b;
 @border-color-secondary: lighten(@background-secondary, 10%);
 @border-color-tertiary: lighten(@background-tertiary, 10%);
 @border-color-divider: @border-color-secondary;
 
-@text-color: #eee;
+@text-color: #fff;
 @text-color-subtle: fadeout(@text-color, 20%);
 @text-color-very-subtle: fadeout(@text-color, 40%);
 @text-color-inverse: white;
@@ -76,8 +78,7 @@ img.content-light {
 }
 
 .thread-list .list-item:not(.unread):not(.selected):not(.focused) {
-  color: #aaa;
-  // background-color: @cards;
+  background-color: @cards;
 }
 
 @input-search-bg: @cards;

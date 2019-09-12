@@ -32,6 +32,7 @@ class SidebarStore extends MailspringStore {
     this._sections[Sections.User] = [];
     this._registerCommands();
     this._registerMenuItems();
+    this._registerTrayItems();
     this._registerListeners();
     this._updateSections();
   }
@@ -106,6 +107,10 @@ class SidebarStore extends MailspringStore {
     AccountCommands.registerMenuItems(accounts, FocusedPerspectiveStore.sidebarAccountIds());
   };
 
+  _registerTrayItems = () => {
+    AccountCommands.registerTrayItems();
+  };
+
   // TODO Refactor this
   // Listen to changes on the account store only for when the account label
   // or order changes. When accounts or added or removed, those changes will
@@ -128,6 +133,7 @@ class SidebarStore extends MailspringStore {
     _.defer(() => {
       this._registerCommands();
       this._registerMenuItems();
+      this._registerTrayItems();
       this._updateSections();
     });
   };
