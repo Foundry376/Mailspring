@@ -1,7 +1,22 @@
 @import 'ui-variables';
 
 .btn {
-    background: @cards;
+    background-color: @cards;
+}
+
+.thread-list .list-item .list-column-HoverActions .action,
+.button-dropdown .primary-item,
+.button-dropdown .secondary-picker,
+.button-dropdown .secondary-items,
+.list-tabular .selection-bar .multiselect-toolbar-root .inner .btn-toolbar,
+.sheet-toolbar .selection-bar .multiselect-toolbar-root .inner .btn-toolbar,
+.column-MessageList .message-list-toolbar .item-container .btn-toolbar,
+.composer-action-bar-wrap .btn.btn-toolbar:not(.btn-emphasis),
+.RichEditor-toolbar button,
+.btn {
+    img.content-mask {
+        background-color: @gray-light;
+    }
 }
 
 .thread-list-narrow .subject span {
@@ -33,3 +48,17 @@
 .message-participants .collapsed-participants .participant-name {
     color: @off-white;
 }
+
+// composer start
+.message-item-white-wrap.composer-outer-wrap.focused .composer-participant-field .dropdown-component .only-item,
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused .RichEditor-toolbar .inner,
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap,
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused,
+#sendbar-for-dock .action-bar-wrapper {
+    background-color: @cards;
+}
+
+.RichEditor-toolbar button {
+    color: @gray-light;
+}
+// composer end

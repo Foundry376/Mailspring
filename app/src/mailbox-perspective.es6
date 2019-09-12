@@ -620,7 +620,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       query.order(Thread.attributes.lastMessageSentTimestamp.descending());
     }
 
-    if (!['spam', 'trash'].includes(this.categoriesSharedRole())) {
+    if (!['spam', 'trash', 'inbox'].includes(this.categoriesSharedRole())) {
       query.where({ inAllMail: true, state: 0 });
     } else {
       query.where({ state: 0 });
