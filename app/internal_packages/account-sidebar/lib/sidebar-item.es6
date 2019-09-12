@@ -364,6 +364,14 @@ class SidebarItem {
     );
   }
 
+  static forAllMail(allMailCategory, opts={}){
+    const contextMenuLabel = _str.capitalize(allMailCategory.displayType() || undefined);
+    const perspective = MailboxPerspective.forAllMail(allMailCategory);
+    const id = `${allMailCategory.accountId}-allMail`;
+    opts.contextMenuLabel = contextMenuLabel;
+    return this.forPerspective(id, perspective, opts);
+  }
+
   static forAllInbox(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forInbox(accountIds);
     opts.categoryIds = this.getCategoryIds(accountIds, 'inbox');
