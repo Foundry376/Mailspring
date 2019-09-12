@@ -102,14 +102,9 @@ function _formatAccountTemplates(accounts) {
 
 function _formatConversationTemplates(conversations) {
   const conversationTemplates = conversations
-    .filter(conv => conv.name)
+    .filter(conv => conv.name && conv.unreadMessages)
     .map(conv => {
-      let unreadCount;
-      if (conv.unreadMessages) {
-        unreadCount = conv.unreadMessages > 99 ? ' (99+)' : ` (${conv.unreadMessages})`;
-      } else {
-        unreadCount = '';
-      }
+      const unreadCount = conv.unreadMessages > 99 ? ' (99+)' : ` (${conv.unreadMessages})`;
       const maxLength = TrayMaxStringLen - unreadCount.length;
       const label =
         conv.name && conv.name.length > maxLength
