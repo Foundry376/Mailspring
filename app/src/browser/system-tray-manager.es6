@@ -1,6 +1,6 @@
 import { Tray, Menu, nativeImage } from 'electron';
 
-function _getMenuTemplate(platform, application, accountTemplates, conversations) {
+function _getMenuTemplate(platform, application, accountTemplates, conversationTemplates) {
   // the template for account list
   const templateAccount = [...accountTemplates];
 
@@ -50,17 +50,11 @@ function _getMenuTemplate(platform, application, accountTemplates, conversations
   }
 
   if (application.config.get(`chatEnable`)) {
-    const convItemTemplates = conversations.map(conv => {
-      return {
-        label: 'chat',
-        click: () => console.log(conv),
-      };
-    });
     templateChat.push(
       {
         type: 'separator',
       },
-      ...convItemTemplates
+      ...conversationTemplates
     );
     templateNewMail.push({
       label: 'New Message',
@@ -96,6 +90,16 @@ function _formatAccountTemplates(accounts) {
       click: () => application.sendCommand(`window:select-account-${multiAccount ? idx + 1 : idx}`),
     }));
   return accountTemplate;
+}
+
+function _formatConversationTemplates(conversations) {
+  const conversationTemplates = conversations
+    .filter(conv => conv.name)
+    .map(conv => ({
+      label: conv.name,
+      click: () => application.emit('application:select-conversation', conv.jid),
+    }));
+  return conversationTemplates;
 }
 
 class SystemTrayManager {
@@ -185,7 +189,8 @@ class SystemTrayManager {
   };
 
   updateTrayConversationMenu = () => {
-    this._conversationTemplates = conversationTemplates;
+    const conversations = this._application.config.get('conversations');
+    this._conversationTemplates = _formatConversationTemplates(conversations);
     const newTemplate = _getMenuTemplate(
       this._platform,
       this._application,

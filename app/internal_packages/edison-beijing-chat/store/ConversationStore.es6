@@ -33,6 +33,10 @@ class ConversationStore extends MailspringStore {
       ipcRenderer.on('new-conversation', () => {
         this.showNewConversationSheet();
       });
+      ipcRenderer.on('select-conversation', (event, jid) => {
+        Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
+        this.setSelectedConversation(jid);
+      });
     }
   }
 
@@ -187,8 +191,16 @@ class ConversationStore extends MailspringStore {
     }
     this._triggerDebounced();
     let count = 0;
+    const conversationFormat = [];
     this.conversations.forEach(item => {
       count += item.unreadMessages;
+      conversationFormat.push({
+        jid: item.jid,
+        curJid: item.curJid,
+        name: item.name,
+        unreadMessages: item.unreadMessages,
+        isGroup: item.isGroup,
+      });
       // if (item.isGroup) {
       //   const room = RoomStore.rooms && RoomStore.rooms[item.jid];
       //   if (room) {
@@ -197,6 +209,8 @@ class ConversationStore extends MailspringStore {
       // }
     });
     this.setTrayChatUnreadCount(count);
+    AppEnv.config.set('conversations', conversationFormat);
+    ipcRenderer.send('update-system-tray-conversation-menu');
   };
 
   setTrayChatUnreadCount = _.debounce(count => AppEnv.setTrayChatUnreadCount(count), 500);

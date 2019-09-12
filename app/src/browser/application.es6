@@ -525,6 +525,13 @@ export default class Application extends EventEmitter {
       }
     });
 
+    this.on('application:select-conversation', jid => {
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('select-conversation', jid);
+      }
+    });
+
     this.on('application:view-help', () => {
       const helpUrl = 'https://www.edison.tech/';
       require('electron').shell.openExternal(helpUrl);
