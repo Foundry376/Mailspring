@@ -1,6 +1,7 @@
 import { Tray, Menu, nativeImage } from 'electron';
 
-function _getMenuTemplate(platform, application, accountTemplates, conversations) {
+const TrayMaxStringLen = 19;
+function _getMenuTemplate(platform, application, accountTemplates, conversationTemplates) {
   // the template for account list
   const templateAccount = [...accountTemplates];
 
@@ -50,17 +51,11 @@ function _getMenuTemplate(platform, application, accountTemplates, conversations
   }
 
   if (application.config.get(`chatEnable`)) {
-    const convItemTemplates = conversations.map(conv => {
-      return {
-        label: 'chat',
-        click: () => console.log(conv),
-      };
-    });
     templateChat.push(
       {
         type: 'separator',
       },
-      ...convItemTemplates
+      ...conversationTemplates
     );
     templateNewMail.push({
       label: 'New Message',
@@ -91,11 +86,36 @@ function _formatAccountTemplates(accounts) {
 
   const accountTemplate = accounts
     .filter(account => account.label)
-    .map((account, idx) => ({
-      label: account.label,
-      click: () => application.sendCommand(`window:select-account-${multiAccount ? idx + 1 : idx}`),
-    }));
+    .map((account, idx) => {
+      const label =
+        account.label && account.label.length > TrayMaxStringLen
+          ? account.label.substr(0, TrayMaxStringLen - 1) + '...'
+          : account.label;
+      return {
+        label,
+        click: () =>
+          application.sendCommand(`window:select-account-${multiAccount ? idx + 1 : idx}`),
+      };
+    });
   return accountTemplate;
+}
+
+function _formatConversationTemplates(conversations) {
+  const conversationTemplates = conversations
+    .filter(conv => conv.name && conv.unreadMessages)
+    .map(conv => {
+      const unreadCount = conv.unreadMessages > 99 ? ' (99+)' : ` (${conv.unreadMessages})`;
+      const maxLength = TrayMaxStringLen - unreadCount.length;
+      const label =
+        conv.name && conv.name.length > maxLength
+          ? conv.name.substr(0, maxLength - 1) + '...' + unreadCount
+          : conv.name + unreadCount;
+      return {
+        label,
+        click: () => application.emit('application:select-conversation', conv.jid),
+      };
+    });
+  return conversationTemplates;
 }
 
 class SystemTrayManager {
@@ -185,7 +205,8 @@ class SystemTrayManager {
   };
 
   updateTrayConversationMenu = () => {
-    this._conversationTemplates = conversationTemplates;
+    const conversations = this._application.config.get('conversations');
+    this._conversationTemplates = _formatConversationTemplates(conversations);
     const newTemplate = _getMenuTemplate(
       this._platform,
       this._application,
