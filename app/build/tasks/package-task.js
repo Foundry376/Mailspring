@@ -262,6 +262,8 @@ module.exports = grunt => {
       clearInterval(ongoing);
       console.log(`---> Done Successfully. Built into: ${appPaths}`);
       return done();
+    }, err => {
+      console.log('---> Done Failed.', err);
     });
   }, err => {
     clearInterval(ongoing);
