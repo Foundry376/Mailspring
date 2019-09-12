@@ -1,5 +1,6 @@
 import { Tray, Menu, nativeImage } from 'electron';
 
+const TrayMaxStringLen = 19;
 function _getMenuTemplate(platform, application, accountTemplates, conversationTemplates) {
   // the template for account list
   const templateAccount = [...accountTemplates];
@@ -85,20 +86,40 @@ function _formatAccountTemplates(accounts) {
 
   const accountTemplate = accounts
     .filter(account => account.label)
-    .map((account, idx) => ({
-      label: account.label,
-      click: () => application.sendCommand(`window:select-account-${multiAccount ? idx + 1 : idx}`),
-    }));
+    .map((account, idx) => {
+      const label =
+        account.label && account.label.length > TrayMaxStringLen
+          ? account.label.substr(0, TrayMaxStringLen - 1) + '...'
+          : account.label;
+      return {
+        label,
+        click: () =>
+          application.sendCommand(`window:select-account-${multiAccount ? idx + 1 : idx}`),
+      };
+    });
   return accountTemplate;
 }
 
 function _formatConversationTemplates(conversations) {
   const conversationTemplates = conversations
     .filter(conv => conv.name)
-    .map(conv => ({
-      label: conv.name,
-      click: () => application.emit('application:select-conversation', conv.jid),
-    }));
+    .map(conv => {
+      let unreadCount;
+      if (conv.unreadMessages) {
+        unreadCount = conv.unreadMessages > 99 ? ' (99+)' : ` (${conv.unreadMessages})`;
+      } else {
+        unreadCount = '';
+      }
+      const maxLength = TrayMaxStringLen - unreadCount.length;
+      const label =
+        conv.name && conv.name.length > maxLength
+          ? conv.name.substr(0, maxLength - 1) + '...' + unreadCount
+          : conv.name + unreadCount;
+      return {
+        label,
+        click: () => application.emit('application:select-conversation', conv.jid),
+      };
+    });
   return conversationTemplates;
 }
 
