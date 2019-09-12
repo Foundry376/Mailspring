@@ -131,7 +131,7 @@ module.exports = grunt => {
           'build',
           'resources',
           'mac',
-          'edisonmail.icns'
+          'appicon.icns'
         ),
         win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'edisonmail.ico'),
         x64: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'edisonmail.ico'),
