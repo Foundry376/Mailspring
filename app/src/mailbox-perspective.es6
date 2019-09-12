@@ -52,7 +52,6 @@ export default class MailboxPerspective {
     if (!Array.isArray(allMailCategory)) {
       allMailCategory = [allMailCategory];
     }
-    console.log('using for all mail');
     return new AllMailMailboxPerspective(allMailCategory);
   }
 
