@@ -4,6 +4,8 @@ import DatabaseStore from './database-store';
 import Thread from '../models/thread';
 import ThreadCounts from '../models/thread-counts';
 import ThreadCategory from '../models/thread-category';
+import AccountStore from '../stores/account-store';
+import CategoryStore from '../stores/category-store';
 
 class ThreadCountsStore extends MailspringStore {
   constructor() {
@@ -45,6 +47,33 @@ class ThreadCountsStore extends MailspringStore {
       return null;
     }
     return this._counts[catId]['unread'];
+  }
+  unreadCountForAccountId(accountId){
+    const account = AccountStore.accountForId(accountId);
+    if (!account) {
+      return 0;
+    }
+    if (account.provider === 'gmail') {
+      const category = CategoryStore.getAllMailCategory(accountId);
+      if (!category) {
+        return 0;
+      }
+      if(!this._counts[category.id]){
+        return 0;
+      }
+      return this._counts[category.id]['unread'];
+    } else {
+      const categories = CategoryStore.categories(accountId);
+      let sum = 0;
+      categories.forEach(cat => {
+        if (cat && !['spam', 'trash', 'draft'].includes(cat.role)) {
+          if (this._counts[cat.id]) {
+            sum += this._counts[cat.id]['unread'];
+          }
+        }
+      });
+      return sum;
+    }
   }
 
   totalCountForCategoryId(catId) {

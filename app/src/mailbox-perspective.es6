@@ -87,22 +87,12 @@ export default class MailboxPerspective {
     return new StarredMailboxPerspective(accountsOrIds);
   }
 
-  static forUnread(categories) {
-    return categories.length > 0 ? new UnreadMailboxPerspective(categories) : this.forNothing();
+  static forUnread(accountIds) {
+    return accountIds.length > 0 ? new UnreadMailboxPerspective(accountIds) : this.forNothing();
   }
 
   static forUnreadByAccounts(accountIds) {
-    let categories = accountIds.map(accId => {
-      return CategoryStore.getCategoryByRole(accId, 'inbox');
-    });
-
-    // NOTE: It's possible for an account to not yet have an `inbox`
-    // category. Since the `SidebarStore` triggers on `AccountStore`
-    // changes, it'll trigger the exact moment an account is added to the
-    // config. However, the API has not yet come back with the list of
-    // `categories` for that account.
-    categories = _.compact(categories);
-    return MailboxPerspective.forUnread(categories);
+    return MailboxPerspective.forUnread(accountIds);
   }
 
   static getCategoryIds = (accountsOrIds, categoryName) => {
@@ -152,8 +142,7 @@ export default class MailboxPerspective {
         return this.forCategories(categories);
       }
       if (json.type === UnreadMailboxPerspective.name) {
-        const categories = JSON.parse(json.serializedCategories).map(Utils.convertToModel);
-        return this.forUnread(categories);
+        return this.forUnread(json.accountIds);
       }
       if (json.type === StarredMailboxPerspective.name) {
         return this.forStarred(json.accountIds);
@@ -849,23 +838,24 @@ class AllMailMailboxPerspective extends CategoryMailboxPerspective{
   }
 }
 
-class UnreadMailboxPerspective extends CategoryMailboxPerspective {
-  constructor(categories) {
-    super(categories);
+class UnreadMailboxPerspective extends MailboxPerspective {
+  constructor(accountIds) {
+    super(accountIds);
+    this.accountIds = accountIds;
     this.unread = true;
     this.name = 'Unread';
     this.iconName = 'unread.svg';
   }
 
   threads() {
-    return new UnreadQuerySubscription(this.categories().map(c => c.id));
+    return new UnreadQuerySubscription(this.accountIds);
   }
 
   unreadCount() {
     let sum = 0;
-    for (const cat of this._categories) {
-      sum += ThreadCountsStore.unreadCountForCategoryId(cat.id);
-    }
+    this.accountIds.forEach(accountId => {
+      sum += ThreadCountsStore.unreadCountForAccountId(accountId);
+    });
     return sum;
   }
 
