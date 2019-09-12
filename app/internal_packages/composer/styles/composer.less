@@ -220,7 +220,7 @@
         cursor: pointer;
         border: none;
         padding: 0 8px;
-        color: fadeout(@gray, 30%);
+        color: @gray;
         margin: 0;
         min-width: 72px;
         max-width: 92px;
@@ -229,7 +229,7 @@
         position: relative;
         z-index: 2;
         &:hover {
-          color: fadeout(@black, 5%);
+          color: darken(@gray, 5%);
         }
         & + img {
           position: absolute;
