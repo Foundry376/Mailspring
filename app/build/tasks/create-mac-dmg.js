@@ -16,7 +16,7 @@ module.exports = grunt => {
           'mac',
           'DMG-Background.png'
         ),
-        icon: path.resolve(grunt.config('appDir'), 'build', 'resources', 'mac', 'edisonMail.icns'),
+        icon: path.resolve(grunt.config('appDir'), 'build', 'resources', 'mac', 'appicon.icns'),
         overwrite: true,
         out: grunt.config('outputDir'),
         iconSize: 114,
