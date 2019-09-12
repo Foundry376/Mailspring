@@ -586,6 +586,9 @@ export default class TokenizingTextField extends React.Component {
   };
 
   _onInputBlurred = event => {
+    if (this._mouseInFieldDropFlag) {
+      return;
+    }
     // Not having a relatedTarget can happen when the whole app blurs. When
     // this happens we want to leave the field as-is
     if (!event.relatedTarget) {
@@ -948,6 +951,8 @@ export default class TokenizingTextField extends React.Component {
         className="tokenizing-field-wrap"
         onClick={this._onClick}
         onDrop={this._onDrop}
+        onMouseDown={() => (this._mouseInFieldDropFlag = true)}
+        onMouseUp={() => (this._mouseInFieldDropFlag = false)}
       >
         {this._renderPromptComponent()}
         <div className={fieldClasses}>
