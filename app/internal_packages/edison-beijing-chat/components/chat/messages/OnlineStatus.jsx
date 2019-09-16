@@ -17,8 +17,7 @@ export default class OnlineStatus extends Component {
       online: true,
       chat_online: true,
       isAuthenticating: false,
-
-    }
+    };
     this._listenToStore();
   }
 
@@ -153,6 +152,7 @@ export default class OnlineStatus extends Component {
     this.setState({
       online: false
     }, () => {
+      // Actions.removeAppMessage(this._offlineBlock);
       this.setPanelClassName();
     })
   };

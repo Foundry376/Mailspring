@@ -1,4 +1,4 @@
-import { React, PropTypes, AppMessageStore } from 'mailspring-exports';
+import { React, PropTypes, AppMessageStore, WorkspaceStore } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
 
@@ -106,24 +106,41 @@ export default class AppMessageToast extends React.Component {
       block: null,
       blocks: [],
       style: null,
+      noShow: false,
     };
   }
 
   componentDidMount() {
     this._mounted = true;
-    this._unlisten = AppMessageStore.listen(() => {
-      const blocks = AppMessageStore.getMessages();
-      this.setState({
-        blocks: [...blocks.critical, ...blocks.high, ...blocks.medium, ...blocks.low],
-      });
+    const blocks = AppMessageStore.getMessages();
+    const root = WorkspaceStore.rootSheet();
+    this.setState({
+      blocks: [...blocks.critical, ...blocks.high, ...blocks.medium, ...blocks.low],
+      noShow: root && root.id === 'ChatView',
     });
+    this._unlisten = [
+      AppMessageStore.listen(() => {
+        const blocks = AppMessageStore.getMessages();
+        this.setState({
+          blocks: [...blocks.critical, ...blocks.high, ...blocks.medium, ...blocks.low],
+        });
+      }),
+      WorkspaceStore.listen(() => {
+        const root = WorkspaceStore.rootSheet();
+        this.setState({ noShow: root && root.id === 'ChatView' });
+      }),
+    ];
     this.parseContainerPositionAndWidth();
     window.addEventListener('resize', this.parseContainerPositionAndWidth);
   }
 
   componentWillUnmount() {
     if (this._unlisten) {
-      this._unlisten();
+      this._unlisten.forEach(unlisten => {
+        if (unlisten) {
+          unlisten();
+        }
+      });
     }
     window.removeEventListener('resize', this.parseContainerPositionAndWidth);
   }
@@ -168,7 +185,10 @@ export default class AppMessageToast extends React.Component {
     const draftList = document.querySelector('.toolbar-DraftList');
     const outboxList = document.querySelector('.toolbar-Outbox');
     const outboxMessage = document.querySelector('.toolbar-OutboxMessage');
-    if (threadList) {
+    const chatView = document.querySelector('.column-ChatView');
+    if (chatView) {
+      width = chatView.getBoundingClientRect().width;
+    } else if (threadList) {
       width = 0;
       width += threadList.getBoundingClientRect().width;
       if (messageList) {
@@ -181,14 +201,14 @@ export default class AppMessageToast extends React.Component {
         outboxList.getBoundingClientRect().width + outboxMessage.getBoundingClientRect().width;
     }
     if (typeof width !== 'string') {
-      width -= 10;
+      width -= 28;
     }
     this.setState({ style: { width, left } });
   };
 
   render() {
-    const { blocks, style } = this.state;
-    if (!style) {
+    const { blocks, style, noShow } = this.state;
+    if (!style || noShow) {
       return <span />;
     }
     return (
@@ -204,6 +224,7 @@ export default class AppMessageToast extends React.Component {
               key={block.id}
               level={block.priority}
               actions={block.actions}
+              icon={block.icon}
               block={block}
               onMouseEnter={this._onMouseEnter}
               onMouseLeave={this._onMouseLeave}

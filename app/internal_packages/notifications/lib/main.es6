@@ -4,18 +4,15 @@ import { ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import ActivitySidebar from './sidebar/activity-sidebar';
 import NotifWrapper from './notif-wrapper';
 
-import AccountErrorNotification from './items/account-error-notif';
 import DefaultClientNotification from './items/default-client-notif';
 import UnstableChannelNotification from './items/unstable-channel-notif';
 import DevModeNotification from './items/dev-mode-notif';
 import PleaseSubscribeNotification from './items/please-subscribe-notif';
 import DisabledMailRulesNotification from './items/disabled-mail-rules-notif';
-import OfflineNotification from './items/offline-notification';
 import UpdateNotification from './items/update-notification';
 import DiskUsageNotification from './items/disk-usage-notification';
 
 const notifications = [
-  // AccountErrorNotification,
   DefaultClientNotification,
   UnstableChannelNotification,
   DevModeNotification,
@@ -34,7 +31,6 @@ export function activate() {
   for (const notification of notifications) {
     ComponentRegistry.register(notification, { role: 'RootSidebar:Notifications' });
   }
-  ComponentRegistry.register(OfflineNotification, { role: 'OfflineNotification' });
 }
 
 export function serialize() { }
