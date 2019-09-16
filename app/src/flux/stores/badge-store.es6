@@ -39,12 +39,11 @@ class BadgeStore extends MailspringStore {
 
     // const accountIds = FocusedPerspectiveStore.current().accountIds;
     const accountIds = AccountStore.accountIds();
-    accountIds.forEach(accountId => {
-      unread += ThreadCountsStore.unreadCountForAccountId(accountId);
-    });
     for (const cat of CategoryStore.getCategoriesWithRoles(accountIds, 'inbox')) {
+      unread += ThreadCountsStore.unreadCountForCategoryId(cat.id);
       total += ThreadCountsStore.totalCountForCategoryId(cat.id);
     }
+
     if (this._unread === unread && this._total === total) {
       return;
     }
