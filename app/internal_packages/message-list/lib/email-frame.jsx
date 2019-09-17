@@ -108,7 +108,7 @@ export default class EmailFrame extends React.Component {
       doc.write(`
       <style>
         #inbox-html-wrapper {
-          white-space: pre;
+          white-space: pre-wrap;
         }
       </style>
       `);
