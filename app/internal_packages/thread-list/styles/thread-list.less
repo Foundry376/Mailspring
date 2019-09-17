@@ -461,6 +461,7 @@ input:focus {
   }
 }
 
+.outbox-list-empty-folder-bar,
 .thread-list-empty-folder-bar {
   color: fade(@black, 60%);
   background-color: fade(@blue, 10%);
@@ -496,6 +497,7 @@ input:focus {
 @snooze-img: '../static/images/thread-list-quick-actions/ic-quickaction-snooze@2x.png';
 
 @hoverActionsHeight: 55px;
+.outbox-list .list-item .list-column-HoverActions,
 .thread-list .list-item .list-column-HoverActions {
   display: none;
   height: @hoverActionsHeight;
@@ -562,6 +564,7 @@ input:focus {
   }
 }
 body.platform-win32 {
+  .outbox-list .list-item .list-column-HoverActions,
   .thread-list .list-item .list-column-HoverActions {
     .action {
       border: 0;
@@ -569,6 +572,7 @@ body.platform-win32 {
     }
   }
 }
+.outbox-list .list-item:hover .list-column-HoverActions,
 .thread-list .list-item:hover .list-column-HoverActions {
   width: 0;
   padding: 0;
@@ -587,14 +591,18 @@ body.platform-win32 {
   }
 }
 
+.outbox-list .list-item:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
+
+.outbox-list .list-item.selected:hover .list-column-HoverActions .inner,
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
 
-.thread-list .list-item.focused:hover .list-column-HoverActions .inner {
+.outbox-list .list-item.focused:hover .list-column-HoverActions .inner,
+.thread-list .list-item.focused:hover .list-column-HoverActions .inner{
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
   // .action {
   //   -webkit-filter: brightness(300%);
@@ -612,12 +620,14 @@ body.platform-win32 {
 
 // stars
 
+//.outbox-list .thread-icon-star:hover,
 .thread-list .thread-icon-star:hover {
   -webkit-filter: brightness(90%);
 }
 // quanzs comment out
 .mode-split {
-  .thread-list .list-item .thread-icon-none {
+  .outbox-list .list-item .thread-icon-none,
+  .thread-list .list-item .thread-icon-none{
     width: 0;
     height: 0;
     // transition-duration: 0.4s;
@@ -665,6 +675,7 @@ body.platform-win32 {
   -webkit-filter: brightness(150%);
 }
 
+.outbox-list .avatar-icon,
 .thread-list .avatar-icon {
   height: 30px;
   width: 30px;
@@ -674,11 +685,12 @@ body.platform-win32 {
   color: @white;
   border-radius: 50%;
 }
-
+.outbox-list-narrow,
 .thread-list-narrow {
   .empty-folder-bar {
     width: 100%;
   }
+  .outbox-list-empty-folder-bar,
   .thread-list-empty-folder-bar {
     padding-left: 24px;
   }
@@ -853,7 +865,7 @@ body.platform-win32 {
 }
 
 // selection looks like focus in split mode
-
+.outbox-list.handler-split,
 .thread-list.handler-split {
   .list-item {
     &.selected:not(:hover) {
@@ -880,6 +892,7 @@ body.platform-win32 {
   }
 }
 body.is-blurred {
+  .outbox-list.handler-split,
   .thread-list.handler-split {
     .list-item {
       &.selected:not(:hover) {

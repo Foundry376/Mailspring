@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import { RetinaImg, CreateButtonGroup, BindGlobalCommands } from 'mailspring-component-kit';
+import { RetinaImg, CreateButtonGroup } from 'mailspring-component-kit';
 import {
   OutboxStore,
   Actions,
@@ -48,7 +47,7 @@ export class TrashButton extends React.Component {
   static containerRequired = false;
 
   static propTypes = {
-    draft: PropTypes.array.isRequired,
+    draft: PropTypes.object.isRequired,
   };
 
   _onRemove = event => {

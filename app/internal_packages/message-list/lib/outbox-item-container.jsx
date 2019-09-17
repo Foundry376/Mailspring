@@ -3,13 +3,11 @@ import { React, PropTypes, Utils, Message } from 'mailspring-exports';
 
 import MessageItem from './message-item';
 
-export default class MessageItemContainer extends React.Component {
-  static displayName = 'MessageItemContainer';
+export default class OutboxItemContainer extends React.Component {
+  static displayName = 'OutboxItemContainer';
 
   static propTypes = {
     message: PropTypes.object.isRequired,
-    isBeforeReplyArea: PropTypes.bool,
-    scrollTo: PropTypes.func,
   };
 
   constructor(props, context) {
@@ -18,12 +16,6 @@ export default class MessageItemContainer extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
-  }
-
-  componentWillUnmount() {
-    if (this._unlisten) {
-      this._unlisten();
-    }
   }
 
   focus = () => {
@@ -45,6 +37,7 @@ export default class MessageItemContainer extends React.Component {
           this._messageComponent = cm;
         }}
         message={this.props.message}
+        isOutboxDraft={true}
         className={this._classNames()}
         collapsed={false}
         isMostRecent={true}

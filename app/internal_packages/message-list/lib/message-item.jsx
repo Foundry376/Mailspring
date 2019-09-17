@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Utils, Actions, AttachmentStore, MessageStore, EmailAvatar, CalendarStore } from 'mailspring-exports';
+import { Utils, Actions, AttachmentStore, MessageStore, EmailAvatar, CalendarStore, Message } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -13,6 +13,7 @@ export default class MessageItem extends React.Component {
   static displayName = 'MessageItem';
 
   static propTypes = {
+    isOutboxDraft: PropTypes.bool,
     thread: PropTypes.object.isRequired,
     message: PropTypes.object.isRequired,
     messages: PropTypes.array.isRequired,
@@ -247,15 +248,15 @@ export default class MessageItem extends React.Component {
         className={`message-header `}
         onClick={this._onClickHeader}
       >
-        <InjectedComponent
+        {!this.props.isOutboxDraft ? <InjectedComponent
           matching={{ role: 'MessageHeader' }}
           exposedProps={{ message: message, thread: thread, messages: messages }}
-        />
+        /> : null}
         {/*<div className="pending-spinner" style={{ position: 'absolute', marginTop: -2, left: 55 }}>*/}
         {/*  <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />*/}
         {/*</div>*/}
         <div className="message-header-right">
-          <InjectedComponentSet
+          {!this.props.isOutboxDraft ? <InjectedComponentSet
             className="message-header-status"
             matching={{ role: 'MessageHeaderStatus' }}
             exposedProps={{
@@ -263,14 +264,16 @@ export default class MessageItem extends React.Component {
               thread: thread,
               detailedHeaders: this.state.detailedHeaders,
             }}
-          />
-          <MessageControls thread={thread} message={message} messages={messages} threadPopedOut={this.props.threadPopedOut} />
+          /> : null }
+          <MessageControls thread={thread} message={message} messages={messages} threadPopedOut={this.props.threadPopedOut} hideControls={this.props.isOutboxDraft}/>
         </div>
-        <div className='row'>
+        <div className="row">
           <EmailAvatar
             key="thread-avatar"
             from={message.from && message.from[0]}
-            messagePending={this.props.pending}
+            messagePending={
+              pending || Message.compareMessageState(message.state, Message.messageState.failing)
+            }
           />
           <div>
             <MessageParticipants
@@ -396,8 +399,24 @@ export default class MessageItem extends React.Component {
       </div>
     );
   }
+  _renderOutboxDraft() {
+    return (
+      <div className={this.props.className} >
+        <div className="message-item-white-wrap">
+          <div className="message-item-area">
+            {this._renderHeader()}
+            <MessageItemBody message={this.props.message} downloads={this.state.downloads} />
+            {this._renderAttachments()}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   render() {
+    if (this.props.isOutboxDraft) {
+      return this._renderOutboxDraft();
+    }
     return this.props.collapsed ? this._renderCollapsed() : this._renderFull();
   }
 }

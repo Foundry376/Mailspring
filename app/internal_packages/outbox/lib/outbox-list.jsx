@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
-import { Actions, OutboxStore, Message, CanvasUtils, WorkspaceStore } from 'mailspring-exports';
+import { Actions, OutboxStore, Message, WorkspaceStore } from 'mailspring-exports';
 import {
   FluxContainer,
   FocusContainer,

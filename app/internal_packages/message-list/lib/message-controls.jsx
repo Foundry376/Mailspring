@@ -12,6 +12,7 @@ export default class MessageControls extends React.Component {
     message: PropTypes.object.isRequired,
     messages: PropTypes.array,
     threadPopedOut: PropTypes.bool,
+    hideControls: PropTypes.bool,
   };
 
   constructor(props) {
@@ -339,20 +340,22 @@ export default class MessageControls extends React.Component {
           isDetailed
           date={this.props.message.date}
         />
-        <ButtonDropdown
-          primaryItem={<RetinaImg
-            name={items[0].image}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />}
-          primaryTitle={items[0].name}
-          primaryClick={items[0].select}
-          closeOnMenuClick
-          menu={this._dropdownMenu(items.slice(1))}
-        />
-        <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
-          <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask} />
-        </div>
+        {!this.props.hideControls ?
+          <ButtonDropdown
+            primaryItem={<RetinaImg
+              name={items[0].image}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}/>}
+            primaryTitle={items[0].name}
+            primaryClick={items[0].select}
+            closeOnMenuClick
+            menu={this._dropdownMenu(items.slice(1))}
+          /> : null}
+        {!this.props.hideControls ?
+          <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
+            <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask}/>
+          </div> : null}
       </div>
     );
   }
