@@ -1,8 +1,8 @@
 .ignore-in-parent-frame {
   body {
     color: #000;
-    -webkit-filter: invert() hue-rotate(180deg);
-    filter: invert() hue-rotate(180deg);
+    -webkit-filter: invert(1) hue-rotate(180deg);
+    filter: invert(1) hue-rotate(180deg);
     &::-webkit-scrollbar {
       width: 5px;
       height: 8px;
@@ -13,12 +13,7 @@
     }
   }
   img {
-    -webkit-filter: invert() hue-rotate(180deg);
-    filter: invert() hue-rotate(180deg);
+    -webkit-filter: invert(1) hue-rotate(180deg);
+    filter: invert(1) hue-rotate(180deg);
   }
-}
-
-
-#inbox-html-wrapper {
-  filter: invert(1) hue-rotate(180deg);
 }
