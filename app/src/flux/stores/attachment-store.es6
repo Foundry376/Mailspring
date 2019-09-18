@@ -651,26 +651,28 @@ class AttachmentStore extends MailspringStore {
       let removeFinishedCount = 0;
       fs.unlink(this.pathForFile(file), err => {
         if (err) {
-          console.error('Delete attachment failed: ', err);
+          AppEnv.reportError('Delete attachment failed: ', err);
         }
         removeFinishedCount++;
-        if (removeFinishedCount >= 2) {
+        if (removeFinishedCount === 2) {
           fs.rmdir(path.dirname(this.pathForFile(file)), err => {
             if (err) {
-              console.error('Delete attachment failed: ', err);
+              AppEnv.reportError('Delete attachment failed: ', err);
             }
           });
         }
       });
       fs.unlink(this.pathForFile(file) + '.png', err => {
         if (err) {
-          console.error('Delete attachment failed: ', err);
+          if (err.code !== 'ENOENT') {
+            AppEnv.reportError('Delete attachment failed: ', err);
+          }
         }
         removeFinishedCount++;
-        if (removeFinishedCount >= 2) {
+        if (removeFinishedCount === 2) {
           fs.rmdir(path.dirname(this.pathForFile(file)), err => {
             if (err) {
-              console.error('Delete attachment failed: ', err);
+              AppEnv.reportError('Delete attachment failed: ', err);
             }
           });
         }
