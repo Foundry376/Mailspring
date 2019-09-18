@@ -578,9 +578,9 @@ class MessageList extends React.Component {
 
   _renderSubject() {
     let subject = '';
-    if(!this.state.inOutbox){
+    if (!this.state.inOutbox) {
       subject = this.state.currentThread.subject;
-    }else if (this.state.selectedDraft) {
+    } else if (this.state.selectedDraft) {
       subject = this.state.selectedDraft.subject;
     }
 
@@ -596,13 +596,13 @@ class MessageList extends React.Component {
             onContextMenu={this._onContactContextMenu.bind(this, subject)}
           >
             {subject}
-            {!this.state.inOutbox && <MailImportantIcon thread={this.state.currentThread}/>}
+            {!this.state.inOutbox && <MailImportantIcon thread={this.state.currentThread} />}
             {!this.state.inOutbox && <MailLabelSet
               noWrapper
               removable
               includeCurrentCategories
               messages={this.state.messages}
-              thread={this.state.currentThread}/>
+              thread={this.state.currentThread} />
             }
           </span>
         </div>
@@ -718,7 +718,7 @@ class MessageList extends React.Component {
             lines.map((message, index) => (
               <EmailAvatar
                 key={`thread-avatar-${index}`}
-                from={message.from && message.from[0]}
+                message={message}
                 styles={{ marginLeft: 5 * index, border: '1px solid #fff' }}
               />
             ))
@@ -747,7 +747,7 @@ class MessageList extends React.Component {
       this._calcScrollPosition(e.target.scrollTop);
     }
   };
-  renderOutboxMessage(wrapClass, messageListClass){
+  renderOutboxMessage(wrapClass, messageListClass) {
     return <KeyCommandsRegion >
       <div className={'outbox-message-toolbar'} id="outbox-message-toolbar">
         <InjectedComponentSet
@@ -772,7 +772,7 @@ class MessageList extends React.Component {
             <InjectedComponentSet
               className="message-list-headers"
               matching={{ role: 'MessageListHeaders' }}
-              exposedProps={{ draft: this.state.selectedDraft}}
+              exposedProps={{ draft: this.state.selectedDraft }}
               direction="column"
             />
           </div>
