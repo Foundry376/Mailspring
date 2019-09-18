@@ -264,13 +264,13 @@ export default class MessageItem extends React.Component {
               thread: thread,
               detailedHeaders: this.state.detailedHeaders,
             }}
-          /> : null }
-          <MessageControls thread={thread} message={message} messages={messages} threadPopedOut={this.props.threadPopedOut} hideControls={this.props.isOutboxDraft}/>
+          /> : null}
+          <MessageControls thread={thread} message={message} messages={messages} threadPopedOut={this.props.threadPopedOut} hideControls={this.props.isOutboxDraft} />
         </div>
         <div className="row">
           <EmailAvatar
             key="thread-avatar"
-            from={message.from && message.from[0]}
+            message={message}
             messagePending={
               pending || Message.compareMessageState(message.state, Message.messageState.failing)
             }
@@ -362,7 +362,7 @@ export default class MessageItem extends React.Component {
           <div className="message-item-area">
             <EmailAvatar
               key="thread-avatar"
-              from={from && from[0]}
+              message={this.props.message}
             />
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <div className="row">

@@ -13,7 +13,7 @@ const config = {
   usePackageJson: false,
   outputDirectory: path.join(appDir, 'dist'),
   appDirectory: path.join(appDir, 'dist', 'Edison Mail-win32-x64'),
-  loadingGif: path.join(appDir, 'build', 'resources', 'win', 'loading.gif'),
+  loadingGif: path.join(appDir, 'build', 'resources', 'win', 'edo-previewer-loading.gif'),
   iconUrl: 'https://cp.edison.tech/static/edisonmail.ico',
   certificateFile: process.env.WINDOWS_CODESIGN_CERT,
   description: 'Edison Mail',
