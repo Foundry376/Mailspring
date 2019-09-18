@@ -55,6 +55,10 @@ function copyIt(from, to) {
 for (const mapping of file_mappings) {
     copyIt(mapping[0], mapping[1]);
 }
+
+// delete unused file
+child_process.execSync(`rm ./app/static/images/empty-state/nomail.png`);
+
 if (errorCommands.length) {
     console.log('*** Failed! *** ', errorCommands);
 } else {
