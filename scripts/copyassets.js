@@ -4,7 +4,6 @@ var child_process = require('child_process');
 const file_mappings = [
     // svg icon
     ['veyron-design/icons/desktop/*.svg', './app/static/icons/'],
-    ['veyron-design/icons/desktop/collpase.svg', './app/static/icons/collapse.svg'], // todo delete
     // system tray icon
     ['veyron-design/icons/desktop/MenuItem-*.png', './app/internal_packages/system-tray/assets/darwin/'],
     // lottie
@@ -22,12 +21,9 @@ const file_mappings = [
     ['veyron-design/images/desktop/onecolumn-grey.png', './app/static/images/preferences/appearance/appearance-mode-list.png'],
     ['veyron-design/images/desktop/twocolumn-blue.png', './app/static/images/preferences/appearance/appearance-mode-split-active.png'],
     ['veyron-design/images/desktop/twocolumn-grey.png', './app/static/images/preferences/appearance/appearance-mode-split.png'],
-    ['veyron-design/images/desktop/profile-hide-blue.png', './app/static/images/preferences/appearance/profile-hide-active.png'],
-    ['veyron-design/images/desktop/profile-hide-grey.png', './app/static/images/preferences/appearance/profile-hide.png'],
-    ['veyron-design/images/desktop/profile-show-blue.png', './app/static/images/preferences/appearance/profile-show-active.png'],
-    ['veyron-design/images/desktop/profile-show-grey.png', './app/static/images/preferences/appearance/profile-show.png'],
+    ['veyron-design/images/desktop/profile-hide*.png', './app/static/images/preferences/appearance/'],
+    ['veyron-design/images/desktop/profile-show*.png', './app/static/images/preferences/appearance/'],
     ['veyron-design/images/desktop/account-logo-*.png', './app/static/images/preferences/providers/'],
-    ['veyron-design/images/desktop/account-logo-google.png', './app/static/images/preferences/providers/account-logo-gmail.png'], // todo delete
     // chat
     ['veyron-design/images/desktop/no-connection.png', './app/static/images/chat/no-connection.png'],
     ['veyron-design/images/desktop/image-not-found.png', './app/static/images/chat/image-not-found.png'],
