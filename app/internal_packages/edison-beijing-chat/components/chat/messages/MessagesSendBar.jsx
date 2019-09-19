@@ -323,8 +323,10 @@ export default class MessagesSendBar extends PureComponent {
         MessageSend.sendMessage(body, selectedConversation);
       }
     }
-    this._richText.clearNode();
     this.setState({ messageBody: '', files: [] });
+    setTimeout(() => {
+      this._richText.clearNode();
+    }, 100);
   }
 
   onFileChange = event => {
@@ -438,6 +440,20 @@ export default class MessagesSendBar extends PureComponent {
   };
 
   // @ key event
+  CopyFileEvent = () => {
+    let files;
+    try {
+      files = getClipboardFiles();
+    } catch (e) {}
+    if (!files || files.length === 0) {
+      return true;
+    }
+    files = this.state.files.concat(files);
+    this.setState({ files }, () => {
+      this.sendMessage();
+    });
+  };
+
   EscKeyEvent = () => {
     this.setState({ atVisible: false });
   };
@@ -548,6 +564,16 @@ export default class MessagesSendBar extends PureComponent {
         keyCode: 50,
         shiftKey: true,
         keyEvent: this.AtKeyEvent,
+      },
+      {
+        keyCode: 86,
+        ctrlKey: true,
+        keyEvent: this.CopyFileEvent,
+      },
+      {
+        keyCode: 86,
+        metaKey: true,
+        keyEvent: this.CopyFileEvent,
       },
     ];
     return (
