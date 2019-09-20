@@ -2,13 +2,11 @@ import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import MessagesTopBar from './MessagesTopBar';
 import OnlineStatus from './OnlineStatus';
-import NewConversationTopBar from './NewConversationTopBar';
 import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
 import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
 import { downloadFile, uploadFile } from '../../../utils/awss3';
-import uuid from 'uuid/v4';
 import registerLoginChat from '../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
 import {
@@ -35,7 +33,6 @@ import { alert } from '../../../utils/electron';
 import { log } from '../../../utils/log';
 
 const { exec } = require('child_process');
-const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 import { NEW_CONVERSATION } from '../../../utils/constant';
 
 export default class MessagesPanel extends Component {
@@ -43,7 +40,6 @@ export default class MessagesPanel extends Component {
     super(props);
     this.state = {
       showConversationInfo: false,
-      membersTemp: null,
       online: true,
       connecting: false,
       moreBtnEl: null,
@@ -134,10 +130,6 @@ export default class MessagesPanel extends Component {
     document.body.onclick = null;
   }
 
-  saveRoomMembersForTemp = members => {
-    this.setState({ membersTemp: members });
-  };
-
   onDragOver = event => {
     const state = Object.assign({}, this.state, { dragover: true });
     this.setState(state);
@@ -163,27 +155,6 @@ export default class MessagesPanel extends Component {
     const { selectedConversation } = this.state;
     files.map((file, index) => sendFileMessage(file, index, this, ' '));
   }
-
-  createRoom = () => {
-    const contacts = this.state.membersTemp;
-    if (contacts && contacts.length) {
-      const curJid = contacts[0].curJid;
-      if (contacts.length === 1) {
-        ConversationStore.createPrivateConversation(contacts[0]);
-      } else if (contacts.some(contact => contact.jid.match(/@app/))) {
-        alert('Should only create private conversation with single plugin app contact.');
-        return;
-      } else {
-        const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        const names = contacts.map(contact => contact.name);
-        const name =
-          contacts.length > 4
-            ? names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others`
-            : names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
-        ConversationStore.createGroupConversation({ contacts, roomId, name, curJid });
-      }
-    }
-  };
 
   editProfile = member => {
     setTimeout(() => {
@@ -448,11 +419,6 @@ export default class MessagesPanel extends Component {
       selectedConversation,
       queueLoadMessage: this.queueLoadMessage,
     };
-    const newConversationProps = {
-      contacts,
-      saveRoomMembersForTemp: this.saveRoomMembersForTemp,
-      createRoom: this.createRoom,
-    };
     const infoProps = {
       selectedConversation,
       loadingMembers: this.state.loadingMembers,
@@ -477,11 +443,7 @@ export default class MessagesPanel extends Component {
       >
         {selectedConversation ? (
           <div className={`split-panel ${className}`}>
-            {selectedConversation.jid === NEW_CONVERSATION ? (
-              <div className="newConversationPanel">
-                <NewConversationTopBar {...newConversationProps} />
-              </div>
-            ) : (
+            {selectedConversation.jid === NEW_CONVERSATION ? null : (
               <div className="chatPanel">
                 <MessagesTopBar {...topBarProps} />
                 <Messages {...messagesProps} sendBarProps={sendBarProps} />
