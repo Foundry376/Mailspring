@@ -376,6 +376,7 @@ class DraftStore extends MailspringStore {
     const session = this._draftSessions[headerMessageId];
     if(!session){
       AppEnv.reportError(`draft session not available, headerMessageId ${headerMessageId}`);
+      return;
     }
     const draft = session.draft();
     if(!draft){
@@ -796,7 +797,7 @@ class DraftStore extends MailspringStore {
       return;
     }
     if (AppEnv.isComposerWindow() && messages.length === 1) {
-      // console.log('on destroy draft is composer window');
+      AppEnv.logDebug(`Closing composer because of destroy draft ${messages[0].headerMessageId}`);
       AppEnv.close({
         headerMessageId: messages[0].headerMessageId,
         threadId: messages[0].threadId,

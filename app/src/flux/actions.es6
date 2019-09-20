@@ -463,7 +463,7 @@ class Actions {
   static editOutboxDraft = ActionScopeMainWindow;
   static resendDrafts = ActionScopeMainWindow;
   static cancelOutboxDrafts = ActionScopeMainWindow;
-  static destroyDraft = ActionScopeGlobal;
+  static destroyDraft = ActionScopeMainWindow;
   static destroyDraftSucceeded = ActionScopeMainWindow;
   static destroyDraftFailed = ActionScopeMainWindow;
   static draftWindowClosing = ActionScopeMainWindow;

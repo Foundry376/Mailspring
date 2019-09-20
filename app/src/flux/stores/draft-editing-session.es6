@@ -808,7 +808,9 @@ export default class DraftEditingSession extends MailspringStore {
         JSON.stringify(this._draft.from) === JSON.stringify(syncData.from) &&
         JSON.stringify(this._draft.to) === JSON.stringify(syncData.to) &&
         JSON.stringify(this._draft.bcc) === JSON.stringify(syncData.bcc) &&
-        JSON.stringify(this._draft.cc) === JSON.stringify(syncData.cc);
+        JSON.stringify(this._draft.cc) === JSON.stringify(syncData.cc) &&
+        JSON.stringify(this._draft.files) === JSON.stringify(syncData.files) &&
+        this._draft.subject === syncData.subject;
       for (const key of Object.getOwnPropertyNames(syncData)) {
         if (key === 'body' || key === 'bodyEditorState') {
           continue;
