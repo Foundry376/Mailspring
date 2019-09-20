@@ -19,6 +19,9 @@
     }
 }
 
+.outbox-list .details .subject, 
+.thread-list .details .subject, 
+.draft-list .details .subject,
 .thread-list-narrow .subject span {
     color: @off-white;
 }
@@ -43,13 +46,37 @@
     }
 }
 
+.menu .item.selected, .menu .item:active {
+    background-color: @active;
+}
+
 .message-participants .expanded-participants .participant-primary,
 .message-participants .expanded-participants .participant-secondary,
 .message-participants .collapsed-participants .participant-name {
     color: @off-white;
 }
 
+.preferences-wrap .button-dropdown.bordered,
+.preferences-wrap .container-accounts .accounts-content .account-details {
+    background-color: initial;
+}
+
 // composer start
+.layout-mode-popout:not(.thread-popout) {
+    background-color: @cards;
+    .sheet-toolbar {
+        background: transparent;
+    }
+    .composer-full-window,
+    .composer-full-window .message-item-white-wrap.composer-outer-wrap .scroll-region .scroll-region-content,
+    .composer-participant-field .button-dropdown .only-item,
+    .RichEditor-toolbar .inner,
+    .composer-inner-wrap .composer-body-wrap,
+    .composer-full-window .composer-inner-wrap .compose-body,
+    .composer-full-window .message-item-white-wrap.composer-outer-wrap .composer-participant-field .dropdown-component .signature-button-dropdown .only-item {
+        background-color: @cards;
+    }
+}
 .message-item-white-wrap.composer-outer-wrap.focused .composer-participant-field .dropdown-component .only-item,
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused .RichEditor-toolbar .inner,
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap,
@@ -58,6 +85,7 @@
     background-color: @cards;
 }
 
+.RichEditor-toolbar button.with-select select,
 .RichEditor-toolbar button {
     color: @gray-light;
 }

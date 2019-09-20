@@ -20,9 +20,9 @@
     "babel-preset-react": "6.x.x",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "^3.1.11",
-    "electron-installer-dmg": "^2.0.0",
-    "electron-packager": "^13.1.1",
+    "electron": "^3.1.13",
+    "electron-installer-dmg": "^3.0.0",
+    "electron-packager": "^14.0.6",
     "electron-rebuild": "^1.8.2",
     "electron-winstaller": "2.x.x",
     "eslint": "^4.7.2",
@@ -61,6 +61,7 @@
     "underscore": "1.8.x"
   },
   "scripts": {
+    "copyassets": "node scripts/copyassets.js",
     "postinstall": "node scripts/postinstall.js",
     "start": "node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",

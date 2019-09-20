@@ -24,6 +24,7 @@ class AppMessageStore extends MailspringStore {
     this._queueingTasks = false;
 
     if (AppEnv.isMainWindow()) {
+      console.log('\n----\nlistening to actions\n');
       this.listenTo(Actions.pushAppMessage, this._onQueue);
       this.listenTo(Actions.pushAppMessages, this._onQueue);
       this.listenTo(Actions.removeAppMessage, this._onPopMessage);
@@ -57,9 +58,10 @@ class AppMessageStore extends MailspringStore {
         task.allowClose = true;
       }
       const block = {
-        id: uuid(),
+        id: task.id || uuid(),
         hide: !!task.hide,
         description: task.description || '',
+        icon: task.icon || 'alert.svg',
         actions: this._parseActions(task),
         delayDuration: task.delayDuration || 0,
         delayTimeoutCallbacks: () => {
@@ -128,6 +130,9 @@ class AppMessageStore extends MailspringStore {
     this.trigger();
   };
   _parseActions = task => {
+    if(!task.actions){
+      return [];
+    }
     if (!Array.isArray(task.actions)) {
       task.actions = [task.actions];
     }

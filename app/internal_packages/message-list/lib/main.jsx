@@ -9,6 +9,7 @@ import {
 
 import MessageListHiddenMessagesToggle from './message-list-hidden-messages-toggle';
 import MessageList from './message-list';
+import OutboxMessage from './outbox-message';
 import SidebarPluginContainer from './sidebar-plugin-container';
 import SidebarParticipantPicker from './sidebar-participant-picker';
 
@@ -17,6 +18,9 @@ export function activate() {
     // Register Message List Actions we provide globally
     ComponentRegistry.register(MessageList, {
       location: WorkspaceStore.Location.MessageList,
+    });
+    ComponentRegistry.register(OutboxMessage, {
+      location: WorkspaceStore.Location.OutboxMessage,
     });
     ComponentRegistry.register(SidebarParticipantPicker, {
       location: WorkspaceStore.Location.MessageListSidebar,
@@ -48,6 +52,7 @@ export function activate() {
 
 export function deactivate() {
   ComponentRegistry.unregister(MessageList);
+  ComponentRegistry.unregister(OutboxMessage);
   ComponentRegistry.unregister(SidebarPluginContainer);
   ComponentRegistry.unregister(SidebarParticipantPicker);
 }

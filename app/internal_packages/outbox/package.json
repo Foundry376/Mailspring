@@ -1,6 +1,6 @@
 {
   "name": "outbox-list",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "./lib/main",
   "description": "View outbox using React",
   "license": "GPL-3.0",

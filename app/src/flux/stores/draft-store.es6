@@ -215,7 +215,8 @@ class DraftStore extends MailspringStore {
     oldDraft.cc = newParticipants.cc;
     oldDraft.bcc = newParticipants.bcc;
     const newDraft = await DraftFactory.copyDraftToAccount(oldDraft, newParticipants.from);
-    await this._finalizeAndPersistNewMessage(newDraft);
+    const draftCount = this._draftsOpenCount[originalHeaderMessageId];
+    await this._finalizeAndPersistNewMessage(newDraft, { popout: !draftCount[3] });
     Actions.changeDraftAccountComplete({ newDraftJSON: newDraft.toJSON() });
     this._onDestroyDrafts(
       [
@@ -644,6 +645,7 @@ class DraftStore extends MailspringStore {
     return TaskQueue.waitForPerformLocal(task)
       .then(() => {
         if (popout) {
+          console.log('\n-------\n draft popout\n');
           this._onPopoutDraft(draft.headerMessageId);
         }
         if (originalMessageId) {
@@ -787,40 +789,13 @@ class DraftStore extends MailspringStore {
       });
     });
   };
-  // cancelDraftTasks = ({ headerMessageId }) => {
-  //   if (headerMessageId) {
-  //     TaskQueue.queue().forEach(task => {
-  //       if (task instanceof SyncbackDraftTask && task.headerMessageId === headerMessageId) {
-  //         Actions.cancelTask(task);
-  //       }
-  //       if (task instanceof SendDraftTask && task.headerMessageId === headerMessageId) {
-  //         Actions.cancelTask(task);
-  //       }
-  //     });
-  //   }
-  // };
-  //
-  // _onDraftGotNewId = (event, options) => {
-  //   console.log(`draft got new id ${options} @ window ${this._getCurrentWindowLevel()}`);
-  //   if (options.windowLevel && options.windowLevel === this._getCurrentWindowLevel()) {
-  //     if (this._draftSessions[options.oldHeaderMessageId] && options.newHeaderMessageId) {
-  //       if (!this._draftSessions[options.newHeaderMessageId]) {
-  //         this._draftSessions[options.newHeaderMessageId] = Object.assign(
-  //           {},
-  //           this._draftSessions[options.oldHeaderMessageId],
-  //         );
-  //       }
-  //       this._doneWithSession(this._draftSessions[options.oldHeaderMessageId]);
-  //     }
-  //   }
-  // };
 
   _onDestroyDrafts = (messages = [], opts = {}) => {
     if(AppEnv.isThreadWindow()){
       // console.log('on destroy draft is thread window');
       return;
     }
-    if (AppEnv.isComposerWindow() && !opts.switchingAccount && messages.length === 1) {
+    if (AppEnv.isComposerWindow() && messages.length === 1) {
       // console.log('on destroy draft is composer window');
       AppEnv.close({
         headerMessageId: messages[0].headerMessageId,

@@ -54,7 +54,7 @@ body.platform-win32 {
       }
     }
   }
-
+  #outbox-message,
   #message-list {
     .message-item-wrap {
       .message-item-white-wrap {
@@ -78,7 +78,7 @@ body.platform-win32 {
     border-radius: 0;
   }
 }
-
+.outbox-message-toolbar,
 .message-list-toolbar,
 .sheet-toolbar {
   // This class wraps the items that appear above the message list in the
@@ -121,6 +121,7 @@ body.platform-win32 {
 }
 
 .mode-split {
+  .outbox-message-toolbar .item-back,
   .message-list-toolbar .item-back,
   .message-nav-title {
     display: none;
@@ -142,18 +143,20 @@ body.platform-win32 {
     background: @text-color-subtle;
   }
 }
-
+#outbox-message.height-fix,
 #message-list.height-fix {
   height: calc(~'100% - 35px');
   min-height: calc(~'100% - 35px');
 }
 
 .mode-popout {
+  #outbox-message,
   #message-list {
     padding-top: 0;
   }
 }
 
+#outbox-message,
 #message-list {
   display: flex;
   flex-direction: column;

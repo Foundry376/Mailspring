@@ -14,9 +14,21 @@ export default class EmailAvatar extends Component {
     if (props.thread) {
       const messages = props.thread.__messages;
       if (messages && messages.length) {
-        from = messages[messages.length - 1].from[0];
+        const message = messages[messages.length - 1];
+        from = message.from && message.from[0];
+        let to = message.to && message.to[0];
+        if (!from && to) {
+          from = to;
+        }
       }
       from = from || {};
+    } else if (props.message) {
+      const message = props.message;
+      from = message.from && message.from[0];
+      let to = message.to && message.to[0];
+      if (!from && to) {
+        from = to;
+      }
     } else if (props.from) {
       from = {
         name: props.from && props.from.displayName({ compact: true }),

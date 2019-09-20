@@ -51,8 +51,13 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat =>
-      SidebarItem.forCategories([cat], { editable: false, deletable: false }),
+    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat =>{
+        if (cat.role === 'all' && account.provider === 'gmail') {
+          return SidebarItem.forAllMail(cat, { editable: false, deletable: false });
+        } else {
+          return SidebarItem.forCategories([cat], { editable: false, deletable: false });
+        }
+      }
     );
     const unreadItem = SidebarItem.forUnread([account.id]);
     const starredItem = SidebarItem.forStarred([account.id], { displayName: 'Flagged' });

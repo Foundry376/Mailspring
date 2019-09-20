@@ -131,7 +131,7 @@ module.exports = grunt => {
           'build',
           'resources',
           'mac',
-          'edisonMail.icns'
+          'appicon.icns'
         ),
         win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'edisonmail.ico'),
         x64: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'edisonmail.ico'),
@@ -262,6 +262,8 @@ module.exports = grunt => {
       clearInterval(ongoing);
       console.log(`---> Done Successfully. Built into: ${appPaths}`);
       return done();
+    }, err => {
+      console.log('---> Done Failed.', err);
     });
   }, err => {
     clearInterval(ongoing);

@@ -1,6 +1,6 @@
 {
   "name": "outbox-message",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "./lib/main",
   "description": "View message for outbox draft",
   "license": "GPL-3.0",

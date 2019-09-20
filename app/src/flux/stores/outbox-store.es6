@@ -85,7 +85,6 @@ class OutboxStore extends MailspringStore {
     for(let i = 0; i< messages.length; i++){
       if(messages[i].id === this._selectedDraft.id){
         this._selectedDraft = null;
-        console.log('draft deleted');
         this.trigger();
         break;
       }
@@ -93,7 +92,6 @@ class OutboxStore extends MailspringStore {
   };
 
   _gotoOutbox() {
-    console.log('go to outbox');
     if (this.count().total > 0) {
       FocusedPerspectiveStore.gotoOutbox();
     }
@@ -124,6 +122,7 @@ class OutboxStore extends MailspringStore {
   }
   _onFocusedContentChanged = () => {
     const focused = FocusedContentStore.focused('outbox');
+    console.log(`\n---\n${focused}`);
     if (!focused) {
       if (this._selectedDraft) {
         this._selectedDraft = null;
@@ -152,7 +151,12 @@ class OutboxStore extends MailspringStore {
   _onPerspectiveChanged = () => {
     const current = FocusedPerspectiveStore.current();
     if (!current.outbox) {
+      if (this.selectedDraft()) {
+        Actions.setFocus({ collection: 'outbox', item: null });
+      }
       this._selectedDraft = null;
+      this.dataSource().selection.clear();
+      this.trigger();
     }
   };
 
@@ -201,8 +205,8 @@ class OutboxStore extends MailspringStore {
       }
     }
     if (previous && next) {
-      const focused = FocusedContentStore.focused('thread');
-      const keyboard = FocusedContentStore.keyboardCursor('thread');
+      const focused = FocusedContentStore.focused('outbox');
+      const keyboard = FocusedContentStore.keyboardCursor('outbox');
       const nextQ = next.query();
       const matchers = nextQ && nextQ.matchers();
 
@@ -245,10 +249,6 @@ class OutboxStore extends MailspringStore {
     }
     this._tasks = nextTasks;
     this.trigger();
-  }
-
-  itemsForAccount(accountId) {
-    return this._tasks.filter(task => task.draftAccountId === accountId);
   }
 }
 

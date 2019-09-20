@@ -332,13 +332,14 @@ class ThreadSearchBar extends Component {
             mode={RetinaImg.Mode.ContentPreserve}
           />
         ) : (
-          <RetinaImg
-            className="search-accessory search"
-            name="searchloupe.png"
-            mode={RetinaImg.Mode.ContentDark}
-            onClick={() => this._fieldElFocus()}
-          />
-        )}
+            <RetinaImg
+              className="search-accessory search"
+              name="search.svg"
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+              onClick={() => this._fieldElFocus()}
+            />
+          )}
         <TokenizingContenteditable
           ref={el => (this._fieldEl = el)}
           value={showPlaceholder ? this._placeholder() : utf7.decode(query)}
@@ -356,39 +357,39 @@ class ThreadSearchBar extends Component {
           />
         )}
         {this.state.suggestions.length > 0 &&
-        this.state.focused && (
-          <div className="suggestions">
-            {suggestions.map((s, idx) => (
-              <div
-                onMouseDown={e => {
-                  this._onChooseSuggestion(s);
-                  e.preventDefault();
-                }}
-                className={`suggestion ${selectedIdx === idx ? 'selected' : ''}`}
-                key={`${idx}`}
-              >
-                {s.token && <span className="suggestion-token">{s.token}: </span>}
-                {s.description}
-              </div>
-            ))}
-            {suggestions === TokenSuggestionsForEmpty && (
-              <div className="footer">
-                Pro tip: Combine search terms with AND and OR to create complex queries.{' '}
-                {/*<a*/}
-                {/*  onMouseDown={e => {*/}
-                {/*    AppEnv.windowEventHandler.openLink({*/}
-                {/*      href: LearnMoreURL,*/}
-                {/*      metaKey: e.metaKey,*/}
-                {/*    });*/}
-                {/*    e.preventDefault();*/}
-                {/*  }}*/}
-                {/*>*/}
-                {/*  Learn more >*/}
-                {/*</a>*/}
-              </div>
-            )}
-          </div>
-        )}
+          this.state.focused && (
+            <div className="suggestions">
+              {suggestions.map((s, idx) => (
+                <div
+                  onMouseDown={e => {
+                    this._onChooseSuggestion(s);
+                    e.preventDefault();
+                  }}
+                  className={`suggestion ${selectedIdx === idx ? 'selected' : ''}`}
+                  key={`${idx}`}
+                >
+                  {s.token && <span className="suggestion-token">{s.token}: </span>}
+                  {s.description}
+                </div>
+              ))}
+              {suggestions === TokenSuggestionsForEmpty && (
+                <div className="footer">
+                  Pro tip: Combine search terms with AND and OR to create complex queries.{' '}
+                  {/*<a*/}
+                  {/*  onMouseDown={e => {*/}
+                  {/*    AppEnv.windowEventHandler.openLink({*/}
+                  {/*      href: LearnMoreURL,*/}
+                  {/*      metaKey: e.metaKey,*/}
+                  {/*    });*/}
+                  {/*    e.preventDefault();*/}
+                  {/*  }}*/}
+                  {/*>*/}
+                  {/*  Learn more >*/}
+                  {/*</a>*/}
+                </div>
+              )}
+            </div>
+          )}
       </KeyCommandsRegion>
     );
   }

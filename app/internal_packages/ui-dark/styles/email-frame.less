@@ -1,24 +1,21 @@
 .ignore-in-parent-frame {
   body {
-    color: #000;
-    -webkit-filter: invert() hue-rotate(180deg);
-    filter: invert() hue-rotate(180deg);
-    &::-webkit-scrollbar {
-      width: 5px;
-      height: 8px;
-      background-color: lighten(#111112, 5%);
-    }
     &::-webkit-scrollbar-thumb {
       background: lighten(#111112, 20%);
     }
   }
-  img {
-    -webkit-filter: invert() hue-rotate(180deg);
-    filter: invert() hue-rotate(180deg);
-  }
 }
-
-
-#inbox-html-wrapper {
-  filter: invert(1) hue-rotate(180deg);
+.RichEditor-content {
+  -webkit-filter: invert() !important;
+  filter: invert() !important;
+  img {
+    -webkit-filter: invert() !important;
+    filter: invert() !important;
+  }
+  span.link,
+  a {
+    -webkit-filter: invert() !important;
+    filter: invert() !important;
+    color: #1F9AFF;
+  }
 }

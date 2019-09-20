@@ -201,7 +201,9 @@ class SystemTrayManager {
       this._accountTemplates,
       this._conversationTemplates
     );
-    this._tray.setContextMenu(Menu.buildFromTemplate(newTemplate));
+    if (this._tray) {
+      this._tray.setContextMenu(Menu.buildFromTemplate(newTemplate));
+    }
   };
 
   updateTrayConversationMenu = () => {
@@ -213,7 +215,9 @@ class SystemTrayManager {
       this._accountTemplates,
       this._conversationTemplates
     );
-    this._tray.setContextMenu(Menu.buildFromTemplate(newTemplate));
+    if (this._tray) {
+      this._tray.setContextMenu(Menu.buildFromTemplate(newTemplate));
+    }
   };
 
   updateTrayChatUnreadCount(count) {

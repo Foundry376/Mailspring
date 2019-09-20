@@ -11,7 +11,8 @@ import {
   SearchableComponentMaker,
   EmailAvatar,
   WorkspaceStore,
-  OnlineStatusStore
+  OnlineStatusStore,
+  OutboxStore,
 } from 'mailspring-exports';
 
 import {
@@ -26,6 +27,7 @@ import {
 
 import FindInThread from './find-in-thread';
 import MessageItemContainer from './message-item-container';
+import OutboxItemContainer from './outbox-item-container';
 import { remote } from 'electron';
 const { Menu, MenuItem } = remote;
 
@@ -85,6 +87,7 @@ class MessageList extends React.Component {
 
   static default = {
     buttonTimeout: 700, // in milliseconds
+    inOubox: false
   };
 
   constructor(props) {
@@ -106,6 +109,7 @@ class MessageList extends React.Component {
   componentDidMount() {
     this._mounted = true;
     this._unsubscribers = [
+      OutboxStore.listen(this._onChange),
       MessageStore.listen(this._onChange),
       Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
       Actions.composeReply.listen(this._onCreatingDraft, this),
@@ -371,6 +375,17 @@ class MessageList extends React.Component {
     });
   };
 
+  _renderDraftElement() {
+    const { selectedDraft } = this.state;
+    return (
+      <OutboxItemContainer
+        key={selectedDraft.id}
+        ref={`message-container-${selectedDraft.headerMessageId}`}
+        message={selectedDraft}
+      />
+    );
+  }
+
   _messageElements() {
     const { messagesExpandedState, currentThread } = this.state;
     const elements = [];
@@ -501,7 +516,10 @@ class MessageList extends React.Component {
 
   _onChange = () => {
     const newState = this._getStateFromStores();
-    if ((this.state.currentThread || {}).id !== (newState.currentThread || {}).id) {
+    if (
+      !newState.inOutbox &&
+      (this.state.currentThread || {}).id !== (newState.currentThread || {}).id
+    ) {
       newState.minified = true;
     }
     this._onResize();
@@ -509,16 +527,27 @@ class MessageList extends React.Component {
   };
 
   _getStateFromStores() {
-    return {
-      messages: MessageStore.items() || [],
-      messagesExpandedState: MessageStore.itemsExpandedState(),
-      canCollapse: MessageStore.items().length > 1,
-      hasCollapsedItems: MessageStore.hasCollapsedItems(),
-      currentThread: MessageStore.thread(),
-      loading: MessageStore.itemsLoading(),
-      popedOut: MessageStore.isPopedOut(),
-      isOnline: OnlineStatusStore.isOnline(),
-    };
+    const sheet = WorkspaceStore.rootSheet();
+    if (sheet.id !== 'Outbox') {
+      return {
+        messages: MessageStore.items() || [],
+        messagesExpandedState: MessageStore.itemsExpandedState(),
+        canCollapse: MessageStore.items().length > 1,
+        hasCollapsedItems: MessageStore.hasCollapsedItems(),
+        currentThread: MessageStore.thread(),
+        loading: MessageStore.itemsLoading(),
+        popedOut: MessageStore.isPopedOut(),
+        isOnline: OnlineStatusStore.isOnline(),
+        selectedDraft: null,
+        inOutbox: false,
+      };
+    } else {
+      return {
+        inOutbox: true,
+        selectedDraft: OutboxStore.selectedDraft(),
+        isOnline: OnlineStatusStore.isOnline(),
+      };
+    }
   }
   _onSelectText = e => {
 
@@ -533,19 +562,28 @@ class MessageList extends React.Component {
     selection.removeAllRanges();
     selection.addRange(range);
   };
-  _onContactContextMenu = (subject) => {
+  _onContactContextMenu = subject => {
     const menu = new Menu();
     menu.append(new MenuItem({ role: 'copy' }));
-    menu.append(new MenuItem({
-      label: `Search for "${subject}`,
-      click: () => Actions.searchQuerySubmitted(`subject:"${subject}"`),
-    })
-    );
+    if (!this.state.inOutbox) {
+      menu.append(
+        new MenuItem({
+          label: `Search for "${subject}`,
+          click: () => Actions.searchQuerySubmitted(`subject:"${subject}"`),
+        })
+      );
+    }
     menu.popup({});
   };
 
   _renderSubject() {
-    let subject = this.state.currentThread.subject;
+    let subject = '';
+    if (!this.state.inOutbox) {
+      subject = this.state.currentThread.subject;
+    } else if (this.state.selectedDraft) {
+      subject = this.state.selectedDraft.subject;
+    }
+
     if (!subject || subject.length === 0) {
       subject = '(No Subject)';
     }
@@ -558,14 +596,14 @@ class MessageList extends React.Component {
             onContextMenu={this._onContactContextMenu.bind(this, subject)}
           >
             {subject}
-            <MailImportantIcon thread={this.state.currentThread} />
-            <MailLabelSet
+            {!this.state.inOutbox && <MailImportantIcon thread={this.state.currentThread} />}
+            {!this.state.inOutbox && <MailLabelSet
               noWrapper
               removable
               includeCurrentCategories
               messages={this.state.messages}
-              thread={this.state.currentThread}
-            />
+              thread={this.state.currentThread} />
+            }
           </span>
         </div>
         {/* {this._renderIcons()} */}
@@ -680,7 +718,7 @@ class MessageList extends React.Component {
             lines.map((message, index) => (
               <EmailAvatar
                 key={`thread-avatar-${index}`}
-                from={message.from && message.from[0]}
+                message={message}
                 styles={{ marginLeft: 5 * index, border: '1px solid #fff' }}
               />
             ))
@@ -709,9 +747,43 @@ class MessageList extends React.Component {
       this._calcScrollPosition(e.target.scrollTop);
     }
   };
+  renderOutboxMessage(wrapClass, messageListClass) {
+    return <KeyCommandsRegion >
+      <div className={'outbox-message-toolbar'} id="outbox-message-toolbar">
+        <InjectedComponentSet
+          className="item-container"
+          matching={{ role: 'OutboxMessageToolbar' }}
+          exposedProps={{ draft: this.state.selectedDraft, hiddenLocations: WorkspaceStore.hiddenLocations() }}
+        />
+      </div>
+      <div className={messageListClass} id="outbox-message">
+        <ScrollRegion
+          tabIndex="-1"
+          className={wrapClass}
+          scrollbarTickProvider={SearchableComponentStore}
+          scrollTooltipComponent={MessageListScrollTooltip}
+          ref={el => {
+            this._messageWrapEl = el;
+          }}
+          onScroll={this._onScroll}
+        >
+          {this._renderSubject()}
+          <div className="headers" style={{ position: 'relative' }}>
+            <InjectedComponentSet
+              className="message-list-headers"
+              matching={{ role: 'MessageListHeaders' }}
+              exposedProps={{ draft: this.state.selectedDraft }}
+              direction="column"
+            />
+          </div>
+          {this._renderDraftElement()}
+        </ScrollRegion>
+      </div>
+    </KeyCommandsRegion>
+  }
 
   render() {
-    if (!this.state.currentThread) {
+    if (!this.state.currentThread && !this.state.inOutbox || this.state.inOutbox && !this.state.selectedDraft) {
       return <div className={`empty ${this.state.isOnline ? '' : 'offline'}`} />;
     }
 
@@ -721,11 +793,14 @@ class MessageList extends React.Component {
     });
 
     const messageListClass = classNames({
-      'message-list': true,
+      'outbox-message': this.state.inOutbox,
+      'message-list': !this.state.inOutbox,
       'height-fix': SearchableComponentStore.searchTerm !== null,
     });
     const hideButtons = this.state.hideButtons ? ' hide-btn-when-crowded' : '';
-
+    if (this.state.inOutbox) {
+      return this.renderOutboxMessage(wrapClass, messageListClass);
+    }
     return (
       <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
         <FindInThread />

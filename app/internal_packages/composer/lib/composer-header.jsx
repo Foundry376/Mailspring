@@ -11,11 +11,10 @@ import Fields from './fields';
 const ScopedFromField = ListensToFluxStore(AccountContactField, {
   stores: [AccountStore],
   getStateFromStores: props => {
-    const savedOrReplyToThread =
-      props.draft.replyOrForward === 1 || props.draft.replyOrForward === 2;
-    if (savedOrReplyToThread) {
-      return { accounts: [AccountStore.accountForId(props.draft.accountId)] };
-    }
+    // const savedOrReplyToThread = props.draft.savedOnRemote || props.draft.hasRefOldDraftOnRemote;
+    // if (savedOrReplyToThread) {
+    //   return { accounts: [AccountStore.accountForId(props.draft.accountId)] };
+    // }
     return { accounts: AccountStore.accounts() };
   },
 });

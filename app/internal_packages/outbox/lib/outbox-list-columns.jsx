@@ -1,6 +1,6 @@
 import React from 'react';
 import { Utils, Message, DateUtils, AccountStore } from 'mailspring-exports';
-import { InjectedComponentSet, ListTabular, InjectedComponent, LottieImg } from 'mailspring-component-kit';
+import { InjectedComponentSet, ListTabular, InjectedComponent } from 'mailspring-component-kit';
 import {
   OutboxResendQuickAction,
   OutboxTrashQuickAction,

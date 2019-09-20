@@ -48,6 +48,13 @@ export default class MailboxPerspective {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
 
+  static forAllMail(allMailCategory){
+    if (!Array.isArray(allMailCategory)) {
+      allMailCategory = [allMailCategory];
+    }
+    return new AllMailMailboxPerspective(allMailCategory);
+  }
+
   static forAllTrash(accountsOrIds){
     const categories = CategoryStore.getCategoriesWithRoles(accountsOrIds, 'trash');
     if(Array.isArray(categories) && categories.length > 0){
@@ -816,6 +823,28 @@ class CategoryMailboxPerspective extends MailboxPerspective {
         previousFolder,
       });
     });
+  }
+}
+
+class AllMailMailboxPerspective extends CategoryMailboxPerspective{
+  constructor(_categories){
+    super(_categories);
+  }
+  threads(){
+    const query = DatabaseStore.findAll(Thread)
+      .where({ inAllMail: true, state: 0, accountId: this.accountIds[0] })
+      .order([Thread.attributes.lastMessageReceivedTimestamp.descending()])
+      .limit(0);
+
+    if (this._categories.length > 1 && this.accountIds.length < this._categories.length) {
+      // The user has multiple categories in the same account selected, which
+      // means our result set could contain multiple copies of the same threads
+      // (since we do an inner join) and we need SELECT DISTINCT. Note that this
+      // can be /much/ slower and we shouldn't do it if we know we don't need it.
+      query.distinct();
+    }
+
+    return new MutableQuerySubscription(query, { emitResultSet: true });
   }
 }
 

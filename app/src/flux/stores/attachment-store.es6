@@ -651,26 +651,28 @@ class AttachmentStore extends MailspringStore {
       let removeFinishedCount = 0;
       fs.unlink(this.pathForFile(file), err => {
         if (err) {
-          console.error('Delete attachment failed: ', err);
+          AppEnv.reportError('Delete attachment failed: ', err);
         }
         removeFinishedCount++;
-        if (removeFinishedCount >= 2) {
+        if (removeFinishedCount === 2) {
           fs.rmdir(path.dirname(this.pathForFile(file)), err => {
             if (err) {
-              console.error('Delete attachment failed: ', err);
+              AppEnv.reportError('Delete attachment failed: ', err);
             }
           });
         }
       });
       fs.unlink(this.pathForFile(file) + '.png', err => {
         if (err) {
-          console.error('Delete attachment failed: ', err);
+          if (err.code !== 'ENOENT') {
+            AppEnv.reportError('Delete attachment failed: ', err);
+          }
         }
         removeFinishedCount++;
-        if (removeFinishedCount >= 2) {
+        if (removeFinishedCount === 2) {
           fs.rmdir(path.dirname(this.pathForFile(file)), err => {
             if (err) {
-              console.error('Delete attachment failed: ', err);
+              AppEnv.reportError('Delete attachment failed: ', err);
             }
           });
         }
@@ -745,7 +747,7 @@ class AttachmentStore extends MailspringStore {
         await this._copyToInternalPath(filePath, this.pathForFile(file));
 
         await this._applySessionChanges(headerMessageId, files => {
-          if (files.reduce((c, f) => c + f.size, 0) >= 25 * 1000000) {
+          if (files.reduce((c, f) => c + f.size, 0) + file.size >= 25 * 1000000) {
             throw new Error(`Sorry, you can't attach more than 25MB of attachments`);
           }
           createdFiles.push(file);
@@ -791,7 +793,7 @@ class AttachmentStore extends MailspringStore {
       await this._copyToInternalPath(filePath, this.pathForFile(file));
 
       await this._applySessionChanges(headerMessageId, files => {
-        if (files.reduce((c, f) => c + f.size, 0) >= 25 * 1000000) {
+        if (files.reduce((c, f) => c + f.size, 0) + file.size >= 25 * 1000000) {
           throw new Error(`Sorry, you can't attach more than 25MB of attachments`);
         }
         return files.concat([file]);

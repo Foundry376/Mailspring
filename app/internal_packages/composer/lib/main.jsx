@@ -1,7 +1,7 @@
 /* eslint react/sort-comp: 0 */
 import _ from 'underscore';
 import React from 'react';
-import {ipcRenderer} from 'electron'
+import { ipcRenderer } from 'electron'
 import {
   Message,
   DraftStore,
@@ -157,6 +157,7 @@ export function activate() {
     const i = document.createElement('i');
     i.className = 'fa fa-list';
     i.style.position = 'absolute';
+    i.style.opacity = 0;
     i.style.top = 0;
     document.body.appendChild(i);
   }, 1000);

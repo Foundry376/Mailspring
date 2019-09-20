@@ -108,7 +108,7 @@ export default class EmailFrame extends React.Component {
       doc.write(`
       <style>
         #inbox-html-wrapper {
-          white-space: pre;
+          white-space: pre-wrap;
         }
       </style>
       `);
@@ -122,9 +122,14 @@ export default class EmailFrame extends React.Component {
 
     iframeNode.addEventListener('load', this._onLoad);
 
-    // disabled by quanzs
     autolink(doc, { async: true });
     adjustImages(doc);
+
+    // dark mode
+    // when dark mode, inverse content
+    if (AppEnv.config.get('core.theme') === 'ui-dark') {
+      this.applyDarkMode(doc);
+    }
 
     for (const extension of MessageStore.extensions()) {
       if (!extension.renderedMessageBodyIntoDocument) {
@@ -277,6 +282,58 @@ export default class EmailFrame extends React.Component {
       });
     };
   };
+
+  RGBColor = (s) => {
+    s = s.split('(')[1];
+    const ns = s.substring(0, s.length - 1).split(',');
+    return ns.map(n => +n.trim());
+  }
+
+  reversedColor = (r, g, b, prop) => {
+    var isBackground = prop == 'background-color';
+    //if color is dark or bright (http://alienryderflex.com/hsp.html)
+    var hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+    if (hsp < 130 && !isBackground) { //foreground dark color
+      var delta = 255 - hsp;
+      var nr = Math.min(r + delta, 234);
+      var ng = Math.min(g + delta, 234);
+      var nb = Math.min(b + delta, 234);
+      return 'rgb(' + nr + ',' + ng + ', ' + nb + ')';
+    } else if (hsp > 200 && isBackground) { //bg color brighter than #cccccc
+      var nr = Math.max(r - hsp, 27);
+      var ng = Math.max(g - hsp, 28);
+      var nb = Math.max(b - hsp, 30);
+      return 'rgb(' + nr + ',' + ng + ', ' + nb + ')';
+    } else {
+      return this.desatruate(r, g, b);
+    }
+  }
+
+  desatruate = (r, g, b) => {
+    var gray = r * 0.3086 + g * 0.6094 + b * 0.0820;
+    var sat = 0.8; //80%
+    var nr = Math.round(r * sat + gray * (1 - sat));
+    var ng = Math.round(g * sat + gray * (1 - sat));
+    var nb = Math.round(b * sat + gray * (1 - sat));
+    return 'rgb(' + nr + ',' + ng + ', ' + nb + ')';
+  }
+
+  applyDarkMode = doc => {
+    var colorProperties = ['color', 'background-color'];
+    Array.from(doc.querySelectorAll('*')).reverse().forEach(node => {
+      for (var prop in colorProperties) {
+        var style = window.getComputedStyle(node, null);
+        prop = colorProperties[prop];
+
+        if (!style[prop]) continue;
+
+        const [r, g, b, a] = this.RGBColor(style[prop]);
+        if (a == 0) continue; //transparent;
+
+        node.style.setProperty(prop, this.reversedColor(r, g, b, prop), 'important');
+      }
+    });
+  }
 
   render() {
     return (

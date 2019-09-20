@@ -9,7 +9,6 @@ const buildQuery = categoryIds => {
   const unreadMatchers = new Matcher.JoinAnd([
     Thread.attributes.categories.containsAny(categoryIds),
     JoinTable.useAttribute('unread', 'Number').equal(1),
-    Thread.attributes.inAllMail.equal(true),
     Thread.attributes.state.equal(0),
   ]);
 
@@ -27,7 +26,6 @@ const buildQuery = categoryIds => {
         Thread.attributes.categories.containsAny(categoryIds),
         new Matcher.JoinOr([
           new Matcher.JoinAnd([
-            Thread.attributes.inAllMail.equal(true),
             JoinTable.useAttribute('unread', 'Number').equal(1),
             Thread.attributes.state.equal(0),
           ]),
