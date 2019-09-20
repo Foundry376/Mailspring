@@ -1335,4 +1335,7 @@ export default class AppEnvConstructor {
   printChromeVersion(){
     console.log(process.versions['chrome']);
   }
+  generateHash(str){
+    console.log(createHash('md5').update(str).digest('hex'));
+  }
 }

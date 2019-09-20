@@ -42,8 +42,7 @@ class DraftList extends React.Component {
           <MultiselectList
             className="draft-list"
             columns={DraftListColumns.Wide}
-            // onDoubleClick={this._onDoubleClick}
-            onClick={this._onDoubleClick}
+            onClick={this._onClick}
             EmptyComponent={EmptyListState}
             keymapHandlers={this._keymapHandlers()}
             itemPropsProvider={this._itemPropsProvider}
@@ -70,8 +69,13 @@ class DraftList extends React.Component {
     };
   };
 
-  _onDoubleClick = draft => {
+  _onClick = draft => {
+    if (!!draft.body) {
       Actions.composePopoutDraft(draft.headerMessageId);
+    } else {
+      Actions.fetchBodies({ messages: [draft] });
+      AppEnv.showErrorDialog('Draft is still downloading, cannot edit');
+    }
   };
   _changeBackToNotDeleting = () => {
     if (this._deletingTimer) {
