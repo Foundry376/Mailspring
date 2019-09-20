@@ -341,6 +341,44 @@ const DateUtils = {
    * The returned date/time format depends on how long ago the timestamp is.
    */
   shortTimeString(datetime) {
+    const now = moment();
+    const diff = now.diff(datetime, 'days', true);
+    const isSameDay = now.isSame(datetime, 'days');
+    const isYesterday = now.add(-1, 'days').isSame(datetime, 'days');
+    const isSameYear = now.isSame(datetime, 'years');
+    let format = null;
+
+    if (diff <= 1 && isSameDay) {
+      // Time if less than 1 day old
+      format = DateUtils.getTimeFormat(null);
+    } else if (isYesterday) {
+      if (moment.locale() === 'en') {
+        format = `[Yesterday]`;
+      } else {
+        let lastDayFormat = moment.localeData().calendar('lastDay', moment());
+        lastDayFormat = lastDayFormat.replace(/(\[|\]+.*)/g, '')
+        format = `[${lastDayFormat}]`;
+      }
+    } else if (isSameYear) {
+      // Month and day up to 1 year old
+      format = 'MMM D';
+    } else {
+      // Month, day and year if over a year old
+      format = 'M/D/YY';
+    }
+
+    return moment(datetime).format(format);
+  },
+
+  /**
+   * Return a short format date/time
+   *
+   * @param {Date} datetime - Timestamp
+   * @return {String} Formated date/time
+   *
+   * The returned date/time format depends on how long ago the timestamp is.
+   */
+  shortTimeStringForMessage(datetime) {
     let format = this._getFormat(datetime);
     return moment(datetime).format(format);
   },

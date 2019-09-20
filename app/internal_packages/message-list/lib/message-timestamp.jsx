@@ -19,7 +19,7 @@ class MessageTimestamp extends React.Component {
     if (this.props.isDetailed) {
       formattedDate = DateUtils.mediumTimeString(this.props.date);
     } else {
-      formattedDate = DateUtils.shortTimeString(this.props.date);
+      formattedDate = DateUtils.shortTimeStringForMessage(this.props.date);
     }
     return (
       <div
