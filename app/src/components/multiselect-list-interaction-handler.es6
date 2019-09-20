@@ -31,6 +31,7 @@ module.exports = class MultiselectListInteractionHandler {
 
   onClick = item => {
     this.onFocusItem(item);
+    this.onSetCursorPosition(item);
   };
 
   onMetaClick = item => {
@@ -44,15 +45,15 @@ module.exports = class MultiselectListInteractionHandler {
 
   onShiftClick = item => {
     let selectedIds = this.props.dataSource.selection.ids();
-    const selected = selectedIds.includes(item.id);
-    if (item.id === this.props.focusedId && !selected) {
-      this.props.dataSource.selection.expandTo(item);
+    if (selectedIds.length === 0) {
+      this._addClickIntoSelection(item);
       this.onSetCursorPosition(item);
     } else {
-      this.props.dataSource.selection.toggle(item);
-      if (selected) {
-        this.props.dataSource.selection.remove([item]);
-      }
+      const { keyboardCursorId } = this.props;
+      const keyboardItem = this.props.dataSource.getById(keyboardCursorId);
+      this.props.dataSource.selection.clear();
+      this.props.dataSource.selection.add(keyboardItem);
+      this.props.dataSource.selection.expandTo(item);
     }
   };
 
@@ -91,6 +92,8 @@ module.exports = class MultiselectListInteractionHandler {
     action(next);
     if (options.select) {
       this.props.dataSource.selection.walk({ current, next });
+    } else {
+      this.props.dataSource.selection.clear();
     }
   };
 
@@ -101,4 +104,8 @@ module.exports = class MultiselectListInteractionHandler {
       return { id: this.props.focusedId, action: this.onFocusItem };
     }
   };
+
+  _addClickIntoSelection(item) {
+    this.props.dataSource.selection.add(item);
+  }
 };

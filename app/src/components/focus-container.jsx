@@ -16,8 +16,10 @@ export default class FocusContainer extends React.Component {
       keyboardCursor: FocusedContentStore.keyboardCursor(collection),
       keyboardCursorId: FocusedContentStore.keyboardCursorId(collection),
       onFocusItem: item => Actions.setFocus({ collection: collection, item: item }),
-      onSetCursorPosition: item =>
-        Actions.setCursorPosition({ collection: collection, item: item }),
+      onSetCursorPosition: item => {
+        console.log('on set cursor position');
+        Actions.setCursorPosition({ collection: collection, item: item })
+      },
     };
   };
 
