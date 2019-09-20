@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { ipcRenderer } from 'electron';
 import Button from '../../common/Button';
 import TopBar from '../../common/TopBar';
 import { NEW_CONVERSATION } from '../../../utils/constant';
@@ -28,12 +29,15 @@ export default class ConversationsTopBar extends PureComponent {
     if (messagePanel) {
       ConversationStore.messagePanelScrollTopBeforeNew = messagePanel.scrollTop;
     }
-    // Actions.pushSheet(WorkspaceStore.Sheet.ChatView);
-    document.querySelector('#Center').style.zIndex = 9;
-    await AppStore.refreshAppsEmailContacts();
     ConversationStore.selectedConversationBeforeNew = ConversationStore.selectedConversation;
     ConversationStore.setSelectedConversation(NEW_CONVERSATION);
-    Actions.pushSheet(WorkspaceStore.Sheet.NewConversation);
+
+    ipcRenderer.send('command', 'application:show-main-window');
+    if (WorkspaceStore.topSheet() !== WorkspaceStore.Sheet.NewConversation) {
+      document.querySelector('#Center').style.zIndex = 9;
+      await AppStore.refreshAppsEmailContacts();
+      Actions.pushSheet(WorkspaceStore.Sheet.NewConversation);
+    }
   };
   render() {
     return (
