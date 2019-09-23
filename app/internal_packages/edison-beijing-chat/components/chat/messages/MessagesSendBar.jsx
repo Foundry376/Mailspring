@@ -60,6 +60,10 @@ function getClipboardFiles() {
   }
 }
 
+function getClipboardText() {
+  return clipboard.readText();
+}
+
 function getTextFromHtml(str) {
   let strFormat = '';
   const tempDiv = document.createElement('div');
@@ -445,13 +449,17 @@ export default class MessagesSendBar extends PureComponent {
     try {
       files = getClipboardFiles();
     } catch (e) {}
-    if (!files || files.length === 0) {
-      return true;
+    const text = getClipboardText();
+
+    if (files && files.length) {
+      files = this.state.files.concat(files);
+      this.setState({ files }, () => {
+        this.sendMessage();
+      });
+      return;
+    } else if (text) {
+      this._richText.addNode(text);
     }
-    files = this.state.files.concat(files);
-    this.setState({ files }, () => {
-      this.sendMessage();
-    });
   };
 
   EscKeyEvent = () => {
@@ -567,11 +575,13 @@ export default class MessagesSendBar extends PureComponent {
       },
       {
         keyCode: 86,
+        preventDefault: true,
         ctrlKey: true,
         keyEvent: this.CopyFileEvent,
       },
       {
         keyCode: 86,
+        preventDefault: true,
         metaKey: true,
         keyEvent: this.CopyFileEvent,
       },

@@ -3,7 +3,20 @@
 @btn-disabled-color: #e1e4e6;
 
 @marginLeft: 18px;
-.chat-view-container {
+&.new-conversation-popup {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: @white;
+  z-index: 10;
+}
+.newConversationPanel {
+  padding-top: 10px;
+  margin: 0 auto;
+  width: 66%;
+
   .rc-select-selection {
     border: 1px solid #e7ebed;
     border-radius: 10px;
@@ -11,68 +24,68 @@
     padding-left: 4px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   }
-  .new-conversation-header {
-    margin: 0 auto;
-    width: 66%;
-    padding-top: 10px;
-    .toolbar-window-controls {
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
-    .btn.btn-disabled {
-      color: @white;
+
+  .toolbar-window-controls {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  .btn.btn-disabled {
+    color: @white;
+    background: @btn-disabled-color;
+    &:active {
       background: @btn-disabled-color;
-      &:active {
-        background: @btn-disabled-color;
-      }
     }
-    .contact-select-wrapper {
-      cursor: text;
+  }
+  .contact-select-wrapper {
+    cursor: text;
+  }
+  .to {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    font-weight: bold;
+    z-index: 2;
+    margin-top: 30px;
+    span.close {
+      position: relative;
+      left: -38px;
+      width: 40px;
+      display: inline-block;
+      cursor: pointer;
     }
-    .to {
-      display: flex;
-      flex-direction: column;
-      font-size: 13px;
+    .new-message-title {
       font-weight: bold;
-      z-index: 2;
-      margin-top: 30px;
-      span.close {
-        position: relative;
-        left: -38px;
-        width: 40px;
-        display: inline-block;
-        cursor: pointer;
+      font-size: 28px;
+    }
+    .button {
+      img.content-mask {
+        background-color: @gray;
       }
-      .new-message-title {
-        font-weight: bold;
-        font-size: 28px;
-      }
-      .button {
+      justify-content: left;
+      width: 20px;
+      &:hover {
         img.content-mask {
-          background-color: @gray;
-        }
-        justify-content: left;
-        width: 20px;
-        &:hover {
-          img.content-mask {
-            background-color: @blue;
-          }
+          background-color: @blue;
         }
       }
     }
-    .go {
-      margin: 10px 0 0 10px;
-      height: 48px;
-      width: 59px;
-      background: @blue;
-      color: @white;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.01px;
-      line-height: 24px;
-      border-radius: 10px;
-    }
+  }
+  .go {
+    margin: 10px 0 0 10px;
+    height: 48px;
+    width: 59px;
+    background: @blue;
+    color: @white;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.01px;
+    line-height: 48px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid #f0f0f0;
+    box-shadow: 1px 1px 3px #f0f0f0;
   }
   .content-mask {
     background-color: @gray;

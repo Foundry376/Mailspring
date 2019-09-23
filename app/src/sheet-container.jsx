@@ -99,7 +99,7 @@ export default class SheetContainer extends React.Component {
     }
     let rootSheet = null;
     let popSheet = null;
-    if (['Preferences', 'Thread'].includes(topSheet.id)) {
+    if (['Preferences', 'Thread', 'NewConversation'].includes(topSheet.id)) {
       rootSheet = (
         <Sheet
           depth={0}
