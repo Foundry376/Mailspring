@@ -981,12 +981,12 @@
 		"servers": {
 			"imap": [{
 				"port": 993,
-				"hostname": "imap.exmail.qq.com",
+				"hostname": "imap.qq.com",
 				"ssl": true
 			}],
 			"smtp": [{
 				"port": 465,
-				"hostname": "smtp.exmail.qq.com",
+				"hostname": "smtp.qq.com",
 				"ssl": true
 			}]
 		},
