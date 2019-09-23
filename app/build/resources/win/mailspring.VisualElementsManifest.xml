@@ -1,0 +1,3 @@
+<Application xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <VisualElements ShowNameOnSquare150x150Logo='off' Square150x150Logo='resources/mailspring-150px.png' Square70x70Logo='resources/mailspring-75px.png' ForegroundText='dark' BackgroundColor='#ffffff'/>
+</Application>

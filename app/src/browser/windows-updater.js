@@ -6,36 +6,36 @@
  * Read: https://github.com/electron/electron/blob/master/docs/api/auto-updater.md#windows
  *
  * When Mailspring gets installed on a Windows machine it gets put in:
- * C:\Users\<USERNAME>\AppData\Local\NylasMail\app-x.x.x
+ * C:\Users\<USERNAME>\AppData\Local\Mailspring\app-x.x.x
  *
  * The `process.execPath` is:
- * C:\Users\<USERNAME>\AppData\Local\NylasMail\app-x.x.x\nylas.exe
+ * C:\Users\<USERNAME>\AppData\Local\Mailspring\app-x.x.x\nylas.exe
  *
  * We manually copy everything in build/resources/win into a 'resources' folder
  * located inside the main app directory. See runCopyPlatformSpecificResources
  * in package-task.js
  *
  * This means `__dirname` should be:
- * C:\Users\<USERNAME>\AppData\Local\NylasMail\app-x.x.x\resources
+ * C:\Users\<USERNAME>\AppData\Local\Mailspring\app-x.x.x\resources
  *
  * We also expect Squirrel Windows to have a file called `nylas.exe` at:
- * C:\Users\<USERNAME>\AppData\Local\NylasMail\nylas.exe
+ * C:\Users\<USERNAME>\AppData\Local\Mailspring\nylas.exe
  */
 const ChildProcess = require('child_process');
 const fs = require('fs-plus');
 const path = require('path');
 const os = require('os');
 
-// C:\Users\<USERNAME>\AppData\Local\NylasMail\app-x.x.x
+// C:\Users\<USERNAME>\AppData\Local\Mailspring\app-x.x.x
 const appFolder = path.resolve(process.execPath, '..');
 
-// C:\Users\<USERNAME>\AppData\Local\NylasMail\
-const rootN1Folder = path.resolve(appFolder, '..');
+// C:\Users\<USERNAME>\AppData\Local\Mailspring\
+const rootAppDataFolder = path.resolve(appFolder, '..');
 
-// C:\Users\<USERNAME>\AppData\Local\NylasMail\Update.exe
-const updateDotExe = path.join(rootN1Folder, 'Update.exe');
+// C:\Users\<USERNAME>\AppData\Local\Mailspring\Update.exe
+const updateDotExe = path.join(rootAppDataFolder, 'Update.exe');
 
-// "nylas.exe"
+// "mailspring.exe"
 const exeName = path.basename(process.execPath);
 
 // Spawn a command and invoke the callback when it completes with an error
@@ -94,7 +94,7 @@ function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, c
   const requiresLocalMachine = isWindows7;
 
   // On Windows 7, we must write to LOCAL_MACHINE and need escalated privileges.
-  // Don't do it at install time - wait for the user to ask N1 to be the default.
+  // Don't do it at install time - wait for the user to ask Mailspring to be the default.
   if (requiresLocalMachine && !allowEscalation) {
     callback();
     return;
@@ -122,7 +122,7 @@ function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, c
       const importTemplate = data.toString();
       let importContents = importTemplate.replace(
         /{{PATH_TO_ROOT_FOLDER}}/g,
-        escapeBackticks(rootN1Folder)
+        escapeBackticks(rootAppDataFolder)
       );
       importContents = importContents.replace(
         /{{PATH_TO_APP_FOLDER}}/g,
@@ -176,10 +176,10 @@ exports.createShortcuts = createShortcuts;
 exports.removeShortcuts = removeShortcuts;
 exports.createRegistryEntries = createRegistryEntries;
 
-// Is the Update.exe installed with N1?
+// Is the Update.exe installed with Mailspring?
 exports.existsSync = () => fs.existsSync(updateDotExe);
 
-// Restart N1 using the version pointed to by the N1.cmd shim
+// Restart Mailspring using the version pointed to by the Mailspring.cmd shim
 exports.restartMailspring = app => {
   app.once('will-quit', () => {
     spawnUpdate(['--processStart', exeName], () => {}, { detached: true });

@@ -17,9 +17,14 @@ module.exports = grunt => {
   function runCopyPlatformSpecificResources(buildPath, electronVersion, platform, arch, callback) {
     // these files (like nylas-mailto-default.reg) go alongside the ASAR,
     // not inside it, so we need to move out of the `app` directory.
-    const resourcesDir = path.resolve(buildPath, '..');
+    const winResourcesSource = path.resolve(grunt.config('appDir'), 'build', 'resources', 'win');
+    const winResourcesTarget = path.resolve(buildPath, '..');
     if (platform === 'win32') {
-      fs.copySync(path.resolve(grunt.config('appDir'), 'build', 'resources', 'win'), resourcesDir);
+      fs.copySync(winResourcesSource, winResourcesTarget);
+      fs.copySync(
+        path.join(winResourcesSource, 'mailspring.VisualElementsManifest.xml'),
+        path.resolve(buildPath, '..', '..', 'mailspring.VisualElementsManifest.xml')
+      );
     }
     callback();
   }
