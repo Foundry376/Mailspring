@@ -91,7 +91,7 @@ class AccountIMAPSettingsForm extends React.Component {
       }
     };
     return (
-      <span>
+      <div>
         <label htmlFor={`settings.${field}`}>Port Number</label>
         <select
           id={`settings.${field}`}
@@ -124,7 +124,7 @@ class AccountIMAPSettingsForm extends React.Component {
             onChange={onFieldChange}
           />
         )}
-      </span>
+      </div>
     );
   }
 
@@ -133,27 +133,34 @@ class AccountIMAPSettingsForm extends React.Component {
 
     return (
       <div>
-        <div>
-          <label htmlFor={`settings.${protocol}_security`}>Security:</label>
-          <select
-            id={`settings.${protocol}_security`}
-            tabIndex={0}
-            value={settings[`${protocol}_security`]}
-            disabled={submitting}
-            onKeyPress={onFieldKeyPress}
-            onChange={onFieldChange}
-          >
-            <option value="SSL / TLS" key="SSL / TLS">
-              SSL / TLS
+        <label htmlFor={`settings.${protocol}_security`}>Security:</label>
+        <select
+          id={`settings.${protocol}_security`}
+          tabIndex={0}
+          value={settings[`${protocol}_security`]}
+          disabled={submitting}
+          onKeyPress={onFieldKeyPress}
+          onChange={onFieldChange}
+        >
+          <option value="SSL / TLS" key="SSL / TLS">
+            SSL / TLS
             </option>
-            <option value="STARTTLS" key="STARTTLS">
-              STARTTLS
+          <option value="STARTTLS" key="STARTTLS">
+            STARTTLS
             </option>
-            <option value="none" key="none">
-              None
+          <option value="none" key="none">
+            None
             </option>
-          </select>
-        </div>
+        </select>
+      </div>
+    );
+  }
+
+  renderSecurityCheckbox(protocol) {
+    const { account: { settings }, submitting, onFieldKeyPress, onFieldChange } = this.props;
+
+    return (
+      <div>
         <div style={{ paddingBottom: '13px' }}>
           <input
             type="checkbox"
@@ -182,8 +189,11 @@ class AccountIMAPSettingsForm extends React.Component {
       <div>
         <FormField field={`settings.${type}_host`} title={'Server'} {...this.props} />
         <div style={{ textAlign: 'left' }}>
-          {this.renderPortDropdown(type)}
-          {this.renderSecurityDropdown(type)}
+          <div className="settings-flex-row">
+            {this.renderPortDropdown(type)}
+            {this.renderSecurityDropdown(type)}
+          </div>
+          {this.renderSecurityCheckbox(type)}
         </div>
         <FormField field={`settings.${type}_username`} title={'Username'} {...this.props} />
         <FormField
