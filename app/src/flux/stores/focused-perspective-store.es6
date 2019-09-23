@@ -35,9 +35,6 @@ class FocusedPerspectiveStore extends MailspringStore {
     if (current && current.categories() && current.categories().length) {
       current.categories().forEach(cat => {
         let tmp = CategoryStore.byId(cat.accountId, cat.id);
-        if (tmp instanceof Label) {
-          tmp = CategoryStore.getCategoryByRole(cat.accountId, 'all');
-        }
         if (!tmp) {
           return lastUpdate;
         }

@@ -53,15 +53,21 @@ class MultiselectToolbar extends Component {
       previousPerspectiveName: '',
       previousUpdatedTime: '',
       cachedSyncFolderData: null,
+      lastUpdatedTime: FocusedPerspectiveStore.getLastUpdatedTime(),
     };
     this.refreshTimer = null;
     this.refreshDelay = 300;
     this.stopRefreshingTimer = null;
     this.mounted = false;
+    this._unlisten = null;
   }
 
   componentDidMount() {
     this.mounted = true;
+    this._unlisten = [
+      CategoryStore.listen(this._onCategoryChange),
+      FocusedPerspectiveStore.listen(this._onCategoryChange)
+    ];
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -91,6 +97,18 @@ class MultiselectToolbar extends Component {
     this.mounted = false;
     clearTimeout(this.refreshTimer);
     clearTimeout(this.stopRefreshingTimer);
+    if(this._unlisten){
+      this._unlisten();
+    }
+  }
+  _onCategoryChange = () => {
+    if(this.mounted){
+      const lastUpdatedTime = FocusedPerspectiveStore.getLastUpdatedTime();
+      console.log(`new lastUpdateTime ${lastUpdatedTime}, previousLastupdateTime: ${this.state.lastUpdatedTime}`);
+      if(lastUpdatedTime > this.state.lastUpdatedTime){
+        this.setState({ lastUpdatedTime });
+      }
+    }
   }
 
   selectionLabel = () => {
@@ -387,7 +405,7 @@ class MultiselectToolbar extends Component {
                 <span className="updated-time">Checking for mail...</span>
               ) : (
                 <span className="updated-time">
-                  {this._renderLastUpdateLabel(lastUpdate)}
+                  {this._renderLastUpdateLabel(this.state.lastUpdatedTime)}
                   {threadCounts > 0 && (
                     <span className="toolbar-unread-count">
                       ({this._formatNumber(threadCounts)})
