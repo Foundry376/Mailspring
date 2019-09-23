@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Tilaa eri päivitysohjelmia uusien ominaisuuksien esikatselun vastaanottamiseksi. Huomaa, että jotkut päivityskanavat saattavat olla vakaampia!",
   "Subscription": "tilaus",
   "Successfully connected to %@!": "Yhdistetty onnistuneesti %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Pyyhkäise ele ja välilyönti / poista siirrä viestejä roskakoriin",
+  "Move to trash (not archive) on swipe / backspace": "Pyyhkäise ele ja välilyönti / poista siirrä viestejä roskakoriin",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Palaaminen allekirjoitusmalliin korvaa kirjoittamasi mukautetun HTML-koodin.",
   "Symbols": "Symbolit",
   "Sync New Mail Now": "Synkronoi uusi sähköposti nyt",

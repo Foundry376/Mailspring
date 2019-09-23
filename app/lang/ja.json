@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "新しい機能のプレビューを受け取るために、さまざまなアップデートチャンネルに登録してください。一部の更新チャネルは安定性が低い場合があることに注意してください。",
   "Subscription": "サブスクリプション",
   "Successfully connected to %@!": "%@に接続しました！",
-  "Swipe gesture and backspace / delete move messages to trash": "スワイプジェスチャーとBack Space/Deleteキーでメッセージをゴミ箱へ移動する",
+  "Move to trash (not archive) on swipe / backspace": "スワイプジェスチャーとBack Space/Deleteキーでメッセージをゴミ箱へ移動する",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "署名テンプレートに戻すと、入力したカスタムHTMLが上書きされます。",
   "Symbols": "記号",
   "Sync New Mail Now": "新しいメールを今すぐ同期する",

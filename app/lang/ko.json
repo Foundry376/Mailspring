@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "새로운 기능의 미리보기를 받으려면 다른 업데이트 채널을 구독하십시오. 일부 업데이트 채널의 안정성이 떨어질 수 있습니다.",
   "Subscription": "구독",
   "Successfully connected to %@!": "%@에 연결되었습니다!",
-  "Swipe gesture and backspace / delete move messages to trash": "스 와이프 제스처 및 백 스페이스 / 이동 메세지를 휴지통으로 삭제",
+  "Move to trash (not archive) on swipe / backspace": "스 와이프 제스처 및 백 스페이스 / 이동 메세지를 휴지통으로 삭제",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "서명 템플릿으로 다시 전환하면 입력 한 사용자 정의 HTML을 덮어 씁니다.",
   "Symbols": "기호",
   "Sync New Mail Now": "새 메일 동기화",

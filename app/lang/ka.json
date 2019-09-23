@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "ახალი განახლების არხების გამოწერა ახალი ფუნქციების გადახედვის მისაღებად. გაითვალისწინეთ, რომ ზოგიერთი განახლების არხი შეიძლება იყოს ნაკლებად სტაბილური!",
   "Subscription": "გამოწერა",
   "Successfully connected to %@!": "წარმატებულად უკავშირდება %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "გადაათრიეთ ჟესტი და backspace / წაშლა შეტყობინებები წაშლა",
+  "Move to trash (not archive) on swipe / backspace": "გადაათრიეთ ჟესტი და backspace / წაშლა შეტყობინებები წაშლა",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "ხელმოწერის შაბლონში გადასასვლელად გადააჭარბებთ თქვენს მიერ შეყვანილი საბაჟო HTML.",
   "Symbols": "სიმბოლიკა",
   "Sync New Mail Now": "სინქრონიზაცია ახალი ფოსტა ახლა",

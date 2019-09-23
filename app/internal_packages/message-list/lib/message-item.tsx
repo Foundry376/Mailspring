@@ -58,7 +58,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       // keyed by a fileId. The value is the downloadData.
       downloads: AttachmentStore.getDownloadDataForFiles(fileIds),
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
-      detailedHeaders: AppEnv.config.get('core.reading.messageHeader'),
+      detailedHeaders: AppEnv.config.get('core.reading.detailedHeaders'),
     };
   }
 
@@ -301,7 +301,9 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             <div className="collapsed-from">
-              {from && from[0] && from[0].displayName({ compact: true })}
+              {from &&
+                from[0] &&
+                from[0].displayName({ compact: !AppEnv.config.get('core.reading.detailedNames') })}
             </div>
             <div className="collapsed-snippet">{snippet}</div>
             {draft && (

@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Abonnez-vous à différents canaux de mise à jour pour recevoir des aperçus des nouvelles fonctionnalités. Notez que certains canaux de mise à jour peuvent être moins stables!",
   "Subscription": "Abonnement",
   "Successfully connected to %@!": "Connecté avec succès à %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Le geste de balayage et le retour arrière / suppression déplace les messages à la corbeille",
+  "Move to trash (not archive) on swipe / backspace": "Le geste de balayage et le retour arrière / suppression déplace les messages à la corbeille",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Le retour à un modèle de signature écrasera le code HTML personnalisé que vous avez entré.",
   "Symbols": "Symboles",
   "Sync New Mail Now": "Synchroniser le nouveau courrier maintenant",

@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Feliratkozás különböző frissítési csatornákra az új funkciók előnézetének megtekintéséhez. Ne feledje, hogy egyes frissítési csatornák kevésbé stabilak lehetnek!",
   "Subscription": "Előfizetés",
   "Successfully connected to %@!": "Sikeresen csatlakozik a %@ -hoz!",
-  "Swipe gesture and backspace / delete move messages to trash": "Az ujjmozdulatok és a háttértár / törlés eltávolítja az üzeneteket a kukába",
+  "Move to trash (not archive) on swipe / backspace": "Az ujjmozdulatok és a háttértár / törlés eltávolítja az üzeneteket a kukába",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Az aláírásmintához való áttérés felülírja a megadott egyéni HTML-kódot.",
   "Symbols": "Szimbólumok",
   "Sync New Mail Now": "Szinkronizálja az új leveleket most",

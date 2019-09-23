@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Clàraich a-steach gu diofar sheòlaidhean ùrachaidh gus ro-shealladh fhaighinn de fheartan ùra. Thoir fa-near nach eil cuid de na seanalan ùrachadh nas seasmhaiche!",
   "Subscription": "Fo-sgrìobhadh",
   "Successfully connected to %@!": "Co-cheangal gu soirbheachail le %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Gabhaidh gluasad swipe agus backspace / delete teachdaireachdan gu sgudal",
+  "Move to trash (not archive) on swipe / backspace": "Gabhaidh gluasad swipe agus backspace / delete teachdaireachdan gu sgudal",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Le bhith a 'tionndadh air ais gu teamplaid ainm-sgrìobhaidh ath-sgrìobhadh air an HTML gnàthaichte a chuir thu a-steach.",
   "Symbols": "Samhlaidhean",
   "Sync New Mail Now": "Sync a-steach post ùr a-nis",

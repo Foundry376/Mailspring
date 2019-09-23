@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "ຈອງໂຄສະນາການປັບປຸງທີ່ແຕກຕ່າງກັນເພື່ອຮັບການສະແດງຕົວຢ່າງຂອງຄຸນສົມບັດໃຫມ່. ໃຫ້ສັງເກດວ່າບາງຊ່ອງທາງການປັບປຸງອາດຈະບໍ່ຫມັ້ນຄົງ!",
   "Subscription": "Subscription",
   "Successfully connected to %@!": "ເຊື່ອມຕໍ່ກັບ %@ ຢ່າງສໍາເລັດຜົນ!",
-  "Swipe gesture and backspace / delete move messages to trash": "swipe gesture and backspace / delete move messages to trash",
+  "Move to trash (not archive) on swipe / backspace": "Move to trash (not archive) on swipe / backspace",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "ການປ່ຽນກັບແບບຟອມລາຍເຊັນຈະ overwrite HTML ທີ່ທ່ານໄດ້ເຂົ້າໄປ.",
   "Symbols": "ສັນຍາລັກ",
   "Sync New Mail Now": "Sync New Mail Now",

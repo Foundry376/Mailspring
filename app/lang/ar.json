@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "اشترك في قنوات التحديث المختلفة لتلقي معاينات الميزات الجديدة. لاحظ أن بعض قنوات التحديث قد تكون أقل ثباتًا!",
   "Subscription": "اشتراك",
   "Successfully connected to %@!": "تم توصيله بنجاح بـ %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "حرك حركة التمرير و Backspace / delete إلى سلة المهملات",
+  "Move to trash (not archive) on swipe / backspace": "حرك حركة التمرير و Backspace / delete إلى سلة المهملات",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "سيؤدي التبديل إلى قالب التوقيع إلى استبدال HTML المخصص الذي قمت بإدخاله.",
   "Symbols": "رموز",
   "Sync New Mail Now": "مزامنة البريد الجديد الآن",

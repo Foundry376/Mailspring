@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Prihláste sa na odber rôznych kanálov aktualizácií, aby ste mohli dostávať ukážky nových funkcií. Upozorňujeme, že niektoré kanály aktualizácie môžu byť menej stabilné!",
   "Subscription": "predplatné",
   "Successfully connected to %@!": "Úspešne ste pripojení k %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Presuňte gesto a spätný priestor / odstráňte presunúť správy do koša",
+  "Move to trash (not archive) on swipe / backspace": "Presuňte gesto a spätný priestor / odstráňte presunúť správy do koša",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Prepnutím sa na šablónu podpisu prepíšete vlastný zadaný kód HTML.",
   "Symbols": "Symboly",
   "Sync New Mail Now": "Synchronizovať novú poštu",

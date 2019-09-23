@@ -114,6 +114,16 @@ export default {
             default: true,
             title: localized('Automatically load images in viewed messages'),
           },
+          detailedHeaders: {
+            type: 'boolean',
+            default: false,
+            title: localized('Show full message headers by default'),
+          },
+          detailedNames: {
+            type: 'boolean',
+            default: false,
+            title: localized('Show first and last names of all recipients'),
+          },
           restrictMaxWidth: {
             type: 'boolean',
             default: false,
@@ -122,17 +132,12 @@ export default {
           backspaceDelete: {
             type: 'boolean',
             default: false,
-            title: localized('Swipe gesture and backspace / delete move messages to trash'),
+            title: localized('Move to trash (not archive) on swipe / backspace'),
           },
           descendingOrderMessageList: {
             type: 'boolean',
             default: false,
             title: localized('Display conversations in descending chronological order'),
-          },
-          messageHeader: {
-            type: 'boolean',
-            default: false,
-            title: localized('Show detailed message header by default'),
           },
         },
       },

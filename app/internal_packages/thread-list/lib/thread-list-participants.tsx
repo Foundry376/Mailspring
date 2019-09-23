@@ -60,7 +60,10 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
         var short;
         if (contact.name && contact.name.length > 0) {
           if (items.length > 1) {
-            short = contact.displayName({ includeAccountLabel: false, compact: true });
+            short = contact.displayName({
+              includeAccountLabel: false,
+              compact: !AppEnv.config.get('core.reading.detailedNames'),
+            });
           } else {
             short = contact.displayName({ includeAccountLabel: false });
           }

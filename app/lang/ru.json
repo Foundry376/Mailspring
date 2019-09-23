@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Подпишитесь на разные каналы обновлений, чтобы получать предварительные просмотры новых функций. Обратите внимание, что некоторые каналы обновления могут быть менее стабильными!",
   "Subscription": "Подписка",
   "Successfully connected to %@!": "Успешно подключен к %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Пролистайте назад / удалите сообщения для отправке в корзину",
+  "Move to trash (not archive) on swipe / backspace": "Пролистайте назад / удалите сообщения для отправке в корзину",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Возврат к шаблону подписи приведет к перезаписи пользовательского HTML-кода.",
   "Symbols": "Символы",
   "Sync New Mail Now": "Синхранизовать почту",

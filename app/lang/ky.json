@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "жаңы өзгөчөлүктөрү алдын ала алуу үчүн ар кандай өзгөртүү каналдар жазылуу. кээ бир өзгөртүү каналдар анча туруктуу болушу мүмкүн экенин Эскертүү!",
   "Subscription": "жазылуу",
   "Successfully connected to %@!": "Ийгиликтүү %@ байланыштуу!",
-  "Swipe gesture and backspace / delete move messages to trash": "Серпип жандоо жана өчүрүү / таштандыга кадам кабарларды жок",
+  "Move to trash (not archive) on swipe / backspace": "Серпип жандоо жана өчүрүү / таштандыга кадам кабарларды жок",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "кол Калып кайра которулууда Сиз киргизген жане салт HTML чыкмакчы.",
   "Symbols": "Symbols",
   "Sync New Mail Now": "Синхрондоштуруу New Mail алуу",

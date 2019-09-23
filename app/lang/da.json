@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Abonner på forskellige opdateringskanaler for at modtage forhåndsvisninger af nye funktioner. Bemærk, at nogle opdateringskanaler kan være mindre stabile!",
   "Subscription": "Abonnement",
   "Successfully connected to %@!": "Vellykket forbundet til %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Stryg gestus og backspace / slet flytte meddelelser til skraldespanden",
+  "Move to trash (not archive) on swipe / backspace": "Stryg gestus og backspace / slet flytte meddelelser til skraldespanden",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Hvis du skifter tilbage til en underskriftsskabelon, overskrives den brugerdefinerede HTML, du har indtastet.",
   "Symbols": "Symboler",
   "Sync New Mail Now": "Synkroniser ny mail nu",

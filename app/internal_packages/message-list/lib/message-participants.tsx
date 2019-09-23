@@ -34,7 +34,12 @@ export default class MessageParticipants extends React.Component<MessageParticip
   }
 
   _shortNames(contacts = [], max = MAX_COLLAPSED) {
-    let names = contacts.map(c => c.displayName({ includeAccountLabel: true, compact: true }));
+    let names = contacts.map(c =>
+      c.displayName({
+        includeAccountLabel: true,
+        compact: !AppEnv.config.get('core.reading.detailedNames'),
+      })
+    );
     if (names.length > max) {
       const extra = names.length - max;
       names = names.slice(0, max);

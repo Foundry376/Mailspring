@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "ติดตามช่องอัปเดตต่างๆเพื่อรับตัวอย่างคุณลักษณะใหม่ ๆ โปรดทราบว่าช่องทางการอัพเดตบางช่องอาจไม่เสถียร!",
   "Subscription": "การสมัครสมาชิก",
   "Successfully connected to %@!": "เชื่อมต่อสำเร็จแล้วกับ %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "กวาดท่าทางและแบ็คสเปล / ลบย้ายข้อความไปที่ถังขยะ",
+  "Move to trash (not archive) on swipe / backspace": "กวาดท่าทางและแบ็คสเปล / ลบย้ายข้อความไปที่ถังขยะ",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "การเปลี่ยนกลับไปเป็นแม่แบบลายเซ็นจะเป็นการเขียนทับ HTML ที่คุณป้อนเอง",
   "Symbols": "สัญลักษณ์",
   "Sync New Mail Now": "ซิงค์อีเมลใหม่เดี๋ยวนี้",

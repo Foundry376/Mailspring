@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "订阅不同的更新频道以接收新功能的预览。请注意，某些更新频道可能不太稳定！",
   "Subscription": "订阅",
   "Successfully connected to %@!": "成功连接到%@！",
-  "Swipe gesture and backspace / delete move messages to trash": "滑动手势和退格/删除将邮件移至垃圾箱",
+  "Move to trash (not archive) on swipe / backspace": "滑动手势和退格/删除将邮件移至垃圾箱",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "切换回签名模板将覆盖您输入的自定义HTML。",
   "Symbols": "符号",
   "Sync New Mail Now": "立即同步新邮件",

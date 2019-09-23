@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Prenumerera på olika uppdateringskanaler för att få förhandsvisningar av nya funktioner. Observera att vissa uppdateringskanaler kan vara mindre stabila!",
   "Subscription": "Prenumeration",
   "Successfully connected to %@!": "Framgångsrikt ansluten till %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Swipe gest och backspace / radera flytta meddelanden till papperskorgen",
+  "Move to trash (not archive) on swipe / backspace": "Swipe gest och backspace / radera flytta meddelanden till papperskorgen",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Om du växlar tillbaka till en signaturmall skriver du över den anpassade HTML som du har angett.",
   "Symbols": "Symboler",
   "Sync New Mail Now": "Synkronisera ny post nu",

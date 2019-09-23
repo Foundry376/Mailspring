@@ -701,7 +701,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!",
   "Subscription": "Subscription",
   "Successfully connected to %@!": "Successfully connected to %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Swipe gesture and backspace / delete move messages to trash",
+  "Move to trash (not archive) on swipe / backspace": "Move to trash (not archive) on swipe / backspace",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Switching back to a signature template will overwrite the custom HTML you've entered.",
   "Symbols": "Symbols",
   "Sync New Mail Now": "Sync New Mail Now",

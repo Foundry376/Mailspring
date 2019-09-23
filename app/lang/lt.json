@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Prenumeruoti skirtingus naujinimo kanalus, kad gautumėte naujų funkcijų peržiūrą. Atminkite, kad kai kurie atnaujinimo kanalai gali būti mažiau stabilūs!",
   "Subscription": "Prenumerata",
   "Successfully connected to %@!": "Sėkmingai prijungtas prie %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Perbraukite gestą ir backspace / delete persiunčia pranešimus į šiukšliadėžę",
+  "Move to trash (not archive) on swipe / backspace": "Perbraukite gestą ir backspace / delete persiunčia pranešimus į šiukšliadėžę",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Perėjimas į parašo šabloną perrašys įvestą tinkintą HTML kodą.",
   "Symbols": "Simboliai",
   "Sync New Mail Now": "Sinchronizuoti naują el. Laišką dabar",

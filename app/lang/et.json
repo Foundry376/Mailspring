@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Uute funktsioonide eelvaatluste saamiseks tellige erinevat värskenduskanaleid. Pange tähele, et mõned värskenduskanalid võivad olla vähem stabiilsed!",
   "Subscription": "Tellimine",
   "Successfully connected to %@!": "Edukalt ühendatud %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Pühkige žest ja tagasilükku / kustutage sõnumeid prügikasti",
+  "Move to trash (not archive) on swipe / backspace": "Pühkige žest ja tagasilükku / kustutage sõnumeid prügikasti",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Allkirja mallile tagasi pöördumine kirjutab teie sisestatud kohandatud HTML üle.",
   "Symbols": "Sümbolid",
   "Sync New Mail Now": "Uus sünkroonimine kohe",

@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Đăng ký các kênh cập nhật khác nhau để nhận bản xem trước các tính năng mới. Lưu ý rằng một số kênh cập nhật có thể ít ổn định hơn!",
   "Subscription": "Đăng ký",
   "Successfully connected to %@!": "Đã kết nối thành công với %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Cử chỉ vuốt và xóa lùi / xóa thư di chuyển vào thùng rác",
+  "Move to trash (not archive) on swipe / backspace": "Cử chỉ vuốt và xóa lùi / xóa thư di chuyển vào thùng rác",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Việc chuyển về mẫu chữ ký sẽ ghi đè HTML tùy chỉnh mà bạn đã nhập.",
   "Symbols": "Ký hiệu",
   "Sync New Mail Now": "Đồng bộ hóa thư mới ngay bây giờ",

@@ -685,7 +685,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Yeni özelliklerin önizlemelerini almak için farklı güncelleme kanallarına abone olun. Bazı güncelleme kanallarının daha az kararlı olabileceğini unutmayın!",
   "Subscription": "abone",
   "Successfully connected to %@!": "Başarıyla %@ 'ya bağlandı!",
-  "Swipe gesture and backspace / delete move messages to trash": "Hareketi hızlıca kaydırın ve iletileri çöp kutusuna taşıyın / silin",
+  "Move to trash (not archive) on swipe / backspace": "Hareketi hızlıca kaydırın ve iletileri çöp kutusuna taşıyın / silin",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Bir imza şablonuna geri dönmek, girdiğiniz özel HTML'nin üzerine yazacaktır.",
   "Symbols": "Semboller",
   "Sync New Mail Now": "Şimdi Yeni Postaları Senkronize Et",

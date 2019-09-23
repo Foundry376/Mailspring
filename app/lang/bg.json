@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Абонирайте се за различните канали за актуализиране, за да получавате визуализации на нови функции. Имайте предвид, че някои канали за актуализиране може да са по-малко стабилни!",
   "Subscription": "абонамент",
   "Successfully connected to %@!": "Успешно свързан към %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Прекарайте пръст и задържете / изтрийте съобщенията за преместване в кошчето",
+  "Move to trash (not archive) on swipe / backspace": "Прекарайте пръст и задържете / изтрийте съобщенията за преместване в кошчето",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Превключването към шаблона за подпис ще замени персонализирания HTML код, който сте въвели.",
   "Symbols": "Символи",
   "Sync New Mail Now": "Синхронизиране на нова поща сега",

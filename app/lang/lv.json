@@ -684,7 +684,7 @@
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Abonējiet dažādus atjaunināšanas kanālus, lai saņemtu priekšskatījumus par jaunām funkcijām. Ņemiet vērā, ka daži atjaunināšanas kanāli var būt mazāk stabili!",
   "Subscription": "Abonēšana",
   "Successfully connected to %@!": "Veiksmīgi pievienots %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Velciet ar gestu un atgriezenisko saiti / dzēsti pārvietot ziņojumus uz atkritni",
+  "Move to trash (not archive) on swipe / backspace": "Velciet ar gestu un atgriezenisko saiti / dzēsti pārvietot ziņojumus uz atkritni",
   "Switching back to a signature template will overwrite the custom HTML you've entered.": "Pārslēdzot atpakaļ uz paraksta veidni, tiks pārrakstīts ievadītais pielāgotais HTML.",
   "Symbols": "Simboli",
   "Sync New Mail Now": "Sinhronizēt jaunu e-pastu tūlīt",
