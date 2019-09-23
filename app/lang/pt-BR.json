@@ -40,7 +40,7 @@
   "Address": "Endereço",
   "After %@ Seconds": "Depois de %@ segundos",
   "After sending, enable undo for": "Após o envio, ative desfazer por",
-  "Aliases": "Aliases",
+  "Aliases": "Pseudônimos",
   "All": "Todos",
   "All Accounts": "Todas as contas",
   "All Contact Previews Used": "Todas as pré-visualizações de contato usadas",
@@ -85,6 +85,7 @@
     "Por padrão, as regras de e-mail são aplicadas apenas a novos e-mails. A aplicação de regras a toda a sua caixa de entrada pode demorar muito e prejudicar o desempenho.",
   "Caching mail": "Correio de Cache",
   "Caching recent mail": "Cache de correio recente",
+  "Calendar Preview": "Visualização do Calendário",
   "Can't find the selected thread in your mailbox":
     "Não é possível encontrar a conversa selecionada em sua caixa de correio",
   "Cancel": "Cancelar",
@@ -154,6 +155,7 @@
   "Copy Image": "Copiar Imagem",
   "Copy Link Address": "Copiar endereço do link",
   "Copy link": "Copiar Link",
+  "Copy mailbox permalink": "Copiar o link permanente da caixa de correio",
   "Could not create folder.": "Não foi possível criar a pasta.",
   "Could not create plugin": "Não foi possível criar o plugin",
   "Could not find a file at path '%@'": "Não foi possível localizar o arquivo no caminho '%@'",
@@ -620,6 +622,7 @@
   "Reset Theme": "Restaurar Tema",
   "Restart and Install Update": "Reinicie e instale a atualização",
   "Restore Defaults": "Restaurar padrão",
+  "Restrict the width of messages to maximize readability": "Restringir a largura das mensagens para maximizar a legibilidade",
   "Resurface messages to the top of the inbox when unsnoozing":
     "Ressurgir mensagens na parte superior da caixa de entrada ao antecipar",
   "Retrying in %@ seconds": "Tentando novamente em %@ segundos",
@@ -686,6 +689,7 @@
     "Envie mais de uma mensagem usando a mesma linha %@ ou assunto para comparar as taxas de abertura e as taxas de resposta.",
   "Send new messages from:": "Enviar novas mensagens de:",
   "Send on your own schedule": "Envie conforme sua agenda",
+  "Sender Name": "Nome do Remetente",
   "Sending": "Enviando",
   "Sending in %@": "Enviando em %@",
   "Sending in a few seconds": "Envio em poucos segundos",
@@ -958,6 +962,7 @@
     "Use a guia Atividade para obter uma visão panorâmica da sua caixa de correio: taxas de abertura e cliques, eficácia da linha de assunto e muito mais.",
   "Verbose logging is now %@": "O registro detalhado agora é %@",
   "View": "Visualizar",
+  "View License": "Visualizar Licença",
   "View Mail Rules": "Visualizar regras de correio",
   "View changelog": "Visualizar registro de alteração",
   "Visit Thread on GitHub": "Visite o tópico no GitHub",
@@ -981,7 +986,8 @@
   "We've picked a set of keyboard shortcuts based on your email account and platform. You can also pick another set:":
     "Escolhemos um conjunto de atalhos de teclado com base na sua conta de e-mail e plataforma. Você também pode escolher outro conjunto:",
   "Website": "Website",
-  "Welcome to Mailspring": "Bem vindo ao Mailspring",
+  "Welcome to Mailspring": "Bem-vindo ao Mailspring",
+  "Welcome to Templates": "Bem-vindo aos Modelos",
   "When composing, automatically": "Ao compor, automaticamente",
   "When enabled, Mailspring will notify you as soon as someone reads this message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.":
     "Quando habilitado, o Mailspring irá notificá-lo assim que alguém ler esta mensagem. Enviando para um grupo? O Mailspring mostra quais destinatários abriram seu e-mail para que você possa acompanhar com precisão.",
