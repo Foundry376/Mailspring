@@ -260,6 +260,11 @@ export default class Application extends EventEmitter {
   setupJavaScriptArguments() {
     app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
     app.commandLine.appendSwitch('js-flags', '--harmony');
+
+    // BG TODO: This is required because `webPreferences.backgroundThrottling` is
+    // broken. Will be fixed by https://github.com/electron/electron/pull/20239.
+    // Note this impacts all windows so we should change it back when possible.
+    app.commandLine.appendSwitch('disable-background-timer-throttling');
   }
 
   openWindowsForTokenState() {
@@ -394,13 +399,14 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-getting-started', () => {
-      const helpUrl = 'https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started';
+      const helpUrl =
+        'https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started';
       shell.openExternal(helpUrl);
     });
 
-
     this.on('application:view-faq', () => {
-      const helpUrl = 'https://foundry376.zendesk.com/hc/en-us/sections/115000521892-Frequently-Asked-Questions';
+      const helpUrl =
+        'https://foundry376.zendesk.com/hc/en-us/sections/115000521892-Frequently-Asked-Questions';
       shell.openExternal(helpUrl);
     });
 
