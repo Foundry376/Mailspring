@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ListensToObservable } from 'mailspring-component-kit';
+import { FocusedContentStore } from 'mailspring-exports';
 import ThreadListStore from './thread-list-store';
 
 function getObservable() {
@@ -22,7 +23,34 @@ class SelectedItemsStack extends Component {
     selectionCount: PropTypes.number,
   };
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      haveFocused: false,
+    };
+  }
+
   static containerRequired = false;
+
+  componentDidMount() {
+    this.mounted = true;
+    this.unlisten = [FocusedContentStore.listen(this._onFocusedChange)];
+    this.setState({ haveFocused: !!FocusedContentStore.focused('thread') });
+  }
+
+  componentWillUnmount() {
+    if (Array.isArray(this.unlisten)) {
+      this.unlisten.forEach(unlisten => {
+        unlisten();
+      });
+    }
+  }
+
+  _onFocusedChange = () => {
+    if (this.mounted) {
+      this.setState({ haveFocused: FocusedContentStore.focused('thread') });
+    }
+  };
 
   onClearSelection = () => {
     ThreadListStore.dataSource().selection.clear();
@@ -30,8 +58,8 @@ class SelectedItemsStack extends Component {
 
   render() {
     const { selectionCount } = this.props;
-    if (selectionCount <= 1) {
-      return <span />;
+    if (selectionCount <= 1 || this.state.haveFocused) {
+      return <span/>;
     }
     const cardCount = Math.min(5, selectionCount);
 
@@ -56,7 +84,7 @@ class SelectedItemsStack extends Component {
               return (
                 <div key={`card-${idx}`} style={style} className="card">
                   <svg width="100%" height="100%" viewBox="0 0 390 527" version="1.1">
-                    <rect strokeWidth="2.5" x="0" y="0" width="390" height="527" rx="15" />
+                    <rect strokeWidth="2.5" x="0" y="0" width="390" height="527" rx="15"/>
                   </svg>
                 </div>
               );
