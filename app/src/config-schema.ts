@@ -129,6 +129,11 @@ export default {
             default: false,
             title: localized('Display conversations in descending chronological order'),
           },
+          messageHeader: {
+            type: 'boolean',
+            default: false,
+            title: localized('Show detailed message header by default'),
+          },
         },
       },
       composing: {
