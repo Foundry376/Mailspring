@@ -104,14 +104,15 @@ class ProfilePictureOrColorBox extends React.Component<{
     );
   }
 }
-class SocialProfileLink extends React.Component<{ handle: string; service: string }> {
+class SocialProfileLink extends React.Component<{ handle: string; service: string, hostname: string }> {
   static propTypes = {
     service: PropTypes.string,
     handle: PropTypes.string,
+    hostname: PropTypes.string,
   };
 
   render() {
-    const { handle, service } = this.props;
+    const { handle, service, hostname } = this.props;
 
     if (!handle) {
       return false;
@@ -119,8 +120,8 @@ class SocialProfileLink extends React.Component<{ handle: string; service: strin
     return (
       <a
         className="social-profile-item"
-        title={`https://${service}.com/${handle}`}
-        href={`https://${service}.com/${handle}`}
+        title={`https://${hostname}/${handle}`}
+        href={`https://${hostname}/${handle}`}
       >
         <RetinaImg
           url={`mailspring://participant-profile/assets/${service}-sidebar-icon@2x.png`}
@@ -473,10 +474,10 @@ export default class SidebarParticipantProfile extends React.Component<
           <IconRow icon="funding" node={funding} />
 
           <div className="social-profiles-wrap">
-            <SocialProfileLink service="facebook" handle={facebook && facebook.handle} />
-            <SocialProfileLink service="crunchbase" handle={crunchbase && crunchbase.handle} />
-            <SocialProfileLink service="linkedin" handle={linkedin && linkedin.handle} />
-            <SocialProfileLink service="twitter" handle={twitter && twitter.handle} />
+            <SocialProfileLink service="facebook" hostname="www.facebook.com" handle={facebook && facebook.handle} />
+            <SocialProfileLink service="crunchbase" hostname="www.crunchbase.com" handle={crunchbase && crunchbase.handle} />
+            <SocialProfileLink service="linkedin" hostname="www.linkedin.com" handle={linkedin && linkedin.handle} />
+            <SocialProfileLink service="twitter" hostname="twitter.com" handle={twitter && twitter.handle} />
           </div>
         </div>
       </div>
@@ -513,9 +514,9 @@ export default class SidebarParticipantProfile extends React.Component<
           </div>
 
           <div className="social-profiles-wrap">
-            <SocialProfileLink service="facebook" handle={facebook && facebook.handle} />
-            <SocialProfileLink service="linkedin" handle={linkedin && `in/${linkedin.handle}`} />
-            <SocialProfileLink service="twitter" handle={twitter && twitter.handle} />
+            <SocialProfileLink service="facebook" hostname="www.facebook.com" handle={facebook && facebook.handle} />
+            <SocialProfileLink service="linkedin" hostname="www.linkedin.com" handle={linkedin && `in/${linkedin.handle}`} />
+            <SocialProfileLink service="twitter" hostname="twitter.com" handle={twitter && twitter.handle} />
           </div>
         </div>
 
