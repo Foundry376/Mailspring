@@ -23,7 +23,7 @@ module.exports = grunt => {
       fs.copySync(winResourcesSource, winResourcesTarget);
       fs.copySync(
         path.join(winResourcesSource, 'mailspring.VisualElementsManifest.xml'),
-        path.resolve(buildPath, '..', '..', 'mailspring.VisualElementsManifest.xml')
+        path.join(path.resolve(buildPath, '..', '..'), 'mailspring.VisualElementsManifest.xml')
       );
     }
     callback();
