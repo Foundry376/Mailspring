@@ -130,6 +130,48 @@ function getChronoPast() {
   return _chronoPast;
 }
 
+function expandDateLikeString(dateLikeString: string) {
+  // Short format: 2h
+  if (/^\d+h$/.test(dateLikeString)) {
+    const numHours = dateLikeString.match(/^\d+/)[0]; // Extract number
+    return `${numHours} hours`;
+  }
+
+  // Short format: 2d
+  if (/^\d+d$/.test(dateLikeString)) {
+    const numDays = dateLikeString.match(/^\d+/)[0]; // Extract number
+    return `${numDays} days`;
+  }
+
+  // Short format: 2w
+  if (/^\d+w$/.test(dateLikeString)) {
+    const numWeeks = dateLikeString.match(/^\d+/)[0]; // Extract number
+    return `${numWeeks} weeks`;
+  }
+
+  // Short format: 2m, 2mo
+  if (/^\d+mo?$/.test(dateLikeString)) {
+    const numMonths = dateLikeString.match(/^\d+/)[0]; // Extract number
+    return `${numMonths} months`;
+  }
+
+  // Short format: t, to, tom => tomorrow
+  if (['t', 'to', 'tom', 'tom '].indexOf(dateLikeString) >= 0) {
+    return `tomorrow morning`;
+  }
+
+  // Short format: nw, next week => next week
+  if (['nw', 'next week'].indexOf(dateLikeString) >= 0) {
+    return `next Monday`;
+  }
+
+  if (dateLikeString.indexOf('tom ') === 0) {
+    return dateLikeString.replace('tom ', 'tomorrow ');
+  }
+
+  return dateLikeString; // Return original string if no match
+}
+
 const DateUtils = {
   // Localized format: ddd, MMM D, YYYY h:mmA
   DATE_FORMAT_LONG: 'llll',
@@ -288,7 +330,8 @@ const DateUtils = {
    * @return {moment} - moment object representing date
    */
   futureDateFromString(dateLikeString) {
-    const date = getChronoFuture().parseDate(dateLikeString);
+    const expanded = expandDateLikeString(dateLikeString);
+    const date = getChronoFuture().parseDate(expanded);
     if (!date) {
       return null;
     }
