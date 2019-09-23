@@ -3,6 +3,9 @@
 @border-radius: 4px;
 @timeColor: #8a8a8f;
 .chat-view-container {
+  .divider {
+    background-color: @border-color-divider;
+  }
   .secure-private {
     margin: 110px 0 40px 20px;
     display: flex;
@@ -101,7 +104,6 @@
           top: -5px;
           margin: 0 15px;
           z-index: -1;
-          background-color: @gray-lighter;
         }
         span {
           margin: 0 auto;
