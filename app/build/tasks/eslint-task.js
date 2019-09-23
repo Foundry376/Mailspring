@@ -7,6 +7,9 @@ module.exports = grunt => {
       options: {
         ignore: false,
         configFile: '../.eslintrc',
+        parserOptions: {
+          project: './tsconfig.json',
+        },
       },
       target: grunt.config('source:es6'),
     },
