@@ -57,7 +57,7 @@ export default class ConversationsTopBar extends PureComponent {
           </BindGlobalCommands>,
         ]}
         right={
-          <Button className="button new-message" onClick={this.newConversation}>
+          <Button className="btn button new-message" onClick={this.newConversation}>
             <RetinaImg
               name={'pencil.svg'}
               style={{ width: 18 }}

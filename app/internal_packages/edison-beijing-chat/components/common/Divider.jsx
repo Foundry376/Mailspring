@@ -1,16 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const divider = { backgroundColor: '#e8e8ed' };
-
 const horizontal = {
-  ...divider,
   height: '1px',
   minHeight: '1px',
 };
 
 const vertical = {
-  ...divider,
   width: '1px',
   minWidth: '1px',
 };

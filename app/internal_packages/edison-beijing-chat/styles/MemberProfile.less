@@ -20,7 +20,7 @@
   height: 600px;
   width: 420px;
   background-color: @white;
-  border: 0.5px solid @gray-lighter;
+  border: 0.5px solid @border-color-divider;
   box-shadow: 0 0 20px 0 rgba(0,0,0,0.1), 0 20px 30px 0 rgba(0,0,0,0.2);
   .button.more {
     position: absolute;
@@ -59,7 +59,7 @@
     .member-name {
         height: 24px;
         width: 240px;
-        color: #000;
+        color: @text-color;
         font-size: 20px;
         font-weight: 700;
         letter-spacing: 0.01px;
@@ -109,8 +109,9 @@
     line-height: 40px;
     width:90%;
     margin: 0 5%;
-    border-bottom:  1px solid lightgray;
+    border-bottom:  1px solid @border-color-divider;
   }
+  .nickname-label,
   .email-label {
     color: @gray;
     font-size: 13px;
@@ -129,18 +130,11 @@
     line-height: 40px;
     width:90%;
     margin: 0 5%;
-    border-bottom:  1px solid lightgray;
-  }
-  .nickname-label {
-    color: @gray;
-    font-size: 13px;
-    letter-spacing: -0.17px;
-    text-align: right;
-    width:155px;
+    border-bottom:  1px solid @border-color-divider;
   }
   .nickname-input {
     width:200px;
-    color: @gray;
+    color: @text-color;
     font-size: 13px;
     letter-spacing: -0.17px;
     border:none;
