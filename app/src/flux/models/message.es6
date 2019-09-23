@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import moment from 'moment';
-
+import fs from 'fs';
 import File from './file';
 import Utils from './utils';
 import Event from './event';
@@ -9,6 +9,7 @@ import Folder from './folder';
 import Attributes from '../attributes';
 import ModelWithMetadata from './model-with-metadata';
 import AccountStore from '../stores/account-store';
+let AttachmentStore = null;
 
 /*
 Public: The Message model represents an email message or draft.
@@ -432,6 +433,65 @@ export default class Message extends ModelWithMetadata {
   // Public: Returns an {Array} of {File} IDs
   fileIds() {
     return this.files.map(file => file.id);
+  }
+
+  missingAttachments() {
+    AttachmentStore = AttachmentStore || require('../stores/attachment-store').default;
+    return new Promise(resolve => {
+      const totalMissing = () => {
+        return [
+          ...ret.inline.downloading,
+          ...ret.inline.needToDownload,
+          ...ret.normal.downloading,
+          ...ret.normal.needToDownload,
+        ];
+      };
+      const ret = {
+        totalMissing: totalMissing,
+        inline: {
+          downloading: [],
+          needToDownload: [],
+        },
+        normal: {
+          downloading: [],
+          needToDownload: [],
+        },
+      };
+      const total = this.files.length * 2;
+      let processed = 0;
+      this.files.forEach(f => {
+        const path = AttachmentStore.pathForFile(f);
+        fs.access(path, fs.constants.R_OK, err => {
+          if (err) {
+            processed++;
+            fs.access(`${path}.part`, fs.constants.R_OK, err => {
+              processed++;
+              if (err) {
+                if (f.isInline) {
+                  ret.inline.needToDownload.push(f);
+                } else {
+                  ret.normal.needToDownload.push(f);
+                }
+              } else {
+                if (f.isInline) {
+                  ret.inline.downloading.push(f);
+                } else {
+                  ret.normal.downloading.push(f);
+                }
+              }
+              if (processed === total) {
+                resolve(ret);
+              }
+            });
+          } else {
+            processed += 2;
+            if (processed === total) {
+              resolve(ret);
+            }
+          }
+        });
+      });
+    });
   }
 
   // Public: Returns true if this message === from the current user's email

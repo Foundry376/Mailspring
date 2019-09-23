@@ -70,8 +70,16 @@ class DraftList extends React.Component {
   };
 
   _onClick = draft => {
-    if (!!draft.body) {
-      Actions.composePopoutDraft(draft.headerMessageId);
+    if (draft.hasOwnProperty('body') && draft.body !== null) {
+      draft.missingAttachments().then(ret =>{
+        const totalMissing = ret.totalMissing().map(f => f.id);
+        if (totalMissing.length === 0) {
+          Actions.composePopoutDraft(draft.headerMessageId);
+        } else {
+          Actions.fetchAttachments({ accountId: draft.accountId, missingItems: totalMissing });
+          AppEnv.showErrorDialog('Draft is still downloading, cannot edit');
+        }
+      });
     } else {
       Actions.fetchBodies({ messages: [draft] });
       AppEnv.showErrorDialog('Draft is still downloading, cannot edit');
