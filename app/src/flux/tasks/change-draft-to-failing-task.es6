@@ -27,9 +27,6 @@ export default class ChangeDraftToFailingTask extends Task {
       this.canBeUndone = false;
     }
   }
-  get accountId(){
-    return this.messages[0].accountId;
-  }
 
   label() {
     return 'Drafts set to failing';

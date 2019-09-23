@@ -998,7 +998,7 @@ class DraftStore extends MailspringStore {
           clearTimeout(this._draftFailingTimeouts[msg.headerMessageId]);
         }
         this._draftFailingTimeouts[msg.headerMessageId] = setTimeout(() => {
-          const task = new ChangeDraftToFailingTask({ messages: [msg] });
+          const task = new ChangeDraftToFailingTask({ messages: [msg], accountId: msg.accountId });
           Actions.queueTask(task);
         }, DraftFailingBaseTimeout);
       }
