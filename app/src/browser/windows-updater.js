@@ -165,6 +165,27 @@ function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, c
   );
 }
 
+function installVisualElementsXML(callback) {
+  try {
+    fs.copyFileSync(
+      path.join(appFolder, 'resources', 'mailspring-75px.png'),
+      path.join(rootAppDataFolder, 'mailspring-75px.png')
+    );
+    fs.copyFileSync(
+      path.join(appFolder, 'resources', 'mailspring-150px.png'),
+      path.join(rootAppDataFolder, 'mailspring-150px.png')
+    );
+    fs.copyFileSync(
+      path.join(appFolder, 'resources', 'mailspring.VisualElementsManifest.xml'),
+      path.join(rootAppDataFolder, 'mailspring.VisualElementsManifest.xml')
+    );
+  } catch (err) {
+    console.warn(err);
+    // no-op
+  }
+  callback();
+}
+
 // Remove the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
 function removeShortcuts(callback) {
@@ -174,6 +195,7 @@ function removeShortcuts(callback) {
 exports.spawn = spawnUpdate;
 exports.createShortcuts = createShortcuts;
 exports.removeShortcuts = removeShortcuts;
+exports.installVisualElementsXML = installVisualElementsXML;
 exports.createRegistryEntries = createRegistryEntries;
 
 // Is the Update.exe installed with Mailspring?

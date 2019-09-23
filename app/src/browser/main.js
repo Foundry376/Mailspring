@@ -215,7 +215,9 @@ const handleStartupEventWithSquirrel = () => {
   switch (squirrelCommand) {
     case '--squirrel-install':
       WindowsUpdater.createRegistryEntries(options, () =>
-        WindowsUpdater.createShortcuts(() => app.quit())
+        WindowsUpdater.createShortcuts(() =>
+          WindowsUpdater.installVisualElementsXML(() => app.quit())
+        )
       );
       return true;
     case '--squirrel-updated':
