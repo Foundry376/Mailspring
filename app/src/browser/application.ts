@@ -260,11 +260,6 @@ export default class Application extends EventEmitter {
   setupJavaScriptArguments() {
     app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
     app.commandLine.appendSwitch('js-flags', '--harmony');
-
-    // BG TODO: This is required because `webPreferences.backgroundThrottling` is
-    // broken. Will be fixed by https://github.com/electron/electron/pull/20239.
-    // Note this impacts all windows so we should change it back when possible.
-    app.commandLine.appendSwitch('disable-background-timer-throttling');
   }
 
   openWindowsForTokenState() {
