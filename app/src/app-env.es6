@@ -1012,7 +1012,7 @@ export default class AppEnvConstructor {
     return remote.dialog.showSaveDialog(this.getCurrentWindow(), options, callback);
   }
 
-  showErrorDialog(messageData, { showInMainWindow, detail } = {}) {
+  showErrorDialog(messageData, { showInMainWindow, detail, async } = {}) {
     let message;
     let title;
     if (_.isString(messageData) || _.isNumber(messageData)) {
@@ -1031,6 +1031,14 @@ export default class AppEnvConstructor {
     }
 
     if (!detail) {
+      if(async){
+        return remote.dialog.showMessageBox(winToShow, {
+          type: 'warning',
+          buttons: ['Okay'],
+          message: title,
+          detail: message,
+        }, ()=>{});
+      }
       return remote.dialog.showMessageBox(winToShow, {
         type: 'warning',
         buttons: ['Okay'],

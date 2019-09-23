@@ -458,6 +458,10 @@ export default class Message extends ModelWithMetadata {
         },
       };
       const total = this.files.length * 2;
+      if(total === 0){
+        resolve(ret);
+        return;
+      }
       let processed = 0;
       this.files.forEach(f => {
         const path = AttachmentStore.pathForFile(f);
@@ -561,9 +565,12 @@ export default class Message extends ModelWithMetadata {
     //DC-269
     return this.state == Message.messageState.deleted; // eslint-ignore-line
   }
+  isDraftSending(){
+    return this.draft && Message.compareMessageState(this.state === Message.messageState.sending);
+  }
 
   isDraftSaving() {
-    return this.state == Message.messageState.saving && this.draft; // eslint-ignore-line
+    return Message.compareMessageState(this.state == Message.messageState.saving) && this.draft; // eslint-ignore-line
   }
   isCalendarReply() {
     return this.calendarReply;
