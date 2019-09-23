@@ -57,46 +57,60 @@ class PreferencesGeneral extends React.Component<{
 
   render() {
     return (
-      <div className="container-general" style={{ maxWidth: 600 }}>
-        <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
+      <div className="container-general" style={{ maxWidth: 800 }}>
+        <div style={{ display: 'flex' }}>
+          <div style={{ width: '50%', paddingRight: 15 }}>
+            <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
+            <LanguageSection config={this.props.config} configSchema={this.props.configSchema} />
+          </div>
+          <div style={{ width: '50%', paddingLeft: 15 }}>
+            <ConfigSchemaItem
+              configSchema={this.props.configSchema.properties.reading}
+              keyName={localized('Reading')}
+              keyPath="core.reading"
+              config={this.props.config}
+            />
+          </div>
+        </div>
+        <div style={{ display: 'flex', paddingTop: 30 }}>
+          <div style={{ width: '50%', paddingRight: 15 }}>
+            <SendingSection config={this.props.config} configSchema={this.props.configSchema} />
+          </div>
 
-        <LanguageSection config={this.props.config} configSchema={this.props.configSchema} />
-
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.notifications}
-          keyName={localized('Notifications')}
-          keyPath="core.notifications"
-          config={this.props.config}
-        />
-
-        <div className="platform-note platform-linux-only">
-          {localized(
-            'Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.'
-          )}
+          <div style={{ width: '50%', paddingLeft: 15 }}>
+            <ConfigSchemaItem
+              configSchema={this.props.configSchema.properties.composing}
+              keyName={localized('Composing')}
+              keyPath="core.composing"
+              config={this.props.config}
+            />
+          </div>
         </div>
 
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.reading}
-          keyName={localized('Reading')}
-          keyPath="core.reading"
-          config={this.props.config}
-        />
+        <div style={{ display: 'flex', paddingTop: 30 }}>
+          <div style={{ width: '50%', paddingRight: 15 }}>
+            <ConfigSchemaItem
+              configSchema={this.props.configSchema.properties.notifications}
+              keyName={localized('Notifications')}
+              keyPath="core.notifications"
+              config={this.props.config}
+            />
 
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.composing}
-          keyName={localized('Composing')}
-          keyPath="core.composing"
-          config={this.props.config}
-        />
-
-        <SendingSection config={this.props.config} configSchema={this.props.configSchema} />
-
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.attachments}
-          keyName={localized('Attachments')}
-          keyPath="core.attachments"
-          config={this.props.config}
-        />
+            <div className="platform-note platform-linux-only">
+              {localized(
+                'Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.'
+              )}
+            </div>
+          </div>
+          <div style={{ width: '50%', paddingLeft: 15 }}>
+            <ConfigSchemaItem
+              configSchema={this.props.configSchema.properties.attachments}
+              keyName={localized('Attachments')}
+              keyPath="core.attachments"
+              config={this.props.config}
+            />
+          </div>
+        </div>
 
         <div className="local-data">
           <h6>{localized('Local Data')}</h6>

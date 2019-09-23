@@ -21,7 +21,7 @@ module.exports = grunt => {
     const winResourcesTarget = path.resolve(buildPath, '..');
     if (platform === 'win32') {
       fs.copySync(winResourcesSource, winResourcesTarget);
-      fs.copySync(
+      fs.copyFileSync(
         path.join(winResourcesSource, 'mailspring.VisualElementsManifest.xml'),
         path.join(path.resolve(buildPath, '..', '..'), 'mailspring.VisualElementsManifest.xml')
       );

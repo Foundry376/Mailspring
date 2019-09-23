@@ -76,7 +76,9 @@ class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
     } else if (this.props.configSchema.enum) {
       return (
         <div className="item">
-          <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}:</label>
+          <label htmlFor={this.props.keyPath} style={{ paddingRight: 8 }}>
+            {this.props.configSchema.title}:
+          </label>
           <select onChange={this._onChangeValue} value={this.props.config.get(this.props.keyPath)}>
             {_.zip(this.props.configSchema.enum, this.props.configSchema.enumLabels).map(
               ([value, label]) => (
