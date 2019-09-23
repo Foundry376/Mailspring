@@ -30,29 +30,33 @@ export class Notifier {
   }
 
   // async for testing
-  async _onDatabaseChanged({ objectClass, objects }) {
+  async _onDatabaseChanged({ objectClass, objects, objectsRawJSON }) {
     if (AppEnv.config.get('core.notifications.enabled') === false) {
       return;
     }
 
     if (objectClass === Thread.name) {
-      return this._onThreadsChanged(objects);
+      this._onThreadsChanged(objects);
     }
 
     if (objectClass === Message.name) {
-      return this._onMessagesChanged(objects);
+      const newIds = objectsRawJSON.filter(json => json.headersSyncComplete).map(json => json.id);
+      if (!newIds.length) return;
+      this._onMessagesChanged(objects, newIds);
     }
   }
 
   // async for testing
-  async _onMessagesChanged(msgs) {
+  async _onMessagesChanged(msgs, newIds: string[]) {
     const notifworthy = {};
 
     for (const msg of msgs) {
       // ensure the message is unread
       if (msg.unread !== true) continue;
-      // ensure the message was just created (eg: this is not a modification)
-      if (msg.version !== 1) continue;
+      // ensure the message was just created (eg: this is not a modification).
+      // The sync engine attaches a JSON key to let us know that this is the first
+      // message emitted about this Message. (Hooray hacks around reactive patterns)
+      if (!newIds.includes(msg.id)) continue;
       // ensure the message was received after the app launched (eg: not syncing an old email)
       if (!msg.date || msg.date.valueOf() < this.activationTime) continue;
       // ensure the message is not a loopback
