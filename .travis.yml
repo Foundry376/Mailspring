@@ -6,7 +6,7 @@ git:
 language: node_js
 
 node_js:
-  - '11'
+  - "11"
 
 addons:
   artifacts:
@@ -40,13 +40,14 @@ addons:
 branches:
   only:
     - master
-    - '/ci-.*/'
-    - '/stable.*/'
+    - "/ci-.*/"
+    - "/stable.*/"
 
 matrix:
   include:
     - os: linux
       env: CC=gcc-4.8 CXX=g++-4.8
+      dist: trusty
     - os: osx
       osx_image: xcode8.3
       env: CC=clang CXX=clang++ SIGN_BUILD=true
@@ -94,7 +95,7 @@ services:
   - docker
 
 deploy:
-  'on':
+  "on":
     branch: master
     condition: $TRAVIS_OS_NAME = linux
   provider: script
