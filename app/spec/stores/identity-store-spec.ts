@@ -32,7 +32,7 @@ describe('IdentityStore', function identityStoreSpec() {
     });
 
     it('clears passwords if unsetting', async () => {
-      IdentityStore.saveIdentity(null);
+      await IdentityStore.saveIdentity(null);
       expect(KeyManager.deletePassword).toHaveBeenCalled();
       expect(KeyManager.replacePassword).not.toHaveBeenCalled();
       expect(AppEnv.config.set).toHaveBeenCalled();
@@ -46,7 +46,7 @@ describe('IdentityStore', function identityStoreSpec() {
 
       const next = JSON.parse(JSON.stringify(this.identityJSON));
       next.featureUsage.feat.usedInPeriod += 1;
-      IdentityStore.saveIdentity(next);
+      await IdentityStore.saveIdentity(next);
       expect(used()).toBe(2);
     });
   });

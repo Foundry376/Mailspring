@@ -108,46 +108,24 @@ export class SendActionButton extends React.Component<
     );
   };
 
-  _renderSingleButton() {
-    return (
-      <button
-        tabIndex={-1}
-        className={'btn btn-toolbar btn-normal btn-emphasis btn-text btn-send'}
-        style={{ order: -100 }}
-        onClick={this._onPrimaryClick}
-      >
-        {this._renderSendActionItem(this.state.sendActions[0])}
-      </button>
-    );
-  }
-
-  _renderButtonDropdown() {
-    const { sendActions } = this.state;
-    const menu = (
-      <Menu
-        items={sendActions.slice(1)}
-        itemKey={actionConfig => actionConfig.configKey}
-        itemContent={this._renderSendActionItem}
-        onSelect={this._onSendWithAction}
-      />
-    );
-
+  render() {
     return (
       <ButtonDropdown
         className={'btn-send btn-emphasis btn-text'}
         style={{ order: -100 }}
-        primaryItem={this._renderSendActionItem(sendActions[0])}
-        primaryTitle={sendActions[0].title}
+        primaryItem={this._renderSendActionItem(this.state.sendActions[0])}
+        primaryTitle={this.state.sendActions[0].title}
         primaryClick={this._onPrimaryClick}
         closeOnMenuClick
-        menu={menu}
+        menu={
+          <Menu
+            items={this.state.sendActions.slice(1)}
+            itemKey={actionConfig => actionConfig.configKey}
+            itemContent={this._renderSendActionItem}
+            onSelect={this._onSendWithAction}
+          />
+        }
       />
     );
-  }
-
-  render() {
-    return this.state.sendActions.length === 1
-      ? this._renderSingleButton()
-      : this._renderButtonDropdown();
   }
 }

@@ -11,7 +11,7 @@ import {
 } from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
-import { applySignature, currentSignatureIdSlate } from './signature-utils';
+import { applySignature, currentSignatureIdSlate, currentSignatureId } from './signature-utils';
 
 const MenuItem = Menu.Item;
 
@@ -102,7 +102,12 @@ export default class SignatureComposerDropdown extends React.Component<
 
   _renderSignatures() {
     // note: these are using onMouseDown to avoid clearing focus in the composer (I think)
-    const currentId = currentSignatureIdSlate(this.props.draft.bodyEditorState);
+    let currentId: string;
+    if (AppEnv.inSpecMode()) {
+      currentId = currentSignatureId(this.props.draft.body);
+    } else {
+      currentId = currentSignatureIdSlate(this.props.draft.bodyEditorState);
+    }
 
     return (
       <Menu

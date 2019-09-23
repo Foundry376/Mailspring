@@ -453,7 +453,7 @@ describe('DraftFactory', function draftFactory() {
         expect(this.model.body.indexOf('gmail_quote') > 0).toBe(true);
         expect(this.model.body.indexOf('blockquote') > 0).toBe(false);
         expect(this.model.body.indexOf(fakeMessage1.body) > 0).toBe(true);
-        expect(this.model.body.indexOf('---------- Forwarded message ---------') > 0).toBe(true);
+        expect(this.model.body.indexOf('---------- Forwarded Message ---------') > 0).toBe(true);
         expect(this.model.body.indexOf('From: Customer &lt;customer@example.com&gt;') > 0).toBe(
           true
         );
@@ -624,7 +624,7 @@ describe('DraftFactory', function draftFactory() {
 
     describe('when there is not an existing draft at the bottom of the thread', () => {
       beforeEach(() => {
-        spyOn(DatabaseStore, 'run').andCallFake(() => [fakeMessage1]);
+        spyOn(DatabaseStore, 'run').andCallFake(async () => [fakeMessage1]);
         spyOn(DraftFactory, 'createDraftForReply');
       });
 
@@ -639,7 +639,6 @@ describe('DraftFactory', function draftFactory() {
           thread: fakeThread,
           message: fakeMessage1,
           type: 'reply-all',
-          behavior: 'prefer-existing',
         });
 
         await DraftFactory.createOrUpdateDraftForReply({
@@ -652,7 +651,6 @@ describe('DraftFactory', function draftFactory() {
           thread: fakeThread,
           message: fakeMessage1,
           type: 'reply',
-          behavior: 'prefer-existing',
         });
       });
     });

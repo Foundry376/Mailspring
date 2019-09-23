@@ -9,6 +9,7 @@ type DateInputProps = {
   dateFormat: string;
   onDateInterpreted?: (...args: any[]) => any;
   onDateSubmitted?: (...args: any[]) => any;
+  initialTestState?: DateInputState;
 };
 type DateInputState = { inputValue: string; inputDate: null } & any;
 
@@ -46,7 +47,10 @@ class DateInput extends Component<DateInputProps, DateInputState> {
   }
 
   onInputKeyDown = event => {
-    const { key, target: { value } } = event;
+    const {
+      key,
+      target: { value },
+    } = event;
     if (value.length > 0 && ['Enter', 'Return'].includes(key)) {
       // This prevents onInputChange from being fired
       event.stopPropagation();
@@ -56,7 +60,9 @@ class DateInput extends Component<DateInputProps, DateInputState> {
   };
 
   onInputChange = event => {
-    const { target: { value } } = event;
+    const {
+      target: { value },
+    } = event;
     const nextDate = DateUtils.futureDateFromString(value);
     if (nextDate) {
       this.props.onDateInterpreted(nextDate.clone(), value);

@@ -17,13 +17,13 @@ describe('Spellchecker', function spellcheckerTests() {
     });
     // Apparently handleElectronSpellCheck returns !misspelled
     spyOn(Spellchecker.handler, 'handleElectronSpellCheck').andReturn(false);
-    Spellchecker.isMisspelledCache = {};
+    Spellchecker.handler['isMisspelledCache'].reset();
   });
 
   it('does not call spellchecker when word has already been learned', () => {
-    Spellchecker.isMisspelledCache = { mispelled: true };
-    const misspelled = Spellchecker.isMisspelled('mispelled');
-    expect(misspelled).toBe(true);
+    Spellchecker.learnWord('mispaelled');
+    const misspelled = Spellchecker.isMisspelled('mispaelled');
+    expect(misspelled).toBe(false);
     expect(Spellchecker.handler.handleElectronSpellCheck).not.toHaveBeenCalled();
   });
 

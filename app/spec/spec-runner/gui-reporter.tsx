@@ -98,12 +98,8 @@ class N1GuiReporter extends React.Component {
           <div className="symbol-summary list-unstyled">{this._renderSpecsOfType('core')}</div>
         </div>
         <div className="symbol-area">
-          <div className="symbol-header">Bundled</div>
-          <div className="symbol-summary list-unstyled">{this._renderSpecsOfType('bundled')}</div>
-        </div>
-        <div className="symbol-area">
-          <div className="symbol-header">User</div>
-          <div className="symbol-summary list-unstyled">{this._renderSpecsOfType('user')}</div>
+          <div className="symbol-header">Packages</div>
+          <div className="symbol-summary list-unstyled">{this._renderSpecsOfType(undefined)}</div>
         </div>
         {this._renderStatus()}
         <div className="results">{this._renderFailures()}</div>

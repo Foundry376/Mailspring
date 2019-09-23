@@ -80,7 +80,8 @@ describe('EditableTable Components', function describeBlock() {
     });
 
     it('renders the InputRenderer as the child of the SelectableTableCell with the correct props', () => {
-      const InputRenderer = props => <input {...props} />;
+      const TestInput = props => <span />;
+      const InputRenderer = props => <TestInput {...props} />;
       const inputProps = { p1: 'p1' };
       const input = renderCell({
         rowIdx: 2,

@@ -109,8 +109,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
           modalClass: 'not-usable',
           headerText: 'all test used',
           iconUrl: 'icon url',
-          rechargeText:
-            'You can add a test to 10 emails a month with Mailspring Basic. Upgrade to Pro today!',
+          rechargeText: 'add a test to',
         });
       });
 

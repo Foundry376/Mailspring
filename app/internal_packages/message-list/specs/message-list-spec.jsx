@@ -58,7 +58,7 @@ const m1 = new Message({
   subject: 'Subject One',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', name: 'All Mail' }),
+  folder: new Folder({ role: 'all', path: 'All Mail' }),
 });
 const m2 = new Message({
   id: '222',
@@ -75,7 +75,7 @@ const m2 = new Message({
   subject: 'Subject Two',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', name: 'All Mail' }),
+  folder: new Folder({ role: 'all', path: 'All Mail' }),
 });
 const m3 = new Message({
   id: '333',
@@ -92,7 +92,7 @@ const m3 = new Message({
   subject: 'Subject Three',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', name: 'All Mail' }),
+  folder: new Folder({ role: 'all', path: 'All Mail' }),
 });
 const m4 = new Message({
   id: '444',
@@ -109,7 +109,7 @@ const m4 = new Message({
   subject: 'Subject Four',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', name: 'All Mail' }),
+  folder: new Folder({ role: 'all', path: 'All Mail' }),
 });
 const m5 = new Message({
   id: '555',
@@ -126,7 +126,7 @@ const m5 = new Message({
   subject: 'Subject Five',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', name: 'All Mail' }),
+  folder: new Folder({ role: 'all', path: 'All Mail' }),
 });
 const testMessages = [m1, m2, m3, m4, m5];
 const draftMessages = [
@@ -146,7 +146,7 @@ const draftMessages = [
     subject: 'Draft One',
     threadId: 'thread_12345',
     accountId: TEST_ACCOUNT_ID,
-    folder: new Folder({ role: 'all', name: 'All Mail' }),
+    folder: new Folder({ role: 'all', path: 'All Mail' }),
   }),
 ];
 

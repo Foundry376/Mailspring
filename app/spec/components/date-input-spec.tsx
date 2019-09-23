@@ -14,7 +14,7 @@ describe('DateInput', function dateInput() {
         const component = mount(<DateInput onDateSubmitted={onDateSubmitted} dateFormat="blah" />);
         const inputNode = component.find('input');
         const stopPropagation = jasmine.createSpy('stopPropagation');
-        inputNode.getDOMNode().value = 'tomorrow';
+        (inputNode.getDOMNode() as any).value = 'tomorrow';
 
         inputNode.simulate('keyDown', { key, stopPropagation });
         expect(stopPropagation).toHaveBeenCalled();
@@ -29,16 +29,20 @@ describe('DateInput', function dateInput() {
     });
 
     it('should render a date interpretation if a date has been inputted', () => {
-      const component = mount(<DateInput initialTestState={{ inputDate: 'something!' }} />);
+      const component = mount(
+        <DateInput dateFormat="YYYY-MM-DD" initialTestState={{ inputDate: 'something!' }} />
+      );
       spyOn(component, 'setState');
       const dateInterpretation = component.find('.date-interpretation');
       expect(dateInterpretation.text()).toEqual('formatted');
     });
 
     it('should not render a date interpretation if no input date available', () => {
-      const component = mount(<DateInput initialTestState={{ inputDate: null }} />);
+      const component = mount(
+        <DateInput dateFormat="YYYY-MM-DD" initialTestState={{ inputDate: null }} />
+      );
       spyOn(component, 'setState');
-      expect(component.find('.date-interpretation').isEmpty()).toBe(true);
+      expect(component.find('.date-interpretation').exists()).toBe(false);
     });
   });
 });

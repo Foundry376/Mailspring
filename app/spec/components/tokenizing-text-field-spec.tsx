@@ -1,8 +1,8 @@
 import React from 'react';
 const { mount } = require('enzyme');
 
-import { Contact } from 'mailspring-exports';;
-import { KeyCommandsRegion, TokenizingTextField, Menu } from 'mailspring-component-kit';;
+import { Contact } from 'mailspring-exports';
+import { KeyCommandsRegion, TokenizingTextField, Menu } from 'mailspring-component-kit';
 
 class CustomToken extends React.Component {
   render() {
@@ -404,14 +404,15 @@ describe('TokenizingTextField.Token', function() {
       this.propEdit = jasmine.createSpy('onEdit');
       this.propClick = jasmine.createSpy('onClick');
       this.token = mount(
-        React.createElement(TokenizingTextField.Token, {
-          selected: false,
-          valid: true,
-          item: participant1,
-          onClick: this.propClick,
-          onEdited: this.propEdit,
-          onDragStart: jasmine.createSpy('onDragStart'),
-        })
+        <TokenizingTextField.Token
+          selected={false}
+          valid={true}
+          item={participant1}
+          onClick={this.propClick}
+          onEdited={this.propEdit}
+          onDragStart={jasmine.createSpy('onDragStart')}
+          onAction={jasmine.createSpy('onAction')}
+        />
       );
     });
 
@@ -424,8 +425,10 @@ describe('TokenizingTextField.Token', function() {
     it('should call onEdit to commit the new token value when the edit field is blurred', function() {
       expect(this.token.state().editing).toBe(false);
       this.token.simulate('doubleClick', {});
+      expect(this.token.state().editing).toBe(true);
       const tokenEditInput = this.token.find('input');
-      tokenEditInput.simulate('change', { target: { value: 'new tag content' } });
+      tokenEditInput.getDOMNode().value = 'new tag content';
+      tokenEditInput.simulate('change');
       tokenEditInput.simulate('blur');
       expect(this.propEdit).toHaveBeenCalledWith(participant1, 'new tag content');
     });
