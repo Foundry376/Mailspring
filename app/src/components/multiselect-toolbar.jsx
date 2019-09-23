@@ -66,7 +66,7 @@ class MultiselectToolbar extends Component {
     this.mounted = true;
     this._unlisten = [
       CategoryStore.listen(this._onCategoryChange),
-      FocusedPerspectiveStore.listen(this._onCategoryChange)
+      FocusedPerspectiveStore.listen(this._onCategoryChange),
     ];
   }
 
@@ -97,8 +97,10 @@ class MultiselectToolbar extends Component {
     this.mounted = false;
     clearTimeout(this.refreshTimer);
     clearTimeout(this.stopRefreshingTimer);
-    if(this._unlisten){
-      this._unlisten();
+    if(Array.isArray(this._unlisten)){
+      this._unlisten.forEach(unlisten=>{
+        unlisten();
+      });
     }
   }
   _onCategoryChange = () => {
