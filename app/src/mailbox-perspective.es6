@@ -498,7 +498,12 @@ class StarredMailboxPerspective extends MailboxPerspective {
 
   threads() {
     const query = DatabaseStore.findAll(Thread)
-      .where([Thread.attributes.starred.equal(true), Thread.attributes.inAllMail.equal(true), Thread.attributes.state.equal(0)])
+      .where([
+        Thread.attributes.starred.equal(true),
+        Thread.attributes.inAllMail.equal(true),
+        Thread.attributes.state.equal(0),
+      ])
+      .order([Thread.attributes.lastMessageTimestamp.descending()])
       .limit(0);
 
     // Adding a "account_id IN (a,b,c)" clause to our query can result in a full
@@ -833,7 +838,7 @@ class AllMailMailboxPerspective extends CategoryMailboxPerspective{
   threads(){
     const query = DatabaseStore.findAll(Thread)
       .where({ inAllMail: true, state: 0, accountId: this.accountIds[0] })
-      .order([Thread.attributes.lastMessageReceivedTimestamp.descending()])
+      .order([Thread.attributes.lastMessageTimestamp.descending()])
       .limit(0);
 
     if (this._categories.length > 1 && this.accountIds.length < this._categories.length) {

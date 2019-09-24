@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { React, PropTypes, Utils, DraftStore, ComponentRegistry, Message } from 'mailspring-exports';
+import { Actions, React, PropTypes, Utils, DraftStore, ComponentRegistry, Message } from 'mailspring-exports';
 
 import MessageItem from './message-item';
 
@@ -20,6 +20,7 @@ export default class MessageItemContainer extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = this._getStateFromStores();
+    this.state.draftMissingAttachments = false;
   }
 
   componentDidMount() {
@@ -111,7 +112,8 @@ export default class MessageItemContainer extends React.Component {
       />
     );
   }
-  _isMessageSendingState(){
+
+  _isMessageSendingState() {
     const { message } = this.props;
     if (!message) {
       return false;
@@ -123,8 +125,17 @@ export default class MessageItemContainer extends React.Component {
     );
   }
 
+  _draftNotReady() {
+    if (!this.props.message.draft) {
+      return false;
+    }
+    return (
+      this.state.isSending || this._isMessageSendingState()
+    );
+  }
+
   render() {
-    if (this.state.isSending || this._isMessageSendingState()) {
+    if (this._draftNotReady()) {
       return this._renderMessage({ pending: true });
     }
     if (this.props.message.draft && !this.props.collapsed && this.props.message.body) {

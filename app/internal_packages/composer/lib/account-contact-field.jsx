@@ -13,6 +13,7 @@ export default class AccountContactField extends React.Component {
     session: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
     onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
   };
 
   _onChooseContact = async contact => {
@@ -68,6 +69,7 @@ export default class AccountContactField extends React.Component {
           bordered={false}
           primaryItem={<span>{label}</span>}
           menu={this._renderAccounts(this.props.accounts)}
+          disabled={this.props.disabled}
         />
       );
     }
