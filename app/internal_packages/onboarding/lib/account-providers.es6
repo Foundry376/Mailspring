@@ -116,7 +116,7 @@ const AccountProviders = [
   // },
   {
     provider: 'imap',
-    displayName: 'Other',
+    displayName: 'Other/IMAP',
     displayNameShort: 'IMAP',
     icon: 'account-logo-other.png',
     headerIcon: 'setup-icon-provider-imap.png',
