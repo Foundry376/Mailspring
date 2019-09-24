@@ -37,14 +37,14 @@ class ContactStore extends MailspringStore {
       return Promise.resolve([]);
     }
 
-    // If we haven't found enough items in memory, query for more from the
-    // database. Note that we ask for LIMIT * accountCount because we want to
+    // Note that we ask for LIMIT * accountCount because we want to
     // return contacts with distinct email addresses, and the same contact
     // could exist in every account. Rather than make SQLite do a SELECT DISTINCT
     // (which is very slow), we just ask for more items.
     const query = DatabaseStore.findAll<Contact>(Contact)
       .search(search)
       .limit(limit * accountCount)
+      .where(Contact.attributes.refs.greaterThan(0))
       .order(Contact.attributes.refs.descending());
 
     return (query.then(async _results => {
@@ -64,6 +64,7 @@ class ContactStore extends MailspringStore {
     const accountCount = AccountStore.accounts().length;
     return DatabaseStore.findAll<Contact>(Contact)
       .limit(limit * accountCount)
+      .where(Contact.attributes.refs.greaterThan(0))
       .order(Contact.attributes.refs.descending())
       .then(async _results => {
         let results = this._distinctByEmail(_results);
@@ -135,8 +136,8 @@ class ContactStore extends MailspringStore {
         if (contact.name !== contact.email) {
           return contact;
         }
-        return this.searchContacts(contact.email, { limit: 1 }).then(
-          ([smatch]) => (smatch && smatch.email === contact.email ? smatch : contact)
+        return this.searchContacts(contact.email, { limit: 1 }).then(([smatch]) =>
+          smatch && smatch.email === contact.email ? smatch : contact
         );
       })
     );

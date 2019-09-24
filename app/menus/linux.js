@@ -166,6 +166,7 @@ module.exports = {
         },
         { type: 'separator' },
         { label: localized('Calendar Preview'), command: 'application:show-calendar' },
+        { label: localized('Contacts Preview'), command: 'application:show-contacts' },
         { type: 'separator' },
         { label: localized('Create a Plugin') + '...', command: 'window:create-package' },
         { label: localized('Install a Plugin') + '...', command: 'window:install-package' },

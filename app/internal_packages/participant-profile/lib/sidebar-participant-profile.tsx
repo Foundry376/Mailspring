@@ -10,8 +10,7 @@ import {
   Thread,
   Utils,
 } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
-import crypto from 'crypto';
+import { RetinaImg, ContactProfilePhoto } from 'mailspring-component-kit';
 import moment from 'moment-timezone';
 
 import ParticipantProfileDataSource from './participant-profile-data-source';
@@ -49,62 +48,12 @@ class TimeInTimezone extends React.Component<{ timeZone: string }, { tick: numbe
     );
   }
 }
-class ProfilePictureOrColorBox extends React.Component<{
-  contact: Contact;
-  loading: boolean;
-  avatar: string;
+
+class SocialProfileLink extends React.Component<{
+  handle: string;
+  service: string;
+  hostname: string;
 }> {
-  static propTypes = {
-    loading: PropTypes.bool,
-    contact: PropTypes.object,
-    profilePicture: PropTypes.string,
-  };
-  render() {
-    const { contact, loading, avatar } = this.props;
-
-    const hue = Utils.hueForString(contact.email);
-    const bgColor = `hsl(${hue}, 50%, 45%)`;
-
-    const hash = crypto
-      .createHash('md5')
-      .update((contact.email || '').toLowerCase().trim())
-      .digest('hex');
-    const gravatarBg = `url("https://www.gravatar.com/avatar/${hash}/?s=88&msw=88&msh=88&d=blank")`;
-
-    let content = (
-      <div className="default-profile-image" style={{ backgroundColor: bgColor }}>
-        <div className="layer" style={{ zIndex: 2, backgroundImage: gravatarBg }} />
-        <div className="layer" style={{ zIndex: 1 }}>
-          {contact.nameAbbreviation()}
-        </div>
-      </div>
-    );
-
-    if (loading) {
-      content = (
-        <div className="default-profile-image">
-          <RetinaImg
-            className="spinner"
-            style={{ width: 20, height: 20 }}
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentDark}
-          />
-        </div>
-      );
-    }
-
-    if (avatar) {
-      content = <img alt="Profile" src={avatar} />;
-    }
-
-    return (
-      <div className="profile-photo-wrap">
-        <div className="profile-photo">{content}</div>
-      </div>
-    );
-  }
-}
-class SocialProfileLink extends React.Component<{ handle: string; service: string, hostname: string }> {
   static propTypes = {
     service: PropTypes.string,
     handle: PropTypes.string,
@@ -474,10 +423,26 @@ export default class SidebarParticipantProfile extends React.Component<
           <IconRow icon="funding" node={funding} />
 
           <div className="social-profiles-wrap">
-            <SocialProfileLink service="facebook" hostname="www.facebook.com" handle={facebook && facebook.handle} />
-            <SocialProfileLink service="crunchbase" hostname="www.crunchbase.com" handle={crunchbase && crunchbase.handle} />
-            <SocialProfileLink service="linkedin" hostname="www.linkedin.com" handle={linkedin && linkedin.handle} />
-            <SocialProfileLink service="twitter" hostname="twitter.com" handle={twitter && twitter.handle} />
+            <SocialProfileLink
+              service="facebook"
+              hostname="www.facebook.com"
+              handle={facebook && facebook.handle}
+            />
+            <SocialProfileLink
+              service="crunchbase"
+              hostname="www.crunchbase.com"
+              handle={crunchbase && crunchbase.handle}
+            />
+            <SocialProfileLink
+              service="linkedin"
+              hostname="www.linkedin.com"
+              handle={linkedin && linkedin.handle}
+            />
+            <SocialProfileLink
+              service="twitter"
+              hostname="twitter.com"
+              handle={twitter && twitter.handle}
+            />
           </div>
         </div>
       </div>
@@ -490,7 +455,7 @@ export default class SidebarParticipantProfile extends React.Component<
 
     return (
       <div className="participant-profile">
-        <ProfilePictureOrColorBox
+        <ContactProfilePhoto
           loading={this.state.loading}
           avatar={this.state.avatar}
           contact={this.props.contact}
@@ -514,9 +479,21 @@ export default class SidebarParticipantProfile extends React.Component<
           </div>
 
           <div className="social-profiles-wrap">
-            <SocialProfileLink service="facebook" hostname="www.facebook.com" handle={facebook && facebook.handle} />
-            <SocialProfileLink service="linkedin" hostname="www.linkedin.com" handle={linkedin && `in/${linkedin.handle}`} />
-            <SocialProfileLink service="twitter" hostname="twitter.com" handle={twitter && twitter.handle} />
+            <SocialProfileLink
+              service="facebook"
+              hostname="www.facebook.com"
+              handle={facebook && facebook.handle}
+            />
+            <SocialProfileLink
+              service="linkedin"
+              hostname="www.linkedin.com"
+              handle={linkedin && `in/${linkedin.handle}`}
+            />
+            <SocialProfileLink
+              service="twitter"
+              hostname="twitter.com"
+              handle={twitter && twitter.handle}
+            />
           </div>
         </div>
 

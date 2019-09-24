@@ -1,0 +1,44 @@
+.contact-profile-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: @border-radius-base;
+  padding: 3px;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  background: @background-primary;
+
+  .profile-photo {
+    border-radius: @border-radius-small;
+    overflow: hidden;
+    text-align: center;
+    width: 44px;
+    height: 44px;
+
+    img,
+    .default-profile-image {
+      width: 44px;
+      height: 44px;
+    }
+
+    .default-profile-image {
+      line-height: 44px;
+      font-size: 18px;
+      font-weight: 500;
+      color: white;
+      box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.18);
+      position: relative;
+      background-image: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      .layer {
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        position: absolute;
+        background-size: cover;
+      }
+    }
+  }
+}

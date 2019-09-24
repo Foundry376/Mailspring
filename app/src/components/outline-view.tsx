@@ -9,9 +9,8 @@ export interface IOutlineViewItem {
   id?: string;
   title?: string;
   iconName?: string;
-  items?: IOutlineViewItem[];
   name?: string;
-  children?: any[];
+  children?: IOutlineViewItem[];
   contextMenuLabel?: string;
   collapsed?: boolean;
   className?: string;
@@ -30,7 +29,14 @@ export interface IOutlineViewItem {
   onEdited?: (...args: any[]) => any;
 }
 
-interface OutlineViewProps extends IOutlineViewItem {}
+interface OutlineViewProps {
+  title: string;
+  items: IOutlineViewItem[];
+  iconName?: string;
+  collapsed?: boolean;
+  onCollapseToggled?: (props: OutlineViewProps) => void;
+  onItemCreated?: (displayName) => void;
+}
 
 interface OutlineViewState {
   showCreateInput: boolean;

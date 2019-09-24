@@ -5,7 +5,7 @@ import { ScrollRegion, ResizableRegion } from 'mailspring-component-kit';
 import WeekView from './week-view';
 import MonthView from './month-view';
 import EventSearchBar from './event-search-bar';
-import CalendarToggles from './calendar-toggles';
+import CalendarSourceList from './calendar-source-list';
 import CalendarDataSource from './calendar-data-source';
 import { WEEK_VIEW, MONTH_VIEW } from './calendar-constants';
 import MiniMonthView from './mini-month-view';
@@ -18,16 +18,16 @@ const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
  */
 interface MailspringCalendarProps {
   /*
-     * The data source that powers all of the views of the MailspringCalendar
-     */
+   * The data source that powers all of the views of the MailspringCalendar
+   */
   dataSource: CalendarDataSource;
 
   currentMoment?: Moment;
 
   /*
-     * Any extra info you want to display on the top banner of calendar
-     * components
-     */
+   * Any extra info you want to display on the top banner of calendar
+   * components
+   */
   bannerComponents?: {
     day: React.ReactChild;
     week: React.ReactChild;
@@ -36,9 +36,9 @@ interface MailspringCalendarProps {
   };
 
   /*
-     * Any extra header components for each of the supported View types of
-     * the MailspringCalendar
-     */
+   * Any extra header components for each of the supported View types of
+   * the MailspringCalendar
+   */
   headerComponents?: {
     day: React.ReactChild;
     week: React.ReactChild;
@@ -47,9 +47,9 @@ interface MailspringCalendarProps {
   };
 
   /*
-     * Any extra footer components for each of the supported View types of
-     * the MailspringCalendar
-     */
+   * Any extra footer components for each of the supported View types of
+   * the MailspringCalendar
+   */
   footerComponents?: {
     day: React.ReactChild;
     week: React.ReactChild;
@@ -58,12 +58,12 @@ interface MailspringCalendarProps {
   };
 
   /*
-     * The following are a set of supported interaction handlers.
-     *
-     * These are passed a custom set of arguments in a single object that
-     * includes the `currentView` as well as things like the `time` at the
-     * click coordinate.
-     */
+   * The following are a set of supported interaction handlers.
+   *
+   * These are passed a custom set of arguments in a single object that
+   * includes the `currentView` as well as things like the `time` at the
+   * click coordinate.
+   */
   onCalendarMouseUp?: () => void;
   onCalendarMouseDown?: () => void;
   onCalendarMouseMove?: () => void;
@@ -84,7 +84,10 @@ interface MailspringCalendarState {
   disabledCalendars: string[];
 }
 
-export default class MailspringCalendar extends React.Component<MailspringCalendarProps, MailspringCalendarState> {
+export default class MailspringCalendar extends React.Component<
+  MailspringCalendarProps,
+  MailspringCalendarState
+> {
   static displayName = 'MailspringCalendar';
 
   static WeekView = WeekView;
@@ -170,7 +173,7 @@ export default class MailspringCalendar extends React.Component<MailspringCalend
     return (
       <div className="mailspring-calendar">
         <ResizableRegion
-          className="calendar-toggles"
+          className="calendar-source-list"
           initialWidth={200}
           minWidth={200}
           maxWidth={300}
@@ -182,7 +185,7 @@ export default class MailspringCalendar extends React.Component<MailspringCalend
               onSelectEvent={this._focusEvent}
               disabledCalendars={this.state.disabledCalendars}
             />
-            <CalendarToggles
+            <CalendarSourceList
               accounts={this.state.accounts}
               calendars={this.state.calendars}
               disabledCalendars={this.state.disabledCalendars}

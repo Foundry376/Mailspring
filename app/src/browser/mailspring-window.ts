@@ -253,6 +253,14 @@ export default class MailspringWindow extends EventEmitter {
       this.browserWindow.webContents.send('browser-window-blur');
     });
 
+    this.browserWindow.on('show', () => {
+      this.browserWindow.webContents.send('browser-window-show');
+    });
+
+    this.browserWindow.on('hide', () => {
+      this.browserWindow.webContents.send('browser-window-hide');
+    });
+
     this.browserWindow.webContents.on('will-navigate', (event, url) => {
       event.preventDefault();
     });

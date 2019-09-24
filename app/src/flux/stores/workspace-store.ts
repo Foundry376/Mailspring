@@ -24,6 +24,7 @@ interface SheetSet {
   Main: SheetDeclaration;
   Threads: SheetDeclaration;
   Global: SheetDeclaration;
+  [key: string]: SheetDeclaration;
 }
 
 interface SheetLocations {

@@ -388,6 +388,14 @@ export default class Application extends EventEmitter {
       }
     });
 
+    this.on('application:show-contacts', () => {
+      this.windowManager.ensureWindow(WindowManager.CONTACTS_WINDOW, {});
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('run-contact-sync');
+      }
+    });
+
     this.on('application:view-help', () => {
       const helpUrl = 'http://support.getmailspring.com/hc/en-us';
       shell.openExternal(helpUrl);

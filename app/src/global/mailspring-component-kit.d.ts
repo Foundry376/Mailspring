@@ -1,6 +1,7 @@
 export * from '../components/menu';
 export * from '../components/drop-zone';
-export * from '../components/spinner'
+export * from '../components/spinner';
+export * from '../components/contact-profile-photo';
 export const Switch: typeof import('../components/switch').default;
 export const FixedPopover: typeof import('../components/fixed-popover').default;
 export const DatePickerPopover: typeof import('../components/date-picker-popover').default;
@@ -9,7 +10,7 @@ export const Webview: typeof import('../components/webview').default;
 export const FeatureUsedUpModal: typeof import('../components/feature-used-up-modal').default;
 export const BillingModal: typeof import('../components/billing-modal').default;
 export const OpenIdentityPageButton: typeof import('../components/open-identity-page-button').default;
-export * from '../components/flexbox'
+export * from '../components/flexbox';
 
 export * from '../components/retina-img';
 export const SwipeContainer: typeof import('../components/swipe-container').default;
@@ -20,14 +21,14 @@ export const EmptyListState: typeof import('../components/empty-list-state').def
 export * from '../components/list-tabular';
 // export const ListTabular: typeof import('../components/list-tabular').default;
 export const Notification: typeof import('../components/notification').default;
-export * from '../components/evented-iframe'
+export * from '../components/evented-iframe';
 export * from '../components/button-dropdown';
-export * from '../components/multiselect-list'
+export * from '../components/multiselect-list';
 export const BoldedSearchResult: typeof import('../components/bolded-search-result').default;
 export const MultiselectDropdown: typeof import('../components/multiselect-dropdown').default;
 export * from '../components/key-commands-region';
 export const BindGlobalCommands: typeof import('../components/bind-global-commands').default;
-export * from '../components/tab-group-region'
+export * from '../components/tab-group-region';
 export const InjectedComponent: typeof import('../components/injected-component').default;
 export * from '../components/tokenizing-text-field';
 export const ParticipantsTextField: typeof import('../components/participants-text-field').default;
@@ -55,13 +56,13 @@ export * from '../components/lazy-rendered-list';
 export * from '../components/attachment-items';
 export const CodeSnippet: typeof import('../components/code-snippet').default;
 
-export * from '../components/composer-editor/composer-editor'
+export * from '../components/composer-editor/composer-editor';
 
 export const ComposerSupport: typeof import('../components/composer-editor/composer-support');
 
-export * from '../components/scroll-region'
-export * from '../components/resizable-region'
-export * from '../components/mail-label'
+export * from '../components/scroll-region';
+export * from '../components/resizable-region';
+export * from '../components/mail-label';
 
 export const MailLabelSet: typeof import('../components/mail-label-set').default;
 export const MailImportantIcon: typeof import('../components/mail-important-icon').default;
