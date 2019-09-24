@@ -75,6 +75,7 @@ export default class ComposerView extends React.Component {
       editorSelection: null,
       editorSelectedText: '',
       isCrowded: false,
+      missingAttachments: true,
     };
     this._deleteTimer = null;
     this._unlisten = [
@@ -105,12 +106,16 @@ export default class ComposerView extends React.Component {
     }
     window.addEventListener('resize', this._onResize, true);
     this._onResize();
+    this._isDraftMissingAttachments(this.props);
   }
   _getToName(participants) {
     if (!participants || !Array.isArray(participants.to) || participants.to.length === 0) {
       return '';
     }
     return participants.to[0].name || '';
+  }
+  componentWillReceiveProps(newProps){
+    this._isDraftMissingAttachments(newProps);
   }
 
   componentDidUpdate() {
@@ -162,6 +167,28 @@ export default class ComposerView extends React.Component {
       this.setState({ quotedTextHidden: false, quotedTextPresent: false });
     }
   }
+
+  _isDraftMissingAttachments = props=>{
+    if (!props.draft) {
+      this.setState({ missingAttachments: false });
+      return;
+    }
+    props.draft.missingAttachments().then(ret=>{
+      if(!this._mounted){
+        return;
+      }
+      const missing = ret.totalMissing();
+      if (missing.length !== 0) {
+        this.setState({ missingAttachments: true });
+        Actions.fetchAttachments({
+          accountId: props.draft.accountId,
+          missingItems: missing.map(f => f.id),
+        });
+      } else {
+        this.setState({ missingAttachments: false });
+      }
+    });
+  };
 
   focus() {
     if (!this._mounted) return;
@@ -233,18 +260,27 @@ export default class ComposerView extends React.Component {
           onMouseDown={this._onMouseDownComposerBody}
           onContextMenu={this._onEditorBodyContextMenu}
         >
-          {this.props.draft && this.props.draft.waitingForBody ? (
-            <Spinner visible={true} />
-          ) : (
-            this._renderBodyRegions()
-          )}
+          {this._renderBodyRegions()}
           {this._renderFooterRegions()}
         </div>
       </div>
     );
   }
 
+  _draftNotReady(){
+    return this.state.missingAttachments || (this.props.draft && this.props.draft.waitingForBody);
+  }
+
   _renderBodyRegions() {
+    if (this._draftNotReady()) {
+      return <div className="message-body-loading">
+        <RetinaImg
+          name="inline-loading-spinner.gif"
+          mode={RetinaImg.Mode.ContentDark}
+          style={{ width: 14, height: 14 }}
+        />
+      </div>
+    }
     return (
       <div className="composer-body-wrap">
         {this._renderEditor()}
@@ -438,7 +474,7 @@ export default class ComposerView extends React.Component {
           headerMessageId={this.props.draft.headerMessageId}
           session={this.props.session}
           isValidDraft={this._isValidDraft}
-          disabled={this.props.session.isPopout()}
+          disabled={this.props.session.isPopout() || this._draftNotReady()}
         />
         <div className="divider-line" style={{ order: -51 }} />
         <button
@@ -447,7 +483,7 @@ export default class ComposerView extends React.Component {
           style={{ order: -50 }}
           title="Attach file"
           onClick={this._onSelectAttachment}
-          disabled={this.props.session.isPopout()}
+          disabled={this.props.session.isPopout() || this._draftNotReady()}
         >
           <RetinaImg
             name={'attachments.svg'}
@@ -462,7 +498,7 @@ export default class ComposerView extends React.Component {
           style={{ order: -49 }}
           title="Insert photo"
           onClick={this._onSelectAttachment.bind(this, { type: 'image' })}
-          disabled={this.props.session.isPopout()}
+          disabled={this.props.session.isPopout() || this._draftNotReady()}
         >
           <RetinaImg
             name={'inline-image.svg'}
@@ -478,7 +514,7 @@ export default class ComposerView extends React.Component {
           style={{ order: 40 }}
           title="Delete draft"
           onClick={this._onDestroyDraft}
-          disabled={this.props.session.isPopout()}
+          disabled={this.props.session.isPopout() || this._draftNotReady()}
         >
           {this.state.isDeleting ? (
             <LottieImg name={'loading-spinner-blue'} size={{ width: 24, height: 24 }} />

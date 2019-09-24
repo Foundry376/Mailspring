@@ -35,11 +35,40 @@ export default class ComposerHeader extends React.Component {
     super(props);
     this._els = {};
     this.state = this._initialStateForDraft(this.props.draft, props);
+    this.state.missingAttachements = false;
+    this._mounted = false;
+  }
+  componentDidMount(){
+    this._mounted = true;
+    this._isDraftMissingAttachments(this.props);
   }
 
   componentWillReceiveProps(nextProps) {
     this._ensureFilledFieldsEnabled(nextProps.draft);
+    this._isDraftMissingAttachments(nextProps);
   }
+
+  _isDraftMissingAttachments = props=>{
+    if (!props.draft) {
+      this.setState({ missingAttachments: false });
+      return;
+    }
+    props.draft.missingAttachments().then(ret=>{
+      if(!this._mounted){
+        return;
+      }
+      const missing = ret.totalMissing();
+      if (missing.length !== 0) {
+        this.setState({ missingAttachments: true });
+        Actions.fetchAttachments({
+          accountId: props.draft.accountId,
+          missingItems: missing.map(f => f.id),
+        });
+      } else {
+        this.setState({ missingAttachments: false });
+      }
+    });
+  };
 
   focus() {
     if (this.props.draft.to.length === 0) {
@@ -127,6 +156,10 @@ export default class ComposerHeader extends React.Component {
     this.props.session.changes.add({ subject: event.target.value });
   };
 
+  _draftNotReady = () => {
+    return this.props.session.isPopout() || this.state.missingAttachments;
+  }
+
   _renderSubject = () => {
     if (!this.state.enabledFields.includes(Fields.Subject)) {
       return false;
@@ -144,7 +177,7 @@ export default class ComposerHeader extends React.Component {
           placeholder="Subject"
           value={this.props.draft.subject}
           onChange={this._onSubjectChange}
-          disabled={this.props.session.isPopout()}
+          disabled={this._draftNotReady()}
         />
       </KeyCommandsRegion>
     );
@@ -170,7 +203,7 @@ export default class ComposerHeader extends React.Component {
         participants={{ to, cc, bcc }}
         draft={this.props.draft}
         session={this.props.session}
-        disabled={this.props.session.isPopout()}
+        disabled={this._draftNotReady()}
       />
     );
 
@@ -190,7 +223,7 @@ export default class ComposerHeader extends React.Component {
           participants={{ to, cc, bcc }}
           draft={this.props.draft}
           session={this.props.session}
-          disabled={this.props.session.isPopout()}
+          disabled={this._draftNotReady()}
         />
       );
     }
@@ -211,7 +244,7 @@ export default class ComposerHeader extends React.Component {
           participants={{ to, cc, bcc }}
           draft={this.props.draft}
           session={this.props.session}
-          disabled={this.props.session.isPopout()}
+          disabled={this._draftNotReady()}
         />
       );
     }
@@ -229,6 +262,7 @@ export default class ComposerHeader extends React.Component {
           draft={this.props.draft}
           session={this.props.session}
           onChange={this._onChangeParticipants}
+          disabled={this._draftNotReady()}
         />
       );
     }
