@@ -250,11 +250,6 @@ Attributes
 
 `email`: {AttributeString} The email address of the contact. Queryable.
 
-`thirdPartyData`: {AttributeObject} Extra data that we find out about a
-contact.  The data is keyed by the 3rd party service that dumped the data
-there. The value is an object of raw data in the form that the service
-provides
-
 We also have "normalized" optional data for each contact. This list may
 grow as the needs of a contact become more complex.
 
@@ -271,6 +266,11 @@ export class Contact extends Model {
       modelKey: 'name',
     }),
 
+    hidden: Attributes.Boolean({
+      queryable: true,
+      modelKey: 'hidden',
+    }),
+
     email: Attributes.String({
       queryable: true,
       modelKey: 'email',
@@ -279,35 +279,6 @@ export class Contact extends Model {
     refs: Attributes.Number({
       queryable: true,
       modelKey: 'refs',
-    }),
-
-    // Contains the raw thirdPartyData (keyed by the vendor name) about
-    // this contact.
-    thirdPartyData: Attributes.Object({
-      modelKey: 'thirdPartyData',
-    }),
-
-    // The following are "normalized" fields that we can use to consolidate
-    // various thirdPartyData source. These list of attributes should
-    // always be optional and may change as the needs of a Mailspring contact
-    // change over time.
-    title: Attributes.String({
-      modelKey: 'title',
-    }),
-
-    phone: Attributes.String({
-      modelKey: 'phone',
-    }),
-
-    company: Attributes.String({
-      modelKey: 'company',
-    }),
-
-    // This corresponds to the rowid in the FTS table. We need to use the FTS
-    // rowid when updating and deleting items in the FTS table because otherwise
-    // these operations would be way too slow on large FTS tables.
-    searchIndexId: Attributes.Number({
-      modelKey: 'searchIndexId',
     }),
   };
 
@@ -348,14 +319,10 @@ export class Contact extends Model {
   public name: string;
   public email: string;
   public refs: number;
-  public title: string;
-  public phone: string;
-  public company: string;
-  public thirdPartyData: object;
+  public hidden: boolean;
 
   constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);
-    this.thirdPartyData = this.thirdPartyData || {};
   }
 
   // Public: Returns a string of the format `Full Name <email@address.com>` if

@@ -95,14 +95,6 @@ interface ContactListSearchWithDataProps {
 }
 
 const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
-  let searchContext = 'all contacts';
-  if (props.selectedGroup) {
-    searchContext = `Found in Mail`;
-    const acct = AccountStore.accountForId(props.selectedGroup.accountId);
-    if (acct) {
-      searchContext += ` (${acct.label})`;
-    }
-  }
 
   return (
     <div className="contact-search">
@@ -116,7 +108,9 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
         type="text"
         ref={this._searchEl}
         value={props.search}
-        placeholder={`${localized('Search')} ${searchContext}`}
+        placeholder={`${localized('Search')} ${
+          props.selectedGroup ? props.selectedGroup.label : 'all contacts'
+        }`}
         onChange={e => props.setSearch(e.currentTarget.value)}
       />
     </div>

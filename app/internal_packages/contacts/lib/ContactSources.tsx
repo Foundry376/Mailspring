@@ -41,8 +41,13 @@ const ContactSourcesWithData: React.FunctionComponent<ContactSourcesProps> = ({
             id: 'bla',
             name: 'Found in Mail',
             iconName: 'inbox.png',
-            selected: selected && selected.accountId == a.id && selected.type === 'mail',
-            onSelect: () => onSelect({ accountId: a.id, type: 'mail' }),
+            selected: selected && selected.accountId == a.id && selected.type === 'found-in-mail',
+            onSelect: () =>
+              onSelect({
+                accountId: a.id,
+                type: 'found-in-mail',
+                label: `Found in Mail (${a.label})`,
+              }),
             children: [],
           },
         ]}

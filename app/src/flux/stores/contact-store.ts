@@ -45,6 +45,7 @@ class ContactStore extends MailspringStore {
       .search(search)
       .limit(limit * accountCount)
       .where(Contact.attributes.refs.greaterThan(0))
+      .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending());
 
     return (query.then(async _results => {
@@ -65,6 +66,7 @@ class ContactStore extends MailspringStore {
     return DatabaseStore.findAll<Contact>(Contact)
       .limit(limit * accountCount)
       .where(Contact.attributes.refs.greaterThan(0))
+      .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending())
       .then(async _results => {
         let results = this._distinctByEmail(_results);

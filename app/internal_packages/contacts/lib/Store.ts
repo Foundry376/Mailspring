@@ -11,7 +11,9 @@ class ContactsWindowStore extends MailspringStore {
     super();
 
     const contacts = Rx.Observable.fromQuery(
-      DatabaseStore.findAll<Contact>(Contact).where(Contact.attributes.refs.greaterThan(0))
+      DatabaseStore.findAll<Contact>(Contact)
+        .where(Contact.attributes.refs.greaterThan(0))
+        .where(Contact.attributes.hidden.equal(false))
     );
     contacts.subscribe(contacts => {
       this._contacts = contacts;
@@ -58,6 +60,7 @@ class ContactsWindowStore extends MailspringStore {
 export interface ContactSource {
   accountId: string;
   type: string;
+  label: string;
 }
 
 export const Store = new ContactsWindowStore();
