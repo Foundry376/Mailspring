@@ -269,7 +269,7 @@ class MessageStore extends MailspringStore {
         const item = change.objects[0];
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 
-        if (change.type === 'persist' && itemIndex === -1) {
+        if (change.type === 'persist' && itemIndex === -1 && !Message.compareMessageState(item.state, Message.messageState.failed)) {
           this._items = [].concat(this._items, [item]).filter(m => !m.isHidden()).filter(this.filterOutDuplicateDraftHeaderMessage);
           this._items = this._sortItemsForDisplay(this._items);
           this._expandItemsToDefault();
