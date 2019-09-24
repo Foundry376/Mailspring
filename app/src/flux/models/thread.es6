@@ -128,6 +128,12 @@ export default class Thread extends ModelWithMetadata {
       modelTable: 'ThreadCategory',
       loadFromColumn: true
     }),
+    lastMessageTimestamp: Attributes.DateTime({
+      queryable: true,
+      jsonKey: 'lmt',
+      modelKey: 'lastMessageTimestamp',
+      loadFromColumn: true
+    }),
 
     inAllMail: Attributes.Boolean({
       queryable: true,
