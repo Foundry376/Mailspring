@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ListensToObservable } from 'mailspring-component-kit';
-import { FocusedContentStore } from 'mailspring-exports';
+import { FocusedContentStore, Actions } from 'mailspring-exports';
 import ThreadListStore from './thread-list-store';
 
 function getObservable() {
@@ -11,7 +11,13 @@ function getObservable() {
 
 function getStateFromObservable(selectionCount) {
   if (!selectionCount) {
+    Actions.hideEmptyMessageList(false);
     return { selectionCount: 0 };
+  }
+  if(selectionCount > 1){
+    Actions.hideEmptyMessageList(true);
+  }else{
+    Actions.hideEmptyMessageList(false);
   }
   return { selectionCount };
 }

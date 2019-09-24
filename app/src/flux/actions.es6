@@ -581,6 +581,8 @@ class Actions {
   static pushAppMessages = ActionScopeWindow;
   static removeAppMessage = ActionScopeWindow;
   static removeAppMessages = ActionScopeWindow;
+
+  static hideEmptyMessageList = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

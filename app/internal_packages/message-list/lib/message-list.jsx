@@ -98,6 +98,7 @@ class MessageList extends React.Component {
     this.state.isReplying = false;
     this.state.isForwarding = false;
     this.state.hideButtons = false;
+    this.state.hideMessageList = false;
     this._replyTimer = null;
     this._replyAllTimer = null;
     this._forwardTimer = null;
@@ -113,6 +114,7 @@ class MessageList extends React.Component {
       MessageStore.listen(this._onChange),
       Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
       Actions.composeReply.listen(this._onCreatingDraft, this),
+      Actions.hideEmptyMessageList.listen(this._hideEmptyList, this),
       WorkspaceStore.listen(this._onChange),
       OnlineStatusStore.listen(this._onlineStatusChange),
     ];
@@ -131,6 +133,11 @@ class MessageList extends React.Component {
 
   componentDidUpdate() {
     // cannot remove
+  }
+  _hideEmptyList = (hide) => {
+    if(this._mounted){
+      this.setState({hideMessageList: hide});
+    }
   }
 
   _onlineStatusChange = () => {
@@ -784,6 +791,9 @@ class MessageList extends React.Component {
 
   render() {
     if (!this.state.currentThread && !this.state.inOutbox || this.state.inOutbox && !this.state.selectedDraft) {
+      if(this.state.hideMessageList){
+        return <div/>;
+      }
       return <div className={`empty ${this.state.isOnline ? '' : 'offline'}`} />;
     }
 
