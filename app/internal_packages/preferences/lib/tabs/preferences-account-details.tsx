@@ -26,14 +26,15 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
         <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
           {localized('When composing, automatically')}
           <select
-            style={{ marginTop: 0 }}
+            style={{ marginTop: 0, marginLeft: 8 }}
             value={autoaddress.type}
             onChange={e => onChange({ ...autoaddress, type: e.target.value as 'cc' | 'bcc' })}
             onBlur={onSaveChanges}
           >
             <option value="cc">{localized('Cc')}</option>
             <option value="bcc">{localized('Bcc')}</option>
-          </select>:
+          </select>
+          :
         </div>
         <input
           type="text"
@@ -169,27 +170,6 @@ class PreferencesAccountDetails extends Component<
 
   // Renderers
 
-  _renderDefaultAliasSelector(account) {
-    const aliases = account.aliases;
-    const defaultAlias = account.defaultAlias || 'None';
-    if (aliases.length > 0) {
-      return (
-        <div className="default-alias-selector">
-          <div>{localized('Default for new messages:')}</div>
-          <select value={defaultAlias} onChange={this._onDefaultAliasSelected}>
-            <option value="None">{`${account.name} <${account.emailAddress}>`}</option>
-            {aliases.map((alias, idx) => (
-              <option key={`alias-${idx}`} value={alias}>
-                {alias}
-              </option>
-            ))}
-          </select>
-        </div>
-      );
-    }
-    return null;
-  }
-
   _renderErrorDetail(message, buttonText, buttonAction) {
     return (
       <div className="account-error-detail">
@@ -230,40 +210,33 @@ class PreferencesAccountDetails extends Component<
   render() {
     const { account } = this.state;
     const aliasPlaceholder = this._makeAlias(`alias@${account.emailAddress.split('@')[1]}`);
+    const aliases = account.aliases;
+    const defaultAlias = account.defaultAlias || 'None';
 
     return (
       <div className="account-details">
         {this._renderSyncErrorDetails()}
-        <h3>{localized('Account Label')}</h3>
+        <h6>{localized('Account Label')}</h6>
         <input
           type="text"
           value={account.label}
           onBlur={this._saveChanges}
           onChange={e => this._setState({ label: e.target.value })}
         />
-        <h3>{localized('Account Settings')}</h3>
-        <div className="btn" onClick={this._onReconnect}>
-          {account.provider === 'imap'
-            ? localized('Update Connection Settings...')
-            : localized('Re-authenticate...')}
-        </div>
-        <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
-          {localized('Rebuild Cache...')}
-        </div>
-        <h3>{localized('Sender Name')}</h3>
+        <h6>{localized('Sender Name')}</h6>
         <input
           type="text"
           value={account.name}
           onBlur={this._saveChanges}
           onChange={e => this._setState({ name: e.target.value })}
         />
-        <h3>{localized('Automatic CC / BCC')}</h3>
+        <h6>{localized('Automatic CC / BCC')}</h6>
         <AutoaddressControl
           autoaddress={account.autoaddress}
           onChange={this._onAccountAutoaddressUpdated}
           onSaveChanges={this._saveChanges}
         />
-        <h3>{localized('Aliases')}</h3>
+        <h6>{localized('Aliases')}</h6>
         <div className="platform-note">
           {localized(
             'You may need to configure aliases with your mail provider (Outlook, Gmail) before using them.'
@@ -277,7 +250,30 @@ class PreferencesAccountDetails extends Component<
           onItemEdited={this._onAccountAliasUpdated}
           onDeleteItem={this._onAccountAliasRemoved}
         />
-        {this._renderDefaultAliasSelector(account)}
+        {aliases.length > 0 ? (
+          <div className="default-alias-selector">
+            <div>{localized('Default for new messages:')}</div>
+            <select value={defaultAlias} onChange={this._onDefaultAliasSelected}>
+              <option value="None">{`${account.name} <${account.emailAddress}>`}</option>
+              {aliases.map((alias, idx) => (
+                <option key={`alias-${idx}`} value={alias}>
+                  {alias}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          undefined
+        )}
+        <h6>{localized('Account Settings')}</h6>
+        <div className="btn" onClick={this._onReconnect}>
+          {account.provider === 'imap'
+            ? localized('Update Connection Settings...')
+            : localized('Re-authenticate...')}
+        </div>
+        <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
+          {localized('Rebuild Cache...')}
+        </div>
       </div>
     );
   }
