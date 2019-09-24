@@ -28,6 +28,7 @@ import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
 import LottieImg from '../../../src/components/lottie-img';
+import InjectedComponentErrorBoundary from '../../../src/components/injected-component-error-boundary';
 
 const {
   hasBlockquote,
@@ -238,32 +239,34 @@ export default class ComposerView extends React.Component {
 
   _renderContent() {
     return (
-      <div className="composer-centered">
-        <ComposerHeader
-          ref={el => {
-            if (el) {
-              this._els.header = el;
-            }
-          }}
-          draft={this.props.draft}
-          session={this.props.session}
-          initiallyFocused={this.props.draft.to.length === 0}
-        />
-        <div
-          className="compose-body"
-          ref={el => {
-            if (el) {
-              this._els.composeBody = el;
-            }
-          }}
-          onMouseUp={this._onMouseUpComposerBody}
-          onMouseDown={this._onMouseDownComposerBody}
-          onContextMenu={this._onEditorBodyContextMenu}
-        >
-          {this._renderBodyRegions()}
-          {this._renderFooterRegions()}
+      <InjectedComponentErrorBoundary key="composer-error">
+        <div className="composer-centered">
+          <ComposerHeader
+            ref={el => {
+              if (el) {
+                this._els.header = el;
+              }
+            }}
+            draft={this.props.draft}
+            session={this.props.session}
+            initiallyFocused={this.props.draft.to.length === 0}
+          />
+          <div
+            className="compose-body"
+            ref={el => {
+              if (el) {
+                this._els.composeBody = el;
+              }
+            }}
+            onMouseUp={this._onMouseUpComposerBody}
+            onMouseDown={this._onMouseDownComposerBody}
+            onContextMenu={this._onEditorBodyContextMenu}
+          >
+            {this._renderBodyRegions()}
+            {this._renderFooterRegions()}
+          </div>
         </div>
-      </div>
+      </InjectedComponentErrorBoundary>
     );
   }
 

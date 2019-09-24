@@ -21,6 +21,11 @@ export default class InjectedComponentErrorBoundary extends React.Component {
 
   render() {
     if (this.state.error) {
+      if (!AppEnv.inDevMode()) {
+        return <div className="unsafe-component-exception">
+          <div className="trace">Oops, Something went wrong!!!</div>
+        </div>;
+      }
       return (
         <div className="unsafe-component-exception">
           <div className="trace">{this.state.error}</div>
