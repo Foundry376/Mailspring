@@ -1,5 +1,5 @@
 import path from 'path';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { BadgeStore } from 'mailspring-exports';
 
 // Must be absolute real system path
@@ -37,7 +37,7 @@ class SystemTrayIconStore {
 
   static INBOX_FULL_UNREAD_ICON = INBOX_FULL_UNREAD_ICON;
 
-  _windowBlurred = false;
+  _windowBackgrounded = false;
   _unsubscribers: (() => void)[];
 
   activate() {
@@ -47,11 +47,21 @@ class SystemTrayIconStore {
     this._unsubscribers = [];
     this._unsubscribers.push(BadgeStore.listen(this._updateIcon));
 
-    window.addEventListener('browser-window-blur', this._onWindowBlur);
-    window.addEventListener('browser-window-focus', this._onWindowFocus);
+    const browserWin = remote.getCurrentWindow();
+
+    browserWin.on('show', this._onWindowFocus);
+    browserWin.on('hide', this._onWindowBackgrounded);
+    this._unsubscribers.push(() => {
+      browserWin.removeListener('show', this._onWindowFocus);
+      browserWin.removeListener('hide', this._onWindowBackgrounded);
+    });
+
+    window.addEventListener('browser-window-blur', this._onWindowBackgrounded);
     this._unsubscribers.push(() =>
-      window.removeEventListener('browser-window-blur', this._onWindowBlur)
+      window.removeEventListener('browser-window-blur', this._onWindowBackgrounded)
     );
+
+    window.addEventListener('browser-window-focus', this._onWindowFocus);
     this._unsubscribers.push(() =>
       window.removeEventListener('browser-window-focus', this._onWindowFocus)
     );
@@ -61,15 +71,15 @@ class SystemTrayIconStore {
     this._unsubscribers.forEach(unsub => unsub());
   }
 
-  _onWindowBlur = () => {
+  _onWindowBackgrounded = () => {
     // Set state to blurred, but don't trigger a change. The icon should only be
     // updated when the count changes
-    this._windowBlurred = true;
+    this._windowBackgrounded = true;
   };
 
   _onWindowFocus = () => {
     // Make sure that as long as the window is focused we never use the alt icon
-    this._windowBlurred = false;
+    this._windowBackgrounded = false;
     this._updateIcon();
   };
 
@@ -81,7 +91,7 @@ class SystemTrayIconStore {
     let icon = { path: INBOX_FULL_ICON, isTemplateImg: true };
     if (isInboxZero) {
       icon = { path: INBOX_ZERO_ICON, isTemplateImg: true };
-    } else if (this._windowBlurred && unread !== 0) {
+    } else if (this._windowBackgrounded && unread !== 0) {
       icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
     }
     ipcRenderer.send('update-system-tray', icon.path, unreadString, icon.isTemplateImg);

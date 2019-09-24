@@ -24,7 +24,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
     });
 
     it('shows inbox zero icon when isInboxZero and window is blurred', () => {
-      this.iconStore._windowBlurred = true;
+      this.iconStore._windowBackgrounded = true;
       spyOn(BadgeStore, 'unread').andReturn(0);
       spyOn(BadgeStore, 'total').andReturn(0);
       this.iconStore._updateIcon();
@@ -32,7 +32,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
     });
 
     it('shows inbox full icon when not isInboxZero and window is focused', () => {
-      this.iconStore._windowBlurred = false;
+      this.iconStore._windowBackgrounded = false;
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
@@ -40,7 +40,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
     });
 
     it('shows inbox full /alt/ icon when not isInboxZero and window is blurred', () => {
-      this.iconStore._windowBlurred = true;
+      this.iconStore._windowBackgrounded = true;
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
@@ -57,7 +57,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
     });
 
     it('shows inbox full /alt/ icon ONLY when window is currently blurred and total count changes', () => {
-      this.iconStore._windowBlurred = false;
+      this.iconStore._windowBackgrounded = false;
       this.iconStore._onWindowBlur();
       expect(ipcRenderer.send).not.toHaveBeenCalled();
 
@@ -70,7 +70,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
     });
 
     it('does not show inbox full /alt/ icon when window is currently focused and total count changes', () => {
-      this.iconStore._windowBlurred = false;
+      this.iconStore._windowBackgrounded = false;
 
       // BadgeStore triggers a change
       spyOn(BadgeStore, 'total').andReturn(1);
