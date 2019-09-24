@@ -93,22 +93,24 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div>
         <label htmlFor={`settings.${field}`}>Port Number</label>
-        <select
-          id={`settings.${field}`}
-          tabIndex={0}
-          value={settings[field]}
-          disabled={submitting}
-          onChange={onPortChange}
-        >
-          {values.map(v => (
-            <option value={v} key={v}>
-              {v}
-            </option>
-          ))}
-          <option value={customValue} key="custom">
-            Custom
+        <div class="dropdown-wrapper">
+          <select
+            id={`settings.${field}`}
+            tabIndex={0}
+            value={settings[field]}
+            disabled={submitting}
+            onChange={onPortChange}
+          >
+            {values.map(v => (
+              <option value={v} key={v}>
+                {v}
+              </option>
+            ))}
+            <option value={customValue} key="custom">
+              Custom
           </option>
-        </select>
+          </select>
+        </div>
         {!isStandard && (
           <input
             style={{
@@ -133,25 +135,27 @@ class AccountIMAPSettingsForm extends React.Component {
 
     return (
       <div>
-        <label htmlFor={`settings.${protocol}_security`}>Security:</label>
-        <select
-          id={`settings.${protocol}_security`}
-          tabIndex={0}
-          value={settings[`${protocol}_security`]}
-          disabled={submitting}
-          onKeyPress={onFieldKeyPress}
-          onChange={onFieldChange}
-        >
-          <option value="SSL / TLS" key="SSL / TLS">
-            SSL / TLS
+        <label htmlFor={`settings.${protocol}_security`}>Security</label>
+        <div class="dropdown-wrapper">
+          <select
+            id={`settings.${protocol}_security`}
+            tabIndex={0}
+            value={settings[`${protocol}_security`]}
+            disabled={submitting}
+            onKeyPress={onFieldKeyPress}
+            onChange={onFieldChange}
+          >
+            <option value="SSL / TLS" key="SSL / TLS">
+              SSL / TLS
             </option>
-          <option value="STARTTLS" key="STARTTLS">
-            STARTTLS
+            <option value="STARTTLS" key="STARTTLS">
+              STARTTLS
             </option>
-          <option value="none" key="none">
-            None
+            <option value="none" key="none">
+              None
             </option>
-        </select>
+          </select>
+        </div>
       </div>
     );
   }
@@ -187,7 +191,7 @@ class AccountIMAPSettingsForm extends React.Component {
   renderFieldsForType(type) {
     return (
       <div>
-        <FormField field={`settings.${type}_host`} title={'Server'} {...this.props} />
+        <FormField field={`settings.${type}_host`} title={'Server'} hideColon {...this.props} />
         <div style={{ textAlign: 'left' }}>
           <div className="settings-flex-row">
             {this.renderPortDropdown(type)}
@@ -195,11 +199,12 @@ class AccountIMAPSettingsForm extends React.Component {
           </div>
           {this.renderSecurityCheckbox(type)}
         </div>
-        <FormField field={`settings.${type}_username`} title={'Username'} {...this.props} />
+        <FormField field={`settings.${type}_username`} title={'Username'} hideColon {...this.props} />
         <FormField
           field={`settings.${type}_password`}
           title={'Password'}
           type="password"
+          hideColon
           {...this.props}
         />
       </div>

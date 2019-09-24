@@ -28,7 +28,7 @@ class FormField extends React.Component {
     }
     return (
       <span className="form-field">
-        <label htmlFor={props.field}>{props.title}:</label>
+        <label htmlFor={props.field}>{props.title}{props.hideColon ? '' : ':'}</label>
         <input
           type={type}
           id={props.field}
