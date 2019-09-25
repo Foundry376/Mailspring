@@ -14,9 +14,9 @@ export default class MessageItem extends React.Component {
 
   static propTypes = {
     isOutboxDraft: PropTypes.bool,
-    thread: PropTypes.object.isRequired,
-    message: PropTypes.object.isRequired,
-    messages: PropTypes.array.isRequired,
+    thread: PropTypes.object,
+    message: PropTypes.object,
+    messages: PropTypes.array,
     collapsed: PropTypes.bool,
     pending: PropTypes.bool,
     isMostRecent: PropTypes.bool,
