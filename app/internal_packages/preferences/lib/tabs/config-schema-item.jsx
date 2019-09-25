@@ -37,6 +37,24 @@ class ConfigSchemaItem extends React.Component {
 
   _onChangeValue = ([value, label]) => {
     this.props.config.set(this.props.keyPath, value);
+    // **** process for quick acions setting --- start ****
+    // should not be allowed to set same quick actions
+    const QUICK_ACTION_KEY = 'core.quickActions.quickAction';
+    if (this.props.keyPath.includes(QUICK_ACTION_KEY)) {
+      var quickActions = [
+        `${QUICK_ACTION_KEY}1`,
+        `${QUICK_ACTION_KEY}2`,
+        `${QUICK_ACTION_KEY}3`,
+        `${QUICK_ACTION_KEY}4`
+      ].filter(item => item !== this.props.keyPath);
+      for (const key of quickActions) {
+        if (this.props.config.get(key) === value) {
+          AppEnv.config.set(key, '');
+          break;
+        }
+      }
+    }
+    // **** process for quick acions setting --- end ****
     this._dropdownComponent.toggleDropdown();
   };
 
