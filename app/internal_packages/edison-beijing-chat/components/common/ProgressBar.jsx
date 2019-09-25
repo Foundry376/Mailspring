@@ -57,18 +57,18 @@ export default class ProgressBar extends PureComponent {
           {!finished ? (
             <RetinaImg
               className={'download-btn'}
-              name={'download.svg'}
+              name={loadConfig.type === 'download' ? 'download.svg' : 'upload.svg'}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask}
             />
           ) : (
-            <RetinaImg
-              className={'download-btn'}
-              name={'check-alone.svg'}
-              isIcon={true}
-              mode={RetinaImg.Mode.ContentIsMask}
-            />
-          )}
+              <RetinaImg
+                className={'download-btn'}
+                name={'check-alone.svg'}
+                isIcon={true}
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
+            )}
 
           <div className="load-info">
             <div className="progress-prompt">
@@ -97,10 +97,10 @@ export default class ProgressBar extends PureComponent {
                 Retry
               </div>
             ) : (
-              <div className="cancelButton" onClick={onCancel}>
-                Cancel
+                  <div className="cancelButton" onClick={onCancel}>
+                    Cancel
               </div>
-            )}
+                )}
             <CancelIcon color="rgba(0,0,0,0.2)" onClick={this.hide}></CancelIcon>
           </div>
           <div></div>
