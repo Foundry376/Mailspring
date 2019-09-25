@@ -339,39 +339,37 @@ export default class AppEnvConstructor {
       let leftRegStr = leftStr;
       let rightStr = '"';
       let rightRegStr = rightStr;
+      let reg = new RegExp(`"${key}(\\\\":\\\\"|":")(\\s|\\S)*?(","|"}|\\\\",\\\\"|\\\\"})`, 'g');
       if (
         key !== 'body' &&
         key !== 'subject' &&
         key !== 'snippet' &&
         key !== 'emailAddress' &&
         key !== 'imap_username' &&
+        key !== 'imap_password' &&
         key !== 'smtp_username' &&
+        key !== 'smtp_password' &&
         key !== 'access_token' &&
         key !== 'refresh_token'
       ) {
         leftRegStr = '\\[';
         rightRegStr = '\\]';
+        reg = new RegExp(`"${key}":${leftRegStr}(\\s|\\S)*?${rightRegStr},"`, 'g');
       }
-      // const keyStartIndex = strData.indexOf(`"${key}":${leftStr}`);
-      // if (keyStartIndex !== -1) {
-      //   const endKeyIndex = strData.indexOf(`${rightStr},"`, keyStartIndex);
-      //   if (endKeyIndex !== -1) {
-      //     return (
-      //       strData.slice(0, keyStartIndex) +
-      //       `"${key}":${leftStr + rightStr},"` +
-      //       strData.slice(endKeyIndex + 3)
-      //     );
-      //   }
-      // }
-      const reg = new RegExp(`"${key}":${leftRegStr}(\\s|\\S)*?${rightRegStr},"`);
+
       return strData.replace(reg, (str, match) => {
-        return `"${key}":${leftStr}${createHash('md5').update(str.replace(`"${key}":${leftStr}`, '').replace(`${rightRegStr},"`, '')).digest('hex')}${rightStr},"`;
+        const hash = createHash('md5')
+          .update(str.replace(`"${key}":${leftStr}`, '').replace(`${rightRegStr},"`, ''))
+          .digest('hex');
+        return `"${key}":${leftStr}${hash}${rightStr},"`;
       });
     };
     const sensitiveKeys = [
       'emailAddress',
       'imap_username',
+      'imap_password',
       'smtp_username',
+      'smtp_password',
       'access_token',
       'refresh_token',
       'body',
