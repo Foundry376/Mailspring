@@ -20,7 +20,7 @@ class OnboardingStore extends MailspringStore {
     const hasAccounts = AccountStore.accounts().length > 0;
     // we don't have edison account for now.
     // const identity = IdentityStore.identity();
-    const identity = null;
+    const identity = AppEnv.config.get('identity');
 
     this._account = new Account({
       name: identity ? `${identity.firstName || ''} ${identity.lastName || ''}` : '',
