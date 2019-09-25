@@ -1,6 +1,7 @@
 import ChangeMailTask from './change-mail-task';
 import Attributes from '../attributes';
 import Folder from '../models/folder';
+import Label from '../models/label';
 
 // Public: Create a new task to apply labels to a message or thread.
 //
@@ -54,7 +55,7 @@ export default class ChangeFolderTask extends ChangeMailTask {
 
     super(data);
 
-    if (this.folder && !(this.folder instanceof Folder)) {
+    if (this.folder && !(this.folder instanceof Folder || this.folder instanceof Label)) {
       throw new Error('ChangeFolderTask: You must provide a single folder.');
     }
   }

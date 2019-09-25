@@ -747,17 +747,17 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       // Since move folder from trash/spam changes threadId,
       // we must change label first then change folder
       return [
-        new ChangeLabelsTask({
-          threads,
-          source: 'Dragged into list',
-          labelsToAdd: [myCat],
-          labelsToRemove: [],
-          previousFolder,
-        }),
+        // new ChangeLabelsTask({
+        //   threads,
+        //   source: 'Dragged into list',
+        //   labelsToAdd: [myCat],
+        //   labelsToRemove: [],
+        //   previousFolder,
+        // }),
         new ChangeFolderTask({
           threads,
           source: 'Dragged into list',
-          folder: CategoryStore.getCategoryByRole(accountId, 'all'),
+          folder: myCat,
           currentPerspective: current,
         }),
       ];

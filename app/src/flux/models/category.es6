@@ -91,9 +91,6 @@ export default class Category extends Model {
       queryable: true,
       modelKey: 'path',
     }),
-    localStatus: Attributes.Object({
-      modelKey: 'localStatus',
-    }),
     state: Attributes.Number({
       modelKey: 'state',
       queryable: true,
