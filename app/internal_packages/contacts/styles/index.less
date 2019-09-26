@@ -4,6 +4,10 @@
   display: flex;
   background-color: @source-list-bg;
   color: @text-color-subtle;
+
+  .item.found-in-mail-disabled:not(.selected) {
+    opacity: 0.5;
+  }
 }
 
 .contact-detail-column {
@@ -23,7 +27,14 @@
     h3 {
       margin: 0;
       margin-left: 10px;
+      word-break: break-word;
     }
+  }
+  .contact-origin {
+    flex: 1;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: @text-color-very-subtle;
   }
   .contact-attributes {
     flex: 1;
@@ -103,13 +114,17 @@
 }
 
 .contact-search {
-  padding-top: 5.5px;
+  padding-top: 4px;
   position: relative;
   width: 100%;
 
-  .search-accessory {
+  .search-accessory.search {
     position: absolute;
     transform: translate(14px, 11px);
+  }
+  .search-accessory.clear {
+    position: absolute;
+    transform: translate(-52px, 5px);
   }
   input {
     padding-left: 25px;
@@ -125,5 +140,24 @@
     width: 100%;
     height: 100%;
     -webkit-font-smoothing: subpixel-antialiased;
+  }
+}
+
+.found-in-mail-enabled-bar {
+  color: mix(@color-info, @text-color, 30%);
+  background-color: mix(@color-info, @background-primary, 20%);
+  border-bottom: 1px solid mix(@color-info, @border-color-divider, 30%);
+  padding: 5px 12px;
+  align-items: center;
+  display: flex;
+  font-size: 0.9em;
+  flex-shrink: 0;
+
+  .notice {
+    flex: 1;
+    padding-right: @padding-base-horizontal;
+  }
+  .btn {
+    flex-shrink: 0;
   }
 }

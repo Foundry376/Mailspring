@@ -1,17 +1,19 @@
 import React from 'react';
-import { Account, AccountStore, ContactGroup } from 'mailspring-exports';
+import { Account, AccountStore, ContactGroup, Rx } from 'mailspring-exports';
 import { ContactSource, Store } from './Store';
 import {
   ScrollRegion,
   OutlineView,
   OutlineViewItem,
   ListensToFluxStore,
+  ListensToObservable,
 } from 'mailspring-component-kit';
 import { isEqual } from 'underscore';
 
 interface ContactSourcesProps {
   accounts: Account[];
   groups: ContactGroup[];
+  findInMailDisabled: string[];
   selected: ContactSource | null;
   onSelect: (item: ContactSource | null) => void;
 }
@@ -26,18 +28,19 @@ function sourceForGroup(g: ContactGroup): ContactSource {
 }
 
 const ContactSourcesWithData: React.FunctionComponent<ContactSourcesProps> = ({
+  findInMailDisabled,
   groups,
   accounts,
   selected,
   onSelect,
 }) => (
   <ScrollRegion style={{ flex: 1 }} className="contacts-source-list">
-    <section className="nylas-outline-view" style={{ paddingTop: 15 }}>
+    <section className="outline-view" style={{ paddingTop: 15 }}>
       <OutlineViewItem
         item={{
           id: 'bla',
           name: 'All Contacts',
-          iconName: '',
+          iconName: 'people.png',
           children: [],
           selected: selected === null,
           onSelect: () => onSelect(null),
@@ -52,6 +55,7 @@ const ContactSourcesWithData: React.FunctionComponent<ContactSourcesProps> = ({
           {
             id: 'all-contacts',
             name: 'All Contacts',
+            iconName: 'person.png',
             children: [],
             selected: selected && selected.accountId == a.id && selected.type === 'all',
             onSelect: () => onSelect({ accountId: a.id, type: 'all', label: 'All Contacts' }),
@@ -96,6 +100,7 @@ const ContactSourcesWithData: React.FunctionComponent<ContactSourcesProps> = ({
             name: 'Found in Mail',
             iconName: 'inbox.png',
             children: [],
+            className: findInMailDisabled.includes(a.id) ? 'found-in-mail-disabled' : '',
             selected: selected && selected.accountId == a.id && selected.type === 'found-in-mail',
             shouldAcceptDrop: () => false,
             onSelect: () =>
@@ -111,15 +116,23 @@ const ContactSourcesWithData: React.FunctionComponent<ContactSourcesProps> = ({
   </ScrollRegion>
 );
 
-export const ContactSources = ListensToFluxStore(ContactSourcesWithData, {
-  stores: [AccountStore, Store],
-  getStateFromStores: () => ({
-    accounts: AccountStore.accounts(),
-    groups: Store.groups(),
-    selected: Store.selectedSource(),
-    onSelect: s => Store.setSelectedSource(s),
+export const ContactSources = ListensToObservable(
+  ListensToFluxStore(ContactSourcesWithData, {
+    stores: [AccountStore, Store],
+    getStateFromStores: () => ({
+      accounts: AccountStore.accounts(),
+      groups: Store.groups(),
+      selected: Store.selectedSource(),
+      onSelect: s => Store.setSelectedSource(s),
+    }),
   }),
-});
+  {
+    getObservable: () => Rx.Observable.fromConfig('core.contacts.findInMailDisabled'),
+    getStateFromObservable: () => ({
+      findInMailDisabled: AppEnv.config.get('core.contacts.findInMailDisabled'),
+    }),
+  }
+);
 
 ContactSources.displayName = 'ContactSources';
 ContactSources.containerStyles = {

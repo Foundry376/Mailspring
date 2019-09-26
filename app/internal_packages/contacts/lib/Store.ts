@@ -8,17 +8,21 @@ class ContactsWindowStore extends MailspringStore {
   _contactsSubscription: MutableQuerySubscription<Contact>;
   _groups: ContactGroup[] = [];
   _search: string = '';
+  _filtered: Contact[] | null = null;
 
   constructor() {
     super();
 
-    setTimeout(() => {
+    window.requestAnimationFrame(() => {
+      AppEnv.displayWindow();
+
       const contacts = DatabaseStore.findAll<Contact>(Contact)
         .where(Contact.attributes.refs.greaterThan(0))
         .where(Contact.attributes.hidden.equal(false));
       this._contactsSubscription = new MutableQuerySubscription<Contact>(contacts);
       this._contactsSubscription.addCallback(contacts => {
         this._contacts = contacts;
+        this._filtered = null;
         this.trigger();
       });
 
@@ -27,7 +31,7 @@ class ContactsWindowStore extends MailspringStore {
         this._groups = groups;
         this.trigger();
       });
-    }, 100);
+    });
   }
 
   groups() {
@@ -50,9 +54,13 @@ class ContactsWindowStore extends MailspringStore {
       q.where(Contact.attributes.contactGroups.contains(selectedSource.groupId));
     }
 
-    this._contacts = [];
+    this._filtered = null;
     this._selectedSource = selectedSource;
-    this._contactsSubscription.replaceQuery(q);
+
+    if (q.sql() !== this._contactsSubscription.query().sql()) {
+      this._contacts = [];
+      this._contactsSubscription.replaceQuery(q);
+    }
     this.trigger();
   }
 
@@ -62,29 +70,33 @@ class ContactsWindowStore extends MailspringStore {
 
   setSearch(str: string) {
     this._search = str;
+    this._filtered = null;
     this.trigger();
   }
 
   filteredContacts() {
-    let filtered = this._contacts;
+    if (!this._filtered) {
+      let filtered = [...this._contacts];
 
-    if (this._selectedSource) {
-      filtered = filtered.filter(c => {
-        if (c.accountId !== this._selectedSource.accountId) return false;
-        if (c.source !== 'mail' && this._selectedSource.type === 'found-in-mail') return false;
-        if (c.source === 'mail' && this._selectedSource.type !== 'found-in-mail') return false;
-        return true;
-      });
-    }
-    if (this._search) {
-      const isearch = this._search.toLowerCase();
-      filtered = filtered.filter(
-        c => c.name.toLowerCase().includes(isearch) || c.email.toLowerCase().includes(isearch)
-      );
-    }
+      if (this._selectedSource) {
+        filtered = filtered.filter(c => {
+          if (c.accountId !== this._selectedSource.accountId) return false;
+          if (c.source !== 'mail' && this._selectedSource.type === 'found-in-mail') return false;
+          if (c.source === 'mail' && this._selectedSource.type !== 'found-in-mail') return false;
+          return true;
+        });
+      }
+      if (this._search) {
+        const isearch = this._search.toLowerCase();
+        filtered = filtered.filter(
+          c => c.name.toLowerCase().includes(isearch) || c.email.toLowerCase().includes(isearch)
+        );
+      }
 
-    // note we do this in JS because in SQLite the order is not locale aware.
-    return filtered.sort((a, b) => a.name.localeCompare(b.name));
+      // note we do this in JS because in SQLite the order is not locale aware.
+      this._filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return this._filtered;
   }
 }
 

@@ -100,7 +100,7 @@ export const ContactList = ListensToFluxStore(ContactListWithData, {
 
 ContactList.displayName = 'ContactList';
 ContactList.containerStyles = {
-  minWidth: 165,
+  minWidth: 140,
   maxWidth: 450,
 };
 
@@ -124,10 +124,18 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
         ref={this._searchEl}
         value={props.search}
         placeholder={`${localized('Search')} ${
-          props.selectedSource ? props.selectedSource.label : 'all contacts'
+          props.selectedSource ? props.selectedSource.label : 'All Contacts'
         }`}
         onChange={e => props.setSearch(e.currentTarget.value)}
       />
+      {props.search.length > 0 && (
+        <RetinaImg
+          name="searchclear.png"
+          className="search-accessory clear"
+          mode={RetinaImg.Mode.ContentDark}
+          onMouseDown={() => props.setSearch('')}
+        />
+      )}
     </div>
   );
 };

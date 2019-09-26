@@ -1,6 +1,12 @@
 import React from 'react';
 import vCard from 'vcf';
-import { Contact, ContactInfoGoogle, ContactInfoVCF } from 'mailspring-exports';
+import {
+  Account,
+  Contact,
+  ContactInfoGoogle,
+  ContactInfoVCF,
+  AccountStore,
+} from 'mailspring-exports';
 import {
   ContactProfilePhoto,
   FocusContainer,
@@ -9,13 +15,6 @@ import {
 } from 'mailspring-component-kit';
 import { Store } from './Store';
 import * as Icons from './icons';
-
-interface ContactDetailProps {
-  contacts: Contact[];
-  focusedId?: string;
-}
-
-interface ContactDetailState {}
 
 interface ContactController {
   photoURL?: string;
@@ -28,7 +27,15 @@ interface ContactController {
   addresses?: { formattedValue: string; formattedType?: string }[];
   birthdays?: { date: { year: number; month: number; day: number } }[];
 
+  origin: string;
   // onChange, etc. goes here, mutates underlying info model
+}
+
+function GenericController(email: string): ContactController {
+  return {
+    origin: 'Found in Sent Mail',
+    emailAddresses: [{ value: email }],
+  };
 }
 
 function VCFContactController(info: ContactInfoVCF): ContactController {
@@ -95,6 +102,7 @@ function VCFContactController(info: ContactInfoVCF): ContactController {
   }
 
   return {
+    origin: 'CardDAV',
     photoURL,
     organizations: org
       ? [
@@ -133,8 +141,15 @@ function VCFContactController(info: ContactInfoVCF): ContactController {
 }
 
 function GoogleContactController(info: ContactInfoGoogle): ContactController {
-  return info;
+  return Object.assign({ origin: 'Google Contacts' }, info);
 }
+
+interface ContactDetailProps {
+  contacts: Contact[];
+  focusedId?: string;
+}
+
+interface ContactDetailState {}
 
 class ContactDetailWithFocus extends React.Component<ContactDetailProps, ContactDetailState> {
   render() {
@@ -152,12 +167,10 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     }
 
     const controller = !contact.info
-      ? null
+      ? GenericController(contact.email)
       : 'vcf' in contact.info
       ? VCFContactController(contact.info)
-      : 'resourceName' in contact.info
-      ? GoogleContactController(contact.info)
-      : null;
+      : GoogleContactController(contact.info);
 
     return (
       <ScrollRegion className="contact-detail-column">
@@ -170,18 +183,25 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
             />
             <h3>{contact.name}</h3>
           </div>
-          {controller ? (
-            <ContactAttributes controller={controller} />
-          ) : (
-            <ContactAttributesGeneric email={contact.email} />
-          )}
+          {
+            <ContactAttributes
+              controller={controller}
+              account={AccountStore.accountForId(contact.accountId)}
+            />
+          }
         </div>
       </ScrollRegion>
     );
   }
 }
 
-const ContactAttributes = ({ controller }: { controller: ContactController }) => (
+const ContactAttributes = ({
+  controller,
+  account,
+}: {
+  controller: ContactController;
+  account: Account;
+}) => (
   <div className="contact-attributes">
     {controller.nicknames && (
       <div className="contact-attributes-section">
@@ -302,20 +322,8 @@ const ContactAttributes = ({ controller }: { controller: ContactController }) =>
         ))}
       </div>
     )}
-  </div>
-);
-
-const ContactAttributesGeneric = ({ email }: { email: string }) => (
-  <div className="contact-attributes">
-    <div className="contact-attribute">
-      <label>
-        <Icons.Envelope />
-      </label>
-      <div>
-        <a href={`mailto:${email}`} title="Send email...">
-          {email}
-        </a>
-      </div>
+    <div className="contact-origin">
+      <div>{`${controller.origin} (${account ? account.label : 'Unknown Account'})`}</div>
     </div>
   </div>
 );
@@ -336,6 +344,6 @@ export const ContactDetail: React.FunctionComponent<ContactDetailProps> = Listen
 
 ContactDetail.displayName = 'ContactDetail';
 (ContactDetail as any).containerStyles = {
-  minWidth: 400,
+  minWidth: 360,
   maxWidth: 100000,
 };
