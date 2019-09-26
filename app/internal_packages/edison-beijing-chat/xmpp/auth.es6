@@ -47,7 +47,12 @@ export const auth = async ({ jid, password }) => {
     sessionId,
   });
   try {
-    const res = await xmpp.connect(jid);
+    try {
+      const res = await xmpp.connect(jid);
+    } catch (e) {
+      console.warn('xmpp.connect error: ', e);
+      return;
+    }
     if (!res) {
       console.warn('connect.null', jid);
       return;
