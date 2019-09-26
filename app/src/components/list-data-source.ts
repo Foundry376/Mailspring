@@ -106,9 +106,7 @@ class EmptyListDataSource extends ListDataSource {
   itemsCurrentlyInViewMatching() {
     return [];
   }
-  setRetainedRange() {
-    return;
-  }
+  setRetainedRange() {}
 }
 
 class DumbArrayDataSource<T extends Model> extends ListDataSource {
@@ -139,7 +137,5 @@ class DumbArrayDataSource<T extends Model> extends ListDataSource {
   itemsCurrentlyInViewMatching(matchFn: (item: T) => boolean) {
     return this._items.filter(matchFn);
   }
-  setRetainedRange() {
-    return;
-  }
+  setRetainedRange() {}
 }

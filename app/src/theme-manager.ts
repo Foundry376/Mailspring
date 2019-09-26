@@ -72,8 +72,7 @@ export default class ThemeManager {
   reloadCoreStyles() {
     console.log('Reloading /static and /internal_packages to incorporate LESS changes');
     const reloadStylesIn = folder => {
-      fs
-        .listTreeSync(folder)
+      fs.listTreeSync(folder)
         .filter(stylePath => stylePath.endsWith('.less'))
         .forEach(stylePath => {
           const styleEl = document.head.querySelector(`[source-path="${stylePath}"]`);
@@ -171,8 +170,8 @@ export default class ThemeManager {
   }
 
   loadStaticStylesheets() {
-    this.requireStylesheet('../static/index');
-    this.requireStylesheet('../static/email-frame');
+    this.requireStylesheet('../static/style/index');
+    this.requireStylesheet('../static/style/email-frame');
   }
 
   resolveStylesheetPath(stylesheetPath) {

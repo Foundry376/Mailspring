@@ -277,7 +277,7 @@ export default class WindowManager {
       width: 800,
       height: 500,
       toolbar: true,
-      hidden: false,
+      hidden: true,
     };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript

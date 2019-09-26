@@ -189,7 +189,6 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   componentDidMount() {
     window.addEventListener('resize', this.onWindowResize, true);
     this.setupDataSource(this.props.dataSource);
-    this.updateRangeState();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -214,7 +213,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
       prevProps.itemHeight !== this.props.itemHeight ||
       prevProps.dataSource !== this.props.dataSource
     ) {
-      this.updateRangeState();
+      this.updateRangeStateIfChanged();
     }
 
     if (!this._cleanupAnimationTimeout) {
@@ -232,7 +231,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
 
   onWindowResize = () => {
     if (this._onWindowResize == null) {
-      this._onWindowResize = _.debounce(this.updateRangeState, 50);
+      this._onWindowResize = _.debounce(this.updateRangeStateIfChanged, 50);
     }
     this._onWindowResize();
   };
@@ -240,7 +239,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   onScroll = () => {
     // If we've shifted enough pixels from our previous scrollTop to require
     // new rows to be rendered, update our state!
-    this.updateRangeState();
+    this.updateRangeStateIfChanged();
   };
 
   onCleanupAnimatingItems = () => {
@@ -264,10 +263,11 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
 
   setupDataSource(dataSource) {
     this._unlisten();
-    this._unlisten = dataSource.listen(() => {
-      this.setState(this.buildStateForRange());
-    });
-    this.setState(this.buildStateForRange({ start: -1, end: -1, dataSource }));
+    this._unlisten = dataSource.listen(() => this.setState(this.buildStateForRange()));
+
+    const range = this.getRange();
+    this.props.dataSource.setRetainedRange(range);
+    this.setState(this.buildStateForRange({ ...range, dataSource }));
   }
 
   getRowsToRender() {
@@ -307,7 +307,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     this._scrollRegion.scrollTop += height * direction;
   }
 
-  updateRangeState() {
+  getRange() {
     if (!this._scrollRegion) {
       return;
     }
@@ -323,23 +323,21 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     // we have items to move to and then scroll to.
     rangeStart = Math.max(0, rangeStart - 2);
     rangeEnd = Math.min(rangeEnd + 2, this.state.count + 1);
+    return { start: rangeStart, end: rangeEnd };
+  }
+
+  updateRangeStateIfChanged() {
+    const range = this.getRange();
 
     // Final sanity check to prevent needless work
-    const shouldNotUpdate =
-      rangeEnd === this.state.renderedRangeEnd && rangeStart === this.state.renderedRangeStart;
-    if (shouldNotUpdate) {
-      return;
+    if (
+      range.end !== this.state.renderedRangeEnd ||
+      range.start !== this.state.renderedRangeStart
+    ) {
+      this.updateRangeStateFiring = true;
+      this.props.dataSource.setRetainedRange(range);
+      this.setState(this.buildStateForRange(range));
     }
-
-    this.updateRangeStateFiring = true;
-
-    this.props.dataSource.setRetainedRange({
-      start: rangeStart,
-      end: rangeEnd,
-    });
-
-    const nextState = this.buildStateForRange({ start: rangeStart, end: rangeEnd });
-    this.setState(nextState);
   }
 
   buildStateForRange(args: { start?: number; end?: number; dataSource?: ListDataSource } = {}) {

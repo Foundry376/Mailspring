@@ -60,7 +60,7 @@ mailspring-workspace {
 }
 
 .toolbar-window-controls {
-  margin-top: 9px;
+  margin-top: 7px;
   margin-left: @spacing-half /*rtl:ignore */;
   order: -1000 /*rtl: 1000*/;
   min-width: 72px;
@@ -164,33 +164,17 @@ body.is-blurred {
   color: @text-color-heading;
 }
 
-.layout-mode-popout {
-  .sheet-toolbar {
-    background: @background-primary;
-    height: 35px;
-    min-height: 35px;
-    max-height: 35px;
-
-    .btn-toolbar {
-      margin-top: 6px;
-    }
-  }
-  .toolbar-window-controls {
-    margin-top: 7px;
-  }
-}
-
 .sheet-toolbar {
   position: relative;
   -webkit-app-region: drag;
   border-bottom: 1px solid darken(@toolbar-background-color, 9%);
   width: 100%;
-  height: 38px;
+  height: 34px;
 
   // prevent flexbox from ever, ever resizing toolbars, no matter
   // how much it thinks other content is being squished
-  min-height: 38px;
-  max-height: 38px;
+  min-height: 34px;
+  max-height: 34px;
 
   // cover up the vertical resizing separators, so the toolbar appears
   // to be one continuous bar.
@@ -214,7 +198,7 @@ body.is-blurred {
       left: 50%;
       transform: translateX(-50%);
       -webkit-app-region: drag;
-      line-height: 36px;
+      line-height: 34px;
       &:hover {
         cursor: default;
       }
@@ -249,7 +233,7 @@ body.is-blurred {
   }
 
   .btn-toolbar {
-    margin-top: 8px;
+    margin-top: 5px;
     margin-left: @spacing-three-quarters;
     margin-right: 0;
     flex-shrink: 0;
@@ -266,7 +250,7 @@ body.is-blurred {
     }
   }
   .btn-toolbar:only-of-type {
-    margin-right: @spacing-three-quarters;
+    margin-right: 6px;
   }
 
   .button-group {

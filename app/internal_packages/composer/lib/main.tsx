@@ -105,7 +105,7 @@ export function activate() {
     const i = document.createElement('i');
     i.className = 'fa fa-list';
     i.style.position = 'absolute';
-    i.style.top = '0';
+    i.style.top = '-20px';
     document.body.appendChild(i);
   }, 1000);
 }

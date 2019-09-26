@@ -49,8 +49,7 @@ class ContactStore extends MailspringStore {
       .order(Contact.attributes.refs.descending());
 
     return (query.then(async _results => {
-      // remove query results that were already found in ranked contacts
-      let results = this._distinctByEmail(_results);
+      let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
       for (const ext of extensions) {
         results = await ext.findAdditionalContacts(search, results);
       }
@@ -69,7 +68,7 @@ class ContactStore extends MailspringStore {
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending())
       .then(async _results => {
-        let results = this._distinctByEmail(_results);
+        let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
         if (results.length > limit) {
           results.length = limit;
         }
@@ -143,6 +142,13 @@ class ContactStore extends MailspringStore {
         );
       })
     );
+  }
+
+  _omitFindInMailDisabled(results: Contact[]) {
+    // remove results that the user has asked not to see. (Cheaper to do this in JS
+    // than construct a WHERE clause that makes SQLite's index selection non-obvious.)
+    const findInMailDisabled = AppEnv.config.get('core.contacts.findInMailDisabled');
+    return results.filter(r => !(r.source === 'mail' && findInMailDisabled.includes(r.accountId)));
   }
 
   _distinctByEmail(contacts: Contact[]) {
