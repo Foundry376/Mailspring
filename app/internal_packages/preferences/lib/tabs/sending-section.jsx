@@ -24,6 +24,7 @@ function getExtendedSendingSchema(configSchema) {
   Object.assign(configSchema.properties.sending.properties, {
     defaultAccountIdForSend,
   });
+  AppEnv.config.setDefaults('core.sending.defaultAccountIdForSend', 'selected-mailbox');
   return configSchema.properties.sending;
 }
 
