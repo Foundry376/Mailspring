@@ -78,8 +78,9 @@ export const iniApps = (userId, token, cb) => {
   }
   post(url, { userId, token, version }, (err, data) => {
     if (data) {
+      let json
       try {
-        let json = JSON.parse(data)
+        json = JSON.parse(data)
       } catch (e) {
         console.warn('iniApps: failed: json parse error: ', userId, e)
         return
