@@ -86,14 +86,6 @@ const TaskFactory = {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
       const previousFolder = this.findPreviousFolder(currentPerspective, accountId);
-      if (inbox instanceof Label) {
-        return new ChangeFolderTask({
-          previousFolder,
-          folder: CategoryStore.getAllMailCategory(accountId),
-          threads: accountThreads,
-          source,
-        });
-      }
       return new ChangeFolderTask({
         previousFolder,
         folder: inbox,
