@@ -6,8 +6,110 @@ import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
 import { AccountStore } from '../stores/account-store';
 import { localized } from '../../intl';
+import { ContactGroup } from './contact-group';
 
 let FocusedPerspectiveStore = null; // Circular Dependency
+
+export interface ContactInfoVCF {
+  vcf: string;
+}
+
+export interface ContactInfoGoogle {
+  resourceName: string;
+  etag: string;
+
+  birthdays?: {
+    date: {
+      day: number;
+      month: number;
+      year: number;
+    };
+    metadata: {
+      primary: boolean;
+    };
+    text: string;
+  }[];
+  addresses: {
+    city: string;
+    country: string;
+    countryCode: string;
+    extendedAddress: string;
+    formattedType: string;
+    formattedValue: string;
+    metadata: {
+      primary: boolean;
+    };
+    postalCode: string;
+    region: string;
+    streetAddress: string;
+    type: string;
+  }[];
+  organizations?: [
+    {
+      metadata: {
+        primary: boolean;
+      };
+      name: string;
+      title: string;
+    }
+  ];
+  relations?: [
+    {
+      formattedType: string;
+      metadata: {
+        primary: boolean;
+      };
+      person: string;
+      type: string;
+    }
+  ];
+  emailAddresses?: {
+    formattedType: string;
+    metadata: {
+      primary: boolean;
+    };
+    type: string;
+    value: string;
+  }[];
+  names?: {
+    displayName: string;
+    displayNameLastFirst: string;
+    familyName: string;
+    givenName: string;
+    metadata: {
+      primary: boolean;
+    };
+  }[];
+  nicknames?: {
+    metadata: {
+      primary: true;
+    };
+    value: string;
+  }[];
+  phoneNumbers?: {
+    formattedType: string;
+    metadata: {
+      primary: boolean;
+    };
+    type: string;
+    value: string;
+  }[];
+  photos?: {
+    default: boolean;
+    metadata: {
+      primary: boolean;
+    };
+    url: string;
+  }[];
+  urls?: {
+    formattedType: string;
+    metadata: {
+      primary: boolean;
+    };
+    type: string;
+    value: string;
+  }[];
+}
 
 const namePrefixes = {};
 const nameSuffixes = {};
@@ -269,6 +371,13 @@ export class Contact extends Model {
     hidden: Attributes.Boolean({
       queryable: true,
       modelKey: 'hidden',
+      jsonKey: 'h',
+    }),
+
+    source: Attributes.String({
+      queryable: true,
+      modelKey: 'source',
+      jsonKey: 's',
     }),
 
     email: Attributes.String({
@@ -276,9 +385,19 @@ export class Contact extends Model {
       modelKey: 'email',
     }),
 
+    contactGroups: Attributes.Collection({
+      queryable: true,
+      joinOnField: 'id',
+      itemClass: ContactGroup,
+    }),
+
     refs: Attributes.Number({
       queryable: true,
       modelKey: 'refs',
+    }),
+
+    info: Attributes.Object({
+      modelKey: 'info',
     }),
   };
 
@@ -319,7 +438,9 @@ export class Contact extends Model {
   public name: string;
   public email: string;
   public refs: number;
+  public source: string;
   public hidden: boolean;
+  public info?: ContactInfoGoogle;
 
   constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);
@@ -335,6 +456,14 @@ export class Contact extends Model {
   }
 
   fromJSON(json) {
+    // to ensure that old contact data is inflated properly
+    // and we can compare hidden === false.
+    if (json && !('s' in json)) {
+      json['s'] = 'mail';
+    }
+    if (json && !('h' in json)) {
+      json['h'] = false;
+    }
     super.fromJSON(json);
     this.name = this.name || this.email;
     return json;

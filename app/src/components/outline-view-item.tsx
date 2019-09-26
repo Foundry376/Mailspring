@@ -128,7 +128,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
       id: PropTypes.string.isRequired,
       children: PropTypes.array.isRequired,
       name: PropTypes.string.isRequired,
-      iconName: PropTypes.string.isRequired,
+      iconName: PropTypes.string,
       count: PropTypes.number,
       counterStyle: PropTypes.string,
       inputPlaceholder: PropTypes.string,
@@ -293,53 +293,6 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
 
   // Renderers
 
-  _renderCount(item = this.props.item) {
-    if (!item.count) {
-      return <span />;
-    }
-    const className = classnames({
-      'item-count-box': true,
-      'alt-count': item.counterStyle === CounterStyles.Alt,
-    });
-    return <div className={className}>{item.count}</div>;
-  }
-
-  _renderIcon(item = this.props.item) {
-    return (
-      <div className="icon">
-        <RetinaImg
-          name={item.iconName}
-          fallback={'folder.png'}
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
-      </div>
-    );
-  }
-
-  _renderItemContent(item = this.props.item, state = this.state) {
-    if (state.editing) {
-      const placeholder = item.inputPlaceholder || '';
-      return (
-        <input
-          autoFocus
-          type="text"
-          tabIndex={1}
-          className="item-input"
-          placeholder={placeholder}
-          defaultValue={item.name}
-          onBlur={this._onInputBlur}
-          onFocus={this._onInputFocus}
-          onKeyDown={this._onInputKeyDown}
-        />
-      );
-    }
-    return (
-      <div className="name" title={item.name}>
-        {item.name}
-      </div>
-    );
-  }
-
   _renderItem(item = this.props.item, state = this.state) {
     const containerClass = classnames({
       item: true,
@@ -358,9 +311,39 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         shouldAcceptDrop={this._shouldAcceptDrop}
         onDragStateChange={this._onDragStateChange}
       >
-        {this._renderCount()}
-        {this._renderIcon()}
-        {this._renderItemContent()}
+        {item.count > 0 && (
+          <div
+            className={`item-count-box ${item.counterStyle === CounterStyles.Alt && 'alt-count'}`}
+          >
+            {item.count}
+          </div>
+        )}
+        {item.iconName && (
+          <div className="icon">
+            <RetinaImg
+              name={item.iconName}
+              fallback={'folder.png'}
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
+          </div>
+        )}
+        {state.editing ? (
+          <input
+            autoFocus
+            type="text"
+            tabIndex={1}
+            className="item-input"
+            placeholder={item.inputPlaceholder || ''}
+            defaultValue={item.name}
+            onBlur={this._onInputBlur}
+            onFocus={this._onInputFocus}
+            onKeyDown={this._onInputKeyDown}
+          />
+        ) : (
+          <div className="name" title={item.name}>
+            {item.name}
+          </div>
+        )}
       </DropZone>
     );
   }
@@ -369,7 +352,9 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} item={child} />)}
+          {item.children.map(child => (
+            <OutlineViewItem key={child.id} item={child} />
+          ))}
         </section>
       );
     }

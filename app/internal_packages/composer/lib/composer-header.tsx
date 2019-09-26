@@ -176,7 +176,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
         }}
         key="to"
         field="to"
-        menuPrompt={localized('To')}
+        label={localized('To')}
         change={this._onChangeParticipants}
         className="composer-participant-field to-field"
         participants={{ to, cc, bcc }}
@@ -195,7 +195,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           }}
           key="cc"
           field="cc"
-          menuPrompt={localized('Cc')}
+          label={localized('Cc')}
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Cc)}
           className="composer-participant-field cc-field"
@@ -216,7 +216,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           }}
           key="bcc"
           field="bcc"
-          menuPrompt={localized('Bcc')}
+          label={localized('Bcc')}
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Bcc)}
           className="composer-participant-field bcc-field"

@@ -34,7 +34,7 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
     this.renderedField = mount(
       <ParticipantsTextField
         field={this.fieldName}
-        menuPrompt={this.fieldName}
+        label={this.fieldName}
         visible
         participants={this.participants}
         draft={{ id: 'draft-1' }}

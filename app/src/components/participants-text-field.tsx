@@ -1,5 +1,5 @@
 import React from 'react';
-import { remote, clipboard } from 'electron';
+import { remote, clipboard, ipcRenderer } from 'electron';
 import {
   localized,
   PropTypes,
@@ -37,7 +37,7 @@ TokenRenderer.propTypes = {
 
 type ParticipantsTextFieldProps = {
   field?: string;
-  menuPrompt?: string;
+  label?: string;
   participants: object;
   change: (...args: any[]) => any;
   className?: string;
@@ -56,7 +56,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     field: PropTypes.string,
 
     // The word displayed to the left of the field
-    menuPrompt: PropTypes.string,
+    label: PropTypes.string,
 
     // An object containing arrays of participants. Typically, this is
     // {to: [], cc: [], bcc: []}. Each ParticipantsTextField needs all of
@@ -227,9 +227,6 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
   };
 
   render() {
-    const classSet = {
-      [this.props.field]: true,
-    };
     return (
       <div className={this.props.className}>
         <TokenizingTextField
@@ -250,8 +247,8 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
           onEmptied={this.props.onEmptied}
           onFocus={this.props.onFocus}
           onTokenAction={this._onShowContextMenu}
-          menuClassSet={classSet}
-          menuPrompt={this.props.menuPrompt}
+          className={this.props.field}
+          label={this.props.label}
         />
       </div>
     );

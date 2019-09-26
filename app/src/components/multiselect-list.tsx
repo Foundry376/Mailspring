@@ -20,6 +20,7 @@ export interface MultiselectListProps extends ListTabularProps {
   itemPropsProvider: (...args: any[]) => any;
   keymapHandlers?: object;
   onFocusItem?: (item: any) => void;
+  onDragItems?: (event: React.DragEvent, items: any) => void;
   onSetCursorPosition?: (item: any) => void;
   onComponentDidUpdate?: (...args: any[]) => any;
 }
@@ -180,6 +181,7 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
             onSelect={this._onClickItem}
             onComponentDidUpdate={this.props.onComponentDidUpdate}
             {...otherProps}
+            onDragStart={this._onDragStart}
           />
         </KeyCommandsRegion>
       );
@@ -191,6 +193,20 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
       );
     }
   }
+
+  _onDragStart = event => {
+    if (!this.props.onDragItems) {
+      event.preventDefault();
+      return null;
+    }
+
+    const items = this.itemsForMouseEvent(event);
+    if (!items) {
+      event.preventDefault();
+      return null;
+    }
+    this.props.onDragItems(event, items);
+  };
 
   _onClickItem = (item, event) => {
     if (!this.state.handler) {
@@ -323,5 +339,20 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
       return null;
     }
     return item.dataset.itemId;
+  }
+
+  itemsForMouseEvent(event) {
+    const { dataSource, onDragItems } = this.props;
+
+    const itemId = this.itemIdAtPoint(event.clientX, event.clientY);
+    if (!itemId) return [];
+
+    if (itemId && dataSource.selection.ids().includes(itemId)) {
+      return dataSource.selection.items();
+    } else {
+      const item = dataSource.getById(itemId);
+      if (!item) return [];
+      return [item];
+    }
   }
 }

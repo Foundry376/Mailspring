@@ -733,15 +733,15 @@ export const commonlyCapitalizedSalutations = [
   'ladies',
 ];
 
-export function hueForString(str) {
-  if (str == null) {
+export function hueForString(str: string | null) {
+  if (!str) {
     str = '';
   }
   return (
     str
       .split('')
-      .map(c => c.charCodeAt())
-      .reduce((n, a) => n + a) % 360
+      .map(c => c.charCodeAt(0))
+      .reduce((n, a) => n + a, 0) % 360
   );
 }
 

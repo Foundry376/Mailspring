@@ -1,5 +1,5 @@
 import React from 'react';
-import { Contact, AccountStore, localized } from 'mailspring-exports';
+import { Contact, AccountStore, localized, CanvasUtils } from 'mailspring-exports';
 import {
   FocusContainer,
   MultiselectList,
@@ -8,6 +8,7 @@ import {
   ListensToFluxStore,
 } from 'mailspring-component-kit';
 import { ContactSource, Store } from './Store';
+import _ from 'underscore';
 
 const ContactColumn = new ListTabular.Column({
   name: 'Item',
@@ -33,7 +34,7 @@ class ContactsListEmpty extends React.Component<{ visible: boolean }> {
 interface ContactListProps {
   search: string;
   contacts: Contact[];
-  selectedGroup: ContactSource;
+  selectedSource: ContactSource;
 }
 
 class ContactListWithData extends React.Component<ContactListProps> {
@@ -54,19 +55,34 @@ class ContactListWithData extends React.Component<ContactListProps> {
     this._source.setItems(this.props.contacts);
   }
 
+  _onDragItems = (event, items) => {
+    const data = {
+      ids: items.map(c => c.id),
+      accountIds: _.uniq(items.map(t => t.accountId)),
+    };
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.dragEffect = 'move';
+
+    const canvas = CanvasUtils.canvasForDragging('contacts', data.ids.length);
+    event.dataTransfer.setDragImage(canvas, 10, 10);
+    event.dataTransfer.setData('mailspring-contacts-data', JSON.stringify(data));
+    event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');
+  };
+
   render() {
     return (
       <FocusContainer collection="contact">
         <MultiselectList
           ref="list"
           draggable
+          key={JSON.stringify(this.props.selectedSource)}
           className="contact-list"
           columns={[ContactColumn]}
           dataSource={this._source}
           itemPropsProvider={() => ({})}
-          itemHeight={40}
+          itemHeight={32}
           EmptyComponent={ContactsListEmpty}
-          onDragStart={() => null}
+          onDragItems={this._onDragItems}
           onDragEnd={() => null}
         />
       </FocusContainer>
@@ -77,7 +93,7 @@ class ContactListWithData extends React.Component<ContactListProps> {
 export const ContactList = ListensToFluxStore(ContactListWithData, {
   stores: [Store],
   getStateFromStores: () => ({
-    selectedGroup: Store.selectedGroup(),
+    selectedSource: Store.selectedSource(),
     contacts: Store.filteredContacts(),
   }),
 });
@@ -91,11 +107,10 @@ ContactList.containerStyles = {
 interface ContactListSearchWithDataProps {
   search: string;
   setSearch: (search: string) => void;
-  selectedGroup: ContactSource;
+  selectedSource: ContactSource;
 }
 
 const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
-
   return (
     <div className="contact-search">
       <RetinaImg
@@ -109,7 +124,7 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
         ref={this._searchEl}
         value={props.search}
         placeholder={`${localized('Search')} ${
-          props.selectedGroup ? props.selectedGroup.label : 'all contacts'
+          props.selectedSource ? props.selectedSource.label : 'all contacts'
         }`}
         onChange={e => props.setSearch(e.currentTarget.value)}
       />
@@ -120,7 +135,7 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
 export const ContactListSearch = ListensToFluxStore(ContactListSearchWithData, {
   stores: [Store],
   getStateFromStores: () => ({
-    selectedGroup: Store.selectedGroup(),
+    selectedSource: Store.selectedSource(),
     search: Store.search(),
     setSearch: s => Store.setSearch(s),
   }),

@@ -11,8 +11,8 @@
   "license": "GPL-3.0",
   "main": "./src/browser/main.js",
   "dependencies": {
-    "@paulcbetts/cld": "2.4.6",
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
+    "@paulcbetts/cld": "2.4.6",
     "better-sqlite3": "bengotow/better-sqlite3#dcd5b6e73c9a5329fd72c85be3316131fcfb83ab",
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
@@ -78,6 +78,7 @@
     "underscore.string": "^3.3.5",
     "utf7": "^1.0.2",
     "uuid": "^3.0.0",
+    "vcf": "^2.0.5",
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
     "xlsx": "0.14.1"
   },
