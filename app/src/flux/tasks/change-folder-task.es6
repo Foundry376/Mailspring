@@ -31,7 +31,7 @@ export default class ChangeFolderTask extends ChangeMailTask {
       const folders = [];
       for (const t of data.threads || []) {
         const f = t.folders.find(f => f.id !== data.folder.id) || t.folders[0];
-        if (!folders.find(other => other.id === f.id)) {
+        if (f && !folders.find(other => other.id === f.id)) {
           folders.push(f);
         }
       }
