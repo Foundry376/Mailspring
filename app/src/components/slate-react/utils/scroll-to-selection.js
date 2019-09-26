@@ -1,7 +1,7 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
+Object.defineProperty(exports, '__esModule', {
+  value: true,
 });
 
 var _getWindow = require('get-window');
@@ -14,7 +14,9 @@ var _selectionIsBackward2 = _interopRequireDefault(_selectionIsBackward);
 
 var _environment = require('../constants/environment');
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
 
 /**
  * CSS overflow values that would cause scrolling.
@@ -40,7 +42,6 @@ function findScrollContainer(el, window) {
     var style = window.getComputedStyle(parent);
     var overflowY = style.overflowY;
 
-
     if (OVERFLOWS.includes(overflowY)) {
       scroller = parent;
       break;
@@ -61,6 +62,34 @@ function findScrollContainer(el, window) {
   return scroller;
 }
 
+function findEditableContainer(el, window) {
+  if (!el || !el instanceof Node) {
+    return;
+  }
+
+  var parent = el.parentNode;
+  var editabler = void 0;
+
+  while (!editabler) {
+    if (!parent.parentNode) break;
+
+    var isEditable = parent.getAttribute('contenteditable');
+
+    if (isEditable) {
+      editabler = parent;
+      break;
+    }
+
+    parent = parent.parentNode;
+  }
+
+  if (!editabler) {
+    return null;
+  }
+
+  return editabler;
+}
+
 /**
  * Scroll the current selection's focus point into view if needed.
  *
@@ -72,6 +101,7 @@ function scrollToSelection(selection) {
 
   var window = (0, _getWindow2.default)(selection.anchorNode);
   var scroller = findScrollContainer(selection.anchorNode, window);
+  var cursorEditableContainer = findEditableContainer(selection.anchorNode);
   var isWindow = scroller == window.document.body || scroller == window.document.documentElement;
   var backward = (0, _selectionIsBackward2.default)(selection);
 
@@ -117,9 +147,9 @@ function scrollToSelection(selection) {
 
   if (isWindow) {
     var innerWidth = window.innerWidth,
-        innerHeight = window.innerHeight,
-        pageYOffset = window.pageYOffset,
-        pageXOffset = window.pageXOffset;
+      innerHeight = window.innerHeight,
+      pageYOffset = window.pageYOffset,
+      pageXOffset = window.pageXOffset;
 
     width = innerWidth;
     height = innerHeight;
@@ -127,19 +157,19 @@ function scrollToSelection(selection) {
     xOffset = pageXOffset;
   } else {
     var offsetWidth = scroller.offsetWidth,
-        offsetHeight = scroller.offsetHeight,
-        scrollTop = scroller.scrollTop,
-        scrollLeft = scroller.scrollLeft;
+      offsetHeight = scroller.offsetHeight,
+      scrollTop = scroller.scrollTop,
+      scrollLeft = scroller.scrollLeft;
 
     var _window$getComputedSt = window.getComputedStyle(scroller),
-        borderTopWidth = _window$getComputedSt.borderTopWidth,
-        borderBottomWidth = _window$getComputedSt.borderBottomWidth,
-        borderLeftWidth = _window$getComputedSt.borderLeftWidth,
-        borderRightWidth = _window$getComputedSt.borderRightWidth,
-        paddingTop = _window$getComputedSt.paddingTop,
-        paddingBottom = _window$getComputedSt.paddingBottom,
-        paddingLeft = _window$getComputedSt.paddingLeft,
-        paddingRight = _window$getComputedSt.paddingRight;
+      borderTopWidth = _window$getComputedSt.borderTopWidth,
+      borderBottomWidth = _window$getComputedSt.borderBottomWidth,
+      borderLeftWidth = _window$getComputedSt.borderLeftWidth,
+      borderRightWidth = _window$getComputedSt.borderRightWidth,
+      paddingTop = _window$getComputedSt.paddingTop,
+      paddingBottom = _window$getComputedSt.paddingBottom,
+      paddingLeft = _window$getComputedSt.paddingLeft,
+      paddingRight = _window$getComputedSt.paddingRight;
 
     var scrollerRect = scroller.getBoundingClientRect();
     width = offsetWidth;
@@ -154,6 +184,16 @@ function scrollToSelection(selection) {
     scrollerPaddingRight = parseInt(paddingRight, 10);
     yOffset = scrollTop;
     xOffset = scrollLeft;
+  }
+
+  if (cursorEditableContainer) {
+    var fromEditablerTopToScrollerTop =
+      scroller.scrollTop + cursorEditableContainer.getBoundingClientRect().top - scrollerTop;
+    var fromEditablerBottomToScrollerTop =
+      fromEditablerTopToScrollerTop + cursorEditableContainer.offsetHeight;
+    var fromEditablerBootomToScrollerBottom =
+      scroller.scrollHeight - fromEditablerBottomToScrollerTop;
+    height = height - fromEditablerBootomToScrollerBottom;
   }
 
   var cursorTop = cursorRect.top + yOffset - scrollerTop;
