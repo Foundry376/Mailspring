@@ -59,8 +59,9 @@ class TitleSearchBar extends Component {
     }
   }
 
+
   render() {
-    const current = FocusedPerspectiveStore.current();
+    const current = this.props.perspective;
     let title = '';
     if (current && current.threadTitleName) {
       title = current.threadTitleName;
