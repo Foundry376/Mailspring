@@ -13,12 +13,27 @@
       border-radius: 5px;
     }
     .only-item {
-      margin-left: 8px;
-      -webkit-appearance: menulist;
-      appearance: menulist;
+      position: relative;
+      border-radius: 5px;
+      padding-right: 0;
       span + img {
         visibility: hidden;
       }
+      &::after {
+        content: '';
+        display: block;
+        position: absolute;
+        height: 100%;
+        width: 10px;
+        pointer-events: none;
+        right: 4px;
+        top: 0;
+        -webkit-appearance: menulist;
+      }
+    }
+    .secondary-items {
+      max-height: 260px;
+      overflow: auto;
     }
   }
   .item-back {
