@@ -1,6 +1,6 @@
 /* eslint global-require: "off" */
 
-import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, dialog, systemPreferences } from 'electron';
 
 import fs from 'fs-plus';
 import rimraf from 'rimraf';
@@ -29,6 +29,11 @@ let clipboard = null;
 //
 export default class Application extends EventEmitter {
   async start(options) {
+    // subscribe event of dark mode change
+    systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+      // console.log(`***dark mode: ${systemPreferences.isDarkMode()}`);
+    });
+
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
     //BrowserWindow.addDevToolsExtension('~/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/3.4.2_0');
     //BrowserWindow.addDevToolsExtension('/Users/xingmingcao/Library/Application Support/Google/Chrome/Default/Extensions/lmhkpmbekcpmknklioeibfkpmmfibljd/2.15.5_0');
@@ -292,7 +297,7 @@ export default class Application extends EventEmitter {
   // we close windows and log out, we need to wait for these processes to completely
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
-  deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
+  deleteFileWithRetry(filePath, callback = () => { }, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -322,7 +327,7 @@ export default class Application extends EventEmitter {
     });
   }
 
-  renameFileWithRetry(filePath, newPath, callback = () => {}, retries = 5) {
+  renameFileWithRetry(filePath, newPath, callback = () => { }, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -433,7 +438,7 @@ export default class Application extends EventEmitter {
           execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
             cwd: this.configDirPath,
           });
-          fs.unlink(path.join(this.configDirPath, sqlPath), () => {});
+          fs.unlink(path.join(this.configDirPath, sqlPath), () => { });
         } else {
           // TODO in windows
           console.warn('in this system does not implement yet');
