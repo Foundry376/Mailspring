@@ -1,5 +1,4 @@
-@import 'onboarding-reset';
-
+@import 'ui-variables';
 .theme-ui-dark {
     .layout-mode-popout {
         .sheet {
@@ -17,14 +16,14 @@
         .page.opaque h1,
         .page.opaque h4,
         .page-frame label {
-            color: #fff;
+            color: @text-color-inverse;
         }
         .page.oauth {
             .success,
             .validating {
               h2,
               p {
-                color: #fff;
+                color: @text-color-inverse;
               }
             }
         }
@@ -46,8 +45,14 @@
         input[type='tel'], 
         input[type='time'], 
         input[type='url'] {
-            background-color: #1e1e1f;
+            background-color: @dropdown-default-bg-color;
+            background: @dropdown-default-bg-color;
             border-color: transparent;
         }
+        .dropdown-wrapper {
+            &::after {
+                color: @text-color-inverse;
+            }
+          }
     }
 }
