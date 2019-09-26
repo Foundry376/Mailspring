@@ -109,4 +109,19 @@
 .RichEditor-toolbar button {
     color: @gray-light;
 }
+.RichEditor-root .RichEditor-content {
+    color: inherit;
+    -webkit-filter: invert(1) !important;
+    filter: invert(1) !important;
+    img {
+        -webkit-filter: invert(1) !important;
+        filter: invert(1) !important;
+    }
+    span.link,
+    a {
+        -webkit-filter: invert(1) !important;
+        filter: invert(1) !important;
+        color: #1F9AFF;
+    }
+}
 // composer end
