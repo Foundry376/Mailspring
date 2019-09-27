@@ -19,9 +19,12 @@ export default class AccountSettingsPageOutlook extends React.Component {
     this._outlookAuthUrl = buildOutlookAuthURL();
   }
 
-  onSuccess(account) {
+  onSuccess = account => {
+    // outlook & hotmail is use same oauth.
+    // After login, they need to be separated so that show their avatars .
+    account.provider = this.props.account.provider;
     OnboardingActions.finishAndAddAccount(account);
-  }
+  };
 
   render() {
     const providerConfig = AccountProviders.find(a => a.provider === this.props.account.provider);
@@ -32,7 +35,7 @@ export default class AccountSettingsPageOutlook extends React.Component {
       <OAuthSignInPage
         serviceName="Outlook"
         providerAuthPageUrl={this._outlookAuthUrl}
-        buildAccountFromAuthResponse={code => buildOutlookAccountFromAuthResponse(code, this.props.account.provider)}
+        buildAccountFromAuthResponse={code => buildOutlookAccountFromAuthResponse(code)}
         iconName={headerIcon}
         onSuccess={this.onSuccess}
         onTryAgain={goBack}

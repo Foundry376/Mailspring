@@ -7,15 +7,17 @@ import MailcoreProviderSettings from './mailcore-provider-settings';
 import dns from 'dns';
 
 const queryStringify = (data, encoded = false) => {
-  const queryString = Object.keys(data).map((key) => {
-    if (encoded === true) {
-      return encodeURIComponent(`${key}`) + '=' + encodeURIComponent(`${data[key]}`);
-    } else {
-      return `${key}=${data[key]}`;
-    }
-  }).join('&');
+  const queryString = Object.keys(data)
+    .map(key => {
+      if (encoded === true) {
+        return encodeURIComponent(`${key}`) + '=' + encodeURIComponent(`${data[key]}`);
+      } else {
+        return `${key}=${data[key]}`;
+      }
+    })
+    .join('&');
   return queryString;
-}
+};
 
 const EDISON_OAUTH_KEYWORD = 'edison_desktop';
 const EDISON_REDIRECT_URI = 'http://email.easilydo.com';
@@ -27,10 +29,11 @@ const GMAIL_SCOPES = [
   // Edison
   'https://mail.google.com/',
   'email',
-  'https://www.google.com/m8/feeds'
+  'https://www.google.com/m8/feeds',
 ];
 
-const YAHOO_CLIENT_ID = 'dj0yJmk9c3IxR3h4VG5GTXBYJmQ9WVdrOVlVeHZNVXh1TkhVbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--';
+const YAHOO_CLIENT_ID =
+  'dj0yJmk9c3IxR3h4VG5GTXBYJmQ9WVdrOVlVeHZNVXh1TkhVbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--';
 const YAHOO_CLIENT_SECRET = '8a267b9f897da839465ff07a712f9735550ed412';
 
 const OFFICE365_CLIENT_ID = '000000004818114B';
@@ -98,10 +101,7 @@ function mxRecordsForDomain(domain) {
   });
 }
 
-export function validateEmailAddressForProvider(
-  emailAddress = '',
-  provider = null
-) {
+export function validateEmailAddressForProvider(emailAddress = '', provider = null) {
   if (!provider) {
     return { ret: false, message: 'Email entered is not valid.' };
   }
@@ -114,7 +114,7 @@ export function validateEmailAddressForProvider(
     .toLowerCase();
   let template = MailcoreProviderSettings[provider.provider];
   mxRecordsForDomain(domain).then(mxRecords => {
-    if(template){
+    if (template) {
       for (const test of template['mx-match'] || []) {
         const reg = new RegExp(`^${test}$`);
         if (mxRecords.some(record => reg.test(record))) {
@@ -143,11 +143,15 @@ export function validateEmailAddressForProvider(
     if (tmp && tmp.imap_host && tmp.imap_host === template.imap_host && !fromAlias) {
       return { ret: true };
     }
-    if (tmp && !tmp.imap_host && (tmp.alias === provider.defaultDomain || tmp.alias === provideAlias)) {
+    if (
+      tmp &&
+      !tmp.imap_host &&
+      (tmp.alias === provider.defaultDomain || tmp.alias === provideAlias)
+    ) {
       return { ret: true };
     }
-    if(provider.incorrectEmail){
-      return { ret: false, message: provider.incorrectEmail}
+    if (provider.incorrectEmail) {
+      return { ret: false, message: provider.incorrectEmail };
     }
   }
   return { ret: false, message: `Entered email is not a valid ${provider.displayName} address.` };
@@ -212,7 +216,9 @@ export async function expandAccountWithCommonSettings(account, forceDomain = nul
   // find matching template by domain or provider in the old lookup tables
   // this matches the account type presets ("yahoo") and common domains against
   // data derived from Thunderbirds ISPDB.
-  template = MailspringProviderSettings[forceDomain || domain] || MailspringProviderSettings[account.provider];
+  template =
+    MailspringProviderSettings[forceDomain || domain] ||
+    MailspringProviderSettings[account.provider];
   if (template) {
     if (template.alias) {
       template = MailspringProviderSettings[template.alias];
@@ -274,7 +280,7 @@ export async function buildOffice365AccountFromAuthResponse(code) {
     method: 'GET',
     headers: {
       Authorization: `${access_token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
   });
   const me = await meResp.json();
@@ -302,7 +308,7 @@ export async function buildOffice365AccountFromAuthResponse(code) {
   return await finalizeAndValidateAccount(account);
 }
 
-export async function buildOutlookAccountFromAuthResponse(code, provider = 'outlook') {
+export async function buildOutlookAccountFromAuthResponse(code) {
   /// Exchange code for an access token
   const body = [];
   body.push(`code=${encodeURIComponent(code)}`);
@@ -346,7 +352,7 @@ export async function buildOutlookAccountFromAuthResponse(code, provider = 'outl
     new Account({
       name: me.name,
       emailAddress: me.emails.account,
-      provider: provider,
+      provider: 'outlook',
       settings: {
         refresh_client_id: OUTLOOK_CLIENT_ID,
         refresh_token: refresh_token,
@@ -457,14 +463,14 @@ export async function buildYahooAccountFromAuthResponse(code) {
     `client_secret=${encodeURIComponent(YAHOO_CLIENT_SECRET)}`,
     `code=${encodeURIComponent(code)}`,
     'grant_type=authorization_code',
-    `redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
+    `redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`,
   ].join('&');
 
   const resp = await fetch('https://api.login.yahoo.com/oauth2/get_token', {
     method: 'POST',
     body: body,
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
     },
   });
 
@@ -502,7 +508,7 @@ export async function buildYahooAccountFromAuthResponse(code) {
 
   let email = fullName + '/Yahoo';
   if (me.profile.emails[0] && me.profile.emails[0].handle) {
-    email = me.profile.emails[0].handle
+    email = me.profile.emails[0].handle;
   }
 
   const account = await expandAccountWithCommonSettings(
@@ -526,43 +532,51 @@ export async function buildYahooAccountFromAuthResponse(code) {
 }
 
 export function buildOffice365AuthURL() {
-  return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize`
-    + `?`
-    + `client_id=${OFFICE365_CLIENT_ID}`
-    + `&scope=${encodeURIComponent(OFFICE365_SCOPES.join(' '))}`
-    + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
-    + `&state=${EDISON_OAUTH_KEYWORD}`
-    + `&response_type=code`;
+  return (
+    `https://login.microsoftonline.com/common/oauth2/v2.0/authorize` +
+    `?` +
+    `client_id=${OFFICE365_CLIENT_ID}` +
+    `&scope=${encodeURIComponent(OFFICE365_SCOPES.join(' '))}` +
+    `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}` +
+    `&state=${EDISON_OAUTH_KEYWORD}` +
+    `&response_type=code`
+  );
 }
 
 export function buildOutlookAuthURL() {
-  return `https://login.live.com/oauth20_authorize.srf`
-    + `?`
-    + `client_id=${OUTLOOK_CLIENT_ID}`
-    + `&scope=${encodeURIComponent(OUTLOOK_SCOPES.join(' '))}`
-    + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
-    + `&state=${EDISON_OAUTH_KEYWORD}`
-    + `&response_type=code`;
+  return (
+    `https://login.live.com/oauth20_authorize.srf` +
+    `?` +
+    `client_id=${OUTLOOK_CLIENT_ID}` +
+    `&scope=${encodeURIComponent(OUTLOOK_SCOPES.join(' '))}` +
+    `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}` +
+    `&state=${EDISON_OAUTH_KEYWORD}` +
+    `&response_type=code`
+  );
 }
 
 export function buildYahooAuthURL() {
-  return `https://api.login.yahoo.com/oauth2/request_auth`
-    + `?`
-    + `client_id=${YAHOO_CLIENT_ID}`
-    + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
-    + `&state=${EDISON_OAUTH_KEYWORD}`
-    + `&response_type=code`;
+  return (
+    `https://api.login.yahoo.com/oauth2/request_auth` +
+    `?` +
+    `client_id=${YAHOO_CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}` +
+    `&state=${EDISON_OAUTH_KEYWORD}` +
+    `&response_type=code`
+  );
 }
 
 export function buildGmailAuthURL() {
-  return `https://accounts.google.com/o/oauth2/auth`
-    + `?`
-    + `client_id=${GMAIL_CLIENT_ID}`
-    + `&redirect_uri=${encodeURIComponent(LOCAL_REDIRECT_URI)}`
-    + `&response_type=code`
-    + `&scope=${encodeURIComponent(GMAIL_SCOPES.join(' '))}`
-    + `&access_type=offline`
-    + `&select_account%20consent`;
+  return (
+    `https://accounts.google.com/o/oauth2/auth` +
+    `?` +
+    `client_id=${GMAIL_CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(LOCAL_REDIRECT_URI)}` +
+    `&response_type=code` +
+    `&scope=${encodeURIComponent(GMAIL_SCOPES.join(' '))}` +
+    `&access_type=offline` +
+    `&select_account%20consent`
+  );
 }
 
 export async function finalizeAndValidateAccount(account) {
