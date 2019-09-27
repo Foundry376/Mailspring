@@ -21,7 +21,7 @@ export default class AccountSettingsPageOutlook extends React.Component {
 
   onSuccess = account => {
     // outlook & hotmail is use same oauth.
-    //After login, they need to be separated so that show their avatars .
+    // After login, they need to be separated so that show their avatars .
     account.provider = this.props.account.provider;
     OnboardingActions.finishAndAddAccount(account);
   };
