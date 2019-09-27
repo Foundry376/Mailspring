@@ -168,7 +168,7 @@ class DraftStore extends MailspringStore {
           inFocusedThread &&
           !this._draftsOpenCount[headerMessageId][1]
         ) {
-          console.log(
+          AppEnv.logDebug(
             `Only trigger open draft count if in main window, in focus thread, and current opencount is not set`
           );
           this._onDraftOpenCount({
@@ -290,7 +290,6 @@ class DraftStore extends MailspringStore {
   };
 
   _onResendDraft = ({ messages = [], source= '' } = {}) => {
-    console.log('on resend draft', messages);
     const tasks = [];
     messages.forEach(message => {
       tasks.push(SendDraftTask.forSending(message));
@@ -911,7 +910,7 @@ class DraftStore extends MailspringStore {
   //   }
   // };
   _onDestroyDraftSuccess = ({ messageIds }) => {
-    console.log('destroy draft succeeded');
+    AppEnv.logDebug('destroy draft succeeded');
     if (Array.isArray(messageIds)) {
       const headerMessageIds = [];
       messageIds.forEach(id =>{
@@ -932,7 +931,7 @@ class DraftStore extends MailspringStore {
   };
 
   _onDestroyDraftFailed = ({ messageIds, key, debuginfo }) => {
-    console.log('destroy draft failed');
+    AppEnv.logDebug('destroy draft failed');
     if (Array.isArray(messageIds)) {
       const headerMessageIds = [];
       messageIds.forEach(id =>{

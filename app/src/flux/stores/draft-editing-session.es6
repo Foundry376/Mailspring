@@ -61,6 +61,7 @@ class DraftChangeSet extends EventEmitter {
       for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
       if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
       if (changes.body) this._lastModifiedTimes.bodyEditorState = Date.now();
+      changes.date = new Date();
       this.debounceCommit();
     }
 
@@ -802,7 +803,7 @@ export default class DraftEditingSession extends MailspringStore {
 
   _applySyncDraftData({ syncData = {}, sourceLevel = 0 } = {}) {
     if (sourceLevel !== this.currentWindowLevel && syncData.id === this._draft.id) {
-      console.log('apply sync draft data');
+      AppEnv.logDebug('apply sync draft data');
       const nothingChanged =
         this._draft['body'] === syncData.body &&
         JSON.stringify(this._draft.from) === JSON.stringify(syncData.from) &&
@@ -822,7 +823,7 @@ export default class DraftEditingSession extends MailspringStore {
       if (AppEnv.isMainWindow()) {
         Actions.broadcastDraftData({ syncData, sourceLevel });
         if(!nothingChanged){
-          console.log('things changed');
+          AppEnv.logDebug('things changed');
           this.needUpload = true;
           this.changes.onNewDraftFromOtherWindow();
         }
@@ -832,15 +833,15 @@ export default class DraftEditingSession extends MailspringStore {
 
   _syncDraftDataToMain = () => {
     if (!AppEnv.isMainWindow()) {
-      console.log('sync draft to main');
+      AppEnv.logDebug('sync draft to main');
       const syncData = cloneForSyncDraftData(this._draft);
       Actions.syncDraftDataToMain({ syncData, sourceLevel: this.currentWindowLevel });
     }
   };
   onDraftOpenCountChange = ({ headerMessageId, data = {} }) => {
-    console.log(`draft open count change ${headerMessageId}`);
+    AppEnv.logDebug(`draft open count change ${headerMessageId}`);
     if (this._draft && headerMessageId === this._draft.headerMessageId) {
-      console.log('draft open count change');
+      AppEnv.logDebug('draft open count change');
       let level = 3;
       let changedToTrue= false;
       while (level > this.currentWindowLevel) {
