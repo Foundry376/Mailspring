@@ -23,7 +23,7 @@ class SearchMailboxPerspective extends MailboxPerspective {
       this.sourcePerspective = sourcePerspective;
     }
 
-    this.name = `Searching ${this.sourcePerspective.name}`;
+    this.name = `Searching All`;
   }
 
   emptyMessage() {

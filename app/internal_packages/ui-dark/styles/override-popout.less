@@ -1,0 +1,60 @@
+@import 'ui-variables';
+.theme-ui-dark {
+    .layout-mode-popout {
+        .sheet {
+            background: none;
+        }
+        // onboarding
+        .page-frame {
+            .page {
+                background-color: inherit;
+            }
+            .page.account-setup.AccountIMAPSettingsForm .col select,
+            input[type='text'],
+            input[type='email'],
+            input[type='date'], 
+            input[type='datetime'], 
+            input[type='datetime-local'], 
+            input[type='month'], 
+            input[type='number'], 
+            input[type='password'], 
+            input[type='search'], 
+            input[type='tel'], 
+            input[type='time'], 
+            input[type='url'] {
+                background-color: @dropdown-default-bg-color;
+                background: @dropdown-default-bg-color;
+                border-color: transparent;
+            }
+            .dropdown-wrapper {
+                &::after {
+                    color: @text-color-inverse;
+                }
+            }
+
+            .page.account-setup.AccountIMAPSettingsForm .col-heading,
+            .page.account-choose h2,
+            .page.account-choose p,
+            .logo-container h2,
+            .page.account-choose .provider-name,
+            .page.opaque h1,
+            .page.opaque h4,
+            label {
+                color: @text-color-inverse;
+            }
+            .page.oauth {
+                .success,
+                .validating {
+                  h2,
+                  p {
+                    color: @text-color-inverse;
+                  }
+                }
+            }
+    
+            .page.account-choose .provider:hover {
+                background-color: inherit;
+            }
+        }
+    }
+}
