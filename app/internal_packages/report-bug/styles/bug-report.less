@@ -1,62 +1,66 @@
-
 .page-frame {
   text-align: center;
   flex: 1;
   background-color: whitesmoke;
   height: 100%;
   padding: 24px;
+
+  &.bug-report {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
   h2 {
     line-height: 1.3em;
     font-size: 30pt;
     font-weight: 200;
   }
-  .item-description{
+  .item-description {
     display: flex;
     flex-direction: column;
-    label{
+    label {
       padding-bottom: 14px;
     }
   }
-  .item-checkbox{
+  .item-checkbox {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
-    label{
-      max-width: 200px;
-      width: fit-content;
+    label {
+      flex: 1;
       height: 50px;
       display: flex;
       flex-direction: row;
       align-items: center;
       padding: unset;
+      white-space: normal;
     }
   }
-  textarea{
+  textarea {
     resize: none;
     box-sizing: border-box;
     height: 250px;
     width: 100%;
     border-radius: 10px;
-    background-color: #FFF;
-    border: 2px solid #E8EBED;
+    background-color: #fff;
+    border: 2px solid #e8ebed;
     padding: 0 20px;
 
     &::-webkit-input-placeholder {
-      color: #B6BDC2;
+      color: #b6bdc2;
     }
-
   }
   input {
     box-sizing: border-box;
     height: 50px;
     width: 100%;
     border-radius: 10px;
-    background-color: #FFF;
-    border: 2px solid #E8EBED;
+    background-color: #fff;
+    border: 2px solid #e8ebed;
     padding: 0 20px;
 
     &::-webkit-input-placeholder {
-      color: #B6BDC2;
+      color: #b6bdc2;
     }
 
     &[type='checkbox'] {
@@ -81,7 +85,7 @@
   label.checkbox {
     width: inherit;
   }
-  button.btn-report-bug{
+  button.btn-report-bug {
     width: 350px;
     height: 50px;
     background: #39f;
@@ -92,7 +96,7 @@
     font-size: 17px;
     font-weight: 700;
     cursor: pointer;
-    &:hover{
+    &:hover {
       background: #0f72d1;
     }
   }

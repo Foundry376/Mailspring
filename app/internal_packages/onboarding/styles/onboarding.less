@@ -708,6 +708,8 @@
 
 .page.account-choose {
   background: #fff;
+  display: flex;
+  flex-direction: column;
   h2 {
     color: #000;
     font-weight: bold;
@@ -725,6 +727,8 @@
   .provider-list {
     margin: auto;
     width: 310px;
+    flex: 1;
+    overflow-y: auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
