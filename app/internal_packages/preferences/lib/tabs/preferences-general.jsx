@@ -6,6 +6,7 @@ import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
 import { RetinaImg } from 'mailspring-component-kit';
+import { Actions } from 'mailspring-exports';
 
 class PreferencesGeneral extends React.Component {
   static displayName = 'PreferencesGeneral';
@@ -81,8 +82,7 @@ class PreferencesGeneral extends React.Component {
   };
 
   _onResetEmailCache = () => {
-    const ipc = require('electron').ipcRenderer;
-    ipc.send('command', 'application:reset-database', {});
+    Actions.forceKillAllClients();
   };
 
   render() {

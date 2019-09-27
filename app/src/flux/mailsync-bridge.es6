@@ -125,6 +125,7 @@ export default class MailsyncBridge {
     Actions.syncFolders.listen(this._onSyncFolders, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
     Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
+    Actions.forceKillAllClients.listen(this.forceKillClients, this);
     ipcRenderer.on('mailsync-config', this._onMailsyncConfigUpdate);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     // ipcRenderer.on('thread-close-window', this._onNewWindowClose);
@@ -199,6 +200,10 @@ export default class MailsyncBridge {
   }
 
   ensureClients = _.throttle((kind) => {
+    if(this._noRelaunch){
+      console.log('no relaunch of clients');
+      return;
+    }
     console.log(`ensuring account ${kind}`);
     const clientsWithoutAccounts = Object.assign({}, this._clients);
 
@@ -227,6 +232,23 @@ export default class MailsyncBridge {
       AppEnv.debugLog(`pid@${id} mailsync-bridge ensureClients: ${kind}`);
     }
   }, 100);
+
+  forceKillClients(){
+    if(!AppEnv.isMainWindow()){
+      return;
+    }
+    this._noRelaunch = true;
+    for (const client of Object.values(this.clients())){
+      if (client) {
+        if (client._proc && client._proc.pid) {
+          const id = client._proc.pid;
+          AppEnv.logWarning(`\n\n@pid ${id} was forced to die, it shall not re-spawn\n\n`);
+          client.kill();
+        }
+      }
+    }
+    ipcRenderer.send('command', 'application:reset-database', {});
+  }
 
   forceRelaunchClient(account) {
     this._launchClient(account, { force: true });
