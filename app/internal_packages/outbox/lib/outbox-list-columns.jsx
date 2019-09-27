@@ -29,8 +29,8 @@ const SenderColumn = new ListTabular.Column({
   name: 'Sender',
   resolver: draft => {
     const account = AccountStore.accountForId(draft.accountId);
-    let accountLogo = 'account-logo-imap.png';
-    if(account){
+    let accountLogo = 'account-logo-other.png';
+    if(account && account.provider !== 'imap'){
       accountLogo = `account-logo-${account.provider}.png`;
     }
     const styles = {
