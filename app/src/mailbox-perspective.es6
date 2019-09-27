@@ -808,10 +808,14 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const acct = AccountStore.accountForId(accountId);
       const preferred = acct.preferredRemovalDestination();
+      if (!preferred) {
+        AppEnv.reportError(new Error('We cannot find our preferred removal destination'), { errorData: {account: acct, errorCode: 'folderNotAvailable'} });
+        return;
+      }
       const cat = this.categories().find(c => c.accountId === accountId);
       const currentPerspective = FocusedPerspectiveStore.current();
       const previousFolder = TaskFactory.findPreviousFolder(currentPerspective, accountId);
-      if (cat instanceof Label && preferred.role !== 'trash') {
+      if (cat instanceof Label && preferred && preferred.role !== 'trash') {
         const inboxCat = CategoryStore.getInboxCategory(accountId);
         return new ChangeLabelsTask({
           threads: accountThreads,

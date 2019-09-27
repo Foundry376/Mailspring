@@ -90,7 +90,7 @@ export default class ParticipantsTextField extends React.Component {
       }
       // If no contacts are returned, treat the entire string as a single
       // (malformed) contact object.
-      return [new Contact({ email: string, name: null })];
+      return [new Contact({ email: string, name: '' })];
     });
   };
 
