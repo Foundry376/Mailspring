@@ -10,7 +10,7 @@ export default class BugReportRoot extends React.PureComponent {
       uploadLogs: true,
       uploadScreenShots: false,
       description: '',
-      submitting: false
+      submitting: false,
     };
   }
   componentWillMount() {
@@ -21,7 +21,6 @@ export default class BugReportRoot extends React.PureComponent {
     AppEnv.center();
     AppEnv.displayWindow();
   }
-
 
   onSubmit = () => {
     this.setState({ submitting: true });
@@ -37,7 +36,7 @@ export default class BugReportRoot extends React.PureComponent {
       Promise.all(promises)
         .then(values => {
           for (let i = 0; i < values.length; i++) {
-            if( values[i].length > 0 ){
+            if (values[i].length > 0) {
               files.push(values[i]);
             }
           }
@@ -46,7 +45,9 @@ export default class BugReportRoot extends React.PureComponent {
         })
         .catch(e => {
           console.error('error file');
-          AppEnv.reportError(e, { errorData: {message: 'upload error file failed', description: this.state.description} });
+          AppEnv.reportError(e, {
+            errorData: { message: 'upload error file failed', description: this.state.description },
+          });
           AppEnv.close();
         });
     } else {
@@ -66,30 +67,41 @@ export default class BugReportRoot extends React.PureComponent {
 
   render() {
     return (
-      <div className="page-frame">
+      <div className="page-frame bug-report">
         <h2>Thank you for helping Edison Mail</h2>
-        <div className='item-field'>
+        <div className="item-field">
           <label>Please briefly describe your issue</label>
-          <textarea disabled={this.state.submitting}
-
-                 value={this.state.description}
-                 placeholder="Briefly describe what you did, and what's the expected result and what was observed."
-                 onChange={this.onDescriptionChange}/>
+          <textarea
+            disabled={this.state.submitting}
+            value={this.state.description}
+            placeholder="Briefly describe what you did, and what's the expected result and what was observed."
+            onChange={this.onDescriptionChange}
+          />
         </div>
-        <div className='item-checkbox'>
-          <input type='checkbox' disabled={this.state.submitting}
-                 checked={this.state.uploadLogs} onChange={this.onToggleUploadLogs}/>
+        <div className="item-checkbox">
+          <input
+            type="checkbox"
+            disabled={this.state.submitting}
+            checked={this.state.uploadLogs}
+            onChange={this.onToggleUploadLogs}
+          />
           <label onClick={this.onToggleUploadLogs}>Include log files</label>
         </div>
-        <div className='item-checkbox'>
-          <input type='checkbox' disabled={this.state.submitting}
-                 checked={this.state.uploadScreenShots} onChange={this.onToggleUploadScreenShots}/>
+        <div className="item-checkbox">
+          <input
+            type="checkbox"
+            disabled={this.state.submitting}
+            checked={this.state.uploadScreenShots}
+            onChange={this.onToggleUploadScreenShots}
+          />
           <label onClick={this.onToggleUploadScreenShots}>
             Include app screenshot, this will ONLY include Edison Mail app screenshots.
           </label>
         </div>
         <div>
-          <button className='btn btn-large btn-report-bug' onClick={this.onSubmit}>Submit</button>
+          <button className="btn btn-large btn-report-bug" onClick={this.onSubmit}>
+            Submit
+          </button>
         </div>
       </div>
     );
