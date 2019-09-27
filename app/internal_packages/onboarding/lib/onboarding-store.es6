@@ -3,7 +3,7 @@ import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 import OnboardingActions from './onboarding-actions';
 
-const OAUTH_LIST = ['gmail', 'yahoo', 'outlook'];
+const OAUTH_LIST = ['gmail', 'yahoo', 'outlook', 'hotmail'];
 class OnboardingStore extends MailspringStore {
   constructor() {
     super();
@@ -121,11 +121,9 @@ class OnboardingStore extends MailspringStore {
         next.emailAddress = json.emailAddress;
         this._onSetAccount(next);
         OnboardingActions.moveToPage('account-choose');
-      }
-      else if (!AppEnv.config.get('agree')) {
+      } else if (!AppEnv.config.get('agree')) {
         OnboardingActions.moveToPage('gdpr-terms');
-      }
-      else {
+      } else {
         this._onOnboardingComplete();
       }
     }, 10);
