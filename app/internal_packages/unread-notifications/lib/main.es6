@@ -52,8 +52,6 @@ export class Notifier {
       if (msg.unread !== true) continue;
       // ensure the message was just created (eg: this is not a modification)
       if (msg.version !== 1) continue;
-      // DC-944 In case unpersist message slips through
-      if (msg.type !== 'persist') continue;
       // ensure the message was received after the app launched (eg: not syncing an old email)
       if (!msg.date || msg.date.valueOf() < this.activationTime) continue;
       // ensure the message is not a loopback
@@ -97,17 +95,17 @@ export class Notifier {
 
   _onThreadsChanged(threadsMessage) {
     // Ensure notifications are dismissed when the user reads a thread
-    const threadIds = threadsMessage.map(({id})=>{
+    const threadIds = threadsMessage.map(({ id }) => {
       return id;
     });
-    ThreadStore.findAllByThreadIds({threadIds}).then(threads=>{
+    ThreadStore.findAllByThreadIds({ threadIds }).then(threads => {
       threads.forEach(({ id, unread }) => {
         if (!unread && this.activeNotifications[id]) {
           this.activeNotifications[id].forEach(n => n.close());
           delete this.activeNotifications[id];
         }
       });
-    })
+    });
   }
 
   _notifyAll() {
@@ -203,7 +201,7 @@ export class Notifier {
 
         // Filter new messages to just the ones in the inbox
         const newMessagesInInbox = newMessages.filter(({ folder }) => {
-            return folder.role === 'inbox' || folder.role === 'all'
+          return folder.role === 'inbox' || folder.role === 'all';
         });
 
         if (newMessagesInInbox.length === 0) {
