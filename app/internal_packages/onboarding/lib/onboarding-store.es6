@@ -42,16 +42,16 @@ class OnboardingStore extends MailspringStore {
     } else if (addingAccount) {
       // Adding a new, unknown account
       this._pageStack = ['account-choose'];
-    } else if (identity) {
-      // Should only happen if config was edited to remove all accounts,
-      // but don't want to re-login to Nylas account. Very useful when
-      // switching environments.
-      this._pageStack = ['account-choose'];
     } else if (hasAccounts) {
       // Should only happen when the user has "signed out" of their Nylas ID,
       // but already has accounts synced. Or is upgrading from a very old build.
       // We used to show "Welcome Back", but now just jump to sign in.
       this._pageStack = ['authenticate'];
+    } else if (identity) {
+      // Should only happen if config was edited to remove all accounts,
+      // but don't want to re-login to Nylas account. Very useful when
+      // switching environments.
+      this._pageStack = ['account-choose'];
     } else {
       // Standard new user onboarding flow.
       this._pageStack = ['tutorial'];
