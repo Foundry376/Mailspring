@@ -1,6 +1,7 @@
 import { iniApps, getToken } from '../utils/appmgt';
 import { AccountStore } from 'mailspring-exports';
 import { ConversationStore, ContactStore } from 'chat-exports';
+import ContactModel from '../model/Contact';
 import path from 'path';
 import { queryProfile } from '../utils/restjs';
 import { isJsonStr } from '../utils/stringUtils';
@@ -11,22 +12,25 @@ import { jidlocal } from '../utils/jid';
 
 class AppsStore extends MailspringStore {
   refreshAppsEmailContacts = async () => {
+    await ContactModel.destroy({
+      where: {},
+      truncate: true
+    });
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     log('connect', 'refreshAppsEmailContacts: chatAccounts: ' + JSON.stringify(chatAccounts));
     let acc, userId;
     for (const email in chatAccounts) {
       acc = chatAccounts[email];
       userId = acc.userId;
-      break;
+      if (!userId) {
+        continue;
+      }
+      const payload = {
+        local: userId,
+        curJid: userId + '@im.edison.tech',
+      };
+      await this.saveMyAppsAndEmailContacts(payload);
     }
-    if (!userId) {
-      return;
-    }
-    const payload = {
-      local: userId,
-      curJid: userId + '@im.edison.tech',
-    };
-    await this.saveMyAppsAndEmailContacts(payload);
   };
   saveMyAppsAndEmailContacts = async payload => {
     log('contact', `saveMyAppsAndEmailContacts: ${JSON.stringify(payload)}`);
