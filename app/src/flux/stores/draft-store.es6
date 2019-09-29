@@ -10,6 +10,7 @@ import SendDraftTask from '../tasks/send-draft-task';
 import DestroyDraftTask from '../tasks/destroy-draft-task';
 import Thread from '../models/thread';
 import Message from '../models/message';
+import Contact from '../models/contact';
 import Actions from '../actions';
 import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
@@ -55,6 +56,7 @@ class DraftStore extends MailspringStore {
       this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
       this.listenTo(Actions.composeNewBlankDraft, this._onPopoutBlankDraft);
       this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
+      this.listenTo(Actions.composeFeedBackDraft, this._onPopoutFeedbackDraft);
       this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
       this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
       this.listenTo(Actions.sendDraft, this._onSendDraft);
@@ -64,6 +66,10 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('new-message', () => {
         // From app menu and shortcut
         Actions.composeNewBlankDraft();
+      });
+
+      ipcRenderer.on('composeFeedBack', (event, data) => {
+        Actions.composeFeedBackDraft(data);
       });
 
       // send mail Immediately
@@ -672,6 +678,12 @@ class DraftStore extends MailspringStore {
     this._draftSessions[headerMessageId] = new DraftEditingSession(headerMessageId, draft, options);
     return this._draftSessions[headerMessageId];
   }
+
+  _onPopoutFeedbackDraft = async ({ to, subject = '' } = {}) => {
+    const toContact = Contact.fromObject(to);
+    const draft = await DraftFactory.createDraft({ to: [toContact], subject: subject });
+    await this._finalizeAndPersistNewMessage(draft, { popout: true });
+  };
 
   _onPopoutNewDraftToRecipient = async contact => {
     const draft = await DraftFactory.createDraft({ to: [contact] });

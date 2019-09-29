@@ -561,8 +561,14 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-help', () => {
-      const helpUrl = 'https://www.edison.tech/';
-      require('electron').shell.openExternal(helpUrl);
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow) {
+        const feedbackAddress = 'macfeedback@edison.tech';
+        mainWindow.sendMessage('composeFeedBack', {
+          to: { email: feedbackAddress, name: 'Mac Feedback' },
+          subject: 'Mac Feedback',
+        });
+      }
     });
     this.on('application:bug-report', () => {
       const bugReportWindow = this.windowManager.get(WindowManager.BUG_REPORT_WINDOW);
