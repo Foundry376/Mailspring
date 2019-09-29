@@ -326,10 +326,11 @@ class AccountStore extends MailspringStore {
           }
         });
         ConversationStore.refreshConversations();
+        // all valid contacts will be add back in AppStore.refreshAppsEmailContacts()
+        // refreshAppsEmailContacts is done while chat auth, new conversation button and add group member;
         await ContactModel.destroy({
-          where: {
-            curJid: jid
-          }
+          where: {},
+          truncate: true
         });
         ContactStore.refreshContacts();
         xmpp.removeXmpp(jid);

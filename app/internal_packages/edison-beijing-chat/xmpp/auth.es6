@@ -87,6 +87,7 @@ export const auth = async ({ jid, password }) => {
 
     await delay(200)
     await AppsStore.saveMyAppsAndEmailContacts({ curJid: resBare, local: resLocal })
+    await AppStore.refreshAppsEmailContacts()
   } catch (error) {
     log('connect', `auth connect error: ${JSON.stringify(error)}`)
     window.console.warn('connect error', error)
