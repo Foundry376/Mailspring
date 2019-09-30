@@ -125,7 +125,7 @@ export class ContactDetailEdit extends React.Component<{
                       onChange={e => onChange({ title: e.currentTarget.value })}
                     />
                   </div>
-                  <div className="contact-edit-field">
+                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
                     <label>Company</label>
                     <input
                       type="text"
@@ -152,15 +152,15 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
                   <div className="contact-edit-field">
-                    <label>Value</label>
+                    <label>Email</label>
                     <input
                       type="text"
                       value={item.value}
                       onChange={e => onChange({ value: e.currentTarget.value })}
                     />
                   </div>
-                  <div className="contact-edit-field">
-                    <label>Type</label>
+                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
+                    <label></label>
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={BaseTypes}
@@ -187,15 +187,15 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
                   <div className="contact-edit-field">
-                    <label>Value</label>
+                    <label>Phone</label>
                     <input
                       type="text"
                       value={item.value}
                       onChange={e => onChange({ value: e.currentTarget.value })}
                     />
                   </div>
-                  <div className="contact-edit-field">
-                    <label>Type</label>
+                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
+                    <label></label>
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={PhoneTypes}
@@ -255,14 +255,14 @@ export class ContactDetailEdit extends React.Component<{
                   </div>
                   <div className="contact-edit-twoup">
                     <div className="contact-edit-field">
-                      <label>State / Region</label>
+                      <label>Region</label>
                       <input
                         type="text"
                         value={item.region}
                         onChange={e => onChange({ region: e.currentTarget.value })}
                       />
                     </div>
-                    <div className="contact-edit-field">
+                    <div className="contact-edit-field" style={{ flex: 0.7 }}>
                       <label>Postal Code</label>
                       <input
                         type="number"
@@ -280,7 +280,7 @@ export class ContactDetailEdit extends React.Component<{
                       onChange={e => onChange({ country: e.currentTarget.value })}
                     />
                   </div>
-                  <div className="contact-edit-field">
+                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
                     <label>Type</label>
                     <TypeaheadFreeInput
                       placeholder="Label"
@@ -301,7 +301,7 @@ export class ContactDetailEdit extends React.Component<{
           <div className="contact-edit-section-content">
             <ListEditor<ContactBase['birthdays'][0]>
               items={data.birthdays || []}
-              itemTemplate={{ date: { year: 1980, month: 1, day: 1 } }}
+              itemTemplate={{ date: { year: null, month: null, day: null } }}
               onChange={items => onChange({ birthdays: items })}
             >
               {(item, onChange) => (
@@ -323,15 +323,15 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
                   <div className="contact-edit-field">
-                    <label>Value</label>
+                    <label>Relation</label>
                     <input
                       type="text"
                       value={item.person}
                       onChange={e => onChange({ person: e.currentTarget.value })}
                     />
                   </div>
-                  <div className="contact-edit-field">
-                    <label>Type</label>
+                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
+                    <label></label>
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={RelationTypes}
@@ -357,15 +357,15 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
                   <div className="contact-edit-field">
-                    <label>Value</label>
+                    <label>Link</label>
                     <input
                       type="text"
                       value={item.value}
                       onChange={e => onChange({ value: e.currentTarget.value })}
                     />
                   </div>
-                  <div className="contact-edit-field">
-                    <label>Type</label>
+                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
+                    <label></label>
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={WebTypes}

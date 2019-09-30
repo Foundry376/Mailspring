@@ -26,34 +26,46 @@ export class YYMMDDInput extends React.Component<YYMMDDInputProps> {
     const { year, month, day } = this.props.value;
 
     return (
-      <>
-        <div className="contact-edit-field">
-          <label>Year</label>
-          <input ref={this._year} type="number" defaultValue={`${year}`} onBlur={this._onBlur} />
+      <div>
+        <label>Birthday</label>
+        <div style={{ display: 'flex' }}>
+          <div className="contact-edit-field">
+            <input
+              ref={this._year}
+              type="number"
+              defaultValue={`${year}`}
+              style={{ width: 60, marginRight: 5 }}
+              placeholder="YYYY"
+              onBlur={this._onBlur}
+            />
+          </div>
+          <div className="contact-edit-field">
+            <input
+              max={12}
+              min={1}
+              ref={this._month}
+              style={{ width: 50, marginRight: 5 }}
+              placeholder="MM"
+              type="number"
+              defaultValue={`${month}`}
+              onBlur={this._onBlur}
+            />
+          </div>
+          <div className="contact-edit-field">
+            <input
+              max={31}
+              min={1}
+              ref={this._day}
+              placeholder="DD"
+              type="number"
+              style={{ width: 46 }}
+              defaultValue={`${day}`}
+              onBlur={this._onBlur}
+            />
+          </div>
+          <div style={{ flex: 1 }} />
         </div>
-        <div className="contact-edit-field">
-          <label>Month</label>
-          <input
-            max={12}
-            min={1}
-            ref={this._month}
-            type="number"
-            defaultValue={`${month}`}
-            onBlur={this._onBlur}
-          />
-        </div>
-        <div className="contact-edit-field">
-          <label>Day</label>
-          <input
-            max={31}
-            min={1}
-            ref={this._day}
-            type="number"
-            defaultValue={`${day}`}
-            onBlur={this._onBlur}
-          />
-        </div>
-      </>
+      </div>
     );
   }
 }
