@@ -1,6 +1,6 @@
 @import 'ui-variables';
 
-.contacts-source-list {
+.contacts-perspective-list {
   display: flex;
   background-color: @source-list-bg;
   color: @text-color-subtle;
@@ -90,6 +90,88 @@
       }
     }
   }
+
+  .contact-actions {
+    position: absolute;
+    right: 40px;
+    top: 15px;
+  }
+  .contact-edit-section {
+    display: flex;
+  }
+  .contact-edit-section-content {
+    flex: 1;
+    margin-bottom: 15px;
+  }
+  .contact-edit-section-icon {
+    width: 58px;
+    padding: 0 10px;
+    text-align: right;
+    margin-top: 27px;
+    color: @text-color-very-subtle;
+    svg {
+      max-width: 15px;
+      max-height: 15px;
+      fill: currentColor;
+    }
+  }
+
+  .contact-edit-twoup {
+    flex: 1;
+    display: flex;
+    .contact-edit-field {
+      margin-right: 6px;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+  .contact-edit-field {
+    flex: 1;
+    margin-bottom: 10px;
+    label {
+      font-size: 0.9rem;
+      color: @text-color-very-subtle;
+    }
+    .menu {
+      position: relative;
+    }
+    .menu .header-container {
+      background-color: initial;
+      border-bottom: none;
+      padding: 0;
+    }
+    .menu .content-container {
+      background-color: @background-secondary;
+      border-radius: @border-radius-base;
+      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
+        0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 4px 7px rgba(0, 0, 0, 0.15);
+      position: absolute;
+      z-index: 3;
+      top: 100%;
+    }
+  }
+  .list-editor-item {
+    display: flex;
+    .remove,
+    .add,
+    .add-spacer {
+      padding: 0;
+      width: 25px;
+      margin-top: 21px;
+      margin-left: 7px;
+      text-align: center;
+      font-size: 1.1rem;
+      height: 25px;
+      line-height: 23px;
+    }
+  }
+}
+
+.contact-edit-footer {
+  text-align: right;
+  padding: 10px;
+  border-top: 1px solid @border-color-divider;
 }
 
 .contacts-empty-state {

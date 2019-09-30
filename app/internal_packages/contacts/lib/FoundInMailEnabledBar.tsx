@@ -2,10 +2,10 @@ import React from 'react';
 import { ListensToFluxStore } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 
-import { Store, ContactSource } from './Store';
+import { Store, ContactsPerspective } from './Store';
 
 interface FoundInMailEnabledBarProps {
-  selectedSource: ContactSource;
+  perspective: ContactsPerspective;
 }
 
 const CONFIG_KEY = 'core.contacts.findInMailDisabled';
@@ -14,7 +14,7 @@ class FoundInMailEnabledBarWithData extends React.Component<FoundInMailEnabledBa
   static displayName = 'FoundInMailEnabledBar';
 
   _onToggle = () => {
-    const accountId = this.props.selectedSource.accountId;
+    const accountId = this.props.perspective.accountId;
     let disabled = AppEnv.config.get(CONFIG_KEY);
     if (disabled.includes(accountId)) {
       disabled = disabled.filter(i => i !== accountId);
@@ -26,12 +26,12 @@ class FoundInMailEnabledBarWithData extends React.Component<FoundInMailEnabledBa
   };
 
   render() {
-    const { selectedSource } = this.props;
-    if (!selectedSource || selectedSource.type !== 'found-in-mail') {
+    const { perspective } = this.props;
+    if (!perspective || perspective.type !== 'found-in-mail') {
       return false;
     }
 
-    const disabled = AppEnv.config.get(CONFIG_KEY).includes(selectedSource.accountId);
+    const disabled = AppEnv.config.get(CONFIG_KEY).includes(perspective.accountId);
 
     return (
       <div className="found-in-mail-enabled-bar">
@@ -51,7 +51,7 @@ class FoundInMailEnabledBarWithData extends React.Component<FoundInMailEnabledBa
 export const FoundInMailEnabledBar = ListensToFluxStore(FoundInMailEnabledBarWithData, {
   stores: [Store],
   getStateFromStores: props => ({
-    selectedSource: Store.selectedSource(),
+    perspective: Store.perspective(),
   }),
 });
 FoundInMailEnabledBar.displayName = 'FoundInMailEnabledBar';

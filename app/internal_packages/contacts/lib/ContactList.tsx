@@ -1,13 +1,14 @@
 import React from 'react';
-import { Contact, AccountStore, localized, CanvasUtils } from 'mailspring-exports';
+import { Contact, localized, CanvasUtils } from 'mailspring-exports';
 import {
   FocusContainer,
   MultiselectList,
   ListTabular,
   RetinaImg,
   ListensToFluxStore,
+  ListDataSource,
 } from 'mailspring-component-kit';
-import { ContactSource, Store } from './Store';
+import { ContactsPerspective, Store } from './Store';
 import _ from 'underscore';
 
 const ContactColumn = new ListTabular.Column({
@@ -33,27 +34,12 @@ class ContactsListEmpty extends React.Component<{ visible: boolean }> {
 
 interface ContactListProps {
   search: string;
-  contacts: Contact[];
-  selectedSource: ContactSource;
+  listSource: ListDataSource;
+  perspective: ContactsPerspective;
 }
 
 class ContactListWithData extends React.Component<ContactListProps> {
-  _source = new ListTabular.DataSource.DumbArrayDataSource<Contact>();
   _searchEl = React.createRef<HTMLInputElement>();
-
-  componentDidMount() {
-    this.populateDataSource();
-  }
-
-  componentDidUpdate(prevProps: ContactListProps) {
-    if (this.props.contacts !== prevProps.contacts || this.props.search !== prevProps.search) {
-      this.populateDataSource();
-    }
-  }
-
-  populateDataSource() {
-    this._source.setItems(this.props.contacts);
-  }
 
   _onDragItems = (event, items) => {
     const data = {
@@ -75,10 +61,10 @@ class ContactListWithData extends React.Component<ContactListProps> {
         <MultiselectList
           ref="list"
           draggable
-          key={JSON.stringify(this.props.selectedSource)}
+          key={JSON.stringify(this.props.perspective)}
           className="contact-list"
           columns={[ContactColumn]}
-          dataSource={this._source}
+          dataSource={this.props.listSource}
           itemPropsProvider={() => ({})}
           itemHeight={32}
           EmptyComponent={ContactsListEmpty}
@@ -93,8 +79,8 @@ class ContactListWithData extends React.Component<ContactListProps> {
 export const ContactList = ListensToFluxStore(ContactListWithData, {
   stores: [Store],
   getStateFromStores: () => ({
-    selectedSource: Store.selectedSource(),
-    contacts: Store.filteredContacts(),
+    perspective: Store.perspective(),
+    listSource: Store.listSource(),
   }),
 });
 
@@ -107,7 +93,7 @@ ContactList.containerStyles = {
 interface ContactListSearchWithDataProps {
   search: string;
   setSearch: (search: string) => void;
-  selectedSource: ContactSource;
+  perspective: ContactsPerspective;
 }
 
 const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
@@ -124,7 +110,7 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
         ref={this._searchEl}
         value={props.search}
         placeholder={`${localized('Search')} ${
-          props.selectedSource ? props.selectedSource.label : 'All Contacts'
+          props.perspective ? props.perspective.label : 'All Contacts'
         }`}
         onChange={e => props.setSearch(e.currentTarget.value)}
       />
@@ -143,7 +129,7 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
 export const ContactListSearch = ListensToFluxStore(ContactListSearchWithData, {
   stores: [Store],
   getStateFromStores: () => ({
-    selectedSource: Store.selectedSource(),
+    perspective: Store.perspective(),
     search: Store.search(),
     setSearch: s => Store.setSearch(s),
   }),

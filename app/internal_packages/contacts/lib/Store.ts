@@ -1,14 +1,18 @@
 import Rx from 'rx-lite';
 import { DatabaseStore, Contact, ContactGroup, MutableQuerySubscription } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
+import { ListTabular } from 'mailspring-component-kit';
 
 class ContactsWindowStore extends MailspringStore {
-  _selectedSource: ContactSource | null = null;
+  _perspective: ContactsPerspective | null = null;
+  _listSource = new ListTabular.DataSource.DumbArrayDataSource<Contact>();
+
   _contacts: Contact[] = [];
   _contactsSubscription: MutableQuerySubscription<Contact>;
   _groups: ContactGroup[] = [];
   _search: string = '';
   _filtered: Contact[] | null = null;
+  _editing: boolean;
 
   constructor() {
     super();
@@ -23,7 +27,7 @@ class ContactsWindowStore extends MailspringStore {
       this._contactsSubscription.addCallback(contacts => {
         this._contacts = contacts;
         this._filtered = null;
-        this.trigger();
+        this.repopulate();
       });
 
       const groups = Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup));
@@ -38,30 +42,47 @@ class ContactsWindowStore extends MailspringStore {
     return this._groups;
   }
 
-  selectedSource() {
-    return this._selectedSource;
+  listSource() {
+    return this._listSource;
   }
 
-  setSelectedSource(selectedSource: ContactSource | null) {
+  perspective() {
+    return this._perspective;
+  }
+
+  filteredContacts() {
+    return this._filtered;
+  }
+
+  editing() {
+    return this._editing;
+  }
+
+  setEditing(editing: boolean) {
+    this._editing = editing;
+    this.trigger();
+  }
+
+  setPerspective(perspective: ContactsPerspective | null) {
     let q = DatabaseStore.findAll<Contact>(Contact)
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false));
 
-    if (selectedSource && selectedSource.type === 'all') {
+    if (perspective && perspective.type === 'all') {
       q.where(Contact.attributes.source.not('mail'));
     }
-    if (selectedSource && selectedSource.type === 'group') {
-      q.where(Contact.attributes.contactGroups.contains(selectedSource.groupId));
+    if (perspective && perspective.type === 'group') {
+      q.where(Contact.attributes.contactGroups.contains(perspective.groupId));
     }
 
     this._filtered = null;
-    this._selectedSource = selectedSource;
+    this._perspective = perspective;
 
     if (q.sql() !== this._contactsSubscription.query().sql()) {
       this._contacts = [];
       this._contactsSubscription.replaceQuery(q);
     }
-    this.trigger();
+    this.repopulate();
   }
 
   search() {
@@ -70,37 +91,35 @@ class ContactsWindowStore extends MailspringStore {
 
   setSearch(str: string) {
     this._search = str;
-    this._filtered = null;
-    this.trigger();
+    this.repopulate();
   }
 
-  filteredContacts() {
-    if (!this._filtered) {
-      let filtered = [...this._contacts];
+  repopulate() {
+    let filtered = [...this._contacts];
 
-      if (this._selectedSource) {
-        filtered = filtered.filter(c => {
-          if (c.accountId !== this._selectedSource.accountId) return false;
-          if (c.source !== 'mail' && this._selectedSource.type === 'found-in-mail') return false;
-          if (c.source === 'mail' && this._selectedSource.type !== 'found-in-mail') return false;
-          return true;
-        });
-      }
-      if (this._search) {
-        const isearch = this._search.toLowerCase();
-        filtered = filtered.filter(
-          c => c.name.toLowerCase().includes(isearch) || c.email.toLowerCase().includes(isearch)
-        );
-      }
-
-      // note we do this in JS because in SQLite the order is not locale aware.
-      this._filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+    if (this._perspective) {
+      filtered = filtered.filter(c => {
+        if (c.accountId !== this._perspective.accountId) return false;
+        if (c.source !== 'mail' && this._perspective.type === 'found-in-mail') return false;
+        if (c.source === 'mail' && this._perspective.type !== 'found-in-mail') return false;
+        return true;
+      });
     }
-    return this._filtered;
+    if (this._search) {
+      const isearch = this._search.toLowerCase();
+      filtered = filtered.filter(
+        c => c.name.toLowerCase().includes(isearch) || c.email.toLowerCase().includes(isearch)
+      );
+    }
+
+    // note we do this in JS because in SQLite the order is not locale aware.
+    this._filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+    this._listSource.setItems(this._filtered);
+    this.trigger();
   }
 }
 
-export type ContactSource =
+export type ContactsPerspective =
   | {
       label: string;
       accountId: string;

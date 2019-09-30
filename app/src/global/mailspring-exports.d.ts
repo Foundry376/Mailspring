@@ -78,6 +78,9 @@ export * from '../flux/tasks/get-message-rfc2822-task';
 export * from '../flux/tasks/expunge-all-in-folder-task';
 export * from '../flux/tasks/change-role-mapping-task';
 export * from '../flux/tasks/send-feature-usage-event-task';
+export * from '../flux/tasks/syncback-contact-task';
+export * from '../flux/tasks/destroy-contact-task';
+export * from '../flux/tasks/change-contactgroup-membership-task';
 
 // Stores
 // These need to be required immediately since some Stores are

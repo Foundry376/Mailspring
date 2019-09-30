@@ -17,7 +17,7 @@ export interface MenuNameEmailItemProps {
   email?: string;
 }
 
-export interface MenuProps {
+export interface MenuProps extends HTMLProps<HTMLDivElement> {
   className?: string;
   footerComponents?: React.ReactNode;
   headerComponents?: React.ReactNode;
@@ -26,7 +26,7 @@ export interface MenuProps {
   itemKey: (...args: any[]) => any;
   itemChecked?: (...args: any[]) => any;
   items: any[];
-  onSelect: (...args: any[]) => any;
+  onSelect: (item: any) => any;
   onEscape?: (...args: any[]) => any;
   defaultSelectedIndex?: number;
 }
@@ -138,7 +138,7 @@ component's Menu instance:
 
 Section: Component Kit
 */
-export class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>, MenuState> {
+export class Menu extends React.Component<MenuProps, MenuState> {
   static displayName = 'Menu';
 
   static Item = MenuItem;
@@ -282,7 +282,7 @@ export class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>,
     const fc = this.props.footerComponents || <span />;
     const className = this.props.className ? this.props.className : '';
     return (
-      <div onKeyDown={this._onKeyDown} className={`menu ${className}`} tabIndex={-1}>
+      <div onKeyDown={this.onKeyDown} className={`menu ${className}`} tabIndex={-1}>
         <div className="header-container">{hc}</div>
         {this._contentContainer()}
         <div className="footer-container">{fc}</div>
@@ -290,7 +290,7 @@ export class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>,
     );
   }
 
-  _onKeyDown = event => {
+  onKeyDown = event => {
     if (this.props.items.length === 0) {
       return;
     }

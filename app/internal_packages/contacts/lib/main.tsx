@@ -1,5 +1,6 @@
 import { WorkspaceStore, ComponentRegistry, Actions } from 'mailspring-exports';
-import { ContactSources } from './ContactSources';
+import { ContactPerspectivesList } from './ContactPerspectivesList';
+import { ContactDetailToolbar } from './ContactDetailToolbar';
 import { ContactList, ContactListSearch } from './ContactList';
 import { ContactDetail } from './ContactDetail';
 import { FoundInMailEnabledBar } from './FoundInMailEnabledBar';
@@ -13,7 +14,7 @@ export function activate() {
 
   Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
 
-  ComponentRegistry.register(ContactSources, {
+  ComponentRegistry.register(ContactPerspectivesList, {
     location: WorkspaceStore.Location.ContactsSidebar,
   });
   ComponentRegistry.register(FoundInMailEnabledBar, {
@@ -29,12 +30,16 @@ export function activate() {
   ComponentRegistry.register(ContactDetail, {
     location: WorkspaceStore.Location.ContactsDetail,
   });
+  ComponentRegistry.register(ContactDetailToolbar, {
+    location: WorkspaceStore.Location.ContactsDetail.Toolbar,
+  });
 }
 
 export function deactivate() {
-  ComponentRegistry.unregister(ContactSources);
+  ComponentRegistry.unregister(ContactPerspectivesList);
   ComponentRegistry.unregister(ContactList);
   ComponentRegistry.unregister(FoundInMailEnabledBar);
   ComponentRegistry.unregister(ContactListSearch);
   ComponentRegistry.unregister(ContactDetail);
+  ComponentRegistry.unregister(ContactDetailToolbar);
 }

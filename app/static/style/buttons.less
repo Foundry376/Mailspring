@@ -108,10 +108,10 @@ body.platform-win32 {
   }
 
   &.btn-disabled {
-    color: fadeout(@btn-default-text-color, 40%);
-    background: fadeout(@btn-default-bg-color, 15%);
+    color: fadeout(@btn-default-text-color, 50%);
+    background: fadeout(@btn-default-bg-color, 25%);
     &:active {
-      background: fadeout(@btn-default-bg-color, 15%);
+      background: fadeout(@btn-default-bg-color, 25%);
     }
   }
 
@@ -170,6 +170,9 @@ body.platform-win32 {
   padding: 0 13px;
   &.narrow {
     padding: 0 9px;
+  }
+  &.btn-disabled {
+    opacity: 0.6;
   }
 }
 
