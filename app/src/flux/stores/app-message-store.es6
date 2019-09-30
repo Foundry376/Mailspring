@@ -1,6 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 import uuid from 'uuid';
+import { ipcRenderer } from 'electron';
 
 class AppMessageStore extends MailspringStore {
   static priority = {
@@ -29,7 +30,31 @@ class AppMessageStore extends MailspringStore {
       this.listenTo(Actions.pushAppMessages, this._onQueue);
       this.listenTo(Actions.removeAppMessage, this._onPopMessage);
       this.listenTo(Actions.removeAppMessages, this._onPopMessage);
+      // AppEnv.onUpdateAvailable(this._onNewUpdateDownloaded);
     }
+  }
+  _onNewUpdateDownloaded = () => {
+    const message = {
+      id: 'updateDownloaded',
+      priority: 3,
+      description: 'New update available. Restart to update.',
+      icon: 'alert-2.svg',
+      allowClose: true,
+      actions: [
+        {
+          text: 'Restart',
+          onClick: () => {
+            ipcRenderer.send('command', 'application:install-update');
+          },
+        },
+        {
+          text: 'Later',
+          onClick: () => {
+          },
+        },
+      ],
+    };
+    Actions.pushAppMessage(message);
   }
 
   _onPopMessage = blockOrBlocks => {
