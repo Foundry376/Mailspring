@@ -1,7 +1,6 @@
 /* eslint global-require: 0 */
 
 import _ from 'underscore';
-
 import MailspringStore from 'mailspring-store';
 import { FocusedPerspectiveStore } from 'mailspring-exports';
 import { MessageStore, ConversationStore, ContactStore, ConversationModel, ContactModel, AppStore } from 'chat-exports';
@@ -9,6 +8,7 @@ import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
 import Utils from '../models/utils';
+import DatabaseStore from './database-store';
 import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/utils/appmgt';
 import { registerLoginEmailAccountForChat } from '../../../internal_packages/edison-beijing-chat/utils/register-login-chat';
 import crypto from 'crypto';
@@ -18,6 +18,7 @@ const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
 const sqlite = require('better-sqlite3');
 import Sequelize from 'sequelize';
+import Indicator from '../models/indicator';
 const Op = Sequelize.Op
 
 /*
@@ -33,6 +34,7 @@ class AccountStore extends MailspringStore {
     this.listenTo(Actions.removeAccount, this._onRemoveAccount);
     this.listenTo(Actions.updateAccount, this._onUpdateAccount);
     this.listenTo(Actions.reorderAccount, this._onReorderAccount);
+    this.listenTo(DatabaseStore, this._onDataChange);
 
     AppEnv.config.onDidChange(configVersionKey, async change => {
       // If we already have this version of the accounts config, it means we
@@ -91,6 +93,19 @@ class AccountStore extends MailspringStore {
     }
     return false;
   }
+  _onDataChange = change => {
+    if(change.objectClass === Indicator.name){
+      change.objects.forEach(obj => {
+        if(obj){
+          const account = this.accountForId(obj.accountId);
+          if(account && obj.key === 'ErrorAuthentication' && account.syncState !== Account.SYNC_STATE_AUTH_FAILED){
+            console.log('update time');
+            Actions.updateAccount(account.id, {syncState: Account.SYNC_STATE_AUTH_FAILED})
+          }
+        }
+      });
+    }
+  };
   _updateWakeWorkerTimer = (accountId, interval) => {
     if (!AppEnv.isMainWindow()) {
       return;

@@ -73,6 +73,7 @@ lazyLoadAndRegisterModel(`Label`, 'label');
 lazyLoadAndRegisterModel(`Folder`, 'folder');
 lazyLoadAndRegisterModel(`Thread`, 'thread');
 lazyLoadAndRegisterModel('ThreadCounts', 'thread-counts');
+lazyLoadAndRegisterModel('Indicator', 'indicator');
 lazyLoadAndRegisterModel('ThreadCategory', 'thread-category');
 lazyLoadAndRegisterModel(`Account`, 'account');
 lazyLoadAndRegisterModel(`Message`, 'message');
