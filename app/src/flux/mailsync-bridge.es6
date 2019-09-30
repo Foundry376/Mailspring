@@ -253,6 +253,23 @@ export default class MailsyncBridge {
   forceRelaunchClient(account) {
     this._launchClient(account, { force: true });
   }
+  tmpKillClient(account) {
+    if(!AppEnv.isMainWindow()){
+      return;
+    }
+    if(!this._tmpNoRelaunch){
+      this._tmpNoRelaunch = {};
+    }
+    const client = this.clients()[account.id];
+    if(client){
+      if (client._proc && client._proc.pid) {
+        const id = client._proc.pid;
+        this._tmpNoRelaunch[account.id] = true;
+        AppEnv.logWarning(`\n\n@pid ${id} was forced to die, entering one time re-spawn\n\n`);
+        client.kill();
+      }
+    }
+  }
 
   analyzeDataBase = () => {
     if (!AppEnv.isMainWindow()) {
@@ -419,6 +436,11 @@ export default class MailsyncBridge {
   }
 
   async _launchClient(account, { force } = {}) {
+    if (this._tmpNoRelaunch && account && this._tmpNoRelaunch[account.id]) {
+      delete this._tmpNoRelaunch[account.id];
+      AppEnv.logWarning(`No launch client because of one time launch deny on account: ${account.id}`);
+      return;
+    }
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._clients[account.id] = client; // set this synchornously so we never spawn two
     this._clientsStartTime[account.id] = Date.now();

@@ -258,6 +258,7 @@ class AccountStore extends MailspringStore {
     })
   }
   _reconnectAccount = async account => {
+    AppEnv.mailsyncBridge.tmpKillClient(account);
     ipcRenderer.send('command', 'application:add-account', {
       existingAccountJSON: await KeyManager.insertAccountSecrets(account),
     });
