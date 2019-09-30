@@ -113,14 +113,14 @@ export default class OAuthSignInPage extends React.Component {
     if (this._server) this._server.close();
   }
 
-  moveToLoginError(){
+  moveToLoginError() {
     OnboardingActions.moveToPage('login-error');
   }
 
   _onError(err) {
     this.setState({ authStage: 'error', errorMessage: err.message });
     this.moveToLoginError();
-    AppEnv.reportError(err, {oAuthURL: this.props.providerAuthPageUrl});
+    AppEnv.reportError(err, { oAuthURL: this.props.providerAuthPageUrl });
   }
 
   async _onReceivedCode(code) {
@@ -231,17 +231,15 @@ export default class OAuthSignInPage extends React.Component {
   _webviewDidFailLoad = (event) => {
     // For some reason, yahoo oauth page will cause webview to throw load-did-fail with errorCode of -3 when
     // navigating to permission granting view. Thus we want to capture that and ignore it.
-    if(this.state.isYahoo){
-      if(event && event.errorCode === -3){
-        return;
-      }
+    if (event && event.errorCode === -3) {
+      return;
     }
     this.setState({
       authStage: 'error',
       errorMessage: 'Network Error.'
     });
     this.moveToLoginError();
-    AppEnv.reportError(new Error('webview failed to load'), {oAuthURL: this.props.providerAuthPageUrl, oAuthEvent: event});
+    AppEnv.reportError(new Error('webview failed to load'), { oAuthURL: this.props.providerAuthPageUrl, oAuthEvent: event });
   };
 
   _setupWebview = () => {
