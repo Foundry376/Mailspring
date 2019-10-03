@@ -57,7 +57,7 @@
   "Applying changes...": "Modifications en cours...",
   "Applying labels": "Étiquettes en cours d'enregistrement",
   "Archive": "Archiver",
-  "Archived %@": "%@ a été archive",
+  "Archived %@": "%@ a été archivé",
   "Are you sure?": "Êtes-vous sûr ?",
   "Attach File": "Joindre le fichier",
   "Attach Mailsync to Xcode": "Joindre Mailsync et Xcode",
@@ -190,7 +190,7 @@
   "Drafts": "Brouillons",
   "Drafts folder not found": "Dossier des brouillons introuvable",
   "Drop to Attach": "Déposer pour joindre",
-  "Edit": "Éditer",
+  "Edit": "Modifier",
   "Edit Item": "Modifier l'article",
   "Edit Message": "Modifier le message",
   "Edit Reminder": "Modifier le rappel",
@@ -639,7 +639,7 @@
   "Show notifications for repeated opens / clicks": "Afficher les notifications pour les ouvertures / clics répétés",
   "Show unread counts for all folders / labels": "Afficher le nombre de messages non lus pour tous les dossiers / étiquettes",
   "Showing %@ threads with %@ messages": "Affichage de %@ discussions avec %@ messages",
-  "Showing 1 thread with %@ messages": "Affichage de 1 fil avec %@ messages",
+  "Showing 1 thread with %@ messages": "Affichage de 1 discussion avec %@ messages",
   "Sign Out": "Déconnexion",
   "Sign in with %@ in %@ your browser.": "Connectez-vous avec %@ dans %@ votre navigateur.",
   "Signatures": "Signatures",
@@ -915,8 +915,8 @@
   "Stop translating %@": "Arrête de traduire %@",
   "Translate automatically with Mailspring Pro": "Traduire automatiquement avec Mailspring Pro",
   "Translate from %1$@ to %2$@?": "Traduire de %1$@ à %2$@?",
-  "Translating from %1$@ to %2$@.": "Traduire de %1$@ en %2$@.",
+  "Translating from %1$@ to %2$@.": "Traduction de %1$@ en %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Malheureusement, les services de traduction sont facturés par caractère et nous ne pouvons pas offrir cette fonctionnalité gratuitement.",
   "View activity": "Voir l'activité",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Vous pouvez traduire jusqu'à %1$@ emails chacun [each] avec Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Vous pouvez traduire jusqu'à %1$@ emails chacun avec Mailspring Basic."
 }
