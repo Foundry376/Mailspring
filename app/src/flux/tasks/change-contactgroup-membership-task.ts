@@ -11,7 +11,7 @@ export class ChangeContactGroupMembershipTask extends Task {
 
     group: Attributes.Object({
       modelKey: 'group',
-      itemClasss: ContactGroup,
+      itemClass: ContactGroup,
     }),
     contacts: Attributes.Collection({
       modelKey: 'contacts',

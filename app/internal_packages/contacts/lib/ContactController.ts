@@ -1,5 +1,5 @@
 import vCard from 'vcf';
-import { ContactInfoGoogle, ContactInfoVCF, Contact } from 'mailspring-exports';
+import { ContactInfoGoogle, ContactInfoVCF, Contact, Utils } from 'mailspring-exports';
 import * as VCFHelpers from './VCFHelpers';
 
 export interface ContactBase {
@@ -87,9 +87,9 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
     },
     data: {
       name: {
-        givenName: nameParts[0],
-        familyName: nameParts.slice(1).join(' '),
-        displayName: nameParts.join(' '),
+        givenName: nameParts[1],
+        familyName: nameParts[0],
+        displayName: `${nameParts[1]} ${nameParts[0]}`,
       },
       photoURL,
       organizations: org
@@ -112,6 +112,30 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
   };
 }
 
+export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
+  if (!('vcf' in contact.info)) {
+    throw new Error('applyToVCF invoked with wrong contact type.');
+  }
+  const card = new vCard().parse(contact.info.vcf);
+  for (const key of Object.keys(changes)) {
+    if (key === 'name') {
+      const name = card.get('n');
+      const nameParts = (name ? name._data : '').split(';');
+      nameParts[0] = changes.name.familyName;
+      nameParts[1] = changes.name.givenName;
+      card.set('n', nameParts.join(';'));
+
+      const displayName = `${changes.name.givenName} ${changes.name.familyName}`;
+      const fn = card.get('fn');
+      if (fn) card.set('fn', displayName);
+      contact.name = displayName;
+    } else {
+      console.log(`Unsure of how to apply changes to ${key}`);
+    }
+  }
+  contact.info = Object.assign(contact.info, { vcf: card.toString().replace(/\n/g, '\r\n') });
+}
+
 export function fromGoogle(info: ContactInfoGoogle): ContactParseResult {
   return {
     metadata: {
@@ -125,10 +149,52 @@ export function fromGoogle(info: ContactInfoGoogle): ContactParseResult {
   };
 }
 
+export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
+  if (!('resourceName' in contact.info)) {
+    throw new Error('applyToGoogle invoked with wrong contact type.');
+  }
+  for (const key of Object.keys(changes)) {
+    if (key === 'name') {
+      Object.assign(contact.info.names[0], changes.name);
+    } else {
+      contact.info[key] = changes[key];
+    }
+  }
+}
+
 export function parse(contact: Contact): ContactParseResult {
-  return !contact.info
-    ? fromContact(contact)
-    : 'vcf' in contact.info
-    ? fromVCF(contact.info)
-    : fromGoogle(contact.info);
+  try {
+    return !contact.info
+      ? fromContact(contact)
+      : 'vcf' in contact.info
+      ? fromVCF(contact.info)
+      : fromGoogle(contact.info);
+  } catch (err) {
+    console.warn(`Parsing of contact ${contact.email} failed: ${err.toString()}`);
+    return fromContact(contact);
+  }
+}
+
+export function apply(contact: Contact, nextData: ContactBase) {
+  const originalData = parse(contact).data;
+  const changedData: Partial<ContactBase> = {};
+
+  for (const key of Object.keys(nextData)) {
+    if (Utils.isEqual(nextData[key], originalData[key])) continue;
+    changedData[key] = nextData[key];
+  }
+
+  const next = contact.clone();
+  try {
+    if (!contact.info) {
+      // readonly
+    } else if ('vcf' in contact.info) {
+      applyToVCF(next, changedData);
+    } else {
+      applyToGoogle(next, changedData);
+    }
+  } catch (err) {
+    console.warn(`Applying changes to contact ${contact.email} failed: ${err.toString()}`);
+  }
+  return next;
 }

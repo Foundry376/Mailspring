@@ -1,8 +1,8 @@
 import React from 'react';
-import { Contact, localized } from 'mailspring-exports';
+import { Contact, localized, Actions, SyncbackContactTask } from 'mailspring-exports';
 import { isEqual } from 'underscore';
 import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
-import { parse, ContactBase, ContactInteractorMetadata } from './ContactController';
+import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactController';
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
 import { Store, ContactsPerspective } from './Store';
@@ -50,6 +50,13 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     };
   }
 
+  onSaveChanges = () => {
+    Actions.queueTask(
+      SyncbackContactTask.forUpdating({ contact: apply(this.state.contact, this.state.data) })
+    );
+    Store.setEditing(false);
+  };
+
   render() {
     const { editing } = this.props;
     const { data, metadata, contact } = this.state;
@@ -79,11 +86,7 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
         </ScrollRegion>
         {editing && (
           <div className="contact-edit-footer">
-            <button
-              tabIndex={-1}
-              className={`btn btn-emphasis`}
-              onClick={() => Store.setEditing(false)}
-            >
+            <button tabIndex={-1} className={`btn btn-emphasis`} onClick={this.onSaveChanges}>
               {localized('Save Changes')}
             </button>
           </div>

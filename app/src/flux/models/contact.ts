@@ -12,6 +12,7 @@ let FocusedPerspectiveStore = null; // Circular Dependency
 
 export interface ContactInfoVCF {
   vcf: string;
+  href: string;
 }
 
 export interface ContactInfoGoogle {
@@ -387,6 +388,8 @@ export class Contact extends Model {
 
     contactGroups: Attributes.Collection({
       queryable: true,
+      modelKey: 'contactGroups',
+      jsonKey: 'gis',
       joinOnField: 'id',
       itemClass: ContactGroup,
     }),
@@ -440,7 +443,7 @@ export class Contact extends Model {
   public refs: number;
   public source: string;
   public hidden: boolean;
-  public info?: ContactInfoGoogle;
+  public info?: ContactInfoGoogle | ContactInfoVCF;
 
   constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);

@@ -24,11 +24,13 @@ class ContactsWindowStore extends MailspringStore {
         .where(Contact.attributes.refs.greaterThan(0))
         .where(Contact.attributes.hidden.equal(false));
       this._contactsSubscription = new MutableQuerySubscription<Contact>(contacts);
-      this._contactsSubscription.addCallback(contacts => {
-        this._contacts = contacts;
-        this._filtered = null;
-        this.repopulate();
-      });
+      Rx.Observable.fromNamedQuerySubscription('contacts', this._contactsSubscription).subscribe(
+        contacts => {
+          this._contacts = contacts as Contact[];
+          this._filtered = null;
+          this.repopulate();
+        }
+      );
 
       const groups = Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup));
       groups.subscribe(groups => {

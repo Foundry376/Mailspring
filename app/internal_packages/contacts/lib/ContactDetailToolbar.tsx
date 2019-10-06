@@ -74,7 +74,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
           <button
             tabIndex={-1}
             className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
-            onClick={actionSet.length > 0 ? () => this._onRemoveFromSource : undefined}
+            onClick={actionSet.length > 0 ? this._onRemoveFromSource : undefined}
           >
             {localized('Remove from Group')}
           </button>
