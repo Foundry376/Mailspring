@@ -8,7 +8,7 @@ import { FoundInMailEnabledBar } from './FoundInMailEnabledBar';
 
 function adjustMenus() {
   const contactMenu: typeof AppEnv.menu.template[0] = {
-    key: 'Contact',
+    id: 'Contact',
     label: localized('Contact'),
     submenu: [
       {
@@ -32,10 +32,8 @@ function adjustMenus() {
     ],
   };
 
-  const template = AppEnv.menu.template.filter(
-    item => item.key !== 'Thread' && item.key !== 'View'
-  );
-  const editIndex = template.findIndex(item => item.key === 'Edit');
+  const template = AppEnv.menu.template.filter(item => item.id !== 'Thread' && item.id !== 'View');
+  const editIndex = template.findIndex(item => item.id === 'Edit');
   template.splice(editIndex + 1, 0, contactMenu);
 
   AppEnv.menu.template = template;

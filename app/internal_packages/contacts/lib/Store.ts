@@ -1,5 +1,11 @@
 import Rx from 'rx-lite';
-import { DatabaseStore, Contact, ContactGroup, MutableQuerySubscription } from 'mailspring-exports';
+import {
+  DatabaseStore,
+  Contact,
+  ContactGroup,
+  ContactBook,
+  MutableQuerySubscription,
+} from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 import { ListTabular } from 'mailspring-component-kit';
 
@@ -10,6 +16,7 @@ class ContactsWindowStore extends MailspringStore {
   _contacts: Contact[] = [];
   _contactsSubscription: MutableQuerySubscription<Contact>;
   _groups: ContactGroup[] = [];
+  _books: ContactBook[] = [];
   _search: string = '';
   _filtered: Contact[] | null = null;
   _editing: string | 'new' | false = false;
@@ -24,6 +31,7 @@ class ContactsWindowStore extends MailspringStore {
         .where(Contact.attributes.refs.greaterThan(0))
         .where(Contact.attributes.hidden.equal(false));
       this._contactsSubscription = new MutableQuerySubscription<Contact>(contacts);
+
       Rx.Observable.fromNamedQuerySubscription('contacts', this._contactsSubscription).subscribe(
         contacts => {
           this._contacts = contacts as Contact[];
@@ -32,12 +40,22 @@ class ContactsWindowStore extends MailspringStore {
         }
       );
 
-      const groups = Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup));
-      groups.subscribe(groups => {
-        this._groups = groups;
+      Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup)).subscribe(
+        groups => {
+          this._groups = groups;
+          this.trigger();
+        }
+      );
+
+      Rx.Observable.fromQuery(DatabaseStore.findAll<ContactBook>(ContactBook)).subscribe(books => {
+        this._books = books;
         this.trigger();
       });
     });
+  }
+
+  books() {
+    return this._books;
   }
 
   groups() {

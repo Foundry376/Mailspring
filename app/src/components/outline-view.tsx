@@ -67,7 +67,7 @@ interface OutlineViewState {
  * @param {props.onCollapseToggled} props.onCollapseToggled
  * @class OutlineView
  */
-class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
+export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   static displayName = 'OutlineView';
 
   /*
@@ -232,5 +232,3 @@ class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     );
   }
 }
-
-export default OutlineView;

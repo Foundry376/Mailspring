@@ -3,7 +3,7 @@ const { localized } = require('../src/intl');
 module.exports = {
   menu: [
     {
-      key: 'Edit',
+      id: 'Edit',
       label: localized('Edit'),
       submenu: [
         { label: localized('Undo'), command: 'core:undo' },
@@ -33,7 +33,7 @@ module.exports = {
     },
 
     {
-      key: 'View',
+      id: 'View',
       label: localized('View'),
       submenu: [
         {
@@ -87,7 +87,7 @@ module.exports = {
     },
 
     {
-      key: 'Thread',
+      id: 'Thread',
       label: localized('Thread'),
       submenu: [
         { label: localized('Reply'), command: 'core:reply' },
@@ -138,7 +138,7 @@ module.exports = {
       ],
     },
     {
-      key: 'Developer',
+      id: 'Developer',
       label: localized('Developer'),
       submenu: [
         {
@@ -148,7 +148,6 @@ module.exports = {
         },
         { type: 'separator' },
         { label: localized('Calendar Preview'), command: 'application:show-calendar' },
-        { label: localized('Contacts Preview'), command: 'application:show-contacts' },
         { type: 'separator' },
         { label: localized('Create a Plugin') + '...', command: 'window:create-package' },
         { label: localized('Install a Plugin') + '...', command: 'window:install-package' },
@@ -167,12 +166,23 @@ module.exports = {
       ],
     },
     {
-      key: 'Window',
+      id: 'Window',
       label: localized('Window'),
       submenu: [
         { label: localized('Minimize'), command: 'application:minimize' },
         { label: localized('Zoom'), command: 'application:zoom' },
+        { type: 'separator' },
+        {
+          label: localized('Message Viewer'),
+          command: 'application:show-main-window',
+          accelerator: 'CmdOrCtrl+0',
+        },
+        {
+          label: localized('Contacts'),
+          command: 'application:show-contacts',
+        },
         { type: 'separator', id: 'window-list-separator' },
+        { type: 'separator', id: 'account-shortcuts-separator' },
       ],
     },
     { type: 'separator' },

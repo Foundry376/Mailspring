@@ -1,5 +1,4 @@
 /* eslint global-require: 0 */
-import _str from 'underscore.string';
 import { Model, AttributeValues } from './model';
 import Attributes from '../attributes';
 
@@ -12,6 +11,8 @@ export class ContactGroup extends Model {
     }),
   };
 
+  public name: string;
+
   static sortOrderAttribute = () => {
     return ContactGroup.attributes.name;
   };
@@ -19,8 +20,6 @@ export class ContactGroup extends Model {
   static naturalSortOrder = () => {
     return ContactGroup.sortOrderAttribute().ascending();
   };
-
-  public name: string;
 
   constructor(data: AttributeValues<typeof ContactGroup.attributes>) {
     super(data);

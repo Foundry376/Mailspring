@@ -8,24 +8,17 @@ import _ from 'underscore';
 
 const ItemSpecificities = new WeakMap();
 
-export type IMenuItem =
-  | {
-      label: string;
-      submenu?: IMenuItem[];
-      type?: string;
+export type IMenuItem = {
+  label?: string;
+  submenu?: IMenuItem[];
+  type?: 'separator';
 
-      key?: string; //unlocalized label
-      command?: string;
-      enabled?: boolean;
-      hideWhenDisabled?: boolean;
-      visible?: boolean;
-    }
-  | {
-      key?: string; //unlocalized label
-      label?: string;
-      submenu?: IMenuItem[];
-      type: 'separator';
-    };
+  id?: string; //unlocalized label
+  command?: string;
+  enabled?: boolean;
+  hideWhenDisabled?: boolean;
+  visible?: boolean;
+};
 
 export function merge(menu: IMenuItem[], item: IMenuItem, itemSpecificity?: number) {
   let matchingItem;

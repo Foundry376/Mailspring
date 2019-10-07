@@ -44,6 +44,7 @@ export * from '../flux/models/thread';
 export * from '../flux/models/account';
 export * from '../flux/models/message';
 export * from '../flux/models/contact';
+export * from '../flux/models/contact-book';
 export * from '../flux/models/contact-group';
 export * from '../flux/models/category';
 export * from '../flux/models/calendar';
@@ -80,6 +81,8 @@ export * from '../flux/tasks/change-role-mapping-task';
 export * from '../flux/tasks/send-feature-usage-event-task';
 export * from '../flux/tasks/syncback-contact-task';
 export * from '../flux/tasks/destroy-contact-task';
+export * from '../flux/tasks/destroy-contactgroup-task';
+export * from '../flux/tasks/syncback-contactgroup-task';
 export * from '../flux/tasks/change-contactgroup-membership-task';
 
 // Stores

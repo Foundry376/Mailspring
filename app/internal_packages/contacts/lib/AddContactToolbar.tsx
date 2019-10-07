@@ -31,7 +31,11 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
             tabIndex={-1}
             disabled={!enabled}
             className={`btn btn-toolbar btn-new-contact ${!enabled && 'btn-disabled'}`}
-            title={localized('New contact in %@', acct ? acct.label : 'account')}
+            title={
+              acct
+                ? localized('New contact in %@', acct.label)
+                : localized('Select an account to add a contact.')
+            }
             onClick={enabled ? this.onAdd : undefined}
           >
             <Icons.NewPerson />

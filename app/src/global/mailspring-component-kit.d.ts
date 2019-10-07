@@ -40,7 +40,7 @@ export * from '../components/disclosure-triangle';
 export const EditableList: typeof import('../components/editable-list').default;
 export const DropdownMenu: typeof import('../components/dropdown-menu').default;
 export const OutlineViewItem: typeof import('../components/outline-view-item').default;
-export const OutlineView: typeof import('../components/outline-view').default;
+export * from '../components/outline-view';
 export const DateInput: typeof import('../components/date-input').default;
 export const DatePicker: typeof import('../components/date-picker').default;
 export const TimePicker: typeof import('../components/time-picker').default;

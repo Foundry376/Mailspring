@@ -81,6 +81,7 @@ lazyLoadAndRegisterModel(`Thread`, 'thread');
 lazyLoadAndRegisterModel(`Account`, 'account');
 lazyLoadAndRegisterModel(`Message`, 'message');
 lazyLoadAndRegisterModel(`Contact`, 'contact');
+lazyLoadAndRegisterModel(`ContactBook`, 'contact-book');
 lazyLoadAndRegisterModel(`ContactGroup`, 'contact-group');
 lazyLoadAndRegisterModel(`Category`, 'category');
 lazyLoadAndRegisterModel(`Calendar`, 'calendar');

@@ -3,11 +3,13 @@ import {
   Account,
   AccountStore,
   ContactGroup,
+  ContactBook,
   Rx,
   Actions,
   DestroyContactGroupTask,
   SyncbackContactGroupTask,
   ChangeContactGroupMembershipTask,
+  localized,
 } from 'mailspring-exports';
 import { ContactsPerspective, Store } from './Store';
 import {
@@ -16,12 +18,14 @@ import {
   OutlineViewItem,
   ListensToFluxStore,
   ListensToObservable,
+  IOutlineViewItem,
 } from 'mailspring-component-kit';
 import { isEqual } from 'underscore';
 
 interface ContactsPerspectivesProps {
   accounts: Account[];
   groups: ContactGroup[];
+  books: ContactBook[];
   findInMailDisabled: string[];
   selected: ContactsPerspective | null;
   onSelect: (item: ContactsPerspective | null) => void;
@@ -36,9 +40,115 @@ function perspectiveForGroup(g: ContactGroup): ContactsPerspective {
   };
 }
 
+interface OutlineViewForAccountProps {
+  account: Account;
+  groups: ContactGroup[];
+  books: ContactBook[];
+  findInMailDisabled: boolean;
+  selected: ContactsPerspective | null;
+  onSelect: (item: ContactsPerspective | null) => void;
+}
+
+const OutlineViewForAccount = ({
+  account,
+  groups,
+  books,
+  selected,
+  onSelect,
+  findInMailDisabled,
+}: OutlineViewForAccountProps) => {
+  const items: IOutlineViewItem[] = [];
+
+  if (books.length) {
+    items.push({
+      id: 'all-contacts',
+      name: localized('All Contacts'),
+      iconName: 'person.png',
+      children: [],
+      selected: selected && selected.type === 'all',
+      onSelect: () =>
+        onSelect({ accountId: account.id, type: 'all', label: localized('All Contacts') }),
+      shouldAcceptDrop: () => false,
+    });
+
+    for (const group of groups) {
+      const perspective = perspectiveForGroup(group);
+      items.push({
+        id: `${perspective.accountId}-${perspective.label}`,
+        name: perspective.label,
+        iconName: 'label.png',
+        children: [],
+        selected: isEqual(selected, perspective),
+        onSelect: () => onSelect(perspective),
+        onEdited: (item, value: string) => {
+          Actions.queueTask(SyncbackContactGroupTask.forRenaming(group, value));
+        },
+        onDelete: () => {
+          Actions.queueTask(DestroyContactGroupTask.forRemoving(group));
+        },
+        onDrop: (item, { dataTransfer }) => {
+          const data = JSON.parse(dataTransfer.getData('mailspring-contacts-data'));
+          const contacts = data.ids.map(i => Store.filteredContacts().find(c => c.id === i));
+          Actions.queueTask(
+            ChangeContactGroupMembershipTask.forMoving({
+              direction: 'add',
+              contacts,
+              group,
+            })
+          );
+        },
+        shouldAcceptDrop: (item, { dataTransfer }) => {
+          if (!dataTransfer.types.includes('mailspring-contacts-data')) {
+            return false;
+          }
+          if (isEqual(selected, perspective)) {
+            return false;
+          }
+
+          // We can't inspect the drag payload until drop, so we use a dataTransfer
+          // type to encode the account IDs of threads currently being dragged.
+          const accountsType = dataTransfer.types.find(t => t.startsWith('mailspring-accounts='));
+          const accountIds = (accountsType || '').replace('mailspring-accounts=', '').split(',');
+
+          return isEqual(accountIds, [perspective.accountId]);
+        },
+      });
+    }
+  }
+
+  items.push({
+    id: 'found-in-mail',
+    name: localized('Found in Mail'),
+    iconName: 'inbox.png',
+    children: [],
+    className: findInMailDisabled ? 'found-in-mail-disabled' : '',
+    selected: selected && selected.type === 'found-in-mail',
+    shouldAcceptDrop: () => false,
+    onSelect: () =>
+      onSelect({
+        accountId: account.id,
+        type: 'found-in-mail',
+        label: `${localized('Found in Mail')} (${account.label})`,
+      }),
+  });
+
+  return (
+    <OutlineView
+      title={account.label}
+      items={items}
+      onItemCreated={
+        books.length > 0
+          ? name => Actions.queueTask(SyncbackContactGroupTask.forCreating(account.id, name))
+          : undefined
+      }
+    />
+  );
+};
+
 const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectivesProps> = ({
   findInMailDisabled,
   groups,
+  books,
   accounts,
   selected,
   onSelect,
@@ -57,87 +167,14 @@ const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectives
       />
     </section>
     {accounts.map(a => (
-      <OutlineView
+      <OutlineViewForAccount
         key={a.id}
-        title={a.label}
-        onItemCreated={name => Actions.queueTask(SyncbackContactGroupTask.forCreating(a.id, name))}
-        items={[
-          {
-            id: 'all-contacts',
-            name: 'All Contacts',
-            iconName: 'person.png',
-            children: [],
-            selected: selected && selected.accountId == a.id && selected.type === 'all',
-            onSelect: () => onSelect({ accountId: a.id, type: 'all', label: 'All Contacts' }),
-            shouldAcceptDrop: () => false,
-          },
-          ...groups
-            .filter(g => g.accountId === a.id)
-            .map(group => {
-              const perspective = perspectiveForGroup(group);
-              return {
-                id: `${perspective.accountId}-${perspective.label}`,
-                name: perspective.label,
-                iconName: 'label.png',
-                children: [],
-                selected: isEqual(selected, perspective),
-                onSelect: () => onSelect(perspective),
-                onEdited: (item, value: string) => {
-                  Actions.queueTask(SyncbackContactGroupTask.forRenaming(group, value));
-                },
-                onDelete: () => {
-                  Actions.queueTask(DestroyContactGroupTask.forRemoving(group));
-                },
-                onDrop: (item, { dataTransfer }) => {
-                  const data = JSON.parse(dataTransfer.getData('mailspring-contacts-data'));
-                  const contacts = data.ids.map(i =>
-                    Store.filteredContacts().find(c => c.id === i)
-                  );
-                  Actions.queueTask(
-                    ChangeContactGroupMembershipTask.forMoving({
-                      direction: 'add',
-                      contacts,
-                      group,
-                    })
-                  );
-                },
-                shouldAcceptDrop: (item, { dataTransfer }) => {
-                  if (!dataTransfer.types.includes('mailspring-contacts-data')) {
-                    return false;
-                  }
-                  if (isEqual(selected, perspective)) {
-                    return false;
-                  }
-
-                  // We can't inspect the drag payload until drop, so we use a dataTransfer
-                  // type to encode the account IDs of threads currently being dragged.
-                  const accountsType = dataTransfer.types.find(t =>
-                    t.startsWith('mailspring-accounts=')
-                  );
-                  const accountIds = (accountsType || '')
-                    .replace('mailspring-accounts=', '')
-                    .split(',');
-
-                  return isEqual(accountIds, [perspective.accountId]);
-                },
-              };
-            }),
-          {
-            id: 'found-in-mail',
-            name: 'Found in Mail',
-            iconName: 'inbox.png',
-            children: [],
-            className: findInMailDisabled.includes(a.id) ? 'found-in-mail-disabled' : '',
-            selected: selected && selected.accountId == a.id && selected.type === 'found-in-mail',
-            shouldAcceptDrop: () => false,
-            onSelect: () =>
-              onSelect({
-                accountId: a.id,
-                type: 'found-in-mail',
-                label: `Found in Mail (${a.label})`,
-              }),
-          },
-        ]}
+        account={a}
+        findInMailDisabled={findInMailDisabled.includes(a.id)}
+        books={books.filter(b => b.accountId === a.id)}
+        groups={groups.filter(b => b.accountId === a.id)}
+        selected={selected && selected.accountId === a.id ? selected : null}
+        onSelect={onSelect}
       />
     ))}
   </ScrollRegion>
@@ -148,6 +185,7 @@ export const ContactPerspectivesList = ListensToObservable(
     stores: [AccountStore, Store],
     getStateFromStores: () => ({
       accounts: AccountStore.accounts(),
+      books: Store.books(),
       groups: Store.groups(),
       selected: Store.perspective(),
       onSelect: s => Store.setPerspective(s),

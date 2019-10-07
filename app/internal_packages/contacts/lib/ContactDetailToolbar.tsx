@@ -86,6 +86,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
           {perspective && perspective.type === 'group' && (
             <button
               tabIndex={-1}
+              title={localized('Remove from Group')}
               className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
               onClick={actionSet.length > 0 ? this._onRemoveFromSource : undefined}
             >
@@ -94,14 +95,15 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
           )}
           <button
             tabIndex={-1}
-            className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
             title={localized('Delete')}
+            className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
             onClick={actionSet.length > 0 ? this._onDelete : undefined}
           >
             <RetinaImg name="toolbar-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
           </button>
           <button
             tabIndex={-1}
+            title={localized('Edit')}
             className={`btn btn-toolbar ${!editable && 'btn-disabled'}`}
             onClick={editable ? () => Store.setEditing(actionSet[0].id) : undefined}
           >
