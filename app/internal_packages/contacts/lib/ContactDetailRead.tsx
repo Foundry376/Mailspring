@@ -1,15 +1,18 @@
 import React from 'react';
-import { Account, Contact, AccountStore } from 'mailspring-exports';
-import { ContactProfilePhoto } from 'mailspring-component-kit';
+import { Account, Contact, AccountStore, ContactGroup } from 'mailspring-exports';
+import { ContactProfilePhoto, RetinaImg } from 'mailspring-component-kit';
 import * as Icons from './icons';
+import { Store } from './Store';
 import { ContactBase, ContactInteractorMetadata } from './ContactController';
 
 export const ContactDetailRead = ({
   data,
+  groups,
   contact,
   metadata,
 }: {
   data: ContactBase;
+  groups: ContactGroup[];
   contact: Contact;
   metadata: ContactInteractorMetadata;
 }) => {
@@ -18,6 +21,33 @@ export const ContactDetailRead = ({
       <div className="contact-hero">
         <ContactProfilePhoto contact={contact} loading={false} avatar={data.photoURL} />
         <h3>{data.name.displayName}</h3>
+      </div>
+      <div className="contact-group-memberships">
+        {contact.contactGroups.map(gid => {
+          const group = groups.find(g => g.id === gid);
+          const label = group ? group.name : gid;
+          return (
+            <div
+              key={gid}
+              className="group-membership"
+              onClick={() => {
+                Store.setPerspective({
+                  label,
+                  accountId: contact.accountId,
+                  groupId: gid,
+                  type: 'group',
+                });
+              }}
+            >
+              <RetinaImg
+                name="label.png"
+                style={{ marginRight: 5 }}
+                mode={RetinaImg.Mode.ContentDark}
+              />
+              {label}
+            </div>
+          );
+        })}
       </div>
       {
         <ContactAttributes
@@ -50,16 +80,14 @@ const ContactAttributes = ({
         ))}
       </div>
     )}
-    {data.organizations && (
+    {(data.title || data.company) && (
       <div className="contact-attributes-section">
-        {data.organizations.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <label>
-              <Icons.Briefcase />
-            </label>
-            <div>{`${item.title ? `${item.title}, ` : ''}${item.name}`}</div>
-          </div>
-        ))}
+        <div className="contact-attribute">
+          <label>
+            <Icons.Briefcase />
+          </label>
+          <div>{`${data.title ? `${data.title}, ` : ''}${data.company}`}</div>
+        </div>
       </div>
     )}
     {data.emailAddresses && (
@@ -121,7 +149,7 @@ const ContactAttributes = ({
               <Icons.Crown />
             </label>
             <div>
-              {new Date(item.date.year, item.date.month, item.date.day).toLocaleDateString()}
+              {new Date(item.date.year, item.date.month - 1, item.date.day).toLocaleDateString()}
             </div>
           </div>
         ))}

@@ -9,7 +9,7 @@ export class DestroyContactTask extends Task {
     ...Task.attributes,
 
     contacts: Attributes.Collection({
-      modelKey: 'contact',
+      modelKey: 'contacts',
       itemClass: Contact,
     }),
   };

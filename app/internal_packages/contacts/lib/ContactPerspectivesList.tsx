@@ -5,6 +5,8 @@ import {
   ContactGroup,
   Rx,
   Actions,
+  DestroyContactGroupTask,
+  SyncbackContactGroupTask,
   ChangeContactGroupMembershipTask,
 } from 'mailspring-exports';
 import { ContactsPerspective, Store } from './Store';
@@ -58,6 +60,7 @@ const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectives
       <OutlineView
         key={a.id}
         title={a.label}
+        onItemCreated={name => Actions.queueTask(SyncbackContactGroupTask.forCreating(a.id, name))}
         items={[
           {
             id: 'all-contacts',
@@ -79,6 +82,12 @@ const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectives
                 children: [],
                 selected: isEqual(selected, perspective),
                 onSelect: () => onSelect(perspective),
+                onEdited: (item, value: string) => {
+                  Actions.queueTask(SyncbackContactGroupTask.forRenaming(group, value));
+                },
+                onDelete: () => {
+                  Actions.queueTask(DestroyContactGroupTask.forRemoving(group));
+                },
                 onDrop: (item, { dataTransfer }) => {
                   const data = JSON.parse(dataTransfer.getData('mailspring-contacts-data'));
                   const contacts = data.ids.map(i =>

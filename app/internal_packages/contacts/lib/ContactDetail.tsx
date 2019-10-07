@@ -1,5 +1,13 @@
 import React from 'react';
-import { Contact, localized, Actions, SyncbackContactTask } from 'mailspring-exports';
+import { v4 } from 'uuid';
+import {
+  Contact,
+  localized,
+  Actions,
+  SyncbackContactTask,
+  AccountStore,
+  ContactGroup,
+} from 'mailspring-exports';
 import { isEqual } from 'underscore';
 import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
 import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactController';
@@ -8,7 +16,8 @@ import { ContactDetailEdit } from './ContactDetailEdit';
 import { Store, ContactsPerspective } from './Store';
 
 interface ContactDetailProps {
-  editing: boolean;
+  editing: string | 'new' | false;
+  groups: ContactGroup[];
   contacts: Contact[];
   perspective: ContactsPerspective;
   focusedId?: string;
@@ -30,17 +39,35 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     const prevContact = prevProps.contacts.find(c => c.id === prevProps.focusedId);
     const newContact = this.props.contacts.find(c => c.id === this.props.focusedId);
 
-    if (isEqual(prevContact, newContact)) return;
-    if (this.props.editing) Store.setEditing(false);
+    if (isEqual(prevContact, newContact) && prevProps.editing === this.props.editing) return;
+    if (newContact && this.props.editing !== newContact.id) Store.setEditing(false);
     this.setState(this.getStateForProps());
   }
 
   getStateForProps() {
-    const contact = this.props.contacts.find(c => c.id === this.props.focusedId);
+    const { editing, contacts, focusedId, perspective } = this.props;
+    let contact = contacts.find(c => c.id === focusedId);
+
+    if (editing === 'new') {
+      const account = AccountStore.accountForId(perspective.accountId);
+      contact = new Contact({
+        name: '',
+        email: '',
+        accountId: account.id,
+        info:
+          account.provider === 'gmail'
+            ? {}
+            : {
+                vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${v4()}\r\nEND:VCARD\r\n`,
+                href: '',
+              },
+      });
+    }
 
     if (!contact) {
       return { metadata: null, data: null, contact: null };
     }
+
     const { metadata, data } = parse(contact);
 
     return {
@@ -50,15 +77,22 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     };
   }
 
+  onCancel = () => {
+    Store.setEditing(false);
+  };
+
   onSaveChanges = () => {
-    Actions.queueTask(
-      SyncbackContactTask.forUpdating({ contact: apply(this.state.contact, this.state.data) })
-    );
+    const contact = apply(this.state.contact, this.state.data);
+
+    const task = contact.id
+      ? SyncbackContactTask.forUpdating({ contact })
+      : SyncbackContactTask.forCreating({ contact, accountId: this.props.perspective.accountId });
+    Actions.queueTask(task);
     Store.setEditing(false);
   };
 
   render() {
-    const { editing } = this.props;
+    const { editing, groups } = this.props;
     const { data, metadata, contact } = this.state;
 
     if (!data) {
@@ -81,11 +115,15 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
               onChange={changes => this.setState({ data: { ...data, ...changes } })}
             />
           ) : (
-            <ContactDetailRead data={data} contact={contact} metadata={metadata} />
+            <ContactDetailRead data={data} contact={contact} metadata={metadata} groups={groups} />
           )}
         </ScrollRegion>
         {editing && (
           <div className="contact-edit-footer">
+            <button tabIndex={-1} className={`btn`} onClick={this.onCancel}>
+              {localized('Cancel')}
+            </button>
+            <div style={{ flex: 1 }} />
             <button tabIndex={-1} className={`btn btn-emphasis`} onClick={this.onSaveChanges}>
               {localized('Save Changes')}
             </button>
@@ -97,15 +135,21 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
 }
 
 export const ContactDetail: React.FunctionComponent<ContactDetailProps> = ListensToFluxStore(
-  ({ contacts, perspective, editing }) => (
+  ({ contacts, perspective, editing, groups }) => (
     <FocusContainer collection="contact">
-      <ContactDetailWithFocus contacts={contacts} editing={editing} perspective={perspective} />
+      <ContactDetailWithFocus
+        contacts={contacts}
+        editing={editing}
+        perspective={perspective}
+        groups={groups}
+      />
     </FocusContainer>
   ),
   {
     stores: [Store],
     getStateFromStores: () => ({
       editing: Store.editing(),
+      groups: Store.groups(),
       contacts: Store.filteredContacts(),
       perspective: Store.perspective(),
     }),

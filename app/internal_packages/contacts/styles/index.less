@@ -30,6 +30,23 @@
       word-break: break-word;
     }
   }
+  .contact-group-memberships {
+    .group-membership {
+      display: inline-block;
+      background: @background-secondary;
+      border: 1px solid transparent;
+      border-radius: @border-radius-base;
+      padding: 2px 10px;
+      margin-right: 8px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+
+      &:hover {
+        border: 1px solid @border-color-divider;
+        cursor: pointer;
+      }
+    }
+  }
   .contact-origin {
     flex: 1;
     margin-top: 12px;
@@ -170,9 +187,24 @@
   }
 }
 
+.btn-new-contact {
+  svg {
+    width: 15px;
+    height: 15px;
+    vertical-align: text-bottom;
+  }
+  &.btn-disabled {
+    svg {
+      opacity: 0.5;
+    }
+  }
+  color: @text-color;
+}
+
 .contact-edit-footer {
-  text-align: right;
   padding: 10px;
+  display: flex;
+  align-items: space-between;
   border-top: 1px solid @border-color-divider;
 }
 

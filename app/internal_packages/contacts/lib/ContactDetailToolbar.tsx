@@ -4,6 +4,7 @@ import {
   ListensToFluxStore,
   ListDataSource,
   RetinaImg,
+  BindGlobalCommands,
 } from 'mailspring-component-kit';
 import { Store, ContactsPerspective } from './Store';
 import {
@@ -15,7 +16,7 @@ import {
 } from 'mailspring-exports';
 
 interface ContactDetailToolbarProps {
-  editing: boolean;
+  editing: string | 'new' | false;
   listSource: ListDataSource;
   perspective: ContactsPerspective;
   focusedId?: string;
@@ -68,33 +69,46 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
       return <span />;
     }
 
+    const commands = {};
+    if (perspective && perspective.type === 'group' && actionSet.length > 0) {
+      commands['core:remove-from-view'] = this._onRemoveFromSource;
+    }
+    if (actionSet.length > 0) {
+      commands['core:delete-item'] = this._onDelete;
+    }
+    if (editable) {
+      commands['core:edit-item'] = () => Store.setEditing(actionSet[0].id);
+    }
+
     return (
-      <div style={{ display: 'flex', order: 1000, marginRight: 10 }}>
-        {perspective && perspective.type === 'group' && (
+      <BindGlobalCommands key={Object.keys(commands).join(',')} commands={commands}>
+        <div style={{ display: 'flex', order: 1000, marginRight: 10 }}>
+          {perspective && perspective.type === 'group' && (
+            <button
+              tabIndex={-1}
+              className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
+              onClick={actionSet.length > 0 ? this._onRemoveFromSource : undefined}
+            >
+              {localized('Remove from Group')}
+            </button>
+          )}
           <button
             tabIndex={-1}
             className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
-            onClick={actionSet.length > 0 ? this._onRemoveFromSource : undefined}
+            title={localized('Delete')}
+            onClick={actionSet.length > 0 ? this._onDelete : undefined}
           >
-            {localized('Remove from Group')}
+            <RetinaImg name="toolbar-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
           </button>
-        )}
-        <button
-          tabIndex={-1}
-          className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
-          title={localized('Delete')}
-          onClick={actionSet.length > 0 ? this._onDelete : undefined}
-        >
-          <RetinaImg name="toolbar-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
-        </button>
-        <button
-          tabIndex={-1}
-          className={`btn btn-toolbar ${!editable && 'btn-disabled'}`}
-          onClick={editable ? () => Store.setEditing(true) : undefined}
-        >
-          {localized('Edit')}
-        </button>
-      </div>
+          <button
+            tabIndex={-1}
+            className={`btn btn-toolbar ${!editable && 'btn-disabled'}`}
+            onClick={editable ? () => Store.setEditing(actionSet[0].id) : undefined}
+          >
+            {localized('Edit')}
+          </button>
+        </div>
+      </BindGlobalCommands>
     );
   }
 }

@@ -391,7 +391,7 @@ export class Contact extends Model {
       modelKey: 'contactGroups',
       jsonKey: 'gis',
       joinOnField: 'id',
-      itemClass: ContactGroup,
+      joinTableName: 'ContactContactGroup',
     }),
 
     refs: Attributes.Number({
@@ -443,10 +443,14 @@ export class Contact extends Model {
   public refs: number;
   public source: string;
   public hidden: boolean;
+  public contactGroups: string[];
   public info?: ContactInfoGoogle | ContactInfoVCF;
 
   constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);
+    if (!this.contactGroups) {
+      this.contactGroups = [];
+    }
   }
 
   // Public: Returns a string of the format `Full Name <email@address.com>` if

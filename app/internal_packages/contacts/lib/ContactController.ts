@@ -5,14 +5,15 @@ import * as VCFHelpers from './VCFHelpers';
 export interface ContactBase {
   name: {
     displayName: string;
-    familyName?: string;
-    givenName?: string;
-    honorificPrefix?: string;
-    honorificSuffix?: string;
+    familyName: string;
+    givenName: string;
+    honorificPrefix: string;
+    honorificSuffix: string;
   };
   photoURL?: string;
   nicknames?: { value: string }[];
-  organizations?: { title?: string; name: string }[];
+  company: string;
+  title: string;
   phoneNumbers?: { value: string; formattedType?: string }[];
   emailAddresses?: { value: string; formattedType?: string }[];
   urls?: { value: string; formattedType?: string }[];
@@ -40,6 +41,18 @@ export interface ContactParseResult {
   data: ContactBase;
 }
 
+function safeParseVCF(vcf: string) {
+  // normalize \n line endings to \r\n
+  vcf = vcf.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+
+  // ensure the VERSION line is the first line after BEGIN.
+  // FastMail (and maybe others) do not honor the spec's order.
+  const version = vcf.match(/\r\nVERSION:[ \d.]+\r\n/)[0];
+  vcf = vcf.replace(/\r\nVERSION:[ \d.]+\r\n/, '\r\n');
+  vcf = vcf.replace(`BEGIN:VCARD\r\n`, `BEGIN:VCARD${version}`);
+  return new vCard().parse(vcf);
+}
+
 export function fromContact({ name, email }: Contact): ContactParseResult {
   const nameParts = name.split(' ');
 
@@ -50,21 +63,26 @@ export function fromContact({ name, email }: Contact): ContactParseResult {
     },
     data: {
       emailAddresses: [{ value: email }],
+      title: '',
+      company: '',
       name: {
         displayName: name,
         givenName: nameParts[0],
         familyName: nameParts.slice(1).join(' '),
+        honorificPrefix: '',
+        honorificSuffix: '',
       },
     },
   };
 }
 
 export function fromVCF(info: ContactInfoVCF): ContactParseResult {
-  const card = new vCard().parse(info.vcf);
+  const card = safeParseVCF(info.vcf);
   const name = VCFHelpers.asSingle(card.get('n'));
   const org = VCFHelpers.asSingle(card.get('org'));
   const photo = VCFHelpers.asSingle(card.get('photo'));
   const title = VCFHelpers.asSingle(card.get('title'));
+  const nicknames = VCFHelpers.asArray(card.get('nickname'));
   const adrs = VCFHelpers.asArray(card.get('adr'));
   const tels = VCFHelpers.asArray(card.get('tel'));
   const emails = VCFHelpers.asArray(card.get('email'));
@@ -87,25 +105,22 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
     },
     data: {
       name: {
-        givenName: nameParts[1],
-        familyName: nameParts[0],
-        displayName: `${nameParts[1]} ${nameParts[0]}`,
+        givenName: nameParts[1] || '',
+        familyName: nameParts[0] || '',
+        honorificPrefix: nameParts[3] || '',
+        honorificSuffix: nameParts[4] || '',
+        displayName: `${nameParts[3] || ''} ${nameParts[1]} ${nameParts[0]} ${nameParts[4] ||
+          ''}`.trim(),
       },
-      photoURL,
-      organizations: org
-        ? [
-            {
-              name: VCFHelpers.removeRandomSemicolons(org._data),
-              title: title ? VCFHelpers.removeRandomSemicolons(title._data) : undefined,
-            },
-          ]
-        : undefined,
+      nicknames: VCFHelpers.parseValueAndTypeCollection(nicknames),
+      title: title ? VCFHelpers.removeRandomSemicolons(title._data) : '',
+      company: org ? org._data.split(';')[0] : '',
       phoneNumbers: VCFHelpers.parseValueAndTypeCollection(tels),
       emailAddresses: VCFHelpers.parseValueAndTypeCollection(emails),
       urls: VCFHelpers.parseValueAndTypeCollection(urls),
       addresses: adrs.length > 0 && adrs.map(item => VCFHelpers.parseAddress(item)),
       birthdays:
-        bday && bday.value === 'date'
+        bday && (!bday.value || bday.value === 'date')
           ? [{ date: VCFHelpers.parseBirthday(bday._data) }]
           : undefined,
     },
@@ -116,19 +131,38 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
   if (!('vcf' in contact.info)) {
     throw new Error('applyToVCF invoked with wrong contact type.');
   }
-  const card = new vCard().parse(contact.info.vcf);
+  const card = safeParseVCF(contact.info.vcf);
   for (const key of Object.keys(changes)) {
     if (key === 'name') {
       const name = card.get('n');
-      const nameParts = (name ? name._data : '').split(';');
+      const nameParts = (name ? name._data : ';;;;').split(';');
       nameParts[0] = changes.name.familyName;
       nameParts[1] = changes.name.givenName;
       card.set('n', nameParts.join(';'));
 
       const displayName = `${changes.name.givenName} ${changes.name.familyName}`;
-      const fn = card.get('fn');
-      if (fn) card.set('fn', displayName);
+      card.set('fn', displayName);
       contact.name = displayName;
+    } else if (key === 'title') {
+      card.add('title', changes.title);
+    } else if (key === 'company') {
+      const org = VCFHelpers.asSingle(card.get('org')) as any;
+      if (org) {
+        const parts = org._data.split(';');
+        parts[0] = changes.company;
+        org._data = parts.join(';');
+      } else {
+        card.set('org', changes.company);
+      }
+    } else if (key === 'nicknames') {
+      VCFHelpers.setArray('nickname', card, changes.nicknames);
+    } else if (key === 'phoneNumbers' || key === 'emailAddresses' || key === 'urls') {
+      const attr = { phoneNumbers: 'tel', emailAddresses: 'email', urls: 'url' }[key];
+      VCFHelpers.setArray(attr, card, changes[key]);
+    } else if (key === 'birthdays') {
+      VCFHelpers.setArray('bday', card, changes.birthdays.map(VCFHelpers.serializeBirthday));
+    } else if (key === 'addresses') {
+      VCFHelpers.setArray('adr', card, changes[key].map(VCFHelpers.serializeAddress));
     } else {
       console.log(`Unsure of how to apply changes to ${key}`);
     }

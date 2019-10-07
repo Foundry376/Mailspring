@@ -31,11 +31,16 @@ export class TypeaheadFreeInput extends React.Component<
     const { suggestions, ...rest } = this.props;
     const { focused } = this.state;
 
-    const value = `${rest.value}`;
+    let value = `${rest.value}`;
 
     const completions = suggestions.filter(
       text => text.toLowerCase().startsWith(value.toLowerCase()) && text !== value
     );
+
+    // Adopt capitalization of the autocompletion
+    if (completions[0] && completions[0].toLowerCase() === value) {
+      value = completions[0];
+    }
 
     return (
       <Menu
@@ -53,6 +58,7 @@ export class TypeaheadFreeInput extends React.Component<
               this._menu.current.onKeyDown(e);
             }}
             {...rest}
+            value={value}
           />,
         ]}
         onSelect={this.onSelectSuggestion}

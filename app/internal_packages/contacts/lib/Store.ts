@@ -12,7 +12,7 @@ class ContactsWindowStore extends MailspringStore {
   _groups: ContactGroup[] = [];
   _search: string = '';
   _filtered: Contact[] | null = null;
-  _editing: boolean;
+  _editing: string | 'new' | false = false;
 
   constructor() {
     super();
@@ -60,7 +60,7 @@ class ContactsWindowStore extends MailspringStore {
     return this._editing;
   }
 
-  setEditing(editing: boolean) {
+  setEditing(editing: string | 'new' | false) {
     this._editing = editing;
     this.trigger();
   }

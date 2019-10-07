@@ -3,6 +3,7 @@ const { localized } = require('../src/intl');
 module.exports = {
   menu: [
     {
+      key: 'File',
       label: localized('File'),
       submenu: [
         { label: localized('Sync New Mail Now'), command: 'window:sync-mail-now' },
@@ -23,6 +24,7 @@ module.exports = {
     },
 
     {
+      key: 'Edit',
       label: localized('Edit'),
       submenu: [
         { label: localized('Undo'), command: 'core:undo' },
@@ -56,6 +58,7 @@ module.exports = {
     },
 
     {
+      key: 'View',
       label: localized('View'),
       submenu: [
         {
@@ -107,6 +110,7 @@ module.exports = {
     },
 
     {
+      key: 'Thread',
       label: localized('Thread'),
       submenu: [
         { label: localized('Reply'), command: 'core:reply' },
@@ -157,6 +161,7 @@ module.exports = {
       ],
     },
     {
+      key: 'Developer',
       label: localized('Developer'),
       submenu: [
         {
@@ -184,6 +189,7 @@ module.exports = {
       ],
     },
     {
+      key: 'Window',
       label: localized('Window'),
       submenu: [
         { label: localized('Minimize'), command: 'application:minimize' },
@@ -192,6 +198,7 @@ module.exports = {
       ],
     },
     {
+      key: 'Help',
       label: localized('Help'),
       submenu: [
         { label: 'VERSION', enabled: false },

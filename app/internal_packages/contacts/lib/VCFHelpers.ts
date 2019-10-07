@@ -10,9 +10,43 @@ export const asSingle = (obj: any | Array<any>) => {
   return obj;
 };
 
+export const setArray = (
+  attr: string,
+  card: any,
+  values: { value: string; formattedType?: string }[]
+) => {
+  values.forEach(({ value, formattedType }, idx) => {
+    const params = {};
+    if (formattedType) {
+      params['type'] = formattedType;
+    }
+    if (idx === 0) {
+      card.set(attr, value, params);
+    } else {
+      card.add(attr, value, params);
+    }
+  });
+};
+
 export const parseBirthday = (date: string) => {
   const [year, month, day] = [...date.split('-'), -1, -1, -1];
   return { year: Number(year), month: Number(month), day: Number(day) };
+};
+
+export const serializeBirthday = ({
+  date,
+}: {
+  date: { year: number; month: number; day: number };
+}) => {
+  const td = (n: number, count: number) => {
+    let clean = Number(n);
+    if (isNaN(clean)) clean = 0;
+    let str = clean.toString();
+    if (str.length > count) str = str.slice(0, count);
+    if (str.length < count) str = '0'.repeat(count - str.length) + str.length;
+    return str;
+  };
+  return { value: `${td(date.year, 4)}-${td(date.month, 2)}-${td(date.day, 2)}` };
 };
 
 export const removeRandomSemicolons = (value: string) => {
@@ -65,4 +99,17 @@ export const parseValueAndTypeCollection = (items: any[]) => {
       formattedType: parseFormattedType(item.type),
     }))
   );
+};
+
+export const serializeAddress = (item: ContactBase['addresses'][0]) => {
+  const value = [
+    '',
+    item.streetAddress,
+    item.extendedAddress,
+    item.city,
+    item.region,
+    item.postalCode,
+    item.country,
+  ].join(';');
+  return { value, formattedType: item.formattedType };
 };

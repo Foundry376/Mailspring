@@ -1,9 +1,46 @@
-import { WorkspaceStore, ComponentRegistry, Actions } from 'mailspring-exports';
+import { WorkspaceStore, ComponentRegistry, Actions, localized } from 'mailspring-exports';
 import { ContactPerspectivesList } from './ContactPerspectivesList';
 import { ContactDetailToolbar } from './ContactDetailToolbar';
+import { AddContactToolbar } from './AddContactToolbar';
 import { ContactList, ContactListSearch } from './ContactList';
 import { ContactDetail } from './ContactDetail';
 import { FoundInMailEnabledBar } from './FoundInMailEnabledBar';
+
+function adjustMenus() {
+  const contactMenu: typeof AppEnv.menu.template[0] = {
+    key: 'Contact',
+    label: localized('Contact'),
+    submenu: [
+      {
+        label: localized('New Contact'),
+        command: 'core:add-item',
+      },
+      { type: 'separator' },
+      {
+        label: localized('Edit Contact'),
+        command: 'core:edit-item',
+      },
+      {
+        label: localized('Delete Contact'),
+        command: 'core:delete-item',
+      },
+      { type: 'separator' },
+      {
+        label: localized('Remove from Group'),
+        command: 'core:remove-from-view',
+      },
+    ],
+  };
+
+  const template = AppEnv.menu.template.filter(
+    item => item.key !== 'Thread' && item.key !== 'View'
+  );
+  const editIndex = template.findIndex(item => item.key === 'Edit');
+  template.splice(editIndex + 1, 0, contactMenu);
+
+  AppEnv.menu.template = template;
+  AppEnv.menu.update();
+}
 
 export function activate() {
   WorkspaceStore.defineSheet(
@@ -12,6 +49,7 @@ export function activate() {
     { split: ['ContactsSidebar', 'ContactsList', 'ContactsDetail'] }
   );
 
+  adjustMenus();
   Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
 
   ComponentRegistry.register(ContactPerspectivesList, {
@@ -33,6 +71,9 @@ export function activate() {
   ComponentRegistry.register(ContactDetailToolbar, {
     location: WorkspaceStore.Location.ContactsDetail.Toolbar,
   });
+  ComponentRegistry.register(AddContactToolbar, {
+    location: WorkspaceStore.Location.ContactsSidebar.Toolbar,
+  });
 }
 
 export function deactivate() {
@@ -42,4 +83,5 @@ export function deactivate() {
   ComponentRegistry.unregister(ContactListSearch);
   ComponentRegistry.unregister(ContactDetail);
   ComponentRegistry.unregister(ContactDetailToolbar);
+  ComponentRegistry.unregister(AddContactToolbar);
 }

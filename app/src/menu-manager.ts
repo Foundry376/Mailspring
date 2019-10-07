@@ -15,7 +15,7 @@ export default class MenuManager {
 
   constructor({ resourcePath }) {
     this.resourcePath = resourcePath;
-    this.loadPlatformItems();
+    this.loadBaseItems();
 
     AppEnv.keymaps.onDidReloadKeymap(() => this.update());
     AppEnv.commands.onRegistedCommandsChanged(() => this.update());
@@ -84,10 +84,11 @@ export default class MenuManager {
     });
   };
 
-  loadPlatformItems() {
-    const menusDirPath = path.join(this.resourcePath, 'menus');
-    const platformMenuPath = fs.resolve(menusDirPath, process.platform, ['js', 'json']);
+  loadBaseItems() {
+    const dir = path.join(this.resourcePath, 'menus');
+    const platformMenuPath = fs.resolve(dir, process.platform, ['js', 'json']);
     const { menu } = require(platformMenuPath);
+    this.template = [];
     this.add(menu);
   }
 
