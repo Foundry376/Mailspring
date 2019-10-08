@@ -10,7 +10,7 @@ import {
 } from 'mailspring-exports';
 import { isEqual } from 'underscore';
 import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
-import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactController';
+import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactInfoMapping';
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
 import { Store, ContactsPerspective } from './Store';

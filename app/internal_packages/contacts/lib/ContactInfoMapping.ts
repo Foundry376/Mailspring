@@ -2,6 +2,12 @@ import vCard from 'vcf';
 import { ContactInfoGoogle, ContactInfoVCF, Contact, Utils } from 'mailspring-exports';
 import * as VCFHelpers from './VCFHelpers';
 
+/**
+This file contains business logic that maps two separate "contact.info" formats onto
+a shared "ContactBase" interface. This sucks, but it's much easier to implement in JS
+than in the sync engine, and necessary because Google's CardDav support is very bad
+and we need to use their "Google People" API instead.
+*/
 export interface ContactBase {
   name: {
     displayName: string;
@@ -41,18 +47,19 @@ export interface ContactParseResult {
   data: ContactBase;
 }
 
-function safeParseVCF(vcf: string) {
+function safeParseVCard(vcard: string) {
   // normalize \n line endings to \r\n
-  vcf = vcf.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+  vcard = vcard.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
 
   // ensure the VERSION line is the first line after BEGIN.
   // FastMail (and maybe others) do not honor the spec's order.
-  const version = vcf.match(/\r\nVERSION:[ \d.]+\r\n/)[0];
-  vcf = vcf.replace(/\r\nVERSION:[ \d.]+\r\n/, '\r\n');
-  vcf = vcf.replace(`BEGIN:VCARD\r\n`, `BEGIN:VCARD${version}`);
-  return new vCard().parse(vcf);
+  const version = vcard.match(/\r\nVERSION:[ \d.]+\r\n/)[0];
+  vcard = vcard.replace(/\r\nVERSION:[ \d.]+\r\n/, '\r\n');
+  vcard = vcard.replace(`BEGIN:VCARD\r\n`, `BEGIN:VCARD${version}`);
+  return new vCard().parse(vcard);
 }
 
+/** Parse a Contact with no `info` into the shared details format. */
 export function fromContact({ name, email }: Contact): ContactParseResult {
   const nameParts = name.split(' ');
 
@@ -76,8 +83,13 @@ export function fromContact({ name, email }: Contact): ContactParseResult {
   };
 }
 
+/** Parse a Contact with a CardDAV VCard (v3 or v4) into the shared details format. 
+  This takes a considerable amount of work because VCards allow many properties to
+  be defined more than once, and the parser we use just silently exposes things as
+  either an array or a single value.
+*/
 export function fromVCF(info: ContactInfoVCF): ContactParseResult {
-  const card = safeParseVCF(info.vcf);
+  const card = safeParseVCard(info.vcf);
   const name = VCFHelpers.asSingle(card.get('n'));
   const org = VCFHelpers.asSingle(card.get('org'));
   const photo = VCFHelpers.asSingle(card.get('photo'));
@@ -92,11 +104,9 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
   let photoURL = photo ? photo._data : undefined;
   if (photoURL && new URL(photoURL).host.endsWith('contacts.icloud.com')) {
     // connecting to iCloud for contact photos requires authentication
-    // and it's difficult to reach from here.
+    // and it's difficult to reach from here. No photos for now :(
     photoURL = undefined;
   }
-
-  let nameParts = (name ? name._data : '').split(';');
 
   return {
     metadata: {
@@ -104,17 +114,10 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
       readonly: false,
     },
     data: {
-      name: {
-        givenName: nameParts[1] || '',
-        familyName: nameParts[0] || '',
-        honorificPrefix: nameParts[3] || '',
-        honorificSuffix: nameParts[4] || '',
-        displayName: `${nameParts[3] || ''} ${nameParts[1]} ${nameParts[0]} ${nameParts[4] ||
-          ''}`.trim(),
-      },
+      name: VCFHelpers.parseName(name),
+      company: org ? org._data.split(';')[0] : '',
       nicknames: VCFHelpers.parseValueAndTypeCollection(nicknames),
       title: title ? VCFHelpers.removeRandomSemicolons(title._data) : '',
-      company: org ? org._data.split(';')[0] : '',
       phoneNumbers: VCFHelpers.parseValueAndTypeCollection(tels),
       emailAddresses: VCFHelpers.parseValueAndTypeCollection(emails),
       urls: VCFHelpers.parseValueAndTypeCollection(urls),
@@ -127,11 +130,16 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
   };
 }
 
+/** Apply the changes from the UI back to a Contact with it's info in the VCard format.
+Note that we only "set" fields that are changed to avoid smashing data you didn't even
+touch in the UI, just in case we do it in a lossy way.
+*/
 export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
   if (contact.source !== 'carddav' || !('vcf' in contact.info)) {
     throw new Error('applyToVCF invoked with wrong contact type.');
   }
-  const card = safeParseVCF(contact.info.vcf);
+  const card = safeParseVCard(contact.info.vcf);
+
   for (const key of Object.keys(changes)) {
     if (key === 'name') {
       const name = card.get('n');
@@ -168,6 +176,9 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
   contact.info = Object.assign(contact.info, { vcf: card.toString().replace(/\n/g, '\r\n') });
 }
 
+/* Parse a Contact with Google People info into the shared details format. 
+ We don't support multipl names or multiple organizations, but otherwise mostly
+ a pass-through. */
 export function fromGoogle(info: ContactInfoGoogle): ContactParseResult {
   return {
     metadata: {
@@ -189,6 +200,10 @@ export function fromGoogle(info: ContactInfoGoogle): ContactParseResult {
   };
 }
 
+/** applyToGoogle: Apply the changes from the UI back to a Contact with it's
+ * info in the Google People format. Note we only modify changed parts of the
+ * JSON.
+ */
 export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
   const { info, source } = contact;
 

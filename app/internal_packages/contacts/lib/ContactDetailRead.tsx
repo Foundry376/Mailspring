@@ -1,9 +1,9 @@
 import React from 'react';
 import { Account, Contact, AccountStore, ContactGroup } from 'mailspring-exports';
 import { ContactProfilePhoto, RetinaImg } from 'mailspring-component-kit';
-import * as Icons from './icons';
+import * as Icons from './Icons';
 import { Store } from './Store';
-import { ContactBase, ContactInteractorMetadata } from './ContactController';
+import { ContactBase, ContactInteractorMetadata } from './ContactInfoMapping';
 
 export const ContactDetailRead = ({
   data,

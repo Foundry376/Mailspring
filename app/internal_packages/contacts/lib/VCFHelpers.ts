@@ -1,4 +1,4 @@
-import { ContactBase } from './ContactController';
+import { ContactBase } from './ContactInfoMapping';
 
 export const asArray = (obj: any | Array<any>) => {
   if (obj instanceof Array) return obj;
@@ -10,6 +10,8 @@ export const asSingle = (obj: any | Array<any>) => {
   return obj;
 };
 
+/** Apply an array of items to a VCard. The underlying API requires that we `set` to
+clear the array and then `add` subsequent items. */
 export const setArray = (attr: string, card: any, values: { value: string; type?: string }[]) => {
   values.forEach(({ value, type }, idx) => {
     const params = {};
@@ -29,6 +31,8 @@ export const parseBirthday = (date: string) => {
   return { year: Number(year), month: Number(month), day: Number(day) };
 };
 
+/** Serialize into {value: YYYY-MM-DD} with NO exceptions, regardless of what
+ you typed into the boxes. */
 export const serializeBirthday = ({
   date,
 }: {
@@ -111,6 +115,18 @@ export const serializeAddress = (item: ContactBase['addresses'][0]) => {
     item.country,
   ].join(';');
   return { value, type: item.type };
+};
+
+export const parseName = (name: { _data: string } | null) => {
+  const parts = (name ? name._data : '').split(';');
+
+  return {
+    givenName: parts[1] || '',
+    familyName: parts[0] || '',
+    honorificPrefix: parts[3] || '',
+    honorificSuffix: parts[4] || '',
+    displayName: `${parts[3] || ''} ${parts[1]} ${parts[0]} ${parts[4] || ''}`.trim(),
+  };
 };
 
 export const formatDisplayName = (name: ContactBase['name']) => {
