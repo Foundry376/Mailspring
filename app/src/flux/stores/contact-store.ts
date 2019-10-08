@@ -4,6 +4,7 @@ import RegExpUtils from '../../regexp-utils';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
 import ComponentRegistry from '../../registries/component-registry';
+import { ContactGroup } from 'mailspring-exports';
 
 /**
 Public: ContactStore provides convenience methods for searching contacts and
@@ -13,6 +14,17 @@ with additional actions.
 Section: Stores
 */
 class ContactStore extends MailspringStore {
+  async searchContactGroups(_search: string) {
+    const search = _search.toLowerCase();
+
+    if (!search || search.length === 0) {
+      return [];
+    }
+
+    const groups = await DatabaseStore.findAll<ContactGroup>(ContactGroup);
+    return groups.filter(g => g.name.toLowerCase().startsWith(search)).slice(0, 4);
+  }
+
   // Public: Search the user's contact list for the given search term.
   // This method compares the `search` string against each Contact's
   // `name` and `email`.
@@ -24,7 +36,7 @@ class ContactStore extends MailspringStore {
   //
   // Returns an {Array} of matching {Contact} models
   //
-  searchContacts(_search, options: { limit?: number } = {}) {
+  searchContacts(_search: string, options: { limit?: number } = {}) {
     const limit = Math.max(options.limit ? options.limit : 5, 0);
     const search = _search.toLowerCase();
 

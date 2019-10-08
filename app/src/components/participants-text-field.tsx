@@ -9,6 +9,8 @@ import {
   RegExpUtils,
   Message,
   DraftEditingSession,
+  ContactGroup,
+  DatabaseStore,
 } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
@@ -98,7 +100,11 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
   _completionNode = p => {
     const CustomComponent = p.customComponent;
     if (CustomComponent) return <CustomComponent token={p} />;
-    return <Menu.NameEmailItem name={p.fullName()} email={p.email} key={p.id} />;
+    if (p instanceof Contact) {
+      return <Menu.NameEmailContent name={p.fullName()} email={p.email} key={p.id} />;
+    } else if (p instanceof ContactGroup) {
+      return p.name;
+    }
   };
 
   _tokensForString = async (string, options = {}) => {
@@ -157,10 +163,18 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
       tokensPromise = Promise.resolve(values);
     }
 
-    tokensPromise.then(tokens => {
+    tokensPromise.then(async tokens => {
       // Safety check: remove anything from the incoming tokens that isn't
       // a Contact. We should never receive anything else in the tokens array.
       const contactTokens = tokens.filter(value => value instanceof Contact);
+      const groupTokens = tokens.filter(value => value instanceof ContactGroup);
+
+      // convert the group tokens into contact tokens
+      const contactsFromGroups = await DatabaseStore.findAll<Contact>(Contact, [
+        Contact.attributes.contactGroups.containsAny(groupTokens.map(g => g.id)),
+      ]);
+
+      contactTokens.push(...contactsFromGroups);
 
       const updates = {};
       for (const field of Object.keys(this.props.participants)) {
@@ -234,10 +248,15 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
             this._textfieldEl = el;
           }}
           tokens={this.props.participants[this.props.field]}
-          tokenKey={p => p.email}
+          tokenKey={p => p.email || p.id}
           tokenIsValid={p => ContactStore.isValidContact(p)}
           tokenRenderer={TokenRenderer}
-          onRequestCompletions={input => ContactStore.searchContacts(input)}
+          onRequestCompletions={async input =>
+            (await Promise.all([
+              ContactStore.searchContactGroups(input),
+              ContactStore.searchContacts(input),
+            ])).flat()
+          }
           shouldBreakOnKeydown={this._shouldBreakOnKeydown}
           onInputTrySubmit={this._onInputTrySubmit}
           completionNode={this._completionNode}

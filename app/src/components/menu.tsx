@@ -12,7 +12,7 @@ export interface MenuItemProps {
   content?: any;
 }
 
-export interface MenuNameEmailItemProps {
+export interface MenuNameEmailContentProps {
   name?: string;
   email?: string;
 }
@@ -82,11 +82,11 @@ Public: React component for a {Menu} item that displays a name and email address
 
 Section: Component Kit
 */
-class MenuNameEmailItem extends React.Component<MenuNameEmailItemProps> {
-  static displayName = 'MenuNameEmailItem';
+class MenuNameEmailContent extends React.Component<MenuNameEmailContentProps> {
+  static displayName = 'MenuNameEmailContent';
 
   /*
-    Public: React `props` supported by MenuNameEmailItem:
+    Public: React `props` supported by MenuNameEmailContent:
 
      - `name` (optional) The {String} name to be displayed.
      - `email` (optional) The {String} email address to be displayed.
@@ -142,7 +142,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
   static displayName = 'Menu';
 
   static Item = MenuItem;
-  static NameEmailItem = MenuNameEmailItem;
+  static NameEmailContent = MenuNameEmailContent;
 
   /*
     Public: React `props` supported by Menu:
