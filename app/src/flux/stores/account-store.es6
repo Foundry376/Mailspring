@@ -349,7 +349,7 @@ class AccountStore extends MailspringStore {
           force:true
         });
         await ContactStore.refreshContacts();
-        await AppStore.refreshAppsEmailContacts();
+        // await AppStore.refreshAppsEmailContacts();
         xmpp.removeXmpp(jid);
         removeMyApps(chatAccount.userId);
         AppEnv.config.set(`${chatAccount.userId}_message_ts`, null)
