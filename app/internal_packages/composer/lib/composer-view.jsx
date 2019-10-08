@@ -115,7 +115,7 @@ export default class ComposerView extends React.Component {
     }
     return participants.to[0].name || '';
   }
-  componentWillReceiveProps(newProps){
+  componentWillReceiveProps(newProps) {
     this._isDraftMissingAttachments(newProps);
   }
 
@@ -169,13 +169,13 @@ export default class ComposerView extends React.Component {
     }
   }
 
-  _isDraftMissingAttachments = props=>{
+  _isDraftMissingAttachments = props => {
     if (!props.draft) {
       this.setState({ missingAttachments: false });
       return;
     }
-    props.draft.missingAttachments().then(ret=>{
-      if(!this._mounted){
+    props.draft.missingAttachments().then(ret => {
+      if (!this._mounted) {
         return;
       }
       const missing = ret.totalMissing();
@@ -203,9 +203,30 @@ export default class ComposerView extends React.Component {
 
     if (this.props.draft.to.length === 0 || this.props.draft.subject.length === 0) {
       this._els.header.focus();
+      // the 'header' focus, should show some body,
+      // it is a user-friendly expression that the body can scroll
+      // DC-997
+      this.scrollBodyInView(this._els.header);
     } else {
       this._els[Fields.Body].focus();
     }
+  }
+
+  scrollBodyInView(compose) {
+    const node = ReactDOM.findDOMNode(compose);
+    if (!node) {
+      return;
+    }
+    const scroller = node.closest('.scroll-region-content');
+    if (!scroller) {
+      return;
+    }
+    // If the height of the scroll box exceeds 400px, scroll 120px
+    let extraScrollTop = 120;
+    if (scroller.offsetHeight < 400) {
+      extraScrollTop = scroller.offsetHeight - 280 > 0 ? scroller.offsetHeight - 280 : 0;
+    }
+    scroller.scrollTop = scroller.scrollTop + extraScrollTop;
   }
 
   _renderContentScrollRegion() {
@@ -270,19 +291,21 @@ export default class ComposerView extends React.Component {
     );
   }
 
-  _draftNotReady(){
+  _draftNotReady() {
     return this.state.missingAttachments || (this.props.draft && this.props.draft.waitingForBody);
   }
 
   _renderBodyRegions() {
     if (this._draftNotReady()) {
-      return <div className="message-body-loading">
-        <RetinaImg
-          name="inline-loading-spinner.gif"
-          mode={RetinaImg.Mode.ContentDark}
-          style={{ width: 14, height: 14 }}
-        />
-      </div>
+      return (
+        <div className="message-body-loading">
+          <RetinaImg
+            name="inline-loading-spinner.gif"
+            mode={RetinaImg.Mode.ContentDark}
+            style={{ width: 14, height: 14 }}
+          />
+        </div>
+      );
     }
     return (
       <div className="composer-body-wrap">
