@@ -101,7 +101,7 @@ const ContactAttributes = ({
               <a href={`mailto:${item.value}`} title="Send email...">
                 {item.value}
               </a>
-              {item.formattedType && <div className="type">{item.formattedType}</div>}
+              {item.type && <div className="type">{item.type}</div>}
             </div>
           </div>
         ))}
@@ -118,7 +118,7 @@ const ContactAttributes = ({
               <a href={`tel:${item.value}`} title="Call...">
                 {item.value}
               </a>
-              {item.formattedType && <div className="type">{item.formattedType}</div>}
+              {item.type && <div className="type">{item.type}</div>}
             </div>
           </div>
         ))}
@@ -135,7 +135,7 @@ const ContactAttributes = ({
               <a href={`https://maps.google.com/?q=${encodeURIComponent(item.formattedValue)}`}>
                 {item.formattedValue}
               </a>
-              {item.formattedType && <div className="type">{item.formattedType}</div>}
+              {item.type && <div className="type">{item.type}</div>}
             </div>
           </div>
         ))}
@@ -164,7 +164,7 @@ const ContactAttributes = ({
             </label>
             <div>
               {item.person}
-              {item.formattedType && <div className="type">{item.formattedType}</div>}
+              {item.type && <div className="type">{item.type}</div>}
             </div>
           </div>
         ))}
@@ -181,7 +181,7 @@ const ContactAttributes = ({
               <a href={`${item.value}`} title="Visit website...">
                 {item.value}
               </a>
-              {item.formattedType && <div className="type">{item.formattedType}</div>}
+              {item.type && <div className="type">{item.type}</div>}
             </div>
           </div>
         ))}

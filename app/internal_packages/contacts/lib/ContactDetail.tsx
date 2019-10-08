@@ -29,6 +29,31 @@ interface ContactDetailState {
   metadata: ContactInteractorMetadata | null;
 }
 
+function emptyContactForAccountId(accountId: string) {
+  const account = AccountStore.accountForId(accountId);
+  const source = account.provider === 'gmail' ? 'gpeople' : 'carddav';
+  const info: Contact['info'] =
+    source === 'gpeople'
+      ? {
+          names: [],
+          resourceName: '',
+          etag: '',
+          addresses: [],
+        }
+      : {
+          vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${v4()}\r\nEND:VCARD\r\n`,
+          href: '',
+        };
+
+  return new Contact({
+    source,
+    name: '',
+    email: '',
+    accountId: account.id,
+    info,
+  });
+}
+
 class ContactDetailWithFocus extends React.Component<ContactDetailProps, ContactDetailState> {
   constructor(props: ContactDetailProps) {
     super(props);
@@ -46,23 +71,11 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
 
   getStateForProps() {
     const { editing, contacts, focusedId, perspective } = this.props;
-    let contact = contacts.find(c => c.id === focusedId);
 
-    if (editing === 'new') {
-      const account = AccountStore.accountForId(perspective.accountId);
-      contact = new Contact({
-        name: '',
-        email: '',
-        accountId: account.id,
-        info:
-          account.provider === 'gmail'
-            ? {}
-            : {
-                vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${v4()}\r\nEND:VCARD\r\n`,
-                href: '',
-              },
-      });
-    }
+    const contact =
+      editing === 'new'
+        ? emptyContactForAccountId(perspective.accountId)
+        : contacts.find(c => c.id === focusedId);
 
     if (!contact) {
       return { metadata: null, data: null, contact: null };

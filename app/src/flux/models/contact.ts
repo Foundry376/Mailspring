@@ -35,7 +35,6 @@ export interface ContactInfoGoogle {
     country: string;
     countryCode: string;
     extendedAddress: string;
-    formattedType: string;
     formattedValue: string;
     metadata: {
       primary: boolean;
@@ -45,18 +44,15 @@ export interface ContactInfoGoogle {
     streetAddress: string;
     type: string;
   }[];
-  organizations?: [
-    {
-      metadata: {
-        primary: boolean;
-      };
-      name: string;
-      title: string;
-    }
-  ];
+  organizations?: {
+    metadata: {
+      primary: boolean;
+    };
+    name: string;
+    title: string;
+  }[];
   relations?: [
     {
-      formattedType: string;
       metadata: {
         primary: boolean;
       };
@@ -65,7 +61,6 @@ export interface ContactInfoGoogle {
     }
   ];
   emailAddresses?: {
-    formattedType: string;
     metadata: {
       primary: boolean;
     };
@@ -74,7 +69,6 @@ export interface ContactInfoGoogle {
   }[];
   names?: {
     displayName: string;
-    displayNameLastFirst: string;
     familyName: string;
     givenName: string;
     metadata: {
@@ -88,7 +82,6 @@ export interface ContactInfoGoogle {
     value: string;
   }[];
   phoneNumbers?: {
-    formattedType: string;
     metadata: {
       primary: boolean;
     };
@@ -103,7 +96,6 @@ export interface ContactInfoGoogle {
     url: string;
   }[];
   urls?: {
-    formattedType: string;
     metadata: {
       primary: boolean;
     };

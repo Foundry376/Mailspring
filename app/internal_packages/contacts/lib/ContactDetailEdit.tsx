@@ -128,7 +128,7 @@ export class ContactDetailEdit extends React.Component<{
           <div className="contact-edit-section-content">
             <ListEditor<ContactBase['emailAddresses'][0]>
               items={data.emailAddresses || []}
-              itemTemplate={{ formattedType: '', value: '' }}
+              itemTemplate={{ type: '', value: '' }}
               onChange={items => onChange({ emailAddresses: items })}
             >
               {(item, onChange) => (
@@ -146,8 +146,8 @@ export class ContactDetailEdit extends React.Component<{
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={BaseTypes}
-                      value={item.formattedType || ''}
-                      onChange={e => onChange({ formattedType: e.currentTarget.value })}
+                      value={item.type || ''}
+                      onChange={e => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export class ContactDetailEdit extends React.Component<{
           <div className="contact-edit-section-content">
             <ListEditor<ContactBase['phoneNumbers'][0]>
               items={data.phoneNumbers || []}
-              itemTemplate={{ formattedType: '', value: '' }}
+              itemTemplate={{ type: '', value: '' }}
               onChange={items => onChange({ phoneNumbers: items })}
             >
               {(item, onChange) => (
@@ -181,8 +181,8 @@ export class ContactDetailEdit extends React.Component<{
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={PhoneTypes}
-                      value={item.formattedType || ''}
-                      onChange={e => onChange({ formattedType: e.currentTarget.value })}
+                      value={item.type || ''}
+                      onChange={e => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export class ContactDetailEdit extends React.Component<{
             <ListEditor<ContactBase['addresses'][0]>
               items={data.addresses || []}
               itemTemplate={{
-                formattedType: '',
+                type: '',
                 formattedValue: '',
                 city: '',
                 country: '',
@@ -267,8 +267,8 @@ export class ContactDetailEdit extends React.Component<{
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={BaseTypes}
-                      value={item.formattedType || ''}
-                      onChange={e => onChange({ formattedType: e.currentTarget.value })}
+                      value={item.type || ''}
+                      onChange={e => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export class ContactDetailEdit extends React.Component<{
             <div className="contact-edit-section-content">
               <ListEditor<ContactBase['relations'][0]>
                 items={data.relations || []}
-                itemTemplate={{ person: '', formattedType: '' }}
+                itemTemplate={{ person: '', type: '' }}
                 onChange={items => onChange({ relations: items })}
               >
                 {(item, onChange) => (
@@ -318,8 +318,8 @@ export class ContactDetailEdit extends React.Component<{
                       <TypeaheadFreeInput
                         placeholder="Label"
                         suggestions={RelationTypes}
-                        value={item.formattedType || ''}
-                        onChange={e => onChange({ formattedType: e.currentTarget.value })}
+                        value={item.type || ''}
+                        onChange={e => onChange({ type: e.currentTarget.value })}
                       />
                     </div>
                   </div>
@@ -335,7 +335,7 @@ export class ContactDetailEdit extends React.Component<{
           <div className="contact-edit-section-content">
             <ListEditor<ContactBase['urls'][0]>
               items={data.urls || []}
-              itemTemplate={{ value: '', formattedType: '' }}
+              itemTemplate={{ value: '', type: '' }}
               onChange={items => onChange({ urls: items })}
             >
               {(item, onChange) => (
@@ -353,8 +353,8 @@ export class ContactDetailEdit extends React.Component<{
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={WebTypes}
-                      value={item.formattedType || ''}
-                      onChange={e => onChange({ formattedType: e.currentTarget.value })}
+                      value={item.type || ''}
+                      onChange={e => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>

@@ -14,13 +14,13 @@ export interface ContactBase {
   nicknames?: { value: string }[];
   company: string;
   title: string;
-  phoneNumbers?: { value: string; formattedType?: string }[];
-  emailAddresses?: { value: string; formattedType?: string }[];
-  urls?: { value: string; formattedType?: string }[];
-  relations?: { person: string; formattedType?: string }[];
+  phoneNumbers?: { value: string; type?: string }[];
+  emailAddresses?: { value: string; type?: string }[];
+  urls?: { value: string; type?: string }[];
+  relations?: { person: string; type?: string }[];
   addresses?: {
     formattedValue: string;
-    formattedType?: string;
+    type?: string;
     city: string;
     country: string;
     postalCode: string;
@@ -128,7 +128,7 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
 }
 
 export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
-  if (!('vcf' in contact.info)) {
+  if (contact.source !== 'carddav' || !('vcf' in contact.info)) {
     throw new Error('applyToVCF invoked with wrong contact type.');
   }
   const card = safeParseVCF(contact.info.vcf);
@@ -139,10 +139,8 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
       nameParts[0] = changes.name.familyName;
       nameParts[1] = changes.name.givenName;
       card.set('n', nameParts.join(';'));
-
-      const displayName = `${changes.name.givenName} ${changes.name.familyName}`;
-      card.set('fn', displayName);
-      contact.name = displayName;
+      card.set('fn', VCFHelpers.formatDisplayName(changes.name));
+      contact.name = VCFHelpers.formatDisplayName(changes.name);
     } else if (key === 'title') {
       card.add('title', changes.title);
     } else if (key === 'company') {
@@ -177,21 +175,58 @@ export function fromGoogle(info: ContactInfoGoogle): ContactParseResult {
       readonly: false,
     },
     data: Object.assign({
-      name: info.names[0],
+      name: info.names[0] || {
+        givenName: '',
+        familyName: '',
+        honorificPrefix: '',
+        honorificSuffix: '',
+        displayName: '',
+      },
+      title: ((info.organizations || [])[0] || {}).title || '',
+      company: ((info.organizations || [])[0] || {}).name || '',
       ...info,
     }),
   };
 }
 
 export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
-  if (!('resourceName' in contact.info)) {
+  const { info, source } = contact;
+
+  if (source !== 'gpeople' || !('names' in info)) {
     throw new Error('applyToGoogle invoked with wrong contact type.');
   }
+  const metadata = { primary: true };
+
   for (const key of Object.keys(changes)) {
+    const val = changes[key];
+
     if (key === 'name') {
-      Object.assign(contact.info.names[0], changes.name);
+      if (!info.names || info.names.length === 0) {
+        info.names = [Object.assign({ metadata }, val)];
+      } else {
+        Object.assign(info.names[0], val);
+      }
+      contact.name = VCFHelpers.formatDisplayName(changes.name);
+    } else if (key === 'emailAddresses') {
+      info[key] = val;
+      contact.email = val[0].value;
+    } else if (key === 'title') {
+      if (!info.organizations || info.organizations.length === 0) {
+        info.organizations = [{ title: '', name: '', metadata }];
+      }
+      info.organizations[0].title = val;
+    } else if (key === 'company') {
+      if (!info.organizations || info.organizations.length === 0) {
+        info.organizations = [{ title: '', name: '', metadata }];
+      }
+      info.organizations[0].name = val;
+    } else if (key === 'addresses') {
+      info.addresses = val.map(address => ({
+        ...address,
+        formattedValue: VCFHelpers.formatAddress(address),
+      }));
     } else {
-      contact.info[key] = changes[key];
+      info[key] = val;
     }
   }
 }
@@ -228,7 +263,7 @@ export function apply(contact: Contact, nextData: ContactBase) {
       applyToGoogle(next, changedData);
     }
   } catch (err) {
-    console.warn(`Applying changes to contact ${contact.email} failed: ${err.toString()}`);
+    console.warn(`Applying changes to contact ${contact.email} failed: ${err.toString()}`, err);
   }
   return next;
 }

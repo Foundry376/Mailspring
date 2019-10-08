@@ -10,15 +10,11 @@ export const asSingle = (obj: any | Array<any>) => {
   return obj;
 };
 
-export const setArray = (
-  attr: string,
-  card: any,
-  values: { value: string; formattedType?: string }[]
-) => {
-  values.forEach(({ value, formattedType }, idx) => {
+export const setArray = (attr: string, card: any, values: { value: string; type?: string }[]) => {
+  values.forEach(({ value, type }, idx) => {
     const params = {};
-    if (formattedType) {
-      params['type'] = formattedType;
+    if (type) {
+      params['type'] = type;
     }
     if (idx === 0) {
       card.set(attr, value, params);
@@ -56,38 +52,41 @@ export const removeRandomSemicolons = (value: string) => {
     .trim();
 };
 
-export const parseAddress = (item: any) => {
+export const formatAddress = (addr: ContactBase['addresses'][0]) => {
+  return [
+    [addr.streetAddress].filter(a => a.length).join(' '),
+    [addr.extendedAddress].join(' '),
+    [addr.city, addr.region, addr.postalCode].filter(a => a.length).join(' '),
+    [addr.country].join(' '),
+  ]
+    .filter(l => l.length)
+    .join('\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\,/g, ',');
+};
+
+export const parseAddress = (item: { _data: string; label?: string; type?: string }) => {
   const [A, AddrLine1, AddrLine2, City, State, Zip, Country] = [
     ...item._data.split(';'),
     ...'       '.split(' '),
   ];
 
-  const formattedValue =
-    item.label ||
-    [
-      [A, AddrLine1].filter(a => a.length).join(' '),
-      [AddrLine2].join(' '),
-      [City, State, Zip].filter(a => a.length).join(' '),
-      [Country].join(' '),
-    ]
-      .filter(l => l.length)
-      .join('\n')
-      .replace(/\\n/g, '\n')
-      .replace(/\\,/g, ',');
-
-  return {
+  const result: ContactBase['addresses'][0] = {
     city: City,
     country: Country,
     postalCode: Zip,
     region: State,
     streetAddress: AddrLine1,
     extendedAddress: AddrLine2,
-    formattedValue: formattedValue,
-    formattedType: parseFormattedType(item.type),
-  } as ContactBase['addresses'][0];
+    type: parseType(item.type),
+    formattedValue: '',
+  };
+
+  result.formattedValue = item.label || formatAddress(result);
+  return result;
 };
 
-export const parseFormattedType = (value: string) => {
+export const parseType = (value: string) => {
   return asArray(value).filter(v => v !== 'internet' && v !== 'pref')[0];
 };
 
@@ -96,7 +95,7 @@ export const parseValueAndTypeCollection = (items: any[]) => {
     items.length > 0 &&
     items.map(item => ({
       value: item._data,
-      formattedType: parseFormattedType(item.type),
+      type: parseType(item.type),
     }))
   );
 };
@@ -111,5 +110,9 @@ export const serializeAddress = (item: ContactBase['addresses'][0]) => {
     item.postalCode,
     item.country,
   ].join(';');
-  return { value, formattedType: item.formattedType };
+  return { value, type: item.type };
+};
+
+export const formatDisplayName = (name: ContactBase['name']) => {
+  return `${name.givenName} ${name.familyName}`;
 };
