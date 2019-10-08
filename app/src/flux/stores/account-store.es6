@@ -10,6 +10,7 @@ import Account from '../models/account';
 import Utils from '../models/utils';
 import DatabaseStore from './database-store';
 import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/utils/appmgt';
+import delay from '../../../internal_packages/edison-beijing-chat/utils/delay';
 import { registerLoginEmailAccountForChat } from '../../../internal_packages/edison-beijing-chat/utils/register-login-chat';
 import crypto from 'crypto';
 const ipcRenderer = require('electron').ipcRenderer;
@@ -344,14 +345,15 @@ class AccountStore extends MailspringStore {
         ConversationStore.refreshConversations();
         // all valid contacts will be add back in AppStore.refreshAppsEmailContacts()
         await ContactModel.destroy({
-          where: {},
+          where: {curJid: jid},
           truncate: true,
           force:true
         });
         await ContactStore.refreshContacts();
-        // await AppStore.refreshAppsEmailContacts();
         xmpp.removeXmpp(jid);
         removeMyApps(chatAccount.userId);
+        // await delay(300);
+        // await AppStore.refreshAppsEmailContacts();
         AppEnv.config.set(`${chatAccount.userId}_message_ts`, null)
       }
     }
