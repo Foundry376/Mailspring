@@ -93,7 +93,7 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div>
         <label htmlFor={`settings.${field}`}>Port Number</label>
-        <div class="dropdown-wrapper">
+        <div className="dropdown-wrapper">
           <select
             id={`settings.${field}`}
             tabIndex={0}
