@@ -244,27 +244,6 @@
             ]
         }
     },
-    "asu.edu": {
-        "domain-match": [
-            "asu\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
     "att.net": {
         "domain-match": [
             "att\\.net",
@@ -312,27 +291,6 @@
             ]
         }
     },
-    "berkeley.edu": {
-        "domain-match": [
-            "berkeley\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
     "bluewin.ch": {
         "domain-match": [
             "bluewin\\.ch"
@@ -350,27 +308,6 @@
                     "hostname": "smtpauths.bluewin.ch",
                     "port": 465,
                     "ssl": true
-                }
-            ]
-        }
-    },
-    "bu.edu": {
-        "domain-match": [
-            "bu\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "outlook.office365.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.office365.com",
-                    "port": 587,
-                    "starttls": true
                 }
             ]
         }
@@ -422,6 +359,10 @@
         "domain-match": [
             "comcast\\.net"
         ],
+        "mx-match": [
+            "mx1\\.comcast\\.net",
+            "mx2\\.comcast\\.net"
+        ],
         "servers": {
             "imap": [
                 {
@@ -435,27 +376,6 @@
                     "hostname": "smtp.comcast.net",
                     "port": 465,
                     "ssl": true
-                }
-            ]
-        }
-    },
-    "cornell.edu": {
-        "domain-match": [
-            "cornell\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
                 }
             ]
         }
@@ -475,27 +395,6 @@
             "smtp": [
                 {
                     "hostname": "smtp.cox.net",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
-    "crimson.ua.edu": {
-        "domain-match": [
-            "(.+\\.)?ua.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
                     "port": 587,
                     "starttls": true
                 }
@@ -558,6 +457,9 @@
         "domain-match": [
             "dreamhost\\.com"
         ],
+        "mx-match": [
+            "(.+\\.)?dreamhost\\.com"
+        ],
         "servers": {
             "imap": [
                 {
@@ -611,55 +513,6 @@
             "smtp": [
                 {
                     "hostname": "smtp.edsionmail.app",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
-    "email.arizona.edu": {
-        "domain-match": [
-            "(.+\\.)?arizona.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
-    "facebook": {
-        "domain-match": [
-            "fb\\.com"
-        ],
-        "mailboxes": {
-            "allmail": "Archive",
-            "drafts": "Drafts",
-            "sentmail": "Sent Items",
-            "spam": "Junk Email",
-            "trash": "Deleted Items"
-        },
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "outlook.office365.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.office365.com",
                     "port": 587,
                     "starttls": true
                 }
@@ -781,6 +634,9 @@
             "spam": "Junk Mail",
             "trash": "Trash"
         },
+        "mx-match": [
+            "(.+\\.)?messagingengine\\.com"
+        ],
         "servers": {
             "imap": [
                 {
@@ -815,27 +671,6 @@
                     "hostname": "smtp.fastmail.com",
                     "port": 465,
                     "ssl": true
-                }
-            ]
-        }
-    },
-    "fiu.edu": {
-        "domain-match": [
-            "fiu\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
                 }
             ]
         }
@@ -882,48 +717,6 @@
             ]
         }
     },
-    "frontiernet.net": {
-        "domain-match": [
-            "frontiernet\\.net"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.mail.yahoo.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.mail.yahoo.com",
-                    "port": 465,
-                    "ssl": true
-                }
-            ]
-        }
-    },
-    "g.ucla.edu": {
-        "domain-match": [
-            "(.+\\.)?ucla.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
     "gandi.net": {
         "domain-match": [
             "gandi\\.net"
@@ -963,6 +756,11 @@
             "starred": "[Gmail]/Starred",
             "trash": "[Gmail]/Trash"
         },
+        "mx-match": [
+            "(.+\\.)?aspmx\\.l\\.google\\.com",
+            "(.+\\.)?googlemail\\.com",
+            "(.+\\.)?l\\.google\\.com"
+        ],
         "servers": {
             "imap": [
                 {
@@ -1222,27 +1020,6 @@
             ]
         }
     },
-    "kent.edu": {
-        "domain-match": [
-            "kent\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
     "kolabnow": {
         "domain-match": [
             "attorneymail\\.ch",
@@ -1379,7 +1156,197 @@
     },
     "mail": {
         "domain-match": [
-            "mail\\.com"
+            "2trom\\.com",
+            "accountant\\.com",
+            "acdcfan\\.com",
+            "activist\\.com",
+            "adexec\\.com",
+            "africamail\\.com",
+            "aircraftmail\\.com",
+            "allergist\\.com",
+            "alumni\\.com",
+            "alumnidirector\\.com",
+            "angelic\\.com",
+            "appraiser\\.net",
+            "archaeologist\\.com",
+            "arcticmail\\.com",
+            "artlover\\.com",
+            "asia-mail\\.com",
+            "asia\\.com",
+            "atheist\\.com",
+            "auctioneer\\.net",
+            "australiamail\\.com",
+            "bartender\\.net",
+            "bellair\\.net",
+            "berlin\\.com",
+            "bikerider\\.com",
+            "birdlover\\.com",
+            "blader\\.com",
+            "boardermail\\.com",
+            "brazilmail\\.com",
+            "brew-master\\.com",
+            "brew-meister\\.com",
+            "bsdmail\\.com",
+            "californiamail\\.com",
+            "cash4u\\.com",
+            "catlover\\.com",
+            "cheerful\\.com",
+            "chef\\.net",
+            "chemist\\.com",
+            "chinamail\\.com",
+            "clerk\\.com",
+            "clubmember\\.org",
+            "collector\\.org",
+            "columnist\\.com",
+            "comic\\.com",
+            "computer4u\\.com",
+            "consultant\\.com",
+            "contractor\\.net",
+            "coolsite\\.net",
+            "counsellor\\.com",
+            "cutey\\.com",
+            "cyber-wizard\\.com",
+            "cyberdude\\.com",
+            "cybergal\\.com",
+            "cyberservices\\.com",
+            "dallasmail\\.com",
+            "dbzmail\\.com",
+            "deliveryman\\.com",
+            "diplomats\\.com",
+            "disciples\\.com",
+            "discofan\\.com",
+            "disposable\\.com",
+            "doglover\\.com",
+            "doramail\\.com",
+            "dr\\.com",
+            "dublin\\.com",
+            "dutchmail\\.com",
+            "elvisfan\\.com",
+            "email\\.com",
+            "engineer\\.com",
+            "englandmail\\.com",
+            "europe\\.com",
+            "europemail\\.com",
+            "execs\\.com",
+            "fastservice\\.com",
+            "financier\\.com",
+            "fireman\\.net",
+            "galaxyhit\\.com",
+            "gardener\\.com",
+            "geologist\\.com",
+            "germanymail\\.com",
+            "graduate\\.org",
+            "graphic-designer\\.com",
+            "greenmail\\.net",
+            "groupmail\\.com",
+            "hackermail\\.com",
+            "hairdresser\\.net",
+            "hilarious\\.com",
+            "hiphopfan\\.com",
+            "homemail\\.com",
+            "hot-shot\\.com",
+            "housemail\\.com",
+            "humanoid\\.net",
+            "iname\\.com",
+            "innocent\\.com",
+            "inorbit\\.com",
+            "instruction\\.com",
+            "instructor\\.net",
+            "insurer\\.com",
+            "irelandmail\\.com",
+            "israelmail\\.com",
+            "italymail\\.com",
+            "job4u\\.com",
+            "journalist\\.com",
+            "keromail\\.com",
+            "kissfans\\.com",
+            "kittymail\\.com",
+            "koreamail\\.com",
+            "legislator\\.com",
+            "linuxmail\\.org",
+            "lobbyist\\.com",
+            "lovecat\\.com",
+            "madonnafan\\.com",
+            "mail-me\\.com",
+            "mail\\.com",
+            "marchmail\\.com",
+            "metalfan\\.com",
+            "mexicomail\\.com",
+            "minister\\.com",
+            "moscowmail\\.com",
+            "munich\\.com",
+            "musician\\.org",
+            "muslim\\.com",
+            "myself\\.com",
+            "net-shopping\\.com",
+            "ninfan\\.com",
+            "nonpartisan\\.com",
+            "null\\.net",
+            "nycmail\\.com",
+            "optician\\.com",
+            "orthodontist\\.net",
+            "pacific-ocean\\.com",
+            "pacificwest\\.com",
+            "pediatrician\\.com",
+            "petlover\\.com",
+            "photographer\\.net",
+            "physicist\\.net",
+            "planetmail\\.com",
+            "planetmail\\.net",
+            "polandmail\\.com",
+            "politician\\.com",
+            "post\\.com",
+            "presidency\\.com",
+            "priest\\.com",
+            "programmer\\.net",
+            "protestant\\.com",
+            "publicist\\.com",
+            "qualityservice\\.com",
+            "radiologist\\.net",
+            "ravemail\\.com",
+            "realtyagent\\.com",
+            "reborn\\.com",
+            "reggaefan\\.com",
+            "registerednurses\\.com",
+            "reincarnate\\.com",
+            "religious\\.com",
+            "repairman\\.com",
+            "representative\\.com",
+            "rescueteam\\.com",
+            "rocketship\\.com",
+            "safrica\\.com",
+            "saintly\\.com",
+            "salesperson\\.net",
+            "samerica\\.com",
+            "sanfranmail\\.com",
+            "scotlandmail\\.com",
+            "secretary\\.net",
+            "snakebite\\.com",
+            "socialworker\\.net",
+            "sociologist\\.com",
+            "solution4u\\.com",
+            "songwriter\\.net",
+            "spainmail\\.com",
+            "surgical\\.net",
+            "swedenmail\\.com",
+            "swissmail\\.com",
+            "teachers\\.org",
+            "tech-center\\.com",
+            "techie\\.com",
+            "technologist\\.com",
+            "theplate\\.com",
+            "therapist\\.net",
+            "toke\\.com",
+            "toothfairy\\.com",
+            "torontomail\\.com",
+            "tvstar\\.com",
+            "umpire\\.com",
+            "usa\\.com",
+            "uymail\\.com",
+            "webname\\.com",
+            "worker\\.com",
+            "workmail\\.com",
+            "writeme\\.com"
         ],
         "servers": {
             "imap": [
@@ -1585,27 +1552,6 @@
             ]
         }
     },
-    "nyu.edu": {
-        "domain-match": [
-            "nyu\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.cims.nyu.edu",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.cs.nyu.edu",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
     "o2.pl": {
         "domain-match": [
             "o2\\.pl"
@@ -1645,6 +1591,9 @@
             "spam": "EdoJunk",
             "trash": "Deleted Items"
         },
+        "mx-match": [
+            "(.+)?(?<!protection)\\.outlook\\.com"
+        ],
         "servers": {
             "imap": [
                 {
@@ -1656,33 +1605,6 @@
             "smtp": [
                 {
                     "hostname": "smtp.office365.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
-    "office365_cn": {
-        "domain-match": [
-            "onmschina\\.cn"
-        ],
-        "mailboxes": {
-            "drafts": "Drafts",
-            "sentmail": "Sent Items",
-            "spam": "EdoJunk",
-            "trash": "Deleted Items"
-        },
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "partner.outlook.cn",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.partner.outlook.cn",
                     "port": 587,
                     "starttls": true
                 }
@@ -1833,6 +1755,9 @@
             "spam": "EdoJunk",
             "trash": "Deleted"
         },
+        "mx-match": [
+            ".*\\.protection\\.outlook\\.com"
+        ],
         "servers": {
             "imap": [
                 {
@@ -1994,6 +1919,9 @@
             "spam": "Junk",
             "trash": "Deleted Messages"
         },
+        "mx-match": [
+            "(.+\\.)?emailsrvr\\.com "
+        ],
         "servers": {
             "imap": [
                 {
@@ -2046,6 +1974,9 @@
     "rcn": {
         "domain-match": [
             "rcn\\.com"
+        ],
+        "mx-match": [
+            "mx\\.rcn\\.com"
         ],
         "servers": {
             "imap": [
@@ -2584,27 +2515,6 @@
             ]
         }
     },
-    "umich.edu": {
-        "domain-match": [
-            "umich\\.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
     "unoeuro.com": {
         "domain-match": [
             "unoeuro\\.com"
@@ -2620,48 +2530,6 @@
             "smtp": [
                 {
                     "hostname": "asmtp.unoeuro.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
-    "usc.edu": {
-        "domain-match": [
-            "(.+\\.)?usc.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
-                    "port": 587,
-                    "starttls": true
-                }
-            ]
-        }
-    },
-    "utexas.edu": {
-        "domain-match": [
-            "(.+\\.)?utexas.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "imap.gmail.com",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.gmail.com",
                     "port": 587,
                     "starttls": true
                 }
@@ -2704,27 +2572,6 @@
             "smtp": [
                 {
                     "hostname": "smtp.virginmedia.com",
-                    "port": 465,
-                    "ssl": true
-                }
-            ]
-        }
-    },
-    "vt.edu": {
-        "domain-match": [
-            "(.+\\.)?vt.edu"
-        ],
-        "servers": {
-            "imap": [
-                {
-                    "hostname": "mail.cs.vt.edu",
-                    "port": 993,
-                    "ssl": true
-                }
-            ],
-            "smtp": [
-                {
-                    "hostname": "smtp.cs.vt.edu",
                     "port": 465,
                     "ssl": true
                 }
@@ -2848,6 +2695,7 @@
             "yahoo\\.co\\.jp"
         ],
         "domain-match": [
+            "frontiernet\\.net",
             "rocketmail\\.com",
             "yahoo\\..*",
             "yahoo\\.com",
@@ -2860,6 +2708,9 @@
             "spam": "Bulk Mail",
             "trash": "Trash"
         },
+        "mx-match": [
+            "(.+\\.)?yahoodns\\.net"
+        ],
         "servers": {
             "imap": [
                 {
@@ -2888,6 +2739,9 @@
             "spam": "Bulk Mail",
             "trash": "Trash"
         },
+        "mx-match": [
+            "(.+\\.)?yahoo\\.co\\.jp"
+        ],
         "servers": {
             "imap": [
                 {
@@ -2982,6 +2836,9 @@
         "auto-copy-to-sent": true,
         "domain-match": [
             "zoho\\.com"
+        ],
+        "mx-match": [
+            "(.+\\.)?zoho\\.com"
         ],
         "servers": {
             "imap": [
