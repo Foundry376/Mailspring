@@ -200,7 +200,7 @@ export default class MailsyncBridge {
   }
 
   ensureClients = _.throttle((kind) => {
-    if(this._noRelaunch){
+    if (this._noRelaunch) {
       console.log('no relaunch of clients');
       return;
     }
@@ -233,12 +233,12 @@ export default class MailsyncBridge {
     }
   }, 100);
 
-  forceKillClients(){
-    if(!AppEnv.isMainWindow()){
+  forceKillClients() {
+    if (!AppEnv.isMainWindow()) {
       return;
     }
     this._noRelaunch = true;
-    for (const client of Object.values(this.clients())){
+    for (const client of Object.values(this.clients())) {
       if (client) {
         if (client._proc && client._proc.pid) {
           const id = client._proc.pid;
@@ -254,14 +254,14 @@ export default class MailsyncBridge {
     this._launchClient(account, { force: true });
   }
   tmpKillClient(account) {
-    if(!AppEnv.isMainWindow()){
+    if (!AppEnv.isMainWindow()) {
       return;
     }
-    if(!this._tmpNoRelaunch){
+    if (!this._tmpNoRelaunch) {
       this._tmpNoRelaunch = {};
     }
     const client = this.clients()[account.id];
-    if(client){
+    if (client) {
       if (client._proc && client._proc.pid) {
         const id = client._proc.pid;
         this._tmpNoRelaunch[account.id] = true;
@@ -419,7 +419,7 @@ export default class MailsyncBridge {
   fakeEmit(msgs) {
     this._onIncomingMessages(msgs);
   }
-  fakeTask(task){
+  fakeTask(task) {
     this.sendMessageToAccount(task.accountId || task.aid, { type: 'queue-task', task: task });
   }
 
@@ -602,11 +602,24 @@ export default class MailsyncBridge {
         continue;
       }
 
-      const { type, modelJSONs, modelClass } = json;
+      let { type, modelJSONs, modelClass } = json;
       if (!modelJSONs || !type || !modelClass) {
         AppEnv.logWarning(`Sync worker sent a JSON formatted message with unexpected keys: ${msg}`);
         continue;
       }
+
+      // if ErrorAuthentication
+      modelJSONs = modelJSONs.filter(data => {
+        if (data.key && data.key === 'ErrorAuthentication') {
+          Actions.updateAccount(data.aid, {
+            syncState: Account.SYNC_STATE_AUTH_FAILED,
+            syncError: null,
+          });
+          console.error('ErrorAuthentication', data);
+          return false;
+        }
+        return true;
+      })
 
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);
