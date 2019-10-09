@@ -64,6 +64,29 @@
             ]
         }
     },
+    "163-enterprise": {
+        "auto-copy-to-sent": true,
+        "mx-match": [
+            ".+\\.mxmail\\.netease\\.com",
+            "mx\\.qiye\\.163\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.qiye.163.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.qiye.163.com",
+                    "port": 994,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "1and1.co.uk": {
         "domain-match": [
             "1and1\\.co\\.uk"
@@ -164,6 +187,30 @@
             "smtp": [
                 {
                     "hostname": "smtp.aliyun.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "aliyun-enterprise": {
+        "auto-copy-to-sent": true,
+        "mx-match": [
+            "mx\\d\\.qiye\\.aliyun\\.com",
+            "mxn\\.mxhichina\\.com",
+            "mxw\\.mxhichina\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.qiye.aliyun.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.qiye.aliyun.com",
                     "port": 465,
                     "ssl": true
                 }
@@ -312,6 +359,69 @@
             ]
         }
     },
+    "blueyonder.co.uk": {
+        "domain-match": [
+            "blueyonder\\.co\\.uk"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.blueyonder.co.uk",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.blueyonder.co.uk",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "cableone.net": {
+        "domain-match": [
+            "cableone\\.net"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "mail.cableone.net",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mail.cableone.net",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "centrum.cz": {
+        "domain-match": [
+            "centrum\\.cz"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.centrum.cz",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mail.gigaserver.cz",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "centurylink.net": {
         "domain-match": [
             "centurylink\\.net",
@@ -349,6 +459,27 @@
             "smtp": [
                 {
                     "hostname": "mobile.charter.net",
+                    "port": 587,
+                    "starttls": true
+                }
+            ]
+        }
+    },
+    "combios.es": {
+        "domain-match": [
+            "combios\\.es"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "mail.combios.es",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mail.combios.es",
                     "port": 587,
                     "starttls": true
                 }
@@ -453,6 +584,27 @@
             ]
         }
     },
+    "domeneshop.no": {
+        "domain-match": [
+            "domeneshop\\.no"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.domeneshop.no",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mail.domeneshop.no",
+                    "port": 587,
+                    "starttls": true
+                }
+            ]
+        }
+    },
     "dreamhost.com": {
         "domain-match": [
             "dreamhost\\.com"
@@ -498,7 +650,7 @@
             ]
         }
     },
-    "edisonmail.app": {
+    "edisonmail": {
         "domain-match": [
             "edisonmail\\.app"
         ],
@@ -513,6 +665,27 @@
             "smtp": [
                 {
                     "hostname": "smtp.edsionmail.app",
+                    "port": 587,
+                    "starttls": true
+                }
+            ]
+        }
+    },
+    "edisonmail-staging": {
+        "domain-match": [
+            "staging\\.edisonmail\\.app"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.staging.edsionmail.app",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.staging.edsionmail.app",
                     "port": 587,
                     "starttls": true
                 }
@@ -675,6 +848,27 @@
             ]
         }
     },
+    "fatcow.com": {
+        "domain-match": [
+            "fatcow\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.fatcow.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.fatcow.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "free.fr": {
         "domain-match": [
             "free\\.fr"
@@ -756,6 +950,37 @@
             "starred": "[Gmail]/Starred",
             "trash": "[Gmail]/Trash"
         },
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.gmail.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.gmail.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "gmail-enterprise": {
+        "alias-help-page": "https://support.google.com/mail/answer/22370",
+        "alias-support": true,
+        "auto-copy-to-sent": true,
+        "domain-match": [
+            "berkeley\\.edu",
+            "bu\\.edu",
+            "crimson\\.ua\\.edu",
+            "email\\.arizona\\.edu",
+            "g\\.ucla\\.edu",
+            "umich\\.edu",
+            "usc\\.edu",
+            "utexas\\.edu"
+        ],
         "mx-match": [
             "(.+\\.)?aspmx\\.l\\.google\\.com",
             "(.+\\.)?googlemail\\.com",
@@ -828,6 +1053,27 @@
                     "hostname": "mail.gmx.net",
                     "port": 465,
                     "ssl": true
+                }
+            ]
+        }
+    },
+    "hostnet.nl": {
+        "domain-match": [
+            "hostnet\\.nl"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.hostnet.nl",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.hostnet.nl",
+                    "port": 587,
+                    "starttls": true
                 }
             ]
         }
@@ -928,6 +1174,27 @@
             ]
         }
     },
+    "in.virgilio.it": {
+        "domain-match": [
+            "virgilio\\.it"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "in.virgilio.it",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "out.virgilio.it",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "inbox.lv": {
         "domain-match": [
             "inbox\\.lv"
@@ -953,6 +1220,27 @@
                     "hostname": "mail.inbox.lv",
                     "port": 465,
                     "ssl": true
+                }
+            ]
+        }
+    },
+    "infomaniak.com": {
+        "domain-match": [
+            "infomaniak\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "mail.infomaniak.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mail.infomaniak.com",
+                    "port": 587,
+                    "starttls": true
                 }
             ]
         }
@@ -995,6 +1283,69 @@
                     "hostname": "smtp.ionos.com",
                     "port": 587,
                     "starttls": true
+                }
+            ]
+        }
+    },
+    "ionos.de": {
+        "domain-match": [
+            "ionos\\.de"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.ionos.de",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.ionos.de",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "ionos.es": {
+        "domain-match": [
+            "ionos\\.es"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.ionos.es",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.ionos.es",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "ionos.fr": {
+        "domain-match": [
+            "ionos\\.fr"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.ionos.fr",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.ionos.fr",
+                    "port": 465,
+                    "ssl": true
                 }
             ]
         }
@@ -1070,6 +1421,27 @@
             ]
         }
     },
+    "kolumbus.fi": {
+        "domain-match": [
+            "kolumbus\\.fi"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "mail.kolumbus.fi",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtpa.kolumbus.fi",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "kpnmail.nl": {
         "domain-match": [
             "kpnmail\\.nl"
@@ -1106,6 +1478,27 @@
             "smtp": [
                 {
                     "hostname": "smtp.laposte.net",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "lcn.com": {
+        "domain-match": [
+            "lcn\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "mail.lcn.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mail.lcn.com",
                     "port": 465,
                     "ssl": true
                 }
@@ -1428,6 +1821,27 @@
             ]
         }
     },
+    "mailin.telia.com": {
+        "domain-match": [
+            "telia\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "mailin.telia.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mailout.telia.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "mailru": {
         "domain-match": [
             "bk\\.ru",
@@ -1552,6 +1966,27 @@
             ]
         }
     },
+    "ntlworld.com": {
+        "domain-match": [
+            "ntlworld\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.ntlworld.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.ntlworld.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "o2.pl": {
         "domain-match": [
             "o2\\.pl"
@@ -1591,6 +2026,29 @@
             "spam": "EdoJunk",
             "trash": "Deleted Items"
         },
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "outlook.office365.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.office365.com",
+                    "port": 587,
+                    "starttls": true
+                }
+            ]
+        }
+    },
+    "office365-enterprise": {
+        "domain-match": [
+            "astro\\.as\\.utexas\\.edu",
+            "asu\\.edu",
+            "cornell\\.edu"
+        ],
         "mx-match": [
             "(.+)?(?<!protection)\\.outlook\\.com"
         ],
@@ -1886,6 +2344,7 @@
             "qq\\.com"
         ],
         "mailboxes": {
+            "allmail": "Archive",
             "drafts": "Drafts",
             "sentmail": "Sent Messages",
             "spam": "Junk",
@@ -1902,6 +2361,48 @@
             "smtp": [
                 {
                     "hostname": "smtp.qq.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "qq-enterprise": {
+        "mx-match": [
+            "mxbiz\\d\\.qq\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.exmail.qq.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.exmail.qq.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "qq-enterprise-hw": {
+        "mx-match": [
+            "mxbiz\\d\\.qq\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "hwimap.exmail.qq.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "hwsmtp.exmail.qq.com",
                     "port": 465,
                     "ssl": true
                 }
@@ -1954,6 +2455,27 @@
             "spam": "Spam",
             "trash": "Trash"
         },
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.rambler.ru",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.rambler.ru",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "rambler.ru": {
+        "domain-match": [
+            "rambler\\.ru"
+        ],
         "servers": {
             "imap": [
                 {
@@ -2037,6 +2559,27 @@
             "smtp": [
                 {
                     "hostname": "smtp.sapo.pt",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
+    "securemail.pro": {
+        "domain-match": [
+            "securemail\\.pro"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.securemail.pro",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.securemail.pro",
                     "port": 465,
                     "ssl": true
                 }
@@ -2169,6 +2712,27 @@
             ]
         }
     },
+    "sina.com": {
+        "domain-match": [
+            "sina\\.com"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.sina.com",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.sina.com",
+                    "port": 465,
+                    "ssl": true
+                }
+            ]
+        }
+    },
     "sohu": {
         "auto-copy-to-sent": true,
         "domain-match": [
@@ -2234,23 +2798,23 @@
             ]
         }
     },
-    "staging.edisonmail.app": {
+    "stackmail.com": {
         "domain-match": [
-            "staging\\.edisonmail\\.app"
+            "stackmail\\.com"
         ],
         "servers": {
             "imap": [
                 {
-                    "hostname": "imap.staging.edsionmail.app",
+                    "hostname": "imap.stackmail.com",
                     "port": 993,
                     "ssl": true
                 }
             ],
             "smtp": [
                 {
-                    "hostname": "smtp.staging.edsionmail.app",
-                    "port": 587,
-                    "starttls": true
+                    "hostname": "smtp.stackmail.com",
+                    "port": 465,
+                    "ssl": true
                 }
             ]
         }
@@ -2333,6 +2897,48 @@
             "smtp": [
                 {
                     "hostname": "smtp.talktalk.net",
+                    "port": 587,
+                    "starttls": true
+                }
+            ]
+        }
+    },
+    "tds.net": {
+        "domain-match": [
+            "tds\\.net"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "mail.tds.net",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "mail.tds.net",
+                    "port": 587,
+                    "starttls": true
+                }
+            ]
+        }
+    },
+    "telenet.be": {
+        "domain-match": [
+            "telenet\\.be"
+        ],
+        "servers": {
+            "imap": [
+                {
+                    "hostname": "imap.telenet.be",
+                    "port": 993,
+                    "ssl": true
+                }
+            ],
+            "smtp": [
+                {
+                    "hostname": "smtp.telenet.be",
                     "port": 587,
                     "starttls": true
                 }
