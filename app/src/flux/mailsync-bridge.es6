@@ -85,8 +85,8 @@ class CrashTracker {
       console.log('mailsync exited');
       AppEnv.reportWarning(
         new Error(
-          `mailsync existed with code: ${code}, error: ${error}, signal: ${signal} for account: ${key}`,
-        ),
+          `mailsync existed with code: ${code}, error: ${error}, signal: ${signal} for account: ${key}`
+        )
       );
     }
     this._timestamps[key] = this._timestamps[key] || [];
@@ -145,7 +145,6 @@ export default class MailsyncBridge {
     this._additionalObservableThreads = {};
     this._analyzeDBTimer = null;
 
-
     if (AppEnv.isMainWindow()) {
       Actions.analyzeDB.listen(this.analyzeDataBase, this);
       this._analyzeDBTimer = setTimeout(this.analyzeDataBase, 5000);
@@ -199,8 +198,8 @@ export default class MailsyncBridge {
     return this._clients;
   }
 
-  ensureClients = _.throttle((kind) => {
-    if(this._noRelaunch){
+  ensureClients = _.throttle(kind => {
+    if (this._noRelaunch) {
       console.log('no relaunch of clients');
       return;
     }
@@ -233,12 +232,12 @@ export default class MailsyncBridge {
     }
   }, 100);
 
-  forceKillClients(){
-    if(!AppEnv.isMainWindow()){
+  forceKillClients() {
+    if (!AppEnv.isMainWindow()) {
       return;
     }
     this._noRelaunch = true;
-    for (const client of Object.values(this.clients())){
+    for (const client of Object.values(this.clients())) {
       if (client) {
         if (client._proc && client._proc.pid) {
           const id = client._proc.pid;
@@ -254,14 +253,14 @@ export default class MailsyncBridge {
     this._launchClient(account, { force: true });
   }
   tmpKillClient(account) {
-    if(!AppEnv.isMainWindow()){
+    if (!AppEnv.isMainWindow()) {
       return;
     }
-    if(!this._tmpNoRelaunch){
+    if (!this._tmpNoRelaunch) {
       this._tmpNoRelaunch = {};
     }
     const client = this.clients()[account.id];
-    if(client){
+    if (client) {
       if (client._proc && client._proc.pid) {
         const id = client._proc.pid;
         this._tmpNoRelaunch[account.id] = true;
@@ -340,7 +339,7 @@ export default class MailsyncBridge {
     if (!this._clients[accountId].isSyncReadyToReceiveMessage()) {
       const { emailAddress } = AccountStore.accountForId(accountId) || {};
       console.log(
-        `sync is not ready, initial message not send to native yet. Message for account ${emailAddress} not send`,
+        `sync is not ready, initial message not send to native yet. Message for account ${emailAddress} not send`
       );
       this._clients[accountId].appendToSendQueue(json);
       return;
@@ -372,8 +371,7 @@ export default class MailsyncBridge {
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
-    resetClient.kill = () => {
-    };
+    resetClient.kill = () => {};
 
     this._clients[account.id] = resetClient;
 
@@ -383,9 +381,7 @@ export default class MailsyncBridge {
     if (!silent) {
       AppEnv.showErrorDialog({
         title: `Cleanup Started`,
-        message: `EdisonMail is clearing it's cache for ${
-          account.emailAddress
-          }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
+        message: `EdisonMail is clearing it's cache for ${account.emailAddress}. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
       });
     }
 
@@ -398,7 +394,7 @@ export default class MailsyncBridge {
         AppEnv.showErrorDialog({
           title: `Cleanup Complete`,
           message: `EdisonMail reset the local cache for ${account.emailAddress} in ${Math.ceil(
-            (Date.now() - start) / 1000,
+            (Date.now() - start) / 1000
           )} seconds. Your mailbox will now begin to sync again.`,
         });
       }
@@ -419,7 +415,7 @@ export default class MailsyncBridge {
   fakeEmit(msgs) {
     this._onIncomingMessages(msgs);
   }
-  fakeTask(task){
+  fakeTask(task) {
     this.sendMessageToAccount(task.accountId || task.aid, { type: 'queue-task', task: task });
   }
 
@@ -438,7 +434,9 @@ export default class MailsyncBridge {
   async _launchClient(account, { force } = {}) {
     if (this._tmpNoRelaunch && account && this._tmpNoRelaunch[account.id]) {
       delete this._tmpNoRelaunch[account.id];
-      AppEnv.logWarning(`No launch client because of one time launch deny on account: ${account.id}`);
+      AppEnv.logWarning(
+        `No launch client because of one time launch deny on account: ${account.id}`
+      );
       return;
     }
     const client = new MailsyncProcess(this._getClientConfiguration());
@@ -504,7 +502,7 @@ export default class MailsyncBridge {
     if (!DatabaseObjectRegistry.isInRegistry(task.constructor.name)) {
       console.log(task);
       throw new Error(
-        'You must queue a `Task` instance which is registred with the DatabaseObjectRegistry',
+        'You must queue a `Task` instance which is registred with the DatabaseObjectRegistry'
       );
     }
     if (!task.id) {
@@ -519,7 +517,7 @@ export default class MailsyncBridge {
         console.log(e);
       }
       throw new Error(
-        'Tasks must have an ID prior to being queued. Check that your Task constructor is calling `super`',
+        'Tasks must have an ID prior to being queued. Check that your Task constructor is calling `super`'
       );
     }
     if (!task.accountId) {
@@ -534,7 +532,7 @@ export default class MailsyncBridge {
         console.log(e);
       }
       throw new Error(
-        `Tasks must have an accountId. Check your instance of ${task.constructor.name}.`,
+        `Tasks must have an accountId. Check your instance of ${task.constructor.name}.`
       );
     }
     if (task.needToBroadcastBeforeSendTask) {
@@ -621,7 +619,7 @@ export default class MailsyncBridge {
           type, // TODO BG move to "model" naming style, finding all uses might be tricky
           objectClass: modelClass,
           objects: models,
-        }),
+        })
       );
     }
   };
@@ -643,20 +641,20 @@ export default class MailsyncBridge {
       if (task.error && task.error.retryable) {
         AppEnv.reportWarning(
           new Error(
-            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`,
-          ),
+            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`
+          )
         );
       } else if (task.error && task.error.key && warningKeys.includes(task.error.key)) {
         AppEnv.reportWarning(
           new Error(
-            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`,
-          ),
+            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`
+          )
         );
       } else {
         AppEnv.reportError(
           new Error(
-            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`,
-          ),
+            `TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`
+          )
         );
       }
     }
@@ -694,7 +692,7 @@ export default class MailsyncBridge {
         type,
         objectClass: modelClass,
         objects: models,
-      }),
+      })
     );
   };
 
@@ -820,7 +818,7 @@ export default class MailsyncBridge {
     return this._fetchCacheFilter(
       { accountId, missingIds: missingItems },
       this._cachedFetchAttachments,
-      this._fetchAttachmentCacheTTL,
+      this._fetchAttachmentCacheTTL
     );
   }
 
@@ -866,7 +864,10 @@ export default class MailsyncBridge {
     }
     for (const accountId of Object.keys(this._clients)) {
       if (mailsyncConfig[accountId]) {
-        this.sendMessageToAccount(accountId, { type: 'config-change', settings: mailsyncConfig[accountId] });
+        this.sendMessageToAccount(accountId, {
+          type: 'config-change',
+          settings: mailsyncConfig[accountId],
+        });
       }
     }
   };
@@ -890,7 +891,7 @@ export default class MailsyncBridge {
         priority,
       },
       this._cachedFetchBodies,
-      this._fetchBodiesCacheTTL,
+      this._fetchBodiesCacheTTL
     );
   }
 
@@ -916,12 +917,12 @@ export default class MailsyncBridge {
         const threadIds = this._observableCacheFilter(
           { accountId, missingIds: missingThreadIds },
           this._cachedObservableThreadIds,
-          this._cachedObservableTTL,
+          this._cachedObservableTTL
         );
         const messageIds = this._observableCacheFilter(
           { accountId, missingIds: missingMessageIds },
           this._cachedObservableMessageIds,
-          this._cachedObservableTTL,
+          this._cachedObservableTTL
         );
         if (threadIds.length === 0 && messageIds.length === 0) {
           return;
@@ -939,12 +940,12 @@ export default class MailsyncBridge {
             const threadIds = this._observableCacheFilter(
               { accountId, missingIds: missingThreadIds },
               this._cachedObservableThreadIds,
-              this._cachedObservableTTL,
+              this._cachedObservableTTL
             );
             const messageIds = this._observableCacheFilter(
               { accountId, missingIds: missingMessageIds },
               this._cachedObservableMessageIds,
-              this._cachedObservableTTL,
+              this._cachedObservableTTL
             );
             if (threadIds.length === 0 && messageIds.length === 0) {
               return;
@@ -961,12 +962,12 @@ export default class MailsyncBridge {
           const threadIds = this._observableCacheFilter(
             { accountId, missingIds: missingThreadIds },
             this._cachedObservableThreadIds,
-            this._cachedObservableTTL,
+            this._cachedObservableTTL
           );
           const messageIds = this._observableCacheFilter(
             { accountId, missingIds: missingMessageIds },
             this._cachedObservableMessageIds,
-            this._cachedObservableTTL,
+            this._cachedObservableTTL
           );
           if (threadIds.length === 0 && messageIds.length === 0) {
             return;
