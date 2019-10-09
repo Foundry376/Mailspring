@@ -154,7 +154,7 @@ class ResizableRegion extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.handle.axis === 'vertical' &&
       nextProps.initialHeight !== this.props.initialHeight

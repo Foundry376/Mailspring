@@ -95,7 +95,7 @@ class Lottie extends React.Component {
     this.timer = setInterval(this.next, 5000);
   }
 
-  componentWillUpdate(nextProps /* , nextState */) {
+  UNSAFE_componentWillUpdate(nextProps /* , nextState */) {
     /* Recreate the animation handle if the data is changed */
     // if (this.options.animationData !== nextProps.options.animationData) {
     //   this.deRegisterEvents(this.props.eventListeners);

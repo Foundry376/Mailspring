@@ -18,7 +18,7 @@ function ListensToObservable(ComposedComponent, { getObservable, getStateFromObs
       this.disposable = this.observable.subscribe(this.onObservableChanged);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.disposable) {
         this.disposable.dispose();
       }

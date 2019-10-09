@@ -293,7 +293,7 @@ Editor.defaultProps = {
 var _initialiseProps = function _initialiseProps() {
   var _this2 = this;
 
-  this.componentWillReceiveProps = function (props) {
+  this.UNSAFE_componentWillReceiveProps = function (props) {
     var schema = _this2.schema,
         stack = _this2.stack;
 

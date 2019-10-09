@@ -22,7 +22,7 @@ export default class EmailAttachmentPopup extends Component {
     super();
     this.state = {};
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const db = sqlite(dbpath);

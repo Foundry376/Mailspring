@@ -79,7 +79,7 @@ export default class InjectedComponent extends React.Component {
     }
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     if (!Utils.isEqualReact(newProps.matching, this.props && this.props.matching)) {
       this.setState(this._getStateFromStores(newProps));
     }

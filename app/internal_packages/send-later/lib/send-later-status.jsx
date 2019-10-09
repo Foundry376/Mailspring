@@ -31,7 +31,7 @@ export default class SendLaterStatus extends Component {
     });
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState(this.getStateFromStores(nextProps));
   }
 

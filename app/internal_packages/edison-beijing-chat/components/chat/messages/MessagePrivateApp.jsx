@@ -15,7 +15,7 @@ export default class MessagePrivateApp extends PureComponent {
 
   state = {};
 
-  componentWillMount = async () => {
+  UNSAFE_componentWillMount = async () => {
     const { conversation } = this.props;
     const userJid = conversation.curJid;
     const contact = await ContactStore.findContactByJid(userJid);

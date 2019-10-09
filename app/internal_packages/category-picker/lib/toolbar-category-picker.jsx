@@ -28,7 +28,7 @@ class MovePicker extends React.Component {
   // If the threads we're picking categories for change, (like when they
   // get their categories updated), we expect our parents to pass us new
   // props. We don't listen to the DatabaseStore ourselves.
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this._account = AccountStore.accountForItems(nextProps.items);
   }
 

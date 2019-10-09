@@ -43,7 +43,7 @@ export default class ComposerHeader extends React.Component {
     this._isDraftMissingAttachments(this.props);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this._ensureFilledFieldsEnabled(nextProps.draft);
     this._isDraftMissingAttachments(nextProps);
   }

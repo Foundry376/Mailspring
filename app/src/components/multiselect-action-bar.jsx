@@ -60,7 +60,7 @@ class MultiselectActionBar extends React.Component {
     this.setupForProps(this.props);
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     if (_.isEqual(this.props, newProps)) {
       return;
     }

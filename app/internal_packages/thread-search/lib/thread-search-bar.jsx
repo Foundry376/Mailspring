@@ -37,7 +37,7 @@ class ThreadSearchBar extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.query !== this.props.query) {
       this._generateSuggestionsForQuery(nextProps.query);
     }

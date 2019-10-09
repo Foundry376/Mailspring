@@ -38,7 +38,7 @@ export default class CreateNewFolderPopover extends Component {
     this._buttonTimer = null;
     this._buttonTimestamp = 0;
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (this.props.defaultValue && this.props.defaultValue.length > 0) {
       this.setState({ newName: this.props.defaultValue });
     }

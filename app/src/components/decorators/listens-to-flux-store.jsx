@@ -25,7 +25,7 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
       });
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       this.setState(getStateFromStores(nextProps));
     }
 

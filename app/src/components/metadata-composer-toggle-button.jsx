@@ -33,7 +33,7 @@ export default class MetadataComposerToggleButton extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     if (this._isEnabledByDefault() && !this._isEnabled()) {
       if (FeatureUsageStore.isUsable(this.props.pluginId)) {
         this._setEnabled(true);

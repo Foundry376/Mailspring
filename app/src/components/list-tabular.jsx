@@ -137,7 +137,7 @@ class ListTabular extends Component {
     this.updateRangeState();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.dataSource !== this.props.dataSource) {
       this.setupDataSource(nextProps.dataSource);
     }

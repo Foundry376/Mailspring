@@ -45,7 +45,7 @@ class PreferencesAccountDetails extends Component {
     this.state = { account: props.account.clone() };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({ account: nextProps.account.clone() });
   }
 

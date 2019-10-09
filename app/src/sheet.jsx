@@ -56,7 +56,7 @@ export default class Sheet extends React.Component {
     );
   }
 
-  componentWillReceiveProps(nextProps, nextContext) {
+  UNSAFE_componentWillReceiveProps(nextProps, nextContext) {
     this.setState(this._getStateFromStores(nextProps));
   }
 

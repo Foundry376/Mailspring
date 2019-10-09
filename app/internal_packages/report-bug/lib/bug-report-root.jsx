@@ -13,7 +13,7 @@ export default class BugReportRoot extends React.PureComponent {
       submitting: false,
     };
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     AppEnv.setWindowTitle('Bug Report');
   }
 

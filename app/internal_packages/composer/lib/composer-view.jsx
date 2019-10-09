@@ -115,7 +115,7 @@ export default class ComposerView extends React.Component {
     }
     return participants.to[0].name || '';
   }
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     this._isDraftMissingAttachments(newProps);
   }
 

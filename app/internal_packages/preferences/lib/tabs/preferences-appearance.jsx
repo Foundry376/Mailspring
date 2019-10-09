@@ -18,7 +18,7 @@ class AppearanceScaleSlider extends React.Component {
     this.state = { value: props.config.get(this.kp) };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({ value: nextProps.config.get(this.kp) });
   }
 
@@ -124,7 +124,7 @@ class AppearanceModeSwitch extends React.Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       value: nextProps.config.get('core.workspace.mode'),
     });

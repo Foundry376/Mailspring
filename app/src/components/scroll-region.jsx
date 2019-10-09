@@ -293,7 +293,7 @@ class ScrollRegion extends React.Component {
     }
   }
 
-  componentWillReceiveProps(props) {
+  UNSAFE_componentWillReceiveProps(props) {
     if (this.shouldInvalidateScrollbarComponent(props)) {
       this._scrollbarComponent = null;
     }

@@ -48,7 +48,7 @@ class Spinner extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     // If we have a cover, show right away.
     if (nextProps.withCover) {
       this.setState({ hidden: !nextProps.visible });

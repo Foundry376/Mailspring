@@ -19,13 +19,13 @@ export default class MessageApp extends PureComponent {
 
   state = {};
 
-  componentWillMount = async () => {
+  UNSAFE_componentWillMount = async () => {
     const { msg } = this.props;
 
     const senderName = await getName(msg.sender);
     this.setState({ senderName });
   };
-  componentWillReceiveProps = async nextProps => {
+  UNSAFE_componentWillReceiveProps = async nextProps => {
     const { msg } = nextProps;
     const senderName = await getName(msg.sender);
     this.setState({ senderName });

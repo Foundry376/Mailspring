@@ -492,7 +492,7 @@ export class ThreadListMoreButton extends React.Component {
     }
   }
 
-  componentWillUpdate() {
+  UNSAFE_componentWillUpdate() {
     const current = FocusedPerspectiveStore.current();
     if (current && current.accountIds.length) {
       this._account = AccountStore.accountForId(current.accountIds[0]);

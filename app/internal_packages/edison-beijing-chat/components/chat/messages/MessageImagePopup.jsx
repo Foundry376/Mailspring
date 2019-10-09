@@ -105,7 +105,7 @@ export default class MessageImagePopup extends Component {
       });
     }
   }
-  componentWillReceiveProps = (nexProps) => {
+  UNSAFE_componentWillReceiveProps = (nexProps) => {
     this.getAllImages(nexProps);
   }
   getAllImages(props) {

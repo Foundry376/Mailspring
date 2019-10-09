@@ -14,7 +14,7 @@ export default class PluginPrompt extends PureComponent {
 
   state = {};
 
-  componentWillReceiveProps = async nextProps => {
+  UNSAFE_componentWillReceiveProps = async nextProps => {
     const { conversation, prefix, keyword2app } = nextProps;
     let matchedAppCommands = [];
     if (!conversation || !keyword2app || !prefix || prefix[0] !== '/') {

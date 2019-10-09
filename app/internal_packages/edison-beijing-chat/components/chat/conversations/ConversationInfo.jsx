@@ -53,7 +53,7 @@ export default class ConversationInfo extends Component {
     this.refreshRoomMembers();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
       this.setState({
         members: [],

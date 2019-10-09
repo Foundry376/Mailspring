@@ -64,7 +64,7 @@ export default class MessageItemBody extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     const needInitialCallback = this.state.processedBody === null;
     this._unsub = MessageBodyProcessor.subscribe(
       this.props.message,
@@ -80,7 +80,7 @@ export default class MessageItemBody extends React.Component {
     this._mounted = true;
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.message.id !== this.props.message.id || !this.state.processedBody) {
       this.renewSubscriptionToMessageBodyProcessor(nextProps);
     } else if (

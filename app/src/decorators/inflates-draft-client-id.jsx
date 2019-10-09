@@ -69,7 +69,7 @@ function InflatesDraftClientId(ComposedComponent) {
       // this._deleteDraftIfEmpty();
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
       if (
         newProps.headerMessageId !== this.props.headerMessageId ||
         newProps.messageId !== this.props.messageId

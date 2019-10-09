@@ -13,7 +13,7 @@ export default class FailAlert extends PureComponent {
   componentDidMount = async () => {
 
   }
-  componentWillReceiveProps = async (nextProps, nextContext) => {
+  UNSAFE_componentWillReceiveProps = async (nextProps, nextContext) => {
     const {msg} = nextProps;
     if (!msg) {
       return;

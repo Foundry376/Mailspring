@@ -41,11 +41,11 @@ class MessageListScrollTooltip extends React.Component {
     totalHeight: PropTypes.number.isRequired,
   };
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.setupForProps(this.props);
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     this.setupForProps(newProps);
   }
 

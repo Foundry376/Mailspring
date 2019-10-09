@@ -29,7 +29,7 @@ export default class EmailFrame extends React.Component {
     this._unlisten = EmailFrameStylesStore.listen(this._writeContent);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.message.id === this.props.message.id &&
       nextProps.content === this.props.content &&
