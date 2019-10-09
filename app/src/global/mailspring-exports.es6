@@ -205,9 +205,6 @@ lazyLoad(`SearchableComponentMaker`, 'searchable-components/searchable-component
 // Errors
 lazyLoadWithGetter(`APIError`, () => require('../flux/errors').APIError);
 
-// Tracking
-lazyLoad(`TrackingAppEvents`, 'tracking-utils');
-
 // Process Internals
 lazyLoad(`DefaultClientHelper`, 'default-client-helper');
 lazyLoad(`SystemStartService`, 'system-start-service');

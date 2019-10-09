@@ -83,7 +83,11 @@ export default class AppEnvConstructor {
     this.enabledLocalQueryLog = true;
     this.enabledXmppLog = true;
     // LOG.transports.file.fileName = `ui-log-${Date.now()}.log`;
-    LOG.transports.file.file = path.join(this.getConfigDirPath(),'ui-log', `ui-log-${Date.now()}.log`);
+    LOG.transports.file.file = path.join(
+      this.getConfigDirPath(),
+      'ui-log',
+      `ui-log-${Date.now()}.log`
+    );
     LOG.transports.console.level = false;
     // if (devMode) {
     //   LOG.transports.file.appName = 'EdisonMail-dev';
@@ -123,6 +127,9 @@ export default class AppEnvConstructor {
 
     this.windowEventHandler = new WindowEventHandler();
 
+    // tracking
+    this.trackingAppEvents = require('./tracking-utils').default;
+
     // We extend observables with our own methods. This happens on
     // require of mailspring-observables
     require('mailspring-observables');
@@ -149,7 +156,7 @@ export default class AppEnvConstructor {
     this.initSupportInfo();
     this.initTaskErrorCounter();
   }
-  sendSyncMailNow(accountId){
+  sendSyncMailNow(accountId) {
     if (navigator.onLine) {
       console.log(`sync mail to ${accountId}:` + new Date().toISOString());
       this.mailsyncBridge.sendSyncMailNow(accountId);
@@ -218,8 +225,8 @@ export default class AppEnvConstructor {
       }
       const error = new Error(
         `Unrecognized event shape in window.unhandledrejection handler. Event keys: ${Object.keys(
-          e,
-        )}`,
+          e
+        )}`
       );
       this._onUnhandledRejection(error, sourceMapCache);
     });
@@ -239,7 +246,7 @@ export default class AppEnvConstructor {
   _onUnhandledRejection = (error, sourceMapCache) => {
     this.reportError(error);
   };
-  _expandReportLog(error, extra = {}){
+  _expandReportLog(error, extra = {}) {
     try {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
@@ -288,7 +295,7 @@ export default class AppEnvConstructor {
     } else if (this.inDevMode() && !noWindows) {
       if (!this.isDevToolsOpened()) {
         this.openDevTools();
-        this.executeJavaScriptInDevTools('DevToolsAPI.showPanel(\'console\')');
+        this.executeJavaScriptInDevTools("DevToolsAPI.showPanel('console')");
       }
     }
     if (type.toLocaleLowerCase() === 'error') {
@@ -463,7 +470,7 @@ export default class AppEnvConstructor {
   isThreadWindow() {
     return this.getWindowType() === 'thread-popout';
   }
-  isOnboardingWindow(){
+  isOnboardingWindow() {
     return this.getWindowType() === 'onboarding';
   }
 
@@ -523,13 +530,13 @@ export default class AppEnvConstructor {
   getLoadSettings() {
     return this.constructor.getLoadSettings();
   }
-  setWindowDisplayTitle(title){
+  setWindowDisplayTitle(title) {
     const loadSettings = this.getLoadSettings();
     loadSettings.title = title;
     this.loadSettings = loadSettings;
-    this.emitter.emit('window-props-received', this.loadSettings.windowProps)
+    this.emitter.emit('window-props-received', this.loadSettings.windowProps);
   }
-  setWindowTitle(title){
+  setWindowTitle(title) {
     this.getCurrentWindow().setTitle(title);
   }
 
@@ -604,7 +611,7 @@ export default class AppEnvConstructor {
       'call-window-method',
       'setPosition',
       ensureInteger(x, 0),
-      ensureInteger(y, 0),
+      ensureInteger(y, 0)
     );
   }
 
@@ -643,7 +650,7 @@ export default class AppEnvConstructor {
   fakeEmit(msg) {
     this.mailsyncBridge.fakeEmit([msg]);
   }
-  fakeToNative(task){
+  fakeToNative(task) {
     this.mailsyncBridge.fakeTask(task);
   }
 
@@ -683,7 +690,7 @@ export default class AppEnvConstructor {
   isMaximixed() {
     return this.getCurrentWindow().isMaximized();
   }
-  unmaximize(){
+  unmaximize() {
     return ipcRenderer.send('call-window-method', 'unmaximize');
   }
 
@@ -861,7 +868,7 @@ export default class AppEnvConstructor {
         { root: true },
         {
           popout: ['Center'],
-        },
+        }
       );
     }
   }
@@ -880,7 +887,7 @@ export default class AppEnvConstructor {
 
     this.emitter.emit(
       'window-props-received',
-      loadSettings.windowProps != null ? loadSettings.windowProps : {},
+      loadSettings.windowProps != null ? loadSettings.windowProps : {}
     );
 
     const browserWindow = this.getCurrentWindow();
@@ -999,7 +1006,7 @@ export default class AppEnvConstructor {
           },
         ],
       },
-      cb,
+      cb
     );
   }
 
@@ -1029,13 +1036,17 @@ export default class AppEnvConstructor {
     }
 
     if (!detail) {
-      if(async){
-        return remote.dialog.showMessageBox(winToShow, {
-          type: 'warning',
-          buttons: ['Okay'],
-          message: title,
-          detail: message,
-        }, ()=>{});
+      if (async) {
+        return remote.dialog.showMessageBox(
+          winToShow,
+          {
+            type: 'warning',
+            buttons: ['Okay'],
+            message: title,
+            detail: message,
+          },
+          () => {}
+        );
       }
       return remote.dialog.showMessageBox(winToShow, {
         type: 'warning',
@@ -1062,7 +1073,7 @@ export default class AppEnvConstructor {
             height: 300,
           });
         }
-      },
+      }
     );
   }
 
@@ -1166,7 +1177,7 @@ export default class AppEnvConstructor {
             reject('NOT FOUND');
             return;
           }
-          if (!ourApp[0] || !ourApp[0].thumbnail){
+          if (!ourApp[0] || !ourApp[0].thumbnail) {
             reject('NOT FOUND');
             return;
           }
@@ -1189,7 +1200,7 @@ export default class AppEnvConstructor {
               output.close();
               reject();
             });
-          }else{
+          } else {
             reject();
           }
         }
@@ -1200,13 +1211,13 @@ export default class AppEnvConstructor {
     return new Promise((resolve, reject) => {
       const resourcePath = this.getConfigDirPath();
       const logPath = path.dirname(LOG.transports.file.findLogPath());
-      if(fileName === ''){
+      if (fileName === '') {
         fileName = parseInt(Date.now());
       }
       const outputPath = path.join(resourcePath, 'upload-log', `logs-${fileName}.zip`);
       const output = fs.createWriteStream(outputPath);
       const archive = archiver('zip', {
-        zlib: { level: 9 } // Sets the compression level.
+        zlib: { level: 9 }, // Sets the compression level.
       });
 
       output.on('close', function() {
@@ -1224,7 +1235,7 @@ export default class AppEnvConstructor {
         } else {
           output.close();
           console.log(err);
-          reject(err)
+          reject(err);
         }
       });
       archive.on('error', function(err) {
@@ -1253,12 +1264,12 @@ export default class AppEnvConstructor {
     }
     return ret;
   }
-  initTaskErrorCounter(){
+  initTaskErrorCounter() {
     this._taskErrorCounter = {};
   }
 
-  pushTaskErrorCounter({data = {}, accountId=''} = {}) {
-    if(!this._taskErrorCounter){
+  pushTaskErrorCounter({ data = {}, accountId = '' } = {}) {
+    if (!this._taskErrorCounter) {
       this._taskErrorCounter = {};
     }
     if (!accountId || accountId.length === 0) {
@@ -1272,7 +1283,7 @@ export default class AppEnvConstructor {
   }
 
   filterTaskErrorCounter({ accountId = '', identityKey = '', value = null }) {
-    if(!this._taskErrorCounter){
+    if (!this._taskErrorCounter) {
       this._taskErrorCounter = {};
       return [];
     }
@@ -1288,7 +1299,7 @@ export default class AppEnvConstructor {
   }
 
   replaceTaskErrorCounter({ accountId = '', identityKey = '', value = null, data = {} }) {
-    if(!this._taskErrorCounter){
+    if (!this._taskErrorCounter) {
       this._taskErrorCounter = {};
     }
     if (!this._taskErrorCounter[accountId]) {
@@ -1338,10 +1349,14 @@ export default class AppEnvConstructor {
   //    }
   //    console.log(`used ${Date.now() - start}ms`);
   // }
-  printChromeVersion(){
+  printChromeVersion() {
     console.log(process.versions['chrome']);
   }
-  generateHash(str){
-    console.log(createHash('md5').update(str).digest('hex'));
+  generateHash(str) {
+    console.log(
+      createHash('md5')
+        .update(str)
+        .digest('hex')
+    );
   }
 }
