@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs-plus';
-import { shell, remote, ipcRenderer } from 'electron';
+import { shell } from 'electron';
 import { localized } from './intl';
 import Package from './package';
 
@@ -197,86 +197,6 @@ export default class PackageManager {
   }
 
   createPackageManually() {
-    if (!AppEnv.inDevMode()) {
-      const btn = remote.dialog.showMessageBox({
-        type: 'warning',
-        message: localized('Run with debug flags?'),
-        detail: localized(
-          `To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.`
-        ),
-        buttons: [localized('OK'), localized('Cancel')],
-      });
-      if (btn === 0) {
-        ipcRenderer.send('command', 'application:toggle-dev');
-      }
-      return;
-    }
-
-    const devPackagesDir = path.join(this.configDirPath, 'dev', 'packages');
-    fs.makeTreeSync(devPackagesDir);
-
-    AppEnv.showSaveDialog(
-      {
-        title: localized('Save New Package'),
-        defaultPath: devPackagesDir,
-        properties: ['createDirectory'],
-      },
-      newPackagePath => {
-        if (!newPackagePath) return;
-
-        const newName = path.basename(newPackagePath);
-
-        if (!newPackagePath.startsWith(devPackagesDir)) {
-          return AppEnv.showErrorDialog({
-            title: localized('Invalid plugin location'),
-            message: localized('Sorry, you must create plugins in the dev/packages folder.'),
-          });
-        }
-
-        if (this.available[newName]) {
-          return AppEnv.showErrorDialog({
-            title: localized('Invalid plugin name'),
-            message: localized('Sorry, you must give your plugin a unique name.'),
-          });
-        }
-
-        if (newName.indexOf(' ') !== -1) {
-          return AppEnv.showErrorDialog({
-            title: localized('Invalid plugin name'),
-            message: localized('Sorry, plugin names cannot contain spaces.'),
-          });
-        }
-
-        fs.mkdir(newPackagePath, err => {
-          if (err) {
-            return AppEnv.showErrorDialog({
-              title: localized('Could not create plugin'),
-              message: err.toString(),
-            });
-          }
-
-          const templatePath = path.join(this.resourcePath, 'static', 'package-template');
-          fs.copySync(templatePath, newPackagePath);
-
-          const packageJSON = require(path.join(templatePath, 'package.json'));
-          packageJSON.name = newName;
-          packageJSON.engines.mailspring = `>=${AppEnv.getVersion().split('-')[0]}`;
-          fs.writeFileSync(
-            path.join(newPackagePath, 'package.json'),
-            JSON.stringify(packageJSON, null, 2)
-          );
-
-          setTimeout(() => {
-            // show the package in the finder
-            shell.showItemInFolder(newPackagePath);
-
-            // load the package into the app
-            const pkg = new Package(newPackagePath);
-            this.available[pkg.name] = pkg;
-            this.activatePackage(pkg);
-          }, 0);
-        });
-      }
-    );
+    shell.openExternal('https://github.com/Foundry376/Mailspring-Plugin-Starter');
   }
 }
