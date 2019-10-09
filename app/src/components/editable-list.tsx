@@ -298,10 +298,12 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     event.dataTransfer.setData('editablelist-index', row.dataset.itemIdx);
     event.dataTransfer.setData(`editablelist-listid:${this.listId}`, 'true');
     event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.dragEffect = 'move';
   };
 
   _onDragOver = event => {
     const wrapperNode = ReactDOM.findDOMNode(this._itemsWrapperEl) as HTMLElement;
+    event.preventDefault();
 
     // As of Chromium 53, we cannot access the contents of the drag pasteboard
     // until the user drops for security reasons. Pull the list id from the
@@ -453,7 +455,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
 
   _renderDropInsertion = () => {
     return (
-      <div className="insertion-point">
+      <div className="insertion-point" key="insertion-point">
         <div />
       </div>
     );
