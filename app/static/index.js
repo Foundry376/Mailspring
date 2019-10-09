@@ -1,4 +1,4 @@
-window.eval = global.eval = function () {
+window.eval = global.eval = function() {
   throw new Error('Sorry, N1 does not support window.eval() for security reasons.');
 };
 
@@ -54,7 +54,31 @@ function setupVmCompatibility() {
   }
 }
 
-window.onload = function () {
+// Tracking user behavior through buried points.
+function tracking() {
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId: '1713584242196264',
+      cookie: true,
+      xfbml: true,
+      version: 'v4.0',
+    });
+    FB.AppEvents.logPageView();
+  };
+  (function(d, s, id) {
+    var js,
+      fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {
+      return;
+    }
+    js = d.createElement(s);
+    js.id = id;
+    js.src = './tracking/sdk.js';
+    fjs.parentNode.insertBefore(js, fjs);
+  })(document, 'script', 'facebook-jssdk');
+}
+
+window.onload = function() {
   try {
     var startTime = Date.now();
 
@@ -90,4 +114,6 @@ window.onload = function () {
   } catch (error) {
     handleSetupError(error);
   }
+  // Tracking user behavior through buried points.
+  tracking();
 };
