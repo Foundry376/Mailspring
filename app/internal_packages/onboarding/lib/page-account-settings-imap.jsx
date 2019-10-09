@@ -136,7 +136,7 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div>
         <label htmlFor={`settings.${protocol}_security`}>Security</label>
-        <div class="dropdown-wrapper">
+        <div className="dropdown-wrapper">
           <select
             id={`settings.${protocol}_security`}
             tabIndex={0}
