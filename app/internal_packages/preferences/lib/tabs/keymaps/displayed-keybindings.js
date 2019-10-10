@@ -73,10 +73,10 @@ module.exports = [
     items: [
       ['navigation:go-to-all-inbox', 'Go to "Inbox"'],
       ['navigation:go-to-all-unread', 'Go to "Unread"'],
-      ['navigation:go-to-starred', 'Go to "Starred"'],
+      ['navigation:go-to-starred', 'Go to "Flagged"'],
       ['navigation:go-to-all-sent', 'Go to "Sent Mail"'],
       ['navigation:go-to-drafts', 'Go to "Drafts"'],
-      ['navigation:go-to-all', 'Go to "All Mail"'],
+      ['navigation:go-to-all', 'Go to "Archive"'],
     ],
   },
 ];
