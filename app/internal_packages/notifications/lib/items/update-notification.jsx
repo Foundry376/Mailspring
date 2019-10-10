@@ -36,7 +36,8 @@ export default class UpdateNotification extends React.Component {
   };
 
   _onViewChangelog = () => {
-    shell.openExternal('https://github.com/agent8/Mailspring/releases/latest');
+    // zhansheng: TODO need replace our changelog link
+    // shell.openExternal('https://github.com/agent8/Mailspring/releases/latest');
   };
 
   render() {
@@ -50,7 +51,7 @@ export default class UpdateNotification extends React.Component {
         priority="4"
         title={`An update to EdisonMail is available ${
           version ? `(${version.replace('EdisonMail', '').trim()})` : ''
-        }`}
+          }`}
         subtitle="View changelog"
         subtitleAction={this._onViewChangelog}
         icon="volstead-upgrade.png"
