@@ -62,34 +62,6 @@ function findScrollContainer(el, window) {
   return scroller;
 }
 
-function findEditableContainer(el, window) {
-  if (!el || !el instanceof Node) {
-    return;
-  }
-
-  var parent = el.parentNode;
-  var editabler = void 0;
-
-  while (!editabler) {
-    if (!parent.parentNode) break;
-
-    var isEditable = parent.getAttribute('contenteditable');
-
-    if (isEditable) {
-      editabler = parent;
-      break;
-    }
-
-    parent = parent.parentNode;
-  }
-
-  if (!editabler) {
-    return null;
-  }
-
-  return editabler;
-}
-
 /**
  * Scroll the current selection's focus point into view if needed.
  *
@@ -101,7 +73,6 @@ function scrollToSelection(selection) {
 
   var window = (0, _getWindow2.default)(selection.anchorNode);
   var scroller = findScrollContainer(selection.anchorNode, window);
-  var cursorEditableContainer = findEditableContainer(selection.anchorNode);
   var isWindow = scroller == window.document.body || scroller == window.document.documentElement;
   var backward = (0, _selectionIsBackward2.default)(selection);
 
@@ -184,16 +155,6 @@ function scrollToSelection(selection) {
     scrollerPaddingRight = parseInt(paddingRight, 10);
     yOffset = scrollTop;
     xOffset = scrollLeft;
-  }
-
-  if (cursorEditableContainer) {
-    var fromEditablerTopToScrollerTop =
-      scroller.scrollTop + cursorEditableContainer.getBoundingClientRect().top - scrollerTop;
-    var fromEditablerBottomToScrollerTop =
-      fromEditablerTopToScrollerTop + cursorEditableContainer.offsetHeight;
-    var fromEditablerBootomToScrollerBottom =
-      scroller.scrollHeight - fromEditablerBottomToScrollerTop;
-    height = height - fromEditablerBootomToScrollerBottom;
   }
 
   var cursorTop = cursorRect.top + yOffset - scrollerTop;
