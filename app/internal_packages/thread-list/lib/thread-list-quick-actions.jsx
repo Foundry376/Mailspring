@@ -95,10 +95,18 @@ class ThreadTrashQuickAction extends React.Component {
   static propTypes = { thread: PropTypes.object };
 
   render() {
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
+    let allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
       [this.props.thread],
       'trash'
     );
+    const folders = this.props.thread && this.props.thread.folders;
+    // if only one folder, and it's trash
+    if (folders && folders.length === 1) {
+      const folder = folders[0];
+      if (folder && folder.role === 'trash') {
+        allowed = false;
+      }
+    }
     if (!allowed) {
       return <span />;
     }
