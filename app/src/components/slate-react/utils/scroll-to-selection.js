@@ -115,6 +115,10 @@ function scrollToSelection(selection) {
   var scrollerPaddingBottom = 0;
   var scrollerPaddingLeft = 0;
   var scrollerPaddingRight = 0;
+  // This offset is to avoid the cursor is too close to the view
+  // You can reduce the scope of cursor in the view
+  var contentBottomOffset = 80;
+  var contentTopOffset = 50;
 
   if (isWindow) {
     var innerWidth = window.innerWidth,
@@ -171,12 +175,21 @@ function scrollToSelection(selection) {
     x = cursorLeft + scrollerBordersX + scrollerPaddingRight - width;
   }
 
-  if (cursorTop < yOffset) {
+  if (cursorTop - contentTopOffset < yOffset) {
     // selection above viewport
-    y = cursorTop - scrollerPaddingTop;
-  } else if (cursorTop + cursorRect.height + scrollerBordersY > yOffset + height) {
+    y = cursorTop - contentTopOffset - scrollerPaddingTop;
+  } else if (
+    cursorTop + contentBottomOffset + cursorRect.height + scrollerBordersY >
+    yOffset + height
+  ) {
     // selection below viewport
-    y = cursorTop + scrollerBordersY + scrollerPaddingBottom + cursorRect.height - height;
+    y =
+      cursorTop +
+      contentBottomOffset +
+      scrollerBordersY +
+      scrollerPaddingBottom +
+      cursorRect.height -
+      height;
   }
 
   if (isWindow) {
