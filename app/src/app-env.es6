@@ -128,7 +128,9 @@ export default class AppEnvConstructor {
     this.windowEventHandler = new WindowEventHandler();
 
     // tracking
-    this.trackingAppEvents = require('./tracking-utils').default;
+    const TrackingAppEvents = require('./tracking-utils').default;
+    this.trackingEvent = TrackingAppEvents.trackingEvent;
+    this.trackingTask = TrackingAppEvents.trackingTask;
 
     // We extend observables with our own methods. This happens on
     // require of mailspring-observables
