@@ -36,7 +36,7 @@ class Countdown extends React.Component {
     this.state = { x: 0 };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.expiration !== this.props.expiration) {
       this.animationDuration = `${nextProps.expiration - Date.now()}ms`;
     }

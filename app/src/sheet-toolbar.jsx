@@ -203,7 +203,7 @@ export default class Toolbar extends React.Component {
     window.requestAnimationFrame(() => this.recomputeLayout());
   }
 
-  componentWillReceiveProps(props) {
+  UNSAFE_componentWillReceiveProps(props) {
     this.setState(this._getStateFromStores(props));
   }
 

@@ -131,7 +131,7 @@ export default class MessagesSendBar extends PureComponent {
   fileInput = null;
   _richText = null;
 
-  componentWillReceiveProps = async nextProps => {
+  UNSAFE_componentWillReceiveProps = async nextProps => {
     const selectedConversation = ConversationStore.selectedConversation;
     if (!selectedConversation.curJid) {
       return;

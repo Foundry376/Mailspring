@@ -49,7 +49,7 @@ class ComposerWithWindowProps extends React.Component {
       this.state.messageId = draft.id;
     }
   }
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
   }
   componentDidMount() {

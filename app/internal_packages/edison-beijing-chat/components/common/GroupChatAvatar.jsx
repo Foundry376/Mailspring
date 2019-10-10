@@ -14,7 +14,7 @@ class GroupChatAvatar extends Component {
     this.setState({ members, avatarMembers });
     this.unsub = ChatActions.memberChange.listen(this.onMemberChange);
   }
-  componentWillReceiveProps = (nextProps) => {
+  UNSAFE_componentWillReceiveProps = (nextProps) => {
     const { conversation } = nextProps;
     if (!conversation) {
       return;

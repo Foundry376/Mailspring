@@ -52,7 +52,7 @@ export default class Messages extends Component {
 
   static timer;
 
-  componentWillReceiveProps = async (nextProps, nextState) => {
+  UNSAFE_componentWillReceiveProps = async (nextProps, nextState) => {
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;

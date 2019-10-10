@@ -26,7 +26,7 @@ class SourceSelect extends React.Component {
     this._setupValuesSubscription();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this._setupValuesSubscription(nextProps);
   }
 

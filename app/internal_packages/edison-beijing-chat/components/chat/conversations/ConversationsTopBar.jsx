@@ -30,14 +30,12 @@ export default class ConversationsTopBar extends PureComponent {
     if (messagePanel) {
       ConversationStore.messagePanelScrollTopBeforeNew = messagePanel.scrollTop
     }
+    await AppStore.refreshAppsEmailContacts()
     ConversationStore.selectedConversationBeforeNew = ConversationStore.selectedConversation
     ConversationStore.setSelectedConversation(NEW_CONVERSATION)
-
     ipcRenderer.send('command', 'application:show-main-window')
     if (WorkspaceStore.topSheet() !== WorkspaceStore.Sheet.NewConversation) {
       document.querySelector('#Center').style.zIndex = 9
-      await AppStore.refreshAppsEmailContacts()
-      await delay(200)
       Actions.pushSheet(WorkspaceStore.Sheet.NewConversation)
     }
   }

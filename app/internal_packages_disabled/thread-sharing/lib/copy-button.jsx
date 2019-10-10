@@ -15,7 +15,7 @@ class CopyButton extends React.Component {
     this._timeout = null;
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     clearTimeout(this._timeout);
     this._timeout = null;
     this.setState({ btnLabel: nextProps.btnLabel });

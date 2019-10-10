@@ -211,7 +211,7 @@ class Menu extends React.Component {
     this._mounted = false;
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     // Attempt to preserve selection across props.items changes by
     // finding an item in the new list with a key matching the old
     // selected item's key

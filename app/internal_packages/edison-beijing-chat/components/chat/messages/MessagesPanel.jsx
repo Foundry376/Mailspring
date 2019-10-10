@@ -113,7 +113,7 @@ export default class MessagesPanel extends Component {
     currentWin.closeFilePreview();
   };
 
-  componentWillReceiveProps = async (nextProps, nextContext) => {
+  UNSAFE_componentWillReceiveProps = async (nextProps, nextContext) => {
     const selectedConversation = await ConversationStore.getSelectedConversation();
     const contacts = await ContactStore.getContacts();
     this.setState({

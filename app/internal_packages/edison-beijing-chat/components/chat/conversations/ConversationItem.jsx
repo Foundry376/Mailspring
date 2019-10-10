@@ -30,7 +30,7 @@ export default class ConversationItem extends PureComponent {
 
   state = {}
 
-  componentWillMount = () => {
+  UNSAFE_componentWillMount = () => {
     const { conversation } = this.props;
     if (!conversation.jid.match(/@app\.im/)) {
       return

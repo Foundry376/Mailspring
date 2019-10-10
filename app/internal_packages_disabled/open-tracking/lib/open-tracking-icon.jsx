@@ -15,7 +15,7 @@ export default class OpenTrackingIcon extends React.Component {
     this.state = this._getStateFromThread(props.thread);
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     this.setState(this._getStateFromThread(newProps.thread));
   }
 

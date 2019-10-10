@@ -41,7 +41,7 @@ class RootWithTimespan extends React.Component {
     this.state = this.getLoadingState(props);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState(this.getLoadingState(nextProps), () => this._onComputeMetrics());
   }
 

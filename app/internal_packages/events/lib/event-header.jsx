@@ -30,7 +30,7 @@ class EventHeader extends React.Component {
   }
 
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({ event: nextProps.calendar ? nextProps.calendar.getFirstEvent() : null });
     // this._onChange();
   }

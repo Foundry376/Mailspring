@@ -177,6 +177,12 @@ export async function expandAccountWithCommonSettings(account, forceDomain = nul
   let template = Object.values(MailcoreProviderSettings).find(p => {
     for (const test of p['domain-match'] || []) {
       if (new RegExp(`^${test}$`).test(forceDomain || domain)) {
+        // domain-exclude
+        for (const testExclude of p['domain-exclude'] || []) {
+          if (new RegExp(`^${testExclude}$`).test(forceDomain || domain)) {
+            return false;
+          }
+        }
         return true;
       }
     }

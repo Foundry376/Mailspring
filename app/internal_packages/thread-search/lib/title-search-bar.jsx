@@ -26,7 +26,7 @@ class TitleSearchBar extends Component {
     }
   }
 
-  componentWillReceiveProps() {
+  UNSAFE_componentWillReceiveProps() {
     this.state.fontSize = this.props.fontSize || this.INITIAL_FONT_SIZE
   }
 

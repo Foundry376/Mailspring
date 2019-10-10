@@ -26,7 +26,7 @@ export default class DropdownMenu extends React.Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({ currentSelection: nextProps.intitialSelectionItem });
   }
 

@@ -93,7 +93,7 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div>
         <label htmlFor={`settings.${field}`}>Port Number</label>
-        <div class="dropdown-wrapper">
+        <div className="dropdown-wrapper">
           <select
             id={`settings.${field}`}
             tabIndex={0}
@@ -136,7 +136,7 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div>
         <label htmlFor={`settings.${protocol}_security`}>Security</label>
-        <div class="dropdown-wrapper">
+        <div className="dropdown-wrapper">
           <select
             id={`settings.${protocol}_security`}
             tabIndex={0}
@@ -182,7 +182,7 @@ class AccountIMAPSettingsForm extends React.Component {
     );
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     // auto fill username
     this.props.account.settings['imap_username'] = this.props.account.emailAddress;
     this.props.account.settings['smtp_username'] = this.props.account.emailAddress;

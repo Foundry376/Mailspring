@@ -31,7 +31,7 @@ export default class MessagesTopBar extends Component {
       conversationName: this.props.selectedConversation.name
     }
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (!this.props.selectedConversation
       || this.props.selectedConversation.jid !== nextProps.selectedConversation.jid) {
       this.setState({

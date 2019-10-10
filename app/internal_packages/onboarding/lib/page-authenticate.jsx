@@ -36,7 +36,7 @@ export default class AuthenticatePage extends React.Component {
     webview.executeJavaScript(openExternalLink);
   };
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this._skipLogin();
   }
 

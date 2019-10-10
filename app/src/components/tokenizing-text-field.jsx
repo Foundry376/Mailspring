@@ -104,7 +104,7 @@ class Token extends React.Component {
     };
   }
 
-  componentWillReceiveProps(props) {
+  UNSAFE_componentWillReceiveProps(props) {
     // never override the text the user is editing if they're looking at it
     if (this.state.editing) {
       return;
@@ -397,7 +397,7 @@ export default class TokenizingTextField extends React.Component {
     }
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     if (this.props.tokens.length === 0 && this.state.inputValue.length === 0) {
       const newDefaultValue = newProps.defaultValue || '';
       this.setState({ inputValue: newDefaultValue });

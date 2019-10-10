@@ -132,7 +132,7 @@ export class AttachmentItem extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps, nextContext) {
+  UNSAFE_componentWillReceiveProps(nextProps, nextContext) {
     if (this.props.missing && !nextProps.missing) {
       this.setState({ isDownloading: false, download: { state: 'done', percent: 100 } });
     }
@@ -353,7 +353,7 @@ export class ImageAttachmentItem extends Component {
       isDownloading: false,
     };
   }
-  componentWillReceiveProps(nextProps, nextContext) {
+  UNSAFE_componentWillReceiveProps(nextProps, nextContext) {
     if (this.props.missing && !nextProps.missing) {
       this.setState({ isDownloading: false });
     }

@@ -34,7 +34,7 @@ export default class MovePickerPopover extends Component {
     document.body.addEventListener('click', this.onBlur);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this._registerObservables(nextProps);
     this.setState(this._recalculateState(nextProps));
   }

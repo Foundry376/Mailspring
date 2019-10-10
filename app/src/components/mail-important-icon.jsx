@@ -62,7 +62,7 @@ class MailImportantIcon extends React.Component {
     });
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState(this.getState(nextProps));
   }
 

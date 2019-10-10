@@ -62,7 +62,7 @@ export default class Msg extends PureComponent {
     };
   };
 
-  componentWillReceiveProps = nextProps => {
+  UNSAFE_componentWillReceiveProps = nextProps => {
     const newState = this.receiveProps(nextProps);
     this.setState(newState, () => {
       // if has span tag, that's no need to run emoji process

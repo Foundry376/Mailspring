@@ -85,7 +85,7 @@ export default class SwipeContainer extends React.Component {
     this.listWrapper = this.container ? this.container.closest(".scroll-region") : null
   }
 
-  componentWillReceiveProps() {
+  UNSAFE_componentWillReceiveProps() {
     this.isEnabled = null;
   }
 

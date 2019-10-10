@@ -80,7 +80,7 @@ class FixedPopover extends Component {
     _.defer(this.onPopoverRendered);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.fallback = nextProps.fallbackDirection;
     this.setState({ direction: nextProps.direction });
   }

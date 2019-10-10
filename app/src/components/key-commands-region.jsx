@@ -113,7 +113,7 @@ export default class KeyCommandsRegion extends React.Component {
     this._setupListeners(this.props);
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     if (
       newProps.localHandlers !== this.props.localHandlers ||
       newProps.globalHandlers !== this.props.globalHandlers

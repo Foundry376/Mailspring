@@ -38,7 +38,7 @@ export default class TimePicker extends React.Component {
     this._fixTimeOptionScroll();
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     this.setState({ rawText: this._valToTimeString(newProps.value) });
   }
 

@@ -12,7 +12,7 @@ export default class AtList extends Component {
     this._scrollBox;
   }
 
-  componentWillReceiveProps({ activeIndex }) {
+  UNSAFE_componentWillReceiveProps({ activeIndex }) {
     this.keepActiveRowInView(activeIndex);
   }
 

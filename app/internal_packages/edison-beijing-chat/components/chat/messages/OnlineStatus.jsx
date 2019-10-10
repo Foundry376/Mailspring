@@ -90,7 +90,7 @@ export default class OnlineStatus extends Component {
   }
 
 
-  componentWillReceiveProps = async (nextProps, nextContext) => {
+  UNSAFE_componentWillReceiveProps = async (nextProps, nextContext) => {
     const { conversation } = nextProps;
     let chat_online, isAuthenticating;
     // 新建的聊天没有curJid

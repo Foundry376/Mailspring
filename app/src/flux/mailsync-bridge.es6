@@ -601,11 +601,24 @@ export default class MailsyncBridge {
         continue;
       }
 
-      const { type, modelJSONs, modelClass } = json;
+      let { type, modelJSONs, modelClass } = json;
       if (!modelJSONs || !type || !modelClass) {
         AppEnv.logWarning(`Sync worker sent a JSON formatted message with unexpected keys: ${msg}`);
         continue;
       }
+
+      // if ErrorAuthentication
+      modelJSONs = modelJSONs.filter(data => {
+        if (data.key && data.key === 'ErrorAuthentication') {
+          Actions.updateAccount(data.aid, {
+            syncState: Account.SYNC_STATE_AUTH_FAILED,
+            syncError: null,
+          });
+          console.error('ErrorAuthentication', data);
+          return false;
+        }
+        return true;
+      });
 
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);

@@ -42,7 +42,7 @@ export default class ContactAvatar extends Component {
     }
   }
 
-  componentWillReceiveProps = async (nextProps) => {
+  UNSAFE_componentWillReceiveProps = async (nextProps) => {
     await this.refreshState(nextProps);
   };
 
