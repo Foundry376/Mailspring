@@ -1,7 +1,7 @@
 import React from 'react';
 import { Store, ContactsPerspective } from './Store';
 import { localized, Actions, AccountStore } from 'mailspring-exports';
-import * as Icons from './Icons';
+import * as Icons from './SVGIcons';
 import { ListensToFluxStore, BindGlobalCommands } from 'mailspring-component-kit';
 
 interface AddContactToolbarProps {

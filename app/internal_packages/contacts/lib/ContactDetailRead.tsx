@@ -1,7 +1,7 @@
 import React from 'react';
 import { Account, Contact, AccountStore, ContactGroup } from 'mailspring-exports';
 import { ContactProfilePhoto, RetinaImg } from 'mailspring-component-kit';
-import * as Icons from './Icons';
+import * as Icons from './SVGIcons';
 import { Store } from './Store';
 import { ContactBase, ContactInteractorMetadata } from './ContactInfoMapping';
 
