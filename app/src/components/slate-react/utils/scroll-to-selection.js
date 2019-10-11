@@ -62,34 +62,6 @@ function findScrollContainer(el, window) {
   return scroller;
 }
 
-function findEditableContainer(el, window) {
-  if (!el || !el instanceof Node) {
-    return;
-  }
-
-  var parent = el.parentNode;
-  var editabler = void 0;
-
-  while (!editabler) {
-    if (!parent.parentNode) break;
-
-    var isEditable = parent.getAttribute('contenteditable');
-
-    if (isEditable) {
-      editabler = parent;
-      break;
-    }
-
-    parent = parent.parentNode;
-  }
-
-  if (!editabler) {
-    return null;
-  }
-
-  return editabler;
-}
-
 /**
  * Scroll the current selection's focus point into view if needed.
  *
@@ -101,7 +73,6 @@ function scrollToSelection(selection) {
 
   var window = (0, _getWindow2.default)(selection.anchorNode);
   var scroller = findScrollContainer(selection.anchorNode, window);
-  var cursorEditableContainer = findEditableContainer(selection.anchorNode);
   var isWindow = scroller == window.document.body || scroller == window.document.documentElement;
   var backward = (0, _selectionIsBackward2.default)(selection);
 
@@ -144,6 +115,10 @@ function scrollToSelection(selection) {
   var scrollerPaddingBottom = 0;
   var scrollerPaddingLeft = 0;
   var scrollerPaddingRight = 0;
+  // This offset is to avoid the cursor is too close to the view
+  // You can reduce the scope of cursor in the view
+  var contentBottomOffset = 80;
+  var contentTopOffset = 50;
 
   if (isWindow) {
     var innerWidth = window.innerWidth,
@@ -186,16 +161,6 @@ function scrollToSelection(selection) {
     xOffset = scrollLeft;
   }
 
-  if (cursorEditableContainer) {
-    var fromEditablerTopToScrollerTop =
-      scroller.scrollTop + cursorEditableContainer.getBoundingClientRect().top - scrollerTop;
-    var fromEditablerBottomToScrollerTop =
-      fromEditablerTopToScrollerTop + cursorEditableContainer.offsetHeight;
-    var fromEditablerBootomToScrollerBottom =
-      scroller.scrollHeight - fromEditablerBottomToScrollerTop;
-    height = height - fromEditablerBootomToScrollerBottom;
-  }
-
   var cursorTop = cursorRect.top + yOffset - scrollerTop;
   var cursorLeft = cursorRect.left + xOffset - scrollerLeft;
 
@@ -210,12 +175,21 @@ function scrollToSelection(selection) {
     x = cursorLeft + scrollerBordersX + scrollerPaddingRight - width;
   }
 
-  if (cursorTop < yOffset) {
+  if (cursorTop - contentTopOffset < yOffset) {
     // selection above viewport
-    y = cursorTop - scrollerPaddingTop;
-  } else if (cursorTop + cursorRect.height + scrollerBordersY > yOffset + height) {
+    y = cursorTop - contentTopOffset - scrollerPaddingTop;
+  } else if (
+    cursorTop + contentBottomOffset + cursorRect.height + scrollerBordersY >
+    yOffset + height
+  ) {
     // selection below viewport
-    y = cursorTop + scrollerBordersY + scrollerPaddingBottom + cursorRect.height - height;
+    y =
+      cursorTop +
+      contentBottomOffset +
+      scrollerBordersY +
+      scrollerPaddingBottom +
+      cursorRect.height -
+      height;
   }
 
   if (isWindow) {

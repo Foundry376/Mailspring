@@ -173,7 +173,8 @@ li.rc-select-dropdown-menu-item-selected {
   }
 }
 .rc-select-dropdown {
-  max-height: 390px;
+  // init set 1px, fixbug DC-990:4
+  max-height: 1px;
   overflow-y: auto;
   z-index: 8;
   .chip {
@@ -186,7 +187,7 @@ li.rc-select-dropdown-menu-item-selected {
     }
     .contact-name {
       color: @text-color;
-      font-weighta: bold;
+      font-weight: bold;
       font-size: 15px;
       margin: 0 20px;
     }
