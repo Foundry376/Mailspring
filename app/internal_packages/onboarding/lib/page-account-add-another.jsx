@@ -17,7 +17,11 @@ export default class AddAnotherAccountPage extends React.Component {
   }
 
   _onFinish = () => {
-    OnboardingActions.moveToPage('gdpr-terms');
+    if (AppEnv.config.get("agree")) {
+      OnboardingActions.moveToPage('initial-preferences');
+    } else {
+      OnboardingActions.moveToPage('gdpr-terms');
+    }
   };
 
   _onAddNow = () => {
