@@ -48,18 +48,18 @@ export default class MailboxPerspective {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
 
-  static forAllMail(allMailCategory){
+  static forAllMail(allMailCategory) {
     if (!Array.isArray(allMailCategory)) {
       allMailCategory = [allMailCategory];
     }
     return new AllMailMailboxPerspective(allMailCategory);
   }
 
-  static forAllTrash(accountsOrIds){
+  static forAllTrash(accountsOrIds) {
     const categories = CategoryStore.getCategoriesWithRoles(accountsOrIds, 'trash');
-    if(Array.isArray(categories) && categories.length > 0){
+    if (Array.isArray(categories) && categories.length > 0) {
       return this.forCategories(categories);
-    }else{
+    } else {
       return null;
     }
   }
@@ -139,6 +139,7 @@ export default class MailboxPerspective {
     perspective.iconName = 'all-mail.svg';
     if (accountsOrIds.length > 1) {
       perspective.displayName = 'All Inboxes';
+      perspective.iconName = 'account-logo-edison.png';
     }
     perspective.categoryIds = this.getCategoryIds(accountsOrIds, 'inbox');
     return perspective;
@@ -809,7 +810,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       const acct = AccountStore.accountForId(accountId);
       const preferred = acct.preferredRemovalDestination();
       if (!preferred) {
-        AppEnv.reportError(new Error('We cannot find our preferred removal destination'), { errorData: {account: acct, errorCode: 'folderNotAvailable'} });
+        AppEnv.reportError(new Error('We cannot find our preferred removal destination'), { errorData: { account: acct, errorCode: 'folderNotAvailable' } });
         return;
       }
       const cat = this.categories().find(c => c.accountId === accountId);
@@ -835,11 +836,11 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   }
 }
 
-class AllMailMailboxPerspective extends CategoryMailboxPerspective{
-  constructor(_categories){
+class AllMailMailboxPerspective extends CategoryMailboxPerspective {
+  constructor(_categories) {
     super(_categories);
   }
-  threads(){
+  threads() {
     const query = DatabaseStore.findAll(Thread)
       .where({ inAllMail: true, state: 0, accountId: this.accountIds[0] })
       .order([Thread.attributes.lastMessageTimestamp.descending()])

@@ -346,7 +346,7 @@ class SidebarItem {
     }
     return this.forPerspective(id, perspective, opts);
   }
-  static forOutbox(accountIds, opts = {}){
+  static forOutbox(accountIds, opts = {}) {
     opts.iconName = 'outbox.svg';
     const perspective = MailboxPerspective.forOutbox(accountIds);
     const id = 'outbox';
@@ -364,7 +364,7 @@ class SidebarItem {
     );
   }
 
-  static forAllMail(allMailCategory, opts={}){
+  static forAllMail(allMailCategory, opts = {}) {
     const contextMenuLabel = _str.capitalize(allMailCategory.displayType() || undefined);
     const perspective = MailboxPerspective.forAllMail(allMailCategory);
     const id = `${allMailCategory.accountId}-allMail`;
@@ -375,6 +375,7 @@ class SidebarItem {
   static forAllInbox(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forInbox(accountIds);
     opts.categoryIds = this.getCategoryIds(accountIds, 'inbox');
+    opts.mode = RetinaImg.Mode.ContentPreserve;
     const id = accountIds.join('-');
     return this.forPerspective(id, perspective, opts);
   }
