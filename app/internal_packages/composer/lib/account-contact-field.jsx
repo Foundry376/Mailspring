@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { AccountStore, ContactStore, Actions } from 'mailspring-exports';
+import { AccountStore, ContactStore, Actions, SignatureStore } from 'mailspring-exports';
 import { Menu, ButtonDropdown, InjectedComponentSet } from 'mailspring-component-kit';
+import { applySignature } from '../../composer-signature/lib/signature-utils';
 
 export default class AccountContactField extends React.Component {
   static displayName = 'AccountContactField';
@@ -34,11 +35,24 @@ export default class AccountContactField extends React.Component {
       bcc: bcc,
     });
     // session.ensureCorrectAccount();
+    this._changeSignature(contact);
     Actions.changeDraftAccount({
       originalHeaderMessageId: draft.headerMessageId,
       originalMessageId: draft.id,
       newParticipants: { from, cc, bcc },
     });
+  };
+
+  _changeSignature = account => {
+    const { draft, session } = this.props;
+    let sig = SignatureStore.signatureForEmail(account.email);
+    let body;
+    if (sig) {
+      body = applySignature(draft.body, sig);
+    } else {
+      body = applySignature(draft.body, null);
+    }
+    session.changes.add({ body });
   };
 
   _renderDefalutAccount() {
