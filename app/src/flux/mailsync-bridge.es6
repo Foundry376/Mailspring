@@ -558,7 +558,7 @@ export default class MailsyncBridge {
       .slice(2)
       .join('\n');
 
-    AppEnv.trackingTask(task);
+    // AppEnv.trackingTask(task);
     this.sendMessageToAccount(task.accountId, { type: 'queue-task', task: task });
   }
 
