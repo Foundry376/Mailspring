@@ -1,4 +1,4 @@
-(function() {
+(function () {
   function rebuildMessages(messageNodes, messages) {
     // Simply insert the message html inside the appropriate node
     for (var idx = 0; idx < messageNodes.length; idx++) {
@@ -16,6 +16,18 @@
     }
   }
 
+  function removeAllDarkModeStyles() {
+    var colorProperties = ['color', 'background-color'];
+    Array.from(document.querySelectorAll('*')).reverse().forEach(node => {
+      for (var prop of colorProperties) {
+        var style = node.style;
+        if (style.getPropertyPriority(prop) === 'important') {
+          style.removeProperty(prop);
+        }
+      }
+    });
+  }
+
   function removeScrollClasses() {
     var scrollRegions = document.querySelectorAll('.scroll-region');
     var scrollContents = document.querySelectorAll('.scroll-region-content');
@@ -27,7 +39,7 @@
 
   function continueAndPrint() {
     document.getElementById('print-button').style.display = 'none';
-    window.requestAnimationFrame(function() {
+    window.requestAnimationFrame(function () {
       window.print();
       // Close this print window after selecting to print
       // This is really hackish but appears to be the only working solution
@@ -39,6 +51,7 @@
 
   removeScrollClasses();
   rebuildMessages(messageNodes, window.printMessages);
+  removeAllDarkModeStyles();
 
   document.getElementById('print-button').addEventListener('click', continueAndPrint);
   window.continueAndPrint = continueAndPrint;

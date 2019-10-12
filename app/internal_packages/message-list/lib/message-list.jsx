@@ -135,8 +135,8 @@ class MessageList extends React.Component {
     // cannot remove
   }
   _hideEmptyList = (hide) => {
-    if(this._mounted){
-      this.setState({hideMessageList: hide});
+    if (this._mounted) {
+      this.setState({ hideMessageList: hide });
     }
   }
 
@@ -338,13 +338,13 @@ class MessageList extends React.Component {
     Actions.toggleAllMessagesExpanded();
   };
   _onPdfThread = () => {
-    const node = ReactDOM.findDOMNode(this);
-    Actions.pdfThread(this.state.currentThread, node.innerHTML);
+    const node = document.querySelector('#message-list');
+    Actions.pdfThread(this.state.currentThread, node.outerHTML);
   };
 
   _onPrintThread = () => {
-    const node = ReactDOM.findDOMNode(this);
-    Actions.printThread(this.state.currentThread, node.innerHTML);
+    const node = document.querySelector('#message-list');
+    Actions.printThread(this.state.currentThread, node.outerHTML);
   };
 
   _onPopThreadIn = () => {
@@ -791,8 +791,8 @@ class MessageList extends React.Component {
 
   render() {
     if (!this.state.currentThread && !this.state.inOutbox || this.state.inOutbox && !this.state.selectedDraft) {
-      if(this.state.hideMessageList){
-        return <div/>;
+      if (this.state.hideMessageList) {
+        return <div />;
       }
       return <div className={`empty ${this.state.isOnline ? '' : 'offline'}`} />;
     }

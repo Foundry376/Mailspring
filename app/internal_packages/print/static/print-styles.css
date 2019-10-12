@@ -1,6 +1,7 @@
 body {
   overflow: auto !important;
   -webkit-filter: none !important;
+  color: #000 !important;
 }
 
 h1,
