@@ -44,7 +44,8 @@
   "window:select-account-8": "mod+9",
 
   "window:sync-mail-now": "f5",
-
+  "application:show-main-window": "mod+0",
+  
   "contenteditable:underline": "mod+u",
   "contenteditable:bold": "mod+b",
   "contenteditable:italic": "mod+i",

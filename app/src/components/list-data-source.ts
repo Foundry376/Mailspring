@@ -4,8 +4,14 @@ import ListSelection from './list-selection';
 import { Model } from '../flux/models/model';
 
 export default class ListDataSource {
+  // getters prevent use before decl
+
   static get Empty() {
     return EmptyListDataSource;
+  }
+
+  static get DumbArrayDataSource() {
+    return DumbArrayDataSource;
   }
 
   _emitter = new EventEmitter();
@@ -16,7 +22,7 @@ export default class ListDataSource {
 
   // Accessing Data
 
-  trigger = arg => {
+  trigger = (arg?: any) => {
     this._emitter.emit('trigger', arg);
   };
 
@@ -100,7 +106,36 @@ class EmptyListDataSource extends ListDataSource {
   itemsCurrentlyInViewMatching() {
     return [];
   }
-  setRetainedRange() {
-    return;
+  setRetainedRange() {}
+}
+
+class DumbArrayDataSource<T extends Model> extends ListDataSource {
+  _items: T[] = [];
+
+  setItems(items: T[]) {
+    this._items = items;
+    this.trigger();
   }
+  loaded() {
+    return true;
+  }
+  empty() {
+    return this._items.length === 0;
+  }
+  get(idx: number) {
+    return this._items[idx];
+  }
+  getById(id: string) {
+    return this._items.find(i => i.id === id);
+  }
+  indexOfId(id: string) {
+    return this._items.findIndex(i => i.id === id);
+  }
+  count() {
+    return this._items.length;
+  }
+  itemsCurrentlyInViewMatching(matchFn: (item: T) => boolean) {
+    return this._items.filter(matchFn);
+  }
+  setRetainedRange() {}
 }

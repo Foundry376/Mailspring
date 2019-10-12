@@ -1,0 +1,17 @@
+{
+  "name": "contacts",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "Contacts",
+  "license": "GPL-3.0",
+  "private": true,
+  "syncInit": true,
+  "scripts": {
+  },
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "contacts": true
+  }
+}

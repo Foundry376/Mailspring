@@ -4,6 +4,7 @@ import RegExpUtils from '../../regexp-utils';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
 import ComponentRegistry from '../../registries/component-registry';
+import { ContactGroup } from 'mailspring-exports';
 
 /**
 Public: ContactStore provides convenience methods for searching contacts and
@@ -13,6 +14,17 @@ with additional actions.
 Section: Stores
 */
 class ContactStore extends MailspringStore {
+  async searchContactGroups(_search: string) {
+    const search = _search.toLowerCase();
+
+    if (!search || search.length === 0) {
+      return [];
+    }
+
+    const groups = await DatabaseStore.findAll<ContactGroup>(ContactGroup);
+    return groups.filter(g => g.name.toLowerCase().startsWith(search)).slice(0, 4);
+  }
+
   // Public: Search the user's contact list for the given search term.
   // This method compares the `search` string against each Contact's
   // `name` and `email`.
@@ -24,7 +36,7 @@ class ContactStore extends MailspringStore {
   //
   // Returns an {Array} of matching {Contact} models
   //
-  searchContacts(_search, options: { limit?: number } = {}) {
+  searchContacts(_search: string, options: { limit?: number } = {}) {
     const limit = Math.max(options.limit ? options.limit : 5, 0);
     const search = _search.toLowerCase();
 
@@ -37,19 +49,19 @@ class ContactStore extends MailspringStore {
       return Promise.resolve([]);
     }
 
-    // If we haven't found enough items in memory, query for more from the
-    // database. Note that we ask for LIMIT * accountCount because we want to
+    // Note that we ask for LIMIT * accountCount because we want to
     // return contacts with distinct email addresses, and the same contact
     // could exist in every account. Rather than make SQLite do a SELECT DISTINCT
     // (which is very slow), we just ask for more items.
     const query = DatabaseStore.findAll<Contact>(Contact)
       .search(search)
       .limit(limit * accountCount)
+      .where(Contact.attributes.refs.greaterThan(0))
+      .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending());
 
     return (query.then(async _results => {
-      // remove query results that were already found in ranked contacts
-      let results = this._distinctByEmail(_results);
+      let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
       for (const ext of extensions) {
         results = await ext.findAdditionalContacts(search, results);
       }
@@ -64,9 +76,11 @@ class ContactStore extends MailspringStore {
     const accountCount = AccountStore.accounts().length;
     return DatabaseStore.findAll<Contact>(Contact)
       .limit(limit * accountCount)
+      .where(Contact.attributes.refs.greaterThan(0))
+      .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending())
       .then(async _results => {
-        let results = this._distinctByEmail(_results);
+        let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
         if (results.length > limit) {
           results.length = limit;
         }
@@ -135,11 +149,18 @@ class ContactStore extends MailspringStore {
         if (contact.name !== contact.email) {
           return contact;
         }
-        return this.searchContacts(contact.email, { limit: 1 }).then(
-          ([smatch]) => (smatch && smatch.email === contact.email ? smatch : contact)
+        return this.searchContacts(contact.email, { limit: 1 }).then(([smatch]) =>
+          smatch && smatch.email === contact.email ? smatch : contact
         );
       })
     );
+  }
+
+  _omitFindInMailDisabled(results: Contact[]) {
+    // remove results that the user has asked not to see. (Cheaper to do this in JS
+    // than construct a WHERE clause that makes SQLite's index selection non-obvious.)
+    const findInMailDisabled = AppEnv.config.get('core.contacts.findInMailDisabled');
+    return results.filter(r => !(r.source === 'mail' && findInMailDisabled.includes(r.accountId)));
   }
 
   _distinctByEmail(contacts: Contact[]) {

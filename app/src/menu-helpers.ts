@@ -8,13 +8,19 @@ import _ from 'underscore';
 
 const ItemSpecificities = new WeakMap();
 
-export interface IMenuItem {
-  label: string;
-  type: string;
+export type IMenuItem = {
+  label?: string;
   submenu?: IMenuItem[];
-}
+  type?: 'separator';
 
-export function merge(menu: IMenuItem[], item, itemSpecificity?) {
+  id?: string; //unlocalized label
+  command?: string;
+  enabled?: boolean;
+  hideWhenDisabled?: boolean;
+  visible?: boolean;
+};
+
+export function merge(menu: IMenuItem[], item: IMenuItem, itemSpecificity?: number) {
   let matchingItem;
   if (itemSpecificity == null) {
     itemSpecificity = Infinity;
@@ -43,7 +49,7 @@ export function merge(menu: IMenuItem[], item, itemSpecificity?) {
   }
 }
 
-export function unmerge(menu: IMenuItem[], item) {
+export function unmerge(menu: IMenuItem[], item: IMenuItem) {
   let matchingItem;
   const matchingItemIndex = findMatchingItemIndex(menu, item);
   if (matchingItemIndex !== -1) {
@@ -66,7 +72,7 @@ export function unmerge(menu: IMenuItem[], item) {
   }
 }
 
-export function findMatchingItemIndex(menu: IMenuItem[], { type, label, submenu }) {
+export function findMatchingItemIndex(menu: IMenuItem[], { type, label, submenu }: IMenuItem) {
   if (type === 'separator') {
     return -1;
   }
@@ -82,7 +88,7 @@ export function findMatchingItemIndex(menu: IMenuItem[], { type, label, submenu 
   return -1;
 }
 
-export function normalizeLabel(label) {
+export function normalizeLabel(label: string | null) {
   if (label == null) {
     return undefined;
   }
@@ -102,7 +108,7 @@ export function cloneMenuItem(item: IMenuItem) {
   return item;
 }
 
-export function forEachMenuItem(menu: IMenuItem[], callback) {
+export function forEachMenuItem(menu: IMenuItem[], callback: (item: IMenuItem) => void) {
   const result = [];
   for (let item of Array.from(menu)) {
     if (item.submenu != null) {

@@ -4,9 +4,9 @@ module.exports = grunt => {
       src: ['internal_packages/**/*.less', 'dot-nylas/**/*.less', 'static/**/*.less'],
       options: {
         less: {
-          paths: ['static', 'static/base/'],
+          paths: ['static/style/', 'static/style/base/'],
         },
-        imports: ['static/base/*.less'],
+        imports: ['static/style/base/*.less'],
       },
     },
   });

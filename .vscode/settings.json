@@ -23,7 +23,8 @@
     "vector": "cpp",
     "__locale": "cpp",
     "locale": "cpp",
-    "thread": "cpp"
+    "thread": "cpp",
+    "typeinfo": "cpp"
   },
   "git.ignoreLimitWarning": true
 }

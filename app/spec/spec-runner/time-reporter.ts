@@ -7,7 +7,6 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import _ from 'underscore';
-import _str from 'underscore.string';
 import { jasmine } from './jasmine';
 
 export default class TimeReporter extends jasmine.Reporter {
@@ -73,7 +72,7 @@ export default class TimeReporter extends jasmine.Reporter {
       if (index === 0) {
         return `${description}`;
       } else {
-        return `${memo}\n${_str.repeat('  ', index)}${description}`;
+        return `${memo}\n${'  '.repeat(index)}${description}`;
       }
     };
     this.description = _.reduce(stack, reducer, '');

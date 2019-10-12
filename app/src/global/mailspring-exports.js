@@ -81,6 +81,8 @@ lazyLoadAndRegisterModel(`Thread`, 'thread');
 lazyLoadAndRegisterModel(`Account`, 'account');
 lazyLoadAndRegisterModel(`Message`, 'message');
 lazyLoadAndRegisterModel(`Contact`, 'contact');
+lazyLoadAndRegisterModel(`ContactBook`, 'contact-book');
+lazyLoadAndRegisterModel(`ContactGroup`, 'contact-group');
 lazyLoadAndRegisterModel(`Category`, 'category');
 lazyLoadAndRegisterModel(`Calendar`, 'calendar');
 lazyLoadAndRegisterModel(`ProviderSyncbackRequest`, 'provider-syncback-request');
@@ -111,6 +113,11 @@ lazyLoadAndRegisterTask(`GetMessageRFC2822Task`, 'get-message-rfc2822-task');
 lazyLoadAndRegisterTask(`ExpungeAllInFolderTask`, 'expunge-all-in-folder-task');
 lazyLoadAndRegisterTask(`ChangeRoleMappingTask`, 'change-role-mapping-task');
 lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-task');
+lazyLoadAndRegisterTask(`DestroyContactTask`, 'destroy-contact-task');
+lazyLoadAndRegisterTask(`SyncbackContactTask`, 'syncback-contact-task');
+lazyLoadAndRegisterTask(`DestroyContactGroupTask`, 'destroy-contactgroup-task');
+lazyLoadAndRegisterTask(`SyncbackContactGroupTask`, 'syncback-contactgroup-task');
+lazyLoadAndRegisterTask(`ChangeContactGroupMembershipTask`, 'change-contactgroup-membership-task');
 
 // Stores
 // These need to be required immediately since some Stores are

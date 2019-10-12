@@ -6,8 +6,103 @@ import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
 import { AccountStore } from '../stores/account-store';
 import { localized } from '../../intl';
+import { ContactGroup } from './contact-group';
 
 let FocusedPerspectiveStore = null; // Circular Dependency
+
+export interface ContactInfoVCF {
+  vcf: string;
+  href: string;
+}
+
+export interface ContactInfoGoogle {
+  resourceName: string;
+  etag: string;
+
+  birthdays?: {
+    date: {
+      day: number;
+      month: number;
+      year: number;
+    };
+    metadata: {
+      primary: boolean;
+    };
+    text: string;
+  }[];
+  addresses: {
+    city: string;
+    country: string;
+    countryCode: string;
+    extendedAddress: string;
+    formattedValue: string;
+    metadata: {
+      primary: boolean;
+    };
+    postalCode: string;
+    region: string;
+    streetAddress: string;
+    type: string;
+  }[];
+  organizations?: {
+    metadata: {
+      primary: boolean;
+    };
+    name: string;
+    title: string;
+  }[];
+  relations?: [
+    {
+      metadata: {
+        primary: boolean;
+      };
+      person: string;
+      type: string;
+    }
+  ];
+  emailAddresses?: {
+    metadata: {
+      primary: boolean;
+    };
+    type: string;
+    value: string;
+  }[];
+  names?: {
+    displayName: string;
+    familyName: string;
+    givenName: string;
+    metadata: {
+      primary: boolean;
+    };
+  }[];
+  nicknames?: {
+    metadata: {
+      primary: true;
+    };
+    value: string;
+  }[];
+  phoneNumbers?: {
+    metadata: {
+      primary: boolean;
+    };
+    type: string;
+    value: string;
+  }[];
+  photos?: {
+    default: boolean;
+    metadata: {
+      primary: boolean;
+    };
+    url: string;
+  }[];
+  urls?: {
+    metadata: {
+      primary: boolean;
+    };
+    type: string;
+    value: string;
+  }[];
+}
 
 const namePrefixes = {};
 const nameSuffixes = {};
@@ -250,11 +345,6 @@ Attributes
 
 `email`: {AttributeString} The email address of the contact. Queryable.
 
-`thirdPartyData`: {AttributeObject} Extra data that we find out about a
-contact.  The data is keyed by the 3rd party service that dumped the data
-there. The value is an object of raw data in the form that the service
-provides
-
 We also have "normalized" optional data for each contact. This list may
 grow as the needs of a contact become more complex.
 
@@ -271,9 +361,29 @@ export class Contact extends Model {
       modelKey: 'name',
     }),
 
+    hidden: Attributes.Boolean({
+      queryable: true,
+      modelKey: 'hidden',
+      jsonKey: 'h',
+    }),
+
+    source: Attributes.String({
+      queryable: true,
+      modelKey: 'source',
+      jsonKey: 's',
+    }),
+
     email: Attributes.String({
       queryable: true,
       modelKey: 'email',
+    }),
+
+    contactGroups: Attributes.Collection({
+      queryable: true,
+      modelKey: 'contactGroups',
+      jsonKey: 'gis',
+      joinOnField: 'id',
+      joinTableName: 'ContactContactGroup',
     }),
 
     refs: Attributes.Number({
@@ -281,33 +391,8 @@ export class Contact extends Model {
       modelKey: 'refs',
     }),
 
-    // Contains the raw thirdPartyData (keyed by the vendor name) about
-    // this contact.
-    thirdPartyData: Attributes.Object({
-      modelKey: 'thirdPartyData',
-    }),
-
-    // The following are "normalized" fields that we can use to consolidate
-    // various thirdPartyData source. These list of attributes should
-    // always be optional and may change as the needs of a Mailspring contact
-    // change over time.
-    title: Attributes.String({
-      modelKey: 'title',
-    }),
-
-    phone: Attributes.String({
-      modelKey: 'phone',
-    }),
-
-    company: Attributes.String({
-      modelKey: 'company',
-    }),
-
-    // This corresponds to the rowid in the FTS table. We need to use the FTS
-    // rowid when updating and deleting items in the FTS table because otherwise
-    // these operations would be way too slow on large FTS tables.
-    searchIndexId: Attributes.Number({
-      modelKey: 'searchIndexId',
+    info: Attributes.Object({
+      modelKey: 'info',
     }),
   };
 
@@ -348,14 +433,16 @@ export class Contact extends Model {
   public name: string;
   public email: string;
   public refs: number;
-  public title: string;
-  public phone: string;
-  public company: string;
-  public thirdPartyData: object;
+  public source: string;
+  public hidden: boolean;
+  public contactGroups: string[];
+  public info?: ContactInfoGoogle | ContactInfoVCF;
 
   constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);
-    this.thirdPartyData = this.thirdPartyData || {};
+    if (!this.contactGroups) {
+      this.contactGroups = [];
+    }
   }
 
   // Public: Returns a string of the format `Full Name <email@address.com>` if
@@ -368,6 +455,14 @@ export class Contact extends Model {
   }
 
   fromJSON(json) {
+    // to ensure that old contact data is inflated properly
+    // and we can compare hidden === false.
+    if (json && !('s' in json)) {
+      json['s'] = 'mail';
+    }
+    if (json && !('h' in json)) {
+      json['h'] = false;
+    }
     super.fromJSON(json);
     this.name = this.name || this.email;
     return json;

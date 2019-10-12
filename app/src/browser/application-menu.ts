@@ -154,24 +154,17 @@ export default class ApplicationMenu {
     }
     const idx = windowMenu.submenu.findIndex(({ id }) => id === 'window-list-separator');
 
-    let workShortcut = 'CmdOrCtrl+alt+w';
-    if (process.platform === 'win32') {
-      workShortcut = 'ctrl+shift+w';
-    }
-
-    const accelerators = {
-      default: 'CmdOrCtrl+0',
-      work: workShortcut,
-    };
     const windows = global.application.windowManager.getOpenWindows();
-    const windowsItems = windows.map(w => ({
-      label: w.loadSettings().title || 'Window',
-      accelerator: accelerators[w.windowType],
-      click() {
-        w.show();
-        w.focus();
-      },
-    }));
+    const windowsItems = windows
+      .filter(w => w.windowType !== 'default' && w.windowType !== 'contacts')
+      .map(w => ({
+        label: w.loadSettings().title || 'Window',
+        click() {
+          w.show();
+          w.focus();
+        },
+      }));
+
     return windowMenu.submenu.splice(idx, 0, { type: 'separator' }, ...windowsItems);
   }
 

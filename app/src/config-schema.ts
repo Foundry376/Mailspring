@@ -305,6 +305,18 @@ export default {
           },
         },
       },
+      contacts: {
+        type: 'object',
+        properties: {
+          findInMailDisabled: {
+            type: 'array',
+            default: [],
+            items: {
+              type: 'string', // accountIds
+            },
+          },
+        },
+      },
       notifications: {
         type: 'object',
         properties: {

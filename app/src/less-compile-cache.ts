@@ -12,8 +12,8 @@ export default class LessCompileCache {
 
   constructor({ configDirPath, resourcePath, importPaths = [] }) {
     this.lessSearchPaths = [
-      path.join(resourcePath, 'static', 'base'),
-      path.join(resourcePath, 'static'),
+      path.join(resourcePath, 'static', 'style'),
+      path.join(resourcePath, 'static', 'style', 'base'),
     ];
 
     this.cache = new LessCache({

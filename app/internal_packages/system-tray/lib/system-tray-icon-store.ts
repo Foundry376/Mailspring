@@ -47,24 +47,16 @@ class SystemTrayIconStore {
     this._unsubscribers = [];
     this._unsubscribers.push(BadgeStore.listen(this._updateIcon));
 
-    const browserWin = remote.getCurrentWindow();
-
-    browserWin.on('show', this._onWindowFocus);
-    browserWin.on('hide', this._onWindowBackgrounded);
-    this._unsubscribers.push(() => {
-      browserWin.removeListener('show', this._onWindowFocus);
-      browserWin.removeListener('hide', this._onWindowBackgrounded);
-    });
-
-    window.addEventListener('browser-window-blur', this._onWindowBackgrounded);
-    this._unsubscribers.push(() =>
-      window.removeEventListener('browser-window-blur', this._onWindowBackgrounded)
-    );
-
+    window.addEventListener('browser-window-show', this._onWindowFocus);
     window.addEventListener('browser-window-focus', this._onWindowFocus);
-    this._unsubscribers.push(() =>
-      window.removeEventListener('browser-window-focus', this._onWindowFocus)
-    );
+    window.addEventListener('browser-window-hide', this._onWindowBackgrounded);
+    window.addEventListener('browser-window-blur', this._onWindowBackgrounded);
+    this._unsubscribers.push(() => {
+      window.removeEventListener('browser-window-show', this._onWindowFocus);
+      window.removeEventListener('browser-window-focus', this._onWindowFocus);
+      window.removeEventListener('browser-window-hide', this._onWindowBackgrounded);
+      window.removeEventListener('browser-window-blur', this._onWindowBackgrounded);
+    });
   }
 
   deactivate() {

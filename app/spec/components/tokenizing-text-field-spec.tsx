@@ -153,7 +153,7 @@ describe('TokenizingTextField', function() {
 
       expect(dragStartEventData).toEqual({
         'mailspring-token-items':
-          '[{"id":"2","name":"Mailspring Burger Basket","email":"burgers@mailspring.com","thirdPartyData":{},"__cls":"Contact"}]',
+          '[{"id":"2","name":"Mailspring Burger Basket","email":"burgers@mailspring.com","__cls":"Contact"}]',
         'text/plain': 'Mailspring Burger Basket <burgers@mailspring.com>',
       });
 

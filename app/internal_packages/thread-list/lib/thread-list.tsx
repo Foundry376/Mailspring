@@ -117,7 +117,7 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
               'thread-list:select-unstarred': this._onSelectUnstarred,
             }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
-            onDragStart={this._onDragStart}
+            onDragItems={this._onDragItems}
             onDragEnd={this._onDragEnd}
           />
         </FocusContainer>
@@ -154,8 +154,10 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
         task instanceof ChangeStarredTask
           ? 'unstar'
           : task instanceof ChangeFolderTask
-            ? task.folder.name
-            : task instanceof ChangeLabelsTask ? 'archive' : 'remove';
+          ? task.folder.name
+          : task instanceof ChangeLabelsTask
+          ? 'archive'
+          : 'remove';
 
       return `swipe-${name}`;
     };
@@ -198,55 +200,32 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
     return props;
   }
 
-  _targetItemsForMouseEvent(event) {
-    const itemThreadId = this.refs.list.itemIdAtPoint(event.clientX, event.clientY);
-    if (!itemThreadId) {
-      return null;
-    }
-
-    const dataSource = ThreadListStore.dataSource();
-    if (itemThreadId && dataSource.selection.ids().includes(itemThreadId)) {
-      return {
-        threadIds: dataSource.selection.ids(),
-        accountIds: _.uniq(_.pluck(dataSource.selection.items(), 'accountId')),
-      };
-    } else {
-      const thread = dataSource.getById(itemThreadId);
-      if (!thread) {
-        return null;
-      }
-      return {
-        threadIds: [thread.id],
-        accountIds: [thread.accountId],
-      };
-    }
-  }
-
   _onSyncStatusChanged = () => {
     const syncing = FocusedPerspectiveStore.current().hasSyncingCategories();
     this.setState({ syncing });
   };
 
   _onShowContextMenu = event => {
-    const data = this._targetItemsForMouseEvent(event);
-    if (!data) {
+    const items = this.refs.list.itemsForMouseEvent(event);
+    if (!items) {
       event.preventDefault();
       return;
     }
-    new ThreadListContextMenu(data).displayMenu();
+    new ThreadListContextMenu({
+      threadIds: items.map(t => t.id),
+      accountIds: _.uniq(items.map(t => t.accountId)),
+    }).displayMenu();
   };
 
-  _onDragStart = event => {
-    const data = this._targetItemsForMouseEvent(event);
-    if (!data) {
-      event.preventDefault();
-      return;
-    }
-
+  _onDragItems = (event, items) => {
+    const data = {
+      threadIds: items.map(t => t.id),
+      accountIds: _.uniq(items.map(t => t.accountId)),
+    };
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.dragEffect = 'move';
 
-    const canvas = CanvasUtils.canvasWithThreadDragImage(data.threadIds.length);
+    const canvas = CanvasUtils.canvasForDragging('threads', data.threadIds.length);
     event.dataTransfer.setDragImage(canvas, 10, 10);
     event.dataTransfer.setData('mailspring-threads-data', JSON.stringify(data));
     event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');

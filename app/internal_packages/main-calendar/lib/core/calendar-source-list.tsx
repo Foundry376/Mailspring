@@ -43,7 +43,7 @@ function renderCalendarToggles(calendars, disabledCalendars) {
   });
 }
 
-export default function CalendarToggles(props) {
+export default function CalendarSourceList(props) {
   const calsByAccountId = _.groupBy(props.calendars, 'accountId');
   const accountSections = [];
   for (const accountId of Object.keys(calsByAccountId)) {
@@ -59,10 +59,10 @@ export default function CalendarToggles(props) {
       </div>
     );
   }
-  return <div className="calendar-toggles-wrap">{accountSections}</div>;
+  return <div className="calendar-source-list-wrap">{accountSections}</div>;
 }
 
-CalendarToggles.propTypes = {
+CalendarSourceList.propTypes = {
   accounts: PropTypes.array,
   calendars: PropTypes.array,
   disabledCalendars: PropTypes.array,

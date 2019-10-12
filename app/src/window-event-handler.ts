@@ -50,6 +50,14 @@ export default class WindowEventHandler {
       window.dispatchEvent(new Event('browser-window-blur'));
     });
 
+    ipcRenderer.on('browser-window-hide', () => {
+      window.dispatchEvent(new Event('browser-window-hide'));
+    });
+
+    ipcRenderer.on('browser-window-show', () => {
+      window.dispatchEvent(new Event('browser-window-show'));
+    });
+
     ipcRenderer.on('command', (event, command, ...args) => {
       AppEnv.commands.dispatch(command, args[0]);
     });
@@ -151,8 +159,6 @@ export default class WindowEventHandler {
     });
 
     document.addEventListener('drop', this.onDrop);
-
-    document.addEventListener('dragover', this.onDragOver);
 
     document.addEventListener('click', (event: MouseEvent) => {
       if ((event.target as HTMLElement).closest('[href]')) {

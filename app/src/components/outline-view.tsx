@@ -9,9 +9,8 @@ export interface IOutlineViewItem {
   id?: string;
   title?: string;
   iconName?: string;
-  items?: IOutlineViewItem[];
   name?: string;
-  children?: any[];
+  children?: IOutlineViewItem[];
   contextMenuLabel?: string;
   collapsed?: boolean;
   className?: string;
@@ -30,7 +29,14 @@ export interface IOutlineViewItem {
   onEdited?: (...args: any[]) => any;
 }
 
-interface OutlineViewProps extends IOutlineViewItem {}
+interface OutlineViewProps {
+  title: string;
+  items: IOutlineViewItem[];
+  iconName?: string;
+  collapsed?: boolean;
+  onCollapseToggled?: (props: OutlineViewProps) => void;
+  onItemCreated?: (displayName) => void;
+}
 
 interface OutlineViewState {
   showCreateInput: boolean;
@@ -61,7 +67,7 @@ interface OutlineViewState {
  * @param {props.onCollapseToggled} props.onCollapseToggled
  * @class OutlineView
  */
-class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
+export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   static displayName = 'OutlineView';
 
   /*
@@ -219,12 +225,10 @@ class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     const allowCreate = this.props.onItemCreated != null && !collapsed;
 
     return (
-      <section className="nylas-outline-view">
+      <section className="outline-view">
         {this._renderHeading(allowCreate, collapsed, collapsible)}
         {this._renderOutline(allowCreate, collapsed)}
       </section>
     );
   }
 }
-
-export default OutlineView;

@@ -12,12 +12,12 @@ export interface MenuItemProps {
   content?: any;
 }
 
-export interface MenuNameEmailItemProps {
+export interface MenuNameEmailContentProps {
   name?: string;
   email?: string;
 }
 
-export interface MenuProps {
+export interface MenuProps extends HTMLProps<HTMLDivElement> {
   className?: string;
   footerComponents?: React.ReactNode;
   headerComponents?: React.ReactNode;
@@ -26,7 +26,7 @@ export interface MenuProps {
   itemKey: (...args: any[]) => any;
   itemChecked?: (...args: any[]) => any;
   items: any[];
-  onSelect: (...args: any[]) => any;
+  onSelect: (item: any) => any;
   onEscape?: (...args: any[]) => any;
   defaultSelectedIndex?: number;
 }
@@ -82,11 +82,11 @@ Public: React component for a {Menu} item that displays a name and email address
 
 Section: Component Kit
 */
-class MenuNameEmailItem extends React.Component<MenuNameEmailItemProps> {
-  static displayName = 'MenuNameEmailItem';
+class MenuNameEmailContent extends React.Component<MenuNameEmailContentProps> {
+  static displayName = 'MenuNameEmailContent';
 
   /*
-    Public: React `props` supported by MenuNameEmailItem:
+    Public: React `props` supported by MenuNameEmailContent:
 
      - `name` (optional) The {String} name to be displayed.
      - `email` (optional) The {String} email address to be displayed.
@@ -138,11 +138,11 @@ component's Menu instance:
 
 Section: Component Kit
 */
-export class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>, MenuState> {
+export class Menu extends React.Component<MenuProps, MenuState> {
   static displayName = 'Menu';
 
   static Item = MenuItem;
-  static NameEmailItem = MenuNameEmailItem;
+  static NameEmailContent = MenuNameEmailContent;
 
   /*
     Public: React `props` supported by Menu:
@@ -282,7 +282,7 @@ export class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>,
     const fc = this.props.footerComponents || <span />;
     const className = this.props.className ? this.props.className : '';
     return (
-      <div onKeyDown={this._onKeyDown} className={`menu ${className}`} tabIndex={-1}>
+      <div onKeyDown={this.onKeyDown} className={`menu ${className}`} tabIndex={-1}>
         <div className="header-container">{hc}</div>
         {this._contentContainer()}
         <div className="footer-container">{fc}</div>
@@ -290,7 +290,7 @@ export class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>,
     );
   }
 
-  _onKeyDown = event => {
+  onKeyDown = event => {
     if (this.props.items.length === 0) {
       return;
     }

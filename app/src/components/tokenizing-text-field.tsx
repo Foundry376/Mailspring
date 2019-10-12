@@ -259,8 +259,7 @@ type TokenizingTextFieldProps = {
   onEmptied?: (...args: any[]) => any;
   onTokenAction?: ((...args: any[]) => any) | false;
   onFocus?: (...args: any[]) => any;
-  menuPrompt?: string;
-  menuClassSet?: object;
+  label?: string;
   tabIndex?: number;
 };
 type TokenizingTextFieldState = {
@@ -416,10 +415,7 @@ export class TokenizingTextField extends React.Component<
     onFocus: PropTypes.func,
 
     // A Prompt used in the head of the menu
-    menuPrompt: PropTypes.string,
-
-    // A classSet hash applied to the Menu item
-    menuClassSet: PropTypes.object,
+    label: PropTypes.string,
 
     tabIndex: PropTypes.number,
   };
@@ -927,27 +923,9 @@ export class TokenizingTextField extends React.Component<
     return <SizeToFitInput ref="input" spellCheck={false} {...props} />;
   }
 
-  _placeholderComponent() {
-    if (
-      this.state.inputValue.length > 0 ||
-      this.props.placeholder === undefined ||
-      this.props.tokens.length > 0
-    ) {
-      return false;
-    }
-    return <div className="placeholder">{this.props.placeholder}</div>;
-  }
-
   _atMaxTokens() {
     const { tokens, maxTokens } = this.props;
     return !maxTokens ? false : tokens.length >= maxTokens;
-  }
-
-  _renderPromptComponent() {
-    if (!this.props.menuPrompt) {
-      return false;
-    }
-    return <div className="tokenizing-field-label">{`${this.props.menuPrompt}:`}</div>;
   }
 
   _fieldComponents() {
@@ -1004,9 +982,15 @@ export class TokenizingTextField extends React.Component<
         onClick={this._onClick}
         onDrop={this._onDrop}
       >
-        {this._renderPromptComponent()}
+        {this.props.label && <div className="tokenizing-field-label">{`${this.props.label}:`}</div>}
         <div className={fieldClasses}>
-          {this._placeholderComponent()}
+          {this.state.inputValue.length > 0 ||
+          this.props.placeholder === undefined ||
+          this.props.tokens.length > 0 ? (
+            false
+          ) : (
+            <div className="placeholder">{this.props.placeholder}</div>
+          )}
           {this._fieldComponents()}
           {this._inputComponent()}
         </div>
@@ -1015,12 +999,8 @@ export class TokenizingTextField extends React.Component<
   }
 
   render() {
-    const classSet = {};
-    classSet[this.props.className] = true;
-
     const classes = classNames({
-      ...classSet,
-      ...(this.props.menuClassSet || {}),
+      [this.props.className]: true,
       'tokenizing-field': true,
       disabled: this.props.disabled,
       focused: this.state.focus,

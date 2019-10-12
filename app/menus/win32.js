@@ -3,6 +3,7 @@ const { localized } = require('../src/intl');
 module.exports = {
   menu: [
     {
+      id: 'Edit',
       label: localized('Edit'),
       submenu: [
         { label: localized('Undo'), command: 'core:undo' },
@@ -32,6 +33,7 @@ module.exports = {
     },
 
     {
+      id: 'View',
       label: localized('View'),
       submenu: [
         {
@@ -85,6 +87,7 @@ module.exports = {
     },
 
     {
+      id: 'Thread',
       label: localized('Thread'),
       submenu: [
         { label: localized('Reply'), command: 'core:reply' },
@@ -135,6 +138,7 @@ module.exports = {
       ],
     },
     {
+      id: 'Developer',
       label: localized('Developer'),
       submenu: [
         {
@@ -162,11 +166,23 @@ module.exports = {
       ],
     },
     {
+      id: 'Window',
       label: localized('Window'),
       submenu: [
         { label: localized('Minimize'), command: 'application:minimize' },
         { label: localized('Zoom'), command: 'application:zoom' },
+        { type: 'separator' },
+        {
+          label: localized('Message Viewer'),
+          command: 'application:show-main-window',
+          accelerator: 'CmdOrCtrl+0',
+        },
+        {
+          label: localized('Contacts'),
+          command: 'application:show-contacts',
+        },
         { type: 'separator', id: 'window-list-separator' },
+        { type: 'separator', id: 'account-shortcuts-separator' },
       ],
     },
     { type: 'separator' },

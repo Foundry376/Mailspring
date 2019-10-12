@@ -1,7 +1,6 @@
 import { Task } from './task';
 import { AttributeValues } from '../models/model';
 import Attributes from '../attributes';
-import ICAL from 'ical.js';
 import {
   localized,
   ICSParticipantStatus,
@@ -11,6 +10,8 @@ import {
   Message,
   Actions,
 } from 'mailspring-exports';
+
+let ICAL: typeof import('ical.js') = null;
 
 export class EventRSVPTask extends Task {
   ics: string;
@@ -56,6 +57,9 @@ export class EventRSVPTask extends Task {
     icsOriginalData: string;
     icsRSVPStatus: ICSParticipantStatus;
   }) {
+    if (!ICAL) {
+      ICAL = require('ical.js');
+    }
     const jcalData = ICAL.parse(icsOriginalData);
     const comp = new ICAL.Component(jcalData);
     const event = new ICAL.Event(comp.getFirstSubcomponent('vevent'));

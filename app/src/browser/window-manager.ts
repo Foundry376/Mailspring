@@ -8,12 +8,14 @@ const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
 const ONBOARDING_WINDOW = 'onboarding';
 const CALENDAR_WINDOW = 'calendar';
+const CONTACTS_WINDOW = 'contacts';
 
 export default class WindowManager {
   static MAIN_WINDOW = MAIN_WINDOW;
   static SPEC_WINDOW = SPEC_WINDOW;
   static ONBOARDING_WINDOW = ONBOARDING_WINDOW;
   static CALENDAR_WINDOW = CALENDAR_WINDOW;
+  static CONTACTS_WINDOW = CONTACTS_WINDOW;
 
   initializeInBackground: boolean;
   _windows: { [key: string]: MailspringWindow } = {};
@@ -120,9 +122,7 @@ export default class WindowManager {
 
     if (this._windows[win.windowKey]) {
       throw new Error(
-        `WindowManager: Attempting to register a new window for an existing windowKey (${
-          win.windowKey
-        }). Use 'get()' to retrieve the existing window instead.`
+        `WindowManager: Attempting to register a new window for an existing windowKey (${win.windowKey}). Use 'get()' to retrieve the existing window instead.`
       );
     }
 
@@ -260,16 +260,24 @@ export default class WindowManager {
       height: 600,
     };
 
-    // The SPEC_WINDOW gets passed its own bootstrapScript
     coreWinOpts[WindowManager.CALENDAR_WINDOW] = {
       windowKey: WindowManager.CALENDAR_WINDOW,
       windowType: WindowManager.CALENDAR_WINDOW,
       title: localized('Calendar Preview'),
       width: 900,
       height: 600,
-      frame: true,
       toolbar: false,
       hidden: false,
+    };
+
+    coreWinOpts[WindowManager.CONTACTS_WINDOW] = {
+      windowKey: WindowManager.CONTACTS_WINDOW,
+      windowType: WindowManager.CONTACTS_WINDOW,
+      title: localized('Contacts'),
+      width: 800,
+      height: 500,
+      toolbar: true,
+      hidden: true,
     };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript

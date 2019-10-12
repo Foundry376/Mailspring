@@ -1,7 +1,6 @@
 import MailspringStore from 'mailspring-store';
-import { Editor } from 'slate';
+import { Editor, Value } from 'slate';
 
-import { Conversion } from '../../components/composer-editor/composer-support';
 import RegExpUtils from '../../regexp-utils';
 import { localized } from '../../intl';
 
@@ -20,7 +19,30 @@ import { SyncbackDraftTask } from '../tasks/syncback-draft-task';
 
 export type MessageWithEditorState = Message & { bodyEditorState: any };
 
-const { convertFromHTML, convertToHTML, convertToShapeWithoutContent } = Conversion;
+/*
+Note: This is a bit of a hack, but pulling in composer-support is what triggers slate,
+slate-react, etc. to be loaded in windows where the components are not actually in use.
+By lazily resolving this import, we can save ~400ms of window start-up time.
+*/
+let Conversion = null;
+function resolveConversion() {
+  if (Conversion) return;
+  Conversion = require('../../components/composer-editor/composer-support').Conversion;
+}
+
+function convertFromHTML(html: string) {
+  resolveConversion();
+  return Conversion.convertFromHTML(html);
+}
+function convertToHTML(value: Value) {
+  resolveConversion();
+  return Conversion.convertToHTML(value);
+}
+function convertToShapeWithoutContent(value: Value) {
+  resolveConversion();
+  return Conversion.convertToShapeWithoutContent(value);
+}
+
 const MetadataChangePrefix = 'metadata.';
 let DraftStore = null;
 

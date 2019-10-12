@@ -110,7 +110,7 @@ export function registerMenuItems(accounts: Account[], sidebarAccountIds: string
     return;
   }
 
-  const idx = submenu.findIndex(({ type }) => type === 'separator');
+  const idx = submenu.findIndex(({ id }) => id === 'account-shortcuts-separator');
   if (!(idx > 0)) {
     return;
   }
