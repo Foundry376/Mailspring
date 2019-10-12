@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+  <title>unmaximize_passive</title>
+  <g>
+    <circle cx="15" cy="15" r="14.75" fill="#28ca40"/>
+    <path
+      d="M15,.5A14.5,14.5,0,1,1,.5,15,14.51,14.51,0,0,1,15,.5M15,0A15,15,0,1,0,30,15,15,15,0,0,0,15,0Z"
+      fill="#00a718"
+    />
+  </g>
+</svg>

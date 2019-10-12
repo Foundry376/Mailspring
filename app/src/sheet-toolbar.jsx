@@ -106,17 +106,7 @@ class ToolbarWindowControls extends React.Component {
     if (this.state.alt) {
       maxButton = <button tabIndex={-1} className="maximize" onClick={this._onMaximize} />;
     } else if (this.state.isFullScreen) {
-      maxButton = (
-        <button tabIndex={-1} className="unmaximize" onClick={this._onMaximize}>
-          <RetinaImg
-            name="system-collapse.svg"
-            isIcon={true}
-            style={{ height: 12, width: 12 }}
-            fallback={'folder.svg'}
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </button>
-      );
+      maxButton = <button tabIndex={-1} className="unmaximize" onClick={this._onMaximize}></button>;
     }
     return (
       <div name="ToolbarWindowControls" className={`toolbar-window-controls alt-${this.state.alt}`}>
