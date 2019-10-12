@@ -148,7 +148,6 @@ module.exports = grunt => {
             '**/src/tasks/**',
             '**/node_modules/spellchecker/**',
             '**/node_modules/windows-shortcuts/**',
-            '**/static/vcard_grammar',
           ].join(',') +
           '}',
       },
