@@ -9,7 +9,7 @@ function SyncingListState(props) {
     <div className="syncing-list-state" style={{ width: '100%', textAlign: 'center' }}>
       {message}&hellip;
       <br />
-      <a onClick={Actions.expandSyncState}>Show Progress</a>
+      {/* <a onClick={Actions.expandSyncState}>Show Progress</a> */}
     </div>
   );
 }
