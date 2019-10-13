@@ -60,6 +60,17 @@ const AccountProviders = [
   {
     provider: 'fastmail',
     displayName: 'FastMail',
+    note: (
+      <span>
+        <strong>{localized('Important')}:</strong>{' '}
+        {localizedReactFragment(
+          'FastMail requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.',
+          <a href="https://www.fastmail.com/help/clients/apppassword.html">
+            {localized('these instructions')}
+          </a>
+        )}
+      </span>
+    ),
     icon: 'ic-settings-account-fastmail.png',
     headerIcon: 'setup-icon-provider-fastmail.png',
     color: '#24345a',
