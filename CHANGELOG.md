@@ -1,6 +1,49 @@
 # Mailspring Changelog
 
-### 1.6.3 (TBD)
+### 1.7.0 (10/13/2019)
+
+Features:
+
+**Incoming Message Translation**: Mailspring now offers to translate emails you receive in other languages. When you choose to translate an email, Mailspring sends the text of the message to a translation service (currently Yandex) and displays the result. Free users can translate up to 50 messages a week - Mailspring Pro removes the limit and allows you to "Automatically Translate" all messages in particular languages.
+
+**Contact Management**: Mailspring now includes a full-featured address book available from the `Window` menu! You can create, update, and delete contacts and contact groups in connected Google and CardDAV-compatible accounts (iCloud, FastMail and others.) Mailspring also allows you to turn off automatic suggestions based on your sent mail, and delete individual contact suggestions. When composing an email, you can now type the name of a group to insert all of the contacts in that group as recipients.
+
+Fixes:
+
+- Mailspring now displays unread mail notifications reliably, fixing a race-condition that occurred when new messages were synced too fast. #1467
+
+- You can now re-order your email acccounts via drag and drop in Preferences > Accounts. #1577
+
+- Mailspring always displays non-inline image attachments as files in the composer. Previously they looked identical to inline images. #1653
+
+- The French, Slovenian, Portuguese, German, Tamil, and Chinese translations have been improved. (Thanks struk3lj, @matheusreich, @danopz, @Cortys , @mpetitjean, @singer233, and @lizzards!)
+
+- Mailspring does a better job removing quoted text formatted by very old versions of Outlook.
+
+- Mailspring no longer freezes when you type al ink with a "#hash" and then press return.
+
+- On Linux and Windows, the system tray no longer turns blue whenever the app's window is hidden. #1467, #1017
+
+- A new option in Preferences > General allows you to disable the shortening of recipient names. #515, #505
+
+- A new option in Preferences > General allows you to expand message headers by default. #1521 #1525
+
+- Mailspring's icon now appears square in the Windows Start menu.
+
+- You can now dismiss Mailspring's upgrade prompt on Linux. #1514, #913
+
+- Social links in Mailspring's sidebar now properly contain the www. prefix when required. #1559
+
+- You can now type date shorthands (eg: "2d" or "2w") into the snooze date picker. #1621
+
+Developer:
+
+- On Debian Linux, we suggest rather than require gnomekeyring #998
+
+- The (broken) plugin template has been removed - the starter for a Mailspring plugin is now located at https://github.com/Foundry376/Mailspring-Plugin-Starter #1645
+
+
+### 1.6.3 (7/1/2019)
 
 Fixes:
 
