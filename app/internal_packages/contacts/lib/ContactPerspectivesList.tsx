@@ -171,7 +171,7 @@ const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectives
   onSelect,
 }) => (
   <ScrollRegion style={{ flex: 1 }} className="contacts-perspective-list">
-    <section className="outline-view" style={{ paddingTop: 15 }}>
+    <section className="outline-view nylas-outline-view" style={{ paddingTop: 15 }}>
       <OutlineViewItem
         item={{
           id: 'bla',
