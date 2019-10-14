@@ -3,6 +3,7 @@ import { Store, ContactsPerspective } from './Store';
 import { localized, Actions, AccountStore } from 'mailspring-exports';
 import * as Icons from './SVGIcons';
 import { ListensToFluxStore, BindGlobalCommands } from 'mailspring-component-kit';
+import { showGPeopleReadonlyNotice } from './GoogleSupport';
 
 interface AddContactToolbarProps {
   editing: string | 'new' | false;
@@ -16,9 +17,13 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
   }
 
   onAdd = () => {
+    if (showGPeopleReadonlyNotice(this.props.perspective.accountId)) {
+      return;
+    }
     Actions.setFocus({ collection: 'contact', item: null });
     Store.setEditing('new');
   };
+
   render() {
     const { editing, perspective } = this.props;
     const enabled = editing === false && perspective && perspective.accountId;

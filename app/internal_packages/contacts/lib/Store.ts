@@ -97,6 +97,7 @@ class ContactsWindowStore extends MailspringStore {
 
     this._filtered = null;
     this._perspective = perspective;
+    this._search = '';
 
     if (q.sql() !== this._contactsSubscription.query().sql()) {
       this._contacts = [];

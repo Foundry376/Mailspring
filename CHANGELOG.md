@@ -6,6 +6,8 @@ Features:
 
 **Incoming Message Translation**: Mailspring now offers to translate emails you receive in other languages. When you choose to translate an email, Mailspring sends the text of the message to a translation service (currently Yandex) and displays the result. Free users can translate up to 50 messages a week - Mailspring Pro removes the limit and allows you to "Automatically Translate" all messages in particular languages.
 
+  * Note: We're waiting on Google to approve Mailspring for access to the "Read-write Contacts" Oauth scope, so Gmail accounts will be read-only until ~December 2019.
+  
 **Contact Management**: Mailspring now includes a full-featured address book available from the `Window` menu! You can create, update, and delete contacts and contact groups in connected Google and CardDAV-compatible accounts (iCloud, FastMail and others.) Mailspring also allows you to turn off automatic suggestions based on your sent mail, and delete individual contact suggestions. When composing an email, you can now type the name of a group to insert all of the contacts in that group as recipients.
 
 Fixes:

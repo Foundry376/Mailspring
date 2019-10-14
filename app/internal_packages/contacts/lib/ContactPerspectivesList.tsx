@@ -21,6 +21,7 @@ import {
   IOutlineViewItem,
 } from 'mailspring-component-kit';
 import { isEqual } from 'underscore';
+import { showGPeopleReadonlyNotice } from './GoogleSupport';
 
 interface ContactsPerspectivesProps {
   accounts: Account[];
@@ -81,14 +82,26 @@ const OutlineViewForAccount = ({
         selected: isEqual(selected, perspective),
         onSelect: () => onSelect(perspective),
         onEdited: (item, value: string) => {
+          if (showGPeopleReadonlyNotice(account.id)) {
+            return false;
+          }
           Actions.queueTask(SyncbackContactGroupTask.forRenaming(group, value));
         },
         onDelete: () => {
+          if (showGPeopleReadonlyNotice(account.id)) {
+            return false;
+          }
           Actions.queueTask(DestroyContactGroupTask.forRemoving(group));
         },
         onDrop: (item, { dataTransfer }) => {
           const data = JSON.parse(dataTransfer.getData('mailspring-contacts-data'));
           const contacts = data.ids.map(i => Store.filteredContacts().find(c => c.id === i));
+          if (!contacts.length) {
+            return false;
+          }
+          if (showGPeopleReadonlyNotice(contacts[0].accountId)) {
+            return false;
+          }
           Actions.queueTask(
             ChangeContactGroupMembershipTask.forMoving({
               direction: 'add',
@@ -104,7 +117,6 @@ const OutlineViewForAccount = ({
           if (isEqual(selected, perspective)) {
             return false;
           }
-
           // We can't inspect the drag payload until drop, so we use a dataTransfer
           // type to encode the account IDs of threads currently being dragged.
           const accountsType = dataTransfer.types.find(t => t.startsWith('mailspring-accounts='));
@@ -138,7 +150,12 @@ const OutlineViewForAccount = ({
       items={items}
       onItemCreated={
         books.length > 0
-          ? name => Actions.queueTask(SyncbackContactGroupTask.forCreating(account.id, name))
+          ? name => {
+              if (showGPeopleReadonlyNotice(account.id)) {
+                return false;
+              }
+              Actions.queueTask(SyncbackContactGroupTask.forCreating(account.id, name));
+            }
           : undefined
       }
     />

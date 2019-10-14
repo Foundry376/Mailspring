@@ -14,6 +14,7 @@ import {
   Contact,
   ChangeContactGroupMembershipTask,
 } from 'mailspring-exports';
+import { showGPeopleReadonlyNotice } from './GoogleSupport';
 
 interface ContactDetailToolbarProps {
   editing: string | 'new' | false;
@@ -32,6 +33,9 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
       throw new Error('Remove from source but perspective is not a group');
       return;
     }
+    if (showGPeopleReadonlyNotice(this.props.perspective.accountId)) {
+      return;
+    }
 
     const groupId = this.props.perspective.groupId;
     const group = Store.groups().find(g => g.id === groupId);
@@ -45,7 +49,23 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     );
   };
 
+  _onEdit = () => {
+    if (showGPeopleReadonlyNotice(this.props.perspective.accountId)) {
+      return;
+    }
+    const actionSet = this.actionSet();
+    Store.setEditing(actionSet[0].id);
+  };
+
   _onDelete = () => {
+    const contacts = this.actionSet();
+    if (
+      contacts.some(c => c.source === 'gpeople') &&
+      showGPeopleReadonlyNotice(this.props.perspective.accountId)
+    ) {
+      return;
+    }
+
     Actions.queueTask(
       DestroyContactTask.forRemoving({
         contacts: this.actionSet(),
@@ -77,7 +97,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
       commands['core:delete-item'] = this._onDelete;
     }
     if (editable) {
-      commands['core:edit-item'] = () => Store.setEditing(actionSet[0].id);
+      commands['core:edit-item'] = this._onEdit;
     }
 
     return (
@@ -105,7 +125,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
             tabIndex={-1}
             title={localized('Edit')}
             className={`btn btn-toolbar ${!editable && 'btn-disabled'}`}
-            onClick={editable ? () => Store.setEditing(actionSet[0].id) : undefined}
+            onClick={editable ? this._onEdit : undefined}
           >
             {localized('Edit')}
           </button>

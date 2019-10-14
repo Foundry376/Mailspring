@@ -16,7 +16,7 @@ const GMAIL_SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email', // email address
   'https://www.googleapis.com/auth/userinfo.profile', // G+ profile
   'https://mail.google.com/', // email
-  'https://www.googleapis.com/auth/contacts', // contacts
+  'https://www.googleapis.com/auth/contacts.readonly', // contacts
   'https://www.googleapis.com/auth/calendar', // calendar
 ];
 
