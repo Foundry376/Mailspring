@@ -39,12 +39,14 @@ export default class WindowManager {
     return this._windows[windowKey];
   }
 
-  getOpenWindows() {
+  getOpenWindows(type = 'all') {
     const values = [];
     Object.keys(this._windows).forEach(key => {
       const win = this._windows[key];
       if (win.windowType !== WindowLauncher.EMPTY_WINDOW) {
-        values.push(win);
+        if (type === 'all' || win.windowType === type) {
+          values.push(win);
+        }
       }
     });
 
@@ -53,16 +55,18 @@ export default class WindowManager {
     return values.sort((a, b) => score(b) - score(a));
   }
 
-  getOpenWindowCount() {
-    return this.getOpenWindows().length;
+  getOpenWindowCount(type = 'all') {
+    return this.getOpenWindows(type).length;
   }
 
-  getVisibleWindows() {
+  getVisibleWindows(type = 'all') {
     const values = [];
     Object.keys(this._windows).forEach(key => {
       const win = this._windows[key];
       if (win.isVisible()) {
-        values.push(win);
+        if (type === 'all' || win.windowType === type) {
+          values.push(win);
+        }
       }
     });
     return values;
@@ -78,8 +82,8 @@ export default class WindowManager {
     }
   }
 
-  getVisibleWindowCount() {
-    return this.getVisibleWindows().length;
+  getVisibleWindowCount(type = 'all') {
+    return this.getVisibleWindows(type).length;
   }
 
   getAllWindowDimensions() {
@@ -98,6 +102,15 @@ export default class WindowManager {
 
   newWindow(options = {}) {
     const win = this.windowLauncher.newWindow(options);
+    const type = options.windowType;
+    if (type && win) {
+      const total = this.getOpenWindowCount(type);
+      if (total > 1) {
+        const positions = win.browserWindow.getPosition();
+        const offset = Math.floor(Math.floor(0.5 - Math.random()) * (30 + Math.random() * 100));
+        win.browserWindow.setPosition(positions[0] + offset, positions[1] + offset);
+      }
+    }
     const existingKey = this._registeredKeyForWindow(win);
 
     if (existingKey) {
