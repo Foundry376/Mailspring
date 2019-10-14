@@ -191,12 +191,6 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     this.setupDataSource(this.props.dataSource);
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.dataSource !== this.props.dataSource) {
-      this.setupDataSource(nextProps.dataSource);
-    }
-  }
-
   componentDidUpdate(prevProps, prevState) {
     if (this.props.onComponentDidUpdate) {
       this.props.onComponentDidUpdate();
@@ -205,15 +199,16 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     // reset our scroll position to the top.
     if (prevProps.dataSource !== this.props.dataSource) {
       this._scrollRegion.scrollTop = 0;
+      this.setupDataSource(this.props.dataSource);
     }
+
     if (this.updateRangeStateFiring) {
       this.updateRangeStateFiring = false;
     } else if (
       prevState.count !== this.state.count ||
-      prevProps.itemHeight !== this.props.itemHeight ||
-      prevProps.dataSource !== this.props.dataSource
+      prevProps.itemHeight !== this.props.itemHeight
     ) {
-      this.updateRangeStateIfChanged();
+      this.updateRangeStateIfViewportChanged();
     }
 
     if (!this._cleanupAnimationTimeout) {
@@ -231,7 +226,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
 
   onWindowResize = () => {
     if (this._onWindowResize == null) {
-      this._onWindowResize = _.debounce(this.updateRangeStateIfChanged, 50);
+      this._onWindowResize = _.debounce(this.updateRangeStateIfViewportChanged, 50);
     }
     this._onWindowResize();
   };
@@ -239,7 +234,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   onScroll = () => {
     // If we've shifted enough pixels from our previous scrollTop to require
     // new rows to be rendered, update our state!
-    this.updateRangeStateIfChanged();
+    this.updateRangeStateIfViewportChanged();
   };
 
   onCleanupAnimatingItems = () => {
@@ -326,7 +321,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     return { start: rangeStart, end: rangeEnd };
   }
 
-  updateRangeStateIfChanged() {
+  updateRangeStateIfViewportChanged() {
     const range = this.getRange();
 
     // Final sanity check to prevent needless work
