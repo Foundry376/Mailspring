@@ -48,6 +48,10 @@ export const DataShape = [
     label: localized('Twitter Handle'),
   },
   {
+    key: 'instagramURL',
+    label: localized('Instagram URL')
+  },
+  {
     key: 'tintColor',
     label: localized('Theme Color'),
     placeholder: 'ex: #419bf9, purple',
@@ -107,6 +111,13 @@ export const ResolveSignatureData = data => {
   if (data.photoURL === 'custom') {
     data.photoURL = '';
   }
+
+  if (data.instagramURL) {
+    if (!data.instagramURL.includes('instagram.com')) {
+      data.instagramURL = `https://www.instagram.com/${data.instagramURL}`;
+    }
+  }
+
 
   return data;
 };

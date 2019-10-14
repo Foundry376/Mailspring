@@ -28,6 +28,15 @@ const LINKEDIN_SHARE = (
   />
 );
 
+const INSTAGRAM_SHARE = (
+  <img
+    src="https://www.getmailspring.com/signature-assets/instagram.gif"
+    width="13"
+    height="13"
+    alt="Instagram"
+  />
+);
+
 function widthAndHeightForPhotoURL(
   photoURL,
   { maxWidth, maxHeight }: { maxWidth?: number; maxHeight?: number } = {}
@@ -147,6 +156,15 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             style={{ marginRight: 8, color: props.tintColor }}
           >
             {TWITTER_SHARE}
+          </a>
+        )}
+        {props.instagramURL && (
+          <a
+            href={`${props.instagramURL}`}
+            title="Instagram"
+            style={{ marginRight: 8, color: props.tintColor }}
+          >
+            {INSTAGRAM_SHARE}
           </a>
         )}
       </div>
