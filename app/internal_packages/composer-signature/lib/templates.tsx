@@ -160,7 +160,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
         )}
         {props.instagramURL && (
           <a
-            href={`${props.instagramURL}`}
+            href={props.instagramURL}
             title="Instagram"
             style={{ marginRight: 8, color: props.tintColor }}
           >
