@@ -74,7 +74,7 @@ export default class SwipeContainer extends React.Component {
       fullDistance: 'unknown',
       currentX: 0,
       targetX: 0,
-      swipeStep: 0
+      swipeStep: 0,
     };
   }
 
@@ -82,7 +82,7 @@ export default class SwipeContainer extends React.Component {
     this.mounted = true;
     window.addEventListener('scroll-touch-begin', this._onScrollTouchBegin);
     window.addEventListener('scroll-touch-end', this._onScrollTouchEnd);
-    this.listWrapper = this.container ? this.container.closest(".scroll-region") : null
+    this.listWrapper = this.container ? this.container.closest('.scroll-region') : null;
   }
 
   UNSAFE_componentWillReceiveProps() {
@@ -110,17 +110,21 @@ export default class SwipeContainer extends React.Component {
     if (this.isEnabled === null) {
       // Cache this value so we don't have to recalculate on every swipe
       this.isEnabled =
-        (this.props.onSwipeLeft || this.props.onSwipeRight)
-        && this.props.shouldEnableSwipe()
-        && AppEnv.config.get("core.swipeActions.enabled");
+        (this.props.onSwipeLeft || this.props.onSwipeRight) &&
+        this.props.shouldEnableSwipe() &&
+        AppEnv.config.get('core.swipeActions.enabled');
     }
     return this.isEnabled;
   };
 
   _onWheel = e => {
-    // if is scrolling, don't not swipe
-    const isScrolling = this.listWrapper ? this.listWrapper.className.indexOf("scrolling") !== -1 : false;
-    if (isScrolling) {
+    // if is scrolling or deltaY is more then it's height, don't not swipe
+    const isScrolling = this.listWrapper
+      ? this.listWrapper.className.indexOf('scrolling') !== -1
+      : false;
+    const scrollY = Math.abs(e.deltaY);
+    const containerHeight = this.container.offsetHeight;
+    if (isScrolling || scrollY > containerHeight) {
       return;
     }
     let velocity = e.deltaX / 3;
@@ -195,7 +199,7 @@ export default class SwipeContainer extends React.Component {
       currentX,
       targetX,
       lastDragX,
-      swipeStep
+      swipeStep,
     });
   };
 
@@ -373,7 +377,7 @@ export default class SwipeContainer extends React.Component {
     const { move_folder_el } = this.props;
     return (
       <div
-        ref={el => this.container = el}
+        ref={el => (this.container = el)}
         onWheel={this._onWheel}
         onTouchStart={this._onTouchStart}
         onTouchMove={this._onTouchMove}
@@ -381,10 +385,10 @@ export default class SwipeContainer extends React.Component {
         onTouchCancel={this._onTouchEnd}
         {...otherProps}
       >
-        <div style={backingStyles} className={backingClass} >
-          {isConfirmed && backingClass.indexOf('swipe-folder') !== -1 && move_folder_el ? (
-            move_folder_el
-          ) : null}
+        <div style={backingStyles} className={backingClass}>
+          {isConfirmed && backingClass.indexOf('swipe-folder') !== -1 && move_folder_el
+            ? move_folder_el
+            : null}
         </div>
         <div style={{ transform: `translate3d(${currentX}px, 0, 0)` }}>{this.props.children}</div>
       </div>
