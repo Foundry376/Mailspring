@@ -20,8 +20,7 @@ Our team tries to respond to all GitHub issues. To make sure your issue is actio
 ...
 
 ##### What version of Mailspring are you using?
-
-...
+(eg: 1.6.3 or 1.7.0 - this is shown in Mailspring's main menu.)
 
 --
 
