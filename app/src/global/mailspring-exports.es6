@@ -118,6 +118,7 @@ lazyLoadAndRegisterTask('CalendarTask', 'calendar-task');
 lazyLoadAndRegisterTask('ResendDraftTask', 'resend-draft-task');
 lazyLoadAndRegisterTask('CancelOutboxDraftTask', 'cancel-outbox-draft-task');
 lazyLoadAndRegisterTask('ChangeDraftToFailingTask', 'change-draft-to-failing-task');
+lazyLoadAndRegisterTask('ChangeDraftToFailedTask', 'change-draft-to-failed-task');
 
 // Stores
 // These need to be required immediately since some Stores are

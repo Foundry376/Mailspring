@@ -20,6 +20,7 @@ import MessageStore from './message-store';
 import UndoRedoStore from './undo-redo-store';
 import TaskFactory from '../tasks/task-factory';
 import ChangeDraftToFailingTask from '../tasks/change-draft-to-failing-task';
+import ChangeDraftToFailedTask from '../tasks/change-draft-to-failed-task';
 import FocusedContentStore from './focused-content-store';
 const { DefaultSendActionKey } = SendActionsStore;
 const SendDraftTimeout = 300000;
@@ -525,7 +526,7 @@ class DraftStore extends MailspringStore {
       if (this._draftsSending[draft.headerMessageId]) {
         const m = draft.metadataForPluginId('send-later');
         if (m && m.isUndoSend && !m.expiration) {
-          this._cancelSendingDraftTimeout({ headerMessageId });
+          this._cancelSendingDraftTimeout({ headerMessageId: draft.headerMessageId });
         }
       }
     }
@@ -554,7 +555,6 @@ class DraftStore extends MailspringStore {
         // TaskQueue.waitForPerformLocal(t)
 
         this._finalizeAndPersistNewMessage(draft).then(() => {
-          console.log('send draft');
           Actions.sendDraft(draft.headerMessageId);
         }).catch(e =>{
           AppEnv.grabLogs()
@@ -987,13 +987,20 @@ class DraftStore extends MailspringStore {
       this.trigger({ headerMessageId });
     }
   };
-  _startSendingDraftTimeout = ({ headerMessageId, source = '' }) => {
-    if (this._draftSendindTimeouts[headerMessageId]) {
-      clearTimeout(this._draftSendindTimeouts[headerMessageId]);
+  _startSendingDraftTimeout = ({ draft, source = '' }) => {
+    if (this._draftSendindTimeouts[draft.headerMessageId]) {
+      clearTimeout(this._draftSendindTimeouts[draft.headerMessageId]);
     }
-    this._draftsSending[headerMessageId] = true;
-    this._draftSendindTimeouts[headerMessageId] = setTimeout(() => {
-      this._cancelSendingDraftTimeout({ headerMessageId, trigger: true, changeSendStatus: false , source});
+    this._draftsSending[draft.headerMessageId] = true;
+    this._draftSendindTimeouts[draft.headerMessageId] = setTimeout(() => {
+      this._cancelSendingDraftTimeout({
+        headerMessageId: draft.headerMessageId,
+        trigger: true,
+        changeSendStatus: false,
+        source,
+      });
+      const task = new ChangeDraftToFailedTask({ headerMessageIds: [draft.headerMessageId], accountId: draft.accountId });
+      Actions.queueTask(task);
     }, SendDraftTimeout);
   };
   _cancelDraftFailingTimeout = ({ headerMessageId, source = ''}) =>{
@@ -1023,15 +1030,21 @@ class DraftStore extends MailspringStore {
       });
       return;
     }
-    // console.log(`on sending draft, not composer window ${windowLevel}`);
     if (this._getCurrentWindowLevel() !== windowLevel) {
       const session = await this.sessionForClientId(headerMessageId);
       if (session) {
+        if (AppEnv.isMainWindow()) {
+          const draft = session.draft();
+          if (draft) {
+            this._startSendingDraftTimeout({ draft: session.draft });
+          } else {
+            AppEnv.reportWarning(new Error(`session no longer have draft for ${headerMessageId} at window: ${windowLevel}`));
+          }
+        }
         this._doneWithSession(session);
       } else {
         AppEnv.reportError(new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`));
       }
-      this._startSendingDraftTimeout({ headerMessageId });
       this.trigger({ headerMessageId});
     }
   };
@@ -1088,7 +1101,7 @@ class DraftStore extends MailspringStore {
 
     let draft = session.draft();
 
-    this._startSendingDraftTimeout({ headerMessageId });
+    this._startSendingDraftTimeout({ draft });
 
     // remove inline attachments that are no longer in the body
     const files = draft.files.filter(f => {
