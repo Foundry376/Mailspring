@@ -468,7 +468,7 @@ export class ToggleUnreadButton extends React.Component {
           title={`Mark as ${fragment}`}
           onClick={this._onClick}
         >
-          <RetinaImg name={`${fragment}.svg`} style={{ width: 24, height: 24 }} isIcon
+          <RetinaImg name={`${fragment === 'unread' ? 'read' : 'unread'}.svg`} style={{ width: 24, height: 24 }} isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
