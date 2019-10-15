@@ -461,8 +461,23 @@ export default class ComposerView extends React.Component {
           onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
         />
       ));
+    const nonInlineWithContentIdImageFiles = files
+      .filter(f => Utils.shouldDisplayAsImage(f))
+      .filter(f => f.contentId)
+      .filter(f => !this.props.draft.body.includes(`cid:${f.contentId}`))
+      .map(file => (
+        <ImageAttachmentItem
+          key={file.id}
+          draggable={false}
+          className="file-upload"
+          filePath={AttachmentStore.pathForFile(file)}
+          displayName={file.filename}
+          onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
+          onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
+        />
+      ));
 
-    return <div className="attachments-area">{nonImageFiles.concat(imageFiles)}</div>;
+    return <div className="attachments-area">{nonImageFiles.concat(imageFiles, nonInlineWithContentIdImageFiles)}</div>;
   }
 
   _renderActionsWorkspaceRegion() {
