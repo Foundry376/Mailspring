@@ -77,7 +77,6 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
         Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
       });
-      // ipcRenderer.on('thread-arp', this._onThreadChange);
     }
     ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey) => {
       if (AppEnv.isMainWindow()) {
@@ -238,26 +237,26 @@ class DraftStore extends MailspringStore {
     );
   };
 
-  _doneWithDraft(headerMessageId){
+  _doneWithDraft(headerMessageId, reason = 'unknown') {
     const session = this._draftSessions[headerMessageId];
-    if(session){
-      this._doneWithSession(session);
+    if (session) {
+      this._doneWithSession(session, reason);
     }
   }
 
-  _doneWithSession(session) {
+  _doneWithSession(session, reason = 'unknown') {
     if (!session) {
       AppEnv.reportError(new Error('Calling _doneWithSession when session is null'));
       return;
     }
     session.teardown();
     delete this._draftSessions[session.headerMessageId];
-    AppEnv.debugLog(`Session for ${session.headerMessageId} removed`);
+    AppEnv.debugLog(`Session for ${session.headerMessageId} removed, reason: ${reason}`);
   }
 
   _cleanupAllSessions() {
     Object.values(this._draftSessions).forEach(session => {
-      this._doneWithSession(session);
+      this._doneWithSession(session, '_cleanupAllSessions');
     });
   }
 
@@ -282,7 +281,7 @@ class DraftStore extends MailspringStore {
       if (message) {
         const session = this._draftSessions[message.headerMessageId];
         if (session) {
-          this._doneWithSession(session);
+          this._doneWithSession(session, 'CancelDraft');
         }
         const sending = this._draftsSending[message.headerMessageId];
         if (sending) {
@@ -321,7 +320,7 @@ class DraftStore extends MailspringStore {
       AppEnv.reportError(new Error('draftOpenCount action windowLevel is 0, wrong parameters'));
       return;
     }
-    AppEnv.logDebug(`open count source: ${source} windowLevel: ${windowLevel}`);
+    AppEnv.logDebug(`${headerMessageId} open count source: ${source} windowLevel: ${windowLevel}`);
     if (!this._draftsOpenCount[headerMessageId]) {
       this._draftsOpenCount[headerMessageId] = {
         1: false,
@@ -349,7 +348,7 @@ class DraftStore extends MailspringStore {
       AppEnv.logWarning(`draft closing, not main window source: ${source}`);
       return;
     }
-    // console.log(`draft closing ${source}, ${headerMessageIds}, ${windowLevel}`);
+    AppEnv.logDebug(`draft closing ${source}, ${headerMessageIds}, window level ${windowLevel}`);
     headerMessageIds.forEach(headerMessageId => {
       if (this._draftsOpenCount[headerMessageId]) {
         this._draftsOpenCount[headerMessageId][windowLevel] = false;
@@ -369,19 +368,21 @@ class DraftStore extends MailspringStore {
   };
   _onLastOpenDraftClosed = headerMessageId => {
     if (this._draftsDeleted[headerMessageId] || this._draftsDeleting[headerMessageId]) {
-      AppEnv.logWarning('reason draft was delete');
+      AppEnv.logWarning(`lastOpenDraftClosed draft ${headerMessageId} was delete`);
       delete this._draftsDeleted[headerMessageId];
-      this._doneWithDraft(headerMessageId);
+      this._doneWithDraft(headerMessageId, 'onLastOpenDraftClosed:reason draft was delete');
       return;
     }
     if(this._draftsSending[headerMessageId]){
-      AppEnv.logWarning('draft was sending');
-      this._doneWithDraft(headerMessageId);
+      AppEnv.logWarning(`lastOpenDraftClosed draft ${headerMessageId} was sending`);
+      this._doneWithDraft(headerMessageId, 'onLastOpenDraftClosed:draft was sending');
       return;
     }
     const session = this._draftSessions[headerMessageId];
     if(!session){
-      AppEnv.reportError(`draft session not available, headerMessageId ${headerMessageId}`);
+      AppEnv.reportError(
+        `lastOpenDraftClosed draft session not available, headerMessageId ${headerMessageId}`
+      );
       return;
     }
     const draft = session.draft();
@@ -400,8 +401,8 @@ class DraftStore extends MailspringStore {
         cancelCommits = true;
       }
     }
-    session.closeSession({ cancelCommits });
-    this._doneWithDraft(headerMessageId);
+    session.closeSession({ cancelCommits, reason: 'onLastOpenDraftClosed' });
+    this._doneWithDraft(headerMessageId, 'onLastOpenDraftClosed');
   };
 
   _onBeforeUnload = readyToUnload => {
@@ -441,7 +442,7 @@ class DraftStore extends MailspringStore {
             promises.push(Actions.destroyDraft([draft], { canBeUndone: false }));
           }
         } else{
-          promises.push(session.closeSession());
+          promises.push(session.closeSession({ reason: 'onBeforeUnload' }));
         }
         // else if (
         //   AppEnv.isMainWindow() &&
@@ -722,7 +723,7 @@ class DraftStore extends MailspringStore {
       return;
     }
     if (draft.savedOnRemote) {
-      this._doneWithSession(session);
+      this._doneWithSession(session, 'savedOnRemote');
       this.sessionForServerDraft(draft).then(newSession => {
         const newDraft = newSession.draft();
         newSession.setPopout(true);
@@ -904,7 +905,7 @@ class DraftStore extends MailspringStore {
           }
         }
       }
-      session.closeSession({ cancelCommits: true });
+      session.closeSession({ cancelCommits: true, reason: 'onDestroyDraft' });
     }
     if (id) {
       if (!draftDeleting) {
@@ -991,6 +992,7 @@ class DraftStore extends MailspringStore {
     if (this._draftSendindTimeouts[draft.headerMessageId]) {
       clearTimeout(this._draftSendindTimeouts[draft.headerMessageId]);
     }
+    this._startDraftFailingTimeout({ messages: [draft] });
     this._draftsSending[draft.headerMessageId] = true;
     this._draftSendindTimeouts[draft.headerMessageId] = setTimeout(() => {
       this._cancelSendingDraftTimeout({
@@ -1041,7 +1043,7 @@ class DraftStore extends MailspringStore {
             AppEnv.reportWarning(new Error(`session no longer have draft for ${headerMessageId} at window: ${windowLevel}`));
           }
         }
-        this._doneWithSession(session);
+        this._doneWithSession(session, 'onSendingDraft');
       } else {
         AppEnv.reportError(new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`));
       }
@@ -1101,8 +1103,6 @@ class DraftStore extends MailspringStore {
 
     let draft = session.draft();
 
-    this._startSendingDraftTimeout({ draft });
-
     // remove inline attachments that are no longer in the body
     const files = draft.files.filter(f => {
       return !(f.contentId && f.isInline && !draft.body.includes(`cid:${f.contentId}`));
@@ -1129,10 +1129,10 @@ class DraftStore extends MailspringStore {
 
     // At this point the message UI enters the sending state and the composer is unmounted.
     this.trigger({ headerMessageId });
-    this._doneWithSession(session);
+    this._doneWithSession(session, 'onSendDraft');
     // Notify all windows that draft is being send out.
     Actions.sendingDraft({ headerMessageId, windowLevel: this._getCurrentWindowLevel() });
-    this._startDraftFailingTimeout({ messages: [draft] });
+    this._startSendingDraftTimeout({ draft });
     // To be able to undo the send, we need to pretend that we added the send-later
     // metadata as it's own task so that the undo action is clear. We don't actually
     // want a separate SyncbackMetadataTask to be queued because a stray SyncbackDraftTask
