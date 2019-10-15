@@ -328,6 +328,7 @@ export default class MailsyncBridge {
           return;
         } else {
           this.ensureClients('sendMessageToAccount');
+          return;
         }
       } else {
         return AppEnv.showErrorDialog({
