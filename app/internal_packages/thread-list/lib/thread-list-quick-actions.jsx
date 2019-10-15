@@ -213,7 +213,7 @@ class ThreadUnreadQuickAction extends React.Component {
   static propTypes = { thread: PropTypes.object };
 
   render() {
-    const imgName = this.props.thread.unread ? 'read.svg' : 'unread.svg';
+    const imgName = this.props.thread.unread ? 'unread.svg' : 'read.svg';
     const title = this.props.thread.unread ? 'Read' : 'Unread';
     return (
       <div

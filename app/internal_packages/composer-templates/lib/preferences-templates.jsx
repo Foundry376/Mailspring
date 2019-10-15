@@ -66,8 +66,9 @@ class TemplateEditor extends React.Component {
           />
         </div>
         <div className="section note">
-          Changes are saved automatically. View the{' '}
-          {/* <a href="https://foundry376.zendesk.com/hc/en-us/articles/115001875231-Using-quick-reply-templates">
+          Changes are saved automatically.
+          {/* View the{' '}
+          <a href="https://foundry376.zendesk.com/hc/en-us/articles/115001875231-Using-quick-reply-templates">
             Templates Guide
           </a>{' '}
           for tips and tricks. */}
