@@ -1,9 +1,10 @@
 @import 'ui-variables';
 
 .btn {
-    background-color: @cards;
+  background-color: @cards;
 }
 
+.layout-mode-popout .message-list-toolbar .item-container,
 .outbox-list .list-item .list-column-HoverActions .action,
 .thread-list .list-item .list-column-HoverActions .action,
 .button-dropdown .primary-item,
@@ -15,55 +16,56 @@
 .composer-action-bar-wrap .btn.btn-toolbar:not(.btn-emphasis),
 .RichEditor-toolbar button,
 .btn {
-    img.content-mask {
-        background-color: @gray-light;
-    }
+  img.content-mask {
+    background-color: @gray-light;
+  }
 }
 
-.outbox-list .details .subject, 
-.thread-list .details .subject, 
+.outbox-list .details .subject,
+.thread-list .details .subject,
 .draft-list .details .subject,
 .outbox-list-narrow .subject span,
 .thread-list-narrow .subject span {
-    color: @off-white;
+  color: @off-white;
 }
 
 .nylas-outline-view .item.selected,
 .nylas-outline-view .item-container.selected {
+  background-color: @active;
+  &:before {
     background-color: @active;
-    &:before {
-        background-color: @active;
-    }
+  }
 }
 
 .skeleton div {
-    background-color: lighten(@cards, 10%) !important;
+  background-color: lighten(@cards, 10%) !important;
 }
 
 .layout-mode-popout .message-list-toolbar,
 .column-OutboxMessage .outbox-message-toolbar,
 .column-MessageList .message-list-toolbar {
-    &.has-shadow {
-        border-bottom: 1px solid transparent;
-    }
+  &.has-shadow {
+    border-bottom: 1px solid transparent;
+  }
 }
 
-.menu .item.selected, .menu .item:active {
-    background-color: @active;
+.menu .item.selected,
+.menu .item:active {
+  background-color: @active;
 }
 
 .message-participants .expanded-participants .participant-primary,
 .message-participants .expanded-participants .participant-secondary,
 .message-participants .collapsed-participants .participant-name {
-    color: @off-white;
+  color: @off-white;
 }
 
 .preferences-wrap .container-accounts .accounts-content .account-details {
-    background-color: initial;
+  background-color: initial;
 }
 
 .preferences-wrap .button-dropdown.bordered,
-.composer-participant-field .button-dropdown:hover .primary-item, 
+.composer-participant-field .button-dropdown:hover .primary-item,
 .composer-participant-field .button-dropdown:hover .only-item,
 .button-dropdown.btn-emphasis .primary-item,
 .button-dropdown.btn-emphasis .secondary-picker,
@@ -87,45 +89,44 @@
 
 // composer start
 .layout-mode-popout:not(.thread-popout) {
+  background-color: @cards;
+  .sheet-toolbar {
+    background: transparent;
+  }
+  .composer-full-window,
+  .composer-full-window
+    .message-item-white-wrap.composer-outer-wrap
+    .scroll-region
+    .scroll-region-content,
+  .composer-participant-field .button-dropdown .only-item,
+  .RichEditor-toolbar .inner,
+  .composer-inner-wrap .composer-body-wrap,
+  .composer-full-window .composer-inner-wrap .compose-body,
+  .composer-full-window
+    .message-item-white-wrap.composer-outer-wrap
+    .composer-participant-field
+    .dropdown-component
+    .signature-button-dropdown
+    .only-item {
     background-color: @cards;
-    .sheet-toolbar {
-        background: transparent;
-    }
-    .composer-full-window,
-    .composer-full-window .message-item-white-wrap.composer-outer-wrap .scroll-region .scroll-region-content,
-    .composer-participant-field .button-dropdown .only-item,
-    .RichEditor-toolbar .inner,
-    .composer-inner-wrap .composer-body-wrap,
-    .composer-full-window .composer-inner-wrap .compose-body,
-    .composer-full-window .message-item-white-wrap.composer-outer-wrap .composer-participant-field .dropdown-component .signature-button-dropdown .only-item {
-        background-color: @cards;
-    }
+  }
 }
-.message-item-white-wrap.composer-outer-wrap.focused .composer-participant-field .dropdown-component .only-item,
-#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused .RichEditor-toolbar .inner,
+.message-item-white-wrap.composer-outer-wrap.focused
+  .composer-participant-field
+  .dropdown-component
+  .only-item,
+#message-list
+  .message-item-wrap
+  .message-item-white-wrap.composer-outer-wrap.focused
+  .RichEditor-toolbar
+  .inner,
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap,
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused,
 #sendbar-for-dock .action-bar-wrapper {
-    background-color: @cards;
+  background-color: @cards;
 }
 
 .RichEditor-toolbar button.with-select select,
 .RichEditor-toolbar button {
-    color: @gray-light;
+  color: @gray-light;
 }
-.RichEditor-root .RichEditor-content {
-    color: inherit;
-    -webkit-filter: invert(1) !important;
-    filter: invert(1) !important;
-    img {
-        -webkit-filter: invert(1) !important;
-        filter: invert(1) !important;
-    }
-    span.link,
-    a {
-        -webkit-filter: invert(1) !important;
-        filter: invert(1) !important;
-        color: #1F9AFF;
-    }
-}
-// composer end
