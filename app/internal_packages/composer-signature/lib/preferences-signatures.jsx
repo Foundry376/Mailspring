@@ -1,67 +1,59 @@
 import { remote } from 'electron';
 import {
   React,
+  ReactDOM,
   AccountStore,
   SignatureStore,
   Actions,
   FocusedPerspectiveStore,
   Utils,
 } from 'mailspring-exports';
-import { Flexbox, EditableList } from 'mailspring-component-kit';
-
+import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
 import { ResolveSignatureData, RenderSignatureData, DataShape } from './constants';
 import SignatureAccountDefaultPicker from './signature-account-default-picker';
 import SignatureTemplatePicker from './signature-template-picker';
 import SignaturePhotoPicker from './signature-photo-picker';
 import Templates from './templates';
 
+const { Conversion: { convertFromHTML, convertToHTML } } = ComposerSupport;
+
 class SignatureEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    const body = props.signature ? props.signature.body : '';
+    this.state = {
+      editorState: convertFromHTML(body)
+    };
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    const body = nextProps.signature ? nextProps.signature.body : '';
+    this.setState({
+      editorState: convertFromHTML(body)
+    });
+  }
+
   _onBaseFieldChange = event => {
     const { id, value } = event.target;
     const sig = this.props.signature;
     Actions.upsertSignature(Object.assign({}, sig, { [id]: value }), sig.id);
   };
 
-  _onDataFieldChange = event => {
-    const { id, value } = event.target;
-    const sig = this.props.signature;
-
-    // If you have raw selected and are switching back to a template,
-    // display a warning UNLESS the html is an unmodified template HTML
-    if (id === 'templateName' && !sig.data.templateName && value) {
-      const htmlMatchesATemplate = Templates.find(
-        t => sig.body === RenderSignatureData(Object.assign({}, sig.data, { templateName: t.name }))
-      );
-      if (!htmlMatchesATemplate) {
-        const idx = remote.dialog.showMessageBox({
-          type: 'warning',
-          buttons: ['Cancel', 'Continue'],
-          message: 'Revert custom HTML?',
-          detail:
-            "Switching back to a signature template will overwrite the custom HTML you've entered.",
-        });
-        if (idx === 0) {
-          return;
-        }
-      }
-    }
-
-    // apply change
-    sig.data = Object.assign({}, sig.data, { [id]: value });
-
-    // re-render
-    if (sig.data.templateName) {
-      const template = Templates.find(t => t.name === sig.data.templateName);
-      if (template) {
-        sig.body = RenderSignatureData(sig.data);
-      }
-    }
-
+  _onSave = () => {
+    const sig = Object.assign({}, this.props.signature);
+    sig.body = convertToHTML(this.state.editorState);
     Actions.upsertSignature(sig, sig.id);
+  };
+
+  _onFocusEditor = e => {
+    if (e.target === ReactDOM.findDOMNode(this._composer)) {
+      this._composer.focusEndAbsolute();
+    }
   };
 
   render() {
     const { accountsAndAliases, defaults } = this.props;
+    const { editorState } = this.state;
 
     let signature = this.props.signature;
     let empty = false;
@@ -76,6 +68,7 @@ class SignatureEditor extends React.Component {
       <div className={`signature-wrap ${empty && 'empty'}`}>
         <div className="section basic-info">
           <input
+            key="signatureName"
             type="text"
             id="title"
             placeholder="Name"
@@ -90,55 +83,23 @@ class SignatureEditor extends React.Component {
           />
         </div>
 
-        <div className="section preview">
-          <div className="label">Preview</div>
-          <div className="preview" dangerouslySetInnerHTML={{ __html: signature.body }} />
+        <div className="section editor" onClick={this._onFocusEditor}>
+          <ComposerEditor
+            ref={c => (this._composer = c)}
+            readOnly={false}
+            value={editorState}
+            propsForPlugins={{}}
+            onChange={change => this.setState({ editorState: change.value })}
+            onBlur={this._onSave}
+          />
         </div>
-
-        <div className="section">
-          <SignatureTemplatePicker resolvedData={resolvedData} onChange={this._onDataFieldChange} />
-        </div>
-
-        {!resolvedData.templateName
-          ? [
-              <div key="header" className="section-header">
-                Raw HTML Source
-              </div>,
-              <textarea
-                id="body"
-                key="textarea"
-                className="section raw-html"
-                spellCheck={false}
-                onChange={this._onBaseFieldChange}
-                value={signature.body || ''}
-              />,
-            ]
-          : [
-              <div key="header" className="section-header">
-                Information
-              </div>,
-              <div key="section" className="section information">
-                {DataShape.map(item => (
-                  <div className="field" key={item.key}>
-                    <label>{item.label}</label>
-                    <input
-                      type="text"
-                      onChange={this._onDataFieldChange}
-                      placeholder={item.placeholder}
-                      id={item.key}
-                      value={data[item.key] || ''}
-                    />
-                  </div>
-                ))}
-                {/*TODO: edison feature disabled*/}
-                {/*<SignaturePhotoPicker*/}
-                  {/*id={signature.id}*/}
-                  {/*data={data}*/}
-                  {/*resolvedURL={resolvedData.photoURL}*/}
-                  {/*onChange={this._onDataFieldChange}*/}
-                {/*/>*/}
-              </div>,
-            ]}
+        {/*TODO: edison feature disabled*/}
+        {/*<SignaturePhotoPicker*/}
+        {/*id={signature.id}*/}
+        {/*data={data}*/}
+        {/*resolvedURL={resolvedData.photoURL}*/}
+        {/*onChange={this._onDataFieldChange}*/}
+        {/*/>*/}
       </div>
     );
   }
