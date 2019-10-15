@@ -560,7 +560,7 @@ export default class Application extends EventEmitter {
       }
     });
 
-    this.on('application:view-help', () => {
+    this.on('application:send-feedback', () => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (mainWindow) {
         const feedbackAddress = 'macfeedback@edison.tech';

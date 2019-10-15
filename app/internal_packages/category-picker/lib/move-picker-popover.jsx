@@ -178,23 +178,28 @@ export default class MovePickerPopover extends Component {
     } else {
       const all = [];
       threads.forEach(({ labels }) => all.push(...labels));
-
-      Actions.queueTasks([
-        new ChangeLabelsTask({
-          source: 'Category Picker: New Category',
-          labelsToRemove: all,
-          labelsToAdd: [],
-          threads: threads,
-          previousFolder,
-        }),
+      const tasks = [];
+      if (all.length > 0) {
+        tasks.push(
+          new ChangeLabelsTask({
+            source: 'Category Picker: New Category',
+            labelsToRemove: all,
+            labelsToAdd: [],
+            threads: threads,
+            previousFolder,
+          })
+        );
+      }
+      tasks.push(
         new ChangeLabelsTask({
           source: 'Category Picker: New Category',
           labelsToRemove: [],
           labelsToAdd: [category],
           threads: threads,
           previousFolder,
-        }),
-      ]);
+        })
+      );
+      Actions.queueTasks(tasks);
     }
   };
 

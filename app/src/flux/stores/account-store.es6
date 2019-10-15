@@ -286,12 +286,12 @@ class AccountStore extends MailspringStore {
             }
           }
         ],
-        allowClose: false
+        allowClose: true
       };
       Actions.pushAppMessage(message);
     }else {
       const erroredAccount = erroredAccounts[0];
-      const message = {allowClose: false, level: 0, id: `account-error`};
+      const message = {allowClose: true, level: 0, id: `account-error`};
       switch (erroredAccount.syncState) {
         case Account.SYNC_STATE_AUTH_FAILED:
           message.description = `Cannot authenticate with ${erroredAccount.emailAddress}`;
