@@ -64,6 +64,8 @@ class DraftStore extends MailspringStore {
       this.listenTo(Actions.failingDraft, this._startDraftFailingTimeout);
       this.listenTo(Actions.draftOpenCount, this._onDraftOpenCount);
       this.listenTo(Actions.draftWindowClosing, this._onDraftWindowClosing);
+      this.listenTo(TaskQueue, this._restartTimerForOldSendDraftTasks);
+      this._startTime = Date.now();
       ipcRenderer.on('new-message', () => {
         // From app menu and shortcut
         Actions.composeNewBlankDraft();
@@ -203,6 +205,28 @@ class DraftStore extends MailspringStore {
       !!this._draftsSending[headerMessageId] ||
       false
     );
+  }
+
+  _restartTimerForOldSendDraftTasks() {
+    if (!this._startTime) {
+      AppEnv.logDebug(`previous tasks restarted, stop listening to taskQueue change`);
+      this.stopListeningTo(TaskQueue);
+      return;
+    }
+    AppEnv.logDebug(`restarting previous send draft tasks`);
+    const pastSendDraftTasks = TaskQueue.queue().filter(t => {
+      if (t instanceof SendDraftTask) {
+        return t.createdAt && this._startTime && t.createdAt.getTime() < this._startTime;
+      }
+      return false;
+    });
+    this._startTime = null;
+    pastSendDraftTasks.forEach(t => {
+      if (t && t.draft) {
+        AppEnv.logDebug(`Restarted SendDraft for draft: ${t.draft.headerMessageId}`);
+        this._startSendingDraftTimeout({ draft: t.draft, source: 'Restart SendDraft' });
+      }
+    });
   }
 
   _onDraftAccountChange = async ({
