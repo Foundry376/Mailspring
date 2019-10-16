@@ -3,9 +3,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import {
-  FocusedContentStore
-} from 'mailspring-exports';
+import { FocusedContentStore } from 'mailspring-exports';
 const _ = require('underscore');
 const Actions = require('../actions').default;
 const MailspringStore = require('mailspring-store').default;
@@ -36,19 +34,27 @@ class WorkspaceStore extends MailspringStore {
     this.listenTo(Actions.popSheet, this.popSheet);
     this.listenTo(Actions.popToRootSheet, this.popToRootSheet);
     this.listenTo(Actions.pushSheet, this.pushSheet);
+    AppEnv.onWindowPropsReceived(this._addObserveForZoom);
 
-    const { windowType } = AppEnv.getLoadSettings();
-    if (windowType !== 'onboarding') {
-      require('electron').webFrame.setVisualZoomLevelLimits(1, 1);
-      AppEnv.config.observe('core.workspace.interfaceZoom', z => {
-        if (z && _.isNumber(z)) {
-          require('electron').webFrame.setZoomFactor(z);
-        }
-      });
-    }
+    this._addObserveForZoom();
 
     if (AppEnv.isMainWindow()) {
       this._rebuildShortcuts();
+    }
+  }
+
+  _addObserveForZoom() {
+    const { webFrame } = require('electron');
+    if (!AppEnv.isDisableZoomWindow()) {
+      webFrame.setVisualZoomLevelLimits(1, 1);
+      AppEnv.config.observe('core.workspace.interfaceZoom', z => {
+        if (z && _.isNumber(z)) {
+          webFrame.setZoomFactor(z);
+        }
+      });
+    } else {
+      webFrame.setZoomFactor(1);
+      AppEnv.config.observe('core.workspace.interfaceZoom', () => {});
     }
   }
 
@@ -59,12 +65,12 @@ class WorkspaceStore extends MailspringStore {
     this.Sheet = Sheet = {};
 
     this._hiddenLocations = AppEnv.config.get('core.workspace.hiddenLocations') || {
-      "MessageListSidebar": {
-        "id": "MessageListSidebar",
-        "Toolbar": {
-          "id": "MessageListSidebar:Toolbar"
-        }
-      }
+      MessageListSidebar: {
+        id: 'MessageListSidebar',
+        Toolbar: {
+          id: 'MessageListSidebar:Toolbar',
+        },
+      },
     };
     this._sheetStack = [];
 
@@ -78,7 +84,11 @@ class WorkspaceStore extends MailspringStore {
           split: ['RootSidebar', 'ThreadList', 'MessageList', 'QuickSidebar', 'MessageListSidebar'],
         }
       );
-      this.defineSheet('Thread', {}, { list: ['RootSidebar', 'MessageList', 'QuickSidebar', 'MessageListSidebar'] });
+      this.defineSheet(
+        'Thread',
+        {},
+        { list: ['RootSidebar', 'MessageList', 'QuickSidebar', 'MessageListSidebar'] }
+      );
       this.defineSheet(
         'Outbox',
         { root: true },
@@ -108,10 +118,12 @@ class WorkspaceStore extends MailspringStore {
     this.trigger(this);
   };
   _showHiddenLocation = location => {
-    if(!location.id){
-      throw new Error('Actions.showWorkspaceLocationHidden - pass a WorkspaceStore.Location without id');
+    if (!location.id) {
+      throw new Error(
+        'Actions.showWorkspaceLocationHidden - pass a WorkspaceStore.Location without id'
+      );
     }
-    if(this._hiddenLocations[location.id]){
+    if (this._hiddenLocations[location.id]) {
       delete this._hiddenLocations[location.id];
       AppEnv.config.set('core.workspace.hiddenLocations', this._hiddenLocations);
       this.trigger(this);
@@ -119,10 +131,12 @@ class WorkspaceStore extends MailspringStore {
   };
 
   _hideHiddenLocation = location => {
-    if(!location.id){
-      throw new Error('Actions.hideWorkspaceLocationHidden - pass a WorkspaceStore.Location without id');
+    if (!location.id) {
+      throw new Error(
+        'Actions.hideWorkspaceLocationHidden - pass a WorkspaceStore.Location without id'
+      );
     }
-    if(!this._hiddenLocations[location.id]){
+    if (!this._hiddenLocations[location.id]) {
       this._hiddenLocations[location.id] = location;
       AppEnv.config.set('core.workspace.hiddenLocations', this._hiddenLocations);
       this.trigger(this);
@@ -152,7 +166,7 @@ class WorkspaceStore extends MailspringStore {
           this.pushSheet(Sheet.Thread);
         }
         if (!item && this.topSheet() === Sheet.Thread) {
-          this.popSheet({reason: 'workspace-store:onSetFocus:collection-thread'});
+          this.popSheet({ reason: 'workspace-store:onSetFocus:collection-thread' });
         }
       }
     }
@@ -163,7 +177,7 @@ class WorkspaceStore extends MailspringStore {
           this.pushSheet(Sheet.File);
         }
         if (!item && this.topSheet() === Sheet.File) {
-          this.popSheet({reason: 'workspace-store:onSetFocus:collection-file'});
+          this.popSheet({ reason: 'workspace-store:onSetFocus:collection-file' });
         }
       }
     }
@@ -192,7 +206,8 @@ class WorkspaceStore extends MailspringStore {
       document.body,
       Object.assign(
         {
-          'core:pop-sheet': () => this.popSheet({reason: 'workspace-store:rebuildShortcuts:core:pop-sheet'}),
+          'core:pop-sheet': () =>
+            this.popSheet({ reason: 'workspace-store:rebuildShortcuts:core:pop-sheet' }),
         },
         this._preferredLayoutMode === 'list'
           ? { 'navigation:select-split-mode': () => this._onSelectLayoutMode('split') }
@@ -327,7 +342,7 @@ class WorkspaceStore extends MailspringStore {
 
   // Remove the top sheet, with a quick animation. This method triggers,
   // allowing observers to update.
-  popSheet = ( {reason = 'Unknown'} = {}) => {
+  popSheet = ({ reason = 'Unknown' } = {}) => {
     const sheet = this.topSheet();
 
     if (this._sheetStack.length > 1) {
@@ -336,8 +351,10 @@ class WorkspaceStore extends MailspringStore {
       AppEnv.logDebug(`Sheet popped because ${reason}`);
     }
     // make toolbar display
-    if ((this.topSheet() && ['Threads', 'Thread', 'Drafts', 'ChatView', 'Outbox'].includes(this.topSheet().id))
-      || sheet.id === "ChatView"
+    if (
+      (this.topSheet() &&
+        ['Threads', 'Thread', 'Drafts', 'ChatView', 'Outbox'].includes(this.topSheet().id)) ||
+      sheet.id === 'ChatView'
     ) {
       setTimeout(() => {
         document.querySelector('#Center').style.zIndex = 1;
