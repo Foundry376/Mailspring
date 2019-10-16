@@ -326,7 +326,7 @@ export default class Application extends EventEmitter {
       let processed = 0;
       for (let fileName of files) {
         if (!fs.existsSync(fileName)) {
-          processed ++;
+          processed++;
           shouldCallcb();
           return;
         }
@@ -334,7 +334,7 @@ export default class Application extends EventEmitter {
         if (retries > 0) {
           fs.unlink(fileName, callbackWithRetry);
         } else {
-          fs.unlink(fileName, ()=>{
+          fs.unlink(fileName, () => {
             processed++;
             shouldCallcb();
           });
@@ -435,11 +435,11 @@ export default class Application extends EventEmitter {
   };
 
   _deleteDatabase = (callback, rebuild) => {
-    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'), ()=>{
+    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'), () => {
       console.log('\nedisonmail.db-wal deleted\n');
-      this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'), ()=>{
+      this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'), () => {
         console.log('\nedisonmail.db-shm deleted\n');
-        this.deleteFileWithRetry(path.join(this.configDirPath, 'emdb_*'), ()=>{
+        this.deleteFileWithRetry(path.join(this.configDirPath, 'emdb_*'), () => {
           console.log('\nemdb_* deleted\n');
           if (rebuild) {
             const dbPath = path.join(this.configDirPath, 'edisonmail.db');
@@ -534,7 +534,7 @@ export default class Application extends EventEmitter {
       } else {
         this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
           windowProps: { addingAccount: true, existingAccountJSON },
-          title: 'Add an Account',
+          title: '',
         });
       }
     });

@@ -95,6 +95,9 @@ module.exports = class MailspringWindow extends EventEmitter {
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
     this.browserWindow.updateLoadSettings = this.updateLoadSettings;
+    if (this.browserWindow.center) {
+      this.browserWindow.center();
+    }
 
     this.handleEvents();
 
