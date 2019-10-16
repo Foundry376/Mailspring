@@ -258,6 +258,7 @@ export default class WindowManager {
       resizable: false,
       width: 685,
       height: 700,
+      disableZoom: true,
     };
     coreWinOpts[WindowManager.BUG_REPORT_WINDOW] = {
       windowKey: WindowManager.BUG_REPORT_WINDOW,

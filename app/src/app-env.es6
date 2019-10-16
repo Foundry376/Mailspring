@@ -476,6 +476,10 @@ export default class AppEnvConstructor {
     return this.getWindowType() === 'onboarding';
   }
 
+  isDisableZoomWindow() {
+    return this.getLoadSettings().disableZoom;
+  }
+
   getWindowType() {
     return this.getLoadSettings().windowType;
   }

@@ -34,19 +34,27 @@ class WorkspaceStore extends MailspringStore {
     this.listenTo(Actions.popSheet, this.popSheet);
     this.listenTo(Actions.popToRootSheet, this.popToRootSheet);
     this.listenTo(Actions.pushSheet, this.pushSheet);
+    AppEnv.onWindowPropsReceived(this._addObserveForZoom);
 
-    const { windowType } = AppEnv.getLoadSettings();
-    if (windowType !== 'onboarding') {
-      require('electron').webFrame.setVisualZoomLevelLimits(1, 1);
-      AppEnv.config.observe('core.workspace.interfaceZoom', z => {
-        if (z && _.isNumber(z)) {
-          require('electron').webFrame.setZoomFactor(z);
-        }
-      });
-    }
+    this._addObserveForZoom();
 
     if (AppEnv.isMainWindow()) {
       this._rebuildShortcuts();
+    }
+  }
+
+  _addObserveForZoom() {
+    const { webFrame } = require('electron');
+    if (!AppEnv.isDisableZoomWindow()) {
+      webFrame.setVisualZoomLevelLimits(1, 1);
+      AppEnv.config.observe('core.workspace.interfaceZoom', z => {
+        if (z && _.isNumber(z)) {
+          webFrame.setZoomFactor(z);
+        }
+      });
+    } else {
+      webFrame.setZoomFactor(1);
+      AppEnv.config.observe('core.workspace.interfaceZoom', () => {});
     }
   }
 
