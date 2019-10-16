@@ -61,7 +61,7 @@ module.exports = class MailspringWindow extends EventEmitter {
         directWrite: true,
       },
       autoHideMenuBar,
-      backgroundColor: '#ffffff',
+      backgroundColor: settings.backgroundColor || '#ffffff',
     };
 
     if (this.neverClose) {
