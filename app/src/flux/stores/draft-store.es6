@@ -903,14 +903,18 @@ class DraftStore extends MailspringStore {
       return;
     }
     if (AppEnv.isComposerWindow() && messages.length === 1) {
-      AppEnv.logDebug(`Closing composer because of destroy draft ${messages[0].headerMessageId}`);
-      AppEnv.close({
-        headerMessageId: messages[0].headerMessageId,
-        threadId: messages[0].threadId,
-        windowLevel: this._getCurrentWindowLevel(),
-        additionalChannelParam: 'draft',
-        deleting: true,
-      });
+      if (this._draftSessions[messages[0].headerMessageId]) {
+        AppEnv.logDebug(`Closing composer because of destroy draft ${messages[0].headerMessageId}`);
+        AppEnv.close({
+          headerMessageId: messages[0].headerMessageId,
+          threadId: messages[0].threadId,
+          windowLevel: this._getCurrentWindowLevel(),
+          additionalChannelParam: 'draft',
+          deleting: true,
+        });
+      } else {
+        AppEnv.logDebug(`${messages[0].headerMessageId} not this draft`);
+      }
       return;
     }
     if(!AppEnv.isMainWindow()){
@@ -1120,10 +1124,14 @@ class DraftStore extends MailspringStore {
   };
   _onSendingDraft = async ({ headerMessageId, windowLevel }) => {
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close({
-        headerMessageId,
-        windowLevel: this._getCurrentWindowLevel(),
-      });
+      if (this._draftSessions[headerMessageId]) {
+        AppEnv.close({
+          headerMessageId,
+          windowLevel: this._getCurrentWindowLevel(),
+        });
+      } else {
+        AppEnv.logDebug(`${headerMessageId} not this draft sending`);
+      }
       return;
     }
     if (this._getCurrentWindowLevel() !== windowLevel) {
@@ -1139,7 +1147,9 @@ class DraftStore extends MailspringStore {
         }
         this._doneWithSession(session, 'onSendingDraft');
       } else {
-        AppEnv.reportError(new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`));
+        if (AppEnv.isMainWindow()) {
+          AppEnv.reportError(new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`));
+        }
       }
       this.trigger({ headerMessageId});
     }
