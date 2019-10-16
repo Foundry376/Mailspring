@@ -1,5 +1,8 @@
 # Mailspring Changelog
 
+### 1.7.2 (TBD)
+
+
 ### 1.7.1 (10/14/2019)
 
 This is small patch release addressing #1659 (conversation list gets stuck in the "loading state") and #1660 (mailsync crashes when syncing some Google Apps for Business account).
