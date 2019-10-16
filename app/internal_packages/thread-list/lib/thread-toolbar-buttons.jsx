@@ -14,10 +14,9 @@ import {
   MessageStore,
 } from 'mailspring-exports';
 import { remote } from 'electron';
+import ThreadListStore from './thread-list-store';
 
 const { Menu, MenuItem } = remote;
-
-import ThreadListStore from './thread-list-store';
 const commandCb = (event, cb, cbArgs) => {
   if (event) {
     if (event.propagationStopped) {
@@ -38,8 +37,15 @@ export class ArchiveButton extends React.Component {
   };
 
   _onArchive = event => {
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
     const tasks = TaskFactory.tasksForArchiving({
-      threads: this.props.items,
+      threads: threads,
       source: 'Toolbar Button: Thread List',
       currentPerspective: FocusedPerspectiveStore.current()
     });
@@ -83,8 +89,15 @@ export class TrashButton extends React.Component {
   };
 
   _onRemove = event => {
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
     const tasks = TaskFactory.tasksForMovingToTrash({
-      threads: this.props.items,
+      threads: threads,
       currentPerspective: FocusedPerspectiveStore.current(),
       source: 'Toolbar Button: Thread List',
     });
@@ -197,7 +210,14 @@ class HiddenGenericRemoveButton extends React.Component {
 
   _onRemoveFromView = ruleset => {
     const current = FocusedPerspectiveStore.current();
-    const tasks = current.tasksForRemovingItems(this.props.items, 'Keyboard Shortcut');
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
+    const tasks = current.tasksForRemovingItems(threads, 'Keyboard Shortcut');
     Actions.queueTasks(tasks);
     Actions.popSheet({ reason: 'ToolbarButton:HiddenGenericRemoveButton:removeFromView' });
   };
@@ -224,8 +244,15 @@ class HiddenToggleImportantButton extends React.Component {
   static displayName = 'HiddenToggleImportantButton';
 
   _onSetImportant = important => {
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
     Actions.queueTasks(
-      TaskFactory.tasksForThreadsByAccountId(this.props.items, (accountThreads, accountId) => {
+      TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
         return [
           new ChangeLabelsTask({
             threads: accountThreads,
@@ -291,10 +318,16 @@ export class MarkAsSpamButton extends React.Component {
   };
 
   _onNotSpam = event => {
-    // TODO BG REPLACE TASK FACTORY
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
     const tasks = TaskFactory.tasksForMarkingNotSpam({
       source: 'Toolbar Button: Thread List',
-      threads: this.props.items,
+      threads,
       currentPerspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
@@ -309,8 +342,15 @@ export class MarkAsSpamButton extends React.Component {
   };
 
   _onMarkAsSpam = event => {
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
     const tasks = TaskFactory.tasksForMarkingAsSpam({
-      threads: this.props.items,
+      threads,
       source: 'Toolbar Button: Thread List',
       currentPerspective: FocusedPerspectiveStore.current(),
     });
@@ -382,9 +422,16 @@ export class ToggleStarredButton extends React.Component {
   };
 
   _onStar = event => {
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
     Actions.queueTasks(
       TaskFactory.taskForInvertingStarred({
-        threads: this.props.items,
+        threads,
         source: 'Toolbar Button: Thread List',
       }),
     );
@@ -425,16 +472,30 @@ export class ToggleUnreadButton extends React.Component {
   };
 
   _onClick = event => {
-    const targetUnread = this.props.items.every(t => t.unread === false);
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
+    const targetUnread = threads.every(t => t.unread === false);
     this._onChangeUnread(targetUnread);
     event.stopPropagation();
     return;
   };
 
   _onChangeUnread = targetUnread => {
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
     Actions.queueTasks(
       TaskFactory.taskForSettingUnread({
-        threads: this.props.items,
+        threads,
         unread: targetUnread,
         source: 'Toolbar Button: Thread List',
       }),

@@ -39,7 +39,14 @@ class MovePicker extends React.Component {
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
-    Actions.openPopover(<LabelPickerPopover threads={this.props.items}
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
+    Actions.openPopover(<LabelPickerPopover threads={threads}
       account={this._account}
       onCreate={this._onCreateLabel} />, {
         originRect: this._labelEl.getBoundingClientRect(),
@@ -98,7 +105,14 @@ class MovePicker extends React.Component {
       return;
     }
     const onCreate = this.state.isFolder ? this._onCreateFolder : this._onCreateLabel;
-    Actions.openPopover(<MovePickerPopover threads={this.props.items}
+    let threads = this.props.items;
+    if (this.selection) {
+      const selectionThreads = this.selection.items();
+      if (selectionThreads && selectionThreads.length > 0) {
+        threads = selectionThreads;
+      }
+    }
+    Actions.openPopover(<MovePickerPopover threads={threads}
       account={this._account}
       onClose={this._onCloseMoveFolderPopout}
       onCreate={onCreate} />, {
