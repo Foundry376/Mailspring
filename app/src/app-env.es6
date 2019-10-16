@@ -270,15 +270,39 @@ export default class AppEnvConstructor {
   // The difference between this and `ErrorLogger.reportError` is that
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
-  reportError(error, extra = {}, { noWindows } = {}) {
-    this._reportLog(error, extra, { noWindows }, 'error');
+  reportError(error, extra = {}, { noWindows, grabLogs = false } = {}) {
+    if (grabLogs) {
+      this._grabLogAndReportLog(error, extra, { noWindows }, 'error');
+    } else {
+      this._reportLog(error, extra, { noWindows }, 'error');
+    }
   }
 
-  reportWarning(error, extra = {}, { noWindows } = {}) {
-    this._reportLog(error, extra, { noWindows }, 'warning');
+  reportWarning(error, extra = {}, { noWindows, grabLogs = false } = {}) {
+    if (grabLogs) {
+      this._grabLogAndReportLog(error, extra, { noWindows }, 'warning');
+    } else {
+      this._reportLog(error, extra, { noWindows }, 'warning');
+    }
   }
-  reportLog(error, extra = {}, { noWindows } = {}) {
-    this._reportLog(error, extra, { noWindows }, 'log');
+  reportLog(error, extra = {}, { noWindows, grabLogs = false } = {}) {
+    if (grabLogs) {
+      this._grabLogAndReportLog(error, extra, { noWindows }, 'log');
+    } else {
+      this._reportLog(error, extra, { noWindows }, 'log');
+    }
+  }
+
+  _grabLogAndReportLog(error, extra, { noWindows } = {}, type = '') {
+    this.grabLogs()
+      .then(filename => {
+        extra.files = [filename];
+        this._reportLog(error, extra, { noWindows }, type);
+      })
+      .catch(e => {
+        extra.grabLogError = e;
+        this._reportLog(error, extra, { noWindows }, type);
+      });
   }
 
   _reportLog(error, extra = {}, { noWindows } = {}, type = '') {
@@ -474,6 +498,10 @@ export default class AppEnvConstructor {
   }
   isOnboardingWindow() {
     return this.getWindowType() === 'onboarding';
+  }
+
+  isDisableZoomWindow() {
+    return this.getLoadSettings().disableZoom;
   }
 
   getWindowType() {

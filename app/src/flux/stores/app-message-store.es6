@@ -1,8 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 import uuid from 'uuid';
-// import { ipcRenderer } from 'electron';
-
+const silentTTL = 60000;
 class AppMessageStore extends MailspringStore {
   static priority = {
     critical: 0,
@@ -20,7 +19,7 @@ class AppMessageStore extends MailspringStore {
       low: [],
     };
     this._timeouts = {};
-
+    this._silentCache = {};
     this._mostRecentBlock = null;
     this._queueingTasks = false;
 
@@ -80,6 +79,13 @@ class AppMessageStore extends MailspringStore {
     tasks.forEach(task => {
       if (!task.hasOwnProperty('allowClose')) {
         task.allowClose = true;
+      }
+      if (task.id && this._silentCache[task.id]) {
+        const now = Date.now();
+        if (now - this._silentCache[task.id] < silentTTL) {
+          AppEnv.logDebug(`Message ignored because of silent ttl ${task.id}`);
+          return;
+        }
       }
       const block = {
         id: task.id || uuid(),
@@ -261,7 +267,13 @@ class AppMessageStore extends MailspringStore {
   setBlockToHide = ({ block }) => {
     block.hide = true;
     this.findAndReplace({ block });
+    this.addToSilentCache({ block });
   };
+  addToSilentCache = ({ block }) => {
+    if(!this._silentCache[block.id]){
+      this._silentCache[block.id] = Date.now();
+    }
+  }
   _findHighestPriority = ({ tasks }) => {
     let priority = AppMessageStore.priority.low;
     for (let task of tasks) {

@@ -65,6 +65,13 @@ class ThreadListStore extends MailspringStore {
     if (previous && next) {
       const focused = FocusedContentStore.focused('thread');
       const keyboard = FocusedContentStore.keyboardCursor('thread');
+      // If next query returns empty results, we set all focus to null;
+      if (next.empty() || next._ids.length === 0) {
+        AppEnv.logDebug('Next query returns empty results');
+        Actions.setFocus({ collection: 'thread', item: null });
+        Actions.setCursorPosition({ collection: 'thread', item: null });
+        return;
+      }
       const viewModeAutofocuses =
         WorkspaceStore.layoutMode() === 'split' || WorkspaceStore.topSheet().root === true;
 

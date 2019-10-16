@@ -64,7 +64,7 @@ class BasicContent extends React.Component {
           name="close_1.svg"
           isIcon={true}
           mode={RetinaImg.Mode.ContentIsMask}
-          onClick={() => this.props.onClose(this.props.block)}
+          onClick={() => this.props.onClose()}
         />
       );
     }
