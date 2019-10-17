@@ -34,7 +34,8 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
         selection,
         thread: items[0],
         dataSource,
-        currentPerspective: FocusedPerspectiveStore.current()
+        currentPerspective: FocusedPerspectiveStore.current(),
+        position: this.props.position ? this.props.position : 'unknown',
       };
       const injectedButtons = (
         <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }}

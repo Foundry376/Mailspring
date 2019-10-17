@@ -26,6 +26,16 @@ const commandCb = (event, cb, cbArgs) => {
   }
   cb(cbArgs);
 };
+const threadSelectionScope = (props, selection) => {
+  let threads = props.items;
+  if (selection && WorkspaceStore.layoutMode() !== 'list') {
+    const selectionThreads = selection.items();
+    if (selectionThreads && selectionThreads.length > 0) {
+      threads = selectionThreads;
+    }
+  }
+  return threads;
+};
 
 export class ArchiveButton extends React.Component {
   static displayName = 'ArchiveButton';
@@ -36,16 +46,13 @@ export class ArchiveButton extends React.Component {
     currentPerspective: PropTypes.object
   };
 
-  _onArchive = event => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
+  _onShortCut = event => {
+    this._onArchive(event, threadSelectionScope(this.props, this.selection));
+  };
+
+  _onArchive = (event, threads) => {
     const tasks = TaskFactory.tasksForArchiving({
-      threads: threads,
+      threads: Array.isArray(threads) ? threads : this.props.items,
       source: 'Toolbar Button: Thread List',
       currentPerspective: FocusedPerspectiveStore.current()
     });
@@ -67,7 +74,7 @@ export class ArchiveButton extends React.Component {
     }
 
     return (
-      <BindGlobalCommands commands={{ 'core:archive-item': event => commandCb(event, this._onArchive) }}>
+      <BindGlobalCommands commands={{ 'core:archive-item': event => commandCb(event, this._onShortCut) }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
           <RetinaImg name={'archive.svg'}
             style={{ width: 24, height: 24 }}
@@ -87,17 +94,16 @@ export class TrashButton extends React.Component {
     items: PropTypes.array.isRequired,
     currentPerspective: PropTypes.object,
   };
+  _onShortCutRemove = event => {
+    this._onRemove(event, threadSelectionScope(this.props, this.selection));
+  };
+  _onShortCutExpunge = event => {
+    this._onExpunge(event, threadSelectionScope(this.props, this.selection));
+  };
 
-  _onRemove = event => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
+  _onRemove = (event, threads) => {
     const tasks = TaskFactory.tasksForMovingToTrash({
-      threads: threads,
+      threads: Array.isArray(threads) ? threads : this.props.items,
       currentPerspective: FocusedPerspectiveStore.current(),
       source: 'Toolbar Button: Thread List',
     });
@@ -127,9 +133,12 @@ export class TrashButton extends React.Component {
     }
     return;
   };
-  _onExpunge = event => {
+  _onExpunge = (event, threads) => {
     let messages = [];
-    this.props.items.forEach(thread => {
+    if (!Array.isArray(threads)) {
+      threads = this.props.items;
+    }
+    threads.forEach(thread => {
       if (Array.isArray(thread.__messages) && thread.__messages.length > 0) {
         messages = messages.concat(thread.__messages)
       }
@@ -170,9 +179,9 @@ export class TrashButton extends React.Component {
     }
     let actionCallBack = null;
     if (canMove) {
-      actionCallBack = this._onRemove;
+      actionCallBack = this._onShortCutRemove;
     } else if (canExpunge) {
-      actionCallBack = this._onExpunge;
+      actionCallBack = this._onShortCutExpunge;
     }
 
     return (
@@ -193,6 +202,11 @@ export class TrashButton extends React.Component {
 class HiddenGenericRemoveButton extends React.Component {
   static displayName = 'HiddenGenericRemoveButton';
 
+  _onShortcutRemoveAndShift = ({ offset }) => {
+    this._onShift({ offset });
+    this._onRemoveFromView(threadSelectionScope(this.props, this.selection));
+  };
+
   _onRemoveAndShift = ({ offset }) => {
     this._onShift({ offset });
     this._onRemoveFromView();
@@ -208,16 +222,16 @@ class HiddenGenericRemoveButton extends React.Component {
     Actions.setFocus({ collection: 'thread', item });
   };
 
-  _onRemoveFromView = ruleset => {
+  _onShortcutRemoveFromView = event => {
+    this._onRemoveFromView(threadSelectionScope(this.props, this.selection));
+  };
+
+  _onRemoveFromView = threads => {
     const current = FocusedPerspectiveStore.current();
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
-    const tasks = current.tasksForRemovingItems(threads, 'Keyboard Shortcut');
+    const tasks = current.tasksForRemovingItems(
+      threads ? this.props.items : threads,
+      'Keyboard Shortcut'
+    );
     Actions.queueTasks(tasks);
     Actions.popSheet({ reason: 'ToolbarButton:HiddenGenericRemoveButton:removeFromView' });
   };
@@ -226,10 +240,10 @@ class HiddenGenericRemoveButton extends React.Component {
     return (
       <BindGlobalCommands
         commands={{
-          'core:gmail-remove-from-view': event => commandCb(event, this._onRemoveFromView),
-          'core:remove-from-view': event => commandCb(event, this._onRemoveFromView),
-          'core:remove-and-previous': event => commandCb(event, this._onRemoveAndShift, { offset: -1 }),
-          'core:remove-and-next': event => commandCb(event, this._onRemoveAndShift, { offset: 1 }),
+          'core:gmail-remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
+          'core:remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
+          'core:remove-and-previous': event => commandCb(event, this._onShortcutRemoveAndShift, { offset: -1 }),
+          'core:remove-and-next': event => commandCb(event, this._onShortcutRemoveAndShift, { offset: 1 }),
           'core:show-previous': event => commandCb(event, this._onShift, { offset: -1 }),
           'core:show-next': event => commandCb(event, this._onShift, { offset: 1 }),
         }}
@@ -243,33 +257,32 @@ class HiddenGenericRemoveButton extends React.Component {
 class HiddenToggleImportantButton extends React.Component {
   static displayName = 'HiddenToggleImportantButton';
 
-  _onSetImportant = important => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
+  _onShortcutSetImportant = important => {
+    this._onSetImportant(important, threadSelectionScope(this.props, this.selection));
+  };
+  _onSetImportant = (important, threads) => {
     Actions.queueTasks(
-      TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-        return [
-          new ChangeLabelsTask({
-            threads: accountThreads,
-            source: 'Keyboard Shortcut',
-            labelsToAdd: [],
-            labelsToRemove: important
-              ? []
-              : [CategoryStore.getCategoryByRole(accountId, 'important')],
-          }),
-          new ChangeLabelsTask({
-            threads: accountThreads,
-            source: 'Keyboard Shortcut',
-            labelsToAdd: important ? [CategoryStore.getCategoryByRole(accountId, 'important')] : [],
-            labelsToRemove: [],
-          }),
-        ];
-      }),
+      TaskFactory.tasksForThreadsByAccountId(
+        threads? threads : this.props.items,
+        (accountThreads, accountId) => {
+          return [
+            new ChangeLabelsTask({
+              threads: accountThreads,
+              source: 'Keyboard Shortcut',
+              labelsToAdd: [],
+              labelsToRemove: important
+                ? []
+                : [CategoryStore.getCategoryByRole(accountId, 'important')],
+            }),
+            new ChangeLabelsTask({
+              threads: accountThreads,
+              source: 'Keyboard Shortcut',
+              labelsToAdd: important ? [CategoryStore.getCategoryByRole(accountId, 'important')] : [],
+              labelsToRemove: [],
+            }),
+          ];
+        }
+      )
     );
   };
 
@@ -295,10 +308,10 @@ class HiddenToggleImportantButton extends React.Component {
         commands={
           allImportant
             ? {
-              'core:mark-unimportant': event => commandCb(event, this._onSetImportant, false)
+              'core:mark-unimportant': event => commandCb(event, this._onShortcutSetImportant, false)
             }
             : {
-              'core:mark-important': event => commandCb(event, this._onSetImportant, true)
+              'core:mark-important': event => commandCb(event, this._onShortcutSetImportant, true)
             }
         }
       >
@@ -317,17 +330,13 @@ export class MarkAsSpamButton extends React.Component {
     currentPerspective: PropTypes.object,
   };
 
-  _onNotSpam = event => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
+  _onShortcutNotSpam = event => {
+    this._onNotSpam(event, threadSelectionScope(this.props, this.selection));
+  };
+  _onNotSpam = (event, threads) => {
     const tasks = TaskFactory.tasksForMarkingNotSpam({
       source: 'Toolbar Button: Thread List',
-      threads,
+      threads: Array.isArray(threads) ? threads : this.props.items,
       currentPerspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
@@ -341,16 +350,12 @@ export class MarkAsSpamButton extends React.Component {
     return;
   };
 
-  _onMarkAsSpam = event => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
+  _onShortcutMarkAsSpam = event => {
+    this._onMarkAsSpam(event, threadSelectionScope(this.props.this.selection));
+  };
+  _onMarkAsSpam = (event, threads) => {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
-      threads,
+      threads: Array.isArray(threads) ? threads : this.props.items,
       source: 'Toolbar Button: Thread List',
       currentPerspective: FocusedPerspectiveStore.current(),
     });
@@ -373,14 +378,14 @@ export class MarkAsSpamButton extends React.Component {
         <BindGlobalCommands
           key="not-spam"
           commands={{
-            'core:report-not-spam': event => commandCb(event, this._onNotSpam)
+            'core:report-not-spam': event => commandCb(event, this._onShortcutNotSpam)
           }}
         >
           <button
             tabIndex={-1}
             className="btn btn-toolbar"
             title="Not Junk"
-            onClick={this._onNotSpam}
+            onClick={this._onShortcutNotSpam}
           >
             <RetinaImg name="not-junk.svg" style={{ width: 24, height: 24 }} isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
@@ -397,14 +402,14 @@ export class MarkAsSpamButton extends React.Component {
       <BindGlobalCommands
         key="spam"
         commands={{
-          'core:report-as-spam': event => commandCb(event, this._onMarkAsSpam)
+          'core:report-as-spam': event => commandCb(event, this._onShortcutMarkAsSpam)
         }}
       >
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
           title="Mark as Spam"
-          onClick={this._onMarkAsSpam}
+          onClick={this._onShortcutMarkAsSpam}
         >
           <RetinaImg name={'junk.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
@@ -421,17 +426,14 @@ export class ToggleStarredButton extends React.Component {
     items: PropTypes.array.isRequired,
   };
 
-  _onStar = event => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
+  _onShortcutStar = event => {
+    this._onStar(event, threadSelectionScope(this.props, this.selection));
+  };
+
+  _onStar = (event, threads) => {
     Actions.queueTasks(
       TaskFactory.taskForInvertingStarred({
-        threads,
+        threads: Array.isArray(threads) ? threads : this.props.items,
         source: 'Toolbar Button: Thread List',
       }),
     );
@@ -450,7 +452,7 @@ export class ToggleStarredButton extends React.Component {
     const className = postClickStarredState ? 'flag-not-selected' : 'flagged';
 
     return (
-      <BindGlobalCommands commands={{ 'core:star-item': event => commandCb(event, this._onStar) }}>
+      <BindGlobalCommands commands={{ 'core:star-item': event => commandCb(event, this._onShortcutStar) }}>
         <button tabIndex={-1} className={'btn btn-toolbar ' + className} title={title} onClick={this._onStar}>
           <RetinaImg
             name="flag.svg"
@@ -472,30 +474,20 @@ export class ToggleUnreadButton extends React.Component {
   };
 
   _onClick = event => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
-    const targetUnread = threads.every(t => t.unread === false);
+    const targetUnread = this.props.items.every(t => t.unread === false);
     this._onChangeUnread(targetUnread);
     event.stopPropagation();
     return;
   };
 
-  _onChangeUnread = targetUnread => {
-    let threads = this.props.items;
-    if (this.selection) {
-      const selectionThreads = this.selection.items();
-      if (selectionThreads && selectionThreads.length > 0) {
-        threads = selectionThreads;
-      }
-    }
+  _onShortcutChangeUnread = targetUnread => {
+    this._onChangeUnread(targetUnread, threadSelectionScope(this.props, this.selection));
+  };
+
+  _onChangeUnread = (targetUnread, threads) => {
     Actions.queueTasks(
       TaskFactory.taskForSettingUnread({
-        threads,
+        threads: Array.isArray(threads) ? threads : this.props.items,
         unread: targetUnread,
         source: 'Toolbar Button: Thread List',
       }),
@@ -516,10 +508,10 @@ export class ToggleUnreadButton extends React.Component {
         commands={
           targetUnread
             ? {
-              'core:mark-as-unread': event => commandCb(event, this._onChangeUnread, true)
+              'core:mark-as-unread': event => commandCb(event, this._onShortcutChangeUnread, true)
             }
             : {
-              'core:mark-as-read': event => commandCb(event, this._onChangeUnread, false)
+              'core:mark-as-read': event => commandCb(event, this._onShortcutChangeUnread, false)
             }
         }
       >
@@ -699,7 +691,10 @@ export class MoreButton extends React.Component {
 
   render() {
     return (
-      <button tabIndex={-1} className="btn btn-toolbar btn-more" onClick={this._more}
+      <button
+        id={`threadToolbarMoreButton${this.props.position}`}
+        tabIndex={-1} className="btn btn-toolbar btn-more"
+        onClick={this._more}
         ref={el => (this._anchorEl = el)}>
         <RetinaImg
           name="more.svg"
