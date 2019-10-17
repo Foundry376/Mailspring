@@ -246,7 +246,7 @@ export default class AppEnvConstructor {
   }
 
   _onUnhandledRejection = (error, sourceMapCache) => {
-    this.reportError(error);
+    this.reportError(error, { errorData: sourceMapCache }, { grabLogs: true });
   };
   _expandReportLog(error, extra = {}) {
     try {
