@@ -44,6 +44,31 @@ input:focus {
   outline: none;
 }
 
+.mode-list {
+  .list-item {
+    .participants {
+      width: 200px;
+      text-overflow: ellipsis;
+      display: inline-block;
+    }
+    .thread-icon {
+      &.thread-icon-unread,
+      &.thread-icon-star {
+        position: absolute;
+        left: 12px;
+      }
+    }
+    &:hover {
+      .thread-icon {
+        &.thread-icon-unread,
+        &.thread-icon-star {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
 .outbox-list,
 .thread-list,
 .draft-list {
@@ -295,6 +320,8 @@ input:focus {
     text-align: left;
     overflow: hidden;
     line-height: 24px;
+    display: flex;
+    align-items: center;
 
     &.no-recipients {
       color: @text-color-very-subtle;
@@ -357,7 +384,7 @@ input:focus {
       background: @white;
     }
     .timestamp {
-      color: @blue;
+      // color: @blue; // unread is still black
       opacity: 1;
     }
   }
@@ -405,7 +432,7 @@ input:focus {
     margin: auto 4px;
   }
   .thread-icon {
-    width: 25px;
+    width: 24px;
     height: 24px;
     flex-shrink: 0;
     background-size: 12px;
@@ -439,7 +466,7 @@ input:focus {
       .icon-mixin('../static/icons/feed-forward.svg', @gray-light);
     }
     &.thread-icon-star {
-      .icon-mixin('../static/icons/flag.svg', @orange, 24px);
+      .icon-mixin('../static/icons/menu-unread.svg', @orange, 24px); // display as a dot, not a flag
     }
   }
   .star-button {
