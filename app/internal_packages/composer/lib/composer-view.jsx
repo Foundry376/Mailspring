@@ -212,21 +212,31 @@ export default class ComposerView extends React.Component {
     }
   }
 
-  scrollBodyInView(compose) {
-    const node = ReactDOM.findDOMNode(compose);
-    if (!node) {
+  scrollBodyInView(header) {
+    const headerNode = ReactDOM.findDOMNode(header);
+    if (!headerNode) {
       return;
     }
-    const scroller = node.closest('.scroll-region-content');
+    const scroller = headerNode.closest('.scroll-region-content');
     if (!scroller) {
       return;
     }
-    // If the height of the scroll box exceeds 400px, scroll 120px
-    let extraScrollTop = 120;
-    if (scroller.offsetHeight < 400) {
-      extraScrollTop = scroller.offsetHeight - 280 > 0 ? scroller.offsetHeight - 280 : 0;
+    const scrollRect = scroller.getBoundingClientRect();
+    const headerRect = headerNode.getBoundingClientRect();
+
+    // the scrollTop range must in [scrollHeightMin ~ scrollHeightMax]
+    const scrollHeightMax = scroller.scrollTop + (headerRect.y - scrollRect.y);
+    const scrollHeightMin = scrollHeightMax - (scrollRect.height - headerRect.height);
+    // show some mail body to mean that the body can scroll
+    // the 200 is height to show of body
+    let extraScrollTop = scrollHeightMin + 200;
+    if (extraScrollTop > scrollHeightMax) {
+      extraScrollTop = scrollHeightMax;
+    } else if (extraScrollTop < 0) {
+      extraScrollTop = 0;
     }
-    scroller.scrollTop = scroller.scrollTop + extraScrollTop;
+
+    scroller.scrollTop = extraScrollTop;
   }
 
   _renderContentScrollRegion() {
@@ -477,7 +487,11 @@ export default class ComposerView extends React.Component {
         />
       ));
 
-    return <div className="attachments-area">{nonImageFiles.concat(imageFiles, nonInlineWithContentIdImageFiles)}</div>;
+    return (
+      <div className="attachments-area">
+        {nonImageFiles.concat(imageFiles, nonInlineWithContentIdImageFiles)}
+      </div>
+    );
   }
 
   _renderActionsWorkspaceRegion() {
