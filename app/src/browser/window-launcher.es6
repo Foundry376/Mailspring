@@ -1,5 +1,7 @@
 import MailspringWindow from './mailspring-window';
 
+const BG_COLOR_POPOUT = '#1e1e1f';
+const BG_COLOR_MAIN_WINDOW = '#111112';
 const DEBUG_SHOW_HOT_WINDOW = process.env.SHOW_HOT_WINDOW || false;
 let winNum = 0;
 
@@ -46,6 +48,11 @@ export default class WindowLauncher {
 
   newWindow(options) {
     const opts = Object.assign({}, this.defaultWindowOpts, options);
+    // if dark mode, window's bgColor is black
+    const isDarkMode = this.config.get('core.theme') === 'ui-dark';
+    if (isDarkMode) {
+      opts.backgroundColor = BG_COLOR_MAIN_WINDOW;
+    }
 
     // apply optional Linux properties
     if (process.platform === 'linux') {
@@ -109,8 +116,14 @@ export default class WindowLauncher {
     return win;
   }
 
-  createHotWindow(options={}) {
-    this.hotWindow = new MailspringWindow(this._hotWindowOpts(options.title));
+  createHotWindow(options = {}) {
+    const opts = this._hotWindowOpts(options.title);
+    // if dark mode, set bgColor black
+    const isDarkMode = this.config.get('core.theme') === 'ui-dark';
+    if (isDarkMode) {
+      opts.backgroundColor = BG_COLOR_POPOUT;
+    }
+    this.hotWindow = new MailspringWindow(opts);
     this.onCreatedHotWindow(this.hotWindow);
     if (DEBUG_SHOW_HOT_WINDOW) {
       this.hotWindow.showWhenLoaded();
@@ -141,8 +154,8 @@ export default class WindowLauncher {
     return usesOtherBootstrap || usesOtherFrame || requestsColdStart;
   }
 
-  _hotWindowOpts(title=null) {
-    const hotWindowOpts = Object.assign({},{title: title}, this.defaultWindowOpts);
+  _hotWindowOpts(title = null) {
+    const hotWindowOpts = Object.assign({}, { title: title }, this.defaultWindowOpts);
     hotWindowOpts.hidden = DEBUG_SHOW_HOT_WINDOW;
     return hotWindowOpts;
   }

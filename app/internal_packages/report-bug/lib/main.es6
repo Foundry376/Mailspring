@@ -4,13 +4,11 @@ import BugReportRoot from './bug-report-root';
 export function activate() {
   WorkspaceStore.defineSheet('Main', { root: true }, { list: ['Center'] });
 
-  AppEnv.themes.forceBaseTheme();
-
   ComponentRegistry.register(BugReportRoot, {
     location: WorkspaceStore.Location.Center,
   });
 }
 
-export function deactivate() {}
+export function deactivate() { }
 
-export function serialize() {}
+export function serialize() { }
