@@ -257,7 +257,7 @@ module.exports = class MailspringWindow extends EventEmitter {
         this.browserWindow.destroy();
       }
       console.log('\n----\nunresponsive\n\n');
-      global.application.reportError(new Error(`unresponsive for window ${this.windowKey}`), {errorData: this.browserWindow ? this.browserWindow.loadSettings : 'browserWindow not available'}, {grabLogs: true});
+      // global.application.reportError(new Error(`unresponsive for window ${this.windowKey}`), {errorData: this.browserWindow ? this.browserWindow.loadSettings : 'browserWindow not available'}, {grabLogs: true});
       console.log('\n----\nunresponsive\n\n');
     });
 
@@ -272,15 +272,15 @@ module.exports = class MailspringWindow extends EventEmitter {
       if (this.exitWhenDone) {
         app.exit(100);
       }
-      global.application.reportError(
-        new Error(`crashed for window ${this.windowKey}`),
-        {
-          errorData: this.browserWindow
-            ? this.browserWindow.loadSettings
-            : 'browserWindow not available',
-        },
-        { grabLogs: true }
-      );
+      // global.application.reportError(
+      //   new Error(`crashed for window ${this.windowKey}`),
+      //   {
+      //     errorData: this.browserWindow
+      //       ? this.browserWindow.loadSettings
+      //       : 'browserWindow not available',
+      //   },
+      //   { grabLogs: true }
+      // );
       if (this.neverClose) {
         this.browserWindow.reload();
       } else {
