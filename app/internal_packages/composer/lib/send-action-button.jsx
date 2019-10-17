@@ -1,4 +1,4 @@
-import { React, PropTypes, Actions, SendActionsStore, SoundRegistry, OnlineStatusStore } from 'mailspring-exports';
+import { React, PropTypes, Actions, SendActionsStore, SoundRegistry, OnlineStatusStore, WorkspaceStore } from 'mailspring-exports';
 import { Menu, RetinaImg, LottieImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
 
 const sendButtonTimeout = 700;
@@ -52,9 +52,9 @@ class SendActionButton extends React.Component {
       this.state.isSending !== nextState.isSending
     );
   }
-  onlineStatusChanged= ({onlineDidChange}) =>{
-    if(onlineDidChange){
-      this.setState({offline: !OnlineStatusStore.isOnline()});
+  onlineStatusChanged = ({ onlineDidChange }) => {
+    if (onlineDidChange) {
+      this.setState({ offline: !OnlineStatusStore.isOnline() });
     }
   }
 
@@ -63,6 +63,15 @@ class SendActionButton extends React.Component {
   }
 
   _onPrimaryClick = () => {
+    if (this.props.disabled) {
+      if (WorkspaceStore.layoutMode() === 'popout') {
+        console.error('SendActionButton is disabled in popout composer, this is wrong', this.props);
+        AppEnv.reportError(
+          new Error(`SendActionButton::_onPrimaryClick: SendActionButton is disabled in popout composer, this is wrong`, this.props)
+        );
+      }
+      return;
+    }
     this._onSendWithAction(this.props.sendActions[0]);
   };
   _timoutButton = () => {
@@ -76,11 +85,11 @@ class SendActionButton extends React.Component {
       }, sendButtonTimeout);
     }
   };
-  _delayShowLoading=()=>{
+  _delayShowLoading = () => {
     clearTimeout(this._delayLoadingTimer);
-    this._delayLoadingTimer = setTimeout(()=>{
-      if(this._mounted){
-        this.setState({showLoading: true});
+    this._delayLoadingTimer = setTimeout(() => {
+      if (this._mounted) {
+        this.setState({ showLoading: true });
       }
     }, sendButtonTimeout);
   };
@@ -117,19 +126,19 @@ class SendActionButton extends React.Component {
 
     if (iconUrl) {
       plusHTML = <span>&nbsp;+&nbsp;</span>;
-      additionalImg = <RetinaImg url={iconUrl} mode={RetinaImg.Mode.ContentIsMask}/>;
+      additionalImg = <RetinaImg url={iconUrl} mode={RetinaImg.Mode.ContentIsMask} />;
     }
 
     return (
       <span>
         {this.state.showLoading ?
           <LottieImg name='loading-spinner-transparent'
-                     size={{ width: 27, height: 27 }}
-          style={{margin: '0', display: 'inline-block', float: 'left'}}/> :
+            size={{ width: 27, height: 27 }}
+            style={{ margin: '0', display: 'inline-block', float: 'left' }} /> :
           <RetinaImg name={'sent.svg'}
-                     style={{ width: 27, height: 27 }}
-                     isIcon={true}
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            style={{ width: 27, height: 27 }}
+            isIcon={true}
+            mode={RetinaImg.Mode.ContentIsMask} />
         }
         <span className="text">Send{plusHTML}</span>
         {additionalImg}
@@ -144,7 +153,7 @@ class SendActionButton extends React.Component {
         tabIndex={-1}
         className={`btn btn-toolbar btn-normal btn-send`}
         style={style}
-        onClick={!this.props.disabled ? this._onPrimaryClick : null}
+        onClick={this._onPrimaryClick}
       >
         {this._renderSendActionItem(this.props.sendActions[0])}
       </button>
