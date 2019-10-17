@@ -15,21 +15,23 @@ import SignatureTemplatePicker from './signature-template-picker';
 import SignaturePhotoPicker from './signature-photo-picker';
 import Templates from './templates';
 
-const { Conversion: { convertFromHTML, convertToHTML } } = ComposerSupport;
+const {
+  Conversion: { convertFromHTML, convertToHTML },
+} = ComposerSupport;
 
 class SignatureEditor extends React.Component {
   constructor(props) {
     super(props);
     const body = props.signature ? props.signature.body : '';
     this.state = {
-      editorState: convertFromHTML(body)
+      editorState: convertFromHTML(body),
     };
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     const body = nextProps.signature ? nextProps.signature.body : '';
     this.setState({
-      editorState: convertFromHTML(body)
+      editorState: convertFromHTML(body),
     });
   }
 
@@ -91,6 +93,9 @@ class SignatureEditor extends React.Component {
             propsForPlugins={{}}
             onChange={change => this.setState({ editorState: change.value })}
             onBlur={this._onSave}
+            onFileReceived={() => {
+              // This method ensures that HTML can be pasted.
+            }}
           />
         </div>
         {/*TODO: edison feature disabled*/}
