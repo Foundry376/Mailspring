@@ -271,7 +271,7 @@ export default class AppEnvConstructor {
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
   reportError(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs) {
+    if (grabLogs && !this.inDevMode()) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'error');
     } else {
       this._reportLog(error, extra, { noWindows }, 'error');
@@ -279,14 +279,14 @@ export default class AppEnvConstructor {
   }
 
   reportWarning(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs) {
+    if (grabLogs && !this.inDevMode()) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'warning');
     } else {
       this._reportLog(error, extra, { noWindows }, 'warning');
     }
   }
   reportLog(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs) {
+    if (grabLogs && !this.inDevMode()) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'log');
     } else {
       this._reportLog(error, extra, { noWindows }, 'log');
