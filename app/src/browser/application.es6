@@ -22,6 +22,11 @@ import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
 import MailsyncProcess from '../mailsync-process';
+import { createHash } from 'crypto';
+const LOG = require('electron-log');
+const archiver = require('archiver');
+let getOSInfo = null;
+let getDeviceHash = null;
 
 let clipboard = null;
 
@@ -159,6 +164,7 @@ export default class Application extends EventEmitter {
       fs.mkdirSync(avatarPath);
     }
     this.clearOldLogs();
+    this.initSupportInfo();
   }
   getOpenWindows() {
     return this.windowManager.getOpenWindows();
@@ -244,6 +250,236 @@ export default class Application extends EventEmitter {
           console.log(`\n-----\nui log path creaded \n${err}`);
         });
       });
+    }
+  }
+  reportError(error, extra = {}, { noWindows, grabLogs = false } = {}) {
+    if (grabLogs && !this.inDevMode()) {
+      this._grabLogAndReportLog(error, extra, { noWindows }, 'error');
+    } else {
+      this._reportLog(error, extra, { noWindows }, 'error');
+    }
+  }
+
+  reportWarning(error, extra = {}, { noWindows, grabLogs = false } = {}) {
+    if (grabLogs && !this.inDevMode()) {
+      this._grabLogAndReportLog(error, extra, { noWindows }, 'warning');
+    } else {
+      this._reportLog(error, extra, { noWindows }, 'warning');
+    }
+  }
+  reportLog(error, extra = {}, { noWindows, grabLogs = false } = {}) {
+    if (grabLogs && !this.inDevMode()) {
+      this._grabLogAndReportLog(error, extra, { noWindows }, 'log');
+    } else {
+      this._reportLog(error, extra, { noWindows }, 'log');
+    }
+  }
+
+  _grabLogAndReportLog(error, extra, { noWindows } = {}, type = '') {
+    this.grabLogs()
+      .then(filename => {
+        extra.files = [filename];
+        this._reportLog(error, extra, { noWindows }, type);
+      })
+      .catch(e => {
+        extra.grabLogError = e;
+        this._reportLog(error, extra, { noWindows }, type);
+      });
+  }
+
+  _reportLog(error, extra = {}, { noWindows } = {}, type = '') {
+    extra = this._expandReportLog(error, extra);
+    if (type.toLocaleLowerCase() === 'error') {
+      this.logError(error);
+    } else if (type.toLocaleLowerCase() === 'warning') {
+      this.logWarning(error);
+    } else {
+      this.logDebug(error);
+    }
+    try {
+      const strippedError = this._stripSensitiveData(error);
+      error = strippedError;
+      if (!!extra.errorData) {
+        extra.errorData = this._stripSensitiveData(extra.errorData);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    if (type.toLocaleLowerCase() === 'error') {
+      this.errorLogger.reportError(error, extra);
+    } else if (type.toLocaleLowerCase() === 'warning') {
+      this.errorLogger.reportWarning(error, extra);
+    } else {
+      this.errorLogger.reportLog(error, extra);
+    }
+  }
+  _expandReportLog(extra = {}) {
+    try {
+      getOSInfo = getOSInfo || require('../system-utils').getOSInfo;
+      extra.osInfo = getOSInfo();
+      extra.chatEnabled = this.config.get('chatEnable');
+      extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
+      if (!!extra.errorData) {
+        extra.errorData = JSON.stringify(extra.errorData);
+      }
+    } catch (err) {
+      // can happen when an error is thrown very early
+      extra.pluginIds = [];
+    }
+    return extra;
+  }
+  _stripSensitiveData(str = '') {
+    const _stripData = (key, strData) => {
+      let leftStr = '"';
+      let leftRegStr = leftStr;
+      let rightStr = '"';
+      let rightRegStr = rightStr;
+      let reg = new RegExp(`"${key}(\\\\":\\\\"|":")(\\s|\\S)*?(","|"}|\\\\",\\\\"|\\\\"})`, 'g');
+      if (
+        key !== 'body' &&
+        key !== 'subject' &&
+        key !== 'snippet' &&
+        key !== 'emailAddress' &&
+        key !== 'imap_username' &&
+        key !== 'imap_password' &&
+        key !== 'smtp_username' &&
+        key !== 'smtp_password' &&
+        key !== 'access_token' &&
+        key !== 'refresh_token'
+      ) {
+        leftRegStr = '\\[';
+        rightRegStr = '\\]';
+        reg = new RegExp(`"${key}":${leftRegStr}(\\s|\\S)*?${rightRegStr},"`, 'g');
+      }
+
+      return strData.replace(reg, (str, match) => {
+        const hash = createHash('md5')
+          .update(str.replace(`"${key}":${leftStr}`, '').replace(`${rightRegStr},"`, ''))
+          .digest('hex');
+        return `"${key}":${leftStr}${hash}${rightStr},"`;
+      });
+    };
+    const sensitiveKeys = [
+      'emailAddress',
+      'imap_username',
+      'imap_password',
+      'smtp_username',
+      'smtp_password',
+      'access_token',
+      'refresh_token',
+      'body',
+      'subject',
+      'snippet',
+      'to',
+      'from',
+      'cc',
+      'bcc',
+      'replyTo',
+    ];
+    const notString = typeof str !== 'string';
+    if (notString) {
+      str = str.toLocaleString();
+    }
+    for (let i = 0; i < sensitiveKeys.length; i++) {
+      const key = sensitiveKeys[i];
+      str = _stripData(key, str);
+    }
+    if (notString) {
+      str = Error(str);
+    }
+    return str;
+  }
+
+  logError(log) {
+    this._log(log, 'error');
+  }
+
+  logWarning(log) {
+    this._log(log, 'warn');
+  }
+
+  logDebug(log) {
+    this._log(log, 'debug');
+  }
+
+  logInfo(log) {
+    this._log(log, 'info');
+  }
+
+  _log(message, logType = 'log') {
+    if (this.devMode) {
+      if (logType === 'error') {
+        console.error(message);
+      } else if (logType === 'warn') {
+        console.warn(message);
+      } else {
+        console.log(message);
+      }
+    }
+    let str = message;
+    if (str && str.toLocaleString) {
+      str = this._stripSensitiveData(str.toLocaleString());
+    }
+    LOG[logType](str);
+  }
+
+  grabLogs(fileName = '') {
+    return new Promise((resolve, reject) => {
+      const resourcePath = this.configDirPath;
+      const logPath = path.dirname(LOG.transports.file.findLogPath());
+      if (fileName === '') {
+        fileName = parseInt(Date.now());
+      }
+      const outputPath = path.join(resourcePath, 'upload-log', `logs-${fileName}.zip`);
+      const output = fs.createWriteStream(outputPath);
+      const archive = archiver('zip', {
+        zlib: { level: 9 }, // Sets the compression level.
+      });
+
+      output.on('close', function() {
+        console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
+        console.log('archiver has been finalized and the output file descriptor has closed.');
+        resolve(outputPath);
+      });
+      output.on('end', function() {
+        console.log('\n----->\nData has been drained');
+        resolve(outputPath);
+      });
+      archive.on('warning', function(err) {
+        if (err.code === 'ENOENT') {
+          console.log(err);
+        } else {
+          output.close();
+          console.log(err);
+          reject(err);
+        }
+      });
+      archive.on('error', function(err) {
+        output.close();
+        console.log(err);
+        reject(err);
+      });
+      archive.pipe(output);
+      archive.directory(logPath, 'uiLog');
+      archive.glob(path.join(resourcePath, '*.log'), {}, { prefix: 'nativeLog' });
+      archive.finalize();
+    });
+  }
+
+  initSupportInfo() {
+    if (!getDeviceHash) {
+      getDeviceHash = require('./system-utils').getDeviceHash;
+    }
+    const deviceHash = this.config.get('core.support.id');
+    if (!deviceHash || deviceHash === 'Unknown') {
+      getDeviceHash()
+        .then(id => {
+          this.config.set('core.support.id', id);
+        })
+        .catch(e => {
+          AppEnv.reportError(new Error('failed to init support id'));
+          this.config.set('core.support.id', 'Unknown');
+        });
     }
   }
 

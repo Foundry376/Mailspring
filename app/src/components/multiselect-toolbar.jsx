@@ -104,14 +104,13 @@ class MultiselectToolbar extends Component {
     }
   }
   _onCategoryChange = () => {
-    if(this.mounted){
+    if (this.mounted) {
       const lastUpdatedTime = FocusedPerspectiveStore.getLastUpdatedTime();
-      console.log(`new lastUpdateTime ${lastUpdatedTime}, previousLastupdateTime: ${this.state.lastUpdatedTime}`);
-      if(lastUpdatedTime > this.state.lastUpdatedTime){
+      if (lastUpdatedTime > this.state.lastUpdatedTime) {
         this.setState({ lastUpdatedTime });
       }
     }
-  }
+  };
 
   selectionLabel = () => {
     const { selectionCount, collection } = this.props;

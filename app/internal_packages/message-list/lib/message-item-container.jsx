@@ -19,6 +19,7 @@ export default class MessageItemContainer extends React.Component {
 
   constructor(props, context) {
     super(props, context);
+    this.state = {isSending: false};
     this.state = this._getStateFromStores();
     this.state.draftMissingAttachments = false;
   }
@@ -62,16 +63,20 @@ export default class MessageItemContainer extends React.Component {
       Array.isArray(headerMessageIds) &&
       headerMessageIds.includes(this.props.message.headerMessageId)
     ) {
+      console.log('draft sending state changed');
       this.setState(this._getStateFromStores());
     } else if (headerMessageId === this.props.message.headerMessageId) {
+      console.log('draft sending state changed for single headerMessageId');
+      console.log(`DraftStore: ${DraftStore.isSendingDraft(this.props.message.headerMessageId)}`);
       this.setState(this._getStateFromStores());
+    } else {
+      console.log(`change draft HeaderMessageId ${headerMessageId}, current: ${this.props.message.headerMessageId}`);
     }
   };
 
   _getStateFromStores(props = this.props) {
-    return {
-      isSending: DraftStore.isSendingDraft(props.message.headerMessageId),
-    };
+    const isSending = DraftStore.isSendingDraft(props.message.headerMessageId);
+    return { isSending };
   }
 
   _renderMessage({ pending }) {

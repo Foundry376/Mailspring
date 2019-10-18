@@ -47,7 +47,7 @@ module.exports = class EdisonErrorReporter {
     }
     this._report(err, extra, 'LOG');
   }
-  _report(err, extra, type = 'LOG'){
+  _report(err, extra = {}, type = 'LOG'){
     if (!extra.osInfo) {
       extra.osInfo = getOSInfo();
     }

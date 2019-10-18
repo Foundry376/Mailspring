@@ -228,7 +228,7 @@ class AppMessageStore extends MailspringStore {
   getMostRecent = () => {
     return this._mostRecentBlock;
   };
-  getMessages = ({ critical = 0, high = 3, medium = 2, low = 5 } = {}) => {
+  getMessages = ({ critical = 1, high = 1, medium = 1, low = 1 } = {}) => {
     return {
       critical:
         critical === 0
