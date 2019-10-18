@@ -100,8 +100,9 @@ class ThreadTrashQuickAction extends React.Component {
       'trash'
     );
     const folders = this.props.thread && this.props.thread.folders;
+    const labels = this.props.thread && this.props.thread.labels;
     // if only one folder, and it's trash
-    if (folders && folders.length === 1) {
+    if (folders && folders.length === 1 && (!labels || labels.length === 0)) {
       const folder = folders[0];
       if (folder && folder.role === 'trash') {
         allowed = false;
