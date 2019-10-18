@@ -61,7 +61,7 @@ export default {
               'Within a Year',
               'All',
             ],
-            title: 'How far back would you like to sync your old mail',
+            title: 'Sync mail as far back as',
           },
           fetchEmailInterval: {
             type: 'integer',
