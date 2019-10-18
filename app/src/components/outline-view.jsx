@@ -186,7 +186,7 @@ class OutlineView extends Component {
 
     return (
       <section className="nylas-outline-view">
-        {this._renderHeading(allowCreate, collapsed, collapsible)}
+        {/* {this._renderHeading(allowCreate, collapsed, collapsible)} */}
         {this._renderOutline(allowCreate, collapsed)}
       </section>
     );
