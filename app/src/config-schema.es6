@@ -12,7 +12,7 @@ function actionOption(iconName, label) {
       />
       {label}
     </span>
-  )
+  );
 }
 const actionValues = ['', 'archive', 'trash', 'flag', 'read', 'folder'];
 const actionLabels = [
@@ -22,7 +22,7 @@ const actionLabels = [
   actionOption('flag', 'Flag'),
   actionOption('read', 'Mark Read/Unread'),
   actionOption('folder', 'Move to Folder'),
-]
+];
 export default {
   core: {
     type: 'object',
@@ -54,7 +54,13 @@ export default {
             type: 'integer',
             default: 365,
             enum: [7, 30, 90, 365, -1],
-            enumLabels: ['Within 7 Days', 'Within 30 days', 'Within 3 Month', 'Within a Year', 'All'],
+            enumLabels: [
+              'Within 7 Days',
+              'Within 30 days',
+              'Within 3 Month',
+              'Within a Year',
+              'All',
+            ],
             title: 'How far back would you like to sync your old mail',
           },
           fetchEmailInterval: {
@@ -446,6 +452,33 @@ export default {
           },
         },
       },
+      emailNotifications: {
+        type: 'object',
+        properties: {
+          emailNotes: {
+            type: 'boolean',
+            default: true,
+            title: 'Show notifications for new unread emails',
+          },
+          countBadge: {
+            type: 'string',
+            default: 'unread',
+            enum: ['hide', 'unread', 'total'],
+            enumLabels: ['Hide Badge', 'Show Unread Count', 'Show Total Count'],
+            title: 'Dock badge count',
+          },
+        },
+      },
+      chatNotifications: {
+        type: 'object',
+        properties: {
+          chatNotes: {
+            type: 'boolean',
+            default: true,
+            title: 'Show notifications for new unread messages',
+          },
+        },
+      },
       appearance: {
         type: 'object',
         properties: {
@@ -454,7 +487,7 @@ export default {
             default: true,
             title: 'Show profile pictures',
           },
-        }
+        },
       },
     },
   },
