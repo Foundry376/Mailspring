@@ -78,7 +78,7 @@ class PreferencesRoot extends React.Component {
     }
   }
   onBack = () => {
-    Actions.popSheet({reason: 'PreferencesRoot:onBack'});
+    Actions.popSheet({ reason: 'PreferencesRoot:onBack' });
   };
 
   render() {
@@ -91,20 +91,30 @@ class PreferencesRoot extends React.Component {
         tabIndex="1"
         localHandlers={this._localHandlers}
       >
-        <Flexbox direction="column">
+        <Flexbox direction="row">
           <div className="item-back" onClick={this.onBack}>
-            <RetinaImg name={'arrow.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg
+              name={'arrow.svg'}
+              style={{ width: 22, height: 22 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
           </div>
           <PreferencesTabsBar tabs={tabs} selection={selection} />
-          <ScrollRegion className="preferences-content">
-            <ConfigPropContainer
-              ref={el => {
-                this._contentComponent = el;
-              }}
-            >
-              {tab ? <TabComponent accountId={selection.accountId} /> : false}
-            </ConfigPropContainer>
-          </ScrollRegion>
+          <div style={{ flex: 1 }}>
+            <Flexbox direction="column">
+              <div className="searchBar"></div>
+              <ScrollRegion className="preferences-content">
+                <ConfigPropContainer
+                  ref={el => {
+                    this._contentComponent = el;
+                  }}
+                >
+                  {tab ? <TabComponent accountId={selection.accountId} /> : false}
+                </ConfigPropContainer>
+              </ScrollRegion>
+            </Flexbox>
+          </div>
         </Flexbox>
       </KeyCommandsRegion>
     );

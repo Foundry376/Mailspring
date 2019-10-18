@@ -4,6 +4,10 @@
 // Preferences Specific
 
 .preferences-wrap {
+  width: 100%;
+  height: 100%;
+  background-color: @background-primary;
+  color: @text-color;
   .button-dropdown {
     margin-left: 8px;
     &.bordered {
@@ -37,18 +41,17 @@
     }
   }
   .item-back {
-    position:absolute;
+    position: absolute;
     top: 30px;
-    left:20px;
-    width:100px;
-    z-index:9999;
+    left: 20px;
+    z-index: 9999;
     cursor: pointer;
     img.content-mask {
       background-color: @gray;
     }
   }
   .item-back-title {
-    display:inline-block;
+    display: inline-block;
   }
   input[type='checkbox'] {
     margin: 0 7px 0 0;
@@ -63,10 +66,6 @@
   select {
     margin: 4px 0 0 8px;
   }
-
-  height: 100%;
-  background-color: @background-primary;
-  color: @text-color;
 
   h6 {
     color: @text-color-very-subtle;
@@ -104,63 +103,50 @@
   }
 
   .container-preference-tabs {
-    -webkit-app-region: drag;
-    width: 100%;
+    width: 220px;
+    flex: 0 0 auto;
     background-color: @source-list-bg;
-    border-bottom: 1px solid @border-color-divider;
+    border-right: 1px solid @border-color-divider;
+    padding-top: 100px;
 
-    .preferences-tabs {
-      padding-top: 10px;
-      background-color: @source-list-bg;
+    .item {
+      cursor: default;
+      width: 100%;
+      height: 48px;
+      padding-left: 60px;
 
-      .item {
-        cursor: default;
-        margin: 0 auto;
-        flex: 1.3;
-        min-width: 54px;
-        max-width: 120px;
-        text-align: center;
-        padding-top: 8px;
-
-        &:active {
-          img {
-            -webkit-filter: brightness(40%);
-          }
-        }
-
-        &.active {
-          background: @source-list-active-bg;
-          border-radius: @border-radius-large @border-radius-large 0 0;
-          // box-shadow: @shadow-border;
-          .name {
-            color: @blue;
-            font-weight: 600;
-          }
-        }
-
-        .tab-icon {
-          display: block;
-          margin: auto;
-        }
-
+      &.active {
+        background: @source-list-active-bg;
         .name {
-          padding: @padding-base-vertical * 1.5 @padding-base-horizontal * 0.3
-            @padding-large-vertical @padding-base-horizontal * 0.3;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          font-size: @font-size-small;
-          line-height: @font-size-small;
+          color: @blue;
+          font-weight: 600;
         }
       }
+
+      .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: @font-size-small;
+        font-weight: @font-weight-medium;
+        line-height: 48px;
+      }
     }
+  }
+
+  .searchBar {
+    widows: 100%;
+    height: 64px;
+    background-color: @source-list-bg;
+    border-bottom: 1px solid @border-color-divider;
   }
 
   .preferences-content {
     flex: 8;
     background-color: lighten(@background-secondary, 1%);
     & > .scroll-region-content {
-      padding: (@padding-large-vertical * 3 + 20px) (@padding-large-horizontal * 3) (@padding-large-vertical * 3);
+      padding: (@padding-large-vertical * 3 + 20px) (@padding-large-horizontal * 3)
+        (@padding-large-vertical * 3);
     }
     .container-dropdown {
       margin: 5px 0;
@@ -171,10 +157,6 @@
   }
 
   .container-general {
-    width: 40%;
-    min-width: 430px;
-    margin: 0 auto;
-
     .section-SwipeActions,
     .section-QuickActions {
       .color_archive {
@@ -268,14 +250,16 @@
     }
     .support {
       position: relative;
-      .popup{
+      .popup {
         padding: 0 0.8em;
         border-radius: 10px;
         border: 0;
         cursor: default;
         color: @black;
         background: @gray-light;
-        box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15), 0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 0.5px 1px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
+          0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15),
+          0 0.5px 1px rgba(0, 0, 0, 0.15);
         height: 1.9em;
         line-height: 1.9em;
         font-size: 12.09px;
@@ -305,10 +289,7 @@
   }
 
   .container-appearance {
-    width: 400px;
-    margin: 0 auto;
-
-    input[type=radio] {
+    input[type='radio'] {
       vertical-align: middle;
     }
 

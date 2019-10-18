@@ -36,7 +36,7 @@ class PreferencesGeneral extends React.Component {
     app.quit();
   };
 
-  _renderActionIcon = (idx) => {
+  _renderActionIcon = idx => {
     const iconName = AppEnv.config.get(`core.quickActions.quickAction${idx}`);
     return (
       <RetinaImg
@@ -46,15 +46,13 @@ class PreferencesGeneral extends React.Component {
         isIcon
         mode={RetinaImg.Mode.ContentIsMask}
       />
-    )
-  }
+    );
+  };
 
-  _renderActionColor = (idx) => {
+  _renderActionColor = idx => {
     const iconName = AppEnv.config.get(`core.swipeActions.${idx}`);
-    return (
-      <div className={`action_color color_${iconName}`}></div>
-    )
-  }
+    return <div className={`action_color color_${iconName}`}></div>;
+  };
 
   _onCopySupportId = event => {
     navigator.clipboard.writeText(this.props.config.core.support.id).then(() => {
@@ -65,7 +63,7 @@ class PreferencesGeneral extends React.Component {
           if (this.mounted) {
             this.setState({ displaySupportPopup: false });
           }
-        }, 1600);// Same as popupFrames animation length
+        }, 1600); // Same as popupFrames animation length
       }
     });
   };
@@ -87,7 +85,7 @@ class PreferencesGeneral extends React.Component {
 
   render() {
     return (
-      <div className="container-general" style={{ maxWidth: 600 }}>
+      <div className="container-general">
         <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
 
         <ConfigSchemaItem
@@ -179,8 +177,15 @@ class PreferencesGeneral extends React.Component {
 
         <section className="support">
           <h6>Support Id</h6>
-          <div className="popup" style={{ display: `${this.state.displaySupportPopup ? 'inline-block' : 'none'}` }}>ID Copied</div>
-          <div className="btn" onClick={this._onCopySupportId}>{this.props.config.core.support.id}</div>
+          <div
+            className="popup"
+            style={{ display: `${this.state.displaySupportPopup ? 'inline-block' : 'none'}` }}
+          >
+            ID Copied
+          </div>
+          <div className="btn" onClick={this._onCopySupportId}>
+            {this.props.config.core.support.id}
+          </div>
         </section>
       </div>
     );
