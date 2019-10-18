@@ -50,7 +50,7 @@ class DraftStore extends MailspringStore {
     if (AppEnv.isMainWindow()) {
       this.listenTo(Actions.composeReply, this._onComposeReply);
       this.listenTo(Actions.composeForward, this._onComposeForward);
-      this.listenTo(Actions.cancelOutboxDrafts, this._onCancelDraft);
+      this.listenTo(Actions.cancelOutboxDrafts, this._onOutboxCancelDraft);
       this.listenTo(Actions.resendDrafts, this._onResendDraft);
       this.listenTo(Actions.editOutboxDraft, this._onEditOutboxDraft);
       this.listenTo(Actions.composeFailedPopoutDraft, this._onPopoutDraft);
@@ -81,7 +81,9 @@ class DraftStore extends MailspringStore {
       });
     }
     ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey) => {
+      AppEnv.debugLog(`Undo Send received ${headerMessageId}`);
       if (AppEnv.isMainWindow()) {
+        AppEnv.debugLog(`Undo Send received ${headerMessageId} main window sending draftDeliveryCancelled`);
         Actions.draftDeliveryCancelled({ headerMessageId, actionKey });
       }
       this._onSendDraftCancelled({ headerMessageId });
@@ -304,7 +306,7 @@ class DraftStore extends MailspringStore {
   //   }
   // };
 
-  _onCancelDraft = ({ messages = [], source } = {}) => {
+  _onOutboxCancelDraft = ({ messages = [], source } = {}) => {
     const tasks = TaskFactory.tasksForCancellingOutboxDrafts({ messages, source });
     if (tasks && tasks.length > 0) {
       Actions.queueTasks(tasks);
@@ -328,7 +330,7 @@ class DraftStore extends MailspringStore {
         }
         const sending = this._draftsSending[message.headerMessageId];
         if (sending) {
-          this._onSendDraftCancelled({ headerMessageId: message.headerMessageId });
+          this._onSendDraftCancelled({ headerMessageId: message.headerMessageId, resumeSession: false });
         }
         const deleting = this._draftsDeleting[message.headerMessageId];
         if (deleting) {
@@ -381,6 +383,16 @@ class DraftStore extends MailspringStore {
         const session = this._draftSessions[headerMessageId];
         if (session) {
           session.setPopout(true);
+        } else {
+          AppEnv.debugLog(
+            `No session but draft is open in none main window, ${headerMessageId} from window ${windowLevel}`
+          );
+          this.sessionForClientId(headerMessageId).then(session => {
+            AppEnv.debugLog(
+              `Session created in main because none main window draft open ${headerMessageId}, window ${windowLevel}`
+            );
+            session.setPopout(true);
+          });
         }
       }
       Actions.draftOpenCountBroadcast({
@@ -1092,6 +1104,7 @@ class DraftStore extends MailspringStore {
     }
     this._startDraftFailingTimeout({ messages: [draft] });
     this._draftsSending[draft.headerMessageId] = true;
+    console.log('setting draftsSending to true');
     this._draftSendindTimeouts[draft.headerMessageId] = setTimeout(() => {
       this._cancelSendingDraftTimeout({
         headerMessageId: draft.headerMessageId,
@@ -1142,16 +1155,27 @@ class DraftStore extends MailspringStore {
           if (draft) {
             this._startSendingDraftTimeout({ draft: session.draft });
           } else {
-            AppEnv.reportWarning(new Error(`session no longer have draft for ${headerMessageId} at window: ${windowLevel}`));
+            AppEnv.reportWarning(
+              new Error(
+                `session no longer have draft for ${headerMessageId} at window: ${windowLevel}`
+              )
+            );
           }
+        } else {
+          // At this point it is thread
+          AppEnv.debugLog(`Thread window triggered send ${headerMessageId}`);
+          this._draftsSending[headerMessageId] = true;
         }
         this._doneWithSession(session, 'onSendingDraft');
       } else {
+        console.log('session not here');
         if (AppEnv.isMainWindow()) {
-          AppEnv.reportError(new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`));
+          AppEnv.reportError(
+            new Error(`session not found for ${headerMessageId} at window: ${windowLevel}`)
+          );
         }
       }
-      this.trigger({ headerMessageId});
+      this.trigger({ headerMessageId });
     }
   };
 
@@ -1266,12 +1290,12 @@ class DraftStore extends MailspringStore {
     // the new message text (and never old draft text or blank text) sending.
     await MessageBodyProcessor.updateCacheForMessage(draft);
 
-    // At this point the message UI enters the sending state and the composer is unmounted.
-    this.trigger({ headerMessageId });
     this._doneWithSession(session, 'onSendDraft');
     // Notify all windows that draft is being send out.
     Actions.sendingDraft({ headerMessageId, windowLevel: this._getCurrentWindowLevel() });
     this._startSendingDraftTimeout({ draft });
+    // At this point the message UI enters the sending state and the composer is unmounted.
+    this.trigger({ headerMessageId });
     // To be able to undo the send, we need to pretend that we added the send-later
     // metadata as it's own task so that the undo action is clear. We don't actually
     // want a separate SyncbackMetadataTask to be queued because a stray SyncbackDraftTask
