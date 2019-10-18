@@ -341,7 +341,7 @@ export default class Contact extends Model {
       const errMsg = `Error while calling Contact.fromString: string didn't contains only one email:${string}`;
       console.error(errMsg);
       const e = new Error(errMsg);
-      AppEnv.reportError(e);
+      AppEnv.logDebug(e);
       return null;
     }
     const email = match[0];
