@@ -1,0 +1,142 @@
+@import 'ui-variables';
+
+.icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 15px) {
+  -webkit-mask-image: url(@svg-url);
+  -webkit-mask-size: @bgSize;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: @bgColor;
+}
+
+.preferences-wrap {
+  .container-blocked {
+    width: 40%;
+    min-width: 430px;
+    margin: 0 auto;
+    ul {
+      border: 1px solid @border-color-primary;
+      padding: 36px 0 0;
+      min-height: 300px;
+
+      .checkmark {
+        height: 18px;
+        width: 18px;
+        border: none;
+        margin-right: 20px;
+        display: inline-block;
+        vertical-align: top;
+        cursor: pointer;
+        &:hover {
+          &:after {
+            display: block;
+            animation: growUp 0.4s;
+          }
+        }
+        &:after {
+          content: '';
+          height: 18px;
+          width: 18px;
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.15);
+          display: none;
+          margin-top: -18px;
+        }
+        &:before {
+          content: '';
+          display: block;
+          height: 18px;
+          width: 18px;
+          .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
+        }
+      }
+      .checkmark.selected {
+        &:before {
+          .icon-mixin('../static/icons/check.svg', @blue, 24px);
+        }
+      }
+      .checkmark.some-selected {
+        &:before {
+          .icon-mixin('../static/icons/some-selected.svg', @blue, 24px);
+        }
+      }
+
+      span.unblockBtn {
+        display: none;
+        color: @text-color-link;
+      }
+
+      .header {
+        height: 36px;
+        margin-top: -36px;
+        padding-left: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        line-height: 18px;
+        border-bottom: 1px solid @border-color-primary;
+
+        span {
+          flex: 1;
+        }
+
+        input {
+          width: 150px;
+          vertical-align: top;
+        }
+
+        span.unblockBtn.show {
+          display: inline-block;
+        }
+      }
+
+      li {
+        list-style: none;
+        padding-left: 32px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+
+        .checkmark {
+          display: none;
+        }
+
+        .avatar-icon {
+          height: 18px;
+          width: 18px;
+          border: none;
+          margin-right: 20px;
+          display: inline-block;
+          vertical-align: top;
+        }
+        &:hover {
+          background: @gray-lighter;
+          .checkmark {
+            display: inline-block;
+          }
+          .avatar-icon {
+            display: none;
+          }
+
+          span.unblockBtn {
+            display: inline-block;
+          }
+        }
+
+        &.selected {
+          .checkmark {
+            display: inline-block;
+          }
+          .avatar-icon {
+            display: none;
+          }
+        }
+
+        span {
+          font-weight: 600;
+          margin-right: 15px;
+        }
+      }
+    }
+  }
+}

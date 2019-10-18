@@ -157,6 +157,7 @@ load('DebugStore', 'flux/stores/debug-store');
 load('SystemInfoStore', 'flux/stores/system-info-store');
 load('CalendarStore', 'flux/stores/calendar-store');
 lazyLoad('ThreadStore', 'flux/stores/thread-store');
+lazyLoad('BlockedSendersStore', 'flux/stores/blocked-senders-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 

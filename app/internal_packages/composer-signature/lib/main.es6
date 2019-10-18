@@ -7,6 +7,7 @@ export function activate() {
   this.preferencesTab = new PreferencesUIStore.TabItem({
     tabId: 'Signatures',
     displayName: 'Signatures',
+    order: 65,
     componentClassFn: () => require('./preferences-signatures').default, // eslint-disable-line
   });
 
