@@ -1,6 +1,6 @@
 import React from 'react';
 import { ImageAttachmentItem } from 'mailspring-component-kit';
-import { AttachmentStore } from 'mailspring-exports';
+import { AttachmentStore, Actions } from 'mailspring-exports';
 import { isQuoteNode } from './base-block-plugins';
 
 const IMAGE_TYPE = 'image';
@@ -28,7 +28,8 @@ function ImageNode(props) {
       displayName={file.filename}
       onRemoveAttachment={() =>
         editor.change(change => {
-          change.removeNodeByKey(node.key);
+          Actions.removeAttachment(draft.headerMessageId, file);
+          return change.removeNodeByKey(node.key);
         })
       }
     />

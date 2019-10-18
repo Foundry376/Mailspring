@@ -353,7 +353,7 @@
       }
       .fail-message-text {
         color: @red;
-        font-weight: bold;;
+        font-weight: bold;
       }
     }
     &:hover .message-toolbar {
@@ -542,6 +542,11 @@
         flex-direction: row;
         line-height: 34px;
         font-weight: bold;
+        .minimizeButton {
+          display: inline-block;
+          margin: 0 0px 0 10px;
+          cursor: pointer;
+        }
         .cancelButton {
           cursor: pointer;
         }
@@ -554,6 +559,9 @@
         }
       }
     }
+  }
+  .progress-container.minimized {
+    width: 125px;
   }
 
   .fail-alert-container {

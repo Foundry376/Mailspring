@@ -65,7 +65,11 @@ class SearchMailboxPerspective extends MailboxPerspective {
           labelsToRemove: [CategoryStore.getInboxCategory(accountId)],
         });
       }
-      throw new Error('Unexpected destination returned from preferredRemovalDestination()');
+      AppEnv.reportError(
+        new Error('Unexpected destination returned from preferredRemovalDestination()'),
+        { errorData: { dest, account: account.id } },
+        { grabLogs: true }
+      );
     });
   }
 }

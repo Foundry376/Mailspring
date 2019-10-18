@@ -100,8 +100,9 @@ class ThreadTrashQuickAction extends React.Component {
       'trash'
     );
     const folders = this.props.thread && this.props.thread.folders;
+    const labels = this.props.thread && this.props.thread.labels;
     // if only one folder, and it's trash
-    if (folders && folders.length === 1) {
+    if (folders && folders.length === 1 && (!labels || labels.length === 0)) {
       const folder = folders[0];
       if (folder && folder.role === 'trash') {
         allowed = false;
@@ -213,7 +214,7 @@ class ThreadUnreadQuickAction extends React.Component {
   static propTypes = { thread: PropTypes.object };
 
   render() {
-    const imgName = this.props.thread.unread ? 'read.svg' : 'unread.svg';
+    const imgName = this.props.thread.unread ? 'unread.svg' : 'read.svg';
     const title = this.props.thread.unread ? 'Read' : 'Unread';
     return (
       <div

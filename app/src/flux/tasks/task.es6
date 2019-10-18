@@ -41,6 +41,11 @@ export default class Task extends Model {
     priority: Attributes.Number({
       modelKey: 'priority',
     }),
+    createdAt: Attributes.DateTime({
+      modelKey: 'createdAt',
+      loadFromColumn: true,
+      queryable: true,
+    })
   });
 
   // Public: Override the constructor to pass initial args to your Task and
@@ -54,6 +59,7 @@ export default class Task extends Model {
     super(data);
     this.status = this.status || Status.Local;
     this.id = this.id || generateTempId();
+    this.createdAt = Date.now();
   }
 
   // Public: Override to raise exceptions if your task is missing required

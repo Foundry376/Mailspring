@@ -462,10 +462,14 @@ class SanitizeTransformer {
       node.setAttribute('alt', '');
       const style = node.style;
       if (style && style.width) {
-        node.style.minWidth = style.width;
+        if (!style.width.toString().includes('%')) {
+          node.style.minWidth = style.width;
+        }
       }
       if (style && style.height) {
-        node.style.minHeight = style.height;
+        if (!style.height.toString().includes('%')) {
+          node.style.minHeight = style.height;
+        }
       }
     }
 

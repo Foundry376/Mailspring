@@ -434,7 +434,7 @@ class ListTabular extends Component {
       <div
         className={`list-container list-tabular ${className} ${hasEmptyBar} ${profileAvatarClass}`}
       >
-        {Toolbar ? <Toolbar /> : null}
+        {Toolbar ? <Toolbar position={'threadList'}/> : null}
         <ScrollRegion
           ref={cm => {
             this._scrollRegion = cm;

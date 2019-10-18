@@ -100,8 +100,8 @@ class SidebarSection {
     const items = [];
     const outboxCount = OutboxStore.count();
     const outboxOpts = {
-      counterStyle : outboxCount.failed > 0 ? 'critical' : 'alt'
-    }
+      counterStyle: outboxCount.failed > 0 ? 'critical' : 'alt',
+    };
     let outbox;
     if (accounts.length === 1) {
       outbox = SidebarItem.forOutbox([accounts[0].id], outboxOpts);
@@ -116,14 +116,12 @@ class SidebarSection {
     }
     if (accounts.length === 1) {
       const ret = this.standardSectionForAccount(accounts[0]);
-      if (outboxCount.failed > 0) {
+      if (outboxCount.total > 0) {
         ret.items.unshift(outbox);
-      } else if (outboxCount.total > 0) {
-        ret.items.push(outbox);
       }
       return ret;
     } else {
-      if (outboxCount.failed > 0) {
+      if (outboxCount.total > 0) {
         items.push(outbox);
       }
       accounts.forEach(acc => {
@@ -136,52 +134,8 @@ class SidebarSection {
         );
       });
     }
-    // const standardNames = [
-    //   // 'inbox',
-    //   // 'important',
-    //   'snoozed',
-    //   // 'sent',
-    //   // ['archive', 'all'],
-    //   // 'spam',
-    //   // 'trash',
-    // ];
-    //
-    // for (var names of standardNames) {
-    //   names = Array.isArray(names) ? names : [names];
-    //   const categories = CategoryStore.getCategoriesWithRoles(accounts, ...names);
-    //   if (categories.length === 0) {
-    //     continue;
-    //   }
-    //   //
-    //   // children = [];
-    //   // // eslint-disable-next-line
-    //   // accounts.forEach(acc => {
-    //   //   const cat = _.first(
-    //   //     _.compact(names.map(role => CategoryStore.getCategoryByRole(acc, role)))
-    //   //   );
-    //   //   if (!cat) {
-    //   //     return;
-    //   //   }
-    //   //   children.push(
-    //   //     SidebarItem.forCategories([cat], { name: acc.label, editable: false, deletable: false })
-    //   //   );
-    //   // });
-    //
-    //   items.push(SidebarItem.forCategories(categories, {editable: false, deletable: false }));
-    // }
 
     const accountIds = _.pluck(accounts, 'id');
-
-    // const starredItem = SidebarItem.forStarred(accountIds, {
-    //   children: accounts.map(acc => SidebarItem.forStarred([acc.id], { name: acc.label })),
-    // });
-    // const unreadItem = SidebarItem.forUnread(accountIds, {
-    //   children: accounts.map(acc => SidebarItem.forUnread([acc.id], { name: acc.label })),
-    // });
-    // const draftsItem = SidebarItem.forDrafts(accountIds, {
-    //   children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
-    // });
-    // const attchmentsMail = SidebarItem.forAttachments(accountIds);
     let folderItem = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
     if (folderItem) {
       items.unshift(folderItem);
@@ -198,10 +152,10 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
-    folderItem = SidebarItem.forSnoozed(accountIds, { displayName: 'Snoozed' });
-    if (folderItem) {
-      items.push(folderItem);
-    }
+    // folderItem = SidebarItem.forSnoozed(accountIds, { displayName: 'Snoozed' });
+    // if (folderItem) {
+    //   items.push(folderItem);
+    // }
     folderItem = SidebarItem.forSpam(accountIds, { dispalyName: 'Spam' });
     if (folderItem) {
       items.push(folderItem);
@@ -241,9 +195,6 @@ class SidebarSection {
           items.push(item);
         }
       });
-    if (outboxCount.failed === 0 && outboxCount.total > 0) {
-      items.push(outbox);
-    }
     return {
       title: 'MAILBOXES',
       items,

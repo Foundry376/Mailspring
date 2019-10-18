@@ -388,14 +388,17 @@ export default class DraftEditingSession extends MailspringStore {
   resumeSession() {
     this._registerListeners();
   }
-  closeSession({ cancelCommits = false } = {}) {
-    if(cancelCommits){
+  closeSession({ cancelCommits = false, reason = 'unknown' } = {}) {
+    if (cancelCommits) {
       this.changes.cancelCommit();
-    }else{
-      if(this.changes.isDirty() || this.needUpload){
+    } else {
+      if (this.changes.isDirty() || this.needUpload) {
         this.changeSetCommit('unload');
       }
     }
+    AppEnv.logDebug(
+      `closing session of ${this.headerMessageId} for ${reason} windowLevel: ${this.currentWindowLevel}`
+    );
     this.teardown();
   }
 

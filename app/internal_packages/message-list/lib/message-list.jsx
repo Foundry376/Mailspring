@@ -818,7 +818,7 @@ class MessageList extends React.Component {
           <InjectedComponentSet
             className="item-container"
             matching={{ role: 'MessageListToolbar' }}
-            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages }}
+            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages, position: 'messageList' }}
           />
         </div>
         <div className={messageListClass} id="message-list">

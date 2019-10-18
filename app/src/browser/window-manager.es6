@@ -9,14 +9,14 @@ const BUG_REPORT_WINDOW = 'bugreport';
 
 export default class WindowManager {
   constructor({
-                devMode,
-                safeMode,
-                specMode,
-                resourcePath,
-                configDirPath,
-                initializeInBackground,
-                config,
-              }) {
+    devMode,
+    safeMode,
+    specMode,
+    resourcePath,
+    configDirPath,
+    initializeInBackground,
+    config,
+  }) {
     this.initializeInBackground = initializeInBackground;
     this._windows = {};
 
@@ -132,9 +132,7 @@ export default class WindowManager {
 
     if (this._windows[win.windowKey]) {
       throw new Error(
-        `WindowManager: Attempting to register a new window for an existing windowKey (${
-          win.windowKey
-          }). Use 'get()' to retrieve the existing window instead.`,
+        `WindowManager: Attempting to register a new window for an existing windowKey (${win.windowKey}). Use 'get()' to retrieve the existing window instead.`
       );
     }
 
@@ -273,6 +271,7 @@ export default class WindowManager {
       resizable: false,
       width: 685,
       height: 700,
+      disableZoom: true,
     };
     coreWinOpts[WindowManager.BUG_REPORT_WINDOW] = {
       windowKey: WindowManager.BUG_REPORT_WINDOW,

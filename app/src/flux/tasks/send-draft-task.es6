@@ -60,11 +60,13 @@ export default class SendDraftTask extends Task {
     perRecipientBodies: Attributes.Object({
       modelKey: 'perRecipientBodies',
     }),
-
     silent: Attributes.Boolean({
       modelKey: 'silent',
     }),
   });
+  constructor(data){
+    super(data);
+  }
 
   get accountId() {
     return this.draft.accountId;
