@@ -5,7 +5,6 @@ import rimraf from 'rimraf';
 import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
-import { RetinaImg } from 'mailspring-component-kit';
 import { Actions } from 'mailspring-exports';
 
 class PreferencesGeneral extends React.Component {
@@ -34,24 +33,6 @@ class PreferencesGeneral extends React.Component {
     const app = require('electron').remote.app;
     app.relaunch();
     app.quit();
-  };
-
-  _renderActionIcon = idx => {
-    const iconName = AppEnv.config.get(`core.quickActions.quickAction${idx}`);
-    return (
-      <RetinaImg
-        name={`${iconName}.svg`}
-        style={{ width: 24, height: 24 }}
-        className={`action_icon action_${idx}`}
-        isIcon
-        mode={RetinaImg.Mode.ContentIsMask}
-      />
-    );
-  };
-
-  _renderActionColor = idx => {
-    const iconName = AppEnv.config.get(`core.swipeActions.${idx}`);
-    return <div className={`action_color color_${iconName}`}></div>;
   };
 
   _onCopySupportId = event => {
@@ -112,48 +93,6 @@ class PreferencesGeneral extends React.Component {
           keyName="Composing"
           keyPath="core.composing"
           config={this.props.config}
-        />
-
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.quickActions}
-          keyName="QuickActions"
-          label="Quick Actions"
-          keyPath="core.quickActions"
-          config={this.props.config}
-          injectedComponent={
-            <div className="quick-action-preview">
-              <RetinaImg
-                style={{ width: 500 }}
-                name={`prefs-quick-actions.png`}
-                mode={RetinaImg.Mode.ContentPreserve}
-              />
-              {this._renderActionIcon(1)}
-              {this._renderActionIcon(2)}
-              {this._renderActionIcon(3)}
-              {this._renderActionIcon(4)}
-            </div>
-          }
-        />
-
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.swipeActions}
-          keyName="SwipeActions"
-          label="Swipe Actions"
-          keyPath="core.swipeActions"
-          config={this.props.config}
-          injectedComponent={
-            <div className="swipe-action-preview">
-              <RetinaImg
-                style={{ width: 500 }}
-                name={`prefs-swipe-colors.png`}
-                mode={RetinaImg.Mode.ContentPreserve}
-              />
-              {this._renderActionColor('leftShortAction')}
-              {this._renderActionColor('leftLongAction')}
-              {this._renderActionColor('rightShortAction')}
-              {this._renderActionColor('rightLongAction')}
-            </div>
-          }
         />
 
         <SendingSection config={this.props.config} configSchema={this.props.configSchema} />
