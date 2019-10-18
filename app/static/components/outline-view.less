@@ -100,6 +100,27 @@
         background-color: @active;
       }
     }
+
+    .disclosure-triangle {
+      position: absolute;
+      right: 7px;
+      height: 100%;
+      justify-content: center;
+      background: inherit;
+      width: 30px;
+      margin-right: 0;
+      &.visible {
+        visibility: hidden;
+      }
+    }
+  
+    &:hover {
+      .disclosure-triangle {
+        &.visible {
+          visibility: visible;
+        }
+      }
+    }
   }
 
   .item {
@@ -141,6 +162,7 @@
       letter-spacing: 0.17px;
       line-height: 28px;
       white-space: nowrap;
+      flex: 1;
     }
     .item-count-box {
       order: 3;
