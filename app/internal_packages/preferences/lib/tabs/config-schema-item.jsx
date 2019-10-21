@@ -1,8 +1,9 @@
 import React from 'react';
+import fs from 'fs';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import _str from 'underscore.string';
-import { Menu, ButtonDropdown, RetinaImg } from 'mailspring-component-kit';
+import { Menu, ButtonDropdown } from 'mailspring-component-kit';
 
 /*
 This component renders input controls for a subtree of the Mailspring config-schema
@@ -45,7 +46,7 @@ class ConfigSchemaItem extends React.Component {
         `${QUICK_ACTION_KEY}1`,
         `${QUICK_ACTION_KEY}2`,
         `${QUICK_ACTION_KEY}3`,
-        `${QUICK_ACTION_KEY}4`
+        `${QUICK_ACTION_KEY}4`,
       ].filter(item => item !== this.props.keyPath);
       for (const key of quickActions) {
         if (this.props.config.get(key) === value) {
@@ -58,9 +59,25 @@ class ConfigSchemaItem extends React.Component {
     this._dropdownComponent.toggleDropdown();
   };
 
+  _openFloder = keyPath => {
+    const path = this.props.config.get(keyPath);
+    const openDirOption = {
+      properties: ['openDirectory'],
+    };
+    if (typeof path === 'string' && fs.existsSync(path) && fs.lstatSync(path).isDirectory()) {
+      openDirOption['defaultPath'] = path;
+    }
+
+    AppEnv.showOpenDialog(openDirOption, newPaths => {
+      if (newPaths && newPaths.length > 0) {
+        this.props.config.set(keyPath, newPaths[0]);
+      }
+    });
+  };
+
   _renderMenuItem = ([value, label]) => {
     return <span key={value}>{label}</span>;
-  }
+  };
 
   getSelectedMenuItem(items) {
     const selected = this.props.config.get(this.props.keyPath);
@@ -139,6 +156,15 @@ class ConfigSchemaItem extends React.Component {
       );
     } else if (this.props.configSchema.type === 'component' && this.props.injectedComponent) {
       return this.props.injectedComponent;
+    } else if (this.props.configSchema.type === 'floder') {
+      return (
+        <div className="item">
+          <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}:</label>
+          <button onClick={() => this._openFloder(this.props.keyPath)}>
+            {this.props.config.get(this.props.keyPath)}
+          </button>
+        </div>
+      );
     }
     return <span />;
   }

@@ -150,6 +150,10 @@ export default {
             default: true,
             title: 'Display thumbnails for attachments when available (Mac only)',
           },
+          downloadFolder: {
+            type: 'floder',
+            title: 'downloads go to',
+          },
         },
       },
       reading: {
@@ -416,7 +420,7 @@ export default {
             default: 5000,
             enum: [5000, 15000, 30000, 60000, 0],
             enumLabels: ['5 seconds', '15 seconds', '30 seconds', '60 seconds', 'Disable'],
-            title: 'After sending, enable undo for',
+            title: 'Undo time window',
           },
         },
       },

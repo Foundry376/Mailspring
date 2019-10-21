@@ -96,6 +96,13 @@ class PreferencesGeneral extends React.Component {
           keyPath="core.composing.spellcheckDefaultLanguage"
           config={this.props.config}
         />
+
+        <ConfigSchemaItem
+          configSchema={this.props.configSchema.properties.sending.properties.undoSend}
+          keyPath="core.sending.undoSend"
+          config={this.props.config}
+        />
+
         <h6>MESSAGES/CHAT</h6>
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.workspace.properties.chatEnable}
