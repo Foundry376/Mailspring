@@ -171,6 +171,21 @@
       color: @gray-light;
       margin-left: @padding-small-horizontal * 0.8;
       // box-shadow: 0 0.5px 0 @count-color, 0 -0.5px 0 @count-color, 0.5px 0 0 @count-color, -0.5px 0 0 @count-color;
+      text-align: right;
+      .count {
+        &::after {
+          content: '+';
+          display: inline;
+          visibility: hidden;
+          position: relative;
+          top: -1px;
+        }
+        &.over-99 {
+          &::after {
+            visibility: visible;
+          }
+        }
+      }
     }
     .item-count-box.critical-count{
       line-height: initial;

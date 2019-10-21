@@ -292,7 +292,11 @@ class OutlineViewItem extends Component {
   };
 
   _formatNumber(num) {
-    return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+    if (num > 99) {
+      return <span className="count over-99">99</span>;
+    }
+    return <span className="count">{num}</span>;
+    // return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
   }
 
   // Renderers
@@ -401,7 +405,7 @@ class OutlineViewItem extends Component {
       dropping: this.state.isDropping,
     });
     return (
-      <div>
+      <div className={item.classnames ? item.classnames : null}>
         <span className={containerClasses} ref={`${item.id}-span`}>
           {this._renderItem()}
           <DisclosureTriangle

@@ -51,13 +51,13 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat =>{
-        if (cat.role === 'all' && account.provider === 'gmail') {
-          return SidebarItem.forAllMail(cat, { editable: false, deletable: false });
-        } else {
-          return SidebarItem.forCategories([cat], { editable: false, deletable: false });
-        }
+    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat => {
+      if (cat.role === 'all' && account.provider === 'gmail') {
+        return SidebarItem.forAllMail(cat, { editable: false, deletable: false });
+      } else {
+        return SidebarItem.forCategories([cat], { editable: false, deletable: false });
       }
+    }
     );
     const unreadItem = SidebarItem.forUnread([account.id]);
     const starredItem = SidebarItem.forStarred([account.id], { displayName: 'Flagged' });
@@ -125,13 +125,12 @@ class SidebarSection {
         items.push(outbox);
       }
       accounts.forEach(acc => {
-        items.push(
-          SidebarItem.forSingleInbox([acc.id], {
-            name: acc.label,
-            threadTitleName: 'Inbox',
-            children: this.standardSectionForAccount(acc).items,
-          }),
-        );
+        let item = SidebarItem.forSingleInbox([acc.id], {
+          name: acc.label,
+          threadTitleName: 'Inbox',
+          children: this.standardSectionForAccount(acc).items,
+        });
+        items.push(item);
       });
     }
 
@@ -160,7 +159,7 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
-    folderItem = SidebarItem.forAllTrash(accountIds, { dispalyName: 'Spam' });
+    folderItem = SidebarItem.forAllTrash(accountIds, { dispalyName: 'Trash' });
     if (folderItem) {
       items.push(folderItem);
     }
