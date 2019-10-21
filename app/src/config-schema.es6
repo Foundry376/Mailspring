@@ -452,33 +452,6 @@ export default {
           },
         },
       },
-      emailNotifications: {
-        type: 'object',
-        properties: {
-          emailNotes: {
-            type: 'boolean',
-            default: true,
-            title: 'Show notifications for new unread emails',
-          },
-          countBadge: {
-            type: 'string',
-            default: 'unread',
-            enum: ['hide', 'unread', 'total'],
-            enumLabels: ['Hide Badge', 'Show Unread Count', 'Show Total Count'],
-            title: 'Dock badge count',
-          },
-        },
-      },
-      chatNotifications: {
-        type: 'object',
-        properties: {
-          chatNotes: {
-            type: 'boolean',
-            default: true,
-            title: 'Show notifications for new unread messages',
-          },
-        },
-      },
       appearance: {
         type: 'object',
         properties: {
