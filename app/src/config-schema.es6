@@ -83,23 +83,23 @@ export default {
           systemTray: {
             type: 'boolean',
             default: true,
-            title: 'Show icon in menu bar / system tray',
+            title: 'Show icon in menu bar',
             platforms: ['darwin', 'linux'],
           },
           showImportant: {
             type: 'boolean',
             default: true,
-            title: 'Show Gmail-style important markers (Gmail Only)',
+            title: 'Show important markers (Gmail Only)',
           },
           showUnreadForAllCategories: {
             type: 'boolean',
             default: true,
-            title: 'Show unread counts for all folders / labels',
+            title: 'Show unread counts for all folders',
           },
           chatEnable: {
             type: 'boolean',
             default: false,
-            title: 'enable chat feature',
+            title: 'Enable chat feature',
           },
           chatProdEnv: {
             type: 'boolean',
@@ -143,12 +143,12 @@ export default {
           openFolderAfterDownload: {
             type: 'boolean',
             default: false,
-            title: 'Open containing folder after downloading attachment',
+            title: 'Open containing folder after downloading attachments',
           },
           displayFilePreview: {
             type: 'boolean',
             default: true,
-            title: 'Display thumbnail previews for attachments when available. (macOS only)',
+            title: 'Display thumbnails for attachments when available (Mac only)',
           },
         },
       },
@@ -160,17 +160,17 @@ export default {
             default: 500,
             enum: [0, 500, 2000, -1],
             enumLabels: ['Instantly', 'After ½ Second', 'After 2 Seconds', 'Manually'],
-            title: 'When reading messages, mark as read',
+            title: 'When reading messages, mark as read after',
           },
           autoloadImages: {
             type: 'boolean',
             default: true,
-            title: 'Automatically load images in viewed messages',
+            title: 'Automatically load images in open emails',
           },
           backspaceDelete: {
             type: 'boolean',
             default: false,
-            title: 'Backspace / delete move messages to trash',
+            title: 'Use the backspace/delete key to move emails to the trash',
           },
           descendingOrderMessageList: {
             type: 'boolean',
@@ -426,7 +426,7 @@ export default {
           enabled: {
             type: 'boolean',
             default: true,
-            title: 'Show notifications for new unread messages',
+            title: 'Show notifications for new unread emails',
           },
           // enabledForRepeatedTrackingEvents: {
           //   type: 'boolean',
@@ -448,7 +448,7 @@ export default {
             default: 'unread',
             enum: ['hide', 'unread', 'total'],
             enumLabels: ['Hide Badge', 'Show Unread Count', 'Show Total Count'],
-            title: 'Show badge on the app icon',
+            title: 'Dock badge count',
           },
         },
       },

@@ -2,58 +2,48 @@ import { React, PropTypes, AccountStore, SendActionsStore } from 'mailspring-exp
 import { ListensToFluxStore } from 'mailspring-component-kit';
 import ConfigSchemaItem from './config-schema-item';
 
-function getExtendedSendingSchema(configSchema) {
+function getDefaultSendAccountSchema(configSchema) {
   const accounts = AccountStore.accounts();
   // const sendActions = SendActionsStore.sendActions()
   const defaultAccountIdForSend = {
     type: 'string',
-    title: 'Send new messages from',
+    title: 'Send new mail from',
     default: 'selected-mailbox',
     enum: ['selected-mailbox'].concat(accounts.map(acc => acc.id)),
     enumLabels: ['Account of selected mailbox'].concat(accounts.map(acc => acc.me().toString())),
   };
-  // TODO re-enable sending actions at some point
-  // const defaultSendType = {
-  //   'type': 'string',
-  //   'default': 'send',
-  //   'enum': sendActions.map(({configKey}) => configKey),
-  //   'enumLabels': sendActions.map(({title}) => title),
-  //   'title': "Default send behavior",
-  // }
 
   Object.assign(configSchema.properties.sending.properties, {
     defaultAccountIdForSend,
   });
   AppEnv.config.setDefaults('core.sending.defaultAccountIdForSend', 'selected-mailbox');
-  return configSchema.properties.sending;
+  return configSchema.properties.sending.properties.defaultAccountIdForSend;
 }
 
-function SendingSection(props) {
-  const { config, sendingConfigSchema } = props;
+function DefaultSendAccount(props) {
+  const { config, defaultSendAccount } = props;
 
   return (
     <ConfigSchemaItem
       config={config}
-      configSchema={sendingConfigSchema}
-      keyName="Sending"
-      keyPath="core.sending"
+      configSchema={defaultSendAccount}
+      keyPath="core.sending.defaultAccountIdForSend"
     />
   );
 }
 
-SendingSection.displayName = 'SendingSection';
-SendingSection.propTypes = {
+DefaultSendAccount.displayName = 'DefaultSendAccount';
+DefaultSendAccount.propTypes = {
   config: PropTypes.object,
-  configSchema: PropTypes.object,
-  sendingConfigSchema: PropTypes.object,
+  defaultSendAccount: PropTypes.object,
 };
 
-export default ListensToFluxStore(SendingSection, {
+export default ListensToFluxStore(DefaultSendAccount, {
   stores: [AccountStore, SendActionsStore],
   getStateFromStores(props) {
     const { configSchema } = props;
     return {
-      sendingConfigSchema: getExtendedSendingSchema(configSchema),
+      defaultSendAccount: getDefaultSendAccountSchema(configSchema),
     };
   },
 });

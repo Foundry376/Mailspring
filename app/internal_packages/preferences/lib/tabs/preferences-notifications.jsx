@@ -17,16 +17,17 @@ class Notifications extends React.Component {
   render() {
     return (
       <div className="container-notifications">
+        <h6>EMAIL NOTIFICATIONS</h6>
         <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.emailNotifications}
+          configSchema={this.props.configSchema.properties.notifications.properties.enabled}
           keyName="EMAIL NOTIFICATIONS"
-          keyPath="core.emailNotifications"
+          keyPath="core.notifications.enabled"
           config={this.props.config}
         />
         <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.chatNotifications}
-          keyName="CHAT NOTIFICATIONS"
-          keyPath="core.chatNotifications"
+          configSchema={this.props.configSchema.properties.notifications.properties.countBadge}
+          keyName="EMAIL NOTIFICATIONS"
+          keyPath="core.notifications.countBadge"
           config={this.props.config}
         />
       </div>

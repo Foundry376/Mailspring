@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import rimraf from 'rimraf';
 import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
-import SendingSection from './sending-section';
 import { Actions } from 'mailspring-exports';
 
 class PreferencesGeneral extends React.Component {
@@ -67,14 +66,8 @@ class PreferencesGeneral extends React.Component {
   render() {
     return (
       <div className="container-general">
+        <h6>EMAIL</h6>
         <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
-
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.notifications}
-          keyName="Notifications"
-          keyPath="core.notifications"
-          config={this.props.config}
-        />
 
         <div className="platform-note platform-linux-only">
           EdisonMail desktop notifications on Linux require Zenity. You may need to install it with
@@ -83,28 +76,41 @@ class PreferencesGeneral extends React.Component {
 
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.reading}
-          keyName="Reading"
+          keyName="READING & RESPONDING"
           keyPath="core.reading"
           config={this.props.config}
         />
 
         <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.composing}
+          configSchema={this.props.configSchema.properties.composing.properties.spellcheck}
           keyName="Composing"
-          keyPath="core.composing"
+          keyPath="core.composing.spellcheck"
           config={this.props.config}
         />
 
-        <SendingSection config={this.props.config} configSchema={this.props.configSchema} />
-
+        <ConfigSchemaItem
+          configSchema={
+            this.props.configSchema.properties.composing.properties.spellcheckDefaultLanguage
+          }
+          keyName="Composing"
+          keyPath="core.composing.spellcheckDefaultLanguage"
+          config={this.props.config}
+        />
+        <h6>MESSAGES/CHAT</h6>
+        <ConfigSchemaItem
+          configSchema={this.props.configSchema.properties.workspace.properties.chatEnable}
+          keyName="Attachments"
+          keyPath="core.workspace.chatEnable"
+          config={this.props.config}
+        />
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.attachments}
-          keyName="Attachments"
+          keyName="DOWNLOADS"
           keyPath="core.attachments"
           config={this.props.config}
         />
 
-        <div className="local-data">
+        {/* <div className="local-data">
           <h6>Local Data</h6>
           <div className="btn" onClick={this._onResetEmailCache}>
             Reset Email Cache
@@ -125,7 +131,7 @@ class PreferencesGeneral extends React.Component {
           <div className="btn" onClick={this._onCopySupportId}>
             {this.props.config.core.support.id}
           </div>
-        </section>
+        </section> */}
       </div>
     );
   }

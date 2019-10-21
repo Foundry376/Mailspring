@@ -4,6 +4,7 @@ import { DefaultClientHelper, SystemStartService } from 'mailspring-exports';
 import { shell } from 'electron';
 
 import ConfigSchemaItem from './config-schema-item';
+import DefaultSendingAccount from './default-send-account';
 
 class DefaultMailClientItem extends React.Component {
   constructor() {
@@ -49,7 +50,7 @@ class DefaultMailClientItem extends React.Component {
               shell.openExternal('https://foundry376.zendesk.com/hc/en-us/articles/115002281851')
             }
           >
-            Use Edison Mail as default mail client
+            Make Edison Mail your default mail client
           </div>
         </div>
       );
@@ -63,7 +64,7 @@ class DefaultMailClientItem extends React.Component {
           checked={this.state.defaultClient}
           onChange={this.toggleDefaultMailClient}
         />
-        <label htmlFor="default-client">Use Edison Mail as default mail client</label>
+        <label htmlFor="default-client">Make Edison Mail your default mail client</label>
       </div>
     );
   }
@@ -151,18 +152,6 @@ const WorkspaceSection = props => {
       />
 
       <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.chatEnable}
-        keyPath="chatEnable"
-        config={props.config}
-      />
-
-      <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.chatProdEnv}
-        keyPath="chatProdEnv"
-        config={props.config}
-      />
-
-      <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.use24HourClock}
         keyPath="core.workspace.use24HourClock"
         config={props.config}
@@ -173,9 +162,11 @@ const WorkspaceSection = props => {
         config={props.config}
       />
 
+      <DefaultSendingAccount config={props.config} configSchema={props.configSchema} />
+
       <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.interfaceZoom}
-        keyPath="core.workspace.interfaceZoom"
+        configSchema={props.configSchema.properties.sending.properties.sounds}
+        keyPath="core.sending.sounds"
         config={props.config}
       />
 
