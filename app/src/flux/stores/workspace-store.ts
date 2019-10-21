@@ -198,6 +198,12 @@ class WorkspaceStore extends MailspringStore {
     if (mode === this._preferredLayoutMode) {
       return;
     }
+
+    // Deselect the current thread - prevents the app from immediately marking a thread as
+    // read immediately when turning the reading panel on.
+    Actions.setFocus({ collection: 'thread', item: null });
+    Actions.setCursorPosition({ collection: 'thread', item: null });
+
     this._preferredLayoutMode = mode;
     AppEnv.config.set('core.workspace.mode', this._preferredLayoutMode);
     this._rebuildShortcuts();
