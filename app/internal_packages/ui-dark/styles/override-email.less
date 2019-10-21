@@ -87,6 +87,11 @@
     background: @active;
 }
 
+.outbox-list .list-item:hover .list-column-HoverActions .inner,
+.thread-list .list-item:hover .list-column-HoverActions .inner {
+  background-image: -webkit-linear-gradient(left, fade(@list-bg, 0%) 0%, @list-bg 50%, @list-bg 100%);
+}
+
 // composer start
 .layout-mode-popout:not(.thread-popout) {
   background-color: @cards;

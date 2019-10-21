@@ -769,7 +769,7 @@ class MessageStore extends MailspringStore {
   _onPopoutThread(thread) {
     this._setPopout(true);
     return AppEnv.newWindow({
-      title: false, // MessageList already displays the thread subject
+      title: thread.subject,
       hidden: false,
       additionalChannelParam: 'thread',
       windowKey: `thread-${thread.id}`,
