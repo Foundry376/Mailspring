@@ -1,7 +1,18 @@
 # Mailspring Changelog
 
-### 1.7.2 (TBD)
+### 1.7.2 (10/22/2019)
 
+Fixes:
+
+- Resolves some scenarios that caused calendar and contact sync to crash during service autodiscovery, unnecessarily stopping email sync.
+
+- You can now add Instagram handles to your email signatures (Thanks @piotrzarycki!)
+
+- When switching layout modes, Mailspring clears the selection to avoid an immediate mark-as-read #1679
+
+- On macOS, you can now use the Ctrl key as a modifier for shortcuts defined from the Preferences > Shortcuts screen. (#1678)
+
+- The app's licenses file can now be viewed on Windows.
 
 ### 1.7.1 (10/14/2019)
 
