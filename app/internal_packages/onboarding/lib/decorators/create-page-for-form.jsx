@@ -33,10 +33,6 @@ const CreatePageForForm = FormComponent => {
       this._applyFocus();
     }
 
-    componentDidUpdate() {
-      this._applyFocus();
-    }
-
     _applyFocus() {
       const anyInputFocused = document.activeElement && document.activeElement.nodeName === 'INPUT';
       if (anyInputFocused) {
