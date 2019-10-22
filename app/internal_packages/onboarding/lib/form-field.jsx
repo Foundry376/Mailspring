@@ -39,6 +39,7 @@ class FormField extends React.Component {
           value={val || ''}
           onKeyPress={props.onFieldKeyPress}
           onChange={props.onFieldChange}
+          onBlur={props.onFieldChange}
         />
         {
           props.type === 'password' && (
