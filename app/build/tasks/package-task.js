@@ -202,6 +202,7 @@ module.exports = grunt => {
       osxNotarize: {
         appleId: process.env.APPLE_ID,
         appleIdPassword: process.env.APPLE_ID_PASSWORD,
+        ascProvider: process.env.APPLE_ID_ASC_PROVIDER,
       },
       win32metadata: {
         CompanyName: 'Foundry 376, LLC',
