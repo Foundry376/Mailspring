@@ -57,7 +57,7 @@
     "devtron": "^1.4.0",
     "electron": "4.2.2",
     "electron-installer-dmg": "0.2.x",
-    "electron-packager": "13.0.x",
+    "electron-packager": "14.0.x",
     "electron-winstaller": "2.x.x",
     "eslint": "^5.15.0",
     "eslint-config-prettier": "^4.1.0",

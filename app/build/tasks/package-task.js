@@ -199,6 +199,10 @@ module.exports = grunt => {
        * setup-mac-keychain-task needs to be run first
        */
       osxSign: !!process.env.SIGN_BUILD,
+      osxNotarize: {
+        appleId: process.env.APPLE_ID,
+        appleIdPassword: process.env.APPLE_ID_PASSWORD,
+      },
       win32metadata: {
         CompanyName: 'Foundry 376, LLC',
         FileDescription: 'Mailspring',
