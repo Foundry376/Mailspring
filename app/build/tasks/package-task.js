@@ -146,6 +146,7 @@ module.exports = grunt => {
             '**/vendor/**',
             'examples/**',
             '**/src/tasks/**',
+            '**/static/all_licenses.html',
             '**/node_modules/spellchecker/**',
             '**/node_modules/windows-shortcuts/**',
           ].join(',') +
