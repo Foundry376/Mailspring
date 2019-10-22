@@ -131,7 +131,7 @@ export default class PreferencesKeymaps extends React.Component {
           </p>
           {displayedKeybindings.map(this._renderBindingsSection)}
         </section>
-        <section>
+        {/* <section>
           <h2>Customization</h2>
           <p>
             Click shortcuts above to edit them. For even more control, you can edit the shortcuts
@@ -140,7 +140,7 @@ export default class PreferencesKeymaps extends React.Component {
           <button className="btn" onClick={this._onShowUserKeymaps}>
             Edit custom shortcuts
           </button>
-        </section>
+        </section> */}
       </div>
     );
   }

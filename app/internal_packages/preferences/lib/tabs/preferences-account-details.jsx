@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { shell, ipcRenderer } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
 import { RegExpUtils, KeyManager, Account } from 'mailspring-exports';
+import PreferencesCategory from './preferences-category';
 
 class AutoaddressControl extends Component {
   render() {
@@ -366,6 +367,7 @@ class PreferencesAccountDetails extends Component {
           onDeleteItem={this._onAccountAliasRemoved}
         />
         {this._renderDefaultAliasSelector(account)}
+        <PreferencesCategory account={account} />
         <h3>Advance Settings</h3>
         {this._renderMailFetchRange()}
         {this._renderMailFetchInterval()}

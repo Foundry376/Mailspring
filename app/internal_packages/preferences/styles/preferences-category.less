@@ -1,0 +1,44 @@
+@import 'ui-variables';
+
+.account-section-title {
+  border-bottom: 1px solid @border-color-divider;
+  margin: @padding-large-vertical * 1.5 0;
+}
+.category-picker-dropdown.readonly {
+  img.content-mask {
+    background-color: @gray;
+  }
+}
+
+input.search {
+  border: 1px solid darken(@background-secondary, 10%);
+  border-radius: 3px;
+  background-color: @background-primary;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.05), 0 1px 0 rgba(0, 0, 0, 0.05);
+  color: @text-color;
+  padding-left: 0;
+  background-repeat: no-repeat;
+  background-image: url('../static/images/search/searchloupe@2x.png');
+  background-size: 15px 15px;
+  background-position: 7px 4px;
+  text-indent: 31px;
+}
+
+.role-section {
+  display: flex;
+  &.inbox {
+    display: none;
+  }
+
+  .col-left {
+    color: @text-color-very-subtle;
+    text-align: right;
+    flex: 1;
+    margin-right: 20px;
+  }
+  .col-right {
+    text-align: left;
+    margin-bottom: @padding-base-vertical;
+    flex: 1;
+  }
+}
