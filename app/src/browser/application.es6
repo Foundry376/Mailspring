@@ -1,6 +1,6 @@
 /* eslint global-require: "off" */
 
-import { BrowserWindow, Menu, app, ipcMain, dialog, systemPreferences } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
 
 import fs from 'fs-plus';
 import rimraf from 'rimraf';
@@ -34,11 +34,6 @@ let clipboard = null;
 //
 export default class Application extends EventEmitter {
   async start(options) {
-    // subscribe event of dark mode change
-    systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-      // console.log(`***dark mode: ${systemPreferences.isDarkMode()}`);
-    });
-
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
     //BrowserWindow.addDevToolsExtension('~/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/3.4.2_0');
     //BrowserWindow.addDevToolsExtension('/Users/xingmingcao/Library/Application Support/Google/Chrome/Default/Extensions/lmhkpmbekcpmknklioeibfkpmmfibljd/2.15.5_0');
@@ -436,16 +431,16 @@ export default class Application extends EventEmitter {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function() {
+      output.on('close', function () {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function() {
+      output.on('end', function () {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function(err) {
+      archive.on('warning', function (err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -454,7 +449,7 @@ export default class Application extends EventEmitter {
           reject(err);
         }
       });
-      archive.on('error', function(err) {
+      archive.on('error', function (err) {
         output.close();
         console.log(err);
         reject(err);

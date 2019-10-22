@@ -169,9 +169,26 @@ export default [
       }
       const mark = getMarkOfType(change.value, LINK_TYPE);
       if (mark) {
-        change.removeMark(mark);
-      } else{
-
+        const oldEndOffset = change.value.endOffset;
+        change.extendToEndOfInline();
+        const newEndOffset = change.value.endOffset;
+        const isAtEndLink = newEndOffset === oldEndOffset;
+        change.moveEndOffsetTo(oldEndOffset);
+        if (['Space', ' '].includes(event.key)) {
+          if(isAtEndLink){
+            change.removeMark(mark);
+          }
+          return;
+        } else if (!isAtEndLink) {
+          change.removeMark(mark);
+        } else {
+          if (['Enter', 'Return'].includes(event.key)) {
+            change.splitBlock();
+            change.removeMark(mark);
+            // const block = Block.create({ type: BLOCK_CONFIG.div.type, node: Text.create({ text: '' }) });
+            // change.insertBlock(block);
+          }
+        }
       }
     },
     renderMark,

@@ -157,6 +157,14 @@ export default class AppEnvConstructor {
     });
     this.initSupportInfo();
     this.initTaskErrorCounter();
+
+    // subscribe event of dark mode change
+    const { systemPreferences } = remote;
+    if (this.isMainWindow()) {
+      systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+        AppEnv.themes.setActiveTheme(systemPreferences.isDarkMode() ? 'ui-dark' : 'ui-light');
+      });
+    }
   }
   sendSyncMailNow(accountId) {
     if (navigator.onLine) {
@@ -1075,7 +1083,7 @@ export default class AppEnvConstructor {
             message: title,
             detail: message,
           },
-          () => {}
+          () => { }
         );
       }
       return remote.dialog.showMessageBox(winToShow, {
@@ -1218,15 +1226,15 @@ export default class AppEnvConstructor {
             const pass = new stream.PassThrough();
             pass.end(img.toPNG());
             pass.pipe(output);
-            output.on('close', function() {
+            output.on('close', function () {
               output.close();
               resolve(outputPath);
             });
-            output.on('end', function() {
+            output.on('end', function () {
               output.close();
               reject();
             });
-            output.on('error', function() {
+            output.on('error', function () {
               output.close();
               reject();
             });
@@ -1250,16 +1258,16 @@ export default class AppEnvConstructor {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function() {
+      output.on('close', function () {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function() {
+      output.on('end', function () {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function(err) {
+      archive.on('warning', function (err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -1268,7 +1276,7 @@ export default class AppEnvConstructor {
           reject(err);
         }
       });
-      archive.on('error', function(err) {
+      archive.on('error', function (err) {
         output.close();
         console.log(err);
         reject(err);
