@@ -320,11 +320,11 @@ body.platform-win32 {
   }
 
   .message-item-wrap {
-    transition: height 0.1s;
+    transition: height 0.1s, opacity 0.1s;
     position: relative;
     max-width: @message-max-width;
     margin: 0 auto;
-    border-bottom: 1px solid @border-color-divider;
+    // border-bottom: 1px solid @border-color-divider;
     &:not(.draft):nth-last-child(2) {
       border-bottom: none;
     }
@@ -350,15 +350,14 @@ body.platform-win32 {
     }
 
     &.collapsed {
+      opacity: 0.6;
       .message-item-white-wrap {
         background-color: @background-primary;
-        // padding-top: 19px;
-        // padding-bottom: 8px;
         margin-bottom: 0;
       }
 
       & + .minified-bundle {
-        // margin-top: -@message-spacing;
+        opacity: 0.6;
       }
     }
 
@@ -438,7 +437,7 @@ body.platform-win32 {
   .minified-bundle {
     position: relative;
     height: 60px;
-    border-bottom: 1px solid @border-color-divider;
+    // border-bottom: 1px solid @border-color-divider;
     .num-messages {
       color: @text-color-very-subtle;
       padding-left: 70px;
