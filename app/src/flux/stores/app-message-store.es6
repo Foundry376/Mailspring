@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 import uuid from 'uuid';
-const silentTTL = 60000;
+const silentTTL = 300000;
 class AppMessageStore extends MailspringStore {
   static priority = {
     critical: 0,
