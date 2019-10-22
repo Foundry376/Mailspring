@@ -376,7 +376,7 @@ class OutlineViewItem extends Component {
         onDragStateChange={this._onDragStateChange}
       >
         {this._renderCount()}
-        {/* {this._renderIcon()} */}
+        {this._renderIcon()}
         {this._renderItemContent()}
       </DropZone>
     );
