@@ -1,6 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Utils, Actions, AttachmentStore, MessageStore, EmailAvatar, CalendarStore, Message } from 'mailspring-exports';
+import {
+  Utils,
+  Actions,
+  AttachmentStore,
+  MessageStore,
+  EmailAvatar,
+  CalendarStore,
+  Message,
+  WorkspaceStore,
+  FocusedContactsStore
+} from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -268,13 +278,15 @@ export default class MessageItem extends React.Component {
           <MessageControls thread={thread} message={message} messages={messages} threadPopedOut={this.props.threadPopedOut} hideControls={this.props.isOutboxDraft} />
         </div>
         <div className="row">
-          <EmailAvatar
-            key="thread-avatar"
-            message={message}
-            messagePending={
-              pending || Message.compareMessageState(message.state, Message.messageState.failing)
-            }
-          />
+          <span onClick={this.openMessageListSidebar}>
+            <EmailAvatar
+              key="thread-avatar"
+              message={message}
+              messagePending={
+                pending || Message.compareMessageState(message.state, Message.messageState.failing)
+              }
+            />
+          </span>
           <div>
             <MessageParticipants
               from={message.from}
@@ -349,6 +361,29 @@ export default class MessageItem extends React.Component {
     );
   }
 
+  openMessageListSidebar = e => {
+    // Actions.focusContact(contact);
+    const column = WorkspaceStore.Location.MessageListSidebar;
+    const { message: { from } } = this.props;
+
+    const contact = from && from.length ? from[0] : null;
+    const focusedContact = FocusedContactsStore.focusedContact();
+    if (contact) {
+      Actions.focusContact(contact);
+    }
+    if (WorkspaceStore.isLocationHidden(column)) {
+      Actions.showWorkspaceLocation(column);
+    } else {
+      const focusedContact = FocusedContactsStore.focusedContact();
+      if (contact && focusedContact && contact.email === focusedContact.email) {
+        Actions.hideWorkspaceLocation(column);
+      }
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    return false;
+  }
+
   _renderCollapsed() {
     const { message: { snippet, from, files, date, draft }, className } = this.props;
 
@@ -360,10 +395,12 @@ export default class MessageItem extends React.Component {
       <div className={className} onClick={this._onToggleCollapsed}>
         <div className="message-item-white-wrap">
           <div className="message-item-area">
-            <EmailAvatar
-              key="thread-avatar"
-              message={this.props.message}
-            />
+            <span onClick={this.openMessageListSidebar}>
+              <EmailAvatar
+                key="thread-avatar"
+                message={this.props.message}
+              />
+            </span>
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <div className="row">
                 <div className="collapsed-from">
