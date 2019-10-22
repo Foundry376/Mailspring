@@ -112,9 +112,9 @@ class EditableList extends Component {
     className: '',
     createInputProps: {},
     showEditIcon: false,
-    onDeleteItem: () => { },
-    onItemEdited: () => { },
-    onItemCreated: () => { },
+    onDeleteItem: () => {},
+    onItemEdited: () => {},
+    onItemCreated: () => {},
   };
 
   constructor(props) {
@@ -166,7 +166,7 @@ class EditableList extends Component {
     this._setStateAndFocus({ creatingItem: false }, callback);
   };
 
-  _setStateAndFocus = (state, callback = () => { }) => {
+  _setStateAndFocus = (state, callback = () => {}) => {
     this.setState(state, () => {
       this._focusSelf();
       callback();
@@ -261,14 +261,15 @@ class EditableList extends Component {
     }
   };
 
-  _onDeleteItem = () => {
+  _onDeleteItem = delItem => {
     const selectedItem = this._getSelectedItem();
-    const index = this.props.items.indexOf(selectedItem);
-    if (selectedItem) {
-      // Move the selection 1 up or down after deleting
-      const newIndex = index === 0 ? index + 1 : index - 1;
-      this.props.onDeleteItem(selectedItem, index);
-      if (this.props.items[newIndex]) {
+    const selectedIndex = this.props.items.indexOf(selectedItem);
+    const delIndex = this.props.items.indexOf(delItem);
+    if (delItem) {
+      this.props.onDeleteItem(delItem, delIndex);
+      if (selectedIndex === delIndex) {
+        // Move the selection 1 up or down after deleting
+        const newIndex = delIndex === 0 ? delIndex + 1 : delIndex - 1;
         this._selectItem(this.props.items[newIndex], newIndex);
       }
     }
@@ -426,22 +427,8 @@ class EditableList extends Component {
           mode={RetinaImg.Mode.ContentIsMask}
           onClick={_.partial(onEdit, _, item, idx)}
         />
-      </div>
-    );
-  };
-
-  _renderButtons = () => {
-    const deleteClasses = classNames({
-      'btn-editable-list': true,
-      'btn-disabled': !this._getSelectedItem(),
-    });
-    return (
-      <div className="buttons-wrapper">
-        <div className="btn-editable-list" onClick={this._onCreateItem}>
-          <span>+</span>
-        </div>
-        <div className={deleteClasses} onClick={this._onDeleteItem}>
-          <span>-</span>
+        <div className="del-icon" onClick={() => this._onDeleteItem(item)}>
+          X
         </div>
       </div>
     );
@@ -482,7 +469,9 @@ class EditableList extends Component {
         >
           {items}
         </ScrollRegion>
-        {this._renderButtons()}
+        <div className="buttons-wrapper" onClick={this._onCreateItem}>
+          + Add Account
+        </div>
       </KeyCommandsRegion>
     );
   }

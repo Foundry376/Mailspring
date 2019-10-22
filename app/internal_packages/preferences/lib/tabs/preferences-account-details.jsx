@@ -21,7 +21,8 @@ class AutoaddressControl extends Component {
           >
             <option value="cc">CC</option>
             <option value="bcc">BCC</option>
-          </select>:
+          </select>
+          :
         </div>
         <input
           type="text"
@@ -100,7 +101,7 @@ class PreferencesAccountDetails extends Component {
     this._setState({ autoaddress });
   };
   _onAccountLabelUpdated = event => {
-    this._setState({ label: event.target.value});
+    this._setState({ label: event.target.value });
   };
   _onAccountNameUpdated = event => {
     this._setState({ name: event.target.value });
@@ -209,7 +210,7 @@ class PreferencesAccountDetails extends Component {
         return null;
     }
   }
-  _onUpdateMailSyncSettings = ({value, key, defaultData = {}}) => {
+  _onUpdateMailSyncSettings = ({ value, key, defaultData = {} }) => {
     try {
       const defalutMailsyncSettings = AppEnv.config.get('core.mailsync') || defaultData;
       let mailsyncSettings = this.state.account.mailsync;
@@ -274,21 +275,23 @@ class PreferencesAccountDetails extends Component {
         fetchEmailInterval: 1,
       };
     }
-    return <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
-      <span style={{width: '120px'}}>Oldest mail to fetch</span>
-      <select
-        style={{ marginTop: 0 }}
-        value={mailsyncSettings.fetchEmailRange.toString()}
-        onChange={this._onFetchEmailRangeUpdate}
-        onBlur={this._saveChanges}
-      >
-        <option value='7'>Within 7 days</option>
-        <option value='30'>Within 30 days</option>
-        <option value='90'>Within 3 month</option>
-        <option value='365'>Within 1 year</option>
-        <option value='-1'>All</option>
-      </select>
-    </div>;
+    return (
+      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
+        <span style={{ width: '120px' }}>Oldest mail to fetch</span>
+        <select
+          style={{ marginTop: 0 }}
+          value={mailsyncSettings.fetchEmailRange.toString()}
+          onChange={this._onFetchEmailRangeUpdate}
+          onBlur={this._saveChanges}
+        >
+          <option value="7">Within 7 days</option>
+          <option value="30">Within 30 days</option>
+          <option value="90">Within 3 month</option>
+          <option value="365">Within 1 year</option>
+          <option value="-1">All</option>
+        </select>
+      </div>
+    );
   }
 
   _renderMailFetchInterval() {
@@ -306,19 +309,21 @@ class PreferencesAccountDetails extends Component {
         fetchEmailInterval: 1,
       };
     }
-    return <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
-      <span style={{width: '120px'}}>Fetch mail interval</span>
-      <select
-        style={{ marginTop: 0 }}
-        value={mailsyncSettings.fetchEmailInterval.toString()}
-        onChange={this._onFetchEmailIntervalUpdate}
-        onBlur={this._saveChanges}
-      >
-        <option value='1'>Every minute</option>
-        <option value='3'>Every 3 minutes</option>
-        <option value='5'>Every 5 minutes</option>
-      </select>
-    </div>;
+    return (
+      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
+        <span style={{ width: '120px' }}>Fetch mail interval</span>
+        <select
+          style={{ marginTop: 0 }}
+          value={mailsyncSettings.fetchEmailInterval.toString()}
+          onChange={this._onFetchEmailIntervalUpdate}
+          onBlur={this._saveChanges}
+        >
+          <option value="1">Every minute</option>
+          <option value="3">Every 3 minutes</option>
+          <option value="5">Every 5 minutes</option>
+        </select>
+      </div>
+    );
   }
 
   render() {
@@ -328,7 +333,7 @@ class PreferencesAccountDetails extends Component {
     return (
       <div className="account-details">
         {this._renderSyncErrorDetails()}
-        <h3>Account Label</h3>
+        <h3>ACCOUNT DETAILS</h3>
         <input
           type="text"
           value={account.label}
@@ -342,14 +347,6 @@ class PreferencesAccountDetails extends Component {
           onBlur={this._saveChanges}
           onChange={this._onAccountNameUpdated}
         />
-        <h3>Account Settings</h3>
-        <div className="btn" onClick={this._onReconnect}>
-          {account.provider === 'imap' ? 'Update Connection Settings...' : 'Re-authenticate...'}
-        </div>
-        <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
-          Rebuild Cache...
-        </div>
-        <h3>Automatic CC / BCC</h3>
         <AutoaddressControl
           autoaddress={account.autoaddress}
           onChange={this._onAccountAutoaddressUpdated}
@@ -372,6 +369,12 @@ class PreferencesAccountDetails extends Component {
         <h3>Advance Settings</h3>
         {this._renderMailFetchRange()}
         {this._renderMailFetchInterval()}
+        <div className="btn" onClick={this._onReconnect}>
+          {account.provider === 'imap' ? 'Update Connection Settings...' : 'Re-authenticate...'}
+        </div>
+        <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
+          Rebuild Cache...
+        </div>
       </div>
     );
   }
