@@ -168,17 +168,50 @@ const CreatePageForForm = FormComponent => {
             if (/smtp/i.test(err.message)) {
               errorFieldNames.push('settings.smtp_username');
               errorFieldNames.push('settings.smtp_password');
-            } else if (/certificate/i.test(err.message)){
-              errorFieldNames.push('settings.imap_allow_insecure_ssl');
-              errorFieldNames.push('settings.smtp_allow_insecure_ssl');
             } else {
               errorFieldNames.push('settings.imap_username');
               errorFieldNames.push('settings.imap_password');
             }
-          }
-          if (this.state.account && this.state.account.settings) {
-            account.settings.imap_allow_insecure_ssl = true;
-            account.settings.smtp_allow_insecure_ssl = true;
+          } else if (/certificate/i.test(err.message)){
+            errorFieldNames.push('settings.imap_allow_insecure_ssl');
+            errorFieldNames.push('settings.smtp_allow_insecure_ssl');
+            remote.dialog.showMessageBox(
+              remote.getCurrentWindow(),
+              {
+                type: 'warning',
+                buttons: ['Go Back', 'Continue'],
+                message: 'Certificate Error',
+                detail: `The TLS certificate for this server seems to be incorrect. Do you want to continue?`,
+              },
+              response => {
+                if (response === 1 && this.state.account && this.state.account.settings) {
+                  account.settings.imap_allow_insecure_ssl = true;
+                  account.settings.smtp_allow_insecure_ssl = true;
+                  this.setState({ account, submitting: true }, () => {
+                    this.onConnect(this.state.account);
+                  });
+                } else {
+                  account.settings.imap_allow_insecure_ssl = false;
+                  account.settings.smtp_allow_insecure_ssl = false;
+                  const errorAccount = Object.assign({}, account);
+                  delete errorAccount.name;
+                  delete errorAccount.emailAddress;
+                  delete errorAccount.label;
+                  delete errorAccount.autoaddress;
+                  delete errorAccount.aliases;
+                  AppEnv.reportError(err, { account: errorAccount });
+                  this.setState({
+                    errorMessage: err.message,
+                    errorStatusCode: err.statusCode,
+                    errorLog: err.rawLog,
+                    errorFieldNames,
+                    account,
+                    submitting: false,
+                  });
+                }
+              }
+            );
+            return;
           }
           const errorAccount = Object.assign({}, account);
           delete errorAccount.name;
@@ -186,12 +219,6 @@ const CreatePageForForm = FormComponent => {
           delete errorAccount.label;
           delete errorAccount.autoaddress;
           delete errorAccount.aliases;
-          // if(errorAccount.settings){
-          //   delete errorAccount.settings.imap_username;
-          //   delete errorAccount.settings.imap_password;
-          //   delete errorAccount.settings.smtp_username;
-          //   delete errorAccount.settings.smtp_password;
-          // }
           AppEnv.reportError(err, { account: errorAccount });
 
           this.setState({
