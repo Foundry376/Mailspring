@@ -69,25 +69,23 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     fs.readFile(AttachmentStore.pathForFile(file), async (err, data) => {
       if (err || !this._mounted) return;
 
-      const icsData = ICAL.parse(data.toString());
-      const icsRoot = new ICAL.Component(icsData);
-      const icsEvent = new ICAL.Event(icsRoot.getFirstSubcomponent('vevent'));
+      const { event, root } = CalendarUtils.parseICSString(data.toString());
 
       this.setState({
-        icsEvent: icsEvent,
-        icsMethod: (icsRoot.getFirstPropertyValue('method') || 'request').toLowerCase(),
+        icsEvent: event,
+        icsMethod: (root.getFirstPropertyValue('method') || 'request').toLowerCase(),
         icsOriginalData: data.toString(),
       });
 
       this._subscription = Rx.Observable.fromQuery(
         DatabaseStore.findBy<Event>(Event, {
-          icsuid: icsEvent.uid,
+          icsuid: event.uid,
           accountId: message.accountId,
         })
       ).subscribe(calEvent => {
         if (!this._mounted || !calEvent) return;
         this.setState({
-          icsEvent: CalendarUtils.eventFromICSString(calEvent.ics),
+          icsEvent: CalendarUtils.parseICSString(calEvent.ics).event,
         });
       });
     });

@@ -1,5 +1,9 @@
-import ICAL from 'ical.js';
 import { AccountStore } from 'mailspring-exports';
+
+type ICALComponent = typeof import('ical.js').Component;
+type ICALEvent = typeof import('ical.js').Event;
+
+let ICAL: typeof import('ical.js') = null;
 
 export type ICSParticipantStatus =
   | 'NEEDS-ACTION'
@@ -14,13 +18,38 @@ export interface ICSParticipant {
   email: string | null;
   role: 'CHAIR' | 'REQ-PARTICIPANT' | 'OPT-PARTICIPANT' | 'NON-PARTICIPANT';
   status: ICSParticipantStatus;
-  component: ICAL.Component;
+  component: ICALComponent;
 }
 
-export function eventFromICSString(ics: string) {
+function fixJCalDatesWithoutTimes(jCal) {
+  jCal[1].forEach(property => {
+    if (
+      property[0] === 'dtstart' ||
+      property[0] === 'dtend' ||
+      property[0] === 'exdate' ||
+      property[0] === 'rdate'
+    ) {
+      if (!property[1].value && property[2] === 'date-time' && /T::$/.test(property[3])) {
+        property[2] = 'date';
+        property[3] = property[3].replace(/T::$/, '');
+      }
+    }
+  });
+  jCal[2].forEach(fixJCalDatesWithoutTimes);
+}
+
+export function parseICSString(ics: string) {
+  if (!ICAL) {
+    ICAL = require('ical.js');
+  }
   const jcalData = ICAL.parse(ics);
-  const comp = new ICAL.Component(jcalData);
-  return new ICAL.Event(comp.name === 'vevent' ? comp : comp.getFirstSubcomponent('vevent'));
+
+  // workaround https://github.com/mozilla-comm/ical.js/issues/186
+  fixJCalDatesWithoutTimes(jcalData);
+
+  const root = new ICAL.Component(jcalData);
+  const event = new ICAL.Event(root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent'));
+  return { root, event };
 }
 
 export function emailFromParticipantURI(uri: string) {
@@ -33,7 +62,7 @@ export function emailFromParticipantURI(uri: string) {
   return null;
 }
 
-export function cleanParticipants(icsEvent: ICAL.Event): ICSParticipant[] {
+export function cleanParticipants(icsEvent: ICALEvent): ICSParticipant[] {
   return icsEvent.attendees.map(a => ({
     component: a,
     status: a.getParameter('partstat'),
@@ -46,7 +75,7 @@ export function cleanParticipants(icsEvent: ICAL.Event): ICSParticipant[] {
 }
 
 export function selfParticipant(
-  icsEvent: ICAL.Event,
+  icsEvent: ICALEvent,
   accountId: string
 ): ICSParticipant | undefined {
   const me = cleanParticipants(icsEvent).find(a => {

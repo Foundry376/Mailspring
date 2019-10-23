@@ -11,8 +11,6 @@ import {
   Actions,
 } from 'mailspring-exports';
 
-let ICAL: typeof import('ical.js') = null;
-
 export class EventRSVPTask extends Task {
   ics: string;
   icsRSVPStatus: ICSParticipantStatus;
@@ -57,18 +55,12 @@ export class EventRSVPTask extends Task {
     icsOriginalData: string;
     icsRSVPStatus: ICSParticipantStatus;
   }) {
-    if (!ICAL) {
-      ICAL = require('ical.js');
-    }
-    const jcalData = ICAL.parse(icsOriginalData);
-    const comp = new ICAL.Component(jcalData);
-    const event = new ICAL.Event(comp.getFirstSubcomponent('vevent'));
+    const { event, root } = CalendarUtils.parseICSString(icsOriginalData);
     const me = CalendarUtils.selfParticipant(event, accountId);
-
     me.component.setParameter('partstat', icsRSVPStatus);
-    comp.updatePropertyWithValue('method', 'REPLY');
+    root.updatePropertyWithValue('method', 'REPLY');
 
-    const icsReplyData = comp.toString();
+    const icsReplyData = root.toString();
 
     return new EventRSVPTask({
       to,
