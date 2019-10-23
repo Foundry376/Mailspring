@@ -83,14 +83,14 @@ class WorkspaceStore extends MailspringStore {
           list: [
             'RootSidebar',
             'ThreadList',
-            // 'QuickSidebar', 
+            'QuickSidebar',
             'MessageListSidebar'
           ],
           split: [
             'RootSidebar',
             'ThreadList',
             'MessageList',
-            // 'QuickSidebar', 
+            'QuickSidebar',
             'MessageListSidebar'
           ],
         }
@@ -102,7 +102,7 @@ class WorkspaceStore extends MailspringStore {
           list: [
             'RootSidebar',
             'MessageList',
-            // 'QuickSidebar', 
+            'QuickSidebar',
             'MessageListSidebar'
           ]
         }
