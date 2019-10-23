@@ -20,7 +20,7 @@
     "collapse-whitespace": "^1.1.6",
     "debug": "github:emorikawa/debug#nylas",
     "deep-extend": "0.6.0",
-    "electron-spellchecker": "github:bengotow/electron-spellchecker#master",
+    "electron-spellchecker": "github:bengotow/electron-spellchecker#de319e18db19e497a6add6cc086b243d8e0461db",
     "emoji-data": "^0.2.0",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.9.0",
