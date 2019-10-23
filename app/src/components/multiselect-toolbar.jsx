@@ -97,8 +97,8 @@ class MultiselectToolbar extends Component {
     this.mounted = false;
     clearTimeout(this.refreshTimer);
     clearTimeout(this.stopRefreshingTimer);
-    if(Array.isArray(this._unlisten)){
-      this._unlisten.forEach(unlisten=>{
+    if (Array.isArray(this._unlisten)) {
+      this._unlisten.forEach(unlisten => {
         unlisten();
       });
     }
@@ -152,10 +152,10 @@ class MultiselectToolbar extends Component {
     const { dataSource } = this.props;
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     if (items) {
-      if(this.props.selectAllSelectionFilter){
+      if (this.props.selectAllSelectionFilter) {
         const filteredItems = items.filter(this.props.selectAllSelectionFilter);
         dataSource.selection.set(filteredItems);
-      }else{
+      } else {
         dataSource.selection.set(items);
       }
     }
@@ -245,7 +245,7 @@ class MultiselectToolbar extends Component {
   };
 
   renderRefreshButton(perspective) {
-    if(!this.props.renderRefresh){
+    if (!this.props.renderRefresh) {
       return null;
     }
     if (!perspective) {
@@ -323,8 +323,8 @@ class MultiselectToolbar extends Component {
       columnToolbarEl.style.width = `${columnEl.offsetWidth}px`;
     }
   }
-  renderFilterSelection(){
-    if(this.props.renderFilterSelection){
+  renderFilterSelection() {
+    if (this.props.renderFilterSelection) {
       return <div onClick={this.onSelectWithFilter} title="Select" className="btn btn-toolbar btn-selection-filter">
         <RetinaImg
           name="arrow-dropdown.svg"
@@ -338,7 +338,7 @@ class MultiselectToolbar extends Component {
   }
 
   renderToolbar() {
-    const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
+    const { toolbarElement, dataSource } = this.props;
     let totalCount = 0;
     if (dataSource) {
       totalCount = dataSource.count();
@@ -377,59 +377,26 @@ class MultiselectToolbar extends Component {
     return (
       <div className={classes} key="absolute">
         <div className="inner">
-          <div className={'checkmark ' + checkStatus} onClick={this.onToggleSelectAll}></div>
-          {this.renderFilterSelection()}
-          {selectionCount > 0 ? (
-            <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
-              <div className="selection-label">{this.selectionLabel()}</div>
-              {/* <button className="btn clickable btn-toggle-select-all" onClick={this._selectAll}>
-                  Select all {this._formatNumber(totalCount)}
-                </button>
-                <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
-                  Clear Selection
+          <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
+            {/* <div className="selection-label">{this.selectionLabel()}</div> */}
+            <button className="btn clickable btn-toggle-select-all" onClick={this._selectAll}>
+              Select all ({this._formatNumber(totalCount)})
+            </button>
+            {/* <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
+              Clear Selection
                 </button> */}
-              {WorkspaceStore.layoutMode() === 'list' ? (
-                <div className="divider" key="thread-list-tool-bar-divider" />
-              ) : null}
-              {toolbarElement}
-            </div>
-          ) : (
-            <div
-              style={{
-                display: 'flex',
-                width: 'calc(100% - 66px)',
-                justifyContent: 'space-between',
-                marginRight: 10,
-              }}
-            >
-              {this.state.refreshingMessages ? (
-                <span className="updated-time">Checking for mail...</span>
-              ) : (
-                <span className="updated-time">
-                  {this._renderLastUpdateLabel(this.state.lastUpdatedTime)}
-                  {threadCounts > 0 && (
-                    <span className="toolbar-unread-count">
-                      ({this._formatNumber(threadCounts)})
-                    </span>
-                  )}
-                </span>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                {this.renderRefreshButton(current)}
-                {onEmptyButtons}
-              </div>
-            </div>
-          )}
+            {/* {WorkspaceStore.layoutMode() === 'list' ? (
+              <div className="divider" key="thread-list-tool-bar-divider" />
+            ) : null} */}
+            {toolbarElement}
+          </div>
         </div>
-        <InjectedComponentSet
-          matching={{ role: 'ThreadListEmptyFolderBar' }}
-          className="empty-folder-bar"
-        />
       </div>
     );
   }
 
   render() {
+    const { selectionCount } = this.props;
     return (
       <CSSTransitionGroup
         className={'selection-bar'}
@@ -438,8 +405,11 @@ class MultiselectToolbar extends Component {
         transitionLeaveTimeout={200}
         transitionEnterTimeout={200}
       >
-        {/* {selectionCount > 0 ? this.renderToolbar() : undefined} */}
-        {this.renderToolbar()}
+        {selectionCount > 0 ? this.renderToolbar() : undefined}
+        <InjectedComponentSet
+          matching={{ role: 'ThreadListEmptyFolderBar' }}
+          className="empty-folder-bar"
+        />
       </CSSTransitionGroup>
     );
   }

@@ -263,7 +263,7 @@ class HiddenToggleImportantButton extends React.Component {
   _onSetImportant = (important, threads) => {
     Actions.queueTasks(
       TaskFactory.tasksForThreadsByAccountId(
-        threads? threads : this.props.items,
+        threads ? threads : this.props.items,
         (accountThreads, accountId) => {
           return [
             new ChangeLabelsTask({
@@ -563,6 +563,19 @@ export class ThreadListMoreButton extends React.Component {
     const menu = new Menu();
     if (selectionCount > 0) {
       menu.append(new MenuItem({
+        label: 'Move to Folder',
+        click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
+      }),
+      );
+      const account = AccountStore.accountForItems(this.props.items);
+      if (account && account.usesLabels()) {
+        menu.append(new MenuItem({
+          label: 'Apply Labels',
+          click: () => AppEnv.commands.dispatch('core:change-labels', this._anchorEl),
+        }),
+        );
+      }
+      menu.append(new MenuItem({
         label: `Mark as read`,
         click: (menuItem, browserWindow) => {
           AppEnv.commands.dispatch('core:mark-as-read');
@@ -785,7 +798,13 @@ export const ThreadEmptyMoreButtons = CreateButtonGroup(
 
 export const MoveButtons = CreateButtonGroup(
   'MoveButtons',
-  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
+  [
+    ArchiveButton,
+    MarkAsSpamButton,
+    HiddenGenericRemoveButton,
+    TrashButton,
+    // Divider
+  ],
   { order: -109 },
 );
 

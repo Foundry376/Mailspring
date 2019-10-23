@@ -39,15 +39,21 @@
   // If this value changes,
   // we must change thread-list .scroll-region-content,
   // and list-tabular.jsx offset height
-  min-height: 40px;
   z-index: 99;
   flex: 0 0 40px;
-  position: relative;
+
   .multiselect-toolbar-root {
-    position: relative;
+    position: absolute;
+    bottom: 40px;
+    margin: 0 auto;
+    left: 10px;
+    right: auto;
     min-height: 40px;
-    border-bottom: 1px solid @border-color-primary;
-    border-right: 1px solid @border-color-divider;
+    border-radius: 20px;
+    z-index: 2;
+    border: 1px solid @border-color-primary;
+    // border-bottom: 1px solid @border-color-primary;
+    // border-right: 1px solid @border-color-divider;
     background-color: @background-primary;
     transition: opacity 0.2s ease-in-out;
     display: flex;
@@ -75,6 +81,11 @@
       -webkit-app-region: no-drag;
       transition: top 0.2s ease-in-out;
       white-space: nowrap;
+
+      .move-picker {
+        width: 0;
+        overflow: hidden;
+      }
 
       .checkmark.selected {
         &:before {
@@ -446,9 +457,9 @@
     }
   }
 
+  // .btn-toggle-select-all,
   .selection-label,
-  .btn-clear-all,
-  .btn-toggle-select-all {
+  .btn-clear-all {
     display: none;
   }
 
@@ -569,6 +580,8 @@
       width: 43px;
       height: 100%;
       display: block;
+      position: relative;
+      z-index: 2;
 
       .inner {
         display: block;

@@ -64,7 +64,7 @@ class MovePicker extends React.Component {
     let originRect;
     if (anchorEl) {
       originRect = anchorEl.getBoundingClientRect();
-    } else if(this._labelEl && this._labelEl.getBoundingClientRect) {
+    } else if (this._labelEl && this._labelEl.getBoundingClientRect) {
       if (this._labelEl.getBoundingClientRect().left === 0) {
         const moreEl = document.querySelector('#threadToolbarMoreButtonmessageList');
         if (!moreEl) {
@@ -103,11 +103,11 @@ class MovePicker extends React.Component {
       name={data}
       isMoveAction={isMoveAction}
       onCancel={this._onCancelCreate} />, {
-        isFixedToWindow: true,
-        originRect: this._labelEl.getBoundingClientRect(),
-        position: { top: '13%', left: '49%' },
-        disablePointer: true,
-      });
+      isFixedToWindow: true,
+      originRect: this._labelEl.getBoundingClientRect(),
+      position: { top: '13%', left: '49%' },
+      disablePointer: true,
+    });
   };
   _onCreateFolder = (data) => {
     Actions.openPopover(<CreateNewFolderPopover
@@ -116,11 +116,11 @@ class MovePicker extends React.Component {
       currentPerspective={this.props.currentPerspective}
       defaultValue={data}
       onCancel={this._onCancelCreate} />, {
-        isFixedToWindow: true,
-        originRect: this._moveEl.getBoundingClientRect(),
-        position: { top: '13%', left: '49%' },
-        disablePointer: true,
-      });
+      isFixedToWindow: true,
+      originRect: this._moveEl.getBoundingClientRect(),
+      position: { top: '13%', left: '49%' },
+      disablePointer: true,
+    });
   };
   _onCancelCreate = () => {
     Actions.closePopover();
@@ -199,7 +199,7 @@ class MovePicker extends React.Component {
     }
 
     return (
-      <div className="button-group " style={{ order: -108 }}>
+      <div className="button-group move-picker" style={{ order: -108 }}>
         <KeyCommandsRegion globalHandlers={handlers}>
           <button
             id={`movePickerFolder${this.props.position}`}
