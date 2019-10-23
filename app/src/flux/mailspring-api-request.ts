@@ -104,7 +104,8 @@ export async function makeRequest(options) {
     options.body = JSON.stringify(options.body);
   }
 
-  const error = new APIError(`${options.method || 'GET'} ${options.url} failed`);
+  const desc = `${options.method || 'GET'} ${options.url}`;
+  const error = new APIError(`${desc} failed`);
   let resp = null;
   try {
     resp = await fetch(options.url, options);
@@ -113,12 +114,17 @@ export async function makeRequest(options) {
   }
   if (!resp.ok) {
     error.statusCode = resp.status;
-    error.message = `${options.method || 'GET'} ${options.url} returned ${resp.status} ${
-      resp.statusText
-    }`;
+    error.message = `${desc} returned ${resp.status} ${resp.statusText}`;
     throw error;
   }
-  return resp.json();
+  try {
+    return resp.json();
+  } catch (invalidJSONError) {
+    // We need to wrap this generic JSON error into our APIError class to attach the request
+    // description and also to prevent it from being reported to Sentry 7,000 times a month.
+    error.message = `${desc} returned invalid JSON: ${invalidJSONError.toString()}`;
+    throw error;
+  }
 }
 
 export default {
