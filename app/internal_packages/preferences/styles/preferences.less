@@ -42,7 +42,7 @@
   }
   .item-back {
     position: absolute;
-    top: 30px;
+    top: 22px;
     left: 20px;
     z-index: 9999;
     cursor: pointer;
@@ -67,14 +67,26 @@
     margin: 4px 0 0 8px;
   }
 
-  h6 {
-    color: @text-color-very-subtle;
-    margin-top: 20px;
-    margin-bottom: 10px;
-  }
+  .config-group {
+    width: 700px;
+    padding: 29px 30px 33.5px;
+    border-bottom: 1px solid @gray-lighter;
+    h6 {
+      color: @gray-light;
+      font-family: 'SF UI Text';
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 33px;
+      margin: 0;
+    }
 
-  section:first-child h6:first-child {
-    margin-top: 0;
+    .item {
+      padding: 6.5px 0;
+      line-height: 21px;
+    }
+    &:last-child {
+      border-bottom: none;
+    }
   }
 
   p {
@@ -94,25 +106,18 @@
     }
   }
 
-  section {
-    padding-bottom: @padding-base-vertical;
-    .item {
-      padding-top: @padding-small-vertical;
-      padding-bottom: @padding-small-vertical;
-    }
-  }
-
   .container-preference-tabs {
-    width: 220px;
+    width: 231px;
     flex: 0 0 auto;
     background-color: @source-list-bg;
-    border-right: 1px solid @border-color-divider;
-    padding-top: 100px;
+    padding-top: 98px;
+    box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.1);
+    z-index: 10;
 
     .item {
       cursor: default;
       width: 100%;
-      height: 48px;
+      height: 40px;
       padding-left: 60px;
 
       &.active {
@@ -120,33 +125,43 @@
         .name {
           color: @blue;
           font-weight: 600;
+          font-weight: @font-weight-semi-bold;
         }
       }
 
       .name {
         white-space: nowrap;
+        font-family: 'SF UI Text';
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: @font-size-small;
-        font-weight: @font-weight-medium;
-        line-height: 48px;
+        font-size: 14px;
+        line-height: 40px;
       }
     }
   }
 
   .searchBar {
     widows: 100%;
-    height: 64px;
+    height: 68px;
     background-color: @source-list-bg;
-    border-bottom: 1px solid @border-color-divider;
+    border-bottom: 1px solid @gray-lighter;
+
+    .tabName {
+      line-height: 68px;
+      font-family: 'SF UI Display';
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 0.01px;
+      padding-left: 20px;
+      float: left;
+    }
   }
 
   .preferences-content {
     flex: 8;
     background-color: lighten(@background-secondary, 1%);
     & > .scroll-region-content {
-      padding: (@padding-large-vertical * 3 + 20px) (@padding-large-horizontal * 3)
-        (@padding-large-vertical * 3);
+      padding: 0 10px;
     }
     .container-dropdown {
       margin: 5px 0;
@@ -410,11 +425,14 @@
   }
 
   .platform-note {
-    padding: @padding-base-vertical @padding-base-horizontal;
-    background: fade(@black, 4%);
-    border-left: 3px solid @color-info;
-    margin: @padding-base-vertical 0;
-    font-size: 0.95em;
+    font-size: @font-size;
+    line-height: 16px;
+    color: @gray-base;
+    padding: 12px 20px;
+    border-radius: @border-radius-base;
+    background-color: @off-white;
+    margin-top: 6.5px;
+
     &:before {
       color: @color-info;
       font-weight: 600;

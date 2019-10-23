@@ -10,7 +10,9 @@ function getDefaultSendAccountSchema(configSchema) {
     title: 'Send new mail from',
     default: 'selected-mailbox',
     enum: ['selected-mailbox'].concat(accounts.map(acc => acc.id)),
-    enumLabels: ['Account of selected mailbox'].concat(accounts.map(acc => acc.me().toString())),
+    enumLabels: ['Automatically select best account'].concat(
+      accounts.map(acc => acc.me().toString())
+    ),
   };
 
   Object.assign(configSchema.properties.sending.properties, {

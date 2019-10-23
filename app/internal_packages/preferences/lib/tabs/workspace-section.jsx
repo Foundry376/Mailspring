@@ -156,11 +156,6 @@ const WorkspaceSection = props => {
         keyPath="core.workspace.use24HourClock"
         config={props.config}
       />
-      <ConfigSchemaItem
-        configSchema={props.configSchema.properties.mailsync.properties.fetchEmailRange}
-        keyPath="core.mailsync.fetchEmailRange"
-        config={props.config}
-      />
 
       <DefaultSendingAccount config={props.config} configSchema={props.configSchema} />
 
@@ -170,11 +165,17 @@ const WorkspaceSection = props => {
         config={props.config}
       />
 
-      <div className="platform-note platform-linux-only">
-        &quot;Launch on system start&quot; only works in XDG-compliant desktop environments. To
-        enable the EdisonMail icon in the system tray, you may need to install libappindicator.
-        (i.e., <code>sudo apt-get install libappindicator1</code>)
-      </div>
+      <ConfigSchemaItem
+        configSchema={props.configSchema.properties.notifications.properties.sounds}
+        keyPath="core.notifications.sounds"
+        config={props.config}
+      />
+
+      <ConfigSchemaItem
+        configSchema={props.configSchema.properties.sending.properties.undoSend}
+        keyPath="core.sending.undoSend"
+        config={props.config}
+      />
     </section>
   );
 };

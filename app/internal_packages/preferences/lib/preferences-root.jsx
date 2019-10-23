@@ -84,7 +84,6 @@ class PreferencesRoot extends React.Component {
   render() {
     const { tab, selection, tabs } = this.props;
     const TabComponent = tab && tab.componentClassFn();
-
     return (
       <KeyCommandsRegion
         className="preferences-wrap"
@@ -95,7 +94,7 @@ class PreferencesRoot extends React.Component {
           <div className="item-back" onClick={this.onBack}>
             <RetinaImg
               name={'arrow.svg'}
-              style={{ width: 22, height: 22 }}
+              style={{ width: 24, height: 24 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask}
             />
@@ -103,7 +102,9 @@ class PreferencesRoot extends React.Component {
           <PreferencesTabsBar tabs={tabs} selection={selection} />
           <div style={{ flex: 1 }}>
             <Flexbox direction="column">
-              <div className="searchBar"></div>
+              <div className="searchBar">
+                <div className="tabName">{tab.tabId}</div>
+              </div>
               <ScrollRegion className="preferences-content">
                 <ConfigPropContainer
                   ref={el => {

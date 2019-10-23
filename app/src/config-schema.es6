@@ -89,12 +89,12 @@ export default {
           showImportant: {
             type: 'boolean',
             default: true,
-            title: 'Show important markers (Gmail Only)',
+            title: 'Show important markers (Gmail only)',
           },
           showUnreadForAllCategories: {
             type: 'boolean',
             default: true,
-            title: 'Show unread counts for all folders',
+            title: 'Show unread count for all folders',
           },
           chatEnable: {
             type: 'boolean',
@@ -152,7 +152,7 @@ export default {
           },
           downloadFolder: {
             type: 'floder',
-            title: 'downloads go to',
+            title: 'Save downloaded files to',
           },
         },
       },
@@ -406,7 +406,7 @@ export default {
           sounds: {
             type: 'boolean',
             default: true,
-            title: 'Play sound when a message is sent',
+            title: 'Send mail sound',
           },
           defaultReplyType: {
             type: 'string',
@@ -440,7 +440,7 @@ export default {
           sounds: {
             type: 'boolean',
             default: true,
-            title: 'Play sound when receiving new mail',
+            title: 'New mail sound',
           },
           // unsnoozeToTop: {
           //   type: 'boolean',

@@ -66,56 +66,56 @@ class PreferencesGeneral extends React.Component {
   render() {
     return (
       <div className="container-general">
-        <h6>EMAIL</h6>
-        <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
+        <div className="config-group">
+          <h6>EMAIL</h6>
+          <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
+        </div>
 
         <div className="platform-note platform-linux-only">
           EdisonMail desktop notifications on Linux require Zenity. You may need to install it with
           your package manager (i.e., <code>sudo apt-get install zenity</code>).
         </div>
+        <div className="config-group">
+          <ConfigSchemaItem
+            configSchema={this.props.configSchema.properties.reading}
+            keyName="READING & RESPONDING"
+            keyPath="core.reading"
+            config={this.props.config}
+          />
 
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.reading}
-          keyName="READING & RESPONDING"
-          keyPath="core.reading"
-          config={this.props.config}
-        />
+          <ConfigSchemaItem
+            configSchema={this.props.configSchema.properties.composing.properties.spellcheck}
+            keyName="Composing"
+            keyPath="core.composing.spellcheck"
+            config={this.props.config}
+          />
 
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.composing.properties.spellcheck}
-          keyName="Composing"
-          keyPath="core.composing.spellcheck"
-          config={this.props.config}
-        />
-
-        <ConfigSchemaItem
-          configSchema={
-            this.props.configSchema.properties.composing.properties.spellcheckDefaultLanguage
-          }
-          keyName="Composing"
-          keyPath="core.composing.spellcheckDefaultLanguage"
-          config={this.props.config}
-        />
-
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.sending.properties.undoSend}
-          keyPath="core.sending.undoSend"
-          config={this.props.config}
-        />
-
-        <h6>MESSAGES/CHAT</h6>
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.workspace.properties.chatEnable}
-          keyName="Attachments"
-          keyPath="core.workspace.chatEnable"
-          config={this.props.config}
-        />
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.attachments}
-          keyName="DOWNLOADS"
-          keyPath="core.attachments"
-          config={this.props.config}
-        />
+          <ConfigSchemaItem
+            configSchema={
+              this.props.configSchema.properties.composing.properties.spellcheckDefaultLanguage
+            }
+            keyName="Composing"
+            keyPath="core.composing.spellcheckDefaultLanguage"
+            config={this.props.config}
+          />
+        </div>
+        <div className="config-group">
+          <h6>MESSAGES/CHAT</h6>
+          <ConfigSchemaItem
+            configSchema={this.props.configSchema.properties.workspace.properties.chatEnable}
+            keyName="Attachments"
+            keyPath="core.workspace.chatEnable"
+            config={this.props.config}
+          />
+        </div>
+        <div className="config-group">
+          <ConfigSchemaItem
+            configSchema={this.props.configSchema.properties.attachments}
+            keyName="DOWNLOADS"
+            keyPath="core.attachments"
+            config={this.props.config}
+          />
+        </div>
 
         {/* <div className="local-data">
           <h6>Local Data</h6>
