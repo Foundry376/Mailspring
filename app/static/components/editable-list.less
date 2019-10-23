@@ -1,33 +1,18 @@
 @import 'ui-variables';
 
 .nylas-editable-list {
-  .items-wrapper .selected.editing,
-  &:focus .items-wrapper .selected {
-    color: @component-active-bg;
-    background-color: @component-active-color;
+  .list-item.selected {
+    background: @list-selected-bg;
+  }
+
+  &:focus .selected {
+    background: @list-focused-bg;
   }
 
   .items-wrapper {
     display: flex;
     flex-direction: column;
-    border: 1px solid @border-color-secondary;
-    background-color: @background-primary;
-    height: 90px;
     font-size: 0.9em;
-
-    .list-item {
-      position: relative;
-      .del-icon {
-        position: absolute;
-        top: 25px;
-        right: 25px;
-      }
-    }
-
-    .selected {
-      background-color: fade(desaturate(@component-active-color, 100%), 70%);
-      color: @component-active-bg;
-    }
 
     .insertion-point {
       display: block;

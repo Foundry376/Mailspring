@@ -12,10 +12,9 @@ class AutoaddressControl extends Component {
 
     return (
       <div>
-        <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
-          When composing, automatically
+        <div className="item">
+          <label>When composing, automatically</label>
           <select
-            style={{ marginTop: 0 }}
             value={autoaddress.type}
             onChange={e => onChange(Object.assign({}, autoaddress, { type: e.target.value }))}
             onBlur={onSaveChanges}
@@ -23,15 +22,17 @@ class AutoaddressControl extends Component {
             <option value="cc">CC</option>
             <option value="bcc">BCC</option>
           </select>
-          :
+          &nbsp;&nbsp;:
         </div>
-        <input
-          type="text"
-          value={autoaddress.value}
-          onChange={e => onChange(Object.assign({}, autoaddress, { value: e.target.value }))}
-          onBlur={onSaveChanges}
-          placeholder="Comma-separated email addresses"
-        />
+        <div className="item">
+          <input
+            type="text"
+            value={autoaddress.value}
+            onChange={e => onChange(Object.assign({}, autoaddress, { value: e.target.value }))}
+            onBlur={onSaveChanges}
+            placeholder="Comma-separated email addresses"
+          />
+        </div>
       </div>
     );
   }
@@ -39,7 +40,10 @@ class AutoaddressControl extends Component {
 class PreferencesAccountDetails extends Component {
   static propTypes = {
     account: PropTypes.object,
+    accounts: PropTypes.array,
     onAccountUpdated: PropTypes.func.isRequired,
+    onRemoveAccount: PropTypes.func,
+    onSelectAccount: PropTypes.func,
   };
 
   constructor(props) {
@@ -148,6 +152,19 @@ class PreferencesAccountDetails extends Component {
 
   _onResetCache = () => {
     AppEnv.mailsyncBridge.resetCacheForAccount(this.state.account);
+  };
+
+  _onDeleteAccount = () => {
+    const { account, onRemoveAccount, onSelectAccount } = this.props;
+    const index = this.props.accounts.indexOf(account);
+    if (account && typeof onRemoveAccount === 'function') {
+      // Move the selection 1 up or down after deleting
+      const newIndex = index === 0 ? index + 1 : index - 1;
+      onRemoveAccount(account);
+      if (this.props.accounts[newIndex] && typeof onSelectAccount === 'function') {
+        onSelectAccount(this.props.accounts[newIndex]);
+      }
+    }
   };
 
   _onContactSupport = () => {
@@ -277,10 +294,9 @@ class PreferencesAccountDetails extends Component {
       };
     }
     return (
-      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
-        <span style={{ width: '120px' }}>Oldest mail to fetch</span>
+      <div className="item">
+        <label>Sync mail as far back as:</label>
         <select
-          style={{ marginTop: 0 }}
           value={mailsyncSettings.fetchEmailRange.toString()}
           onChange={this._onFetchEmailRangeUpdate}
           onBlur={this._saveChanges}
@@ -311,10 +327,9 @@ class PreferencesAccountDetails extends Component {
       };
     }
     return (
-      <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
-        <span style={{ width: '120px' }}>Fetch mail interval</span>
+      <div className="item">
+        <label>Check for mail every:</label>
         <select
-          style={{ marginTop: 0 }}
           value={mailsyncSettings.fetchEmailInterval.toString()}
           onChange={this._onFetchEmailIntervalUpdate}
           onBlur={this._saveChanges}
@@ -334,48 +349,66 @@ class PreferencesAccountDetails extends Component {
     return (
       <div className="account-details">
         {this._renderSyncErrorDetails()}
-        <h3>ACCOUNT DETAILS</h3>
-        <input
-          type="text"
-          value={account.label}
-          onBlur={this._saveChanges}
-          onChange={this._onAccountLabelUpdated}
-        />
-        <h3>Account Name</h3>
-        <input
-          type="text"
-          value={account.name || account.label}
-          onBlur={this._saveChanges}
-          onChange={this._onAccountNameUpdated}
-        />
-        <AutoaddressControl
-          autoaddress={account.autoaddress}
-          onChange={this._onAccountAutoaddressUpdated}
-          onSaveChanges={this._saveChanges}
-        />
-        <h3>Aliases</h3>
-        <div className="platform-note">
-          You may need to configure aliases with your mail provider (Outlook, Gmail) before using
-          them.
+        <div className="config-group">
+          <h6>ACCOUNT DETAILS</h6>
+          <div className="item">
+            <label htmlFor={'Account Label'}>Account Label</label>
+            <input
+              type="text"
+              value={account.label}
+              onBlur={this._saveChanges}
+              onChange={this._onAccountLabelUpdated}
+            />
+          </div>
+          <div className="item">
+            <label htmlFor={'Account Name'}>Account Name</label>
+            <input
+              type="text"
+              value={account.name || account.label}
+              onBlur={this._saveChanges}
+              onChange={this._onAccountNameUpdated}
+            />
+          </div>
+
+          <AutoaddressControl
+            autoaddress={account.autoaddress}
+            onChange={this._onAccountAutoaddressUpdated}
+            onSaveChanges={this._saveChanges}
+          />
         </div>
-        <EditableList
-          showEditIcon
-          items={account.aliases}
-          createInputProps={{ placeholder: aliasPlaceholder }}
-          onItemCreated={this._onAccountAliasCreated}
-          onItemEdited={this._onAccountAliasUpdated}
-          onDeleteItem={this._onAccountAliasRemoved}
-        />
-        {this._renderDefaultAliasSelector(account)}
-        <PreferencesCategory account={account} />
-        <h3>Advance Settings</h3>
-        {this._renderMailFetchRange()}
-        {this._renderMailFetchInterval()}
-        <div className="btn" onClick={this._onReconnect}>
-          {account.provider === 'imap' ? 'Update Connection Settings...' : 'Re-authenticate...'}
+        <div className="config-group">
+          <h6>ALIASES</h6>
+          <div className="notice">
+            You may need to configure aliases with your mail provider (Outlook, Gmail) before using
+            them.
+          </div>
+          <EditableList
+            showEditIcon
+            items={account.aliases}
+            createInputProps={{ placeholder: aliasPlaceholder }}
+            onItemCreated={this._onAccountAliasCreated}
+            onItemEdited={this._onAccountAliasUpdated}
+            onDeleteItem={this._onAccountAliasRemoved}
+          />
+          {this._renderDefaultAliasSelector(account)}
         </div>
-        <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
-          Rebuild Cache...
+        <div className="config-group">
+          <h6>FOLDERS</h6>
+          <PreferencesCategory account={account} />
+        </div>
+        <div className="config-group">
+          <h6>ADVANCED</h6>
+          {this._renderMailFetchRange()}
+          {this._renderMailFetchInterval()}
+          <button onClick={this._onReconnect}>
+            {account.provider === 'imap'
+              ? 'Update Connection Settings...'
+              : 'Re-authenticate Account'}
+          </button>
+          <button onClick={this._onResetCache}>Rebuild Cache</button>
+          <button className={'danger'} onClick={this._onDeleteAccount}>
+            Remove Account
+          </button>
         </div>
       </div>
     );

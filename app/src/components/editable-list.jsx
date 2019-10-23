@@ -104,6 +104,7 @@ class EditableList extends Component {
     /* Optional, if you choose to control selection externally */
     selected: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     onSelectItem: PropTypes.func,
+    needScroll: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -420,16 +421,6 @@ class EditableList extends Component {
         onDoubleClick={_.partial(onEdit, _, item, idx)}
       >
         {itemContent}
-        <RetinaImg
-          className="edit-icon"
-          name="edit-icon.png"
-          title="Edit Item"
-          mode={RetinaImg.Mode.ContentIsMask}
-          onClick={_.partial(onEdit, _, item, idx)}
-        />
-        <div className="del-icon" onClick={() => this._onDeleteItem(item)}>
-          X
-        </div>
       </div>
     );
   };
@@ -452,23 +443,30 @@ class EditableList extends Component {
       items.splice(this.state.dropInsertionIndex, 0, this._renderDropInsertion());
     }
 
+    const { needScroll } = this.props;
+
     return (
       <KeyCommandsRegion
         tabIndex="1"
         localHandlers={this._listKeymapHandlers()}
         className={`nylas-editable-list ${this.props.className}`}
       >
-        <ScrollRegion
-          className="items-wrapper"
-          ref={el => {
-            this._itemsWrapperEl = el;
-          }}
-          onDragOver={this._onDragOver}
-          onDragLeave={this._onDragLeave}
-          onDrop={this._onDrop}
-        >
-          {items}
-        </ScrollRegion>
+        {needScroll ? (
+          <ScrollRegion
+            className="items-wrapper"
+            ref={el => {
+              this._itemsWrapperEl = el;
+            }}
+            onDragOver={this._onDragOver}
+            onDragLeave={this._onDragLeave}
+            onDrop={this._onDrop}
+          >
+            {items}
+          </ScrollRegion>
+        ) : (
+          <div>{items}</div>
+        )}
+
         <div className="buttons-wrapper" onClick={this._onCreateItem}>
           + Add Account
         </div>

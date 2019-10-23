@@ -68,20 +68,21 @@ class PreferencesAccounts extends React.Component {
   render() {
     return (
       <div className="container-accounts">
-        <div className="accounts-content">
-          <PreferencesAccountList
-            accounts={this.state.accounts}
-            selected={this.state.selected}
-            onAddAccount={this._onAddAccount}
-            onReorderAccount={this._onReorderAccount}
-            onSelectAccount={this._onSelectAccount}
-            onRemoveAccount={this._onRemoveAccount}
-          />
-          <PreferencesAccountDetails
-            account={this.state.selected}
-            onAccountUpdated={this._onAccountUpdated}
-          />
-        </div>
+        <PreferencesAccountList
+          accounts={this.state.accounts}
+          selected={this.state.selected}
+          onAddAccount={this._onAddAccount}
+          onReorderAccount={this._onReorderAccount}
+          onSelectAccount={this._onSelectAccount}
+          onRemoveAccount={this._onRemoveAccount}
+        />
+        <PreferencesAccountDetails
+          account={this.state.selected}
+          accounts={this.state.accounts}
+          onAccountUpdated={this._onAccountUpdated}
+          onRemoveAccount={this._onRemoveAccount}
+          onSelectAccount={this._onSelectAccount}
+        />
       </div>
     );
   }

@@ -39,7 +39,7 @@ class PreferencesAccountList extends Component {
         <Flexbox direction="row" style={{ alignItems: 'middle' }}>
           <div style={{ textAlign: 'center' }}>
             <RetinaImg
-              style={{ width: 50, height: 50 }}
+              style={{ width: 40, height: 40 }}
               name={`account-logo-${account.provider}.png`}
               fallback="account-logo-other.png"
               mode={RetinaImg.Mode.ContentPreserve}
