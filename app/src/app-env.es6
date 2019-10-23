@@ -164,6 +164,7 @@ export default class AppEnvConstructor {
       systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
         AppEnv.themes.setActiveTheme(systemPreferences.isDarkMode() ? 'ui-dark' : 'ui-light');
       });
+      this.mailsyncBridge.startSift('Main window started');
     }
   }
   sendSyncMailNow(accountId) {

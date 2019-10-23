@@ -20,6 +20,7 @@ const configVersionKey = 'accountsVersion';
 const sqlite = require('better-sqlite3');
 import Sequelize from 'sequelize';
 import Indicator from '../models/indicator';
+import SiftRemoveAccountsTask from '../tasks/sift-remove-accounts-task';
 const Op = Sequelize.Op
 
 /*
@@ -373,6 +374,7 @@ class AccountStore extends MailspringStore {
 
     this._accounts = remainingAccounts;
     this._save('removeAccount');
+    Actions.queueTask(new SiftRemoveAccountsTask({accounts: [account]}));
 
     if (remainingAccounts.length === 0) {
       // Clear everything and logout
@@ -397,6 +399,7 @@ class AccountStore extends MailspringStore {
   };
 
   addAccount = async account => {
+    AppEnv.debugLog(`add account`);
     if (!account.emailAddress || !account.provider || !(account instanceof Account)) {
       throw new Error(`Returned account data is invalid: ${JSON.stringify(account)}`);
     }
