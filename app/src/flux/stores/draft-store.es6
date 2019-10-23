@@ -910,12 +910,12 @@ class DraftStore extends MailspringStore {
   };
 
   _onDestroyDrafts = (messages = [], opts = {}) => {
-    if(AppEnv.isThreadWindow()){
+    if (AppEnv.isThreadWindow()) {
       // console.log('on destroy draft is thread window');
       return;
     }
     if (AppEnv.isComposerWindow() && messages.length === 1) {
-      if (this._draftSessions[messages[0].headerMessageId]) {
+      if (this._draftSessions[messages[0].headerMessageId] && !opts.switchingAccount) {
         AppEnv.logDebug(`Closing composer because of destroy draft ${messages[0].headerMessageId}`);
         AppEnv.close({
           headerMessageId: messages[0].headerMessageId,
@@ -925,7 +925,7 @@ class DraftStore extends MailspringStore {
           deleting: true,
         });
       } else {
-        AppEnv.logDebug(`${messages[0].headerMessageId} not this draft`);
+        AppEnv.logDebug(`${messages[0].headerMessageId} not this draft or is switching account ${opts.switchingAccount}`);
       }
       return;
     }

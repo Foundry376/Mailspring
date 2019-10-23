@@ -537,7 +537,7 @@ export default class ComposerView extends React.Component {
           className="btn btn-toolbar btn-attach"
           style={{ order: -50 }}
           title="Attach file"
-          onClick={this._onSelectAttachment}
+          onClick={this._onSelectAttachment.bind(this, { type: 'notInline' })}
           disabled={this.props.session.isPopout() || this._draftNotReady()}
         >
           <RetinaImg

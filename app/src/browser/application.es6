@@ -159,7 +159,7 @@ export default class Application extends EventEmitter {
       fs.mkdirSync(avatarPath);
     }
     this.clearOldLogs();
-    this.initSupportInfo();
+    // this.initSupportInfo();
   }
   getOpenWindows() {
     return this.windowManager.getOpenWindows();
