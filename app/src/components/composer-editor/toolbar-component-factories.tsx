@@ -76,8 +76,14 @@ export function expandSelectionToRangeOfMark(editor, type) {
 }
 
 export function getActiveValueForMark(value: Value, type: string) {
-  const active = value.activeMarks.find(m => m.type === type);
-  return (active && active.data.get('value')) || '';
+  try {
+    // https://sentry.io/organizations/foundry-376-llc/issues/1076378703
+    // This rarely throws "Invalid attempt to destructure non-iterable instance"
+    const active = value.activeMarks.find(m => m.type === type);
+    return (active && active.data.get('value')) || '';
+  } catch (err) {
+    return '';
+  }
 }
 
 export function applyValueForMark(editor: Editor, type: string, markValue: any) {
