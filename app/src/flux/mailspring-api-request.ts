@@ -110,6 +110,7 @@ export async function makeRequest(options) {
   try {
     resp = await fetch(options.url, options);
   } catch (uselessFetchError) {
+    // TypeError: Failed to fetch when user is offline, with no stack trace.
     throw error;
   }
   if (!resp.ok) {
