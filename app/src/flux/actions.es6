@@ -162,6 +162,7 @@ class Actions {
   */
   static reorderAccount = ActionScopeWindow;
 
+  static siftUpdateAccount = ActionScopeMainWindow;
   /*
   Public: Select the provided sheet in the current window. This action changes
   the top level sheet.

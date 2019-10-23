@@ -21,6 +21,7 @@ const sqlite = require('better-sqlite3');
 import Sequelize from 'sequelize';
 import Indicator from '../models/indicator';
 import SiftRemoveAccountsTask from '../tasks/sift-remove-accounts-task';
+import SiftUpdateAccountTask from '../tasks/sift-update-account-task';
 const Op = Sequelize.Op
 
 /*
@@ -37,6 +38,9 @@ class AccountStore extends MailspringStore {
     this.listenTo(Actions.updateAccount, this._onUpdateAccount);
     this.listenTo(Actions.reorderAccount, this._onReorderAccount);
     this.listenTo(DatabaseStore, this._onDataChange);
+    if(AppEnv.isMainWindow()){
+      this.listenTo(Actions.siftUpdateAccount, this._onSiftUpdateAccount);
+    }
 
     AppEnv.config.onDidChange(configVersionKey, async change => {
       // If we already have this version of the accounts config, it means we
@@ -101,7 +105,6 @@ class AccountStore extends MailspringStore {
         if(obj){
           const account = this.accountForId(obj.accountId);
           if(account && obj.key === 'ErrorAuthentication' && account.syncState !== Account.SYNC_STATE_AUTH_FAILED){
-            console.log('update time');
             Actions.updateAccount(account.id, {syncState: Account.SYNC_STATE_AUTH_FAILED})
           }
         }
@@ -398,8 +401,11 @@ class AccountStore extends MailspringStore {
     this._save();
   };
 
+  _onSiftUpdateAccount = (fullAccount) => {
+    Actions.queueTask(new SiftUpdateAccountTask(fullAccount));
+  };
+
   addAccount = async account => {
-    AppEnv.debugLog(`add account`);
     if (!account.emailAddress || !account.provider || !(account instanceof Account)) {
       throw new Error(`Returned account data is invalid: ${JSON.stringify(account)}`);
     }

@@ -45,9 +45,6 @@ export default class Task extends Model {
       modelKey: 'createdAt',
       loadFromColumn: true,
       queryable: true,
-    }),
-    mailsyncMode: Attributes.String({
-      modelKey: 'mailsyncMode',
     })
   });
 
@@ -63,7 +60,6 @@ export default class Task extends Model {
     this.status = this.status || Status.Local;
     this.id = this.id || generateTempId();
     this.createdAt = Date.now();
-    this.mailsyncMode = data.mailsyncMode || 'sync';
   }
 
   // Public: Override to raise exceptions if your task is missing required

@@ -120,6 +120,7 @@ lazyLoadAndRegisterTask('CancelOutboxDraftTask', 'cancel-outbox-draft-task');
 lazyLoadAndRegisterTask('ChangeDraftToFailingTask', 'change-draft-to-failing-task');
 lazyLoadAndRegisterTask('ChangeDraftToFailedTask', 'change-draft-to-failed-task');
 lazyLoadAndRegisterTask('SiftRemoveAccountsTask', 'sift-remove-accounts-task');
+lazyLoadAndRegisterTask('SiftUpdateAccountTask', 'sift-update-account-task');
 
 // Stores
 // These need to be required immediately since some Stores are
