@@ -1,0 +1,67 @@
+@import 'ui-variables';
+
+.preferences-wrap {
+  .container-keymaps {
+    .col-left {
+      text-align: right;
+      flex: 1;
+      margin-right: 20px;
+    }
+    .col-right {
+      text-align: left;
+      flex: 1;
+      select {
+        width: 75%;
+      }
+    }
+
+    .shortcut-section-title {
+      border-bottom: 1px solid @border-color-divider;
+      margin: @padding-large-vertical * 1.5 0;
+    }
+
+    .shortcut {
+      padding: 3px 0;
+      color: @text-color-very-subtle;
+      .values {
+        font-family: monospace;
+        font-weight: 600;
+        color: @text-color;
+        display: inline-block;
+        padding-left: @padding-small-horizontal;
+        padding-right: @padding-small-horizontal;
+        cursor: text;
+
+        .shortcut-value {
+          .then {
+            font-size: 0.9em;
+            color: @text-color-very-subtle;
+          }
+          &:after {
+            content: ', ';
+          }
+          &:last-child:after {
+            content: '';
+          }
+        }
+      }
+
+      &:hover {
+        .values {
+          background: @input-bg;
+          border-radius: @border-radius-base;
+          outline: 1px solid @input-border-color;
+        }
+      }
+      &.editing {
+        .values {
+          background: @input-bg;
+          color: @component-active-color;
+
+          border-radius: @border-radius-base;
+          outline: 1px solid @input-border-color;
+        }
+      }
+    }
+  }
+}
