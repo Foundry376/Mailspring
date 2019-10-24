@@ -59,6 +59,7 @@ module.exports = class MailspringWindow extends EventEmitter {
       acceptFirstMouse: true,
       webPreferences: {
         directWrite: true,
+        nodeIntegration: true
       },
       autoHideMenuBar,
       backgroundColor: settings.backgroundColor || '#ffffff',

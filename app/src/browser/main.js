@@ -2,6 +2,13 @@
 /* eslint global-require: 0 */
 global.shellStartTime = Date.now();
 const util = require('util');
+const fs = require('fs');
+fs.statSyncNoException = function (...args) {
+  try {
+    return fs.statSync.apply(fs, args);
+  } catch (e) { }
+  return false;
+};
 
 console.inspect = function consoleInspect(val) {
   console.log(util.inspect(val, true, 7, true));

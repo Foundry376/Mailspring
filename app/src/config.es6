@@ -14,7 +14,7 @@ const { Emitter } = require('event-kit');
 const crypto = require('crypto');
 if (process.type === 'renderer') {
   app = remote.getGlobal('application');
-  webContentsId = remote.getCurrentWebContents().getId();
+  webContentsId = remote.getCurrentWebContents().id;
   ({ errorLogger } = AppEnv);
 } else {
   app = global.application;

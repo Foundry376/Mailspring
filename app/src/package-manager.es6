@@ -35,15 +35,20 @@ export default class PackageManager {
       try {
         filenames = fs.readdirSync(dir);
       } catch (err) {
+        console.error('Error: discoverPackages', dir, err);
         continue;
       }
 
       for (const filename of filenames) {
         let pkg = null;
         try {
+          if (filename.indexOf('.DS_Store') !== -1) {
+            continue;
+          }
           pkg = new Package(path.join(dir, filename));
           this.available[pkg.name] = pkg;
         } catch (err) {
+          console.error('Error: discoverPackages', err);
           if (err instanceof Package.NoPackageJSONError) {
             continue;
           }
@@ -97,7 +102,7 @@ export default class PackageManager {
       // don't use AppEnv.reportError, I don't want to know about these.
       console.error(
         `This plugin or theme ${
-          pkg.name
+        pkg.name
         } does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: http://support.getmailspring.com/hc/en-us/articles/115001918391`
       );
       return;
@@ -107,7 +112,7 @@ export default class PackageManager {
     pkg.activate();
   }
 
-  deactivatePackages() {}
+  deactivatePackages() { }
 
   getAvailablePackages() {
     return Object.values(this.available);
