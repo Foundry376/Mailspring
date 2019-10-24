@@ -178,16 +178,20 @@ class PreferencesAccountDetails extends Component {
     const defaultAlias = account.defaultAlias || 'None';
     if (aliases.length > 0) {
       return (
-        <div className="default-alias-selector">
-          <div>Default for new messages:</div>
-          <select value={defaultAlias} onChange={this._onDefaultAliasSelected}>
-            <option value="None">{`${account.name} <${account.emailAddress}>`}</option>
-            {aliases.map((alias, idx) => (
-              <option key={`alias-${idx}`} value={alias}>
-                {alias}
-              </option>
-            ))}
-          </select>
+        <div>
+          <div className="item">
+            <label>Default for new messages:</label>
+          </div>
+          <div className="item">
+            <select value={defaultAlias} onChange={this._onDefaultAliasSelected}>
+              <option value="None">{`${account.name} <${account.emailAddress}>`}</option>
+              {aliases.map((alias, idx) => (
+                <option key={`alias-${idx}`} value={alias}>
+                  {alias}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       );
     }
@@ -382,14 +386,17 @@ class PreferencesAccountDetails extends Component {
             You may need to configure aliases with your mail provider (Outlook, Gmail) before using
             them.
           </div>
-          <EditableList
-            showEditIcon
-            items={account.aliases}
-            createInputProps={{ placeholder: aliasPlaceholder }}
-            onItemCreated={this._onAccountAliasCreated}
-            onItemEdited={this._onAccountAliasUpdated}
-            onDeleteItem={this._onAccountAliasRemoved}
-          />
+          <div className="aliases-edit">
+            <EditableList
+              showEditIcon
+              needScroll
+              items={account.aliases}
+              createInputProps={{ placeholder: aliasPlaceholder }}
+              onItemCreated={this._onAccountAliasCreated}
+              onItemEdited={this._onAccountAliasUpdated}
+              onDeleteItem={this._onAccountAliasRemoved}
+            />
+          </div>
           {this._renderDefaultAliasSelector(account)}
         </div>
         <div className="config-group">
