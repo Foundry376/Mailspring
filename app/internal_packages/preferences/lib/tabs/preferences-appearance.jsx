@@ -132,6 +132,7 @@ class PreferencesAppearance extends React.Component {
         modeSwitch={modeSwitchList}
         config={this.props.config}
         activeValue={activeValue}
+        imgActive
         onSwitchOption={value => {
           AppEnv.config.set('core.appearance.profile', value);
         }}
@@ -158,6 +159,7 @@ class PreferencesAppearance extends React.Component {
         modeSwitch={modeSwitchList}
         config={this.props.config}
         activeValue={activeValue}
+        imgActive
         onSwitchOption={value => {
           AppEnv.commands.dispatch(`navigation:select-${value}-mode`);
         }}

@@ -8,6 +8,7 @@ export default class ModeSwitch extends React.Component {
     modeSwitch: PropTypes.array.isRequired,
     config: PropTypes.object.isRequired,
     activeValue: PropTypes.any.isRequired,
+    imgActive: PropTypes.bool,
     onSwitchOption: PropTypes.function,
   };
 
@@ -23,7 +24,7 @@ export default class ModeSwitch extends React.Component {
   }
 
   render() {
-    const { modeSwitch } = this.props;
+    const { modeSwitch, imgActive } = this.props;
     const { value } = this.state;
 
     return (
@@ -35,7 +36,7 @@ export default class ModeSwitch extends React.Component {
 
             return (
               <div className={classname} onClick={() => this._onClick(modeInfo)}>
-                <RetinaImg name={modeInfo.imgsrc} mode="" active={active} />
+                <RetinaImg name={modeInfo.imgsrc} mode="" active={active && imgActive} />
                 <div>{modeInfo.label}</div>
               </div>
             );
