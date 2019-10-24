@@ -35,7 +35,7 @@ export default class PackageManager {
       try {
         filenames = fs.readdirSync(dir);
       } catch (err) {
-        console.error('Error: discoverPackages', dir, err);
+        console.log(`discoverPackages - "${dir}" is not a folder`);
         continue;
       }
 

@@ -115,7 +115,6 @@ export default class Package {
           .map(fn => path.join(stylesRoot, fn));
       }
     } catch (err) {
-      console.error('Error:loadStylesheets', stylesRoot, err);
       // styles directory not found
     }
     for (const sourcePath of stylesheets) {
