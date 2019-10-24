@@ -113,7 +113,7 @@ class Spellchecker {
     if ({}.hasOwnProperty.call(this.isMisspelledCache, word)) {
       return this.isMisspelledCache[word];
     }
-    const misspelled = !this.handler.handleElectronSpellCheck(word);
+    const misspelled = this.handler.isMisspelled(word);
     this.isMisspelledCache[word] = misspelled;
     return misspelled;
   };
@@ -129,6 +129,11 @@ class Spellchecker {
       this._saveCustomDict();
     }
   };
+
+  getCorrectionsForMisspelling(word) {
+    const corrections = this.handler.currentSpellchecker.getCorrectionsForMisspelling(word);
+    return corrections;
+  }
 
   appendSpellingItemsToMenu = ({ menu, word, onCorrect, onDidLearn }) => {
     if (this.isMisspelled(word)) {
