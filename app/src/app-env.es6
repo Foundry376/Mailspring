@@ -258,6 +258,12 @@ export default class AppEnvConstructor {
   _expandReportLog(error, extra = {}) {
     try {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
+      if (typeof extra === "string") {
+        console.warn('extra is not an object:' + extra);
+        extra = {
+          errorData: extra
+        }
+      }
       extra.osInfo = getOSInfo();
       extra.chatEnabled = this.config.get('chatEnable');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());

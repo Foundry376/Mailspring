@@ -57,8 +57,14 @@ const setupErrorLogger = (args = {}) => {
     inDevMode: args.devMode,
     resourcePath: args.resourcePath,
   });
-  process.on('uncaughtException', errorLogger.reportError);
-  process.on('unhandledRejection', errorLogger.reportError);
+  process.on('uncaughtException', e => {
+    console.error(e);
+    errorLogger.reportError(e)
+  });
+  process.on('unhandledRejection', e => {
+    console.error(e);
+    errorLogger.reportError(e);
+  });
   return errorLogger;
 };
 
@@ -242,11 +248,8 @@ const start = () => {
   options.configDirPath = configDirPath;
 
   if (!options.devMode) {
-    const otherInstanceRunning = app.makeSingleInstance(commandLine => {
-      const otherOpts = parseCommandLine(commandLine);
-      global.application.handleLaunchOptions(otherOpts);
-    });
-
+    // for single instance check
+    const otherInstanceRunning = !app.requestSingleInstanceLock();
     if (otherInstanceRunning) {
       console.log('Exiting because another instance of the app is already running.');
       app.exit(1);
