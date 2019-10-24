@@ -421,14 +421,13 @@ class EditableList extends Component {
         onDoubleClick={_.partial(onEdit, _, item, idx)}
       >
         {itemContent}
-      </div>
-    );
-  };
-
-  _renderDropInsertion = () => {
-    return (
-      <div className="insertion-point">
-        <div />
+        <RetinaImg
+          className="edit-icon"
+          name="edit-icon.png"
+          title="Edit Item"
+          mode={RetinaImg.Mode.ContentIsMask}
+          onClick={_.partial(onEdit, _, item, idx)}
+        />
       </div>
     );
   };
@@ -450,6 +449,14 @@ class EditableList extends Component {
         <div className={deleteClasses} onClick={this._onDeleteItem}>
           <span>-</span>
         </div>
+      </div>
+    );
+  };
+
+  _renderDropInsertion = () => {
+    return (
+      <div className="insertion-point">
+        <div />
       </div>
     );
   };
