@@ -103,11 +103,12 @@ class PreferencesAppearance extends React.Component {
     });
     return (
       <ModeSwitch
+        className="theme-switch"
         modeSwitch={modeSwitchList}
         config={this.props.config}
         activeValue={this.state.activeTheme}
         onSwitchOption={value => {
-          this._setActiveTheme(value);
+          this.themes.setActiveTheme(value);
         }}
       />
     );
@@ -129,6 +130,7 @@ class PreferencesAppearance extends React.Component {
     ];
     return (
       <ModeSwitch
+        className="profile-switch"
         modeSwitch={modeSwitchList}
         config={this.props.config}
         activeValue={activeValue}
@@ -165,10 +167,6 @@ class PreferencesAppearance extends React.Component {
         }}
       />
     );
-  }
-
-  _setActiveTheme(theme) {
-    this.themes.setActiveTheme(theme);
   }
 
   render() {

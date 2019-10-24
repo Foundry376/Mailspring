@@ -9,7 +9,8 @@ export default class ModeSwitch extends React.Component {
     config: PropTypes.object.isRequired,
     activeValue: PropTypes.any.isRequired,
     imgActive: PropTypes.bool,
-    onSwitchOption: PropTypes.function,
+    onSwitchOption: PropTypes.func,
+    className: PropTypes.string,
   };
 
   constructor(props) {
@@ -24,18 +25,22 @@ export default class ModeSwitch extends React.Component {
   }
 
   render() {
-    const { modeSwitch, imgActive } = this.props;
+    const { modeSwitch, imgActive, className } = this.props;
     const { value } = this.state;
 
     return (
-      <div className="appearance-mode-switch">
+      <div className={`appearance-mode-switch${className ? ' ' + className : ''}`}>
         <Flexbox direction="row" style={{ alignItems: 'center' }} className="item">
           {modeSwitch.map(modeInfo => {
             const active = value === modeInfo.value;
             const classname = `appearance-mode${active ? ' active' : ''}`;
 
             return (
-              <div className={classname} onClick={() => this._onClick(modeInfo)}>
+              <div
+                key={modeInfo.value}
+                className={classname}
+                onClick={() => this._onClick(modeInfo)}
+              >
                 <RetinaImg name={modeInfo.imgsrc} mode="" active={active && imgActive} />
                 <div>{modeInfo.label}</div>
               </div>
