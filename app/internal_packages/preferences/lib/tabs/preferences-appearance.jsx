@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { RetinaImg, Flexbox } from 'mailspring-component-kit';
-import ThemeOption from './theme-option';
+import { RetinaImg } from 'mailspring-component-kit';
+import ModeSwitch from './mode-switch';
 
 class AppearanceScaleSlider extends React.Component {
   static displayName = 'AppearanceScaleSlider';
@@ -41,56 +41,6 @@ class AppearanceScaleSlider extends React.Component {
           value={this.state.value}
           onChange={e => this.props.config.set(this.kp, e.target.value)}
         />
-      </div>
-    );
-  }
-}
-
-class AppearanceModeSwitch extends React.Component {
-  static displayName = 'AppearanceModeSwitch';
-  static propTypes = {
-    modeSwitch: PropTypes.array.isRequired,
-    config: PropTypes.object.isRequired,
-    keyPath: PropTypes.string.isRequired,
-    onSwitchOption: PropTypes.function,
-  };
-
-  constructor(props) {
-    super();
-    this.state = {
-      value: props.config.get(props.keyPath),
-    };
-  }
-
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    this.setState({
-      value: nextProps.config.get(nextProps.keyPath),
-    });
-  }
-
-  _onClick(modeInfo) {
-    this.setState({ value: modeInfo.value }, () => this.props.onSwitchOption(modeInfo.value));
-  }
-
-  render() {
-    const { modeSwitch } = this.props;
-    const { value } = this.state;
-
-    return (
-      <div className="appearance-mode-switch">
-        <Flexbox direction="row" style={{ alignItems: 'center' }} className="item">
-          {modeSwitch.map(modeInfo => {
-            const active = value === modeInfo.value;
-            const classname = `appearance-mode${active ? ' active' : ''}`;
-
-            return (
-              <div className={classname} onClick={() => this._onClick(modeInfo)}>
-                <RetinaImg name={modeInfo.imgsrc} mode="" active={active} />
-                <div>{modeInfo.label}</div>
-              </div>
-            );
-          })}
-        </Flexbox>
       </div>
     );
   }
@@ -137,16 +87,82 @@ class PreferencesAppearance extends React.Component {
     sortedThemes.sort((a, b) => {
       return (internalThemes.indexOf(a.name) - internalThemes.indexOf(b.name)) * -1;
     });
+    const labelMap = {
+      light: 'Light Mode',
+      dark: 'Dark Mode',
+    };
     // only show light and dark mode
     sortedThemes = sortedThemes.filter(item => internalThemes.includes(item.name));
-    return sortedThemes.map(theme => (
-      <ThemeOption
-        key={theme.name}
-        theme={theme}
-        active={this.state.activeTheme === theme.name}
-        onSelect={() => this._setActiveTheme(theme.name)}
+    const modeSwitchList = sortedThemes.map(theme => {
+      const mode = theme.name.replace('ui-', '');
+      return {
+        value: theme.name,
+        label: labelMap[mode],
+        imgsrc: `prefs-appearance-${mode}.png`,
+      };
+    });
+    return (
+      <ModeSwitch
+        modeSwitch={modeSwitchList}
+        config={this.props.config}
+        activeValue={this.state.activeTheme}
+        onSwitchOption={value => {
+          this._setActiveTheme(value);
+        }}
       />
-    ));
+    );
+  }
+
+  _renderProfileOptions() {
+    const activeValue = this.props.config.get('core.appearance.profile');
+    const modeSwitchList = [
+      {
+        value: true,
+        label: 'Profile Pictures',
+        imgsrc: `profile-${'show'}.png`,
+      },
+      {
+        value: false,
+        label: 'No Profile Pictures',
+        imgsrc: `profile-${'hide'}.png`,
+      },
+    ];
+    return (
+      <ModeSwitch
+        modeSwitch={modeSwitchList}
+        config={this.props.config}
+        activeValue={activeValue}
+        onSwitchOption={value => {
+          AppEnv.config.set('core.appearance.profile', value);
+        }}
+      />
+    );
+  }
+
+  _renderPanelOptions() {
+    const activeValue = this.props.config.get('core.workspace.mode');
+    const modeSwitchList = [
+      {
+        value: 'list',
+        label: 'Single Panel',
+        imgsrc: `appearance-mode-${'list'}.png`,
+      },
+      {
+        value: 'split',
+        label: 'Two Panels',
+        imgsrc: `appearance-mode-${'split'}.png`,
+      },
+    ];
+    return (
+      <ModeSwitch
+        modeSwitch={modeSwitchList}
+        config={this.props.config}
+        activeValue={activeValue}
+        onSwitchOption={value => {
+          AppEnv.commands.dispatch(`navigation:select-${value}-mode`);
+        }}
+      />
+    );
   }
 
   _setActiveTheme(theme) {
@@ -158,55 +174,13 @@ class PreferencesAppearance extends React.Component {
       <div className="container-appearance">
         <div className="config-group">
           <h6>LAYOUT</h6>
-          <AppearanceModeSwitch
-            modeSwitch={[
-              {
-                value: true,
-                label: 'Profile Pictures',
-                imgsrc: `profile-${'show'}.png`,
-              },
-              {
-                value: false,
-                label: 'No Profile Pictures',
-                imgsrc: `profile-${'hide'}.png`,
-              },
-            ]}
-            config={this.props.config}
-            keyPath={'core.appearance.profile'}
-            onSwitchOption={value => {
-              AppEnv.config.set('core.appearance.profile', value);
-            }}
-          />
-          <AppearanceModeSwitch
-            modeSwitch={[
-              {
-                value: 'list',
-                label: 'Single Panel',
-                imgsrc: `appearance-mode-${'list'}.png`,
-              },
-              {
-                value: 'split',
-                label: 'Two Panels',
-                imgsrc: `appearance-mode-${'split'}.png`,
-              },
-            ]}
-            config={this.props.config}
-            keyPath={'core.workspace.mode'}
-            onSwitchOption={value => {
-              AppEnv.commands.dispatch(`navigation:select-${value}-mode`);
-            }}
-          />
+          {this._renderProfileOptions()}
+          {this._renderPanelOptions()}
         </div>
 
         <div className="config-group">
           <h6>Theme</h6>
-          <Flexbox
-            direction="row"
-            style={{ alignItems: 'center' }}
-            className="item appearance-mode-switch"
-          >
-            {this._renderThemeOptions()}
-          </Flexbox>
+          {this._renderThemeOptions()}
         </div>
         <div className="config-group">
           <h6 htmlFor="change-scale">Scaling</h6>
