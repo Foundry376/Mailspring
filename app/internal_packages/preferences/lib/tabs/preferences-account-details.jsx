@@ -179,9 +179,7 @@ class PreferencesAccountDetails extends Component {
     if (aliases.length > 0) {
       return (
         <div>
-          <div className="item">
-            <label>Default for new messages:</label>
-          </div>
+          <label>Default for new messages:</label>
           <div className="item">
             <select value={defaultAlias} onChange={this._onDefaultAliasSelected}>
               <option value="None">{`${account.name} <${account.emailAddress}>`}</option>
