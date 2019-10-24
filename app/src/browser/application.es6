@@ -44,6 +44,7 @@ export default class Application extends EventEmitter {
     this.devMode = devMode;
     this.specMode = specMode;
     this.safeMode = safeMode;
+    this.nativeVersion = '';
 
     // if (devMode) {
     //   require('electron-reload')(resourcePath);
@@ -58,7 +59,7 @@ export default class Application extends EventEmitter {
 
     try {
       const mailsync = new MailsyncProcess(options);
-      await mailsync.migrate();
+      this.nativeVersion = await mailsync.migrate();
     } catch (err) {
       let message = null;
       let buttons = ['Quit'];
@@ -159,7 +160,7 @@ export default class Application extends EventEmitter {
       fs.mkdirSync(avatarPath);
     }
     this.clearOldLogs();
-    // this.initSupportInfo();
+    this.initSupportInfo();
   }
   getOpenWindows() {
     return this.windowManager.getOpenWindows();
@@ -462,20 +463,23 @@ export default class Application extends EventEmitter {
   }
 
   initSupportInfo() {
-    if (!getDeviceHash) {
-      getDeviceHash = require('./system-utils').getDeviceHash;
+    if (this.config) {
+      this.config.set('core.support.native', this.nativeVersion);
     }
-    const deviceHash = this.config.get('core.support.id');
-    if (!deviceHash || deviceHash === 'Unknown') {
-      getDeviceHash()
-        .then(id => {
-          this.config.set('core.support.id', id);
-        })
-        .catch(e => {
-          AppEnv.reportError(new Error('failed to init support id'));
-          this.config.set('core.support.id', 'Unknown');
-        });
-    }
+    // if (!getDeviceHash) {
+    //   getDeviceHash = require('./system-utils').getDeviceHash;
+    // }
+    // const deviceHash = this.config.get('core.support.id');
+    // if (!deviceHash || deviceHash === 'Unknown') {
+    //   getDeviceHash()
+    //     .then(id => {
+    //       this.config.set('core.support.id', id);
+    //     })
+    //     .catch(e => {
+    //       AppEnv.reportError(new Error('failed to init support id'));
+    //       this.config.set('core.support.id', 'Unknown');
+    //     });
+    // }
   }
 
   autoStartRestore() {

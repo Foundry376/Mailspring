@@ -261,6 +261,7 @@ export default class AppEnvConstructor {
     try {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
+      extra.native = this.config.get('core.support.native');
       extra.chatEnabled = this.config.get('chatEnable');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       extra.pluginIds = JSON.stringify(this._findPluginsFromError(error));
@@ -1397,5 +1398,9 @@ export default class AppEnvConstructor {
         .update(str)
         .digest('hex')
     );
+  }
+
+  mockReportError(str = {}, extra = {}, opts = {}) {
+    this.reportError(new Error(str), extra, opts);
   }
 }
