@@ -82,8 +82,8 @@ export default class PreferencesKeymaps extends React.Component {
 
   _renderBindingsSection = section => {
     return (
-      <section key={`section-${section.title}`}>
-        <div className="shortcut-section-title">{section.title}</div>
+      <div className="config-group">
+        <h6>{section.title}</h6>
         {section.items.map(([command, label]) => {
           return (
             <CommandItem
@@ -94,53 +94,48 @@ export default class PreferencesKeymaps extends React.Component {
             />
           );
         })}
-      </section>
+      </div>
     );
   };
 
   render() {
     return (
       <div className="container-keymaps">
-        <section>
-          <Flexbox className="container-dropdown">
-            <div>Shortcut set:</div>
-            <div className="dropdown">
-              <select
-                style={{ margin: 0 }}
-                tabIndex={-1}
-                value={this.props.config.get('core.keymapTemplate')}
-                onChange={event => this.props.config.set('core.keymapTemplate', event.target.value)}
-              >
-                {this.state.templates.map(template => {
-                  return (
-                    <option key={template} value={template}>
-                      {template}
-                    </option>
-                  );
-                })}
-              </select>
+        <div className="config-group">
+          <h6>SHORTCUTS</h6>
+          <div className="keymaps-note">
+            Choose a set of keyboard shortcuts that you would like to use in the app. To customize a
+            shortcut, click it in the list below and enter a replacement on your keyboard.
+          </div>
+          <Flexbox direction="row" className="shortcut-set">
+            <div className="item">
+              <label>Shortcut set:</label>
+              <div className="button-dropdown">
+                <select
+                  style={{ margin: 0 }}
+                  tabIndex={-1}
+                  value={this.props.config.get('core.keymapTemplate')}
+                  onChange={event =>
+                    this.props.config.set('core.keymapTemplate', event.target.value)
+                  }
+                >
+                  {this.state.templates.map(template => {
+                    return (
+                      <option key={template} value={template}>
+                        {template}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
             </div>
-            <div style={{ flex: 1 }} />
             <button className="btn" onClick={this._onDeleteUserKeymap}>
               Reset to Defaults
             </button>
           </Flexbox>
-          <p>
-            You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To
-            edit a shortcut, click it in the list below and enter a replacement on the keyboard.
-          </p>
-          {displayedKeybindings.map(this._renderBindingsSection)}
-        </section>
-        {/* <section>
-          <h2>Customization</h2>
-          <p>
-            Click shortcuts above to edit them. For even more control, you can edit the shortcuts
-            file directly below.
-          </p>
-          <button className="btn" onClick={this._onShowUserKeymaps}>
-            Edit custom shortcuts
-          </button>
-        </section> */}
+        </div>
+
+        {displayedKeybindings.map(this._renderBindingsSection)}
       </div>
     );
   }

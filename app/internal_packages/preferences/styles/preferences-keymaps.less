@@ -1,6 +1,23 @@
 @import 'ui-variables';
 
 .preferences-wrap {
+  .keymaps-note {
+    padding: 4px 0 7px;
+    color: @gray;
+    line-height: 18px;
+  }
+  .shortcut-set {
+    justify-content: space-between;
+
+    .btn {
+      color: @red;
+      font-weight: @font-weight-semi-bold;
+      width: 203.33px;
+      border: 0.5px solid @gray-lighter;
+      box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+    }
+  }
+
   .container-keymaps {
     .col-left {
       text-align: right;
@@ -14,12 +31,6 @@
         width: 75%;
       }
     }
-
-    .shortcut-section-title {
-      border-bottom: 1px solid @border-color-divider;
-      margin: @padding-large-vertical * 1.5 0;
-    }
-
     .shortcut {
       padding: 3px 0;
       color: @text-color-very-subtle;
