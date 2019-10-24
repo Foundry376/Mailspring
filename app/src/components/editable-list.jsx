@@ -105,6 +105,7 @@ class EditableList extends Component {
     selected: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     onSelectItem: PropTypes.func,
     needScroll: PropTypes.bool,
+    footer: PropTypes.node,
   };
 
   static defaultProps = {
@@ -262,15 +263,14 @@ class EditableList extends Component {
     }
   };
 
-  _onDeleteItem = delItem => {
+  _onDeleteItem = () => {
     const selectedItem = this._getSelectedItem();
-    const selectedIndex = this.props.items.indexOf(selectedItem);
-    const delIndex = this.props.items.indexOf(delItem);
-    if (delItem) {
-      this.props.onDeleteItem(delItem, delIndex);
-      if (selectedIndex === delIndex) {
-        // Move the selection 1 up or down after deleting
-        const newIndex = delIndex === 0 ? delIndex + 1 : delIndex - 1;
+    const index = this.props.items.indexOf(selectedItem);
+    if (selectedItem) {
+      // Move the selection 1 up or down after deleting
+      const newIndex = index === 0 ? index + 1 : index - 1;
+      this.props.onDeleteItem(selectedItem, index);
+      if (this.props.items[newIndex]) {
         this._selectItem(this.props.items[newIndex], newIndex);
       }
     }
@@ -434,6 +434,10 @@ class EditableList extends Component {
   };
 
   _renderButtons = () => {
+    const { footer } = this.props;
+    if (footer) {
+      return footer;
+    }
     const deleteClasses = classNames({
       'btn-editable-list': true,
       'btn-disabled': !this._getSelectedItem(),
@@ -441,10 +445,10 @@ class EditableList extends Component {
     return (
       <div className="buttons-wrapper">
         <div className="btn-editable-list" onClick={this._onCreateItem}>
-          +
+          <span>+</span>
         </div>
         <div className={deleteClasses} onClick={this._onDeleteItem}>
-          -
+          <span>-</span>
         </div>
       </div>
     );

@@ -60,6 +60,12 @@ class PreferencesAccountList extends Component {
     if (!this.props.accounts) {
       return <div className="account-list" />;
     }
+
+    const footer = (
+      <div className="buttons-wrapper" onClick={this.props.onAddAccount}>
+        +&nbsp;&nbsp;&nbsp;&nbsp;Add Account
+      </div>
+    );
     return (
       <EditableList
         className="account-list"
@@ -70,6 +76,7 @@ class PreferencesAccountList extends Component {
         onCreateItem={this.props.onAddAccount}
         onSelectItem={this.props.onSelectAccount}
         onDeleteItem={this.props.onRemoveAccount}
+        footer={footer}
       />
     );
   }

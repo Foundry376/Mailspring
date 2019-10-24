@@ -98,7 +98,18 @@
       font-size: 16px;
       line-height: 16px;
       text-align: center;
+      color: @text-color-very-subtle;
       border-right: 1px solid @gray-lighter;
+
+      &.btn-disabled {
+        background-color: transparent;
+        opacity: 0.4;
+      }
+      &:active {
+        cursor: default;
+        background-color: darken(@btn-default-bg-color, 9%);
+        box-shadow: inset 0 1px 0.5px rgba(0, 0, 0, 0.21);
+      }
     }
   }
 }
