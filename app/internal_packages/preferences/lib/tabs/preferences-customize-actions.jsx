@@ -36,47 +36,50 @@ class CustomizeActions extends React.Component {
   render() {
     return (
       <div className="container-customize-actions">
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.quickActions}
-          keyName="QuickActions"
-          label="Quick Actions"
-          keyPath="core.quickActions"
-          config={this.props.config}
-          injectedComponent={
-            <div className="quick-action-preview">
-              <RetinaImg
-                style={{ width: 500 }}
-                name={`prefs-quick-actions.png`}
-                mode={RetinaImg.Mode.ContentPreserve}
-              />
-              {this._renderActionIcon(1)}
-              {this._renderActionIcon(2)}
-              {this._renderActionIcon(3)}
-              {this._renderActionIcon(4)}
-            </div>
-          }
-        />
-
-        <ConfigSchemaItem
-          configSchema={this.props.configSchema.properties.swipeActions}
-          keyName="SwipeActions"
-          label="Swipe Actions"
-          keyPath="core.swipeActions"
-          config={this.props.config}
-          injectedComponent={
-            <div className="swipe-action-preview">
-              <RetinaImg
-                style={{ width: 500 }}
-                name={`prefs-swipe-colors.png`}
-                mode={RetinaImg.Mode.ContentPreserve}
-              />
-              {this._renderActionColor('leftShortAction')}
-              {this._renderActionColor('leftLongAction')}
-              {this._renderActionColor('rightShortAction')}
-              {this._renderActionColor('rightLongAction')}
-            </div>
-          }
-        />
+        <div className="config-group">
+          <ConfigSchemaItem
+            configSchema={this.props.configSchema.properties.quickActions}
+            keyName="QuickActions"
+            label="Quick Actions"
+            keyPath="core.quickActions"
+            config={this.props.config}
+            injectedComponent={
+              <div className="quick-action-preview">
+                <RetinaImg
+                  style={{ width: 500 }}
+                  name={`prefs-quick-actions.png`}
+                  mode={RetinaImg.Mode.ContentPreserve}
+                />
+                {this._renderActionIcon(1)}
+                {this._renderActionIcon(2)}
+                {this._renderActionIcon(3)}
+                {this._renderActionIcon(4)}
+              </div>
+            }
+          />
+        </div>
+        <div className="config-group">
+          <ConfigSchemaItem
+            configSchema={this.props.configSchema.properties.swipeActions}
+            keyName="SwipeActions"
+            label="Swipe Actions"
+            keyPath="core.swipeActions"
+            config={this.props.config}
+            injectedComponent={
+              <div className="swipe-action-preview">
+                <RetinaImg
+                  style={{ width: 500 }}
+                  name={`prefs-swipe-colors.png`}
+                  mode={RetinaImg.Mode.ContentPreserve}
+                />
+                {this._renderActionColor('leftShortAction')}
+                {this._renderActionColor('leftLongAction')}
+                {this._renderActionColor('rightShortAction')}
+                {this._renderActionColor('rightLongAction')}
+              </div>
+            }
+          />
+        </div>
       </div>
     );
   }
