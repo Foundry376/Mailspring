@@ -159,10 +159,9 @@ export default class AppEnvConstructor {
     this.initTaskErrorCounter();
 
     // subscribe event of dark mode change
-    const { systemPreferences } = remote;
-    if (this.isMainWindow()) {
-      systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-        AppEnv.themes.setActiveTheme(systemPreferences.isDarkMode() ? 'ui-dark' : 'ui-light');
+    if (this.isMainWindow() && process.platform === 'darwin') {
+      ipcRenderer.on('system-theme-changed', (e, isDarkMode) => {
+        AppEnv.themes.setActiveTheme(isDarkMode ? 'ui-dark' : 'ui-light');
       });
     }
   }

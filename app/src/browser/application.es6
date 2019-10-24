@@ -1,6 +1,6 @@
 /* eslint global-require: "off" */
 
-import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, dialog, systemPreferences } from 'electron';
 
 import fs from 'fs-plus';
 import rimraf from 'rimraf';
@@ -160,6 +160,20 @@ export default class Application extends EventEmitter {
     }
     this.clearOldLogs();
     // this.initSupportInfo();
+
+    // subscribe event of dark mode change
+    if (process.platform === 'darwin') {
+      try {
+        systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+          const mainWindow = this.getMainWindow();
+          if (mainWindow) {
+            mainWindow.webContents.send('system-theme-changed', systemPreferences.isDarkMode());
+          }
+        });
+      } catch (err) {
+        console.error('Error: systemPreferences.subscribeNotification', err);
+      }
+    }
   }
   getOpenWindows() {
     return this.windowManager.getOpenWindows();
