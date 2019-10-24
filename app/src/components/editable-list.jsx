@@ -433,6 +433,23 @@ class EditableList extends Component {
     );
   };
 
+  _renderButtons = () => {
+    const deleteClasses = classNames({
+      'btn-editable-list': true,
+      'btn-disabled': !this._getSelectedItem(),
+    });
+    return (
+      <div className="buttons-wrapper">
+        <div className="btn-editable-list" onClick={this._onCreateItem}>
+          +
+        </div>
+        <div className={deleteClasses} onClick={this._onDeleteItem}>
+          -
+        </div>
+      </div>
+    );
+  };
+
   render() {
     let items = this.props.items.map((item, idx) => this._renderItem(item, idx));
     if (this.state.creatingItem === true) {
@@ -466,10 +483,7 @@ class EditableList extends Component {
         ) : (
           <div>{items}</div>
         )}
-
-        <div className="buttons-wrapper" onClick={this._onCreateItem}>
-          + Add Account
-        </div>
+        {this._renderButtons()}
       </KeyCommandsRegion>
     );
   }
