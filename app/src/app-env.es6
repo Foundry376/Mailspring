@@ -163,6 +163,7 @@ export default class AppEnvConstructor {
       ipcRenderer.on('system-theme-changed', (e, isDarkMode) => {
         AppEnv.themes.setActiveTheme(isDarkMode ? 'ui-dark' : 'ui-light');
       });
+      this.mailsyncBridge.startSift('Main window started');
     }
   }
   sendSyncMailNow(accountId) {
@@ -265,6 +266,7 @@ export default class AppEnvConstructor {
         }
       }
       extra.osInfo = getOSInfo();
+      extra.native = this.config.get('core.support.native');
       extra.chatEnabled = this.config.get('chatEnable');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       extra.pluginIds = JSON.stringify(this._findPluginsFromError(error));
@@ -1401,5 +1403,9 @@ export default class AppEnvConstructor {
         .update(str)
         .digest('hex')
     );
+  }
+
+  mockReportError(str = {}, extra = {}, opts = {}) {
+    this.reportError(new Error(str), extra, opts);
   }
 }

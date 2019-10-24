@@ -270,10 +270,8 @@ class AppMessageStore extends MailspringStore {
     this.addToSilentCache({ block });
   };
   addToSilentCache = ({ block }) => {
-    if(!this._silentCache[block.id]){
-      this._silentCache[block.id] = Date.now();
-    }
-  }
+    this._silentCache[block.id] = Date.now();
+  };
   _findHighestPriority = ({ tasks }) => {
     let priority = AppMessageStore.priority.low;
     for (let task of tasks) {
