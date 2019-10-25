@@ -151,8 +151,8 @@ const WorkspaceSection = props => {
       />
 
       <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.chatEnable}
-        keyPath="chatEnable"
+        configSchema={props.configSchema.properties.workspace.properties.enableChat}
+        keyPath="enableChat"
         config={props.config}
       />
 

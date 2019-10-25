@@ -50,7 +50,7 @@ function _getMenuTemplate(platform, application, accountTemplates, conversationT
     });
   }
 
-  if (application.config.get(`chatEnable`)) {
+  if (application.config.get(`enableChat`)) {
     templateChat.push(
       {
         type: 'separator',

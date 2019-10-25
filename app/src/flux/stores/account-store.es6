@@ -38,7 +38,7 @@ class AccountStore extends MailspringStore {
     this.listenTo(Actions.updateAccount, this._onUpdateAccount);
     this.listenTo(Actions.reorderAccount, this._onReorderAccount);
     this.listenTo(DatabaseStore, this._onDataChange);
-    if(AppEnv.isMainWindow()){
+    if (AppEnv.isMainWindow()) {
       this.listenTo(Actions.siftUpdateAccount, this._onSiftUpdateAccount);
     }
 
@@ -59,7 +59,7 @@ class AccountStore extends MailspringStore {
           // refresh thread list
           FocusedPerspectiveStore.trigger();
           // add chat account
-          if (AppEnv.config.get(`chatEnable`)) {
+          if (AppEnv.config.get(`enableChat`)) {
             await registerLoginEmailAccountForChat(account);
             await AppStore.refreshAppsEmailContacts();
             await MessageStore.saveMessagesAndRefresh([]);
@@ -100,12 +100,12 @@ class AccountStore extends MailspringStore {
     return false;
   }
   _onDataChange = change => {
-    if(change.objectClass === Indicator.name){
+    if (change.objectClass === Indicator.name) {
       change.objects.forEach(obj => {
-        if(obj){
+        if (obj) {
           const account = this.accountForId(obj.accountId);
-          if(account && obj.key === 'ErrorAuthentication' && account.syncState !== Account.SYNC_STATE_AUTH_FAILED){
-            Actions.updateAccount(account.id, {syncState: Account.SYNC_STATE_AUTH_FAILED})
+          if (account && obj.key === 'ErrorAuthentication' && account.syncState !== Account.SYNC_STATE_AUTH_FAILED) {
+            Actions.updateAccount(account.id, { syncState: Account.SYNC_STATE_AUTH_FAILED })
           }
         }
       });
@@ -257,8 +257,8 @@ class AccountStore extends MailspringStore {
     this._save();
     this._parseErrorAccount();
   };
-  _forceRelaunchClients(accts){
-    accts.forEach(acct=>{
+  _forceRelaunchClients(accts) {
+    accts.forEach(acct => {
       AppEnv.mailsyncBridge.forceRelaunchClient(acct);
     })
   }
@@ -268,19 +268,20 @@ class AccountStore extends MailspringStore {
       existingAccountJSON: await KeyManager.insertAccountSecrets(account),
     });
   };
-  _parseErrorAccount(){
+  _parseErrorAccount() {
     const erroredAccounts = this._accounts.filter(a => a.hasSyncStateError());
-    if(erroredAccounts.length === 0){
+    if (erroredAccounts.length === 0) {
       return;
-    }else if(erroredAccounts.length > 1){
+    } else if (erroredAccounts.length > 1) {
       console.log('parse account error');
       const message = {
         id: `account-error`,
         level: 0,
         description: 'Several of your accounts are having issues',
         actions: [
-          {text: 'Check Again',
-          onClick: () => this._forceRelaunchClients(erroredAccounts)
+          {
+            text: 'Check Again',
+            onClick: () => this._forceRelaunchClients(erroredAccounts)
           },
           {
             text: 'Manage',
@@ -293,9 +294,9 @@ class AccountStore extends MailspringStore {
         allowClose: true
       };
       Actions.pushAppMessage(message);
-    }else {
+    } else {
       const erroredAccount = erroredAccounts[0];
-      const message = {allowClose: true, level: 0, id: `account-error-${erroredAccount.emailAddress}`};
+      const message = { allowClose: true, level: 0, id: `account-error-${erroredAccount.emailAddress}` };
       switch (erroredAccount.syncState) {
         case Account.SYNC_STATE_AUTH_FAILED:
           message.description = `Cannot authenticate with ${erroredAccount.emailAddress}`;
@@ -333,7 +334,7 @@ class AccountStore extends MailspringStore {
   _onRemoveAccount = async id => {
     const account = this._accounts.find(a => a.id === id);
     if (!account) return;
-    if (AppEnv.config.get(`chatEnable`)) {
+    if (AppEnv.config.get(`enableChat`)) {
       let chatAccounts = AppEnv.config.get('chatAccounts') || {};
       let chatAccount = chatAccounts[account.emailAddress];
       if (chatAccount) {
@@ -349,9 +350,9 @@ class AccountStore extends MailspringStore {
         ConversationStore.refreshConversations();
         // all valid contacts will be add back in AppStore.refreshAppsEmailContacts()
         await ContactModel.destroy({
-          where: {curJid: jid},
+          where: { curJid: jid },
           truncate: true,
-          force:true
+          force: true
         });
         await ContactStore.refreshContacts();
         xmpp.removeXmpp(jid);
@@ -377,7 +378,7 @@ class AccountStore extends MailspringStore {
 
     this._accounts = remainingAccounts;
     this._save('removeAccount');
-    Actions.queueTask(new SiftRemoveAccountsTask({accounts: [account]}));
+    Actions.queueTask(new SiftRemoveAccountsTask({ accounts: [account] }));
 
     if (remainingAccounts.length === 0) {
       // Clear everything and logout
@@ -466,24 +467,24 @@ class AccountStore extends MailspringStore {
           .update(str)
           .digest('hex')
       };
-      for(let key in account){
-        if(key !== 'aliases' && key !== 'settings' && !sensitveData.includes(key)){
+      for (let key in account) {
+        if (key !== 'aliases' && key !== 'settings' && !sensitveData.includes(key)) {
           ret[key] = account[key];
-        }else if (key === 'aliases'){
+        } else if (key === 'aliases') {
           ret.aliases = [];
           account.aliases.forEach(alias => {
             ret.aliases.push(hash(alias));
           });
-        }else if (key === 'settings'){
+        } else if (key === 'settings') {
           ret.settings = {};
-          for(let settingKey in account.settings){
-            if(sensitveData.includes(settingKey)){
+          for (let settingKey in account.settings) {
+            if (sensitveData.includes(settingKey)) {
               ret.settings[settingKey] = hash(account.settings[settingKey]);
-            }else{
+            } else {
               ret.settings[settingKey] = account.settings[settingKey];
             }
           }
-        }else {
+        } else {
           ret[key] = hash(account[key]);
         }
       }

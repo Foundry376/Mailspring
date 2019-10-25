@@ -313,7 +313,7 @@ export default class Application extends EventEmitter {
     try {
       getOSInfo = getOSInfo || require('../system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
-      extra.chatEnabled = this.config.get('chatEnable');
+      extra.chatEnabled = this.config.get('enableChat');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       if (!!extra.errorData) {
         extra.errorData = JSON.stringify(extra.errorData);
