@@ -562,24 +562,54 @@ export class ThreadListMoreButton extends React.Component {
     const selectionCount = this.props.items ? this.props.items.length : 0;
     const menu = new Menu();
     if (selectionCount > 0) {
-      menu.append(new MenuItem({
-        label: `Mark as read`,
-        click: (menuItem, browserWindow) => {
-          AppEnv.commands.dispatch('core:mark-as-read');
-        },
-      }),
-      );
+      if (this.props.items.every(item => item.unread)) {
+        menu.append(
+          new MenuItem({
+            label: `Mark as read`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-read');
+            },
+          }),
+        );
+      } else if (this.props.items.every(item => !item.unread)) {
+        menu.append(
+          new MenuItem({
+            label: `Mark as unread`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-unread');
+            },
+          }),
+        );
+      } else {
+        menu.append(
+          new MenuItem({
+            label: `Mark as read`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-read');
+            },
+          }),
+        );
+        menu.append(
+          new MenuItem({
+            label: `Mark as unread`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-unread');
+            },
+          }),
+        );
+      }
       const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
         this.props.items,
         'important',
       );
       if (allowed) {
-        menu.append(new MenuItem({
-          label: `Mark as spam`,
-          click: (menuItem, browserWindow) => {
-            AppEnv.commands.dispatch('core:report-as-spam');
-          },
-        }),
+        menu.append(
+          new MenuItem({
+            label: `Mark as spam`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:report-as-spam');
+            },
+          })
         );
       }
       if (this._account && this._account.usesLabels()) {
