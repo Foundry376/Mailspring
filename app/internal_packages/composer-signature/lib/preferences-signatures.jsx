@@ -9,10 +9,8 @@ import {
   Utils,
 } from 'mailspring-exports';
 import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
-import { ResolveSignatureData, RenderSignatureData, DataShape } from './constants';
+import { ResolveSignatureData, RenderSignatureData } from './constants';
 import SignatureAccountDefaultPicker from './signature-account-default-picker';
-import SignatureTemplatePicker from './signature-template-picker';
-import SignaturePhotoPicker from './signature-photo-picker';
 import Templates from './templates';
 
 const {
@@ -77,12 +75,6 @@ class SignatureEditor extends React.Component {
             value={signature.title || ''}
             onChange={this._onBaseFieldChange}
           />
-          <div style={{ flex: 1 }} />
-          <SignatureAccountDefaultPicker
-            signature={signature}
-            accountsAndAliases={accountsAndAliases}
-            defaults={defaults}
-          />
         </div>
 
         <div className="section editor" onClick={this._onFocusEditor}>
@@ -98,6 +90,11 @@ class SignatureEditor extends React.Component {
             }}
           />
         </div>
+        <SignatureAccountDefaultPicker
+          signature={signature}
+          accountsAndAliases={accountsAndAliases}
+          defaults={defaults}
+        />
         {/*TODO: edison feature disabled*/}
         {/*<SignaturePhotoPicker*/}
         {/*id={signature.id}*/}
@@ -175,28 +172,61 @@ export default class PreferencesSignatures extends React.Component {
     Actions.selectSignature(sig.id);
   };
 
-  _renderSignatures() {
-    const sigArr = Object.values(this.state.signatures);
+  _renderSig = sig => {
+    const checkedList = this.state.accountsAndAliases.filter(
+      account => this.state.defaults[account.email] === sig.id
+    );
+    const checkedListLen = checkedList && checkedList.length ? checkedList.length : 0;
 
     return (
-      <Flexbox>
-        <EditableList
-          showEditIcon
-          className="signature-list"
-          items={sigArr}
-          itemContent={sig => sig.title}
-          onCreateItem={this._onAddSignature}
-          onDeleteItem={this._onDeleteSignature}
-          onItemEdited={this._onEditSignatureTitle}
-          onSelectItem={this._onSelectSignature}
-          selected={this.state.selectedSignature}
-        />
-        <SignatureEditor
-          signature={this.state.selectedSignature}
-          defaults={this.state.defaults}
-          accountsAndAliases={this.state.accountsAndAliases}
-        />
-      </Flexbox>
+      <div className="signatures">
+        <div className="title">{sig.title}</div>
+        <div className="use-account">
+          {checkedListLen
+            ? `${checkedListLen} account${checkedListLen > 1 ? 's' : ''}`
+            : 'Not currently in use'}
+        </div>
+      </div>
+    );
+  };
+
+  _renderSignatures() {
+    const sigArr = Object.values(this.state.signatures);
+    const footer = (
+      <div className="buttons-wrapper" onClick={this._onAddSignature}>
+        +&nbsp;&nbsp;&nbsp;&nbsp;New Signature
+      </div>
+    );
+    return (
+      <div>
+        <div className="config-group">
+          <h6>SIGNATURES</h6>
+          <div className="signatures-note">
+            Create email signatures to automatically add to the end of your messages. You can format
+            your message be adding images or changing the text style. Add a different signature for
+            each account, or use the same one for several accounts.
+          </div>
+        </div>
+        <Flexbox>
+          <EditableList
+            className="signature-list"
+            items={sigArr}
+            itemContent={this._renderSig}
+            onCreateItem={this._onAddSignature}
+            onDeleteItem={this._onDeleteSignature}
+            onItemEdited={this._onEditSignatureTitle}
+            onSelectItem={this._onSelectSignature}
+            selected={this.state.selectedSignature}
+            footer={footer}
+            showDelIcon
+          />
+          <SignatureEditor
+            signature={this.state.selectedSignature}
+            defaults={this.state.defaults}
+            accountsAndAliases={this.state.accountsAndAliases}
+          />
+        </Flexbox>
+      </div>
     );
   }
 

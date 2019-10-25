@@ -94,6 +94,7 @@ class EditableList extends Component {
     itemContent: PropTypes.func,
     className: PropTypes.string,
     showEditIcon: PropTypes.bool,
+    showDelIcon: PropTypes.bool,
     createInputProps: PropTypes.object,
     onCreateItem: PropTypes.func,
     onDeleteItem: PropTypes.func,
@@ -263,8 +264,8 @@ class EditableList extends Component {
     }
   };
 
-  _onDeleteItem = () => {
-    const selectedItem = this._getSelectedItem();
+  _onDeleteItem = chooseItem => {
+    const selectedItem = chooseItem ? chooseItem : this._getSelectedItem();
     const index = this.props.items.indexOf(selectedItem);
     if (selectedItem) {
       // Move the selection 1 up or down after deleting
@@ -398,12 +399,15 @@ class EditableList extends Component {
     let itemContent = this.props.itemContent(item);
     const itemIsEditable = !React.isValidElement(itemContent);
 
+    const selected = item === this._getSelectedItem();
+    const editable = selected && this.props.showEditIcon && editingIndex !== idx;
+    const delateable = selected && this.props.showDelIcon;
+
     const classes = classNames({
       'list-item': true,
-      selected: item === this._getSelectedItem(),
+      selected: selected,
       editing: idx === editingIndex,
       'editable-item': itemIsEditable,
-      'with-edit-icon': this.props.showEditIcon && editingIndex !== idx,
     });
 
     if (editingIndex === idx && itemIsEditable) {
@@ -421,13 +425,28 @@ class EditableList extends Component {
         onDoubleClick={_.partial(onEdit, _, item, idx)}
       >
         {itemContent}
-        <RetinaImg
-          className="edit-icon"
-          name="edit-icon.png"
-          title="Edit Item"
-          mode={RetinaImg.Mode.ContentIsMask}
-          onClick={_.partial(onEdit, _, item, idx)}
-        />
+        <div className="icon-list">
+          {editable ? (
+            <RetinaImg
+              className="edit-icon"
+              name="edit-icon.png"
+              title="Edit Item"
+              mode={RetinaImg.Mode.ContentIsMask}
+              onClick={_.partial(onEdit, _, item, idx)}
+            />
+          ) : null}
+          {delateable ? (
+            <RetinaImg
+              isIcon
+              name="close.svg"
+              className="close-icon"
+              title="Close Item"
+              style={{ width: 20, height: 20 }}
+              mode={RetinaImg.Mode.ContentIsMask}
+              onClick={() => this._onDeleteItem(item)}
+            />
+          ) : null}
+        </div>
       </div>
     );
   };
@@ -446,7 +465,7 @@ class EditableList extends Component {
         <div className="btn-editable-list" onClick={this._onCreateItem}>
           <span>+</span>
         </div>
-        <div className={deleteClasses} onClick={this._onDeleteItem}>
+        <div className={deleteClasses} onClick={() => this._onDeleteItem()}>
           <span>-</span>
         </div>
       </div>

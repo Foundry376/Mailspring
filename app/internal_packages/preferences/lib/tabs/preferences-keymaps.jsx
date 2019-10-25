@@ -82,7 +82,7 @@ export default class PreferencesKeymaps extends React.Component {
 
   _renderBindingsSection = section => {
     return (
-      <div className="config-group">
+      <div className="config-group" key={section.title}>
         <h6>{section.title}</h6>
         {section.items.map(([command, label]) => {
           return (

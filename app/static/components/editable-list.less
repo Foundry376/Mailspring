@@ -9,6 +9,23 @@
     background: @list-focused-bg;
   }
 
+  .list-item {
+    position: relative;
+    .icon-list {
+      position: absolute;
+      top: 0;
+      right: 22px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      img {
+        display: inline-block;
+        background-color: #b6bdc2;
+        margin-left: 4px;
+      }
+    }
+  }
+
   .items-wrapper {
     display: flex;
     flex-direction: column;
@@ -31,28 +48,11 @@
       }
     }
 
-    .edit-icon {
-      display: none;
-      cursor: pointer;
-    }
-
     .editable-item {
       padding: (@padding-small-vertical - 1) @padding-small-horizontal;
       cursor: default;
       border-bottom: 1px solid @border-color-divider;
       flex-shrink: 0;
-
-      &.selected.with-edit-icon {
-        display: flex;
-        align-items: center;
-        padding-right: 20px;
-
-        img.edit-icon {
-          display: inline;
-          background-color: @text-color;
-          margin-left: auto;
-        }
-      }
 
       & > input {
         border: none;
