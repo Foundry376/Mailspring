@@ -76,6 +76,7 @@ export default class MailsyncProcess extends EventEmitter {
     this.identity = null;
     this.syncInitilMessageSend = false;
     this._sendMessageQueue = [];
+    this._mode = '';
   }
 
   _showStatusWindow(mode) {
@@ -124,6 +125,7 @@ export default class MailsyncProcess extends EventEmitter {
     }
 
     const args = [`--mode`, mode];
+    this._mode = mode;
     if (this.verbose) {
       args.push('--verbose');
     }
@@ -175,7 +177,7 @@ export default class MailsyncProcess extends EventEmitter {
         );
         if (AppEnv.enabledToNativeLog) {
           console.log('--------------------To native---------------');
-          AppEnv.logDebug(`to native: ${JSON.stringify(this.accounts)}`);
+          AppEnv.logDebug(`to sift: ${JSON.stringify(this.accounts)}`);
           console.log('-----------------------------To native END-----------------------');
         }
         this.syncInitilMessageSend = true;
@@ -384,7 +386,11 @@ export default class MailsyncProcess extends EventEmitter {
     const msg = `${JSON.stringify(json)}\n`;
     if (AppEnv.enabledToNativeLog) {
       console.log('--------------------To native---------------');
-      AppEnv.logDebug(`to native: ${this.account ? this.account.id : 'no account'} - ${msg}`);
+      AppEnv.logDebug(
+        `to ${this._mode === mailSyncModes.SIFT ? 'native: sift' : 'native'}: ${
+          this.account ? this.account.id : 'no account'
+        } - ${msg}`
+      );
       console.log('-----------------------------To native END-----------------------');
     }
     try {
@@ -418,7 +424,6 @@ export default class MailsyncProcess extends EventEmitter {
         },
       });
       const migrateReturn = buffer.toString().trim();
-      console.log(`\n---\nmigrate:\n${migrateReturn}\n`);
       const ret = JSON.parse(migrateReturn);
       this._closeStatusWindow();
       if (ret && ret.version) {
