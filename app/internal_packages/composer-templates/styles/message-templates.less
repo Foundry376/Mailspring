@@ -42,74 +42,106 @@
 
 // Styles for Preferences Signatures
 .preferences-templates-container {
-  max-width: 800px;
-  margin: 0 auto;
+  .config-group {
+    padding-bottom: 22px;
+    .template-note {
+      padding: 4px 0 7px;
+      color: @gray;
+      line-height: 18px;
+      margin-right: 27px;
+    }
+    .template-folder-btn {
+      height: 30px;
+      width: 203px;
+      flex: 0 0 auto;
+      color: #1293fd;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 30px;
+      border-radius: 10px;
+      border: 0.5px solid @gray-lighter;
+      box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+      margin-right: 10px;
+    }
+  }
 
   .template-list {
-    position: relative;
-    height: inherit;
-    width: inherit;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 282px;
+    padding: 40px 0 0 12px;
 
-    .items-wrapper {
-      min-width: 200px;
-      height: 262px;
+    .list-item {
+      padding: 22px 30px;
+      border-radius: 10px 0 0 10px;
+      line-height: 16px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .editable-item {
-      padding: 8px 10px;
-      border-bottom: none;
+
+    .buttons-wrapper {
+      height: 30px;
+      width: 250px;
+      text-align: center;
+      color: @blue;
+      font-family: 'SF UI Text';
+      font-weight: @headings-font-weight;
+      line-height: 30px;
+      border-radius: 10px;
+      border: 0.5px solid @gray-lighter;
+      box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+      margin-top: 30px;
     }
-    .btn-editable-list {
-      height: 37px;
-      width: 37px;
-      line-height: 37px;
-      font-size: 1em;
+
+    .item-rule-disabled {
+      color: @color-error;
+      padding: 4px 10px;
+      border-bottom: 1px solid @border-color-divider;
+    }
+    .selected .item-rule-disabled {
+      color: @component-active-bg;
     }
   }
 
   .template-wrap {
-    display: flex;
-    position: relative;
-    margin-left: @padding-base-horizontal;
-    flex-direction: column;
-    min-height: 200px;
-    width: 100%;
+    flex: 1;
+    border-left: 1px solid @gray-lighter;
+    padding: 15px 20px;
 
     &.empty {
       opacity: 0.5;
       pointer-events: none;
     }
 
-    .section {
-      margin-bottom: 10px;
-      &.editor {
-        display: flex;
-        flex: 1;
-        margin-bottom: 0;
+    .section.basic-info {
+      input {
+        border: none;
+        outline: none;
+        box-shadow: none;
+        max-width: 300px;
+        color: @gray-light;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 64px;
+        padding: 0;
+        &::placeholder {
+          color: @gray-lighter;
+        }
       }
-      &.note {
-        font-size: 0.9em;
-        margin-top: 8px;
-        color: @text-color-very-subtle;
-      }
-    }
-
-    textarea.raw-html {
-      font-family: monospace;
-      font-size: 0.9em;
-      width: 100%;
-      height: 240px;
-      padding: @padding-base-horizontal;
-      flex: 1;
-      background: @background-primary;
-      border: 1px solid @border-color-divider;
     }
 
     .RichEditor-root {
-      flex: 1;
-      background: @background-primary;
       padding: 10px;
       padding-top: 2px;
-      border: 1px solid @border-color-divider;
+      height: 248px;
+    }
+
+    .section.editor {
+      border: 1px solid #edf0f1;
+      margin-bottom: 13.5px;
     }
   }
 }

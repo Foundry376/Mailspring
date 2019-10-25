@@ -6,7 +6,9 @@ import { shell } from 'electron';
 import TemplateStore from './template-store';
 import TemplateActions from './template-actions';
 
-const { Conversion: { convertFromHTML, convertToHTML } } = ComposerSupport;
+const {
+  Conversion: { convertFromHTML, convertToHTML },
+} = ComposerSupport;
 
 class TemplateEditor extends React.Component {
   constructor(props) {
@@ -45,7 +47,7 @@ class TemplateEditor extends React.Component {
 
     return (
       <div className={`template-wrap ${readOnly && 'empty'}`}>
-        <div className="section">
+        <div className="section basic-info">
           <input
             type="text"
             id="title"
@@ -133,37 +135,48 @@ export default class PreferencesTemplates extends React.Component {
 
   render() {
     const { selected } = this.state;
-
+    const footer = (
+      <div className="buttons-wrapper" onClick={this._onAdd}>
+        +&nbsp;&nbsp;&nbsp;&nbsp;New Rule
+      </div>
+    );
     return (
       <div className="preferences-templates-container">
-        <section>
+        <div className="config-group">
+          <h6>TEMPLATES</h6>
           <Flexbox>
-            <div>
-              <EditableList
-                showEditIcon
-                className="template-list"
-                items={this.state.templates}
-                itemContent={template => template.name}
-                onCreateItem={this._onAdd}
-                onDeleteItem={this._onDelete}
-                onItemEdited={this._onEditTitle}
-                onSelectItem={this._onSelect}
-                selected={this.state.selected}
-              />
-              <a
-                style={{ marginTop: 10, display: 'block' }}
-                onClick={() => shell.showItemInFolder(TemplateStore.directory())}
-              >
-                Show Templates Folder...
-              </a>
+            <div className="template-note">
+              Welcome to templates! A way to quickly reuse frequently sent replies in email. View
+              the Templates Guide for tips and tricks. (Changes are saved automatically.)
             </div>
-            <TemplateEditor
-              onEditTitle={this._onEditTitle}
-              key={selected ? selected.name : 'empty'}
-              template={selected}
-            />
+            <btn
+              className="template-folder-btn"
+              onClick={() => shell.showItemInFolder(TemplateStore.directory())}
+            >
+              Show templates folder
+            </btn>
           </Flexbox>
-        </section>
+        </div>
+        <Flexbox>
+          <EditableList
+            showDelIcon
+            className="template-list"
+            items={this.state.templates}
+            itemContent={template => template.name}
+            onCreateItem={this._onAdd}
+            onDeleteItem={this._onDelete}
+            onItemEdited={this._onEditTitle}
+            onSelectItem={this._onSelect}
+            selected={this.state.selected}
+            footer={footer}
+          />
+
+          <TemplateEditor
+            onEditTitle={this._onEditTitle}
+            key={selected ? selected.name : 'empty'}
+            template={selected}
+          />
+        </Flexbox>
       </div>
     );
   }
