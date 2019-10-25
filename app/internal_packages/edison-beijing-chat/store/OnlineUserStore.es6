@@ -17,7 +17,11 @@ class OnlineUserStore extends MailspringStore {
   }
 
   getSelfAccountById(jid) {
-    return this.allSelfAccounts[jid];
+    const userInfo = this.allSelfAccounts[jid];
+    if (userInfo) {
+      return Object.assign({}, userInfo, { jid });
+    }
+    return null;
   }
 
   addOnlineUser(payload) {
@@ -54,7 +58,7 @@ class OnlineUserStore extends MailspringStore {
     if (!payload) {
       const error = new Error();
       log('connect', `removeOnLineAccount: payload is null: ${error.stack}`);
-      console.log(`removeOnLineAccount: payload is null: ${error.stack}`, );
+      console.log(`removeOnLineAccount: payload is null: ${error.stack}`);
       return;
     }
     const jid = payload.curJid;
