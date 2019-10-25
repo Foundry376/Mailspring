@@ -27,7 +27,7 @@ const isChatTest = isChatTestUser()
 
 module.exports = {
   activate() {
-    if (!AppEnv.config.get(`enableChat`)) {
+    if (!AppEnv.config.get(`core.workspace.enableChat`)) {
       return
     }
     startXmpp(xmpp)
@@ -84,7 +84,7 @@ module.exports = {
   },
 
   deactivate() {
-    if (AppEnv.config.get(`enableChat`)) {
+    if (AppEnv.config.get(`core.workspace.enableChat`)) {
       const { devMode } = AppEnv.getLoadSettings()
       if (true || devMode || isChatTest) {
         if (AppEnv.isMainWindow()) {

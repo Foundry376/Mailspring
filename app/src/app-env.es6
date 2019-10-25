@@ -262,7 +262,7 @@ export default class AppEnvConstructor {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
       extra.native = this.config.get('core.support.native');
-      extra.chatEnabled = this.config.get('enableChat');
+      extra.chatEnabled = this.config.get('core.workspace.enableChat');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       extra.pluginIds = JSON.stringify(this._findPluginsFromError(error));
       if (!!extra.errorData) {

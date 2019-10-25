@@ -59,7 +59,7 @@ class AccountStore extends MailspringStore {
           // refresh thread list
           FocusedPerspectiveStore.trigger();
           // add chat account
-          if (AppEnv.config.get(`enableChat`)) {
+          if (AppEnv.config.get(`core.workspace.enableChat`)) {
             await registerLoginEmailAccountForChat(account);
             await AppStore.refreshAppsEmailContacts();
             await MessageStore.saveMessagesAndRefresh([]);
@@ -334,7 +334,7 @@ class AccountStore extends MailspringStore {
   _onRemoveAccount = async id => {
     const account = this._accounts.find(a => a.id === id);
     if (!account) return;
-    if (AppEnv.config.get(`enableChat`)) {
+    if (AppEnv.config.get(`core.workspace.enableChat`)) {
       let chatAccounts = AppEnv.config.get('chatAccounts') || {};
       let chatAccount = chatAccounts[account.emailAddress];
       if (chatAccount) {
