@@ -49,6 +49,9 @@
       color: @gray;
       line-height: 18px;
       margin-right: 27px;
+      a {
+        text-decoration: none;
+      }
     }
     .template-folder-btn {
       height: 30px;
@@ -62,6 +65,7 @@
       border-radius: 10px;
       border: 0.5px solid @gray-lighter;
       box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+      margin-top: 7px;
       margin-right: 10px;
     }
   }
@@ -136,12 +140,16 @@
     .RichEditor-root {
       padding: 10px;
       padding-top: 2px;
-      height: 248px;
+      min-height: 248px;
     }
 
     .section.editor {
       border: 1px solid #edf0f1;
       margin-bottom: 13.5px;
+    }
+
+    .section.note {
+      color: @gray;
     }
   }
 }

@@ -147,7 +147,11 @@ export default class PreferencesTemplates extends React.Component {
           <Flexbox>
             <div className="template-note">
               Welcome to templates! A way to quickly reuse frequently sent replies in email. View
-              the Templates Guide for tips and tricks. (Changes are saved automatically.)
+              the{' '}
+              <a href="https://foundry376.zendesk.com/hc/en-us/articles/115001875231-Using-quick-reply-templates">
+                Templates Guide
+              </a>{' '}
+              for tips and tricks. (Changes are saved automatically.)
             </div>
             <btn
               className="template-folder-btn"
