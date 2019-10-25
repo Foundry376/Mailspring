@@ -141,19 +141,25 @@ export default class PreferencesSignatures extends React.Component {
     const activeAccount = AccountStore.accountForId(activeIds[0]);
     const id = Utils.generateTempId();
 
-    let data = {};
-    let body = null;
-    if (this.state.selectedSignature) {
-      data = Object.assign({}, this.state.selectedSignature.data);
-      body = this.state.selectedSignature.body;
-    } else {
-      data = {
-        templateName: Templates[0].name,
-        name: activeAccount.name,
-        email: activeAccount.emailAddress,
-      };
-      body = RenderSignatureData(data);
-    }
+    // let data = {};
+    // let body = null;
+    // if (this.state.selectedSignature) {
+    //   data = Object.assign({}, this.state.selectedSignature.data);
+    //   body = this.state.selectedSignature.body;
+    // } else {
+    //   data = {
+    //     templateName: Templates[0].name,
+    //     name: activeAccount.name,
+    //     email: activeAccount.emailAddress,
+    //   };
+    //   body = RenderSignatureData(data);
+    // }
+    const data = {
+      templateName: Templates[0].name,
+      name: activeAccount.name,
+      email: activeAccount.emailAddress,
+    };
+    const body = RenderSignatureData(data);
 
     Actions.upsertSignature({ id, title: 'Untitled', body, data }, id);
     Actions.selectSignature(id);

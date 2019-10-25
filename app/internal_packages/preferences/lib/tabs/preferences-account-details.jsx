@@ -378,7 +378,7 @@ class PreferencesAccountDetails extends Component {
             onSaveChanges={this._saveChanges}
           />
         </div>
-        <div className="config-group">
+        {/* <div className="config-group">
           <h6>ALIASES</h6>
           <div className="notice">
             You may need to configure aliases with your mail provider (Outlook, Gmail) before using
@@ -396,7 +396,7 @@ class PreferencesAccountDetails extends Component {
             />
           </div>
           {this._renderDefaultAliasSelector(account)}
-        </div>
+        </div> */}
         <div className="config-group">
           <h6>FOLDERS</h6>
           <PreferencesCategory account={account} />
