@@ -226,11 +226,18 @@ class EditableList extends Component {
   };
 
   _onItemClick = (event, item, idx) => {
+    event.stopPropagation();
     this._selectItem(item, idx);
   };
 
   _onItemEdit = (event, item, idx) => {
+    event.stopPropagation();
     this.setState({ editingIndex: idx });
+  };
+
+  _onItemDelete = (event, item, idx) => {
+    event.stopPropagation();
+    this._onDeleteItem(item);
   };
 
   _listKeymapHandlers = () => {
@@ -395,6 +402,7 @@ class EditableList extends Component {
   _renderItem = (item, idx, { editingIndex } = this.state, handlers = {}) => {
     const onClick = handlers.onClick || this._onItemClick;
     const onEdit = handlers.onEdit || this._onItemEdit;
+    const onDelete = handlers.onDelete || this._onItemDelete;
 
     let itemContent = this.props.itemContent(item);
     const itemIsEditable = !React.isValidElement(itemContent);
@@ -443,7 +451,7 @@ class EditableList extends Component {
               title="Close Item"
               style={{ width: 20, height: 20 }}
               mode={RetinaImg.Mode.ContentIsMask}
-              onClick={() => this._onDeleteItem(item)}
+              onClick={_.partial(onDelete, _, item, idx)}
             />
           ) : null}
         </div>
