@@ -14,7 +14,7 @@ const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports')
 const osLocale = require('os-locale')
 
 const CHAT_COUNTRIES = ['CN']
-function isChatTestUser () {
+function isChatTestUser() {
   // let locale = osLocale.sync();
   // if (locale.indexOf('_') !== -1) {
   //   locale = locale.split('_')[1];
@@ -26,8 +26,8 @@ function isChatTestUser () {
 const isChatTest = isChatTestUser()
 
 module.exports = {
-  activate () {
-    if (!AppEnv.config.get(`chatEnable`)) {
+  activate() {
+    if (!AppEnv.config.get(`core.workspace.enableChat`)) {
       return
     }
     startXmpp(xmpp)
@@ -83,8 +83,8 @@ module.exports = {
     })
   },
 
-  deactivate () {
-    if (AppEnv.config.get(`chatEnable`)) {
+  deactivate() {
+    if (AppEnv.config.get(`core.workspace.enableChat`)) {
       const { devMode } = AppEnv.getLoadSettings()
       if (true || devMode || isChatTest) {
         if (AppEnv.isMainWindow()) {

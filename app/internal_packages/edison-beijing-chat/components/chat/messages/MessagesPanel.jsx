@@ -71,7 +71,10 @@ export default class MessagesPanel extends Component {
         // let user = await ContactStore.findContactByJid(selectedConversation.jid);
         let user = await UserCacheStore.getUserInfoByJid(selectedConversation.jid);
         if (!user) {
-          console.error('****user is null', selectedConversation);
+          user = await ContactStore.findContactByJid(selectedConversation.jid);
+          if (!user) {
+            console.error('Chat:user info is null', selectedConversation);
+          }
         }
         selectedConversation.email = user && user.email;
       }
@@ -312,14 +315,14 @@ export default class MessagesPanel extends Component {
         } else {
           request = http;
         }
-        request.get(msgBody.mediaObjectId, function(res) {
+        request.get(msgBody.mediaObjectId, function (res) {
           var imgData = '';
           res.setEncoding('binary');
-          res.on('data', function(chunk) {
+          res.on('data', function (chunk) {
             imgData += chunk;
           });
-          res.on('end', function() {
-            fs.writeFile(filepath, imgData, 'binary', function(err) {
+          res.on('end', function () {
+            fs.writeFile(filepath, imgData, 'binary', function (err) {
               if (err) {
                 console.error('down fail', err);
               } else {
@@ -467,12 +470,12 @@ export default class MessagesPanel extends Component {
             </CSSTransitionGroup>
           </div>
         ) : (
-          <div className="unselectedHint">
-            <span>
-              <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
-            </span>
-          </div>
-        )}
+            <div className="unselectedHint">
+              <span>
+                <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
+              </span>
+            </div>
+          )}
         <OnlineStatus conversation={selectedConversation}></OnlineStatus>
         <MemberProfile
           conversation={selectedConversation}

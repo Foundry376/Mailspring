@@ -3,7 +3,7 @@ import UserCacheModel from '../model/UserCache';
 import fs from 'fs';
 import path from 'path';
 import _ from 'underscore';
-import { ContactStore } from 'chat-exports';
+import { ContactStore, OnlineUserStore } from 'chat-exports';
 
 const download = require('download');
 let configDirPath = AppEnv.getConfigDirPath();
@@ -117,7 +117,7 @@ class UserCacheStore extends MailspringStore {
   };
 
   getUserInfoByJid = jid => {
-    return this.userCache && this.userCache[jid];
+    return (this.userCache && this.userCache[jid]) || OnlineUserStore.getSelfAccountById(jid);
   };
 
   _getAvatarUrl = avatar => {
