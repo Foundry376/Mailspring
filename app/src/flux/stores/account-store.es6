@@ -92,9 +92,11 @@ class AccountStore extends MailspringStore {
     if (typeof emails === 'string') {
       emails = [emailOrEmails];
     }
-    for (const email of emails) {
-      if (myEmails.find(myEmail => Utils.emailIsEquivalent(myEmail, email))) {
-        return true;
+    if (emails) {
+      for (const email of emails) {
+        if (myEmails.find(myEmail => Utils.emailIsEquivalent(myEmail, email))) {
+          return true;
+        }
       }
     }
     return false;
