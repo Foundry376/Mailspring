@@ -7,11 +7,11 @@ import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore, BlockSt
 const TIGASE_PROD = 'wss://tigase.edison.tech'
 const TIGASE_DEV = 'wss://tigase.stag.easilydo.cc'
 
-function getTigaseURL () {
+function getTigaseURL() {
   if (AppEnv.config.get(`chatProdEnv`)) {
     return TIGASE_PROD
   } else {
-    return TIGASE_DEV
+    return TIGASE_PROD
   }
 }
 

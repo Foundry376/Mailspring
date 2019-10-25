@@ -97,7 +97,7 @@ export default {
           },
           chatProdEnv: {
             type: 'boolean',
-            default: false,
+            default: true,
             title: 'change chat environment to production',
           },
           use24HourClock: {
