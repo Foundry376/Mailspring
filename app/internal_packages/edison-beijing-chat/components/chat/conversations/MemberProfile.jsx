@@ -90,7 +90,7 @@ export default class MemberProfile extends Component {
         e.clientY < rect.top ||
         e.clientY > rect.bottom
       ) {
-        this.props.exitProfile(this.state.member);
+        this.exitProfile(this.state.member);
       }
     }, 5);
   };
@@ -111,7 +111,7 @@ export default class MemberProfile extends Component {
   };
 
   startPrivateChat = e => {
-    this.props.exitProfile(this.state.member);
+    this.exitProfile(this.state.member);
     let member = Object.assign({}, this.state.member);
     member = member.dataValues || member;
     member.jid = (member.jid && member.jid.bare) || member.jid;
@@ -122,7 +122,7 @@ export default class MemberProfile extends Component {
 
   composeEmail = e => {
     const member = this.state.member;
-    this.props.exitProfile(member);
+    this.exitProfile(member);
     const contact = new Contact({
       id: member.id,
       accountId: member.accountId,
@@ -130,6 +130,21 @@ export default class MemberProfile extends Component {
       email: member.email,
     });
     Actions.composeNewDraftToRecipient(contact);
+  };
+
+  exitProfile = async member => {
+    if (!member) {
+      return;
+    }
+    const jid = member.jid.bare || member.jid;
+    const nicknames = chatLocalStorage.nicknames;
+    if (nicknames[jid] != member.nickname) {
+      nicknames[jid] = member.nickname;
+      LocalStorage.saveToLocalStorage();
+    }
+    MemberProfileStore.setMember(null);
+    MessageStore.saveMessagesAndRefresh([]);
+    LocalStorage.trigger();
   };
 
   showMenu = async e => {

@@ -165,21 +165,6 @@ export default class MessagesPanel extends Component {
     }, 10);
   };
 
-  exitProfile = async member => {
-    if (!member) {
-      return;
-    }
-    const jid = member.jid.bare || member.jid;
-    const nicknames = chatLocalStorage.nicknames;
-    if (nicknames[jid] != member.nickname) {
-      nicknames[jid] = member.nickname;
-      LocalStorage.saveToLocalStorage();
-    }
-    MemberProfileStore.setMember(null);
-    MessageStore.saveMessagesAndRefresh([]);
-    LocalStorage.trigger();
-  };
-
   reconnect = () => {
     registerLoginChat();
   };
@@ -427,7 +412,6 @@ export default class MessagesPanel extends Component {
       loadingMembers: this.state.loadingMembers,
       getRoomMembers: this.getRoomMembers,
       editProfile: this.editProfile,
-      exitProfile: this.exitProfile,
       contacts,
       onCloseInfoPanel: () => this.setState({ showConversationInfo: false }),
     };
@@ -479,7 +463,6 @@ export default class MessagesPanel extends Component {
         <OnlineStatus conversation={selectedConversation}></OnlineStatus>
         <MemberProfile
           conversation={selectedConversation}
-          exitProfile={this.exitProfile}
         ></MemberProfile>
       </div>
     );
