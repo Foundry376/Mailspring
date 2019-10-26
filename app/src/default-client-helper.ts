@@ -36,7 +36,6 @@ export class DefaultClientHelperWindows {
 
   resetURLScheme() {
     remote.dialog.showMessageBox(
-      null,
       {
         type: 'info',
         buttons: [localized('Learn More')],
@@ -63,7 +62,7 @@ export class DefaultClientHelperWindows {
       },
       (err, didMakeDefault) => {
         if (err) {
-          remote.dialog.showMessageBox(null, {
+          remote.dialog.showMessageBox({
             type: 'error',
             buttons: [localized('OK')],
             message: localized('An error has occurred'),
@@ -72,7 +71,6 @@ export class DefaultClientHelperWindows {
         }
         if (!didMakeDefault) {
           remote.dialog.showMessageBox(
-            null,
             {
               type: 'info',
               buttons: [localized('Learn More')],
@@ -104,22 +102,19 @@ export class DefaultClientHelperLinux {
     if (!callback) {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
-    exec(
-      `xdg-mime query default x-scheme-handler/${scheme}`,
-      (err, stdout) => (err ? callback(err) : callback(stdout.trim() === 'mailspring.desktop'))
+    exec(`xdg-mime query default x-scheme-handler/${scheme}`, (err, stdout) =>
+      err ? callback(err) : callback(stdout.trim() === 'mailspring.desktop')
     );
   }
 
   resetURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
-    exec(
-      `xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`,
-      err => (err ? callback(err) : callback(null, null))
+    exec(`xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`, err =>
+      err ? callback(err) : callback(null, null)
     );
   }
   registerForURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
-    exec(
-      `xdg-mime default mailspring.desktop x-scheme-handler/${scheme}`,
-      err => (err ? callback(err) : callback(null, null))
+    exec(`xdg-mime default mailspring.desktop x-scheme-handler/${scheme}`, err =>
+      err ? callback(err) : callback(null, null)
     );
   }
 }
@@ -132,9 +127,7 @@ export class DefaultClientHelperMac {
   }
 
   getLaunchServicesPlistPath(callback) {
-    const secure = `${
-      process.env.HOME
-    }/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
+    const secure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
     const insecure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices.plist`;
 
     fs.exists(secure, exists => (exists ? callback(secure) : callback(insecure)));

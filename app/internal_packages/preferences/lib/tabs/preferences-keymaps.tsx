@@ -74,7 +74,7 @@ export default class PreferencesKeymaps extends React.Component<
   }
 
   _onDeleteUserKeymap() {
-    const chosen = remote.dialog.showMessageBox(AppEnv.getCurrentWindow(), {
+    const chosen = remote.dialog.showMessageBox({
       type: 'info',
       message: localized('Are you sure?'),
       detail: localized('Delete your custom key bindings and reset to the template defaults?'),

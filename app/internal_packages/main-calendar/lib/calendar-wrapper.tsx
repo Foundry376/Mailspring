@@ -63,7 +63,7 @@ export default class CalendarWrapper extends React.Component<{}, { selectedEvent
     if (this.state.selectedEvents.length === 0) {
       return;
     }
-    const response = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+    const response = remote.dialog.showMessageBox({
       type: 'warning',
       buttons: ['Delete', 'Cancel'],
       message: 'Delete or decline these events?',

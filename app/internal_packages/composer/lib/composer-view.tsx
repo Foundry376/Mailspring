@@ -332,7 +332,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     const { errors, warnings } = session.validateDraftForSending();
 
     if (errors.length > 0) {
-      dialog.showMessageBox(remote.getCurrentWindow(), {
+      dialog.showMessageBox({
         type: 'warning',
         buttons: [localized('Edit Message'), localized('Cancel')],
         message: localized('Cannot send message'),
@@ -342,7 +342,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     }
 
     if (warnings.length > 0 && !options.force) {
-      const response = dialog.showMessageBox(remote.getCurrentWindow(), {
+      const response = dialog.showMessageBox({
         type: 'warning',
         buttons: [localized('Send Anyway'), localized('Cancel')],
         message: localized('Are you sure?'),

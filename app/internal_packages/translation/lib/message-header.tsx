@@ -237,7 +237,7 @@ export class TranslateMessageHeader extends React.Component<
   _onNeverForLanguage = () => {
     if (!this.state.detected) return;
 
-    const response = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+    const response = remote.dialog.showMessageBox({
       type: 'warning',
       buttons: [localized('Yes'), localized('Cancel')],
       message: localized('Are you sure?'),
