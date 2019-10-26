@@ -16,10 +16,7 @@ type SizeToFitInputProps = {
 class SizeToFitInput extends React.Component<
   SizeToFitInputProps & React.HTMLProps<HTMLInputElement>
 > {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
+  state = {};
 
   componentDidMount() {
     this._sizeToFit();
@@ -59,8 +56,8 @@ class SizeToFitInput extends React.Component<
     };
   }
 
-  focus() {
-    this.inputEl.focus();
+  focus(args?: FocusOptions) {
+    this.inputEl.focus(args);
   }
 
   render() {
@@ -74,8 +71,7 @@ class SizeToFitInput extends React.Component<
 }
 
 interface TokenState {
-  editing: boolean;
-  editingValue: string;
+  editing: string | null;
   dragging: boolean;
 }
 
@@ -112,25 +108,24 @@ class Token extends React.Component<TokenProps, TokenState> {
     className: '',
   };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      editing: false,
-      dragging: false,
-      editingValue: this.props.item.toString(),
-    };
+  state = {
+    editing: null,
+    dragging: false,
+  };
+
+  shouldComponentUpdate(nextProps: TokenProps, nextState: TokenState) {
+    return (
+      nextProps.selected !== this.props.selected ||
+      nextProps.valid !== this.props.valid ||
+      nextProps.item !== this.props.item ||
+      nextProps.disabled !== this.props.disabled ||
+      nextState.editing !== this.state.editing ||
+      nextState.dragging !== this.state.dragging
+    );
   }
 
-  componentWillReceiveProps(props) {
-    // never override the text the user is editing if they're looking at it
-    if (this.state.editing) {
-      return;
-    }
-    this.setState({ editingValue: props.item.toString() });
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.editing && !prevState.editing) {
+  componentDidUpdate(prevProps: TokenProps, prevState: TokenState) {
+    if (this.state.editing !== null && prevState.editing === null) {
       (this.refs.input as SizeToFitInput).select();
     }
   }
@@ -141,10 +136,10 @@ class Token extends React.Component<TokenProps, TokenState> {
         ref="input"
         className="token-editing-input"
         spellCheck={false}
-        value={this.state.editingValue}
+        value={this.state.editing !== null ? this.state.editing : this.props.item.toString()}
         onKeyDown={this._onEditKeydown}
         onBlur={this._onEditFinished}
-        onChange={event => this.setState({ editingValue: event.currentTarget.value })}
+        onChange={event => this.setState({ editing: event.currentTarget.value })}
       />
     );
   }
@@ -204,7 +199,7 @@ class Token extends React.Component<TokenProps, TokenState> {
       this.props.onEditMotion(this.props.item);
     }
     if (this.props.onEdited) {
-      this.setState({ editing: true });
+      this.setState({ editing: this.props.item.toString() });
     }
   };
 
@@ -221,9 +216,9 @@ class Token extends React.Component<TokenProps, TokenState> {
   _onEditFinished = () => {
     if (this.props.disabled) return;
     if (this.props.onEdited) {
-      this.props.onEdited(this.props.item, this.state.editingValue);
+      this.props.onEdited(this.props.item, this.state.editing);
     }
-    this.setState({ editing: false });
+    this.setState({ editing: null });
   };
 
   _onAction = event => {
@@ -233,7 +228,7 @@ class Token extends React.Component<TokenProps, TokenState> {
   };
 
   render() {
-    return this.state.editing ? this._renderEditing() : this._renderViewing();
+    return this.state.editing !== null ? this._renderEditing() : this._renderViewing();
   }
 }
 
@@ -470,7 +465,11 @@ export class TokenizingTextField extends React.Component<
     if (event.target.tagName === 'INPUT' && ReactDOM.findDOMNode(this).contains(event.target)) {
       return;
     }
-    this.focus();
+
+    // We will focus on the field when they type the first character,
+    // but the input may contain a ton of items and interacting with the field
+    // shouldn't scroll to the bottom of it.
+    this.focus({ preventScroll: true });
   };
 
   _onDrop = event => {
@@ -665,8 +664,8 @@ export class TokenizingTextField extends React.Component<
     this._refreshCompletions('', { clear: true });
   }
 
-  focus() {
-    (this.refs.input as HTMLElement).focus();
+  focus(args?: FocusOptions) {
+    (this.refs.input as SizeToFitInput).focus(args);
   }
 
   // Managing Tokens
