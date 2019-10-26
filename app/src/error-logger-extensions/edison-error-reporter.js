@@ -41,14 +41,20 @@ module.exports = class EdisonErrorReporter {
     }
     this._report(err, extra, 'WARNING');
   }
-  reportLog(err, extra){
+  reportLog(err, extra) {
     if (this.inSpecMode || this.inDevMode) {
       return;
     }
     this._report(err, extra, 'LOG');
   }
-  _report(err, extra = {}, type = 'LOG'){
+  _report(err, extra = {}, type = 'LOG') {
     if (!extra.osInfo) {
+      if (typeof extra === "string") {
+        console.warn('extra is not an object:' + extra);
+        extra = {
+          errorData: extra
+        }
+      }
       extra.osInfo = getOSInfo();
     }
     const now = Date.now();
@@ -111,24 +117,24 @@ module.exports = class EdisonErrorReporter {
     // };
     const formify = obj => {
       const ret = {};
-      for (let key in obj){
+      for (let key in obj) {
         if (key !== 'data') {
           ret[key] = obj[key];
         }
       }
       const data = obj.data;
-      if(data && data.extra){
-        if(data.extra.osInfo){
-          for (let key in data.extra.osInfo){
-            ret['osInfo_'+key] = data.extra.osInfo[key];
+      if (data && data.extra) {
+        if (data.extra.osInfo) {
+          for (let key in data.extra.osInfo) {
+            ret['osInfo_' + key] = data.extra.osInfo[key];
           }
           delete data.extra.osInfo;
         }
-        for(let key in data.extra){
-          if(key !== 'files'){
-            if(typeof data.extra[key] !== 'string' && typeof data.extra[key] !== 'number'){
+        for (let key in data.extra) {
+          if (key !== 'files') {
+            if (typeof data.extra[key] !== 'string' && typeof data.extra[key] !== 'number') {
               ret[key] = JSON.stringify(data.extra[key]);
-            }else{
+            } else {
               ret[key] = data.extra[key];
             }
           }
@@ -142,7 +148,7 @@ module.exports = class EdisonErrorReporter {
         }
       }
       if (data && data.extra && Array.isArray(data.extra.files)) {
-        data.extra.files.forEach( (filePath, index) => {
+        data.extra.files.forEach((filePath, index) => {
           ret[`files${index}`] = fs.createReadStream(filePath);
         });
       }
@@ -150,8 +156,8 @@ module.exports = class EdisonErrorReporter {
     };
     this.errorStack.forEach(stack => {
       const tmp = formify(stack);
-      request.post({url: 'https://cp.stag.easilydo.cc/api/log2/', formData: tmp}, (err, httpResponse, body) => {
-        if (err){
+      request.post({ url: 'https://cp.stag.easilydo.cc/api/log2/', formData: tmp }, (err, httpResponse, body) => {
+        if (err) {
           console.log(`\n---> \nupload failed: ${err}`);
         }
         console.log(`\n---> \nupload success ${body}`);

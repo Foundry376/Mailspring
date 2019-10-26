@@ -159,10 +159,9 @@ export default class AppEnvConstructor {
     this.initTaskErrorCounter();
 
     // subscribe event of dark mode change
-    const { systemPreferences } = remote;
-    if (this.isMainWindow()) {
-      systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-        AppEnv.themes.setActiveTheme(systemPreferences.isDarkMode() ? 'ui-dark' : 'ui-light');
+    if (this.isMainWindow() && process.platform === 'darwin') {
+      ipcRenderer.on('system-theme-changed', (e, isDarkMode) => {
+        AppEnv.themes.setActiveTheme(isDarkMode ? 'ui-dark' : 'ui-light');
       });
       this.mailsyncBridge.startSift('Main window started');
     }
@@ -260,6 +259,12 @@ export default class AppEnvConstructor {
   _expandReportLog(error, extra = {}) {
     try {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
+      if (typeof extra === "string") {
+        console.warn('extra is not an object:' + extra);
+        extra = {
+          errorData: extra
+        }
+      }
       extra.osInfo = getOSInfo();
       extra.native = this.config.get('core.support.native');
       extra.chatEnabled = this.config.get('core.workspace.enableChat');

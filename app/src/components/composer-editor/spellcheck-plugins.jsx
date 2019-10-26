@@ -37,6 +37,9 @@ function renderMark(props) {
     return (
       <span
         onMouseDown={event => {
+          // TODO we can make a popout menu, that user can select a correct choice
+          // const corrections = AppEnv.spellchecker.getCorrectionsForMisspelling(props.text);
+
           // handle only ctrl click or right click (button = 2)
           if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
             return;
@@ -240,7 +243,7 @@ function onChange(change, editor) {
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => onSpellcheckFullDocument(editor), 1000);
 }
-function onKeyUp(event, change){
+function onKeyUp(event, change) {
   if (!['Space', ' ', 'Tab'].includes(event.key)) {
     return;
   }
