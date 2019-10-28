@@ -139,6 +139,13 @@ const WorkspaceSection = props => {
         config={props.config}
       />
 
+      {/* To do */}
+      {/* <ConfigSchemaItem
+        configSchema={props.configSchema.properties.workspace.properties.focusedInbox}
+        keyPath="core.workspace.focusedInbox"
+        config={props.config}
+      /> */}
+
       <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.showImportant}
         keyPath="core.workspace.showImportant"

@@ -86,6 +86,11 @@ export default {
             title: 'Show icon in menu bar',
             platforms: ['darwin', 'linux'],
           },
+          focusedInbox: {
+            type: 'boolean',
+            default: true,
+            title: 'Enable Focused Inbox (only show important senders in your inbox)',
+          },
           showImportant: {
             type: 'boolean',
             default: true,
@@ -151,8 +156,11 @@ export default {
             title: 'Display thumbnails for attachments when available (Mac only)',
           },
           downloadFolder: {
-            type: 'floder',
+            type: 'string',
+            default: 'Downloads',
             title: 'Save downloaded files to',
+            enum: ['Downloads', 'Ask me every time', 'Choose a folder...'],
+            enumLabels: ['Downloads', 'Ask me every time', 'Choose a folder...'],
           },
         },
       },

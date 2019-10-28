@@ -378,6 +378,7 @@ class PreferencesAccountDetails extends Component {
             onSaveChanges={this._saveChanges}
           />
         </div>
+        {/* To do */}
         {/* <div className="config-group">
           <h6>ALIASES</h6>
           <div className="notice">
