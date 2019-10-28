@@ -69,6 +69,7 @@ class PreferencesAccountList extends Component {
     return (
       <EditableList
         className="account-list"
+        showDelIcon
         items={this.props.accounts}
         itemContent={this._renderAccount}
         selected={this.props.selected}

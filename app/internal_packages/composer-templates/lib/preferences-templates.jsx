@@ -121,8 +121,8 @@ export default class PreferencesTemplates extends React.Component {
     TemplateActions.createTemplate({ name: 'Untitled', contents: 'Insert content here!' });
   };
 
-  _onDelete = () => {
-    TemplateActions.deleteTemplate(this.state.selected.name);
+  _onDelete = item => {
+    TemplateActions.deleteTemplate(item.name);
   };
 
   _onEditTitle = newName => {
@@ -153,12 +153,12 @@ export default class PreferencesTemplates extends React.Component {
               </a>{' '}
               for tips and tricks. (Changes are saved automatically.)
             </div>
-            <btn
+            <div
               className="template-folder-btn"
               onClick={() => shell.showItemInFolder(TemplateStore.directory())}
             >
               Show templates folder
-            </btn>
+            </div>
           </Flexbox>
         </div>
         <Flexbox>
@@ -166,7 +166,7 @@ export default class PreferencesTemplates extends React.Component {
             showDelIcon
             className="template-list"
             items={this.state.templates}
-            itemContent={template => template.name}
+            itemContent={template => <div>{template.name}</div>}
             onCreateItem={this._onAdd}
             onDeleteItem={this._onDelete}
             onItemEdited={this._onEditTitle}

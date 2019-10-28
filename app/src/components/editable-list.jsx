@@ -409,7 +409,7 @@ class EditableList extends Component {
 
     const selected = item === this._getSelectedItem();
     const editable = selected && this.props.showEditIcon && editingIndex !== idx;
-    const delateable = selected && this.props.showDelIcon;
+    const delateable = this.props.showDelIcon;
 
     const classes = classNames({
       'list-item': true,
