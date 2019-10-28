@@ -62,6 +62,14 @@ export function activate() {
       componentClassFn: () => require('./tabs/preferences-blocked-senders').default,
     })
   );
+  PreferencesUIStore.registerPreferencesTab(
+    new PreferencesUIStore.TabItem({
+      tabId: 'Privacy',
+      displayName: 'Privacy',
+      order: 130,
+      componentClassFn: () => require('./tabs/preferences-privacy').default,
+    })
+  );
 
   WorkspaceStore.defineSheet(
     'Preferences',
