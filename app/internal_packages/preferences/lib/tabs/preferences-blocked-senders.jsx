@@ -94,16 +94,22 @@ class BlockedSenders extends React.Component {
     const selectAllStatus = this.checkAllStatus();
     return (
       <div className="container-blocked">
-        <h3>BLOCKED SENDERS</h3>
-        <p>
-          Contacts you have blocked in your email will appear here. To unblock them, remove their
-          name from this list.
-        </p>
+        <div className="config-group">
+          <h6>BLOCKED SENDERS</h6>
+          <div className="blocked-note">
+            Contacts you have blocked in your email will appear here. To unblock them, remove their
+            name from this list.
+          </div>
+        </div>
+
         <ul>
           <div className="header">
             <div className={`checkmark ${selectAllStatus}`} onClick={this.onToggleSelectAll}></div>
-            <span>{blockeds.length} blocked senders</span>
+            <div className="checkmark-note">{`${
+              blockeds && blockeds.length ? blockeds.length : 0
+            } blocked senders`}</div>
             <span className={`unblockBtn${selectAllStatus ? ' show' : ''}`}>Unblock Selected</span>
+            <div style={{ flex: 1 }}></div>
             <input type="text" placeholder="Find a contact" onChange={this.onInputChange} />
           </div>
           {blockeds.map(blocked => {
@@ -117,7 +123,6 @@ class BlockedSenders extends React.Component {
                 <div className="avatar-icon"></div>
                 <span>{blocked.name}</span>
                 {blocked.email}
-
                 <span className="unblockBtn">Unblock</span>
               </li>
             );

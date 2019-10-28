@@ -17,6 +17,11 @@ class BlockedSendersStore extends MailspringStore {
         name: 'Near',
         email: 'y.near@hotmail.com',
       },
+      {
+        id: 2,
+        name: 'Young',
+        email: 'ning@edison.tech',
+      },
     ];
     this.trigger();
   };

@@ -10,19 +10,26 @@
 
 .preferences-wrap {
   .container-blocked {
-    width: 40%;
-    min-width: 430px;
-    margin: 0 auto;
+    max-width: 700px;
+    .blocked-note {
+      max-width: 600px;
+      color: #797d80;
+      line-height: 18px;
+    }
+    .config-group {
+      border: none;
+    }
     ul {
-      border: 1px solid @border-color-primary;
-      padding: 36px 0 0;
-      min-height: 300px;
+      border: 1px solid #edf0f1;
+      padding: 40px 0 0;
+      margin: 0 20px;
+      min-height: 350px;
 
       .checkmark {
         height: 18px;
         width: 18px;
         border: none;
-        margin-right: 20px;
+        margin-right: 21px;
         display: inline-block;
         vertical-align: top;
         cursor: pointer;
@@ -46,7 +53,7 @@
           display: block;
           height: 18px;
           width: 18px;
-          .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
+          .icon-mixin('../static/icons/check-empty.svg', #b6bdc2, 24px);
         }
       }
       .checkmark.selected {
@@ -61,41 +68,65 @@
       }
 
       span.unblockBtn {
+        height: 20px;
+        width: 68px;
+        border-radius: 10px;
+        margin-left: 20px;
+        background: @background-primary;
+        text-align: center;
+        line-height: 20px;
         display: none;
+        font-size: 11px;
+        font-weight: 600;
         color: @text-color-link;
       }
 
       .header {
-        height: 36px;
-        margin-top: -36px;
-        padding-left: 32px;
+        height: 40px;
+        margin-top: -40px;
+        padding: 7px 10px 7px 30px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
         line-height: 18px;
         border-bottom: 1px solid @border-color-primary;
 
-        span {
-          flex: 1;
+        .checkmark-note {
+          color: @gray-light;
+          font-size: 11px;
+          font-weight: @font-weight-semi-bold;
+          line-height: 13px;
         }
 
         input {
           width: 150px;
           vertical-align: top;
+          justify-content: flex-end;
         }
 
-        span.unblockBtn.show {
-          display: inline-block;
+        span.unblockBtn {
+          width: 100px;
+          &.show {
+            display: inline-block;
+          }
         }
       }
 
       li {
         list-style: none;
-        padding-left: 32px;
-        height: 36px;
+        padding-left: 29px;
+        height: 40px;
         display: flex;
         align-items: center;
         cursor: pointer;
+        color: @gray;
+        font-size: 14px;
+        letter-spacing: -0.31px;
+        line-height: 15px;
+
+        span {
+          color: @text-color;
+          margin-right: 15px;
+        }
 
         .checkmark {
           display: none;
@@ -105,12 +136,12 @@
           height: 18px;
           width: 18px;
           border: none;
-          margin-right: 20px;
+          margin-right: 21px;
           display: inline-block;
           vertical-align: top;
         }
         &:hover {
-          background: @gray-lighter;
+          background: @off-white-light;
           .checkmark {
             display: inline-block;
           }
@@ -130,11 +161,6 @@
           .avatar-icon {
             display: none;
           }
-        }
-
-        span {
-          font-weight: 600;
-          margin-right: 15px;
         }
       }
     }
