@@ -17,7 +17,7 @@ class Printer {
     const iframes = document.getElementsByTagName('iframe');
     // Grab the html inside the iframes
     const messagesHtml = [].slice.call(iframes).map(iframe => {
-      return iframe.contentDocument.documentElement.innerHTML;
+      return iframe.contentDocument ? iframe.contentDocument.body.innerHTML : '';
     });
 
     const win = new PdfWindow({
