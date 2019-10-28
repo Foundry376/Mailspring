@@ -121,6 +121,7 @@ export default class Application extends EventEmitter {
 
     this.setupJavaScriptArguments();
     this.setupAutoPlayPolicy();
+    this.setupCrosssitePolicy();
     this.handleEvents();
     this.handleLaunchOptions(options);
 
@@ -623,6 +624,10 @@ export default class Application extends EventEmitter {
 
   setupAutoPlayPolicy() {
     app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+  }
+
+  setupCrosssitePolicy() {
+    app.commandLine.appendSwitch('disable-site-isolation-trials')
   }
 
   openWindowsForTokenState() {
