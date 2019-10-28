@@ -1,5 +1,4 @@
 import MailspringStore from 'mailspring-store';
-import { getLogo } from '../../../internal_packages/edison-beijing-chat/utils/restjs.es6';
 
 // import DatabaseStore from './database-store';
 // import Block from '../models/block';
@@ -26,10 +25,6 @@ class BlockedSendersStore extends MailspringStore {
       },
     ];
 
-    for (const blocked of this.blockedSenders) {
-      const avatarUrl = await getLogo(blocked.email);
-      blocked.avatarUrl = avatarUrl;
-    }
     this.trigger();
   };
 
