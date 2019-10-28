@@ -92,6 +92,10 @@ class BlockedSenders extends React.Component {
   render() {
     const { blockeds } = this.state;
     const selectAllStatus = this.checkAllStatus();
+    const commonStyle = {
+      backgroundPosition: 'center',
+      backgroundSize: 'cover',
+    };
     return (
       <div className="container-blocked">
         <div className="config-group">
@@ -114,13 +118,23 @@ class BlockedSenders extends React.Component {
           </div>
           {blockeds.map(blocked => {
             const selectStatus = this.checkStatus(blocked.id);
+            let avatarStyle = {};
+            if (blocked.avatarUrl) {
+              avatarStyle = Object.assign(
+                avatarStyle,
+                {
+                  backgroundImage: `url('${blocked.avatarUrl}')`,
+                },
+                commonStyle
+              );
+            }
             return (
               <li key={blocked.id} className={`${selectStatus}`}>
                 <div
                   className={`checkmark ${selectStatus}`}
                   onClick={() => this.onToggleSelect(blocked.id)}
                 ></div>
-                <div className="avatar-icon"></div>
+                <div className="avatar-icon" style={avatarStyle}></div>
                 <span>{blocked.name}</span>
                 {blocked.email}
                 <span className="unblockBtn">Unblock</span>
