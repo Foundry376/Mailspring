@@ -627,7 +627,7 @@ export default class Application extends EventEmitter {
   }
 
   setupCrosssitePolicy() {
-    app.commandLine.appendSwitch('disable-site-isolation-trials')
+    // app.commandLine.appendSwitch('disable-site-isolation-trials');
   }
 
   openWindowsForTokenState() {
