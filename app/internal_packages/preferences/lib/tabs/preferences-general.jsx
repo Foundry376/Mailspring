@@ -5,6 +5,7 @@ import rimraf from 'rimraf';
 import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
 import { Actions } from 'mailspring-exports';
+import DownloadSelection from './download-selection';
 
 class PreferencesGeneral extends React.Component {
   static displayName = 'PreferencesGeneral';
@@ -114,6 +115,12 @@ class PreferencesGeneral extends React.Component {
             keyName="DOWNLOADS"
             keyPath="core.attachments"
             config={this.props.config}
+            injectedComponent={
+              <DownloadSelection
+                config={this.props.config}
+                keyPath="core.attachments.downloadFolder"
+              />
+            }
           />
         </div>
 

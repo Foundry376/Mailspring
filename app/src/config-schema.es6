@@ -156,11 +156,7 @@ export default {
             title: 'Display thumbnails for attachments when available (Mac only)',
           },
           downloadFolder: {
-            type: 'string',
-            default: 'Downloads',
-            title: 'Save downloaded files to',
-            enum: ['Downloads', 'Ask me every time', 'Choose a folder...'],
-            enumLabels: ['Downloads', 'Ask me every time', 'Choose a folder...'],
+            type: 'component',
           },
         },
       },

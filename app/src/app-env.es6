@@ -96,6 +96,15 @@ export default class AppEnvConstructor {
     // }
     // }
 
+    // get user dir path
+    this.userDirPath = '';
+    var exec = require('child_process').exec;
+    exec('cd ~/ && pwd', (err, path) => {
+      if (!err) {
+        this.userDirPath = path.trim();
+      }
+    });
+
     // Setup config and load it immediately so it's available to our singletons
     // and doesn't emit events later when it loads
     this.config = new Config({ configDirPath, resourcePath });
@@ -541,6 +550,10 @@ export default class AppEnvConstructor {
   // Public: Get the directory path to Mailspring's configuration area.
   getConfigDirPath() {
     return this.getLoadSettings().configDirPath;
+  }
+
+  getUserDirPath() {
+    return this.userDirPath;
   }
 
   // Public: Get the time taken to completely load the current window.
