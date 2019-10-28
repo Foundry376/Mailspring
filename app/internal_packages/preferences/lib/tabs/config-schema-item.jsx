@@ -104,16 +104,21 @@ class ConfigSchemaItem extends React.Component {
       return (
         <section className={`section-${this.props.keyName}`}>
           <h6>{this.props.label || _str.humanize(this.props.keyName)}</h6>
-          {Object.entries(this.props.configSchema.properties).map(([key, value]) => (
-            <ConfigSchemaItem
-              key={key}
-              keyName={key}
-              keyPath={`${this.props.keyPath}.${key}`}
-              configSchema={value}
-              config={this.props.config}
-              injectedComponent={this.props.injectedComponent}
-            />
-          ))}
+          {Object.entries(this.props.configSchema.properties)
+            .filter(([key]) => {
+              const disableSchemas = this.props.disableSchemas || [];
+              return disableSchemas.indexOf(key) < 0;
+            })
+            .map(([key, value]) => (
+              <ConfigSchemaItem
+                key={key}
+                keyName={key}
+                keyPath={`${this.props.keyPath}.${key}`}
+                configSchema={value}
+                config={this.props.config}
+                injectedComponent={this.props.injectedComponent}
+              />
+            ))}
           {note}
         </section>
       );

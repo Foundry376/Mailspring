@@ -15,6 +15,20 @@ class CustomizeActions extends React.Component {
     this.state = {};
   }
 
+  _getDisableSchemasForQuickActions = () => {
+    const enabled = this.props.config.get('core.quickActions.enabled');
+    if (!enabled) {
+      return ['quickAction1', 'quickAction2', 'quickAction3', 'quickAction4'];
+    }
+  };
+
+  _getDisableSchemasForSwipeActions = () => {
+    const enabled = this.props.config.get('core.swipeActions.enabled');
+    if (!enabled) {
+      return ['leftShortAction', 'leftLongAction', 'rightShortAction', 'rightLongAction'];
+    }
+  };
+
   _renderActionIcon = idx => {
     const iconName = AppEnv.config.get(`core.quickActions.quickAction${idx}`);
     return (
@@ -43,6 +57,7 @@ class CustomizeActions extends React.Component {
             label="Quick Actions"
             keyPath="core.quickActions"
             config={this.props.config}
+            disableSchemas={this._getDisableSchemasForQuickActions()}
             injectedComponent={
               <div className="quick-action-preview">
                 <RetinaImg
@@ -65,6 +80,7 @@ class CustomizeActions extends React.Component {
             label="Swipe Actions"
             keyPath="core.swipeActions"
             config={this.props.config}
+            disableSchemas={this._getDisableSchemasForSwipeActions()}
             injectedComponent={
               <div className="swipe-action-preview">
                 <RetinaImg
