@@ -1,5 +1,19 @@
-import { React, PropTypes, Actions, SendActionsStore, SoundRegistry, OnlineStatusStore, WorkspaceStore } from 'mailspring-exports';
-import { Menu, RetinaImg, LottieImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
+import {
+  React,
+  PropTypes,
+  Actions,
+  SendActionsStore,
+  SoundRegistry,
+  OnlineStatusStore,
+  WorkspaceStore,
+} from 'mailspring-exports';
+import {
+  Menu,
+  RetinaImg,
+  LottieImg,
+  ButtonDropdown,
+  ListensToFluxStore,
+} from 'mailspring-component-kit';
 
 const sendButtonTimeout = 700;
 
@@ -17,7 +31,12 @@ class SendActionButton extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isSending: false, mounted: false, showLoading: false, offline: !OnlineStatusStore.isOnline() };
+    this.state = {
+      isSending: false,
+      mounted: false,
+      showLoading: false,
+      offline: !OnlineStatusStore.isOnline(),
+    };
     this._sendButtonTimer = null;
     this._delayLoadingTimer = null;
     this._mounted = false;
@@ -41,13 +60,12 @@ class SendActionButton extends React.Component {
     });
   }
 
-
   /* This component is re-rendered constantly because `draft` changes in random ways.
   We only use the draft prop when you click send, so update with more discretion. */
   shouldComponentUpdate(nextProps, nextState) {
     return (
       nextProps.sendActions.map(a => a.configKey).join(',') !==
-      this.props.sendActions.map(a => a.configKey).join(',') ||
+        this.props.sendActions.map(a => a.configKey).join(',') ||
       this.props.disabled !== nextProps.disabled ||
       this.state.isSending !== nextState.isSending
     );
@@ -56,23 +74,26 @@ class SendActionButton extends React.Component {
     if (onlineDidChange) {
       this.setState({ offline: !OnlineStatusStore.isOnline() });
     }
+  };
+
+  primarySend({ disableDraftCheck = false } = {}) {
+    this._onPrimaryClick({ disableDraftCheck });
   }
 
-  primarySend() {
-    this._onPrimaryClick();
-  }
-
-  _onPrimaryClick = () => {
+  _onPrimaryClick = ({ disableDraftCheck = false } = {}) => {
     if (this.props.disabled) {
       if (WorkspaceStore.layoutMode() === 'popout') {
         console.error('SendActionButton is disabled in popout composer, this is wrong', this.props);
         AppEnv.reportError(
-          new Error(`SendActionButton::_onPrimaryClick: SendActionButton is disabled in popout composer, this is wrong`, this.props)
+          new Error(
+            `SendActionButton::_onPrimaryClick: SendActionButton is disabled in popout composer, this is wrong`,
+            this.props
+          )
         );
       }
       return;
     }
-    this._onSendWithAction(this.props.sendActions[0]);
+    this._onSendWithAction(this.props.sendActions[0], disableDraftCheck);
   };
   _timoutButton = () => {
     if (!this._sendButtonTimer) {
@@ -94,8 +115,12 @@ class SendActionButton extends React.Component {
     }, sendButtonTimeout);
   };
 
-  _onSendWithAction = sendAction => {
-    if (this.props.isValidDraft() && !this.state.isSending && !this._sendButtonTimer) {
+  _onSendWithAction = (sendAction, disableDraftCheck = false) => {
+    if (
+      (disableDraftCheck || this.props.isValidDraft()) &&
+      !this.state.isSending &&
+      !this._sendButtonTimer
+    ) {
       this._timoutButton();
       this._delayShowLoading();
       this.setState({ isSending: true });
@@ -131,15 +156,20 @@ class SendActionButton extends React.Component {
 
     return (
       <span>
-        {this.state.showLoading ?
-          <LottieImg name='loading-spinner-transparent'
+        {this.state.showLoading ? (
+          <LottieImg
+            name="loading-spinner-transparent"
             size={{ width: 27, height: 27 }}
-            style={{ margin: '0', display: 'inline-block', float: 'left' }} /> :
-          <RetinaImg name={'sent.svg'}
+            style={{ margin: '0', display: 'inline-block', float: 'left' }}
+          />
+        ) : (
+          <RetinaImg
+            name={'sent.svg'}
             style={{ width: 27, height: 27 }}
             isIcon={true}
-            mode={RetinaImg.Mode.ContentIsMask} />
-        }
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
+        )}
         <span className="text">Send{plusHTML}</span>
         {additionalImg}
       </span>
@@ -210,9 +240,9 @@ const EnhancedSendActionButton = ListensToFluxStore(SendActionButton, {
 // own window and doesn't need to override the Composer's send button, which
 // is already a bit of a hack.
 Object.assign(EnhancedSendActionButton.prototype, {
-  primarySend() {
+  primarySend(opts = {}) {
     if (this._composedComponent) {
-      this._composedComponent.primarySend();
+      this._composedComponent.primarySend(opts);
     }
   },
 });

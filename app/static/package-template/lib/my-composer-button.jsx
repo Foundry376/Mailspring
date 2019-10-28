@@ -33,9 +33,9 @@ export default class MyComposerButton extends React.Component {
       detail: `Adjusting the subject line To "${newSubject}"`,
       buttons: ['OK'],
       type: 'info',
+    }).then(()=>{
+      session.changes.add({ subject: newSubject });
     });
-
-    session.changes.add({ subject: newSubject });
   };
 
   _getDialog() {

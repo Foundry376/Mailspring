@@ -72,16 +72,16 @@ export default class Application extends EventEmitter {
         buttons = ['Quit', 'Rebuild'];
       }
 
-      const buttonIndex = dialog.showMessageBox({ type: 'warning', buttons, message });
-
-      if (buttonIndex === 0) {
-        app.quit();
-      } else {
-        this._deleteDatabase(() => {
-          app.relaunch();
+      dialog.showMessageBox({ type: 'warning', buttons, message }).then(({ response }) => {
+        if (response === 0) {
           app.quit();
-        }, true);
-      }
+        } else {
+          this._deleteDatabase(() => {
+            app.relaunch();
+            app.quit();
+          }, true);
+        }
+      });
       return;
     }
 
@@ -648,7 +648,10 @@ export default class Application extends EventEmitter {
     if (this._resettingAndRelaunching) return;
     this._resettingAndRelaunching = true;
     let rebuild = false;
-
+    const done = () => {
+      app.relaunch();
+      app.quit();
+    };
     if (errorMessage) {
       rebuild = true;
       dialog.showMessageBox({
@@ -656,13 +659,13 @@ export default class Application extends EventEmitter {
         buttons: ['Okay'],
         message: `We encountered a problem with your local email database. We will now attempt to rebuild it.`,
         detail: errorMessage,
+      }).then(() => {
+        console.log('deleting databases and destroying all windows');
+        this.windowManager.destroyAllWindows();
+        this._deleteDatabase(done, rebuild);
       });
+      return;
     }
-
-    const done = () => {
-      app.relaunch();
-      app.quit();
-    };
     console.log('deleting databases and destroying all windows');
     this.windowManager.destroyAllWindows();
     this._deleteDatabase(done, rebuild);
@@ -678,9 +681,10 @@ export default class Application extends EventEmitter {
       buttons: ['Okay'],
       message: `We encountered a problem with your local email database. The app will relaunch.`,
       detail: '',
+    }).then(()=>{
+      app.relaunch();
+      app.quit();
     });
-    app.relaunch();
-    app.quit();
   };
 
   _deleteDatabase = (callback, rebuild) => {
@@ -744,19 +748,18 @@ export default class Application extends EventEmitter {
           defaultPath: this.configDirPath,
           buttonLabel: 'Choose',
           properties: ['openDirectory'],
-        },
-        filenames => {
-          if (!filenames || filenames.length === 0) {
+        })
+        .then(({canceled, filePaths}) => {
+          if (!filePaths || filePaths.length === 0) {
             return;
           }
           this.runSpecs({
             exitWhenDone: false,
             showSpecsInWindow: true,
             resourcePath: this.resourcePath,
-            specDirectory: filenames[0],
+            specDirectory: filePaths[0],
           });
-        }
-      );
+        });
     });
 
     this.on('application:reset-database', this._resetDatabaseAndRelaunch);
@@ -1249,18 +1252,18 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;
-
-      const buttonIndex = dialog.showMessageBox({
+      dialog.showMessageBox({
         type: 'warning',
         buttons: ['Reset Theme', 'Continue'],
         defaultId: 0,
         message,
         detail,
+      }).then(({response}) => {
+        if (response === 0) {
+          userResetTheme = true;
+          this.config.set('core.theme', '');
+        }
       });
-      if (buttonIndex === 0) {
-        userResetTheme = true;
-        this.config.set('core.theme', '');
-      }
     });
 
     ipcMain.on('inline-style-parse', (event, { html, key }) => {

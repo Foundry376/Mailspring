@@ -65,7 +65,7 @@ export default class ConfigPersistenceManager {
         }. Make sure you have permissions to access this file, and check that the file is not open or being edited and try again.`;
     }
 
-    const clickedIndex = dialog.showMessageBox({
+    const clickedIndex = dialog.showMessageBoxSync({
       type: 'error',
       message,
       detail,
@@ -122,7 +122,7 @@ export default class ConfigPersistenceManager {
   }
 
   _showSaveErrorDialog() {
-    const clickedIndex = dialog.showMessageBox({
+    const clickedIndex = dialog.showMessageBoxSync({
       type: 'error',
       message: `Failed to save "${path.basename(this.configFilePath)}"`,
       detail: `\n\nWe were unable to save the file ${

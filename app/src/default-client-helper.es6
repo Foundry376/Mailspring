@@ -41,13 +41,12 @@ class Windows {
         buttons: ['Learn More'],
         message: 'Visit Windows Settings to change your default mail client',
         detail: "You'll find Mailspring, along with other options, listed in Default Apps > Mail.",
-      },
-      () => {
+      })
+      .then(() => {
         shell.openExternal(
           'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
         );
-      }
-    );
+      });
   }
 
   registerForURLScheme(scheme, callback = () => { }) {
@@ -65,24 +64,28 @@ class Windows {
             buttons: ['OK'],
             message: 'Sorry, an error occurred.',
             detail: err.message,
-          });
-        }
-        if (!didMakeDefault) {
-          remote.dialog.showMessageBox(
-            null,
-            {
-              type: 'info',
-              buttons: ['Learn More'],
-              defaultId: 1,
-              message: 'Visit Windows Settings to finish making Mailspring your mail client',
-              detail: "Click 'Learn More' to view instructions in our knowledge base.",
-            },
-            () => {
-              shell.openExternal(
-                'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
-              );
+          }).then(()=>{
+            if (!didMakeDefault) {
+              remote.dialog.showMessageBox(
+                null,
+                {
+                  type: 'info',
+                  buttons: ['Learn More'],
+                  defaultId: 1,
+                  message: 'Visit Windows Settings to finish making Mailspring your mail client',
+                  detail: "Click 'Learn More' to view instructions in our knowledge base.",
+                })
+                .then(() => {
+                  shell.openExternal(
+                    'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
+                  );
+                  callback(err, null);
+                });
+              return;
             }
-          );
+            callback(err, null);
+          });
+          return;
         }
         callback(null, null);
       }

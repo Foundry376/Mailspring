@@ -198,22 +198,24 @@ export default class Msg extends PureComponent {
   }
 
   download = () => {
-    const msgBody = this.state.msgBody
-    event.stopPropagation()
-    event.preventDefault()
-    const fileName = msgBody.path ? path.basename(msgBody.path) : ''
-    let pathForSave = dialog.showSaveDialog({ title: `download file`, defaultPath: fileName })
-    if (!pathForSave || typeof pathForSave !== 'string') {
-      return
-    }
-    const loadConfig = {
-      msgBody,
-      filepath: pathForSave,
-      type: 'download'
-    }
-    const { queueLoadMessage } = this.props
-    queueLoadMessage(loadConfig)
-  }
+    const msgBody = this.state.msgBody;
+    const fileName = msgBody.path ? path.basename(msgBody.path) : '';
+    dialog
+      .showSaveDialog({ title: `download file`, defaultPath: fileName })
+      .then(({ filePath } = {}) => {
+        const pathForSave = filePath;
+        if (!pathForSave || typeof pathForSave !== 'string') {
+          return;
+        }
+        const loadConfig = {
+          msgBody,
+          filepath: pathForSave,
+          type: 'download',
+        };
+        const { queueLoadMessage } = this.props;
+        queueLoadMessage(loadConfig);
+      });
+  };
 
   checkImgHasDownloaded = () => {
     const { msg } = this.props

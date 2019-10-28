@@ -144,13 +144,15 @@ class TemplateStore extends MailspringStore {
 
   _displayDialog(title, message, buttons) {
     return (
-      remote.dialog.showMessageBox({
+      remote.dialog.showMessageBoxSync({
         title: title,
         message: title,
         detail: message,
         buttons: buttons,
         type: 'info',
-      }) === 0
+      }).then(({response})=>{
+        return new Promise.resolve(response);
+      })
     );
   }
 
@@ -203,14 +205,14 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  _onDeleteTemplate(name) {
+  async _onDeleteTemplate(name) {
     const template = this._items.find(t => t.name === name);
     if (!template) {
       return;
     }
 
     if (
-      this._displayDialog(
+      await this._displayDialog(
         'Delete this template?',
         'The template and its file will be permanently deleted.',
         ['Delete', 'Cancel']
@@ -253,10 +255,10 @@ class TemplateStore extends MailspringStore {
   _onInsertTemplateId({ templateId, headerMessageId } = {}) {
     const template = this._items.find(t => t.id === templateId);
     const templateBody = fs.readFileSync(template.path).toString();
-    DraftStore.sessionForClientId(headerMessageId).then(session => {
+    DraftStore.sessionForClientId(headerMessageId).then(async session => {
       let proceed = true;
       if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
-        proceed = this._displayDialog(
+        proceed = await this._displayDialog(
           'Replace draft contents?',
           'It looks like your draft already has some content. Loading this template will ' +
             'overwrite all draft contents.',

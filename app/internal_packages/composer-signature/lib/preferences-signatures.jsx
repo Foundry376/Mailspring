@@ -25,39 +25,43 @@ class SignatureEditor extends React.Component {
   _onDataFieldChange = event => {
     const { id, value } = event.target;
     const sig = this.props.signature;
+    const applySigChange = (sig, value) => {
+      // apply change
+      sig.data = Object.assign({}, sig.data, { [id]: value });
 
+      // re-render
+      if (sig.data.templateName) {
+        const template = Templates.find(t => t.name === sig.data.templateName);
+        if (template) {
+          sig.body = RenderSignatureData(sig.data);
+        }
+      }
+      Actions.upsertSignature(sig, sig.id);
+    };
     // If you have raw selected and are switching back to a template,
     // display a warning UNLESS the html is an unmodified template HTML
     if (id === 'templateName' && !sig.data.templateName && value) {
       const htmlMatchesATemplate = Templates.find(
-        t => sig.body === RenderSignatureData(Object.assign({}, sig.data, { templateName: t.name }))
+        t => sig.body === RenderSignatureData(Object.assign({}, sig.data, { templateName: t.name })),
       );
       if (!htmlMatchesATemplate) {
-        const idx = remote.dialog.showMessageBox({
+        remote.dialog.showMessageBox({
           type: 'warning',
           buttons: ['Cancel', 'Continue'],
           message: 'Revert custom HTML?',
           detail:
-            "Switching back to a signature template will overwrite the custom HTML you've entered.",
+            'Switching back to a signature template will overwrite the custom HTML you\'ve entered.',
+        }).then(({ response }) => {
+          if (response === 0) {
+            return;
+          } else {
+            applySigChange(sig, value);
+          }
         });
-        if (idx === 0) {
-          return;
-        }
+        return;
       }
     }
-
-    // apply change
-    sig.data = Object.assign({}, sig.data, { [id]: value });
-
-    // re-render
-    if (sig.data.templateName) {
-      const template = Templates.find(t => t.name === sig.data.templateName);
-      if (template) {
-        sig.body = RenderSignatureData(sig.data);
-      }
-    }
-
-    Actions.upsertSignature(sig, sig.id);
+    applySigChange(sig, value);
   };
 
   render() {
