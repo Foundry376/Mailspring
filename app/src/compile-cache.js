@@ -113,11 +113,21 @@ require('source-map-support').install({
 
     // check whether this is a file path, or an inline sourcemap and load it
     let rawData = null;
-    if (sourceMappingURL.includes(',')) {
-      rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
-    } else {
-      rawData = fs.readFileSync(path.resolve(path.dirname(filePath), sourceMappingURL));
+    try {
+      if (sourceMappingURL.includes(',')) {
+        rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
+      } else {
+        // electron is no need to mapping sourceMapping
+        if (path.dirname(filePath).indexOf('electron.asar') !== -1) {
+          return;
+        }
+        rawData = fs.readFileSync(path.resolve(path.dirname(filePath), sourceMappingURL));
+      }
+    } catch (e) {
+      console.error('Error: compile-cache.js', path.dirname(filePath), sourceMappingURL, e);
+      return null;
     }
+
 
     let sourceMap = null;
     try {

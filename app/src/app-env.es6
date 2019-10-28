@@ -198,8 +198,13 @@ export default class AppEnvConstructor {
       if (!this.inDevMode()) {
         return this.reportError(originalError, { url, line, column });
       }
-      const { line: newLine, column: newColumn } = mapSourcePosition({ source: url, line, column });
-      return this.reportError(originalError, { url, line: newLine, column: newColumn });
+      try {
+        const { line: newLine, column: newColumn } = mapSourcePosition({ source: url, line, column });
+        return this.reportError(originalError, { url, line: newLine, column: newColumn });
+      } catch (e) {
+        console.error(e);
+      }
+      return this.reportError(originalError, { url, line, column });
     };
 
     process.on('uncaughtException', e => {
