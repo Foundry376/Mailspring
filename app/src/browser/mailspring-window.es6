@@ -249,7 +249,7 @@ module.exports = class MailspringWindow extends EventEmitter {
         return;
       }
 
-      const chosen = dialog.showMessageBox(this.browserWindow, {
+      const chosen = dialog.showMessageBoxSync(this.browserWindow, {
         type: 'warning',
         buttons: ['Close', 'Keep Waiting'],
         message: 'EdisonMail is not responding',
@@ -286,7 +286,7 @@ module.exports = class MailspringWindow extends EventEmitter {
       if (this.neverClose) {
         this.browserWindow.reload();
       } else {
-        const chosen = dialog.showMessageBox(this.browserWindow, {
+        const chosen = dialog.showMessageBoxSync(this.browserWindow, {
           type: 'warning',
           buttons: ['Close Window', 'Reload', 'Keep It Open'],
           message: 'EdisonMail has crashed',

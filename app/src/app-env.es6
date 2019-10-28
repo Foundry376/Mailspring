@@ -1041,7 +1041,15 @@ export default class AppEnvConstructor {
   }
 
   showOpenDialog(options, callback) {
-    return remote.dialog.showOpenDialog(this.getCurrentWindow(), options, callback);
+    return remote.dialog
+      .showOpenDialog(this.getCurrentWindow(), options)
+      .then(({ canceled, filePaths }) => {
+        if (canceled) {
+          callback(null);
+        } else {
+          callback(filePaths);
+        }
+      });
   }
 
   showImageSelectionDialog(cb) {
@@ -1055,19 +1063,32 @@ export default class AppEnvConstructor {
             extensions: ['jpg', 'bmp', 'gif', 'png', 'jpeg'],
           },
         ],
-      },
-      cb
-    );
+      })
+      .then(({ canceled, filePaths }) => {
+        if(canceled){
+          cb(null);
+        }else{
+          cb(filePaths);
+        }
+      });
   }
 
   showSaveDialog(options, callback) {
     if (options.title == null) {
       options.title = 'Save File';
     }
-    return remote.dialog.showSaveDialog(this.getCurrentWindow(), options, callback);
+    return remote.dialog
+      .showSaveDialog(this.getCurrentWindow(), options)
+      .then(({ canceled, filePath }) => {
+        if (canceled) {
+          callback(null);
+        } else {
+          callback(filePath);
+        }
+      });
   }
 
-  showErrorDialog(messageData, { showInMainWindow, detail, async } = {}) {
+  showErrorDialog(messageData, { showInMainWindow, detail } = {}) {
     let message;
     let title;
     if (_.isString(messageData) || _.isNumber(messageData)) {
@@ -1086,35 +1107,27 @@ export default class AppEnvConstructor {
     }
 
     if (!detail) {
-      if (async) {
-        return remote.dialog.showMessageBox(
-          winToShow,
-          {
-            type: 'warning',
-            buttons: ['Okay'],
-            message: title,
-            detail: message,
-          },
-          () => { }
-        );
-      }
-      return remote.dialog.showMessageBox(winToShow, {
-        type: 'warning',
-        buttons: ['Okay'],
-        message: title,
-        detail: message,
-      });
+      return remote.dialog.showMessageBox(
+        winToShow,
+        {
+          type: 'warning',
+          buttons: ['Okay'],
+          message: title,
+          detail: message,
+        },
+      );
     }
-    return remote.dialog.showMessageBox(
-      winToShow,
-      {
-        type: 'warning',
-        buttons: ['Okay', 'Show Details'],
-        message: title,
-        detail: message,
-      },
-      buttonIndex => {
-        if (buttonIndex === 1) {
+    return remote.dialog
+      .showMessageBox(
+        winToShow,
+        {
+          type: 'warning',
+          buttons: ['Okay', 'Show Details'],
+          message: title,
+          detail: message,
+        })
+      .then(({ response, ...rest }) => {
+        if (response === 1) {
           const { Actions } = require('mailspring-exports');
           const { CodeSnippet } = require('mailspring-component-kit');
           Actions.openModal({
@@ -1123,8 +1136,8 @@ export default class AppEnvConstructor {
             height: 300,
           });
         }
-      }
-    );
+        return new Promise.resolve({ response, ...rest });
+      });
   }
 
   // Delegate to the browser's process fileListCache
