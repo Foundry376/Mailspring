@@ -263,7 +263,7 @@ class HiddenToggleImportantButton extends React.Component {
   _onSetImportant = (important, threads) => {
     Actions.queueTasks(
       TaskFactory.tasksForThreadsByAccountId(
-        threads? threads : this.props.items,
+        threads ? threads : this.props.items,
         (accountThreads, accountId) => {
           return [
             new ChangeLabelsTask({
@@ -351,7 +351,7 @@ export class MarkAsSpamButton extends React.Component {
   };
 
   _onShortcutMarkAsSpam = event => {
-    this._onMarkAsSpam(event, threadSelectionScope(this.props.this.selection));
+    this._onMarkAsSpam(event, threadSelectionScope(this.props.selection));
   };
   _onMarkAsSpam = (event, threads) => {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
