@@ -103,9 +103,9 @@ class PreferencesGeneral extends React.Component {
         <div className="config-group">
           <h6>MESSAGES/CHAT</h6>
           <ConfigSchemaItem
-            configSchema={this.props.configSchema.properties.workspace.properties.chatEnable}
+            configSchema={this.props.configSchema.properties.workspace.properties.enableChat}
             keyName="Attachments"
-            keyPath="core.workspace.chatEnable"
+            keyPath="core.workspace.enableChat"
             config={this.props.config}
           />
         </div>
