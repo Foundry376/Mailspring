@@ -1,6 +1,6 @@
 /* eslint global-require: "off" */
 
-import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, dialog, systemPreferences } from 'electron';
 
 import fs from 'fs-plus';
 import rimraf from 'rimraf';
@@ -44,6 +44,7 @@ export default class Application extends EventEmitter {
     this.devMode = devMode;
     this.specMode = specMode;
     this.safeMode = safeMode;
+    this.nativeVersion = '';
 
     // if (devMode) {
     //   require('electron-reload')(resourcePath);
@@ -58,7 +59,7 @@ export default class Application extends EventEmitter {
 
     try {
       const mailsync = new MailsyncProcess(options);
-      await mailsync.migrate();
+      this.nativeVersion = await mailsync.migrate();
     } catch (err) {
       let message = null;
       let buttons = ['Quit'];
@@ -71,16 +72,16 @@ export default class Application extends EventEmitter {
         buttons = ['Quit', 'Rebuild'];
       }
 
-      const buttonIndex = dialog.showMessageBox({ type: 'warning', buttons, message });
-
-      if (buttonIndex === 0) {
-        app.quit();
-      } else {
-        this._deleteDatabase(() => {
-          app.relaunch();
+      dialog.showMessageBox({ type: 'warning', buttons, message }).then(({ response }) => {
+        if (response === 0) {
           app.quit();
-        }, true);
-      }
+        } else {
+          this._deleteDatabase(() => {
+            app.relaunch();
+            app.quit();
+          }, true);
+        }
+      });
       return;
     }
 
@@ -120,6 +121,7 @@ export default class Application extends EventEmitter {
 
     this.setupJavaScriptArguments();
     this.setupAutoPlayPolicy();
+    this.setupCrosssitePolicy();
     this.handleEvents();
     this.handleLaunchOptions(options);
 
@@ -159,7 +161,21 @@ export default class Application extends EventEmitter {
       fs.mkdirSync(avatarPath);
     }
     this.clearOldLogs();
-    // this.initSupportInfo();
+    this.initSupportInfo();
+
+    // subscribe event of dark mode change
+    if (process.platform === 'darwin') {
+      try {
+        systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+          const mainWindow = this.getMainWindow();
+          if (mainWindow) {
+            mainWindow.webContents.send('system-theme-changed', systemPreferences.isDarkMode());
+          }
+        });
+      } catch (err) {
+        console.error('Error: systemPreferences.subscribeNotification', err);
+      }
+    }
   }
   getOpenWindows() {
     return this.windowManager.getOpenWindows();
@@ -312,7 +328,7 @@ export default class Application extends EventEmitter {
     try {
       getOSInfo = getOSInfo || require('../system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
-      extra.chatEnabled = this.config.get('chatEnable');
+      extra.chatEnabled = this.config.get('core.workspace.enableChat');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       if (!!extra.errorData) {
         extra.errorData = JSON.stringify(extra.errorData);
@@ -462,20 +478,23 @@ export default class Application extends EventEmitter {
   }
 
   initSupportInfo() {
-    if (!getDeviceHash) {
-      getDeviceHash = require('./system-utils').getDeviceHash;
+    if (this.config) {
+      this.config.set('core.support.native', this.nativeVersion);
     }
-    const deviceHash = this.config.get('core.support.id');
-    if (!deviceHash || deviceHash === 'Unknown') {
-      getDeviceHash()
-        .then(id => {
-          this.config.set('core.support.id', id);
-        })
-        .catch(e => {
-          AppEnv.reportError(new Error('failed to init support id'));
-          this.config.set('core.support.id', 'Unknown');
-        });
-    }
+    // if (!getDeviceHash) {
+    //   getDeviceHash = require('./system-utils').getDeviceHash;
+    // }
+    // const deviceHash = this.config.get('core.support.id');
+    // if (!deviceHash || deviceHash === 'Unknown') {
+    //   getDeviceHash()
+    //     .then(id => {
+    //       this.config.set('core.support.id', id);
+    //     })
+    //     .catch(e => {
+    //       AppEnv.reportError(new Error('failed to init support id'));
+    //       this.config.set('core.support.id', 'Unknown');
+    //     });
+    // }
   }
 
   autoStartRestore() {
@@ -607,6 +626,10 @@ export default class Application extends EventEmitter {
     app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   }
 
+  setupCrosssitePolicy() {
+    // app.commandLine.appendSwitch('disable-site-isolation-trials');
+  }
+
   openWindowsForTokenState() {
     // user may trigger this using the application menu / by focusing the app
     // before migration has completed and the config has been loaded.
@@ -630,7 +653,10 @@ export default class Application extends EventEmitter {
     if (this._resettingAndRelaunching) return;
     this._resettingAndRelaunching = true;
     let rebuild = false;
-
+    const done = () => {
+      app.relaunch();
+      app.quit();
+    };
     if (errorMessage) {
       rebuild = true;
       dialog.showMessageBox({
@@ -638,13 +664,13 @@ export default class Application extends EventEmitter {
         buttons: ['Okay'],
         message: `We encountered a problem with your local email database. We will now attempt to rebuild it.`,
         detail: errorMessage,
+      }).then(() => {
+        console.log('deleting databases and destroying all windows');
+        this.windowManager.destroyAllWindows();
+        this._deleteDatabase(done, rebuild);
       });
+      return;
     }
-
-    const done = () => {
-      app.relaunch();
-      app.quit();
-    };
     console.log('deleting databases and destroying all windows');
     this.windowManager.destroyAllWindows();
     this._deleteDatabase(done, rebuild);
@@ -660,9 +686,10 @@ export default class Application extends EventEmitter {
       buttons: ['Okay'],
       message: `We encountered a problem with your local email database. The app will relaunch.`,
       detail: '',
+    }).then(() => {
+      app.relaunch();
+      app.quit();
     });
-    app.relaunch();
-    app.quit();
   };
 
   _deleteDatabase = (callback, rebuild) => {
@@ -726,19 +753,18 @@ export default class Application extends EventEmitter {
           defaultPath: this.configDirPath,
           buttonLabel: 'Choose',
           properties: ['openDirectory'],
-        },
-        filenames => {
-          if (!filenames || filenames.length === 0) {
+        })
+        .then(({ canceled, filePaths }) => {
+          if (canceled || !filePaths || filePaths.length === 0) {
             return;
           }
           this.runSpecs({
             exitWhenDone: false,
             showSpecsInWindow: true,
             resourcePath: this.resourcePath,
-            specDirectory: filenames[0],
+            specDirectory: filePaths[0],
           });
-        }
-      );
+        });
     });
 
     this.on('application:reset-database', this._resetDatabaseAndRelaunch);
@@ -1231,18 +1257,18 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;
-
-      const buttonIndex = dialog.showMessageBox({
+      dialog.showMessageBox({
         type: 'warning',
         buttons: ['Reset Theme', 'Continue'],
         defaultId: 0,
         message,
         detail,
+      }).then(({ response }) => {
+        if (response === 0) {
+          userResetTheme = true;
+          this.config.set('core.theme', '');
+        }
       });
-      if (buttonIndex === 0) {
-        userResetTheme = true;
-        this.config.set('core.theme', '');
-      }
     });
 
     ipcMain.on('inline-style-parse', (event, { html, key }) => {

@@ -285,7 +285,7 @@ export default class WindowEventHandler {
       const sanitized = encodeURI(decodeURI(resolved));
       remote.getGlobal('application').openUrl(sanitized);
     } else if (['http:', 'https:', 'tel:'].includes(protocol)) {
-      shell.openExternal(resolved, { activate: !metaKey });
+      remote.shell.openExternal(resolved, { activate: !metaKey });
     }
     return;
   }

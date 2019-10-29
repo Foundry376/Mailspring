@@ -54,6 +54,7 @@ export const LocalizedErrorStrings = {
 export const mailSyncModes = {
   RESET: 'reset',
   SYNC: 'sync',
+  SIFT: 'sift'
 };
 
 export default class MailsyncProcess extends EventEmitter {
@@ -68,12 +69,14 @@ export default class MailsyncProcess extends EventEmitter {
     this._proc = null;
     this.isRemoving = false;
     this._win = null;
-
+    // This only needs to be set if we are running in sift mode.
+    this.accounts = null;
     // these must be set before you use the process
     this.account = null;
     this.identity = null;
     this.syncInitilMessageSend = false;
     this._sendMessageQueue = [];
+    this._mode = '';
   }
 
   _showStatusWindow(mode) {
@@ -122,6 +125,7 @@ export default class MailsyncProcess extends EventEmitter {
     }
 
     const args = [`--mode`, mode];
+    this._mode = mode;
     if (this.verbose) {
       args.push('--verbose');
     }
@@ -143,7 +147,7 @@ export default class MailsyncProcess extends EventEmitter {
 
     // stdout may not be present if an error occurred. Error handler hasn't been
     // attached yet, but will be by the caller of spawnProcess.
-    if (this.account && this._proc.stdout && mode !== mailSyncModes.RESET) {
+    if (this.account && this._proc.stdout && (mode !== mailSyncModes.RESET || mode !== mailSyncModes.SIFT)) {
       this._proc.stdout.once('data', () => {
         var rs = new Readable();
         rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
@@ -159,6 +163,27 @@ export default class MailsyncProcess extends EventEmitter {
           );
           console.log('-----------------------------To native END-----------------------');
         }
+        this.syncInitilMessageSend = true;
+        this._flushSendQueue();
+      });
+    } else if (this.accounts && this._proc.stdout && mode === mailSyncModes.SIFT){
+      this._proc.stdout.once('data', () => {
+        const rs = new Readable();
+        let siftAccountString = '';
+        for (let acct of this.accounts) {
+          siftAccountString += `${JSON.stringify(acct)}\n`;
+        }
+        rs.push(siftAccountString);
+        rs.push(null);
+        rs.pipe(
+          this._proc.stdin,
+          { end: false }
+        );
+        // if (AppEnv.enabledToNativeLog) {
+        //   console.log('--------------------To native---------------');
+        //   AppEnv.logDebug(`to sift: ${siftAccountString}`);
+        //   console.log('-----------------------------To native END-----------------------');
+        // }
         this.syncInitilMessageSend = true;
         this._flushSendQueue();
       });
@@ -251,8 +276,12 @@ export default class MailsyncProcess extends EventEmitter {
     return arr;
   }
 
-  sync() {
-    this._spawnProcess('sync');
+  sift() {
+    this.sync(mailSyncModes.SIFT);
+  }
+
+  sync(mode = mailSyncModes.SYNC) {
+    this._spawnProcess(mode);
     let outBuffer = '';
     let errBuffer = null;
 
@@ -361,7 +390,11 @@ export default class MailsyncProcess extends EventEmitter {
     const msg = `${JSON.stringify(json)}\n`;
     if (AppEnv.enabledToNativeLog) {
       console.log('--------------------To native---------------');
-      AppEnv.logDebug(`to native: ${this.account ? this.account.id : 'no account'} - ${msg}`);
+      AppEnv.logDebug(
+        `to ${this._mode === mailSyncModes.SIFT ? 'native: sift' : 'native'}: ${
+          this.account ? this.account.id : 'no account'
+        } - ${msg}`
+      );
       console.log('-----------------------------To native END-----------------------');
     }
     try {
@@ -394,8 +427,14 @@ export default class MailsyncProcess extends EventEmitter {
           if (str.includes('running vacuum')) this._showStatusWindow('vacuum');
         },
       });
-      console.log(buffer.toString());
+      const migrateReturn = buffer.toString().trim();
+      const ret = JSON.parse(migrateReturn);
       this._closeStatusWindow();
+      if (ret && ret.version) {
+        return ret.version;
+      } else {
+        return '';
+      }
     } catch (err) {
       this._closeStatusWindow();
       throw err;

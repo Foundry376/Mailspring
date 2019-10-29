@@ -497,7 +497,35 @@ class StarredMailboxPerspective extends MailboxPerspective {
     this.iconName = 'flag.svg';
   }
 
+  gmailThreads() {
+    const categoryIds = [];
+    this.accountIds.forEach(accountId => {
+      const cat = CategoryStore.categories(accountId).filter(cat => cat.role === 'starred');
+      if (Array.isArray(cat) && cat[0]) {
+        categoryIds.push(cat[0].id);
+      } else {
+        AppEnv.reportError(new Error(`No starred found for gmail account`), {
+          errorData: CategoryStore.categories(accountId),
+        });
+      }
+    });
+    if (categoryIds.length === 0) {
+      return null;
+    }
+    const query = DatabaseStore.findAll(Thread)
+      .where([Thread.attributes.categories.containsAny(categoryIds)])
+      .where({ inAllMail: true, state: 0 })
+      .limit(0);
+    return new MutableQuerySubscription(query, { emitResultSet: true });
+  }
+
   threads() {
+    if (this.providers.every(item => item.provider === 'gmail')) {
+      const querySub = this.gmailThreads();
+      if (querySub) {
+        return querySub;
+      }
+    }
     const query = DatabaseStore.findAll(Thread)
       .where([
         Thread.attributes.starred.equal(true),

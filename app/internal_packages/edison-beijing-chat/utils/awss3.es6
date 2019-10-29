@@ -30,7 +30,7 @@ function getMyBucket() {
   if (AppEnv.config.get(`chatProdEnv`)) {
     return BUCKET_PROD;
   } else {
-    return BUCKET_DEV;
+    return BUCKET_PROD;
   }
 }
 
@@ -107,7 +107,7 @@ export const uploadFile = (oid, aes, file, callback, progressCallback) => {
   const data = readS.pipe(cipherStream);
   var uploadParams = { Bucket: getMyBucket(), Key: myKey, Body: data };
   const request = s3.upload(uploadParams);
-  request.on('httpUploadProgress', function(progress) {
+  request.on('httpUploadProgress', function (progress) {
     if (progressCallback) {
       progressCallback(progress);
     }

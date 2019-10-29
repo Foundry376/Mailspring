@@ -8,7 +8,7 @@ const buttonTimeout = 700;
 export default class MessageControls extends React.Component {
   static displayName = 'MessageControls';
   static propTypes = {
-    thread: PropTypes.object.isRequired,
+    thread: PropTypes.object,
     message: PropTypes.object.isRequired,
     messages: PropTypes.array,
     threadPopedOut: PropTypes.bool,
@@ -152,7 +152,7 @@ export default class MessageControls extends React.Component {
     Actions.popoutThread(this.props.thread);
     // This returns the single-pane view to the inbox, and does nothing for
     // double-pane view because we're at the root sheet.
-    Actions.popSheet({reason: 'Message-Controls:_onPopoutThread'});
+    Actions.popSheet({ reason: 'Message-Controls:_onPopoutThread' });
   };
 
   _dropdownMenu(items) {
@@ -238,7 +238,7 @@ export default class MessageControls extends React.Component {
       this.props.selection.clear();
     }
     if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
-      Actions.popSheet({reason: 'MessageControls:_onRemove'});
+      Actions.popSheet({ reason: 'MessageControls:_onRemove' });
     }
     return;
   };
@@ -264,7 +264,7 @@ export default class MessageControls extends React.Component {
       event.stopPropagation();
     }
     if (this.props.messages && this.props.messages && this.props.messages.length === 1) {
-      Actions.popSheet({reason: 'MessageControls:_onExpunge'});
+      Actions.popSheet({ reason: 'MessageControls:_onExpunge' });
     }
     return;
   };
@@ -346,7 +346,7 @@ export default class MessageControls extends React.Component {
               name={items[0].image}
               style={{ width: 24, height: 24 }}
               isIcon
-              mode={RetinaImg.Mode.ContentIsMask}/>}
+              mode={RetinaImg.Mode.ContentIsMask} />}
             primaryTitle={items[0].name}
             primaryClick={items[0].select}
             closeOnMenuClick
@@ -354,7 +354,7 @@ export default class MessageControls extends React.Component {
           /> : null}
         {!this.props.hideControls ?
           <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
-            <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask}/>
+            <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask} />
           </div> : null}
       </div>
     );

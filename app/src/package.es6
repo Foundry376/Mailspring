@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 
-class NoPackageJSONError extends Error {}
+class NoPackageJSONError extends Error { }
 
 export default class Package {
   static NoPackageJSONError = NoPackageJSONError;
@@ -13,6 +13,7 @@ export default class Package {
     try {
       jsonString = fs.readFileSync(path.join(dir, 'package.json')).toString();
     } catch (err) {
+      console.error("Error: Package constructor", err);
       // silently fail, not a file
     }
     if (!jsonString) {

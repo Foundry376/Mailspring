@@ -2,16 +2,16 @@ import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee'
 import { delay } from '../utils/delay'
 import xmpp from './index'
 import { log } from '../utils/log'
-import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore, BlockStore } from 'chat-exports'
+import { RoomStore, ContactStore, E2eeStore, AppsStore, AppStore, OnlineUserStore, BlockStore } from 'chat-exports'
 
 const TIGASE_PROD = 'wss://tigase.edison.tech'
 const TIGASE_DEV = 'wss://tigase.stag.easilydo.cc'
 
-function getTigaseURL () {
+function getTigaseURL() {
   if (AppEnv.config.get(`chatProdEnv`)) {
     return TIGASE_PROD
   } else {
-    return TIGASE_DEV
+    return TIGASE_PROD
   }
 }
 

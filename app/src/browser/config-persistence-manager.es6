@@ -58,14 +58,14 @@ export default class ConfigPersistenceManager {
     if (error instanceof SyntaxError) {
       detail += `\n\nThe file ${
         this.configFilePath
-      } has incorrect JSON formatting or is empty. Fix the formatting to resolve this error, or reset your settings to continue using N1.`;
+        } has incorrect JSON formatting or is empty. Fix the formatting to resolve this error, or reset your settings to continue using N1.`;
     } else {
       detail += `\n\nWe were unable to read the file ${
         this.configFilePath
-      }. Make sure you have permissions to access this file, and check that the file is not open or being edited and try again.`;
+        }. Make sure you have permissions to access this file, and check that the file is not open or being edited and try again.`;
     }
 
-    const clickedIndex = dialog.showMessageBox({
+    const clickedIndex = dialog.showMessageBoxSync({
       type: 'error',
       message,
       detail,
@@ -122,12 +122,12 @@ export default class ConfigPersistenceManager {
   }
 
   _showSaveErrorDialog() {
-    const clickedIndex = dialog.showMessageBox({
+    const clickedIndex = dialog.showMessageBoxSync({
       type: 'error',
       message: `Failed to save "${path.basename(this.configFilePath)}"`,
       detail: `\n\nWe were unable to save the file ${
         this.configFilePath
-      }. Make sure you have permissions to access this file, and check that the file is not open or being edited and try again.`,
+        }. Make sure you have permissions to access this file, and check that the file is not open or being edited and try again.`,
       buttons: ['Okay', 'Try again'],
     });
     return ['ignore', 'retry'][clickedIndex];
@@ -201,7 +201,7 @@ export default class ConfigPersistenceManager {
     global.application.config.updateSettings(this.settings);
 
     BrowserWindow.getAllWindows().forEach(win => {
-      if (win.webContents && win.webContents.getId() !== sourceWebcontentsId) {
+      if (win.webContents && win.webContents.id !== sourceWebcontentsId) {
         win.webContents.send('on-config-reloaded', this.settings);
       }
     });

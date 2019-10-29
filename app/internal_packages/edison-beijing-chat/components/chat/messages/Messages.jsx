@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 import { remote } from 'electron';
-const { dialog } = remote;
 import ContactAvatar from '../../common/ContactAvatar';
 import MessageImagePopup from './MessageImagePopup';
 import Group from './Group';
@@ -261,23 +260,6 @@ export default class Messages extends Component {
       this.setState({ nowIsInBottom: true });
     }
   }, 20);
-
-  download = msgBody => {
-    event.stopPropagation();
-    event.preventDefault();
-    const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-    let pathForSave = dialog.showSaveDialog({ title: `download file`, defaultPath: fileName });
-    if (!pathForSave || typeof pathForSave !== 'string') {
-      return;
-    }
-    const loadConfig = {
-      msgBody,
-      filepath: pathForSave,
-      type: 'download',
-    };
-    const { queueLoadMessage } = this.props;
-    queueLoadMessage(loadConfig);
-  };
 
   render() {
     const {

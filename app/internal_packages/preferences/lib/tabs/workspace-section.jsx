@@ -151,16 +151,16 @@ const WorkspaceSection = props => {
       />
 
       <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.chatEnable}
-        keyPath="chatEnable"
+        configSchema={props.configSchema.properties.workspace.properties.enableChat}
+        keyPath="core.workspace.enableChat"
         config={props.config}
       />
 
-      <ConfigSchemaItem
+      {/* <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.chatProdEnv}
         keyPath="chatProdEnv"
         config={props.config}
-      />
+      /> */}
 
       <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.use24HourClock}

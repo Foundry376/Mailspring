@@ -12,7 +12,7 @@ import fs from 'fs'
 import _ from 'underscore'
 import { getPriKey } from '../utils/e2ee'
 import { getName } from '../utils/name'
-import { postNotification } from '../utils/electron'
+import { postNotification } from '../utils/electron-utils'
 import { FILE_TYPE, isImage } from '../utils/filetypes'
 import { AT_BEGIN_CHAR, AT_END_CHAR } from '../utils/message'
 const { remote } = require('electron')
@@ -21,7 +21,7 @@ export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT'
 export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT'
 
 class MessageStore extends MailspringStore {
-  constructor () {
+  constructor() {
     super()
     this.groupedMessages = []
     this.conversationJid
@@ -29,7 +29,7 @@ class MessageStore extends MailspringStore {
     this._triggerDebounced = _.debounce(() => this.trigger(), 20)
   }
 
-  _registerListeners () {}
+  _registerListeners() { }
   getMessageById = async (id, conversationJid) => {
     return await MessageModel.findOne({
       where: {
@@ -369,8 +369,8 @@ class MessageStore extends MailspringStore {
         contactNameList.length > 4
           ? contactNameList.slice(0, 3).join(', ') + ' & ' + `${contactNameList.length - 3} others`
           : contactNameList.slice(0, contactNameList.length - 1).join(', ') +
-            ' & ' +
-            contactNameList[contactNameList.length - 1]
+          ' & ' +
+          contactNameList[contactNameList.length - 1]
       conv.name = fallbackName
     }
     await ConversationStore.saveConversations([conv])
@@ -667,7 +667,7 @@ const getMessageContent = message => {
   }
 }
 
-function getConversationJidFromMessagePayload (payload) {
+function getConversationJidFromMessagePayload(payload) {
   return payload.curJid === payload.from.bare ? payload.to.bare : payload.from.bare
 }
 

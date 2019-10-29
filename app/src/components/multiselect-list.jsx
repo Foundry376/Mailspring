@@ -192,6 +192,16 @@ class MultiselectList extends React.Component {
       this.state.handler.onClick(item);
     }
   };
+  _onCheckMarkClick = (item, event) => {
+    if (!this.state.handler) {
+      return;
+    }
+    if (event.shiftKey) {
+      this.state.handler.onShiftClick(item);
+    } else {
+      this.state.handler.onCheckMarkClick(item);
+    }
+  };
 
   _onEnter = () => {
     if (!this.state.handler) {
@@ -250,7 +260,7 @@ class MultiselectList extends React.Component {
       name: 'Check',
       resolver: item => {
         const toggle = event => {
-          this.state.handler.onCheckMarkClick(item);
+          this._onCheckMarkClick(item, event);
           if(event && event.stopPropagation){
             event.stopPropagation();
           }

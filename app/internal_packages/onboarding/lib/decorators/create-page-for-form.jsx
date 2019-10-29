@@ -117,7 +117,91 @@ const CreatePageForForm = FormComponent => {
 
     onConnect = updatedAccount => {
       const account = updatedAccount || this.state.account;
+      const proceedWithAccount = () => {
+        this.setState({ submitting: true });
 
+        finalizeAndValidateAccount(account)
+          .then(validated => {
+            OnboardingActions.moveToPage('account-onboarding-success');
+            OnboardingActions.finishAndAddAccount(validated);
+          })
+          .catch(err => {
+            // If we're connecting from the `basic` settings page with an IMAP account,
+            // the settings are from a template. If authentication fails, move the user
+            // to the full settings since our guesses may have been wrong.
+            // TODO: Potentially show Authentication Errors on this simple screen?
+            const isBasicForm = FormComponent.displayName === 'AccountBasicSettingsForm';
+            if (account.provider === 'imap' && isBasicForm) {
+              OnboardingActions.moveToPage('account-settings-imap');
+              return;
+            }
+            const errorFieldNames = [];
+            if (err.message.includes('Authentication Error')) {
+              if (/smtp/i.test(err.message)) {
+                errorFieldNames.push('settings.smtp_username');
+                errorFieldNames.push('settings.smtp_password');
+              } else {
+                errorFieldNames.push('settings.imap_username');
+                errorFieldNames.push('settings.imap_password');
+              }
+            } else if (/certificate/i.test(err.message)) {
+              errorFieldNames.push('settings.imap_allow_insecure_ssl');
+              errorFieldNames.push('settings.smtp_allow_insecure_ssl');
+              remote.dialog.showMessageBox(
+                remote.getCurrentWindow(),
+                {
+                  type: 'warning',
+                  buttons: ['Go Back', 'Continue'],
+                  message: 'Certificate Error',
+                  detail: `The TLS certificate for this server seems to be incorrect. Do you want to continue?`,
+                })
+                .then(({ response }) => {
+                  if (response === 1 && this.state.account && this.state.account.settings) {
+                    account.settings.imap_allow_insecure_ssl = true;
+                    account.settings.smtp_allow_insecure_ssl = true;
+                    this.setState({ account, submitting: true }, () => {
+                      this.onConnect(this.state.account);
+                    });
+                  } else {
+                    account.settings.imap_allow_insecure_ssl = false;
+                    account.settings.smtp_allow_insecure_ssl = false;
+                    const errorAccount = Object.assign({}, account);
+                    delete errorAccount.name;
+                    delete errorAccount.emailAddress;
+                    delete errorAccount.label;
+                    delete errorAccount.autoaddress;
+                    delete errorAccount.aliases;
+                    AppEnv.reportError(err, { account: errorAccount });
+                    this.setState({
+                      errorMessage: err.message,
+                      errorStatusCode: err.statusCode,
+                      errorLog: err.rawLog,
+                      errorFieldNames,
+                      account,
+                      submitting: false,
+                    });
+                  }
+                });
+              return;
+            }
+            const errorAccount = Object.assign({}, account);
+            delete errorAccount.name;
+            delete errorAccount.emailAddress;
+            delete errorAccount.label;
+            delete errorAccount.autoaddress;
+            delete errorAccount.aliases;
+            AppEnv.reportError(err, { account: errorAccount });
+
+            this.setState({
+              errorMessage: err.message,
+              errorStatusCode: err.statusCode,
+              errorLog: err.rawLog,
+              errorFieldNames,
+              account,
+              submitting: false,
+            });
+          });
+      };
       // warn users about authenticating a Gmail or Google Apps account via IMAP
       // and allow them to go back
       if (
@@ -127,105 +211,27 @@ const CreatePageForForm = FormComponent => {
         account.settings.imap_host.includes('imap.gmail.com')
       ) {
         didWarnAboutGmailIMAP = true;
-        const buttonIndex = remote.dialog.showMessageBox(null, {
-          type: 'warning',
-          buttons: ['Go Back', 'Continue'],
-          message: 'Are you sure?',
-          detail:
-            `This looks like a Gmail account! While it's possible to setup an App ` +
-            `Password and connect to Gmail via IMAP, EdisonMail also supports Google OAuth. Go ` +
-            `back and select "Gmail & Google Apps" from the provider screen.`,
-        });
-        if (buttonIndex === 0) {
-          OnboardingActions.moveToPage('account-choose');
-          return;
-        }
-      }
-
-      this.setState({ submitting: true });
-
-      finalizeAndValidateAccount(account)
-        .then(validated => {
-          OnboardingActions.moveToPage('account-onboarding-success');
-          OnboardingActions.finishAndAddAccount(validated);
-        })
-        .catch(err => {
-          // If we're connecting from the `basic` settings page with an IMAP account,
-          // the settings are from a template. If authentication fails, move the user
-          // to the full settings since our guesses may have been wrong.
-          // TODO: Potentially show Authentication Errors on this simple screen?
-          const isBasicForm = FormComponent.displayName === 'AccountBasicSettingsForm';
-          if (account.provider === 'imap' && isBasicForm) {
-            OnboardingActions.moveToPage('account-settings-imap');
-            return;
-          }
-          const errorFieldNames = [];
-          if (err.message.includes('Authentication Error')) {
-            if (/smtp/i.test(err.message)) {
-              errorFieldNames.push('settings.smtp_username');
-              errorFieldNames.push('settings.smtp_password');
+        remote.dialog
+          .showMessageBox(null, {
+            type: 'warning',
+            buttons: ['Go Back', 'Continue'],
+            message: 'Are you sure?',
+            detail:
+              `This looks like a Gmail account! While it's possible to setup an App ` +
+              `Password and connect to Gmail via IMAP, EdisonMail also supports Google OAuth. Go ` +
+              `back and select "Gmail & Google Apps" from the provider screen.`,
+          })
+          .then(({ response }) => {
+            if (response === 0) {
+              OnboardingActions.moveToPage('account-choose');
+              return;
             } else {
-              errorFieldNames.push('settings.imap_username');
-              errorFieldNames.push('settings.imap_password');
+              proceedWithAccount();
             }
-          } else if (/certificate/i.test(err.message)){
-            errorFieldNames.push('settings.imap_allow_insecure_ssl');
-            errorFieldNames.push('settings.smtp_allow_insecure_ssl');
-            remote.dialog.showMessageBox(
-              remote.getCurrentWindow(),
-              {
-                type: 'warning',
-                buttons: ['Go Back', 'Continue'],
-                message: 'Certificate Error',
-                detail: `The TLS certificate for this server seems to be incorrect. Do you want to continue?`,
-              },
-              response => {
-                if (response === 1 && this.state.account && this.state.account.settings) {
-                  account.settings.imap_allow_insecure_ssl = true;
-                  account.settings.smtp_allow_insecure_ssl = true;
-                  this.setState({ account, submitting: true }, () => {
-                    this.onConnect(this.state.account);
-                  });
-                } else {
-                  account.settings.imap_allow_insecure_ssl = false;
-                  account.settings.smtp_allow_insecure_ssl = false;
-                  const errorAccount = Object.assign({}, account);
-                  delete errorAccount.name;
-                  delete errorAccount.emailAddress;
-                  delete errorAccount.label;
-                  delete errorAccount.autoaddress;
-                  delete errorAccount.aliases;
-                  AppEnv.reportError(err, { account: errorAccount });
-                  this.setState({
-                    errorMessage: err.message,
-                    errorStatusCode: err.statusCode,
-                    errorLog: err.rawLog,
-                    errorFieldNames,
-                    account,
-                    submitting: false,
-                  });
-                }
-              }
-            );
-            return;
-          }
-          const errorAccount = Object.assign({}, account);
-          delete errorAccount.name;
-          delete errorAccount.emailAddress;
-          delete errorAccount.label;
-          delete errorAccount.autoaddress;
-          delete errorAccount.aliases;
-          AppEnv.reportError(err, { account: errorAccount });
-
-          this.setState({
-            errorMessage: err.message,
-            errorStatusCode: err.statusCode,
-            errorLog: err.rawLog,
-            errorFieldNames,
-            account,
-            submitting: false,
           });
-        });
+        return;
+      }
+      proceedWithAccount();
     };
 
     _renderButton() {
@@ -272,7 +278,7 @@ const CreatePageForForm = FormComponent => {
       if (account.emailAddress.includes('@yahoo.com')) {
         message = 'Have you enabled access through Yahoo?';
         articleURL =
-          'http://support.getmailspring.com//hc/en-us/articles/115001882372-Authorizing-Use-with-Yahoo';
+          'http://support.getmailspring.com/hc/en-us/articles/115001882372-Authorizing-Use-with-Yahoo';
       } else {
         message = 'Some providers require an app password.';
         articleURL =

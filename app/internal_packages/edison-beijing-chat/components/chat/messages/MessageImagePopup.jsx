@@ -3,9 +3,9 @@ import { FILE_TYPE } from '../../../utils/filetypes';
 import { buildTimeDescriptor } from '../../../utils/time';
 import { downloadFile } from '../../../utils/awss3';
 import { isJsonStr } from '../../../utils/stringUtils';
-const { dialog } = require('electron').remote;
 import { RetinaImg } from 'mailspring-component-kit';
-import {MessageImagePopupStore} from 'chat-exports';
+import { MessageImagePopupStore } from 'chat-exports';
+const { dialog } = require('electron').remote;
 
 var http = require("http");
 var https = require("https");
@@ -19,7 +19,7 @@ export default class MessageImagePopup extends Component {
       hidden: true
     }
   }
-  componentDidMount(){
+  componentDidMount() {
     this.getAllImages(this.props);
     this.unsubscribers = [];
     this.unsubscribers.push(MessageImagePopupStore.listen(this.onMessageImageChange));
@@ -36,7 +36,7 @@ export default class MessageImagePopup extends Component {
     const imgIndex = this.imgMsgs.indexOf(msg);
     this.setState({
       imgIndex,
-      hidden:false
+      hidden: false
     });
     const footer = document.querySelector('[name=Footer]');
     if (footer) {
@@ -63,48 +63,53 @@ export default class MessageImagePopup extends Component {
   getFileName(msgBody) {
     return msgBody.localFile && path.basename(msgBody.localFile) || msgBody.mediaObjectId.replace(/\.encrypted$/, '');
   }
-  downloadImage = (event) => {
+  downloadImage = event => {
     event.stopPropagation();
     event.preventDefault();
     const { msgBody } = this.imgMsgs[this.state.imgIndex];
     const fileName = this.getFileName(msgBody);
-    const path = dialog.showSaveDialog({
-      title: `download file`,
-      defaultPath: fileName
-    });
-    if (!path || typeof path !== 'string') {
-      return;
-    }
-    if (msgBody.path.match(/^file:\/\//)) {
-      let imgpath = msgBody.path.replace('file://', '');
-      fs.copyFileSync(imgpath, path);
-    } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
-      // the file is on aws
-      downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
-    } else {
-      let request;
-      if (msgBody.mediaObjectId.match(/^https/)) {
-        request = https;
-      } else {
-        request = http;
-      }
-      request.get(msgBody.mediaObjectId, function (res) {
-        var imgData = '';
-        res.setEncoding('binary');
-        res.on('data', function (chunk) {
-          imgData += chunk;
-        });
-        res.on('end', function () {
-          fs.writeFile(path, imgData, 'binary', function (err) {
-            if (err) {
-              console.log('down fail');
-            }
-            console.log('down success');
+    dialog
+      .showSaveDialog({
+        title: `download file`,
+        defaultPath: fileName,
+      })
+      .then(({ filePath } = {}) => {
+        const path = filePath;
+        if (!path || typeof path !== 'string') {
+          return;
+        }
+        if (msgBody.path.match(/^file:\/\//)) {
+          let imgpath = msgBody.path.replace('file://', '');
+          fs.copyFile(imgpath, path, () => { });
+        } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+          // the file is on aws
+          downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+        } else {
+          let request;
+          if (msgBody.mediaObjectId.match(/^https/)) {
+            request = https;
+          } else {
+            request = http;
+          }
+          request.get(msgBody.mediaObjectId, function (res) {
+            var imgData = '';
+            res.setEncoding('binary');
+            res.on('data', function (chunk) {
+              imgData += chunk;
+            });
+            res.on('end', function () {
+              fs.writeFile(path, imgData, 'binary', function (err) {
+                if (err) {
+                  console.log('down fail');
+                }
+                console.log('down success');
+              });
+            });
           });
-        });
+        }
       });
-    }
-  }
+  };
+
   UNSAFE_componentWillReceiveProps = (nexProps) => {
     this.getAllImages(nexProps);
   }
@@ -117,7 +122,7 @@ export default class MessageImagePopup extends Component {
       const { messages } = groupedMessage;
       for (const msg of messages) {
         let msgBody = msg.body
-        if(isJsonStr(msg.body)) {
+        if (isJsonStr(msg.body)) {
           msgBody = JSON.parse(msgBody);
         }
         if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER) {

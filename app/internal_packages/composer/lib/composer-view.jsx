@@ -63,7 +63,7 @@ export default class ComposerView extends React.Component {
       'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
       'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => {},
+      'composer:show-and-focus-from': () => { },
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
@@ -574,13 +574,13 @@ export default class ComposerView extends React.Component {
           {this.state.isDeleting ? (
             <LottieImg name={'loading-spinner-blue'} size={{ width: 24, height: 24 }} />
           ) : (
-            <RetinaImg
-              name={'trash.svg'}
-              style={{ width: 24, height: 24 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask}
-            />
-          )}
+              <RetinaImg
+                name={'trash.svg'}
+                style={{ width: 24, height: 24 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
+            )}
         </button>
       </div>
     );
@@ -743,23 +743,26 @@ export default class ComposerView extends React.Component {
     }
 
     if (warnings.length > 0 && !options.force) {
-      const response = dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'warning',
-        buttons: ['Send Anyway', 'Cancel'],
-        message: 'Are you sure?',
-        detail: `Send ${warnings.join(' and ')}?`,
-      });
-      if (response === 0) {
-        // response is button array index
-        return this._isValidDraft({ force: true });
-      }
+      dialog
+        .showMessageBox(remote.getCurrentWindow(), {
+          type: 'warning',
+          buttons: ['Send Anyway', 'Cancel'],
+          message: 'Are you sure?',
+          detail: `Send ${warnings.join(' and ')}?`,
+        })
+        .then(({ response } = {}) => {
+          if (response === 0) {
+            this._onPrimarySend({ disableDraftCheck: true });
+            return true;
+          }
+        });
       return false;
     }
     return true;
   };
 
-  _onPrimarySend = () => {
-    this._els.sendActionButton.primarySend();
+  _onPrimarySend = ({ disableDraftCheck = false } = {}) => {
+    this._els.sendActionButton.primarySend({ disableDraftCheck });
   };
   _timoutButton = () => {
     if (!this._deleteTimer) {

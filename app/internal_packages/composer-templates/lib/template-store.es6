@@ -79,7 +79,7 @@ class TemplateStore extends MailspringStore {
           title: 'Cannot scan templates directory',
           message: `EdisonMail was unable to read the contents of your templates directory (${
             this._templatesDir
-          }). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
+            }). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
         });
         return;
       }
@@ -150,7 +150,9 @@ class TemplateStore extends MailspringStore {
         detail: message,
         buttons: buttons,
         type: 'info',
-      }) === 0
+      }).then(({ response }) => {
+        return Promise.resolve(response === 0);
+      })
     );
   }
 
@@ -203,14 +205,14 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  _onDeleteTemplate(name) {
+  async _onDeleteTemplate(name) {
     const template = this._items.find(t => t.name === name);
     if (!template) {
       return;
     }
 
     if (
-      this._displayDialog(
+      await this._displayDialog(
         'Delete this template?',
         'The template and its file will be permanently deleted.',
         ['Delete', 'Cancel']
@@ -253,13 +255,13 @@ class TemplateStore extends MailspringStore {
   _onInsertTemplateId({ templateId, headerMessageId } = {}) {
     const template = this._items.find(t => t.id === templateId);
     const templateBody = fs.readFileSync(template.path).toString();
-    DraftStore.sessionForClientId(headerMessageId).then(session => {
+    DraftStore.sessionForClientId(headerMessageId).then(async session => {
       let proceed = true;
       if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
-        proceed = this._displayDialog(
+        proceed = await this._displayDialog(
           'Replace draft contents?',
           'It looks like your draft already has some content. Loading this template will ' +
-            'overwrite all draft contents.',
+          'overwrite all draft contents.',
           ['Replace contents', 'Cancel']
         );
       }

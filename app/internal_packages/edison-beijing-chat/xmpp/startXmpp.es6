@@ -8,7 +8,6 @@ import {
   E2eeStore,
   BlockStore,
 } from 'chat-exports';
-import { alert } from '../utils/electron';
 import { getName } from '../utils/name';
 import { registerLoginEmailAccountForChat } from '../utils/register-login-chat';
 
@@ -165,7 +164,7 @@ const startXmpp = xmpp => {
     MessageStore.saveMessagesAndRefresh([msg]);
   });
 
-  xmpp.on('message:failed', async message => {});
+  xmpp.on('message:failed', async message => { });
 
   xmpp.on('auth:failed', async data => {
     const account = OnlineUserStore.getSelfAccountById(data.curJid);

@@ -40,7 +40,7 @@ export default class Msg extends PureComponent {
     })
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = this.receiveProps(props)
     this.state.file_downloaded = false
@@ -79,7 +79,7 @@ export default class Msg extends PureComponent {
 
   static timer
 
-  componentDidMount () {
+  componentDidMount() {
     this.checkImgHasDownloaded()
     this.unlisten = []
     this.unlisten.push(ChatActions.updateDownload.listen(this.updateDownload, this))
@@ -98,7 +98,7 @@ export default class Msg extends PureComponent {
     MessageModel.destroy({ where: { id: msg.id, conversationJid: conversation.jid } })
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     for (let unlisten of this.unlisten) {
       unlisten()
     }
@@ -145,7 +145,7 @@ export default class Msg extends PureComponent {
     }, 300)
   }
 
-  downloadFile (filePath) {
+  downloadFile(filePath) {
     const msgBody = this.state.msgBody
     if (!filePath || typeof filePath !== 'string') {
       return
@@ -159,7 +159,7 @@ export default class Msg extends PureComponent {
     queueLoadMessage(loadConfig)
   }
 
-  openFile (filePath) {
+  openFile(filePath) {
     shell.openItem(filePath)
   }
 
@@ -178,7 +178,7 @@ export default class Msg extends PureComponent {
     })
   }
 
-  updateDownload (imgId) {
+  updateDownload(imgId) {
     const { msgBody } = this.state
     const { mediaObjectId, thumbObjectId } = msgBody
     const msgImgPath = this.getImageFilePath(msgBody)
@@ -188,7 +188,7 @@ export default class Msg extends PureComponent {
     }
   }
 
-  updateProgress (progress) {
+  updateProgress(progress) {
     const { msgBody } = this.state
     if (progress.finished && msgBody.mediaObjectId && msgBody.mediaObjectId === progress.mediaObjectId) {
       this.setState({
@@ -198,22 +198,24 @@ export default class Msg extends PureComponent {
   }
 
   download = () => {
-    const msgBody = this.state.msgBody
-    event.stopPropagation()
-    event.preventDefault()
-    const fileName = msgBody.path ? path.basename(msgBody.path) : ''
-    let pathForSave = dialog.showSaveDialog({ title: `download file`, defaultPath: fileName })
-    if (!pathForSave || typeof pathForSave !== 'string') {
-      return
-    }
-    const loadConfig = {
-      msgBody,
-      filepath: pathForSave,
-      type: 'download'
-    }
-    const { queueLoadMessage } = this.props
-    queueLoadMessage(loadConfig)
-  }
+    const msgBody = this.state.msgBody;
+    const fileName = msgBody.path ? path.basename(msgBody.path) : '';
+    dialog
+      .showSaveDialog({ title: `download file`, defaultPath: fileName })
+      .then(({ filePath } = {}) => {
+        const pathForSave = filePath;
+        if (!pathForSave || typeof pathForSave !== 'string') {
+          return;
+        }
+        const loadConfig = {
+          msgBody,
+          filepath: pathForSave,
+          type: 'download',
+        };
+        const { queueLoadMessage } = this.props;
+        queueLoadMessage(loadConfig);
+      });
+  };
 
   checkImgHasDownloaded = () => {
     const { msg } = this.props
@@ -311,7 +313,7 @@ export default class Msg extends PureComponent {
     }
   }
 
-  _previewAttachment (filePath) {
+  _previewAttachment(filePath) {
     const currentWin = AppEnv.getCurrentWindow()
     currentWin.previewFile(filePath)
   }
@@ -376,7 +378,7 @@ export default class Msg extends PureComponent {
     }
   }
 
-  renderImage () {
+  renderImage() {
     const { msgBody, msgImgPath } = this.state
     if (msgBody.downloading) {
       return (
@@ -449,7 +451,7 @@ export default class Msg extends PureComponent {
     )
   }
 
-  renderContent () {
+  renderContent() {
     const { msg, conversation } = this.props
     const { isEditing, msgBody, currentUserJid } = this.state
     const textContent = (msgBody.path && path.basename(msgBody.path)) || msgBody.content || msgBody
@@ -483,7 +485,7 @@ export default class Msg extends PureComponent {
     }
   }
 
-  render () {
+  render() {
     const { msg, conversation } = this.props
     const { isEditing, msgBody, msgImgPath, currentUserJid } = this.state
     const isCurrentUser = msg.sender === currentUserJid

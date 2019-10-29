@@ -10,7 +10,7 @@ import { NEW_CONVERSATION } from '../../../utils/constant';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
 import { name } from '../../../utils/name';
-import { alert } from '../../../utils/electron';
+import { alert } from '../../../utils/electron-utils';
 
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
@@ -249,7 +249,6 @@ export default class ConversationInfo extends Component {
                 member={privateChatMember}
                 editingMember={this.editingMember}
                 editProfile={this.props.editProfile}
-                exitProfile={this.props.exitProfile}
                 removeMember={this.removeMember}
                 currentUserIsOwner={currentUserIsOwner}
                 key={privateChatMember.jid}
@@ -260,7 +259,6 @@ export default class ConversationInfo extends Component {
                   member={self}
                   editingMember={this.editingMember}
                   editProfile={this.props.editProfile}
-                  exitProfile={this.props.exitProfile}
                   removeMember={this.removeMember}
                   currentUserIsOwner={currentUserIsOwner}
                   key="curJid"
@@ -277,7 +275,6 @@ export default class ConversationInfo extends Component {
                     member={member}
                     editingMember={this.editingMember}
                     editProfile={this.props.editProfile}
-                    exitProfile={this.props.exitProfile}
                     removeMember={this.removeMember}
                     currentUserIsOwner={currentUserIsOwner}
                     key={member.jid}

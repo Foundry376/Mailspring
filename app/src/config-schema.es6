@@ -90,14 +90,14 @@ export default {
             default: true,
             title: 'Show unread counts for all folders / labels',
           },
-          chatEnable: {
+          enableChat: {
             type: 'boolean',
-            default: false,
+            default: true,
             title: 'enable chat feature',
           },
           chatProdEnv: {
             type: 'boolean',
-            default: false,
+            default: true,
             title: 'change chat environment to production',
           },
           use24HourClock: {
