@@ -29,7 +29,7 @@ export default function moveToApplications() {
         });
       }
     }
-    return new Promise.resolve();
+    return Promise.resolve();
   });
 
 }
