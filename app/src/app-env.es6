@@ -166,6 +166,14 @@ export default class AppEnvConstructor {
     });
     this.initSupportInfo();
     this.initTaskErrorCounter();
+
+    // subscribe event of dark mode change
+    if (this.isMainWindow() && process.platform === 'darwin') {
+      ipcRenderer.on('system-theme-changed', (e, isDarkMode) => {
+        AppEnv.themes.setActiveTheme(isDarkMode ? 'ui-dark' : 'ui-light');
+      });
+      this.mailsyncBridge.startSift('Main window started');
+    }
   }
   sendSyncMailNow(accountId) {
     if (navigator.onLine) {
@@ -199,8 +207,13 @@ export default class AppEnvConstructor {
       if (!this.inDevMode()) {
         return this.reportError(originalError, { url, line, column });
       }
-      const { line: newLine, column: newColumn } = mapSourcePosition({ source: url, line, column });
-      return this.reportError(originalError, { url, line: newLine, column: newColumn });
+      try {
+        const { line: newLine, column: newColumn } = mapSourcePosition({ source: url, line, column });
+        return this.reportError(originalError, { url, line: newLine, column: newColumn });
+      } catch (e) {
+        console.error(e);
+      }
+      return this.reportError(originalError, { url, line, column });
     };
 
     process.on('uncaughtException', e => {
@@ -260,8 +273,15 @@ export default class AppEnvConstructor {
   _expandReportLog(error, extra = {}) {
     try {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
+      if (typeof extra === "string") {
+        console.warn('extra is not an object:' + extra);
+        extra = {
+          errorData: extra
+        }
+      }
       extra.osInfo = getOSInfo();
-      extra.chatEnabled = this.config.get('chatEnable');
+      extra.native = this.config.get('core.support.native');
+      extra.chatEnabled = this.config.get('core.workspace.enableChat');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       extra.pluginIds = JSON.stringify(this._findPluginsFromError(error));
       if (!!extra.errorData) {
@@ -1088,7 +1108,7 @@ export default class AppEnvConstructor {
             message: title,
             detail: message,
           },
-          () => {}
+          () => { }
         );
       }
       return remote.dialog.showMessageBox(winToShow, {
@@ -1231,15 +1251,15 @@ export default class AppEnvConstructor {
             const pass = new stream.PassThrough();
             pass.end(img.toPNG());
             pass.pipe(output);
-            output.on('close', function() {
+            output.on('close', function () {
               output.close();
               resolve(outputPath);
             });
-            output.on('end', function() {
+            output.on('end', function () {
               output.close();
               reject();
             });
-            output.on('error', function() {
+            output.on('error', function () {
               output.close();
               reject();
             });
@@ -1263,16 +1283,16 @@ export default class AppEnvConstructor {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function() {
+      output.on('close', function () {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function() {
+      output.on('end', function () {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function(err) {
+      archive.on('warning', function (err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -1281,7 +1301,7 @@ export default class AppEnvConstructor {
           reject(err);
         }
       });
-      archive.on('error', function(err) {
+      archive.on('error', function (err) {
         output.close();
         console.log(err);
         reject(err);
@@ -1401,5 +1421,9 @@ export default class AppEnvConstructor {
         .update(str)
         .digest('hex')
     );
+  }
+
+  mockReportError(str = {}, extra = {}, opts = {}) {
+    this.reportError(new Error(str), extra, opts);
   }
 }

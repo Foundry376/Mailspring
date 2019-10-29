@@ -71,7 +71,10 @@ export default class MessagesPanel extends Component {
         // let user = await ContactStore.findContactByJid(selectedConversation.jid);
         let user = await UserCacheStore.getUserInfoByJid(selectedConversation.jid);
         if (!user) {
-          console.error('****user is null', selectedConversation);
+          user = await ContactStore.findContactByJid(selectedConversation.jid);
+          if (!user) {
+            console.error('Chat:user info is null', selectedConversation);
+          }
         }
         selectedConversation.email = user && user.email;
       }
@@ -160,21 +163,6 @@ export default class MessagesPanel extends Component {
     setTimeout(() => {
       MemberProfileStore.setMember(member);
     }, 10);
-  };
-
-  exitProfile = async member => {
-    if (!member) {
-      return;
-    }
-    const jid = member.jid.bare || member.jid;
-    const nicknames = chatLocalStorage.nicknames;
-    if (nicknames[jid] != member.nickname) {
-      nicknames[jid] = member.nickname;
-      LocalStorage.saveToLocalStorage();
-    }
-    MemberProfileStore.setMember(null);
-    MessageStore.saveMessagesAndRefresh([]);
-    LocalStorage.trigger();
   };
 
   reconnect = () => {
@@ -312,14 +300,14 @@ export default class MessagesPanel extends Component {
         } else {
           request = http;
         }
-        request.get(msgBody.mediaObjectId, function(res) {
+        request.get(msgBody.mediaObjectId, function (res) {
           var imgData = '';
           res.setEncoding('binary');
-          res.on('data', function(chunk) {
+          res.on('data', function (chunk) {
             imgData += chunk;
           });
-          res.on('end', function() {
-            fs.writeFile(filepath, imgData, 'binary', function(err) {
+          res.on('end', function () {
+            fs.writeFile(filepath, imgData, 'binary', function (err) {
               if (err) {
                 console.error('down fail', err);
               } else {
@@ -424,7 +412,6 @@ export default class MessagesPanel extends Component {
       loadingMembers: this.state.loadingMembers,
       getRoomMembers: this.getRoomMembers,
       editProfile: this.editProfile,
-      exitProfile: this.exitProfile,
       contacts,
       onCloseInfoPanel: () => this.setState({ showConversationInfo: false }),
     };
@@ -467,16 +454,15 @@ export default class MessagesPanel extends Component {
             </CSSTransitionGroup>
           </div>
         ) : (
-          <div className="unselectedHint">
-            <span>
-              <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
-            </span>
-          </div>
-        )}
+            <div className="unselectedHint">
+              <span>
+                <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
+              </span>
+            </div>
+          )}
         <OnlineStatus conversation={selectedConversation}></OnlineStatus>
         <MemberProfile
           conversation={selectedConversation}
-          exitProfile={this.exitProfile}
         ></MemberProfile>
       </div>
     );

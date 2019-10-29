@@ -52,7 +52,7 @@ class AccountBasicSettingsForm extends React.Component {
       errorFieldNames.push('email');
       errorMessage = 'Please provide a valid email address.';
     }
-    if(providerConfig && providerConfig.provider === 'icloud'){
+    if (providerConfig && providerConfig.provider === 'icloud') {
       const emailValidate = validateEmailAddressForProvider(
         account.emailAddress,
         providerConfig
@@ -98,6 +98,13 @@ class AccountBasicSettingsForm extends React.Component {
       // expanding the account settings succeeded - try to authenticate
       this.props.onConnect(account);
     } else {
+      // fill imap and smtp server
+      const domain = account.emailAddress
+        .split('@')
+        .pop()
+        .toLowerCase();
+      account.settings.imap_host = `imap.${domain}`;
+      account.settings.smtp_host = `smtp.${domain}`;
       // we need the user to provide IMAP/SMTP credentials manually
       OnboardingActions.moveToPage('account-settings-imap');
     }

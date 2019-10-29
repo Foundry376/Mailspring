@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 import uuid from 'uuid';
-const silentTTL = 60000;
+const silentTTL = 300000;
 class AppMessageStore extends MailspringStore {
   static priority = {
     critical: 0,
@@ -270,10 +270,8 @@ class AppMessageStore extends MailspringStore {
     this.addToSilentCache({ block });
   };
   addToSilentCache = ({ block }) => {
-    if(!this._silentCache[block.id]){
-      this._silentCache[block.id] = Date.now();
-    }
-  }
+    this._silentCache[block.id] = Date.now();
+  };
   _findHighestPriority = ({ tasks }) => {
     let priority = AppMessageStore.priority.low;
     for (let task of tasks) {

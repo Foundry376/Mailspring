@@ -154,6 +154,9 @@ export default class SendDraftTask extends Task {
       errorDetail = `We encountered an SMTP error that prevented this message from being delivered:\n\n${
         LocalizedErrorStrings[debuginfo]
       }`;
+    } else if (key === 'ErrorAuthentication') {
+      errorMessage = `We encountered a problem with account authentication. Please make sure account is set up correctly.`;
+      errorDetail = LocalizedErrorStrings[debuginfo];
     } else {
       errorMessage = 'We were unable to deliver this message.';
       errorDetail = `An unknown error occurred: ${JSON.stringify({ key, debuginfo })}`;

@@ -47,7 +47,7 @@ export class ArchiveButton extends React.Component {
   };
 
   _onShortCut = event => {
-    this._onArchive(event, threadSelectionScope(this.props, this.selection));
+    this._onArchive(event, threadSelectionScope(this.props, this.props.selection));
   };
 
   _onArchive = (event, threads) => {
@@ -99,10 +99,10 @@ export class TrashButton extends React.Component {
     currentPerspective: PropTypes.object,
   };
   _onShortCutRemove = event => {
-    this._onRemove(event, threadSelectionScope(this.props, this.selection));
+    this._onRemove(event, threadSelectionScope(this.props, this.props.selection));
   };
   _onShortCutExpunge = event => {
-    this._onExpunge(event, threadSelectionScope(this.props, this.selection));
+    this._onExpunge(event, threadSelectionScope(this.props, this.props.selection));
   };
 
   _onRemove = (event, threads) => {
@@ -211,7 +211,7 @@ class HiddenGenericRemoveButton extends React.Component {
 
   _onShortcutRemoveAndShift = ({ offset }) => {
     this._onShift({ offset });
-    this._onRemoveFromView(threadSelectionScope(this.props, this.selection));
+    this._onRemoveFromView(threadSelectionScope(this.props, this.props.selection));
   };
 
   _onRemoveAndShift = ({ offset }) => {
@@ -230,7 +230,7 @@ class HiddenGenericRemoveButton extends React.Component {
   };
 
   _onShortcutRemoveFromView = event => {
-    this._onRemoveFromView(threadSelectionScope(this.props, this.selection));
+    this._onRemoveFromView(threadSelectionScope(this.props, this.props.selection));
   };
 
   _onRemoveFromView = threads => {
@@ -267,7 +267,7 @@ class HiddenToggleImportantButton extends React.Component {
   static displayName = 'HiddenToggleImportantButton';
 
   _onShortcutSetImportant = important => {
-    this._onSetImportant(important, threadSelectionScope(this.props, this.selection));
+    this._onSetImportant(important, threadSelectionScope(this.props, this.props.selection));
   };
   _onSetImportant = (important, threads) => {
     Actions.queueTasks(
@@ -344,7 +344,7 @@ export class MarkAsSpamButton extends React.Component {
   };
 
   _onShortcutNotSpam = event => {
-    this._onNotSpam(event, threadSelectionScope(this.props, this.selection));
+    this._onNotSpam(event, threadSelectionScope(this.props, this.props.selection));
   };
   _onNotSpam = (event, threads) => {
     const tasks = TaskFactory.tasksForMarkingNotSpam({
@@ -364,7 +364,7 @@ export class MarkAsSpamButton extends React.Component {
   };
 
   _onShortcutMarkAsSpam = event => {
-    this._onMarkAsSpam(event, threadSelectionScope(this.props.this.selection));
+    this._onMarkAsSpam(event, threadSelectionScope(this.props, this.props.selection));
   };
   _onMarkAsSpam = (event, threads) => {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
@@ -449,7 +449,7 @@ export class ToggleStarredButton extends React.Component {
   };
 
   _onShortcutStar = event => {
-    this._onStar(event, threadSelectionScope(this.props, this.selection));
+    this._onStar(event, threadSelectionScope(this.props, this.props.selection));
   };
 
   _onStar = (event, threads) => {
@@ -511,7 +511,7 @@ export class ToggleUnreadButton extends React.Component {
   };
 
   _onShortcutChangeUnread = targetUnread => {
-    this._onChangeUnread(targetUnread, threadSelectionScope(this.props, this.selection));
+    this._onChangeUnread(targetUnread, threadSelectionScope(this.props, this.props.selection));
   };
 
   _onChangeUnread = (targetUnread, threads) => {
@@ -597,14 +597,42 @@ export class ThreadListMoreButton extends React.Component {
     const selectionCount = this.props.items ? this.props.items.length : 0;
     const menu = new Menu();
     if (selectionCount > 0) {
-      menu.append(
-        new MenuItem({
-          label: `Mark as read`,
-          click: (menuItem, browserWindow) => {
-            AppEnv.commands.dispatch('core:mark-as-read');
-          },
-        })
-      );
+      if (this.props.items.every(item => item.unread)) {
+        menu.append(
+          new MenuItem({
+            label: `Mark as read`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-read');
+            },
+          })
+        );
+      } else if (this.props.items.every(item => !item.unread)) {
+        menu.append(
+          new MenuItem({
+            label: `Mark as unread`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-unread');
+            },
+          })
+        );
+      } else {
+        menu.append(
+          new MenuItem({
+            label: `Mark as read`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-read');
+            },
+          })
+        );
+        menu.append(
+          new MenuItem({
+            label: `Mark as unread`,
+            click: (menuItem, browserWindow) => {
+              AppEnv.commands.dispatch('core:mark-as-unread');
+            },
+          })
+        );
+      }
       const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
         this.props.items,
         'important'

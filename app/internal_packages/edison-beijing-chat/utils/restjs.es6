@@ -22,7 +22,7 @@ function getBaseDomain(kind) {
   if (AppEnv.config.get(`chatProdEnv`)) {
     chatObj = domain.prod;
   } else {
-    chatObj = domain.dev;
+    chatObj = domain.prod;
   }
   return chatObj[kind];
 }

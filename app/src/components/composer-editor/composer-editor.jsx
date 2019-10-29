@@ -95,14 +95,14 @@ export default class ComposerEditor extends React.Component {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       InlineAttachmentChanges.insert(change, file);
-      if(i!==files.length -1){
+      if (i !== files.length - 1) {
         change.collapseToEndOfPreviousText();
       }
     }
     // DC-734 it seems that if we call onChange immediately, more often than not,
     // it'll effect the next "list" item and make it indent.
     // For some reason adding a timeout solves this problem.
-    setTimeout(()=>onChange(change), 500);
+    setTimeout(() => onChange(change), 500);
   };
 
   insertInlineAttachment = file => {
@@ -182,15 +182,29 @@ export default class ComposerEditor extends React.Component {
     }
 
     // Reinstated because the bug is causing more trouble than it's worth.
-    const html = event.clipboardData.getData('text/html');
+    let html = event.clipboardData.getData('text/html');
     if (html) {
-      const value = convertFromHTML(html);
+      const newHtml = this._removeAllDarkModeStyles(html);
+      let value = null;
+      try {
+        value = convertFromHTML(newHtml);
+      } catch (err) {
+        console.error('Error: convertFromHTML', err);
+        value = convertFromHTML(html);
+      }
       if (value && value.document) {
         change.insertFragment(value.document);
         return true;
       }
     }
   };
+
+  _removeAllDarkModeStyles(html) {
+    if (!html) {
+      return '';
+    }
+    return html.replace(/(background-color|color):.*?!important;/g, '');
+  }
 
   openContextMenu = ({ word, sel, hasSelectedText }) => {
     AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText, {
@@ -229,7 +243,7 @@ export default class ComposerEditor extends React.Component {
         className={`RichEditor-root ${className || ''}`}
         localHandlers={this._pluginKeyHandlers}
       >
-        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} readOnly={this.props.readOnly} isCrowded={this.props.isCrowded}/>
+        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} readOnly={this.props.readOnly} isCrowded={this.props.isCrowded} />
         <div
           className="RichEditor-content"
           onClick={this.onFocusIfBlurred}
@@ -238,7 +252,7 @@ export default class ComposerEditor extends React.Component {
           {plugins
             .filter(p => p.topLevelComponent)
             .map((p, idx) => (
-              <p.topLevelComponent key={idx} value={value} onChange={this.onChange}/>
+              <p.topLevelComponent key={idx} value={value} onChange={this.onChange} />
             ))}
           <Editor
             value={value}
@@ -255,7 +269,7 @@ export default class ComposerEditor extends React.Component {
           />
           {plugins
             .reduce((arr, p) => (p.topLevelComponents ? arr.concat(p.topLevelComponents) : arr), [])
-            .map((Component, idx) => <Component key={idx}/>)}
+            .map((Component, idx) => <Component key={idx} />)}
         </div>
       </KeyCommandsRegion>
     );

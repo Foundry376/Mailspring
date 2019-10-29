@@ -163,14 +163,25 @@ module.exports = class ApplicationMenu {
       work: workShortcut,
     };
     const windows = global.application.windowManager.getOpenWindows();
-    const windowsItems = windows.map(w => ({
-      label: w.loadSettings().title || 'Window',
-      accelerator: accelerators[w.windowType],
-      click() {
-        w.show();
-        w.focus();
-      },
-    }));
+    const windowsItems = windows.map(w => {
+      const settings = w.loadSettings();
+      const MAX_LENGTH = 50;
+      let title = settings.title || 'Window';
+      if (settings.windowType === 'composer') {
+        title = 'Composer';
+      }
+      else if (title.length > MAX_LENGTH) {
+        title = title.substr(0, MAX_LENGTH) + '...';
+      }
+      return {
+        label: title,
+        accelerator: accelerators[w.windowType],
+        click() {
+          w.show();
+          w.focus();
+        },
+      }
+    });
     return windowMenu.submenu.splice(idx, 0, { type: 'separator' }, ...windowsItems);
   }
 

@@ -13,7 +13,7 @@ import DatabaseStore from './stores/database-store';
 import OnlineStatusStore from './stores/online-status-store';
 import DatabaseChangeRecord from './stores/database-change-record';
 import DatabaseObjectRegistry from '../registries/database-object-registry';
-import MailsyncProcess from '../mailsync-process';
+import MailsyncProcess, { mailSyncModes } from '../mailsync-process';
 import KeyManager from '../key-manager';
 import Actions from './actions';
 import Utils from './models/utils';
@@ -132,6 +132,7 @@ export default class MailsyncBridge {
 
     this._crashTracker = new CrashTracker();
     this._clients = {};
+    this._sift = null;
     this._clientsStartTime = {};
     this._fetchBodiesCacheTTL = 30000;
     this._fetchAttachmentCacheTTL = 60000;
@@ -310,11 +311,17 @@ export default class MailsyncBridge {
     }
   }
 
-  async sendMessageToAccount(accountId, json) {
-    if (!AccountStore.accountForId(accountId)) {
-      return;
+  async sendMessageToAccount(accountId, json, mailSyncMode = mailSyncModes.SYNC) {
+    let client;
+    if (mailSyncMode !== mailSyncModes.SIFT) {
+      client = this._clients[accountId];
+      if (!AccountStore.accountForId(accountId)) {
+        return;
+      }
+    } else {
+      client = this._sift;
     }
-    if (!this._clients[accountId]) {
+    if (!client && mailSyncMode !== mailSyncModes.SIFT) {
       const account = AccountStore.accountForId(accountId) || {};
       const emailAddress = account.emailAddress;
       if (emailAddress) {
@@ -336,16 +343,27 @@ export default class MailsyncBridge {
           message: `In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.`,
         });
       }
+    } else if (!client && mailSyncMode === mailSyncModes.SIFT) {
+      await this._launchSift({ force: true });
+      client = this._sift;
+      if (client && !client.isSyncReadyToReceiveMessage()) {
+        console.log(`sift is not ready, message not send to native yet.`);
+        client.appendToSendQueue(json);
+        return;
+      } else if (client) {
+        client.sendMessage(json);
+      }
+      return;
     }
-    if (!this._clients[accountId].isSyncReadyToReceiveMessage()) {
+    if (!client.isSyncReadyToReceiveMessage()) {
       const { emailAddress } = AccountStore.accountForId(accountId) || {};
       console.log(
         `sync is not ready, initial message not send to native yet. Message for account ${emailAddress} not send`
       );
-      this._clients[accountId].appendToSendQueue(json);
+      client.appendToSendQueue(json);
       return;
     }
-    this._clients[accountId].sendMessage(json);
+    client.sendMessage(json);
   }
 
   async resetCacheForAccount(account, { silent } = {}) {
@@ -430,6 +448,55 @@ export default class MailsyncBridge {
       console.warn(`Verbose mailsync logging is enabled until ${new Date(verboseUntil)}`);
     }
     return { configDirPath, resourcePath, verbose };
+  }
+
+  startSift(reason = 'Unknown') {
+    //Returns a promise
+    return this._launchSift({ force: true, reason });
+  }
+
+  sift() {
+    return this._sift;
+  }
+  killSift(reason = 'Unknown'){
+    if (this._sift) {
+      this._sift.kill();
+      AppEnv.debugLog(`sift killed, triggered by ${reason}`);
+    } else {
+      AppEnv.debugLog(`sift not killed, triggered by ${reason},`);
+    }
+  }
+
+  async _launchSift({ force = false, reason = 'Unknown' } = {}) {
+    AppEnv.debugLog(`launching sift, triggered by ${reason}, is forced: ${force}`);
+    if (this._sift) {
+      if (force) {
+        this._sift.kill();
+      } else {
+        return;
+      }
+    }
+    const client = new MailsyncProcess(this._getClientConfiguration());
+    this._sift = client;
+    client.identity = IdentityStore.identity();
+    const allAccountsJSON = [];
+    for (const acct of AccountStore.accounts()) {
+      const fullAccountJSON = (await KeyManager.insertAccountSecrets(acct)).toJSON();
+      allAccountsJSON.push(fullAccountJSON);
+    }
+    client.accounts = allAccountsJSON;
+    client.sift();
+    client.on('deltas', this._onIncomingMessages);
+    client.on('close', ({ code, error, signal }) => {
+      if (this._sift !== client) {
+        return;
+      }
+      this._sift = null;
+      if (signal === 'SIGTERM') {
+        return;
+      }
+      this._launchSift({ force: true, reason: 'sift died' });
+    });
   }
 
   async _launchClient(account, { force } = {}) {
@@ -521,7 +588,7 @@ export default class MailsyncBridge {
         'Tasks must have an ID prior to being queued. Check that your Task constructor is calling `super`'
       );
     }
-    if (!task.accountId) {
+    if (!task.accountId && task.mailsyncMode !== mailSyncModes.SIFT) {
       try {
         AppEnv.reportError(new Error(`Task ${task.constructor.name} have no accountId`), {
           errorData: {
@@ -560,7 +627,11 @@ export default class MailsyncBridge {
       .join('\n');
 
     AppEnv.trackingTask(task);
-    this.sendMessageToAccount(task.accountId, { type: 'queue-task', task: task });
+    this.sendMessageToAccount(
+      task.accountId,
+      { type: 'queue-task', task: task },
+      task.mailsyncMode
+    );
   }
 
   _onQueueTasks(tasks) {
@@ -580,7 +651,11 @@ export default class MailsyncBridge {
       task = TaskQueue.queue().find(t => t.id === taskOrId);
     }
     if (task) {
-      this.sendMessageToAccount(task.accountId, { type: 'cancel-task', taskId: task.id });
+      this.sendMessageToAccount(
+        task.accountId,
+        { type: 'cancel-task', taskId: task.id },
+        task.mailsyncMode
+      );
     }
   }
 
@@ -1030,6 +1105,7 @@ export default class MailsyncBridge {
       AppEnv.debugLog(`pid@${id} mailsync-bridge _onReadyToUnload: page refresh`);
     }
     this._clients = {};
+    this.killSift('onBeforeUnload');
   };
 
   _onOnlineStatusChanged = ({ onlineDidChange, wakingFromSleep }) => {

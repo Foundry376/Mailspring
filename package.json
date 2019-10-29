@@ -9,21 +9,21 @@
     "url": "git+https://github.com/agent8/Mailspring.git"
   },
   "engines": {
-    "node": "10.12.x",
+    "node": "12.4.x",
     "npm": "6.4.x"
   },
   "devDependencies": {
     "babel-cli": "6.x.x",
     "babel-core": "6.x.x",
     "babel-eslint": "^7.2.3",
-    "babel-preset-electron": "github:ruoxijiang/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b",
+    "babel-preset-electron": "^1.4.15",
     "babel-preset-react": "6.x.x",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "^3.1.13",
+    "electron": "^6.1.0",
     "electron-installer-dmg": "^3.0.0",
     "electron-packager": "^14.0.6",
-    "electron-rebuild": "^1.8.2",
+    "electron-rebuild": "^1.8.6",
     "electron-winstaller": "2.x.x",
     "eslint": "^4.7.2",
     "eslint-config-prettier": "^2.9.0",
@@ -62,7 +62,7 @@
   },
   "scripts": {
     "copyassets": "node scripts/copyassets.js",
-    "postinstall": "node scripts/postinstall.js",
+    "postinstall-to-be-delete": "node scripts/postinstall.js",
     "start": "node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",
     "test": "node_modules/.bin/electron ./app --enable-logging --test",
@@ -78,11 +78,15 @@
     "appdmg": "^0.5.2",
     "aws-sdk": "^2.336.0",
     "electron-platform": "^1.2.0",
+    "fs-xattr": "^0.3.0",
     "mkdirp": "^0.5.1",
+    "node-gyp": "^6.0.0",
     "plist": "^3.0.1",
     "react-bootstrap": "^0.32.4"
   },
   "resolutions": {
-    "**/nan": "2.11.1"
+    "**/nan": "2.14.0",
+    "**/fs-xattr": "0.3.0",
+    "**/node-gyp": "6.0.0"
   }
 }

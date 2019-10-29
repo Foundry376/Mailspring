@@ -37,6 +37,9 @@ function renderMark(props) {
     return (
       <span
         onMouseDown={event => {
+          // TODO we can make a popout menu, that user can select a correct choice
+          // const corrections = AppEnv.spellchecker.getCorrectionsForMisspelling(props.text);
+
           // handle only ctrl click or right click (button = 2)
           if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
             return;
@@ -59,7 +62,7 @@ function renderMark(props) {
         style={{
           backgroundImage: 'linear-gradient(to left, red 40%, rgba(255, 255, 255, 0) 0%)',
           backgroundPosition: 'bottom',
-          backgroundSize: '5px 1px',
+          backgroundSize: '5px 1.3px',
           backgroundRepeat: 'repeat-x',
         }}
       >
@@ -235,16 +238,25 @@ function onChange(change, editor) {
   if (editor.state.isComposing) {
     return;
   }
-  onSpellcheckFocusedNode(change);
 
   timerStart = now;
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => onSpellcheckFullDocument(editor), 1000);
 }
+function onKeyUp(event, change) {
+  if (!['Space', ' ', 'Tab'].includes(event.key)) {
+    return;
+  }
+  // DC-1046 We moved from onChange because for some reason, this is causing direction key to not work when
+  // attachment is part of draft.
+  // We use onKeyUp because using onKeyDown will set last word as focused, which our spellchecker will ignore
+  onSpellcheckFocusedNode(change);
+}
 
 export default [
   {
     onChange,
+    onKeyUp,
     renderMark,
     rules: [],
   },

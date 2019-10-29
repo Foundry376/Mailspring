@@ -111,8 +111,11 @@ class OnboardingStore extends MailspringStore {
 
   _onIdentityJSONReceived = async json => {
     const isFirstAccount = AccountStore.accounts().length === 0;
-
-    await IdentityStore.saveIdentity(json);
+    try {
+      await IdentityStore.saveIdentity(json);
+    } catch (err) {
+      console.error('Error: IdentityStore.saveIdentity failed.', err);
+    }
 
     setTimeout(() => {
       if (isFirstAccount) {

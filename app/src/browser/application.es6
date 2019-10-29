@@ -34,11 +34,6 @@ let clipboard = null;
 //
 export default class Application extends EventEmitter {
   async start(options) {
-    // subscribe event of dark mode change
-    systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-      // console.log(`***dark mode: ${systemPreferences.isDarkMode()}`);
-    });
-
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
     //BrowserWindow.addDevToolsExtension('~/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/3.4.2_0');
     //BrowserWindow.addDevToolsExtension('/Users/xingmingcao/Library/Application Support/Google/Chrome/Default/Extensions/lmhkpmbekcpmknklioeibfkpmmfibljd/2.15.5_0');
@@ -49,6 +44,7 @@ export default class Application extends EventEmitter {
     this.devMode = devMode;
     this.specMode = specMode;
     this.safeMode = safeMode;
+    this.nativeVersion = '';
 
     // if (devMode) {
     //   require('electron-reload')(resourcePath);
@@ -63,7 +59,7 @@ export default class Application extends EventEmitter {
 
     try {
       const mailsync = new MailsyncProcess(options);
-      await mailsync.migrate();
+      this.nativeVersion = await mailsync.migrate();
     } catch (err) {
       let message = null;
       let buttons = ['Quit'];
@@ -125,6 +121,7 @@ export default class Application extends EventEmitter {
 
     this.setupJavaScriptArguments();
     this.setupAutoPlayPolicy();
+    this.setupCrosssitePolicy();
     this.handleEvents();
     this.handleLaunchOptions(options);
 
@@ -165,6 +162,20 @@ export default class Application extends EventEmitter {
     }
     this.clearOldLogs();
     this.initSupportInfo();
+
+    // subscribe event of dark mode change
+    if (process.platform === 'darwin') {
+      try {
+        systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+          const mainWindow = this.getMainWindow();
+          if (mainWindow) {
+            mainWindow.webContents.send('system-theme-changed', systemPreferences.isDarkMode());
+          }
+        });
+      } catch (err) {
+        console.error('Error: systemPreferences.subscribeNotification', err);
+      }
+    }
   }
   getOpenWindows() {
     return this.windowManager.getOpenWindows();
@@ -317,7 +328,7 @@ export default class Application extends EventEmitter {
     try {
       getOSInfo = getOSInfo || require('../system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
-      extra.chatEnabled = this.config.get('chatEnable');
+      extra.chatEnabled = this.config.get('core.workspace.enableChat');
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       if (!!extra.errorData) {
         extra.errorData = JSON.stringify(extra.errorData);
@@ -436,16 +447,16 @@ export default class Application extends EventEmitter {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function() {
+      output.on('close', function () {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function() {
+      output.on('end', function () {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function(err) {
+      archive.on('warning', function (err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -454,7 +465,7 @@ export default class Application extends EventEmitter {
           reject(err);
         }
       });
-      archive.on('error', function(err) {
+      archive.on('error', function (err) {
         output.close();
         console.log(err);
         reject(err);
@@ -467,20 +478,23 @@ export default class Application extends EventEmitter {
   }
 
   initSupportInfo() {
-    if (!getDeviceHash) {
-      getDeviceHash = require('./system-utils').getDeviceHash;
+    if (this.config) {
+      this.config.set('core.support.native', this.nativeVersion);
     }
-    const deviceHash = this.config.get('core.support.id');
-    if (!deviceHash || deviceHash === 'Unknown') {
-      getDeviceHash()
-        .then(id => {
-          this.config.set('core.support.id', id);
-        })
-        .catch(e => {
-          AppEnv.reportError(new Error('failed to init support id'));
-          this.config.set('core.support.id', 'Unknown');
-        });
-    }
+    // if (!getDeviceHash) {
+    //   getDeviceHash = require('./system-utils').getDeviceHash;
+    // }
+    // const deviceHash = this.config.get('core.support.id');
+    // if (!deviceHash || deviceHash === 'Unknown') {
+    //   getDeviceHash()
+    //     .then(id => {
+    //       this.config.set('core.support.id', id);
+    //     })
+    //     .catch(e => {
+    //       AppEnv.reportError(new Error('failed to init support id'));
+    //       this.config.set('core.support.id', 'Unknown');
+    //     });
+    // }
   }
 
   autoStartRestore() {
@@ -610,6 +624,10 @@ export default class Application extends EventEmitter {
 
   setupAutoPlayPolicy() {
     app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+  }
+
+  setupCrosssitePolicy() {
+    app.commandLine.appendSwitch('disable-site-isolation-trials')
   }
 
   openWindowsForTokenState() {

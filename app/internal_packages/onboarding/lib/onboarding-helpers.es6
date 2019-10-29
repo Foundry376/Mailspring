@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 
 import crypto from 'crypto';
-import { Account, IdentityStore, MailsyncProcess } from 'mailspring-exports';
+import { Account, IdentityStore, MailsyncProcess, Actions } from 'mailspring-exports';
 import MailspringProviderSettings from './mailspring-provider-settings';
 import MailcoreProviderSettings from './mailcore-provider-settings';
 import dns from 'dns';
@@ -618,6 +618,7 @@ export async function finalizeAndValidateAccount(account) {
     newAccount.mailsync = account.mailsync;
     delete newAccount.mailsync.accounts;
   }
+  Actions.siftUpdateAccount(newAccount);
   // preload mail data
   proc.sync();
   return new Account(newAccount);

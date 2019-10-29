@@ -59,7 +59,7 @@ export default class InfoMember extends Component {
   render = () => {
     const { conversation, member } = this.props;
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
-    let membername = name(jid) || member.name || jid;
+    let membername = name(jid) || member.name || member.email || jid;
     if (!membername && jid.match(/@app/)) {
       const app = getAppByJid(jid);
       if (app) {

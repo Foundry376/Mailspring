@@ -441,14 +441,15 @@ export default [
   EditListPlugin,
 
   // "1. " and "- " start new lists
-  AutoReplace({
-    onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
-    trigger: ' ',
-    before: /^([-]{1})$/,
-    transform: (transform, e, matches) => {
-      EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ul_list.type);
-    },
-  }),
+  // AutoReplace({
+  //   onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
+  //   trigger: ' ',
+  //   before: /^([-]{1})$/,
+  //   transform: (transform, e, matches) => {
+  //     EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ul_list.type);
+  //   },
+  // }),
+  // "1. " start new lists
   AutoReplace({
     onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',

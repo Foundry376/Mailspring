@@ -120,10 +120,10 @@ npm('install', { cwd: './app', env: 'electron' }).then(() => {
 
       // if the user hasn't cloned the private mailsync module, download
       // the binary for their operating system that was shipped to S3.
-      if (!fs.existsSync('./mailsync/build.sh')) {
-        console.log(`\n-- Downloading the last released version of EdisonMail mailsync --`);
-        downloadMailsync();
-      }
+      // if (!fs.existsSync('./mailsync/build.sh')) {
+      //   console.log(`\n-- Downloading the last released version of EdisonMail mailsync --`);
+      //   downloadMailsync();
+      // }
     });
   });
 });

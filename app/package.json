@@ -1,7 +1,7 @@
 {
   "name": "edisonmail",
   "productName": "EdisonMail",
-  "version": "0.3.162",
+  "version": "0.3.174",
   "commitHash": "COMMIT_INSERTED_DURING_PACKAGING",
   "description": "The best email app for people and teams at work",
   "license": "GPL-3.0",
@@ -16,7 +16,7 @@
     "async": "^2.5.0",
     "aws-sdk": "latest",
     "babel-core": "^6.26.3",
-    "babel-preset-electron": "github:ruoxijiang/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b",
+    "babel-preset-electron": "^1.4.15",
     "babel-preset-react": "^6.24.1",
     "babel-regenerator-runtime": "^6.5.0",
     "babel-runtime": "^6.26.0",
@@ -34,7 +34,7 @@
     "electron-localstorage": "^1.0.5",
     "electron-log": "^3.0.6",
     "electron-platform": "^1.2.0",
-    "electron-spellchecker": "^1.2.0",
+    "electron-spellchecker": "^2.2.0",
     "emoji-data": "^0.2.0",
     "enzyme": "3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
@@ -75,6 +75,7 @@
     "moment-timezone": "0.5.4",
     "mousetrap": "^1.5.3",
     "node-emoji": "^1.2.1",
+    "node-gyp": "^6.0.0",
     "node-rsa": "^1.0.1",
     "node-thumbnail": "^0.15.0",
     "optimist": "0.4.0",
@@ -103,7 +104,6 @@
     "reflux": "^6.4.1",
     "request": "^2.53.0",
     "rimraf": "2.5.2",
-    "runas": "git+https://git@github.com/ruoxijiang/node-runas.git#ca4f0714",
     "rx-lite": "4.0.8",
     "rxjs": "^6.5.1",
     "rxjs-compat": "^6.5.1",
@@ -127,7 +127,7 @@
     "slate-prop-types": "0.4.17",
     "slate-react": "0.11.0",
     "slate-soft-break": "0.6.0",
-    "source-map-support": "^0.3.2",
+    "source-map-support": "^0.5.13",
     "swiper": "^4.5.0",
     "temp": "^0.8",
     "tld": "^0.0.2",
@@ -145,9 +145,15 @@
     "node-mac-notifier": "^1.1.0"
   },
   "devDependencies": {
-    "electron-rebuild": "^1.8.6"
+    "electron-rebuild": "^1.8.6",
+    "runas": "git+https://git@github.com/ruoxijiang/node-runas.git#ca4f0714"
   },
   "resolutions": {
-    "**/nan": "2.11.1"
+    "**/nan": "2.14.0",
+    "**/fs-xattr": "0.3.0",
+    "**/fs-plus": "3.1.1",
+    "**/node-gyp": "6.0.0",
+    "**/void-elements": "3.1.0",
+    "**/mime-db": "1.42.0"
   }
 }

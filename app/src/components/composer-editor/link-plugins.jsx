@@ -42,6 +42,7 @@ function _parseLinks(links, originalText, change){
         .insertText(link)
         .removeMark(mark);
       _insertMiddleText(middleText, change);
+      console.log('parse link remove insert');
       leftOverText = leftOverText.slice(nextLinkIndex);
     } else {
       if (link.length < leftOverText.length) {
@@ -52,12 +53,14 @@ function _parseLinks(links, originalText, change){
           .insertText(link)
           .removeMark(mark);
         _insertMiddleText(leftOverText, change);
+        console.log('parse link remove insert');
       } else {
         const mark = Mark.create({ type: LINK_TYPE, data: { href: link } });
         change
           .addMark(mark)
           .insertText(link)
           .removeMark(mark);
+        console.log('parse link remove');
       }
     }
   }
@@ -77,10 +80,18 @@ function onPaste(event, change, editor) {
 function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
   return function(transform, e, matches, editor) {
     if (transform.value.activeMarks.find(m => m.type === LINK_TYPE)) {
-      return transform.insertText(TriggerKeyValues[e.key]);
+      if (['Return', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+        return transform.splitBlock();
+      } else {
+        return transform.insertText(TriggerKeyValues[e.key]);
+      }
     }
     const link = matches.before[matches.before.length - 1];
-    let originalText = transform.value.texts.get(0).text;
+    let originalText = '';
+    for (let i = 0; i < transform.value.texts.size; i++) {
+      originalText += transform.value.texts.get(i).text;
+    }
     if (transform.value.endOffset) {
       originalText = originalText.slice(0, transform.value.endOffset);
     }
@@ -93,8 +104,15 @@ function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
         .addMark(mark)
         .insertText(link)
         .removeMark(mark);
+      console.log('replaced removed');
     }
-    return transform.insertText(TriggerKeyValues[e.key]);
+    console.log(`bulidAutoReplaceHandler ${originalText} ${JSON.stringify(matches)}`);
+    if(['Return', 'Enter'].includes(e.key)){
+      e.preventDefault();
+      return transform.splitBlock();
+    }else{
+      return transform.insertText(TriggerKeyValues[e.key]);
+    }
   };
 }
 
@@ -169,9 +187,26 @@ export default [
       }
       const mark = getMarkOfType(change.value, LINK_TYPE);
       if (mark) {
-        change.removeMark(mark);
-      } else{
-
+        const oldEndOffset = change.value.endOffset;
+        change.extendToEndOfInline();
+        const newEndOffset = change.value.endOffset;
+        const isAtEndLink = newEndOffset === oldEndOffset;
+        change.moveEndOffsetTo(oldEndOffset);
+        if (['Space', ' '].includes(event.key)) {
+          if(isAtEndLink){
+            change.removeMark(mark);
+          }
+          return;
+        } else if (!isAtEndLink) {
+          change.removeMark(mark);
+        } else {
+          if (['Enter', 'Return'].includes(event.key)) {
+            change.splitBlock();
+            change.removeMark(mark);
+            // const block = Block.create({ type: BLOCK_CONFIG.div.type, node: Text.create({ text: '' }) });
+            // change.insertBlock(block);
+          }
+        }
       }
     },
     renderMark,
@@ -199,14 +234,14 @@ export default [
       },
     },
   },
-  AutoReplace({
-    trigger: e => !!TriggerKeyValues[e.key],
-    before: RegExpUtils.emailRegex({ requireStartOrWhitespace: true, matchTailOfString: true }),
-    transform: buildAutoReplaceHandler({ hrefPrefix: 'mailto:' }),
-  }),
-  AutoReplace({
-    trigger: e => !!TriggerKeyValues[e.key],
-    before: RegExpUtils.urlRegex({ requireStartOrWhitespace: true, matchTailOfString: false }),
-    transform: buildAutoReplaceHandler(),
-  }),
+  // AutoReplace({
+  //   trigger: e => !!TriggerKeyValues[e.key],
+  //   before: RegExpUtils.emailRegex({ requireStartOrWhitespace: true, matchTailOfString: true }),
+  //   transform: buildAutoReplaceHandler({ hrefPrefix: 'mailto:' }),
+  // }),
+  // AutoReplace({
+  //   trigger: e => !!TriggerKeyValues[e.key],
+  //   before: RegExpUtils.urlRegex({ requireStartOrWhitespace: true, matchTailOfString: false }),
+  //   transform: buildAutoReplaceHandler(),
+  // }),
 ];

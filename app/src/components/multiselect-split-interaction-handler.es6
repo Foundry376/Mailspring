@@ -42,10 +42,13 @@ module.exports = class MultiselectSplitInteractionHandler {
     const selected = selectedIds.includes(item.id);
     if (item.id === this.props.focusedId && !selected) {
       this.props.dataSource.selection.add(item);
+      this.onFocusItem(item)
     } else {
       this.props.dataSource.selection.toggle(item);
       if (selected) {
         this.props.dataSource.selection.remove([item]);
+      } else {
+        this.onFocusItem(item);
       }
     }
     // selectedIds = this.props.dataSource.selection.ids();
@@ -56,7 +59,7 @@ module.exports = class MultiselectSplitInteractionHandler {
     // ) {
     //   this.onFocusItem(null);
     // }
-    this._ifMoreThanOneSelectionUnfocus();
+    // this._ifMoreThanOneSelectionUnfocus();
   };
 
   onShiftClick = item => {
