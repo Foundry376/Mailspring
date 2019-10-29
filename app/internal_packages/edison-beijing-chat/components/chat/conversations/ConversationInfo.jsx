@@ -10,7 +10,7 @@ import { NEW_CONVERSATION } from '../../../utils/constant';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
 import { name } from '../../../utils/name';
-import { alert } from '../../../utils/electron';
+import { alert } from '../../../utils/electron-utils';
 
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
