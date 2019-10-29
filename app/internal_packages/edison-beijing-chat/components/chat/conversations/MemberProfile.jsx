@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
-import { ContactStore, MemberProfileStore, BlockStore } from 'chat-exports';
+import { ContactStore, MemberProfileStore, BlockStore, MessageStore, LocalStorage } from 'chat-exports';
 import { uploadContacts } from '../../../utils/restjs';
 import { remote } from 'electron';
 import { checkToken, refreshChatAccountTokens, queryProfile } from '../../../utils/restjs';
