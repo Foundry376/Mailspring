@@ -22,7 +22,7 @@
     "devtron": "^1.4.0",
     "electron": "^6.1.0",
     "electron-installer-dmg": "^3.0.0",
-    "electron-packager": "^14.0.6",
+    "electron-packager": "^14.1.0",
     "electron-rebuild": "^1.8.6",
     "electron-winstaller": "2.x.x",
     "eslint": "^4.7.2",
