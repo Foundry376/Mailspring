@@ -1078,9 +1078,9 @@ export default class AppEnvConstructor {
         ],
       })
       .then(({ canceled, filePaths }) => {
-        if(canceled){
+        if (canceled) {
           cb(null);
-        }else{
+        } else {
           cb(filePaths);
         }
       });
@@ -1149,7 +1149,7 @@ export default class AppEnvConstructor {
             height: 300,
           });
         }
-        return new Promise.resolve({ response, ...rest });
+        return Promise.resolve({ response, ...rest });
       });
   }
 

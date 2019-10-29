@@ -79,7 +79,7 @@ class TemplateStore extends MailspringStore {
           title: 'Cannot scan templates directory',
           message: `EdisonMail was unable to read the contents of your templates directory (${
             this._templatesDir
-          }). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
+            }). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
         });
         return;
       }
@@ -144,14 +144,14 @@ class TemplateStore extends MailspringStore {
 
   _displayDialog(title, message, buttons) {
     return (
-      remote.dialog.showMessageBoxSync({
+      remote.dialog.showMessageBox({
         title: title,
         message: title,
         detail: message,
         buttons: buttons,
         type: 'info',
-      }).then(({response})=>{
-        return new Promise.resolve(response);
+      }).then(({ response }) => {
+        return Promise.resolve(response === 0);
       })
     );
   }
@@ -261,7 +261,7 @@ class TemplateStore extends MailspringStore {
         proceed = await this._displayDialog(
           'Replace draft contents?',
           'It looks like your draft already has some content. Loading this template will ' +
-            'overwrite all draft contents.',
+          'overwrite all draft contents.',
           ['Replace contents', 'Cancel']
         );
       }
