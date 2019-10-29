@@ -7,7 +7,7 @@ import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
 import { MESSAGE_STATUS_TRANSFER_FAILED } from '../model/Message';
 import { ProgressBarStore, MessageStore, ConversationStore } from 'chat-exports';
-import { alert } from './electron';
+import { alert } from './electron-utils';
 
 var thumb = require('node-thumbnail').thumb;
 
