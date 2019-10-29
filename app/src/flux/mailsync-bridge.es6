@@ -190,9 +190,10 @@ export default class MailsyncBridge {
     AppEnv.showErrorDialog({
       title: `Verbose logging is now ${phrase}`,
       message,
-    });
-    remote.app.relaunch();
-    remote.app.quit();
+    }).then(()=>{
+      remote.app.relaunch();
+      remote.app.quit();
+    })
   }
 
   clients() {

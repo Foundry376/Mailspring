@@ -263,20 +263,22 @@ export default class Messages extends Component {
   }, 20);
 
   download = msgBody => {
-    event.stopPropagation();
-    event.preventDefault();
     const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-    let pathForSave = dialog.showSaveDialog({ title: `download file`, defaultPath: fileName });
-    if (!pathForSave || typeof pathForSave !== 'string') {
-      return;
-    }
-    const loadConfig = {
-      msgBody,
-      filepath: pathForSave,
-      type: 'download',
-    };
-    const { queueLoadMessage } = this.props;
-    queueLoadMessage(loadConfig);
+    dialog
+      .showSaveDialog({ title: `download file`, defaultPath: fileName })
+      .then(({ filePath } = {}) => {
+        const pathForSave = filePath;
+        if (!pathForSave || typeof pathForSave !== 'string') {
+          return;
+        }
+        const loadConfig = {
+          msgBody,
+          filepath: pathForSave,
+          type: 'download',
+        };
+        const { queueLoadMessage } = this.props;
+        queueLoadMessage(loadConfig);
+      });
   };
 
   render() {

@@ -179,15 +179,17 @@ class KeyManager {
     if (process.platform === 'linux') {
       more = 'Make sure you have `libsecret` installed and a keyring is present. ';
     }
-    remote.dialog.showMessageBox({
-      type: 'error',
-      buttons: ['Quit'],
-      message: `EdisonMail could not store your password securely. ${more} For more information, visit http://support.getmailspring.com/hc/en-us/articles/115001875571`,
-    });
-
-    // tell the app to exit and rethrow the error to ensure code relying
-    // on the passwords being saved never runs (saving identity for example)
-    remote.app.quit();
+    remote.dialog
+      .showMessageBox({
+        type: 'error',
+        buttons: ['Quit'],
+        message: `EdisonMail could not store your password securely. ${more} For more information, visit http://support.getmailspring.com/hc/en-us/articles/115001875571`,
+      })
+      .then(() => {
+        // tell the app to exit and rethrow the error to ensure code relying
+        // on the passwords being saved never runs (saving identity for example)
+        remote.app.quit();
+      });
     throw err;
   }
 }

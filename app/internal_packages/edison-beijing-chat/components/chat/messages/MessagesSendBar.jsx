@@ -23,7 +23,7 @@ import AtList from '../../common/AtList';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 import { MessageStore, ConversationStore, RoomStore, MessageSend } from 'chat-exports';
-import { alert } from '../../../utils/electron';
+import { alert } from '../../../utils/electron-utils';
 import {
   sendFileMessage,
   AT_BEGIN_CHAR,
@@ -448,7 +448,7 @@ export default class MessagesSendBar extends PureComponent {
     let files;
     try {
       files = getClipboardFiles();
-    } catch (e) {}
+    } catch (e) { }
     const text = getClipboardText();
 
     if (files && files.length) {

@@ -29,7 +29,7 @@ import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../model/Message';
 import { sendFileMessage } from '../../../utils/message';
 import { getToken } from '../../../utils/appmgt';
 import { LocalStorage } from 'chat-exports';
-import { alert } from '../../../utils/electron';
+import { alert } from '../../../utils/electron-utils';
 import { log } from '../../../utils/log';
 
 const { exec } = require('child_process');

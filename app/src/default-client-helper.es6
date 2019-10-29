@@ -41,13 +41,12 @@ class Windows {
         buttons: ['Learn More'],
         message: 'Visit Windows Settings to change your default mail client',
         detail: "You'll find Mailspring, along with other options, listed in Default Apps > Mail.",
-      },
-      () => {
+      })
+      .then(() => {
         shell.openExternal(
           'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
         );
-      }
-    );
+      });
   }
 
   registerForURLScheme(scheme, callback = () => { }) {
@@ -60,7 +59,7 @@ class Windows {
       },
       (err, didMakeDefault) => {
         if (err) {
-          remote.dialog.showMessageBox(null, {
+          remote.dialog.showMessageBoxSync(null, {
             type: 'error',
             buttons: ['OK'],
             message: 'Sorry, an error occurred.',
@@ -68,7 +67,7 @@ class Windows {
           });
         }
         if (!didMakeDefault) {
-          remote.dialog.showMessageBox(
+          remote.dialog.showMessageBoxSync(
             null,
             {
               type: 'info',

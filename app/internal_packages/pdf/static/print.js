@@ -41,23 +41,27 @@
     const remote = require('electron').remote;
     const fs = require('fs');
     const webContent = remote.getCurrentWebContents();
-    remote.dialog.showSaveDialog(remote.getCurrentWindow(), (filename) => {
-      console.log("filename is: " + filename);
-      webContent.printToPDF({ pageSize: 'A4' }, (error, data) => {
-        if (error) {
-          AppEnv.reportError(error);
-          setTimeout(window.close, 500);
-        } else {
-          fs.writeFile(filename, data, (err) => {
-            if (err) {
-              AppEnv.reportError(error);
-            }
-            console.log('Write PDF successfully.')
-            setTimeout(window.close, 500);
-          })
+    remote.dialog.showSaveDialog(remote.getCurrentWindow(), {})
+      .then(({ canceled, filePath }) => {
+        if (canceled) {
+          return;
         }
-      })
-    });
+        const filename = filePath;
+        webContent.printToPDF({ pageSize: 'A4' }, (error, data) => {
+          if (error) {
+            AppEnv.reportError(error);
+            setTimeout(window.close, 500);
+          } else {
+            fs.writeFile(filename, data, (err) => {
+              if (err) {
+                AppEnv.reportError(error);
+              }
+              console.log('Write PDF successfully.')
+              setTimeout(window.close, 500);
+            });
+          }
+        });
+      });
   }
 
   var messageNodes = document.querySelectorAll('.message-item-area>span');
