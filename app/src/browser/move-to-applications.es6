@@ -14,12 +14,12 @@ export default function moveToApplications() {
     title: 'Move to Applications?',
     message:
       'Thanks for downloading EdisonMail! Would you like to move it to your Applications folder?',
-  }).then(({response}) => {
+  }).then(({ response }) => {
     // move ourselves to the applications folder. This throws errors as necessary,
     // and quits / relaunches the app if successful
     if (response === 0) {
       try {
-        // app.moveToApplicationsFolder();
+        app.moveToApplicationsFolder();
       } catch (err) {
         dialog.showMessageBox({
           type: 'warning',

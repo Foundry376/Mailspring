@@ -59,33 +59,29 @@ class Windows {
       },
       (err, didMakeDefault) => {
         if (err) {
-          remote.dialog.showMessageBox(null, {
+          remote.dialog.showMessageBoxSync(null, {
             type: 'error',
             buttons: ['OK'],
             message: 'Sorry, an error occurred.',
             detail: err.message,
-          }).then(()=>{
-            if (!didMakeDefault) {
-              remote.dialog.showMessageBox(
-                null,
-                {
-                  type: 'info',
-                  buttons: ['Learn More'],
-                  defaultId: 1,
-                  message: 'Visit Windows Settings to finish making Mailspring your mail client',
-                  detail: "Click 'Learn More' to view instructions in our knowledge base.",
-                })
-                .then(() => {
-                  shell.openExternal(
-                    'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
-                  );
-                  callback(err, null);
-                });
-              return;
-            }
-            callback(err, null);
           });
-          return;
+        }
+        if (!didMakeDefault) {
+          remote.dialog.showMessageBoxSync(
+            null,
+            {
+              type: 'info',
+              buttons: ['Learn More'],
+              defaultId: 1,
+              message: 'Visit Windows Settings to finish making Mailspring your mail client',
+              detail: "Click 'Learn More' to view instructions in our knowledge base.",
+            },
+            () => {
+              shell.openExternal(
+                'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
+              );
+            }
+          );
         }
         callback(null, null);
       }
