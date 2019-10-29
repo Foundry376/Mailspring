@@ -56,12 +56,20 @@ class AccountStore extends MailspringStore {
 
       if (AppEnv.isMainWindow()) {
         ipcRenderer.on('after-add-account', async (event, account) => {
+          AppEnv.config.set('chatNeedAddIntialConversations', true)
           // refresh thread list
           FocusedPerspectiveStore.trigger();
           // add chat account
           if (AppEnv.config.get(`core.workspace.enableChat`)) {
+            AppEnv.config.set('chatNeedAddIntialConversations', true)
+            let chatConversationsInitialized = AppEnv.config.get('chatConversationsInitialized')
+            chatConversationsInitialized = chatConversationsInitialized.replace(account.emailAddress,  '')
+            AppEnv.config.set('chatConversationsInitialized', chatConversationsInitialized)
+            // wait nativesync to pull emails
+            await delay(30000);
             await registerLoginEmailAccountForChat(account);
             await AppStore.refreshAppsEmailContacts();
+            await ConversationStore.createInitialPrivateConversationsFromAllContactsOfEmail(account.emailAddress);
             await MessageStore.saveMessagesAndRefresh([]);
           }
         });
@@ -340,7 +348,6 @@ class AccountStore extends MailspringStore {
       let chatAccounts = AppEnv.config.get('chatAccounts') || {};
       let chatAccount = chatAccounts[account.emailAddress];
       if (chatAccount) {
-        //If there is an chat account
         delete chatAccounts[account.emailAddress];
         AppEnv.config.set('chatAccounts', chatAccounts);
         let jid = chatAccount.userId + '@im.edison.tech';
@@ -352,14 +359,14 @@ class AccountStore extends MailspringStore {
         ConversationStore.refreshConversations();
         // all valid contacts will be add back in AppStore.refreshAppsEmailContacts()
         await ContactModel.destroy({
-          where: { curJid: jid },
+          where: {curJid: jid},
           truncate: true,
           force: true
         });
+        ContactStore.contacts = []
         await ContactStore.refreshContacts();
         xmpp.removeXmpp(jid);
         removeMyApps(chatAccount.userId);
-        // await delay(300);
         // await AppStore.refreshAppsEmailContacts();
         AppEnv.config.set(`${chatAccount.userId}_message_ts`, null)
       }

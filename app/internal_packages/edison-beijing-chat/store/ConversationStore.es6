@@ -216,7 +216,6 @@ class ConversationStore extends MailspringStore {
   setTrayChatUnreadCount = _.debounce(count => AppEnv.setTrayChatUnreadCount(count), 500)
 
   saveConversations = async convs => {
-    console.log(' saveConversations: ', convs)
     for (const conv of convs) {
       const convInDb = await ConversationModel.findOne({
         where: {
@@ -290,16 +289,39 @@ class ConversationStore extends MailspringStore {
     await this.saveConversations([conversation])
     await this.setSelectedConversation(jid)
   }
-
   createInitialPrivateConversationsFromAllContacts = async () => {
-    if (this.conversations && this.conversations.length) {
+    const chatNeedAddIntialConversations = AppEnv.config.get('chatNeedAddIntialConversations')
+    if (!chatNeedAddIntialConversations) {
       return
     }
+    const chatAccounts = AppEnv.config.get('chatAccounts') || {}
+    for (const email in chatAccounts) {
+      await this.createInitialPrivateConversationsFromAllContactsOfEmail(email)
+    }
+  }
+
+  createInitialPrivateConversationsFromAllContactsOfEmail = async email => {
     let contacts = await ContactStore.getContacts()
-    contacts = contacts.filter(contact => !contact.jid.match(/@app/) && !contact.jid.match('^at^'))
+    const chatAccounts = AppEnv.config.get('chatAccounts') || {}
+    const chatAccount = chatAccounts[email]
+    let chatConversationsInitialized = AppEnv.config.get('chatConversationsInitialized') || ''
+    if (!chatAccount || chatConversationsInitialized.includes(email)) {
+      return
+    }
+    chatConversationsInitialized = email + ' ' + chatConversationsInitialized
+    const curjid = chatAccount.userId + '@im.edison.tech'
+    let conversations = this.conversations
+    conversations = conversations.filter(conv => conv.curJid === curjid)
+    contacts = contacts.filter(
+      contact => !contact.jid.match(/@app/) && !contact.jid.includes('^at^') && contact.curJid === curjid
+    )
+    if (conversations.length || !contacts.length) {
+      return
+    }
     for (const contact of contacts) {
       await this.createPrivateConversation(contact)
     }
+    AppEnv.config.set('chatConversationsInitialized', chatConversationsInitialized)
   }
 
   onChangeConversationName = async data => {
