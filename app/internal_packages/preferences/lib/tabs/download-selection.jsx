@@ -35,12 +35,12 @@ export default class DownloadSelection extends React.Component {
         if (userPath) {
           openDirOption['defaultPath'] = userPath + '/Downloads';
         }
-        AppEnv.showOpenDialog(openDirOption, newPaths => {
-          if (newPaths && newPaths.length > 0) {
-            this.props.config.set(this.props.keyPath, newPaths[0]);
-          }
-        });
       }
+      AppEnv.showOpenDialog(openDirOption, newPaths => {
+        if (newPaths && newPaths.length > 0) {
+          this.props.config.set(this.props.keyPath, newPaths[0]);
+        }
+      });
     }
   };
 
