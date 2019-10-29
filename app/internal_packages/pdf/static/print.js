@@ -42,26 +42,26 @@
     const fs = require('fs');
     const webContent = remote.getCurrentWebContents();
     remote.dialog.showSaveDialog(remote.getCurrentWindow(), {})
-      .then(({canceled, filePath}) => {
+      .then(({ canceled, filePath }) => {
         if (canceled) {
           return;
         }
         const filename = filePath;
-      webContent.printToPDF({ pageSize: 'A4' }, (error, data) => {
-        if (error) {
-          AppEnv.reportError(error);
-          setTimeout(window.close, 500);
-        } else {
-          fs.writeFile(filename, data, (err) => {
-            if (err) {
-              AppEnv.reportError(error);
-            }
-            console.log('Write PDF successfully.')
+        webContent.printToPDF({ pageSize: 'A4' }, (error, data) => {
+          if (error) {
+            AppEnv.reportError(error);
             setTimeout(window.close, 500);
-          });
-        }
+          } else {
+            fs.writeFile(filename, data, (err) => {
+              if (err) {
+                AppEnv.reportError(error);
+              }
+              console.log('Write PDF successfully.')
+              setTimeout(window.close, 500);
+            });
+          }
+        });
       });
-    });
   }
 
   var messageNodes = document.querySelectorAll('.message-item-area>span');
