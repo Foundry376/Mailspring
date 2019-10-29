@@ -4,7 +4,7 @@ import { buildTimeDescriptor } from '../../../utils/time';
 import { downloadFile } from '../../../utils/awss3';
 import { isJsonStr } from '../../../utils/stringUtils';
 import { RetinaImg } from 'mailspring-component-kit';
-import {MessageImagePopupStore} from 'chat-exports';
+import { MessageImagePopupStore } from 'chat-exports';
 const { dialog } = require('electron').remote;
 
 var http = require("http");
@@ -19,7 +19,7 @@ export default class MessageImagePopup extends Component {
       hidden: true
     }
   }
-  componentDidMount(){
+  componentDidMount() {
     this.getAllImages(this.props);
     this.unsubscribers = [];
     this.unsubscribers.push(MessageImagePopupStore.listen(this.onMessageImageChange));
@@ -36,7 +36,7 @@ export default class MessageImagePopup extends Component {
     const imgIndex = this.imgMsgs.indexOf(msg);
     this.setState({
       imgIndex,
-      hidden:false
+      hidden: false
     });
     const footer = document.querySelector('[name=Footer]');
     if (footer) {
@@ -80,7 +80,7 @@ export default class MessageImagePopup extends Component {
         }
         if (msgBody.path.match(/^file:\/\//)) {
           let imgpath = msgBody.path.replace('file://', '');
-          fs.copyFile(imgpath, path, () => {});
+          fs.copyFile(imgpath, path, () => { });
         } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
           // the file is on aws
           downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
@@ -91,14 +91,14 @@ export default class MessageImagePopup extends Component {
           } else {
             request = http;
           }
-          request.get(msgBody.mediaObjectId, function(res) {
+          request.get(msgBody.mediaObjectId, function (res) {
             var imgData = '';
             res.setEncoding('binary');
-            res.on('data', function(chunk) {
+            res.on('data', function (chunk) {
               imgData += chunk;
             });
-            res.on('end', function() {
-              fs.writeFile(path, imgData, 'binary', function(err) {
+            res.on('end', function () {
+              fs.writeFile(path, imgData, 'binary', function (err) {
                 if (err) {
                   console.log('down fail');
                 }
@@ -122,7 +122,7 @@ export default class MessageImagePopup extends Component {
       const { messages } = groupedMessage;
       for (const msg of messages) {
         let msgBody = msg.body
-        if(isJsonStr(msg.body)) {
+        if (isJsonStr(msg.body)) {
           msgBody = JSON.parse(msgBody);
         }
         if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER) {
