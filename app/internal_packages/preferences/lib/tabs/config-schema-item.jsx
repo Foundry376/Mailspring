@@ -103,7 +103,7 @@ class ConfigSchemaItem extends React.Component {
     if (this.props.configSchema.type === 'object') {
       return (
         <section className={`section-${this.props.keyName}`}>
-          <h6>{this.props.label || _str.humanize(this.props.keyName)}</h6>
+          <h6>{(this.props.label || this.props.keyName).toUpperCase()}</h6>
           {Object.entries(this.props.configSchema.properties)
             .filter(([key]) => {
               const disableSchemas = this.props.disableSchemas || [];

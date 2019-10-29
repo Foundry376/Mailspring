@@ -179,11 +179,11 @@ class PreferencesAppearance extends React.Component {
         </div>
 
         <div className="config-group">
-          <h6>Theme</h6>
+          <h6>THEME</h6>
           {this._renderThemeOptions()}
         </div>
         <div className="config-group">
-          <h6 htmlFor="change-scale">Scaling</h6>
+          <h6 htmlFor="change-scale">SCALING</h6>
           <AppearanceScaleSlider id="change-scale" config={this.props.config} />
         </div>
       </div>
