@@ -15,10 +15,7 @@ class FocusedPerspectiveStore extends MailspringStore {
 
     this.listenTo(CategoryStore, this._onCategoryStoreChanged);
     this.listenTo(Actions.focusMailboxPerspective, this._onFocusPerspective);
-    this.listenTo(
-      Actions.focusDefaultMailboxPerspectiveForAccounts,
-      this._onFocusDefaultPerspectiveForAccounts
-    );
+    this.listenTo(Actions.focusDefaultMailboxPerspectiveForAccounts, this._onFocusDefault);
     this.listenTo(Actions.ensureCategoryIsFocused, this._onEnsureCategoryIsFocused);
     this._listenToCommands();
   }
@@ -129,11 +126,11 @@ class FocusedPerspectiveStore extends MailspringStore {
   };
 
   /*
-  * Takes an optional array of `sidebarAccountIds`. By default, this method will
-  * set the sidebarAccountIds to the perspective's accounts if no value is
-  * provided
-  */
-  _onFocusDefaultPerspectiveForAccounts = (
+   * Takes an optional array of `sidebarAccountIds`. By default, this method will
+   * set the sidebarAccountIds to the perspective's accounts if no value is
+   * provided
+   */
+  _onFocusDefault = (
     accountsOrIds,
     { sidebarAccountIds }: { sidebarAccountIds?: string[] } = {}
   ) => {
@@ -185,19 +182,23 @@ class FocusedPerspectiveStore extends MailspringStore {
       this.trigger();
     }
 
-    let desired = perspective.sheet();
+    const desired = perspective.sheet();
 
     // Always switch to the correct sheet and pop to root when perspective set
     if (desired && WorkspaceStore.rootSheet() !== desired) {
       Actions.selectRootSheet(desired);
     }
-    Actions.popToRootSheet();
+
+    const top = WorkspaceStore.topSheet();
+    if (![WorkspaceStore.Sheet.Preferences, WorkspaceStore.Sheet.Threads].includes(top)) {
+      Actions.popToRootSheet();
+    }
   }
 
   _setPerspectiveByName(categoryName) {
-    let categories = this._current.accountIds.map(id => {
-      return CategoryStore.getCategoryByRole(id, categoryName);
-    });
+    let categories = this._current.accountIds.map(id =>
+      CategoryStore.getCategoryByRole(id, categoryName)
+    );
     categories = _.compact(categories);
     if (categories.length === 0) {
       return;
