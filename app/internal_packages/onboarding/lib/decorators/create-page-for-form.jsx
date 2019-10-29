@@ -144,7 +144,7 @@ const CreatePageForForm = FormComponent => {
                 errorFieldNames.push('settings.imap_username');
                 errorFieldNames.push('settings.imap_password');
               }
-            } else if (/certificate/i.test(err.message)){
+            } else if (/certificate/i.test(err.message)) {
               errorFieldNames.push('settings.imap_allow_insecure_ssl');
               errorFieldNames.push('settings.smtp_allow_insecure_ssl');
               remote.dialog.showMessageBox(
@@ -278,7 +278,7 @@ const CreatePageForForm = FormComponent => {
       if (account.emailAddress.includes('@yahoo.com')) {
         message = 'Have you enabled access through Yahoo?';
         articleURL =
-          'http://support.getmailspring.com//hc/en-us/articles/115001882372-Authorizing-Use-with-Yahoo';
+          'http://support.getmailspring.com/hc/en-us/articles/115001882372-Authorizing-Use-with-Yahoo';
       } else {
         message = 'Some providers require an app password.';
         articleURL =
