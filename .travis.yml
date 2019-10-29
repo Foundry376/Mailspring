@@ -49,7 +49,7 @@ matrix:
       env: CC=gcc-4.8 CXX=g++-4.8
       dist: trusty
     - os: osx
-      osx_image: xcode11.1
+      osx_image: xcode10.3
       env: CC=clang CXX=clang++ SIGN_BUILD=true
 
 before_install:
