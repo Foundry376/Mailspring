@@ -11,6 +11,7 @@ import {
   KeyCommandsRegion,
   ListensToFluxStore,
   ConfigPropContainer,
+  InputSearch,
 } from 'mailspring-component-kit';
 import { PreferencesUIStore } from 'mailspring-exports';
 import PreferencesTabsBar from './preferences-tabs-bar';
@@ -81,6 +82,12 @@ class PreferencesRoot extends React.Component {
     Actions.popSheet({ reason: 'PreferencesRoot:onBack' });
   };
 
+  onInputChange = value => {
+    console.log('^^^^^^^^^^^^^^^^^^^');
+    console.log(value);
+    console.log('^^^^^^^^^^^^^^^^^^^');
+  };
+
   render() {
     const { tab, selection, tabs } = this.props;
     const TabComponent = tab && tab.componentClassFn();
@@ -104,6 +111,13 @@ class PreferencesRoot extends React.Component {
             <Flexbox direction="column">
               <div className="searchBar">
                 <div className="tabName">{tab.tabId}</div>
+                <InputSearch
+                  showPreIcon
+                  showClearIcon
+                  height={40}
+                  placeholder="Search settings"
+                  onChange={this.onInputChange}
+                />
               </div>
               <ScrollRegion className="preferences-content">
                 <ConfigPropContainer
