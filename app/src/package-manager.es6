@@ -167,7 +167,7 @@ export default class PackageManager {
     if (!json.engines.mailspring) {
       return callback(
         new Error(
-          `The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include "mailspring".\n\nFor more information, see this migration guide: http://support.getmailspring.com/hc/en-us/articles/115001918391`
+          `The plugin or theme you selected has not been upgraded to support EdisonMail. If you're the developer, update the package.json's engines field to include "mailspring".\n\nFor more information, see this migration guide: http://support.getmailspring.com/hc/en-us/articles/115001918391`
         )
       );
     }

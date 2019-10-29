@@ -1,5 +1,5 @@
 import { React } from 'mailspring-exports';
-import { ipcRenderer, remote, shell } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { Notification } from 'mailspring-component-kit';
 
 export default class UpdateNotification extends React.Component {
@@ -37,7 +37,7 @@ export default class UpdateNotification extends React.Component {
 
   _onViewChangelog = () => {
     // zhansheng: TODO need replace our changelog link
-    // shell.openExternal('https://github.com/agent8/Mailspring/releases/latest');
+    // remote.shell.openExternal('https://github.com/agent8/Mailspring/releases/latest');
   };
 
   render() {
