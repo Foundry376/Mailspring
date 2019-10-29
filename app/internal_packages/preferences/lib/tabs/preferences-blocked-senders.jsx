@@ -1,5 +1,6 @@
 import React from 'react';
 import { BlockedSendersStore, EmailAvatar } from 'mailspring-exports';
+import { InputSearch } from 'mailspring-component-kit';
 
 class BlockedSenders extends React.Component {
   static displayName = 'PreferencesBlockedSenders';
@@ -7,19 +8,35 @@ class BlockedSenders extends React.Component {
   constructor() {
     super();
     this.state = {
-      blockeds: this._getStateFromStores(),
+      blockeds: [],
       selections: [],
+      searchValue: '',
+      filterList: [],
     };
   }
 
   componentDidMount() {
     this.unsubscribe = BlockedSendersStore.listen(this._onBlockedChanged);
+    const blockeds = this._getStateFromStores();
+    this.setState({ blockeds: blockeds }, () => {
+      this._filterBlockedsBySearchValue();
+    });
   }
 
   componentWillUnmount() {
     if (this.unsubscribe) {
       this.unsubscribe();
     }
+  }
+
+  _filterBlockedsBySearchValue() {
+    const { searchValue, blockeds, selections } = this.state;
+    const filterList = blockeds.filter(block => {
+      return block.name.indexOf(searchValue) >= 0 || block.email.indexOf(searchValue) >= 0;
+    });
+    const filterIdList = filterList.map(block => block.id);
+    const newSelections = selections.filter(id => filterIdList.indexOf(id) >= 0);
+    this.setState({ filterList, selections: newSelections });
   }
 
   _getStateFromStores() {
@@ -29,13 +46,15 @@ class BlockedSenders extends React.Component {
 
   _onBlockedChanged = () => {
     const blockeds = this._getStateFromStores();
-    this.setState({ blockeds });
+    this.setState({ blockeds }, () => {
+      this._filterBlockedsBySearchValue();
+    });
   };
 
   checkAllStatus = () => {
-    const { blockeds, selections } = this.state;
+    const { filterList, selections } = this.state;
     const selectionCount = selections.length;
-    const isSelectAll = blockeds && blockeds.length && selectionCount === blockeds.length;
+    const isSelectAll = filterList && filterList.length && selectionCount === filterList.length;
     if (isSelectAll) {
       return 'selected';
     } else if (selectionCount) {
@@ -55,12 +74,9 @@ class BlockedSenders extends React.Component {
 
   onToggleSelectAll = () => {
     const checkStatus = this.checkAllStatus();
-    // select all
     if (!checkStatus) {
       this._selectAll();
-    }
-    // deselect all
-    else {
+    } else {
       this._clearSelection();
     }
   };
@@ -77,7 +93,7 @@ class BlockedSenders extends React.Component {
   };
 
   _selectAll() {
-    const allBlockeds = this.state.blockeds.map(block => block.id);
+    const allBlockeds = this.state.filterList.map(block => block.id);
     this.setState({ selections: allBlockeds });
   }
 
@@ -85,12 +101,23 @@ class BlockedSenders extends React.Component {
     this.setState({ selections: [] });
   }
 
-  onInputChange = event => {
-    console.log(event.target.value);
+  onInputChange = value => {
+    this.setState({ searchValue: value }, () => {
+      this._filterBlockedsBySearchValue();
+    });
   };
 
+  _unBlockSelect() {
+    const unBlockedIds = this.state.selections;
+    BlockedSendersStore.unBlockIds(unBlockedIds);
+  }
+
+  _unBlockItem(id) {
+    BlockedSendersStore.unBlockIds([id]);
+  }
+
   render() {
-    const { blockeds } = this.state;
+    const { filterList } = this.state;
     const selectAllStatus = this.checkAllStatus();
 
     return (
@@ -107,13 +134,25 @@ class BlockedSenders extends React.Component {
           <div className="header">
             <div className={`checkmark ${selectAllStatus}`} onClick={this.onToggleSelectAll}></div>
             <div className="checkmark-note">{`${
-              blockeds && blockeds.length ? blockeds.length : 0
+              filterList && filterList.length ? filterList.length : 0
             } blocked senders`}</div>
-            <span className={`unblockBtn${selectAllStatus ? ' show' : ''}`}>Unblock Selected</span>
+            <span
+              className={`unblockBtn${selectAllStatus ? ' show' : ''}`}
+              onClick={() => this._unBlockSelect()}
+            >
+              Unblock Selected
+            </span>
             <div style={{ flex: 1 }}></div>
-            <input type="text" placeholder="Find a contact" onChange={this.onInputChange} />
+            <div className="search-box">
+              <InputSearch
+                showPreIcon
+                showClearIcon
+                placeholder="Find a contact"
+                onChange={this.onInputChange}
+              />
+            </div>
           </div>
-          {blockeds.map(blocked => {
+          {filterList.map(blocked => {
             const selectStatus = this.checkStatus(blocked.id);
 
             return (
@@ -128,7 +167,9 @@ class BlockedSenders extends React.Component {
                 />
                 <span>{blocked.name}</span>
                 {blocked.email}
-                <span className="unblockBtn">Unblock</span>
+                <span className="unblockBtn" onClick={() => this._unBlockItem(blocked.id)}>
+                  Unblock
+                </span>
               </li>
             );
           })}

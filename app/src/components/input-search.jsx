@@ -30,7 +30,12 @@ export default class InputSearch extends React.Component {
   }
 
   _clearInput() {
-    this.setState({ value: '' }, () => this._fieldElFocus());
+    this.setState({ value: '' }, () => {
+      this._fieldElFocus();
+      if (this.props.onChange && typeof this.props.onChange === 'function') {
+        this.props.onChange('');
+      }
+    });
   }
 
   _onChange = event => {
