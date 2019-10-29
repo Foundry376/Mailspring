@@ -63,7 +63,7 @@ export default class ComposerView extends React.Component {
       'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
       'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => {},
+      'composer:show-and-focus-from': () => { },
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
@@ -574,13 +574,13 @@ export default class ComposerView extends React.Component {
           {this.state.isDeleting ? (
             <LottieImg name={'loading-spinner-blue'} size={{ width: 24, height: 24 }} />
           ) : (
-            <RetinaImg
-              name={'trash.svg'}
-              style={{ width: 24, height: 24 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask}
-            />
-          )}
+              <RetinaImg
+                name={'trash.svg'}
+                style={{ width: 24, height: 24 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
+            )}
         </button>
       </div>
     );
@@ -753,6 +753,7 @@ export default class ComposerView extends React.Component {
         .then(({ response } = {}) => {
           if (response === 0) {
             this._onPrimarySend({ disableDraftCheck: true });
+            return true;
           }
         });
       return false;
