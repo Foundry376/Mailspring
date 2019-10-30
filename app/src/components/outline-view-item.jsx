@@ -10,7 +10,7 @@ import DisclosureTriangle from './disclosure-triangle';
 import DropZone from './drop-zone';
 import RetinaImg from './retina-img';
 import PropTypes from 'prop-types';
-import { Divider } from './outline-view';
+import { Divider, DIVIDER_KEY } from './outline-view';
 
 /*
  * Enum for counter styles
@@ -120,8 +120,8 @@ class OutlineViewItem extends Component {
     item: PropTypes.shape({
       className: PropTypes.string,
       id: PropTypes.string.isRequired,
-      children: PropTypes.array.isRequired,
-      name: PropTypes.string.isRequired,
+      children: PropTypes.array,
+      name: PropTypes.string,
       iconName: PropTypes.string,
       count: PropTypes.number,
       counterStyle: PropTypes.string,
@@ -391,7 +391,7 @@ class OutlineViewItem extends Component {
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} provider={acc.provider} item={child} />)}
+          {item.children.map((child, idx) => <OutlineViewItem key={child.id === DIVIDER_KEY ? idx : child.id} provider={acc.provider} index={idx} item={child} />)}
         </section>
       );
     }
@@ -401,9 +401,9 @@ class OutlineViewItem extends Component {
   render() {
     const item = this.props.item;
 
-    if (item.key && item.key === 'divider') {
+    if (item.id && item.id === DIVIDER_KEY) {
       return (
-        <Divider key={item.key} />
+        <Divider key={this.props.index || 100} />
       );
     }
 

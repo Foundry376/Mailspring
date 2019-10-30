@@ -17,6 +17,7 @@ const {
 
 const SidebarItem = require('./sidebar-item');
 const SidebarActions = require('./sidebar-actions');
+const DIVIDER_OBJECT = { id: 'divider' };
 
 function isSectionCollapsed(title) {
   if (AppEnv.savedState.sidebarKeysCollapsed[title] !== undefined) {
@@ -66,9 +67,9 @@ class SidebarSection {
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     if (draftsItem) {
-      items.splice(1, 0, { key: 'divider' }, unreadItem, starredItem, draftsItem);
+      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem, draftsItem);
     } else {
-      items.splice(1, 0, { key: 'divider' }, unreadItem, starredItem);
+      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem);
     }
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
@@ -76,7 +77,7 @@ class SidebarSection {
         items.push(archiveMail);
       }
     }
-    items.push({ key: 'divider' });
+    items.push(DIVIDER_OBJECT);
     items.push(...this.accountUserCategories(account));
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
@@ -137,10 +138,10 @@ class SidebarSection {
     const accountIds = _.pluck(accounts, 'id');
     let folderItem = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
     if (folderItem) {
-      items.unshift({ key: 'divider' });
+      items.unshift(DIVIDER_OBJECT);
       items.unshift(folderItem);
     }
-    items.push({ key: 'divider' });
+    items.push(DIVIDER_OBJECT);
     folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
     if (folderItem) {
       items.push(folderItem);
