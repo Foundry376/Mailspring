@@ -1,6 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Utils, Actions, AttachmentStore, MessageStore, EmailAvatar, CalendarStore, Message } from 'mailspring-exports';
+import {
+  Utils,
+  Actions,
+  AttachmentStore,
+  MessageStore,
+  BlockedSendersStore,
+  EmailAvatar,
+  CalendarStore,
+  Message,
+} from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -35,7 +44,7 @@ export default class MessageItem extends React.Component {
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: false,
       missingFileIds: MessageStore.getMissingFileIds(),
-      calendar: CalendarStore.getCalendarByMessageId(props.message ? props.message.id : 'null')
+      calendar: CalendarStore.getCalendarByMessageId(props.message ? props.message.id : 'null'),
     };
     this.markAsReadTimer = null;
     this.mounted = false;
@@ -45,7 +54,7 @@ export default class MessageItem extends React.Component {
     this._storeUnlisten = [
       AttachmentStore.listen(this._onDownloadStoreChange),
       MessageStore.listen(this._onDownloadStoreChange),
-      CalendarStore.listen(this._onCalendarStoreChange)
+      CalendarStore.listen(this._onCalendarStoreChange),
     ];
     this.mounted = true;
   }
@@ -63,6 +72,21 @@ export default class MessageItem extends React.Component {
       }
     }
   }
+
+  _onClickBlockBtn = () => {
+    const { message } = this.props;
+    const accountId = message.accountId;
+    const fromEmail = message.from && message.from[0] ? message.from[0].email : '';
+    if (!fromEmail) {
+      return;
+    }
+    const isBlocked = BlockedSendersStore.isBlockedByAccount(accountId, fromEmail);
+    if (isBlocked) {
+      BlockedSendersStore.unBlockEmailByAccount(accountId, fromEmail);
+    } else {
+      BlockedSendersStore.blockEmailByAccount(accountId, fromEmail);
+    }
+  };
 
   _onClickParticipants = e => {
     let el = e.target;
@@ -98,7 +122,7 @@ export default class MessageItem extends React.Component {
 
   _onCalendarStoreChange = () => {
     this.setState({ calendar: CalendarStore.getCalendarByMessageId(this.props.message.id) });
-  }
+  };
 
   _onDownloadStoreChange = () => {
     const fileIds = this.props.message.fileIds();
@@ -147,7 +171,7 @@ export default class MessageItem extends React.Component {
           source: 'Thread Selected',
           canBeUndone: false,
           unread: false,
-        }),
+        })
       );
     }, markAsReadDelay);
   };
@@ -166,29 +190,36 @@ export default class MessageItem extends React.Component {
     return (
       <div className="download-all">
         <div className="attachment-number">
-          <RetinaImg name="feed-attachments.svg"
+          <RetinaImg
+            name="feed-attachments.svg"
             isIcon
             style={{ width: 18, height: 18 }}
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
           <span>{this.props.message.files.length} attachments</span>
         </div>
         <div className="separator">-</div>
-        {this._isAllAttachmentsDownloading() ?
+        {this._isAllAttachmentsDownloading() ? (
           <div className="download-all-action">
-            <RetinaImg name='refresh.svg'
-              className='infinite-rotation-linear'
-              style={{ width: 24, height: 24 }} isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg
+              name="refresh.svg"
+              className="infinite-rotation-linear"
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
           </div>
-          :
+        ) : (
           <div className="download-all-action" onClick={this._onDownloadAll}>
-            <RetinaImg name="download.svg"
+            <RetinaImg
+              name="download.svg"
               isIcon
               style={{ width: 18, height: 18 }}
-              mode={RetinaImg.Mode.ContentIsMask} />
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
             <span>Download all</span>
           </div>
-        }
+        )}
       </div>
     );
   }
@@ -198,8 +229,7 @@ export default class MessageItem extends React.Component {
     const { filePreviewPaths, downloads } = this.state;
     const attachedFiles = files.filter(f => {
       return (
-        (!f.contentId ||
-          !(body || '').includes(`cid:${f.contentId}`)) &&
+        (!f.contentId || !(body || '').includes(`cid:${f.contentId}`)) &&
         !(f.contentType || '').toLocaleLowerCase().includes('text/calendar')
       );
     });
@@ -241,6 +271,9 @@ export default class MessageItem extends React.Component {
 
   _renderHeader() {
     const { message, thread, messages, pending } = this.props;
+    const fromEmail = message.from && message.from[0] ? message.from[0].email : '';
+    const accountId = message.accountId;
+    const isBlocked = BlockedSendersStore.isBlockedByAccount(accountId, fromEmail);
 
     return (
       <header
@@ -248,24 +281,37 @@ export default class MessageItem extends React.Component {
         className={`message-header `}
         onClick={this._onClickHeader}
       >
-        {!this.props.isOutboxDraft ? <InjectedComponent
-          matching={{ role: 'MessageHeader' }}
-          exposedProps={{ message: message, thread: thread, messages: messages }}
-        /> : null}
+        {!this.props.isOutboxDraft ? (
+          <InjectedComponent
+            matching={{ role: 'MessageHeader' }}
+            exposedProps={{ message: message, thread: thread, messages: messages }}
+          />
+        ) : null}
         {/*<div className="pending-spinner" style={{ position: 'absolute', marginTop: -2, left: 55 }}>*/}
         {/*  <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />*/}
         {/*</div>*/}
         <div className="message-header-right">
-          {!this.props.isOutboxDraft ? <InjectedComponentSet
-            className="message-header-status"
-            matching={{ role: 'MessageHeaderStatus' }}
-            exposedProps={{
-              message: message,
-              thread: thread,
-              detailedHeaders: this.state.detailedHeaders,
-            }}
-          /> : null}
-          <MessageControls thread={thread} message={message} messages={messages} threadPopedOut={this.props.threadPopedOut} hideControls={this.props.isOutboxDraft} />
+          {!this.props.isOutboxDraft ? (
+            <InjectedComponentSet
+              className="message-header-status"
+              matching={{ role: 'MessageHeaderStatus' }}
+              exposedProps={{
+                message: message,
+                thread: thread,
+                detailedHeaders: this.state.detailedHeaders,
+              }}
+            />
+          ) : null}
+          <MessageControls
+            thread={thread}
+            message={message}
+            messages={messages}
+            threadPopedOut={this.props.threadPopedOut}
+            hideControls={this.props.isOutboxDraft}
+          />
+        </div>
+        <div className="blockBtn" onClick={this._onClickBlockBtn}>
+          {isBlocked ? 'Unblock' : 'Block'}
         </div>
         <div className="row">
           <EmailAvatar
@@ -350,7 +396,10 @@ export default class MessageItem extends React.Component {
   }
 
   _renderCollapsed() {
-    const { message: { snippet, from, files, date, draft }, className } = this.props;
+    const {
+      message: { snippet, from, files, date, draft },
+      className,
+    } = this.props;
 
     const attachmentIcon = Utils.showIconForAttachments(files) ? (
       <div className="collapsed-attachment" />
@@ -360,18 +409,13 @@ export default class MessageItem extends React.Component {
       <div className={className} onClick={this._onToggleCollapsed}>
         <div className="message-item-white-wrap">
           <div className="message-item-area">
-            <EmailAvatar
-              key="thread-avatar"
-              message={this.props.message}
-            />
+            <EmailAvatar key="thread-avatar" message={this.props.message} />
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <div className="row">
                 <div className="collapsed-from">
                   {from && from[0] && from[0].displayName({ compact: true })}
                 </div>
-                {draft && (
-                  <div className="collapsed-pencil" />
-                )}
+                {draft && <div className="collapsed-pencil" />}
                 {attachmentIcon}
                 <div className="collapsed-timestamp">
                   <MessageTimestamp date={date} />
@@ -387,11 +431,19 @@ export default class MessageItem extends React.Component {
 
   _renderFull() {
     return (
-      <div className={this.props.className} onMouseEnter={this._markAsRead} onMouseLeave={this._cancelMarkAsRead}>
+      <div
+        className={this.props.className}
+        onMouseEnter={this._markAsRead}
+        onMouseLeave={this._cancelMarkAsRead}
+      >
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
-            <MessageItemBody message={this.props.message} downloads={this.state.downloads} calendar={this.state.calendar} />
+            <MessageItemBody
+              message={this.props.message}
+              downloads={this.state.downloads}
+              calendar={this.state.calendar}
+            />
             {this._renderAttachments()}
             {this._renderFooterStatus()}
           </div>
@@ -401,7 +453,7 @@ export default class MessageItem extends React.Component {
   }
   _renderOutboxDraft() {
     return (
-      <div className={this.props.className} >
+      <div className={this.props.className}>
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}

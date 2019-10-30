@@ -40,9 +40,30 @@ class BlockedSendersStore extends MailspringStore {
     return this.blockedSenders;
   };
 
+  isBlockedByAccount = (accountId, email) => {
+    const blockedEmailList = this.basicData.filter(
+      block => block.email === email && block.accountId === accountId
+    );
+    return blockedEmailList.length > 0;
+  };
+
   isBlocked = email => {
-    const blockedList = this.blockedSenders.map(block => block.email);
-    return blockedList.indexOf(email) >= 0;
+    const blockedEmailList = this.blockedSenders.filter(block => block.email === email);
+    return blockedEmailList.length > 0;
+  };
+
+  blockEmailByAccount = (accountId, email) => {
+    console.error('^^^^blockEmailByAccount^^^^');
+    console.error(email);
+    console.error(accountId);
+    console.error('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+  };
+
+  unBlockEmailByAccount = (accountId, email) => {
+    console.error('^^^^unBlockEmailByAccount^^^^');
+    console.error(email);
+    console.error(accountId);
+    console.error('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
   };
 
   unBlockEmails = emails => {
