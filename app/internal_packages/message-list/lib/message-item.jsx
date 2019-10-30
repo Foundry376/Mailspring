@@ -132,6 +132,11 @@ export default class MessageItem extends React.Component {
       missingFileIds: MessageStore.getMissingFileIds(),
     });
   };
+
+  _onTrashThisSenderMail = () => {
+    // Trash all previous mail from this sender
+  };
+
   _cancelMarkAsRead = () => {
     if (this.markAsReadTimer) {
       clearTimeout(this.markAsReadTimer);
@@ -267,6 +272,23 @@ export default class MessageItem extends React.Component {
         }}
       />
     );
+  }
+
+  _renderBlockNote() {
+    const { message } = this.props;
+    const fromEmail = message.from && message.from[0] ? message.from[0].email : '';
+    const accountId = message.accountId;
+    const isBlocked = BlockedSendersStore.isBlockedByAccount(accountId, fromEmail);
+    if (isBlocked) {
+      return (
+        <div className="message-block-note">
+          You've successfully blocked {<span>{fromEmail}</span>}. Emails from this sender will now
+          be sent to the Trash unless you unblock them.
+          <div onClick={this._onTrashThisSenderMail}>Trash all previous mail from this sender</div>
+        </div>
+      );
+    }
+    return null;
   }
 
   _renderHeader() {
@@ -438,6 +460,7 @@ export default class MessageItem extends React.Component {
       >
         <div className="message-item-white-wrap">
           <div className="message-item-area">
+            {this._renderBlockNote()}
             {this._renderHeader()}
             <MessageItemBody
               message={this.props.message}
