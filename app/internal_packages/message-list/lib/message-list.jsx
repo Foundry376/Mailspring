@@ -722,16 +722,13 @@ class MessageList extends React.Component {
       >
         <div className="msg-avatars">
           {
-            lines.map((message, index) => (
-              <EmailAvatar
-                key={`thread-avatar-${index}`}
-                message={message}
-                styles={{ marginLeft: 5 * index, border: '1px solid #fff' }}
-              />
-            ))
+            <EmailAvatar
+              key={`thread-avatar`}
+              name={`${bundle.messages.length}`}
+            />
           }
         </div>
-        <div className="num-messages">{bundle.messages.length} more emails</div>
+        <div className="num-messages">more emails</div>
       </div>
     );
   }
