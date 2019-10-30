@@ -296,11 +296,11 @@ class ConversationStore extends MailspringStore {
     }
     const chatAccounts = AppEnv.config.get('chatAccounts') || {}
     for (const email in chatAccounts) {
-      await this.createInitialPrivateConversationsFromAllContactsOfEmail(email)
+      await this.createInitialPrivateConversationsFromAllContactsOfEmail(email, true)
     }
   }
 
-  createInitialPrivateConversationsFromAllContactsOfEmail = async email => {
+  createInitialPrivateConversationsFromAllContactsOfEmail = async (email, completed) => {
     let contacts = await ContactStore.getContacts()
     const chatAccounts = AppEnv.config.get('chatAccounts') || {}
     const chatAccount = chatAccounts[email]
@@ -321,7 +321,9 @@ class ConversationStore extends MailspringStore {
     for (const contact of contacts) {
       await this.createPrivateConversation(contact)
     }
-    AppEnv.config.set('chatConversationsInitialized', chatConversationsInitialized)
+    if (completed) {
+      AppEnv.config.set('chatConversationsInitialized', chatConversationsInitialized)
+    }
   }
 
   onChangeConversationName = async data => {
