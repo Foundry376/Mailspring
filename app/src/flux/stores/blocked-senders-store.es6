@@ -1,10 +1,12 @@
 import MailspringStore from 'mailspring-store';
-
+import {
+  Actions,
+  BlockContactTask,
+  UnBlockContactTask,
+  GetBlockListTask,
+} from 'mailspring-exports';
 import DatabaseStore from './database-store';
 import BlockContact from '../models/block-contact';
-import BlockContactTask from '../task/block-contact-task';
-import UnBlockContactTask from '../task/unblock-contact-task';
-import GetBlockListTask from '../task/sync-block-list-task';
 
 class BlockedSendersStore extends MailspringStore {
   constructor() {
