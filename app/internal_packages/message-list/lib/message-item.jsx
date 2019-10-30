@@ -290,7 +290,9 @@ export default class MessageItem extends React.Component {
               from={message.from}
               onClick={this._onClickParticipants}
               isDetailed={this.state.detailedHeaders}
-            />
+            >
+              {this._renderHeaderDetailToggle()}
+            </MessageParticipants>
             <MessageParticipants
               detailFrom={message.from}
               to={message.to}
@@ -299,8 +301,9 @@ export default class MessageItem extends React.Component {
               replyTo={message.replyTo.filter(c => !message.from.find(fc => fc.email === c.email))}
               onClick={this._onClickParticipants}
               isDetailed={this.state.detailedHeaders}
-            />
-            {this._renderHeaderDetailToggle()}
+            >
+              {this._renderHeaderDetailToggle()}
+            </MessageParticipants>
           </div>
         </div>
         {/* {this._renderFolder()} */}
@@ -316,13 +319,18 @@ export default class MessageItem extends React.Component {
       return (
         <div
           className="header-toggle-control"
-          style={{ top: 18, left: -14 }}
+          style={{ top: 18, left: -14, transform: 'rotate(180deg)' }}
           onClick={e => {
             this.setState({ detailedHeaders: false });
             e.stopPropagation();
           }}
         >
-          less
+          <RetinaImg
+            name={'down-arrow.svg'}
+            style={{ width: 18, height: 18 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
         </div>
       );
     }
@@ -336,7 +344,12 @@ export default class MessageItem extends React.Component {
           e.stopPropagation();
         }}
       >
-        more
+        <RetinaImg
+          name={'down-arrow.svg'}
+          style={{ width: 18, height: 18 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
       </div>
     );
   }
