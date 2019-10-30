@@ -42,17 +42,19 @@ export default class AddAnotherAccountPage extends React.Component {
           <h1>Would you like to add another account?</h1>
           <h4>Access all of your accounts in one app.</h4>
           <div className="email-list">
-            {
-              accounts.map(acc => (
-                <div key={acc.emailAddress} className="email-item">
-                  <RetinaImg name={'check.svg'}
-                    style={{ width: 28, height: 28 }}
-                    isIcon
-                    mode={RetinaImg.Mode.ContentIsMask} />
-                  <span>{acc.emailAddress}</span>
-                </div>
-              ))
-            }
+            <div className="email-wrapper">
+              {
+                accounts.map(acc => (
+                  <div key={acc.emailAddress} className="email-item">
+                    <RetinaImg name={'check.svg'}
+                      style={{ width: 28, height: 28 }}
+                      isIcon
+                      mode={RetinaImg.Mode.ContentIsMask} />
+                    <span>{acc.emailAddress}</span>
+                  </div>
+                ))
+              }
+            </div>
           </div>
         </div>
         <div className="footer">

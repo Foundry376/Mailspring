@@ -169,17 +169,21 @@ export default class MailsyncProcess extends EventEmitter {
     } else if (this.accounts && this._proc.stdout && mode === mailSyncModes.SIFT){
       this._proc.stdout.once('data', () => {
         const rs = new Readable();
-        rs.push(`${JSON.stringify(this.accounts)}\n`);
+        let siftAccountString = '';
+        for (let acct of this.accounts) {
+          siftAccountString += `${JSON.stringify(acct)}\n`;
+        }
+        rs.push(siftAccountString);
         rs.push(null);
         rs.pipe(
           this._proc.stdin,
           { end: false }
         );
-        if (AppEnv.enabledToNativeLog) {
-          console.log('--------------------To native---------------');
-          AppEnv.logDebug(`to sift: ${JSON.stringify(this.accounts)}`);
-          console.log('-----------------------------To native END-----------------------');
-        }
+        // if (AppEnv.enabledToNativeLog) {
+        //   console.log('--------------------To native---------------');
+        //   AppEnv.logDebug(`to sift: ${siftAccountString}`);
+        //   console.log('-----------------------------To native END-----------------------');
+        // }
         this.syncInitilMessageSend = true;
         this._flushSendQueue();
       });

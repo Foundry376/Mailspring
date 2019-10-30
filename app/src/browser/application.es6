@@ -686,7 +686,7 @@ export default class Application extends EventEmitter {
       buttons: ['Okay'],
       message: `We encountered a problem with your local email database. The app will relaunch.`,
       detail: '',
-    }).then(()=>{
+    }).then(() => {
       app.relaunch();
       app.quit();
     });
@@ -754,8 +754,8 @@ export default class Application extends EventEmitter {
           buttonLabel: 'Choose',
           properties: ['openDirectory'],
         })
-        .then(({canceled, filePaths}) => {
-          if (!filePaths || filePaths.length === 0) {
+        .then(({ canceled, filePaths }) => {
+          if (canceled || !filePaths || filePaths.length === 0) {
             return;
           }
           this.runSpecs({
@@ -1263,7 +1263,7 @@ export default class Application extends EventEmitter {
         defaultId: 0,
         message,
         detail,
-      }).then(({response}) => {
+      }).then(({ response }) => {
         if (response === 0) {
           userResetTheme = true;
           this.config.set('core.theme', '');

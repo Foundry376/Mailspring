@@ -23,7 +23,7 @@ export default class AttributeDateTime extends Attribute {
       );
       return null;
     }
-    return val.getTime() / 1000.0;
+    return Math.floor(val.getTime() / 1000);
   }
 
   fromJSON(val) {

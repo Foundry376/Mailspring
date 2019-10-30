@@ -14,6 +14,7 @@ import {
   TaskFactory,
 } from 'mailspring-exports';
 import { Categories } from 'mailspring-observables';
+import ChangeFolderTask from '../../../src/flux/tasks/change-folder-task';
 
 export default class MovePickerPopover extends Component {
   static propTypes = {
@@ -179,7 +180,7 @@ export default class MovePickerPopover extends Component {
       const all = [];
       threads.forEach(({ labels }) => all.push(...labels));
       const tasks = [];
-      if (all.length > 0) {
+      if (all.length > 0 && category.role !== 'inbox') {
         tasks.push(
           new ChangeLabelsTask({
             source: 'Category Picker: New Category',
@@ -190,15 +191,26 @@ export default class MovePickerPopover extends Component {
           })
         );
       }
-      tasks.push(
-        new ChangeLabelsTask({
-          source: 'Category Picker: New Category',
-          labelsToRemove: [],
-          labelsToAdd: [category],
-          threads: threads,
-          previousFolder,
-        })
-      );
+      if (category.role === 'inbox') {
+        tasks.push(
+          ...TaskFactory.tasksForChangeFolder({
+            source: 'Category Picker: New Category',
+            threads: threads,
+            folder: category,
+            currentPerspective,
+          })
+        );
+      } else {
+        tasks.push(
+          new ChangeLabelsTask({
+            source: 'Category Picker: New Category',
+            labelsToRemove: [],
+            labelsToAdd: [category],
+            threads: threads,
+            previousFolder,
+          })
+        );
+      }
       Actions.queueTasks(tasks);
     }
   };

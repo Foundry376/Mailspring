@@ -558,16 +558,24 @@
     text-align: center;
   }
   .email-list {
-    margin: 0 auto;
-    width: 300px;
-    height: 250px;
     overflow-y: auto;
+    overflow-x: hidden;
+    height: 250px;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    .email-wrapper {
+      margin: 0 auto;
+      width: 300px;
+      overflow-x: visible;
+    }
     .email-item {
       height: 50px;
       line-height: 50px;
       color: #252525;
       font-size: 15px;
       text-align: left;
+      white-space: nowrap;
       &:nth-child(n + 2) {
         border-top: 1px solid #e8ebed;
       }

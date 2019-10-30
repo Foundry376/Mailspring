@@ -40,7 +40,7 @@ class Windows {
         type: 'info',
         buttons: ['Learn More'],
         message: 'Visit Windows Settings to change your default mail client',
-        detail: "You'll find Mailspring, along with other options, listed in Default Apps > Mail.",
+        detail: "You'll find Edison Mail, along with other options, listed in Default Apps > Mail.",
       })
       .then(() => {
         shell.openExternal(

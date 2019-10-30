@@ -405,7 +405,7 @@ class AccountStore extends MailspringStore {
   };
 
   _onSiftUpdateAccount = (fullAccount) => {
-    Actions.queueTask(new SiftUpdateAccountTask(fullAccount));
+    Actions.queueTask(new SiftUpdateAccountTask({account: fullAccount}));
   };
 
   addAccount = async account => {
