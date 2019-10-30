@@ -2,6 +2,9 @@ import MailspringStore from 'mailspring-store';
 
 import DatabaseStore from './database-store';
 import BlockContact from '../models/block-contact';
+import BlockContactTask from '../task/block-contact-task';
+import UnBlockContactTask from '../task/unblock-contact-task';
+import GetBlockListTask from '../task/sync-block-list-task';
 
 class BlockedSendersStore extends MailspringStore {
   constructor() {
@@ -53,16 +56,19 @@ class BlockedSendersStore extends MailspringStore {
   };
 
   blockEmailByAccount = (accountId, email) => {
-    // block email by account
+    Actions.queueTask(new BlockContactTask({ accountId: accountId, email: email }));
   };
 
   unBlockEmailByAccount = (accountId, email) => {
-    // unblock email by account
+    Actions.queueTask(new UnBlockContactTask({ accountId: accountId, email: email }));
   };
 
   unBlockEmails = emails => {
     const shouldUnBlockList = this.basicData.filter(block => emails.indexOf(block.email) >= 0);
-    // unblock all emails for every account
+    const unBlockTaskList = shouldUnBlockList.map(block => {
+      return new UnBlockContactTask({ accountId: block.accountId, email: block.email });
+    });
+    Actions.queueTasks(unBlockTaskList);
   };
 }
 

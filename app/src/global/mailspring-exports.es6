@@ -122,6 +122,9 @@ lazyLoadAndRegisterTask('ChangeDraftToFailingTask', 'change-draft-to-failing-tas
 lazyLoadAndRegisterTask('ChangeDraftToFailedTask', 'change-draft-to-failed-task');
 lazyLoadAndRegisterTask('SiftRemoveAccountsTask', 'sift-remove-accounts-task');
 lazyLoadAndRegisterTask('SiftUpdateAccountTask', 'sift-update-account-task');
+lazyLoadAndRegisterTask('BlockContactTask', 'block-contact-task');
+lazyLoadAndRegisterTask('UnBlockContactTask', 'unblock-contact-task');
+lazyLoadAndRegisterTask('GetBlockListTask', 'sync-block-list-task');
 
 // Stores
 // These need to be required immediately since some Stores are
