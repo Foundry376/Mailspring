@@ -315,9 +315,6 @@ class ConversationStore extends MailspringStore {
     contacts = contacts.filter(
       contact => !contact.jid.match(/@app/) && !contact.jid.includes('^at^') && contact.curJid === curjid
     )
-    if (conversations.length || !contacts.length) {
-      return
-    }
     for (const contact of contacts) {
       await this.createPrivateConversation(contact)
     }
