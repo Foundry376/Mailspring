@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 
 import DatabaseStore from './database-store';
-import Block from '../models/block';
+import BlockContact from '../models/block-contact';
 
 class BlockedSendersStore extends MailspringStore {
   constructor() {
@@ -12,36 +12,20 @@ class BlockedSendersStore extends MailspringStore {
   }
 
   loadBlockedSenders = async () => {
-    // const blocks = await DatabaseStore.findAll(Block);
-    const blocks = [
-      {
-        id: 1,
-        name: 'Near',
-        email: 'y.near@hotmail.com',
-      },
-      {
-        id: 2,
-        name: 'Young near',
-        email: 'ning@edison.tech',
-      },
-      {
-        id: 3,
-        name: 'Young',
-        email: 'ning@edison.tech',
-      },
-    ];
+    // status is 1 or 3 mean this data is deleted
+    const blocks = await DatabaseStore.findAll(BlockContact).where([
+      BlockContact.attributes.state.not(1),
+      BlockContact.attributes.state.not(3),
+    ]);
     const blockEmailSet = new Set();
     const blockDeDuplication = [];
-    // status is 1 or 3 mean this data is deleted
-    blocks
-      .filter(block => block.state !== 1 && block.state !== 3)
-      .forEach(block => {
-        // delete the duplication email data
-        if (!blockEmailSet.has(block.email)) {
-          blockEmailSet.add(block.email);
-          blockDeDuplication.push(block);
-        }
-      });
+    blocks.forEach(block => {
+      // delete the duplication email data
+      if (!blockEmailSet.has(block.email)) {
+        blockEmailSet.add(block.email);
+        blockDeDuplication.push(block);
+      }
+    });
     this.basicData = blocks;
     this.blockedSenders = blockDeDuplication;
     this.trigger();

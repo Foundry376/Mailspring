@@ -81,7 +81,7 @@ lazyLoadAndRegisterModel(`Contact`, 'contact');
 lazyLoadAndRegisterModel(`Category`, 'category');
 lazyLoadAndRegisterModel(`Calendar`, 'calendar');
 lazyLoadAndRegisterModel('JoinTable', 'join-table');
-lazyLoadAndRegisterModel('Block', 'block');
+lazyLoadAndRegisterModel('BlockContact', 'block-contact');
 lazyLoadAndRegisterModel(`ProviderSyncbackRequest`, 'provider-syncback-request');
 lazyLoadAndRegisterTask('SetObservableRangeTask', 'set-observable-range-task');
 

@@ -1,7 +1,7 @@
 import Attributes from '../attributes';
 import Model from './model';
 
-export default class BlockList extends Model {
+export default class BlockContact extends Model {
   static attributes = Object.assign(
     {},
     {
