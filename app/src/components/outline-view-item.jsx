@@ -10,6 +10,7 @@ import DisclosureTriangle from './disclosure-triangle';
 import DropZone from './drop-zone';
 import RetinaImg from './retina-img';
 import PropTypes from 'prop-types';
+import { Divider } from './outline-view';
 
 /*
  * Enum for counter styles
@@ -399,6 +400,13 @@ class OutlineViewItem extends Component {
 
   render() {
     const item = this.props.item;
+
+    if (item.key && item.key === 'divider') {
+      return (
+        <Divider key={item.key} />
+      );
+    }
+
     const containerClasses = classnames({
       'item-container': true,
       selected: item.selected,
@@ -410,7 +418,7 @@ class OutlineViewItem extends Component {
           {this._renderItem()}
           <DisclosureTriangle
             collapsed={item.collapsed}
-            visible={item.children.length > 0}
+            visible={item.children && item.children.length > 0}
             onCollapseToggled={this._onCollapseToggled}
           />
         </span>

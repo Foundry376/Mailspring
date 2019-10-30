@@ -162,7 +162,7 @@ class OutlineView extends Component {
   }
 
   _renderItems() {
-    return this.props.items.map(item => item.name ? <OutlineViewItem key={item.id} item={item} /> : null);
+    return this.props.items.map((item, idx) => item.name ? <OutlineViewItem key={item.id} item={item} /> : <Divider key={idx} />);
   }
 
   _renderOutline(allowCreate, collapsed) {
@@ -192,5 +192,10 @@ class OutlineView extends Component {
     );
   }
 }
+
+export const Divider = () => {
+  return <div className="silebar-divider" />;
+}
+
 
 export default OutlineView;

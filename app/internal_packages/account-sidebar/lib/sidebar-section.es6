@@ -66,9 +66,9 @@ class SidebarSection {
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     if (draftsItem) {
-      items.splice(1, 0, unreadItem, starredItem, draftsItem);
+      items.splice(1, 0, { key: 'divider' }, unreadItem, starredItem, draftsItem);
     } else {
-      items.splice(1, 0, unreadItem, starredItem);
+      items.splice(1, 0, { key: 'divider' }, unreadItem, starredItem);
     }
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
@@ -76,8 +76,8 @@ class SidebarSection {
         items.push(archiveMail);
       }
     }
+    items.push({ key: 'divider' });
     items.push(...this.accountUserCategories(account));
-
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
       .forEach(ext => {
@@ -137,8 +137,10 @@ class SidebarSection {
     const accountIds = _.pluck(accounts, 'id');
     let folderItem = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
     if (folderItem) {
+      items.unshift({ key: 'divider' });
       items.unshift(folderItem);
     }
+    items.push({ key: 'divider' });
     folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
     if (folderItem) {
       items.push(folderItem);
