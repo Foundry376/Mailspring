@@ -579,6 +579,9 @@ class Actions {
   static goToMostRecentChat = ActionScopeMainWindow;
   static setCurrentWindowTitle = ActionScopeWindow;
 
+  // Block
+  static changeBlockSucceeded = ActionScopeMainWindow;
+
   // App Message actions
   static pushAppMessage = ActionScopeWindow;
   static pushAppMessages = ActionScopeWindow;

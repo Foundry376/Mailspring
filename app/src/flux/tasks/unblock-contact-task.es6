@@ -1,5 +1,6 @@
 import SiftTask from './sift-task';
 import Attributes from '../attributes';
+import Actions from '../actions';
 
 export default class UnBlockContactTask extends SiftTask {
   static attributes = Object.assign({}, SiftTask.attributes, {
@@ -18,5 +19,13 @@ export default class UnBlockContactTask extends SiftTask {
 
   label() {
     return `unblock contact`;
+  }
+
+  onError(err) {
+    // noop
+  }
+
+  onSuccess() {
+    Actions.changeBlockSucceeded();
   }
 }

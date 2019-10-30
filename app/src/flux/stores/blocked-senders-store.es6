@@ -14,6 +14,7 @@ class BlockedSendersStore extends MailspringStore {
     this.basicData = [];
     this.blockedSenders = [];
     this.loadBlockedSenders();
+    this.listenTo(Actions.changeBlockSucceeded, this.loadBlockedSenders);
   }
 
   loadBlockedSenders = async () => {
