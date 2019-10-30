@@ -354,7 +354,7 @@ class PreferencesAccountDetails extends Component {
         <div className="config-group">
           <h6>ACCOUNT DETAILS</h6>
           <div className="item">
-            <label htmlFor={'Account Label'}>Account Label</label>
+            <label htmlFor={'Account Label'}>Description</label>
             <input
               type="text"
               value={account.label}

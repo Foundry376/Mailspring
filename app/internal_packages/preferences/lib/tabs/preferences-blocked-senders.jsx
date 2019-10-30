@@ -109,11 +109,16 @@ class BlockedSenders extends React.Component {
 
   _unBlockSelect() {
     const unBlockedIds = this.state.selections;
-    BlockedSendersStore.unBlockIds(unBlockedIds);
+    const blockedIdEmailMapping = new Map();
+    this.state.filterList.forEach(block => {
+      blockedIdEmailMapping.set(block.id, block.email);
+    });
+    const unBlockedEmails = unBlockedIds.map(id => blockedIdEmailMapping.get(id));
+    BlockedSendersStore.unBlockEmails(unBlockedEmails);
   }
 
-  _unBlockItem(id) {
-    BlockedSendersStore.unBlockIds([id]);
+  _unBlockItem(email) {
+    BlockedSendersStore.unBlockEmails([email]);
   }
 
   render() {
@@ -167,7 +172,7 @@ class BlockedSenders extends React.Component {
                 />
                 <span>{blocked.name}</span>
                 {blocked.email}
-                <span className="unblockBtn" onClick={() => this._unBlockItem(blocked.id)}>
+                <span className="unblockBtn" onClick={() => this._unBlockItem(blocked.email)}>
                   Unblock
                 </span>
               </li>
