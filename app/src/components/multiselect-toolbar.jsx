@@ -114,10 +114,13 @@ class MultiselectToolbar extends Component {
 
   selectionLabel = () => {
     const { selectionCount, collection } = this.props;
-    if (selectionCount > 1) {
-      return `${selectionCount} ${collection}s selected`;
-    } else if (selectionCount === 1) {
-      return `${selectionCount} ${collection} selected`;
+    // if (selectionCount > 1) {
+    //   return `${selectionCount} ${collection}s selected`;
+    // } else if (selectionCount === 1) {
+    //   return `${selectionCount} ${collection} selected`;
+    // }
+    if (selectionCount > 0) {
+      return `${selectionCount} selected`;
     }
     return '';
   };
@@ -350,7 +353,7 @@ class MultiselectToolbar extends Component {
     const checkStatus = this.checkStatus();
     const current = FocusedPerspectiveStore.current();
     let threadCounts = 0;
-    const lastUpdate = FocusedPerspectiveStore.getLastUpdatedTime();
+    // const lastUpdate = FocusedPerspectiveStore.getLastUpdatedTime();
     if (current && current._categories && current._categories.length) {
       // 'Unread' is not a folder, don't display count
       if (current.name !== 'Unread' && current._categories && current._categories.length > 0) {
@@ -377,19 +380,16 @@ class MultiselectToolbar extends Component {
     return (
       <div className={classes} key="absolute">
         <div className="inner">
-          <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
-            {/* <div className="selection-label">{this.selectionLabel()}</div> */}
+          <div className="flex-row">
+            <div className="selection-label">{this.selectionLabel()}</div>
             <button className="btn clickable btn-toggle-select-all" onClick={this._selectAll}>
               Select all ({this._formatNumber(totalCount)})
             </button>
-            {/* <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
+            <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
               Clear Selection
-                </button> */}
-            {/* {WorkspaceStore.layoutMode() === 'list' ? (
-              <div className="divider" key="thread-list-tool-bar-divider" />
-            ) : null} */}
-            {toolbarElement}
+            </button>
           </div>
+          {toolbarElement}
         </div>
       </div>
     );

@@ -15,6 +15,7 @@ import {
 } from 'mailspring-exports';
 import { remote } from 'electron';
 import ThreadListStore from './thread-list-store';
+import ToolbarCategoryPicker from '../../category-picker/lib/toolbar-category-picker';
 
 const { Menu, MenuItem } = remote;
 const commandCb = (event, cb, cbArgs) => {
@@ -659,7 +660,12 @@ export class ThreadListMoreButton extends React.Component {
 
   render() {
     return (
-      <button tabIndex={-1} className="btn btn-toolbar btn-list-more" onClick={this._more}>
+      <button
+        ref={el => this._anchorEl = el}
+        tabIndex={-1}
+        className="btn btn-toolbar btn-list-more"
+        onClick={this._more}
+      >
         <RetinaImg
           name="more.svg"
           style={{ width: 24, height: 24 }}
@@ -836,6 +842,22 @@ export const MoveButtons = CreateButtonGroup(
     // Divider
   ],
   { order: -109 },
+);
+
+export const ThreadListToolbarButtons = CreateButtonGroup(
+  'ThreadListToolbarButtons',
+  [
+    ArchiveButton,
+    MarkAsSpamButton,
+    HiddenGenericRemoveButton,
+    TrashButton,
+    ToggleStarredButton,
+    HiddenToggleImportantButton,
+    ToggleUnreadButton,
+    ThreadListMoreButton,
+    ToolbarCategoryPicker
+  ],
+  { order: 1 },
 );
 
 export const DownButton = () => {
