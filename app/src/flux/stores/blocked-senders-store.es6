@@ -34,6 +34,7 @@ class BlockedSendersStore extends MailspringStore {
     });
     this.basicData = blocks;
     this.blockedSenders = blockDeDuplication;
+    Actions.queueTask(new GetBlockListTask());
     this.trigger();
   };
 
