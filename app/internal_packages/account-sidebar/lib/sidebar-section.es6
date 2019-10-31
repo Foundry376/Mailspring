@@ -4,6 +4,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import Sift from '../../../src/flux/models/sift';
 const _ = require('underscore');
 const {
   Actions,
@@ -119,6 +120,22 @@ class SidebarSection {
       if (outboxCount.total > 0) {
         ret.items.unshift(outbox);
       }
+      let folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Travel);
+      if (folderItem) {
+        ret.items.push(folderItem);
+      }
+      folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Packages);
+      if (folderItem) {
+        ret.items.push(folderItem);
+      }
+      folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Bill);
+      if (folderItem) {
+        ret.items.push(folderItem);
+      }
+      folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Entertainment);
+      if (folderItem) {
+        ret.items.push(folderItem);
+      }
       return ret;
     } else {
       if (outboxCount.total > 0) {
@@ -170,6 +187,22 @@ class SidebarSection {
       items.push(folderItem);
     }
     folderItem = SidebarItem.forSentMails(accountIds, { dispalyName: 'All Sent' });
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Travel);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Packages);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Bill);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Entertainment);
     if (folderItem) {
       items.push(folderItem);
     }

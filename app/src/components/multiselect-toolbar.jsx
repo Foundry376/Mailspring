@@ -37,11 +37,14 @@ class MultiselectToolbar extends Component {
     dataSource: PropTypes.object,
     renderFilterSelection: PropTypes.bool,
     renderRefresh: PropTypes.bool,
+    refreshOnClick: PropTypes.func,
     selectAllSelectionFilter: PropTypes.func,
+    renderCheckMark: PropTypes.bool,
   };
   static defaultProps = {
     renderFilterSelection: true,
     renderRefresh: true,
+    renderCheckMark: true,
     selectAllSelectionFilter: null,
   };
 
@@ -241,6 +244,9 @@ class MultiselectToolbar extends Component {
       const accounts = FocusedPerspectiveStore.refreshPerspectiveMessages();
       this.setState({ refreshingMessages: true, cachedSyncFolderData: accounts });
       this.stopRefreshingTimer = setTimeout(this.stopRefreshing, stopRefreshingDelay);
+      if (typeof this.props.refreshOnClick === 'function') {
+        this.props.refreshOnClick();
+      }
     }
   };
 
@@ -337,6 +343,14 @@ class MultiselectToolbar extends Component {
     return null;
   }
 
+  renderCheckMark(checkStatus) {
+    if (this.props.renderCheckMark) {
+      return <div className={'checkmark ' + checkStatus} onClick={this.onToggleSelectAll}></div>;
+    } else {
+      return null;
+    }
+  }
+
   renderToolbar() {
     const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
     let totalCount = 0;
@@ -377,7 +391,7 @@ class MultiselectToolbar extends Component {
     return (
       <div className={classes} key="absolute">
         <div className="inner">
-          <div className={'checkmark ' + checkStatus} onClick={this.onToggleSelectAll}></div>
+          {this.renderCheckMark(checkStatus)}
           {this.renderFilterSelection()}
           {selectionCount > 0 ? (
             <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>

@@ -1426,4 +1426,9 @@ export default class AppEnvConstructor {
   mockReportError(str = {}, extra = {}, opts = {}) {
     this.reportError(new Error(str), extra, opts);
   }
+
+  syncSiftFolders(){
+    const { Actions } = require('mailspring-exports');
+    Actions.syncSiftFolder({categories: ["Travel", "Packages", "Bill & Receipts", "Entertainment"]});
+  }
 }

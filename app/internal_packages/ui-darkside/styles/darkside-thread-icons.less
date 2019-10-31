@@ -2,6 +2,7 @@
 
 // Remove inverted color effects
 .thread-list .focused .thread-icon,
+.sift-list .focused .thread-icon,
 .draft-list .focused .thread-icon,
 .outbox-list .focused .thread-icon,
 .thread-list .focused .draft-icon,
@@ -9,28 +10,34 @@
 .draft-list .focused .draft-icon,
 .thread-list .focused .mail-important-icon,
 .outbox-list .focused .mail-important-icon,
+.sift-list .focused .mail-important-icon,
 .draft-list .focused .mail-important-icon,
+.sift-list.handler-split .list-item.selected .thread-icon,
 .thread-list.handler-split .list-item.selected .thread-icon,
 .thread-list.handler-split .list-item.selected .draft-icon,
-.thread-list.handler-split .list-item.selected .mail-important-icon {
+.thread-list.handler-split .list-item.selected .mail-important-icon,
+.sift-list.handler-split .list-item.selected .mail-important-icon {
   -webkit-filter: none !important;
 }
 
 // Base settings for replacing backgrounds with -webkit-filters for easier color changes
-.thread-list .thread-icon {
+.thread-list .thread-icon,
+.sift-list .thread-icon {
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: 12px;
   -webkit-mask-position: center;
 }
 
 // Change color of unread dot icon
-.thread-list .thread-icon.thread-icon-unread {
+.thread-list .thread-icon.thread-icon-unread,
+.sift-list .thread-icon.thread-icon-unread {
   background-image: none;
   background-color: @accent;
   -webkit-mask-image: url(../static/images/thread-list/icon-unread-@2x.png);
 }
 
 // replace undread icon with star icon on thread item hover
+.sift-list .list-item:hover .thread-icon.thread-icon-unread,
 .thread-list .list-item:hover .thread-icon.thread-icon-unread {
   background-color: tint(@sidebar);
   -webkit-mask-image: url(../static/images/thread-list/icon-star-@2x.png);
@@ -40,6 +47,8 @@
 }
 
 // Replace outlined star icon with solid one
+.sift-list .thread-icon.thread-icon-star,
+.sift-list .thread-icon-star-on-hover:hover,
 .thread-list .thread-icon.thread-icon-star,
 .thread-list .thread-icon-star-on-hover:hover {
   background-color: tint(@sidebar);
@@ -47,6 +56,7 @@
 }
 
 // for Read messages, use the solid star on item hover as well
+.sift-list .list-item:hover .thread-icon-none,
 .thread-list .list-item:hover .thread-icon-none {
   background-image: none;
   background-color: tint(@sidebar);
@@ -54,6 +64,7 @@
 }
 
 // Make the star a bit darker on direct hover
+.sift-list .list-item:hover .thread-icon-none:hover,
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: none;
   background-color: tint(@sidebar, 20%);
@@ -66,6 +77,10 @@
 }
 
 // The gradient behind threadlist hover icons (Snooze, Arvhive Delete)
+.sift-list .list-item:hover .list-column-HoverActions .inner,
+.sift-list .list-item.focused:hover .list-column-HoverActions .inner,
+.sift-list .list-item.selected:hover .list-column-HoverActions .inner,
+.sift-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner,
 .outbox-list .list-item:hover .list-column-HoverActions .inner,
 .outbox-list .list-item.focused:hover .list-column-HoverActions .inner,
 .outbox-list .list-item.selected:hover .list-column-HoverActions .inner,
@@ -82,6 +97,8 @@
   );
 }
 
+.sift-list .list-item.focused:hover .list-column-HoverActions .inner .action,
+.sift-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner .action,
 .outbox-list .list-item.focused:hover .list-column-HoverActions .inner .action,
 .outbox-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner .action,
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner .action,
@@ -89,6 +106,7 @@
   -webkit-filter: none;
 }
 
+.sift-list .list-item.focused:hover .list-column-HoverActions .inner .action.action-trash,
 .outbox-list .list-item.focused:hover .list-column-HoverActions .inner .action.action-trash,
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner .action.action-trash {
   background: url('../static/images/thread-list-quick-actions/ic-quick-button-trash@2x.png') center

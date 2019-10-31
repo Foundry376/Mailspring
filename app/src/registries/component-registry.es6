@@ -63,7 +63,7 @@ class ComponentRegistry extends MailspringStore {
 
     const { locations, modes, roles } = this._pluralizeDescriptor(options);
     if (!roles && !locations) {
-      throw new Error('ComponentRegistry.register() requires `role` or `location`');
+      throw new Error(`ComponentRegistry.register() for ${component.displayName} requires 'role' or 'location'`);
     }
 
     if (

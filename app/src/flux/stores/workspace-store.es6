@@ -96,6 +96,14 @@ class WorkspaceStore extends MailspringStore {
           split: ['RootSidebar', 'Outbox', 'OutboxMessage'],
         }
       );
+      this.defineSheet(
+        'Sift',
+        { root: true },
+        {
+          split: ['RootSidebar', 'SiftList', 'MessageList'],
+          list: ['RootSidebar', 'SiftList']
+        }
+      );
     } else {
       this.defineSheet('Global');
     }

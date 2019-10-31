@@ -135,6 +135,8 @@ class OutlineViewItem extends Component {
       onSelect: PropTypes.func,
       onDelete: PropTypes.func,
       onEdited: PropTypes.func,
+      bgColor: PropTypes.string,
+      iconColor: PropTypes.string,
     }).isRequired,
   };
 
@@ -310,8 +312,13 @@ class OutlineViewItem extends Component {
 
   _renderIcon(item = this.props.item) {
     const styles = { width: 24, height: 24 };
-    if (item.bgColor) {
+    if (item.iconColor) {
+      styles.backgroundColor = item.iconColor;
+    } else if (item.bgColor) {
       styles.backgroundColor = item.bgColor;
+    }
+    if (item.iconStyles) {
+      Object.assign(styles, item.iconStyles);
     }
     return (
       <div className="icon">

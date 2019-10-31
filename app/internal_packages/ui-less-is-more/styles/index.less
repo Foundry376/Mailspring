@@ -241,6 +241,7 @@
 //====================================================
 
 // Thread list overrides
+.column-SiftList,
 .column-Outbox,
 .column-ThreadList,
 .list-container .list-item,
@@ -253,6 +254,7 @@
 }
 
 // Thread list padding overrides
+.column-SiftList,
 .column-Outbox,
 .column-ThreadList {
   padding: 5em 2em 1em;
@@ -275,6 +277,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Remove gradient on thread list during quick action hover
+.sift-list .list-item.selected:hover .list-column-HoverActions .inner,
+.sift-list .list-item:hover .list-column-HoverActions .inner,
 .outbox-list .list-item.selected:hover .list-column-HoverActions .inner,
 .outbox-list .list-item:hover .list-column-HoverActions .inner,
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner,
@@ -293,6 +297,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Remove gradients quick action buttons
+.sift-list .list-item .list-column-HoverActions .action.action-trash,
 .outbox-list .list-item .list-column-HoverActions .action.action-trash,
 .thread-list .list-item .list-column-HoverActions .action.action-trash {
   background: url('../static/images/thread-list-quick-actions/ic-quick-button-trash@2x.png') center
@@ -301,6 +306,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Remove gradients quick action buttons
+.sift-list .list-item .list-column-HoverActions .action.action-archive,
 .outbox-list .list-item .list-column-HoverActions .action.action-archive,
 .thread-list .list-item .list-column-HoverActions .action.action-archive {
   background: url('../static/images/thread-list-quick-actions/ic-quick-button-archive@2x.png')
@@ -309,6 +315,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Remove gradients quick action buttons
+.sift-list .list-item .list-column-HoverActions .action.action-snooze,
 .thread-list .list-item .list-column-HoverActions .action.action-snooze {
   background: url('../static/images/thread-list-quick-actions/ic-quickaction-snooze@2x.png') center
       no-repeat,
@@ -316,6 +323,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Change default color of star to gray
+.sift-list .thread-icon.thread-icon-star,
 .thread-list .thread-icon.thread-icon-star,
 .draft-list .thread-icon.thread-icon-star,
 .outbox-list .thread-icon.thread-icon-star{
@@ -449,6 +457,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 // Adjust color of archive swipe to green
 .thread-list .swipe-backing.swipe-all,
 .thread-list .swipe-backing.swipe-archive,
+.sift-list .swipe-backing.swipe-all,
+.sift-list .swipe-backing.swipe-archive,
 .outbox-list .swipe-backing.swipe-all,
 .outbox-list .swipe-backing.swipe-archive
 .draft-list .swipe-backing.swipe-all,
@@ -461,6 +471,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Adjust color of snooze swipe to yellow
 .thread-list .swipe-backing.swipe-snooze,
+.sift-list .swipe-backing.swipe-snooze,
 .outbox-list .swipe-backing.swipe-snooze,
 .draft-list .swipe-backing.swipe-snooze{
   background: @swipe-snooze;
@@ -471,7 +482,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Adjust color of trash swipe to red
 .thread-list .swipe-backing.swipe-trash,
-.outbox-list .swipe-backing.swipe-trash
+.sift-list .swipe-backing.swipe-trash,
+.outbox-list .swipe-backing.swipe-trash,
 .draft-list .swipe-backing.swipe-trash {
   background: @swipe-trash;
   &.confirmed {

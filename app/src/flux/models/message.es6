@@ -6,6 +6,7 @@ import Utils from './utils';
 import Event from './event';
 import Contact from './contact';
 import Folder from './folder';
+import Sift from './sift';
 import Attributes from '../attributes';
 import ModelWithMetadata from './model-with-metadata';
 import AccountStore from '../stores/account-store';
@@ -279,6 +280,14 @@ export default class Message extends ModelWithMetadata {
     }),
     hasCalendar: Attributes.Boolean({
       modelKey: 'hasCalendar',
+    }),
+    siftCategory: Attributes.Collection({
+      queryable: true,
+      modelKey: 'siftCategory',
+      joinOnField: 'id',
+      joinTableName: 'SiftData',
+      joinOnWhere: { state: 0 },
+      itemClass: Sift,
     }),
   });
 

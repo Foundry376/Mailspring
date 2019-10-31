@@ -123,9 +123,11 @@ export default class MailsyncBridge {
     Actions.fetchBodies.listen(this._onFetchBodies, this);
     Actions.fetchAttachments.listen(this._onFetchAttachments, this);
     Actions.syncFolders.listen(this._onSyncFolders, this);
+    Actions.syncSiftFolder.listen(this._onSyncSiftFolder, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
     Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
     Actions.forceKillAllClients.listen(this.forceKillClients, this);
+    Actions.forceDatabaseTrigger.listen(this._onIncomingChangeRecord, this);
     ipcRenderer.on('mailsync-config', this._onMailsyncConfigUpdate);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     // ipcRenderer.on('thread-close-window', this._onNewWindowClose);
@@ -1078,6 +1080,19 @@ export default class MailsyncBridge {
         aid: accountId,
         ids: foldersIds,
       });
+    }
+  }
+
+  _onSyncSiftFolder({ categories = [] } = {}) {
+    if (Array.isArray(categories)) {
+      this.sendMessageToAccount(
+        null,
+        {
+          type: 'sync-sifts',
+          categories,
+        },
+        mailSyncModes.SIFT,
+      );
     }
   }
 

@@ -290,7 +290,7 @@ export default class Toolbar extends React.Component {
           mode: state.mode,
         });
         // display searchbar in draftlist
-        if (loc.Toolbar.id === 'DraftList:Toolbar' || loc.Toolbar.id === 'Outbox:Toolbar') {
+        if (loc.Toolbar.id === 'DraftList:Toolbar' || loc.Toolbar.id === 'Outbox:Toolbar' || loc.Toolbar.id === 'SiftList:Toolbar') {
           const searchBar = ComponentRegistry.findComponentsMatching({
             role: 'Search-Bar',
           });

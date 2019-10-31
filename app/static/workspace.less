@@ -202,7 +202,7 @@ body.is-blurred {
   // cover up the vertical resizing separators, so the toolbar appears
   // to be one continuous bar.
   z-index: 10;
-
+  .toolbar-SiftList,
   .toolbar-Outbox,
   .toolbar-DraftList,
   .toolbar-ThreadList,
@@ -663,7 +663,7 @@ body.platform-win32 {
   -webkit-app-region: no-drag;
   flex-shrink: 0;
 }
-
+.column-SiftList,
 .column-Outbox,
 .column-OutboxMessage,
 .column-ThreadList,
@@ -673,11 +673,13 @@ body.platform-win32 {
   -webkit-app-region: no-drag;
   div {
     // This is for DC-182 reduce height because of thread-list-empty-bar
-    div:nth-child(2).key-commands-region.thread-list {
+    div:nth-child(2).key-commands-region.thread-list,
+    div:nth-child(2).key-commands-region.sift-list {
       height: calc(~'100% - 40px');
     }
   }
 }
+.column-SiftList,
 .column-Outbox,
 .column-ThreadList {
   overflow-x: hidden;
@@ -705,6 +707,7 @@ body.platform-win32 {
   padding-bottom: @search-bar-height;
   -webkit-app-region: no-drag;
 }
+.mode-list .column-SiftList,
 .mode-list .column-Outbox,
 .mode-list .column-ThreadList {
   flex: 1;

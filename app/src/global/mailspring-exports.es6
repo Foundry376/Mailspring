@@ -77,6 +77,7 @@ lazyLoadAndRegisterModel('Indicator', 'indicator');
 lazyLoadAndRegisterModel('ThreadCategory', 'thread-category');
 lazyLoadAndRegisterModel(`Account`, 'account');
 lazyLoadAndRegisterModel(`Message`, 'message');
+lazyLoadAndRegisterModel('Sift', 'sift');
 lazyLoadAndRegisterModel(`Contact`, 'contact');
 lazyLoadAndRegisterModel(`Category`, 'category');
 lazyLoadAndRegisterModel(`Calendar`, 'calendar');
@@ -159,6 +160,7 @@ load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
 load('DebugStore', 'flux/stores/debug-store');
 load('SystemInfoStore', 'flux/stores/system-info-store');
 load('CalendarStore', 'flux/stores/calendar-store');
+load('SiftStore', 'flux/stores/sift-store');
 lazyLoad('ThreadStore', 'flux/stores/thread-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);

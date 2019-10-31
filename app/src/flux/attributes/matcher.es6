@@ -81,6 +81,9 @@ class Matcher {
     const modelArrayContainsValue = (array, searchItem) => {
       const asId = v => (v && v.id ? v.id : v);
       const search = asId(searchItem);
+      if(!Array.isArray(array)){
+        console.log(`\nnot array ${array}\n`);
+      }
       for (const item of array) {
         if (asId(item) === search) {
           return true;
@@ -133,6 +136,8 @@ class Matcher {
         return valueNotIn(matcherValue, modelValue);
       case 'contains':
         return modelArrayContainsValue(modelValue, matcherValue);
+      case 'containsAnyAtCategory':
+        return true;
       case 'containsAny':
         return !!matcherValue.find(submatcherValue =>
           modelArrayContainsValue(modelValue, submatcherValue),
@@ -157,6 +162,7 @@ class Matcher {
   joinSQL(klass) {
     switch (this.comparator) {
       case 'contains':
+      case 'containsAnyAtCategory':
       case 'containsAny': {
         const joinTable = this.attr.tableNameForJoinAgainst(klass);
         const joinTableRef = this.joinTableRef();
@@ -288,6 +294,8 @@ class Matcher {
           return `\`${this.joinTableRef()}\`.\`value\` = ${escaped}`;
         case 'containsAny':
           return `\`${this.joinTableRef()}\`.\`value\` IN ${escaped} ${andSql}`;
+        case 'containsAnyAtCategory':
+          return `\`${this.joinTableRef()}\`.\`category\` IN ${escaped} ${andSql}`;
         default:
           return `\`${this.joinTableRef()}\`.\`${this.attr.tableColumn}\` ${this.comparator} ${escaped}`;
       }
@@ -311,6 +319,8 @@ class Matcher {
         return `\`${this.joinTableRef()}\`.\`value\` = ${escaped}`;
       case 'containsAny':
         return `\`${this.joinTableRef()}\`.\`value\` IN ${escaped} ${andSql}`;
+      case 'containsAnyAtCategory':
+        return `\`${this.joinTableRef()}\`.\`category\` IN ${escaped} ${andSql}`;
       default:
         return `\`${klass.name}\`.\`${this.attr.tableColumn}\` ${this.comparator} ${escaped}`;
     }
