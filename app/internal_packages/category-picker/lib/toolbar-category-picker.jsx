@@ -62,7 +62,12 @@ class MovePicker extends React.Component {
       return;
     }
     let originRect;
-    if (anchorEl) {
+    if (event
+      && event.target
+      && event.target.getBoundingClientRect) {
+      originRect = event.target.getBoundingClientRect();
+    }
+    else if (anchorEl) {
       originRect = anchorEl.getBoundingClientRect();
     } else if (this._labelEl && this._labelEl.getBoundingClientRect) {
       if (this._labelEl.getBoundingClientRect().left === 0) {
@@ -144,9 +149,12 @@ class MovePicker extends React.Component {
     }
     let originRect;
     if (anchorEl
+      && anchorEl.detail
+      && anchorEl.detail.getBoundingClientRect) {
+      originRect = anchorEl.detail.getBoundingClientRect();
+    } else if (anchorEl
       && anchorEl.target
-      && anchorEl.target.getBoundingClientRect
-      && !(anchorEl instanceof CustomEvent)) {
+      && anchorEl.target.getBoundingClientRect) {
       originRect = anchorEl.target.getBoundingClientRect();
     } else if (anchorEl && anchorEl.getBoundingClientRect) {
       originRect = anchorEl.getBoundingClientRect();
