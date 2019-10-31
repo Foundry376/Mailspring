@@ -4,8 +4,8 @@ import Actions from '../actions';
 
 export default class UnBlockContactTask extends SiftTask {
   static attributes = Object.assign({}, SiftTask.attributes, {
-    accountId: Attributes.Number({
-      modelKey: 'accountId',
+    aid: Attributes.String({
+      modelKey: 'aid',
     }),
     email: Attributes.String({
       modelKey: 'email',
@@ -13,7 +13,7 @@ export default class UnBlockContactTask extends SiftTask {
   });
   constructor({ accountId, email, ...rest } = {}) {
     super(rest);
-    this.accountId = accountId;
+    this.aid = accountId;
     this.email = email;
   }
 
