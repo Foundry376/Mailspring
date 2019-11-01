@@ -4,10 +4,6 @@
   background-color: @cards;
 }
 
-.btn.btn-toggle-select-all {
-  background-color: inherit;
-}
-
 .layout-mode-popout .message-list-toolbar .item-container,
 .sift-list .list-item .list-column-HoverActions .action,
 .outbox-list .list-item .list-column-HoverActions .action,
@@ -96,6 +92,13 @@
 .outbox-list .list-item:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(left, fade(@list-bg, 0%) 0%, @list-bg 50%, @list-bg 100%);
+}
+
+.list-tabular .selection-bar .multiselect-toolbar-root .inner {
+  .btn-clear-all,
+  .btn-toggle-select-all {
+    background: @cards;
+  }
 }
 
 // composer start
