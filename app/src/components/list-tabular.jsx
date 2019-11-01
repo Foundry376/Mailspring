@@ -422,7 +422,9 @@ class ListTabular extends Component {
       Toolbar = ComponentRegistry.findComponentsMatching({ role: 'DraftListToolbar' })[0];
     } else if (current.outbox) {
       Toolbar = ComponentRegistry.findComponentsMatching({ role: 'OutboxListToolbar'})[0];
-    } else{
+    } else if (current.sift) {
+      Toolbar = ComponentRegistry.findComponentsMatching({ role: 'SiftListToolbar' })[0];
+    } else {
       Toolbar = ComponentRegistry.findComponentsMatching({ role: 'ThreadListToolbar' })[0];
     }
     let hasEmptyBar = '';

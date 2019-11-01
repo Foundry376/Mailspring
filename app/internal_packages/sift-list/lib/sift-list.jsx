@@ -1,19 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
-import { Actions, OutboxStore, Message, WorkspaceStore } from 'mailspring-exports';
+import classnames from 'classnames';
+import { Actions, SiftStore, Message, WorkspaceStore, ThreadStore } from 'mailspring-exports';
 import {
   FluxContainer,
   FocusContainer,
   EmptyListState,
   MultiselectList,
 } from 'mailspring-component-kit';
-import OutboxListColumns from './outbox-list-columns';
+import SiftListColumns from './sift-list-columns';
 
 const buttonTimer = 500;
 
-class OutboxList extends React.Component {
-  static displayName = 'OutboxList';
+class SiftList extends React.Component {
+  static displayName = 'SiftList';
   static containerRequired = true;
 
   static containerStyles = {
@@ -42,7 +43,7 @@ class OutboxList extends React.Component {
     clearTimeout(this._deletingTimer);
   }
 
-  _calcScrollPosition = _.throttle(scrollTop => {
+  _calcScrollPosition = _.throttle((scrollTop) => {
     const toolbar = document.querySelector('.outbox-list .outbox-list-toolbar');
     if (toolbar) {
       if (scrollTop > 0) {
@@ -71,61 +72,74 @@ class OutboxList extends React.Component {
       this.setState({ style: desired });
     }
   };
+
+  _itemPropsProvider = item => {
+    let classes = classnames({
+      unread: item.unread,
+    });
+    return { className: classes };
+  };
+  _onFocusItem = message => {
+    Actions.setFocus({ collection: 'sift', item: message });
+    ThreadStore.findBy({ threadId: message.threadId }).then(result => {
+      Actions.setFocus({ collection: 'thread', item: result });
+    });
+  };
+  _onSetCursorPosition = message => {
+    Actions.setCursorPosition({ collection: 'sift', item: message });
+    ThreadStore.findBy({ threadId: message.threadId }).then(result => {
+      Actions.setCursorPosition({ collection: 'thread', item: result });
+    });
+  };
   render() {
-    const itemHeight = 105;
+    const layoutMode = WorkspaceStore.layoutMode();
+    let columns;
+    let additionalClassName;
+    let itemHeight;
+    if (this.state.style === 'wide' || layoutMode === 'list') {
+      columns = SiftListColumns.Wide;
+      additionalClassName = 'sift-list-wide';
+      itemHeight = 55;
+    } else {
+      columns = SiftListColumns.Narrow;
+      additionalClassName = 'sift-list-narrow';
+      itemHeight = 105;
+    }
     return (
       <FluxContainer
-        stores={[OutboxStore]}
+        stores={[SiftStore]}
         getStateFromStores={() => {
-          return { dataSource: OutboxStore.dataSource() };
+          return { dataSource: SiftStore.dataSource() };
         }}
       >
-        <FocusContainer collection="outbox">
+        <FocusContainer
+          collection="sift"
+          onFocusItem={this._onFocusItem}
+          onSetCursorPosition={this._onSetCursorPosition}
+        >
           <MultiselectList
-            className="outbox-list outbox-list-narrow"
-            columns={OutboxListColumns.Narrow}
+            className={`sift-list ${additionalClassName}`}
+            columns={columns}
             itemHeight={itemHeight}
             EmptyComponent={EmptyListState}
-            keymapHandlers={this._keymapHandlers()}
-            columnCheckProvider={this._itemCheckProvider}
+            columnCheckProvider={this._columnCheckProvider}
             itemPropsProvider={this._itemPropsProvider}
+            keymapHandlers={this._keymapHandlers()}
             onScroll={this._onScroll}
           />
         </FocusContainer>
       </FluxContainer>
     );
   }
-
-  _itemCheckProvider = (draft, onClick) => {
-    if (Message.compareMessageState(draft.state, Message.messageState.failing)) {
-      return null;
-    }
-    const toggle = event => {
-      if (draft.state !== parseInt(Message.messageState.failing)) {
-        onClick(event);
-      }
-      event.stopPropagation();
-    };
-    return (
-      <div className="checkmark" onClick={toggle}>
-        <div className="inner" />
-      </div>
-    );
-  };
-
-  _itemPropsProvider = draft => {
-    const props = {};
-    if (draft.state === parseInt(Message.messageState.failing)) {
-      props.className = 'sending';
-    }
-    return props;
+  _columnCheckProvider = () => {
+    return null;
   };
 
   _keymapHandlers = () => {
     return {
       'core:delete-item': this._onRemoveFromView,
-      // 'core:gmail-remove-from-view': this._onRemoveFromView,
-      // 'core:remove-from-view': this._onRemoveFromView,
+      'core:gmail-remove-from-view': this._onRemoveFromView,
+      'core:remove-from-view': this._onRemoveFromView,
     };
   };
   _changeBackToNotDeleting = () => {
@@ -144,11 +158,11 @@ class OutboxList extends React.Component {
     if (!this.state.isDeleting && !this._deletingTimer) {
       this._changeBackToNotDeleting();
       this.setState({ isDeleting: true });
-      for (const draft of OutboxStore.dataSource().selection.items()) {
-        Actions.destroyDraft(draft);
+      for (const draft of SiftStore.dataSource().selection.items()) {
+        // Actions.destroyDraft(draft);
       }
     }
   };
 }
 
-module.exports = OutboxList;
+module.exports = SiftList;

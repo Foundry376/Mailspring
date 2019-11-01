@@ -1,0 +1,11 @@
+{
+  "name": "sift-list",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "View Sift Data",
+  "license": "GPL-3.0",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  }
+}

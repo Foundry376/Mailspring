@@ -8,6 +8,7 @@ import SetObservableRangeTask from './models/set-observable-range-task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 import Account from './models/account';
+import Sift from './models/sift';
 import AccountStore from './stores/account-store';
 import DatabaseStore from './stores/database-store';
 import OnlineStatusStore from './stores/online-status-store';
@@ -123,9 +124,11 @@ export default class MailsyncBridge {
     Actions.fetchBodies.listen(this._onFetchBodies, this);
     Actions.fetchAttachments.listen(this._onFetchAttachments, this);
     Actions.syncFolders.listen(this._onSyncFolders, this);
+    Actions.syncSiftFolder.listen(this._onSyncSiftFolder, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
     Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
     Actions.forceKillAllClients.listen(this.forceKillClients, this);
+    Actions.forceDatabaseTrigger.listen(this._onIncomingChangeRecord, this);
     ipcRenderer.on('mailsync-config', this._onMailsyncConfigUpdate);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     // ipcRenderer.on('thread-close-window', this._onNewWindowClose);
@@ -310,6 +313,7 @@ export default class MailsyncBridge {
         }
       }
     }
+    this._onSyncSiftFolder()
   }
 
   async sendMessageToAccount(accountId, json, mailSyncMode = mailSyncModes.SYNC) {
@@ -1078,6 +1082,19 @@ export default class MailsyncBridge {
         aid: accountId,
         ids: foldersIds,
       });
+    }
+  }
+
+  _onSyncSiftFolder({ categories = [Sift.categories.Entertainment, Sift.categories.Packages, Sift.categories.Travel, Sift.categories.Bill] } = {}) {
+    if (Array.isArray(categories)) {
+      this.sendMessageToAccount(
+        null,
+        {
+          type: 'sync-sifts',
+          categories,
+        },
+        mailSyncModes.SIFT,
+      );
     }
   }
 

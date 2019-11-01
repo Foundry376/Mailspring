@@ -54,7 +54,7 @@ class WorkspaceStore extends MailspringStore {
       });
     } else {
       webFrame.setZoomFactor(1);
-      AppEnv.config.observe('core.workspace.interfaceZoom', () => {});
+      AppEnv.config.observe('core.workspace.interfaceZoom', () => { });
     }
   }
 
@@ -80,20 +80,46 @@ class WorkspaceStore extends MailspringStore {
         'Threads',
         { root: true },
         {
-          list: ['RootSidebar', 'ThreadList', 'QuickSidebar', 'MessageListSidebar'],
-          split: ['RootSidebar', 'ThreadList', 'MessageList', 'QuickSidebar', 'MessageListSidebar'],
+          list: [
+            'RootSidebar',
+            'ThreadList',
+            'QuickSidebar',
+            'MessageListSidebar'
+          ],
+          split: [
+            'RootSidebar',
+            'ThreadList',
+            'MessageList',
+            'QuickSidebar',
+            'MessageListSidebar'
+          ],
         }
       );
       this.defineSheet(
         'Thread',
         {},
-        { list: ['RootSidebar', 'MessageList', 'QuickSidebar', 'MessageListSidebar'] }
+        {
+          list: [
+            'RootSidebar',
+            'MessageList',
+            'QuickSidebar',
+            'MessageListSidebar'
+          ]
+        }
       );
       this.defineSheet(
         'Outbox',
         { root: true },
         {
           split: ['RootSidebar', 'Outbox', 'OutboxMessage'],
+        }
+      );
+      this.defineSheet(
+        'Sift',
+        { root: true },
+        {
+          split: ['RootSidebar', 'SiftList', 'MessageList'],
+          list: ['RootSidebar', 'SiftList']
         }
       );
     } else {
@@ -353,7 +379,7 @@ class WorkspaceStore extends MailspringStore {
     // make toolbar display
     if (
       (this.topSheet() &&
-        ['Threads', 'Thread', 'Drafts', 'ChatView', 'Outbox'].includes(this.topSheet().id)) ||
+        ['Threads', 'Thread', 'Drafts', 'ChatView', 'Outbox', 'Sift'].includes(this.topSheet().id)) ||
       sheet.id === 'ChatView'
     ) {
       setTimeout(() => {

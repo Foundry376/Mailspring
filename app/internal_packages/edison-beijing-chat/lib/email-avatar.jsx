@@ -39,6 +39,11 @@ export default class EmailAvatar extends Component {
         name: props.account.name,
         email: props.account.email,
       };
+    } else if (props.name) {
+      from = {
+        name: props.name,
+        email: null,
+      };
     }
 
     const isListModel = props.mode && props.mode === 'list';

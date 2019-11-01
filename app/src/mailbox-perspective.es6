@@ -13,12 +13,15 @@ import FolderSyncProgressStore from './flux/stores/folder-sync-progress-store';
 import MutableQuerySubscription from './flux/models/mutable-query-subscription';
 import UnreadQuerySubscription from './flux/models/unread-query-subscription';
 import Thread from './flux/models/thread';
+import Message from './flux/models/message';
+import Sift from './flux/models/sift';
 import Category from './flux/models/category';
 import Label from './flux/models/label';
 import Folder from './flux/models/folder';
 import Actions from './flux/actions';
 import Matcher from './flux/attributes/matcher';
 import { LabelColorizer } from 'mailspring-component-kit';
+import RetinaImg from './components/retina-img';
 
 let WorkspaceStore = null;
 let ChangeStarredTask = null;
@@ -46,6 +49,9 @@ export default class MailboxPerspective {
 
   static forDrafts(accountsOrIds) {
     return new DraftsMailboxPerspective(accountsOrIds);
+  }
+  static forSiftCategory({ siftCategory, accountIds } = {}) {
+    return new SiftMailboxPerspective({ siftCategory, accountIds });
   }
 
   static forAllMail(allMailCategory) {
@@ -160,6 +166,13 @@ export default class MailboxPerspective {
       }
       if (json.type === DraftsMailboxPerspective.name) {
         return this.forDrafts(json.accountIds);
+      }
+      if (json.type === SiftMailboxPerspective.name) {
+        const data = JSON.parse(json.serializedCategories);
+        return this.forSiftCategory({
+          siftCategory: data.siftCategory,
+          accountsOrIds: json.accountIds,
+        });
       }
       return this.forInbox(json.accountIds);
     } catch (error) {
@@ -486,6 +499,61 @@ class DraftsMailboxPerspective extends MailboxPerspective {
       WorkspaceStore = require('./flux/stores/workspace-store');
     }
     return WorkspaceStore.Sheet && WorkspaceStore.Sheet.Drafts;
+  }
+}
+class SiftMailboxPerspective extends MailboxPerspective{
+  constructor({ siftCategory, accountIds = [''] } = {}) {
+    super(accountIds);
+    this.name = siftCategory;
+    this.sift = true; // Mark this perspective as sift;
+    this.siftCategory = siftCategory;
+    if (siftCategory === Sift.categories.Travel) {
+      this.iconName = 'flight.svg';
+      this.iconColor = '#1293fd';
+    } else if (siftCategory === Sift.categories.Bill) {
+      this.iconName = 'finance.svg';
+      this.iconColor = 'green';
+    } else if (siftCategory === Sift.categories.Packages) {
+      this.iconName = `${siftCategory.toLocaleLowerCase()}.svg`;
+      this.iconColor = 'purple';
+    } else if (siftCategory === Sift.categories.Entertainment) {
+      this.iconName = `${siftCategory.toLocaleLowerCase()}.svg`;
+      this.iconColor = 'orange';
+    }
+    this.iconStyles = { borderRadius: '12px' };
+    this.mode = RetinaImg.Mode.ContentLight;
+    this._categories = [];
+  }
+
+  threads() {
+    return null;
+  }
+  messages() {
+    const siftCategory = Sift.categoryStringToIntString(this.siftCategory);
+    const query = DatabaseStore.findAll(Message)
+      .include(Message.attributes.body).include(Message.attributes.isPlainText)
+      .where([Message.attributes.siftCategory.containsAnyAtColumn('category', [siftCategory])])
+      .where({ state: 0, draft: false })
+      .order([Message.attributes.date.descending()])
+      .page(0, 1).distinct();
+    return new MutableQuerySubscription(query, { emitResultSet: true });
+  }
+
+  canReceiveThreadsFromAccountIds() {
+    return false;
+  }
+
+  sheet() {
+    if (!WorkspaceStore || !WorkspaceStore.Sheet) {
+      WorkspaceStore = require('./flux/stores/workspace-store');
+    }
+    return WorkspaceStore.Sheet && WorkspaceStore.Sheet.Sift;
+  }
+
+  toJSON() {
+    const json = super.toJSON();
+    json.serializedCategories = JSON.stringify({ siftCategory: this.siftCategory });
+    return json;
   }
 }
 

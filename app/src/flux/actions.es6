@@ -497,6 +497,7 @@ class Actions {
   static removeAttachment = ActionScopeWindow;
 
   static syncFolders = ActionScopeMainWindow;
+  static syncSiftFolder = ActionScopeMainWindow;
   static fetchBodies = ActionScopeMainWindow;
   static fetchAttachmentsByMessage = ActionScopeWindow;
   static fetchAttachments = ActionScopeMainWindow;
@@ -591,6 +592,8 @@ class Actions {
   static hideEmptyMessageList = ActionScopeWindow;
 
   static forceKillAllClients = ActionScopeWindow;
+
+  static forceDatabaseTrigger = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

@@ -155,7 +155,14 @@ class OutboxStore extends MailspringStore {
         Actions.setFocus({ collection: 'outbox', item: null });
       }
       this._selectedDraft = null;
-      this.dataSource().selection.clear();
+      // if (typeof this._dataSourceUnlisten === 'function') {
+      //   this._dataSourceUnlisten();
+      // }
+      // if (this._dataSource) {
+      //   this.dataSource().selection.clear();
+      //   this._dataSource.cleanup();
+      //   this._dataSource = null;
+      // }
       this.trigger();
     }
   };
@@ -186,11 +193,11 @@ class OutboxStore extends MailspringStore {
     );
 
     this._dataSource = new ObservableListDataSource($resultSet, subscription.replaceRange);
-    this._dataSourceUnlisten = this._dataSource.listen(this._onDataChanged, this);
+    this._dataSourceUnlisten = this._dataSource.listen(this._onDataSourceChanged, this);
     this._dataSource.setRetainedRange({ start: 0, end: 50 });
     this.trigger(this);
   };
-  _onDataChanged = ({ previous, next } = {}) => {
+  _onDataSourceChanged = ({ previous, next } = {}) => {
     if (next) {
       const total = next.count();
       const failed = this._numberOfFailedDrafts(next.models());

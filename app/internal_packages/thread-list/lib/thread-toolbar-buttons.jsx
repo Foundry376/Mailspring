@@ -15,6 +15,7 @@ import {
 } from 'mailspring-exports';
 import { remote } from 'electron';
 import ThreadListStore from './thread-list-store';
+import ToolbarCategoryPicker from '../../category-picker/lib/toolbar-category-picker';
 
 const { Menu, MenuItem } = remote;
 const commandCb = (event, cb, cbArgs) => {
@@ -597,6 +598,21 @@ export class ThreadListMoreButton extends React.Component {
     const selectionCount = this.props.items ? this.props.items.length : 0;
     const menu = new Menu();
     if (selectionCount > 0) {
+      menu.append(
+        new MenuItem({
+          label: 'Move to Folder',
+          click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
+        })
+      );
+      const account = AccountStore.accountForItems(this.props.items);
+      if (account && account.usesLabels()) {
+        menu.append(
+          new MenuItem({
+            label: 'Apply Labels',
+            click: () => AppEnv.commands.dispatch('core:change-labels', this._anchorEl),
+          })
+        );
+      }
       if (this.props.items.every(item => item.unread)) {
         menu.append(
           new MenuItem({
@@ -686,7 +702,12 @@ export class ThreadListMoreButton extends React.Component {
 
   render() {
     return (
-      <button tabIndex={-1} className="btn btn-toolbar btn-list-more" onClick={this._more}>
+      <button
+        ref={el => (this._anchorEl = el)}
+        tabIndex={-1}
+        className="btn btn-toolbar btn-list-more"
+        onClick={this._more}
+      >
         <RetinaImg
           name="more.svg"
           style={{ width: 24, height: 24 }}
@@ -862,8 +883,30 @@ export const ThreadEmptyMoreButtons = CreateButtonGroup(
 
 export const MoveButtons = CreateButtonGroup(
   'MoveButtons',
-  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
+  [
+    ArchiveButton,
+    MarkAsSpamButton,
+    HiddenGenericRemoveButton,
+    TrashButton,
+    // Divider
+  ],
   { order: -109 }
+);
+
+export const ThreadListToolbarButtons = CreateButtonGroup(
+  'ThreadListToolbarButtons',
+  [
+    ArchiveButton,
+    MarkAsSpamButton,
+    HiddenGenericRemoveButton,
+    TrashButton,
+    ToggleStarredButton,
+    HiddenToggleImportantButton,
+    ToggleUnreadButton,
+    ThreadListMoreButton,
+    ToolbarCategoryPicker,
+  ],
+  { order: 1 }
 );
 
 export const DownButton = () => {

@@ -4,6 +4,8 @@
 <dict>
 	<key>NSPrincipalClass</key>
 	<string>AtomApplication</string>
+	<key>NSRequiresAquaSystemAppearance</key>
+	<false/>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

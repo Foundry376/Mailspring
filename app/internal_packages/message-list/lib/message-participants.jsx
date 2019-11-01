@@ -170,7 +170,8 @@ export default class MessageParticipants extends React.Component {
         </span>,
         <span className="participant-name to-contact" key="to-value">
           {this._shortNames(toParticipants)}
-        </span>
+        </span>,
+        this.props.children
       );
     }
 

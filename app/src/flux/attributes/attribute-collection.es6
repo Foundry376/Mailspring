@@ -104,4 +104,12 @@ export default class AttributeCollection extends Attribute {
     this._assertPresentAndQueryable('contains', vals);
     return new Matcher(this, 'containsAny', vals);
   }
+  containsAnyAtColumn(column, vals){
+    this._assertPresentAndQueryable('contains', vals);
+    if (column === 'category') {
+      return new Matcher(this, 'containsAnyAtCategory', vals);
+    } else {
+      return new Matcher(this, 'containsAny', vals);
+    }
+  }
 }

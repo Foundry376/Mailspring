@@ -44,6 +44,34 @@ input:focus {
   outline: none;
 }
 
+.sift-list,
+.mode-list {
+  .list-item {
+    .participants {
+      width: 172px;
+      text-overflow: ellipsis;
+      display: inline-block;
+    }
+    .thread-icon {
+      &.thread-icon-unread,
+      &.thread-icon-star {
+        position: absolute;
+        left: 12px;
+      }
+    }
+    &.selected,
+    &:hover {
+      .thread-icon {
+        &.thread-icon-unread,
+        &.thread-icon-star {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+.sift-list,
 .outbox-list,
 .thread-list,
 .draft-list {
@@ -54,10 +82,10 @@ input:focus {
     height: 100%;
     -webkit-font-smoothing: subpixel-antialiased;
     .scrollbar-track {
-      height: calc(~'100% - 40px');
+      height: 100%;
     }
     .scroll-region-content {
-      height: calc(~'100% - 40px');
+      height: 100%;
     }
     &.has-empty-bar {
       .scroll-region-content {
@@ -264,7 +292,7 @@ input:focus {
   .showAvatar .mail-important-icon {
     margin-left: 4px;
   }
-
+  &.sift-list-narrow .mail-important-icon,
   &.thread-list-narrow .mail-important-icon {
     margin-right: 0px;
   }
@@ -295,6 +323,8 @@ input:focus {
     text-align: left;
     overflow: hidden;
     line-height: 24px;
+    display: flex;
+    align-items: center;
 
     &.no-recipients {
       color: @text-color-very-subtle;
@@ -357,7 +387,7 @@ input:focus {
       background: @white;
     }
     .timestamp {
-      color: @blue;
+      // color: @blue; // unread is still black
       opacity: 1;
     }
   }
@@ -405,7 +435,7 @@ input:focus {
     margin: auto 4px;
   }
   .thread-icon {
-    width: 25px;
+    width: 24px;
     height: 24px;
     flex-shrink: 0;
     background-size: 12px;
@@ -439,7 +469,7 @@ input:focus {
       .icon-mixin('../static/icons/feed-forward.svg', @gray-light);
     }
     &.thread-icon-star {
-      .icon-mixin('../static/icons/flag.svg', @orange, 24px);
+      .icon-mixin('../static/icons/menu-unread.svg', @orange, 24px); // display as a dot, not a flag
     }
   }
   .star-button {
@@ -461,6 +491,7 @@ input:focus {
   }
 }
 
+.sift-list-empty-folder-bar,
 .outbox-list-empty-folder-bar,
 .thread-list-empty-folder-bar {
   color: fade(@text-color, 60%);
@@ -497,6 +528,7 @@ input:focus {
 @snooze-img: '../static/images/thread-list-quick-actions/ic-quickaction-snooze@2x.png';
 
 @hoverActionsHeight: 55px;
+.sift-list .list-item .list-column-HoverActions,
 .outbox-list .list-item .list-column-HoverActions,
 .thread-list .list-item .list-column-HoverActions {
   display: none;
@@ -564,6 +596,7 @@ input:focus {
   }
 }
 body.platform-win32 {
+  .sift-list .list-item .list-column-HoverActions,
   .outbox-list .list-item .list-column-HoverActions,
   .thread-list .list-item .list-column-HoverActions {
     .action {
@@ -572,6 +605,7 @@ body.platform-win32 {
     }
   }
 }
+.sift-list .list-item:hover .list-column-HoverActions,
 .outbox-list .list-item:hover .list-column-HoverActions,
 .thread-list .list-item:hover .list-column-HoverActions {
   width: 0;
@@ -591,16 +625,19 @@ body.platform-win32 {
   }
 }
 
+.sift-list .list-item:hover .list-column-HoverActions .inner,
 .outbox-list .list-item:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
 
+.sift-list .list-item.selected:hover .list-column-HoverActions .inner,
 .outbox-list .list-item.selected:hover .list-column-HoverActions .inner,
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
 }
 
+.sift-list .list-item.focused:hover .list-column-HoverActions .inner,
 .outbox-list .list-item.focused:hover .list-column-HoverActions .inner,
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner{
   background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
@@ -620,12 +657,13 @@ body.platform-win32 {
 
 // stars
 
-//.outbox-list .thread-icon-star:hover,
+.sift-list .thread-icon-star:hover,
 .thread-list .thread-icon-star:hover {
   -webkit-filter: brightness(90%);
 }
 // quanzs comment out
 .mode-split {
+  .sift-list .list-item .thread-icon-none,
   .outbox-list .list-item .thread-icon-none,
   .thread-list .list-item .thread-icon-none{
     width: 0;
@@ -655,17 +693,21 @@ body.platform-win32 {
     }
   }
 }
+.sift-list .list-item:hover .thread-icon-none:hover,
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: url(../static/images/thread-list/icon-star-action-hover-@2x.png);
   background-size: 16px;
 }
+.sift-list .list-item:hover .thread-icon-none,
 .thread-list .list-item:hover .thread-icon-none {
   background-image: url(../static/images/thread-list/icon-star-hover-@2x.png);
   background-size: 16px;
 }
+.sift-list .list-item:hover .mail-important-icon.enabled,
 .thread-list .list-item:hover .mail-important-icon.enabled {
   visibility: inherit;
 }
+.sift-list .thread-icon-star-on-hover:hover,
 .thread-list .thread-icon-star-on-hover:hover {
   -webkit-mask-image: url(../static/icons/flag.svg);
   -webkit-mask-size: 16px 16px;
@@ -675,6 +717,7 @@ body.platform-win32 {
   -webkit-filter: brightness(150%);
 }
 
+.sift-list .avatar-icon,
 .outbox-list .avatar-icon,
 .thread-list .avatar-icon {
   height: 30px;
@@ -685,11 +728,13 @@ body.platform-win32 {
   color: @text-color-inverse;
   border-radius: 50%;
 }
+.sift-list-narrow,
 .outbox-list-narrow,
 .thread-list-narrow {
   .empty-folder-bar {
     width: 100%;
   }
+  .sift-list-empty-folder-bar,
   .outbox-list-empty-folder-bar,
   .thread-list-empty-folder-bar {
     padding-left: 24px;
@@ -865,6 +910,7 @@ body.platform-win32 {
 }
 
 // selection looks like focus in split mode
+.sift-list.handler-split,
 .outbox-list.handler-split,
 .thread-list.handler-split {
   .list-item {
@@ -892,6 +938,7 @@ body.platform-win32 {
   }
 }
 body.is-blurred {
+  .sift-list.handler-split,
   .outbox-list.handler-split,
   .thread-list.handler-split {
     .list-item {

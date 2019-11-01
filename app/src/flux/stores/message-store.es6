@@ -4,6 +4,7 @@ import Message from '../models/message';
 import Thread from '../models/thread';
 import DatabaseStore from './database-store';
 import ThreadStore from './thread-store';
+import SiftStore from './sift-store';
 import AttachmentStore from './attachment-store';
 import WorkspaceStore from './workspace-store';
 import TaskFactory from '../tasks/task-factory';
@@ -322,7 +323,10 @@ class MessageStore extends MailspringStore {
   };
 
   _onFocusChanged(change) {
-    // console.log('onFocus change');
+    if (change.impactsCollection('sift')){
+      this._expandItemsToDefault();
+      this.trigger();
+    }
     if (!change.impactsCollection('thread')) return;
 
     //DC-400 Because the way list mode is
@@ -687,6 +691,20 @@ class MessageStore extends MailspringStore {
 
   // Expand all unread messages, drafts that have body, and the last message
   _expandItemsToDefault() {
+    const perspective = FocusedPerspectiveStore.current();
+    if (perspective.sift) {
+      const selectedSift = FocusedContentStore.focused('sift');
+      if (selectedSift) {
+        const keys = Object.keys(this._itemsExpanded);
+        for (let key of keys) {
+          if (this._itemsExpanded[key] === 'default' && key !== selectedSift.id) {
+            delete this._itemsExpanded[key];
+            break;
+          }
+        }
+        this._itemsExpanded[selectedSift.id] = 'default';
+      }
+    }
     const visibleItems = this.items();
     let lastDraftIdx = -1;
 
@@ -699,7 +717,9 @@ class MessageStore extends MailspringStore {
     for (let idx = 0; idx < visibleItems.length; idx++) {
       const item = visibleItems[idx];
       if (item.unread || idx === lastDraftIdx || idx === visibleItems.length - 1) {
-        this._itemsExpanded[item.id] = 'default';
+        if (!perspective.sift) {
+          this._itemsExpanded[item.id] = 'default';
+        }
       }
     }
   }

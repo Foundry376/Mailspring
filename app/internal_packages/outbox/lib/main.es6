@@ -4,7 +4,6 @@ import OutboxListToolbar from './outbox-list-toolbar';
 import { OutboxDeleteButton, ReSendButton } from './outbox-toolbar-buttons';
 
 export function activate() {
-  // WorkspaceStore.defineSheet('Outbox', { root: true }, { split: ['RootSidebar', 'Outbox', 'OutboxMessage'] });
   if (
     AppEnv.savedState.perspective &&
     AppEnv.savedState.perspective.type === 'OutboxMailboxPerspective'

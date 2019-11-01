@@ -25,14 +25,16 @@
 
 .list-container .list-item.focused,
 .list-container .list-item.selected,
-.thread-list.handler-split .list-item.selected {
+.thread-list.handler-split .list-item.selected,
+.sift-list.handler-split .list-item.selected {
   background: tint(@accent, 90%);
   color: @active-thread-text;
 }
 
 body.is-blurred .list-container .list-item.focused,
 body.is-blurred .list-container .list-item.selected,
-body.is-blurred .thread-list.handler-split .list-item.selected {
+body.is-blurred .thread-list.handler-split .list-item.selected,
+body.is-blurred .sift-list.handler-split .list-item.selected {
   background: tint(@sidebar, 90%);
   color: @active-thread-text;
 }

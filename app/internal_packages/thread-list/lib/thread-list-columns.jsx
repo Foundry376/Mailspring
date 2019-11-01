@@ -15,20 +15,20 @@ const ThreadListParticipants = require('./thread-list-participants');
 const ThreadListIcon = require('./thread-list-icon');
 
 // Get and format either last sent or last received timestamp depending on thread-list being viewed
-const ThreadListTimestamp = function({ thread }) {
+const ThreadListTimestamp = function ({ thread }) {
   let rawTimestamp = FocusedPerspectiveStore.current().isSent()
     ? thread.lastMessageSentTimestamp
     : thread.lastMessageReceivedTimestamp;
   if (!rawTimestamp) {
     rawTimestamp = thread.lastMessageSentTimestamp;
   }
-  const timestamp = rawTimestamp ? DateUtils.shortTimeString(rawTimestamp) : 'No Date';
+  const timestamp = rawTimestamp ? DateUtils.shortTimeStringForThreadList(rawTimestamp) : 'No Date';
   return <span className="timestamp">{timestamp}</span>;
 };
 
 ThreadListTimestamp.containerRequired = false;
 
-const subject = function(subj) {
+const subject = function (subj) {
   if ((subj || '').trim().length === 0) {
     return <span className="no-subject">(No Subject)</span>;
   } else if (subj.split(/([\uD800-\uDBFF][\uDC00-\uDFFF])/g).length > 1) {
@@ -52,7 +52,7 @@ const subject = function(subj) {
   }
 };
 
-const getSnippet = function(thread) {
+const getSnippet = function (thread) {
   const messages = thread.__messages || [];
   if (thread.snippet) {
     return thread.snippet;
@@ -74,11 +74,11 @@ const c1 = new ListTabular.Column({
     return [
       <EmailAvatar key="email-avatar" mode="list" thread={thread} />,
       // <ThreadListIcon key="thread-list-icon" thread={thread} />,
-      <MailImportantIcon
-        key="mail-important-icon"
-        thread={thread}
-        showIfAvailableForAnyAccount={true}
-      />,
+      // <MailImportantIcon
+      //   key="mail-important-icon"
+      //   thread={thread}
+      //   showIfAvailableForAnyAccount={true}
+      // />,
       <InjectedComponentSet
         key="injected-component-set"
         inline={true}
@@ -260,7 +260,7 @@ const cNarrow = new ListTabular.Column({
                 matching={{ role: 'ThreadListIcon' }}
                 className="thread-injected-icons"
               />
-              <MailImportantIcon thread={thread} showIfAvailableForAnyAccount={true} />
+              {/* <MailImportantIcon thread={thread} showIfAvailableForAnyAccount={true} /> */}
             </div>
           </div>
         </div>

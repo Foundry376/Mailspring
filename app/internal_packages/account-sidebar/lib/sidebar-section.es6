@@ -4,6 +4,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import Sift from '../../../src/flux/models/sift';
 const _ = require('underscore');
 const {
   Actions,
@@ -17,6 +18,7 @@ const {
 
 const SidebarItem = require('./sidebar-item');
 const SidebarActions = require('./sidebar-actions');
+const DIVIDER_OBJECT = { id: 'divider' };
 
 function isSectionCollapsed(title) {
   if (AppEnv.savedState.sidebarKeysCollapsed[title] !== undefined) {
@@ -51,13 +53,13 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat =>{
-        if (cat.role === 'all' && account.provider === 'gmail') {
-          return SidebarItem.forAllMail(cat, { editable: false, deletable: false });
-        } else {
-          return SidebarItem.forCategories([cat], { editable: false, deletable: false });
-        }
+    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat => {
+      if (cat.role === 'all' && account.provider === 'gmail') {
+        return SidebarItem.forAllMail(cat, { editable: false, deletable: false });
+      } else {
+        return SidebarItem.forCategories([cat], { editable: false, deletable: false });
       }
+    }
     );
     const unreadItem = SidebarItem.forUnread([account.id]);
     const starredItem = SidebarItem.forStarred([account.id], { displayName: 'Flagged' });
@@ -66,9 +68,9 @@ class SidebarSection {
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     if (draftsItem) {
-      items.splice(1, 0, unreadItem, starredItem, draftsItem);
+      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem, draftsItem);
     } else {
-      items.splice(1, 0, unreadItem, starredItem);
+      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem);
     }
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
@@ -76,8 +78,8 @@ class SidebarSection {
         items.push(archiveMail);
       }
     }
+    items.push(DIVIDER_OBJECT);
     items.push(...this.accountUserCategories(account));
-
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
       .forEach(ext => {
@@ -117,29 +119,33 @@ class SidebarSection {
     if (accounts.length === 1) {
       const ret = this.standardSectionForAccount(accounts[0]);
       if (outboxCount.total > 0) {
+        const inbox = ret.items.shift();
         ret.items.unshift(outbox);
+        ret.items.unshift(inbox);
       }
+      SidebarSection.forSiftCategories([accounts[0]], ret.items);
       return ret;
     } else {
       if (outboxCount.total > 0) {
         items.push(outbox);
       }
       accounts.forEach(acc => {
-        items.push(
-          SidebarItem.forSingleInbox([acc.id], {
-            name: acc.label,
-            threadTitleName: 'Inbox',
-            children: this.standardSectionForAccount(acc).items,
-          }),
-        );
+        let item = SidebarItem.forSingleInbox([acc.id], {
+          name: acc.label,
+          threadTitleName: 'Inbox',
+          children: this.standardSectionForAccount(acc).items,
+        });
+        items.push(item);
       });
     }
 
     const accountIds = _.pluck(accounts, 'id');
     let folderItem = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
     if (folderItem) {
+      items.unshift(DIVIDER_OBJECT);
       items.unshift(folderItem);
     }
+    items.push(DIVIDER_OBJECT);
     folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
     if (folderItem) {
       items.push(folderItem);
@@ -160,7 +166,7 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
-    folderItem = SidebarItem.forAllTrash(accountIds, { dispalyName: 'Spam' });
+    folderItem = SidebarItem.forAllTrash(accountIds, { dispalyName: 'Trash' });
     if (folderItem) {
       items.push(folderItem);
     }
@@ -173,6 +179,7 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
+    SidebarSection.forSiftCategories(accountIds, items);
 
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
@@ -316,6 +323,32 @@ class SidebarSection {
         );
       },
     };
+  }
+
+  static forSiftCategories(accountsOrIds, items) {
+    if (!Array.isArray(accountsOrIds) || !Array.isArray(items)) {
+      return;
+    }
+    let accountIds = accountsOrIds;
+    if (accountsOrIds[0].id) {
+      accountIds = accountsOrIds.map(acct => acct.id);
+    }
+    let folderItem = SidebarItem.forSift(accountIds, Sift.categories.Travel);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Packages);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Bill);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Entertainment);
+    if (folderItem) {
+      items.push(folderItem);
+    }
   }
 }
 

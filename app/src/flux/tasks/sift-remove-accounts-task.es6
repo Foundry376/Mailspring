@@ -15,7 +15,6 @@ export default class SiftRemoveAccountsTask extends SiftTask {
       this.accountIds = accounts.map(acct => acct.id);
     } else {
       this.accountIds = [];
-      AppEnv.reportError(new Error('Sift remove Accounts task have no accounts info'));
     }
   }
 
