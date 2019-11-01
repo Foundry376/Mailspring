@@ -284,7 +284,7 @@ export default class Message extends ModelWithMetadata {
     siftCategory: Attributes.Collection({
       queryable: true,
       modelKey: 'siftCategory',
-      joinOnField: 'id',
+      joinOnField: 'msgId',
       joinTableName: 'SiftData',
       joinOnWhere: { state: 0 },
       itemClass: Sift,

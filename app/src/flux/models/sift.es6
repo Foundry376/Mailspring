@@ -25,8 +25,8 @@ export default class Sift extends Model {
     return '3';
   };
   static attributes = Object.assign({}, Model.attributes, {
-    id: Attributes.String({
-      modelKey: 'id',
+    msgId: Attributes.String({
+      modelKey: 'msgId',
       queryable: true,
     }),
     accountId: Attributes.String({
