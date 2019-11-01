@@ -414,8 +414,11 @@ class SidebarItem {
   }
 
   static forSift(accountIds, siftCategory, opts = {}) {
+    if (!Array.isArray(accountIds) ) {
+      accountIds = [accountIds];
+    }
     const perspective = MailboxPerspective.forSiftCategory({
-      accountsOrIds: accountIds,
+      accountIds,
       siftCategory,
     });
     const id = `accountIds-${siftCategory}`;

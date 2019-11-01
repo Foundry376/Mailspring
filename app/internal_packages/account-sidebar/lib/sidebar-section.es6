@@ -120,22 +120,7 @@ class SidebarSection {
       if (outboxCount.total > 0) {
         ret.items.unshift(outbox);
       }
-      let folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Travel);
-      if (folderItem) {
-        ret.items.push(folderItem);
-      }
-      folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Packages);
-      if (folderItem) {
-        ret.items.push(folderItem);
-      }
-      folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Bill);
-      if (folderItem) {
-        ret.items.push(folderItem);
-      }
-      folderItem = SidebarItem.forSift(accounts[0], Sift.categories.Entertainment);
-      if (folderItem) {
-        ret.items.push(folderItem);
-      }
+      SidebarSection.forSiftCategories([accounts[0]], ret.items);
       return ret;
     } else {
       if (outboxCount.total > 0) {
@@ -190,22 +175,7 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
-    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Travel);
-    if (folderItem) {
-      items.push(folderItem);
-    }
-    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Packages);
-    if (folderItem) {
-      items.push(folderItem);
-    }
-    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Bill);
-    if (folderItem) {
-      items.push(folderItem);
-    }
-    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Entertainment);
-    if (folderItem) {
-      items.push(folderItem);
-    }
+    SidebarSection.forSiftCategories(accountIds, items);
 
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
@@ -349,6 +319,32 @@ class SidebarSection {
         );
       },
     };
+  }
+
+  static forSiftCategories(accountsOrIds, items) {
+    if (!Array.isArray(accountsOrIds) || !Array.isArray(items)) {
+      return;
+    }
+    let accountIds = accountsOrIds;
+    if (accountsOrIds[0].id) {
+      accountIds = accountsOrIds.map(acct => acct.id);
+    }
+    let folderItem = SidebarItem.forSift(accountIds, Sift.categories.Travel);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Packages);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Bill);
+    if (folderItem) {
+      items.push(folderItem);
+    }
+    folderItem = SidebarItem.forSift(accountIds, Sift.categories.Entertainment);
+    if (folderItem) {
+      items.push(folderItem);
+    }
   }
 }
 

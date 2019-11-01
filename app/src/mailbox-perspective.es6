@@ -50,8 +50,8 @@ export default class MailboxPerspective {
   static forDrafts(accountsOrIds) {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
-  static forSiftCategory({ siftCategory, accountsOrIds } = {}) {
-    return new SiftMailboxPerspective({ siftCategory, accountsOrIds });
+  static forSiftCategory({ siftCategory, accountIds } = {}) {
+    return new SiftMailboxPerspective({ siftCategory, accountIds });
   }
 
   static forAllMail(allMailCategory) {
@@ -502,8 +502,8 @@ class DraftsMailboxPerspective extends MailboxPerspective {
   }
 }
 class SiftMailboxPerspective extends MailboxPerspective{
-  constructor({ siftCategory, accountsOrIds } = {}) {
-    super(accountsOrIds);
+  constructor({ siftCategory, accountIds = [''] } = {}) {
+    super(accountIds);
     this.name = siftCategory;
     this.sift = true; // Mark this perspective as sift;
     this.siftCategory = siftCategory;
@@ -535,7 +535,7 @@ class SiftMailboxPerspective extends MailboxPerspective{
       .where([Message.attributes.siftCategory.containsAnyAtColumn('category', [siftCategory])])
       .where({ state: 0, draft: false })
       .order([Message.attributes.date.descending()])
-      .page(0, 1);
+      .page(0, 1).distinct();
     return new MutableQuerySubscription(query, { emitResultSet: true });
   }
 
