@@ -18,6 +18,7 @@ const {
 
 const SidebarItem = require('./sidebar-item');
 const SidebarActions = require('./sidebar-actions');
+const DIVIDER_OBJECT = { id: 'divider' };
 
 function isSectionCollapsed(title) {
   if (AppEnv.savedState.sidebarKeysCollapsed[title] !== undefined) {
@@ -52,13 +53,13 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat =>{
-        if (cat.role === 'all' && account.provider === 'gmail') {
-          return SidebarItem.forAllMail(cat, { editable: false, deletable: false });
-        } else {
-          return SidebarItem.forCategories([cat], { editable: false, deletable: false });
-        }
+    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat => {
+      if (cat.role === 'all' && account.provider === 'gmail') {
+        return SidebarItem.forAllMail(cat, { editable: false, deletable: false });
+      } else {
+        return SidebarItem.forCategories([cat], { editable: false, deletable: false });
       }
+    }
     );
     const unreadItem = SidebarItem.forUnread([account.id]);
     const starredItem = SidebarItem.forStarred([account.id], { displayName: 'Flagged' });
@@ -67,9 +68,9 @@ class SidebarSection {
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     if (draftsItem) {
-      items.splice(1, 0, unreadItem, starredItem, draftsItem);
+      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem, draftsItem);
     } else {
-      items.splice(1, 0, unreadItem, starredItem);
+      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem);
     }
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
@@ -77,8 +78,8 @@ class SidebarSection {
         items.push(archiveMail);
       }
     }
+    items.push(DIVIDER_OBJECT);
     items.push(...this.accountUserCategories(account));
-
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
       .forEach(ext => {
@@ -118,7 +119,9 @@ class SidebarSection {
     if (accounts.length === 1) {
       const ret = this.standardSectionForAccount(accounts[0]);
       if (outboxCount.total > 0) {
+        const inbox = ret.items.shift();
         ret.items.unshift(outbox);
+        ret.items.unshift(inbox);
       }
       SidebarSection.forSiftCategories([accounts[0]], ret.items);
       return ret;
@@ -127,21 +130,22 @@ class SidebarSection {
         items.push(outbox);
       }
       accounts.forEach(acc => {
-        items.push(
-          SidebarItem.forSingleInbox([acc.id], {
-            name: acc.label,
-            threadTitleName: 'Inbox',
-            children: this.standardSectionForAccount(acc).items,
-          }),
-        );
+        let item = SidebarItem.forSingleInbox([acc.id], {
+          name: acc.label,
+          threadTitleName: 'Inbox',
+          children: this.standardSectionForAccount(acc).items,
+        });
+        items.push(item);
       });
     }
 
     const accountIds = _.pluck(accounts, 'id');
     let folderItem = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
     if (folderItem) {
+      items.unshift(DIVIDER_OBJECT);
       items.unshift(folderItem);
     }
+    items.push(DIVIDER_OBJECT);
     folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
     if (folderItem) {
       items.push(folderItem);
@@ -162,7 +166,7 @@ class SidebarSection {
     if (folderItem) {
       items.push(folderItem);
     }
-    folderItem = SidebarItem.forAllTrash(accountIds, { dispalyName: 'Spam' });
+    folderItem = SidebarItem.forAllTrash(accountIds, { dispalyName: 'Trash' });
     if (folderItem) {
       items.push(folderItem);
     }

@@ -155,14 +155,14 @@ class OutboxStore extends MailspringStore {
         Actions.setFocus({ collection: 'outbox', item: null });
       }
       this._selectedDraft = null;
-      if (typeof this._dataSourceUnlisten === 'function') {
-        this._dataSourceUnlisten();
-      }
-      if (this._dataSource) {
-        this.dataSource().selection.clear();
-        this._dataSource.cleanup();
-        this._dataSource = null;
-      }
+      // if (typeof this._dataSourceUnlisten === 'function') {
+      //   this._dataSourceUnlisten();
+      // }
+      // if (this._dataSource) {
+      //   this.dataSource().selection.clear();
+      //   this._dataSource.cleanup();
+      //   this._dataSource = null;
+      // }
       this.trigger();
     }
   };

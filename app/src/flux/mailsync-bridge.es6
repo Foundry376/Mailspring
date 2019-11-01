@@ -8,6 +8,7 @@ import SetObservableRangeTask from './models/set-observable-range-task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 import Account from './models/account';
+import Sift from './models/sift';
 import AccountStore from './stores/account-store';
 import DatabaseStore from './stores/database-store';
 import OnlineStatusStore from './stores/online-status-store';
@@ -312,6 +313,7 @@ export default class MailsyncBridge {
         }
       }
     }
+    this._onSyncSiftFolder()
   }
 
   async sendMessageToAccount(accountId, json, mailSyncMode = mailSyncModes.SYNC) {
@@ -1083,7 +1085,7 @@ export default class MailsyncBridge {
     }
   }
 
-  _onSyncSiftFolder({ categories = [] } = {}) {
+  _onSyncSiftFolder({ categories = [Sift.categories.Entertainment, Sift.categories.Packages, Sift.categories.Travel, Sift.categories.Bill] } = {}) {
     if (Array.isArray(categories)) {
       this.sendMessageToAccount(
         null,

@@ -55,6 +55,7 @@ export default class SwipeContainer extends React.Component {
     onSwipeRight: PropTypes.func,
     onSwipeRightClass: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
     onSwipeCenter: PropTypes.func,
+    move_folder_el: PropTypes.object
   };
 
   static defaultProps = {
@@ -134,7 +135,7 @@ export default class SwipeContainer extends React.Component {
     this._onDragWithVelocity(velocity);
 
     if (this.phase === Phase.GestureConfirmed) {
-      e.preventDefault();
+      e.preventDefault(); // here has an error: Unable to preventDefault inside passive event listener due to target being treated as passive.
     }
   };
 
@@ -318,9 +319,9 @@ export default class SwipeContainer extends React.Component {
     if (shouldFire) {
       this.fired = true;
       if (targetX > 0) {
-        this.props.onSwipeRight(this._onSwipeActionCompleted, swipeStep);
+        this.props.onSwipeRight(this._onSwipeActionCompleted, swipeStep, this.container);
       } else if (targetX < 0) {
-        this.props.onSwipeLeft(this._onSwipeActionCompleted, swipeStep);
+        this.props.onSwipeLeft(this._onSwipeActionCompleted, swipeStep, this.container);
       } else if (targetX === 0 && this.props.onSwipeCenter) {
         this.props.onSwipeCenter();
       }

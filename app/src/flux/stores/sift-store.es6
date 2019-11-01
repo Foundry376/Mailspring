@@ -142,20 +142,11 @@ class SiftStore extends MailspringStore {
         this._selectedSift = null;
         this.trigger();
       }
-    } else if (
-      focused.draft &&
-      [Message.messageState.failed, Message.messageState.failing].includes(focused.state.toString())
-    ) {
+    } else {
       if (!this._selectedSift) {
         this._selectedSift = focused;
         this.trigger();
       } else if (focused.id !== this._selectedSift.id) {
-        this._selectedSift = focused;
-        this.trigger();
-      } else if (
-        focused.id === this._selectedSift.id &&
-        focused.state !== this._selectedSift.state
-      ) {
         this._selectedSift = focused;
         this.trigger();
       }
@@ -170,15 +161,16 @@ class SiftStore extends MailspringStore {
       }
       this._selectedSift = null;
       this._siftCategory = '';
-      if (typeof this._dataSourceUnlisten === 'function') {
-        this._dataSourceUnlisten();
-      }
-      if (this._dataSource) {
-        this.dataSource().selection.clear();
-        this._dataSource.cleanup();
-        this._dataSource = null;
-        console.log('unlistened to data change for sift');
-      }
+      // if (typeof this._dataSourceUnlisten === 'function') {
+      //   this._dataSourceUnlisten();
+      //   this._dataSourceUnlisten = null;
+      // }
+      // if (this._dataSource) {
+      //   this.dataSource().selection.clear();
+      //   this._dataSource.cleanup();
+      //   this._dataSource = null;
+      //   console.log('unlistened to data change for sift');
+      // }
       this.trigger();
     } else {
       this._createListDataSource();
@@ -188,6 +180,7 @@ class SiftStore extends MailspringStore {
   _createListDataSource = () => {
     if (typeof this._dataSourceUnlisten === 'function') {
       this._dataSourceUnlisten();
+      this._dataSourceUnlisten = null;
     }
     if (this._dataSource) {
       this._dataSource.cleanup();
@@ -200,18 +193,18 @@ class SiftStore extends MailspringStore {
       const subscription = perspective.messages();
       this._siftCategory = perspective.siftCategory;
       let $resultSet = Rx.Observable.fromNamedQuerySubscription('sift-list', subscription);
-      // $resultSet = Rx.Observable.combineLatest(
-      //   [$resultSet],
-      //   (resultSet, sift) => {
-      //     const resultSetWithTasks = new MutableQueryResultSet(resultSet);
-      //     return resultSetWithTasks.immutableClone();
-      //   },
-      // );
+      $resultSet = Rx.Observable.combineLatest(
+        [$resultSet],
+        (resultSet, sift) => {
+          const resultSetWithTasks = new MutableQueryResultSet(resultSet);
+          return resultSetWithTasks.immutableClone();
+        },
+      );
 
       this._dataSource = new ObservableListDataSource($resultSet, subscription.replaceRange);
       this._dataSourceUnlisten = this._dataSource.listen(this._onDataSourceChanged, this);
     }
-    // this._dataSource.setRetainedRange({ start: 0, end: 50 });
+    this._dataSource.setRetainedRange({ start: 0, end: 50 });
     this.trigger(this);
   };
   _onDataSourceChanged = ({ previous, next } = {}) => {

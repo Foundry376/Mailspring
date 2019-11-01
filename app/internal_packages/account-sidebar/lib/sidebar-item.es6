@@ -30,10 +30,10 @@ const isChildrenSelected = (children = [], currentPerspective) => {
     return false;
   }
   for (let p of children) {
-    if (p.perspective.isEqual(currentPerspective)) {
+    if (p.perspective && p.perspective.isEqual(currentPerspective)) {
       return true;
     }
-    if (p.children.length > 0) {
+    if (p.children && p.children.length > 0) {
       if (isChildrenSelected(p.children, currentPerspective)) {
         return true;
       }
@@ -195,7 +195,7 @@ class SidebarItem {
           if (!event.dataTransfer.types.includes('nylas-threads-data')) {
             return false;
           }
-          if (target.isEqual(current)) {
+          if (target && target.isEqual(current)) {
             return false;
           }
 

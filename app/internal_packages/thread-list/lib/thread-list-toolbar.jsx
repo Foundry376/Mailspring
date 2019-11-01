@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { MultiselectToolbar } from 'mailspring-component-kit';
+import { MultiselectToolbar, InjectedComponentSet } from 'mailspring-component-kit';
 import InjectsToolbarButtons, { ToolbarRole } from './injects-toolbar-buttons';
 
 class ThreadListToolbar extends Component {
@@ -11,7 +11,6 @@ class ThreadListToolbar extends Component {
     selection: PropTypes.shape({
       clear: PropTypes.func,
     }),
-    injectedButtons: PropTypes.element,
     onEmptyButtons: PropTypes.element,
     dataSource: PropTypes.object,
   };
@@ -21,13 +20,21 @@ class ThreadListToolbar extends Component {
   };
 
   render() {
-    const { injectedButtons, items, dataSource, onEmptyButtons } = this.props;
+    const { items, dataSource, onEmptyButtons, selection } = this.props;
+
+    const toolbarElement = (
+      <InjectedComponentSet
+        matching={{ role: 'ThreadListToolbarButtons' }}
+        exposedProps={{ selection, items }}
+        style={{ height: 'auto', width: '100%' }}
+      />
+    );
 
     return (
       <MultiselectToolbar
         collection="thread"
         selectionCount={items.length}
-        toolbarElement={injectedButtons}
+        toolbarElement={toolbarElement}
         onEmptyButtons={onEmptyButtons}
         onClearSelection={this.onClearSelection}
         dataSource={dataSource}

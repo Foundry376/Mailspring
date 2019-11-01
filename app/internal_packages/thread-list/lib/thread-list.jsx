@@ -145,7 +145,7 @@ class ThreadList extends React.Component {
   _onCloseMoveFolderPopout = () => {
     Actions.closePopover();
   };
-  _getTasks(swipeKey, step, threads, needTask) {
+  _getTasks(swipeKey, step, threads, needTask, container) {
     const swipeLeftActions = [];
     const swipeRightActions = [];
     let action;
@@ -216,7 +216,7 @@ class ThreadList extends React.Component {
           }));
           break;
         case 'folder':
-          AppEnv.commands.dispatch('core:change-folders');
+          AppEnv.commands.dispatch('core:change-folders', container);
           break;
         default:
       }
@@ -243,9 +243,9 @@ class ThreadList extends React.Component {
     return taskOption;
   }
 
-  _onSwipe = (callback, step = 0, item, direction) => {
+  _onSwipe = (callback, step = 0, item, direction, container) => {
     let tasks = [];
-    const taskOption = this._getTasks(direction, step, [item], true);
+    const taskOption = this._getTasks(direction, step, [item], true, container);
     if (taskOption) {
       tasks = taskOption.tasks;
     }
@@ -285,11 +285,11 @@ class ThreadList extends React.Component {
 
     props.onSwipeRightClass = (step = 0) => this._onSwipeClass(step, item, 'swipeRight');
 
-    props.onSwipeRight = (callback, step = 0) => this._onSwipe(callback, step, item, 'swipeRight');
+    props.onSwipeRight = (callback, step = 0, container) => this._onSwipe(callback, step, item, 'swipeRight', container);
 
     props.onSwipeLeftClass = (step = 0) => this._onSwipeClass(step, item, 'swipeLeft');
 
-    props.onSwipeLeft = (callback, step = 0) => this._onSwipe(callback, step, item, 'swipeLeft');
+    props.onSwipeLeft = (callback, step = 0, container) => this._onSwipe(callback, step, item, 'swipeLeft', container);
 
     props.move_folder_el = <ToolbarCategoryPicker items={[item]} currentPerspective={FocusedPerspectiveStore.current()} />
     // const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];

@@ -21,14 +21,13 @@ class ThreadListIcon extends React.Component {
       return extensionIconClassNames;
     }
 
-    if (this.props.thread.starred) {
-      return 'thread-icon-star';
-    }
+    // if (this.props.thread.starred) {
+    //   return 'thread-icon-star';
+    // }
 
-    if (this.props.thread.unread) {
-      // return 'thread-icon-unread thread-icon-star-on-hover';
-      return '';
-    }
+    // if (this.props.thread.unread) {
+    //   return 'thread-icon-unread';
+    // }
 
     const msgs = this._nonDraftMessages();
     const last = msgs[msgs.length - 1];

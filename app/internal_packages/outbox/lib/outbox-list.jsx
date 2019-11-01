@@ -102,7 +102,7 @@ class OutboxList extends React.Component {
     }
     const toggle = event => {
       if (draft.state !== parseInt(Message.messageState.failing)) {
-        onClick();
+        onClick(event);
       }
       event.stopPropagation();
     };
