@@ -15,7 +15,7 @@ class UserCacheStore extends MailspringStore {
     super();
     this.downloading = {};
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
-    this.loadUserCacheData();
+    // this.loadUserCacheData(); // 这里执行貌似无实际作用，待观察
   }
 
   init = async () => {
@@ -38,9 +38,8 @@ class UserCacheStore extends MailspringStore {
       // 如果userCache表中有avatar数据，使用userCache表中的。
       if (this.userCache[item.jid] && this.userCache[item.jid].avatar) {
         avatar = this.userCache[item.jid].avatar;
-      }
-      else if (item.avatar && item.avatar.indexOf('http') === -1) {
-        avatar = "https://s3.us-east-2.amazonaws.com/edison-profile-stag/" + item.avatar;
+      } else if (item.avatar && item.avatar.indexOf('http') === -1) {
+        avatar = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/' + item.avatar;
       }
       this.userCache[item.jid] = Object.assign({}, item.dataValues, { avatar });
     }

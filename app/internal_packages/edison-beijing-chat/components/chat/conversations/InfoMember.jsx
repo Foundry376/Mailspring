@@ -1,25 +1,28 @@
 import React, { Component } from 'react';
 import { AccountStore } from 'mailspring-exports';
-import { ConversationStore } from 'chat-exports';
+import { ConversationStore, UserCacheStore } from 'chat-exports';
 import ContactAvatar from '../../common/ContactAvatar';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import { name } from '../../../utils/name';
 import { getAppByJid } from '../../../utils/appmgt';
 const { primaryColor } = theme;
-
-
 export default class InfoMember extends Component {
   currentUserIsOwner = false;
   constructor(props) {
     super();
     this.state = {
       visible: false,
-      isHiddenNotifi: props.selectedConversation && !!props.selectedConversation.isHiddenNotification
-    }
+      isHiddenNotifi:
+        props.selectedConversation && !!props.selectedConversation.isHiddenNotification,
+    };
   }
 
-  onClickRemove = (e) => {
+  componentDidMount() {
+    UserCacheStore.loadUserCacheData();
+  }
+
+  onClickRemove = e => {
     e.stopPropagation();
     e.preventDefault();
     const { member } = this.props;
@@ -28,17 +31,17 @@ export default class InfoMember extends Component {
 
   // 避免双击事件触发两次单击事件
   clickCoordinate(jid) {
-    this._clickTime = (this._clickTime || 0) + 1
+    this._clickTime = (this._clickTime || 0) + 1;
     setTimeout(() => {
       if (this._clickTime === 1) {
         // 单击事件
-        this.editProfile()
+        this.editProfile();
       } else if (this._clickTime === 2) {
         // 双击事件
-        this.changeCurrent(jid)
+        this.changeCurrent(jid);
       }
-      this._clickTime = 0
-    }, 300)
+      this._clickTime = 0;
+    }, 300);
   }
 
   editProfile = () => {
@@ -46,21 +49,21 @@ export default class InfoMember extends Component {
     this.props.editProfile(member);
   };
 
-  changeCurrent = async (jid) => {
-    const { member, conversation } = this.props
+  changeCurrent = async jid => {
+    const { member, conversation } = this.props;
     if (jid === conversation.curJid) {
-      return
+      return;
     }
     if (AccountStore.isMyEmail(member.email)) {
-      ConversationStore.setSelectedConversationsCurJid(jid)
+      ConversationStore.setSelectedConversationsCurJid(jid);
     }
-  }
+  };
 
   render = () => {
     const { conversation, member } = this.props;
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
     let membername = name(jid) || member.name || member.email || jid;
-    if (!membername && jid.match(/@app/)) {
+    if (!membername && (jid || '').match(/@app/)) {
       const app = getAppByJid(jid);
       if (app) {
         membername = app.name || app.shortName || app.appName;
@@ -76,31 +79,31 @@ export default class InfoMember extends Component {
     }
 
     return (
-      <div
-        className="row"
-        key={jid}
-        onClick={() => this.clickCoordinate(jid)}
-      >
+      <div className="row" key={jid} onClick={() => this.clickCoordinate(jid)}>
         <div className="avatar">
           <ContactAvatar
             conversation={conversation}
             jid={jid}
             name={membername}
             email={email}
-            size={30} />
+            size={30}
+          />
         </div>
         <div className="info">
           <div className="name">
             {membername}
-            {moreInfo && moreInfo.length > 0 ? <span className="chat-role"> ({moreInfo.join(' ')})</span> : null}
+            {moreInfo && moreInfo.length > 0 ? (
+              <span className="chat-role"> ({moreInfo.join(' ')})</span>
+            ) : null}
           </div>
           <div className="email">{email}</div>
         </div>
-        {this.props.currentUserIsOwner && member.affiliation !== 'owner' &&
+        {this.props.currentUserIsOwner && member.affiliation !== 'owner' && (
           <span className="remove-member" onClick={this.onClickRemove}>
             <CancelIcon color={primaryColor} />
           </span>
-        }
-      </div>)
+        )}
+      </div>
+    );
   };
 }
