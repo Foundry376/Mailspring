@@ -162,7 +162,7 @@ class OutlineView extends Component {
   }
 
   _renderItems() {
-    return this.props.items.map(item => item.name ? <OutlineViewItem key={item.id} item={item} /> : null);
+    return this.props.items.map((item, idx) => item.name ? <OutlineViewItem key={item.id} item={item} index={idx} /> : <Divider key={idx} />);
   }
 
   _renderOutline(allowCreate, collapsed) {
@@ -186,11 +186,17 @@ class OutlineView extends Component {
 
     return (
       <section className="nylas-outline-view">
-        {this._renderHeading(allowCreate, collapsed, collapsible)}
+        {/* {this._renderHeading(allowCreate, collapsed, collapsible)} */}
         {this._renderOutline(allowCreate, collapsed)}
       </section>
     );
   }
 }
+
+export const DIVIDER_KEY = 'divider';
+export const Divider = () => {
+  return <div className="sidebar-divider" />;
+}
+
 
 export default OutlineView;

@@ -14,7 +14,20 @@ class ThreadListParticipants extends React.Component {
 
   render() {
     const items = this.getTokens();
-    return <div className="participants">{this.renderSpans(items)}</div>;
+    return <div className="participants">
+      {this.renderIcons()}
+      {this.renderSpans(items)}
+    </div>;
+  }
+
+  renderIcons = () => {
+    if (this.props.thread.starred) {
+      return <div className='thread-icon thread-icon-star' />;
+    }
+    else if (this.props.thread.unread) {
+      return <div className='thread-icon thread-icon-unread' />;
+    }
+    return null;
   }
 
   renderSpans(items) {
@@ -22,7 +35,7 @@ class ThreadListParticipants extends React.Component {
     let accumulated = null;
     let accumulatedUnread = false;
 
-    const flush = function() {
+    const flush = function () {
       if (accumulated) {
         spans.push(
           <span key={spans.length} className={`unread-${accumulatedUnread}`}>
@@ -34,7 +47,7 @@ class ThreadListParticipants extends React.Component {
       accumulatedUnread = false;
     };
 
-    const accumulate = function(text, unread) {
+    const accumulate = function (text, unread) {
       if (accumulated && unread && accumulatedUnread !== unread) {
         flush();
       }
@@ -86,8 +99,8 @@ class ThreadListParticipants extends React.Component {
     const messages =
       this.props.thread.__messages != null
         ? this.props.thread.__messages.filter(message => {
-            return message.state !== 1;
-    }) : [];
+          return message.state !== 1;
+        }) : [];
     if (messages.length > 1) {
       accumulate(` (${messages.length})`);
     }
@@ -157,7 +170,7 @@ class ThreadListParticipants extends React.Component {
     if (
       list.length === 0 &&
       (this.props.thread.participants != null ? this.props.thread.participants.length : undefined) >
-        0
+      0
     ) {
       list.push({ contact: this.props.thread.participants[0], unread: false });
     }

@@ -10,6 +10,7 @@ import DisclosureTriangle from './disclosure-triangle';
 import DropZone from './drop-zone';
 import RetinaImg from './retina-img';
 import PropTypes from 'prop-types';
+import { Divider, DIVIDER_KEY } from './outline-view';
 
 /*
  * Enum for counter styles
@@ -119,8 +120,8 @@ class OutlineViewItem extends Component {
     item: PropTypes.shape({
       className: PropTypes.string,
       id: PropTypes.string.isRequired,
-      children: PropTypes.array.isRequired,
-      name: PropTypes.string.isRequired,
+      children: PropTypes.array,
+      name: PropTypes.string,
       iconName: PropTypes.string,
       count: PropTypes.number,
       counterStyle: PropTypes.string,
@@ -294,7 +295,11 @@ class OutlineViewItem extends Component {
   };
 
   _formatNumber(num) {
-    return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+    if (num > 99) {
+      return <span className="count over-99">99</span>;
+    }
+    return <span className="count">{num}</span>;
+    // return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
   }
 
   // Renderers
@@ -393,7 +398,7 @@ class OutlineViewItem extends Component {
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} provider={acc.provider} item={child} />)}
+          {item.children.map((child, idx) => <OutlineViewItem key={child.id === DIVIDER_KEY ? idx : child.id} provider={acc.provider} index={idx} item={child} />)}
         </section>
       );
     }
@@ -402,18 +407,25 @@ class OutlineViewItem extends Component {
 
   render() {
     const item = this.props.item;
+
+    if (item.id && item.id === DIVIDER_KEY) {
+      return (
+        <Divider key={this.props.index || 100} />
+      );
+    }
+
     const containerClasses = classnames({
       'item-container': true,
       selected: item.selected,
       dropping: this.state.isDropping,
     });
     return (
-      <div>
+      <div className={item.classnames ? item.classnames : null}>
         <span className={containerClasses} ref={`${item.id}-span`}>
           {this._renderItem()}
           <DisclosureTriangle
             collapsed={item.collapsed}
-            visible={item.children.length > 0}
+            visible={item.children && item.children.length > 0}
             onCollapseToggled={this._onCollapseToggled}
           />
         </span>

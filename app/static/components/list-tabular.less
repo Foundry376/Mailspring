@@ -40,15 +40,21 @@
   // If this value changes,
   // we must change thread-list .scroll-region-content,
   // and list-tabular.jsx offset height
-  min-height: 40px;
   z-index: 99;
   flex: 0 0 40px;
-  position: relative;
+
   .multiselect-toolbar-root {
-    position: relative;
+    position: absolute;
+    bottom: 40px;
+    margin: 0 auto;
+    left: 10px;
+    right: auto;
     min-height: 40px;
-    border-bottom: 1px solid @border-color-primary;
-    border-right: 1px solid @border-color-divider;
+    border-radius: 20px;
+    z-index: 2;
+    border: 1px solid @border-color-primary;
+    // border-bottom: 1px solid @border-color-primary;
+    // border-right: 1px solid @border-color-divider;
     background-color: @background-primary;
     transition: opacity 0.2s ease-in-out;
     display: flex;
@@ -76,6 +82,16 @@
       -webkit-app-region: no-drag;
       transition: top 0.2s ease-in-out;
       white-space: nowrap;
+      padding: 0 10px 0 20px;
+
+      .flex-row {
+        display: flex;
+      }
+
+      .move-picker {
+        width: 0;
+        overflow: hidden;
+      }
 
       .checkmark.selected {
         &:before {
@@ -157,10 +173,14 @@
         height: 22px;
         border-radius: 11px;
         line-height: 22px;
-        //background: @off-white;
+        background: @off-white;
         padding: 0 12px;
         box-shadow: none;
         color: @blue;
+      }
+
+      .button-group.move-picker {
+        display: none;
       }
 
       .button-group.thread-more {
@@ -254,160 +274,6 @@
       }
     }
   }
-
-  .absolute {
-    background: #fff;
-    position: absolute;
-    left: -1px;
-    right: 0px;
-    top: 0px;
-    height: 40px;
-    border-bottom: 1px solid @border-color-primary;
-    border-left: 1px solid @border-color-divider;
-    border-right: 1px solid @border-color-divider;
-    // border-right: 1px solid @border-color-divider;
-    background-color: @background-primary;
-    transition: opacity 0.2s ease-in-out;
-
-    .inner {
-      //position: absolute;
-      width: 100%;
-      height: 100%;
-      align-items: center;
-      display: flex;
-      -webkit-app-region: no-drag;
-      transition: top 0.2s ease-in-out;
-      white-space: nowrap;
-
-      .checkmark.selected {
-        &:before {
-          .icon-mixin('../static/icons/check.svg', @blue, 24px);
-        }
-      }
-      .checkmark.some-selected {
-        &:before {
-          .icon-mixin('../static/icons/some-selected.svg', @blue, 24px);
-        }
-      }
-      .checkmark {
-        margin: 0 17px 0 0;
-        height: 18px;
-        width: 54px;
-        padding: 18px;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        &:after {
-          margin-top: -7px;
-          margin-left: 6px;
-        }
-        &:before {
-          content: '';
-          display: block;
-          height: 24px;
-          width: 24px;
-          .icon-mixin('../static/icons/check-empty.svg', #afbec9, 24px);
-        }
-      }
-
-      & > div {
-        align-items: center;
-      }
-
-      .centered {
-        flex: 1;
-        cursor: default;
-        text-align: center;
-        color: @text-color-subtle;
-        line-height: 55px;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-        -webkit-app-region: drag;
-      }
-
-      .selection-label {
-        line-height: 22px;
-        padding-right: 10px;
-        color: @gray;
-      }
-
-      .updated-time {
-        color: @gray;
-        font-size: 11px;
-        line-height: 13px;
-      }
-
-      .btn-clear-all,
-      .btn-toggle-select-all {
-        margin-left: 11px;
-        height: 22px;
-        border-radius: 11px;
-        line-height: 22px;
-        background: @off-white;
-        padding: 0 12px;
-        box-shadow: none;
-        color: @blue;
-      }
-
-      .btn-toolbar {
-        position: relative;
-        padding: 0 5px;
-        margin-top: 0;
-        box-shadow: none;
-        background: transparent;
-        img.content-mask {
-          background-color: @gray;
-          position: relative;
-          z-index: 2;
-        }
-        &:hover {
-          &:after {
-            content: '';
-            height: 36px;
-            width: 36px;
-            border-radius: 50%;
-            background: @off-white;
-            display: block;
-            position: absolute;
-            top: -5px;
-            left: 0;
-            animation: growUp 0.4s;
-          }
-          @keyframes growUp {
-            from {
-              opacity: 0.7;
-              transform: scale(0.5);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1);
-            }
-          }
-        }
-        &:active {
-          &:after {
-            background: @extra-light-grey;
-          }
-          img {
-            background-color: @dark-grey;
-          }
-        }
-      }
-
-      .toolbar-buttons {
-        flex: 1;
-        justify-content: flex-start;
-        align-items: center;
-        height: auto !important;
-        .btn {
-          height: auto;
-        }
-      }
-    }
-  }
 }
 
 .sheet-toolbar .selection-bar {
@@ -448,10 +314,32 @@
     }
   }
 
-  .selection-label,
-  .btn-clear-all,
-  .btn-toggle-select-all {
-    display: none;
+  .selection-bar {
+    display: flex;
+    justify-content: center;
+    .multiselect-toolbar-root {
+      left: auto;
+      max-width: 350px;
+      .inner {
+        flex-flow: wrap;
+        height: 60px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        .flex-row {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+        }
+        .button-group {
+          width: 100%;
+          justify-content: space-between;
+          display: flex;
+          span {
+            display: none;
+          }
+        }
+      }
+    }
   }
 
   & .showAvatar {
@@ -509,17 +397,17 @@
     &.selected:not(:hover) {
       background: @list-selected-bg;
       color: @list-selected-color;
-      border-bottom: 1px solid @border-color-secondary;
+      // border-bottom: 1px solid @border-color-secondary;
     }
 
     &.next-is-selected {
-      border-bottom: 1px solid @border-color-secondary;
+      // border-bottom: 1px solid @border-color-secondary;
     }
 
     &.focused {
       background: @list-focused-bg;
       color: @list-focused-color;
-      border-bottom: 1px solid @border-color-secondary;
+      // border-bottom: 1px solid @border-color-secondary;
     }
   }
 }
@@ -534,7 +422,7 @@
     width: 100%;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid @list-border;
+    // border-bottom: 1px solid @list-border;
     // border-left: 4px solid transparent;
     cursor: pointer;
 
@@ -571,6 +459,8 @@
       width: 43px;
       height: 100%;
       display: block;
+      position: relative;
+      z-index: 2;
 
       .inner {
         display: block;

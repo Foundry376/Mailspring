@@ -7,6 +7,7 @@ import MessageListToolbar from './message-list-toolbar';
 import SelectedItemsStack from './selected-items-stack';
 
 import {
+  ThreadListToolbarButtons,
   MoveButtons,
   FlagButtons,
   NavButtons,
@@ -49,6 +50,9 @@ export function activate() {
   }
   ComponentRegistry.register(MessageListToolbar, {
     role: 'MessageListToolbar'
+  });
+  ComponentRegistry.register(ThreadListToolbarButtons, {
+    role: 'ThreadListToolbarButtons',
   });
   ComponentRegistry.register(MoveButtons, {
     role: 'ThreadActionsToolbarButton',
