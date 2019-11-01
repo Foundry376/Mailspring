@@ -84,16 +84,16 @@ const ContentsColumn = new ListTabular.Column({
   },
 });
 
-const StatusColumn = new ListTabular.Column({
-  name: 'State',
+const TimeColumn = new ListTabular.Column({
+  name: 'Time',
   resolver: message => {
     return (
-      <InjectedComponentSet
-        inline={true}
-        containersRequired={false}
-        matching={{ role: 'OutboxList:DraftStatus' }}
-        className="message-list-injected-state"
-        exposedProps={{ message }}
+      <InjectedComponent
+        key="sift-injected-timestamp"
+        className="sift-injected-timestamp"
+        fallback={SiftMessageTimestamp}
+        exposedProps={{ message: message }}
+        matching={{ role: 'SiftListTimestamp' }}
       />
     );
   },
@@ -205,6 +205,6 @@ const cNarrow = new ListTabular.Column({
 });
 
 module.exports = {
-  Wide: [SenderColumn, ParticipantsColumn, ContentsColumn, StatusColumn, HoverActions],
+  Wide: [SenderColumn, ParticipantsColumn, ContentsColumn, TimeColumn, HoverActions],
   Narrow: [cNarrow],
 };
