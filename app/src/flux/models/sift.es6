@@ -4,7 +4,7 @@ import Attributes from '../attributes';
 export default class Sift extends Model {
   static categories = {
     Travel: 'Travel',
-    Bill: 'Finances',
+    Bill: 'Bill & Receipts',
     Entertainment: 'Entertainment',
     Packages: 'Packages',
   };

@@ -142,20 +142,11 @@ class SiftStore extends MailspringStore {
         this._selectedSift = null;
         this.trigger();
       }
-    } else if (
-      focused.draft &&
-      [Message.messageState.failed, Message.messageState.failing].includes(focused.state.toString())
-    ) {
+    } else {
       if (!this._selectedSift) {
         this._selectedSift = focused;
         this.trigger();
       } else if (focused.id !== this._selectedSift.id) {
-        this._selectedSift = focused;
-        this.trigger();
-      } else if (
-        focused.id === this._selectedSift.id &&
-        focused.state !== this._selectedSift.state
-      ) {
         this._selectedSift = focused;
         this.trigger();
       }
