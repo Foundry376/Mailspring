@@ -28,14 +28,12 @@ export default class NewConversation extends Component {
     this.unsub = AppStore.listen(() => {
       this.initContacts();
     });
-    // this.initContacts();
     setTimeout(this._setDropDownHeight, 300);
     window.addEventListener('resize', this.setUlListPosition);
   }
 
   initContacts = async () => {
     const contacts = await ContactStore.getContacts();
-    console.log('contacts===', contacts);
     if (this._mounted) {
       this.setState({ contacts, loading: false });
     }
