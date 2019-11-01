@@ -37,6 +37,10 @@ export default class MessageItem extends React.Component {
     super(props, context);
 
     const fileIds = this.props.message.fileIds();
+    const { message } = this.props;
+    const accountId = message.accountId;
+    const fromEmail = message.from && message.from[0] ? message.from[0].email : '';
+
     this.state = {
       // Holds the downloadData (if any) for all of our files. It's a hash
       // keyed by a fileId. The value is the downloadData.
@@ -45,6 +49,9 @@ export default class MessageItem extends React.Component {
       detailedHeaders: false,
       missingFileIds: MessageStore.getMissingFileIds(),
       calendar: CalendarStore.getCalendarByMessageId(props.message ? props.message.id : 'null'),
+      accountId,
+      fromEmail,
+      isBlocked: BlockedSendersStore.isBlockedByAccount(accountId, fromEmail),
     };
     this.markAsReadTimer = null;
     this.mounted = false;
@@ -55,6 +62,7 @@ export default class MessageItem extends React.Component {
       AttachmentStore.listen(this._onDownloadStoreChange),
       MessageStore.listen(this._onDownloadStoreChange),
       CalendarStore.listen(this._onCalendarStoreChange),
+      BlockedSendersStore.listen(this._onBlockStoreChange),
     ];
     this.mounted = true;
   }
@@ -74,17 +82,10 @@ export default class MessageItem extends React.Component {
   }
 
   _onClickBlockBtn = () => {
-    const { message } = this.props;
-    const accountId = message.accountId;
-    const fromEmail = message.from && message.from[0] ? message.from[0].email : '';
-    if (!fromEmail) {
-      return;
-    }
-    const isBlocked = BlockedSendersStore.isBlockedByAccount(accountId, fromEmail);
-    if (isBlocked) {
-      BlockedSendersStore.unBlockEmailByAccount(accountId, fromEmail);
+    if (this.state.isBlocked) {
+      BlockedSendersStore.unBlockEmailByAccount(this.state.accountId, this.state.fromEmail);
     } else {
-      BlockedSendersStore.blockEmailByAccount(accountId, fromEmail);
+      BlockedSendersStore.blockEmailByAccount(this.state.accountId, this.state.fromEmail);
     }
   };
 
@@ -131,6 +132,14 @@ export default class MessageItem extends React.Component {
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       missingFileIds: MessageStore.getMissingFileIds(),
     });
+  };
+
+  _onBlockStoreChange = () => {
+    const isBlocked = BlockedSendersStore.isBlockedByAccount(
+      this.state.accountId,
+      this.state.fromEmail
+    );
+    this.setState({ isBlocked });
   };
 
   _onTrashThisSenderMail = () => {
@@ -275,15 +284,11 @@ export default class MessageItem extends React.Component {
   }
 
   _renderBlockNote() {
-    const { message } = this.props;
-    const fromEmail = message.from && message.from[0] ? message.from[0].email : '';
-    const accountId = message.accountId;
-    const isBlocked = BlockedSendersStore.isBlockedByAccount(accountId, fromEmail);
-    if (isBlocked) {
+    if (this.state.isBlocked) {
       return (
         <div className="message-block-note">
-          You've successfully blocked {<span>{fromEmail}</span>}. Emails from this sender will now
-          be sent to the Trash unless you unblock them.
+          You've successfully blocked {<span>{this.state.fromEmail}</span>}. Emails from this sender
+          will now be sent to the Trash unless you unblock them.
           <div onClick={this._onTrashThisSenderMail}>Trash all previous mail from this sender</div>
         </div>
       );
@@ -293,10 +298,6 @@ export default class MessageItem extends React.Component {
 
   _renderHeader() {
     const { message, thread, messages, pending } = this.props;
-    const fromEmail = message.from && message.from[0] ? message.from[0].email : '';
-    const accountId = message.accountId;
-    const isBlocked = BlockedSendersStore.isBlockedByAccount(accountId, fromEmail);
-
     return (
       <header
         ref={el => (this._headerEl = el)}
@@ -333,7 +334,7 @@ export default class MessageItem extends React.Component {
           />
         </div>
         <div className="blockBtn" onClick={this._onClickBlockBtn}>
-          {isBlocked ? 'Unblock' : 'Block'}
+          {this.state.isBlocked ? 'Unblock' : 'Block'}
         </div>
         <div className="row">
           <EmailAvatar

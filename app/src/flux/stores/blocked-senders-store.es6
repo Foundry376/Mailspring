@@ -13,11 +13,12 @@ class BlockedSendersStore extends MailspringStore {
     super();
     this.basicData = [];
     this.blockedSenders = [];
-    this.loadBlockedSenders();
-    this.listenTo(Actions.changeBlockSucceeded, this.loadBlockedSenders);
+    this.refreshBlockedSenders();
+    this.syncBlockedSenders();
+    this.listenTo(Actions.changeBlockSucceeded, this.refreshBlockedSenders);
   }
 
-  loadBlockedSenders = async () => {
+  refreshBlockedSenders = async () => {
     // status is 1 or 3 mean this data is deleted
     const blocks = await DatabaseStore.findAll(BlockContact).where([
       BlockContact.attributes.state.not(1),
@@ -34,13 +35,11 @@ class BlockedSendersStore extends MailspringStore {
     });
     this.basicData = blocks;
     this.blockedSenders = blockDeDuplication;
-    Actions.queueTask(new GetBlockListTask());
     this.trigger();
   };
 
-  refreshBlockedSenders = async () => {
-    await this.loadBlockedSenders();
-    this.trigger();
+  syncBlockedSenders = () => {
+    Actions.queueTask(new GetBlockListTask());
   };
 
   getBlockedSenders = () => {
@@ -61,10 +60,12 @@ class BlockedSendersStore extends MailspringStore {
 
   blockEmailByAccount = (accountId, email) => {
     Actions.queueTask(new BlockContactTask({ accountId: accountId, email: email }));
+    this.refreshBlockedSenders();
   };
 
   unBlockEmailByAccount = (accountId, email) => {
     Actions.queueTask(new UnBlockContactTask({ accountId: accountId, email: email }));
+    this.refreshBlockedSenders();
   };
 
   unBlockEmails = emails => {
@@ -73,6 +74,7 @@ class BlockedSendersStore extends MailspringStore {
       return new UnBlockContactTask({ accountId: block.accountId, email: block.email });
     });
     Actions.queueTasks(unBlockTaskList);
+    this.refreshBlockedSenders();
   };
 }
 
