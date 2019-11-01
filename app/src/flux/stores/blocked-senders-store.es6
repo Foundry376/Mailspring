@@ -60,11 +60,13 @@ class BlockedSendersStore extends MailspringStore {
 
   blockEmailByAccount = (accountId, email) => {
     Actions.queueTask(new BlockContactTask({ accountId: accountId, email: email }));
+    // after has native event hook del this
     this.refreshBlockedSenders();
   };
 
   unBlockEmailByAccount = (accountId, email) => {
     Actions.queueTask(new UnBlockContactTask({ accountId: accountId, email: email }));
+    // after has native event hook del this
     this.refreshBlockedSenders();
   };
 
@@ -74,6 +76,7 @@ class BlockedSendersStore extends MailspringStore {
       return new UnBlockContactTask({ accountId: block.accountId, email: block.email });
     });
     Actions.queueTasks(unBlockTaskList);
+    // after has native event hook del this
     this.refreshBlockedSenders();
   };
 }
