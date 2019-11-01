@@ -119,7 +119,9 @@ class SidebarSection {
     if (accounts.length === 1) {
       const ret = this.standardSectionForAccount(accounts[0]);
       if (outboxCount.total > 0) {
+        const inbox = ret.items.shift();
         ret.items.unshift(outbox);
+        ret.items.unshift(inbox);
       }
       SidebarSection.forSiftCategories([accounts[0]], ret.items);
       return ret;
