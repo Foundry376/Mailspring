@@ -5,7 +5,7 @@ import {
   InjectedComponentSet,
 } from 'mailspring-component-kit';
 import PropTypes from 'prop-types';
-import { SiftStore, SiftSyncDataTask, Actions } from 'mailspring-exports';
+import { SiftStore, Actions } from 'mailspring-exports';
 import _ from 'underscore';
 
 function getObservable() {
@@ -30,14 +30,14 @@ class SiftListToolbar extends Component {
     SiftStore.dataSource().selection.clear();
   };
 
-  _syncSiftData = _.throttle(cagtegories => {
-    Actions.queueTask(new SiftSyncDataTask({ cagtegories }));
+  _syncSiftData = _.throttle(categories => {
+    Actions.syncSiftFolder({ categories });
   }, 500);
 
   onRefreshClicked = () => {
     const category = SiftStore.siftCategory();
     if (category) {
-      this._syncSiftData(category);
+      this._syncSiftData([category]);
     }
   };
 
