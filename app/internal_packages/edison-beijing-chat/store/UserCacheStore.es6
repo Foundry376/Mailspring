@@ -39,7 +39,7 @@ class UserCacheStore extends MailspringStore {
       if (this.userCache[item.jid] && this.userCache[item.jid].avatar) {
         avatar = this.userCache[item.jid].avatar;
       } else if (item.avatar && item.avatar.indexOf('http') === -1) {
-        avatar = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/' + item.avatar;
+        avatar = 'https://s3.us-east-2.amazonaws.com/edison-profile/' + item.avatar;
       }
       this.userCache[item.jid] = Object.assign({}, item.dataValues, { avatar });
     }
