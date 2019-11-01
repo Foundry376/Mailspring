@@ -52,14 +52,18 @@
     min-height: 40px;
     border-radius: 20px;
     z-index: 2;
-    border: 1px solid @border-color-primary;
+    // border: 1px solid @border-color-primary;
     // border-bottom: 1px solid @border-color-primary;
     // border-right: 1px solid @border-color-divider;
+    box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
     background-color: @background-primary;
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity 0.2s ease-in-out, box-shadow 0.5s;
     display: flex;
     justify-content: center;
     flex-direction: column;
+    &:hover {
+      box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
+    }
     &.has-shadow {
       transition: box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
