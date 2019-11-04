@@ -38,6 +38,21 @@ const threadSelectionScope = (props, selection) => {
   return threads;
 };
 
+const isSameAccount = items => {
+  if (!Array.isArray(items)) {
+    return true;
+  }
+  let accountId = '';
+  for (let item of items) {
+    if (!accountId) {
+      accountId = item.accountId;
+    } else if (accountId !== item.accountId) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export class ArchiveButton extends React.Component {
   static displayName = 'ArchiveButton';
   static containerRequired = false;
@@ -598,12 +613,14 @@ export class ThreadListMoreButton extends React.Component {
     const selectionCount = this.props.items ? this.props.items.length : 0;
     const menu = new Menu();
     if (selectionCount > 0) {
-      menu.append(
-        new MenuItem({
-          label: 'Move to Folder',
-          click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
-        })
-      );
+      if(isSameAccount(this.props.items)){
+        menu.append(
+          new MenuItem({
+            label: 'Move to Folder',
+            click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
+          })
+        );
+      }
       const account = AccountStore.accountForItems(this.props.items);
       if (account && account.usesLabels()) {
         menu.append(
@@ -754,12 +771,14 @@ export class MoreButton extends React.Component {
           },
         })
       );
-      menu.append(
-        new MenuItem({
-          label: 'Move to Folder',
-          click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
-        })
-      );
+      if (isSameAccount(this.props.items)) {
+        menu.append(
+          new MenuItem({
+            label: 'Move to Folder',
+            click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
+          }),
+        );
+      }
       const account = AccountStore.accountForItems(this.props.items);
       if (account && account.usesLabels()) {
         menu.append(
