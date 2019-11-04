@@ -1,0 +1,40 @@
+@import 'ui-variables';
+
+.preferences-wrap {
+  .container-privacys {
+    .config-group {
+      margin-bottom: 32px;
+      max-width: 480px;
+
+      .privacys-note {
+        color: @gray;
+        line-height: 18px;
+        margin-bottom: 20px;
+      }
+      .privacys-link {
+        color: @text-color-link;
+        font-size: 13px;
+        line-height: 16px;
+        margin-bottom: 18px;
+      }
+      .privacys-button {
+        height: 30px;
+        flex: 1;
+        border-radius: 10px;
+        border: 0.5px solid @gray-lighter;
+        box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+        margin-bottom: 15px;
+        text-align: center;
+        line-height: 30px;
+        font-size: 11px;
+        color: @color-danger;
+        font-weight: @font-weight-semi-bold;
+        cursor: pointer;
+
+        &:not(:first-child) {
+          margin-left: 20px;
+        }
+      }
+    }
+  }
+}

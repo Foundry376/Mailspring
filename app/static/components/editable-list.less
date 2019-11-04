@@ -1,24 +1,42 @@
 @import 'ui-variables';
 
 .nylas-editable-list {
-  .items-wrapper .selected.editing,
-  &:focus .items-wrapper .selected {
-    color: @component-active-bg;
-    background-color: @component-active-color;
+  .list-item.selected {
+    background: @list-selected-bg;
+  }
+
+  &:focus .selected {
+    background: @list-focused-bg;
+  }
+
+  .list-item {
+    position: relative;
+    .icon-list {
+      position: absolute;
+      top: 0;
+      right: 22px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      img {
+        display: inline-block;
+        background-color: #b6bdc2;
+        margin-left: 4px;
+      }
+      .close-icon {
+        display: none;
+      }
+    }
+
+    &:hover .close-icon {
+      display: inline-block;
+    }
   }
 
   .items-wrapper {
     display: flex;
     flex-direction: column;
-    border: 1px solid @border-color-secondary;
-    background-color: @background-primary;
-    height: 90px;
     font-size: 0.9em;
-
-    .selected {
-      background-color: fade(desaturate(@component-active-color, 100%), 70%);
-      color: @component-active-bg;
-    }
 
     .insertion-point {
       display: block;
@@ -37,33 +55,16 @@
       }
     }
 
-    .edit-icon {
-      display: none;
-      cursor: pointer;
-    }
-
     .editable-item {
       padding: (@padding-small-vertical - 1) @padding-small-horizontal;
       cursor: default;
       border-bottom: 1px solid @border-color-divider;
       flex-shrink: 0;
 
-      &.selected.with-edit-icon {
-        display: flex;
-        align-items: center;
-        padding-right: 20px;
-
-        img.edit-icon {
-          display: inline;
-          background-color: @component-active-bg;
-          margin-left: auto;
-        }
-      }
-
       & > input {
         border: none;
         padding: 0;
-        color: @component-active-bg;
+        color: @text-color;
         background: transparent;
         font-size: inherit;
         line-height: 1.5;
@@ -95,21 +96,18 @@
   }
 
   .buttons-wrapper {
-    display: flex;
-    border: 1px solid @border-color-secondary;
-    border-top: none;
-    background-color: @background-secondary;
-
+    border-top: 1px solid @gray-lighter;
     .btn-editable-list {
-      display: flex;
-      justify-content: center;
-      height: 25px;
-      width: 25px;
-      line-height: 25px;
-      border-right: 1px solid @border-color-secondary;
-      font-size: 1em;
+      display: inline-block;
+      vertical-align: top;
+      height: 19px;
+      width: 29px;
+      font-size: 16px;
+      line-height: 16px;
+      text-align: center;
+      color: @text-color-very-subtle;
+      border-right: 1px solid @gray-lighter;
       cursor: pointer;
-      color: @text-color-subtle;
 
       &.btn-disabled {
         background-color: transparent;

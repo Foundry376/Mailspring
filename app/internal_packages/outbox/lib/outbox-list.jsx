@@ -42,7 +42,7 @@ class OutboxList extends React.Component {
     clearTimeout(this._deletingTimer);
   }
 
-  _calcScrollPosition = _.throttle((scrollTop) => {
+  _calcScrollPosition = _.throttle(scrollTop => {
     const toolbar = document.querySelector('.outbox-list .outbox-list-toolbar');
     if (toolbar) {
       if (scrollTop > 0) {
@@ -124,8 +124,8 @@ class OutboxList extends React.Component {
   _keymapHandlers = () => {
     return {
       'core:delete-item': this._onRemoveFromView,
-      'core:gmail-remove-from-view': this._onRemoveFromView,
-      'core:remove-from-view': this._onRemoveFromView,
+      // 'core:gmail-remove-from-view': this._onRemoveFromView,
+      // 'core:remove-from-view': this._onRemoveFromView,
     };
   };
   _changeBackToNotDeleting = () => {

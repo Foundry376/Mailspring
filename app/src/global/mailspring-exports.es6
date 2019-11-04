@@ -82,6 +82,7 @@ lazyLoadAndRegisterModel(`Contact`, 'contact');
 lazyLoadAndRegisterModel(`Category`, 'category');
 lazyLoadAndRegisterModel(`Calendar`, 'calendar');
 lazyLoadAndRegisterModel('JoinTable', 'join-table');
+lazyLoadAndRegisterModel('BlockContact', 'block-contact');
 lazyLoadAndRegisterModel(`ProviderSyncbackRequest`, 'provider-syncback-request');
 lazyLoadAndRegisterTask('SetObservableRangeTask', 'set-observable-range-task');
 
@@ -122,6 +123,9 @@ lazyLoadAndRegisterTask('ChangeDraftToFailingTask', 'change-draft-to-failing-tas
 lazyLoadAndRegisterTask('ChangeDraftToFailedTask', 'change-draft-to-failed-task');
 lazyLoadAndRegisterTask('SiftRemoveAccountsTask', 'sift-remove-accounts-task');
 lazyLoadAndRegisterTask('SiftUpdateAccountTask', 'sift-update-account-task');
+lazyLoadAndRegisterTask('BlockContactTask', 'block-contact-task');
+lazyLoadAndRegisterTask('UnBlockContactTask', 'unblock-contact-task');
+lazyLoadAndRegisterTask('GetBlockListTask', 'sync-block-list-task');
 
 // Stores
 // These need to be required immediately since some Stores are
@@ -162,6 +166,7 @@ load('SystemInfoStore', 'flux/stores/system-info-store');
 load('CalendarStore', 'flux/stores/calendar-store');
 load('SiftStore', 'flux/stores/sift-store');
 lazyLoad('ThreadStore', 'flux/stores/thread-store');
+lazyLoad('BlockedSendersStore', 'flux/stores/blocked-senders-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 

@@ -4,8 +4,11 @@
 
 // Styles for Preferences Signatures
 .preferences-signatures-container {
-  max-width: 800px;
-  margin: 0 auto;
+  .signatures-note {
+    padding: 4px 0 7px;
+    color: @gray;
+    line-height: 18px;
+  }
 
   .empty-list {
     height: 300px;
@@ -29,14 +32,46 @@
   }
 
   .signature-list {
-    position: relative;
-    height: inherit;
-    width: inherit;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 282px;
+    padding: 40px 0 0 12px;
 
-    .items-wrapper {
-      min-width: 200px;
-      height: 262px;
+    .list-item {
+      padding: 14px 30px 13px;
+      border-radius: 10px 0 0 10px;
+
+      .title {
+        height: 20px;
+        line-height: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .use-account {
+        color: @gray;
+        font-size: 11px;
+        font-style: italic;
+        line-height: 13px;
+      }
     }
+
+    .buttons-wrapper {
+      height: 30px;
+      width: 250px;
+      text-align: center;
+      color: @blue;
+      font-family: 'SF UI Text';
+      font-weight: @headings-font-weight;
+      line-height: 30px;
+      border-radius: 10px;
+      border: 0.5px solid @gray-lighter;
+      box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+      margin-top: 30px;
+    }
+
     .item-rule-disabled {
       color: @color-error;
       padding: 4px 10px;
@@ -45,53 +80,39 @@
     .selected .item-rule-disabled {
       color: @component-active-bg;
     }
-
-    .editable-item {
-      padding: 8px 10px;
-      border-bottom: none;
-    }
-
-    .btn-editable-list {
-      height: 37px;
-      width: 37px;
-      line-height: 37px;
-      font-size: 1em;
-    }
   }
 
   .signature-wrap {
-    display: flex;
-    position: relative;
-    margin-left: @padding-base-horizontal;
-    flex-direction: column;
-    overflow: hidden;
-    min-height: 200px;
-    width: 100%;
-    
+    flex: 1;
+    border-left: 1px solid @gray-lighter;
+    padding: 15px 20px;
+
     &.empty {
       opacity: 0.5;
       pointer-events: none;
     }
 
-    .section {
-      background-color: @background-primary;
-      border: 1px solid @border-color-divider;
-    }
     .section.basic-info {
-      background: none;
-      border: none;
-      display: flex;
-      white-space: nowrap;
-      margin-bottom: @padding-base-horizontal;
       input {
+        border: none;
+        outline: none;
+        box-shadow: none;
         max-width: 300px;
+        color: @gray-light;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 64px;
+        padding: 0;
+        &::placeholder {
+          color: @gray-lighter;
+        }
       }
     }
 
     .section-header {
       margin-top: 10px;
       &:first-child {
-        margin-top:0;
+        margin-top: 0;
       }
     }
 
@@ -101,6 +122,12 @@
       width: 100%;
       height: 240px;
       padding: @padding-base-horizontal;
+    }
+
+    .RichEditor-root {
+      padding: 10px;
+      padding-top: 2px;
+      min-height: 248px;
     }
 
     .signature-template-picker {
@@ -129,10 +156,13 @@
           justify-content: center;
           white-space: initial;
           flex-shrink: 0;
-          top: 0; left: 0; right: 0; bottom: 0;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
           position: absolute;
           display: flex;
-          
+
           .preview {
             pointer-events: none;
             transform: scale(0.25);
@@ -157,12 +187,17 @@
       }
     }
 
+    .section.editor {
+      border: 1px solid #edf0f1;
+      margin-bottom: 13.5px;
+    }
+
     .section.information {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
       padding: @padding-base-horizontal 0;
-      
+
       .field.photo-picker {
         display: block;
         width: 100%;
@@ -178,7 +213,8 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          &:hover, &.dropping {
+          &:hover,
+          &.dropping {
             border: 1px solid @accent-primary-dark;
           }
         }
@@ -211,28 +247,14 @@
     }
 
     .account-picker {
-      display: inline-block;
-      color: @text-color-subtle;
-      margin-left: @padding-base-horizontal;
-      margin-right: 2px;
-
-      .button-dropdown {
-        .secondary-items {
-          .menu {
-            .item {
-              padding: 5px 10px 5px 25px;
-            }
-            .item.checked {
-              background-image: url(images/menu/osx-checkmark@2x.svg);
-              background-position: left;
-              background-position-x: 6%;
-              background-size: 10px;
-              margin: 0;
-              padding: 5px 10px 5px 25px;
-              background-repeat: no-repeat;
-            }
-          }
-        }
+      line-height: 29px;
+      input {
+        height: 14px;
+        width: 14px;
+        border-radius: 3px;
+        border: 0.5px solid rgba(0, 0, 0, 0.2);
+        outline: none;
+        box-shadow: inset 0 0.5px 1.5px 0 rgba(0, 0, 0, 0.38);
       }
     }
   }

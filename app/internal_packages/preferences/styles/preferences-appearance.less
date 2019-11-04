@@ -1,0 +1,69 @@
+@import 'ui-variables';
+
+.preferences-wrap {
+  .container-appearance {
+    input[type='radio'] {
+      vertical-align: middle;
+    }
+
+    .config-group .item {
+      padding: 0;
+    }
+
+    .appearance-scale-slider {
+      max-width: 415px;
+      .ruler {
+        display: flex;
+        align-items: bottom;
+        .midpoint {
+          border-right: 1px solid @border-color-divider;
+          width: 1px;
+          flex-grow: 0;
+        }
+      }
+    }
+
+    .appearance-mode-switch {
+      .appearance-mode {
+        width: 260px;
+        color: #828282;
+        background: @source-list-active-bg;
+        border-radius: 10px;
+        border: 1.5px solid #e1e4e6;
+        text-align: center;
+        padding: 25px 25px 9px;
+        margin-right: 20px;
+        cursor: pointer;
+        img {
+          width: 100%;
+        }
+        div {
+          margin-top: 15px;
+          text-transform: capitalize;
+          cursor: pointer;
+        }
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+      .appearance-mode.active {
+        border: 1px solid @component-active-color;
+        color: @component-active-color;
+        box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.15);
+      }
+
+      &.theme-switch .appearance-mode {
+        width: 220px;
+      }
+
+      &.profile-switch .appearance-mode {
+        margin-top: 9px;
+        margin-bottom: 30px;
+        padding-top: 0px;
+        div {
+          margin-top: 0px;
+        }
+      }
+    }
+  }
+}
