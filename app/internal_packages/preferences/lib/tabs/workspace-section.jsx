@@ -4,6 +4,7 @@ import { DefaultClientHelper, SystemStartService } from 'mailspring-exports';
 import { shell } from 'electron';
 
 import ConfigSchemaItem from './config-schema-item';
+import DefaultSendingAccount from './default-send-account';
 
 class DefaultMailClientItem extends React.Component {
   constructor() {
@@ -49,7 +50,7 @@ class DefaultMailClientItem extends React.Component {
               shell.openExternal('https://foundry376.zendesk.com/hc/en-us/articles/115002281851')
             }
           >
-            Use Edison Mail as default mail client
+            Make Edison Mail your default mail client
           </div>
         </div>
       );
@@ -63,7 +64,7 @@ class DefaultMailClientItem extends React.Component {
           checked={this.state.defaultClient}
           onChange={this.toggleDefaultMailClient}
         />
-        <label htmlFor="default-client">Use Edison Mail as default mail client</label>
+        <label htmlFor="default-client">Make Edison Mail your default mail client</label>
       </div>
     );
   }
@@ -138,6 +139,13 @@ const WorkspaceSection = props => {
         config={props.config}
       />
 
+      {/* To do */}
+      {/* <ConfigSchemaItem
+        configSchema={props.configSchema.properties.workspace.properties.focusedInbox}
+        keyPath="core.workspace.focusedInbox"
+        config={props.config}
+      /> */}
+
       <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.showImportant}
         keyPath="core.workspace.showImportant"
@@ -151,39 +159,30 @@ const WorkspaceSection = props => {
       />
 
       <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.enableChat}
-        keyPath="core.workspace.enableChat"
-        config={props.config}
-      />
-
-      {/* <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.chatProdEnv}
-        keyPath="chatProdEnv"
-        config={props.config}
-      /> */}
-
-      <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.use24HourClock}
         keyPath="core.workspace.use24HourClock"
         config={props.config}
       />
+
+      <DefaultSendingAccount config={props.config} configSchema={props.configSchema} />
+
       <ConfigSchemaItem
-        configSchema={props.configSchema.properties.mailsync.properties.fetchEmailRange}
-        keyPath="core.mailsync.fetchEmailRange"
+        configSchema={props.configSchema.properties.sending.properties.sounds}
+        keyPath="core.sending.sounds"
         config={props.config}
       />
 
       <ConfigSchemaItem
-        configSchema={props.configSchema.properties.workspace.properties.interfaceZoom}
-        keyPath="core.workspace.interfaceZoom"
+        configSchema={props.configSchema.properties.notifications.properties.sounds}
+        keyPath="core.notifications.sounds"
         config={props.config}
       />
 
-      <div className="platform-note platform-linux-only">
-        &quot;Launch on system start&quot; only works in XDG-compliant desktop environments. To
-        enable the EdisonMail icon in the system tray, you may need to install libappindicator.
-        (i.e., <code>sudo apt-get install libappindicator1</code>)
-      </div>
+      <ConfigSchemaItem
+        configSchema={props.configSchema.properties.sending.properties.undoSend}
+        keyPath="core.sending.undoSend"
+        config={props.config}
+      />
     </section>
   );
 };

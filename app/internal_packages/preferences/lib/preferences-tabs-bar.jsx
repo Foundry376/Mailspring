@@ -1,10 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import fs from 'fs';
 import classNames from 'classnames';
-
-import { Flexbox, RetinaImg } from 'mailspring-component-kit';
-import { Actions, PreferencesUIStore, Utils } from 'mailspring-exports';
+import { Actions, PreferencesUIStore } from 'mailspring-exports';
 
 class PreferencesTabItem extends React.Component {
   static displayName = 'PreferencesTabItem';
@@ -34,23 +31,8 @@ class PreferencesTabItem extends React.Component {
       active: tabId === selection.tabId,
     });
 
-    let path = `preference-${displayName.toLowerCase().replace(' ', '-')}.svg`;
-    if (!fs.existsSync(Utils.iconNamed(path))) {
-      path = 'preference-general.svg';
-    }
-    const icon = (
-      <RetinaImg
-        style={{ width: 40, height: 40 }}
-        isIcon
-        className="tab-icon"
-        name={path}
-        mode={RetinaImg.Mode.ContentPreserve}
-      />
-    );
-
     return (
       <div className={classes} onClick={this._onClick}>
-        {icon}
         <div className="name">{displayName}</div>
       </div>
     );
@@ -75,15 +57,7 @@ class PreferencesTabsBar extends React.Component {
   }
 
   render() {
-    return (
-      <div className="container-preference-tabs">
-        <Flexbox direction="row" className="preferences-tabs">
-          <div style={{ flex: 1 }} />
-          {this.renderTabs()}
-          <div style={{ flex: 1 }} />
-        </Flexbox>
-      </div>
-    );
+    return <div className="container-preference-tabs">{this.renderTabs()}</div>;
   }
 }
 

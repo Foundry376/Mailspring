@@ -94,6 +94,7 @@ class EditableList extends Component {
     itemContent: PropTypes.func,
     className: PropTypes.string,
     showEditIcon: PropTypes.bool,
+    showDelIcon: PropTypes.bool,
     createInputProps: PropTypes.object,
     onCreateItem: PropTypes.func,
     onDeleteItem: PropTypes.func,
@@ -104,6 +105,8 @@ class EditableList extends Component {
     /* Optional, if you choose to control selection externally */
     selected: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     onSelectItem: PropTypes.func,
+    needScroll: PropTypes.bool,
+    footer: PropTypes.node,
   };
 
   static defaultProps = {
@@ -112,9 +115,9 @@ class EditableList extends Component {
     className: '',
     createInputProps: {},
     showEditIcon: false,
-    onDeleteItem: () => { },
-    onItemEdited: () => { },
-    onItemCreated: () => { },
+    onDeleteItem: () => {},
+    onItemEdited: () => {},
+    onItemCreated: () => {},
   };
 
   constructor(props) {
@@ -166,7 +169,7 @@ class EditableList extends Component {
     this._setStateAndFocus({ creatingItem: false }, callback);
   };
 
-  _setStateAndFocus = (state, callback = () => { }) => {
+  _setStateAndFocus = (state, callback = () => {}) => {
     this.setState(state, () => {
       this._focusSelf();
       callback();
@@ -223,11 +226,18 @@ class EditableList extends Component {
   };
 
   _onItemClick = (event, item, idx) => {
+    event.stopPropagation();
     this._selectItem(item, idx);
   };
 
   _onItemEdit = (event, item, idx) => {
+    event.stopPropagation();
     this.setState({ editingIndex: idx });
+  };
+
+  _onItemDelete = (event, item, idx) => {
+    event.stopPropagation();
+    this._onDeleteItem(item);
   };
 
   _listKeymapHandlers = () => {
@@ -261,8 +271,8 @@ class EditableList extends Component {
     }
   };
 
-  _onDeleteItem = () => {
-    const selectedItem = this._getSelectedItem();
+  _onDeleteItem = chooseItem => {
+    const selectedItem = chooseItem ? chooseItem : this._getSelectedItem();
     const index = this.props.items.indexOf(selectedItem);
     if (selectedItem) {
       // Move the selection 1 up or down after deleting
@@ -392,16 +402,20 @@ class EditableList extends Component {
   _renderItem = (item, idx, { editingIndex } = this.state, handlers = {}) => {
     const onClick = handlers.onClick || this._onItemClick;
     const onEdit = handlers.onEdit || this._onItemEdit;
+    const onDelete = handlers.onDelete || this._onItemDelete;
 
     let itemContent = this.props.itemContent(item);
     const itemIsEditable = !React.isValidElement(itemContent);
 
+    const selected = item === this._getSelectedItem();
+    const editable = selected && this.props.showEditIcon && editingIndex !== idx;
+    const delateable = this.props.showDelIcon;
+
     const classes = classNames({
       'list-item': true,
-      selected: item === this._getSelectedItem(),
+      selected: selected,
       editing: idx === editingIndex,
       'editable-item': itemIsEditable,
-      'with-edit-icon': this.props.showEditIcon && editingIndex !== idx,
     });
 
     if (editingIndex === idx && itemIsEditable) {
@@ -419,18 +433,37 @@ class EditableList extends Component {
         onDoubleClick={_.partial(onEdit, _, item, idx)}
       >
         {itemContent}
-        <RetinaImg
-          className="edit-icon"
-          name="edit-icon.png"
-          title="Edit Item"
-          mode={RetinaImg.Mode.ContentIsMask}
-          onClick={_.partial(onEdit, _, item, idx)}
-        />
+        <div className="icon-list">
+          {editable ? (
+            <RetinaImg
+              className="edit-icon"
+              name="edit-icon.png"
+              title="Edit Item"
+              mode={RetinaImg.Mode.ContentIsMask}
+              onClick={_.partial(onEdit, _, item, idx)}
+            />
+          ) : null}
+          {delateable ? (
+            <RetinaImg
+              isIcon
+              name="close.svg"
+              className="close-icon"
+              title="Close Item"
+              style={{ width: 20, height: 20 }}
+              mode={RetinaImg.Mode.ContentIsMask}
+              onClick={_.partial(onDelete, _, item, idx)}
+            />
+          ) : null}
+        </div>
       </div>
     );
   };
 
   _renderButtons = () => {
+    const { footer } = this.props;
+    if (footer) {
+      return footer;
+    }
     const deleteClasses = classNames({
       'btn-editable-list': true,
       'btn-disabled': !this._getSelectedItem(),
@@ -440,7 +473,7 @@ class EditableList extends Component {
         <div className="btn-editable-list" onClick={this._onCreateItem}>
           <span>+</span>
         </div>
-        <div className={deleteClasses} onClick={this._onDeleteItem}>
+        <div className={deleteClasses} onClick={() => this._onDeleteItem()}>
           <span>-</span>
         </div>
       </div>
@@ -465,23 +498,29 @@ class EditableList extends Component {
       items.splice(this.state.dropInsertionIndex, 0, this._renderDropInsertion());
     }
 
+    const { needScroll } = this.props;
+
     return (
       <KeyCommandsRegion
         tabIndex="1"
         localHandlers={this._listKeymapHandlers()}
         className={`nylas-editable-list ${this.props.className}`}
       >
-        <ScrollRegion
-          className="items-wrapper"
-          ref={el => {
-            this._itemsWrapperEl = el;
-          }}
-          onDragOver={this._onDragOver}
-          onDragLeave={this._onDragLeave}
-          onDrop={this._onDrop}
-        >
-          {items}
-        </ScrollRegion>
+        {needScroll ? (
+          <ScrollRegion
+            className="items-wrapper"
+            ref={el => {
+              this._itemsWrapperEl = el;
+            }}
+            onDragOver={this._onDragOver}
+            onDragLeave={this._onDragLeave}
+            onDrop={this._onDrop}
+          >
+            {items}
+          </ScrollRegion>
+        ) : (
+          <div>{items}</div>
+        )}
         {this._renderButtons()}
       </KeyCommandsRegion>
     );

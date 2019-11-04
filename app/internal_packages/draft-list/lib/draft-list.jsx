@@ -64,29 +64,38 @@ class DraftList extends React.Component {
   _keymapHandlers = () => {
     return {
       'core:delete-item': this._onRemoveFromView,
-      'core:gmail-remove-from-view': this._onRemoveFromView,
-      'core:remove-from-view': this._onRemoveFromView,
+      // 'core:gmail-remove-from-view': this._onRemoveFromView,
+      // 'core:remove-from-view': this._onRemoveFromView,
     };
   };
 
   _onClick = draft => {
     if (DraftStore.isSendingDraft(draft.headerMessageId)) {
-      AppEnv.showErrorDialog('Draft is sending, cannot edit', {showInMainWindow: true, async: true});
+      AppEnv.showErrorDialog('Draft is sending, cannot edit', {
+        showInMainWindow: true,
+        async: true,
+      });
       return;
     }
     if (draft.hasOwnProperty('body') && draft.body !== null) {
-      draft.missingAttachments().then(ret =>{
+      draft.missingAttachments().then(ret => {
         const totalMissing = ret.totalMissing().map(f => f.id);
         if (totalMissing.length === 0) {
           Actions.composePopoutDraft(draft.headerMessageId);
         } else {
           Actions.fetchAttachments({ accountId: draft.accountId, missingItems: totalMissing });
-          AppEnv.showErrorDialog('Draft is still downloading, cannot edit', {showInMainWindow: true, async: true});
+          AppEnv.showErrorDialog('Draft is still downloading, cannot edit', {
+            showInMainWindow: true,
+            async: true,
+          });
         }
       });
     } else {
       Actions.fetchBodies({ messages: [draft] });
-      AppEnv.showErrorDialog('Draft is still downloading, cannot edit', {showInMainWindow: true, async: true});
+      AppEnv.showErrorDialog('Draft is still downloading, cannot edit', {
+        showInMainWindow: true,
+        async: true,
+      });
     }
   };
   _changeBackToNotDeleting = () => {

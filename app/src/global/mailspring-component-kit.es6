@@ -78,6 +78,7 @@ lazyLoad('ListTabular', 'list-tabular');
 lazyLoad('Notification', 'notification');
 lazyLoad('EventedIFrame', 'evented-iframe');
 lazyLoad('ButtonDropdown', 'button-dropdown');
+lazyLoad('InputSearch', 'input-search');
 lazyLoad('MultiselectList', 'multiselect-list');
 lazyLoad('BoldedSearchResult', 'bolded-search-result');
 lazyLoad('MultiselectDropdown', 'multiselect-dropdown');
