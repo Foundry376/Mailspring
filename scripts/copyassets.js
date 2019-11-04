@@ -34,6 +34,10 @@ const file_mappings = [
     ['veyron-design/images/desktop/nomail.png', './app/static/images/empty-state/nomail@2x.png'],
     ['veyron-design/images/desktop/nomail-drafts-3.png', './app/static/images/empty-state/ic-emptystate-drafts@2x.png'],
     ['veyron-design/images/desktop/nomail-flagged.png', './app/static/images/empty-state/ic-emptystate-flagged@2x.png'],
+    ['veyron-design/lottie/sift-travel-animation.json', './app/static/lottie/'],
+    ['veyron-design/lottie/sift-entertainment-animation.json', './app/static/lottie/'],
+    ['veyron-design/lottie/sift-packages-animation.json', './app/static/lottie/'],
+    ['veyron-design/lottie/sift-bills-and-receipts-animation.json', './app/static/lottie/'],
     ['veyron-design/images/desktop/installer-background.png', './app/build/resources/mac/'],
     ['veyron-design/images/desktop/edo-previewer-loading.gif', './app/build/resources/win/'],
 ]

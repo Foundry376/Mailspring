@@ -267,6 +267,10 @@ export default class MailboxPerspective {
     return 'No Messages';
   }
 
+  emptyListIcon() {
+    return '';
+  }
+
   categories() {
     return [];
   }
@@ -554,6 +558,18 @@ class SiftMailboxPerspective extends MailboxPerspective{
     const json = super.toJSON();
     json.serializedCategories = JSON.stringify({ siftCategory: this.siftCategory });
     return json;
+  }
+
+  emptyListIcon() {
+    if (this.siftCategory === Sift.categories.Bill) {
+      return 'sift-bills-and-receipts-animation';
+    } else if (this.siftCategory === Sift.categories.Travel) {
+      return 'sift-travel-animation';
+    } else if (this.siftCategory === Sift.categories.Packages) {
+      return 'sift-packages-animation';
+    } else {
+      return 'sift-entertainment-animation';
+    }
   }
 }
 

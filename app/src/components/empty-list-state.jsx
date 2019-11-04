@@ -5,7 +5,7 @@ const PropTypes = require('prop-types');
 const classNames = require('classnames');
 const RetinaImg = require('./retina-img').default;
 const { FolderSyncProgressStore, FocusedPerspectiveStore } = require('mailspring-exports');
-const { SyncingListState } = require('mailspring-component-kit');
+const { SyncingListState, LottieImg } = require('mailspring-component-kit');
 
 const INBOX_ZERO_ANIMATIONS = ['gem', 'oasis', 'tron', 'airstrip', 'galaxy'];
 
@@ -17,27 +17,38 @@ class EmptyPerspectiveState extends React.Component {
     messageContent: PropTypes.node,
   };
 
-  render() {
-    const { messageContent, perspective } = this.props;
-    let name = perspective.categoriesSharedRole();
-    if (perspective.isArchive()) {
-      name = 'archive';
+  renderImage() {
+    if (this.props.perspective.emptyListIcon()) {
+      return <LottieImg name={this.props.perspective.emptyListIcon()}
+                        height={500}
+                        width={500}
+                        style={{ width: 500, height: 500, verticalAlign: 'middle',
+                          border: 0, zoom: 0.5 }}
+      />;
+    } else {
+      let name = this.props.perspective.categoriesSharedRole();
+      if (this.props.perspective.isArchive()) {
+        name = 'archive';
+      }
+      if (!name) {
+        ({ name } = this.props.perspective);
+      }
+      if (name) {
+        name = name.toLowerCase();
+      }
+      if (!name) {
+        name = 'nomail';
+      }
+      return <RetinaImg name={`ic-emptystate-${name}.png`} fallback={`nomail.png`}
+                        mode={RetinaImg.Mode.ContentPreserve}/>;
     }
-    if (!name) {
-      ({ name } = perspective);
-    }
-    if (name) {
-      name = name.toLowerCase();
-    }
-    if (!name) {
-      name = 'nomail';
-    }
+  }
 
+  render() {
+    const { messageContent } = this.props;
     return (
       <div className="perspective-empty-state">
-        {name && (
-          <RetinaImg name={`ic-emptystate-${name}.png`} fallback={`nomail.png`} mode={RetinaImg.Mode.ContentPreserve} />
-        )}
+        {this.renderImage()}
         <div className="message">{messageContent}</div>
       </div>
     );
