@@ -16,7 +16,6 @@ import {
   ConversationStore,
   ContactStore,
   UserCacheStore,
-  MemberProfileStore,
   MessageSend,
 } from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
@@ -158,12 +157,6 @@ export default class MessagesPanel extends Component {
     const { selectedConversation } = this.state;
     files.map((file, index) => sendFileMessage(file, index, this, ' '));
   }
-
-  editProfile = member => {
-    setTimeout(() => {
-      MemberProfileStore.setMember(member);
-    }, 10);
-  };
 
   reconnect = () => {
     registerLoginChat();
@@ -411,7 +404,6 @@ export default class MessagesPanel extends Component {
       selectedConversation,
       loadingMembers: this.state.loadingMembers,
       getRoomMembers: this.getRoomMembers,
-      editProfile: this.editProfile,
       contacts,
       onCloseInfoPanel: () => this.setState({ showConversationInfo: false }),
     };
