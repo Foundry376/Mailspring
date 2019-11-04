@@ -1,0 +1,25 @@
+@import 'ui-variables';
+
+.nylas-input-search {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #e1e4e6;
+  padding: 3px 7px;
+
+  .search-accessory {
+    background: #b6bdc2;
+    flex: 0 0 auto;
+  }
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+
+    &::placeholder {
+      color: #b6bdc2;
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { AccountStore } from 'mailspring-exports';
-import { ConversationStore, UserCacheStore } from 'chat-exports';
+import { ConversationStore, UserCacheStore, MemberProfileStore } from 'chat-exports';
 import ContactAvatar from '../../common/ContactAvatar';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
@@ -26,7 +26,7 @@ export default class InfoMember extends Component {
     e.stopPropagation();
     e.preventDefault();
     const { member } = this.props;
-    this.props.removeMember(member);
+    this.removeMember(member);
   };
 
   // 避免双击事件触发两次单击事件
@@ -46,7 +46,19 @@ export default class InfoMember extends Component {
 
   editProfile = () => {
     const { member } = this.props;
-    this.props.editProfile(member);
+    setTimeout(() => {
+      MemberProfileStore.setMember(member);
+    }, 10);
+  };
+
+  removeMember = async member => {
+    const { conversation } = this.props;
+    if (member.affiliation === 'owner') {
+      alert('you can not remove the owner of the group chat!');
+      return;
+    }
+    const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+    await xmpp.leaveRoom(conversation.jid, jid, conversation.curJid);
   };
 
   changeCurrent = async jid => {

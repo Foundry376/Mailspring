@@ -11,6 +11,7 @@ import {
   KeyCommandsRegion,
   ListensToFluxStore,
   ConfigPropContainer,
+  InputSearch,
 } from 'mailspring-component-kit';
 import { PreferencesUIStore } from 'mailspring-exports';
 import PreferencesTabsBar from './preferences-tabs-bar';
@@ -46,8 +47,8 @@ class PreferencesRoot extends React.Component {
       'core:messages-page-down': stopPropagation,
       'core:list-page-up': stopPropagation,
       'core:list-page-down': stopPropagation,
-      'core:remove-from-view': stopPropagation,
-      'core:gmail-remove-from-view': stopPropagation,
+      // 'core:remove-from-view': stopPropagation,
+      // 'core:gmail-remove-from-view': stopPropagation,
       'core:remove-and-previous': stopPropagation,
       'core:remove-and-next': stopPropagation,
       'core:archive-item': stopPropagation,
@@ -78,33 +79,57 @@ class PreferencesRoot extends React.Component {
     }
   }
   onBack = () => {
-    Actions.popSheet({reason: 'PreferencesRoot:onBack'});
+    Actions.popSheet({ reason: 'PreferencesRoot:onBack' });
+  };
+
+  onInputChange = value => {
+    console.log('^^^^^^^^^^^^^^^^^^^');
+    console.log(value);
+    console.log('^^^^^^^^^^^^^^^^^^^');
   };
 
   render() {
     const { tab, selection, tabs } = this.props;
     const TabComponent = tab && tab.componentClassFn();
-
     return (
       <KeyCommandsRegion
         className="preferences-wrap"
         tabIndex="1"
         localHandlers={this._localHandlers}
       >
-        <Flexbox direction="column">
+        <Flexbox direction="row">
           <div className="item-back" onClick={this.onBack}>
-            <RetinaImg name={'arrow.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg
+              name={'arrow.svg'}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
           </div>
           <PreferencesTabsBar tabs={tabs} selection={selection} />
-          <ScrollRegion className="preferences-content">
-            <ConfigPropContainer
-              ref={el => {
-                this._contentComponent = el;
-              }}
-            >
-              {tab ? <TabComponent accountId={selection.accountId} /> : false}
-            </ConfigPropContainer>
-          </ScrollRegion>
+          <div style={{ flex: 1 }}>
+            <Flexbox direction="column">
+              <div className="searchBar">
+                <div className="tabName">{tab.tabId}</div>
+                <InputSearch
+                  showPreIcon
+                  showClearIcon
+                  height={40}
+                  placeholder="Search settings"
+                  onChange={this.onInputChange}
+                />
+              </div>
+              <ScrollRegion className="preferences-content">
+                <ConfigPropContainer
+                  ref={el => {
+                    this._contentComponent = el;
+                  }}
+                >
+                  {tab ? <TabComponent accountId={selection.accountId} /> : false}
+                </ConfigPropContainer>
+              </ScrollRegion>
+            </Flexbox>
+          </div>
         </Flexbox>
       </KeyCommandsRegion>
     );

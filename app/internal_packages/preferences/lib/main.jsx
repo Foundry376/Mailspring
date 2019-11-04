@@ -14,21 +14,21 @@ export function activate() {
   );
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
-      tabId: 'Accounts',
-      displayName: 'Accounts',
-      componentClassFn: () => require('./tabs/preferences-accounts').default,
+      tabId: 'Notifications',
+      displayName: 'Notifications',
+      componentClassFn: () => require('./tabs/preferences-notifications').default,
       order: 2,
     })
   );
-  //TODO: edison feature disabled
-  // PreferencesUIStore.registerPreferencesTab(
-  //   new PreferencesUIStore.TabItem({
-  //     tabId: 'Subscription',
-  //     displayName: 'Subscription',
-  //     componentClassFn: () => require('./tabs/preferences-identity').default,
-  //     order: 3,
-  //   })
-  // );
+  PreferencesUIStore.registerPreferencesTab(
+    new PreferencesUIStore.TabItem({
+      tabId: 'Accounts',
+      displayName: 'Accounts',
+      componentClassFn: () => require('./tabs/preferences-accounts').default,
+      order: 3,
+    })
+  );
+
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'Appearance',
@@ -39,18 +39,35 @@ export function activate() {
   );
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
-      tabId: 'Shortcuts',
-      displayName: 'Shortcuts',
-      componentClassFn: () => require('./tabs/preferences-keymaps').default,
+      tabId: 'Customize Actions',
+      displayName: 'Customize Actions',
+      componentClassFn: () => require('./tabs/preferences-customize-actions').default,
       order: 5,
     })
   );
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
-      tabId: 'Mail Rules',
-      displayName: 'Mail Rules',
-      componentClassFn: () => require('./tabs/preferences-mail-rules').default,
+      tabId: 'Shortcuts',
+      displayName: 'Shortcuts',
+      componentClassFn: () => require('./tabs/preferences-keymaps').default,
       order: 6,
+    })
+  );
+  // order in [65-128] is for package
+  PreferencesUIStore.registerPreferencesTab(
+    new PreferencesUIStore.TabItem({
+      tabId: 'Blocked Senders',
+      displayName: 'Blocked Senders',
+      order: 129,
+      componentClassFn: () => require('./tabs/preferences-blocked-senders').default,
+    })
+  );
+  PreferencesUIStore.registerPreferencesTab(
+    new PreferencesUIStore.TabItem({
+      tabId: 'Privacy',
+      displayName: 'Privacy',
+      order: 130,
+      componentClassFn: () => require('./tabs/preferences-privacy').default,
     })
   );
 

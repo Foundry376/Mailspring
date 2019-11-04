@@ -38,15 +38,7 @@ export default class ConversationInfo extends Component {
     }
   }
 
-  removeMember = async member => {
-    const conversation = this.props.selectedConversation;
-    if (member.affiliation === 'owner') {
-      alert('you can not remove the owner of the group chat!');
-      return;
-    }
-    const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
-    await xmpp.leaveRoom(conversation.jid, jid, conversation.curJid);
-  };
+
 
   componentDidMount() {
     this._listenToStore();
@@ -247,9 +239,6 @@ export default class ConversationInfo extends Component {
               <InfoMember
                 conversation={conversation}
                 member={privateChatMember}
-                editingMember={this.editingMember}
-                editProfile={this.props.editProfile}
-                removeMember={this.removeMember}
                 currentUserIsOwner={currentUserIsOwner}
                 key={privateChatMember.jid}
               />,
@@ -257,9 +246,6 @@ export default class ConversationInfo extends Component {
                 <InfoMember
                   conversation={conversation}
                   member={self}
-                  editingMember={this.editingMember}
-                  editProfile={this.props.editProfile}
-                  removeMember={this.removeMember}
                   currentUserIsOwner={currentUserIsOwner}
                   key="curJid"
                 />
@@ -273,9 +259,6 @@ export default class ConversationInfo extends Component {
                   <InfoMember
                     conversation={conversation}
                     member={member}
-                    editingMember={this.editingMember}
-                    editProfile={this.props.editProfile}
-                    removeMember={this.removeMember}
                     currentUserIsOwner={currentUserIsOwner}
                     key={member.jid}
                   />);

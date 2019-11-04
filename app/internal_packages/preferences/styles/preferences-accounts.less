@@ -3,31 +3,29 @@
 // Preferences Specific
 .preferences-wrap {
   .container-accounts {
-    min-width: 420px;
-    margin: 0 auto;
-    .accounts-content {
+    display: flex;
+
+    .account-list {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      height: auto;
+      width: 282px;
+      padding: 40px 0 0 12px;
 
-      .account-list {
-        display: flex;
-        flex-direction: column;
-        height: auto;
-        width: 400px;
+      .items-wrapper {
+        flex: 1;
+      }
 
-        .items-wrapper {
-          flex: 1;
-        }
+      .list-item {
+        padding: 10px 15px;
+        border-radius: 10px 0 0 10px;
+      }
 
-        .account {
-          padding: 10px;
-          border-bottom: 1px solid @border-color-divider;
-        }
+      .list-item:not(.selected) .sync-error {
+        color: @color-error;
+      }
 
-        .list-item:not(.selected) .sync-error {
-          color: @color-error;
-        }
-
+      .account {
         .account-name {
           font-size: @font-size-large;
           cursor: default;
@@ -40,86 +38,109 @@
           font-size: @font-size-small;
           cursor: default;
         }
+      }
 
-        .btn-editable-list {
-          height: 37px;
-          width: 37px;
-          line-height: 37px;
-          font-size: 1em;
+      .buttons-wrapper {
+        height: 30px;
+        width: 250px;
+        text-align: center;
+        color: @blue;
+        font-family: 'SF UI Text';
+        font-weight: @headings-font-weight;
+        line-height: 30px;
+        border-radius: 10px;
+        border: 0.5px solid @gray-lighter;
+        box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+        margin-top: 30px;
+      }
+    }
+
+    .account-details {
+      flex: 1;
+      max-width: 400px;
+      border-left: 1px solid @gray-lighter;
+
+      .config-group {
+        padding-left: 20px;
+        padding-right: 10px;
+
+        .item {
+          display: flex;
+          label {
+            white-space: nowrap;
+            margin-right: 10px;
+          }
+          input {
+            border-radius: 0;
+          }
+        }
+        .notice {
+          color: @gray;
+          font-family: 'SF UI Text';
+          line-height: 16px;
+          margin: 4px 0;
+        }
+        button {
+          height: 30px;
+          width: 100%;
+          color: @blue;
+          font-weight: @font-weight-semi-bold;
+          flex: 1;
+          border-radius: 10px;
+          background-color: #fff;
+          border: 0.5px solid @gray-lighter;
+          box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+          margin: 5px 18px 5px 0;
+          &.danger {
+            color: @red;
+          }
         }
       }
 
-      .account-details {
-        width: 400px;
-        padding: 20px;
-        padding-left: @spacing-standard * 2.25;
-        padding-right: @spacing-standard * 2.25;
-        background-color: @gray-lighter;
-        border-top: 1px solid @border-color-divider;
-        border-right: 1px solid @border-color-divider;
-        border-bottom: 1px solid @border-color-divider;
+      .aliases-edit {
+        height: 100px;
+        margin: 10px 0;
+        border: 1px solid @gray-lighter;
+        background: linear-gradient(90deg, #fafafa 0%, #fff 100%);
+      }
 
-        .key-commands-region {
-          height: inherit;
+      .key-commands-region {
+        height: inherit;
+      }
+
+      .items-wrapper {
+        height: 80px;
+      }
+
+      .account-error-detail {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(to top, #ca2541 0%, #d55268 100%);
+
+        .action {
+          flex-shrink: 0;
+          background-color: rgba(0, 0, 0, 0.15);
+          text-align: center;
+          padding: 3px @padding-base-horizontal;
+          color: @text-color-inverse;
         }
-
-        .items-wrapper {
-          height: 80px;
+        .action:hover {
+          background-color: rgba(255, 255, 255, 0.15);
+          text-decoration: none;
         }
-
-        .account-error-detail {
-          display: flex;
-          flex-direction: column;
-          background: linear-gradient(to top, #ca2541 0%, #d55268 100%);
-
-          .action {
-            flex-shrink: 0;
-            background-color: rgba(0, 0, 0, 0.15);
-            text-align: center;
-            padding: 3px @padding-base-horizontal;
-            color: @text-color-inverse;
-          }
-          .action:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            text-decoration: none;
-          }
-          .message {
-            flex-grow: 1;
-            padding: 3px @padding-base-horizontal;
-            color: @text-color-inverse;
-          }
+        .message {
+          flex-grow: 1;
+          padding: 3px @padding-base-horizontal;
+          color: @text-color-inverse;
         }
+      }
 
-        .newsletter {
-          padding-top: @padding-base-vertical * 2;
-          input[type='checkbox'] {
-            margin: 0;
-            position: relative;
-            top: 0;
-          }
-        }
-
-        & > h3 {
-          font-size: 1.2em;
-          &:first-child {
-            margin-top: 0;
-          }
-        }
-
-        & > input {
-          font-size: 0.9em;
-          width: 100%;
-        }
-
-        .default-alias-selector {
-          padding-top: @padding-base-vertical * 3;
-          padding-bottom: @padding-base-vertical;
-
-          & > select {
-            font-size: 0.9em;
-            margin-left: 0;
-            width: 100%;
-          }
+      .newsletter {
+        padding-top: @padding-base-vertical * 2;
+        input[type='checkbox'] {
+          margin: 0;
+          position: relative;
+          top: 0;
         }
       }
     }

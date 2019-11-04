@@ -12,7 +12,7 @@ function actionOption(iconName, label) {
       />
       {label}
     </span>
-  )
+  );
 }
 const actionValues = ['', 'archive', 'trash', 'flag', 'read', 'folder'];
 const actionLabels = [
@@ -22,7 +22,7 @@ const actionLabels = [
   actionOption('flag', 'Flag'),
   actionOption('read', 'Mark Read/Unread'),
   actionOption('folder', 'Move to Folder'),
-]
+];
 export default {
   core: {
     type: 'object',
@@ -54,8 +54,14 @@ export default {
             type: 'integer',
             default: 365,
             enum: [7, 30, 90, 365, -1],
-            enumLabels: ['Within 7 Days', 'Within 30 days', 'Within 3 Month', 'Within a Year', 'All'],
-            title: 'How far back would you like to sync your old mail',
+            enumLabels: [
+              'Within 7 Days',
+              'Within 30 days',
+              'Within 3 Month',
+              'Within a Year',
+              'All',
+            ],
+            title: 'Sync mail as far back as',
           },
           fetchEmailInterval: {
             type: 'integer',
@@ -77,23 +83,28 @@ export default {
           systemTray: {
             type: 'boolean',
             default: true,
-            title: 'Show icon in menu bar / system tray',
+            title: 'Show icon in menu bar',
             platforms: ['darwin', 'linux'],
+          },
+          focusedInbox: {
+            type: 'boolean',
+            default: true,
+            title: 'Enable Focused Inbox (only show important senders in your inbox)',
           },
           showImportant: {
             type: 'boolean',
             default: true,
-            title: 'Show Gmail-style important markers (Gmail Only)',
+            title: 'Show important markers (Gmail only)',
           },
           showUnreadForAllCategories: {
             type: 'boolean',
             default: true,
-            title: 'Show unread counts for all folders / labels',
+            title: 'Show unread count for all folders',
           },
           enableChat: {
             type: 'boolean',
             default: true,
-            title: 'enable chat feature',
+            title: 'Enable chat feature',
           },
           chatProdEnv: {
             type: 'boolean',
@@ -137,12 +148,15 @@ export default {
           openFolderAfterDownload: {
             type: 'boolean',
             default: false,
-            title: 'Open containing folder after downloading attachment',
+            title: 'Open containing folder after downloading attachments',
           },
           displayFilePreview: {
             type: 'boolean',
             default: true,
-            title: 'Display thumbnail previews for attachments when available. (macOS only)',
+            title: 'Display thumbnails for attachments when available (Mac only)',
+          },
+          downloadFolder: {
+            type: 'component',
           },
         },
       },
@@ -154,17 +168,17 @@ export default {
             default: 500,
             enum: [0, 500, 2000, -1],
             enumLabels: ['Instantly', 'After ½ Second', 'After 2 Seconds', 'Manually'],
-            title: 'When reading messages, mark as read',
+            title: 'When reading messages, mark as read after',
           },
           autoloadImages: {
             type: 'boolean',
             default: true,
-            title: 'Automatically load images in viewed messages',
+            title: 'Automatically load images in open emails',
           },
           backspaceDelete: {
             type: 'boolean',
             default: false,
-            title: 'Backspace / delete move messages to trash',
+            title: 'Use the backspace/delete key to move emails to the trash',
           },
           descendingOrderMessageList: {
             type: 'boolean',
@@ -396,7 +410,7 @@ export default {
           sounds: {
             type: 'boolean',
             default: true,
-            title: 'Play sound when a message is sent',
+            title: 'Send mail sound',
           },
           defaultReplyType: {
             type: 'string',
@@ -410,7 +424,7 @@ export default {
             default: 5000,
             enum: [5000, 15000, 30000, 60000, 0],
             enumLabels: ['5 seconds', '15 seconds', '30 seconds', '60 seconds', 'Disable'],
-            title: 'After sending, enable undo for',
+            title: 'Undo time window',
           },
         },
       },
@@ -420,7 +434,7 @@ export default {
           enabled: {
             type: 'boolean',
             default: true,
-            title: 'Show notifications for new unread messages',
+            title: 'Show notifications for new unread emails',
           },
           // enabledForRepeatedTrackingEvents: {
           //   type: 'boolean',
@@ -430,7 +444,7 @@ export default {
           sounds: {
             type: 'boolean',
             default: true,
-            title: 'Play sound when receiving new mail',
+            title: 'New mail sound',
           },
           // unsnoozeToTop: {
           //   type: 'boolean',
@@ -442,7 +456,7 @@ export default {
             default: 'unread',
             enum: ['hide', 'unread', 'total'],
             enumLabels: ['Hide Badge', 'Show Unread Count', 'Show Total Count'],
-            title: 'Show badge on the app icon',
+            title: 'Dock badge count',
           },
         },
       },
@@ -454,7 +468,7 @@ export default {
             default: true,
             title: 'Show profile pictures',
           },
-        }
+        },
       },
     },
   },

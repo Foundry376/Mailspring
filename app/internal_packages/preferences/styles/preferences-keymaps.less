@@ -1,0 +1,78 @@
+@import 'ui-variables';
+
+.preferences-wrap {
+  .keymaps-note {
+    padding: 4px 0 7px;
+    color: @gray;
+    line-height: 18px;
+  }
+  .shortcut-set {
+    justify-content: space-between;
+
+    .btn {
+      color: @red;
+      font-weight: @font-weight-semi-bold;
+      width: 203.33px;
+      border: 0.5px solid @gray-lighter;
+      box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .container-keymaps {
+    .col-left {
+      text-align: right;
+      flex: 1;
+      margin-right: 20px;
+    }
+    .col-right {
+      text-align: left;
+      flex: 1;
+      select {
+        width: 75%;
+      }
+    }
+    .shortcut {
+      padding: 3px 0;
+      color: @text-color-very-subtle;
+      .values {
+        font-family: monospace;
+        font-weight: 600;
+        color: @text-color;
+        display: inline-block;
+        padding-left: @padding-small-horizontal;
+        padding-right: @padding-small-horizontal;
+        cursor: text;
+
+        .shortcut-value {
+          .then {
+            font-size: 0.9em;
+            color: @text-color-very-subtle;
+          }
+          &:after {
+            content: ', ';
+          }
+          &:last-child:after {
+            content: '';
+          }
+        }
+      }
+
+      &:hover {
+        .values {
+          background: @input-bg;
+          border-radius: @border-radius-base;
+          outline: 1px solid @input-border-color;
+        }
+      }
+      &.editing {
+        .values {
+          background: @input-bg;
+          color: @component-active-color;
+
+          border-radius: @border-radius-base;
+          outline: 1px solid @input-border-color;
+        }
+      }
+    }
+  }
+}
