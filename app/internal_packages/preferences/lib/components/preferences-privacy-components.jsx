@@ -19,7 +19,7 @@ export class Privacy extends React.Component {
       <div className="container-privacys">
         <Flexbox>
           <div className="config-group">
-            <h6></h6>
+            <h6>POLICY & TERMS</h6>
             <div className="privacys-note">
               Safeguarding your privacy is important to all of us here at Edison Software. Read our
               privacy policy for important information about how we use and protect your data.

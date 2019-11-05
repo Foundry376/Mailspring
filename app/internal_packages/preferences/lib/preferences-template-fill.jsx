@@ -17,6 +17,10 @@ import {
 } from './components/preferences-customize-components';
 import BlockedSenders from './components/preferences-blocked-senders';
 import { Privacy } from './components/preferences-privacy-components';
+import {
+  PreferencesKeymapsHearder,
+  PreferencesKeymapsContent,
+} from './components/preferences-keymaps';
 
 const preferencesTemplateFill = {
   tables: [
@@ -308,8 +312,20 @@ const preferencesTemplateFill = {
     {
       tabId: 'Shortcuts',
       displayName: 'Shortcuts',
+      className: 'container-keymaps',
       order: 6,
-      configGroup: configSchema => [],
+      configGroup: configSchema => [
+        {
+          groupName: 'SHORTCUTS',
+          groupItem: [
+            {
+              label: 'SHORTCUTS',
+              component: PreferencesKeymapsHearder,
+            },
+          ],
+        },
+        ...PreferencesKeymapsContent(),
+      ],
     },
     {
       tabId: 'Blocked Senders',
