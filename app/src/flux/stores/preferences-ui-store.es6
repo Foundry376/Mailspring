@@ -77,10 +77,10 @@ class PreferencesUIStore extends MailspringStore {
           const itemList = group.groupItem.filter(item => {
             // use zero-widthjoiner break up the string
             // To avoid finding error
-            const searchStr = [item.label || '', ...(item.keywords || [])]
+            const keywordsStr = [item.label || '', ...(item.keywords || [])]
               .join('\u200D')
               .toLowerCase();
-            if (searchStr.indexOf(searchStr) > -1) {
+            if (keywordsStr.indexOf(searchStr) > -1) {
               return true;
             }
             return false;
