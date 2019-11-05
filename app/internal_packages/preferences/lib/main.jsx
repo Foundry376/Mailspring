@@ -11,10 +11,10 @@ export function activate() {
     const item = new PreferencesUIStore.TabItem({
       tabId: tab.tabId,
       displayName: tab.displayName,
-      componentClassFn: () => (
-        <PreferencesContentTemplate className={tab.className} configGroup={tab.configGroup} />
-      ),
+      componentClassFn: () => PreferencesContentTemplate,
       order: tab.order,
+      className: tab.className,
+      configGroup: tab.configGroup,
     });
     PreferencesUIStore.registerPreferencesTab(item);
   });

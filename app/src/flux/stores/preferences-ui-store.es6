@@ -24,7 +24,9 @@ class PreferencesUIStore extends MailspringStore {
       tabId: null,
       accountId: perspective.account ? perspective.account.id : null,
     };
-
+    this.searchValue = '';
+    this._filterTabs = [];
+    this._filterSearchTabsDebounced = _.debounce(() => this._filterSearchTabs(), 100);
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
     this.setupListeners();
   }
@@ -48,11 +50,49 @@ class PreferencesUIStore extends MailspringStore {
   }
 
   tabs() {
-    return this._tabs;
+    return this._filterTabs;
   }
 
   selection() {
     return this._selection;
+  }
+
+  onSearch = value => {
+    this.searchValue = value;
+    this._filterSearchTabsDebounced();
+  };
+
+  _filterSearchTabs() {
+    if (this.searchValue === '') {
+      this._filterTabs = this._tabs;
+    } else {
+      const filterTabIds = [];
+      const searchTabs = this._tabs.filter(tab => {
+        console.error('^^^^^^^^^^^^^^^^^^^^');
+        console.error(tab);
+        console.error('^^^^^^^^^^^^^^^^^^^^');
+        if (tab.displayName.indexOf(this.searchValue) > -1) {
+          filterTabIds.push(tab.tabId);
+          return true;
+        }
+        return false;
+      });
+
+      // deal with filter tabs
+      if (filterTabIds.length === 0) {
+        this._filterTabs = [this._tabs[0]];
+        // deal with select tab
+        this.switchPreferencesTab(this._tabs[0].tabId);
+      } else {
+        this._filterTabs = searchTabs;
+        // deal with select tab
+        if (filterTabIds.indexOf(this._selection.tabId) < 0) {
+          this.switchPreferencesTab(filterTabIds[0]);
+        }
+      }
+    }
+
+    this._triggerDebounced();
   }
 
   openPreferences = () => {
@@ -91,12 +131,12 @@ class PreferencesUIStore extends MailspringStore {
     if (tabItem.tabId === MAIN_TAB_ITEM_ID) {
       this._selection.tabId = tabItem.tabId;
     }
-    this._triggerDebounced();
+    this._filterSearchTabsDebounced();
   };
 
   unregisterPreferencesTab = tabItemOrId => {
     this._tabs = this._tabs.filter(s => s.tabId !== tabItemOrId && s !== tabItemOrId);
-    this._triggerDebounced();
+    this._filterSearchTabsDebounced();
   };
 }
 

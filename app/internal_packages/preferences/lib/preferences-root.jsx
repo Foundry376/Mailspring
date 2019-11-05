@@ -83,14 +83,12 @@ class PreferencesRoot extends React.Component {
   };
 
   onInputChange = value => {
-    console.log('^^^^^^^^^^^^^^^^^^^');
-    console.log(value);
-    console.log('^^^^^^^^^^^^^^^^^^^');
+    PreferencesUIStore.onSearch(value);
   };
 
   render() {
     const { tab, selection, tabs } = this.props;
-    const tabComponent = tab && tab.componentClassFn();
+    const TabComponent = tab && tab.componentClassFn();
     return (
       <KeyCommandsRegion
         className="preferences-wrap"
@@ -125,7 +123,14 @@ class PreferencesRoot extends React.Component {
                     this._contentComponent = el;
                   }}
                 >
-                  {tabComponent ? tabComponent : false}
+                  {TabComponent ? (
+                    <TabComponent
+                      className={tab.className ? tab.className : ''}
+                      configGroup={tab.configGroup ? tab.configGroup : null}
+                    />
+                  ) : (
+                    false
+                  )}
                 </ConfigPropContainer>
               </ScrollRegion>
             </Flexbox>

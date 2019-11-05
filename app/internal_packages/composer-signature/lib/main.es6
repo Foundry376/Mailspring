@@ -9,10 +9,7 @@ export function activate() {
     tabId: 'Signatures',
     displayName: 'Signatures',
     order: 65,
-    componentClassFn: () => {
-      const Component = require('./preferences-signatures').default;
-      return <Component />;
-    }, // eslint-disable-line
+    componentClassFn: () => require('./preferences-signatures').default, // eslint-disable-line
   });
 
   ExtensionRegistry.Composer.register(SignatureComposerExtension);

@@ -11,10 +11,7 @@ export function activate(state = {}) {
     tabId: 'Templates',
     displayName: 'Templates',
     order: 66,
-    componentClassFn: () => {
-      const Component = require('./preferences-templates').default;
-      return <Component />;
-    },
+    componentClassFn: () => require('./preferences-templates').default,
   });
   ComponentRegistry.register(TemplatePicker, { role: 'Composer:ActionButton' });
   ComponentRegistry.register(TemplateStatusBar, { role: 'Composer:Footer' });
