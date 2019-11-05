@@ -1,4 +1,3 @@
-import React from 'react';
 import { PreferencesUIStore, ExtensionRegistry, ComponentRegistry } from 'mailspring-exports';
 
 import SignatureComposerExtension from './signature-composer-extension';

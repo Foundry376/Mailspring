@@ -1,5 +1,4 @@
 /* eslint global-require: 0 */
-import React from 'react';
 import { PreferencesUIStore, ComponentRegistry, ExtensionRegistry } from 'mailspring-exports';
 import TemplatePicker from './template-picker';
 import TemplateStatusBar from './template-status-bar';

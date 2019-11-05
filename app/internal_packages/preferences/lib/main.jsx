@@ -1,5 +1,4 @@
 /* eslint global-require: 0 */
-import React from 'react';
 import { PreferencesUIStore, WorkspaceStore, ComponentRegistry } from 'mailspring-exports';
 import PreferencesRoot from './preferences-root';
 import preferencesTemplateFills from './preferences-template-fill';
