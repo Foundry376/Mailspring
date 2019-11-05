@@ -68,17 +68,12 @@ class PreferencesUIStore extends MailspringStore {
     } else {
       const searchStr = this.searchValue.toLowerCase();
       const filterTabIds = [];
-      const deepCopyTabs = this._tabs.map(tab => {
-        const configGroup = [...(tab.configGroup || [])];
-        return new TabItem({
-          ...tab,
-          configGroup,
-        });
-      });
-      const searchTabs = deepCopyTabs.filter(tab => {
-        const groupList = (tab.configGroup || []).filter(group => {
+      const searchTabs = [];
+      for (const tab of this._tabs) {
+        const groupList = [];
+        for (const group of tab.configGroup || []) {
           if ((group.groupName || '').toLowerCase().indexOf(searchStr) > -1) {
-            return true;
+            groupList.push({ ...group });
           }
           // filter item's label and keywords
           const itemList = group.groupItem.filter(item => {
@@ -93,18 +88,20 @@ class PreferencesUIStore extends MailspringStore {
             return false;
           });
           if (itemList.length) {
-            group.groupItem = itemList;
-            return true;
+            groupList.push({ ...group, groupItem: itemList });
           }
-          return false;
-        });
-        if (groupList.length) {
-          tab.configGroup = groupList;
-          filterTabIds.push(tab.tabId);
-          return true;
         }
-        return false;
-      });
+
+        if (groupList.length) {
+          searchTabs.push(
+            new TabItem({
+              ...tab,
+              configGroup: groupList,
+            })
+          );
+          filterTabIds.push(tab.tabId);
+        }
+      }
 
       // deal with filter tabs
       if (filterTabIds.length === 0) {
