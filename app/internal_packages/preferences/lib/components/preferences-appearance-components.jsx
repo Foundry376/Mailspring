@@ -3,11 +3,10 @@ import PropTypes from 'prop-types';
 import { RetinaImg } from 'mailspring-component-kit';
 import ModeSwitch from './mode-switch';
 
-class AppearanceScaleSlider extends React.Component {
+export class AppearanceScaleSlider extends React.Component {
   static displayName = 'AppearanceScaleSlider';
 
   static propTypes = {
-    id: PropTypes.string,
     config: PropTypes.object.isRequired,
   };
 
@@ -23,7 +22,7 @@ class AppearanceScaleSlider extends React.Component {
 
   render() {
     return (
-      <div id={this.props.id} className="appearance-scale-slider">
+      <div className="appearance-scale-slider">
         <div className="ruler">
           <div style={{ flex: 1.02 }}>
             <RetinaImg name="appearance-scale-small.png" mode={RetinaImg.Mode.ContentDark} />
@@ -46,12 +45,66 @@ class AppearanceScaleSlider extends React.Component {
   }
 }
 
-class PreferencesAppearance extends React.Component {
-  static displayName = 'PreferencesAppearance';
+export function AppearanceProfileOptions(props) {
+  const activeValue = props.config.get('core.appearance.profile');
+  const modeSwitchList = [
+    {
+      value: true,
+      label: 'Profile Pictures',
+      imgsrc: `profile-${'show'}.png`,
+    },
+    {
+      value: false,
+      label: 'No Profile Pictures',
+      imgsrc: `profile-${'hide'}.png`,
+    },
+  ];
+  return (
+    <ModeSwitch
+      className="profile-switch"
+      modeSwitch={modeSwitchList}
+      config={props.config}
+      activeValue={activeValue}
+      imgActive
+      onSwitchOption={value => {
+        AppEnv.config.set('core.appearance.profile', value);
+      }}
+    />
+  );
+}
+
+export function AppearancePanelOptions(props) {
+  const activeValue = props.config.get('core.workspace.mode');
+  const modeSwitchList = [
+    {
+      value: 'list',
+      label: 'Single Panel',
+      imgsrc: `appearance-mode-${'list'}.png`,
+    },
+    {
+      value: 'split',
+      label: 'Two Panels',
+      imgsrc: `appearance-mode-${'split'}.png`,
+    },
+  ];
+  return (
+    <ModeSwitch
+      modeSwitch={modeSwitchList}
+      config={props.config}
+      activeValue={activeValue}
+      imgActive
+      onSwitchOption={value => {
+        AppEnv.commands.dispatch(`navigation:select-${value}-mode`);
+      }}
+    />
+  );
+}
+
+export class AppearanceThemeSwitch extends React.Component {
+  static displayName = 'AppearanceThemeSwitch';
 
   static propTypes = {
     config: PropTypes.object,
-    configSchema: PropTypes.object,
   };
 
   constructor(props) {
@@ -77,11 +130,7 @@ class PreferencesAppearance extends React.Component {
     };
   }
 
-  onPickTheme = () => {
-    AppEnv.commands.dispatch('window:launch-theme-picker');
-  };
-
-  _renderThemeOptions() {
+  render() {
     const internalThemes = ['ui-dark', 'ui-light'];
     let sortedThemes = [].concat(this.state.themes);
     sortedThemes.sort((a, b) => {
@@ -113,82 +162,4 @@ class PreferencesAppearance extends React.Component {
       />
     );
   }
-
-  _renderProfileOptions() {
-    const activeValue = this.props.config.get('core.appearance.profile');
-    const modeSwitchList = [
-      {
-        value: true,
-        label: 'Profile Pictures',
-        imgsrc: `profile-${'show'}.png`,
-      },
-      {
-        value: false,
-        label: 'No Profile Pictures',
-        imgsrc: `profile-${'hide'}.png`,
-      },
-    ];
-    return (
-      <ModeSwitch
-        className="profile-switch"
-        modeSwitch={modeSwitchList}
-        config={this.props.config}
-        activeValue={activeValue}
-        imgActive
-        onSwitchOption={value => {
-          AppEnv.config.set('core.appearance.profile', value);
-        }}
-      />
-    );
-  }
-
-  _renderPanelOptions() {
-    const activeValue = this.props.config.get('core.workspace.mode');
-    const modeSwitchList = [
-      {
-        value: 'list',
-        label: 'Single Panel',
-        imgsrc: `appearance-mode-${'list'}.png`,
-      },
-      {
-        value: 'split',
-        label: 'Two Panels',
-        imgsrc: `appearance-mode-${'split'}.png`,
-      },
-    ];
-    return (
-      <ModeSwitch
-        modeSwitch={modeSwitchList}
-        config={this.props.config}
-        activeValue={activeValue}
-        imgActive
-        onSwitchOption={value => {
-          AppEnv.commands.dispatch(`navigation:select-${value}-mode`);
-        }}
-      />
-    );
-  }
-
-  render() {
-    return (
-      <div className="container-appearance">
-        <div className="config-group">
-          <h6>LAYOUT</h6>
-          {this._renderProfileOptions()}
-          {this._renderPanelOptions()}
-        </div>
-
-        <div className="config-group">
-          <h6>THEME</h6>
-          {this._renderThemeOptions()}
-        </div>
-        <div className="config-group">
-          <h6>SCALING</h6>
-          <AppearanceScaleSlider id="change-scale" config={this.props.config} />
-        </div>
-      </div>
-    );
-  }
 }
-
-export default PreferencesAppearance;

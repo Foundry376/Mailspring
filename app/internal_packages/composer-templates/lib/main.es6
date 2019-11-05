@@ -1,4 +1,5 @@
 /* eslint global-require: 0 */
+import React from 'react';
 import { PreferencesUIStore, ComponentRegistry, ExtensionRegistry } from 'mailspring-exports';
 import TemplatePicker from './template-picker';
 import TemplateStatusBar from './template-status-bar';
@@ -10,7 +11,10 @@ export function activate(state = {}) {
     tabId: 'Templates',
     displayName: 'Templates',
     order: 66,
-    componentClassFn: () => require('./preferences-templates').default,
+    componentClassFn: () => {
+      const Component = require('./preferences-templates').default;
+      return <Component />;
+    },
   });
   ComponentRegistry.register(TemplatePicker, { role: 'Composer:ActionButton' });
   ComponentRegistry.register(TemplateStatusBar, { role: 'Composer:Footer' });

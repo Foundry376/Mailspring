@@ -90,7 +90,7 @@ class PreferencesRoot extends React.Component {
 
   render() {
     const { tab, selection, tabs } = this.props;
-    const TabComponent = tab && tab.componentClassFn();
+    const tabComponent = tab && tab.componentClassFn();
     return (
       <KeyCommandsRegion
         className="preferences-wrap"
@@ -125,7 +125,7 @@ class PreferencesRoot extends React.Component {
                     this._contentComponent = el;
                   }}
                 >
-                  {tab ? <TabComponent accountId={selection.accountId} /> : false}
+                  {tabComponent ? tabComponent : false}
                 </ConfigPropContainer>
               </ScrollRegion>
             </Flexbox>

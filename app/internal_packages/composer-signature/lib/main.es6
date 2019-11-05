@@ -1,3 +1,4 @@
+import React from 'react';
 import { PreferencesUIStore, ExtensionRegistry, ComponentRegistry } from 'mailspring-exports';
 
 import SignatureComposerExtension from './signature-composer-extension';
@@ -8,7 +9,10 @@ export function activate() {
     tabId: 'Signatures',
     displayName: 'Signatures',
     order: 65,
-    componentClassFn: () => require('./preferences-signatures').default, // eslint-disable-line
+    componentClassFn: () => {
+      const Component = require('./preferences-signatures').default;
+      return <Component />;
+    }, // eslint-disable-line
   });
 
   ExtensionRegistry.Composer.register(SignatureComposerExtension);
