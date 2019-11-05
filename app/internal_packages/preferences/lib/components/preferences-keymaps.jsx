@@ -140,6 +140,7 @@ export function PreferencesKeymapsContent() {
       component: () => (
         <CommandItem key={command} command={command} label={label} bindings={bindings[command]} />
       ),
+      keywords: [],
     }));
     return {
       groupName: keybinding.title,
