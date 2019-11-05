@@ -105,9 +105,12 @@ class PreferencesUIStore extends MailspringStore {
 
       // deal with filter tabs
       if (filterTabIds.length === 0) {
-        this._filterTabs = [this._tabs[0]];
-        // deal with select tab
-        this.switchPreferencesTab(this._tabs[0].tabId);
+        const selectTab = this._tabs.find(t => t.tabId === this._selection.tabId);
+        const emptyTab = new TabItem({
+          ...selectTab,
+          configGroup: [],
+        });
+        this._filterTabs = [emptyTab];
       } else {
         this._filterTabs = searchTabs;
         // deal with select tab
