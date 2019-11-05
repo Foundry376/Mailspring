@@ -66,12 +66,33 @@ class PreferencesUIStore extends MailspringStore {
     if (this.searchValue === '') {
       this._filterTabs = this._tabs;
     } else {
+      const searchStr = this.searchValue.toLowerCase();
       const filterTabIds = [];
       const searchTabs = this._tabs.filter(tab => {
-        console.error('^^^^^^^^^^^^^^^^^^^^');
-        console.error(tab);
-        console.error('^^^^^^^^^^^^^^^^^^^^');
-        if (tab.displayName.indexOf(this.searchValue) > -1) {
+        const groupList = (tab.configGroup || []).filter(group => {
+          if ((group.groupName || '').toLowerCase().indexOf(searchStr) > -1) {
+            return true;
+          }
+          // filter item's label and keywords
+          const itemList = group.groupItem.filter(item => {
+            // use zero-widthjoiner break up the string
+            // To avoid finding error
+            const searchStr = [item.label || '', ...(item.keywords || [])]
+              .join('\u200D')
+              .toLowerCase();
+            if (searchStr.indexOf(searchStr) > -1) {
+              return true;
+            }
+            return false;
+          });
+          if (itemList.length) {
+            group.groupItem = itemList;
+            return true;
+          }
+          return false;
+        });
+        if (groupList.length) {
+          tab.configGroup = groupList;
           filterTabIds.push(tab.tabId);
           return true;
         }

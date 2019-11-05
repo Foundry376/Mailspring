@@ -6,7 +6,7 @@ class PreferencesContentTemplate extends React.Component {
   static displayName = 'PreferencesContentTemplate';
   static propTypes = {
     className: PropTypes.string,
-    configGroup: PropTypes.func,
+    configGroup: PropTypes.array,
     config: PropTypes.object,
     configSchema: PropTypes.object,
   };
@@ -21,23 +21,27 @@ class PreferencesContentTemplate extends React.Component {
         {config.groupName ? <h6>{config.groupName.toUpperCase()}</h6> : null}
         {config.groupItem && config.groupItem.length
           ? config.groupItem.map(item => {
+              const configSchema =
+                item.configSchema && typeof item.configSchema === 'function'
+                  ? item.configSchema(this.props.configSchema)
+                  : null;
               if (item.label && item.component) {
                 const ItemComponent = item.component;
                 return (
                   <ItemComponent
                     key={item.label}
                     keyPath={item.keyPath}
-                    configSchema={item.configSchema}
+                    configSchema={configSchema}
                     config={this.props.config}
                     label={item.label}
                   />
                 );
               }
-              if (item.keyPath && item.label && item.configSchema) {
+              if (item.keyPath && item.label && configSchema) {
                 return (
                   <ConfigSchemaItem
                     key={item.label}
-                    configSchema={item.configSchema}
+                    configSchema={configSchema}
                     keyPath={item.keyPath}
                     config={this.props.config}
                     label={item.label}
@@ -53,12 +57,10 @@ class PreferencesContentTemplate extends React.Component {
 
   render() {
     const { className, configGroup } = this.props;
-    const configGroupList =
-      configGroup && typeof configGroup === 'function' ? configGroup(this.props.configSchema) : [];
     return (
       <div className={className ? className : ''}>
-        {configGroupList && configGroupList.length
-          ? configGroupList.map((config, index) => this._renderConfigGroup(config, index))
+        {configGroup && configGroup.length
+          ? configGroup.map((config, index) => this._renderConfigGroup(config, index))
           : null}
       </div>
     );
