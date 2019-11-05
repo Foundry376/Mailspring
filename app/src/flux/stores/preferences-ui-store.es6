@@ -68,7 +68,14 @@ class PreferencesUIStore extends MailspringStore {
     } else {
       const searchStr = this.searchValue.toLowerCase();
       const filterTabIds = [];
-      const searchTabs = this._tabs.filter(tab => {
+      const deepCopyTabs = this._tabs.map(tab => {
+        const configGroup = [...(tab.configGroup || [])];
+        return new TabItem({
+          ...tab,
+          configGroup,
+        });
+      });
+      const searchTabs = deepCopyTabs.filter(tab => {
         const groupList = (tab.configGroup || []).filter(group => {
           if ((group.groupName || '').toLowerCase().indexOf(searchStr) > -1) {
             return true;
