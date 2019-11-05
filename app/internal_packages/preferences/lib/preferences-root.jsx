@@ -28,6 +28,10 @@ class PreferencesRoot extends React.Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      searchValue: '',
+    };
+
     const stopPropagation = e => {
       e.stopPropagation();
     };
@@ -74,7 +78,7 @@ class PreferencesRoot extends React.Component {
   // inside the content area. This makes it way easier to interact with prefs.
   _focusContent() {
     const node = ReactDOM.findDOMNode(this._contentComponent).querySelector('[tabindex]');
-    if (node) {
+    if (node && !this.state.searchValue) {
       node.focus();
     }
   }
@@ -83,9 +87,8 @@ class PreferencesRoot extends React.Component {
   };
 
   onInputChange = value => {
-    console.log('^^^^^^^^^^^^^^^^^^^');
-    console.log(value);
-    console.log('^^^^^^^^^^^^^^^^^^^');
+    this.setState({ searchValue: value });
+    PreferencesUIStore.onSearch(value);
   };
 
   render() {
@@ -125,7 +128,14 @@ class PreferencesRoot extends React.Component {
                     this._contentComponent = el;
                   }}
                 >
-                  {tab ? <TabComponent accountId={selection.accountId} /> : false}
+                  {TabComponent ? (
+                    <TabComponent
+                      className={tab.className ? tab.className : ''}
+                      configGroup={tab.configGroup ? tab.configGroup : null}
+                    />
+                  ) : (
+                    false
+                  )}
                 </ConfigPropContainer>
               </ScrollRegion>
             </Flexbox>

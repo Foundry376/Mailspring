@@ -1,5 +1,4 @@
 import React from 'react';
-import fs from 'fs';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import _str from 'underscore.string';
@@ -18,7 +17,7 @@ class ConfigSchemaItem extends React.Component {
   static propTypes = {
     config: PropTypes.object,
     configSchema: PropTypes.object,
-    keyName: PropTypes.string,
+    label: PropTypes.string,
     keyPath: PropTypes.string,
   };
 
@@ -59,22 +58,6 @@ class ConfigSchemaItem extends React.Component {
     this._dropdownComponent.toggleDropdown();
   };
 
-  _openFloder = keyPath => {
-    const path = this.props.config.get(keyPath);
-    const openDirOption = {
-      properties: ['openDirectory'],
-    };
-    if (typeof path === 'string' && fs.existsSync(path) && fs.lstatSync(path).isDirectory()) {
-      openDirOption['defaultPath'] = path;
-    }
-
-    AppEnv.showOpenDialog(openDirOption, newPaths => {
-      if (newPaths && newPaths.length > 0) {
-        this.props.config.set(keyPath, newPaths[0]);
-      }
-    });
-  };
-
   _renderMenuItem = ([value, label]) => {
     return <span key={value}>{label}</span>;
   };
@@ -100,29 +83,7 @@ class ConfigSchemaItem extends React.Component {
       <div className="platform-note">{this.props.configSchema.note}</div>
     ) : null;
 
-    if (this.props.configSchema.type === 'object') {
-      return (
-        <section className={`section-${this.props.keyName}`}>
-          <h6>{(this.props.label || this.props.keyName).toUpperCase()}</h6>
-          {Object.entries(this.props.configSchema.properties)
-            .filter(([key]) => {
-              const disableSchemas = this.props.disableSchemas || [];
-              return disableSchemas.indexOf(key) < 0;
-            })
-            .map(([key, value]) => (
-              <ConfigSchemaItem
-                key={key}
-                keyName={key}
-                keyPath={`${this.props.keyPath}.${key}`}
-                configSchema={value}
-                config={this.props.config}
-                injectedComponent={this.props.injectedComponent}
-              />
-            ))}
-          {note}
-        </section>
-      );
-    } else if (this.props.configSchema.enum) {
+    if (this.props.configSchema.enum) {
       const items = _.zip(this.props.configSchema.enum, this.props.configSchema.enumLabels);
       const menu = (
         <Menu
@@ -135,7 +96,7 @@ class ConfigSchemaItem extends React.Component {
 
       return (
         <div className="item">
-          <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}:</label>
+          <label htmlFor={this.props.keyPath}>{this.props.label}:</label>
           <ButtonDropdown
             ref={cm => {
               this._dropdownComponent = cm;
@@ -155,19 +116,8 @@ class ConfigSchemaItem extends React.Component {
             onChange={this._onChangeChecked}
             checked={this.props.config.get(this.props.keyPath)}
           />
-          <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}</label>
+          <label htmlFor={this.props.keyPath}>{this.props.label}</label>
           {note}
-        </div>
-      );
-    } else if (this.props.configSchema.type === 'component' && this.props.injectedComponent) {
-      return this.props.injectedComponent;
-    } else if (this.props.configSchema.type === 'floder') {
-      return (
-        <div className="item">
-          <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}:</label>
-          <button onClick={() => this._openFloder(this.props.keyPath)}>
-            {this.props.config.get(this.props.keyPath)}
-          </button>
         </div>
       );
     }

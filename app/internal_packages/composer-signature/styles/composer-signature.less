@@ -84,7 +84,7 @@
 
   .signature-wrap {
     flex: 1;
-    border-left: 1px solid @gray-lighter;
+    border-left: 1px solid @border-color-divider;
     padding: 15px 20px;
 
     &.empty {
@@ -103,6 +103,7 @@
         font-weight: 700;
         line-height: 64px;
         padding: 0;
+        background: none;
         &::placeholder {
           color: @gray-lighter;
         }
@@ -128,6 +129,11 @@
       padding: 10px;
       padding-top: 2px;
       min-height: 248px;
+      .RichEditor-toolbar {
+        .hide-in-composer {
+          display: none;
+        }
+      }
     }
 
     .signature-template-picker {
@@ -188,7 +194,7 @@
     }
 
     .section.editor {
-      border: 1px solid #edf0f1;
+      border: 1px solid @border-color-divider;
       margin-bottom: 13.5px;
     }
 

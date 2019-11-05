@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Flexbox, RetinaImg } from 'mailspring-component-kit';
 
-class Privacy extends React.Component {
+export class Privacy extends React.Component {
   static displayName = 'PreferencesPrivacy';
 
   static propTypes = {
@@ -51,5 +51,3 @@ class Privacy extends React.Component {
     );
   }
 }
-
-export default Privacy;
