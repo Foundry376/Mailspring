@@ -409,7 +409,7 @@
     }
 
     &.focused {
-      background: @list-focused-bg;
+      background: @list-focused-bg !important;
       color: @list-focused-color;
       // border-bottom: 1px solid @border-color-secondary;
     }
@@ -421,6 +421,20 @@
   width: 100%;
   height: 100%;
 
+  &.hideAvatar {
+    .list-tabular-item {
+      &.selected,
+      &:hover {
+        .thread-icon {
+          &.thread-icon-unread,
+          &.thread-icon-star {
+            display: none;
+          }
+        }
+     }
+    }
+  }
+
   .list-tabular-item {
     position: relative;
     width: 100%;
@@ -430,7 +444,7 @@
     // border-left: 4px solid transparent;
     cursor: pointer;
 
-    &:hover {
+    &:hover:not(.focused) {
       background: @white;
     }
 

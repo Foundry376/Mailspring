@@ -440,8 +440,6 @@ input:focus {
     flex-shrink: 0;
     background-size: 12px;
     display: inline-block;
-    background-repeat: no-repeat;
-    background-position: center;
 
     .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 16px 16px) {
       -webkit-mask-image: url(@svg-url);
@@ -640,16 +638,7 @@ body.platform-win32 {
 .sift-list .list-item.focused:hover .list-column-HoverActions .inner,
 .outbox-list .list-item.focused:hover .list-column-HoverActions .inner,
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner{
-  background-image: -webkit-linear-gradient(left, fade(@white, 0%) 0%, @white 50%, @white 100%);
-  // .action {
-  //   -webkit-filter: brightness(300%);
-  // }
-  .action.action-archive {
-    //background: url(@archive-img) center no-repeat;
-  }
-  .action.action-trash {
-    //background: url(@trash-img) center no-repeat;
-  }
+  background-image: -webkit-linear-gradient(left, fade(@list-focused-bg, 0%) 0%, @list-focused-bg 50%, @list-focused-bg 100%) !important;
   .action.action-snooze {
     background: url(@snooze-img) center no-repeat;
   }
@@ -738,6 +727,16 @@ body.platform-win32 {
   .outbox-list-empty-folder-bar,
   .thread-list-empty-folder-bar {
     padding-left: 24px;
+  }
+  .hideAvatar {
+    .thread-icon {
+      &.thread-icon-unread,
+      &.thread-icon-star {
+        position: absolute;
+        left: 12px;
+        top: 16px;
+      }
+    }
   }
   .list-tabular .selection-bar .multiselect-toolbar-root .inner .checkmark {
     &::after {
