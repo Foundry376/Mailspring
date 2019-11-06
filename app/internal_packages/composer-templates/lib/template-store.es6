@@ -77,9 +77,7 @@ class TemplateStore extends MailspringStore {
       if (err) {
         AppEnv.showErrorDialog({
           title: 'Cannot scan templates directory',
-          message: `EdisonMail was unable to read the contents of your templates directory (${
-            this._templatesDir
-            }). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
+          message: `EdisonMail was unable to read the contents of your templates directory (${this._templatesDir}). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
         });
         return;
       }
@@ -100,7 +98,7 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  _onCreateTemplate({ headerMessageId, name, contents } = {}) {
+  _onCreateTemplate({ headerMessageId, name, contents } = {}, callback) {
     if (headerMessageId) {
       this._onCreateTemplateFromDraft(headerMessageId);
       return;
@@ -111,7 +109,12 @@ class TemplateStore extends MailspringStore {
     if (!contents || contents.length === 0) {
       this._displayError('You must provide contents for your template.');
     }
-    this.saveNewTemplate(name, contents, this._onShowTemplates);
+    this.saveNewTemplate(name, contents, template => {
+      this._onShowTemplates();
+      if (callback && typeof callback === 'function') {
+        callback(template);
+      }
+    });
   }
 
   _onCreateTemplateFromDraft(headerMessageId) {
@@ -143,17 +146,17 @@ class TemplateStore extends MailspringStore {
   }
 
   _displayDialog(title, message, buttons) {
-    return (
-      remote.dialog.showMessageBox({
+    return remote.dialog
+      .showMessageBox({
         title: title,
         message: title,
         detail: message,
         buttons: buttons,
         type: 'info',
-      }).then(({ response }) => {
-        return Promise.resolve(response === 0);
       })
-    );
+      .then(({ response }) => {
+        return Promise.resolve(response === 0);
+      });
   }
 
   saveNewTemplate(name, contents, callback) {
@@ -261,7 +264,7 @@ class TemplateStore extends MailspringStore {
         proceed = await this._displayDialog(
           'Replace draft contents?',
           'It looks like your draft already has some content. Loading this template will ' +
-          'overwrite all draft contents.',
+            'overwrite all draft contents.',
           ['Replace contents', 'Cancel']
         );
       }
