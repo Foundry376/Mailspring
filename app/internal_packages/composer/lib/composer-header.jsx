@@ -42,6 +42,9 @@ export default class ComposerHeader extends React.Component {
     this._mounted = true;
     this._isDraftMissingAttachments(this.props);
   }
+  componentWillUnmount(){
+    this._mounted = false;
+  }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     this._ensureFilledFieldsEnabled(nextProps.draft);
