@@ -45,6 +45,9 @@ export default class Task extends Model {
       modelKey: 'createdAt',
       loadFromColumn: true,
       queryable: true,
+    }),
+    undoDelay: Attributes.Number({
+      modelKey: 'undoDelay',
     })
   });
 
@@ -60,6 +63,7 @@ export default class Task extends Model {
     this.status = this.status || Status.Local;
     this.id = this.id || generateTempId();
     this.createdAt = Date.now();
+    this.undoDelay = AppEnv.config.get('core.task.delayInMs')
   }
 
   // Public: Override to raise exceptions if your task is missing required

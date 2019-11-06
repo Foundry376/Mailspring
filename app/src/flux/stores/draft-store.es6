@@ -1219,7 +1219,7 @@ class DraftStore extends MailspringStore {
       return;
     }
     const {
-      delay = AppEnv.config.get('core.sending.undoSend'),
+      delay = AppEnv.config.get('core.task.delayInMs'),
       actionKey = DefaultSendActionKey,
     } = options;
 

@@ -115,8 +115,8 @@ const preferencesTemplateFill = {
             },
             {
               label: 'Undo time window',
-              configSchema: configSchema => configSchema.properties.sending.properties.undoSend,
-              keyPath: 'core.sending.undoSend',
+              configSchema: configSchema => configSchema.properties.task.properties.delayInMs,
+              keyPath: 'core.task.delayInMs',
               keywords: [],
             },
           ],

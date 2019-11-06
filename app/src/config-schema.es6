@@ -404,6 +404,18 @@ export default {
           },
         },
       },
+      task: {
+        type: 'object',
+        properties: {
+          delayInMs: {
+            type: 'number',
+            default: 5000,
+            enum: [5000, 15000, 30000, 60000, 0],
+            enumLabels: ['5 seconds', '15 seconds', '30 seconds', '60 seconds', 'Disable'],
+            title: 'Undo time window',
+          },
+        },
+      },
       sending: {
         type: 'object',
         properties: {
@@ -418,13 +430,6 @@ export default {
             enum: ['reply', 'reply-all'],
             enumLabels: ['Reply', 'Reply All'],
             title: 'Default reply behavior',
-          },
-          undoSend: {
-            type: 'number',
-            default: 5000,
-            enum: [5000, 15000, 30000, 60000, 0],
-            enumLabels: ['5 seconds', '15 seconds', '30 seconds', '60 seconds', 'Disable'],
-            title: 'Undo time window',
           },
         },
       },
