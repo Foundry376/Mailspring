@@ -68,9 +68,9 @@ class SidebarSection {
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     if (draftsItem) {
-      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem, draftsItem);
+      items.splice(1, 0, unreadItem, starredItem, draftsItem);
     } else {
-      items.splice(1, 0, DIVIDER_OBJECT, unreadItem, starredItem);
+      items.splice(1, 0, unreadItem, starredItem);
     }
     if (account.provider !== 'gmail') {
       const archiveMail = SidebarItem.forArchived([account.id]);
@@ -78,7 +78,6 @@ class SidebarSection {
         items.push(archiveMail);
       }
     }
-    items.push(DIVIDER_OBJECT);
     items.push(...this.accountUserCategories(account));
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
@@ -120,15 +119,12 @@ class SidebarSection {
       const ret = this.standardSectionForAccount(accounts[0]);
       if (outboxCount.total > 0) {
         const inbox = ret.items.shift();
-        ret.items.unshift(outbox);
         ret.items.unshift(inbox);
+        ret.items.unshift(outbox);
       }
       SidebarSection.forSiftCategories([accounts[0]], ret.items);
       return ret;
     } else {
-      if (outboxCount.total > 0) {
-        items.push(outbox);
-      }
       accounts.forEach(acc => {
         let item = SidebarItem.forSingleInbox([acc.id], {
           name: acc.label,
@@ -144,6 +140,9 @@ class SidebarSection {
     if (folderItem) {
       items.unshift(DIVIDER_OBJECT);
       items.unshift(folderItem);
+    }
+    if (outboxCount.total > 0) {
+      items.unshift(outbox);
     }
     items.push(DIVIDER_OBJECT);
     folderItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
