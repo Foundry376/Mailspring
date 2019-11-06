@@ -74,6 +74,7 @@ class PreferencesUIStore extends MailspringStore {
         for (const group of tab.configGroup || []) {
           if ((group.groupName || '').toLowerCase().indexOf(searchStr) > -1) {
             groupList.push({ ...group });
+            continue;
           }
           // filter item's label and keywords
           const itemList = group.groupItem.filter(item => {

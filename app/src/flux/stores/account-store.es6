@@ -62,7 +62,7 @@ class AccountStore extends MailspringStore {
           // add chat account
           if (AppEnv.config.get(`core.workspace.enableChat`)) {
             AppEnv.config.set('chatNeedAddIntialConversations', true)
-            let chatConversationsInitialized = AppEnv.config.get('chatConversationsInitialized')
+            let chatConversationsInitialized = AppEnv.config.get('chatConversationsInitialized') || ''
             chatConversationsInitialized = chatConversationsInitialized.replace(account.emailAddress,  '')
             AppEnv.config.set('chatConversationsInitialized', chatConversationsInitialized)
             // wait nativesync to pull emails
