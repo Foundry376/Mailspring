@@ -8,8 +8,8 @@ import { Flexbox } from 'mailspring-component-kit';
 import displayedKeybindings from './keymaps/displayed-keybindings';
 import CommandItem from './keymaps/command-item';
 
-export default class PreferencesKeymaps extends React.Component {
-  static displayName = 'PreferencesKeymaps';
+export class PreferencesKeymapsHearder extends React.Component {
+  static displayName = 'PreferencesKeymapsHearder';
 
   static propTypes = {
     config: PropTypes.object,
@@ -58,14 +58,6 @@ export default class PreferencesKeymaps extends React.Component {
     });
   }
 
-  _onShowUserKeymaps() {
-    const keymapsFile = AppEnv.keymaps.getUserKeymapPath();
-    if (!fs.existsSync(keymapsFile)) {
-      fs.writeFileSync(keymapsFile, '{}');
-    }
-    remote.shell.showItemInFolder(keymapsFile);
-  }
-
   _onDeleteUserKeymap() {
     const chosen = remote.dialog.showMessageBoxSync(AppEnv.getCurrentWindow(), {
       type: 'info',
@@ -100,43 +92,60 @@ export default class PreferencesKeymaps extends React.Component {
 
   render() {
     return (
-      <div className="container-keymaps">
-        <div className="config-group">
-          <h6>SHORTCUTS</h6>
-          <div className="keymaps-note">
-            Choose a set of keyboard shortcuts that you would like to use in the app. To customize a
-            shortcut, click it in the list below and enter a replacement on your keyboard.
-          </div>
-          <Flexbox direction="row" className="shortcut-set">
-            <div className="item">
-              <label>Shortcut set:</label>
-              <div className="button-dropdown">
-                <select
-                  style={{ margin: 0 }}
-                  tabIndex={-1}
-                  value={this.props.config.get('core.keymapTemplate')}
-                  onChange={event =>
-                    this.props.config.set('core.keymapTemplate', event.target.value)
-                  }
-                >
-                  {this.state.templates.map(template => {
-                    return (
-                      <option key={template} value={template}>
-                        {template}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-            </div>
-            <button className="btn" onClick={this._onDeleteUserKeymap}>
-              Reset to Defaults
-            </button>
-          </Flexbox>
+      <div>
+        <div className="keymaps-note">
+          Choose a set of keyboard shortcuts that you would like to use in the app. To customize a
+          shortcut, click it in the list below and enter a replacement on your keyboard.
         </div>
-
-        {displayedKeybindings.map(this._renderBindingsSection)}
+        <Flexbox direction="row" className="shortcut-set">
+          <div className="item">
+            <label>Shortcut set:</label>
+            <div className="button-dropdown">
+              <select
+                style={{ margin: 0 }}
+                tabIndex={-1}
+                value={this.props.config.get('core.keymapTemplate')}
+                onChange={event => this.props.config.set('core.keymapTemplate', event.target.value)}
+              >
+                {this.state.templates.map(template => {
+                  return (
+                    <option key={template} value={template}>
+                      {template}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
+          <button className="btn" onClick={this._onDeleteUserKeymap}>
+            Reset to Defaults
+          </button>
+        </Flexbox>
       </div>
     );
   }
+}
+
+export function PreferencesKeymapsContent() {
+  const bindings = {};
+  for (const section of displayedKeybindings) {
+    for (const [command] of section.items) {
+      bindings[command] = AppEnv.keymaps.getBindingsForCommand(command) || [];
+    }
+  }
+
+  const KeymapsContentGroups = displayedKeybindings.map(keybinding => {
+    const groupItem = keybinding.items.map(([command, label]) => ({
+      label: label,
+      component: () => (
+        <CommandItem key={command} command={command} label={label} bindings={bindings[command]} />
+      ),
+      keywords: [],
+    }));
+    return {
+      groupName: keybinding.title,
+      groupItem: groupItem,
+    };
+  });
+  return KeymapsContentGroups;
 }

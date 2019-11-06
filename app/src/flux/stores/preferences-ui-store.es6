@@ -24,7 +24,9 @@ class PreferencesUIStore extends MailspringStore {
       tabId: null,
       accountId: perspective.account ? perspective.account.id : null,
     };
-
+    this.searchValue = '';
+    this._filterTabs = [];
+    this._filterSearchTabsDebounced = _.debounce(() => this._filterSearchTabs(), 100);
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
     this.setupListeners();
   }
@@ -48,11 +50,77 @@ class PreferencesUIStore extends MailspringStore {
   }
 
   tabs() {
-    return this._tabs;
+    return this._filterTabs;
   }
 
   selection() {
     return this._selection;
+  }
+
+  onSearch = value => {
+    this.searchValue = value;
+    this._filterSearchTabsDebounced();
+  };
+
+  _filterSearchTabs() {
+    if (this.searchValue === '') {
+      this._filterTabs = this._tabs;
+    } else {
+      const searchStr = this.searchValue.toLowerCase();
+      const filterTabIds = [];
+      const searchTabs = [];
+      for (const tab of this._tabs) {
+        const groupList = [];
+        for (const group of tab.configGroup || []) {
+          if ((group.groupName || '').toLowerCase().indexOf(searchStr) > -1) {
+            groupList.push({ ...group });
+          }
+          // filter item's label and keywords
+          const itemList = group.groupItem.filter(item => {
+            // use zero-widthjoiner break up the string
+            // To avoid finding error
+            const keywordsStr = [item.label || '', ...(item.keywords || [])]
+              .join('\u200D')
+              .toLowerCase();
+            if (keywordsStr.indexOf(searchStr) > -1) {
+              return true;
+            }
+            return false;
+          });
+          if (itemList.length) {
+            groupList.push({ ...group, groupItem: itemList });
+          }
+        }
+
+        if (groupList.length) {
+          searchTabs.push(
+            new TabItem({
+              ...tab,
+              configGroup: groupList,
+            })
+          );
+          filterTabIds.push(tab.tabId);
+        }
+      }
+
+      // deal with filter tabs
+      if (filterTabIds.length === 0) {
+        const selectTab = this._tabs.find(t => t.tabId === this._selection.tabId);
+        const emptyTab = new TabItem({
+          ...selectTab,
+          configGroup: [],
+        });
+        this._filterTabs = [emptyTab];
+      } else {
+        this._filterTabs = searchTabs;
+        // deal with select tab
+        if (filterTabIds.indexOf(this._selection.tabId) < 0) {
+          this.switchPreferencesTab(filterTabIds[0]);
+        }
+      }
+    }
+
+    this._triggerDebounced();
   }
 
   openPreferences = () => {
@@ -91,12 +159,12 @@ class PreferencesUIStore extends MailspringStore {
     if (tabItem.tabId === MAIN_TAB_ITEM_ID) {
       this._selection.tabId = tabItem.tabId;
     }
-    this._triggerDebounced();
+    this._filterSearchTabsDebounced();
   };
 
   unregisterPreferencesTab = tabItemOrId => {
     this._tabs = this._tabs.filter(s => s.tabId !== tabItemOrId && s !== tabItemOrId);
-    this._triggerDebounced();
+    this._filterSearchTabsDebounced();
   };
 }
 

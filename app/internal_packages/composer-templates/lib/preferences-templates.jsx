@@ -118,7 +118,14 @@ export default class PreferencesTemplates extends React.Component {
   }
 
   _onAdd = () => {
-    TemplateActions.createTemplate({ name: 'Untitled', contents: 'Insert content here!' });
+    TemplateActions.createTemplate(
+      { name: 'Untitled', contents: 'Insert content here!' },
+      template => {
+        if (template) {
+          this.setState({ selected: template });
+        }
+      }
+    );
   };
 
   _onDelete = item => {
@@ -137,7 +144,7 @@ export default class PreferencesTemplates extends React.Component {
     const { selected } = this.state;
     const footer = (
       <div className="buttons-wrapper" onClick={this._onAdd}>
-        +&nbsp;&nbsp;&nbsp;&nbsp;New Rule
+        +&nbsp;&nbsp;&nbsp;&nbsp;New Template
       </div>
     );
     return (

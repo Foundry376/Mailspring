@@ -333,21 +333,28 @@ class SidebarSection {
     if (accountsOrIds[0].id) {
       accountIds = accountsOrIds.map(acct => acct.id);
     }
+    const siftItems = [];
     let folderItem = SidebarItem.forSift(accountIds, Sift.categories.Travel);
     if (folderItem) {
-      items.push(folderItem);
+      siftItems.push(folderItem);
     }
     folderItem = SidebarItem.forSift(accountIds, Sift.categories.Packages);
     if (folderItem) {
-      items.push(folderItem);
+      siftItems.push(folderItem);
     }
     folderItem = SidebarItem.forSift(accountIds, Sift.categories.Bill);
     if (folderItem) {
-      items.push(folderItem);
+      siftItems.push(folderItem);
     }
     folderItem = SidebarItem.forSift(accountIds, Sift.categories.Entertainment);
     if (folderItem) {
-      items.push(folderItem);
+      siftItems.push(folderItem);
+    }
+    if (siftItems.length > 0) {
+      items.push(DIVIDER_OBJECT);
+      for (const item of siftItems) {
+        items.push(item);
+      }
     }
   }
 }
