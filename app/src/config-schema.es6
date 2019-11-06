@@ -156,6 +156,7 @@ export default {
             title: 'Display thumbnails for attachments when available (Mac only)',
           },
           downloadFolder: {
+            default: 'Downloads',
             type: 'component',
           },
         },
