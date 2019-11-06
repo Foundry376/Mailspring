@@ -118,7 +118,14 @@ export default class PreferencesTemplates extends React.Component {
   }
 
   _onAdd = () => {
-    TemplateActions.createTemplate({ name: 'Untitled', contents: 'Insert content here!' });
+    TemplateActions.createTemplate(
+      { name: 'Untitled', contents: 'Insert content here!' },
+      template => {
+        if (template) {
+          this.setState({ selected: template });
+        }
+      }
+    );
   };
 
   _onDelete = item => {
