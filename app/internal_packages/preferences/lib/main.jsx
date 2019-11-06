@@ -2,7 +2,6 @@
 import { PreferencesUIStore, WorkspaceStore, ComponentRegistry } from 'mailspring-exports';
 import PreferencesRoot from './preferences-root';
 import preferencesTemplateFills from './preferences-template-fill';
-import PreferencesContentTemplate from './components/preferences-content-template';
 
 export function activate() {
   const tabItemList = preferencesTemplateFills.tables;
@@ -10,7 +9,6 @@ export function activate() {
     const item = new PreferencesUIStore.TabItem({
       tabId: tab.tabId,
       displayName: tab.displayName,
-      componentClassFn: () => PreferencesContentTemplate,
       order: tab.order,
       className: tab.className,
       configGroup: tab.configGroup,

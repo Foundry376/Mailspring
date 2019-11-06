@@ -8,7 +8,17 @@ export function activate() {
     tabId: 'Signatures',
     displayName: 'Signatures',
     order: 65,
-    componentClassFn: () => require('./preferences-signatures').default, // eslint-disable-line
+    configGroup: [
+      {
+        groupItem: [
+          {
+            label: 'Signatures',
+            component: require('./preferences-signatures').default,
+            keywords: [],
+          },
+        ],
+      },
+    ],
   });
 
   ExtensionRegistry.Composer.register(SignatureComposerExtension);

@@ -10,7 +10,17 @@ export function activate(state = {}) {
     tabId: 'Templates',
     displayName: 'Templates',
     order: 66,
-    componentClassFn: () => require('./preferences-templates').default,
+    configGroup: [
+      {
+        groupItem: [
+          {
+            label: 'Templates',
+            component: require('./preferences-templates').default,
+            keywords: [],
+          },
+        ],
+      },
+    ],
   });
   ComponentRegistry.register(TemplatePicker, { role: 'Composer:ActionButton' });
   ComponentRegistry.register(TemplateStatusBar, { role: 'Composer:Footer' });
