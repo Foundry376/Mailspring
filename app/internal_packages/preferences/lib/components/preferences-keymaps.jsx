@@ -19,29 +19,8 @@ export class PreferencesKeymapsHearder extends React.Component {
     super();
     this.state = {
       templates: [],
-      bindings: this._getStateFromKeymaps(),
     };
     this._loadTemplates();
-  }
-
-  componentDidMount() {
-    this._disposable = AppEnv.keymaps.onDidReloadKeymap(() => {
-      this.setState({ bindings: this._getStateFromKeymaps() });
-    });
-  }
-
-  componentWillUnmount() {
-    this._disposable.dispose();
-  }
-
-  _getStateFromKeymaps() {
-    const bindings = {};
-    for (const section of displayedKeybindings) {
-      for (const [command] of section.items) {
-        bindings[command] = AppEnv.keymaps.getBindingsForCommand(command) || [];
-      }
-    }
-    return bindings;
   }
 
   _loadTemplates() {
@@ -71,24 +50,6 @@ export class PreferencesKeymapsHearder extends React.Component {
       fs.writeFileSync(keymapsFile, '{}');
     }
   }
-
-  _renderBindingsSection = section => {
-    return (
-      <div className="config-group" key={section.title}>
-        <h6>{section.title}</h6>
-        {section.items.map(([command, label]) => {
-          return (
-            <CommandItem
-              key={command}
-              command={command}
-              label={label}
-              bindings={this.state.bindings[command]}
-            />
-          );
-        })}
-      </div>
-    );
-  };
 
   render() {
     return (
@@ -127,19 +88,10 @@ export class PreferencesKeymapsHearder extends React.Component {
 }
 
 export function PreferencesKeymapsContent() {
-  const bindings = {};
-  for (const section of displayedKeybindings) {
-    for (const [command] of section.items) {
-      bindings[command] = AppEnv.keymaps.getBindingsForCommand(command) || [];
-    }
-  }
-
   const KeymapsContentGroups = displayedKeybindings.map(keybinding => {
     const groupItem = keybinding.items.map(([command, label]) => ({
       label: label,
-      component: () => (
-        <CommandItem key={command} command={command} label={label} bindings={bindings[command]} />
-      ),
+      component: () => <CommandItem key={command} command={command} label={label} />,
       keywords: [],
     }));
     return {

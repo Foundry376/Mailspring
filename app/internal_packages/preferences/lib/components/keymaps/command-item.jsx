@@ -9,7 +9,6 @@ import { keyAndModifiersForEvent } from './mousetrap-keybinding-helpers';
 
 export default class CommandKeybinding extends React.Component {
   static propTypes = {
-    bindings: PropTypes.array,
     label: PropTypes.string,
     command: PropTypes.string,
   };
@@ -19,8 +18,20 @@ export default class CommandKeybinding extends React.Component {
 
     this.state = {
       editing: false,
+      bindings: AppEnv.keymaps.getBindingsForCommand(props.command),
     };
   }
+
+  componentDidMount() {
+    this._disposable = AppEnv.keymaps.onDidReloadKeymap(() => {
+      this.setState({ bindings: AppEnv.keymaps.getBindingsForCommand(this.props.command) });
+    });
+  }
+
+  componentWillUnmount() {
+    this._disposable.dispose();
+  }
+
   componentDidUpdate() {
     const { modifiers, keys, editing } = this.state;
     if (editing) {
@@ -143,12 +154,12 @@ export default class CommandKeybinding extends React.Component {
   };
 
   render() {
-    const { editing, editingBinding } = this.state;
-    const bindings = editingBinding ? [editingBinding] : this.props.bindings;
+    const { editing, editingBinding, bindings } = this.state;
+    const showBindings = editingBinding ? [editingBinding] : bindings;
 
     let value = 'None';
-    if (bindings.length > 0) {
-      value = _.uniq(bindings).map(this._renderKeystrokes);
+    if (showBindings.length > 0) {
+      value = _.uniq(showBindings).map(this._renderKeystrokes);
     }
 
     let classnames = 'shortcut';
