@@ -241,12 +241,12 @@ const preferencesTemplateFill = {
             {
               label: 'Profile pictures',
               component: AppearanceProfileOptions,
-              keywords: [],
+              keywords: ['Profile Pictures', 'No Profile Pictures'],
             },
             {
               label: 'Panel',
               component: AppearancePanelOptions,
-              keywords: [],
+              keywords: ['Single Panel', 'Two Panels'],
             },
           ],
         },
@@ -256,7 +256,7 @@ const preferencesTemplateFill = {
             {
               label: 'Theme',
               component: AppearanceThemeSwitch,
-              keywords: [],
+              keywords: ['Light Mode', 'Dark Mode'],
             },
           ],
         },
@@ -266,7 +266,7 @@ const preferencesTemplateFill = {
             {
               label: 'AppearanceScaleSlider',
               component: AppearanceScaleSlider,
-              keywords: [],
+              keywords: ['font size'],
             },
           ],
         },
