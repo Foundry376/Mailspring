@@ -22,7 +22,7 @@ import MessageText from '../../common/MessageText';
 const a11yEmoji = require('a11y-emoji');
 const { DateUtils } = require('mailspring-exports');
 const { AttachmentStore, AccountStore } = require('mailspring-exports');
-const { dialog, Menu, MenuItem } = remote;
+const { Menu, MenuItem } = remote;
 
 export default class Msg extends PureComponent {
   static propTypes = {
@@ -204,21 +204,19 @@ export default class Msg extends PureComponent {
   download = () => {
     const msgBody = this.state.msgBody;
     const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-    dialog
-      .showSaveDialog({ title: `download file`, defaultPath: fileName })
-      .then(({ filePath } = {}) => {
-        const pathForSave = filePath;
-        if (!pathForSave || typeof pathForSave !== 'string') {
-          return;
-        }
-        const loadConfig = {
-          msgBody,
-          filepath: pathForSave,
-          type: 'download',
-        };
-        const { queueLoadMessage } = this.props;
-        queueLoadMessage(loadConfig);
-      });
+    AppEnv.showSaveDialog({ title: `download file`, defaultPath: fileName }, filePath => {
+      const pathForSave = filePath;
+      if (!pathForSave || typeof pathForSave !== 'string') {
+        return;
+      }
+      const loadConfig = {
+        msgBody,
+        filepath: pathForSave,
+        type: 'download',
+      };
+      const { queueLoadMessage } = this.props;
+      queueLoadMessage(loadConfig);
+    });
   };
 
   checkImgHasDownloaded = () => {

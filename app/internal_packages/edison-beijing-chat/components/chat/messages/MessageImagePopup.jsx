@@ -5,7 +5,6 @@ import { downloadFile } from '../../../utils/awss3';
 import { isJsonStr } from '../../../utils/stringUtils';
 import { RetinaImg } from 'mailspring-component-kit';
 import { MessageImagePopupStore } from 'chat-exports';
-const { dialog } = require('electron').remote;
 
 var http = require('http');
 var https = require('https');
@@ -71,12 +70,12 @@ export default class MessageImagePopup extends Component {
     event.preventDefault();
     const { msgBody } = this.imgMsgs[this.state.imgIndex];
     const fileName = this.getFileName(msgBody);
-    dialog
-      .showSaveDialog({
+    AppEnv.showSaveDialog(
+      {
         title: `download file`,
         defaultPath: fileName,
-      })
-      .then(({ filePath } = {}) => {
+      },
+      filePath => {
         const path = filePath;
         if (!path || typeof path !== 'string') {
           return;
@@ -110,7 +109,8 @@ export default class MessageImagePopup extends Component {
             });
           });
         }
-      });
+      }
+    );
   };
 
   UNSAFE_componentWillReceiveProps = nexProps => {
