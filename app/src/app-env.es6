@@ -208,7 +208,11 @@ export default class AppEnvConstructor {
         return this.reportError(originalError, { url, line, column });
       }
       try {
-        const { line: newLine, column: newColumn } = mapSourcePosition({ source: url, line, column });
+        const { line: newLine, column: newColumn } = mapSourcePosition({
+          source: url,
+          line,
+          column,
+        });
         return this.reportError(originalError, { url, line: newLine, column: newColumn });
       } catch (e) {
         console.error(e);
@@ -273,11 +277,11 @@ export default class AppEnvConstructor {
   _expandReportLog(error, extra = {}) {
     try {
       getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
-      if (typeof extra === "string") {
+      if (typeof extra === 'string') {
         console.warn('extra is not an object:' + extra);
         extra = {
-          errorData: extra
-        }
+          errorData: extra,
+        };
       }
       extra.osInfo = getOSInfo();
       extra.native = this.config.get('core.support.native');
@@ -1066,9 +1070,8 @@ export default class AppEnvConstructor {
   }
 
   showImageSelectionDialog(cb) {
-    return remote.dialog.showOpenDialog(
-      this.getCurrentWindow(),
-      {
+    return remote.dialog
+      .showOpenDialog(this.getCurrentWindow(), {
         properties: ['openFile', 'multiSelections'],
         filters: [
           {
@@ -1087,6 +1090,22 @@ export default class AppEnvConstructor {
   }
 
   showSaveDialog(options, callback) {
+    const downloadFolderOption = this.config.get('core.attachments.downloadFolder');
+    let downloadPath;
+    if (downloadFolderOption === 'Downloads') {
+      downloadPath = path.join(this.userDirPath, 'Downloads');
+    } else if (downloadFolderOption === 'Ask me every time') {
+      downloadPath = '';
+    } else {
+      downloadPath = downloadFolderOption;
+    }
+
+    if (downloadPath && fs.lstatSync(downloadPath).isDirectory()) {
+      options.defaultPath = options.defaultPath
+        ? path.join(downloadPath, options.defaultPath)
+        : downloadPath;
+    }
+
     if (options.title == null) {
       options.title = 'Save File';
     }
@@ -1120,25 +1139,20 @@ export default class AppEnvConstructor {
     }
 
     if (!detail) {
-      return remote.dialog.showMessageBox(
-        winToShow,
-        {
-          type: 'warning',
-          buttons: ['Okay'],
-          message: title,
-          detail: message,
-        },
-      );
+      return remote.dialog.showMessageBox(winToShow, {
+        type: 'warning',
+        buttons: ['Okay'],
+        message: title,
+        detail: message,
+      });
     }
     return remote.dialog
-      .showMessageBox(
-        winToShow,
-        {
-          type: 'warning',
-          buttons: ['Okay', 'Show Details'],
-          message: title,
-          detail: message,
-        })
+      .showMessageBox(winToShow, {
+        type: 'warning',
+        buttons: ['Okay', 'Show Details'],
+        message: title,
+        detail: message,
+      })
       .then(({ response, ...rest }) => {
         if (response === 1) {
           const { Actions } = require('mailspring-exports');
@@ -1264,15 +1278,15 @@ export default class AppEnvConstructor {
             const pass = new stream.PassThrough();
             pass.end(img.toPNG());
             pass.pipe(output);
-            output.on('close', function () {
+            output.on('close', function() {
               output.close();
               resolve(outputPath);
             });
-            output.on('end', function () {
+            output.on('end', function() {
               output.close();
               reject();
             });
-            output.on('error', function () {
+            output.on('error', function() {
               output.close();
               reject();
             });
@@ -1296,16 +1310,16 @@ export default class AppEnvConstructor {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function () {
+      output.on('close', function() {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function () {
+      output.on('end', function() {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function (err) {
+      archive.on('warning', function(err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -1314,7 +1328,7 @@ export default class AppEnvConstructor {
           reject(err);
         }
       });
-      archive.on('error', function (err) {
+      archive.on('error', function(err) {
         output.close();
         console.log(err);
         reject(err);
@@ -1440,8 +1454,10 @@ export default class AppEnvConstructor {
     this.reportError(new Error(str), extra, opts);
   }
 
-  syncSiftFolders(){
+  syncSiftFolders() {
     const { Actions } = require('mailspring-exports');
-    Actions.syncSiftFolder({categories: ["Travel", "Packages", "Bill & Receipts", "Entertainment"]});
+    Actions.syncSiftFolder({
+      categories: ['Travel', 'Packages', 'Bill & Receipts', 'Entertainment'],
+    });
   }
 }
