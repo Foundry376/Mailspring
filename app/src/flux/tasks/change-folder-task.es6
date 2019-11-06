@@ -47,10 +47,8 @@ export default class ChangeFolderTask extends ChangeMailTask {
        */
       if (folders.length === 1) {
         data.previousFolder = folders[0];
-        data.canBeUndone = true;
-      } else {
-        data.canBeUndone = false;
       }
+      data.canBeUndone = false;
     }
 
     super(data);

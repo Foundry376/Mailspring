@@ -941,6 +941,10 @@ export const DownButton = () => {
   if (WorkspaceStore.layoutMode() !== 'list') {
     return null;
   }
+  const perspective = FocusedPerspectiveStore.current();
+  if (perspective && perspective.sift) {
+    return null;
+  }
 
   return (
     <ThreadArrowButton
@@ -964,6 +968,10 @@ export const UpButton = () => {
   };
 
   if (WorkspaceStore.layoutMode() !== 'list') {
+    return null;
+  }
+  const perspective = FocusedPerspectiveStore.current();
+  if (perspective && perspective.sift) {
     return null;
   }
 

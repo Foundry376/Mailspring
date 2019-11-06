@@ -173,6 +173,7 @@ class SiftStore extends MailspringStore {
       // }
       this.trigger();
     } else {
+      Actions.syncSiftFolder({ categories: [current.siftCategory] });
       this._createListDataSource();
     }
   };

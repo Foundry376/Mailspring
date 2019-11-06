@@ -8,6 +8,7 @@ import {
   BlockedSendersStore,
   EmailAvatar,
   CalendarStore,
+  FocusedPerspectiveStore,
   Message,
 } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
@@ -115,7 +116,8 @@ export default class MessageItem extends React.Component {
   };
 
   _onToggleCollapsed = () => {
-    if (this.props.isMostRecent) {
+    const perspective = FocusedPerspectiveStore.current();
+    if (this.props.isMostRecent && !perspective.sift) {
       return;
     }
     Actions.toggleMessageIdExpanded(this.props.message.id);
