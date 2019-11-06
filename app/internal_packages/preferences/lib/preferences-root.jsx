@@ -70,7 +70,7 @@ class PreferencesRoot extends React.Component {
     if (oldProps.tab !== this.props.tab) {
       const scrollRegion = document.querySelector('.preferences-content .scroll-region-content');
       scrollRegion.scrollTop = 0;
-      this._focusContent();
+      // this._focusContent();
     }
   }
 
