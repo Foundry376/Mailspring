@@ -366,6 +366,9 @@ export default class MailboxPerspective {
       threads.every(thread => {
         const account = AccountStore.accountForId(thread.accountId);
         if (account && account.provider === 'gmail') {
+          if (this._categoriesSharedRole === 'inbox') { // make sure inbox label can archive
+            return true;
+          }
           return thread.labels.some(label => label.role === 'inbox');
         } else {
           return true;
@@ -505,7 +508,7 @@ class DraftsMailboxPerspective extends MailboxPerspective {
     return WorkspaceStore.Sheet && WorkspaceStore.Sheet.Drafts;
   }
 }
-class SiftMailboxPerspective extends MailboxPerspective{
+class SiftMailboxPerspective extends MailboxPerspective {
   constructor({ siftCategory, accountIds = [''] } = {}) {
     super(accountIds);
     this.name = siftCategory;
