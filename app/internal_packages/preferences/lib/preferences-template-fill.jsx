@@ -22,24 +22,6 @@ import {
   PreferencesKeymapsContent,
 } from './components/preferences-keymaps';
 
-const quickActionKeywords = [
-  'Action 1',
-  'Action 2',
-  'Action 3',
-  'Action 4',
-  'Show preview image',
-  'Show quick actions when hovering over emails in your list',
-];
-
-const swiperActionKeywords = [
-  'Enable swipe actions',
-  'Show preview image',
-  'Left short swipe',
-  'Left long swipe',
-  'Right Short swipe',
-  'Right Long swipe',
-];
-
 const preferencesTemplateFill = {
   tables: [
     {
@@ -301,43 +283,9 @@ const preferencesTemplateFill = {
           groupItem: [
             {
               label: 'Show quick actions when hovering over emails in your list',
-              configSchema: configSchema => configSchema.properties.quickActions.properties.enabled,
-              keyPath: 'core.quickActions.enabled',
-              keywords: quickActionKeywords,
-            },
-            {
-              label: 'Show preview image',
-              keyPath: 'core.quickActions.image',
+              configSchema: configSchema => configSchema,
               component: CustomizeQuickActions,
-              keywords: quickActionKeywords,
-            },
-            {
-              label: 'Action 1',
-              configSchema: configSchema =>
-                configSchema.properties.quickActions.properties.quickAction1,
-              keyPath: 'core.quickActions.quickAction1',
-              keywords: quickActionKeywords,
-            },
-            {
-              label: 'Action 2',
-              configSchema: configSchema =>
-                configSchema.properties.quickActions.properties.quickAction2,
-              keyPath: 'core.quickActions.quickAction2',
-              keywords: quickActionKeywords,
-            },
-            {
-              label: 'Action 3',
-              configSchema: configSchema =>
-                configSchema.properties.quickActions.properties.quickAction3,
-              keyPath: 'core.quickActions.quickAction3',
-              keywords: quickActionKeywords,
-            },
-            {
-              label: 'Action 4',
-              configSchema: configSchema =>
-                configSchema.properties.quickActions.properties.quickAction4,
-              keyPath: 'core.quickActions.quickAction4',
-              keywords: quickActionKeywords,
+              keywords: [],
             },
           ],
         },
@@ -346,43 +294,9 @@ const preferencesTemplateFill = {
           groupItem: [
             {
               label: 'Enable swipe actions',
-              configSchema: configSchema => configSchema.properties.swipeActions.properties.enabled,
-              keyPath: 'core.swipeActions.enabled',
-              keywords: swiperActionKeywords,
-            },
-            {
-              label: 'Show preview image',
-              keyPath: 'core.swipeActions.image',
+              configSchema: configSchema => configSchema,
               component: CustomizeSwipeActions,
-              keywords: swiperActionKeywords,
-            },
-            {
-              label: 'Left short swipe',
-              configSchema: configSchema =>
-                configSchema.properties.swipeActions.properties.leftShortAction,
-              keyPath: 'core.swipeActions.leftShortAction',
-              keywords: swiperActionKeywords,
-            },
-            {
-              label: 'Left long swipe',
-              configSchema: configSchema =>
-                configSchema.properties.swipeActions.properties.leftLongAction,
-              keyPath: 'core.swipeActions.leftLongAction',
-              keywords: swiperActionKeywords,
-            },
-            {
-              label: 'Right Short swipe',
-              configSchema: configSchema =>
-                configSchema.properties.swipeActions.properties.rightShortAction,
-              keyPath: 'core.swipeActions.rightShortAction',
-              keywords: swiperActionKeywords,
-            },
-            {
-              label: 'Right Long swipe',
-              configSchema: configSchema =>
-                configSchema.properties.swipeActions.properties.rightLongAction,
-              keyPath: 'core.swipeActions.rightLongAction',
-              keywords: swiperActionKeywords,
+              keywords: [],
             },
           ],
         },
