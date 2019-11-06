@@ -2,6 +2,7 @@
 /* eslint import/no-dynamic-require: 0 */
 import _ from 'underscore';
 import path from 'path';
+import moment from 'moment';
 import { ipcRenderer, remote, desktopCapturer } from 'electron';
 import { Emitter } from 'event-kit';
 import { mapSourcePosition } from 'source-map-support';
@@ -1100,24 +1101,29 @@ export default class AppEnvConstructor {
       downloadPath = downloadFolderOption;
     }
 
-    if (downloadPath && fs.lstatSync(downloadPath).isDirectory()) {
-      options.defaultPath = options.defaultPath
-        ? path.join(downloadPath, options.defaultPath)
-        : downloadPath;
+    if (downloadPath) {
+      let fileName = path.basename(options.defaultPath || '未命名');
+      if (fs.existsSync(path.join(downloadPath, fileName))) {
+        const extname = path.extname(fileName);
+        fileName = `${path.basename(fileName, extname)}_${moment().format(
+          'YYYY-MM-DD_HH:mm:ss'
+        )}${extname}`;
+      }
+      callback(path.join(downloadPath, fileName));
+    } else {
+      if (options.title == null) {
+        options.title = 'Save File';
+      }
+      return remote.dialog
+        .showSaveDialog(this.getCurrentWindow(), options)
+        .then(({ canceled, filePath }) => {
+          if (canceled) {
+            callback(null);
+          } else {
+            callback(filePath);
+          }
+        });
     }
-
-    if (options.title == null) {
-      options.title = 'Save File';
-    }
-    return remote.dialog
-      .showSaveDialog(this.getCurrentWindow(), options)
-      .then(({ canceled, filePath }) => {
-        if (canceled) {
-          callback(null);
-        } else {
-          callback(filePath);
-        }
-      });
   }
 
   showErrorDialog(messageData, { showInMainWindow, detail } = {}) {
