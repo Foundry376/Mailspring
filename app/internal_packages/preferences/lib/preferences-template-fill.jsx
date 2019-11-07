@@ -296,7 +296,7 @@ const preferencesTemplateFill = {
               label: 'Enable swipe actions',
               configSchema: configSchema => configSchema,
               component: CustomizeSwipeActions,
-              keywords: [],
+              keywords: ['buttons', 'Archive', 'flag', 'trash', 'read', 'unread', 'spam'],
             },
           ],
         },
