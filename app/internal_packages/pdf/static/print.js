@@ -1,4 +1,4 @@
-(function () {
+(function() {
   function rebuildMessages(messageNodes, messages) {
     // Simply insert the message html inside the appropriate node
     for (var idx = 0; idx < messageNodes.length; idx++) {
@@ -27,21 +27,27 @@
 
   function removeAllDarkModeStyles() {
     var colorProperties = ['color', 'background-color'];
-    Array.from(document.querySelectorAll('*')).reverse().forEach(node => {
-      for (var prop of colorProperties) {
-        var style = node.style;
-        if (style.getPropertyPriority(prop) === 'important') {
-          style.removeProperty(prop);
+    Array.from(document.querySelectorAll('*'))
+      .reverse()
+      .forEach(node => {
+        for (var prop of colorProperties) {
+          var style = node.style;
+          if (style.getPropertyPriority(prop) === 'important') {
+            style.removeProperty(prop);
+          }
         }
-      }
-    });
+      });
   }
 
   function exportToPDF() {
     const remote = require('electron').remote;
     const fs = require('fs');
     const webContent = remote.getCurrentWebContents();
-    remote.dialog.showSaveDialog(remote.getCurrentWindow(), {})
+    const titleEle = document.querySelector('#print-header h1');
+    const defaultName = titleEle ? `${titleEle.innerHTML}.pdf` : '';
+
+    remote.dialog
+      .showSaveDialog(remote.getCurrentWindow(), { defaultPath: defaultName })
       .then(({ canceled, filePath }) => {
         if (canceled) {
           return;
@@ -52,11 +58,11 @@
             AppEnv.reportError(error);
             setTimeout(window.close, 500);
           } else {
-            fs.writeFile(filename, data, (err) => {
+            fs.writeFile(filename, data, err => {
               if (err) {
                 AppEnv.reportError(error);
               }
-              console.log('Write PDF successfully.')
+              console.log('Write PDF successfully.');
               setTimeout(window.close, 500);
             });
           }
