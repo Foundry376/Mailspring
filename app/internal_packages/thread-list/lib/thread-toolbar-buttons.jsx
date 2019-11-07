@@ -137,7 +137,7 @@ export class TrashButton extends React.Component {
                 threads: JSON.stringify(this.props.items),
               },
             });
-          } catch (e) {}
+          } catch (e) { }
         }
       });
     }
@@ -175,7 +175,7 @@ export class TrashButton extends React.Component {
                 messages: JSON.stringify(messages),
               },
             });
-          } catch (e) {}
+          } catch (e) { }
         }
       });
     }
@@ -264,7 +264,7 @@ class HiddenGenericRemoveButton extends React.Component {
       <BindGlobalCommands
         commands={{
           // 'core:gmail-remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
-          // 'core:remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
+          'core:remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
           'core:remove-and-previous': event =>
             commandCb(event, this._onShortcutRemoveAndShift, { offset: -1 }),
           'core:remove-and-next': event =>
@@ -335,13 +335,13 @@ class HiddenToggleImportantButton extends React.Component {
         commands={
           allImportant
             ? {
-                'core:mark-unimportant': event =>
-                  commandCb(event, this._onShortcutSetImportant, false),
-              }
+              'core:mark-unimportant': event =>
+                commandCb(event, this._onShortcutSetImportant, false),
+            }
             : {
-                'core:mark-important': event =>
-                  commandCb(event, this._onShortcutSetImportant, true),
-              }
+              'core:mark-important': event =>
+                commandCb(event, this._onShortcutSetImportant, true),
+            }
         }
       >
         <span />
@@ -554,12 +554,12 @@ export class ToggleUnreadButton extends React.Component {
         commands={
           targetUnread
             ? {
-                'core:mark-as-unread': event =>
-                  commandCb(event, this._onShortcutChangeUnread, true),
-              }
+              'core:mark-as-unread': event =>
+                commandCb(event, this._onShortcutChangeUnread, true),
+            }
             : {
-                'core:mark-as-read': event => commandCb(event, this._onShortcutChangeUnread, false),
-              }
+              'core:mark-as-read': event => commandCb(event, this._onShortcutChangeUnread, false),
+            }
         }
       >
         <button
@@ -613,7 +613,7 @@ export class ThreadListMoreButton extends React.Component {
     const selectionCount = this.props.items ? this.props.items.length : 0;
     const menu = new Menu();
     if (selectionCount > 0) {
-      if(isSameAccount(this.props.items)){
+      if (isSameAccount(this.props.items)) {
         menu.append(
           new MenuItem({
             label: 'Move to Folder',

@@ -65,7 +65,7 @@ class DraftList extends React.Component {
     return {
       'core:delete-item': this._onRemoveFromView,
       // 'core:gmail-remove-from-view': this._onRemoveFromView,
-      // 'core:remove-from-view': this._onRemoveFromView,
+      'core:remove-from-view': this._onRemoveFromView,
     };
   };
 

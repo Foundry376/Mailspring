@@ -11,7 +11,7 @@ module.exports = [
       ['core:forward', 'Forward'],
       ['core:archive-item', 'Archive'],
       ['core:delete-item', 'Trash'],
-      // ['core:remove-from-view', 'Remove from view'],
+      ['core:remove-from-view', 'Remove from view'],
       // ['core:gmail-remove-from-view', 'Gmail Remove from view'],
       ['core:star-item', 'Flag'],
       // ['core:snooze-item', 'Snooze'],
