@@ -83,7 +83,14 @@ class SignatureEditor extends React.Component {
             readOnly={false}
             value={editorState}
             propsForPlugins={{}}
-            onChange={change => this.setState({ editorState: change.value })}
+            onChange={change => {
+              const changeHtml = convertToHTML(change.value);
+              if (changeHtml) {
+                this.setState({ editorState: change.value });
+              } else {
+                this.setState({ editorState: convertFromHTML('<br />') });
+              }
+            }}
             onBlur={this._onSave}
             onFileReceived={() => {
               // This method ensures that HTML can be pasted.
