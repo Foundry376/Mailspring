@@ -10,6 +10,7 @@ import {
   CalendarStore,
   FocusedPerspectiveStore,
   Message,
+  TrashFromSenderTask,
 } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
@@ -145,7 +146,11 @@ export default class MessageItem extends React.Component {
   };
 
   _onTrashThisSenderMail = () => {
-    // Trash all previous mail from this sender
+    const { accountId, fromEmail } = this.state;
+    if (accountId && fromEmail) {
+      const task = new TrashFromSenderTask({ accountId: accountId, email: fromEmail });
+      Actions.queueTask(task);
+    }
   };
 
   _cancelMarkAsRead = () => {

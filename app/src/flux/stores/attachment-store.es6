@@ -51,13 +51,10 @@ const attachmentCategoryMap = {
       'audio/3gpp',
       'audio/3gpp2',
       'application/vnd.google-apps.audio',
-    ]
+    ],
   },
   book: {
-    extensions: [
-      'application/vnd.amazon.ebook',
-      'application/epub+zip'
-    ],
+    extensions: ['application/vnd.amazon.ebook', 'application/epub+zip'],
   },
   calendar: {
     extensions: ['text/calendar', 'application/ics'],
@@ -96,7 +93,7 @@ const attachmentCategoryMap = {
       'font/otf',
       'font/ttf',
       'font/woff',
-      'font/woff2'
+      'font/woff2',
     ],
   },
   image: {
@@ -170,7 +167,6 @@ const attachmentCategoryMap = {
   // },
 };
 
-
 const extMapping = {
   pdf: 'pdf',
   xls: 'xls',
@@ -219,7 +215,7 @@ const colorMapping = {
   audio: '#648096',
   font: '#b6bdc2',
   other: '#b6bdc2', // Other
-}
+};
 
 const PREVIEW_FILE_SIZE_LIMIT = 2000000; // 2mb
 const THUMBNAIL_WIDTH = 320;
@@ -260,7 +256,7 @@ class AttachmentStore extends MailspringStore {
       id.substr(0, 2),
       id.substr(2, 2),
       id,
-      file.safeDisplayName(),
+      file.safeDisplayName()
     );
   }
 
@@ -281,7 +277,7 @@ class AttachmentStore extends MailspringStore {
     const color = colorMapping[extName];
     return {
       iconName: `attachment-${extName}.svg`,
-      color
+      color,
     };
   }
 
@@ -387,7 +383,7 @@ class AttachmentStore extends MailspringStore {
           this._filePreviewPaths[file.id] = previewPath;
           this.trigger();
           resolve();
-        },
+        }
       );
     });
   }
@@ -399,8 +395,7 @@ class AttachmentStore extends MailspringStore {
       this._prepareAndResolveFilePath(file)
         .catch(this._catchFSErrors)
         // Passively ignore
-        .catch(() => {
-        })
+        .catch(() => {})
     );
   };
 
@@ -515,14 +510,12 @@ class AttachmentStore extends MailspringStore {
   };
 
   _defaultSaveDir() {
-    let home = '';
-    if (process.platform === 'win32') {
-      home = process.env.USERPROFILE;
-    } else {
-      home = process.env.HOME;
+    let downloadDir = AppEnv.getSaveDirPath();
+    if (downloadDir) {
+      return downloadDir;
     }
-
-    let downloadDir = path.join(home, 'Downloads');
+    const home = AppEnv.getUserDirPath();
+    downloadDir = path.join(home, 'Downloads');
     if (!fs.existsSync(downloadDir)) {
       downloadDir = os.tmpdir();
     }
@@ -588,8 +581,8 @@ class AttachmentStore extends MailspringStore {
       .statAsync(filepath)
       .catch(() =>
         Promise.reject(
-          new Error(`${filepath} could not be found, or has invalid file permissions.`),
-        ),
+          new Error(`${filepath} could not be found, or has invalid file permissions.`)
+        )
       );
   }
 
@@ -638,7 +631,7 @@ class AttachmentStore extends MailspringStore {
 
       readStream.on('error', () => reject(new Error(`Could not read file at path: ${originPath}`)));
       writeStream.on('error', () =>
-        reject(new Error(`Could not write ${path.basename(targetPath)} to files directory.`)),
+        reject(new Error(`Could not write ${path.basename(targetPath)} to files directory.`))
       );
       readStream.on('end', () => resolve());
       readStream.pipe(writeStream);
@@ -691,10 +684,7 @@ class AttachmentStore extends MailspringStore {
 
   // Handlers
 
-  _onSelectAttachment = ({
-    headerMessageId, onCreated = () => {
-    }, type = '*',
-  }) => {
+  _onSelectAttachment = ({ headerMessageId, onCreated = () => {}, type = '*' }) => {
     this._assertIdPresent(headerMessageId);
 
     // When the dialog closes, it triggers `Actions.addAttachment`
@@ -717,7 +707,12 @@ class AttachmentStore extends MailspringStore {
     }
     return AppEnv.showOpenDialog({ properties: ['openFile', 'multiSelections'] }, cb);
   };
-  _onAddAttachments = async ({ headerMessageId, inline = false, filePaths = [], onCreated = () => { } }) => {
+  _onAddAttachments = async ({
+    headerMessageId,
+    inline = false,
+    filePaths = [],
+    onCreated = () => {},
+  }) => {
     if (!Array.isArray(filePaths) || filePaths.length === 0) {
       throw new Error('_onAddAttachments must have an array of filePaths');
     }
@@ -760,14 +755,13 @@ class AttachmentStore extends MailspringStore {
     } catch (err) {
       AppEnv.showErrorDialog(err.message);
     }
-  }
+  };
 
   _onAddAttachment = async ({
     headerMessageId,
     filePath,
     inline = false,
-    onCreated = () => {
-    },
+    onCreated = () => {},
   }) => {
     this._assertIdPresent(headerMessageId);
 
@@ -810,7 +804,7 @@ class AttachmentStore extends MailspringStore {
     }
 
     await this._applySessionChanges(headerMessageId, files =>
-      files.filter(({ id }) => id !== fileToRemove.id),
+      files.filter(({ id }) => id !== fileToRemove.id)
     );
 
     try {
