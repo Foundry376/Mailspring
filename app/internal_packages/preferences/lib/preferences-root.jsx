@@ -15,6 +15,7 @@ import {
 } from 'mailspring-component-kit';
 import { PreferencesUIStore } from 'mailspring-exports';
 import PreferencesTabsBar from './preferences-tabs-bar';
+import PreferencesContentTemplate from './components/preferences-content-template';
 
 class PreferencesRoot extends React.Component {
   static displayName = 'PreferencesRoot';
@@ -93,7 +94,7 @@ class PreferencesRoot extends React.Component {
 
   render() {
     const { tab, selection, tabs } = this.props;
-    const TabComponent = tab && tab.componentClassFn();
+
     return (
       <KeyCommandsRegion
         className="preferences-wrap"
@@ -128,14 +129,10 @@ class PreferencesRoot extends React.Component {
                     this._contentComponent = el;
                   }}
                 >
-                  {TabComponent ? (
-                    <TabComponent
-                      className={tab.className ? tab.className : ''}
-                      configGroup={tab.configGroup ? tab.configGroup : null}
-                    />
-                  ) : (
-                      false
-                    )}
+                  <PreferencesContentTemplate
+                    className={tab.className ? tab.className : ''}
+                    configGroup={tab.configGroup ? tab.configGroup : null}
+                  />
                 </ConfigPropContainer>
               </ScrollRegion>
             </Flexbox>

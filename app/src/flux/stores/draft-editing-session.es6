@@ -438,6 +438,8 @@ export default class DraftEditingSession extends MailspringStore {
         allNames.push(...name.toLowerCase().split(' ')); // ben, gotow
         allNames.push(contact.nameAbbreviation().toLowerCase()); // bg
         allNames.push(name.toLowerCase()[0]); // b
+        allNames.push(...contact.nameSpecialCharacterStripping().map(n => n.toLocaleLowerCase()));
+        allNames.push(...contact.nameOnlyLetters().map(n => n.toLocaleLowerCase()));
       } else {
         unnamedRecipientPresent = true;
       }

@@ -47,6 +47,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.destroyDraftFailed, this._onDestroyDraftFailed);
     this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
     this.listenTo(Actions.destroyDraft, this._onDestroyDrafts);
+    this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
     if (AppEnv.isMainWindow()) {
       this.listenTo(Actions.composeReply, this._onComposeReply);
       this.listenTo(Actions.composeForward, this._onComposeForward);
@@ -59,7 +60,6 @@ class DraftStore extends MailspringStore {
       this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
       this.listenTo(Actions.composeFeedBackDraft, this._onPopoutFeedbackDraft);
       this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
-      this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
       this.listenTo(Actions.sendDraft, this._onSendDraft);
       this.listenTo(Actions.failingDraft, this._startDraftFailingTimeout);
       this.listenTo(Actions.draftOpenCount, this._onDraftOpenCount);
@@ -237,6 +237,12 @@ class DraftStore extends MailspringStore {
     newParticipants,
   }) => {
     const session = this._draftSessions[originalHeaderMessageId];
+    if (AppEnv.isComposerWindow() || AppEnv.isThreadWindow()) {
+      if(session){
+        this._doneWithSession(session, 'draft account change');
+      }
+      return;
+    }
     await session.changes.commit();
     session.freezeSession();
     const oldDraft = session.draft();
@@ -404,7 +410,7 @@ class DraftStore extends MailspringStore {
 
   _onDraftWindowClosing = ({ headerMessageIds = [], windowLevel = 0, source = '' } = {}) => {
     if (!AppEnv.isMainWindow()) {
-      AppEnv.logWarning(`draft closing, not main window source: ${source}`);
+      AppEnv.logDebug(`draft closing, not main window source: ${source}`);
       return;
     }
     AppEnv.logDebug(`draft closing ${source}, ${headerMessageIds}, window level ${windowLevel}`);
@@ -503,7 +509,7 @@ class DraftStore extends MailspringStore {
         );
       } else {
         // console.log('draft have no change and not on remote, destroying');
-        Actions.destroyDraft([draft], { canBeUndone: false });
+        Actions.destroyDraft([draft], { canBeUndone: false, source: 'onLastOpenDraftClosed' });
         cancelCommits = true;
       }
     }
@@ -519,6 +525,20 @@ class DraftStore extends MailspringStore {
     const promises = [];
     if (!AppEnv.isMainWindow()) {
       AppEnv.debugLog('closing none main window');
+      if (AppEnv.isComposerWindow()) {
+        const keys = Object.keys(this._draftSessions);
+        if (keys.length > 0) {
+          AppEnv.reportError(
+            new Error(
+              `More than one session remaining when closing composer window sessions: ${JSON.stringify(
+                keys,
+              )}`,
+              {},
+              { grabLogs: true },
+            ),
+          );
+        }
+      }
       Actions.draftWindowClosing({
         headerMessageIds: Object.keys(this._draftSessions),
         source: 'beforeUnload',
@@ -946,28 +966,15 @@ class DraftStore extends MailspringStore {
     });
     tasks.push(
       ...TaskFactory.tasksForMessagesByAccount(messages, ({ accountId, messages: msgs }) => {
-        const headerMessageIds = [];
-        const threadIds = [];
         const ids = [];
         msgs.forEach(msg => {
-          headerMessageIds.push(msg.headerMessageId);
           ids.push(msg.id);
-          threadIds.push(msg.threadId);
         });
         return new DestroyDraftTask({
           canBeUndone: opts.canBeUndone,
           accountId,
           messageIds: ids,
-          // needToBroadcastBeforeSendTask: {
-          //   channel: 'draft-delete',
-          //   options: {
-          //     accountId,
-          //     messageIds: ids,
-          //     threadIds: threadIds,
-          //     headerMessageIds: headerMessageIds,
-          //     windowLevel: this._getCurrentWindowLevel(),
-          //   },
-          // },
+          source: opts.source || ''
         });
       }),
     );
@@ -997,18 +1004,20 @@ class DraftStore extends MailspringStore {
         return;
       }
       const openCount = this._draftsOpenCount[headerMessageId];
-      if(!openCount){
-        AppEnv.logError('no open count in destroy draft');
-      }else if (openCount['3'] && opts.allowNewDraft){
+      if (!openCount) {
+        if (opts.source !== 'onLastOpenDraftClosed') {
+          AppEnv.logError(`no open count in destroy draft from source ${opts.source}`);
+        }
+      } else if (openCount['3'] && opts.allowNewDraft) {
         const oldDraft = session.draft();
-        if(!oldDraft){
+        if (!oldDraft) {
           AppEnv.logError('session does not have draft for composer opened draft');
-        }else{
+        } else {
           // const oldHeaderMessageId = oldDraft.headerMessageId;
           // const oldMessageId = oldDraft.id;
           const draft = DraftFactory.duplicateDraftBecauseOfNewId(oldDraft);
           if (draft) {
-            this._finalizeAndPersistNewMessage(draft).then(()=>{
+            this._finalizeAndPersistNewMessage(draft).then(() => {
               // console.log('new draft');
               this._onPopoutDraft(draft.headerMessageId, { newDraft: false });
             });

@@ -497,6 +497,13 @@ export default class Contact extends Model {
     return c1 + c2;
   }
 
+  nameSpecialCharacterStripping(){
+    return this._nameParts().map(n => n.replace(/\W/g, '')) || ['']; // eg: //bryan w. edd -> bryan w edd
+  }
+  nameOnlyLetters(){
+    return this._nameParts().map(n => n.replace(/[\W|\d]/g, '')) || ['']; // eg: //23bryan33 w. edd -> bryan w edd
+  }
+
   guessCompanyFromEmail(email = this.email) {
     if (Utils.emailHasCommonDomain(email)) {
       return '';

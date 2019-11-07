@@ -600,7 +600,7 @@ export default class MailsyncBridge {
             task: task.toJSON(),
             account: JSON.stringify(AccountStore.accountsForErrorLog()),
           },
-        });
+        }, { grabLogs: true });
       } catch (e) {
         console.log(e);
       }
