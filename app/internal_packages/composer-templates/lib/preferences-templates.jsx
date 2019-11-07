@@ -63,7 +63,14 @@ class TemplateEditor extends React.Component {
             readOnly={readOnly}
             value={editorState}
             propsForPlugins={{ inTemplateEditor: true }}
-            onChange={change => this.setState({ editorState: change.value })}
+            onChange={change => {
+              const changeHtml = convertToHTML(change.value);
+              if (changeHtml) {
+                this.setState({ editorState: change.value });
+              } else {
+                this.setState({ editorState: convertFromHTML('<br />') });
+              }
+            }}
             onBlur={this._onSave}
           />
         </div>
