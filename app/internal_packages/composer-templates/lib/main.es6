@@ -16,7 +16,7 @@ export function activate(state = {}) {
           {
             label: 'Templates',
             component: require('./preferences-templates').default,
-            keywords: [],
+            keywords: ['snippet'],
           },
         ],
       },

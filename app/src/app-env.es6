@@ -97,15 +97,6 @@ export default class AppEnvConstructor {
     // }
     // }
 
-    // get user dir path
-    this.userDirPath = '';
-    var exec = require('child_process').exec;
-    exec('cd ~/ && pwd', (err, path) => {
-      if (!err) {
-        this.userDirPath = path.trim();
-      }
-    });
-
     // Setup config and load it immediately so it's available to our singletons
     // and doesn't emit events later when it loads
     this.config = new Config({ configDirPath, resourcePath });
@@ -578,7 +569,24 @@ export default class AppEnvConstructor {
   }
 
   getUserDirPath() {
-    return this.userDirPath;
+    let home = '';
+    if (process.platform === 'win32') {
+      home = process.env.USERPROFILE;
+    } else {
+      home = process.env.HOME;
+    }
+    return home;
+  }
+
+  getSaveDirPath() {
+    const downloadFolderOption = this.config.get('core.attachments.downloadFolder');
+    if (downloadFolderOption === 'Downloads') {
+      return path.join(this.getUserDirPath(), 'Downloads');
+    } else if (downloadFolderOption === 'Ask me every time') {
+      return '';
+    } else {
+      return downloadFolderOption;
+    }
   }
 
   // Public: Get the time taken to completely load the current window.
@@ -1091,15 +1099,7 @@ export default class AppEnvConstructor {
   }
 
   showSaveDialog(options, callback) {
-    const downloadFolderOption = this.config.get('core.attachments.downloadFolder');
-    let downloadPath;
-    if (downloadFolderOption === 'Downloads') {
-      downloadPath = path.join(this.userDirPath, 'Downloads');
-    } else if (downloadFolderOption === 'Ask me every time') {
-      downloadPath = '';
-    } else {
-      downloadPath = downloadFolderOption;
-    }
+    const downloadPath = this.getSaveDirPath();
 
     if (downloadPath) {
       let fileName = path.basename(options.defaultPath || '未命名');
