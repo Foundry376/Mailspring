@@ -16,6 +16,12 @@ class BlockedSendersStore extends MailspringStore {
     this.refreshBlockedSenders();
     this.syncBlockedSenders();
     this.listenTo(Actions.changeBlockSucceeded, this.refreshBlockedSenders);
+
+    DatabaseStore.listen(change => {
+      if (change.objectClass === BlockContact.name) {
+        this.refreshBlockedSenders();
+      }
+    });
   }
 
   refreshBlockedSenders = async () => {
@@ -60,14 +66,10 @@ class BlockedSendersStore extends MailspringStore {
 
   blockEmailByAccount = (accountId, email) => {
     Actions.queueTask(new BlockContactTask({ accountId: accountId, email: email }));
-    // after has native event hook del this
-    this.refreshBlockedSenders();
   };
 
   unBlockEmailByAccount = (accountId, email) => {
     Actions.queueTask(new UnBlockContactTask({ accountId: accountId, email: email }));
-    // after has native event hook del this
-    this.refreshBlockedSenders();
   };
 
   unBlockEmails = emails => {
@@ -76,8 +78,6 @@ class BlockedSendersStore extends MailspringStore {
       return new UnBlockContactTask({ accountId: block.accountId, email: block.email });
     });
     Actions.queueTasks(unBlockTaskList);
-    // after has native event hook del this
-    this.refreshBlockedSenders();
   };
 }
 
