@@ -58,6 +58,9 @@ export default class EmailAvatar extends Component {
       hasImage: false,
       showPicture: AppEnv.config.get(ConfigProfileKey) || !isListModel,
     };
+    if (props.number) {
+      this.state.name = props.number;
+    }
     this._mounted = false;
 
     this.disposable = AppEnv.config.onDidChange(ConfigProfileKey, () => {
