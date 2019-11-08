@@ -51,7 +51,14 @@ input:focus {
       width: 172px;
       padding-right: 2px;
       text-overflow: ellipsis;
-      display: inline-block;
+      display: flex;
+      .participants-inner {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .messages-count {
+        padding-left: 4px;
+      }
     }
     .thread-icon {
       &.thread-icon-unread,
@@ -806,6 +813,9 @@ body.platform-win32 {
   }
   .participants {
     font-size: @font-size-large;
+    .messages-count {
+      padding-left: 4px;
+    }
   }
 
   .mail-important-icon {
