@@ -117,7 +117,7 @@ function scrollToSelection(selection) {
   var scrollerPaddingRight = 0;
   // This offset is to avoid the cursor is too close to the view
   // You can reduce the scope of cursor in the view
-  var contentBottomOffset = 60;
+  var contentBottomOffset = 70;
   var contentTopOffset = 50;
 
   if (isWindow) {

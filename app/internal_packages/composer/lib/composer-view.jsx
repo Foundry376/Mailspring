@@ -269,7 +269,7 @@ export default class ComposerView extends React.Component {
   };
 
   _renderContent() {
-    const isMainWindow = AppEnv.isMainWindow();
+    const isComposerWindow = AppEnv.isComposerWindow();
     return (
       <InjectedComponentErrorBoundary key="composer-error">
         <div className="composer-centered">
@@ -296,7 +296,7 @@ export default class ComposerView extends React.Component {
           >
             {this._renderBodyRegions()}
             {this._renderFooterRegions()}
-            {!isMainWindow && this._renderActionsRegion()}
+            {isComposerWindow && this._renderActionsRegion()}
           </div>
         </div>
       </InjectedComponentErrorBoundary>
@@ -830,7 +830,7 @@ export default class ComposerView extends React.Component {
 
   render() {
     const dropCoverDisplay = this.state.isDropping ? 'block' : 'none';
-    const isMainWindow = AppEnv.isMainWindow();
+    const isComposerWindow = AppEnv.isComposerWindow();
     return (
       <div className={this.props.className}>
         <KeyCommandsRegion
@@ -868,7 +868,7 @@ export default class ComposerView extends React.Component {
               </div>
             </DropZone>
           </TabGroupRegion>
-          {isMainWindow && this._renderActionsRegion()}
+          {!isComposerWindow && this._renderActionsRegion()}
         </KeyCommandsRegion>
       </div>
     );
