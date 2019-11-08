@@ -16,7 +16,7 @@ class ThreadListParticipants extends React.Component {
     const items = this.getTokens();
     return <div className="participants">
       {this.renderIcons()}
-      <div class="participants-inner">{this.renderSpans(items)}</div>
+      <div className="participants-inner">{this.renderSpans(items)}</div>
       {this.renderMessageCount()}
     </div>;
   }

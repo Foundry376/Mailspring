@@ -813,8 +813,13 @@ body.platform-win32 {
   }
   .participants {
     font-size: @font-size-large;
+    .participants-inner {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .messages-count {
       padding-left: 4px;
+      padding-right: 4px;
     }
   }
 

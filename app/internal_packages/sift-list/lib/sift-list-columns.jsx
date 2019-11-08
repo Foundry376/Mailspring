@@ -58,8 +58,10 @@ const participants = (message) => {
   if (list.length > 0) {
     return (
       <div className="participants">
-        <span>{list.map(p => p.displayName()).join(', ')}</span>
-      </div>
+        <div className="participants-inner">
+          <span>{list.map(p => p.displayName()).join(', ')}</span>
+        </div>
+      </div >
     );
   } else {
     return <div className="participants no-recipients">(No Recipients)</div>;
