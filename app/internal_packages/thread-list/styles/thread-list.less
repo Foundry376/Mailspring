@@ -49,6 +49,7 @@ input:focus {
   .list-item {
     .participants {
       width: 172px;
+      padding-right: 2px;
       text-overflow: ellipsis;
       display: inline-block;
     }
@@ -312,9 +313,6 @@ input:focus {
     line-height: 24px;
     padding-left: 4px;
     color: @red;
-    //margin-left: 10px;
-    //flex-shrink: 0;
-    //object-fit: contain;
   }
 
   .participants {
@@ -359,8 +357,9 @@ input:focus {
       margin-left: @padding-base-horizontal;
     }
   }
-  .list-column-Participants {
+  .list-column.list-column-Participants {
     padding-left: 0px;
+    padding-right: 0px;
   }
   .list-column-State {
     display: flex;
@@ -823,7 +822,7 @@ body.platform-win32 {
     text-align: left;
     color: @text-color;
     margin-right: @scrollbar-margin;
-    padding-right: 20px;
+    padding-right: 26px;
     position: relative;
     span {
       color: @gray-darker;
