@@ -63,7 +63,7 @@ export default class ComposerView extends React.Component {
       'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
       'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => { },
+      'composer:show-and-focus-from': () => {},
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
@@ -269,6 +269,7 @@ export default class ComposerView extends React.Component {
   };
 
   _renderContent() {
+    const isComposerWindow = AppEnv.isComposerWindow();
     return (
       <InjectedComponentErrorBoundary key="composer-error">
         <div className="composer-centered">
@@ -295,6 +296,7 @@ export default class ComposerView extends React.Component {
           >
             {this._renderBodyRegions()}
             {this._renderFooterRegions()}
+            {isComposerWindow && this._renderActionsRegion()}
           </div>
         </div>
       </InjectedComponentErrorBoundary>
@@ -511,77 +513,85 @@ export default class ComposerView extends React.Component {
 
   _renderActionsRegion() {
     return (
-      <div className="composer-action-bar-content">
-        <ActionBarPlugins
-          draft={this.props.draft}
-          session={this.props.session}
-          isValidDraft={this._isValidDraft}
-        />
-        <SendActionButton
-          ref={el => {
-            if (el) {
-              this._els.sendActionButton = el;
-            }
-          }}
-          tabIndex={-1}
-          style={{ order: -52 }}
-          draft={this.props.draft}
-          headerMessageId={this.props.draft.headerMessageId}
-          session={this.props.session}
-          isValidDraft={this._isValidDraft}
-          disabled={this.props.session.isPopout() || this._draftNotReady()}
-        />
-        <div className="divider-line" style={{ order: -51 }} />
-        <button
-          tabIndex={-1}
-          className="btn btn-toolbar btn-attach"
-          style={{ order: -50 }}
-          title="Attach file"
-          onClick={this._onSelectAttachment.bind(this, { type: 'notInline' })}
-          disabled={this.props.session.isPopout() || this._draftNotReady()}
-        >
-          <RetinaImg
-            name={'attachments.svg'}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </button>
-        <button
-          tabIndex={-1}
-          className="btn btn-toolbar btn-attach"
-          style={{ order: -49 }}
-          title="Insert photo"
-          onClick={this._onSelectAttachment.bind(this, { type: 'image' })}
-          disabled={this.props.session.isPopout() || this._draftNotReady()}
-        >
-          <RetinaImg
-            name={'inline-image.svg'}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </button>
-        <div className="divider-line" style={{ order: 10 }} />
-        <button
-          tabIndex={-1}
-          className="btn btn-toolbar btn-trash"
-          style={{ order: 40 }}
-          title="Delete draft"
-          onClick={this._onDestroyDraft}
-          disabled={this.props.session.isPopout() || this._draftNotReady()}
-        >
-          {this.state.isDeleting ? (
-            <LottieImg name={'loading-spinner-blue'} size={{ width: 24, height: 24 }} />
-          ) : (
-              <RetinaImg
-                name={'trash.svg'}
-                style={{ width: 24, height: 24 }}
-                isIcon
-                mode={RetinaImg.Mode.ContentIsMask}
+      <div className="sendbar-for-dock">
+        <div className="action-bar-wrapper">
+          <div className="composer-action-bar-wrap" data-tooltips-anchor>
+            <div className="tooltips-container" />
+            <div className="composer-action-bar-content">
+              <ActionBarPlugins
+                draft={this.props.draft}
+                session={this.props.session}
+                isValidDraft={this._isValidDraft}
               />
-            )}
-        </button>
+              <SendActionButton
+                ref={el => {
+                  if (el) {
+                    this._els.sendActionButton = el;
+                  }
+                }}
+                tabIndex={-1}
+                style={{ order: -52 }}
+                draft={this.props.draft}
+                headerMessageId={this.props.draft.headerMessageId}
+                session={this.props.session}
+                isValidDraft={this._isValidDraft}
+                disabled={this.props.session.isPopout() || this._draftNotReady()}
+              />
+              <div className="divider-line" style={{ order: -51 }} />
+              <button
+                tabIndex={-1}
+                className="btn btn-toolbar btn-attach"
+                style={{ order: -50 }}
+                title="Attach file"
+                onClick={this._onSelectAttachment.bind(this, { type: 'notInline' })}
+                disabled={this.props.session.isPopout() || this._draftNotReady()}
+              >
+                <RetinaImg
+                  name={'attachments.svg'}
+                  style={{ width: 24, height: 24 }}
+                  isIcon
+                  mode={RetinaImg.Mode.ContentIsMask}
+                />
+              </button>
+              <button
+                tabIndex={-1}
+                className="btn btn-toolbar btn-attach"
+                style={{ order: -49 }}
+                title="Insert photo"
+                onClick={this._onSelectAttachment.bind(this, { type: 'image' })}
+                disabled={this.props.session.isPopout() || this._draftNotReady()}
+              >
+                <RetinaImg
+                  name={'inline-image.svg'}
+                  style={{ width: 24, height: 24 }}
+                  isIcon
+                  mode={RetinaImg.Mode.ContentIsMask}
+                />
+              </button>
+              <div className="divider-line" style={{ order: 10 }} />
+              <button
+                tabIndex={-1}
+                className="btn btn-toolbar btn-trash"
+                style={{ order: 40 }}
+                title="Delete draft"
+                onClick={this._onDestroyDraft}
+                disabled={this.props.session.isPopout() || this._draftNotReady()}
+              >
+                {this.state.isDeleting ? (
+                  <LottieImg name={'loading-spinner-blue'} size={{ width: 24, height: 24 }} />
+                ) : (
+                  <RetinaImg
+                    name={'trash.svg'}
+                    style={{ width: 24, height: 24 }}
+                    isIcon
+                    mode={RetinaImg.Mode.ContentIsMask}
+                  />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="wrapper-space"></div>
       </div>
     );
   }
@@ -820,13 +830,7 @@ export default class ComposerView extends React.Component {
 
   render() {
     const dropCoverDisplay = this.state.isDropping ? 'block' : 'none';
-    const composerActionBar = (
-      <div className="composer-action-bar-wrap" data-tooltips-anchor>
-        <div className="tooltips-container" />
-        {this._renderActionsRegion()}
-      </div>
-    );
-    const isMainWindow = AppEnv.isMainWindow();
+    const isComposerWindow = AppEnv.isComposerWindow();
     return (
       <div className={this.props.className}>
         <KeyCommandsRegion
@@ -862,15 +866,9 @@ export default class ComposerView extends React.Component {
               <div className="composer-action-bar-workspace-wrap">
                 {this._renderActionsWorkspaceRegion()}
               </div>
-              {!isMainWindow && composerActionBar}
             </DropZone>
           </TabGroupRegion>
-          {isMainWindow && (
-            <div id="sendbar-for-dock">
-              <div className="action-bar-wrapper">{composerActionBar}</div>
-              <div className="wrapper-space"></div>
-            </div>
-          )}
+          {!isComposerWindow && this._renderActionsRegion()}
         </KeyCommandsRegion>
       </div>
     );

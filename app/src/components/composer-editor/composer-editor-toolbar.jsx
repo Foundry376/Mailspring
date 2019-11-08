@@ -2,7 +2,7 @@ import React from 'react';
 
 export default class ComposerEditorToolbar extends React.Component {
   static defaultProps = {
-    readOnly: false
+    readOnly: false,
   };
   constructor(props) {
     super(props);
@@ -74,7 +74,7 @@ export default class ComposerEditorToolbar extends React.Component {
     // when send bar is out of screen, make it dock to bottom
     // if (AppEnv.isMainWindow()) {
     //   if (!this.sendbarForDock) {
-    //     this.sendbarForDock = document.querySelector('#sendbar-for-dock');
+    //     this.sendbarForDock = document.querySelector('.sendbar-for-dock');
     //     this.sendToolbar = document.querySelector('.composer-action-bar-wrap');
     //     this.composer = this.sendbarForDock && this.sendbarForDock.parentElement;
     //   }
