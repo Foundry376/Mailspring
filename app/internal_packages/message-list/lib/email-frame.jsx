@@ -88,8 +88,8 @@ export default class EmailFrame extends React.Component {
     if (!doc) {
       return;
     }
-    const { isPlainText = 0 } = this.props.message;
-    const isPlainBody = isPlainText === 1;
+    const { isPlainText = false } = this.props.message;
+    const isPlainBody = isPlainText;
     // const isPlainBody = body && body.trim().replace(/(\r\n|\r|\n)/g, ' ').substr(0, 20) == snippet.trim().substr(0, 20);
     doc.open();
 
