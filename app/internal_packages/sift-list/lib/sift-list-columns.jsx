@@ -168,8 +168,6 @@ const cNarrow = new ListTabular.Column({
         <div className="thread-info-column">
           <div className="participants-wrapper">
             {participants(message)}
-            {calendar}
-            {attachment}
             <span style={{ flex: 1 }} />
             <InjectedComponent
               key="sift-injected-timestamp"
@@ -194,6 +192,7 @@ const cNarrow = new ListTabular.Column({
           </div>
           <div className="subject">
             <span>{subject(message.subject)}</span>
+            {calendar || attachment || <div className="thread-icon no-icon" />}
           </div>
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(message)}&nbsp;</div>

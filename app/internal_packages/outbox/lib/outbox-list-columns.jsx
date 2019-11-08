@@ -30,7 +30,7 @@ const SenderColumn = new ListTabular.Column({
   resolver: draft => {
     const account = AccountStore.accountForId(draft.accountId);
     let accountLogo = 'account-logo-other.png';
-    if(account && account.provider !== 'imap'){
+    if (account && account.provider !== 'imap') {
       accountLogo = `account-logo-${account.provider}.png`;
     }
     const styles = {
@@ -39,9 +39,9 @@ const SenderColumn = new ListTabular.Column({
     };
     return <div className="avatar-icon" style={styles}>
       <RetinaImg mode={RetinaImg.Mode.ContentPreserve}
-                 name={accountLogo}
-                 style={{width: 40, height: 40}}
-                 />
+        name={accountLogo}
+        style={{ width: 40, height: 40 }}
+      />
     </div>
   }
 });
@@ -114,7 +114,7 @@ const HoverActions = new ListTabular.Column({
   name: 'HoverActions',
   resolver: draft => {
     const actions = [];
-    if(Message.compareMessageState(draft.state, Message.messageState.failed)){
+    if (Message.compareMessageState(draft.state, Message.messageState.failed)) {
       actions.unshift(<OutboxTrashQuickAction draft={draft} key='outbox-trash-quick-action' />);
       actions.unshift(<OutboxEditQuickAction draft={draft} key='outbox-edit-quick-action' />);
       actions.unshift(<OutboxResendQuickAction draft={draft} key='outbox-resend-quick-action' />)
@@ -168,7 +168,7 @@ const cNarrow = new ListTabular.Column({
       attachment = <div className="thread-icon thread-icon-attachment" />;
     }
     const actions = [];
-    if(Message.compareMessageState(draft.state, Message.messageState.failed)){
+    if (Message.compareMessageState(draft.state, Message.messageState.failed)) {
       actions.unshift(<OutboxTrashQuickAction draft={draft} key='outbox-trash-quick-action' />);
       actions.unshift(<OutboxEditQuickAction draft={draft} key='outbox-edit-quick-action' />);
       actions.unshift(<OutboxResendQuickAction draft={draft} key='outbox-resend-quick-action' />)
@@ -181,8 +181,6 @@ const cNarrow = new ListTabular.Column({
         <div className="thread-info-column">
           <div className="participants-wrapper">
             {participants(draft)}
-            {calendar}
-            {attachment}
             <span style={{ flex: 1 }} />
             <InjectedComponent
               key="outbox-injected-timestamp"
@@ -207,6 +205,7 @@ const cNarrow = new ListTabular.Column({
           </div>
           <div className="subject">
             <span>{subject(draft.subject)}</span>
+            {calendar || attachment || <div className="thread-icon no-icon" />}
           </div>
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(draft)}&nbsp;</div>
