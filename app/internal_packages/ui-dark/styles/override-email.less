@@ -79,19 +79,24 @@
 .button-dropdown:hover .only-item,
 .button-dropdown .secondary-picker,
 .btn.btn-emphasis {
-    background-color: @dropdown-default-bg-color;
-    background: @dropdown-default-bg-color;
-    box-shadow: none;
+  background-color: @dropdown-default-bg-color;
+  background: @dropdown-default-bg-color;
+  box-shadow: none;
 }
 
 .tokenizing-field.focused .token {
-    background: @active;
+  background: @active;
 }
 
 .sift-list .list-item:hover .list-column-HoverActions .inner,
 .outbox-list .list-item:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(left, fade(@list-bg, 0%) 0%, @list-bg 50%, @list-bg 100%);
+  background-image: -webkit-linear-gradient(
+    left,
+    fade(@list-bg, 0%) 0%,
+    @list-bg 50%,
+    @list-bg 100%
+  );
 }
 
 .list-tabular .selection-bar .multiselect-toolbar-root .inner {
@@ -136,7 +141,7 @@
   .inner,
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap,
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused,
-#sendbar-for-dock .action-bar-wrapper {
+.sendbar-for-dock .action-bar-wrapper {
   background-color: @cards;
 }
 
