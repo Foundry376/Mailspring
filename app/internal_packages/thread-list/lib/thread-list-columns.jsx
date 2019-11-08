@@ -142,7 +142,7 @@ const c3 = new ListTabular.Column({
         {draft}
         <span className="subject">{subject(thread.subject)}</span>
         <span className="snippet">{getSnippet(thread)}</span>
-        <ThreadListIcon thread={thread} />
+        {/* <ThreadListIcon thread={thread} /> */}
       </span>
     );
   },
