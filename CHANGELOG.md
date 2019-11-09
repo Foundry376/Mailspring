@@ -40,7 +40,7 @@ Fixes:
 
 - Mailspring does a better job removing quoted text formatted by very old versions of Outlook.
 
-- Mailspring no longer freezes when you type al ink with a "#hash" and then press return.
+- Mailspring no longer freezes when you type a link with a "#" (hash character) and then press return.
 
 - On Linux and Windows, the system tray no longer turns blue whenever the app's window is hidden. #1467, #1017
 
