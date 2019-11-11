@@ -199,37 +199,38 @@ export class CustomizeEmailActions extends React.Component {
           {this._renderActionIcon(4)}
           {this._renderActionIcon(5)}
         </div>
-
-        <ConfigSchemaItem
-          configSchema={mailActionsConfigSchema.mailAction1}
-          keyPath={'core.mailActions.mailAction1'}
-          config={config}
-          label={mailActionsConfigSchema.mailAction1.title}
-        />
-        <ConfigSchemaItem
-          configSchema={mailActionsConfigSchema.mailAction2}
-          keyPath={'core.mailActions.mailAction2'}
-          config={config}
-          label={mailActionsConfigSchema.mailAction2.title}
-        />
-        <ConfigSchemaItem
-          configSchema={mailActionsConfigSchema.mailAction3}
-          keyPath={'core.mailActions.mailAction3'}
-          config={config}
-          label={mailActionsConfigSchema.mailAction3.title}
-        />
-        <ConfigSchemaItem
-          configSchema={mailActionsConfigSchema.mailAction4}
-          keyPath={'core.mailActions.mailAction4'}
-          config={config}
-          label={mailActionsConfigSchema.mailAction4.title}
-        />
-        <ConfigSchemaItem
-          configSchema={mailActionsConfigSchema.mailAction5}
-          keyPath={'core.mailActions.mailAction5'}
-          config={config}
-          label={mailActionsConfigSchema.mailAction5.title}
-        />
+        <div className="email-actions">
+          <ConfigSchemaItem
+            configSchema={mailActionsConfigSchema.mailAction1}
+            keyPath={'core.mailActions.mailAction1'}
+            config={config}
+            label={mailActionsConfigSchema.mailAction1.title}
+          />
+          <ConfigSchemaItem
+            configSchema={mailActionsConfigSchema.mailAction2}
+            keyPath={'core.mailActions.mailAction2'}
+            config={config}
+            label={mailActionsConfigSchema.mailAction2.title}
+          />
+          <ConfigSchemaItem
+            configSchema={mailActionsConfigSchema.mailAction3}
+            keyPath={'core.mailActions.mailAction3'}
+            config={config}
+            label={mailActionsConfigSchema.mailAction3.title}
+          />
+          <ConfigSchemaItem
+            configSchema={mailActionsConfigSchema.mailAction4}
+            keyPath={'core.mailActions.mailAction4'}
+            config={config}
+            label={mailActionsConfigSchema.mailAction4.title}
+          />
+          <ConfigSchemaItem
+            configSchema={mailActionsConfigSchema.mailAction5}
+            keyPath={'core.mailActions.mailAction5'}
+            config={config}
+            label={mailActionsConfigSchema.mailAction5.title}
+          />
+        </div>
       </div>
     );
   }
