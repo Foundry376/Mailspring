@@ -157,3 +157,80 @@ export class CustomizeSwipeActions extends React.Component {
     );
   }
 }
+
+export class CustomizeEmailActions extends React.Component {
+  static displayName = 'PreferencesCustomizeEmailActions';
+
+  static propTypes = {
+    config: PropTypes.object,
+    configSchema: PropTypes.object,
+  };
+  constructor(props) {
+    super(props);
+  }
+
+  _renderActionIcon = idx => {
+    const iconName = AppEnv.config.get(`core.mailActions.mailAction${idx}`);
+    return (
+      <RetinaImg
+        name={`${iconName}.svg`}
+        style={{ width: 24, height: 24 }}
+        className={`action_icon action_${idx}`}
+        isIcon
+        mode={RetinaImg.Mode.ContentIsMask}
+      />
+    );
+  };
+
+  render() {
+    const { config, configSchema } = this.props;
+    const mailActionsConfigSchema = configSchema.properties.mailActions.properties;
+    return (
+      <div>
+        <div className="email-action-preview">
+          <RetinaImg
+            style={{ width: 500 }}
+            name={`prefs-email-actions.png`}
+            mode={RetinaImg.Mode.ContentPreserve}
+          />
+          {this._renderActionIcon(1)}
+          {this._renderActionIcon(2)}
+          {this._renderActionIcon(3)}
+          {this._renderActionIcon(4)}
+          {this._renderActionIcon(5)}
+        </div>
+
+        <ConfigSchemaItem
+          configSchema={mailActionsConfigSchema.mailAction1}
+          keyPath={'core.mailActions.mailAction1'}
+          config={config}
+          label={mailActionsConfigSchema.mailAction1.title}
+        />
+        <ConfigSchemaItem
+          configSchema={mailActionsConfigSchema.mailAction2}
+          keyPath={'core.mailActions.mailAction2'}
+          config={config}
+          label={mailActionsConfigSchema.mailAction2.title}
+        />
+        <ConfigSchemaItem
+          configSchema={mailActionsConfigSchema.mailAction3}
+          keyPath={'core.mailActions.mailAction3'}
+          config={config}
+          label={mailActionsConfigSchema.mailAction3.title}
+        />
+        <ConfigSchemaItem
+          configSchema={mailActionsConfigSchema.mailAction4}
+          keyPath={'core.mailActions.mailAction4'}
+          config={config}
+          label={mailActionsConfigSchema.mailAction4.title}
+        />
+        <ConfigSchemaItem
+          configSchema={mailActionsConfigSchema.mailAction5}
+          keyPath={'core.mailActions.mailAction5'}
+          config={config}
+          label={mailActionsConfigSchema.mailAction5.title}
+        />
+      </div>
+    );
+  }
+}
