@@ -1,5 +1,5 @@
 import React from 'react';
-import { Actions, DraftStore } from 'mailspring-exports';
+import { Actions, DraftStore, MessageBodyStore } from 'mailspring-exports';
 import {
   FluxContainer,
   FocusContainer,
@@ -77,7 +77,7 @@ class DraftList extends React.Component {
       });
       return;
     }
-    if (draft.hasOwnProperty('body') && draft.body !== null) {
+    const checkForMissingAttachments = () =>{
       draft.missingAttachments().then(ret => {
         const totalMissing = ret.totalMissing().map(f => f.id);
         if (totalMissing.length === 0) {
@@ -90,11 +90,21 @@ class DraftList extends React.Component {
           });
         }
       });
+    };
+    const data = MessageBodyStore.getBodyByMessageId(draft.id);
+    if (data && data.body){
+      checkForMissingAttachments();
     } else {
-      Actions.fetchBodies({ messages: [draft] });
-      AppEnv.showErrorDialog('Draft is still downloading, cannot edit', {
-        showInMainWindow: true,
-        async: true,
+      MessageBodyStore.getPromiseBodyByMessageId(draft.id).then(data => {
+        if (data.body) {
+          checkForMissingAttachments();
+        } else {
+          Actions.fetchBodies({ messages: [draft] });
+          AppEnv.showErrorDialog('Draft is still downloading, cannot edit', {
+            showInMainWindow: true,
+            async: true,
+          });
+        }
       });
     }
   };
