@@ -724,7 +724,7 @@ class MessageList extends React.Component {
           {
             <EmailAvatar
               key={`thread-avatar`}
-              name={`${bundle.messages.length}`}
+              number={`${bundle.messages.length}`}
             />
           }
         </div>

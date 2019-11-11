@@ -14,10 +14,25 @@ class ThreadListParticipants extends React.Component {
 
   render() {
     const items = this.getTokens();
-    return <div className="participants">
-      {this.renderIcons()}
-      {this.renderSpans(items)}
-    </div>;
+    return (
+      <div className="participants">
+        {this.renderIcons()}
+        <div className="participants-inner">{this.renderSpans(items)}</div>
+        {this.renderMessageCount()}
+      </div>
+    );
+  }
+
+  renderMessageCount = () => {
+    const messages =
+      this.props.thread.__messages != null
+        ? this.props.thread.__messages.filter(message => {
+          return message.state !== 1;
+        }) : [];
+    if (messages.length > 1) {
+      return <div className='messages-count'>({messages.length})</div>;
+    }
+    return null;
   }
 
   renderIcons = () => {
@@ -94,15 +109,6 @@ class ThreadListParticipants extends React.Component {
 
     if (!this.props.thread.__messages) {
       throw new Error('ThreadListParticipants requires __messages.');
-    }
-
-    const messages =
-      this.props.thread.__messages != null
-        ? this.props.thread.__messages.filter(message => {
-          return message.state !== 1;
-        }) : [];
-    if (messages.length > 1) {
-      accumulate(` (${messages.length})`);
     }
 
     flush();

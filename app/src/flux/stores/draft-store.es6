@@ -527,7 +527,7 @@ class DraftStore extends MailspringStore {
       AppEnv.debugLog('closing none main window');
       if (AppEnv.isComposerWindow()) {
         const keys = Object.keys(this._draftSessions);
-        if (keys.length > 0) {
+        if (keys.length > 1) {
           AppEnv.reportError(
             new Error(
               `More than one session remaining when closing composer window sessions: ${JSON.stringify(

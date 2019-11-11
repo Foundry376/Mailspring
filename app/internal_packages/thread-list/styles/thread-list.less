@@ -44,13 +44,20 @@ input:focus {
   outline: none;
 }
 
-.sift-list,
 .mode-list {
   .list-item {
     .participants {
       width: 172px;
+      padding-right: 2px;
       text-overflow: ellipsis;
-      display: inline-block;
+      display: flex;
+      .participants-inner {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .messages-count {
+        padding-left: 4px;
+      }
     }
     .thread-icon {
       &.thread-icon-unread,
@@ -312,9 +319,6 @@ input:focus {
     line-height: 24px;
     padding-left: 4px;
     color: @red;
-    //margin-left: 10px;
-    //flex-shrink: 0;
-    //object-fit: contain;
   }
 
   .participants {
@@ -359,8 +363,9 @@ input:focus {
       margin-left: @padding-base-horizontal;
     }
   }
-  .list-column-Participants {
+  .list-column.list-column-Participants {
     padding-left: 0px;
+    padding-right: 0px;
   }
   .list-column-State {
     display: flex;
@@ -807,6 +812,14 @@ body.platform-win32 {
   }
   .participants {
     font-size: @font-size-large;
+    .participants-inner {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .messages-count {
+      padding-left: 4px;
+      padding-right: 4px;
+    }
   }
 
   .mail-important-icon {
@@ -823,7 +836,7 @@ body.platform-win32 {
     text-align: left;
     color: @text-color;
     margin-right: @scrollbar-margin;
-    padding-right: 20px;
+    padding-right: 26px;
     position: relative;
     span {
       color: @gray-darker;

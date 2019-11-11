@@ -231,16 +231,16 @@ export default class MessageItem extends React.Component {
             />
           </div>
         ) : (
-          <div className="download-all-action" onClick={this._onDownloadAll}>
-            <RetinaImg
-              name="download.svg"
-              isIcon
-              style={{ width: 18, height: 18 }}
-              mode={RetinaImg.Mode.ContentIsMask}
-            />
-            <span>Download all</span>
-          </div>
-        )}
+            <div className="download-all-action" onClick={this._onDownloadAll}>
+              <RetinaImg
+                name="download.svg"
+                isIcon
+                style={{ width: 18, height: 18 }}
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
+              <span>Download all</span>
+            </div>
+          )}
       </div>
     );
   }
@@ -393,7 +393,7 @@ export default class MessageItem extends React.Component {
         >
           <RetinaImg
             name={'down-arrow.svg'}
-            style={{ width: 18, height: 18 }}
+            style={{ width: 16, height: 16 }}
             isIcon
             mode={RetinaImg.Mode.ContentIsMask}
           />
@@ -412,7 +412,7 @@ export default class MessageItem extends React.Component {
       >
         <RetinaImg
           name={'down-arrow.svg'}
-          style={{ width: 18, height: 18 }}
+          style={{ width: 16, height: 16 }}
           isIcon
           mode={RetinaImg.Mode.ContentIsMask}
         />

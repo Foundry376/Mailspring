@@ -96,7 +96,32 @@ const c2 = new ListTabular.Column({
   maxWidth: 200,
   resolver: thread => {
     const messages = thread.__messages || [];
+    let calendar = null;
+    const hasCalendar = thread.hasCalendar;
+    if (hasCalendar) {
+      calendar = <div className="thread-icon thread-icon-calendar" />;
+    }
 
+    let attachment = null;
+    const haveAttachments =
+      thread.attachmentCount > 0 && messages.find(m => Utils.showIconForAttachments(m.files));
+    if (haveAttachments) {
+      attachment = <div className="thread-icon thread-icon-attachment" />;
+    }
+    return (
+      <div style={{ display: 'flex' }}>
+        <ThreadListParticipants thread={thread} />
+        {calendar || attachment || <div className="thread-icon no-icon" />}
+      </div>
+    );
+  },
+});
+
+const c3 = new ListTabular.Column({
+  name: 'Message',
+  flex: 4,
+  resolver: thread => {
+    const messages = thread.__messages || [];
     let draft = null;
     const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
@@ -111,45 +136,13 @@ const c2 = new ListTabular.Column({
       // );
       draft = <span className="draft-icon">Draft</span>;
     }
-
-    let calendar = null;
-    const hasCalendar = thread.hasCalendar;
-    if (hasCalendar) {
-      calendar = <div className="thread-icon thread-icon-calendar" />;
-    }
-
-    let attachment = null;
-    const haveAttachments =
-      thread.attachmentCount > 0 && messages.find(m => Utils.showIconForAttachments(m.files));
-    if (haveAttachments) {
-      attachment = <div className="thread-icon thread-icon-attachment" />;
-    }
-
-    if (hasDraft || haveAttachments || hasCalendar) {
-      return (
-        <div style={{ display: 'flex' }}>
-          <ThreadListParticipants thread={thread} />
-          {draft}
-          {calendar}
-          {attachment}
-        </div>
-      );
-    } else {
-      return <ThreadListParticipants thread={thread} />;
-    }
-  },
-});
-
-const c3 = new ListTabular.Column({
-  name: 'Message',
-  flex: 4,
-  resolver: thread => {
     return (
       <span className="details">
         <MailLabelSet thread={thread} />
+        {draft}
         <span className="subject">{subject(thread.subject)}</span>
         <span className="snippet">{getSnippet(thread)}</span>
-        <ThreadListIcon thread={thread} />
+        {/* <ThreadListIcon thread={thread} /> */}
       </span>
     );
   },
@@ -225,8 +218,6 @@ const cNarrow = new ListTabular.Column({
           <div className="participants-wrapper">
             <ThreadListParticipants thread={thread} />
             {pencil}
-            {calendar}
-            {attachment}
             <span style={{ flex: 1 }} />
             <InjectedComponent
               key="thread-injected-timestamp"
@@ -243,7 +234,8 @@ const cNarrow = new ListTabular.Column({
           </div>
           <div className="subject">
             <span>{subject(thread.subject)}</span>
-            <ThreadListIcon thread={thread} />
+            {/* <ThreadListIcon thread={thread} /> */}
+            {calendar || attachment || <div className="thread-icon no-icon" />}
           </div>
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(thread)}&nbsp;</div>

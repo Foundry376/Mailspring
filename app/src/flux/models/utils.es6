@@ -7,6 +7,7 @@ let Utils;
 const _ = require('underscore');
 const fs = require('fs-plus');
 const path = require('path');
+const osLocale = require('os-locale');
 
 let DefaultResourcePath = null;
 const DatabaseObjectRegistry = require('../../registries/database-object-registry').default;
@@ -16,6 +17,13 @@ let iconsData = null;
 let lottieData = null;
 
 const CALENDAR_TYPES = ['text/calendar', 'application/ics'];
+const GDPR_COUNTRIES = [
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
+  "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL",
+  "PO", "PT", "RO", "SK", "SI", "ES", "SE", "GB", "IS", "LI",
+  "NO", "CH",
+  // "CN", "US",
+];
 
 module.exports = Utils = {
   waitFor(latch, options = {}) {
@@ -33,6 +41,13 @@ module.exports = Utils = {
       };
       attempt();
     });
+  },
+  needGDPR() {
+    let locale = osLocale.sync();
+    if (locale.indexOf('_') !== -1) {
+      locale = locale.split('_')[1];
+    }
+    return GDPR_COUNTRIES.indexOf(locale) !== -1;
   },
 
   showIconForAttachments(files) {

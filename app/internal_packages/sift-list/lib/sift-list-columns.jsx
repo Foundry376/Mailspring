@@ -37,7 +37,7 @@ const SenderColumn = new ListTabular.Column({
 
 const ParticipantsColumn = new ListTabular.Column({
   name: 'Participants',
-  width: 200,
+  width: 180,
   resolver: message => {
     const list = [].concat(message.to, message.cc, message.bcc);
 
@@ -52,14 +52,28 @@ const ParticipantsColumn = new ListTabular.Column({
     }
   },
 });
+
+const renderIcons = (message) => {
+  if (message.starred) {
+    return <div className='thread-icon thread-icon-star' />;
+  }
+  else if (message.unread) {
+    return <div className='thread-icon thread-icon-unread' />;
+  }
+  return null;
+}
+
 const participants = (message) => {
   const list = [].concat(message.to, message.cc, message.bcc);
 
   if (list.length > 0) {
     return (
       <div className="participants">
-        <span>{list.map(p => p.displayName()).join(', ')}</span>
-      </div>
+        {renderIcons(message)}
+        <div className="participants-inner">
+          <span>{list.map(p => p.displayName()).join(', ')}</span>
+        </div>
+      </div >
     );
   } else {
     return <div className="participants no-recipients">(No Recipients)</div>;
@@ -70,17 +84,24 @@ const ContentsColumn = new ListTabular.Column({
   name: 'Contents',
   flex: 4,
   resolver: message => {
-    let attachments = [];
-    if (message.files && message.files.length > 0) {
-      attachments = <div className="thread-icon thread-icon-attachment" />;
-    }
     return (
       <span className="details">
         <span className="subject">{subject(message.subject)}</span>
         <span className="snippet">{message.snippet ? message.snippet : snippet(message.body)}</span>
-        {attachments}
       </span>
     );
+  },
+});
+
+const AttachmentsColumn = new ListTabular.Column({
+  name: 'Attachments',
+  width: 32,
+  resolver: message => {
+    let attachments = [];
+    if (message.files && message.files.length > 0) {
+      attachments = <div className="thread-icon thread-icon-attachment" />;
+    }
+    return attachments;
   },
 });
 
@@ -163,13 +184,11 @@ const cNarrow = new ListTabular.Column({
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div className="icons-column">
-          <EmailAvatar key="email-avatar" mode="split" message={message} />
+          <EmailAvatar key="email-avatar" mode="list" message={message} />
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">
             {participants(message)}
-            {calendar}
-            {attachment}
             <span style={{ flex: 1 }} />
             <InjectedComponent
               key="sift-injected-timestamp"
@@ -194,6 +213,7 @@ const cNarrow = new ListTabular.Column({
           </div>
           <div className="subject">
             <span>{subject(message.subject)}</span>
+            {calendar || attachment || <div className="thread-icon no-icon" />}
           </div>
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(message)}&nbsp;</div>
@@ -205,6 +225,6 @@ const cNarrow = new ListTabular.Column({
 });
 
 module.exports = {
-  Wide: [SenderColumn, ParticipantsColumn, ContentsColumn, TimeColumn, HoverActions],
+  Wide: [SenderColumn, ParticipantsColumn, AttachmentsColumn, ContentsColumn, TimeColumn, HoverActions],
   Narrow: [cNarrow],
 };

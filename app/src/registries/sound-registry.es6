@@ -1,4 +1,5 @@
 import path from 'path';
+import { getDoNotDisturb } from 'electron-notification-state';
 
 class SoundRegistry {
   constructor() {
@@ -11,6 +12,11 @@ class SoundRegistry {
     }
     const src = this._sounds[name];
     if (!src) {
+      return;
+    }
+
+    // if [do not disturb] mode, don't play sound
+    if (getDoNotDisturb()) {
       return;
     }
 

@@ -30,6 +30,8 @@ const GMAIL_SCOPES = [
   'https://mail.google.com/',
   'email',
   'https://www.google.com/m8/feeds',
+  'email',
+  'https://www.googleapis.com/auth/gmail.settings.basic',
 ];
 
 const YAHOO_CLIENT_ID =

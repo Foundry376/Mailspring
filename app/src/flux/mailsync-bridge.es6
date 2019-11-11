@@ -129,6 +129,7 @@ export default class MailsyncBridge {
     Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
     Actions.forceKillAllClients.listen(this.forceKillClients, this);
     Actions.forceDatabaseTrigger.listen(this._onIncomingChangeRecord, this);
+    Actions.dataShareOptions.listen(this.onDataShareOptionsChange, this);
     ipcRenderer.on('mailsync-config', this._onMailsyncConfigUpdate);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     // ipcRenderer.on('thread-close-window', this._onNewWindowClose);
@@ -236,6 +237,13 @@ export default class MailsyncBridge {
       AppEnv.debugLog(`pid@${id} mailsync-bridge ensureClients: ${kind}`);
     }
   }, 100);
+
+  onDataShareOptionsChange({ optOut = false } = {}) {
+    if (optOut !== this._sift.dataShareOptOut) {
+      this.killSift('Data Share option change');
+      this.startSift('Data Share option change');
+    }
+  }
 
   forceKillClients() {
     if (!AppEnv.isMainWindow()) {
@@ -484,6 +492,7 @@ export default class MailsyncBridge {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._sift = client;
     client.identity = IdentityStore.identity();
+    client.dataShareOptOut = AppEnv.config.get('core.privacy.dataShare');
     const allAccountsJSON = [];
     for (const acct of AccountStore.accounts()) {
       const fullAccountJSON = (await KeyManager.insertAccountSecrets(acct)).toJSON();

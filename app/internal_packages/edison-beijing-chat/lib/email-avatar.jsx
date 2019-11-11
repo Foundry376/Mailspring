@@ -45,7 +45,7 @@ export default class EmailAvatar extends Component {
         email: null,
       };
     }
-
+    // This mode is not the "split/list" mode, but as in "use in list"  or "use in other places" mode
     const isListModel = props.mode && props.mode === 'list';
 
     this.state = {
@@ -58,6 +58,9 @@ export default class EmailAvatar extends Component {
       hasImage: false,
       showPicture: AppEnv.config.get(ConfigProfileKey) || !isListModel,
     };
+    if (props.number) {
+      this.state.name = props.number;
+    }
     this._mounted = false;
 
     this.disposable = AppEnv.config.onDidChange(ConfigProfileKey, () => {

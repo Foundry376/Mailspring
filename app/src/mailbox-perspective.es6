@@ -366,7 +366,13 @@ export default class MailboxPerspective {
       threads.every(thread => {
         const account = AccountStore.accountForId(thread.accountId);
         if (account && account.provider === 'gmail') {
-          if (this._categoriesSharedRole === 'inbox') { // make sure inbox label can archive
+          if (this.isInbox()) { // make sure inbox label can archive
+            if (!thread.labels.some(label => label.role === 'inbox')) {
+              console.error(`The thread in inbox, but don not hanve inbox label. Thread id is ${thread.id}`);
+              AppEnv.reportError(
+                new Error(`The thread in inbox, but don not hanve inbox label. Thread id is ${thread.id}`)
+              );
+            }
             return true;
           }
           return thread.labels.some(label => label.role === 'inbox');

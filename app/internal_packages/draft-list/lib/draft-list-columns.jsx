@@ -22,14 +22,16 @@ function subject(subj) {
 
 const ParticipantsColumn = new ListTabular.Column({
   name: 'Participants',
-  width: 200,
+  width: 180,
   resolver: draft => {
     const list = [].concat(draft.to, draft.cc, draft.bcc);
 
     if (list.length > 0) {
       return (
         <div className="participants">
-          <span>{list.map(p => p.displayName()).join(', ')}</span>
+          <div className="participants-inner">
+            <span>{list.map(p => p.displayName()).join(', ')}</span>
+          </div>
         </div>
       );
     } else {
@@ -42,17 +44,24 @@ const ContentsColumn = new ListTabular.Column({
   name: 'Contents',
   flex: 4,
   resolver: draft => {
-    let attachments = [];
-    if (draft.files && draft.files.length > 0) {
-      attachments = <div className="thread-icon thread-icon-attachment" />;
-    }
     return (
       <span className="details">
         <span className="subject">{subject(draft.subject)}</span>
         <span className="snippet">{draft.snippet ? draft.snippet : snippet(draft.body)}</span>
-        {attachments}
       </span>
     );
+  },
+});
+
+const AttachmentsColumn = new ListTabular.Column({
+  name: 'Attachments',
+  width: 32,
+  resolver: draft => {
+    let attachments = [];
+    if (draft.files && draft.files.length > 0) {
+      attachments = <div className="thread-icon thread-icon-attachment" />;
+    }
+    return attachments;
   },
 });
 
@@ -72,5 +81,5 @@ const StatusColumn = new ListTabular.Column({
 });
 
 module.exports = {
-  Wide: [ParticipantsColumn, ContentsColumn, StatusColumn],
+  Wide: [ParticipantsColumn, AttachmentsColumn, ContentsColumn, StatusColumn],
 };

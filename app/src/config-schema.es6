@@ -523,6 +523,21 @@ export default {
           },
         },
       },
+      privacy: {
+        type: 'object',
+        properties: {
+          dataShare: {
+            type: 'object',
+            properties: {
+              optOut: {
+                type: 'boolean',
+                default: false,
+                title: 'Opt Out of data share',
+              },
+            },
+          },
+        },
+      },
     },
   },
 };

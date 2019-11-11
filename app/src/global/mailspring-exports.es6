@@ -127,6 +127,8 @@ lazyLoadAndRegisterTask('BlockContactTask', 'block-contact-task');
 lazyLoadAndRegisterTask('UnBlockContactTask', 'unblock-contact-task');
 lazyLoadAndRegisterTask('GetBlockListTask', 'sync-block-list-task');
 lazyLoadAndRegisterTask('TrashFromSenderTask', 'trash-from-sender-task');
+lazyLoadAndRegisterTask('SiftExpungeUserDataTask', 'sift-expunge-user-data-task');
+lazyLoadAndRegisterTask('SiftExportUserDataTask', 'sift-export-user-data-task');
 
 // Stores
 // These need to be required immediately since some Stores are
