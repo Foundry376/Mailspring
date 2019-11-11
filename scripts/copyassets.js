@@ -32,6 +32,10 @@ const file_mappings = [
     './app/static/images/preferences/appearance/',
   ],
   [
+    'veyron-design/images/desktop/prefs-email-actions.png',
+    './app/static/images/preferences/appearance/',
+  ],
+  [
     'veyron-design/images/desktop/prefs-swipe-colors.png',
     './app/static/images/preferences/appearance/',
   ],
