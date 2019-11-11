@@ -24,8 +24,8 @@ export class Privacy extends React.Component {
               Safeguarding your privacy is important to all of us here at Edison Software. Read our
               privacy policy for important information about how we use and protect your data.
             </div>
-            <div className="privacys-link">Privacy Policy</div>
-            <div className="privacys-link">Terms & Conditions</div>
+            <div className="privacys-link"><a href="http://www.edison.tech/privacy.html">Privacy Policy</a></div>
+            <div className="privacys-link"><a href="http://www.edison.tech/terms.html">Terms & Conditions</a></div>
           </div>
           <RetinaImg
             name={'manage-privacy.png'}
