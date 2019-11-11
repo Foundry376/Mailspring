@@ -13,9 +13,10 @@ import {
   ConfigPropContainer,
   InputSearch,
 } from 'mailspring-component-kit';
-import { PreferencesUIStore } from 'mailspring-exports';
+import { PreferencesUIStore, Utils } from 'mailspring-exports';
 import PreferencesTabsBar from './preferences-tabs-bar';
 import PreferencesContentTemplate from './components/preferences-content-template';
+import IFrameSearcher from '../../../src/searchable-components/iframe-searcher';
 
 class PreferencesRoot extends React.Component {
   static displayName = 'PreferencesRoot';
@@ -63,6 +64,7 @@ class PreferencesRoot extends React.Component {
   }
 
   componentDidMount() {
+    this._regionId = Utils.generateTempId();
     ReactDOM.findDOMNode(this).focus();
     this._focusContent();
   }
@@ -73,6 +75,7 @@ class PreferencesRoot extends React.Component {
       scrollRegion.scrollTop = 0;
       // this._focusContent();
     }
+    this._highlightSearchInDocument();
   }
 
   // Focus the first thing with a tabindex when we update.
@@ -90,6 +93,12 @@ class PreferencesRoot extends React.Component {
   onInputChange = value => {
     this.setState({ searchValue: value });
     PreferencesUIStore.onSearch(value);
+  };
+
+  _highlightSearchInDocument = () => {
+    const { searchValue } = this.state;
+    const node = ReactDOM.findDOMNode(this);
+    IFrameSearcher.highlightSearchInDocument(this._regionId, searchValue, node, null);
   };
 
   render() {
