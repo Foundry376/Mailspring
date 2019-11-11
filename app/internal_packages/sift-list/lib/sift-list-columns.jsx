@@ -165,7 +165,7 @@ const cNarrow = new ListTabular.Column({
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div className="icons-column">
-          <EmailAvatar key="email-avatar" mode="split" message={message} />
+          <EmailAvatar key="email-avatar" mode="list" message={message} />
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">

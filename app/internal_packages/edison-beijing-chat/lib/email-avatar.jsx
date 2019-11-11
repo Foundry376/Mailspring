@@ -45,7 +45,7 @@ export default class EmailAvatar extends Component {
         email: null,
       };
     }
-
+    // This mode is not the "split/list" mode, but as in "use in list"  or "use in other places" mode
     const isListModel = props.mode && props.mode === 'list';
 
     this.state = {
