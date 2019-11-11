@@ -301,17 +301,17 @@ const preferencesTemplateFill = {
             },
           ],
         },
-        {
-          groupName: 'Email Actions',
-          groupItem: [
-            {
-              label: 'email actions',
-              configSchema: configSchema => configSchema,
-              component: CustomizeEmailActions,
-              keywords: ['buttons', 'Archive', 'flag', 'trash', 'read', 'unread', 'spam'],
-            },
-          ],
-        },
+        // {
+        //   groupName: 'Email Actions',
+        //   groupItem: [
+        //     {
+        //       label: 'email actions',
+        //       configSchema: configSchema => configSchema,
+        //       component: CustomizeEmailActions,
+        //       keywords: ['buttons', 'Archive', 'flag', 'trash', 'read', 'unread', 'spam'],
+        //     },
+        //   ],
+        // },
       ],
     },
     {
