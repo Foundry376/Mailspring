@@ -717,7 +717,7 @@ class MessageStore extends MailspringStore {
     for (let idx = 0; idx < visibleItems.length; idx++) {
       const item = visibleItems[idx];
       if (item.unread || idx === lastDraftIdx || idx === visibleItems.length - 1) {
-        if (!perspective.sift) {
+        if (!perspective.sift || idx === lastDraftIdx) {
           this._itemsExpanded[item.id] = 'default';
         }
       }
