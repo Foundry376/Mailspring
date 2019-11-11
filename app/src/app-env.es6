@@ -164,7 +164,11 @@ export default class AppEnvConstructor {
       ipcRenderer.on('system-theme-changed', (e, isDarkMode) => {
         AppEnv.themes.setActiveTheme(isDarkMode ? 'ui-dark' : 'ui-light');
       });
-      this.mailsyncBridge.startSift('Main window started');
+      if(this.config.get('core.privacy.dataShare.optOut')){
+
+      }else{
+        this.mailsyncBridge.startSift('Main window started');
+      }
     }
   }
   sendSyncMailNow(accountId) {
@@ -1171,6 +1175,14 @@ export default class AppEnvConstructor {
         }
         return Promise.resolve({ response, ...rest });
       });
+  }
+
+  showMessageBox({title = '', showInMainWindow, detail = '', type = 'question', buttons = ['Okay', 'Cancel'] } = {}) {
+    let winToShow = null;
+    if (showInMainWindow) {
+      winToShow = remote.getGlobal('application').getMainWindow();
+    }
+    return remote.dialog.showMessageBox(winToShow, {type, buttons, message: title, detail,});
   }
 
   // Delegate to the browser's process fileListCache

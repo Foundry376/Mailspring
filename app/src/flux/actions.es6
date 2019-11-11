@@ -594,6 +594,10 @@ class Actions {
   static forceKillAllClients = ActionScopeWindow;
 
   static forceDatabaseTrigger = ActionScopeWindow;
+
+  static dataShareOptions = ActionScopeMainWindow;
+  static expungeUserData = ActionScopeMainWindow;
+  static exportUserData = ActionScopeMainWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

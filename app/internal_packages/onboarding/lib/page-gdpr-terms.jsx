@@ -1,16 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg } from 'mailspring-component-kit';
+import { Utils } from 'mailspring-exports';
 import OnboardingActions from './onboarding-actions';
-const osLocale = require('os-locale');
-
-const GDPR_COUNTRIES = [
-  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
-  "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL",
-  "PO", "PT", "RO", "SK", "SI", "ES", "SE", "GB", "IS", "LI",
-  "NO", "CH",
-  // "CN", "US",
-];
 
 class GdprTerms extends Component {
   // eslint-disable-line
@@ -33,11 +25,7 @@ class GdprTerms extends Component {
   }
 
   _isEuropeUser() {
-    let locale = osLocale.sync();
-    if (locale.indexOf('_') !== -1) {
-      locale = locale.split('_')[1];
-    }
-    return GDPR_COUNTRIES.indexOf(locale) !== -1;
+    return Utils.needGDPR();
   }
 
   toggleGDPRAll = () => {

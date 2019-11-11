@@ -77,6 +77,7 @@ export default class MailsyncProcess extends EventEmitter {
     this.syncInitilMessageSend = false;
     this._sendMessageQueue = [];
     this._mode = '';
+    this.dataShareOptOut = false;
   }
 
   _showStatusWindow(mode) {
@@ -133,6 +134,11 @@ export default class MailsyncProcess extends EventEmitter {
       args.push('--info', this.account.id);
     } else {
       args.push('--info', mode);
+    }
+    if (this.dataShareOptOut && mode === mailSyncModes.SIFT){
+      args.push('--optOut', 1);
+    } else {
+      args.push('--optOut', 0);
     }
     this._proc = spawn(this.binaryPath, args, { env });
 
