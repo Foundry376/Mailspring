@@ -17,6 +17,7 @@ import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import MessageStore from './message-store';
+import MessageBodyStore from './message-body-store';
 import UndoRedoStore from './undo-redo-store';
 import TaskFactory from '../tasks/task-factory';
 import ChangeDraftToFailingTask from '../tasks/change-draft-to-failing-task';
@@ -189,7 +190,9 @@ class DraftStore extends MailspringStore {
         }
       }
     }
+    AppEnv.logDebug(`waiting for session.prepare()`);
     await this._draftSessions[headerMessageId].prepare();
+    AppEnv.logDebug(`session.prepare() returned`);
     // ipcRenderer.send('draft-arp', { headerMessageId });
     return this._draftSessions[headerMessageId];
   }
@@ -746,14 +749,37 @@ class DraftStore extends MailspringStore {
       }
       queries.message = message;
     } else if (messageId != null) {
-      queries.message = MessageStore.findByMessageIdWithBody({ messageId });
+      queries.message = MessageStore.findByMessageIdWithBody({ messageId }).then(m => {
+        return new Promise(resolve => {
+          AppEnv.logDebug(`Moldify ${messageId}`);
+          MessageBodyStore.getPromiseBodyByMessageId(m.id).then(data => {
+            AppEnv.logDebug(`Moldify ${messageId} assign body`);
+            m.body = data.body;
+            m.isPlainText = !data.isHtml;
+            resolve(m);
+          });
+        });
+      });
     } else {
       queries.message = MessageStore.findAllByThreadIdWithBodyInDescendingOrder({
         threadId: threadId || thread.id,
       })
         .limit(10)
         .then(messages => {
-          return messages.find(m => !m.isHidden());
+          const m = messages.find(m => !m.isHidden());
+          if (m) {
+            AppEnv.logDebug(`fetch draft with threadId ${threadId || thread.id}`);
+            return new Promise(resolve => {
+              MessageBodyStore.getPromiseBodyByMessageId(m.id).then(data => {
+                AppEnv.logDebug(`fetch draft with threadId ${threadId || thread.id} assign body`);
+                m.body = data.body;
+                m.isPlainText = !data.isHtml;
+                resolve(m);
+              });
+            });
+          } else {
+            return undefined;
+          }
         });
     }
 
@@ -773,7 +799,7 @@ class DraftStore extends MailspringStore {
     // doesn't need to do a query for it a second from now when the composer wants it.
     this._createSession(draft.headerMessageId, draft);
     const task = new SyncbackDraftTask({ draft });
-    Actions.queueTask(task);
+    Actions.syncDraftToFile({ syncBackDraftTask: task, isNew: true });
 
     return TaskQueue.waitForPerformLocal(task)
       .then(() => {

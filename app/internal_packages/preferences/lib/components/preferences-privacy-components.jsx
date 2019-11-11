@@ -33,15 +33,13 @@ export class Privacy extends React.Component {
   }
 
   renderExportData() {
-    if (Utils.needGDPR()) {
-      return (
-        <Flexbox>
-          <div className="btn-danger privacys-button">Export My Data</div>
-        </Flexbox>
-      );
-    } else {
-      return null;
-    }
+    // if (Utils.needGDPR()) {
+    //   return <Flexbox>
+    //     <div className="btn-danger privacys-button">Export My Data</div>
+    //   </Flexbox>;
+    // } else {
+    return null;
+    // }
   }
 
   expungeLocalAndReboot() {

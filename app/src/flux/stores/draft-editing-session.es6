@@ -8,6 +8,7 @@ import Utils from '../models/utils';
 import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';
+import MessageBodyStore from './message-body-store';
 import FocusedContentStore from './focused-content-store';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
@@ -241,7 +242,19 @@ export default class DraftEditingSession extends MailspringStore {
     if (draft) {
       hotwireDraftBodyState(draft);
       this._draft = draft;
-      this._draftPromise = Promise.resolve(draft);
+      if (draft.body) {
+        AppEnv.logDebug(`Draft does have body, returning resolve`);
+        this._draftPromise = Promise.resolve(draft);
+      } else {
+        this._draftPromise = new Promise((resolve, reject) => {
+          AppEnv.logDebug(`Draft does not have body, fetching body from store`);
+          MessageBodyStore.getPromiseBodyByMessageId(draft.id).then(data => {
+            draft.body = data.body;
+            draft.isPlainText = !data.isHtml;
+            resolve(draft);
+          }, reject);
+        });
+      }
       const thread = FocusedContentStore.focused('thread');
       const inFocusedThread = thread && thread.id === draft.threadId;
       if (currentWindowLevel === 3) {
@@ -276,7 +289,20 @@ export default class DraftEditingSession extends MailspringStore {
           headerMessageId: this.headerMessageId,
         }).limit(1);
       }
-      this._draftPromise = localPromise.then(draft => {
+      const tmpPromise = new Promise((resolve, reject) => {
+        AppEnv.logDebug(`fetching draft data`);
+        localPromise.then(draft => {
+          AppEnv.logDebug(`draft ${draft.id} fetched, fetching draft body`);
+          MessageBodyStore.getPromiseBodyByMessageId(draft.id).then(data => {
+            AppEnv.logDebug(`draft ${data.messageId} body fetched, assgining to draft`);
+            draft.body = data.body;
+            draft.isPlainText = !data.isHtml;
+            resolve(draft);
+          }, reject);
+        });
+      });
+      this._draftPromise = tmpPromise.then(draft => {
+        AppEnv.logDebug(`Parsing draft ${draft.id}`);
           if (this._destroyed) {
             AppEnv.reportWarning(`Draft loaded but session has been torn down.`);
             return;
@@ -557,7 +583,7 @@ export default class DraftEditingSession extends MailspringStore {
           accountId: draft.accountId,
         });
       // console.log('syncback draft from ensure account');
-      Actions.queueTask(create);
+      Actions.syncDraftToFile({ syncBackDraftTask: create, isNew: true });
       try {
         await TaskQueue.waitForPerformLocal(create);
         if (destroy) {
@@ -753,7 +779,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
     const task = new SyncbackDraftTask({ draft: this._draft, source: reason });
     task.saveOnRemote = reason === 'unload';
-    Actions.queueTask(task);
+    Actions.syncDraftToFile({ syncBackDraftTask: task, isNew: false });
     try {
       await TaskQueue.waitForPerformLocal(task);
     } catch (e) {
