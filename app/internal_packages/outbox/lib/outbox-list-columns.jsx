@@ -48,7 +48,7 @@ const SenderColumn = new ListTabular.Column({
 
 const ParticipantsColumn = new ListTabular.Column({
   name: 'Participants',
-  width: 200,
+  width: 180,
   resolver: draft => {
     const list = [].concat(draft.to, draft.cc, draft.bcc);
 
