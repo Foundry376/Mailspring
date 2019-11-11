@@ -406,15 +406,17 @@ class PreferencesAccountDetails extends Component {
           <h6>ADVANCED</h6>
           {this._renderMailFetchRange()}
           {this._renderMailFetchInterval()}
-          <button onClick={this._onReconnect}>
+          <div onClick={this._onReconnect} className="btn-primary account-detail-btn">
             {account.provider === 'imap'
               ? 'Update Connection Settings...'
               : 'Re-authenticate Account'}
-          </button>
-          <button onClick={this._onResetCache}>Rebuild Cache</button>
-          <button className={'danger'} onClick={this._onDeleteAccount}>
+          </div>
+          <div onClick={this._onResetCache} className="btn-primary account-detail-btn">
+            Rebuild Cache
+          </div>
+          <div className="btn-danger account-detail-btn" onClick={this._onDeleteAccount}>
             Remove Account
-          </button>
+          </div>
         </div>
       </div>
     );

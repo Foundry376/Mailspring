@@ -40,11 +40,11 @@ export class Privacy extends React.Component {
             of this app and delete the information that is in the app and on our servers.
           </div>
           <Flexbox>
-            <div className="privacys-button">Export My Data</div>
+            <div className="btn-danger privacys-button">Export My Data</div>
           </Flexbox>
           <Flexbox>
-            <div className="privacys-button">Delete Stored Data</div>
-            <div className="privacys-button">Opt-out of Data Sharing</div>
+            <div className="btn-danger privacys-button">Delete Stored Data</div>
+            <div className="btn-danger privacys-button">Opt-out of Data Sharing</div>
           </Flexbox>
         </div>
       </div>

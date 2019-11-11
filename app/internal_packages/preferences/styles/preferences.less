@@ -18,6 +18,32 @@
     }
   }
 
+  .btn-default() {
+    text-align: center;
+    font-family: 'SF UI Text';
+    font-weight: @headings-font-weight;
+    border: 0.5px solid @gray-lighter;
+    box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    color: @blue;
+    .btn-default();
+  }
+  .btn-danger {
+    color: @color-danger;
+    .btn-default();
+  }
+
+  .buttons-add {
+    height: 30px;
+    width: 250px;
+    line-height: 30px;
+    border-radius: 10px;
+    margin-top: 30px;
+  }
+
   .button-dropdown {
     margin-left: 8px;
     &.bordered {

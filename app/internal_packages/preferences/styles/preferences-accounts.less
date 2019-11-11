@@ -27,32 +27,26 @@
       }
 
       .account {
-        .account-name {
-          font-size: @font-size-large;
-          cursor: default;
+        .account-item {
+          flex: 1;
+          margin: 0 10px 0 20px;
           overflow: hidden;
           text-overflow: ellipsis;
-          vertical-align: middle;
-        }
+          white-space: nowrap;
 
-        .account-subtext {
-          font-size: @font-size-small;
-          cursor: default;
-        }
-      }
+          .account-name {
+            font-size: @font-size-large;
+            cursor: default;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+          }
 
-      .buttons-wrapper {
-        height: 30px;
-        width: 250px;
-        text-align: center;
-        color: @blue;
-        font-family: 'SF UI Text';
-        font-weight: @headings-font-weight;
-        line-height: 30px;
-        border-radius: 10px;
-        border: 0.5px solid @gray-lighter;
-        box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
-        margin-top: 30px;
+          .account-subtext {
+            font-size: @font-size-small;
+            cursor: default;
+          }
+        }
       }
     }
 
@@ -81,20 +75,13 @@
           line-height: 16px;
           margin: 4px 0;
         }
-        button {
+        .account-detail-btn {
           height: 30px;
           width: 100%;
-          color: @blue;
-          font-weight: @font-weight-semi-bold;
+          line-height: 30px;
           flex: 1;
           border-radius: 10px;
-          background-color: #fff;
-          border: 0.5px solid @gray-lighter;
-          box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.2);
-          margin: 5px 18px 5px 0;
-          &.danger {
-            color: @red;
-          }
+          margin: 5px 18px 10px 0;
         }
       }
 
