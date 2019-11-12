@@ -26,7 +26,7 @@ export default class ActivitySidebar extends React.Component {
     super(props);
     this.state = Object.assign({ expanded: false }, this._getStateFromStores(false));
   }
-  triggerAccountFiller=()=>{
+  triggerAccountFiller = () => {
     Actions.expandChatPanelFiller(!this.state.expanded || !this.state.syncSummary.phrase);
   };
 
@@ -91,10 +91,12 @@ export default class ActivitySidebar extends React.Component {
           {nonSendTasks.length || syncSummary.phrase ? (
             <div
               className="item"
-              onClick={() => (expanded ? this._onCollapse() : this._onExpand())}
+            // only display syncing status, not show syncing details
+            // onClick={() => (expanded ? this._onCollapse() : this._onExpand())}
             >
               <div
-                className="inner clickable"
+                // className="inner clickable"
+                className="inner"
                 style={{ whiteSpace: 'nowrap', display: 'flex', flexDirection: 'row' }}
               >
                 <div style={{ textOverflow: 'ellipsis', overflow: 'hidden', flex: 1 }}>
