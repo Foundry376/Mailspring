@@ -9,11 +9,17 @@ export default class TrashFromSenderTask extends Task {
     email: Attributes.String({
       modelKey: 'email',
     }),
+    canBeUndone: Attributes.Boolean({
+      modelKey: 'canBeUndone',
+    }),
   });
   constructor({ accountId, email, ...rest } = {}) {
     super(rest);
     this.aid = accountId;
     this.email = email;
+    if (this.canBeUndone === undefined) {
+      this.canBeUndone = true;
+    }
   }
 
   label() {
