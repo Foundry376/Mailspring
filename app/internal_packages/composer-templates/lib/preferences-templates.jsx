@@ -150,7 +150,7 @@ export default class PreferencesTemplates extends React.Component {
   render() {
     const { selected } = this.state;
     const footer = (
-      <div className="buttons-wrapper" onClick={this._onAdd}>
+      <div className="btn-primary buttons-add" onClick={this._onAdd}>
         +&nbsp;&nbsp;&nbsp;&nbsp;New Template
       </div>
     );
@@ -168,7 +168,7 @@ export default class PreferencesTemplates extends React.Component {
               for tips and tricks. (Changes are saved automatically.)
             </div>
             <div
-              className="template-folder-btn"
+              className="btn-primary template-folder-btn"
               onClick={() => shell.showItemInFolder(TemplateStore.directory())}
             >
               Show templates folder
@@ -180,7 +180,7 @@ export default class PreferencesTemplates extends React.Component {
             showDelIcon
             className="template-list"
             items={this.state.templates}
-            itemContent={template => <div>{template.name}</div>}
+            itemContent={template => <div className="title">{template.name}</div>}
             onCreateItem={this._onAdd}
             onDeleteItem={this._onDelete}
             onItemEdited={this._onEditTitle}

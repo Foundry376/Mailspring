@@ -23,6 +23,9 @@ const actionLabels = [
   actionOption('read', 'Mark Read/Unread'),
   actionOption('folder', 'Move to Folder'),
 ];
+const emailActionValues = [...actionValues, 'spam'];
+const emailActionLabels = [...actionLabels, actionOption('spam', 'Spam')];
+
 export default {
   core: {
     type: 'object',
@@ -402,6 +405,50 @@ export default {
             enum: actionValues,
             enumLabels: actionLabels,
             title: 'Right Long swipe',
+          },
+        },
+      },
+      mailActions: {
+        type: 'object',
+        properties: {
+          image: {
+            type: 'component',
+            title: 'Show preview image',
+          },
+          mailAction1: {
+            type: 'string',
+            default: 'archive',
+            enum: emailActionValues,
+            enumLabels: emailActionLabels,
+            title: 'Action 1',
+          },
+          mailAction2: {
+            type: 'string',
+            default: 'trash',
+            enum: emailActionValues,
+            enumLabels: emailActionLabels,
+            title: 'Action 2',
+          },
+          mailAction3: {
+            type: 'string',
+            default: 'flag',
+            enum: emailActionValues,
+            enumLabels: emailActionLabels,
+            title: 'Action 3',
+          },
+          mailAction4: {
+            type: 'string',
+            default: 'read',
+            enum: emailActionValues,
+            enumLabels: emailActionLabels,
+            title: 'Action 4',
+          },
+          mailAction5: {
+            type: 'string',
+            default: 'spam',
+            enum: emailActionValues,
+            enumLabels: emailActionLabels,
+            title: 'Action 5',
           },
         },
       },

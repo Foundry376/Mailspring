@@ -45,7 +45,7 @@ class PreferencesAccountList extends Component {
               mode={RetinaImg.Mode.ContentPreserve}
             />
           </div>
-          <div style={{ flex: 1, marginLeft: 10 }}>
+          <div className="account-item">
             <div className="account-name">{label}</div>
             <div className="account-subtext">
               {accountSub} ({account.displayProvider()})
@@ -62,7 +62,7 @@ class PreferencesAccountList extends Component {
     }
 
     const footer = (
-      <div className="buttons-wrapper" onClick={this.props.onAddAccount}>
+      <div className="btn-primary buttons-add" onClick={this.props.onAddAccount}>
         +&nbsp;&nbsp;&nbsp;&nbsp;Add Account
       </div>
     );

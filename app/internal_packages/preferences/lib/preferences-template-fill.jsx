@@ -14,6 +14,7 @@ import {
 import {
   CustomizeQuickActions,
   CustomizeSwipeActions,
+  CustomizeEmailActions,
 } from './components/preferences-customize-components';
 import BlockedSenders from './components/preferences-blocked-senders';
 import { Privacy } from './components/preferences-privacy-components';
@@ -300,6 +301,17 @@ const preferencesTemplateFill = {
             },
           ],
         },
+        // {
+        //   groupName: 'Email Actions',
+        //   groupItem: [
+        //     {
+        //       label: 'email actions',
+        //       configSchema: configSchema => configSchema,
+        //       component: CustomizeEmailActions,
+        //       keywords: ['buttons', 'Archive', 'flag', 'trash', 'read', 'unread', 'spam'],
+        //     },
+        //   ],
+        // },
       ],
     },
     {

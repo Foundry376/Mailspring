@@ -206,7 +206,7 @@ export default class PreferencesSignatures extends React.Component {
   _renderSignatures() {
     const sigArr = Object.values(this.state.signatures);
     const footer = (
-      <div className="buttons-wrapper" onClick={this._onAddSignature}>
+      <div className="btn-primary buttons-add" onClick={this._onAddSignature}>
         +&nbsp;&nbsp;&nbsp;&nbsp;New Signature
       </div>
     );

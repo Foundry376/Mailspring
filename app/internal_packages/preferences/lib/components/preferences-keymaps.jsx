@@ -78,9 +78,9 @@ export class PreferencesKeymapsHearder extends React.Component {
               </select>
             </div>
           </div>
-          <button className="btn" onClick={this._onDeleteUserKeymap}>
+          <div className="btn-danger shortcuts-reset-btn" onClick={this._onDeleteUserKeymap}>
             Reset to Defaults
-          </button>
+          </div>
         </Flexbox>
       </div>
     );

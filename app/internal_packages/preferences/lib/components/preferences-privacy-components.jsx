@@ -27,7 +27,7 @@ export class Privacy extends React.Component {
 
   componentWillUnmount() {
     this._mounted = false;
-    if(this._expungeUserDataTimout){
+    if (this._expungeUserDataTimout) {
       clearTimeout(this._expungeUserDataTimout);
     }
   }
@@ -35,10 +35,10 @@ export class Privacy extends React.Component {
   renderExportData() {
     // if (Utils.needGDPR()) {
     //   return <Flexbox>
-    //     <div className="privacys-button">Export My Data</div>
+    //     <div className="btn-danger privacys-button">Export My Data</div>
     //   </Flexbox>;
     // } else {
-      return null;
+    return null;
     // }
   }
 
@@ -49,7 +49,7 @@ export class Privacy extends React.Component {
     rimraf(AppEnv.getConfigDirPath(), { disableGlob: true }, err => {
       if (err) {
         return AppEnv.showErrorDialog(
-          `Could not reset accounts and settings. Please delete the folder ${AppEnv.getConfigDirPath()} manually.\n\n${err.toString()}`,
+          `Could not reset accounts and settings. Please delete the folder ${AppEnv.getConfigDirPath()} manually.\n\n${err.toString()}`
         );
       }
       const app = require('electron').remote.app;
@@ -98,9 +98,15 @@ export class Privacy extends React.Component {
 
   renderDeleteUserData() {
     if (this.state.deleteUserDataPopupOpen || this.state.deletingUserData) {
-      return <div className="privacys-button" >{this.renderSpinner()}Delete Stored Data</div>;
+      return (
+        <div className="btn-danger privacys-button">{this.renderSpinner()}Delete Stored Data</div>
+      );
     }
-    return <div className="privacys-button" onClick={this.openDeleteUserDataConfirmationPage}>Delete Stored Data</div>;
+    return (
+      <div className="btn-danger privacys-button" onClick={this.openDeleteUserDataConfirmationPage}>
+        Delete Stored Data
+      </div>
+    );
   }
 
   toggleDataShare = () => {
@@ -111,19 +117,21 @@ export class Privacy extends React.Component {
 
   renderDataShareOption() {
     if (this.state.deleteUserDataPopupOpen || this.state.deletingUserData) {
-      return  <div className="privacys-button" >
-        {this.renderSpinner()}Opt-out of Data Sharing
-      </div>;
+      return (
+        <div className="btn-danger privacys-button">
+          {this.renderSpinner()}Opt-out of Data Sharing
+        </div>
+      );
     }
     if (AppEnv.config.get('core.privacy.dataShare.optOut')) {
       return (
-        <div className="privacys-button" onClick={this.toggleDataShare}>
+        <div className="btn-danger privacys-button" onClick={this.toggleDataShare}>
           Opt-in of Data Sharing
         </div>
       );
     } else {
       return (
-        <div className="privacys-button" onClick={this.toggleDataShare}>
+        <div className="btn-danger privacys-button" onClick={this.toggleDataShare}>
           Opt-out of Data Sharing
         </div>
       );
@@ -131,9 +139,13 @@ export class Privacy extends React.Component {
   }
 
   renderSpinner() {
-    return <LottieImg name='loading-spinner-blue'
-                 size={{ width: 24, height: 24 }}
-                 style={{ margin: 'none' }}/>;
+    return (
+      <LottieImg
+        name="loading-spinner-blue"
+        size={{ width: 24, height: 24 }}
+        style={{ margin: 'none' }}
+      />
+    );
   }
 
   render() {
@@ -146,8 +158,12 @@ export class Privacy extends React.Component {
               Safeguarding your privacy is important to all of us here at Edison Software. Read our
               privacy policy for important information about how we use and protect your data.
             </div>
-            <div className="privacys-link"><a href="http://www.edison.tech/privacy.html">Privacy Policy</a></div>
-            <div className="privacys-link"><a href="http://www.edison.tech/terms.html">Terms & Conditions</a></div>
+            <div className="privacys-link">
+              <a href="http://www.edison.tech/privacy.html">Privacy Policy</a>
+            </div>
+            <div className="privacys-link">
+              <a href="http://www.edison.tech/terms.html">Terms & Conditions</a>
+            </div>
           </div>
           <RetinaImg
             name={'manage-privacy.png'}

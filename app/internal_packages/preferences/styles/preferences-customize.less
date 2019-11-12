@@ -1,22 +1,28 @@
 @import 'ui-variables';
 
+.color_icon() {
+  .color_archive {
+    background-color: @action-color-green;
+  }
+  .color_trash {
+    background-color: @action-color-red;
+  }
+  .color_flag {
+    background-color: @action-color-orange;
+  }
+  .color_read {
+    background-color: @action-color-blue;
+  }
+  .color_folder {
+    background-color: @action-color-purple;
+  }
+}
 .preferences-wrap {
   .container-customize-actions {
-    .color_archive {
-      background-color: @action-color-green!important;
+    .item {
+      .color_icon();
     }
-    .color_trash {
-      background-color: @action-color-red!important;
-    }
-    .color_flag {
-      background-color: @action-color-orange!important;
-    }
-    .color_read {
-      background-color: @action-color-blue!important;
-    }
-    .color_folder {
-      background-color: @action-color-purple!important;
-    }
+
     .button-dropdown {
       .only-item {
         min-width: 160px;
@@ -48,6 +54,35 @@
         right: 35px;
       }
     }
+    .email-action-preview {
+      position: relative;
+      width: 500px;
+      .content-mask {
+        background-color: @gray;
+      }
+      .action_icon {
+        position: absolute;
+        top: 37px;
+      }
+      .action_1 {
+        right: 192px;
+      }
+      .action_2 {
+        right: 153px;
+      }
+      .action_3 {
+        right: 114px;
+      }
+      .action_4 {
+        right: 75px;
+      }
+      .action_5 {
+        right: 36px;
+      }
+    }
+    .email-actions .content-mask {
+      background-color: @gray;
+    }
     .swipe-action-preview {
       position: relative;
       width: 500px;
@@ -55,6 +90,7 @@
         position: relative;
         z-index: 2;
       }
+      .color_icon();
       .action_color {
         position: absolute;
         left: 18px;
