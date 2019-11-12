@@ -146,8 +146,7 @@
     "node-mac-notifier": "^1.1.0"
   },
   "devDependencies": {
-    "electron-rebuild": "^1.8.6",
-    "runas": "git+https://git@github.com/ruoxijiang/node-runas.git#ca4f0714"
+    "electron-rebuild": "^1.8.6"
   },
   "resolutions": {
     "**/nan": "2.14.0",
