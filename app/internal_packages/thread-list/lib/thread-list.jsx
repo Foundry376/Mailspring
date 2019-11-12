@@ -75,7 +75,9 @@ class ThreadList extends React.Component {
     if (ThreadListStore.dataSource().count() <= 0) {
       return null;
     }
-    return <SyncingListState />;
+    // DC-1141: do not display syncing status
+    // return <SyncingListState />;
+    return null;
   }
 
   _calcScrollPosition = _.throttle(scrollTop => {

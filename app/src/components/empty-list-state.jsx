@@ -20,10 +20,12 @@ class EmptyPerspectiveState extends React.Component {
   renderImage() {
     if (this.props.perspective.emptyListIcon()) {
       return <LottieImg name={this.props.perspective.emptyListIcon()}
-                        height={500}
-                        width={500}
-                        style={{ width: 500, height: 500, verticalAlign: 'middle',
-                          border: 0, zoom: 0.5 }}
+        height={500}
+        width={500}
+        style={{
+          width: 500, height: 500, verticalAlign: 'middle',
+          border: 0, zoom: 0.5
+        }}
       />;
     } else {
       let name = this.props.perspective.categoriesSharedRole();
@@ -40,7 +42,7 @@ class EmptyPerspectiveState extends React.Component {
         name = 'nomail';
       }
       return <RetinaImg name={`ic-emptystate-${name}.png`} fallback={`nomail.png`}
-                        mode={RetinaImg.Mode.ContentPreserve}/>;
+        mode={RetinaImg.Mode.ContentPreserve} />;
     }
   }
 
@@ -171,9 +173,14 @@ class EmptyListState extends React.Component {
     const current = FocusedPerspectiveStore.current();
 
     let messageContent = current.emptyMessage();
-    if (this.state.syncing) {
-      messageContent = <SyncingListState empty />;
-    } else if (current.isInbox()) {
+
+    // DC-1141: do not display syncing status
+    // if (this.state.syncing) {
+    //   messageContent = <SyncingListState empty />;
+    // } else if (current.isInbox()) {
+    //   ContentComponent = EmptyInboxState;
+    // }
+    if (current.isInbox()) {
       ContentComponent = EmptyInboxState;
     }
 
