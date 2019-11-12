@@ -190,10 +190,9 @@ class DraftStore extends MailspringStore {
         }
       }
     }
-    AppEnv.logDebug(`waiting for session.prepare()`);
+    AppEnv.logDebug(`waiting for ${headerMessageId} session.prepare()`);
     await this._draftSessions[headerMessageId].prepare();
-    AppEnv.logDebug(`session.prepare() returned`);
-    // ipcRenderer.send('draft-arp', { headerMessageId });
+    AppEnv.logDebug(`${headerMessageId} session.prepare() returned`);
     return this._draftSessions[headerMessageId];
   }
 
@@ -879,6 +878,7 @@ class DraftStore extends MailspringStore {
       this.sessionForServerDraft(draft).then(newSession => {
         const newDraft = newSession.draft();
         newSession.setPopout(true);
+        newSession.needUpload(true);
         const draftJSON = newSession.draft().toJSON();
         AppEnv.newWindow({
           hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
