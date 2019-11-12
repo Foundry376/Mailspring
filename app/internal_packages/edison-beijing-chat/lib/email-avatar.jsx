@@ -39,10 +39,10 @@ export default class EmailAvatar extends Component {
         name: props.account.name,
         email: props.account.email,
       };
-    } else if (props.name) {
+    } else if (props.name || props.email) {
       from = {
         name: props.name,
-        email: null,
+        email: props.email,
       };
     }
     // This mode is not the "split/list" mode, but as in "use in list"  or "use in other places" mode
