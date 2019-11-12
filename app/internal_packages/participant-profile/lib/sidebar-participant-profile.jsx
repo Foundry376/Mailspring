@@ -6,6 +6,7 @@ import {
   DOMUtils,
   RegExpUtils,
   Utils,
+  EmailAvatar
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import moment from 'moment-timezone';
@@ -80,7 +81,9 @@ class ProfilePictureOrColorBox extends React.Component {
 
     return (
       <div className="profile-photo-wrap">
-        <div className="profile-photo">{content}</div>
+        <div className="profile-photo">
+          <EmailAvatar {...{ name: contact.name, email: contact.email }} />
+        </div>
       </div>
     );
   }
