@@ -80,6 +80,10 @@ export class ArchiveButton extends React.Component {
     if (this.props.selection) {
       this.props.selection.clear();
     }
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Archive closing window because in ThreadWindow`);
+      AppEnv.close();
+    }
     return;
   };
 
@@ -149,6 +153,10 @@ export class TrashButton extends React.Component {
     if (this.props.selection) {
       this.props.selection.clear();
     }
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Remove Closing window because in ThreadWindow`);
+      AppEnv.close();
+    }
     return;
   };
   _onExpunge = (event, threads) => {
@@ -183,6 +191,10 @@ export class TrashButton extends React.Component {
     Actions.popSheet({ reason: 'ToolbarButton:ThreadList:expunge' });
     if (event) {
       event.stopPropagation();
+    }
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Closing window because in ThreadWindow`);
+      AppEnv.close();
     }
     return;
   };
@@ -257,6 +269,10 @@ class HiddenGenericRemoveButton extends React.Component {
     );
     Actions.queueTasks(tasks);
     Actions.popSheet({ reason: 'ToolbarButton:HiddenGenericRemoveButton:removeFromView' });
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Closing window because in ThreadWindow`);
+      AppEnv.close();
+    }
   };
 
   render() {
@@ -376,6 +392,10 @@ export class MarkAsSpamButton extends React.Component {
     if (this.props.selection) {
       this.props.selection.clear();
     }
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Not Spam closing window because in ThreadWindow`);
+      AppEnv.close();
+    }
     return;
   };
 
@@ -395,6 +415,10 @@ export class MarkAsSpamButton extends React.Component {
     }
     if (this.props.selection) {
       this.props.selection.clear();
+    }
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Closing window because in ThreadWindow`);
+      AppEnv.close();
     }
     return;
   };
