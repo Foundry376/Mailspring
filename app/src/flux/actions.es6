@@ -462,7 +462,6 @@ class Actions {
   */
   static removeQuoteText = ActionScopeGlobal;
   static syncDraftDataToMain = ActionScopeMainWindow;
-  static syncDraftToFile = ActionScopeMainWindow;
   static broadcastDraftData = ActionScopeGlobal;
   static editOutboxDraft = ActionScopeMainWindow;
   static resendDrafts = ActionScopeMainWindow;

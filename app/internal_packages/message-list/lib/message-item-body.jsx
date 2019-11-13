@@ -13,7 +13,6 @@ import {
 import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
 import EmailFrame from './email-frame';
-import MessageBodyStore from '../../../src/flux/stores/message-body-store';
 
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
@@ -108,24 +107,11 @@ export default class MessageItemBody extends React.Component {
     if (processedBody === null || processedBody.trim() === '') {
       // const query = DatabaseStore.find(Message, messageId);
       // query.include(Message.attributes.body);
-      MessageStore.findByMessageIdWithBody({ messageId: messageId })
-        .then(m => {
-          AppEnv.logDebug(`setProcessBody ${messageId} fetch body`);
-          return new Promise(resolve => {
-            MessageBodyStore.getPromiseBodyByMessageId(messageId).then(data => {
-              AppEnv.logDebug(`setProcessBody ${messageId} assgin body`);
-              m.body = data.body;
-              m.isPlainText = !data.isHtml;
-              resolve(m);
-            });
-          });
-        })
-        .then(msg => {
-          AppEnv.logDebug(`setProcessBody ${messageId.id} continue process`);
-          if (msg.body !== this.state.processedBody) {
-            this.setState({ processedBody });
-          }
-        });
+      MessageStore.findByMessageIdWithBody({ messageId: messageId }).then(msg => {
+        if (msg.body !== this.state.processedBody) {
+          this.setState({ processedBody });
+        }
+      });
     } else {
       this.setState({ processedBody });
     }

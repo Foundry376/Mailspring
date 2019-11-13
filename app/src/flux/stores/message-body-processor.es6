@@ -3,7 +3,6 @@ import Message from '../models/message';
 import MessageStore from './message-store';
 import DatabaseStore from './database-store';
 import SanitizeTransformer from '../../services/sanitize-transformer';
-import MessageBodyStore from './message-body-store';
 
 class MessageBodyProcessor {
   constructor() {
@@ -55,16 +54,8 @@ class MessageBodyProcessor {
     const subscriptions = this._subscriptions.filter(
       ({ message }) => message && changedMessage && message.id === changedMessage.id,
     );
-    if (subscriptions.length === 0) {
-      return;
-    }
 
     const updatedMessage = changedMessage.clone();
-    console.log(`updateCacheForMessage ${updatedMessage.id} fetch body`);
-    const data = await MessageBodyStore.getPromiseBodyByMessageId(updatedMessage.id);
-    console.log(`updateCacheForMessage ${updatedMessage.id} assign body`);
-    updatedMessage.body = data.body;
-    updatedMessage.isPlainText = !data.isHtml;
     updatedMessage.body =
       updatedMessage.body || (subscriptions[0] && subscriptions[0].message.body);
     if (!updatedMessage.body) {
@@ -148,54 +139,37 @@ class MessageBodyProcessor {
   }
 
   _process(message) {
+    if (typeof message.body !== 'string') {
+      return Promise.resolve('');
+    }
+
     // Sanitizing <script> tags, etc. isn't necessary because we use CORS rules
     // to prevent their execution and sandbox content in the iFrame, but we still
     // want to remove contenteditable attributes and other strange things.
-    const processBody = () => {
-      return SanitizeTransformer.run(message.body, SanitizeTransformer.Preset.UnsafeOnly).then(
-        sanitized => {
-          let body = sanitized;
-          for (const extension of MessageStore.extensions()) {
-            if (!extension.formatMessageBody) {
-              continue;
-            }
+    return SanitizeTransformer.run(message.body, SanitizeTransformer.Preset.UnsafeOnly).then(
+      sanitized => {
+        let body = sanitized;
+        for (const extension of MessageStore.extensions()) {
+          if (!extension.formatMessageBody) {
+            continue;
+          }
 
-            // Give each extension the message object to process the body, but don't
-            // allow them to modify anything but the body for the time being.
-            const previousBody = body;
-            try {
-              const virtual = message.clone();
-              virtual.body = body;
-              extension.formatMessageBody({ message: virtual });
-              body = virtual.body;
-            } catch (err) {
-              AppEnv.reportError(err);
-              body = previousBody;
-            }
+          // Give each extension the message object to process the body, but don't
+          // allow them to modify anything but the body for the time being.
+          const previousBody = body;
+          try {
+            const virtual = message.clone();
+            virtual.body = body;
+            extension.formatMessageBody({ message: virtual });
+            body = virtual.body;
+          } catch (err) {
+            AppEnv.reportError(err);
+            body = previousBody;
           }
-          return body;
         }
-      );
-    };
-    if (typeof message.body !== 'string') {
-      return new Promise(resolve => {
-        AppEnv.logDebug(`message-body-processor fetch ${message.id} body`);
-        MessageBodyStore.getPromiseBodyByMessageId(message.id).then(data => {
-          message.body = data.body;
-          message.isPlainText = !data.isHtml;
-          AppEnv.logDebug(`message-body-processor ${message.id} assign body`);
-          if (data.body) {
-            processBody().then(body => {
-              AppEnv.logDebug(`message-body-processor ${message.id} returning body`);
-              resolve(body);
-            });
-          } else {
-            resolve('');
-          }
-        });
-      });
-    }
-    return processBody();
+        return body;
+      },
+    );
   }
 
   _addToCache(key, body) {
