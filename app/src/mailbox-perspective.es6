@@ -368,7 +368,7 @@ export default class MailboxPerspective {
         if (account && account.provider === 'gmail') {
           if (this.isInbox()) { // make sure inbox label can archive
             if (!thread.labels.some(label => label.role === 'inbox')) {
-              console.error(`The thread in inbox, but don not hanve inbox label. Thread id is ${thread.id}`);
+              console.error(`The thread in inbox, but don not hanve inbox label. Thread id is ${thread.id}. subject is [${thread.subject}]`);
               AppEnv.reportError(
                 new Error(`The thread in inbox, but don not hanve inbox label. Thread id is ${thread.id}`)
               );
