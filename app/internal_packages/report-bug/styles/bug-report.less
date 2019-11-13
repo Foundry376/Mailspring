@@ -1,3 +1,5 @@
+@import 'ui-variables';
+
 .page-frame {
   text-align: center;
   flex: 1;
@@ -40,13 +42,14 @@
     box-sizing: border-box;
     height: 250px;
     width: 100%;
+    color: @text-color;
     border-radius: 10px;
-    background-color: #fff;
+    background-color: @background-primary;
     border: 2px solid #e8ebed;
     padding: 8px 20px;
 
     &::-webkit-input-placeholder {
-      color: #b6bdc2;
+      color: @gray-light;
     }
   }
   input {
@@ -54,12 +57,12 @@
     height: 50px;
     width: 100%;
     border-radius: 10px;
-    background-color: #fff;
+    background-color: @background-primary;
     border: 2px solid #e8ebed;
     padding: 0 20px;
 
     &::-webkit-input-placeholder {
-      color: #b6bdc2;
+      color: @gray-light;
     }
 
     &[type='checkbox'] {
@@ -72,7 +75,7 @@
     display: inline-block;
     white-space: nowrap;
     width: 100%;
-    color: #000;
+    color: @text-color;
     text-align: left;
     padding-bottom: 12px;
     font-size: 16px;
@@ -87,10 +90,10 @@
   button.btn-report-bug {
     width: 350px;
     height: 50px;
-    background: #39f;
+    background: @blue;
     border-radius: 25px;
     margin: 50px auto 0 auto;
-    color: #fff;
+    color: @text-color-inverse;
     transition: width 150ms ease-in-out;
     font-size: 17px;
     font-weight: 700;
