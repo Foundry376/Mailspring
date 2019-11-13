@@ -3,6 +3,8 @@ import {
   LaunchSystemStartItem,
   DefaultAccountSending,
   DownloadSelection,
+  LocalData,
+  SupportId,
 } from './components/preferences-general-components';
 import PreferencesAccounts from './components/preferences-accounts';
 import {
@@ -183,6 +185,26 @@ const preferencesTemplateFill = {
               component: DownloadSelection,
               keyPath: 'core.attachments.downloadFolder',
               keywords: ['attachment'],
+            },
+          ],
+        },
+        {
+          groupName: 'Local Data',
+          groupItem: [
+            {
+              label: 'Local Data',
+              component: LocalData,
+              keywords: [],
+            },
+          ],
+        },
+        {
+          groupName: 'Support Id',
+          groupItem: [
+            {
+              label: 'Support Id',
+              component: SupportId,
+              keywords: [],
             },
           ],
         },
