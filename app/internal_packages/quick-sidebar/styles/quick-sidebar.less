@@ -14,17 +14,18 @@
 .thread-search-bar {
   overflow: visible;
   z-index: 99;
-  height: 40px;
+  height: @search-bar-height;
   width: 90%;
   position: absolute;
   right: 20px;
   background: @input-search-bg;
   color: @medium-grey;
   top: (68px - @search-bar-height) / 2;
-  padding-top: 10px;
   padding-left: @padding-xs-horizontal;
   padding-right: @padding-xs-horizontal;
   border-radius: 8px;
+  display: flex;
+  align-items: center;
   &:focus {
     border: 0;
     box-shadow: 0 0 2px darken(@input-border-color, 20%);
@@ -47,15 +48,16 @@
       margin-left: 6px;
     }
     &.clear {
-      color: @text-color-subtle;
-      width: 21px;
-      height: 21px;
+      background: @gray-light;
+      width: 20px;
+      height: 20px;
     }
   }
   .search-accessory.clear {
     position: absolute;
     top: 8px;
     right: 5px;
+    z-index: 2;
   }
 
   .suggestions {
@@ -101,9 +103,9 @@
   }
 
   .tokenizing-contenteditable {
-    height: 80%;
-    width: 90%;
-    float: left;
+    height: @search-bar-height;
+    line-height: @search-bar-height;
+    flex: 1;
     position: relative;
     overflow-x: scroll;
     white-space: nowrap;

@@ -69,7 +69,7 @@ export default class InputSearch extends React.Component {
             name="search.svg"
             className="search-accessory search"
             mode={RetinaImg.Mode.ContentIsMask}
-            style={{ height: height / 1.3, width: height / 1.3 }}
+            style={{ height: 20, width: 20 }}
             onClick={() => this._fieldElFocus()}
           />
         ) : null}
@@ -87,7 +87,7 @@ export default class InputSearch extends React.Component {
             name="close.svg"
             className="search-accessory clear"
             mode={RetinaImg.Mode.ContentIsMask}
-            style={{ width: (height / 1.3) * 0.75, height: (height / 1.3) * 0.75 }}
+            style={{ width: 20, height: 20 }}
             onClick={() => this._clearInput()}
           />
         ) : null}

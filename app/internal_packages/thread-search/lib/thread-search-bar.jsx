@@ -350,9 +350,10 @@ class ThreadSearchBar extends Component {
         />
         {showX && (
           <RetinaImg
-            name="searchclear.png"
+            isIcon
+            name="close.svg"
             className="search-accessory clear"
-            mode={RetinaImg.Mode.ContentDark}
+            mode={RetinaImg.Mode.ContentIsMask}
             onMouseDown={this._onClearSearchQuery}
           />
         )}
