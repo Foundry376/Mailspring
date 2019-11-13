@@ -9,6 +9,8 @@ import {
 } from 'mailspring-exports';
 import { ListensToFluxStore, Menu, ButtonDropdown } from 'mailspring-component-kit';
 import ConfigSchemaItem from './config-schema-item';
+import rimraf from 'rimraf';
+import { Actions } from 'mailspring-exports';
 
 export class DefaultMailClientItem extends React.Component {
   constructor() {
@@ -252,6 +254,102 @@ export class DownloadSelection extends React.Component {
           primaryItem={this._getSelectedMenuItem()}
           menu={menu}
         />
+      </div>
+    );
+  }
+}
+
+export class LocalData extends React.Component {
+  static displayName = 'LocalData';
+
+  constructor() {
+    super();
+    this.state = {};
+  }
+
+  _onReboot = () => {
+    const app = require('electron').remote.app;
+    app.relaunch();
+    app.quit();
+  };
+
+  _onResetEmailCache = () => {
+    Actions.forceKillAllClients();
+  };
+
+  _onResetAccountsAndSettings = () => {
+    rimraf(AppEnv.getConfigDirPath(), { disableGlob: true }, err => {
+      if (err) {
+        return AppEnv.showErrorDialog(
+          `Could not reset accounts and settings. Please delete the folder ${AppEnv.getConfigDirPath()} manually.\n\n${err.toString()}`
+        );
+      }
+      this._onReboot();
+    });
+  };
+
+  render() {
+    return (
+      <div className="item">
+        <div className="btn-primary buttons-reset-data" onClick={this._onResetEmailCache}>
+          Reset Email Cache
+        </div>
+        <div className="btn-primary buttons-reset-data" onClick={this._onResetAccountsAndSettings}>
+          Reset Accounts and Settings
+        </div>
+      </div>
+    );
+  }
+}
+
+export class SupportId extends React.Component {
+  static displayName = 'SupportId';
+  static propTypes = {
+    config: PropTypes.object.isRequired,
+  };
+  constructor(props) {
+    super(props);
+    this.state = {};
+    this.state.displaySupportPopup = false;
+    this.timer = null;
+    this.mounted = false;
+  }
+  componentDidMount() {
+    this.mounted = true;
+  }
+  componentWillUnmount() {
+    this.mounted = false;
+    clearTimeout(this.timer);
+  }
+
+  _onCopySupportId = event => {
+    navigator.clipboard.writeText(this.props.config.core.support.id).then(() => {
+      this.setState({ displaySupportPopup: true });
+      if (!this.timer) {
+        this.timer = setTimeout(() => {
+          this.timer = null;
+          if (this.mounted) {
+            this.setState({ displaySupportPopup: false });
+          }
+        }, 1600); // Same as popupFrames animation length
+      }
+    });
+  };
+
+  render() {
+    return (
+      <div className="item support">
+        <div
+          className="popup"
+          style={{
+            display: `${this.state.displaySupportPopup ? 'inline-block' : 'none'}`,
+          }}
+        >
+          ID Copied
+        </div>
+        <div className="btn-primary support-id" onClick={this._onCopySupportId}>
+          {this.props.config.core.support.id}
+        </div>
       </div>
     );
   }
