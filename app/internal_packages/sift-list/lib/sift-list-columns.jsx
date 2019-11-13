@@ -44,6 +44,7 @@ const ParticipantsColumn = new ListTabular.Column({
     if (list.length > 0) {
       return (
         <div className="participants">
+          {renderIcons(message)}
           <span>{list.map(p => p.displayName()).join(', ')}</span>
         </div>
       );
