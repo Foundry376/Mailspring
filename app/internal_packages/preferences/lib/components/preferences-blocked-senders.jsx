@@ -17,6 +17,7 @@ class BlockedSenders extends React.Component {
 
   componentDidMount() {
     this.unsubscribe = BlockedSendersStore.listen(this._onBlockedChanged);
+    BlockedSendersStore.syncBlockedSenders();
     const blockeds = this._getStateFromStores();
     this.setState({ blockeds: blockeds }, () => {
       this._filterBlockedsBySearchValue();
