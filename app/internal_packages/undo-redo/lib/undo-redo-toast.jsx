@@ -6,7 +6,8 @@ import {
   ChangeUnreadTask,
   ChangeStarredTask,
   ChangeFolderTask,
-  Actions
+  TrashFromSenderTask,
+  Actions,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
@@ -14,9 +15,8 @@ import SendDraftTask from '../../../src/flux/tasks/send-draft-task';
 
 function isUndoSend(block) {
   return (
-    block.tasks.length === 1 &&
-    (block.tasks[0] instanceof SyncbackMetadataTask &&
-      block.tasks[0].value.isUndoSend) ||
+    (block.tasks.length === 1 &&
+      (block.tasks[0] instanceof SyncbackMetadataTask && block.tasks[0].value.isUndoSend)) ||
     block.tasks[0] instanceof SendDraftTask
   );
 }
@@ -60,7 +60,7 @@ class Countdown extends React.Component {
     // subtract a few ms so we never round up to start time + 1 by accident
     let diff = Math.min(
       Math.max(0, this.props.expiration - Date.now()),
-      AppEnv.config.get('core.task.delayInMs'),
+      AppEnv.config.get('core.task.delayInMs')
     );
 
     return (
@@ -68,7 +68,7 @@ class Countdown extends React.Component {
         <div className="countdown-number">{Math.ceil(diff / 1000)}</div>
         {diff > 0 && (
           <svg>
-            <circle r="14" cx="15" cy="15" style={{ animationDuration: this.animationDuration }}/>
+            <circle r="14" cx="15" cy="15" style={{ animationDuration: this.animationDuration }} />
           </svg>
         )}
       </div>
@@ -84,37 +84,57 @@ class BasicContent extends React.Component {
   render() {
     const { block, onMouseEnter, onMouseLeave, onClose } = this.props;
     let description = block.description;
-    if (block.tasks.length >= 2) {
-      const tasks = block.tasks;
+    const tasks = block.tasks;
+    if (tasks.length >= 2) {
       // if all ChangeUnreadTask
-      if (tasks[0] instanceof ChangeUnreadTask && tasks[tasks.length - 1] instanceof ChangeUnreadTask) {
+      if (
+        tasks[0] instanceof ChangeUnreadTask &&
+        tasks[tasks.length - 1] instanceof ChangeUnreadTask
+      ) {
         let total = 0;
         tasks.forEach(item => (total += item.threadIds.length));
         const newState = tasks[0].unread ? 'unread' : 'read';
         description = `Marked ${total} threads as ${newState}`;
       }
       // if all ChangeStarredTask
-      else if (tasks[0] instanceof ChangeStarredTask && tasks[tasks.length - 1] instanceof ChangeStarredTask) {
+      else if (
+        tasks[0] instanceof ChangeStarredTask &&
+        tasks[tasks.length - 1] instanceof ChangeStarredTask
+      ) {
         let total = 0;
         tasks.forEach(item => (total += item.threadIds.length));
         const verb = tasks[0].starred ? 'Flagged' : 'Unflagged';
         description = `${verb} ${total} threads`;
       }
       // if all ChangeFolderTask
-      else if (tasks[0] instanceof ChangeFolderTask && tasks[tasks.length - 1] instanceof ChangeFolderTask) {
+      else if (
+        tasks[0] instanceof ChangeFolderTask &&
+        tasks[tasks.length - 1] instanceof ChangeFolderTask
+      ) {
         let total = 0;
         tasks.forEach(item => (total += item.threadIds.length));
         const folderText = ` to ${tasks[0].folder.displayName}`;
         description = `Moved ${total} threads${folderText}`;
+      }
+    } else {
+      // if TrashFromSenderTask
+      if (tasks[0] instanceof TrashFromSenderTask) {
+        description = `Trash all previous mail from ${tasks[0].email}`;
       }
     }
     return (
       <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <div className="message">{description}</div>
         <div className="action">
-          <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-                     onClick={() => onClose()}/>
-          <div className="undo-action-text" onClick={() => UndoRedoStore.undo({ block })}>Undo</div>
+          <RetinaImg
+            name="close_1.svg"
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask}
+            onClick={() => onClose()}
+          />
+          <div className="undo-action-text" onClick={() => UndoRedoStore.undo({ block })}>
+            Undo
+          </div>
         </div>
       </div>
     );
@@ -151,7 +171,7 @@ class UndoSendContent extends BasicContent {
       headerMessageId &&
       this.props.block.tasks[0].modelHeaderMessageId === headerMessageId
     ) {
-      this.setState({ sendStatus: 'success'});
+      this.setState({ sendStatus: 'success' });
       clearTimeout(this.timer);
       this.timer = setTimeout(() => {
         this.props.onClose(true);
@@ -165,7 +185,7 @@ class UndoSendContent extends BasicContent {
       headerMessageId &&
       this.props.block.tasks[0].modelHeaderMessageId === headerMessageId
     ) {
-      this.setState({ sendStatus: 'failed', failedDraft: draft  });
+      this.setState({ sendStatus: 'failed', failedDraft: draft });
       clearTimeout(this.timer);
       this.timer = setTimeout(() => {
         this.props.onClose(true);
@@ -179,7 +199,11 @@ class UndoSendContent extends BasicContent {
     } else if (this.state.sendStatus === 'failed') {
       clearTimeout(this.timer);
       setTimeout(() => {
-        AppEnv.reportError(new Error(`Sending email failed, and user clicked view. headerMessageId: ${this.props.block.tasks[0].modelHeaderMessageId}`));
+        AppEnv.reportError(
+          new Error(
+            `Sending email failed, and user clicked view. headerMessageId: ${this.props.block.tasks[0].modelHeaderMessageId}`
+          )
+        );
         Actions.gotoOutbox();
       }, 300);
       this.props.onClose(true);
@@ -188,10 +212,18 @@ class UndoSendContent extends BasicContent {
 
   renderActionArea(block) {
     if (!block.due) {
-      return <div className="undo-action-text" onClick={this.onActionClicked}>Undo</div>;
+      return (
+        <div className="undo-action-text" onClick={this.onActionClicked}>
+          Undo
+        </div>
+      );
     }
     if (this.state.sendStatus === 'failed') {
-      return <div className="undo-action-text" onClick={this.onActionClicked}>View</div>;
+      return (
+        <div className="undo-action-text" onClick={this.onActionClicked}>
+          View
+        </div>
+      );
     }
     return null;
   }
@@ -218,7 +250,8 @@ class UndoSendContent extends BasicContent {
       } else {
         recipiant = { name: '', email: '' };
       }
-      const additional = OutboxStore.count().failed > 1 ? `+ ${OutboxStore.count().failed } more` : '';
+      const additional =
+        OutboxStore.count().failed > 1 ? `+ ${OutboxStore.count().failed} more` : '';
       return `Mail to ${recipiant.name || recipiant.email} ${additional} failed to send.`;
     }
   }
@@ -313,23 +346,27 @@ export default class UndoRedoToast extends React.Component {
   render() {
     const { blocks } = this.state;
     return (
-      <div className='undo-redo-toast-container'>
+      <div className="undo-redo-toast-container">
         <CSSTransitionGroup
           className="undo-redo-toast"
           transitionLeaveTimeout={150}
           transitionEnterTimeout={150}
           transitionName="undo-redo-toast-fade"
         >
-          {blocks.filter(b => !b.hide).map(block => {
-            const Component = block && (isUndoSend(block) ? UndoSendContent : BasicContent);
-            return <Component
-              key={block.id}
-              block={block}
-              onMouseEnter={this._onMouseEnter}
-              onMouseLeave={this._onMouseLeave}
-              onClose={this._closeToaster.bind(this, block)}
-            />;
-          })}
+          {blocks
+            .filter(b => !b.hide)
+            .map(block => {
+              const Component = block && (isUndoSend(block) ? UndoSendContent : BasicContent);
+              return (
+                <Component
+                  key={block.id}
+                  block={block}
+                  onMouseEnter={this._onMouseEnter}
+                  onMouseLeave={this._onMouseLeave}
+                  onClose={this._closeToaster.bind(this, block)}
+                />
+              );
+            })}
         </CSSTransitionGroup>
       </div>
     );
