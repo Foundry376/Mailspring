@@ -101,7 +101,7 @@ export class Notifier {
     ThreadStore.findAllByThreadIds({ threadIds }).then(threads => {
       threads.forEach(({ id, unread }) => {
         if (!unread && this.activeNotifications[id]) {
-          this.activeNotifications[id].forEach(n => n.close());
+          // this.activeNotifications[id].forEach(n => n.close());
           delete this.activeNotifications[id];
         }
       });
