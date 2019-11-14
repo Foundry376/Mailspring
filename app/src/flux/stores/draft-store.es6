@@ -878,7 +878,7 @@ class DraftStore extends MailspringStore {
       this.sessionForServerDraft(draft).then(newSession => {
         const newDraft = newSession.draft();
         newSession.setPopout(true);
-        newSession.needUpload(true);
+        newSession.needUpload = true;
         const draftJSON = newSession.draft().toJSON();
         AppEnv.newWindow({
           hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
