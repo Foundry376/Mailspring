@@ -83,15 +83,15 @@ class WorkspaceStore extends MailspringStore {
           list: [
             'RootSidebar',
             'ThreadList',
-            'QuickSidebar',
-            'MessageListSidebar'
+            // 'QuickSidebar',
+            // 'MessageListSidebar'
           ],
           split: [
             'RootSidebar',
             'ThreadList',
             'MessageList',
-            'QuickSidebar',
-            'MessageListSidebar'
+            // 'QuickSidebar',
+            // 'MessageListSidebar'
           ],
         }
       );
@@ -102,8 +102,8 @@ class WorkspaceStore extends MailspringStore {
           list: [
             'RootSidebar',
             'MessageList',
-            'QuickSidebar',
-            'MessageListSidebar'
+            // 'QuickSidebar',
+            // 'MessageListSidebar'
           ]
         }
       );
@@ -126,14 +126,14 @@ class WorkspaceStore extends MailspringStore {
             'RootSidebar',
             'SiftList',
             'MessageList',
-            'QuickSidebar',
-            'MessageListSidebar'
+            // 'QuickSidebar',
+            // 'MessageListSidebar'
           ],
           list: [
             'RootSidebar',
             'SiftList',
-            'QuickSidebar',
-            'MessageListSidebar'
+            // 'QuickSidebar',
+            // 'MessageListSidebar'
           ]
         }
       );

@@ -448,7 +448,6 @@ class EditableList extends Component {
               isIcon
               name="close.svg"
               className="close-icon"
-              title="Close Item"
               style={{ width: 20, height: 20 }}
               mode={RetinaImg.Mode.ContentIsMask}
               onClick={_.partial(onDelete, _, item, idx)}

@@ -63,7 +63,7 @@ input:focus {
       &.thread-icon-unread,
       &.thread-icon-star {
         position: absolute;
-        left: 12px;
+        left: 18px;
       }
     }
     &.selected,
@@ -463,6 +463,7 @@ input:focus {
       margin: auto;
     }
     &.thread-icon-unread {
+      margin-left: -6px;
       .icon-mixin('../static/icons/menu-unread.svg', @blue, auto);
     }
     &.thread-icon-replied {
@@ -472,6 +473,7 @@ input:focus {
       .icon-mixin('../static/icons/feed-forward.svg', @gray-light);
     }
     &.thread-icon-star {
+      margin-left: -6px;
       .icon-mixin('../static/icons/menu-unread.svg', @orange, 24px); // display as a dot, not a flag
     }
   }
@@ -738,7 +740,7 @@ body.platform-win32 {
       &.thread-icon-unread,
       &.thread-icon-star {
         position: absolute;
-        left: 12px;
+        left: 18px;
         top: 16px;
       }
     }

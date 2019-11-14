@@ -44,6 +44,7 @@ const ParticipantsColumn = new ListTabular.Column({
     if (list.length > 0) {
       return (
         <div className="participants">
+          {renderIcons(message)}
           <span>{list.map(p => p.displayName()).join(', ')}</span>
         </div>
       );
@@ -87,7 +88,7 @@ const ContentsColumn = new ListTabular.Column({
     return (
       <span className="details">
         <span className="subject">{subject(message.subject)}</span>
-        <span className="snippet">{message.snippet ? message.snippet : snippet(message.body)}</span>
+        <span className="snippet">{Utils.superTrim(message.snippet ? message.snippet : snippet(message.body))}</span>
       </span>
     );
   },
@@ -216,7 +217,7 @@ const cNarrow = new ListTabular.Column({
             {calendar || attachment || <div className="thread-icon no-icon" />}
           </div>
           <div className="snippet-and-labels">
-            <div className="snippet">{getSnippet(message)}&nbsp;</div>
+            <div className="snippet">{Utils.superTrim(getSnippet(message))}&nbsp;</div>
           </div>
         </div>
       </div>

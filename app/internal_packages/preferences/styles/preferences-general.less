@@ -1,0 +1,51 @@
+@import 'ui-variables';
+
+.preferences-wrap {
+  .container-general {
+    .buttons-reset-data {
+      display: inline-block;
+      padding: 0 10px;
+      margin-left: 8px;
+    }
+
+    .support {
+      position: relative;
+      .popup {
+        padding: 0 0.8em;
+        border-radius: 10px;
+        border: 0;
+        cursor: default;
+        color: @black;
+        background: @gray-light;
+        box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
+          0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15),
+          0 0.5px 1px rgba(0, 0, 0, 0.15);
+        height: 1.9em;
+        line-height: 1.9em;
+        font-size: 12.09px;
+        position: absolute;
+        top: -20px;
+        left: 42%;
+        animation: popupFrames 1.6s linear;
+      }
+      @keyframes popupFrames {
+        0% {
+          opacity: 0.1;
+        }
+        50% {
+          opacity: 0.8;
+        }
+        100% {
+          opacity: 0.1;
+        }
+      }
+      .support-id {
+        padding: 0 10px;
+        margin-left: 8px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}

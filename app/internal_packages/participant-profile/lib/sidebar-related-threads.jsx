@@ -1,4 +1,4 @@
-import { React, PropTypes, Actions, DateUtils } from 'mailspring-exports';
+import { React, PropTypes, Actions, DateUtils, Utils } from 'mailspring-exports';
 
 export default class RelatedThreads extends React.Component {
   static displayName = 'RelatedThreads';
@@ -64,7 +64,7 @@ export default class RelatedThreads extends React.Component {
           <span className="content" title={subject}>
             {subject}
             <span className="snippet" style={snippetStyles}>
-              {snippet}
+              {Utils.superTrim(snippet)}
             </span>
           </span>
           <span

@@ -11,14 +11,18 @@
 
   search-match {
     background: @text-color-search-match;
-    border-radius: @border-radius-base;
-    box-shadow: 0 0.5px 0.5px rgba(0, 0, 0, 0.25);
+    border-radius: 2px;
+    padding: 2px 0;
+    // box-shadow: 0 0.5px 0.5px rgba(0, 0, 0, 0.25);
     &.current-match {
       background: @text-color-search-current-match;
     }
   }
 
   .btn-default() {
+    height: 30px;
+    line-height: 30px;
+    border-radius: 10px;
     text-align: center;
     font-family: 'SF UI Text';
     font-weight: @headings-font-weight;
@@ -37,10 +41,7 @@
   }
 
   .buttons-add {
-    height: 30px;
     width: 250px;
-    line-height: 30px;
-    border-radius: 10px;
     margin-top: 30px;
   }
 
