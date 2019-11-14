@@ -119,7 +119,7 @@ class TaskQueue extends MailspringStore {
     return matches;
   }
 
-  waitForPerformLocal = (task, timeout = 1800) => {
+  waitForPerformLocal = (task, timeout = 2800) => {
     const upToDateTask = [].concat(this._queue, this._completed).find(t => t.id === task.id);
     if (upToDateTask && upToDateTask.status !== Task.Status.Local) {
       return Promise.resolve(upToDateTask);
