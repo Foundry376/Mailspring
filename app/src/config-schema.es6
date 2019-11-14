@@ -23,8 +23,12 @@ const actionLabels = [
   actionOption('read', 'Mark Read/Unread'),
   actionOption('folder', 'Move to Folder'),
 ];
-const emailActionValues = [...actionValues, 'spam'];
-const emailActionLabels = [...actionLabels, actionOption('spam', 'Spam')];
+const emailActionValues = [...actionValues, 'spam', 'print'];
+const emailActionLabels = [
+  ...actionLabels,
+  actionOption('spam', 'Mark as Spam'),
+  actionOption('print', 'Print Thread'),
+];
 
 export default {
   core: {
