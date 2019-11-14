@@ -340,7 +340,7 @@ body.platform-win32 {
     z-index: 3;
     &:after {
       content: '';
-      display: block;
+      display: none;
       position: absolute;
       left: 0;
       top: 0;
@@ -873,6 +873,11 @@ body.platform-win32 {
       }
       .RichEditor-toolbar .inner {
         background: @background-primary;
+      }
+      .action-bar-wrapper {
+        &:after {
+          display: block;
+        }
       }
     }
   }
