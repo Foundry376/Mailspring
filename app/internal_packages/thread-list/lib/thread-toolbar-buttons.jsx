@@ -88,7 +88,7 @@ export function ArchiveButton(props) {
   if (props.isMenuItem) {
     return new MenuItem({
       label: title,
-      click: _onArchive,
+      click: () => _onArchive(),
     });
   }
 
@@ -207,7 +207,7 @@ export function TrashButton(props) {
   if (props.isMenuItem) {
     return new MenuItem({
       label: title,
-      click: actionCallBack,
+      click: () => actionCallBack(),
     });
   }
 
@@ -417,7 +417,7 @@ export function MarkAsSpamButton(props) {
     if (props.isMenuItem) {
       return new MenuItem({
         label: title,
-        click: _onShortcutNotSpam,
+        click: () => _onShortcutNotSpam(),
       });
     }
 
@@ -453,7 +453,7 @@ export function MarkAsSpamButton(props) {
   if (props.isMenuItem) {
     return new MenuItem({
       label: title,
-      click: _onShortcutMarkAsSpam,
+      click: () => _onShortcutMarkAsSpam(),
     });
   }
   return (
@@ -494,7 +494,7 @@ export function PrintThreadButton(props) {
   if (props.isMenuItem) {
     return new MenuItem({
       label: title,
-      click: _onPrintThread,
+      click: () => _onPrintThread(),
     });
   }
 
@@ -537,7 +537,7 @@ export function ToggleStarredButton(props) {
   if (props.isMenuItem) {
     return new MenuItem({
       label: title,
-      click: _onStar,
+      click: () => _onStar(),
     });
   }
 
@@ -566,7 +566,9 @@ export function ToggleUnreadButton(props) {
   const _onClick = event => {
     const targetUnread = props.items.every(t => t.unread === false);
     _onChangeUnread(targetUnread);
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
     return;
   };
 
@@ -595,7 +597,7 @@ export function ToggleUnreadButton(props) {
   if (props.isMenuItem) {
     return new MenuItem({
       label: title,
-      click: _onClick,
+      click: () => _onClick(),
     });
   }
 
