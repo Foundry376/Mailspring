@@ -88,7 +88,7 @@ const ContentsColumn = new ListTabular.Column({
     return (
       <span className="details">
         <span className="subject">{subject(draft.subject)}</span>
-        <span className="snippet">{draft.snippet ? draft.snippet : snippet(draft.body)}</span>
+        <span className="snippet">{Utils.superTrim(draft.snippet ? draft.snippet : snippet(draft.body))}</span>
         {attachments}
       </span>
     );
@@ -208,7 +208,7 @@ const cNarrow = new ListTabular.Column({
             {calendar || attachment || <div className="thread-icon no-icon" />}
           </div>
           <div className="snippet-and-labels">
-            <div className="snippet">{getSnippet(draft)}&nbsp;</div>
+            <div className="snippet">{Utils.superTrim(getSnippet(draft))}&nbsp;</div>
           </div>
         </div>
       </div>

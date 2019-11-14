@@ -141,7 +141,7 @@ const c3 = new ListTabular.Column({
         <MailLabelSet thread={thread} />
         {draft}
         <span className="subject">{subject(thread.subject)}</span>
-        <span className="snippet">{getSnippet(thread)}</span>
+        <span className="snippet">{Utils.superTrim(getSnippet(thread))}</span>
         {/* <ThreadListIcon thread={thread} /> */}
       </span>
     );
@@ -238,7 +238,7 @@ const cNarrow = new ListTabular.Column({
             {calendar || attachment || <div className="thread-icon no-icon" />}
           </div>
           <div className="snippet-and-labels">
-            <div className="snippet">{getSnippet(thread)}&nbsp;</div>
+            <div className="snippet">{Utils.superTrim(getSnippet(thread))}&nbsp;</div>
             {/* <div style={{ flex: 1, flexShrink: 1 }} /> */}
             {/* <MailLabelSet thread={thread} /> */}
             <div className="icons">
