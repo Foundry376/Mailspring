@@ -13,6 +13,7 @@ import {
   WorkspaceStore,
   OnlineStatusStore,
   OutboxStore,
+  SearchStore
 } from 'mailspring-exports';
 
 import {
@@ -23,6 +24,7 @@ import {
   MailImportantIcon,
   KeyCommandsRegion,
   InjectedComponentSet,
+  LottieImg
 } from 'mailspring-component-kit';
 
 import FindInThread from './find-in-thread';
@@ -117,6 +119,7 @@ class MessageList extends React.Component {
       Actions.hideEmptyMessageList.listen(this._hideEmptyList, this),
       WorkspaceStore.listen(this._onChange),
       OnlineStatusStore.listen(this._onlineStatusChange),
+      AppEnv.config.onDidChange('core.theme', this._onChange),
     ];
     window.addEventListener('resize', this._onResize, true);
     this._onResize();
@@ -547,6 +550,9 @@ class MessageList extends React.Component {
         isOnline: OnlineStatusStore.isOnline(),
         selectedDraft: null,
         inOutbox: false,
+        query: SearchStore.query(),
+        isSearching: SearchStore.isSearching(),
+        theme: AppEnv.config.get('core.theme')
       };
     } else {
       return {
@@ -787,25 +793,49 @@ class MessageList extends React.Component {
   }
 
   render() {
-    if (!this.state.currentThread && !this.state.inOutbox || this.state.inOutbox && !this.state.selectedDraft) {
-      if (this.state.hideMessageList) {
+    const {
+      currentThread,
+      messages,
+      inOutbox,
+      selectedDraft,
+      hideMessageList,
+      isSearching,
+      query,
+      theme,
+      loading
+    } = this.state;
+    if ((!currentThread && !inOutbox) || (inOutbox && !selectedDraft)) {
+      if (hideMessageList) {
         return <div />;
+      }
+      // if is searching
+      if (isSearching || query) {
+        const lottieName = theme === 'ui-dark' ? 'search-dark' : 'search';
+        return (
+          <div className="searching">
+            <LottieImg
+              name={lottieName}
+              size={{ width: 250, height: 250 }}
+              isClickToPauseDisabled={true}
+            />
+          </div>
+        );
       }
       return <div className={`empty ${this.state.isOnline ? '' : 'offline'}`} />;
     }
 
     const wrapClass = classNames({
       'messages-wrap': true,
-      ready: !this.state.loading,
+      ready: !loading,
     });
 
     const messageListClass = classNames({
-      'outbox-message': this.state.inOutbox,
-      'message-list': !this.state.inOutbox,
+      'outbox-message': inOutbox,
+      'message-list': !inOutbox,
       'height-fix': SearchableComponentStore.searchTerm !== null,
     });
     const hideButtons = this.state.hideButtons ? ' hide-btn-when-crowded' : '';
-    if (this.state.inOutbox) {
+    if (inOutbox) {
       return this.renderOutboxMessage(wrapClass, messageListClass);
     }
     return (
@@ -815,7 +845,7 @@ class MessageList extends React.Component {
           <InjectedComponentSet
             className="item-container"
             matching={{ role: 'MessageListToolbar' }}
-            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages, position: 'messageList' }}
+            exposedProps={{ thread: currentThread, messages: messages, position: 'messageList' }}
           />
         </div>
         <div className={messageListClass} id="message-list">
@@ -834,13 +864,13 @@ class MessageList extends React.Component {
               <InjectedComponentSet
                 className="message-list-headers"
                 matching={{ role: 'MessageListHeaders' }}
-                exposedProps={{ thread: this.state.currentThread, messages: this.state.messages }}
+                exposedProps={{ thread: currentThread, messages: messages }}
                 direction="column"
               />
             </div>
             {this._messageElements()}
           </ScrollRegion>
-          <Spinner visible={this.state.loading} />
+          <Spinner visible={loading} />
         </div>
       </KeyCommandsRegion>
     );

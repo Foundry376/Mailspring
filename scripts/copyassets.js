@@ -11,6 +11,7 @@ const file_mappings = [
   ],
   // lottie
   ['veyron-design/lottie/mac-onboarding.json', './app/static/lottie/mac-onboarding.json'],
+  ['veyron-design/lottie/desktop/*.json', './app/static/lottie/'],
   // onboarding images
   [
     'veyron-design/images/desktop/addAnotherAccount.png',

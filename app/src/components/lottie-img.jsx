@@ -226,9 +226,7 @@ export default class LottieImg extends React.Component {
 
   constructor(props) {
     super(props);
-    this.animationData = null;
   }
-
 
   shouldComponentUpdate = nextProps => {
     return !_.isEqual(this.props, nextProps);
@@ -249,13 +247,12 @@ export default class LottieImg extends React.Component {
   };
 
   render() {
-    const {options, ...others} = this.props;
-    this.animationData = this.animationData || require(this._pathFor(this.props.name));
-    options.animationData = this.animationData;
+    const { options, ...others } = this.props;
+    options.animationData = require(this._pathFor(this.props.name));
     return <Lottie {...others}
       options={options}
       height={this.props.size.height}
       width={this.props.size.width}
-      style={this.props.style}/>
+      style={this.props.style} />
   }
 }
