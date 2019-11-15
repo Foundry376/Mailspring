@@ -59,9 +59,10 @@ module.exports = Utils = {
   },
 
   superTrim(text) {
-    if (!text) {
+    if (!text || typeof text !== 'string') {
       return text;
     }
+
     const reg = new RegExp(`${BLANK_ZWNJ}+`, "g");
     return text.replace(reg, '').trim();
   },

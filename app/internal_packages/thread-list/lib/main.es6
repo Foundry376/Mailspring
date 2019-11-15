@@ -8,19 +8,16 @@ import SelectedItemsStack from './selected-items-stack';
 
 import {
   ThreadListToolbarButtons,
-  MoveButtons,
-  FlagButtons,
-  NavButtons,
-  ThreadMoreButtons,
-  ThreadEmptyMoreButtons
-}
-  from './thread-toolbar-buttons';
+  ThreadEmptyMoreButtons,
+  MailActionsButtons,
+  MailActionsPopoutButtons,
+} from './thread-toolbar-buttons';
 
 export function activate() {
   if (AppEnv.isMainWindow()) {
     ComponentRegistry.register(ThreadListEmptyFolderBar, {
       // location: WorkspaceStore.Location.ThreadList,
-      role: 'ThreadListEmptyFolderBar'
+      role: 'ThreadListEmptyFolderBar',
     });
 
     ComponentRegistry.register(ThreadList, {
@@ -36,32 +33,25 @@ export function activate() {
     ComponentRegistry.register(ThreadListToolbar, {
       location: WorkspaceStore.Location.ThreadList.Toolbar,
       modes: ['list', 'split'],
-      role: 'ThreadListToolbar'
+      role: 'ThreadListToolbar',
     });
 
     ComponentRegistry.register(ThreadEmptyMoreButtons, {
       modes: ['list'],
       role: 'ThreadActionsToolbarButtonEmpty',
     });
-
-    ComponentRegistry.register(NavButtons, {
-      role: 'MessageListToolbar'
-    });
   }
   ComponentRegistry.register(MessageListToolbar, {
-    role: 'MessageListToolbar'
+    role: 'MessageListToolbar',
   });
   ComponentRegistry.register(ThreadListToolbarButtons, {
     role: 'ThreadListToolbarButtons',
   });
-  ComponentRegistry.register(MoveButtons, {
-    role: 'ThreadActionsToolbarButton',
+  ComponentRegistry.register(MailActionsButtons, {
+    role: 'MailActionsToolbarButton',
   });
-  ComponentRegistry.register(FlagButtons, {
-    role: 'ThreadActionsToolbarButton',
-  });
-  ComponentRegistry.register(ThreadMoreButtons, {
-    role: 'ThreadActionsToolbarButton',
+  ComponentRegistry.register(MailActionsPopoutButtons, {
+    role: 'MailActionsToolbarButton',
   });
 }
 
@@ -70,9 +60,7 @@ export function deactivate() {
   ComponentRegistry.unregister(SelectedItemsStack);
   ComponentRegistry.unregister(ThreadListToolbar);
   ComponentRegistry.unregister(MessageListToolbar);
-  ComponentRegistry.unregister(MoveButtons);
-  ComponentRegistry.unregister(FlagButtons);
-  ComponentRegistry.unregister(NavButtons);
-  ComponentRegistry.unregister(ThreadMoreButtons);
   ComponentRegistry.unregister(ThreadEmptyMoreButtons);
+  ComponentRegistry.unregister(MailActionsButtons);
+  ComponentRegistry.unregister(MailActionsPopoutButtons);
 }

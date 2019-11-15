@@ -22,12 +22,12 @@ import {
   ComposerEditor,
   ComposerSupport,
   Spinner,
+  LottieImg
 } from 'mailspring-component-kit';
 import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
-import LottieImg from '../../../src/components/lottie-img';
 import InjectedComponentErrorBoundary from '../../../src/components/injected-component-error-boundary';
 
 const {

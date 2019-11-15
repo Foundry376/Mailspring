@@ -171,6 +171,7 @@ load('SiftStore', 'flux/stores/sift-store');
 load('MessageBodyStore', 'flux/stores/message-body-store');
 lazyLoad('ThreadStore', 'flux/stores/thread-store');
 lazyLoad('BlockedSendersStore', 'flux/stores/blocked-senders-store');
+lazyLoad('SearchStore', '../internal_packages/thread-search/lib/search-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 

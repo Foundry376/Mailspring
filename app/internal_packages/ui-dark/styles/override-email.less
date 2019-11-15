@@ -41,6 +41,15 @@
   }
 }
 
+.column-OutboxMessage,
+.column-MessageList {
+  & > div.empty {
+    height: 100%;
+    background: url(../static/images/empty-state/EmptyMail-dark.png) no-repeat center center;
+    background-size: 250px auto;
+  }
+}
+
 
 .skeleton div {
   background-color: lighten(@cards, 10%) !important;
@@ -88,19 +97,42 @@
   box-shadow: none;
 }
 
+.message-item-area {
+  .button-dropdown.bordered .primary-item,
+  .button-dropdown .secondary-picker {
+    background-color: transparent;
+  }
+}
+
 .tokenizing-field.focused .token {
   background: @active;
 }
 
-.sift-list .list-item:hover .list-column-HoverActions .inner,
-.outbox-list .list-item:hover .list-column-HoverActions .inner,
-.thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@list-bg, 0%) 0%,
-    @list-bg 50%,
-    @list-bg 100%
-  );
+.sift-list,
+.outbox-list,
+.thread-list {
+  .list-item {
+    &:hover {
+      .list-column-HoverActions .inner {
+        background-image: -webkit-linear-gradient(
+          left,
+          fade(@list-bg, 0%) 0%,
+          @list-bg 50%,
+          @list-bg 100%
+        );
+      }
+    }
+    &.unread:hover:not(.focused) {
+      .list-column-HoverActions .inner {
+        background-image: -webkit-linear-gradient(
+          left,
+          fade(@white, 0%) 0%,
+          @white 50%,
+          @white 100%
+        );
+      }
+    }
+  }
 }
 
 .list-tabular .selection-bar .multiselect-toolbar-root .inner {

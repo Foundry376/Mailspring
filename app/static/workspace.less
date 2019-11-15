@@ -252,7 +252,7 @@ body.is-blurred {
             height: 36px;
             width: 36px;
             border-radius: 50%;
-            background: @off-white;
+            background: @icon-hover-bg-color;
             display: block;
             position: absolute;
             top: -5px;
@@ -695,13 +695,19 @@ body.platform-win32 {
   height: calc(~'100% - 40px') !important;
   & > div.empty {
     height: 100%;
-    background: url(../static/images/chat/default-empty-mail.png) no-repeat center center;
+    background: url(../static/images/empty-state/EmptyMail.png) no-repeat center center;
     background-size: 250px auto;
   }
   & > div.empty.offline {
     height: 100%;
     background: url(../static/images/chat/no-connection.png) no-repeat center center;
     background-size: 250px auto;
+  }
+  & > div.searching {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
   }
 }
 
@@ -797,7 +803,7 @@ body.platform-win32 {
           height: 36px;
           width: 36px;
           border-radius: 50%;
-          background: @off-white;
+          background: @icon-hover-bg-color;
           display: block;
           position: absolute;
           top: -5px;

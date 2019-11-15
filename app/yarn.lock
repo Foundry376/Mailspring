@@ -848,7 +848,7 @@ bignumber.js@^2.1.0:
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-2.4.0.tgz#838a992da9f9d737e0f4b2db0be62bb09dd0c5e8"
   integrity sha1-g4qZLan51zfg9LLbC+YrsJ3Qxeg=
 
-bindings@^1.2.1, bindings@^1.3.0, bindings@^1.4.0, bindings@^1.5.0:
+bindings@^1.3.0, bindings@^1.4.0, bindings@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
   integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
@@ -2230,11 +2230,6 @@ event-kit@^2.0.0:
   resolved "https://registry.yarnpkg.com/event-kit/-/event-kit-2.5.3.tgz#d47e4bc116ec0aacd00263791fa1a55eb5e79ba1"
   integrity sha512-b7Qi1JNzY4BfAYfnIRanLk0DOD1gdkWHT4GISIn8Q2tAf3LpU8SP2CMwWaq40imYoKWbtN4ZhbSRxvsnikooZQ==
 
-event-target-shim@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-1.1.1.tgz#a86e5ee6bdaa16054475da797ccddf0c55698491"
-  integrity sha1-qG5e5r2qFgVEddp5fM3fDFVphJE=
-
 eventemitter3@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-1.2.0.tgz#1c86991d816ad1e504750e73874224ecf3bec508"
@@ -2761,6 +2756,11 @@ group-by-time@^1.0.0:
   dependencies:
     lodash.groupby "^2.4.1"
 
+growly@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.npm.taobao.org/growly/download/growly-1.3.0.tgz#f10748cbe76af964b7c96c93c6bcc28af120c081"
+  integrity sha1-8QdIy+dq+WS3yWyTxrzCivEgwIE=
+
 har-schema@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/har-schema/-/har-schema-1.0.5.tgz#d263135f43307c02c602afc8fe95970c0151369e"
@@ -3244,6 +3244,11 @@ is-window@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-window/-/is-window-1.0.2.tgz#2c896ca53db97de45d3c33133a65d8c9f563480d"
   integrity sha1-LIlspT25feRdPDMTOmXYyfVjSA0=
+
+is-wsl@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.npm.taobao.org/is-wsl/download/is-wsl-2.1.1.tgz?cache=0&sync_timestamp=1569219566107&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fis-wsl%2Fdownload%2Fis-wsl-2.1.1.tgz#4a1c152d429df3d441669498e2486d3596ebaf1d"
+  integrity sha1-ShwVLUKd89RBZpSY4khtNZbrrx0=
 
 isarray@0.0.1:
   version "0.0.1"
@@ -4708,14 +4713,16 @@ node-gyp@^6.0.0:
     tar "^4.4.12"
     which "^1.3.1"
 
-node-mac-notifier@^1.1.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/node-mac-notifier/-/node-mac-notifier-1.2.0.tgz#ff03b1c2a142456f73b5caa634175bd2d9518e1c"
-  integrity sha512-+9FZ01BbPMv3pQVRWgPlaIKbhQl35Pn3WmRg96zIrCJHb4XvClnAqc0+aPfHrWs8o1PYMAQFeYK5tF69ljkKQw==
+node-notifier@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.npm.taobao.org/node-notifier/download/node-notifier-6.0.0.tgz#cea319e06baa16deec8ce5cd7f133c4a46b68e12"
+  integrity sha1-zqMZ4GuqFt7sjOXNfxM8Ska2jhI=
   dependencies:
-    bindings "^1.2.1"
-    event-target-shim "^1.1.1"
-    uuid "^3.3.2"
+    growly "^1.3.0"
+    is-wsl "^2.1.1"
+    semver "^6.3.0"
+    shellwords "^0.1.1"
+    which "^1.3.1"
 
 node-pre-gyp@^0.11.0:
   version "0.11.0"
@@ -6357,6 +6364,11 @@ shebang-regex@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-1.0.0.tgz#da42f49740c0b42db2ca9728571cb190c98efea3"
   integrity sha1-2kL0l0DAtC2yypcoVxyxkMmO/qM=
+
+shellwords@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.npm.taobao.org/shellwords/download/shellwords-0.1.1.tgz#d6b9181c1a48d397324c84871efbcfc73fc0654b"
+  integrity sha1-1rkYHBpI05cyTISHHvvPxz/AZUs=
 
 shimmer@^1.1.0:
   version "1.2.1"

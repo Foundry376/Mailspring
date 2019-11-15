@@ -11,6 +11,7 @@ const file_mappings = [
   ],
   // lottie
   ['veyron-design/lottie/mac-onboarding.json', './app/static/lottie/mac-onboarding.json'],
+  ['veyron-design/lottie/desktop/*.json', './app/static/lottie/'],
   // onboarding images
   [
     'veyron-design/images/desktop/addAnotherAccount.png',
@@ -73,6 +74,7 @@ const file_mappings = [
   ['veyron-design/lottie/sift-bills-and-receipts-animation.json', './app/static/lottie/'],
   ['veyron-design/images/desktop/*nomail*.png', './app/static/images/empty-state/'],
   ['veyron-design/images/desktop/*zero*.png', './app/static/images/empty-state/'],
+  ['veyron-design/images/desktop/EmptyMail*.png', './app/static/images/empty-state/'],
   ['veyron-design/images/desktop/nomail.png', './app/static/images/empty-state/nomail@2x.png'],
   [
     'veyron-design/images/desktop/nomail-drafts-3.png',

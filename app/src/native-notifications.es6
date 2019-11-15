@@ -2,10 +2,10 @@
 let MacNotifierNotification = null;
 if (process.platform === 'darwin') {
   try {
-    MacNotifierNotification = require('node-mac-notifier');
+    MacNotifierNotification = require('node-notifier').NotificationCenter;
   } catch (err) {
     console.error(
-      'node-mac-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.'
+      'node-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.'
     );
   }
 }
@@ -26,25 +26,38 @@ class NativeNotifications {
     let notif = null;
 
     if (MacNotifierNotification) {
-      if (tag && this._macNotificationsByTag[tag]) {
-        this._macNotificationsByTag[tag].close();
-      }
-      notif = new MacNotifierNotification(title, {
-        bundleId: 'com.edisonmail.edisonmail',
-        canReply: canReply,
-        subtitle: subtitle,
-        body: body,
-        id: tag,
-      });
-      notif.addEventListener('reply', ({ response }) => {
-        onActivate({ response, activationType: 'replied' });
-      });
-      notif.addEventListener('click', () => {
-        onActivate({ response: null, activationType: 'clicked' });
-      });
-      if (tag) {
-        this._macNotificationsByTag[tag] = notif;
-      }
+      notif = new MacNotifierNotification();
+      const notifData = {
+        title,
+        subtitle,
+        message: body,
+        sound: false,
+        sender: 'com.edisonmail.edisonmail',
+        // New in latest version. See `example/macInput.js` for usage
+        timeout: 20, // -1 means do not timeout
+        closeLabel: 'close', // String. Label for cancel button
+        // actions: ['action1', 'action2'],
+        // dropdownLabel: 'more', // String. Label to be used if multiple actions
+        group: tag,
+        remove: tag,
+        reply: canReply ? '' : undefined
+      };
+      notif.notify(notifData,
+        function (error, response, metadata) {
+          if (error) {
+            console.error('Notification Error:', error, notifData);
+          }
+          if (metadata.activationType === 'replied') {
+            onActivate({ response: metadata.activationValue, activationType: 'replied' });
+          }
+          else if (
+            metadata.activationType === 'contentsClicked'
+            || (metadata.activationType == "actionClicked" && !metadata.activationValue)
+          ) {
+            onActivate({ response: null, activationType: 'clicked' });
+          }
+        }
+      );
     } else {
       notif = new Notification(title, {
         silent: true,
