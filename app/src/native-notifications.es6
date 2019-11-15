@@ -27,25 +27,25 @@ class NativeNotifications {
 
     if (MacNotifierNotification) {
       notif = new MacNotifierNotification();
-      notif.notify(
-        {
-          title,
-          subtitle,
-          message: body,
-          sound: false,
-          sender: 'com.edisonmail.edisonmail',
-          // New in latest version. See `example/macInput.js` for usage
-          timeout: 20, // -1 means do not timeout
-          closeLabel: 'close', // String. Label for cancel button
-          // actions: ['action1', 'action2'],
-          // dropdownLabel: 'more', // String. Label to be used if multiple actions
-          group: tag,
-          remove: tag,
-          reply: canReply ? '' : undefined
-        },
+      const notifData = {
+        title,
+        subtitle,
+        message: body,
+        sound: false,
+        sender: 'com.edisonmail.edisonmail',
+        // New in latest version. See `example/macInput.js` for usage
+        timeout: 20, // -1 means do not timeout
+        closeLabel: 'close', // String. Label for cancel button
+        // actions: ['action1', 'action2'],
+        // dropdownLabel: 'more', // String. Label to be used if multiple actions
+        group: tag,
+        remove: tag,
+        reply: canReply ? '' : undefined
+      };
+      notif.notify(notifData,
         function (error, response, metadata) {
           if (error) {
-            console.error('Notification Error:', error);
+            console.error('Notification Error:', error, notifData);
           }
           if (metadata.activationType === 'replied') {
             onActivate({ response: metadata.activationValue, activationType: 'replied' });
