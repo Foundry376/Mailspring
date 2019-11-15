@@ -74,6 +74,7 @@ const file_mappings = [
   ['veyron-design/lottie/sift-bills-and-receipts-animation.json', './app/static/lottie/'],
   ['veyron-design/images/desktop/*nomail*.png', './app/static/images/empty-state/'],
   ['veyron-design/images/desktop/*zero*.png', './app/static/images/empty-state/'],
+  ['veyron-design/images/desktop/EmptyMail*.png', './app/static/images/empty-state/'],
   ['veyron-design/images/desktop/nomail.png', './app/static/images/empty-state/nomail@2x.png'],
   [
     'veyron-design/images/desktop/nomail-drafts-3.png',
