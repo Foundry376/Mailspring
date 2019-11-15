@@ -111,6 +111,7 @@ class MessageList extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
+    const configDisposer = AppEnv.config.onDidChange('core.theme', this._onChange);
     this._unsubscribers = [
       OutboxStore.listen(this._onChange),
       MessageStore.listen(this._onChange),
@@ -119,7 +120,7 @@ class MessageList extends React.Component {
       Actions.hideEmptyMessageList.listen(this._hideEmptyList, this),
       WorkspaceStore.listen(this._onChange),
       OnlineStatusStore.listen(this._onlineStatusChange),
-      AppEnv.config.onDidChange('core.theme', this._onChange),
+      configDisposer.dispose,
     ];
     window.addEventListener('resize', this._onResize, true);
     this._onResize();
