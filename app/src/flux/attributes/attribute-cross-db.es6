@@ -41,7 +41,7 @@ export default class AttributeCrossDB extends Attribute {
     joinModelKey = 'id',
     itemClass = null,
   }) {
-    super({ modelKey, jsonKey, queryable: false });
+    super({ modelKey, jsonKey, queryable: true });
     if (!itemClass) {
       throw new Error(`AttributeCrossDB must have itemClass`);
     }
