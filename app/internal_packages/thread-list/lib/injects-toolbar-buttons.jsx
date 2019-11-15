@@ -2,15 +2,18 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ListensToObservable, InjectedComponentSet } from 'mailspring-component-kit';
 import ThreadListStore from './thread-list-store';
-import {FocusedPerspectiveStore} from 'mailspring-exports';
+import { FocusedPerspectiveStore } from 'mailspring-exports';
 
-export const ToolbarRole = 'ThreadActionsToolbarButton';
+export const ToolbarRole = 'MailActionsToolbarButton';
 
 function defaultObservable() {
   return ThreadListStore.selectionObservable();
 }
 
-function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [], onEmpty = null }) {
+function InjectsToolbarButtons(
+  ToolbarComponent,
+  { getObservable, extraRoles = [], onEmpty = null }
+) {
   const emptyMatching = onEmpty ? onEmpty : null;
   const roles = [ToolbarRole].concat(extraRoles);
 
@@ -38,18 +41,32 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
         position: this.props.position ? this.props.position : 'unknown',
       };
       const injectedButtons = (
-        <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }}
-          exposedProps={exposedProps} />
+        <InjectedComponentSet
+          className="toolbar-buttons"
+          key="injected"
+          matching={{ roles }}
+          exposedProps={exposedProps}
+        />
       );
       let onEmptyButtons = [];
       if (emptyMatching) {
-        onEmptyButtons = (<InjectedComponentSet className="toolbar-buttons" key="injected"
-          matching={emptyMatching}
-          exposedProps={exposedProps} />);
+        onEmptyButtons = (
+          <InjectedComponentSet
+            className="toolbar-buttons"
+            key="injected"
+            matching={emptyMatching}
+            exposedProps={exposedProps}
+          />
+        );
       }
       return (
-        <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} dataSource={dataSource}
-          onEmptyButtons={onEmptyButtons} />
+        <ToolbarComponent
+          items={items}
+          selection={selection}
+          injectedButtons={injectedButtons}
+          dataSource={dataSource}
+          onEmptyButtons={onEmptyButtons}
+        />
       );
     }
   }

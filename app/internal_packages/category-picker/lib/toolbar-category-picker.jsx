@@ -1,7 +1,15 @@
 import CreateNewFolderPopover from './create-new-folder-popover';
 import CreateNewLabelPopover from './create-new-label-popover';
 
-const { Actions, React, PropTypes, AccountStore, WorkspaceStore, Folder, CategoryStore } = require('mailspring-exports');
+const {
+  Actions,
+  React,
+  PropTypes,
+  AccountStore,
+  WorkspaceStore,
+  Folder,
+  CategoryStore,
+} = require('mailspring-exports');
 
 const { RetinaImg, KeyCommandsRegion } = require('mailspring-component-kit');
 const MovePickerPopover = require('./move-picker-popover').default;
@@ -30,7 +38,7 @@ class MovePicker extends React.Component {
     this.state = {
       createFolderPopoverVisible: false,
       moveFolderPopoutVisible: false,
-      isFolder: CategoryStore.getInboxCategory(this._account) instanceof Folder
+      isFolder: CategoryStore.getInboxCategory(this._account) instanceof Folder,
     };
   }
 
@@ -62,12 +70,9 @@ class MovePicker extends React.Component {
       return;
     }
     let originRect;
-    if (event
-      && event.target
-      && event.target.getBoundingClientRect) {
+    if (event && event.target && event.target.getBoundingClientRect) {
       originRect = event.target.getBoundingClientRect();
-    }
-    else if (anchorEl) {
+    } else if (anchorEl) {
       originRect = anchorEl.getBoundingClientRect();
     } else if (this._labelEl && this._labelEl.getBoundingClientRect) {
       if (this._labelEl.getBoundingClientRect().left === 0) {
@@ -101,31 +106,39 @@ class MovePicker extends React.Component {
     );
   };
   _onCreateLabel = (data, isMoveAction) => {
-    Actions.openPopover(<CreateNewLabelPopover
-      threads={this.props.items}
-      account={this._account}
-      currentPerspective={this.props.currentPerspective}
-      name={data}
-      isMoveAction={isMoveAction}
-      onCancel={this._onCancelCreate} />, {
-      isFixedToWindow: true,
-      originRect: this._labelEl.getBoundingClientRect(),
-      position: { top: '13%', left: '49%' },
-      disablePointer: true,
-    });
+    Actions.openPopover(
+      <CreateNewLabelPopover
+        threads={this.props.items}
+        account={this._account}
+        currentPerspective={this.props.currentPerspective}
+        name={data}
+        isMoveAction={isMoveAction}
+        onCancel={this._onCancelCreate}
+      />,
+      {
+        isFixedToWindow: true,
+        originRect: this._labelEl.getBoundingClientRect(),
+        position: { top: '13%', left: '49%' },
+        disablePointer: true,
+      }
+    );
   };
-  _onCreateFolder = (data) => {
-    Actions.openPopover(<CreateNewFolderPopover
-      threads={this.props.items}
-      account={this._account}
-      currentPerspective={this.props.currentPerspective}
-      defaultValue={data}
-      onCancel={this._onCancelCreate} />, {
-      isFixedToWindow: true,
-      originRect: this._moveEl.getBoundingClientRect(),
-      position: { top: '13%', left: '49%' },
-      disablePointer: true,
-    });
+  _onCreateFolder = data => {
+    Actions.openPopover(
+      <CreateNewFolderPopover
+        threads={this.props.items}
+        account={this._account}
+        currentPerspective={this.props.currentPerspective}
+        defaultValue={data}
+        onCancel={this._onCancelCreate}
+      />,
+      {
+        isFixedToWindow: true,
+        originRect: this._moveEl.getBoundingClientRect(),
+        position: { top: '13%', left: '49%' },
+        disablePointer: true,
+      }
+    );
   };
   _onCancelCreate = () => {
     Actions.closePopover();
@@ -148,13 +161,9 @@ class MovePicker extends React.Component {
       return;
     }
     let originRect;
-    if (anchorEl
-      && anchorEl.detail
-      && anchorEl.detail.getBoundingClientRect) {
+    if (anchorEl && anchorEl.detail && anchorEl.detail.getBoundingClientRect) {
       originRect = anchorEl.detail.getBoundingClientRect();
-    } else if (anchorEl
-      && anchorEl.target
-      && anchorEl.target.getBoundingClientRect) {
+    } else if (anchorEl && anchorEl.target && anchorEl.target.getBoundingClientRect) {
       originRect = anchorEl.target.getBoundingClientRect();
     } else if (anchorEl && anchorEl.getBoundingClientRect) {
       originRect = anchorEl.getBoundingClientRect();
@@ -217,8 +226,12 @@ class MovePicker extends React.Component {
             onClick={this._onOpenMovePopover}
             className={'btn btn-toolbar btn-category-picker btn-hide-when-crowded'}
           >
-            <RetinaImg name={'folder.svg'} style={{ width: 24, height: 24 }} isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg
+              name={'folder.svg'}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
           </button>
           {this._account.usesLabels() && (
             <button
@@ -229,8 +242,12 @@ class MovePicker extends React.Component {
               onClick={this._onOpenLabelsPopover}
               className={'btn btn-toolbar btn-category-picker btn-hide-when-crowded'}
             >
-              <RetinaImg name={'label.svg'} style={{ width: 24, height: 24 }} isIcon
-                mode={RetinaImg.Mode.ContentIsMask} />
+              <RetinaImg
+                name={'label.svg'}
+                style={{ width: 24, height: 24 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
             </button>
           )}
         </KeyCommandsRegion>

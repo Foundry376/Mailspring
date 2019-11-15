@@ -3,10 +3,10 @@ const { ComponentRegistry } = require('mailspring-exports');
 
 module.exports = {
   activate() {
-    ComponentRegistry.register(ToolbarCategoryPicker, { role: 'ThreadActionsToolbarButton' });
+    // ComponentRegistry.register(ToolbarCategoryPicker, { role: 'MailActionsToolbarButton' });
   },
 
   deactivate() {
-    ComponentRegistry.unregister(ToolbarCategoryPicker);
+    // ComponentRegistry.unregister(ToolbarCategoryPicker);
   },
 };
