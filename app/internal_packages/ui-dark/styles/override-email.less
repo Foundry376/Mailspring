@@ -108,15 +108,31 @@
   background: @active;
 }
 
-.sift-list .list-item:hover .list-column-HoverActions .inner,
-.outbox-list .list-item:hover .list-column-HoverActions .inner,
-.thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
-    fade(@list-bg, 0%) 0%,
-    @list-bg 50%,
-    @list-bg 100%
-  );
+.sift-list,
+.outbox-list,
+.thread-list {
+  .list-item {
+    &:hover {
+      .list-column-HoverActions .inner {
+        background-image: -webkit-linear-gradient(
+          left,
+          fade(@list-bg, 0%) 0%,
+          @list-bg 50%,
+          @list-bg 100%
+        );
+      }
+    }
+    &.unread:hover:not(.focused) {
+      .list-column-HoverActions .inner {
+        background-image: -webkit-linear-gradient(
+          left,
+          fade(@white, 0%) 0%,
+          @white 50%,
+          @white 100%
+        );
+      }
+    }
+  }
 }
 
 .list-tabular .selection-bar .multiselect-toolbar-root .inner {
