@@ -53,22 +53,13 @@ const isSameAccount = items => {
   return true;
 };
 
-export class ArchiveButton extends React.Component {
-  static displayName = 'ArchiveButton';
-  static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-    currentPerspective: PropTypes.object,
+export function ArchiveButton(props) {
+  const _onShortCut = event => {
+    _onArchive(event, threadSelectionScope(props, props.selection));
   };
-
-  _onShortCut = event => {
-    this._onArchive(event, threadSelectionScope(this.props, this.props.selection));
-  };
-
-  _onArchive = (event, threads) => {
+  const _onArchive = (event, threads) => {
     const tasks = TaskFactory.tasksForArchiving({
-      threads: Array.isArray(threads) ? threads : this.props.items,
+      threads: Array.isArray(threads) ? threads : props.items,
       source: 'Toolbar Button: Thread List',
       currentPerspective: FocusedPerspectiveStore.current(),
     });
@@ -77,8 +68,8 @@ export class ArchiveButton extends React.Component {
     if (event) {
       event.stopPropagation();
     }
-    if (this.props.selection) {
-      this.props.selection.clear();
+    if (props.selection) {
+      props.selection.clear();
     }
     if (AppEnv.isThreadWindow()) {
       AppEnv.debugLog(`Archive closing window because in ThreadWindow`);
@@ -87,47 +78,46 @@ export class ArchiveButton extends React.Component {
     return;
   };
 
-  render() {
-    const allowed = FocusedPerspectiveStore.current().canArchiveThreads(this.props.items);
-    if (!allowed) {
-      return false;
-    }
-
-    return (
-      <BindGlobalCommands
-        commands={{ 'core:archive-item': event => commandCb(event, this._onShortCut) }}
-      >
-        <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
-          <RetinaImg
-            name={'archive.svg'}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </button>
-      </BindGlobalCommands>
-    );
+  const allowed = FocusedPerspectiveStore.current().canArchiveThreads(props.items);
+  if (!allowed) {
+    return false;
   }
+
+  const title = 'Archive';
+
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => _onArchive(),
+    });
+  }
+
+  return (
+    <BindGlobalCommands commands={{ 'core:archive-item': event => commandCb(event, _onShortCut) }}>
+      <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={_onArchive}>
+        <RetinaImg
+          name={'archive.svg'}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>
+    </BindGlobalCommands>
+  );
 }
+ArchiveButton.displayName = 'ArchiveButton';
+ArchiveButton.containerRequired = false;
 
-export class TrashButton extends React.Component {
-  static displayName = 'TrashButton';
-  static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-    currentPerspective: PropTypes.object,
+export function TrashButton(props) {
+  const _onShortCutRemove = event => {
+    _onRemove(event, threadSelectionScope(props, props.selection));
   };
-  _onShortCutRemove = event => {
-    this._onRemove(event, threadSelectionScope(this.props, this.props.selection));
+  const _onShortCutExpunge = event => {
+    _onExpunge(event, threadSelectionScope(props, props.selection));
   };
-  _onShortCutExpunge = event => {
-    this._onExpunge(event, threadSelectionScope(this.props, this.props.selection));
-  };
-
-  _onRemove = (event, threads) => {
+  const _onRemove = (event, threads) => {
     const tasks = TaskFactory.tasksForMovingToTrash({
-      threads: Array.isArray(threads) ? threads : this.props.items,
+      threads: Array.isArray(threads) ? threads : props.items,
       currentPerspective: FocusedPerspectiveStore.current(),
       source: 'Toolbar Button: Thread List',
     });
@@ -138,10 +128,10 @@ export class TrashButton extends React.Component {
             AppEnv.reportError(new Error(`Trash Task no accountId`), {
               errorData: {
                 task: task.toJSON(),
-                threads: JSON.stringify(this.props.items),
+                threads: JSON.stringify(props.items),
               },
             });
-          } catch (e) { }
+          } catch (e) {}
         }
       });
     }
@@ -150,8 +140,8 @@ export class TrashButton extends React.Component {
     if (event) {
       event.stopPropagation();
     }
-    if (this.props.selection) {
-      this.props.selection.clear();
+    if (props.selection) {
+      props.selection.clear();
     }
     if (AppEnv.isThreadWindow()) {
       AppEnv.debugLog(`Remove Closing window because in ThreadWindow`);
@@ -159,10 +149,10 @@ export class TrashButton extends React.Component {
     }
     return;
   };
-  _onExpunge = (event, threads) => {
+  const _onExpunge = (event, threads) => {
     let messages = [];
     if (!Array.isArray(threads)) {
-      threads = this.props.items;
+      threads = props.items;
     }
     threads.forEach(thread => {
       if (Array.isArray(thread.__messages) && thread.__messages.length > 0) {
@@ -183,7 +173,7 @@ export class TrashButton extends React.Component {
                 messages: JSON.stringify(messages),
               },
             });
-          } catch (e) { }
+          } catch (e) {}
         }
       });
     }
@@ -199,31 +189,121 @@ export class TrashButton extends React.Component {
     return;
   };
 
-  render() {
-    const canMove = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'trash');
-    const canExpunge = FocusedPerspectiveStore.current().canExpungeThreads(this.props.items);
-    if (!canMove && !canExpunge) {
-      return false;
+  const canMove = FocusedPerspectiveStore.current().canMoveThreadsTo(props.items, 'trash');
+  const canExpunge = FocusedPerspectiveStore.current().canExpungeThreads(props.items);
+  if (!canMove && !canExpunge) {
+    return false;
+  }
+  let actionCallBack = null;
+  let title;
+  if (canMove) {
+    actionCallBack = _onShortCutRemove;
+    title = 'Move to Trash';
+  } else if (canExpunge) {
+    actionCallBack = _onShortCutExpunge;
+    title = 'Expunge Thread';
+  }
+
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => actionCallBack(),
+    });
+  }
+
+  return (
+    <BindGlobalCommands
+      commands={{ 'core:delete-item': event => commandCb(event, actionCallBack) }}
+    >
+      <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={actionCallBack}>
+        <RetinaImg
+          name={'trash.svg'}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>
+    </BindGlobalCommands>
+  );
+}
+TrashButton.displayName = 'TrashButton';
+TrashButton.containerRequired = false;
+
+export function MarkAsSpamButton(props) {
+  const _onShortcutNotSpam = event => {
+    _onNotSpam(event, threadSelectionScope(props, props.selection));
+  };
+  const _onNotSpam = (event, threads) => {
+    const tasks = TaskFactory.tasksForMarkingNotSpam({
+      source: 'Toolbar Button: Thread List',
+      threads: Array.isArray(threads) ? threads : props.items,
+      currentPerspective: FocusedPerspectiveStore.current(),
+    });
+    Actions.queueTasks(tasks);
+    Actions.popSheet({ reason: 'ToolbarButton:MarkAsSpamButton:NotSpam' });
+    if (event) {
+      event.stopPropagation();
     }
-    let actionCallBack = null;
-    if (canMove) {
-      actionCallBack = this._onShortCutRemove;
-    } else if (canExpunge) {
-      actionCallBack = this._onShortCutExpunge;
+    if (props.selection) {
+      props.selection.clear();
+    }
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Not Spam closing window because in ThreadWindow`);
+      AppEnv.close();
+    }
+    return;
+  };
+
+  const _onShortcutMarkAsSpam = event => {
+    _onMarkAsSpam(event, threadSelectionScope(props, props.selection));
+  };
+  const _onMarkAsSpam = (event, threads) => {
+    const tasks = TaskFactory.tasksForMarkingAsSpam({
+      threads: Array.isArray(threads) ? threads : props.items,
+      source: 'Toolbar Button: Thread List',
+      currentPerspective: FocusedPerspectiveStore.current(),
+    });
+    Actions.queueTasks(tasks);
+    Actions.popSheet({ reason: 'ToolbarButton:MarkAsSpamButton:Spam' });
+    if (event) {
+      event.stopPropagation();
+    }
+    if (props.selection) {
+      props.selection.clear();
+    }
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Closing window because in ThreadWindow`);
+      AppEnv.close();
+    }
+    return;
+  };
+
+  const allInSpam = props.items.every(item => item.folders.find(c => c.role === 'spam'));
+
+  if (allInSpam) {
+    const title = 'Not Junk';
+    if (props.isMenuItem) {
+      return new MenuItem({
+        label: title,
+        click: () => _onShortcutNotSpam(),
+      });
     }
 
     return (
       <BindGlobalCommands
-        commands={{ 'core:delete-item': event => commandCb(event, actionCallBack) }}
+        key="not-spam"
+        commands={{
+          'core:report-not-spam': event => commandCb(event, _onShortcutNotSpam),
+        }}
       >
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
-          title={canMove ? 'Move to Trash' : 'Expunge Thread'}
-          onClick={actionCallBack}
+          title={title}
+          onClick={_onShortcutNotSpam}
         >
           <RetinaImg
-            name={'trash.svg'}
+            name="not-junk.svg"
             style={{ width: 24, height: 24 }}
             isIcon
             mode={RetinaImg.Mode.ContentIsMask}
@@ -232,7 +312,194 @@ export class TrashButton extends React.Component {
       </BindGlobalCommands>
     );
   }
+
+  const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(props.items, 'spam');
+  if (!allowed) {
+    return false;
+  }
+  const title = 'Mark as Spam';
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => _onShortcutMarkAsSpam(),
+    });
+  }
+  return (
+    <BindGlobalCommands
+      key="spam"
+      commands={{
+        'core:report-as-spam': event => commandCb(event, _onShortcutMarkAsSpam),
+      }}
+    >
+      <button
+        tabIndex={-1}
+        className="btn btn-toolbar"
+        title={title}
+        onClick={_onShortcutMarkAsSpam}
+      >
+        <RetinaImg
+          name={'junk.svg'}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>
+    </BindGlobalCommands>
+  );
 }
+MarkAsSpamButton.displayName = 'MarkAsSpamButton';
+MarkAsSpamButton.containerRequired = false;
+
+export function PrintThreadButton(props) {
+  const _onPrintThread = () => {
+    const node = document.querySelector('#message-list');
+    const currentThread = MessageStore.thread();
+    Actions.printThread(currentThread, node.outerHTML);
+  };
+
+  const title = 'Print Thread';
+
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => _onPrintThread(),
+    });
+  }
+
+  return (
+    <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={_onPrintThread}>
+      <RetinaImg
+        name={'print.svg'}
+        style={{ width: 24, height: 24 }}
+        isIcon
+        mode={RetinaImg.Mode.ContentIsMask}
+      />
+    </button>
+  );
+}
+PrintThreadButton.displayName = 'PrintThreadButton';
+
+export function ToggleStarredButton(props) {
+  const _onShortcutStar = event => {
+    _onStar(event, threadSelectionScope(props, props.selection));
+  };
+  const _onStar = (event, threads) => {
+    Actions.queueTasks(
+      TaskFactory.taskForInvertingStarred({
+        threads: Array.isArray(threads) ? threads : props.items,
+        source: 'Toolbar Button: Thread List',
+      })
+    );
+    if (event) {
+      event.stopPropagation();
+    }
+    if (props.selection) {
+      props.selection.clear();
+    }
+    return;
+  };
+  const postClickStarredState = props.items.every(t => t.starred === false);
+  const title = postClickStarredState ? 'Flag' : 'Unflag';
+  const className = postClickStarredState ? 'flag-not-selected' : 'flagged';
+
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => _onStar(),
+    });
+  }
+
+  return (
+    <BindGlobalCommands commands={{ 'core:star-item': event => commandCb(event, _onShortcutStar) }}>
+      <button
+        tabIndex={-1}
+        className={'btn btn-toolbar ' + className}
+        title={title}
+        onClick={_onStar}
+      >
+        <RetinaImg
+          name="flag.svg"
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>
+    </BindGlobalCommands>
+  );
+}
+ToggleStarredButton.displayName = 'ToggleStarredButton';
+ToggleStarredButton.containerRequired = false;
+
+export function ToggleUnreadButton(props) {
+  const _onClick = event => {
+    const targetUnread = props.items.every(t => t.unread === false);
+    _onChangeUnread(targetUnread);
+    if (event) {
+      event.stopPropagation();
+    }
+    return;
+  };
+
+  const _onShortcutChangeUnread = targetUnread => {
+    _onChangeUnread(targetUnread, threadSelectionScope(props, props.selection));
+  };
+
+  const _onChangeUnread = (targetUnread, threads) => {
+    Actions.queueTasks(
+      TaskFactory.taskForSettingUnread({
+        threads: Array.isArray(threads) ? threads : props.items,
+        unread: targetUnread,
+        source: 'Toolbar Button: Thread List',
+      })
+    );
+    Actions.popSheet({ reason: 'ToolbarButton:ToggleUnread:changeUnread' });
+    if (props.selection) {
+      props.selection.clear();
+    }
+  };
+
+  const targetUnread = props.items.every(t => t.unread === false);
+  const fragment = targetUnread ? 'unread' : 'read';
+  const title = `Mark as ${fragment}`;
+
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => _onClick(),
+    });
+  }
+
+  return (
+    <BindGlobalCommands
+      key={fragment}
+      commands={
+        targetUnread
+          ? {
+              'core:mark-as-unread': event => commandCb(event, _onShortcutChangeUnread, true),
+            }
+          : {
+              'core:mark-as-read': event => commandCb(event, _onShortcutChangeUnread, false),
+            }
+      }
+    >
+      <button
+        tabIndex={-1}
+        className="btn btn-toolbar btn-hide-when-crowded"
+        title={title}
+        onClick={_onClick}
+      >
+        <RetinaImg
+          name={`${fragment === 'unread' ? 'read' : 'unread'}.svg`}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>
+    </BindGlobalCommands>
+  );
+}
+ToggleUnreadButton.displayName = 'ToggleUnreadButton';
+ToggleUnreadButton.containerRequired = false;
 
 class HiddenGenericRemoveButton extends React.Component {
   static displayName = 'HiddenGenericRemoveButton';
@@ -351,254 +618,16 @@ class HiddenToggleImportantButton extends React.Component {
         commands={
           allImportant
             ? {
-              'core:mark-unimportant': event =>
-                commandCb(event, this._onShortcutSetImportant, false),
-            }
+                'core:mark-unimportant': event =>
+                  commandCb(event, this._onShortcutSetImportant, false),
+              }
             : {
-              'core:mark-important': event =>
-                commandCb(event, this._onShortcutSetImportant, true),
-            }
+                'core:mark-important': event =>
+                  commandCb(event, this._onShortcutSetImportant, true),
+              }
         }
       >
         <span />
-      </BindGlobalCommands>
-    );
-  }
-}
-
-export class MarkAsSpamButton extends React.Component {
-  static displayName = 'MarkAsSpamButton';
-  static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-    currentPerspective: PropTypes.object,
-  };
-
-  _onShortcutNotSpam = event => {
-    this._onNotSpam(event, threadSelectionScope(this.props, this.props.selection));
-  };
-  _onNotSpam = (event, threads) => {
-    const tasks = TaskFactory.tasksForMarkingNotSpam({
-      source: 'Toolbar Button: Thread List',
-      threads: Array.isArray(threads) ? threads : this.props.items,
-      currentPerspective: FocusedPerspectiveStore.current(),
-    });
-    Actions.queueTasks(tasks);
-    Actions.popSheet({ reason: 'ToolbarButton:MarkAsSpamButton:NotSpam' });
-    if (event) {
-      event.stopPropagation();
-    }
-    if (this.props.selection) {
-      this.props.selection.clear();
-    }
-    if (AppEnv.isThreadWindow()) {
-      AppEnv.debugLog(`Not Spam closing window because in ThreadWindow`);
-      AppEnv.close();
-    }
-    return;
-  };
-
-  _onShortcutMarkAsSpam = event => {
-    this._onMarkAsSpam(event, threadSelectionScope(this.props, this.props.selection));
-  };
-  _onMarkAsSpam = (event, threads) => {
-    const tasks = TaskFactory.tasksForMarkingAsSpam({
-      threads: Array.isArray(threads) ? threads : this.props.items,
-      source: 'Toolbar Button: Thread List',
-      currentPerspective: FocusedPerspectiveStore.current(),
-    });
-    Actions.queueTasks(tasks);
-    Actions.popSheet({ reason: 'ToolbarButton:MarkAsSpamButton:Spam' });
-    if (event) {
-      event.stopPropagation();
-    }
-    if (this.props.selection) {
-      this.props.selection.clear();
-    }
-    if (AppEnv.isThreadWindow()) {
-      AppEnv.debugLog(`Closing window because in ThreadWindow`);
-      AppEnv.close();
-    }
-    return;
-  };
-
-  render() {
-    const allInSpam = this.props.items.every(item => item.folders.find(c => c.role === 'spam'));
-
-    if (allInSpam) {
-      return (
-        <BindGlobalCommands
-          key="not-spam"
-          commands={{
-            'core:report-not-spam': event => commandCb(event, this._onShortcutNotSpam),
-          }}
-        >
-          <button
-            tabIndex={-1}
-            className="btn btn-toolbar"
-            title="Not Junk"
-            onClick={this._onShortcutNotSpam}
-          >
-            <RetinaImg
-              name="not-junk.svg"
-              style={{ width: 24, height: 24 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask}
-            />
-          </button>
-        </BindGlobalCommands>
-      );
-    }
-
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'spam');
-    if (!allowed) {
-      return false;
-    }
-    return (
-      <BindGlobalCommands
-        key="spam"
-        commands={{
-          'core:report-as-spam': event => commandCb(event, this._onShortcutMarkAsSpam),
-        }}
-      >
-        <button
-          tabIndex={-1}
-          className="btn btn-toolbar"
-          title="Mark as Spam"
-          onClick={this._onShortcutMarkAsSpam}
-        >
-          <RetinaImg
-            name={'junk.svg'}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </button>
-      </BindGlobalCommands>
-    );
-  }
-}
-
-export class ToggleStarredButton extends React.Component {
-  static displayName = 'ToggleStarredButton';
-  static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
-
-  _onShortcutStar = event => {
-    this._onStar(event, threadSelectionScope(this.props, this.props.selection));
-  };
-
-  _onStar = (event, threads) => {
-    Actions.queueTasks(
-      TaskFactory.taskForInvertingStarred({
-        threads: Array.isArray(threads) ? threads : this.props.items,
-        source: 'Toolbar Button: Thread List',
-      })
-    );
-    if (event) {
-      event.stopPropagation();
-    }
-    if (this.props.selection) {
-      this.props.selection.clear();
-    }
-    return;
-  };
-
-  render() {
-    const postClickStarredState = this.props.items.every(t => t.starred === false);
-    const title = postClickStarredState ? 'Flag' : 'Unflag';
-    const className = postClickStarredState ? 'flag-not-selected' : 'flagged';
-
-    return (
-      <BindGlobalCommands
-        commands={{ 'core:star-item': event => commandCb(event, this._onShortcutStar) }}
-      >
-        <button
-          tabIndex={-1}
-          className={'btn btn-toolbar ' + className}
-          title={title}
-          onClick={this._onStar}
-        >
-          <RetinaImg
-            name="flag.svg"
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </button>
-      </BindGlobalCommands>
-    );
-  }
-}
-
-export class ToggleUnreadButton extends React.Component {
-  static displayName = 'ToggleUnreadButton';
-  static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
-
-  _onClick = event => {
-    const targetUnread = this.props.items.every(t => t.unread === false);
-    this._onChangeUnread(targetUnread);
-    event.stopPropagation();
-    return;
-  };
-
-  _onShortcutChangeUnread = targetUnread => {
-    this._onChangeUnread(targetUnread, threadSelectionScope(this.props, this.props.selection));
-  };
-
-  _onChangeUnread = (targetUnread, threads) => {
-    Actions.queueTasks(
-      TaskFactory.taskForSettingUnread({
-        threads: Array.isArray(threads) ? threads : this.props.items,
-        unread: targetUnread,
-        source: 'Toolbar Button: Thread List',
-      })
-    );
-    Actions.popSheet({ reason: 'ToolbarButton:ToggleUnread:changeUnread' });
-    if (this.props.selection) {
-      this.props.selection.clear();
-    }
-  };
-
-  render() {
-    const targetUnread = this.props.items.every(t => t.unread === false);
-    const fragment = targetUnread ? 'unread' : 'read';
-
-    return (
-      <BindGlobalCommands
-        key={fragment}
-        commands={
-          targetUnread
-            ? {
-              'core:mark-as-unread': event =>
-                commandCb(event, this._onShortcutChangeUnread, true),
-            }
-            : {
-              'core:mark-as-read': event => commandCb(event, this._onShortcutChangeUnread, false),
-            }
-        }
-      >
-        <button
-          tabIndex={-1}
-          className="btn btn-toolbar btn-hide-when-crowded"
-          title={`Mark as ${fragment}`}
-          onClick={this._onClick}
-        >
-          <RetinaImg
-            name={`${fragment === 'unread' ? 'read' : 'unread'}.svg`}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </button>
       </BindGlobalCommands>
     );
   }
@@ -800,7 +829,7 @@ export class MoreButton extends React.Component {
           new MenuItem({
             label: 'Move to Folder',
             click: () => AppEnv.commands.dispatch('core:change-folders', this._anchorEl),
-          }),
+          })
         );
       }
       const account = AccountStore.accountForItems(this.props.items);
@@ -907,33 +936,10 @@ class ThreadArrowButton extends React.Component {
 const Divider = (key = 'divider') => <div className="divider" key={key} />;
 Divider.displayName = 'Divider';
 
-export const FlagButtons = CreateButtonGroup(
-  'FlagButtons',
-  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton],
-  { order: -103 }
-);
-export const ThreadMoreButtons = CreateButtonGroup(
-  'ThreadMoreButtons',
-  [ThreadListMoreButton],
-  { order: -100 },
-  'thread-more'
-);
 export const ThreadEmptyMoreButtons = CreateButtonGroup(
   'ThreadEmptyMoreButtons',
   [ThreadListMoreButton],
   { order: -100 }
-);
-
-export const MoveButtons = CreateButtonGroup(
-  'MoveButtons',
-  [
-    ArchiveButton,
-    MarkAsSpamButton,
-    HiddenGenericRemoveButton,
-    TrashButton,
-    // Divider
-  ],
-  { order: -109 }
 );
 
 export const ThreadListToolbarButtons = CreateButtonGroup(
@@ -952,7 +958,7 @@ export const ThreadListToolbarButtons = CreateButtonGroup(
   { order: 1 }
 );
 
-export const DownButton = () => {
+export const DownButton = props => {
   const getStateFromStores = () => {
     const selectedId = FocusedContentStore.focusedId('thread');
     const lastIndex = ThreadListStore.dataSource().count() - 1;
@@ -970,11 +976,19 @@ export const DownButton = () => {
     return null;
   }
 
+  const title = 'Next thread';
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => AppEnv.commands.dispatch('core:show-next'),
+    });
+  }
+
   return (
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
       direction={'down'}
-      title={'Next thread'}
+      title={title}
       command={'core:show-next'}
     />
   );
@@ -982,7 +996,7 @@ export const DownButton = () => {
 DownButton.displayName = 'DownButton';
 DownButton.containerRequired = false;
 
-export const UpButton = () => {
+export const UpButton = props => {
   const getStateFromStores = () => {
     const selectedId = FocusedContentStore.focusedId('thread');
     const item = ThreadListStore.dataSource().get(0);
@@ -998,12 +1012,22 @@ export const UpButton = () => {
   if (perspective && perspective.sift) {
     return null;
   }
+  const title = 'Previous thread';
+  if (props.isMenuItem) {
+    if (getStateFromStores().disabled) {
+      return null;
+    }
+    return new MenuItem({
+      label: title,
+      click: () => AppEnv.commands.dispatch('core:show-previous'),
+    });
+  }
 
   return (
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
       direction={'up'}
-      title={'Previous thread'}
+      title={title}
       command={'core:show-previous'}
     />
   );
@@ -1044,8 +1068,151 @@ export const PopoutButton = () => {
 };
 PopoutButton.displayName = 'PopoutButton';
 
-export const NavButtons = CreateButtonGroup(
-  'NavButtons',
-  [Divider, UpButton, DownButton, PopoutButton],
-  { order: 205 }
+function FolderButton(props) {
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: 'Move to Folder',
+      click: () => AppEnv.commands.dispatch('core:change-folders', props.anchorEl),
+    });
+  }
+
+  return (
+    <div>
+      <ToolbarCategoryPicker {...props} />
+    </div>
+  );
+}
+FolderButton.displayName = 'FolderButton';
+
+const MailActionsMap = {
+  archive: ArchiveButton,
+  trash: TrashButton,
+  flag: ToggleStarredButton,
+  read: ToggleUnreadButton,
+  folder: FolderButton,
+  spam: MarkAsSpamButton,
+  print: PrintThreadButton,
+};
+
+class MoreActionsButton extends React.Component {
+  static displayName = 'MoreActionsButton';
+  static propTypes = {
+    moreButtonlist: PropTypes.array.isRequired,
+    items: PropTypes.array.isRequired,
+  };
+
+  constructor(props) {
+    super();
+  }
+
+  _more = () => {
+    const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
+    const menu = new Menu();
+
+    const { moreButtonlist } = this.props;
+    moreButtonlist.forEach(button => {
+      if (button && typeof button === 'function') {
+        const menuItem = button({ ...this.props, isMenuItem: true, anchorEl: this._anchorEl });
+        if (menuItem) {
+          menu.append(menuItem);
+        }
+      }
+    });
+    menu.append(
+      new MenuItem({
+        label: expandTitle,
+        click: () => Actions.toggleAllMessagesExpanded(),
+      })
+    );
+
+    const previousThread = UpButton({ ...this.props, isMenuItem: true });
+    const nextThread = DownButton({ ...this.props, isMenuItem: true });
+    if (previousThread) {
+      menu.append(previousThread);
+    }
+    if (nextThread) {
+      menu.append(nextThread);
+    }
+
+    menu.popup({});
+  };
+
+  render() {
+    return (
+      <button
+        id={`threadToolbarMoreButton${this.props.position}`}
+        tabIndex={-1}
+        className="btn btn-toolbar btn-more"
+        onClick={this._more}
+        ref={el => (this._anchorEl = el)}
+      >
+        <RetinaImg
+          name="more.svg"
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+      </button>
+    );
+  }
+}
+
+export class MailActionsButtons extends React.Component {
+  static displayName = 'MailActionsButtons';
+
+  constructor(props) {
+    super(props);
+    this._configKey = 'core.mailActions';
+    this.state = { actionsList: [] };
+  }
+
+  componentDidMount() {
+    this._getMailActionsConfig();
+  }
+
+  _getMailActionsConfig = () => {
+    const mailActionsConfig = AppEnv.config.get(this._configKey);
+    const actionsList = [];
+    for (let i = 1; i < 6; i += 1) {
+      const actionValue = mailActionsConfig[`mailAction${i}`];
+      if (
+        actionValue &&
+        typeof actionValue === 'string' &&
+        Object.keys(MailActionsMap).indexOf(actionValue) > -1
+      ) {
+        actionsList.push(actionValue);
+      }
+    }
+
+    this.setState({ actionsList });
+  };
+
+  render() {
+    const { actionsList } = this.state;
+    const actionsButtonList = actionsList.map(key => MailActionsMap[key]);
+    const ActionsButtons = CreateButtonGroup('ActionsButtons', actionsButtonList, { order: -21 });
+    const moreButtonlist = [];
+    Object.keys(MailActionsMap).forEach(key => {
+      if (actionsList.indexOf(key) < 0) {
+        moreButtonlist.push(MailActionsMap[key]);
+      }
+    });
+
+    return (
+      <div className="button-group">
+        <ActionsButtons {...this.props} />
+        <MoreActionsButton {...this.props} moreButtonlist={moreButtonlist} />
+        <HiddenGenericRemoveButton />
+        <div className="hidden-folder-button" style={{ width: 0 }}>
+          <ToolbarCategoryPicker {...this.props} />
+        </div>
+      </div>
+    );
+  }
+}
+
+export const MailActionsPopoutButtons = CreateButtonGroup(
+  'MailActionsPopoutButtons',
+  [Divider, PopoutButton],
+  { order: 21 }
 );

@@ -43,11 +43,11 @@ activated manually by a user.
 happen when a user manually disables a package.
 */
 export function activate() {
-  ComponentRegistry.register(ViewOnGithubButton, {
-    role: 'ThreadActionsToolbarButton',
-  });
+  // ComponentRegistry.register(ViewOnGithubButton, {
+  //   role: 'ThreadActionsToolbarButton',
+  // });
 }
 
 export function deactivate() {
-  ComponentRegistry.unregister(ViewOnGithubButton);
+  // ComponentRegistry.unregister(ViewOnGithubButton);
 }
