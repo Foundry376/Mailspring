@@ -229,138 +229,6 @@ export function TrashButton(props) {
 TrashButton.displayName = 'TrashButton';
 TrashButton.containerRequired = false;
 
-class HiddenGenericRemoveButton extends React.Component {
-  static displayName = 'HiddenGenericRemoveButton';
-
-  _onShortcutRemoveAndShift = ({ offset }) => {
-    this._onShift({ offset });
-    this._onRemoveFromView(threadSelectionScope(this.props, this.props.selection));
-  };
-
-  _onRemoveAndShift = ({ offset }) => {
-    this._onShift({ offset });
-    this._onRemoveFromView();
-  };
-  _onShift = ({ offset }) => {
-    const dataSource = ThreadListStore.dataSource();
-    const focusedId = FocusedContentStore.focusedId('thread');
-    const focusedIdx = Math.min(
-      dataSource.count() - 1,
-      Math.max(0, dataSource.indexOfId(focusedId) + offset)
-    );
-    const item = dataSource.get(focusedIdx);
-    Actions.setFocus({ collection: 'thread', item });
-  };
-
-  _onShortcutRemoveFromView = event => {
-    this._onRemoveFromView(threadSelectionScope(this.props, this.props.selection));
-  };
-
-  _onRemoveFromView = threads => {
-    const current = FocusedPerspectiveStore.current();
-    const tasks = current.tasksForRemovingItems(
-      threads ? this.props.items : threads,
-      'Keyboard Shortcut'
-    );
-    Actions.queueTasks(tasks);
-    Actions.popSheet({ reason: 'ToolbarButton:HiddenGenericRemoveButton:removeFromView' });
-    if (AppEnv.isThreadWindow()) {
-      AppEnv.debugLog(`Closing window because in ThreadWindow`);
-      AppEnv.close();
-    }
-  };
-
-  render() {
-    return (
-      <BindGlobalCommands
-        commands={{
-          // 'core:gmail-remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
-          'core:remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
-          'core:remove-and-previous': event =>
-            commandCb(event, this._onShortcutRemoveAndShift, { offset: -1 }),
-          'core:remove-and-next': event =>
-            commandCb(event, this._onShortcutRemoveAndShift, { offset: 1 }),
-          'core:show-previous': event => commandCb(event, this._onShift, { offset: -1 }),
-          'core:show-next': event => commandCb(event, this._onShift, { offset: 1 }),
-        }}
-      >
-        <span />
-      </BindGlobalCommands>
-    );
-  }
-}
-
-class HiddenToggleImportantButton extends React.Component {
-  static displayName = 'HiddenToggleImportantButton';
-
-  _onShortcutSetImportant = important => {
-    this._onSetImportant(important, threadSelectionScope(this.props, this.props.selection));
-  };
-  _onSetImportant = (important, threads) => {
-    Actions.queueTasks(
-      TaskFactory.tasksForThreadsByAccountId(
-        threads ? threads : this.props.items,
-        (accountThreads, accountId) => {
-          return [
-            new ChangeLabelsTask({
-              threads: accountThreads,
-              source: 'Keyboard Shortcut',
-              labelsToAdd: [],
-              labelsToRemove: important
-                ? []
-                : [CategoryStore.getCategoryByRole(accountId, 'important')],
-            }),
-            new ChangeLabelsTask({
-              threads: accountThreads,
-              source: 'Keyboard Shortcut',
-              labelsToAdd: important
-                ? [CategoryStore.getCategoryByRole(accountId, 'important')]
-                : [],
-              labelsToRemove: [],
-            }),
-          ];
-        }
-      )
-    );
-  };
-
-  render() {
-    if (!AppEnv.config.get('core.workspace.showImportant')) {
-      return false;
-    }
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
-      this.props.items,
-      'important'
-    );
-    if (!allowed) {
-      return false;
-    }
-
-    const allImportant = this.props.items.every(item =>
-      item.labels.find(c => c.role === 'important')
-    );
-
-    return (
-      <BindGlobalCommands
-        key={allImportant ? 'unimportant' : 'important'}
-        commands={
-          allImportant
-            ? {
-                'core:mark-unimportant': event =>
-                  commandCb(event, this._onShortcutSetImportant, false),
-              }
-            : {
-                'core:mark-important': event =>
-                  commandCb(event, this._onShortcutSetImportant, true),
-              }
-        }
-      >
-        <span />
-      </BindGlobalCommands>
-    );
-  }
-}
-
 export function MarkAsSpamButton(props) {
   const _onShortcutNotSpam = event => {
     _onNotSpam(event, threadSelectionScope(props, props.selection));
@@ -630,9 +498,140 @@ export function ToggleUnreadButton(props) {
     </BindGlobalCommands>
   );
 }
-
 ToggleUnreadButton.displayName = 'ToggleUnreadButton';
 ToggleUnreadButton.containerRequired = false;
+
+class HiddenGenericRemoveButton extends React.Component {
+  static displayName = 'HiddenGenericRemoveButton';
+
+  _onShortcutRemoveAndShift = ({ offset }) => {
+    this._onShift({ offset });
+    this._onRemoveFromView(threadSelectionScope(this.props, this.props.selection));
+  };
+
+  _onRemoveAndShift = ({ offset }) => {
+    this._onShift({ offset });
+    this._onRemoveFromView();
+  };
+  _onShift = ({ offset }) => {
+    const dataSource = ThreadListStore.dataSource();
+    const focusedId = FocusedContentStore.focusedId('thread');
+    const focusedIdx = Math.min(
+      dataSource.count() - 1,
+      Math.max(0, dataSource.indexOfId(focusedId) + offset)
+    );
+    const item = dataSource.get(focusedIdx);
+    Actions.setFocus({ collection: 'thread', item });
+  };
+
+  _onShortcutRemoveFromView = event => {
+    this._onRemoveFromView(threadSelectionScope(this.props, this.props.selection));
+  };
+
+  _onRemoveFromView = threads => {
+    const current = FocusedPerspectiveStore.current();
+    const tasks = current.tasksForRemovingItems(
+      threads ? this.props.items : threads,
+      'Keyboard Shortcut'
+    );
+    Actions.queueTasks(tasks);
+    Actions.popSheet({ reason: 'ToolbarButton:HiddenGenericRemoveButton:removeFromView' });
+    if (AppEnv.isThreadWindow()) {
+      AppEnv.debugLog(`Closing window because in ThreadWindow`);
+      AppEnv.close();
+    }
+  };
+
+  render() {
+    return (
+      <BindGlobalCommands
+        commands={{
+          // 'core:gmail-remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
+          'core:remove-from-view': event => commandCb(event, this._onShortcutRemoveFromView),
+          'core:remove-and-previous': event =>
+            commandCb(event, this._onShortcutRemoveAndShift, { offset: -1 }),
+          'core:remove-and-next': event =>
+            commandCb(event, this._onShortcutRemoveAndShift, { offset: 1 }),
+          'core:show-previous': event => commandCb(event, this._onShift, { offset: -1 }),
+          'core:show-next': event => commandCb(event, this._onShift, { offset: 1 }),
+        }}
+      >
+        <span />
+      </BindGlobalCommands>
+    );
+  }
+}
+
+class HiddenToggleImportantButton extends React.Component {
+  static displayName = 'HiddenToggleImportantButton';
+
+  _onShortcutSetImportant = important => {
+    this._onSetImportant(important, threadSelectionScope(this.props, this.props.selection));
+  };
+  _onSetImportant = (important, threads) => {
+    Actions.queueTasks(
+      TaskFactory.tasksForThreadsByAccountId(
+        threads ? threads : this.props.items,
+        (accountThreads, accountId) => {
+          return [
+            new ChangeLabelsTask({
+              threads: accountThreads,
+              source: 'Keyboard Shortcut',
+              labelsToAdd: [],
+              labelsToRemove: important
+                ? []
+                : [CategoryStore.getCategoryByRole(accountId, 'important')],
+            }),
+            new ChangeLabelsTask({
+              threads: accountThreads,
+              source: 'Keyboard Shortcut',
+              labelsToAdd: important
+                ? [CategoryStore.getCategoryByRole(accountId, 'important')]
+                : [],
+              labelsToRemove: [],
+            }),
+          ];
+        }
+      )
+    );
+  };
+
+  render() {
+    if (!AppEnv.config.get('core.workspace.showImportant')) {
+      return false;
+    }
+    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
+      this.props.items,
+      'important'
+    );
+    if (!allowed) {
+      return false;
+    }
+
+    const allImportant = this.props.items.every(item =>
+      item.labels.find(c => c.role === 'important')
+    );
+
+    return (
+      <BindGlobalCommands
+        key={allImportant ? 'unimportant' : 'important'}
+        commands={
+          allImportant
+            ? {
+                'core:mark-unimportant': event =>
+                  commandCb(event, this._onShortcutSetImportant, false),
+              }
+            : {
+                'core:mark-important': event =>
+                  commandCb(event, this._onShortcutSetImportant, true),
+              }
+        }
+      >
+        <span />
+      </BindGlobalCommands>
+    );
+  }
+}
 
 export class ThreadListMoreButton extends React.Component {
   static displayName = 'ThreadListMoreButton';
@@ -959,7 +958,7 @@ export const ThreadListToolbarButtons = CreateButtonGroup(
   { order: 1 }
 );
 
-export const DownButton = () => {
+export const DownButton = props => {
   const getStateFromStores = () => {
     const selectedId = FocusedContentStore.focusedId('thread');
     const lastIndex = ThreadListStore.dataSource().count() - 1;
@@ -977,11 +976,19 @@ export const DownButton = () => {
     return null;
   }
 
+  const title = 'Next thread';
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: title,
+      click: () => AppEnv.commands.dispatch('core:show-next'),
+    });
+  }
+
   return (
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
       direction={'down'}
-      title={'Next thread'}
+      title={title}
       command={'core:show-next'}
     />
   );
@@ -989,7 +996,7 @@ export const DownButton = () => {
 DownButton.displayName = 'DownButton';
 DownButton.containerRequired = false;
 
-export const UpButton = () => {
+export const UpButton = props => {
   const getStateFromStores = () => {
     const selectedId = FocusedContentStore.focusedId('thread');
     const item = ThreadListStore.dataSource().get(0);
@@ -1005,12 +1012,22 @@ export const UpButton = () => {
   if (perspective && perspective.sift) {
     return null;
   }
+  const title = 'Previous thread';
+  if (props.isMenuItem) {
+    if (getStateFromStores().disabled) {
+      return null;
+    }
+    return new MenuItem({
+      label: title,
+      click: () => AppEnv.commands.dispatch('core:show-previous'),
+    });
+  }
 
   return (
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
       direction={'up'}
-      title={'Previous thread'}
+      title={title}
       command={'core:show-previous'}
     />
   );
@@ -1051,12 +1068,28 @@ export const PopoutButton = () => {
 };
 PopoutButton.displayName = 'PopoutButton';
 
+function FolderButton(props) {
+  if (props.isMenuItem) {
+    return new MenuItem({
+      label: 'Move to Folder',
+      click: () => AppEnv.commands.dispatch('core:change-folders', props.anchorEl),
+    });
+  }
+
+  return (
+    <div>
+      <ToolbarCategoryPicker {...props} />
+    </div>
+  );
+}
+FolderButton.displayName = 'FolderButton';
+
 const MailActionsMap = {
   archive: ArchiveButton,
   trash: TrashButton,
   flag: ToggleStarredButton,
   read: ToggleUnreadButton,
-  // folder: ToolbarCategoryPicker,
+  folder: FolderButton,
   spam: MarkAsSpamButton,
   print: PrintThreadButton,
 };
@@ -1079,7 +1112,7 @@ class MoreActionsButton extends React.Component {
     const { moreButtonlist } = this.props;
     moreButtonlist.forEach(button => {
       if (button && typeof button === 'function') {
-        const menuItem = button({ ...this.props, isMenuItem: true });
+        const menuItem = button({ ...this.props, isMenuItem: true, anchorEl: this._anchorEl });
         if (menuItem) {
           menu.append(menuItem);
         }
@@ -1091,18 +1124,16 @@ class MoreActionsButton extends React.Component {
         click: () => Actions.toggleAllMessagesExpanded(),
       })
     );
-    menu.append(
-      new MenuItem({
-        label: 'Previous thread',
-        click: () => Actions.toggleAllMessagesExpanded(),
-      })
-    );
-    menu.append(
-      new MenuItem({
-        label: 'Next thread',
-        click: () => Actions.toggleAllMessagesExpanded(),
-      })
-    );
+
+    const previousThread = UpButton({ ...this.props, isMenuItem: true });
+    const nextThread = DownButton({ ...this.props, isMenuItem: true });
+    if (previousThread) {
+      menu.append(previousThread);
+    }
+    if (nextThread) {
+      menu.append(nextThread);
+    }
+
     menu.popup({});
   };
 
@@ -1171,6 +1202,7 @@ export class MailActionsButtons extends React.Component {
       <div className="button-group">
         <ActionsButtons {...this.props} />
         <MoreActionsButton {...this.props} moreButtonlist={moreButtonlist} />
+        <HiddenGenericRemoveButton />
       </div>
     );
   }
