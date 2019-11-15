@@ -239,7 +239,7 @@ export default class MailsyncBridge {
   }, 100);
 
   onDataShareOptionsChange({ optOut = false } = {}) {
-    if (optOut !== this._sift.dataShareOptOut) {
+    if (!this._sift || (optOut !== this._sift.dataShareOptOut)) {
       this.killSift('Data Share option change');
       this.startSift('Data Share option change');
     }
@@ -475,6 +475,7 @@ export default class MailsyncBridge {
     if (this._sift) {
       this._sift.kill();
       AppEnv.debugLog(`sift killed, triggered by ${reason}`);
+      this._sift = null;
     } else {
       AppEnv.debugLog(`sift not killed, triggered by ${reason},`);
     }
@@ -492,7 +493,7 @@ export default class MailsyncBridge {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._sift = client;
     client.identity = IdentityStore.identity();
-    client.dataShareOptOut = AppEnv.config.get('core.privacy.dataShare');
+    client.dataShareOptOut = AppEnv.config.get('core.privacy.dataShare.optOut');
     const allAccountsJSON = [];
     for (const acct of AccountStore.accounts()) {
       const fullAccountJSON = (await KeyManager.insertAccountSecrets(acct)).toJSON();
