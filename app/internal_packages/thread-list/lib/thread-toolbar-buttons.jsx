@@ -1203,6 +1203,9 @@ export class MailActionsButtons extends React.Component {
         <ActionsButtons {...this.props} />
         <MoreActionsButton {...this.props} moreButtonlist={moreButtonlist} />
         <HiddenGenericRemoveButton />
+        <div className="hidden-folder-button" style={{ width: 0 }}>
+          <ToolbarCategoryPicker {...this.props} />
+        </div>
       </div>
     );
   }
