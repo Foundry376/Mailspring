@@ -77,6 +77,7 @@ lazyLoadAndRegisterModel('Indicator', 'indicator');
 lazyLoadAndRegisterModel('ThreadCategory', 'thread-category');
 lazyLoadAndRegisterModel(`Account`, 'account');
 lazyLoadAndRegisterModel(`Message`, 'message');
+lazyLoadAndRegisterModel('MessageBody', 'message-body');
 lazyLoadAndRegisterModel('Sift', 'sift');
 lazyLoadAndRegisterModel(`Contact`, 'contact');
 lazyLoadAndRegisterModel(`Category`, 'category');

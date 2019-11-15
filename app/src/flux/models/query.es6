@@ -6,6 +6,10 @@ import _ from 'underscore';
 
 const { Matcher, AttributeJoinedData, AttributeCollection } = Attributes;
 
+const isCrossDBAttr = attr => {
+  return attr && (typeof attr.crossDBKey === 'function');
+};
+
 /*
 Public: ModelQuery exposes an ActiveRecord-style syntax for building database queries
 that return models and model counts. Model queries are returned from the factory methods
@@ -44,37 +48,94 @@ export default class ModelQuery {
   //   query will be executed on.
   //
   constructor(klass, database) {
-    this._klass = klass.SubclassesUseModelTable || klass;
+    this._klass = { main: klass.SubclassesUseModelTable || klass };
     this._database = database || require('./database-store').default;
-    this._matchers = [];
-    this._orders = [];
+    this._matchers = { main: [] };
+    this._orders = { main: [] };
     this._background = false;
     this._backgroundable = true;
-    this._distinct = false;
-    this._range = QueryRange.infinite();
-    this._returnOne = false;
-    this._returnIds = false;
-    this._includeJoinedData = [];
-    this._count = false;
+    this._distinct = { main: false };
+    this._range = { main: QueryRange.infinite() };
+    this._returnOne = { main: false };
+    this._returnIds = { main: false };
+    this._includeJoinedData = { main: [] };
+    this._count = { main: false };
     this._logQueryPlanDebugOutput = true;
+    this._crossDB = { connections: {}, valueCache: {} };
+    this._finalized = { main: false };
+    this.parseCrossJoinDBs(Object.values(this._klass.main.attributes));
+  }
+
+  parseCrossJoinDBs = attrs => {
+    for (let attr of attrs) {
+      if (isCrossDBAttr(attr)) {
+        const key = attr.crossDBKey();
+        if (!!key) {
+          if (!this._crossDB.connections[key]) {
+            this._crossDB.connections[key] = {
+              db: attr.joinDBName(),
+              modelKey: attr.modelKey,
+              columnKey: attr.tableColumn,
+              joinModelKey: attr.joinModelKey,
+              joinTableKey: attr.joinTableKey,
+            };
+          }
+          if (!Array.isArray(this._crossDB.valueCache[attr.joinModelKey])) {
+            this._crossDB.valueCache[attr.joinModelKey] = [];
+          }
+          if (!this._klass[key]) {
+            this._klass[key] = attr.itemClass;
+          }
+          if (!Array.isArray(this._includeJoinedData[key])) {
+            this._includeJoinedData[key] = [];
+          }
+          if (!this._range[key]) {
+            this._range[key] = QueryRange.infinite();
+          }
+          if (!Array.isArray(this._orders[key])) {
+            this._orders[key] = [];
+          }
+          if (!Array.isArray(this._matchers[key])) {
+            this._matchers[key] = [];
+          }
+        }
+      }
+    }
+  };
+
+  crossDBs() {
+    return this._crossDB.connections;
   }
 
   clone() {
-    const q = new ModelQuery(this._klass, this._database).where(this._matchers).order(this._orders);
-    q._orders = [].concat(this._orders);
-    q._includeJoinedData = [].concat(this._includeJoinedData);
-    q._range = this._range.clone();
+    const q = new ModelQuery(this._klass.main, this._database);
+    Object.keys(this._klass).forEach(key => {
+      q._klass[key] = this._klass[key];
+    });
+    Object.keys(this._matchers).forEach(key => {
+      q._matchers[key] = [].concat(this._matchers[key]);
+    });
+    Object.keys(this._orders).forEach(key => {
+      q._orders[key] = [].concat(this._orders[key]);
+    });
+    q._includeJoinedData = {};
+    Object.keys(this._includeJoinedData).forEach(
+      key => (q._includeJoinedData[key] = [].concat(this._includeJoinedData[key]))
+    );
+    q._range = {};
+    Object.keys(this._range).forEach(key => (q._range[key] = this._range[key].clone()));
     q._background = this._background;
     q._backgroundable = this._backgroundable;
     q._distinct = this._distinct;
     q._returnOne = this._returnOne;
     q._returnIds = this._returnIds;
     q._count = this._count;
+    q._crossDB = Object.assign({}, this._crossDB);
     return q;
   }
 
-  distinct() {
-    this._distinct = true;
+  distinct(dbKey = 'main') {
+    this._distinct[dbKey] = true;
     return this;
   }
 
@@ -102,55 +163,79 @@ export default class ModelQuery {
   //
   // This method is chainable.
   //
-  where(matchers) {
-    this._assertNotFinalized();
+  where(matchers, dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
 
     if (matchers instanceof Matcher) {
-      this._matchers.push(matchers);
+      if (isCrossDBAttr(matchers.attr)) {
+        this._matchers[matchers.attr.crossDBKey()].push(matchers);
+      // } else if (dbName.length > 0) {
+      //   this._crossDB.matchers[dbName].push(matchers);
+      } else {
+        this._matchers.main.push(matchers);
+      }
     } else if (matchers instanceof Array) {
+      const noneCrossDBMatchers = [];
       for (const m of matchers) {
         if (!(m instanceof Matcher)) {
           throw new Error('You must provide instances of `Matcher`');
         }
+        if (isCrossDBAttr(m.attr)) {
+          this._matchers[m.attr.crossDBKey()].push(m);
+        // } else if (dbName.length > 0) {
+        //   this._crossDB.matchers[dbName].push(m);
+        } else {
+          this._matchers.main.push(m);
+        }
       }
-      this._matchers = this._matchers.concat(matchers);
     } else if (matchers instanceof Object) {
       // Support a shorthand format of {id: '123', accountId: '123'}
       for (const key of Object.keys(matchers)) {
         const value = matchers[key];
-        const attr = this._klass.attributes[key];
-        if (!attr) {
-          const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${
-            this._klass.name
+        // if (dbName.length > 0) {
+        //   if (value instanceof Array) {
+        //     this._crossDB.matchers[dbName].push(attr.in(value));
+        //   } else {
+        //     this._crossDB.matchers[dbName].push(attr.equal(value));
+        //   }
+        // } else {
+          const attr = this._klass[dbKey].attributes[key];
+          if (!attr) {
+            const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${
+              this._klass[dbKey].name
             }`;
-          throw new Error(msg);
-        }
-
-        if (value instanceof Array) {
-          this._matchers.push(attr.in(value));
-        } else {
-          this._matchers.push(attr.equal(value));
-        }
+            throw new Error(msg);
+          }
+          if (isCrossDBAttr(attr)) {
+            const obj = {};
+            obj[key] = value;
+            this._matchers[attr.crossDBKey()].push(obj);
+          } else if (value instanceof Array) {
+            this._matchers.main.push(attr.in(value));
+          } else {
+            this._matchers.main.push(attr.equal(value));
+          }
+        // }
       }
     }
     return this;
   }
 
-  whereAny(matchers) {
-    this._assertNotFinalized();
-    this._matchers.push(new Matcher.Or(matchers));
+  whereAny(matchers, dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    this._matchers[dbKey].push(new Matcher.Or(matchers));
     return this;
   }
 
-  search(query) {
-    this._assertNotFinalized();
-    this._matchers.push(new Matcher.Search(query));
+  search(query, dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    this._matchers[dbKey].push(new Matcher.Search(query));
     return this;
   }
 
-  structuredSearch(query) {
-    this._assertNotFinalized();
-    this._matchers.push(new Matcher.StructuredSearch(query));
+  structuredSearch(query, dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    this._matchers[dbKey].push(new Matcher.StructuredSearch(query));
     return this;
   }
 
@@ -162,11 +247,15 @@ export default class ModelQuery {
   // This method is chainable.
   //
   include(attr) {
-    this._assertNotFinalized();
+    let dbKey = 'main';
+    if(isCrossDBAttr(attr)){
+      dbKey = attr.crossDBKey();
+    }
+    this._assertNotFinalized(dbKey);
     if (!(attr instanceof AttributeJoinedData)) {
       throw new Error('query.include() must be called with a joined data attribute');
     }
-    this._includeJoinedData.push(attr);
+    this._includeJoinedData[dbKey].push(attr);
     return this;
   }
 
@@ -174,10 +263,10 @@ export default class ModelQuery {
   //
   // This method is chainable.
   //
-  includeAll() {
-    this._assertNotFinalized();
-    for (const key of Object.keys(this._klass.attributes)) {
-      const attr = this._klass.attributes[key];
+  includeAll(dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    for (const key of Object.keys(this._klass[dbKey].attributes)) {
+      const attr = this._klass[dbKey].attributes[key];
       if (attr instanceof AttributeJoinedData) {
         this.include(attr);
       }
@@ -191,10 +280,20 @@ export default class ModelQuery {
   //
   // This method is chainable.
   //
+  _pushToOrder(order) {
+    const attr = order.attribute();
+    if (isCrossDBAttr(attr)) {
+      this._orders[attr.crossDBKey()].push(order);
+    } else {
+      this._orders.main.push(order);
+    }
+  }
   order(ordersOrOrder) {
     this._assertNotFinalized();
     const orders = ordersOrOrder instanceof Array ? ordersOrOrder : [ordersOrOrder];
-    this._orders = this._orders.concat(orders);
+    orders.forEach(order => {
+      this._pushToOrder(order);
+    });
     return this;
   }
 
@@ -203,9 +302,9 @@ export default class ModelQuery {
   //
   // This method is chainable.
   //
-  one() {
-    this._assertNotFinalized();
-    this._returnOne = true;
+  one(dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    this._returnOne[dbKey] = true;
     return this;
   }
 
@@ -215,13 +314,13 @@ export default class ModelQuery {
   //
   // This method is chainable.
   //
-  limit(limit) {
-    this._assertNotFinalized();
-    if (this._returnOne && limit > 1) {
+  limit(limit, dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    if (this._returnOne[dbKey] && limit > 1) {
       throw new Error('Cannot use limit > 1 with one()');
     }
-    this._range = this._range.clone();
-    this._range.limit = limit;
+    this._range[dbKey] = this._range[dbKey].clone();
+    this._range[dbKey].limit = limit;
     return this;
   }
 
@@ -231,10 +330,10 @@ export default class ModelQuery {
   //
   // This method is chainable.
   //
-  offset(offset) {
-    this._assertNotFinalized();
-    this._range = this._range.clone();
-    this._range.offset = offset;
+  offset(offset, dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    this._range[dbKey] = this._range[dbKey].clone();
+    this._range[dbKey].offset = offset;
     return this;
   }
 
@@ -242,10 +341,10 @@ export default class ModelQuery {
   //
   // A convenience method for setting both limit and offset given a desired page size.
   //
-  page(start, end, pageSize = 50, pagePadding = 100) {
+  page(start, end, pageSize = 50, pagePadding = 100, dbKey = 'main') {
     const roundToPage = n => Math.max(0, Math.floor(n / pageSize) * pageSize);
-    this.offset(roundToPage(start - pagePadding));
-    this.limit(roundToPage(end - start + pagePadding * 2));
+    this.offset(roundToPage(start - pagePadding), dbKey);
+    this.limit(roundToPage(end - start + pagePadding * 2), dbKey);
     return this;
   }
 
@@ -254,15 +353,15 @@ export default class ModelQuery {
   //
   // This method is chainable.
   //
-  count() {
-    this._assertNotFinalized();
-    this._count = true;
+  count(dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    this._count[dbKey] = true;
     return this;
   }
 
-  idsOnly() {
-    this._assertNotFinalized();
-    this._returnIds = true;
+  idsOnly(dbKey = 'main') {
+    this._assertNotFinalized(dbKey);
+    this._returnIds[dbKey] = true;
     return this;
   }
 
@@ -284,37 +383,73 @@ export default class ModelQuery {
     return this._database.run(this);
   }
 
-  inflateResult(result) {
+  inflateResult(result, dbKey = 'main') {
     if (!result) {
       return null;
     }
 
-    if (this._count) {
+    if (this._count[dbKey]) {
+      console.log(`returning only count ${dbKey}`);
       return result[0].count / 1;
     }
-    if (this._returnIds) {
+    if (this._returnIds[dbKey]) {
+      console.log(`returning only Ids ${dbKey}`);
       return result.map(row => row.id);
     }
 
     try {
-      return result.map(row => {
-        const object = Utils.convertToModel(JSON.parse(row.data));
-        for (const attrName of Object.keys(this._klass.attributes)) {
-          const attr = this._klass.attributes[attrName];
+      const ret = result.map(row => {
+        let object;
+        if (dbKey === 'main') {
+          object = Utils.convertToModel(JSON.parse(row.data));
+        } else {
+          const className = this._klass[dbKey].name;
+          object = Utils.getEmptyModel(className);
+        }
+
+        for (const attrName of Object.keys(this._klass[dbKey].attributes)) {
+          const attr = this._klass[dbKey].attributes[attrName];
           if (!attr.needsColumn() || !attr.loadFromColumn) {
             continue;
           }
           object[attr.modelKey] = attr.fromColumn(row[attr.tableColumn]);
         }
-        for (const attr of this._includeJoinedData) {
+        for (const attr of this._includeJoinedData[dbKey]) {
           let value = row[attr.tableColumn];
           if (value === AttributeJoinedData.NullPlaceholder) {
             value = null;
           }
           object[attr.modelKey] = attr.deserialize(object, value);
         }
+        if (dbKey === 'main') {
+          for (const modelKey of Object.keys(this._crossDB.valueCache)) {
+            if (
+              object[modelKey] !== '' ||
+              object[modelKey] !== null ||
+              object[modelKey] !== undefined
+            ) {
+              this._crossDB.valueCache[modelKey].push(object[modelKey]);
+            }
+          }
+        } else {
+          const { modelKey, joinModelKey, joinTableKey, columnKey} = this._crossDB.connections[dbKey];
+          const replaceObj =
+            this._mainDBCache &&
+            this._mainDBCache.find(obj => obj[joinModelKey] === object[joinTableKey]);
+          if (replaceObj) {
+            replaceObj[modelKey] = object[columnKey];
+          }
+        }
         return object;
       });
+      if (Object.keys(this._klass).length > 1 && dbKey === 'main') {
+        this._mainDBCache = ret;
+      }
+      if (dbKey === 'main') {
+        return ret;
+      } else {
+        return this._mainDBCache;
+      }
     } catch (error) {
       throw new Error(
         `Query could not parse the database result. Query: ${this.sql()}, Error: ${error.toString()}`
@@ -322,12 +457,12 @@ export default class ModelQuery {
     }
   }
 
-  formatResult(inflated) {
-    if (this._returnOne) {
+  formatResult(inflated, dbKey = 'main') {
+    if (this._returnOne[dbKey]) {
       // be careful not to return "undefined" if no items returned
       return inflated.length > 0 ? inflated[0] : null;
     }
-    if (this._count) {
+    if (this._count[dbKey]) {
       return inflated;
     }
     return [].concat(inflated);
@@ -344,70 +479,77 @@ export default class ModelQuery {
     return null;
   }
 
-  _getSelect(allMatchers) {
+  _getSelect(allMatchers, dbKey = 'main') {
     let result = null;
-    if (this._count) {
+    if (this._count[dbKey]) {
       result = `COUNT(*) as count`;
-    } else if (this._returnIds) {
-      result = `\`${this._klass.name}\`.\`id\``;
+    } else if (this._returnIds[dbKey]) {
+      result = `\`${this._klass[dbKey].name}\`.\`id\``;
     } else {
-      result = `\`${this._klass.name}\`.\`data\``;
-      for (const attrName of Object.keys(this._klass.attributes)) {
-        const attr = this._klass.attributes[attrName];
+      if (dbKey === 'main') {
+        result = `\`${this._klass[dbKey].name}\`.\`data\``;
+      } else {
+        result = `\`${this._klass[dbKey].name}\`.\`${this._crossDB.connections[dbKey].joinTableKey}\``;
+      }
+      for (const attrName of Object.keys(this._klass[dbKey].attributes)) {
+        const attr = this._klass[dbKey].attributes[attrName];
         if (!attr.needsColumn() || !attr.loadFromColumn) {
           continue;
         }
         // get data from inner join table
-        if (attr.modelTable && attr.modelTable !== this._klass.name) {
+        if (attr.modelTable && attr.modelTable !== this._klass[dbKey].name) {
           let tableRef = this._getMuidByJoinTableName(allMatchers, attr.modelTable);
-          result += `, \`${tableRef ? tableRef : this._klass.name}\`.\`${attr.tableColumn}\` `;
+          result += `, \`${tableRef ? tableRef : this._klass[dbKey].name}\`.\`${attr.tableColumn}\` `;
         } else {
-          result += `, \`${this._klass.name}\`.\`${attr.tableColumn}\` `;
+          result += `, \`${this._klass[dbKey].name}\`.\`${attr.tableColumn}\` `;
         }
       }
-      this._includeJoinedData.forEach(attr => {
-        result += `, ${attr.selectSQL(this._klass)} `;
+      this._includeJoinedData[dbKey].forEach(attr => {
+        result += `, ${attr.selectSQL(this._klass[dbKey])} `;
       });
     }
     return result;
   }
 
   // Query SQL Building
-
   // Returns a {String} with the SQL generated for the query.
   //
-  sql() {
-    this.finalize();
-
-    const allMatchers = this.matchersFlattened();
-    const whereSql = this._whereClause();
-    const seletSql = this._getSelect(allMatchers);
-    const order = this._count ? '' : this._orderClause();
+  sql(dbKey = 'main') {
+    this.finalize(dbKey);
+    const allMatchers = this.matchersFlattened(dbKey);
+    const whereSql = this._whereClause(dbKey);
+    const selectSql = this._getSelect(allMatchers, dbKey);
+    const order = this._count[dbKey] ? '' : this._orderClause(dbKey);
 
     let limit = '';
-    if (Number.isInteger(this._range.limit)) {
-      limit = `LIMIT ${this._range.limit}`;
+    if(!this._range[dbKey]){
+      console.error(`range: ${Object.keys(this._range).join(',')}`);
+      console.error(`klass: ${Object.keys(this._klass).join(',')}`);
+      console.error(`crossDB: ${Object.keys(this._crossDB).join(',')}`);
+    }
+    if (Number.isInteger(this._range[dbKey].limit)) {
+      limit = `LIMIT ${this._range[dbKey].limit}`;
     } else {
       limit = '';
     }
-    if (Number.isInteger(this._range.offset)) {
-      limit += ` OFFSET ${this._range.offset}`;
+    if (Number.isInteger(this._range[dbKey].offset)) {
+      limit += ` OFFSET ${this._range[dbKey].offset}`;
     }
 
-    const distinct = this._distinct ? ' DISTINCT' : '';
+    const distinct = this._distinct[dbKey] ? ' DISTINCT' : '';
 
     const joins = allMatchers.filter(matcher => matcher.attr instanceof AttributeCollection);
 
-    if (joins.length === 1 && this._canSubselectForJoin(joins[0], allMatchers)) {
-      const subSql = this._subselectSQL(joins[0], this._matchers, order, limit);
-      return `SELECT ${distinct} ${seletSql} FROM \`${
-        this._klass.name
+    if (joins.length === 1 && this._canSubselectForJoin(joins[0], allMatchers, dbKey)) {
+      const subSql = this._subselectSQL(joins[0], this._matchers[dbKey], order, limit, dbKey);
+      return `SELECT ${distinct} ${selectSql} FROM \`${
+        this._klass[dbKey].name
         }\` WHERE \`id\` IN (${subSql}) ${order}`;
     }
 
 
-    return `SELECT ${distinct} ${seletSql} FROM \`${
-      this._klass.name
+    return `SELECT ${distinct} ${selectSql} FROM \`${
+      this._klass[dbKey].name
       }\` ${whereSql} ${order} ${limit}`;
   }
 
@@ -419,10 +561,10 @@ export default class ModelQuery {
   //
   // Note: This is currently only intended for use in the thread list
   //
-  _canSubselectForJoin(matcher, allMatchers) {
+  _canSubselectForJoin(matcher, allMatchers, dbKey = 'main') {
     const joinAttribute = matcher.attribute();
 
-    if (!Number.isInteger(this._range.limit)) {
+    if (!Number.isInteger(this._range[dbKey].limit)) {
       return false;
     }
 
@@ -432,23 +574,23 @@ export default class ModelQuery {
         joinAttribute.joinQueryableBy.includes(m.attr.modelKey) ||
         m.attr.modelKey === 'id'
     );
-    const allOrdersOnJoinTable = this._orders.every(o =>
+    const allOrdersOnJoinTable = this._orders[dbKey].every(o =>
       joinAttribute.joinQueryableBy.includes(o.attr.modelKey)
     );
 
     return allMatchersOnJoinTable && allOrdersOnJoinTable;
   }
 
-  _subselectSQL(returningMatcher, subselectMatchers, order, limit) {
+  _subselectSQL(returningMatcher, subselectMatchers, order, limit, dbKey = 'main') {
     const returningAttribute = returningMatcher.attribute();
 
-    const table = returningAttribute.tableNameForJoinAgainst(this._klass);
-    const wheres = subselectMatchers.map(c => c.whereSQL(this._klass)).filter(c => !!c);
+    const table = returningAttribute.tableNameForJoinAgainst(this._klass[dbKey]);
+    const wheres = subselectMatchers.map(c => c.whereSQL(this._klass[dbKey])).filter(c => !!c);
 
     let innerSQL = `SELECT \`id\` FROM \`${table}\` WHERE ${wheres.join(
       ' AND '
     )} ${order} ${limit}`;
-    innerSQL = innerSQL.replace(new RegExp(`\`${this._klass.name}\``, 'g'), `\`${table}\``);
+    innerSQL = innerSQL.replace(new RegExp(`\`${this._klass[dbKey].name}\``, 'g'), `\`${table}\``);
     innerSQL = innerSQL.replace(
       new RegExp(`\`${returningMatcher.joinTableRef()}\``, 'g'),
       `\`${table}\``
@@ -456,28 +598,27 @@ export default class ModelQuery {
     return innerSQL;
   }
 
-  _whereClause() {
+  _whereClause(dbKey = 'main') {
     let joins = [];
-    this._matchers.forEach(c => {
-      const join = c.joinSQL(this._klass);
+    this._matchers[dbKey].forEach(c => {
+      const join = c.joinSQL(this._klass[dbKey]);
       if (join) {
         joins.push(join);
       }
     });
     const joinedDataTableNames = [];
-    this._includeJoinedData.forEach(attr => {
+    this._includeJoinedData[dbKey].forEach(attr => {
       if(!joinedDataTableNames.includes(attr.tableName())){
         joinedDataTableNames.push(attr.tableName());
-        const join = attr.includeSQL(this._klass);
+        const join = attr.includeSQL(this._klass[dbKey]);
         if (join) {
           joins.push(join);
         }
       }
     });
-
     const wheres = [];
-    this._matchers.forEach(c => {
-      const where = c.whereSQL(this._klass);
+    this._matchers[dbKey].forEach(c => {
+      const where = c.whereSQL(this._klass[dbKey]);
       if (where) {
         wheres.push(where);
       }
@@ -485,24 +626,38 @@ export default class ModelQuery {
     joins = _.flatten(joins);
     let sql = joins.join(' ');
     if (wheres.length > 0) {
-      sql += ` WHERE ${wheres.join(' AND ')}`;
+      if (dbKey === 'main') {
+        sql += ` WHERE ${wheres.join(' AND ')}`;
+      } else {
+        const modelKey = this._crossDB.connections[dbKey].joinModelKey;
+        const mainDBIds = this._crossDB.valueCache[modelKey].join(`','`);
+        const linkMainDB = `\`${this._klass[dbKey].name}\`.\`${this._crossDB.connections[dbKey].joinTableKey}\` in ('${mainDBIds}')`;
+        console.log(`where clause for auxDB: ${linkMainDB}`);
+        sql += ` WHERE ${linkMainDB} AND ${wheres.join(' AND ')}`;
+      }
+    } else if (wheres.length === 0 && (dbKey !== 'main')) {
+      const modelKey = this._crossDB.connections[dbKey].joinModelKey;
+      const mainDBIds = this._crossDB.valueCache[modelKey].join(`','`);
+      const linkMainDB = `\`${this._klass[dbKey].name}\`.\`${this._crossDB.connections[dbKey].joinTableKey}\` in ('${mainDBIds}')`;
+      console.log(`single where clause for auxDB: ${linkMainDB}`);
+      sql += ` WHERE ${linkMainDB} `;
     }
     return sql;
   }
 
-  _orderClause() {
-    if (this._orders.length === 0) {
+  _orderClause(dbKey = 'main') {
+    if (this._orders[dbKey].length === 0) {
       return '';
     }
 
     let sql = ' ORDER BY ';
-    const allMatchers = this.matchersFlattened();
+    const allMatchers = this.matchersFlattened(dbKey);
     const getJoinTableRef = attr => {
       return this._getMuidByJoinTableName(allMatchers, attr.modelTable);
     };
-    this._orders.forEach((sort, index) => {
-      sql += sort.orderBySQL(this._klass, getJoinTableRef);
-      if (index !== this._orders.length - 1 && this._orders.length > 1) {
+    this._orders[dbKey].forEach((sort, index) => {
+      sql += sort.orderBySQL(this._klass[dbKey], getJoinTableRef);
+      if (index !== this._orders[dbKey].length - 1 && this._orders[dbKey].length > 1) {
         sql += ' , ';
       }
     });
@@ -511,29 +666,29 @@ export default class ModelQuery {
 
   // Private: Marks the object as final, preventing any changes to the where
   // clauses, orders, etc.
-  finalize() {
-    if (this._finalized) {
+  finalize(dbKey = 'main') {
+    if (this._finalized[dbKey]) {
       return this;
     }
 
-    if (this._orders.length === 0) {
-      const natural = this._klass.naturalSortOrder();
+    if (this._orders[dbKey].length === 0) {
+      const natural = this._klass[dbKey].naturalSortOrder();
       if (natural) {
-        this._orders.push(natural);
+        this._orders[dbKey].push(natural);
       }
     }
 
-    if (this._returnOne && !this._range.limit) {
+    if (this._returnOne[dbKey] && !this._range[dbKey].limit) {
       this.limit(1);
     }
 
-    this._finalized = true;
+    this._finalized[dbKey] = true;
     return this;
   }
 
   // Private: Throws an exception if the query has been frozen.
-  _assertNotFinalized() {
-    if (this._finalized) {
+  _assertNotFinalized(dbKey = 'main') {
+    if (this._finalized[dbKey]) {
       throw new Error(`ModelQuery: You cannot modify a query after calling \`then\` or \`listen\``);
     }
   }
@@ -541,11 +696,11 @@ export default class ModelQuery {
   // Introspection
   // (These are here to make specs easy)
 
-  matchers() {
-    return this._matchers;
+  matchers(dbKey = 'main') {
+    return this._matchers[dbKey];
   }
 
-  matchersFlattened() {
+  matchersFlattened(dbKey = 'main') {
     const all = [];
     const traverse = matchers => {
       if (!(matchers instanceof Array)) {
@@ -559,24 +714,24 @@ export default class ModelQuery {
         }
       }
     };
-    traverse(this._matchers);
+    traverse(this._matchers[dbKey]);
     return all;
   }
 
-  matcherValueForModelKey(key) {
-    const matcher = this._matchers.find(m => m.attr.modelKey === key);
+  matcherValueForModelKey(key, dbKey = 'main') {
+    const matcher = this._matchers[dbKey].find(m => m.attr.modelKey === key);
     return matcher ? matcher.val : null;
   }
 
-  range() {
-    return this._range;
+  range(dbKey = 'main') {
+    return this._range[dbKey];
   }
 
-  orderSortDescriptors() {
-    return this._orders;
+  orderSortDescriptors(dbKey = 'main') {
+    return this._orders[dbKey];
   }
 
-  objectClass() {
-    return this._klass.name;
+  objectClass(dbKey = 'main') {
+    return this._klass[dbKey].name;
   }
 }

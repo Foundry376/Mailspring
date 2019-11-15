@@ -133,15 +133,11 @@ class DraftStore extends MailspringStore {
     ]);
   }
   findFailedByHeaderMessageIdWithBody({ headerMessageId }) {
-    return this.findFailedByHeaderMessageId({ headerMessageId })
-      .include(Message.attributes.body)
-      .include(Message.attributes.isPlainText);
+    return this.findFailedByHeaderMessageId({ headerMessageId });
   }
 
   findByHeaderMessageIdWithBody({ headerMessageId }) {
-    return this.findByHeaderMessageId({ headerMessageId })
-      .include(Message.attributes.body)
-      .include(Message.attributes.isPlainText);
+    return this.findByHeaderMessageId({ headerMessageId });
   }
 
   findAllWithBodyInDescendingOrder() {

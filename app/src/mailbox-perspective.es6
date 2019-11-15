@@ -544,7 +544,6 @@ class SiftMailboxPerspective extends MailboxPerspective {
   messages() {
     const siftCategory = Sift.categoryStringToIntString(this.siftCategory);
     const query = DatabaseStore.findAll(Message)
-      .include(Message.attributes.body).include(Message.attributes.isPlainText)
       .where([Message.attributes.siftCategory.containsAnyAtColumn('category', [siftCategory])])
       .where({ state: 0, draft: false })
       .order([Message.attributes.date.descending()])

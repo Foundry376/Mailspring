@@ -7,6 +7,8 @@ import AttributeBoolean from './attributes/attribute-boolean';
 import AttributeDateTime from './attributes/attribute-datetime';
 import AttributeCollection from './attributes/attribute-collection';
 import AttributeJoinedData from './attributes/attribute-joined-data';
+import AttributeCrossDBString from './attributes/attribute-cross-db-string';
+import AttributeCrossDBNumber from './attributes/attribute-cross-db-number';
 
 export default {
   Matcher: Matcher,
@@ -19,6 +21,8 @@ export default {
   DateTime: (...args) => new AttributeDateTime(...args),
   Collection: (...args) => new AttributeCollection(...args),
   JoinedData: (...args) => new AttributeJoinedData(...args),
+  CrossDBString: (...args) => new AttributeCrossDBString(...args),
+  CrossDBNumber: (...args) => new AttributeCrossDBNumber(...args),
 
   AttributeNumber: AttributeNumber,
   AttributeString: AttributeString,

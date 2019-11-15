@@ -16,7 +16,7 @@ export default class QuerySubscription {
     this._queryVersion = 1;
 
     if (this._query) {
-      if (this._query._count) {
+      if (this._query._count.main) {
         throw new Error('QuerySubscription::constructor - You cannot listen to count queries.');
       }
 
@@ -219,10 +219,12 @@ export default class QuerySubscription {
     let rangeQuery = null;
     if (!range.isInfinite()) {
       rangeQuery = rangeQuery || this._query.clone();
+      console.log(`query-subscription ${rangeQuery}`);
       rangeQuery.offset(range.offset).limit(range.limit);
     }
     if (!fetchEntireModels) {
       rangeQuery = rangeQuery || this._query.clone();
+      console.log(`no fetch entire models ${rangeQuery}`);
       rangeQuery.idsOnly();
     }
     rangeQuery = rangeQuery || this._query;
@@ -268,7 +270,7 @@ export default class QuerySubscription {
     if (missingIds.length === 0) {
       return Promise.resolve([]);
     }
-    return DatabaseStore.findAll(this._query._klass, { id: missingIds });
+    return DatabaseStore.findAll(this._query._klass.main, { id: missingIds });
   }
 
   _createResultAndTrigger() {

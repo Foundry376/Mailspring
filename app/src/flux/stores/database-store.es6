@@ -19,6 +19,9 @@ const DEBUG_QUERY_PLANS = AppEnv.inDevMode();
 
 const BASE_RETRY_LOCK_DELAY = 50;
 const MAX_RETRY_LOCK_DELAY = 500;
+export const AuxDBs = {
+  MessageBody: 'edison_message_body.db',
+};
 
 function trimTo(str, size) {
   const g = window || global || {};
@@ -86,8 +89,33 @@ async function openDatabase(dbPath, retryCnt = 0) {
       setTimeout(() => {
         openDatabase(dbPath, retryCnt + 1).then(db => resolve(db));
       }, 1000);
-    })
+    });
   }
+}
+const openAuxiliaryDBs = async cache => {
+  console.log('opening aux db connections');
+  const configPath = AppEnv.getConfigDirPath();
+  const promises = [];
+  for (let name of Object.keys(AuxDBs)) {
+    if (name) {
+      promises.push(
+        new Promise(resolve => {
+          openDatabase(auxiliaryDBPath(configPath, AuxDBs[name])).then(connection => {
+            resolve({ name: AuxDBs[name], connection });
+          });
+        })
+      );
+    }
+  }
+  return new Promise(resolve => {
+    Promise.all(promises).then(ret => {
+      for (let value of ret) {
+        cache[value.name] = value.connection;
+      }
+      console.log(`opened all aux db connections`);
+      resolve();
+    });
+  });
 }
 
 function databasePath(configDirPath, specMode = false) {
@@ -96,6 +124,10 @@ function databasePath(configDirPath, specMode = false) {
     dbPath = path.join(configDirPath, 'edisonmail.test.db');
   }
   return dbPath;
+}
+
+function auxiliaryDBPath(configDirPath, auxDBName){
+  return path.join(configDirPath, auxDBName);
 }
 
 /*
@@ -168,7 +200,9 @@ class DatabaseStore extends MailspringStore {
   }
 
   async open() {
-    this._db = await openDatabase(this._databasePath);
+    this._db = { main: await openDatabase(this._databasePath) };
+    await openAuxiliaryDBs(this._db);
+    console.log(`\n---\ndb connections open ${Object.keys(this._db).join(',')}\n--\n`);
     this._open = true;
     for (const w of this._waiting) {
       w();
@@ -230,10 +264,11 @@ class DatabaseStore extends MailspringStore {
   //
   // If a query is made before the database has been opened, the query will be
   // held in a queue and run / resolved when the database is ready.
-  _query(query, values = [], background = false) {
+  _query(query, values = [], background = false, dbKey = 'main') {
     return new Promise(async (resolve, reject) => {
       if (!this._open) {
-        this._waiting.push(() => this._query(query, values).then(resolve, reject));
+        console.log(`db conections not ready ${dbKey}`);
+        this._waiting.push(() => this._query(query, values, false, dbKey).then(resolve, reject));
         return;
       }
 
@@ -257,7 +292,7 @@ class DatabaseStore extends MailspringStore {
       }
 
       if (!background) {
-        const results = await this._executeLocally(query, values);
+        const results = await this._executeLocally(query, values, dbKey);
         const msec = Date.now() - start;
         if (msec > 100) {
           this._prettyConsoleLog(
@@ -266,7 +301,7 @@ class DatabaseStore extends MailspringStore {
         }
         resolve(results);
       } else {
-        this._executeInBackground(query, values).then(({ results, backgroundTime }) => {
+        this._executeInBackground(query, values, dbKey).then(({ results, backgroundTime }) => {
           const msec = Date.now() - start;
           if (debugVerbose.enabled) {
             const q = `🔶 (${msec}ms) Background: ${query}`;
@@ -286,11 +321,11 @@ class DatabaseStore extends MailspringStore {
     });
   }
 
-  async _executeLocally(query, values) {
+  async _executeLocally(query, values, dbKey = 'main') {
     if (AppEnv.enabledLocalQueryLog) {
-      console.log(`-------------------local query----------------`);
-      AppEnv.logDebug(`local query - ${query}`);
-      console.log('--------------------local query end---------------');
+      console.log(`-------------------local query for ${dbKey}----------------`);
+      AppEnv.logDebug(`local db: ${dbKey} query - ${query}`);
+      console.log(`--------------------local query for ${dbKey} end---------------`);
     }
 
     const fn = query.startsWith('SELECT') ? 'all' : 'run';
@@ -320,7 +355,7 @@ class DatabaseStore extends MailspringStore {
 
         let stmt = this._preparedStatementCache.get(query);
         if (!stmt) {
-          stmt = this._db.prepare(query);
+          stmt = this._db[dbKey].prepare(query);
           this._preparedStatementCache.set(query, stmt);
         }
 
@@ -335,7 +370,7 @@ class DatabaseStore extends MailspringStore {
         if (msec > 100) {
           const msgPrefix = msec > 100 ? 'DatabaseStore: query took more than 100ms - ' : '';
           if (query.startsWith(`SELECT `) && DEBUG_QUERY_PLANS) {
-            const plan = this._db.prepare(`EXPLAIN QUERY PLAN ${query}`).all(values);
+            const plan = this._db[dbKey].prepare(`EXPLAIN QUERY PLAN ${query}`).all(values);
             const planString = `${plan.map(row => row.detail).join('\n')} for ${query}`;
             const quiet = ['ThreadCounts', 'ThreadSearch', 'ContactSearch', 'COVERING INDEX'];
 
@@ -369,11 +404,11 @@ class DatabaseStore extends MailspringStore {
     return results;
   }
 
-  _executeInBackground(query, values) {
+  _executeInBackground(query, values, dbKey = 'main') {
     if(AppEnv.enabledBackgroundQueryLog){
-      console.log('-------------------background query----------------');
+      console.log(`-------------------background query for ${dbKey}----------------`);
       AppEnv.logDebug(`background query - ${query}`);
-      console.log('--------------------background end query---------------');
+      console.log(`--------------------background query for ${dbKey} end---------------`);
     }
     if (!this._agent) {
       this._agentOpenQueries = {};
@@ -405,7 +440,16 @@ class DatabaseStore extends MailspringStore {
     return new Promise(resolve => {
       const id = Utils.generateTempId();
       this._agentOpenQueries[id] = resolve;
-      this._agent.send({ query, values, id, dbpath: this._databasePath });
+      if (dbKey === 'main') {
+        this._agent.send({ query, values, id, dbpath: this._databasePath });
+      } else {
+        this._agent.send({
+          query,
+          values,
+          id,
+          dbpath: auxiliaryDBPath(AppEnv.getConfigDirPath(), AuxDBs[dbKey]),
+        });
+      }
     });
   }
 
@@ -542,13 +586,39 @@ class DatabaseStore extends MailspringStore {
       modelQuery.sql(),
       [],
       modelQuery._background,
-      modelQuery._logQueryPlanDebugOutput
     ).then(result => {
       let transformed = modelQuery.inflateResult(result);
-      if (options.format !== false) {
-        transformed = modelQuery.formatResult(transformed);
+      const crossDBs = modelQuery.crossDBs();
+      const auxDBQueries = Object.keys(crossDBs);
+      if(auxDBQueries.length === 0){
+        if (options.format !== false) {
+          transformed = modelQuery.formatResult(transformed);
+        }
+        console.log('no auxDB query needed, returning results');
+        return Promise.resolve(transformed);
+      } else {
+        console.log(`requesting additional aux db queries`);
+        const promises = [];
+        for (let auxDBKey of auxDBQueries) {
+          promises.push(
+            this._query(modelQuery.sql(auxDBKey), [], modelQuery._background, crossDBs[auxDBKey].db)
+          );
+        }
+        return new Promise(resolve => {
+          Promise.all(promises).then(rets => {
+            for (let i = 0; i < rets.length; i++) {
+              if (rets[i]) {
+                transformed = modelQuery.inflateResult(rets[i], auxDBQueries[i]);
+              }
+            }
+            if (options.format !== false) {
+              transformed = modelQuery.formatResult(transformed);
+            }
+            console.log('aux db quires results returned');
+            resolve(transformed);
+          });
+        });
       }
-      return Promise.resolve(transformed);
     });
   }
 

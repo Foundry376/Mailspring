@@ -10,6 +10,7 @@ import Sift from './sift';
 import Attributes from '../attributes';
 import ModelWithMetadata from './model-with-metadata';
 import AccountStore from '../stores/account-store';
+import MessageBody from './message-body';
 let AttachmentStore = null;
 
 /*
@@ -154,13 +155,16 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'date',
     }),
 
-    body: Attributes.JoinedData({
-      modelTable: 'MessageBody',
+    body: Attributes.CrossDBString({
+      itemClass: MessageBody,
+      joinModelKey: 'id',
+      joinTableKey: 'id',
+      joinTableColumn: 'value',
       modelKey: 'body',
     }),
 
-    isPlainText: Attributes.JoinedData({
-      modelTable: 'MessageBody',
+    isPlainText: Attributes.CrossDBNumber({
+      itemClass: MessageBody,
       modelKey: 'isPlainText',
       joinTableColumn: 'type',
     }),

@@ -25,8 +25,35 @@ const GDPR_COUNTRIES = [
   // "CN", "US",
 ];
 const BLANK_ZWNJ = '\u200c' // &zwnj;
+const aggregation = (baseClass, ...mixins) => {
+  class base extends baseClass {
+    constructor(...args) {
+      super(...args);
+      mixins.forEach(mixin => {
+        copyProps(this, new mixin(...args));
+      });
+    }
+  }
 
+  const copyProps = (target, source) => {
+    Object.getOwnPropertyNames(source).forEach(prop => {
+      if (
+        !prop.match(
+          /^(?:constructor|prototype|arguments|caller|name|bind|call|apply|toString|length)$/,
+        )
+      )
+        Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(source, prop));
+    });
+  };
+  // outside contructor() to allow aggregation(A,B,C).staticFunction() to be called etc.
+  mixins.forEach(mixin => {
+    copyProps(base.prototype, mixin.prototype);
+    copyProps(base, mixin);
+  });
+  return base;
+};
 module.exports = Utils = {
+  multipleInheritance: (...classes) => aggregation(...classes),
   waitFor(latch, options = {}) {
     const timeout = options.timeout || 400;
     const expire = Date.now() + timeout;
@@ -102,6 +129,12 @@ module.exports = Utils = {
       throw new Error('convertToModel: __cls is not a known class. json:' + JSON.stringify(json));
     }
     return DatabaseObjectRegistry.deserialize(json.__cls, json);
+  },
+  getEmptyModel(className){
+    if (!DatabaseObjectRegistry.isInRegistry(className)) {
+      throw new Error('getEmptyModel: not a known class. className:' + className);
+    }
+    return DatabaseObjectRegistry.deserialize(className, {});
   },
 
   fastOmit(props, without) {

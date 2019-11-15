@@ -279,6 +279,7 @@ class MessageStore extends MailspringStore {
       order: [['sentTime', 'ASC']]
     }
     if (limit) {
+      console.log(`messageStore`);
       condistion.limit = limit
     }
     if (offset) {

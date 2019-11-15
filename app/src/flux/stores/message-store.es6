@@ -33,7 +33,7 @@ class MessageStore extends MailspringStore {
   }
 
   findAllWithBodyInDescendingOrder() {
-    return this.findAllInDescendingOrder().include(Message.attributes.body).include(Message.attributes.isPlainText);
+    return this.findAllInDescendingOrder();
   }
 
   findAllByThreadId({ threadId }) {
@@ -41,7 +41,7 @@ class MessageStore extends MailspringStore {
   }
 
   findAllByThreadIdWithBody({ threadId }) {
-    return this.findAllByThreadId({ threadId }).include(Message.attributes.body).include(Message.attributes.isPlainText);
+    return this.findAllByThreadId({ threadId });
   }
 
   findAllByThreadIdWithBodyInDescendingOrder({ threadId }) {
@@ -69,7 +69,7 @@ class MessageStore extends MailspringStore {
   }
 
   findByMessageIdWithBody({ messageId }) {
-    return this.findByMessageId({ messageId }).include(Message.attributes.body).include(Message.attributes.isPlainText);
+    return this.findByMessageId({ messageId });
   }
 
   //########## PUBLIC #####################################################
