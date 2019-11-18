@@ -139,14 +139,18 @@ class MessageList extends React.Component {
     // cannot remove
   }
   _hideEmptyList = (hide) => {
+    this.safeSetState({ hideMessageList: hide });
+  }
+
+  safeSetState = (data, callback) => {
     if (this._mounted) {
-      this.setState({ hideMessageList: hide });
+      this.setState(data, callback);
     }
   }
 
   _onlineStatusChange = () => {
     if (this.state.isOnline !== OnlineStatusStore.isOnline()) {
-      this.setState({
+      this.safeSetState({
         isOnline: OnlineStatusStore.isOnline()
       })
     }
@@ -170,7 +174,7 @@ class MessageList extends React.Component {
     }
     const hideButtons = container.clientWidth <= TOOLBAR_MIN_WIDTH;
     if (this.state.hideButtons !== hideButtons) {
-      this.setState({ hideButtons }, () => {
+      this.safeSetState({ hideButtons }, () => {
         if (hideButtons) {
           Actions.hideWorkspaceLocation({ id: 'MessageListMoveButtons' });
         } else {
@@ -184,28 +188,22 @@ class MessageList extends React.Component {
     if (type === 'reply') {
       if (!this._replyTimer) {
         this._replyTimer = setTimeout(() => {
-          if (this._mounted) {
-            this.setState({ isReplying: false });
-            this._replyTimer = null;
-          }
+          this.safeSetState({ isReplying: false });
+          this._replyTimer = null;
         }, buttonTimeout);
       }
     } else if (type === 'reply-all') {
       if (!this._replyAllTimer) {
         this._replyAllTimer = setTimeout(() => {
-          if (this._mounted) {
-            this.setState({ isReplyAlling: false });
-            this._replyAllTimer = null;
-          }
+          this.safeSetState({ isReplyAlling: false });
+          this._replyAllTimer = null;
         }, buttonTimeout);
       }
     } else {
       if (!this._forwardTimer) {
         this._forwardTimer = setTimeout(() => {
-          if (this._mounted) {
-            this.setState({ isForwarding: false });
-            this._forwardTimer = null;
-          }
+          this.safeSetState({ isForwarding: false });
+          this._forwardTimer = null;
         }, buttonTimeout);
       }
     }
@@ -214,11 +212,11 @@ class MessageList extends React.Component {
   _onCreatingDraft = ({ message = {}, type = '' }) => {
     if (this._mounted && (!this._lastMessage() || message.id === this._lastMessage().id)) {
       if (type === 'reply') {
-        this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
+        this.safeSetState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
       } else if (type === 'reply-all') {
-        this.setState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
+        this.safeSetState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
       } else {
-        this.setState({ isForwarding: true }, this._timeoutButton.bind(this, 'forward'));
+        this.safeSetState({ isForwarding: true }, this._timeoutButton.bind(this, 'forward'));
       }
     }
   };
@@ -230,9 +228,7 @@ class MessageList extends React.Component {
           return;
         }
         this._replyTimer = setTimeout(() => {
-          if (this._mounted) {
-            this.setState({ isReplying: false });
-          }
+          this.safeSetState({ isReplying: false });
           this._replyTimer = null;
         }, buttonTimeout);
       } else if (type === 'reply-all') {
@@ -240,9 +236,7 @@ class MessageList extends React.Component {
           return;
         }
         this._replyAllTimer = setTimeout(() => {
-          if (this._mounted) {
-            this.setState({ isReplyAlling: false });
-          }
+          this.safeSetState({ isReplyAlling: false });
           this._replyAllTimer = null;
         }, buttonTimeout);
       } else {
@@ -250,9 +244,7 @@ class MessageList extends React.Component {
           return;
         }
         this._forwardTimer = setTimeout(() => {
-          if (this._mounted) {
-            this.setState({ isForwarding: false });
-          }
+          this.safeSetState({ isForwarding: false });
           this._forwardTimer = null;
         }, buttonTimeout);
       }
@@ -264,7 +256,7 @@ class MessageList extends React.Component {
       'core:reply': () => {
         if (this._mounted && !this.state.isReplying && !this._replyTimer) {
           this._timeoutButton('reply');
-          this.setState({ isReplying: true });
+          this.safeSetState({ isReplying: true });
           Actions.composeReply({
             thread: this.state.currentThread,
             message: this._lastMessage(),
@@ -276,7 +268,7 @@ class MessageList extends React.Component {
       'core:reply-all': () => {
         if (this._mounted && !this.state.isReplyAlling && !this._replyAllTimer) {
           this._timeoutButton('reply-all');
-          this.setState({ isReplyAlling: true });
+          this.safeSetState({ isReplyAlling: true });
           Actions.composeReply({
             thread: this.state.currentThread,
             message: this._lastMessage(),
@@ -308,7 +300,7 @@ class MessageList extends React.Component {
       return;
     }
     this._timeoutButton('forward');
-    this.setState({ isForwarding: true });
+    this.safeSetState({ isForwarding: true });
     Actions.composeForward({
       thread: this.state.currentThread,
       message: this._lastMessage(),
@@ -374,9 +366,9 @@ class MessageList extends React.Component {
       return;
     }
     if (replyType === 'reply-all') {
-      this.setState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
+      this.safeSetState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
     } else {
-      this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
+      this.safeSetState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
     }
     Actions.composeReply({
       thread: this.state.currentThread,
@@ -534,7 +526,7 @@ class MessageList extends React.Component {
       newState.minified = true;
     }
     this._onResize();
-    this.setState(newState);
+    this.safeSetState(newState);
   };
 
   _getStateFromStores() {
@@ -724,7 +716,7 @@ class MessageList extends React.Component {
     return (
       <div
         className="minified-bundle"
-        onClick={() => this.setState({ minified: false })}
+        onClick={() => this.safeSetState({ minified: false })}
         key={Utils.generateTempId()}
       >
         <div className="msg-avatars">
