@@ -18,7 +18,7 @@ class ButtonDropdown extends React.Component {
   static defaultProps = {
     style: {},
     attachment: 'left',
-    disabled: false
+    disabled: false,
   };
 
   constructor(props) {
@@ -35,6 +35,15 @@ class ButtonDropdown extends React.Component {
     });
 
     const menu = this.state.open ? this.props.menu : false;
+
+    const style = {};
+    if (this.state.open === 'up') {
+      style.bottom = 0;
+      style.top = 'auto';
+    } else {
+      style.top = 0;
+      style.bottom = 'auto';
+    }
 
     if (this.props.primaryClick) {
       return (
@@ -60,7 +69,7 @@ class ButtonDropdown extends React.Component {
               mode={RetinaImg.Mode.ContentIsMask}
             />
           </div>
-          <div className="secondary-items" onMouseDown={this._onMenuClick}>
+          <div className="secondary-items" onMouseDown={this._onMenuClick} style={style}>
             {menu}
           </div>
         </div>
@@ -90,6 +99,7 @@ class ButtonDropdown extends React.Component {
           <div
             className={`secondary-items ${this.props.attachment}`}
             onMouseDown={this._onMenuClick}
+            style={style}
           >
             {menu}
           </div>
