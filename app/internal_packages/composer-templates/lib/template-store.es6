@@ -127,7 +127,12 @@ class TemplateStore extends MailspringStore {
       draftContents = sigIndex > -1 ? draftContents.substr(0, sigIndex) : draftContents;
 
       if (!draftName || draftName.length === 0) {
-        this._displayError('Give your draft a subject to name your template.');
+        if (draft.subject && draft.subject.length > 0) {
+          this._displayError('Template name is not valid.');
+        } else {
+          this._displayError('Give your draft a subject to name your template.');
+        }
+        return;
       }
       if (!draftContents || draftContents.length === 0) {
         this._displayError('To create a template you need to fill the body of the current draft.');
@@ -264,7 +269,7 @@ class TemplateStore extends MailspringStore {
         proceed = await this._displayDialog(
           'Replace draft contents?',
           'It looks like your draft already has some content. Loading this template will ' +
-            'overwrite all draft contents.',
+          'overwrite all draft contents.',
           ['Replace contents', 'Cancel']
         );
       }

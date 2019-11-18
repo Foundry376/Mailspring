@@ -8,7 +8,13 @@ import {
   FocusedPerspectiveStore,
   Utils,
 } from 'mailspring-exports';
-import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
+import {
+  RetinaImg,
+  Flexbox,
+  EditableList,
+  ComposerEditor,
+  ComposerSupport,
+} from 'mailspring-component-kit';
 import { ResolveSignatureData, RenderSignatureData } from './constants';
 import SignatureAccountDefaultPicker from './signature-account-default-picker';
 import Templates from './templates';
@@ -207,7 +213,13 @@ export default class PreferencesSignatures extends React.Component {
     const sigArr = Object.values(this.state.signatures);
     const footer = (
       <div className="btn-primary buttons-add" onClick={this._onAddSignature}>
-        +&nbsp;&nbsp;&nbsp;&nbsp;New Signature
+        <RetinaImg
+          name={`add.svg`}
+          style={{ width: 19, height: 19 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+        New Signature
       </div>
     );
     return (
