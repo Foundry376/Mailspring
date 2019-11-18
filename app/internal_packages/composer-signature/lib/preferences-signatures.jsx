@@ -207,7 +207,13 @@ export default class PreferencesSignatures extends React.Component {
     const sigArr = Object.values(this.state.signatures);
     const footer = (
       <div className="btn-primary buttons-add" onClick={this._onAddSignature}>
-        +&nbsp;&nbsp;&nbsp;&nbsp;New Signature
+        <RetinaImg
+          name={`add.svg`}
+          style={{ width: 19, height: 19 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+        New Signature
       </div>
     );
     return (

@@ -151,7 +151,13 @@ export default class PreferencesTemplates extends React.Component {
     const { selected } = this.state;
     const footer = (
       <div className="btn-primary buttons-add" onClick={this._onAdd}>
-        +&nbsp;&nbsp;&nbsp;&nbsp;New Template
+        <RetinaImg
+          name={`add.svg`}
+          style={{ width: 19, height: 19 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+        New Template
       </div>
     );
     return (
