@@ -8,7 +8,13 @@ import {
   FocusedPerspectiveStore,
   Utils,
 } from 'mailspring-exports';
-import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
+import {
+  RetinaImg,
+  Flexbox,
+  EditableList,
+  ComposerEditor,
+  ComposerSupport,
+} from 'mailspring-component-kit';
 import { ResolveSignatureData, RenderSignatureData } from './constants';
 import SignatureAccountDefaultPicker from './signature-account-default-picker';
 import Templates from './templates';

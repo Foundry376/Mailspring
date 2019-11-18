@@ -1,5 +1,11 @@
 import fs from 'fs';
-import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
+import {
+  RetinaImg,
+  Flexbox,
+  EditableList,
+  ComposerEditor,
+  ComposerSupport,
+} from 'mailspring-component-kit';
 import { React, ReactDOM } from 'mailspring-exports';
 import { shell } from 'electron';
 
