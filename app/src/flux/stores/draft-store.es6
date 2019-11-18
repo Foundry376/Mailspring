@@ -539,6 +539,7 @@ class DraftStore extends MailspringStore {
               { grabLogs: true },
             ),
           );
+          return true;
         }
       }
       Actions.draftWindowClosing({
