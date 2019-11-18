@@ -1,4 +1,5 @@
 import React from 'react';
+import { ipcRenderer } from 'electron';
 import { CSSTransitionGroup } from 'react-transition-group';
 import { WorkspaceStore, BlockedSendersStore } from 'mailspring-exports';
 
@@ -17,7 +18,7 @@ export default class SheetContainer extends React.Component {
   }
 
   componentDidMount() {
-    window.addEventListener('browser-window-focus', this._windowFocus);
+    ipcRenderer.on('application-activate', this._onAppActive);
     this.unsubscribe = WorkspaceStore.listen(this._onStoreChange);
   }
 
@@ -29,7 +30,7 @@ export default class SheetContainer extends React.Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('browser-window-focus', this._windowFocus);
+    ipcRenderer.removeListener('application-activate', this._onAppActive);
     if (this.unsubscribe) {
       this.unsubscribe();
     }
@@ -56,7 +57,7 @@ export default class SheetContainer extends React.Component {
     });
   };
 
-  _windowFocus = () => {
+  _onAppActive = () => {
     BlockedSendersStore.syncBlockedSenders();
   };
 
