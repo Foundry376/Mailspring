@@ -40,13 +40,13 @@ class EventHeader extends React.Component {
       this._unlisten();
     }
   }
-  renderWhen(){
+  renderWhen() {
     const recurrence = Object.keys(this.state.event.getRecurrenceTypes());
     const repeat = recurrence.length > 0 ? ', Repeating event' : '';
     let duration = '';
-    if(this.state.event.isAllDay()){
+    if (this.state.event.isAllDay()) {
       duration = 'All Day, ';
-    }else if(this.state.event.isAllWeek()){
+    } else if (this.state.event.isAllWeek()) {
       duration = 'All Week, ';
     }
     const startDate = moment(this.state.event.startDate.toJSDate())
@@ -54,20 +54,20 @@ class EventHeader extends React.Component {
       .format('dddd, MMMM Do');
     let startTime = '';
     let end = '';
-    if(duration.length === 0){
-      startTime =', ' + moment(this.state.event.startDate.toJSDate())
+    if (duration.length === 0) {
+      startTime = ', ' + moment(this.state.event.startDate.toJSDate())
         .tz(DateUtils.timeZone)
         .format(DateUtils.getTimeFormat({ timeZone: false }));
-      if(this.state.event.isLessThanADay()){
+      if (this.state.event.isLessThanADay()) {
         end = ' - ' + moment(this.state.event.endDate.toJSDate())
           .tz(DateUtils.timeZone)
           .format(DateUtils.getTimeFormat({ timeZone: true }));
-      } else{
+      } else {
         end = ' - ' + moment(this.state.event.endDate.toJSDate())
           .tz(DateUtils.timeZone)
           .format('dddd, MMMM Do') + ' ' + moment(this.state.event.endDate.toJSDate())
-          .tz(DateUtils.timeZone)
-          .format(DateUtils.getTimeFormat({ timeZone: true }))
+            .tz(DateUtils.timeZone)
+            .format(DateUtils.getTimeFormat({ timeZone: true }))
       }
     }
     return `${duration} ${startDate}${startTime} ${end}${repeat}`;
@@ -87,9 +87,9 @@ class EventHeader extends React.Component {
           </div>
           <div className="event-body">
             <div className="event-date">
-                <div className="event-time">
-                 When: {this.renderWhen()}
-                </div>
+              <div className="event-time">
+                When: {this.renderWhen()}
+              </div>
               <div className="event-location">
                 Location: {this.state.event.location ? this.state.event.location : 'Unknown'}
               </div>
@@ -102,7 +102,7 @@ class EventHeader extends React.Component {
         </div>
       );
     } else {
-      return <div/>;
+      return <div />;
     }
   }
 
@@ -117,12 +117,12 @@ class EventHeader extends React.Component {
       <div className="event-actions">
         {actions.map(item => {
           const { status, label, css } = item;
-          let classes = 'btn-rsvp ';
+          let classes = 'btn btn-rsvp ';
           if (this.props.message.calendarStatus() === status) {
             classes += css;
           }
           return (
-            <div key={status} className={classes} onClick={_.throttle(this._rsvp.bind(this, this.props.message, status), 200, {trailing: false})}>
+            <div key={status} className={classes} onClick={_.throttle(this._rsvp.bind(this, this.props.message, status), 200, { trailing: false })}>
               {label}
             </div>
           );
@@ -132,7 +132,7 @@ class EventHeader extends React.Component {
   }
 
   _rsvp = (message, status) => {
-    if(this.props.message.calendarStatus() !== status){
+    if (this.props.message.calendarStatus() !== status) {
       Actions.RSVPEvent(message, status);
     }
   };

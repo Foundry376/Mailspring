@@ -78,31 +78,35 @@
 
       .btn-rsvp {
         float: left;
-        padding: @spacing-three-quarters @spacing-standard * 1.75 @spacing-three-quarters
-          @spacing-standard * 1.75;
-        line-height: 10px;
-        color: @text-color;
-        border-radius: 3px;
-        background: @background-primary;
-        box-shadow: @standard-shadow;
+        padding: 0 15px;
+        line-height: 30px;
+        color: @accent-primary;
+        border-radius: 15px;
+        border: 1px solid @accent-primary;
+        // background: @background-primary;
+        // box-shadow: @standard-shadow;
         margin: 0 7.5px 0 7.5px;
+        font-weight: bold;
         cursor: pointer;
         &:active {
-          background: transparent;
+          // background: transparent;
         }
 
         &.no {
           background: @color-error;
+          border-color: @color-error;
           color: @white;
         }
 
         &.yes {
           background: @color-success;
+          border-color: @color-success;
           color: @white;
         }
 
         &.maybe {
           background: @gray-light;
+          border-color: @gray-light;
           color: @white;
         }
       }
