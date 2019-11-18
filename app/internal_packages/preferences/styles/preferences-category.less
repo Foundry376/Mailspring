@@ -29,7 +29,7 @@ input.search {
 
 .role-section {
   height: 25px;
-  padding: 3px 0;
+  padding: 2px 0;
   display: flex;
   line-height: 19px;
   &.inbox {
@@ -43,8 +43,10 @@ input.search {
     flex: 1;
 
     .btn.dropdown-menu {
-      border: 0.5px solid rgba(0, 0, 0, 0.075);
-      border-radius: 0;
+      border: 1px solid @dropdown-default-border-color;
+      color: @dropdown-default-text-color;
+      background: @dropdown-default-bg-color;
+      border-radius: 5px;
       box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.1);
       vertical-align: top;
       .content-container {
