@@ -171,7 +171,7 @@ class BlockedSenders extends React.Component {
                   key="email-avatar"
                   account={{ name: blocked.name, email: blocked.email }}
                 />
-                <span>{blocked.name}</span>
+                {blocked.name ? <span>{blocked.name}</span> : null}
                 {blocked.email}
                 <span className="unblockBtn" onClick={() => this._unBlockItem(blocked.email)}>
                   Unblock
