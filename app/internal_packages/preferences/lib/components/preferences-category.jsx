@@ -23,6 +23,14 @@ export default class PreferencesCategory extends React.Component {
     });
   }
 
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    if (nextProps.account !== this.props.account) {
+      const states = this._getStateFromStores(nextProps.account);
+      states.old_assignments = states.assignments;
+      this.setState(states);
+    }
+  }
+
   componentWillUnmount() {
     if (this._unlisten) {
       this._unlisten();

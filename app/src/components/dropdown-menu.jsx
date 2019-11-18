@@ -97,11 +97,7 @@ export default class DropdownMenu extends React.Component {
           }}
         >
           {this.props.itemContent(this.state.currentSelection)}
-          <RetinaImg
-            style={{ marginLeft: 5 }}
-            name="dropdown-chevron.png"
-            mode={RetinaImg.Mode.ContentDark}
-          />
+          <select style={{ border: 'none' }}></select>
         </div>
         <div style={dropdownContainerStyles}>{dropdown}</div>
       </div>

@@ -63,7 +63,13 @@ class PreferencesAccountList extends Component {
 
     const footer = (
       <div className="btn-primary buttons-add" onClick={this.props.onAddAccount}>
-        +&nbsp;&nbsp;&nbsp;&nbsp;Add Account
+        <RetinaImg
+          name={`add.svg`}
+          style={{ width: 19, height: 19 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
+        Add Account
       </div>
     );
     return (
