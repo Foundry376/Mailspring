@@ -44,6 +44,24 @@ if (process.platform === 'darwin') {
   // vertical, not horizontal, behavior.
 }
 
+function bufferANumber(num, range) {
+  if (range === 0) {
+    return num;
+  } else if (range > 0) {
+    if (num < 0) {
+      return Math.min(0, num + range);
+    } else {
+      return Math.max(0, num - range);
+    }
+  } else {
+    if (num < 0) {
+      return num + range;
+    } else {
+      return num - range;
+    }
+  }
+}
+
 export default class SwipeContainer extends React.Component {
   static displayName = 'SwipeContainer';
 
@@ -55,7 +73,7 @@ export default class SwipeContainer extends React.Component {
     onSwipeRight: PropTypes.func,
     onSwipeRightClass: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
     onSwipeCenter: PropTypes.func,
-    move_folder_el: PropTypes.object
+    move_folder_el: PropTypes.object,
   };
 
   static defaultProps = {
@@ -71,6 +89,7 @@ export default class SwipeContainer extends React.Component {
     this.phase = Phase.None;
     this.fired = false;
     this.isEnabled = null;
+    this.swipeBufferX = 50;
     this.state = {
       fullDistance: 'unknown',
       currentX: 0,
@@ -163,7 +182,7 @@ export default class SwipeContainer extends React.Component {
 
     const clipToMax = v => Math.max(-fullDistance, Math.min(fullDistance, v));
     const currentX = clipToMax(this.state.currentX + velocityX);
-    const estimatedSettleX = clipToMax(currentX + velocityX * 8);
+    const estimatedSettleX = clipToMax(bufferANumber(currentX, this.swipeBufferX) + velocityX * 8);
     const lastDragX = currentX;
     let targetX = 0;
 
@@ -190,7 +209,7 @@ export default class SwipeContainer extends React.Component {
     let swipeStep = 0;
     if (targetX) {
       swipeStep = 1;
-      if (Math.abs(currentX) > thresholdDistance * 2) {
+      if (Math.abs(bufferANumber(currentX, this.swipeBufferX)) > thresholdDistance * 2) {
         swipeStep = 2;
       }
     }
@@ -312,7 +331,8 @@ export default class SwipeContainer extends React.Component {
     currentX = lastDragX + SpringBounceFunction(f) * (targetX - lastDragX);
 
     const shouldFinish = f >= 1.0;
-    const mostlyFinished = Math.abs(currentX) / Math.abs(targetX) > 0.8;
+    const mostlyFinished =
+      Math.abs(bufferANumber(currentX, this.swipeBufferX)) / Math.abs(targetX) > 0.8;
     const shouldFire =
       mostlyFinished && this.fired === false && this.trackingInitialTargetX !== targetX;
 
@@ -343,12 +363,13 @@ export default class SwipeContainer extends React.Component {
 
   render() {
     const { currentX, targetX, swipeStep } = this.state;
+    const currentBufferX = bufferANumber(currentX, this.swipeBufferX);
     const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
     const backingStyles = { top: 0, bottom: 0, position: 'absolute' };
     let backingClass = 'swipe-backing';
 
     let isConfirmed = false;
-    if (currentX < 0 && this.trackingInitialTargetX <= 0) {
+    if (currentBufferX < 0 && this.trackingInitialTargetX <= 0) {
       const { onSwipeLeftClass } = this.props;
       const swipeLeftClass = _.isFunction(onSwipeLeftClass)
         ? onSwipeLeftClass(swipeStep)
@@ -356,12 +377,12 @@ export default class SwipeContainer extends React.Component {
 
       backingClass += ` swipe-left ${swipeLeftClass}`;
       backingStyles.right = 0;
-      backingStyles.width = -currentX + 1;
+      backingStyles.width = -currentBufferX + 1;
       if (targetX < 0) {
         backingClass += ' confirmed';
         isConfirmed = true;
       }
-    } else if (currentX > 0 && this.trackingInitialTargetX >= 0) {
+    } else if (currentBufferX > 0 && this.trackingInitialTargetX >= 0) {
       const { onSwipeRightClass } = this.props;
       let swipeRightClass = _.isFunction(onSwipeRightClass)
         ? onSwipeRightClass(swipeStep)
@@ -369,7 +390,7 @@ export default class SwipeContainer extends React.Component {
 
       backingClass += ` swipe-right ${swipeRightClass}`;
       backingStyles.left = 0;
-      backingStyles.width = currentX + 1;
+      backingStyles.width = currentBufferX + 1;
       if (targetX > 0) {
         backingClass += ' confirmed';
         isConfirmed = true;
@@ -391,7 +412,9 @@ export default class SwipeContainer extends React.Component {
             ? move_folder_el
             : null}
         </div>
-        <div style={{ transform: `translate3d(${currentX}px, 0, 0)` }}>{this.props.children}</div>
+        <div style={{ transform: `translate3d(${currentBufferX}px, 0, 0)` }}>
+          {this.props.children}
+        </div>
       </div>
     );
   }
