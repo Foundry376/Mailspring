@@ -57,9 +57,9 @@ class AccountSidebar extends React.Component {
     return this.unsubscribers.map(unsubscribe => unsubscribe());
   }
 
-  _onStoreChange = (cb = () => {}) => {
+  _onStoreChange = () => {
     if (this._mounted) {
-      return this.setState(this._getStateFromStores(), cb);
+      return this.setState(this._getStateFromStores());
     }
   };
 
