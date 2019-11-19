@@ -126,11 +126,11 @@ export default class ModelQuery {
     Object.keys(this._range).forEach(key => (q._range[key] = this._range[key].clone()));
     q._background = this._background;
     q._backgroundable = this._backgroundable;
-    q._distinct = this._distinct;
-    q._returnOne = this._returnOne;
-    q._returnIds = this._returnIds;
-    q._count = this._count;
-    q._crossDB = Object.assign({}, this._crossDB);
+    q._distinct = Object.assign({}, this._distinct);
+    q._returnOne = Object.assign({}, this._returnOne);
+    q._returnIds = Object.assign({}, this._returnIds);
+    q._count = Object.assign({}, this._count);
+    q._crossDB = Object.assign({}, JSON.parse(JSON.stringify(this._crossDB)));
     return q;
   }
 
@@ -357,6 +357,9 @@ export default class ModelQuery {
     this._assertNotFinalized(dbKey);
     this._count[dbKey] = true;
     return this;
+  }
+  isIdsOnly(dbKey = 'main'){
+    return this._returnIds[dbKey];
   }
 
   idsOnly(dbKey = 'main') {

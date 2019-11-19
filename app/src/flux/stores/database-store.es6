@@ -590,14 +590,12 @@ class DatabaseStore extends MailspringStore {
       let transformed = modelQuery.inflateResult(result);
       const crossDBs = modelQuery.crossDBs();
       const auxDBQueries = Object.keys(crossDBs);
-      if(auxDBQueries.length === 0){
+      if(auxDBQueries.length === 0 || modelQuery.isIdsOnly()){
         if (options.format !== false) {
           transformed = modelQuery.formatResult(transformed);
         }
-        console.log('no auxDB query needed, returning results');
         return Promise.resolve(transformed);
       } else {
-        console.log(`requesting additional aux db queries`);
         const promises = [];
         for (let auxDBKey of auxDBQueries) {
           promises.push(

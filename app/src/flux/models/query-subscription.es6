@@ -266,6 +266,10 @@ export default class QuerySubscription {
   }
 
   _fetchMissingModels() {
+    if(!Array.isArray(this._set.ids())){
+      console.error(`ids not array`);
+      return Promise.resolve([]);
+    }
     const missingIds = this._set.ids().filter(id => !this._set.modelWithId(id));
     if (missingIds.length === 0) {
       return Promise.resolve([]);
