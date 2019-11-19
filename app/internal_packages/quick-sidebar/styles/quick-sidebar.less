@@ -1,6 +1,6 @@
 @import 'ui-variables';
 
-@token-color: @accent-primary;
+@token-color: @gray-light;
 @search-bar-height: 40px;
 
 .column-QuickSidebar {
@@ -15,24 +15,25 @@
   overflow: visible;
   z-index: 99;
   height: @search-bar-height;
-  width: 90%;
+  width: 380px;
   position: absolute;
   right: 20px;
   background: @input-search-bg;
-  color: @medium-grey;
+  color: @gray-light;
   top: (68px - @search-bar-height) / 2;
-  padding-left: @padding-xs-horizontal;
-  padding-right: @padding-xs-horizontal;
+  padding-left: 7px;
+  padding-right: 7px;
   border-radius: 8px;
   display: flex;
   align-items: center;
+  font-size: 14px;
   &:focus {
     border: 0;
     box-shadow: 0 0 2px darken(@input-border-color, 20%);
   }
   &.placeholder {
     .tokenizing-contenteditable .layer-tokens {
-      color: @text-color-very-subtle;
+      color: @token-color;
     }
   }
   .search-accessory {
@@ -45,7 +46,7 @@
       background-color: @gray-light;
     }
     &.search {
-      margin-left: 6px;
+      // margin-left: 6px;
     }
     &.clear {
       background: @gray-light;
