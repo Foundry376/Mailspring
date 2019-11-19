@@ -266,7 +266,12 @@ class MessageStore extends MailspringStore {
       const inDisplayedThread = change.objects.some(obj => obj.threadId === this._thread.id);
       if (!inDisplayedThread) return;
 
-      if (change.objects.length === 1 && change.objects[0].draft === true && !change.objects[0].calendarReply) {
+      if (
+        change.objects.length === 1 &&
+        change.objects[0].draft === true &&
+        !change.objects[0].calendarReply &&
+        !change.objects[0].ignoreSift
+      ) {
         const item = change.objects[0];
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 

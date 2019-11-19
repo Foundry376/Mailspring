@@ -447,16 +447,16 @@ export default class Application extends EventEmitter {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function () {
+      output.on('close', function() {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function () {
+      output.on('end', function() {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function (err) {
+      archive.on('warning', function(err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -465,7 +465,7 @@ export default class Application extends EventEmitter {
           reject(err);
         }
       });
-      archive.on('error', function (err) {
+      archive.on('error', function(err) {
         output.close();
         console.log(err);
         reject(err);
@@ -547,8 +547,7 @@ export default class Application extends EventEmitter {
   // we close windows and log out, we need to wait for these processes to completely
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
-  deleteFileWithRetry(filePath, callback = () => { }, retries = 5) {
-
+  deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
     glob(filePath, (err, files) => {
       if (err) {
         return;
@@ -593,7 +592,7 @@ export default class Application extends EventEmitter {
     });
   }
 
-  renameFileWithRetry(filePath, newPath, callback = () => { }, retries = 5) {
+  renameFileWithRetry(filePath, newPath, callback = () => {}, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -659,16 +658,18 @@ export default class Application extends EventEmitter {
     };
     if (errorMessage) {
       rebuild = true;
-      dialog.showMessageBox({
-        type: 'warning',
-        buttons: ['Okay'],
-        message: `We encountered a problem with your local email database. We will now attempt to rebuild it.`,
-        detail: errorMessage,
-      }).then(() => {
-        console.log('deleting databases and destroying all windows');
-        this.windowManager.destroyAllWindows();
-        this._deleteDatabase(done, rebuild);
-      });
+      dialog
+        .showMessageBox({
+          type: 'warning',
+          buttons: ['Okay'],
+          message: `We encountered a problem with your local email database. We will now attempt to rebuild it.`,
+          detail: errorMessage,
+        })
+        .then(() => {
+          console.log('deleting databases and destroying all windows');
+          this.windowManager.destroyAllWindows();
+          this._deleteDatabase(done, rebuild);
+        });
       return;
     }
     console.log('deleting databases and destroying all windows');
@@ -681,15 +682,17 @@ export default class Application extends EventEmitter {
       return;
     }
     this.isShown = true;
-    dialog.showMessageBox({
-      type: 'warning',
-      buttons: ['Okay'],
-      message: `We encountered a problem with your local email database. The app will relaunch.`,
-      detail: '',
-    }).then(() => {
-      app.relaunch();
-      app.quit();
-    });
+    dialog
+      .showMessageBox({
+        type: 'warning',
+        buttons: ['Okay'],
+        message: `We encountered a problem with your local email database. The app will relaunch.`,
+        detail: '',
+      })
+      .then(() => {
+        app.relaunch();
+        app.quit();
+      });
   };
 
   _deleteDatabase = (callback, rebuild) => {
@@ -716,7 +719,7 @@ export default class Application extends EventEmitter {
                 execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
                   cwd: this.configDirPath,
                 });
-                fs.unlink(path.join(this.configDirPath, sqlPath), () => { });
+                fs.unlink(path.join(this.configDirPath, sqlPath), () => {});
               } else {
                 // TODO in windows
                 console.warn('in this system does not implement yet');
@@ -747,8 +750,8 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:run-package-specs', () => {
-      dialog.showOpenDialog(
-        {
+      dialog
+        .showOpenDialog({
           title: 'Choose a Package Directory',
           defaultPath: this.configDirPath,
           buttonLabel: 'Choose',
@@ -1257,18 +1260,20 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;
-      dialog.showMessageBox({
-        type: 'warning',
-        buttons: ['Reset Theme', 'Continue'],
-        defaultId: 0,
-        message,
-        detail,
-      }).then(({ response }) => {
-        if (response === 0) {
-          userResetTheme = true;
-          this.config.set('core.theme', '');
-        }
-      });
+      dialog
+        .showMessageBox({
+          type: 'warning',
+          buttons: ['Reset Theme', 'Continue'],
+          defaultId: 0,
+          message,
+          detail,
+        })
+        .then(({ response }) => {
+          if (response === 0) {
+            userResetTheme = true;
+            this.config.set('core.theme', '');
+          }
+        });
     });
 
     ipcMain.on('inline-style-parse', (event, { html, key }) => {
@@ -1290,6 +1295,10 @@ export default class Application extends EventEmitter {
     app.on('activate', (event, hasVisibleWindows) => {
       if (!hasVisibleWindows) {
         this.openWindowsForTokenState();
+      }
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('application-activate');
       }
       event.preventDefault();
     });

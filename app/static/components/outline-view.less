@@ -27,7 +27,7 @@
   .sidebar-divider {
     height: 1px;
     background-color: @border-color-divider;
-    margin: 10px 0 10px 27px;
+    margin: 10px 0 10px 30px;
   }
 
   .heading {
@@ -161,7 +161,7 @@
     }
     .name {
       order: 2;
-      padding-left: 14px;
+      padding-left: 13px;
       overflow: hidden;
       text-overflow: ellipsis;
       color: @text-color;
@@ -241,5 +241,26 @@
     // &:hover {
     //   cursor: default;
     // }
+  }
+
+  &.icon-only {
+    .item {
+      .name {
+        display: none;
+      }
+      .icon {
+        display: block;
+      }
+    }
+  }
+  &.name-only {
+    .item {
+      .name {
+        display: block;
+      }
+      .icon {
+        display: none;
+      }
+    }
   }
 }

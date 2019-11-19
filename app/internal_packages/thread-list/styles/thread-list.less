@@ -285,6 +285,7 @@ input:focus {
   .list-item {
     background-color: @list-bg;
     line-height: 55px;
+    backface-visibility: hidden;
   }
 
   .mail-important-icon {
@@ -644,8 +645,13 @@ body.platform-win32 {
 
 .sift-list .list-item.focused:hover .list-column-HoverActions .inner,
 .outbox-list .list-item.focused:hover .list-column-HoverActions .inner,
-.thread-list .list-item.focused:hover .list-column-HoverActions .inner{
-  background-image: -webkit-linear-gradient(left, fade(@list-focused-bg, 0%) 0%, @list-focused-bg 50%, @list-focused-bg 100%) !important;
+.thread-list .list-item.focused:hover .list-column-HoverActions .inner {
+  background-image: -webkit-linear-gradient(
+    left,
+    fade(@list-focused-bg, 0%) 0%,
+    @list-focused-bg 50%,
+    @list-focused-bg 100%
+  ) !important;
   .action.action-snooze {
     background: url(@snooze-img) center no-repeat;
   }
@@ -661,7 +667,7 @@ body.platform-win32 {
 .mode-split {
   .sift-list .list-item .thread-icon-none,
   .outbox-list .list-item .thread-icon-none,
-  .thread-list .list-item .thread-icon-none{
+  .thread-list .list-item .thread-icon-none {
     width: 0;
     height: 0;
     // transition-duration: 0.4s;

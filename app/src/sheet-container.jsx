@@ -1,6 +1,7 @@
 import React from 'react';
+import { ipcRenderer } from 'electron';
 import { CSSTransitionGroup } from 'react-transition-group';
-import { WorkspaceStore } from 'mailspring-exports';
+import { WorkspaceStore, BlockedSendersStore } from 'mailspring-exports';
 
 import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
@@ -17,6 +18,7 @@ export default class SheetContainer extends React.Component {
   }
 
   componentDidMount() {
+    ipcRenderer.on('application-activate', this._onAppActive);
     this.unsubscribe = WorkspaceStore.listen(this._onStoreChange);
   }
 
@@ -28,6 +30,7 @@ export default class SheetContainer extends React.Component {
   }
 
   componentWillUnmount() {
+    ipcRenderer.removeListener('application-activate', this._onAppActive);
     if (this.unsubscribe) {
       this.unsubscribe();
     }
@@ -52,6 +55,10 @@ export default class SheetContainer extends React.Component {
     this.setState(this._getStateFromStores(), () => {
       this._onColumnSizeChanged();
     });
+  };
+
+  _onAppActive = () => {
+    BlockedSendersStore.syncBlockedSenders();
   };
 
   _toolbarContainerElement() {

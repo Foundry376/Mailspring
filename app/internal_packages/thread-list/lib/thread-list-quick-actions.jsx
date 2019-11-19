@@ -95,9 +95,21 @@ class ThreadTrashQuickAction extends React.Component {
   static propTypes = { thread: PropTypes.object };
 
   render() {
+    const canExpungeThread = FocusedPerspectiveStore.current().canExpungeThreads();
+    if (canExpungeThread) {
+      return <div
+        key="remove"
+        title="Expunge"
+        style={{ order: 110 }}
+        className="action action-trash"
+        onClick={this._onExpunge}
+      >
+        <RetinaImg name="trash.svg" style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+      </div>;
+    }
     let allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
       [this.props.thread],
-      'trash'
+      'trash',
     );
     const folders = this.props.thread && this.props.thread.folders;
     const labels = this.props.thread && this.props.thread.labels;
@@ -109,7 +121,7 @@ class ThreadTrashQuickAction extends React.Component {
       }
     }
     if (!allowed) {
-      return <span />;
+      return <span/>;
     }
 
     return (
@@ -120,7 +132,7 @@ class ThreadTrashQuickAction extends React.Component {
         className="action action-trash"
         onClick={this._onRemove}
       >
-        <RetinaImg name="trash.svg" style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg name="trash.svg" style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
       </div>
     );
   }
@@ -128,6 +140,18 @@ class ThreadTrashQuickAction extends React.Component {
   shouldComponentUpdate(newProps, newState) {
     return newProps.thread.id !== (this.props != null ? this.props.thread.id : undefined);
   }
+
+  _onExpunge = event => {
+    const tasks = TaskFactory.tasksForExpungingThreadsOrMessages({
+      threads: [this.props.thread],
+      source: 'Quick Actions: Thread List: Expunge',
+    });
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      Actions.queueTasks(tasks);
+    }
+    // Don't trigger the thread row click
+    event.stopPropagation();
+  };
 
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({

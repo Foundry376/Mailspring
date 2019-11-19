@@ -40,6 +40,10 @@ export function activate() {
       modes: ['list'],
       role: 'ThreadActionsToolbarButtonEmpty',
     });
+
+    ComponentRegistry.register(MailActionsPopoutButtons, {
+      role: 'MailActionsToolbarButton',
+    });
   }
   ComponentRegistry.register(MessageListToolbar, {
     role: 'MessageListToolbar',
@@ -48,9 +52,6 @@ export function activate() {
     role: 'ThreadListToolbarButtons',
   });
   ComponentRegistry.register(MailActionsButtons, {
-    role: 'MailActionsToolbarButton',
-  });
-  ComponentRegistry.register(MailActionsPopoutButtons, {
     role: 'MailActionsToolbarButton',
   });
 }

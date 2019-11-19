@@ -17,8 +17,13 @@
     outline: none;
     box-shadow: none;
     background: transparent;
-
-    &::placeholder {
+    height: 100%;
+    padding-left: 5px;
+    font-size: 14px;
+    &::input-placeholder {
+      color: @gray-light;
+    }
+    &::-webkit-input-placeholder {
       color: @gray-light;
     }
   }

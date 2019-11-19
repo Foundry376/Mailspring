@@ -18,6 +18,9 @@ import CancelOutboxDraftTask from './cancel-outbox-draft-task';
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
     const byAccount = {};
+    if (!threads) {
+      return [];
+    }
     threads.forEach(thread => {
       if (!(thread instanceof Thread)) {
         throw new Error('tasksForApplyingCategories: `threads` must be instances of Thread');

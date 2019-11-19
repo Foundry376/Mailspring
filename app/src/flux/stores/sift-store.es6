@@ -59,7 +59,7 @@ class SiftStore extends MailspringStore {
   selectionObservable = () => {
     return Rx.Observable.fromListSelection(this);
   };
-  _triggerDattasource = model => {
+  _triggerDatasource = model => {
       Actions.forceDatabaseTrigger(
         new DatabaseChangeRecord({
           type: 'unpersist',
@@ -69,12 +69,12 @@ class SiftStore extends MailspringStore {
       );
   };
   _forceDataSourceTrigger = ({ source = '', index = -1 }) => {
-    console.log(`${source} force datasource trigger index: ${index}`);
     if (this._dataSource && !this._dataSource.empty()) {
       const mockMessage = this._dataSource.get(index === -1 ? 0 : index);
       mockMessage.date = Date.now();
       mockMessage.siftData = [];
-      this._triggerDattasource(mockMessage);
+      mockMessage.ignoreSift = true;
+      this._triggerDatasource(mockMessage);
     }
   };
 
