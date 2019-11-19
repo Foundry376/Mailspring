@@ -133,7 +133,7 @@ class DraftStore extends MailspringStore {
     ]);
   }
   findFailedByHeaderMessageIdWithBody({ headerMessageId }) {
-    return this.findFailedByHeaderMessageId({ headerMessageId });
+    return this.findFailedByHeaderMessageId({ headerMessageId }).linkDB(Message.attributes.body);
   }
 
   findByHeaderMessageIdWithBody({ headerMessageId }) {

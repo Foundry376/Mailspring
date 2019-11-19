@@ -125,11 +125,11 @@ export default class QuerySubscription {
           const itemIsInSet = offset !== -1;
           const itemShouldBeInSet = item.matches(this._query.matchers());
           // DC-393 we have to force full update, because thread.data is no longer reliable.
-          if (item instanceof Thread && itemIsInSet) {
-            unknownImpacts += 1;
-            this._set = null;
-            return;
-          }
+          // if (item instanceof Thread && itemIsInSet) {
+          //   unknownImpacts += 1;
+          //   this._set = null;
+          //   return;
+          // }
           if (itemIsInSet && !itemShouldBeInSet) {
             this._set.removeModelAtOffset(item, offset);
             unknownImpacts += 1;
@@ -219,12 +219,10 @@ export default class QuerySubscription {
     let rangeQuery = null;
     if (!range.isInfinite()) {
       rangeQuery = rangeQuery || this._query.clone();
-      console.log(`query-subscription ${rangeQuery}`);
       rangeQuery.offset(range.offset).limit(range.limit);
     }
     if (!fetchEntireModels) {
       rangeQuery = rangeQuery || this._query.clone();
-      console.log(`no fetch entire models ${rangeQuery}`);
       rangeQuery.idsOnly();
     }
     rangeQuery = rangeQuery || this._query;

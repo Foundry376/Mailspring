@@ -589,18 +589,29 @@ class DatabaseStore extends MailspringStore {
     ).then(result => {
       let transformed = modelQuery.inflateResult(result);
       const crossDBs = modelQuery.crossDBs();
+      const links = modelQuery.crossDBLink();
       const auxDBQueries = Object.keys(crossDBs);
-      if(auxDBQueries.length === 0 || modelQuery.isIdsOnly()){
+      if (auxDBQueries.length === 0 || modelQuery.isIdsOnly() || !links.hasLink) {
         if (options.format !== false) {
           transformed = modelQuery.formatResult(transformed);
         }
+        console.log(`no need for aux db query`);
         return Promise.resolve(transformed);
       } else {
         const promises = [];
         for (let auxDBKey of auxDBQueries) {
-          promises.push(
-            this._query(modelQuery.sql(auxDBKey), [], modelQuery._background, crossDBs[auxDBKey].db)
-          );
+          if (links[auxDBKey]) {
+            promises.push(
+              this._query(
+                modelQuery.sql(auxDBKey),
+                [],
+                modelQuery._background,
+                crossDBs[auxDBKey].db
+              )
+            );
+          } else {
+            console.log(`aux db ${auxDBKey} not linked, ignoring`);
+          }
         }
         return new Promise(resolve => {
           Promise.all(promises).then(rets => {

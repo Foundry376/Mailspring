@@ -61,7 +61,7 @@ export default class ModelQuery {
     this._includeJoinedData = { main: [] };
     this._count = { main: false };
     this._logQueryPlanDebugOutput = true;
-    this._crossDB = { connections: {}, valueCache: {} };
+    this._crossDB = { connections: {}, valueCache: {}, link: { hasLink: false } };
     this._finalized = { main: false };
     this.parseCrossJoinDBs(Object.values(this._klass.main.attributes));
   }
@@ -79,6 +79,9 @@ export default class ModelQuery {
               joinModelKey: attr.joinModelKey,
               joinTableKey: attr.joinTableKey,
             };
+          }
+          if(!this._crossDB.link[key]){
+            this._crossDB.link[key] = false;
           }
           if (!Array.isArray(this._crossDB.valueCache[attr.joinModelKey])) {
             this._crossDB.valueCache[attr.joinModelKey] = [];
@@ -102,9 +105,24 @@ export default class ModelQuery {
       }
     }
   };
+  linkDB(attr) {
+    if (isCrossDBAttr(attr)) {
+      const dbName = attr.joinDBName();
+      for (let key of Object.keys(this._crossDB.connections)) {
+        if (dbName === this._crossDB.connections[key].db) {
+          this._crossDB.link[key] = true;
+          this._crossDB.link.hasLink = true;
+        }
+      }
+    }
+    return this;
+  }
 
   crossDBs() {
     return this._crossDB.connections;
+  }
+  crossDBLink(){
+    return this._crossDB.link;
   }
 
   clone() {
@@ -169,21 +187,16 @@ export default class ModelQuery {
     if (matchers instanceof Matcher) {
       if (isCrossDBAttr(matchers.attr)) {
         this._matchers[matchers.attr.crossDBKey()].push(matchers);
-      // } else if (dbName.length > 0) {
-      //   this._crossDB.matchers[dbName].push(matchers);
       } else {
         this._matchers.main.push(matchers);
       }
     } else if (matchers instanceof Array) {
-      const noneCrossDBMatchers = [];
       for (const m of matchers) {
         if (!(m instanceof Matcher)) {
           throw new Error('You must provide instances of `Matcher`');
         }
         if (isCrossDBAttr(m.attr)) {
           this._matchers[m.attr.crossDBKey()].push(m);
-        // } else if (dbName.length > 0) {
-        //   this._crossDB.matchers[dbName].push(m);
         } else {
           this._matchers.main.push(m);
         }
@@ -192,13 +205,6 @@ export default class ModelQuery {
       // Support a shorthand format of {id: '123', accountId: '123'}
       for (const key of Object.keys(matchers)) {
         const value = matchers[key];
-        // if (dbName.length > 0) {
-        //   if (value instanceof Array) {
-        //     this._crossDB.matchers[dbName].push(attr.in(value));
-        //   } else {
-        //     this._crossDB.matchers[dbName].push(attr.equal(value));
-        //   }
-        // } else {
           const attr = this._klass[dbKey].attributes[key];
           if (!attr) {
             const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${
@@ -215,7 +221,6 @@ export default class ModelQuery {
           } else {
             this._matchers.main.push(attr.equal(value));
           }
-        // }
       }
     }
     return this;
@@ -424,7 +429,7 @@ export default class ModelQuery {
           }
           object[attr.modelKey] = attr.deserialize(object, value);
         }
-        if (dbKey === 'main') {
+        if (dbKey === 'main' && this._crossDB.link.hasLink) {
           for (const modelKey of Object.keys(this._crossDB.valueCache)) {
             if (
               object[modelKey] !== '' ||
@@ -434,7 +439,7 @@ export default class ModelQuery {
               this._crossDB.valueCache[modelKey].push(object[modelKey]);
             }
           }
-        } else {
+        } else if (dbKey !== 'main') {
           const { modelKey, joinModelKey, joinTableKey, columnKey} = this._crossDB.connections[dbKey];
           const replaceObj =
             this._mainDBCache &&

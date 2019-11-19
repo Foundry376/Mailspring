@@ -30,7 +30,7 @@ class OutboxStore extends MailspringStore {
   }
 
   static findAllWithBodyInDescendingOrder() {
-    return OutboxStore.findAllInDescendingOrder();
+    return OutboxStore.findAllInDescendingOrder().linkDB(Message.attributes.body);
   }
 
   constructor() {

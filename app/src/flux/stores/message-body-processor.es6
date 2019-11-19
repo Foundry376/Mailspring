@@ -116,7 +116,9 @@ class MessageBodyProcessor {
     }
 
     const body = await this._process(message);
-    this._addToCache(key, body);
+    if (body.length > 0) {
+      this._addToCache(key, body);
+    }
     return body;
   }
 
@@ -139,7 +141,7 @@ class MessageBodyProcessor {
   }
 
   _process(message) {
-    if (typeof message.body !== 'string') {
+    if (typeof message.body !== 'string' || message.body.length === 0) {
       return Promise.resolve('');
     }
 
