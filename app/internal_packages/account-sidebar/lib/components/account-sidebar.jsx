@@ -53,13 +53,12 @@ class AccountSidebar extends React.Component {
   };
 
   componentWillUnmount() {
-    console.warn('will unmount');
     this._setScrollbarPosition();
     return this.unsubscribers.map(unsubscribe => unsubscribe());
   }
 
   _onStoreChange = (cb = () => {}) => {
-    if(this._mounted){
+    if (this._mounted) {
       return this.setState(this._getStateFromStores(), cb);
     }
   };
