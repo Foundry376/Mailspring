@@ -103,7 +103,7 @@ class SiftList extends React.Component {
     } else {
       columns = SiftListColumns.Narrow;
       additionalClassName = 'sift-list-narrow';
-      itemHeight = 105;
+      itemHeight = 108;
     }
     return (
       <FluxContainer

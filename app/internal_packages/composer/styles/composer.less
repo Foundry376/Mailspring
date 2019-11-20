@@ -444,6 +444,32 @@ body.platform-win32 {
     }
   }
 
+  .btn.btn-toolbar.btn-trash {
+    position: absolute;
+    right: 10px;
+    color: @medium-grey;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    span {
+      display: inline-block;
+      line-height: 24px;
+      position: relative;
+      z-index: 2;
+      padding-left: 4px;
+    }
+    &:hover {
+      &:after {
+        height: 36px;
+        width: 92px;
+        left: 0;
+        border-radius: 18px;
+      }
+    }
+  }
+
   .btn.btn-toolbar.btn-send {
     border-radius: 17px;
     white-space: nowrap;

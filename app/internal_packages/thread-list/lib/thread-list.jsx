@@ -107,7 +107,7 @@ class ThreadList extends React.Component {
       itemHeight = 55;
     } else {
       columns = ThreadListColumns.Narrow;
-      itemHeight = 105;
+      itemHeight = 108;
     }
 
     return (

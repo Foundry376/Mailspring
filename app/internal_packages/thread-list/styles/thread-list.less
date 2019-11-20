@@ -285,7 +285,7 @@ input:focus {
   .list-item {
     background-color: @list-bg;
     line-height: 55px;
-    backface-visibility: hidden;
+    // backface-visibility: hidden;
   }
 
   .mail-important-icon {
@@ -327,7 +327,7 @@ input:focus {
     text-overflow: ellipsis;
     text-align: left;
     overflow: hidden;
-    line-height: 24px;
+    line-height: 18px;
     display: flex;
     align-items: center;
 
@@ -773,12 +773,12 @@ body.platform-win32 {
     flex-direction: column;
     align-items: center;
     .avatar-icon {
-      height: 40px;
-      width: 40px;
+      height: 35px;
+      width: 35px;
       margin: 0 15px;
-      line-height: 40px;
+      line-height: 35px;
       text-align: center;
-      font-size: 24px;
+      font-size: 20px;
       color: @text-color-inverse;
       border-radius: 50%;
     }
@@ -794,7 +794,8 @@ body.platform-win32 {
     .participants-wrapper {
       display: flex;
       align-items: center;
-      min-height: 24px;
+      // min-height: 24px;
+      line-height: 18px;
     }
   }
   .list-tabular-item {
@@ -819,7 +820,7 @@ body.platform-win32 {
     opacity: 1;
   }
   .participants {
-    font-size: @font-size-large;
+    font-size: 15px;
     .participants-inner {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -846,6 +847,8 @@ body.platform-win32 {
     margin-right: @scrollbar-margin;
     padding-right: 26px;
     position: relative;
+    line-height: 19px;
+    margin: 4px 0 2px 0;
     span {
       color: @gray-darker;
     }
@@ -879,8 +882,8 @@ body.platform-win32 {
       opacity: 1;
       color: @medium-grey;
       text-align: left;
-      height: 32px;
-      line-height: @font-size-small + 4px;
+      height: 36px;
+      line-height: 18px;
       margin-right: 4px;
       word-break: break-word;
       white-space: normal;

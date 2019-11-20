@@ -1168,6 +1168,7 @@ export class MailActionsButtons extends React.Component {
 
   componentDidMount() {
     this._getMailActionsConfig();
+    this._unobserveTemplate = AppEnv.config.observe(this._configKey, this._getMailActionsConfig);
   }
 
   _getMailActionsConfig = () => {
@@ -1186,6 +1187,12 @@ export class MailActionsButtons extends React.Component {
 
     this.setState({ actionsList });
   };
+
+  componentWillUnmount() {
+    if (this._unobserveTemplate && typeof this._unobserveTemplate.dispose === 'function') {
+      this._unobserveTemplate.dispose();
+    }
+  }
 
   render() {
     const { actionsList } = this.state;

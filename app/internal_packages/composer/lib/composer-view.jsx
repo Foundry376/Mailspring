@@ -587,6 +587,7 @@ export default class ComposerView extends React.Component {
                       mode={RetinaImg.Mode.ContentIsMask}
                     />
                   )}
+                <span>Delete</span>
               </button>
             </div>
           </div>
