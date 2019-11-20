@@ -72,7 +72,7 @@ class OutboxList extends React.Component {
     }
   };
   render() {
-    const itemHeight = 105;
+    const itemHeight = 108;
     return (
       <FluxContainer
         stores={[OutboxStore]}
