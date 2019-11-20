@@ -20,7 +20,7 @@ const DEBUG_QUERY_PLANS = AppEnv.inDevMode();
 const BASE_RETRY_LOCK_DELAY = 50;
 const MAX_RETRY_LOCK_DELAY = 500;
 export const AuxDBs = {
-  MessageBody: 'edison_message_body.db',
+  MessageBody: 'embody.db',
 };
 
 function trimTo(str, size) {
