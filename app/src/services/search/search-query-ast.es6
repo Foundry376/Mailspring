@@ -74,6 +74,11 @@ class QueryExpression {
   equals(other) {
     throw new Error('Abstract function not implemented!', other);
   }
+  toJSON(){
+    const json = this;
+    json.__cls = this.constructor.name;
+    return json;
+  }
 }
 
 class AndQueryExpression extends QueryExpression {

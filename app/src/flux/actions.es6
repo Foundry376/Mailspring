@@ -598,6 +598,8 @@ class Actions {
   static dataShareOptions = ActionScopeMainWindow;
   static expungeUserData = ActionScopeMainWindow;
   static exportUserData = ActionScopeMainWindow;
+
+  static remoteSearch = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above
