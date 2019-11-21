@@ -55,13 +55,13 @@ class IdentityStore extends MailspringStore {
   }
 
   _fetchAndPollRemoteIdentity() {
-    if (!AppEnv.isMainWindow()) return;
-    setTimeout(() => {
-      this.fetchIdentity();
-    }, 1000);
-    setInterval(() => {
-      this.fetchIdentity();
-    }, 1000 * 60 * 10); // 10 minutes
+    // if (!AppEnv.isMainWindow()) return;
+    // setTimeout(() => {
+    //   this.fetchIdentity();
+    // }, 1000);
+    // setInterval(() => {
+    //   this.fetchIdentity();
+    // }, 1000 * 60 * 10); // 10 minutes
   }
 
   async saveIdentity(identity) {

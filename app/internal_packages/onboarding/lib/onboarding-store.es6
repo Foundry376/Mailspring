@@ -28,7 +28,16 @@ class OnboardingStore extends MailspringStore {
       settings: {},
     });
 
-    if (existingAccountJSON) {
+    const shareCounts = AppEnv.config.get('shareCounts') || 0;
+    if (shareCounts < 5) {
+      if (hasAccounts) {
+        this._pageStack = ['sorry'];
+      }
+      else {
+        this._pageStack = ['login'];
+      }
+    }
+    else if (existingAccountJSON) {
       // Used when re-adding an account after re-connecting, take the user back
       // to the best page with the most details
       this._account = new Account(existingAccountJSON);

@@ -134,10 +134,13 @@ export default class SheetContainer extends React.Component {
       );
     }
 
+    const shareCounts = AppEnv.config.get('shareCounts') || 0;
+    const validClass = AppEnv.isMainWindow() && shareCounts < 5 ? 'not-shared' : '';
+
     return (
       <Flexbox
         direction="column"
-        className={`layout-mode-${this.state.mode}`}
+        className={`layout-mode-${this.state.mode} ${validClass}`}
         style={{ overflow: 'hidden' }}
       >
         {this._toolbarContainerElement()}

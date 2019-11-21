@@ -447,16 +447,16 @@ export default class Application extends EventEmitter {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function() {
+      output.on('close', function () {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function() {
+      output.on('end', function () {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function(err) {
+      archive.on('warning', function (err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -465,7 +465,7 @@ export default class Application extends EventEmitter {
           reject(err);
         }
       });
-      archive.on('error', function(err) {
+      archive.on('error', function (err) {
         output.close();
         console.log(err);
         reject(err);
@@ -547,7 +547,7 @@ export default class Application extends EventEmitter {
   // we close windows and log out, we need to wait for these processes to completely
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
-  deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
+  deleteFileWithRetry(filePath, callback = () => { }, retries = 5) {
     glob(filePath, (err, files) => {
       if (err) {
         return;
@@ -592,7 +592,7 @@ export default class Application extends EventEmitter {
     });
   }
 
-  renameFileWithRetry(filePath, newPath, callback = () => {}, retries = 5) {
+  renameFileWithRetry(filePath, newPath, callback = () => { }, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -638,10 +638,17 @@ export default class Application extends EventEmitter {
     const hasAccount = accounts && accounts.length > 0;
     const hasIdentity = this.config.get('identity.id');
     const agree = this.config.get('agree');
+    const shareCounts = this.config.get('shareCounts') || 0;
 
-    if (hasAccount && hasIdentity && agree) {
+    if (shareCounts < 5) {
+      this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
+        title: 'Welcome to EdisonMail'
+      });
+    }
+    else if (hasAccount && hasIdentity && agree) {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
-    } else {
+    }
+    else {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
         title: 'Welcome to EdisonMail',
       });
@@ -719,7 +726,7 @@ export default class Application extends EventEmitter {
                 execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
                   cwd: this.configDirPath,
                 });
-                fs.unlink(path.join(this.configDirPath, sqlPath), () => {});
+                fs.unlink(path.join(this.configDirPath, sqlPath), () => { });
               } else {
                 // TODO in windows
                 console.warn('in this system does not implement yet');
@@ -830,6 +837,17 @@ export default class Application extends EventEmitter {
         });
       }
     });
+
+    this.on('application:send-share', () => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow) {
+        mainWindow.sendMessage('composeFeedBack', {
+          subject: '',
+          body: "<h1>good good study</h1>"
+        });
+      }
+    });
+
     this.on('application:bug-report', () => {
       const bugReportWindow = this.windowManager.get(WindowManager.BUG_REPORT_WINDOW);
       if (bugReportWindow) {
@@ -1373,6 +1391,14 @@ export default class Application extends EventEmitter {
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
       if (onboarding) {
         onboarding.close();
+      }
+    });
+
+    ipcMain.on('open-main-window-make-onboarding-on-top', () => {
+      this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW, { hidden: true });
+      const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
+      if (onboarding) {
+        onboarding.focus();
       }
     });
 

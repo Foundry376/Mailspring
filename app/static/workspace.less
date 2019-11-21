@@ -75,6 +75,26 @@ mailspring-workspace {
   div[contenteditable] {
     -webkit-app-region: no-drag;
   }
+  &>.not-shared {
+    &>.sheet-toolbar .sheet-toolbar-container::after {
+      content: '';
+      display: block;
+      position: fixed;
+      height: 100%;
+      width: 100%;
+      left: 0;
+      top: 0;
+      background-image: url(../static/images/onboarding/mac-beta-back.jpg);
+      background-size: cover;
+      z-index: 99;
+    }
+    .toolbar-RootSidebar {
+      z-index: 100;
+    }
+    .app-message-toast-container {
+      display: none;
+    }
+  }
 }
 
 .sheet {
