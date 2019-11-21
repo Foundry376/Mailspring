@@ -397,10 +397,10 @@ class MultiselectToolbar extends Component {
           <div className="flex-row">
             <div className="selection-label">{this.selectionLabel()}</div>
             <button className="btn clickable btn-toggle-select-all" onClick={this._selectAll}>
-              Select all ({this._formatNumber(totalCount)})
+              Select All ({this._formatNumber(totalCount)})
             </button>
             <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
-              Clear Selection
+              Cancel
             </button>
           </div>
           {toolbarElement}
