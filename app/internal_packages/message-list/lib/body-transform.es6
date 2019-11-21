@@ -2,7 +2,12 @@ const digit0123 = '\\s*=\\s*[\'"]?(?:(?:0*(?:1|2|3)\\D)|0+\\D)';
 const invisibleReStr = '(?:display\\s*:[\'"]?\\s*none)|(?:visibility\\s*:[\'"]?\\s*hidden)';
 const smallOrInvisible = `(?:(?:width${digit0123})|(?:height${digit0123})|${invisibleReStr})`;
 
+// Dont support double html tag with content
+// 不支持有内容的双标签
 const removeSimpleTagTracker = ['img', 'font', 'bgsound', 'embed', 'iframe', 'frame'];
+
+// Dont support single html tag
+// 不支持单标签
 const removeVideoAudioObjectTracker = ['video', 'audio', 'object'];
 const removeSecurityTag = ['script', 'iframe'];
 
@@ -23,7 +28,7 @@ function tagEnd(tag) {
 }
 
 // Support only single html tag or empty content tag
-// 仅支持单标签和无内容的标签
+// 仅支持单标签或无内容的双标签
 function noEmbedTagsHandle(src, regEx, reRegEx, trackers) {
   let builder = '';
   const patternTag = new RegExp(regEx, 'g');
