@@ -3,7 +3,7 @@ const invisibleReStr = '(?:display\\s*:[\'"]?\\s*none)|(?:visibility\\s*:[\'"]?\
 const smallOrInvisible = `(?:(?:width${digit0123})|(?:height${digit0123})|${invisibleReStr})`;
 
 const removeSimpleTagTracker = ['img', 'font', 'bgsound', 'embed', 'iframe', 'frame'];
-const removeVideoAudioObjectTracker = ['video', 'audio', 'object', 'iframe'];
+const removeVideoAudioObjectTracker = ['video', 'audio', 'object'];
 const removeSecurityTag = ['script', 'iframe'];
 
 function makeTagsReStr(tags) {
@@ -12,14 +12,18 @@ function makeTagsReStr(tags) {
 
 // RegExp "< ... (tag1|tag2|...)"
 function tagBegin(tag) {
-  return `<\\s*(?:${tag})(?!\\w|-)`;
+  const startStr = `<\\s*(${tag})(?!\\w|-)`;
+  return new RegExp(startStr, 'g');
 }
 
 // RegExp "<... / tag ... >"
 function tagEnd(tag) {
-  return `<\\s*/\\s*${tag}\\s*>`;
+  const endStr = `<\\s*/\\s*${tag}\\s*>`;
+  return new RegExp(endStr, 'g');
 }
 
+// Support only single html tag or empty content tag
+// 仅支持单标签和无内容的标签
 function noEmbedTagsHandle(src, regEx, reRegEx, trackers) {
   let builder = '';
   const patternTag = new RegExp(regEx, 'g');
@@ -56,59 +60,57 @@ function noEmbedTagsHandle(src, regEx, reRegEx, trackers) {
   return builder;
 }
 
+// Support only double html tag and it content dont has the same tag for it
+// 仅支持双标签并且它里面没有嵌套和它同类型的标签
 function embedTagsHandle(src, tag, reRegEx, trackers) {
-  const builder = '';
-  const startTag = tagBegin(tag);
-  const endTag = tagEnd(tag);
-  const patternTagStart = new RegExp(startTag);
-  const matcher = src.matchAll(patternTagStart);
-  let currentIndex = 0;
+  let builder = '';
+  const patternTagStart = tagBegin(tag);
+  const matcherStartList = [...src.matchAll(patternTagStart)];
+  let currentStartIndex = 0;
 
-  for (const marchstr of matcher) {
-    const start = marchstr.index;
-    const patternTagEnd = new RegExp(endTag);
-    const tmp = src.substring(start);
-    const matcherEnd = [...tmp.matchAll(patternTagEnd)];
-    const changeLength = src.length - tmp.length;
-    if (matcherEnd.length) {
-      for (const endMatchStr of endMatch) {
-        const rematchStr = endMatchStr[0];
-        const end = endMatchStr.index + rematchStr.length;
-        if (!reRegEx) {
-          if (currentIndex < start) {
-            builder += src.substring(currentIndex, start);
-            trackers.push(src.substring(start, changeLength + end));
-          }
-        } else {
-          const tmpTag = src.substring(start, changeLength + end);
-          const patternAttr = new RegExp(reRegEx, 'g');
-          const invisibleMatch = patternAttr.test(tmpTag);
-          if (invisibleMatch) {
-            if (currentIndex < start) {
-              builder += src.substring(currentIndex, start);
-              trackers.push(src.substring(start, changeLength + end));
-            }
-          } else {
-            builder += src.substring(currentIndex, changeLength + end);
-          }
+  for (let i = 0; i < matcherStartList.length; i++) {
+    const matcherStart = matcherStartList[i];
+    const startIdx = matcherStart.index;
+    if (startIdx < currentStartIndex) {
+      continue;
+    }
+    const matchTagName = matcherStart[1];
+    const patternTagEnd = tagEnd(matchTagName);
+    const tmp = src.substring(startIdx);
+    const matcherEndList = [...tmp.matchAll(patternTagEnd)];
+    const pairMatcherEnd = matcherEndList[0];
+    if (pairMatcherEnd) {
+      const endIdx = pairMatcherEnd.index;
+      const endTagStr = pairMatcherEnd[0];
+      if (reRegEx) {
+        const patternTagAttr = new RegExp(reRegEx);
+        const stopIndex = matcherStartList[i + 1] ? matcherStartList[i + 1].index : endIdx;
+        const testStr = src.substring(startIdx, stopIndex);
+        const testResult = patternTagAttr.test(testStr);
+        if (testResult) {
+          const nextCurrentStartIndex = startIdx + endIdx + endTagStr.length;
+          builder = builder + src.substring(currentStartIndex, startIdx);
+          trackers.push(src.substring(startIdx, nextCurrentStartIndex));
+          currentStartIndex = nextCurrentStartIndex;
         }
+      } else {
+        const nextCurrentStartIndex = startIdx + endIdx + endTagStr.length;
+        builder = builder + src.substring(currentStartIndex, startIdx);
+        trackers.push(src.substring(startIdx, nextCurrentStartIndex));
+        currentStartIndex = nextCurrentStartIndex;
       }
-      currentIndex = changeLength + end;
-    } else {
-      builder += src.substring(currentIndex, start);
-      currentIndex = start;
     }
   }
 
-  if (currentIndex == 0) {
+  if (currentStartIndex == 0) {
     return src;
   } else {
-    builder += src.substring(currentIndex);
+    builder += src.substring(currentStartIndex);
   }
-  return builder.toString();
+  return builder;
 }
 
-export function removeTrackers(src) {
+module.exports.removeTrackers = function removeTrackers(src) {
   const trackers = [];
 
   if (!src) {
@@ -119,4 +121,4 @@ export function removeTrackers(src) {
   tmp = noEmbedTagsHandle(tmp, makeTagsReStr(removeSimpleTagTracker), smallOrInvisible, trackers);
   tmp = embedTagsHandle(tmp, removeVideoAudioObjectTracker.join('|'), smallOrInvisible, trackers);
   return { body: tmp, trackers };
-}
+};
