@@ -13,6 +13,7 @@ import EmailFrameStylesStore from './email-frame-styles-store';
 import { shell } from 'electron';
 import fs from 'fs';
 import sharp from 'sharp';
+import { removeTrackers } from './body-transform';
 
 export default class EmailFrame extends React.Component {
   static displayName = 'EmailFrame';
@@ -21,6 +22,7 @@ export default class EmailFrame extends React.Component {
     content: PropTypes.string.isRequired,
     message: PropTypes.object,
     showQuotedText: PropTypes.bool,
+    setTrackers: PropTypes.func,
   };
 
   componentDidMount() {
@@ -70,11 +72,16 @@ export default class EmailFrame extends React.Component {
   }
 
   _emailContent = (isPlainBody = false) => {
+    // del tracking element
+    const { body, trackers } = removeTrackers(this.props.content);
+    if (this.props.setTrackers && typeof this.props.setTrackers === 'function') {
+      this.props.setTrackers(trackers);
+    }
     // When showing quoted text, always return the pure content
     if (this.props.showQuotedText || isPlainBody) {
-      return this.props.content;
+      return body;
     }
-    return QuotedHTMLTransformer.removeQuotedHTML(this.props.content, {
+    return QuotedHTMLTransformer.removeQuotedHTML(body, {
       keepIfWholeBodyIsQuote: true,
     });
   };
@@ -283,23 +290,25 @@ export default class EmailFrame extends React.Component {
     };
   };
 
-  RGBColor = (s) => {
+  RGBColor = s => {
     s = s.split('(')[1];
     const ns = s.substring(0, s.length - 1).split(',');
     return ns.map(n => +n.trim());
-  }
+  };
 
   reversedColor = (r, g, b, prop) => {
     var isBackground = prop == 'background-color';
     //if color is dark or bright (http://alienryderflex.com/hsp.html)
     var hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
-    if (hsp < 130 && !isBackground) { //foreground dark color
+    if (hsp < 130 && !isBackground) {
+      //foreground dark color
       var delta = 255 - hsp;
       var nr = Math.min(r + delta, 234);
       var ng = Math.min(g + delta, 234);
       var nb = Math.min(b + delta, 234);
       return 'rgb(' + nr + ',' + ng + ', ' + nb + ')';
-    } else if (hsp > 200 && isBackground) { //bg color brighter than #cccccc
+    } else if (hsp > 200 && isBackground) {
+      //bg color brighter than #cccccc
       var nr = Math.max(r - hsp, 27);
       var ng = Math.max(g - hsp, 28);
       var nb = Math.max(b - hsp, 30);
@@ -307,33 +316,35 @@ export default class EmailFrame extends React.Component {
     } else {
       return this.desatruate(r, g, b);
     }
-  }
+  };
 
   desatruate = (r, g, b) => {
-    var gray = r * 0.3086 + g * 0.6094 + b * 0.0820;
+    var gray = r * 0.3086 + g * 0.6094 + b * 0.082;
     var sat = 0.8; //80%
     var nr = Math.round(r * sat + gray * (1 - sat));
     var ng = Math.round(g * sat + gray * (1 - sat));
     var nb = Math.round(b * sat + gray * (1 - sat));
     return 'rgb(' + nr + ',' + ng + ', ' + nb + ')';
-  }
+  };
 
   applyDarkMode = doc => {
     var colorProperties = ['color', 'background-color'];
-    Array.from(doc.querySelectorAll('*')).reverse().forEach(node => {
-      for (var prop in colorProperties) {
-        var style = window.getComputedStyle(node, null);
-        prop = colorProperties[prop];
+    Array.from(doc.querySelectorAll('*'))
+      .reverse()
+      .forEach(node => {
+        for (var prop in colorProperties) {
+          var style = window.getComputedStyle(node, null);
+          prop = colorProperties[prop];
 
-        if (!style[prop]) continue;
+          if (!style[prop]) continue;
 
-        const [r, g, b, a] = this.RGBColor(style[prop]);
-        if (a == 0) continue; //transparent;
+          const [r, g, b, a] = this.RGBColor(style[prop]);
+          if (a == 0) continue; //transparent;
 
-        node.style.setProperty(prop, this.reversedColor(r, g, b, prop), 'important');
-      }
-    });
-  }
+          node.style.setProperty(prop, this.reversedColor(r, g, b, prop), 'important');
+        }
+      });
+  };
 
   render() {
     return (
