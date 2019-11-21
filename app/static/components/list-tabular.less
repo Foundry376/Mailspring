@@ -61,11 +61,12 @@
     // border-bottom: 1px solid @border-color-primary;
     // border-right: 1px solid @border-color-divider;
     box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
-    background-color: @background-primary;
+    background-color: @blue;
     transition: opacity 0.2s ease-in-out, box-shadow 0.5s;
     display: flex;
     justify-content: center;
     flex-direction: column;
+
     &:hover {
       box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
     }
@@ -91,7 +92,7 @@
       -webkit-app-region: no-drag;
       transition: top 0.2s ease-in-out;
       white-space: nowrap;
-      padding: 11px;
+      padding: 11px 15px;
 
       .flex-row {
         display: flex;
@@ -164,7 +165,7 @@
       .selection-label {
         line-height: 22px;
         padding-right: 10px;
-        color: @gray;
+        color: @text-color-inverse;
       }
 
       .updated-time {
@@ -181,10 +182,10 @@
         margin-left: 11px;
         height: 30px;
         border-radius: 11px;
-        background: @off-white;
-        padding: 0 12px;
+        background: fade(@off-white, 13);
+        color: @text-color-inverse;
+        min-width: 110px;
         box-shadow: none;
-        color: @blue;
       }
 
       .button-group.move-picker {
@@ -206,9 +207,10 @@
           }
         }
         img.content-mask {
-          background-color: @gray;
+          background-color: @text-color-inverse;
           position: relative;
           z-index: 2;
+          transition: background-color 0.4s;
         }
         &.btn-selection-filter {
           position: absolute;
@@ -230,12 +232,16 @@
           }
         }
         &:hover {
+          img.content-mask {
+            background-color: @gray-light;
+          }
           &:after {
             content: '';
             height: 32px;
             width: 32px;
             border-radius: 50%;
-            background: @icon-hover-bg-color;
+            // background: @icon-hover-bg-color;
+            background: @off-white;
             display: block;
             position: absolute;
             top: -3px;
@@ -472,6 +478,13 @@
       align-items: center;
       &:last-child {
         text-align: right;
+      }
+    }
+
+    .list-column-Avatar {
+      padding-right: 0;
+      .avatar-icon {
+        margin-right: 14px;
       }
     }
 
