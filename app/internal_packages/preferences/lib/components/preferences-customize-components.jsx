@@ -43,7 +43,7 @@ export class CustomizeQuickActions extends React.Component {
         <div className="quick-action-preview">
           <RetinaImg
             style={{ width: 500 }}
-            name={`prefs-quick-actions.png`}
+            name={`prefs-quick-actions${AppEnv.isDarkTheme() ? '_dark' : ''}.png`}
             mode={RetinaImg.Mode.ContentPreserve}
           />
           {this._renderActionIcon(1)}
@@ -117,7 +117,7 @@ export class CustomizeSwipeActions extends React.Component {
         <div className="swipe-action-preview">
           <RetinaImg
             style={{ width: 500 }}
-            name={`prefs-swipe-colors.png`}
+            name={`prefs-swipe-colors${AppEnv.isDarkTheme() ? '_dark' : ''}.png`}
             mode={RetinaImg.Mode.ContentPreserve}
           />
           {this._renderActionColor('leftShortAction')}
@@ -190,7 +190,7 @@ export class CustomizeEmailActions extends React.Component {
         <div className="email-action-preview">
           <RetinaImg
             style={{ width: 500 }}
-            name={`prefs-email-actions.png`}
+            name={`prefs-email-actions${AppEnv.isDarkTheme() ? '_dark' : ''}.png`}
             mode={RetinaImg.Mode.ContentPreserve}
           />
           {this._renderActionIcon(1)}
