@@ -57,6 +57,8 @@ export class Notifier {
       // ensure the message is not a loopback
       const account = msg.from[0] && AccountStore.accountForEmail(msg.from[0].email);
       if (msg.accountId === (account || {}).id) continue;
+      // // if snippet is empty, that means body is not pull over
+      // if (!msg.snippet) continue;
 
       notifworthy[msg.id] = msg;
     }

@@ -29,10 +29,10 @@ class UndoRedoStore extends MailspringStore {
     this._queueingTasks = false;
 
     if (AppEnv.isMainWindow()) {
-      console.log('main window');
       this.listenTo(Actions.queueTask, this._onQueue);
       this.listenTo(Actions.queueTasks, this._onQueue);
       this.listenTo(Actions.queueUndoOnlyTask, this._onQueue);
+      this.listenTo(Actions.removeAccount, this._onAccountRemoved);
     }
   }
 
@@ -221,6 +221,15 @@ class UndoRedoStore extends MailspringStore {
       medium: medium === 0 ? this._undo.medium.slice() : this._undo.medium.slice(medium * -1),
       low: low === 0 ? this._undo.low.slice() : this._undo.low.slice(low * -1),
     };
+  };
+  _onAccountRemoved = accountId => {
+    for (const priority of Object.keys(this._undo)) {
+      for (const block of this._undo[priority]) {
+        if (block.tasks[0].accountId === accountId) {
+          this.removeTaskFromUndo({ block });
+        }
+      }
+    }
   };
   removeTaskFromUndo = ({ block, noTrigger = false }) => {
     let priority = 'low';

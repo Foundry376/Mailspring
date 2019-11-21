@@ -180,6 +180,10 @@ export default class AppEnvConstructor {
     }
   }
 
+  isDarkTheme() {
+    return this.config.get('core.theme') === 'ui-dark';
+  }
+
   // This ties window.onerror and process.uncaughtException,handledRejection
   // to the publically callable `reportError` method. This will take care of
   // reporting errors if necessary and hooking into error handling

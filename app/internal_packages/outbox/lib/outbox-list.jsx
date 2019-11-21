@@ -66,13 +66,13 @@ class OutboxList extends React.Component {
     const layoutMode = WorkspaceStore.layoutMode();
     // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
     const desired =
-      ReactDOM.findDOMNode(this).offsetWidth < 900 && layoutMode === 'split' ? 'narrow' : 'wide';
+      ReactDOM.findDOMNode(this).offsetWidth < 3900 && layoutMode === 'split' ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }
   };
   render() {
-    const itemHeight = 105;
+    const itemHeight = 108;
     return (
       <FluxContainer
         stores={[OutboxStore]}

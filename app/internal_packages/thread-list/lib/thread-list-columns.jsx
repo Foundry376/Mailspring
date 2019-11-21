@@ -69,7 +69,7 @@ const getSnippet = function (thread) {
 };
 
 const c1 = new ListTabular.Column({
-  name: '★',
+  name: 'Avatar',
   resolver: thread => {
     return [
       <EmailAvatar key="email-avatar" mode="list" thread={thread} />,

@@ -16,18 +16,23 @@ class AccountSidebar extends React.Component {
 
   constructor(props) {
     super(props);
-
     this.state = this._getStateFromStores();
+    this._mounted = false;
   }
 
   componentDidMount() {
+    this._mounted = true;
     const pos = window.sessionStorage.getItem('sidebar_scroll_position');
+    console.warn(`setting scroll ${pos}`);
     if (pos) {
-      this._accountSideBarWrapEl.scrollTop = pos;
+      //DC-1130 Because chat account filler will interference with account-sidebar height, causing it to re-scroll, we wait until next frame to set scroll position.
+      window.requestAnimationFrame(() => {
+        this._accountSideBarWrapEl.scrollTop = pos;
+      });
     }
     this.unsubscribers = [];
     this.unsubscribers.push(SidebarStore.listen(this._onStoreChange));
-    return this.unsubscribers.push(AccountStore.listen(this._onStoreChange));
+    this.unsubscribers.push(AccountStore.listen(this._onStoreChange));
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -36,12 +41,16 @@ class AccountSidebar extends React.Component {
 
   // when pop Thread sheet, should set root sheet's account-sidebar position 
   _setScrollbarPosition = () => {
-    const accountSidebar = document.querySelector("[data-id='Threads'] .account-sidebar .scroll-region-content");
+    const accountSidebar = document.querySelector(`[data-id='Threads'] .account-sidebar .scroll-region-content`);
+    const siftSidebar = document.querySelector(`[data-id='Sift'] .account-sidebar .scroll-region-content`);
     const pos = window.sessionStorage.getItem('sidebar_scroll_position');
     if (accountSidebar && pos) {
       accountSidebar.scrollTop = pos;
     }
-  }
+    if(siftSidebar && pos){
+      siftSidebar.scrollTop = pos;
+    }
+  };
 
   componentWillUnmount() {
     this._setScrollbarPosition();
@@ -49,7 +58,9 @@ class AccountSidebar extends React.Component {
   }
 
   _onStoreChange = () => {
-    return this.setState(this._getStateFromStores());
+    if (this._mounted) {
+      return this.setState(this._getStateFromStores());
+    }
   };
 
   _getStateFromStores = () => {
@@ -64,11 +75,9 @@ class AccountSidebar extends React.Component {
   _renderUserSections(sections) {
     return sections.map(section => <OutlineView key={section.title} {...section} />);
   }
-  _onScroll = (e) => {
-    if (e.target) {
-      window.sessionStorage.setItem('sidebar_scroll_position', e.target.scrollTop);
-    }
-  }
+  _onScroll = () => {
+    window.sessionStorage.setItem('sidebar_scroll_position', this._accountSideBarWrapEl.scrollTop);
+  };
 
   render() {
     const { accounts, sidebarAccountIds, userSections, standardSection } = this.state;
@@ -76,7 +85,7 @@ class AccountSidebar extends React.Component {
     return (
       <Flexbox direction="column" style={{ order: 1, flexShrink: 1, flex: 1 }}>
         <ScrollRegion
-          onScroll={this._onScroll}
+          onScrollEnd={this._onScroll}
           ref={el => {
             this._accountSideBarWrapEl = el;
           }}

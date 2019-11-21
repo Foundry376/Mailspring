@@ -707,35 +707,38 @@ export default class Application extends EventEmitter {
       console.log('\nedisonmail.db-wal deleted\n');
       this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'), () => {
         console.log('\nedisonmail.db-shm deleted\n');
-        this.deleteFileWithRetry(path.join(this.configDirPath, 'emdb_*'), () => {
-          console.log('\nemdb_* deleted\n');
-          if (rebuild) {
-            const dbPath = path.join(this.configDirPath, 'edisonmail.db');
-            const newDbName = `edisonmail_backup_${new Date().getTime()}.db`;
-            const newDbPath = path.join(this.configDirPath, newDbName);
-            this.renameFileWithRetry(dbPath, newDbPath, () => {
-              // repair the database
-              if (process.platform === 'darwin') {
-                const sqlPath = 'data.sql';
-                execSync(`sqlite3 ${newDbName} .dump > ${sqlPath}`, {
-                  cwd: this.configDirPath,
-                });
-                execSync(`sed -i '' 's/ROLLBACK/COMMIT/g' ${sqlPath}`, {
-                  cwd: this.configDirPath,
-                });
-                execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
-                  cwd: this.configDirPath,
-                });
-                fs.unlink(path.join(this.configDirPath, sqlPath), () => { });
-              } else {
-                // TODO in windows
-                console.warn('in this system does not implement yet');
-              }
-              callback();
-            });
-          } else {
-            this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'), callback);
-          }
+        this.deleteFileWithRetry(path.join(this.configDirPath, 'embody*'), () => {
+          console.log('\nembody* deleted\n');
+          this.deleteFileWithRetry(path.join(this.configDirPath, 'emdb_*'), () => {
+            console.log('\nemdb_* deleted\n');
+            if (rebuild) {
+              const dbPath = path.join(this.configDirPath, 'edisonmail.db');
+              const newDbName = `edisonmail_backup_${new Date().getTime()}.db`;
+              const newDbPath = path.join(this.configDirPath, newDbName);
+              this.renameFileWithRetry(dbPath, newDbPath, () => {
+                // repair the database
+                if (process.platform === 'darwin') {
+                  const sqlPath = 'data.sql';
+                  execSync(`sqlite3 ${newDbName} .dump > ${sqlPath}`, {
+                    cwd: this.configDirPath,
+                  });
+                  execSync(`sed -i '' 's/ROLLBACK/COMMIT/g' ${sqlPath}`, {
+                    cwd: this.configDirPath,
+                  });
+                  execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
+                    cwd: this.configDirPath,
+                  });
+                  fs.unlink(path.join(this.configDirPath, sqlPath), () => { });
+                } else {
+                  // TODO in windows
+                  console.warn('in this system does not implement yet');
+                }
+                callback();
+              });
+            } else {
+              this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'), callback);
+            }
+          });
         });
       });
     });
