@@ -67,7 +67,7 @@ class SiftList extends React.Component {
     const layoutMode = WorkspaceStore.layoutMode();
     // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
     const desired =
-      ReactDOM.findDOMNode(this).offsetWidth < 900 && layoutMode === 'split' ? 'narrow' : 'wide';
+      ReactDOM.findDOMNode(this).offsetWidth < 3900 && layoutMode === 'split' ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }
@@ -103,7 +103,7 @@ class SiftList extends React.Component {
     } else {
       columns = SiftListColumns.Narrow;
       additionalClassName = 'sift-list-narrow';
-      itemHeight = 105;
+      itemHeight = 108;
     }
     return (
       <FluxContainer
