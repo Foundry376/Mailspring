@@ -127,7 +127,7 @@ export default class EmailFrame extends React.Component {
 
     // dark mode
     // when dark mode, inverse content
-    if (AppEnv.config.get('core.theme') === 'ui-dark') {
+    if (AppEnv.isDarkTheme()) {
       this.applyDarkMode(doc);
     }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utils, DateUtils, AccountStore, EmailAvatar } from 'mailspring-exports';
+import { Utils, DateUtils, EmailAvatar } from 'mailspring-exports';
 import {
   InjectedComponentSet,
   ListTabular,
@@ -29,7 +29,7 @@ function subject(subj) {
 }
 
 const SenderColumn = new ListTabular.Column({
-  name: 'Sender',
+  name: 'Avatar',
   resolver: message => {
     return <EmailAvatar key="email-avatar" mode="list" message={message} />;
   }

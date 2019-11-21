@@ -80,24 +80,24 @@ class ThreadList extends React.Component {
     return null;
   }
 
-  _calcScrollPosition = _.throttle(scrollTop => {
-    const toolbar = document.querySelector('.thread-list .thread-list-toolbar');
-    if (toolbar) {
-      if (scrollTop > 0) {
-        if (toolbar.className.indexOf('has-shadow') === -1) {
-          toolbar.className += ' has-shadow';
-        }
-      } else {
-        toolbar.className = toolbar.className.replace(' has-shadow', '');
-      }
-    }
-  }, 100);
+  // _calcScrollPosition = _.throttle(scrollTop => {
+  //   const toolbar = document.querySelector('.thread-list .thread-list-toolbar');
+  //   if (toolbar) {
+  //     if (scrollTop > 0) {
+  //       if (toolbar.className.indexOf('has-shadow') === -1) {
+  //         toolbar.className += ' has-shadow';
+  //       }
+  //     } else {
+  //       toolbar.className = toolbar.className.replace(' has-shadow', '');
+  //     }
+  //   }
+  // }, 100);
 
-  _onScroll = e => {
-    if (e.target) {
-      this._calcScrollPosition(e.target.scrollTop);
-    }
-  };
+  // _onScroll = e => {
+  //   if (e.target) {
+  //     this._calcScrollPosition(e.target.scrollTop);
+  //   }
+  // };
 
   render() {
     let columns, itemHeight;
@@ -138,7 +138,7 @@ class ThreadList extends React.Component {
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragStart={this._onDragStart}
             onDragEnd={this._onDragEnd}
-            onScroll={this._onScroll}
+          // onScroll={this._onScroll}
           />
         </FocusContainer>
       </FluxContainer>
@@ -385,7 +385,7 @@ class ThreadList extends React.Component {
     const layoutMode = WorkspaceStore.layoutMode();
     // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
     const desired =
-      ReactDOM.findDOMNode(this).offsetWidth < 900 && layoutMode === 'split' ? 'narrow' : 'wide';
+      ReactDOM.findDOMNode(this).offsetWidth < 3900 && layoutMode === 'split' ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }

@@ -164,9 +164,9 @@ export default class AppEnvConstructor {
       ipcRenderer.on('system-theme-changed', (e, isDarkMode) => {
         AppEnv.themes.setActiveTheme(isDarkMode ? 'ui-dark' : 'ui-light');
       });
-      if(this.config.get('core.privacy.dataShare.optOut')){
+      if (this.config.get('core.privacy.dataShare.optOut')) {
 
-      }else{
+      } else {
         this.mailsyncBridge.startSift('Main window started');
       }
     }
@@ -178,6 +178,10 @@ export default class AppEnvConstructor {
     } else {
       console.log(`network is offline. skip sync.`);
     }
+  }
+
+  isDarkTheme() {
+    return this.config.get('core.theme') === 'ui-dark';
   }
 
   // This ties window.onerror and process.uncaughtException,handledRejection
@@ -1177,12 +1181,12 @@ export default class AppEnvConstructor {
       });
   }
 
-  showMessageBox({title = '', showInMainWindow, detail = '', type = 'question', buttons = ['Okay', 'Cancel'] } = {}) {
+  showMessageBox({ title = '', showInMainWindow, detail = '', type = 'question', buttons = ['Okay', 'Cancel'] } = {}) {
     let winToShow = null;
     if (showInMainWindow) {
       winToShow = remote.getGlobal('application').getMainWindow();
     }
-    return remote.dialog.showMessageBox(winToShow, {type, buttons, message: title, detail,});
+    return remote.dialog.showMessageBox(winToShow, { type, buttons, message: title, detail, });
   }
 
   // Delegate to the browser's process fileListCache
@@ -1296,15 +1300,15 @@ export default class AppEnvConstructor {
             const pass = new stream.PassThrough();
             pass.end(img.toPNG());
             pass.pipe(output);
-            output.on('close', function() {
+            output.on('close', function () {
               output.close();
               resolve(outputPath);
             });
-            output.on('end', function() {
+            output.on('end', function () {
               output.close();
               reject();
             });
-            output.on('error', function() {
+            output.on('error', function () {
               output.close();
               reject();
             });
@@ -1328,16 +1332,16 @@ export default class AppEnvConstructor {
         zlib: { level: 9 }, // Sets the compression level.
       });
 
-      output.on('close', function() {
+      output.on('close', function () {
         console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         resolve(outputPath);
       });
-      output.on('end', function() {
+      output.on('end', function () {
         console.log('\n----->\nData has been drained');
         resolve(outputPath);
       });
-      archive.on('warning', function(err) {
+      archive.on('warning', function (err) {
         if (err.code === 'ENOENT') {
           console.log(err);
         } else {
@@ -1346,7 +1350,7 @@ export default class AppEnvConstructor {
           reject(err);
         }
       });
-      archive.on('error', function(err) {
+      archive.on('error', function (err) {
         output.close();
         console.log(err);
         reject(err);
