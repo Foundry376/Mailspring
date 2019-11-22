@@ -63,6 +63,7 @@
   "scripts": {
     "copyassets": "node scripts/copyassets.js",
     "postinstall-to-be-delete": "node scripts/postinstall.js",
+    "start-with-proxy": "HTTP_PROXY=http://127.0.0.1:1087 HTTPS_PROXY=http://127.0.0.1:1087 node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
     "start": "node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",
     "test": "node_modules/.bin/electron ./app --enable-logging --test",

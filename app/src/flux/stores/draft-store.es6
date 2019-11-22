@@ -1316,7 +1316,10 @@ class DraftStore extends MailspringStore {
         undoValue: { expiration: null, isUndoSend: true },
         lingerAfterTimeout: true,
         priority: UndoRedoStore.priority.critical,
-          delayedTasks: [SendDraftTask.forSending(draft)],
+        delayedTasks: [SendDraftTask.forSending(draft)],
+        taskPurged: () => {
+          this._onSendDraftCancelled({ headerMessageId });
+        },
       });
       Actions.queueUndoOnlyTask(undoTask);
       // ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey, draft.threadId);

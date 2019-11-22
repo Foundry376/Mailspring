@@ -120,6 +120,10 @@ export default class MailsyncProcess extends EventEmitter {
       CONFIG_DIR_PATH: this.configDirPath,
       IDENTITY_SERVER: 'unknown',
     };
+    if (process.env.HTTP_PROXY) {
+      env.HTTP_PROXY = process.env.HTTP_PROXY;
+      env.HTTPS_PROXY = process.env.HTTPS_PROXY;
+    }
     if (process.type === 'renderer') {
       const rootURLForServer = require('./flux/mailspring-api-request').rootURLForServer;
       env.IDENTITY_SERVER = rootURLForServer('identity');
