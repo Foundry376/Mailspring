@@ -77,6 +77,10 @@ class IMAPSearchQueryFolderFinderVisitor extends SearchQueryExpressionVisitor {
   visitHasAttachment(/* node */) {
     this._result = TOP;
   }
+
+  visitDate(node) {
+    this._result = TOP;
+  }
 }
 
 class IMAPSearchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
@@ -122,7 +126,8 @@ class IMAPSearchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitDate(node) {
-    throw new Error('Function not implemented!', node);
+    this._result = TOP;
+    // throw new Error('Function not implemented!', node);
   }
 
   visitTo(node) {

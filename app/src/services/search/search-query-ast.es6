@@ -1,3 +1,4 @@
+import { DateUtils} from 'mailspring-exports';
 class SearchQueryExpressionVisitor {
   constructor() {
     this._result = null;
@@ -175,6 +176,17 @@ class DateQueryExpression extends QueryExpression {
       return false;
     }
     return this.text.equals(other.text);
+  }
+
+  toJSON() {
+    let data = DateUtils.getChronoPast().parseDate(this.text.token.s);
+    if (!data) {
+      data = 0;
+    } else {
+      data = Math.floor(data.getTime() / 1000);
+    }
+    this.text.token.s = data;
+    return super.toJSON();
   }
 }
 
