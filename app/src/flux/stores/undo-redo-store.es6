@@ -5,7 +5,6 @@ import {
   TaskFactory,
 } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
-import sk from 'moment/src/locale/sk';
 
 class UndoRedoStore extends MailspringStore {
   priority = {
