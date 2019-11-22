@@ -9,7 +9,7 @@ import {
   TaskFactory,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
-import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
+import { RetinaImg, ButtonDropdown, Menu, FixedPopover } from 'mailspring-component-kit';
 import MessageTimestamp from './message-timestamp';
 
 const buttonTimeout = 700;
@@ -342,25 +342,42 @@ export default class MessageControls extends React.Component {
     clipboard.writeText(data);
   };
 
-  _onClickTrackerIcon = () => {
-    console.log('^^^^^^^^^^^^^^^^^^^^^^');
-    console.log(this.props.trackers);
-    console.log('^^^^^^^^^^^^^^^^^^^^^^');
-  };
-
   render() {
     const items = this._items();
     const { trackers } = this.props;
     return (
       <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
         {trackers.length > 0 ? (
-          <div className="remove-tracker" onClick={this._onClickTrackerIcon}>
+          <div className="remove-tracker">
             <RetinaImg
               name={'readReceipts.svg'}
-              style={{ width: 14, height: 14 }}
+              style={{ width: 16, height: 16 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask}
             />
+            <div className="remove-tracker-popover">
+              <FixedPopover
+                direction="down"
+                originRect={{
+                  top: 0,
+                  right: 0,
+                }}
+                closeOnAppBlur={false}
+                onClose={() => {}}
+              >
+                <div className="remove-tracker-notice">
+                  <RetinaImg
+                    name={'emailtracking-popup-image.png'}
+                    mode=""
+                    style={{ width: 300, height: 300, marginTop: 20 }}
+                  />
+                  <p>
+                    <b>Email tracking is Blocked</b> Senders won't see when and where you read
+                    messages.
+                  </p>
+                </div>
+              </FixedPopover>
+            </div>
           </div>
         ) : null}
         <MessageTimestamp className="message-time" isDetailed date={this.props.message.date} />
