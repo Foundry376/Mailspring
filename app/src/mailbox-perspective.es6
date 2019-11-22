@@ -522,19 +522,18 @@ class SiftMailboxPerspective extends MailboxPerspective {
     this.siftCategory = siftCategory;
     if (siftCategory === Sift.categories.Travel) {
       this.iconName = 'flight.svg';
-      this.iconColor = '#1293fd';
+      this.className = 'sift sift-Travel';
     } else if (siftCategory === Sift.categories.Bill) {
       this.iconName = 'finance.svg';
-      this.iconColor = 'green';
+      this.className = 'sift sift-Bill';
     } else if (siftCategory === Sift.categories.Packages) {
       this.iconName = `${siftCategory.toLocaleLowerCase()}.svg`;
-      this.iconColor = 'purple';
+      this.className = 'sift sift-Packages';
     } else if (siftCategory === Sift.categories.Entertainment) {
       this.iconName = `${siftCategory.toLocaleLowerCase()}.svg`;
-      this.iconColor = 'orange';
+      this.className = 'sift sift-Entertainment';
     }
-    this.iconStyles = { borderRadius: '12px' };
-    this.mode = RetinaImg.Mode.ContentLight;
+    this.iconStyles = { borderRadius: '50%' };
     this._categories = [];
   }
 

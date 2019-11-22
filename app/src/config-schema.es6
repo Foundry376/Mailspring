@@ -520,6 +520,11 @@ export default {
       appearance: {
         type: 'object',
         properties: {
+          sidebaricons: {
+            type: 'boolean',
+            default: true,
+            title: 'Show icons in the left-hand menu.',
+          },
           profile: {
             type: 'boolean',
             default: true,

@@ -259,6 +259,18 @@ const preferencesTemplateFill = {
       order: 4,
       configGroup: [
         {
+          groupName: 'GENERAL',
+          groupItem: [
+            {
+              label: 'Show icons in the left-hand menu.',
+              configSchema: configSchema =>
+                configSchema.properties.appearance.properties.sidebaricons,
+              keyPath: 'core.appearance.sidebaricons',
+              keywords: ['sidebar', 'left', 'icons', 'avatar'],
+            },
+          ],
+        },
+        {
           groupName: 'LAYOUT',
           groupItem: [
             {
