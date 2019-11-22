@@ -359,11 +359,9 @@ export default class MessageControls extends React.Component {
               <FixedPopover
                 direction="down"
                 originRect={{
-                  top: 0,
-                  right: 0,
+                  top: 8,
+                  left: 8,
                 }}
-                closeOnAppBlur={false}
-                onClose={() => {}}
               >
                 <div className="remove-tracker-notice">
                   <RetinaImg
