@@ -5,6 +5,7 @@ import {
   TaskFactory,
 } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
+import sk from 'moment/src/locale/sk';
 
 class UndoRedoStore extends MailspringStore {
   priority = {
@@ -70,6 +71,20 @@ class UndoRedoStore extends MailspringStore {
           this._queueingTasks = false;
         },
         delayDuration: this.getDelayDuration(tasks),
+        taskDelaySkippedCallBacks: () => {
+          tasks.forEach(t => {
+            if (typeof t.taskDelaySkipped === 'function') {
+              t.taskDelaySkipped();
+            }
+          });
+        },
+        taskPurgedCallBacks: () => {
+          tasks.forEach(t => {
+            if (typeof t.taskPurged === 'function'){
+              t.taskPurged();
+            }
+          });
+        },
         delayTimeoutCallbacks: () => {
           tasks.forEach(t => {
             if (t.delayTimeoutCallback) {
@@ -226,12 +241,12 @@ class UndoRedoStore extends MailspringStore {
     for (const priority of Object.keys(this._undo)) {
       for (const block of this._undo[priority]) {
         if (block.tasks[0].accountId === accountId) {
-          this.removeTaskFromUndo({ block });
+          this.removeTaskFromUndo({ block, purgeTask: true });
         }
       }
     }
   };
-  removeTaskFromUndo = ({ block, noTrigger = false }) => {
+  removeTaskFromUndo = ({ block, noTrigger = false, purgeTask = false}) => {
     let priority = 'low';
     switch (block.priority) {
       case this.priority.critical:
@@ -253,6 +268,9 @@ class UndoRedoStore extends MailspringStore {
     delete this._timeouts[block.id];
     if (!noTrigger) {
       this.trigger();
+    }
+    if (purgeTask) {
+      block.taskPurgedCallBacks();
     }
   };
   setTaskToHide = ({ block }) => {
