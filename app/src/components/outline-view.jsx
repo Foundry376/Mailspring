@@ -183,9 +183,10 @@ class OutlineView extends Component {
     const collapsible = this.props.onCollapseToggled;
     const collapsed = this.props.collapsed;
     const allowCreate = this.props.onItemCreated != null && !collapsed;
+    const avatarClass = AppEnv.config.get('core.appearance.sidebaricons') ? '' : 'name-only';
 
     return (
-      <section className="nylas-outline-view">
+      <section className={`nylas-outline-view ${avatarClass}`}>
         {/* {this._renderHeading(allowCreate, collapsed, collapsible)} */}
         {this._renderOutline(allowCreate, collapsed)}
       </section>
