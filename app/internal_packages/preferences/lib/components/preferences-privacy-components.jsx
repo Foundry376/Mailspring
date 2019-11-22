@@ -125,7 +125,7 @@ export class Privacy extends React.Component {
     }
     if (AppEnv.config.get('core.privacy.dataShare.optOut')) {
       return (
-        <div className="btn-danger privacys-button" onClick={this.toggleDataShare}>
+        <div className="btn-primary privacys-button" onClick={this.toggleDataShare}>
           Opt-in of Data Sharing
         </div>
       );
