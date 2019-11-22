@@ -13,7 +13,7 @@ import EmailFrameStylesStore from './email-frame-styles-store';
 import { shell } from 'electron';
 import fs from 'fs';
 import sharp from 'sharp';
-import { removeTrackers } from './body-transform';
+import { removeTrackers } from './body-remove-trackers';
 
 export default class EmailFrame extends React.Component {
   static displayName = 'EmailFrame';
