@@ -525,15 +525,15 @@ class SiftMailboxPerspective extends MailboxPerspective {
       this.iconColor = '#1293fd';
     } else if (siftCategory === Sift.categories.Bill) {
       this.iconName = 'finance.svg';
-      this.iconColor = 'green';
+      this.iconColor = '#61d570';
     } else if (siftCategory === Sift.categories.Packages) {
       this.iconName = `${siftCategory.toLocaleLowerCase()}.svg`;
-      this.iconColor = 'purple';
+      this.iconColor = '#5756ce';
     } else if (siftCategory === Sift.categories.Entertainment) {
       this.iconName = `${siftCategory.toLocaleLowerCase()}.svg`;
-      this.iconColor = 'orange';
+      this.iconColor = '#ec994d';
     }
-    this.iconStyles = { borderRadius: '12px' };
+    this.iconStyles = { borderRadius: '50%' };
     this.mode = RetinaImg.Mode.ContentLight;
     this._categories = [];
   }
