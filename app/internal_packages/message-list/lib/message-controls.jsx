@@ -342,12 +342,27 @@ export default class MessageControls extends React.Component {
     clipboard.writeText(data);
   };
 
+  _onClickTrackerIcon = () => {
+    console.log('^^^^^^^^^^^^^^^^^^^^^^');
+    console.log(this.props.trackers);
+    console.log('^^^^^^^^^^^^^^^^^^^^^^');
+  };
+
   render() {
     const items = this._items();
     const { trackers } = this.props;
     return (
       <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
-        {trackers.length > 0 ? <span>👀</span> : null}
+        {trackers.length > 0 ? (
+          <div className="remove-tracker" onClick={this._onClickTrackerIcon}>
+            <RetinaImg
+              name={'readReceipts.svg'}
+              style={{ width: 14, height: 14 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
+          </div>
+        ) : null}
         <MessageTimestamp className="message-time" isDetailed date={this.props.message.date} />
         {!this.props.hideControls ? (
           <ButtonDropdown
