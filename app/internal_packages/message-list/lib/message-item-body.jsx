@@ -40,7 +40,8 @@ class ConditionalQuotedTextControl extends React.Component {
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
         </span>
       </a>
     );
@@ -52,7 +53,8 @@ export default class MessageItemBody extends React.Component {
   static propTypes = {
     message: PropTypes.object.isRequired,
     downloads: PropTypes.object.isRequired,
-    calendar: PropTypes.object
+    calendar: PropTypes.object,
+    setTrackers: PropTypes.func,
   };
 
   constructor(props, context) {
@@ -69,7 +71,7 @@ export default class MessageItemBody extends React.Component {
     this._unsub = MessageBodyProcessor.subscribe(
       this.props.message,
       needInitialCallback,
-      processedBody => this._setProcessBody(processedBody, this.props.message.id),
+      processedBody => this._setProcessBody(processedBody, this.props.message.id)
     );
     if (!this.state.processedBody && this.props.message) {
       MessageBodyProcessor.updateCacheForMessage(this.props.message);
@@ -96,10 +98,8 @@ export default class MessageItemBody extends React.Component {
     if (this._unsub) {
       this._unsub();
     }
-    this._unsub = MessageBodyProcessor.subscribe(
-      props.message,
-      true,
-      processedBody => this._setProcessBody(processedBody, props.message.id),
+    this._unsub = MessageBodyProcessor.subscribe(props.message, true, processedBody =>
+      this._setProcessBody(processedBody, props.message.id)
     );
   }
 
@@ -133,29 +133,34 @@ export default class MessageItemBody extends React.Component {
   _mergeBodyWithFiles(body) {
     let merged = body;
     // Replace cid: references with the paths to downloaded files
-    this.props.message.files.filter(f => f.contentId).forEach(file => {
-      const download = this.props.downloads[file.id];
-      const safeContentId = Utils.escapeRegExp(file.contentId);
+    this.props.message.files
+      .filter(f => f.contentId)
+      .forEach(file => {
+        const download = this.props.downloads[file.id];
+        const safeContentId = Utils.escapeRegExp(file.contentId);
 
-      // Note: I don't like doing this with RegExp before the body is inserted into
-      // the DOM, but we want to avoid "could not load cid://" in the console.
+        // Note: I don't like doing this with RegExp before the body is inserted into
+        // the DOM, but we want to avoid "could not load cid://" in the console.
 
-      if (download && download.state !== 'finished') {
-        const inlineImgRegexp = new RegExp(
-          `<\\s*img.*src=['"]cid:${safeContentId}['"][^>]*>`,
-          'gi',
-        );
-        // Render a spinner
-        merged = merged.replace(
-          inlineImgRegexp,
-          () =>
-            '<img alt="spinner.gif" src="edisonmail://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">',
-        );
-      } else {
-        const cidRegexp = new RegExp(`"cid:${safeContentId}(@[^'"]+)?"`, 'gi');
-        merged = merged.replace(cidRegexp, `"file://${AttachmentStore.pathForFile(file)}" class='inline-image'`);
-      }
-    });
+        if (download && download.state !== 'finished') {
+          const inlineImgRegexp = new RegExp(
+            `<\\s*img.*src=['"]cid:${safeContentId}['"][^>]*>`,
+            'gi'
+          );
+          // Render a spinner
+          merged = merged.replace(
+            inlineImgRegexp,
+            () =>
+              '<img alt="spinner.gif" src="edisonmail://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
+          );
+        } else {
+          const cidRegexp = new RegExp(`"cid:${safeContentId}(@[^'"]+)?"`, 'gi');
+          merged = merged.replace(
+            cidRegexp,
+            `"file://${AttachmentStore.pathForFile(file)}" class='inline-image'`
+          );
+        }
+      });
 
     // Replace remaining cid: references - we will not display them since they'll
     // throw "unknown ERR_UNKNOWN_URL_SCHEME". Show a transparent pixel so that there's
@@ -181,6 +186,7 @@ export default class MessageItemBody extends React.Component {
           showQuotedText={showQuotedText}
           content={this._mergeBodyWithFiles(processedBody)}
           message={message}
+          setTrackers={this.props.setTrackers}
         />
       );
     }

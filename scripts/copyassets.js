@@ -86,6 +86,10 @@ const file_mappings = [
   ],
   ['veyron-design/images/desktop/installer-background.png', './app/build/resources/mac/'],
   ['veyron-design/images/desktop/edo-previewer-loading.gif', './app/build/resources/win/'],
+  [
+    'veyron-design/images/desktop/emailtracking-popup-image.png',
+    './app/static/images/tracking/emailtracking-popup-image.png',
+  ],
 ];
 
 let errorCommands = [];

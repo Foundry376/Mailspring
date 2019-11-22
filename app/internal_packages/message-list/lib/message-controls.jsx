@@ -1,7 +1,15 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
-import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, TaskFactory, FocusedPerspectiveStore } from 'mailspring-exports';
-import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
+import {
+  React,
+  PropTypes,
+  Actions,
+  TaskQueue,
+  GetMessageRFC2822Task,
+  TaskFactory,
+  FocusedPerspectiveStore,
+} from 'mailspring-exports';
+import { RetinaImg, ButtonDropdown, Menu, FixedPopover } from 'mailspring-component-kit';
 import MessageTimestamp from './message-timestamp';
 
 const buttonTimeout = 700;
@@ -13,6 +21,7 @@ export default class MessageControls extends React.Component {
     messages: PropTypes.array,
     threadPopedOut: PropTypes.bool,
     hideControls: PropTypes.bool,
+    trackers: PropTypes.array,
   };
 
   constructor(props) {
@@ -41,7 +50,7 @@ export default class MessageControls extends React.Component {
     clearTimeout(this._replyTimer);
   }
 
-  _timeoutButton = (type) => {
+  _timeoutButton = type => {
     if (type === 'reply') {
       if (!this._replyTimer) {
         this._replyTimer = setTimeout(() => {
@@ -158,10 +167,12 @@ export default class MessageControls extends React.Component {
   _dropdownMenu(items) {
     const itemContent = item => (
       <span>
-        <RetinaImg name={item.image}
+        <RetinaImg
+          name={item.image}
           style={{ width: 18, height: 18, marginTop: 3 }}
           isIcon={!item.disabled}
-          mode={RetinaImg.Mode.ContentIsMask} />
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
         {item.name}
       </span>
     );
@@ -216,7 +227,7 @@ export default class MessageControls extends React.Component {
   _onRemove = event => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       messages: [this.props.message],
-      source: 'Toolbar Button: Message List: Remove'
+      source: 'Toolbar Button: Message List: Remove',
     });
     if (Array.isArray(tasks) && tasks.length > 0) {
       tasks.forEach(task => {
@@ -288,7 +299,7 @@ export default class MessageControls extends React.Component {
     menu.append(new SystemMenuItem({ label: 'Log Data', click: this._onLogData }));
     // menu.append(new SystemMenuItem({ label: 'Show Original', click: this._onShowOriginal }));
     menu.append(
-      new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard }),
+      new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard })
     );
     menu.popup({});
   };
@@ -333,29 +344,64 @@ export default class MessageControls extends React.Component {
 
   render() {
     const items = this._items();
+    const { trackers } = this.props;
     return (
       <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
-        <MessageTimestamp
-          className="message-time"
-          isDetailed
-          date={this.props.message.date}
-        />
-        {!this.props.hideControls ?
-          <ButtonDropdown
-            primaryItem={<RetinaImg
-              name={items[0].image}
-              style={{ width: 24, height: 24 }}
+        {trackers.length > 0 ? (
+          <div className="remove-tracker">
+            <RetinaImg
+              name={'readReceipts.svg'}
+              style={{ width: 16, height: 16 }}
               isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />}
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
+            <div className="remove-tracker-popover">
+              <FixedPopover
+                direction="down"
+                originRect={{
+                  top: 0,
+                  right: 0,
+                }}
+                closeOnAppBlur={false}
+                onClose={() => {}}
+              >
+                <div className="remove-tracker-notice">
+                  <RetinaImg
+                    name={'emailtracking-popup-image.png'}
+                    mode=""
+                    style={{ width: 300, height: 300, marginTop: 20 }}
+                  />
+                  <p>
+                    <b>Email tracking is Blocked</b> Senders won't see when and where you read
+                    messages.
+                  </p>
+                </div>
+              </FixedPopover>
+            </div>
+          </div>
+        ) : null}
+        <MessageTimestamp className="message-time" isDetailed date={this.props.message.date} />
+        {!this.props.hideControls ? (
+          <ButtonDropdown
+            primaryItem={
+              <RetinaImg
+                name={items[0].image}
+                style={{ width: 24, height: 24 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask}
+              />
+            }
             primaryTitle={items[0].name}
             primaryClick={items[0].select}
             closeOnMenuClick
             menu={this._dropdownMenu(items.slice(1))}
-          /> : null}
-        {!this.props.hideControls ?
+          />
+        ) : null}
+        {!this.props.hideControls ? (
           <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
             <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask} />
-          </div> : null}
+          </div>
+        ) : null}
       </div>
     );
   }
