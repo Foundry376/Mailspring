@@ -6,12 +6,23 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    box-shadow: initial;
+    background: @off-white-light;
     cursor: pointer;
-    text-align: center;
-    border: 1px solid #f0f0f0;
-    box-shadow: 1px 1px 3px #f0f0f0;
-    color: @blue;
-    font-weight: bold;
+    // text-align: center;
+    // border: 1px solid #f0f0f0;
+    // box-shadow: 1px 1px 3px #f0f0f0;
+    // color: @blue;
+    // font-weight: bold;
+    img.content-mask {
+      background: @disabled-bg-color;
+    }
+    &:hover {
+      box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.35);
+    }
   }
   .no-border {
     border: none;
