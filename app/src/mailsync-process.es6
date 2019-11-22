@@ -141,9 +141,9 @@ export default class MailsyncProcess extends EventEmitter {
     }
     if (mode === mailSyncModes.SIFT) {
       if (this.dataShareOptOut) {
-        args.push('--optOut', 1);
+        args.push('--sharingOpt', 0);
       } else {
-        args.push('--optOut', 0);
+        args.push('--sharingOpt', 1);
       }
     }
     this._proc = spawn(this.binaryPath, args, { env });
