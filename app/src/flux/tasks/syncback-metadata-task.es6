@@ -55,6 +55,12 @@ export default class SyncbackMetadataTask extends Task {
     delayedTasks: Attributes.Collection({
       delayedTasks: 'delayedTasks',
     }),
+    delayTimeoutCallback: Attributes.Object({
+      modelKey: 'delayTimeoutCallback',
+    }),
+    taskPurged: Attributes.Object({
+      modelKey: 'taskPurged',
+    }),
   });
 
   get canBeUndone() {

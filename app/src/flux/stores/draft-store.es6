@@ -223,7 +223,8 @@ class DraftStore extends MailspringStore {
     pastSendDraftTasks.forEach(t => {
       if (t && t.draft) {
         AppEnv.logDebug(`Restarted SendDraft for draft: ${t.draft.headerMessageId}`);
-        this._startSendingDraftTimeout({ draft: t.draft, source: 'Restart SendDraft' });
+        this._draftsSending[t.draft.headerMessageId] = true;
+        this._startSendingDraftTimeouts({ draft: t.draft, source: 'Restart SendDraft' });
       }
     });
   }
@@ -1077,10 +1078,8 @@ class DraftStore extends MailspringStore {
     }
   };
   _cancelSendingDraftTimeout = ({ headerMessageId, trigger = false, changeSendStatus = true }) => {
-    if (this._draftSendindTimeouts[headerMessageId]) {
-      clearTimeout(this._draftSendindTimeouts[headerMessageId]);
-      delete this._draftSendindTimeouts[headerMessageId];
-    }
+    this._cancelDraftFailingTimeout({ headerMessageId });
+    this._cancelDraftFailedTimeout({ headerMessageId });
     if (changeSendStatus) {
       delete this._draftsSending[headerMessageId];
     } else {
@@ -1106,13 +1105,14 @@ class DraftStore extends MailspringStore {
       this.trigger({ headerMessageId });
     }
   };
-  _startSendingDraftTimeout = ({ draft, source = '' }) => {
+  _startSendingDraftTimeouts = ({ draft, source = '' }) => {
+    this._startSendingDraftFailedTimeout({ draft, source });
+    this._startDraftFailingTimeout({ messages: [draft] });
+  };
+  _startSendingDraftFailedTimeout = ({ draft, source = ''}) => {
     if (this._draftSendindTimeouts[draft.headerMessageId]) {
       clearTimeout(this._draftSendindTimeouts[draft.headerMessageId]);
     }
-    this._startDraftFailingTimeout({ messages: [draft] });
-    this._draftsSending[draft.headerMessageId] = true;
-    console.log('setting draftsSending to true');
     this._draftSendindTimeouts[draft.headerMessageId] = setTimeout(() => {
       this._cancelSendingDraftTimeout({
         headerMessageId: draft.headerMessageId,
@@ -1123,6 +1123,12 @@ class DraftStore extends MailspringStore {
       const task = new ChangeDraftToFailedTask({ headerMessageIds: [draft.headerMessageId], accountId: draft.accountId });
       Actions.queueTask(task);
     }, SendDraftTimeout);
+  };
+  _cancelDraftFailedTimeout = ({ headerMessageId, source = ''}) => {
+    if(this._draftSendindTimeouts[headerMessageId]){
+      clearTimeout(this._draftSendindTimeouts[headerMessageId]);
+      delete this._draftSendindTimeouts[headerMessageId];
+    }
   };
   _cancelDraftFailingTimeout = ({ headerMessageId, source = ''}) =>{
     if(this._draftFailingTimeouts[headerMessageId]){
@@ -1161,7 +1167,8 @@ class DraftStore extends MailspringStore {
         if (AppEnv.isMainWindow()) {
           const draft = session.draft();
           if (draft) {
-            this._startSendingDraftTimeout({ draft: session.draft });
+            this._draftsSending[draft.headerMessageId] = true;
+            // this._startSendingDraftTimeouts({ draft: session.draft });
           } else {
             AppEnv.reportWarning(
               new Error(
@@ -1301,7 +1308,7 @@ class DraftStore extends MailspringStore {
     this._doneWithSession(session, 'onSendDraft');
     // Notify all windows that draft is being send out.
     Actions.sendingDraft({ headerMessageId, windowLevel: this._getCurrentWindowLevel() });
-    this._startSendingDraftTimeout({ draft });
+    this._draftsSending[draft.headerMessageId] = true;
     // At this point the message UI enters the sending state and the composer is unmounted.
     this.trigger({ headerMessageId });
     // To be able to undo the send, we need to pretend that we added the send-later
@@ -1317,6 +1324,9 @@ class DraftStore extends MailspringStore {
         lingerAfterTimeout: true,
         priority: UndoRedoStore.priority.critical,
         delayedTasks: [SendDraftTask.forSending(draft)],
+        delayTimeoutCallback: () => {
+          this._startSendingDraftTimeouts({ draft, source: 'Send draft wait time expired'});
+        },
         taskPurged: () => {
           this._onSendDraftCancelled({ headerMessageId });
         },
@@ -1331,18 +1341,15 @@ class DraftStore extends MailspringStore {
 
   _onSendDraftSuccess = ({ headerMessageId }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
-    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
   };
   _onSendDraftCancelled = ({ headerMessageId }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
-    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
   };
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
     this._cancelSendingDraftTimeout({ headerMessageId });
-    this._cancelDraftFailingTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
 
     // if (AppEnv.isMainWindow()) {
