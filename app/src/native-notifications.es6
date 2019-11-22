@@ -35,7 +35,7 @@ class NativeNotifications {
         sender: 'com.edisonmail.edisonmail',
         // New in latest version. See `example/macInput.js` for usage
         timeout: 20, // -1 means do not timeout
-        closeLabel: 'close', // String. Label for cancel button
+        // closeLabel: 'close', // String. Label for cancel button
         // actions: ['action1', 'action2'],
         // dropdownLabel: 'more', // String. Label to be used if multiple actions
         group: tag,
