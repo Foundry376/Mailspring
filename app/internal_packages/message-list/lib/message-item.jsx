@@ -54,6 +54,7 @@ export default class MessageItem extends React.Component {
       accountId,
       fromEmail,
       isBlocked: BlockedSendersStore.isBlockedByAccount(accountId, fromEmail),
+      trackers: [],
     };
     this.markAsReadTimer = null;
     this.mounted = false;
@@ -197,6 +198,9 @@ export default class MessageItem extends React.Component {
     }, markAsReadDelay);
   };
 
+  _setTrackers = trackers => {
+    this.setState({ trackers });
+  };
   _isAllAttachmentsDownloading() {
     if (this.props.message.files.length > 0) {
       return this.props.message.files.every(f => {
@@ -231,16 +235,16 @@ export default class MessageItem extends React.Component {
             />
           </div>
         ) : (
-            <div className="download-all-action" onClick={this._onDownloadAll}>
-              <RetinaImg
-                name="download.svg"
-                isIcon
-                style={{ width: 18, height: 18 }}
-                mode={RetinaImg.Mode.ContentIsMask}
-              />
-              <span>Download all</span>
-            </div>
-          )}
+          <div className="download-all-action" onClick={this._onDownloadAll}>
+            <RetinaImg
+              name="download.svg"
+              isIcon
+              style={{ width: 18, height: 18 }}
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
+            <span>Download all</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -305,6 +309,7 @@ export default class MessageItem extends React.Component {
 
   _renderHeader() {
     const { message, thread, messages, pending } = this.props;
+    const { trackers } = this.state;
     return (
       <header
         ref={el => (this._headerEl = el)}
@@ -338,6 +343,7 @@ export default class MessageItem extends React.Component {
             messages={messages}
             threadPopedOut={this.props.threadPopedOut}
             hideControls={this.props.isOutboxDraft}
+            trackers={trackers}
           />
         </div>
         <div className="blockBtn" onClick={this._onClickBlockBtn}>
@@ -487,6 +493,7 @@ export default class MessageItem extends React.Component {
               message={this.props.message}
               downloads={this.state.downloads}
               calendar={this.state.calendar}
+              setTrackers={this._setTrackers}
             />
             {this._renderAttachments()}
             {this._renderFooterStatus()}

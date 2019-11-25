@@ -1,13 +1,13 @@
 import _ from 'underscore';
 import { AndQueryExpression, SearchQueryExpressionVisitor } from './search-query-ast';
 
-const TOP = 'top';
+const TOP = '';
 
 class IMAPSearchQueryFolderFinderVisitor extends SearchQueryExpressionVisitor {
   visit(root) {
     const result = this.visitAndGetResult(root);
     if (result === TOP) {
-      return 'all';
+      return '';
     }
     return result;
   }
@@ -15,15 +15,18 @@ class IMAPSearchQueryFolderFinderVisitor extends SearchQueryExpressionVisitor {
   visitAnd(node) {
     const lhs = this.visitAndGetResult(node.e1);
     const rhs = this.visitAndGetResult(node.e2);
-    if (lhs === TOP) {
-      this._result = rhs;
-      return;
-    }
-    if (rhs === TOP) {
-      this._result = lhs;
-      return;
-    }
-    this._result = _.intersection(lhs, rhs);
+    // if (lhs === TOP) {
+    //   this._result = rhs;
+    //   return;
+    // }
+    // if (rhs === TOP) {
+    //   this._result = lhs;
+    //   return;
+    // }
+
+    console.warn(`lhs: ${lhs}, rhs: ${rhs}`);
+    this._result = `${lhs} ${rhs}`;
+    // this._result = _.intersection(lhs, rhs);
   }
 
   visitOr(node) {
@@ -33,12 +36,14 @@ class IMAPSearchQueryFolderFinderVisitor extends SearchQueryExpressionVisitor {
       this._result = TOP;
       return;
     }
-    this._result = _.union(lhs, rhs);
+    this._result = `${lhs} ${rhs}`;
+    // this._result = lhs + rhs;
   }
 
   visitIn(node) {
-    const folderName = this.visitAndGetResult(node.text);
-    this._result = [folderName];
+    // const folderName = this.visitAndGetResult(node.text);
+    // this._result = [folderName];
+    this._result = TOP;
   }
 
   visitFrom(/* node */) {
@@ -53,8 +58,8 @@ class IMAPSearchQueryFolderFinderVisitor extends SearchQueryExpressionVisitor {
     this._result = TOP;
   }
 
-  visitGeneric(/* node */) {
-    this._result = TOP;
+  visitGeneric(node) {
+    this._result = this.visitAndGetResult(node.text);
   }
 
   visitText(node) {
@@ -70,6 +75,10 @@ class IMAPSearchQueryFolderFinderVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitHasAttachment(/* node */) {
+    this._result = TOP;
+  }
+
+  visitDate(node) {
     this._result = TOP;
   }
 }
@@ -117,7 +126,8 @@ class IMAPSearchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitDate(node) {
-    throw new Error('Function not implemented!', node);
+    this._result = TOP;
+    // throw new Error('Function not implemented!', node);
   }
 
   visitTo(node) {

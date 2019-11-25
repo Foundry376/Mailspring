@@ -28,32 +28,9 @@ class AppMessageStore extends MailspringStore {
       this.listenTo(Actions.pushAppMessages, this._onQueue);
       this.listenTo(Actions.removeAppMessage, this._onPopMessage);
       this.listenTo(Actions.removeAppMessages, this._onPopMessage);
-      // AppEnv.onUpdateAvailable(this._onNewUpdateDownloaded);
+      this.listenTo(Actions.removeAccount, this._onAccountRemoved);
     }
   }
-  // _onNewUpdateDownloaded = () => {
-  //   const message = {
-  //     id: 'updateDownloaded',
-  //     priority: 3,
-  //     description: 'New update available. Restart to update.',
-  //     icon: 'alert-2.svg',
-  //     allowClose: true,
-  //     actions: [
-  //       {
-  //         text: 'Restart',
-  //         onClick: () => {
-  //           ipcRenderer.send('command', 'application:install-update');
-  //         },
-  //       },
-  //       {
-  //         text: 'Later',
-  //         onClick: () => {
-  //         },
-  //       },
-  //     ],
-  //   };
-  //   Actions.pushAppMessage(message);
-  // }
 
   _onPopMessage = blockOrBlocks => {
     if (!Array.isArray(blockOrBlocks)) {
@@ -89,6 +66,7 @@ class AppMessageStore extends MailspringStore {
       }
       const block = {
         id: task.id || uuid(),
+        accountIds: task.accountIds,
         hide: !!task.hide,
         description: task.description || '',
         icon: task.icon || 'alert.svg',
@@ -239,6 +217,15 @@ class AppMessageStore extends MailspringStore {
         medium === 0 ? this._messages.medium.slice() : this._messages.medium.slice(medium * -1),
       low: low === 0 ? this._messages.low.slice() : this._messages.low.slice(low * -1),
     };
+  };
+  _onAccountRemoved = accountId => {
+    for (const priority of Object.keys(this._messages)) {
+      for (const message of this._messages[priority]) {
+        if (message.accountIds.includes(accountId)) {
+          this.removeBlockFromMessages({ block: message });
+        }
+      }
+    }
   };
   removeBlockFromMessages = ({ block, noTrigger = false }) => {
     let priority = 'low';

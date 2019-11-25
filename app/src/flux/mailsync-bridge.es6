@@ -19,6 +19,7 @@ import KeyManager from '../key-manager';
 import Actions from './actions';
 import Utils from './models/utils';
 import AnalyzeDBTask from './tasks/analyze-db-task';
+import SiftChangeSharingOptTask from './tasks/sift-change-sharing-opt-task';
 
 const MAX_CRASH_HISTORY = 10;
 
@@ -130,6 +131,7 @@ export default class MailsyncBridge {
     Actions.forceKillAllClients.listen(this.forceKillClients, this);
     Actions.forceDatabaseTrigger.listen(this._onIncomingChangeRecord, this);
     Actions.dataShareOptions.listen(this.onDataShareOptionsChange, this);
+    Actions.remoteSearch.listen(this._onRemoteSearch, this);
     ipcRenderer.on('mailsync-config', this._onMailsyncConfigUpdate);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     // ipcRenderer.on('thread-close-window', this._onNewWindowClose);
@@ -239,9 +241,9 @@ export default class MailsyncBridge {
   }, 100);
 
   onDataShareOptionsChange({ optOut = false } = {}) {
-    if (!this._sift || (optOut !== this._sift.dataShareOptOut)) {
-      this.killSift('Data Share option change');
-      this.startSift('Data Share option change');
+    if (this._sift) {
+      const task = new SiftChangeSharingOptTask({ sharingOpt: !optOut ? 1 : 0});
+      this._onQueueTask(task);
     }
   }
 
@@ -1107,6 +1109,13 @@ export default class MailsyncBridge {
       );
     }
   }
+
+  _onRemoteSearch = _.debounce(tasks => {
+      if (tasks.length > 0) {
+        this._onQueueTasks(tasks);
+      }
+    },
+    1500);
 
   _onBeforeUnload = readyToUnload => {
     // If other windows are open, delay the closing of the main window

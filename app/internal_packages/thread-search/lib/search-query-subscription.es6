@@ -3,9 +3,12 @@ import {
   Actions,
   Thread,
   DatabaseStore,
+  CategoryStore,
   SearchQueryParser,
   ComponentRegistry,
   MutableQuerySubscription,
+  IMAPSearchQueryBackend,
+  IMAPSearchTask,
 } from 'mailspring-exports';
 
 class SearchQuerySubscription extends MutableQuerySubscription {
@@ -36,9 +39,9 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     if (this._accountIds.length === 1) {
       dbQuery = dbQuery.where({ accountId: this._accountIds[0] });
     }
-
+    let parsedQuery = null;
     try {
-      const parsedQuery = SearchQueryParser.parse(this._searchQuery);
+      parsedQuery = SearchQueryParser.parse(this._searchQuery);
       dbQuery = dbQuery.structuredSearch(parsedQuery);
     } catch (e) {
       console.info('Failed to parse local search query, falling back to generic query', e);
@@ -49,9 +52,35 @@ class SearchQuerySubscription extends MutableQuerySubscription {
       .where({state: 0})
       .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
       .limit(1000);
-
+    this._performRemoteSearch({accountIds: this._accountIds, parsedQuery, searchQuery: this._searchQuery});
     this.replaceQuery(dbQuery);
   }
+
+  _performRemoteSearch = ({ accountIds, parsedQuery = null, searchQuery = '' } = {}) => {
+      let queryJSON = '{}';
+      let genericText = '';
+      if (parsedQuery) {
+        queryJSON = JSON.stringify(parsedQuery);
+        genericText = IMAPSearchQueryBackend.folderNamesForQuery(parsedQuery);
+      } else {
+        genericText = searchQuery;
+      }
+      const tasks = [];
+      accountIds.forEach( accountId => {
+        const all = CategoryStore.getCategoryByRole(accountId, 'inbox');
+        if (all) {
+          tasks.push(
+            new IMAPSearchTask({
+              accountId,
+              fullTextSearch: genericText,
+              paths: [all],
+              query: queryJSON,
+            })
+          );
+        }
+      });
+      Actions.remoteSearch(tasks);
+    };
 
   _createResultAndTrigger() {
     super._createResultAndTrigger();
