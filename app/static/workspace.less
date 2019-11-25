@@ -94,6 +94,49 @@ mailspring-workspace {
     .app-message-toast-container {
       display: none;
     }
+    .chat-view-container {
+      display: none;
+    }
+    .need-login {
+      top: 30px;
+      color: @text-color-inverse;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      h1 {
+        color: @text-color-inverse;
+        font-size: 40px;
+        line-height: 46px;
+        cursor: default;
+        margin-top: -100px;
+        font-weight: 500;
+        -webkit-font-smoothing: subpixel-antialiased;
+      }
+      p {
+        font-size: 16px;
+      }
+      img.icons {
+        position: absolute;
+        pointer-events: none;
+        width: 120px;
+        top: 0;
+      }
+      .btn.login-button {
+        height: 40px;
+        width: 156px;
+        background: transparent;
+        border: 2px solid white;
+        color: white;
+        font-size: 24px;
+        line-height: unset;
+        border-radius: 0;
+        margin-top: 8px;
+      }
+    }
   }
 }
 

@@ -17,7 +17,6 @@ export default class LoginPage extends React.Component {
             className="icons"
             url="edisonmail://onboarding/assets/logo-light.png"
             mode={RetinaImg.Mode.ContentPreserve}
-            style={{ width: 120 }}
           />
           <h1 className="hero-text">
             Welcome to the Mac Closed Beta
