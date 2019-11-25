@@ -55,6 +55,7 @@ export default class MessageItem extends React.Component {
       fromEmail,
       isBlocked: BlockedSendersStore.isBlockedByAccount(accountId, fromEmail),
       trackers: [],
+      viewOriginalEmail: false,
     };
     this.markAsReadTimer = null;
     this.mounted = false;
@@ -345,6 +346,9 @@ export default class MessageItem extends React.Component {
             threadPopedOut={this.props.threadPopedOut}
             hideControls={this.props.isOutboxDraft}
             trackers={trackers}
+            viewOriginalEmail={() => {
+              this.setState({ viewOriginalEmail: true });
+            }}
           />
         </div>
         <div className="blockBtn" onClick={this._onClickBlockBtn}>
@@ -495,6 +499,7 @@ export default class MessageItem extends React.Component {
               downloads={this.state.downloads}
               calendar={this.state.calendar}
               setTrackers={this._setTrackers}
+              viewOriginalEmail={this.state.viewOriginalEmail}
             />
             {this._renderAttachments()}
             {this._renderFooterStatus()}
@@ -509,7 +514,12 @@ export default class MessageItem extends React.Component {
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
-            <MessageItemBody message={this.props.message} downloads={this.state.downloads} />
+            <MessageItemBody
+              message={this.props.message}
+              downloads={this.state.downloads}
+              setTrackers={this._setTrackers}
+              viewOriginalEmail={this.state.viewOriginalEmail}
+            />
             {this._renderAttachments()}
           </div>
         </div>

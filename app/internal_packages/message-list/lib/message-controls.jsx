@@ -22,6 +22,7 @@ export default class MessageControls extends React.Component {
     threadPopedOut: PropTypes.bool,
     hideControls: PropTypes.bool,
     trackers: PropTypes.array,
+    viewOriginalEmail: PropTypes.func,
   };
 
   constructor(props) {
@@ -117,6 +118,12 @@ export default class MessageControls extends React.Component {
     }
   };
 
+  _onViewOriginalEmail = () => {
+    if (this.props.viewOriginalEmail && typeof this.props.viewOriginalEmail === 'function') {
+      this.props.viewOriginalEmail();
+    }
+  };
+
   _items() {
     const reply = {
       name: 'Reply',
@@ -142,14 +149,30 @@ export default class MessageControls extends React.Component {
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onTrash,
     };
 
+    const viewOriginalEmail = {
+      name: 'View original email',
+      image: 'show-password.svg',
+      select: this._onViewOriginalEmail,
+    };
+
     if (!this.props.message.canReplyAll()) {
-      return this.props.message.draft ? [reply, forward] : [reply, forward, trash];
+      const noReplyAll = [reply, forward];
+      if (!this.props.message.draft) {
+        noReplyAll.push(trash);
+      }
+      if (AppEnv.isDarkTheme()) {
+        noReplyAll.push(viewOriginalEmail);
+      }
+      return noReplyAll;
     }
     const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
     const ret =
       defaultReplyType === 'reply-all' ? [replyAll, reply, forward] : [reply, replyAll, forward];
     if (!this.props.message.draft) {
       ret.push(trash);
+    }
+    if (AppEnv.isDarkTheme()) {
+      ret.push(viewOriginalEmail);
     }
     return ret;
   }
