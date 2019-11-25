@@ -84,12 +84,13 @@ export default class MessageItem extends React.Component {
     }
   }
 
-  _onClickBlockBtn = () => {
+  _onClickBlockBtn = e => {
     if (this.state.isBlocked) {
       BlockedSendersStore.unBlockEmailByAccount(this.state.accountId, this.state.fromEmail);
     } else {
       BlockedSendersStore.blockEmailByAccount(this.state.accountId, this.state.fromEmail);
     }
+    e.stopPropagation();
   };
 
   _onClickParticipants = e => {
