@@ -29,7 +29,8 @@ class OnboardingStore extends MailspringStore {
     });
 
     const shareCounts = AppEnv.config.get('invite.count') || 0;
-    if (shareCounts < 5) {
+    const agree = AppEnv.config.get('agree');
+    if (!agree && shareCounts < 5) {
       if (hasAccounts) {
         this._pageStack = ['sorry'];
       }
@@ -164,7 +165,8 @@ class OnboardingStore extends MailspringStore {
     const isOnboarding = !addingAccount;
     if (isOnboarding) {
       const shareCounts = AppEnv.config.get('invite.count') || 0;
-      if (shareCounts < 5) {
+      const agree = AppEnv.config.get('agree');
+      if (!agree && shareCounts < 5) {
         AppEnv.config.set('invite.email', account.emailAddress);
         this._onMoveToPage('sorry');
         return;

@@ -21,11 +21,11 @@ export default class SorryPage extends React.Component {
     require('electron').ipcRenderer.send('open-main-window-make-onboarding-on-top');
     this.disposable = AppEnv.config.onDidChange(CONFIG_KEY, () => {
       const shareCounts = AppEnv.config.get(CONFIG_KEY) || 0;
-      AppEnv.getCurrentWindow().setAlwaysOnTop(true);
+      // AppEnv.getCurrentWindow().setAlwaysOnTop(true);
       if (shareCounts >= 5) {
         const mainWin = AppEnv.getMainWindow();
         if (mainWin) {
-          mainWin.destroy();
+          setTimeout(() => mainWin.destroy(), 3000);
         }
         OnboardingActions.moveToPage('gdpr-terms');
         return;
@@ -62,7 +62,8 @@ export default class SorryPage extends React.Component {
     // AppEnv.getCurrentWindow().setAlwaysOnTop(false);
     const { body } = this.state;
     if (body && !body.error) {
-      ipcRenderer.send('command', 'application:send-share', `<br/><br/><p>${body.text}</p><a href='${body.link}'>${body.link}</a>`);
+      AppEnv.getCurrentWindow().setAlwaysOnTop(false);
+      ipcRenderer.send('command', 'application:send-share', `<br/><p>${body.text}</p><a href='${body.link}'>${body.link}</a>`);
     }
   };
 
