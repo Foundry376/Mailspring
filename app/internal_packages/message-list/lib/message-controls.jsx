@@ -22,7 +22,7 @@ export default class MessageControls extends React.Component {
     threadPopedOut: PropTypes.bool,
     hideControls: PropTypes.bool,
     trackers: PropTypes.array,
-    viewOriginalEmail: PropTypes.func,
+    setViewOriginalEmail: PropTypes.func,
   };
 
   constructor(props) {
@@ -119,8 +119,8 @@ export default class MessageControls extends React.Component {
   };
 
   _onViewOriginalEmail = () => {
-    if (this.props.viewOriginalEmail && typeof this.props.viewOriginalEmail === 'function') {
-      this.props.viewOriginalEmail();
+    if (this.props.setViewOriginalEmail && typeof this.props.setViewOriginalEmail === 'function') {
+      this.props.setViewOriginalEmail(true);
     }
   };
 

@@ -346,8 +346,8 @@ export default class MessageItem extends React.Component {
             threadPopedOut={this.props.threadPopedOut}
             hideControls={this.props.isOutboxDraft}
             trackers={trackers}
-            viewOriginalEmail={() => {
-              this.setState({ viewOriginalEmail: true });
+            setViewOriginalEmail={value => {
+              this.setState({ viewOriginalEmail: !!value });
             }}
           />
         </div>
