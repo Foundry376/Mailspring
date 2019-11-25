@@ -130,6 +130,7 @@ lazyLoadAndRegisterTask('GetBlockListTask', 'sync-block-list-task');
 lazyLoadAndRegisterTask('TrashFromSenderTask', 'trash-from-sender-task');
 lazyLoadAndRegisterTask('SiftExpungeUserDataTask', 'sift-expunge-user-data-task');
 lazyLoadAndRegisterTask('SiftExportUserDataTask', 'sift-export-user-data-task');
+lazyLoadAndRegisterTask('SiftChangeSharingOptTask', 'sift-change-sharing-opt-task');
 lazyLoadAndRegisterTask('IMAPSearchTask', 'imap-search-task');
 // Stores
 // These need to be required immediately since some Stores are

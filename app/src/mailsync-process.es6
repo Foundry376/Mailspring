@@ -120,6 +120,10 @@ export default class MailsyncProcess extends EventEmitter {
       CONFIG_DIR_PATH: this.configDirPath,
       IDENTITY_SERVER: 'unknown',
     };
+    if (process.env.HTTP_PROXY) {
+      env.HTTP_PROXY = process.env.HTTP_PROXY;
+      env.HTTPS_PROXY = process.env.HTTPS_PROXY;
+    }
     if (process.type === 'renderer') {
       const rootURLForServer = require('./flux/mailspring-api-request').rootURLForServer;
       env.IDENTITY_SERVER = rootURLForServer('identity');
@@ -137,9 +141,9 @@ export default class MailsyncProcess extends EventEmitter {
     }
     if (mode === mailSyncModes.SIFT) {
       if (this.dataShareOptOut) {
-        args.push('--optOut', 1);
+        args.push('--sharingOpt', 0);
       } else {
-        args.push('--optOut', 0);
+        args.push('--sharingOpt', 1);
       }
     }
     this._proc = spawn(this.binaryPath, args, { env });

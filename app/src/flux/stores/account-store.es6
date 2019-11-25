@@ -286,6 +286,7 @@ class AccountStore extends MailspringStore {
       console.log('parse account error');
       const message = {
         id: `account-error`,
+        accountIds: erroredAccounts.map(account => account.id),
         level: 0,
         description: 'Several of your accounts are having issues',
         actions: [
@@ -306,7 +307,7 @@ class AccountStore extends MailspringStore {
       Actions.pushAppMessage(message);
     } else {
       const erroredAccount = erroredAccounts[0];
-      const message = { allowClose: true, level: 0, id: `account-error-${erroredAccount.emailAddress}` };
+      const message = { allowClose: true, level: 0, id: `account-error-${erroredAccount.emailAddress}`, accountIds: [erroredAccount.id] };
       switch (erroredAccount.syncState) {
         case Account.SYNC_STATE_AUTH_FAILED:
           message.description = `Cannot authenticate with ${erroredAccount.emailAddress}`;
