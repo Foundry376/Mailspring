@@ -638,14 +638,8 @@ export default class Application extends EventEmitter {
     const hasAccount = accounts && accounts.length > 0;
     const hasIdentity = this.config.get('identity.id');
     const agree = this.config.get('agree');
-    const shareCounts = this.config.get('shareCounts') || 0;
 
-    if (shareCounts < 5) {
-      this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
-        title: 'Welcome to EdisonMail'
-      });
-    }
-    else if (hasAccount && hasIdentity && agree) {
+    if (hasAccount && hasIdentity && agree) {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
     }
     else {
@@ -841,12 +835,12 @@ export default class Application extends EventEmitter {
       }
     });
 
-    this.on('application:send-share', () => {
+    this.on('application:send-share', body => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (mainWindow) {
         mainWindow.sendMessage('composeFeedBack', {
           subject: '',
-          body: "<h1>good good study</h1>"
+          body
         });
       }
     });

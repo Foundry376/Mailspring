@@ -1,20 +1,20 @@
 import React from 'react';
-import { RetinaImg } from 'mailspring-component-kit';
+import { LottieImg } from 'mailspring-component-kit';
 import OnboardingActions from './onboarding-actions';
 import { ipcRenderer } from 'electron';
-import {
-  Actions
-} from 'mailspring-exports';
 
-const CONFIG_KEY = 'shareCounts';
+const CONFIG_KEY = 'invite.count';
 export default class SorryPage extends React.Component {
   static displayName = 'SorryPage';
 
   constructor(props) {
     super(props);
     this.state = {
-      shareCounts: AppEnv.config.get(CONFIG_KEY) || 0
+      shareCounts: AppEnv.config.get(CONFIG_KEY) || 0,
+      body: AppEnv.config.get('invite.body'),
+      loading: false
     }
+    this.email = AppEnv.config.get('invite.email');
   }
 
   componentDidMount() {
@@ -25,7 +25,6 @@ export default class SorryPage extends React.Component {
       if (shareCounts >= 5) {
         const mainWin = AppEnv.getMainWindow();
         if (mainWin) {
-          console.log('*****close');
           mainWin.destroy();
         }
         OnboardingActions.moveToPage('gdpr-terms');
@@ -36,6 +35,23 @@ export default class SorryPage extends React.Component {
         });
       }
     });
+
+    if (!this.state.body || this.state.body.error) {
+      this.setState({
+        loading: true
+      })
+      if (this.email) {
+        AppEnv.getUserInviteEmailBody(this.email).then(body => {
+          const newState = {
+            loading: false
+          }
+          if (body) {
+            newState.body = body
+          }
+          this.setState(newState)
+        })
+      }
+    }
   }
 
   componentWillUnmount() {
@@ -44,24 +60,45 @@ export default class SorryPage extends React.Component {
 
   _onContinue = () => {
     // AppEnv.getCurrentWindow().setAlwaysOnTop(false);
-    ipcRenderer.send('command', 'application:send-share');
+    const { body } = this.state;
+    if (body && !body.error) {
+      ipcRenderer.send('command', 'application:send-share', `<br/><br/><p>${body.text}</p><a href='${body.link}'>${body.link}</a>`);
+    }
   };
 
   render() {
+    const { loading, body, shareCounts } = this.state;
     return (
-      <div className="page welcome">
+      <div className="page sorry">
         <div className="steps-container">
-          <div>
-            <p className="hero-text" style={{ fontSize: 46, marginTop: 257 }}>
-              Sorry
-            </p>
-            <p>{5 - this.state.shareCounts}</p>
-          </div>
-        </div>
-        <div className="footer">
-          <button key="next" className="btn btn-large btn-continue" onClick={this._onContinue}>
-            write email
-          </button>
+          <h1 className="hero-text">
+            Sorry
+            </h1>
+          <p>
+            <span className="email">{this.email}</span>address has not yet been accepted<br />
+            into the private beta. We are trying our best to<br />
+            accept new users as fast as possible.
+          </p>
+          <br />
+          <br />
+          <p>
+            Refer {5 - shareCounts} {5 - shareCounts > 1 ? 'friends' : 'friend'} to get access now.<br /><br />
+            {
+              body && !body.error ? (
+                <a href={body.link}>{body.link}</a>
+              ) : null
+            }
+          </p>
+          {
+            loading ? (
+              <LottieImg
+                name={'loading-spinner-white'}
+                height={24} width={24}
+                style={{ width: 24, height: 24 }} />
+            ) : (
+                <button key="next" className="btn btn-large btn-invite" onClick={this._onContinue}>Invite Friends</button>
+              )
+          }
         </div>
       </div>
     );

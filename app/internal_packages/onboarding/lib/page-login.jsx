@@ -13,21 +13,19 @@ export default class LoginPage extends React.Component {
     return (
       <div className="page welcome">
         <div className="steps-container">
-          <div>
-            <p className="hero-text" style={{ fontSize: 46, marginTop: 257 }}>
-              Welcome to Edison Mail
-            </p>
-            <RetinaImg
-              className="icons"
-              url="edisonmail://onboarding/assets/icons-bg@2x.png"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-          </div>
-        </div>
-        <div className="footer">
-          <button key="next" className="btn btn-large btn-continue" onClick={this._onContinue}>
-            Login
-          </button>
+          <RetinaImg
+            className="icons"
+            url="edisonmail://onboarding/assets/logo-light.png"
+            mode={RetinaImg.Mode.ContentPreserve}
+            style={{ width: 120 }}
+          />
+          <h1 className="hero-text">
+            Welcome to the Mac Closed Beta
+          </h1>
+          <p>
+            Connect your account to continue using the app
+          </p>
+          <button className="btn login-button" onClick={this._onContinue}>Login</button>
         </div>
       </div>
     );

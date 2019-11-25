@@ -94,10 +94,10 @@ class SendActionButton extends React.Component {
       return;
     }
 
-    const shareCounts = AppEnv.config.get('shareCounts') || 0;
+    const shareCounts = AppEnv.config.get('invite.count') || 0;
     if (shareCounts < 5 && this.props.draft) {
       const { to, cc } = this.props.draft;
-      AppEnv.config.set('shareCounts', shareCounts + to.length + cc.length);
+      AppEnv.config.set('invite.count', shareCounts + to.length + cc.length);
     }
     this._onSendWithAction(this.props.sendActions[0], disableDraftCheck);
   };

@@ -15,6 +15,10 @@ const LOG = require('electron-log');
 const archiver = require('archiver');
 let getOSInfo = null;
 let getDeviceHash = null;
+// To add a new user
+const WebServerApiKey = "bdH0VGExAEIhPq0z5vwdyVuHVzWx0hcR";
+const WebServerRoot = 'https://web-marketing.edison.tech/';
+const type = "mac";
 
 function ensureInteger(f, fallback) {
   let int = f;
@@ -1485,5 +1489,61 @@ export default class AppEnvConstructor {
     Actions.syncSiftFolder({
       categories: ['Travel', 'Packages', 'Bill & Receipts', 'Entertainment'],
     });
+  }
+
+  registerBetaUser = async (email) => {
+    // This is to be used to add a beta user to the queue, it requires a type, api key and email
+    let response = '';
+    try {
+      response = await fetch(WebServerRoot + 'registerBetaUser?type=' + type + '&apiKey=' + WebServerApiKey + '&email=' + email);
+      response = await response.json();
+      if (response.status === 200) {
+        this.config.set('invite.invitationCode', body.invitationCode);
+      }
+    } catch (err) {
+      console.error('registerBetaUser ERROR:', err);
+      response = {
+        error: err
+      }
+    }
+    return response;
+  }
+
+  getUserInviteEmailBody = async email => {
+    let response = '';
+    try {
+      // This is used for the mac app to get the user invite email copy. It will require an email address to get the correct share link
+      response = await fetch(WebServerRoot + 'getUserInviteEmailBody?type=' + type + '&apiKey=' + WebServerApiKey + '&email=' + email);
+      response = await response.json();
+      if (response.error === 'email is invalid') {
+        await this.registerBetaUser(email);
+        response = await fetch(WebServerRoot + 'getUserInviteEmailBody?type=' + type + '&apiKey=' + WebServerApiKey + '&email=' + email);
+        response = await response.json();
+      }
+      this.config.set('invite.body', response);
+    } catch (err) {
+      console.error('getUserInviteEmailBody ERROR:', err);
+      response = {
+        error: err
+      }
+    }
+    return response;
+  }
+
+  checkUnlock = async (email, force) => {
+    // This is a request that is intended to be sent by the mac app to check if the user is available to unlock. 
+    // It will respond with true if the user has been accepted into the beta if not it will return the number of invites needed to unlock. 
+    // There is an optional param called force=true which will bypass all of the invite logic and automatically accept the user into the program regardless of how many invites have been shared.
+    let response = '';
+    try {
+      response = await fetch(WebServerRoot + 'unlock?type=' + type + '&apiKey=' + WebServerApiKey + '&email=' + email);
+      response = await response.json();
+    } catch (err) {
+      console.error('checkUnlock ERROR:', err);
+      response = {
+        error: err
+      }
+    }
+    return response;
   }
 }

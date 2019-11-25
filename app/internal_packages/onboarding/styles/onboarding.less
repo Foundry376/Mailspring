@@ -1143,10 +1143,8 @@
 .page.welcome {
   display: flex;
   flex-direction: column;
-
-  .footer {
-    background-image: linear-gradient(to right, #6061c7 0%, #4782ad 100%);
-  }
+  background-image: url(edisonmail://onboarding/assets/mac-beta-back.jpg);
+  background-size: cover;
 
   a {
     color: white;
@@ -1161,16 +1159,20 @@
   .steps-container {
     position: relative;
     flex: 1;
-    background-image: linear-gradient(to right, #696ae8 0%, #4c9ad2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     color: white;
     overflow: hidden;
   }
 
   .hero-text {
-    font-size: 34px;
-    line-height: 41px;
-    font-weight: 200;
+    color: white;
+    font-size: 40px;
+    line-height: 46px;
     cursor: default;
+    margin-top: 280px;
+    font-weight: 500;
     -webkit-font-smoothing: subpixel-antialiased;
   }
 
@@ -1181,9 +1183,54 @@
 
   img.icons {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 30px;
     pointer-events: none;
+  }
+
+  .btn.login-button {
+    height: 40px;
+    width: 156px;
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    font-size: 24px;
+    line-height: unset;
+    border-radius: 0;
+    margin-top: 8px;
+  }
+}
+
+.page.sorry {
+  display: flex;
+  flex-direction: column;
+  background-image: url(edisonmail://onboarding/assets/mac-beta-back.jpg);
+  background-size: cover;
+  .steps-container {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    .email {
+      color: #1293fd;
+      margin-right: 8px;
+    }
+    .hero-text {
+      margin-top: 160px;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    p {
+      font-size: 16px;
+    }
+    .btn.btn-invite {
+      height: 50px;
+      width: 60%;
+      font-size: 17px;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 25px;
+      position: absolute;
+      bottom: 50px;
+      left: 20%;
+    }
   }
 }
 

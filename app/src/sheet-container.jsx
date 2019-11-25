@@ -1,8 +1,9 @@
 import React from 'react';
-import { ipcRenderer } from 'electron';
+import WindowManager from './browser/window-manager';
+import { ipcRenderer, remote } from 'electron';
 import { CSSTransitionGroup } from 'react-transition-group';
 import { WorkspaceStore, BlockedSendersStore } from 'mailspring-exports';
-
+import { RetinaImg } from 'mailspring-component-kit';
 import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
 import Flexbox from './components/flexbox';
@@ -20,6 +21,14 @@ export default class SheetContainer extends React.Component {
   componentDidMount() {
     ipcRenderer.on('application-activate', this._onAppActive);
     this.unsubscribe = WorkspaceStore.listen(this._onStoreChange);
+  }
+
+  openOnboarding() {
+    const application = remote.getGlobal('application');
+    application.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
+      title: 'Welcome to EdisonMail',
+      alwaysOnTop: true
+    });
   }
 
   componentDidCatch(error, info) {
@@ -97,6 +106,15 @@ export default class SheetContainer extends React.Component {
     );
   }
 
+  isValidUser = () => {
+    const agree = AppEnv.config.get('agree');
+    const shareCounts = AppEnv.config.get('invite.count') || 0;
+    if (!AppEnv.isMainWindow()) {
+      return true;
+    }
+    return agree || shareCounts >= 5;
+  }
+
   render() {
     const totalSheets = this.state.stack.length;
     const topSheet = this.state.stack[totalSheets - 1];
@@ -134,8 +152,7 @@ export default class SheetContainer extends React.Component {
       );
     }
 
-    const shareCounts = AppEnv.config.get('shareCounts') || 0;
-    const validClass = AppEnv.isMainWindow() && shareCounts < 5 ? 'not-shared' : '';
+    const validClass = this.isValidUser() ? '' : 'not-valid';
 
     return (
       <Flexbox
@@ -169,6 +186,23 @@ export default class SheetContainer extends React.Component {
             id={topSheet.id}
           />
         </div>
+        {
+          !this.isValidUser() && (
+            <div className="need-login" style={{
+              position: 'fixed',
+              zIndex: 100
+            }}>
+              <RetinaImg
+                className="icons"
+                url="edisonmail://onboarding/assets/logo-light.png"
+                mode={RetinaImg.Mode.ContentPreserve}
+              />
+              <h1>Welcome to the Mac Closed Beta</h1>
+              <p>Connect your account to continue using the app</p>
+              <button onClick={this.openOnboarding}>Login</button>
+            </div>
+          )
+        }
       </Flexbox>
     );
   }
