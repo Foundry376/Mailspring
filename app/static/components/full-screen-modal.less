@@ -1,0 +1,35 @@
+@import 'ui-variables';
+
+.component_modal {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+
+  .component_modal_wrap {
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.75);
+  }
+  .modal_content {
+    position: absolute;
+    height: 440px;
+    width: 680px;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    background: #fff;
+    border-radius: 5px;
+
+    .modal-close {
+      position: absolute;
+      top: -36px;
+      right: -36px;
+      background: #fff;
+      cursor: pointer;
+    }
+  }
+}
