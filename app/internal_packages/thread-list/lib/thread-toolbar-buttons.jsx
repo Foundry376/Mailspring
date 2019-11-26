@@ -1065,10 +1065,16 @@ PopoutButton.displayName = 'PopoutButton';
 
 function FolderButton(props) {
   if (props.isMenuItem) {
-    return new MenuItem({
-      label: 'Move to Folder',
-      click: () => AppEnv.commands.dispatch('core:change-folders', props.anchorEl),
-    });
+    return [
+      new MenuItem({
+        label: 'Move to Folder',
+        click: () => AppEnv.commands.dispatch('core:change-folders', props.anchorEl),
+      }),
+      new MenuItem({
+        label: 'Apply Labels',
+        click: () => AppEnv.commands.dispatch('core:change-labels', props.anchorEl),
+      }),
+    ];
   }
 
   return (
@@ -1108,7 +1114,11 @@ class MoreActionsButton extends React.Component {
     moreButtonlist.forEach(button => {
       if (button && typeof button === 'function') {
         const menuItem = button({ ...this.props, isMenuItem: true, anchorEl: this._anchorEl });
-        if (menuItem) {
+        if (menuItem instanceof Array) {
+          menuItem.forEach(item => {
+            menu.append(item);
+          });
+        } else {
           menu.append(menuItem);
         }
       }
