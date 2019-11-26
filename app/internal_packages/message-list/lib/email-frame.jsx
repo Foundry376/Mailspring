@@ -351,7 +351,9 @@ export default class EmailFrame extends React.Component {
   render() {
     return (
       <div
-        className="iframe-container"
+        className={`iframe-container  ${
+          this.props.viewOriginalEmail ? 'original-iframe-container' : null
+        }`}
         ref={el => {
           this._iframeHeightHolderEl = el;
         }}
