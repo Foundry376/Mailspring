@@ -194,9 +194,18 @@ export class Privacy extends React.Component {
           onCancel={this._onCloseOptOutModal}
         >
           <RetinaImg name={`inbox-nomail-3.png`} mode={RetinaImg.Mode.ContentPreserve} />
-          <h3>Data makes our technology work better for you</h3>
+          <h3>Data makes our technology work better for you.</h3>
+          <p>
+            We use data shared with us (that does not identify you) to invent new app features, and
+            create research about national purchase trends. We never share your emails, or any data
+            that can be used to track you personally for advertising.
+          </p>
+          <p>
+            You can opt-out of data sharing at any time. Keep in mind, out data practices allow us
+            to offer you this amazing Email app for free.
+          </p>
           <div
-            className="confirm"
+            className="modal-btn-confirm"
             onClick={() => {
               this.toggleDataShare(true);
               this._onCloseOptOutModal();
@@ -204,7 +213,7 @@ export class Privacy extends React.Component {
           >
             No thanks, I want to opt out.
           </div>
-          <div className="cancel" onClick={this._onCloseOptOutModal}>
+          <div className="modal-btn-cancel" onClick={this._onCloseOptOutModal}>
             Cancel
           </div>
         </FullScreenModal>
