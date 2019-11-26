@@ -125,7 +125,7 @@
         &:hover {
           &:after {
             display: block;
-            animation: growUp 0.4s;
+            .grow-up-animation-mixin()
           }
         }
         &:after {
@@ -246,17 +246,7 @@
             position: absolute;
             top: -3px;
             left: 1px;
-            animation: growUp 0.4s;
-          }
-          @keyframes growUp {
-            from {
-              opacity: 0.7;
-              transform: scale(0.5);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1);
-            }
+            .grow-up-animation-mixin()
           }
         }
         &:active {
@@ -520,7 +510,7 @@
         &:hover {
           &:after {
             display: block;
-            animation: growUp 0.4s;
+            .grow-up-animation-mixin()
           }
         }
       }

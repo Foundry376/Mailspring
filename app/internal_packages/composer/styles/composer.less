@@ -415,17 +415,7 @@ body.platform-win32 {
         position: absolute;
         top: -6px;
         left: 3px;
-        animation: growUp 0.4s;
-      }
-      @keyframes growUp {
-        from {
-          opacity: 0.7;
-          transform: scale(0.5);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
+        .grow-up-animation-mixin()
       }
       img.content-mask {
         background-color: @medium-grey;
