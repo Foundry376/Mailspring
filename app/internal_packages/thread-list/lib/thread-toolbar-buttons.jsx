@@ -1065,16 +1065,22 @@ PopoutButton.displayName = 'PopoutButton';
 
 function FolderButton(props) {
   if (props.isMenuItem) {
-    return [
+    const itemList = [
       new MenuItem({
         label: 'Move to Folder',
         click: () => AppEnv.commands.dispatch('core:change-folders', props.anchorEl),
       }),
-      new MenuItem({
-        label: 'Apply Labels',
-        click: () => AppEnv.commands.dispatch('core:change-labels', props.anchorEl),
-      }),
     ];
+    const account = AccountStore.accountForItems(props.items);
+    if (account && account.usesLabels()) {
+      itemList.push(
+        new MenuItem({
+          label: 'Apply Labels',
+          click: () => AppEnv.commands.dispatch('core:change-labels', props.anchorEl),
+        })
+      );
+    }
+    return itemList;
   }
 
   return (
