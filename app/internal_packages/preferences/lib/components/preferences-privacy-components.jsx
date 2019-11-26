@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Flexbox, RetinaImg, LottieImg } from 'mailspring-component-kit';
+import { Flexbox, RetinaImg, LottieImg, FullScreenModal } from 'mailspring-component-kit';
 import { Actions, Utils, TaskQueue, SiftExpungeUserDataTask } from 'mailspring-exports';
 import rimraf from 'rimraf';
 
@@ -16,6 +16,7 @@ export class Privacy extends React.Component {
     this.state = {
       deleteUserDataPopupOpen: false,
       deletingUserData: false,
+      optOutModalVisible: false,
     };
     this._mounted = false;
     this._expungeUserDataTimout = null;
@@ -102,10 +103,13 @@ export class Privacy extends React.Component {
     );
   }
 
-  toggleDataShare = () => {
-    const optOut = AppEnv.config.get('core.privacy.dataShare.optOut');
-    AppEnv.config.set('core.privacy.dataShare.optOut', !optOut);
-    Actions.dataShareOptions({ optOut: !optOut });
+  toggleDataShare = value => {
+    AppEnv.config.set('core.privacy.dataShare.optOut', !!value);
+    Actions.dataShareOptions({ optOut: !!value });
+  };
+
+  _onCloseOptOutModal = () => {
+    this.setState({ optOutModalVisible: false });
   };
 
   renderDataShareOption() {
@@ -118,13 +122,18 @@ export class Privacy extends React.Component {
     }
     if (AppEnv.config.get('core.privacy.dataShare.optOut')) {
       return (
-        <div className="btn-primary privacys-button" onClick={this.toggleDataShare}>
+        <div className="btn-primary privacys-button" onClick={() => this.toggleDataShare(false)}>
           Opt-in of Data Sharing
         </div>
       );
     } else {
       return (
-        <div className="btn-danger privacys-button" onClick={this.toggleDataShare}>
+        <div
+          className="btn-danger privacys-button"
+          onClick={() => {
+            this.setState({ optOutModalVisible: true });
+          }}
+        >
           Opt-out of Data Sharing
         </div>
       );
@@ -176,6 +185,29 @@ export class Privacy extends React.Component {
             {this.renderDataShareOption()}
           </Flexbox>
         </div>
+        <FullScreenModal
+          visible={this.state.optOutModalVisible}
+          closable
+          mask
+          maskClosable
+          className="privacys-opt-out-modal"
+          onCancel={this._onCloseOptOutModal}
+        >
+          <RetinaImg name={`inbox-nomail-3.png`} mode={RetinaImg.Mode.ContentPreserve} />
+          <h3>Data makes our technology work better for you</h3>
+          <div
+            className="confirm"
+            onClick={() => {
+              this.toggleDataShare(true);
+              this._onCloseOptOutModal();
+            }}
+          >
+            No thanks, I want to opt out.
+          </div>
+          <div className="cancel" onClick={this._onCloseOptOutModal}>
+            Cancel
+          </div>
+        </FullScreenModal>
       </div>
     );
   }
