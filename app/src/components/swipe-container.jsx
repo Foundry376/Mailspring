@@ -89,7 +89,7 @@ export default class SwipeContainer extends React.Component {
     this.phase = Phase.None;
     this.fired = false;
     this.isEnabled = null;
-    this.swipeBufferX = 50;
+    this.swipeBufferX = 25;
     this.state = {
       fullDistance: 'unknown',
       currentX: 0,
