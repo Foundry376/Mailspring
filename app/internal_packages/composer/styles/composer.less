@@ -64,6 +64,23 @@
   background-color: unset;
   img.content-mask {
     background-color: @gray-lighter;
+    position: relative;
+    z-index: 2;
+  }
+  &:hover {
+    &:after {
+      content: '';
+      height: 36px;
+      width: 36px;
+      border-radius: 50%;
+      background: @icon-hover-bg-color;
+      display: block;
+      position: absolute;
+      .grow-up-animation-mixin()
+    }
+    img.content-mask {
+      background-color: @gray-light;
+    }
   }
 }
 
