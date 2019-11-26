@@ -646,6 +646,10 @@ export default class AppEnvConstructor {
     return this.getCurrentWindow().close();
   }
 
+  hide() {
+    return this.getCurrentWindow().hide();
+  }
+
   quit() {
     return remote.app.quit();
   }
