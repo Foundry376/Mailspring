@@ -473,12 +473,13 @@ export default class ComposerView extends React.Component {
       .filter(f => Utils.shouldDisplayAsImage(f))
       .filter(f => !f.contentId)
       .map(file => (
-        <ImageAttachmentItem
+        <AttachmentItem
           key={file.id}
           draggable={false}
           className="file-upload"
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
+          isImage={true}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
           onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
         />
@@ -488,12 +489,13 @@ export default class ComposerView extends React.Component {
       .filter(f => f.contentId)
       .filter(f => !this.props.draft.body.includes(`cid:${f.contentId}`))
       .map(file => (
-        <ImageAttachmentItem
+        <AttachmentItem
           key={file.id}
           draggable={false}
           className="file-upload"
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
+          isImage={true}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
           onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
         />
