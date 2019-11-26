@@ -1,5 +1,5 @@
 @import 'ui-variables';
-@dragBarBg: @gray-lighter;
+@dragBarBg: @gray-lightest;
 .chat-account-sidebar-filler {
   width: 100%;
   order: 2;
@@ -51,9 +51,12 @@
       transition-duration: 1s;
     }
     .top-bar-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
       height: 20px;
       min-height: 20px;
-      margin: 23px 0 11px 0;
+      margin: 20px 16px 14px 20px;
     }
   }
   .left-panel:hover {

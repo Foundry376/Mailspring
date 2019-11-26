@@ -34,19 +34,19 @@ export default class ContactAvatar extends Component {
     this._unsub();
   }
 
-  _onDataChanged = (jid) => {
+  _onDataChanged = jid => {
     if (jid === this.props.jid) {
       this.setState({
-        isOnline: this.isOnline()
+        isOnline: this.isOnline(),
       });
     }
-  }
+  };
 
-  UNSAFE_componentWillReceiveProps = async (nextProps) => {
+  UNSAFE_componentWillReceiveProps = async nextProps => {
     await this.refreshState(nextProps);
   };
 
-  refreshState = async (props) => {
+  refreshState = async props => {
     const bgColor = gradientColorForString(props.jid);
     let app;
     await UserCacheStore.init();
@@ -54,7 +54,7 @@ export default class ContactAvatar extends Component {
       avatar: UserCacheStore.getAvatarByJid(props.jid),
       userInfo: UserCacheStore.getUserInfoByJid(props.jid),
       bgColor,
-      isOnline: this.isOnline()
+      isOnline: this.isOnline(),
     };
 
     if (props.jid.match(/@app/)) {
@@ -78,19 +78,19 @@ export default class ContactAvatar extends Component {
   isOnline = () => {
     const { jid } = this.props;
     return OnlineUserStore.isUserOnline(jid);
-  }
+  };
 
   componentDidMount = async () => {
     this.mounted = true;
     await this.refreshState(this.props);
-  }
+  };
 
   _getContactName = () => {
     const { name } = this.props;
     const { userInfo } = this.state;
     const contactName = name || (userInfo && userInfo.name) || (userInfo && userInfo.email);
     return contactName;
-  }
+  };
 
   render() {
     const { size = 48 } = this.props;
@@ -103,24 +103,20 @@ export default class ContactAvatar extends Component {
       minHeight: size,
       fontSize: size / 2 - 1,
       borderRadius: size / 2,
-      background: bgColor
-    }
+      background: bgColor,
+    };
     let avatarStyles = {};
     if (avatar) {
       avatarStyles.backgroundImage = `url(${avatar})`;
       avatarStyles.backgroundSize = 'cover';
     }
     return (
-      <div
-        className="chat-avatar"
-        style={styles}
-        title={contactName}
-      >
+      <div className="chat-avatar" style={styles} title={contactName}>
         <div className="avatar-image" style={avatarStyles}></div>
         <span>{getInitials(contactName).toUpperCase()}</span>
         <div className={isOnline ? 'online' : 'offline'}></div>
       </div>
-    )
+    );
   }
 }
 

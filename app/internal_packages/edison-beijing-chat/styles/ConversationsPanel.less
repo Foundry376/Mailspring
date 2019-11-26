@@ -8,12 +8,12 @@
     overflow: hidden;
     background: @white;
   }
-  
+
   .conversations {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    overflow-y: scroll;
+    overflow-y: auto;
     &::-webkit-scrollbar {
       width: 4px;
     }
@@ -30,7 +30,7 @@
       }
     }
   }
-  
+
   .noConversations {
     height: 100%;
     display: flex;
@@ -39,9 +39,9 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .newPrompt {
-    color: #0097FF;
+    color: #0097ff;
     font-weight: bold;
   }
 }

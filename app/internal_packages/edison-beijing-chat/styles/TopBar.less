@@ -4,12 +4,12 @@
   @topBarHeight: 68px;
   .top-bar-container {
     height: @topBarHeight;
-    width: 100%;
+    // width: 100%;
     min-height: @topBarHeight;
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding-right: 13px;
+    // padding-right: 13px;
   }
   .left-title,
   .mid-title {
@@ -19,9 +19,11 @@
   }
 
   .left-title {
-    padding-left: 19px;
-    letter-spacing: 0.1em;
-    color: @disabled-bg-color;
+    font-size: 10px;
+    color: @gray-light;
+    font-family: 'SF UI Text';
+    font-weight: 700;
+    letter-spacing: 0.5px;
   }
 
   .center {

@@ -14,9 +14,9 @@ export default class ConversationsPanel extends PureComponent {
 
   static defaultProps = {
     referenceTime: new Date().getTime(),
-  }
+  };
 
-  state = { progress: {} }
+  state = { progress: {} };
 
   componentDidMount() {
     this.unsubscribers = [];
@@ -33,17 +33,15 @@ export default class ConversationsPanel extends PureComponent {
     progress = Object.assign({}, progress);
     const state = Object.assign({}, this.state, { progress }, props);
     this.setState(state);
-  }
+  };
 
   onFailMessageChange = () => {
-    let {msg, visible} = FailMessageStore;
-    this.setState({msg, alertVisible:visible});
-  }
+    let { msg, visible } = FailMessageStore;
+    this.setState({ msg, alertVisible: visible });
+  };
 
   render() {
-    const {
-      referenceTime,
-    } = this.props;
+    const { referenceTime } = this.props;
 
     const conversationsProps = {
       referenceTime,
@@ -53,11 +51,9 @@ export default class ConversationsPanel extends PureComponent {
     return (
       <div className="panel">
         <ConversationsTopBar />
-        <div className="conversations">
-          <Conversations {...conversationsProps} />
-        </div>
+        <Conversations {...conversationsProps} />
         <ProgressBar progress={progress} onCancel={onCancel} onRetry={onRetry} />
-        <FailAlert msg={msg} visible={alertVisible}/>
+        <FailAlert msg={msg} visible={alertVisible} />
       </div>
     );
   }

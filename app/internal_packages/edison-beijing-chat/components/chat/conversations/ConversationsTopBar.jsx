@@ -60,7 +60,7 @@ export default class ConversationsTopBar extends PureComponent {
           <Button className="button" onClick={this.newConversation}>
             <RetinaImg
               name={'add.svg'}
-              style={{ width: 18 }}
+              style={{ width: 14 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask}
             />

@@ -2,21 +2,34 @@
 
 .chat-view-container {
   .item {
-    height: 35px;
-    padding: 6px 8px 6px 20px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0px 16px 0px 28px;
     cursor: pointer;
     display: flex;
+    align-items: center;
     flex-direction: row;
-    position: relative;
     font-size: 13px;
 
     .avatarWrapper {
-      position: relative;
-      float: left;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px;
+      //   display: flex;
+      //   align-items: center;
+      //   justify-content: center;
+      //   width: 26px;
+      .offline,
+      .online {
+        box-sizing: content-box;
+        height: 6px;
+        width: 6px;
+        border-radius: 50%;
+        border: 1px solid @text-color-inverse;
+      }
+      .online {
+        background: @green;
+      }
+      .offline {
+        background: @gray-light;
+      }
     }
     .groupAvatar {
       position: relative;
@@ -87,8 +100,10 @@
   }
 
   .headerText {
-    font-size: 14px;
-    // color: @gray;
+    line-height: 14px;
+    font-size: 12px;
+    font-family: 'SF UI Text';
+    color: @gray;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -96,9 +111,9 @@
       color: @red;
       font-weight: bold;
     }
-    .name {
-      opacity: 0.62;
-    }
+    // .name {
+    //   opacity: 0.62;
+    // }
   }
 
   .selected {
@@ -130,9 +145,11 @@
   .badge {
     display: inline-block;
     height: @badgeHeight;
-    min-width: calc(@badgeHeight + 4px);
+    min-width: 21px;
+    max-width: 27px;
     padding: 0 4px;
     font-size: 10px;
+    font-family: 'SF UI Text';
     font-weight: 600;
     color: @text-color-inverse;
     line-height: @badgeHeight;

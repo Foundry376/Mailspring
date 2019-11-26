@@ -6,7 +6,7 @@ import GroupChatAvatar from '../../common/GroupChatAvatar';
 import Badge from '../../common/Badge';
 import { RetinaImg } from 'mailspring-component-kit';
 import { getApp, getToken } from '../../../utils/appmgt';
-import { ChatActions, MessageStore } from 'chat-exports';
+import { ChatActions, MessageStore, OnlineUserStore } from 'chat-exports';
 
 export default class ConversationItem extends PureComponent {
   static propTypes = {
@@ -29,6 +29,12 @@ export default class ConversationItem extends PureComponent {
 
   state = {};
 
+  componentDidMount() {
+    this._unsub = ChatActions.userOnlineStatusChanged.listen(() => {
+      this.setState({ isOnline: this.isOnline() });
+    }, this);
+  }
+
   UNSAFE_componentWillMount = () => {
     const { conversation } = this.props;
     if (!conversation.jid.match(/@app\.im/)) {
@@ -46,6 +52,10 @@ export default class ConversationItem extends PureComponent {
     });
   };
 
+  componentWillUnmount() {
+    this._unsub && this._unsub();
+  }
+
   onClickRemove = async event => {
     event.stopPropagation();
     event.preventDefault();
@@ -56,32 +66,36 @@ export default class ConversationItem extends PureComponent {
     AppEnv.config.set('chatNeedAddIntialConversations', false);
   };
 
+  isOnline = () => {
+    const { jid } = this.props.conversation;
+    return OnlineUserStore.isUserOnline(jid);
+  };
+
   render() {
     const { selected, conversation, referenceTime, onClick, ...otherProps } = this.props;
+    const { isOnline } = this.state;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     const unreadMessage =
       !conversation.isHiddenNotification && conversation.unreadMessages
         ? conversation.unreadMessages
         : null;
     return (
-      <div
-        onClick={onClick}
-        className={'item' + (selected ? ' selected' : '')}
-        style={{ width: '100%' }}
-        {...otherProps}
-      >
-        <div style={{ width: '100%', display: 'flex' }}>
+      <div onClick={onClick} className={'item' + (selected ? ' selected' : '')} {...otherProps}>
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center' }}>
           <div className="avatarWrapper">
             {conversation.isGroup ? (
-              <GroupChatAvatar conversation={conversation} size={23} />
+              //   <GroupChatAvatar conversation={conversation} size={23} />
+              <div className={false ? 'online' : 'offline'}></div>
             ) : (
-              <ContactAvatar
-                conversation={conversation}
-                jid={conversation.jid}
-                name={conversation.name}
-                email={conversation.email}
-                size={23}
-              />
+              //   <ContactAvatar
+              //     conversation={conversation}
+              //     jid={conversation.jid}
+              //     name={conversation.name}
+              //     email={conversation.email}
+              //     size={23}
+              //   />
+
+              <div className={isOnline ? 'online' : 'offline'}></div>
             )}
             {/* {!conversation.isHiddenNotification ? <Badge count={conversation.unreadMessages} /> : null} */}
           </div>
