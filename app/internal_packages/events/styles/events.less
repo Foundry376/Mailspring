@@ -16,20 +16,25 @@
   color: @text-color;
 
   .event-header {
-    border-bottom: 1px solid @border-color-divider;
     padding: 10px;
     overflow: hidden;
     text-overflow: ellipsis;
-
-    img {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    img.content-mask {
       margin-right: 20px;
-    }
-
-    .event-title-text {
-      color: @text-color-very-subtle;
+      background-color: @gray-light;
     }
 
     .event-title {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: @font-size-h4;
+      font-weight: @font-weight-semi-bold;
       color: @text-color;
     }
   }
@@ -39,43 +44,41 @@
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    align-items: center;
-    .event-date {
+    align-items: flex-start;
+    .event-key-name {
+      font-size: @font-size-base;
+      font-style: normal;
+      padding-right: 14px;
+      color: @text-color-very-subtle;
+    }
+    .event-data {
       display: flex;
       flex-direction: column;
       justify-content: space-around;
       align-items: flex-start;
       width: 100%;
-      .event-day {
-        display: block;
-        font-size: @font-size-large;
-        color: #e64d65;
-      }
-
+      font-size: @font-size-base;
       .event-time {
         display: inline-block;
-        font-size: @font-size-h3;
-        font-weight: @font-weight-blond;
+        padding-bottom: @padding-small-horizontal;
       }
       .event-location{
         display: inline-block;
-        font-size: @font-size-h3;
-        font-weight: @font-weight-blond;
+        padding-bottom: @padding-small-horizontal;
       }
       .event-organizer{
         display: inline-block;
-        font-size: @font-size-h3;
-        font-weight: @font-weight-blond;
+        padding-bottom: @padding-small-horizontal;
       }
     }
 
     .event-actions {
       display: inline-block;
       float: right;
-
+      padding: 16px 0 0 0;
       z-index: 4;
       text-align: center;
-
+      margin-left: -6px;
       .btn-rsvp {
         float: left;
         padding: 0 15px;
@@ -83,10 +86,10 @@
         color: @accent-primary;
         border-radius: 15px;
         border: 1px solid @accent-primary;
-        // background: @background-primary;
-        // box-shadow: @standard-shadow;
+        font-size: @font-size-base;
+        min-width: 64px;
         margin: 0 7.5px 0 7.5px;
-        font-weight: bold;
+        font-weight: @font-weight-semi-bold;
         cursor: pointer;
         &:active {
           // background: transparent;

@@ -1,5 +1,6 @@
 import { RetinaImg } from 'mailspring-component-kit';
 import _ from 'underscore';
+import Button from '../../edison-beijing-chat/components/common/Button';
 const {
   Actions,
   React,
@@ -78,23 +79,22 @@ class EventHeader extends React.Component {
       return (
         <div className="event-wrapper">
           <div className="event-header">
-            <RetinaImg
-              name="icon-RSVP-calendar-mini@2x.png"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-            <span className="event-title-text">Event: </span>
-            <span className="event-title">{this.state.event.summary}</span>
+            <span className="event-title">{this.state.event.summary || 'Event'}</span>
+            <RetinaImg name={'feed-calendar.svg'} style={{ width: 20 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </div>
           <div className="event-body">
-            <div className="event-date">
+            <div className="event-data">
               <div className="event-time">
-                When: {this.renderWhen()}
+                <span className="event-key-name">When</span>
+                {this.renderWhen()}
               </div>
               <div className="event-location">
-                Location: {this.state.event.location ? this.state.event.location : 'Unknown'}
+                <span className="event-key-name">Location</span>
+                {this.state.event.location ? this.state.event.location : 'Unknown'}
               </div>
               <div className="event-organizer">
-                Organizer: {this.state.event.organizer ? this.state.event.organizer.name : 'Unknown'}
+                <span className="event-key-name">Organizer</span>
+                {this.state.event.organizer ? this.state.event.organizer.name : 'Unknown'}
               </div>
             </div>
             {this._renderEventActions()}
@@ -111,7 +111,7 @@ class EventHeader extends React.Component {
       return null;
     }
 
-    const actions = [{ status: 1, label: 'Accept', css: 'yes' }, { status: 3, label: 'Maybe', css: 'maybe' }, { status: 2, label: 'No', css: 'no' }];
+    const actions = [{ status: 1, label: 'Yes', css: 'yes' }, { status: 3, label: 'Maybe', css: 'maybe' }, { status: 2, label: 'No', css: 'no' }];
 
     return (
       <div className="event-actions">
