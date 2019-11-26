@@ -143,8 +143,8 @@ input:focus {
     &.swipe-right {
       &::after {
         background-position: left 10px center !important;
-        left: 100%;
-        transform: translateX(-100%);
+        left: 0px !important;
+        transform: translateX(0) !important;
         opacity: 1;
         justify-content: flex-start;
         padding-left: @label-padding;
@@ -158,27 +158,33 @@ input:focus {
       }
     }
 
+    .swipe-hover-after-css() {
+      left: 100%;
+      transform: translateX(-100%);
+      opacity: 1;
+    }
+    @swipe-trans-time: 150ms;
+
     &.swipe-unflag,
     &.swipe-flag {
-      transition: background-color linear 150ms;
+      transition: background-color linear @swipe-trans-time;
       &::after {
-        transition: left linear 150ms, transform linear 150ms;
+        // transition: left linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Flag';
-        left: 0;
+        left: 100%;
+        transform: translateX(-100%);
         .icon-mixin('../static/icons/flag.svg', @white);
       }
       &.confirmed {
         background-color: @action-color-orange;
         &::after {
-          left: 100%;
-          transform: translateX(-100%);
-          opacity: 1;
+          .swipe-hover-after-css()
         }
       }
     }
     &.swipe-unflag {
       &::after {
-        transition: left linear 150ms, transform linear 150ms;
+        // transition: left linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Unflag';
         left: 0;
         .icon-mixin('../static/icons/flag.svg', @white);
@@ -187,25 +193,24 @@ input:focus {
 
     &.swipe-unread,
     &.swipe-read {
-      transition: background-color linear 150ms;
+      transition: background-color linear @swipe-trans-time;
       &::after {
-        transition: left linear 150ms, transform linear 150ms;
+        // transition: left linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Read';
-        left: 0;
+        left: 100%;
+        transform: translateX(-100%);
         .icon-mixin('../static/icons/read.svg', @white);
       }
       &.confirmed {
         background-color: @action-color-blue;
         &::after {
-          left: 100%;
-          transform: translateX(-100%);
-          opacity: 1;
+          .swipe-hover-after-css()
         }
       }
     }
     &.swipe-unread {
       &::after {
-        transition: left linear 150ms, transform linear 150ms;
+        // transition: left linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Unread';
         left: 0;
         .icon-mixin('../static/icons/unread.svg', @white);
@@ -213,70 +218,66 @@ input:focus {
     }
 
     &.swipe-trash {
-      transition: background-color linear 150ms;
+      transition: background-color linear @swipe-trans-time;
       &::after {
-        transition: left linear 150ms, transform linear 150ms;
+        // transition: left linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Trash';
-        left: 0;
+        left: 100%;
+        transform: translateX(-100%);
         .icon-mixin('../static/icons/trash.svg', @white);
       }
       &.confirmed {
         background-color: @action-color-red;
         &::after {
-          left: 100%;
-          transform: translateX(-100%);
-          opacity: 1;
+          .swipe-hover-after-css()
         }
       }
     }
     &.swipe-folder {
-      transition: background-color linear 150ms;
+      transition: background-color linear @swipe-trans-time;
       &::after {
-        transition: left linear 150ms, transform linear 150ms;
+        // transition: left linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Move';
-        left: 0;
+        left: 100%;
+        transform: translateX(-100%);
         .icon-mixin('../static/icons/folder.svg', @white);
       }
       &.confirmed {
         background-color: @action-color-purple;
         &::after {
-          left: 100%;
-          transform: translateX(-100%);
-          opacity: 1;
+          .swipe-hover-after-css()
         }
       }
     }
     &.swipe-archive,
     &.swipe-all {
-      transition: background-color linear 150ms;
+      transition: background-color linear @swipe-trans-time;
       &::after {
-        transition: left linear 150ms, transform linear 150ms;
+        // transition: left linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Archive';
-        left: 0;
+        left: 100%;
+        transform: translateX(-100%);
         .icon-mixin('../static/icons/archive.svg', @white);
       }
       &.confirmed {
         background-color: @action-color-green;
         &::after {
-          left: 100%;
-          transform: translateX(-100%);
-          opacity: 1;
+          .swipe-hover-after-css()
         }
       }
     }
     &.swipe-snooze {
-      transition: background-color linear 150ms;
+      transition: background-color linear @swipe-trans-time;
       &::after {
-        transition: right linear 150ms, transform linear 150ms;
+        // transition: right linear @swipe-trans-time, transform linear @swipe-trans-time;
         content: 'Snooze';
-        right: 0;
+        right: 100%;
+        transform: translateX(100%);
         background-image: url(../static/images/swipe/icon-swipe-snooze@2x.png);
       }
       &.confirmed {
         &::after {
-          right: 100%;
-          transform: translateX(100%);
-          opacity: 1;
+          .swipe-hover-after-css()
         }
       }
     }
@@ -352,7 +353,7 @@ input:focus {
       flex-shrink: 0.1;
     }
     .snippet {
-      font-size: @font-size + 1px;
+      font-size: 14px;
       font-weight: @font-weight-normal;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -565,17 +566,7 @@ input:focus {
         position: absolute;
         top: 10px;
         left: -6px;
-        animation: growUp 0.4s;
-      }
-      @keyframes growUp {
-        from {
-          opacity: 0.7;
-          transform: scale(0.5);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
+        .grow-up-animation-mixin()
       }
     }
     &:active {
@@ -764,7 +755,7 @@ body.platform-win32 {
     &:hover {
       &:after {
         display: block;
-        animation: growUp 0.4s;
+        .grow-up-animation-mixin()
       }
     }
   }
@@ -876,7 +867,7 @@ body.platform-win32 {
     }
 
     .snippet {
-      font-size: @font-size-small;
+      font-size: 14px;
       overflow: hidden;
       text-overflow: ellipsis;
       opacity: 1;
