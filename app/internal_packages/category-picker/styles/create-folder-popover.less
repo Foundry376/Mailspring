@@ -12,23 +12,23 @@
   justify-content: space-between;
   box-sizing: border-box;
   background-color: @white;
-  box-shadow: 0 0 20px 0 rgba(0,0,0,0.1), 0 20px 30px 0 rgba(0,0,0,0.2);
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.1), 0 20px 30px 0 rgba(0, 0, 0, 0.2);
   padding: 30px;
   &.hide {
     display: none;
   }
-  .header-row{
+  .header-row {
     line-height: 20px;
     position: absolute;
     right: 20px;
     top: 15px;
     display: block;
-    .content-mask{
+    .content-mask {
       height: 20px;
       width: 20px;
       fill: @black;
       background-color: @black;
-      #x-mark{
+      #x-mark {
         fill: @black;
       }
       &:hover {
@@ -68,9 +68,10 @@
     flex: 46px 0 0;
     font-size: 13px;
     line-height: 46px;
-    color: @black;
+    color: @text-color;
     font-weight: normal;
     letter-spacing: 0px;
+    background: transparent;
     border: none;
     outline: none;
   }
@@ -91,8 +92,8 @@
       letter-spacing: 0.2px;
       text-align: center;
       opacity: 0.98;
-      &:hover{
-        box-shadow: 0 2px 5px 0 rgba(0,0,0,0.15);
+      &:hover {
+        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.15);
       }
       &.create-folder-btn-cancel {
         color: @accent-primary;
@@ -101,7 +102,7 @@
       &.create-folder-btn-create {
         background-color: @accent-primary;
         color: @white;
-        img.content-mask{
+        img.content-mask {
           background-color: @gray-light;
         }
         &:disabled {
@@ -115,7 +116,7 @@
     display: flex;
     flex-flow: row wrap;
     margin: 8px 0 30px 0;
-    &>div {
+    & > div {
       flex: 0 1 20px;
       height: 20px;
       width: 20px;
@@ -131,10 +132,10 @@
           visibility: visible;
         }
       }
-      &:nth-child(12n+1) {
+      &:nth-child(12n + 1) {
         margin-left: 0;
       }
-      &:nth-child(12n+12) {
+      &:nth-child(12n + 12) {
         margin-right: 0;
       }
     }
