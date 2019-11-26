@@ -22,7 +22,7 @@ import {
   ComposerEditor,
   ComposerSupport,
   Spinner,
-  LottieImg
+  LottieImg,
 } from 'mailspring-component-kit';
 import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
@@ -63,7 +63,7 @@ export default class ComposerView extends React.Component {
       'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
       'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => { },
+      'composer:show-and-focus-from': () => {},
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
@@ -85,6 +85,7 @@ export default class ComposerView extends React.Component {
       Actions.removeQuoteText.listen(this._onQuoteRemoved, this),
       WorkspaceStore.listen(this._onResize),
     ];
+    this._scrollToMessageBody = null;
   }
 
   componentDidMount() {
@@ -130,6 +131,12 @@ export default class ComposerView extends React.Component {
       (hasNonTrailingBlockquote(draft.bodyEditorState) || isNewDraft)
     ) {
       this.setState({ quotedTextHidden: false });
+    }
+
+    // scroll to new message body
+    if (this._scrollToMessageBody && typeof this._scrollToMessageBody === 'function') {
+      this._scrollToMessageBody();
+      this._scrollToMessageBody = null;
     }
   }
 
@@ -235,8 +242,11 @@ export default class ComposerView extends React.Component {
     } else if (extraScrollTop < 0) {
       extraScrollTop = 0;
     }
-
     scroller.scrollTop = extraScrollTop;
+
+    this._scrollToMessageBody = () => {
+      scroller.scrollTop = extraScrollTop;
+    };
   }
 
   _renderContentScrollRegion() {
@@ -580,13 +590,13 @@ export default class ComposerView extends React.Component {
                 {this.state.isDeleting ? (
                   <LottieImg name={'loading-spinner-blue'} size={{ width: 24, height: 24 }} />
                 ) : (
-                    <RetinaImg
-                      name={'trash.svg'}
-                      style={{ width: 24, height: 24 }}
-                      isIcon
-                      mode={RetinaImg.Mode.ContentIsMask}
-                    />
-                  )}
+                  <RetinaImg
+                    name={'trash.svg'}
+                    style={{ width: 24, height: 24 }}
+                    isIcon
+                    mode={RetinaImg.Mode.ContentIsMask}
+                  />
+                )}
                 <span>Delete</span>
               </button>
             </div>
