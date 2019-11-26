@@ -108,7 +108,7 @@ class FixedPopover extends Component {
 
   onWindowResize = () => {
     Actions.closePopover(this.props.onClose);
-  }
+  };
 
   onPopoverRendered = () => {
     if (!this.mounted) {
@@ -238,7 +238,7 @@ class FixedPopover extends Component {
         left: position.left,
       };
       popoverStyle = {
-        transform: `translate(${offset.x || 0}px) translate(-50%, 10px)`
+        transform: `translate(${offset.x || 0}px) translate(-50%, 10px)`,
       };
       pointerStyle.zoom = 0.5;
       return { containerStyle, popoverStyle, pointerStyle };
@@ -247,73 +247,73 @@ class FixedPopover extends Component {
       case Up:
         containerStyle = {
           // Place container on the top left corner of the rect
-          top: originRect.top,
-          left: originRect.left,
-          width: originRect.width,
+          top: originRect.top || 0,
+          left: originRect.left || 0,
+          width: originRect.width || 0,
         };
         popoverStyle = {
           // Center, place on top of container, and adjust 10px for the pointer
           transform: `translate(${offset.x || 0}px) translate(-50%, calc(-100% - 10px))`,
-          left: originRect.width / 2,
+          left: (originRect.width || 0) / 2,
         };
         pointerStyle = {
           // Center, and place on top of our container
           transform: 'translate(-50%, -100%)',
-          left: originRect.width, // Don't divide by 2 because of zoom
+          left: originRect.width || 0, // Don't divide by 2 because of zoom
         };
         break;
       case Down:
         containerStyle = {
           // Place container on the bottom left corner of the rect
-          top: originRect.top + originRect.height,
-          left: originRect.left,
-          width: originRect.width,
+          top: (originRect.top || 0) + (originRect.height || 0),
+          left: originRect.left || 0,
+          width: originRect.width || 0,
         };
         popoverStyle = {
           // Center and adjust 10px for the pointer (already positioned at the bottom of container)
           transform: `translate(${offset.x || 0}px) translate(-50%, 10px)`,
-          left: originRect.width / 2,
+          left: (originRect.width || 0) / 2,
         };
         pointerStyle = {
           // Center, already positioned at the bottom of container
           transform: 'translate(-50%, 0) rotateX(180deg)',
-          left: originRect.width, // Don't divide by 2 because of zoom
+          left: originRect.width || 0, // Don't divide by 2 because of zoom
         };
         break;
       case Left:
         containerStyle = {
           // Place container on the top left corner of the rect
-          top: originRect.top,
-          left: originRect.left,
-          height: originRect.height,
+          top: originRect.top || 0,
+          left: originRect.left || 0,
+          height: originRect.height || 0,
         };
         popoverStyle = {
           // Center, place on left of container, and adjust 10px for the pointer
           transform: `translate(0, ${offset.y || 0}px) translate(calc(-100% - 10px), -50%)`,
-          top: originRect.height / 2,
+          top: (originRect.height || 0) / 2,
         };
         pointerStyle = {
           // Center, and place on left of our container (adjust for rotation)
           transform: 'translate(calc(-100% + 13px), -50%) rotate(270deg)',
-          top: originRect.height, // Don't divide by 2 because of zoom
+          top: originRect.height || 0, // Don't divide by 2 because of zoom
         };
         break;
       case Right:
         containerStyle = {
           // Place container on the top right corner of the rect
-          top: originRect.top,
-          left: originRect.left + originRect.width,
-          height: originRect.height,
+          top: originRect.top || 0,
+          left: (originRect.left || 0) + (originRect.width || 0),
+          height: originRect.height || 0,
         };
         popoverStyle = {
           // Center and adjust 10px for the pointer
           transform: `translate(0, ${offset.y || 0}px) translate(10px, -50%)`,
-          top: originRect.height / 2,
+          top: (originRect.height || 0) / 2,
         };
         pointerStyle = {
           // Center, already positioned at the right of container (adjust for rotation)
           transform: 'translate(-12px, -50%) rotate(90deg)',
-          top: originRect.height, // Don't divide by 2 because of zoom
+          top: originRect.height || 0, // Don't divide by 2 because of zoom
         };
         break;
       default:
@@ -331,10 +331,10 @@ class FixedPopover extends Component {
     const { offset, direction, visible } = this.state;
     const { children, originRect, disablePointer, isFixedToWindow, position } = this.props;
     const blurTrapStyle = {
-      top: originRect.top,
-      left: originRect.left,
-      height: originRect.height,
-      width: originRect.width,
+      top: originRect.top || 0,
+      left: originRect.left || 0,
+      height: originRect.height || 0,
+      width: originRect.width || 0,
     };
     const { containerStyle, popoverStyle, pointerStyle } = this.computePopoverStyles({
       originRect,
@@ -360,11 +360,16 @@ class FixedPopover extends Component {
             {children}
           </div>
           {!disablePointer && <div className={`fixed-popover-pointer`} style={pointerStyle} />}
-          {!disablePointer && <div className={`fixed-popover-pointer shadow`} style={pointerStyle} />}
+          {!disablePointer && (
+            <div className={`fixed-popover-pointer shadow`} style={pointerStyle} />
+          )}
         </div>
       </div>
     );
   }
 }
 
-export default compose(FixedPopover, AutoFocuses);
+export default compose(
+  FixedPopover,
+  AutoFocuses
+);

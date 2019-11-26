@@ -83,7 +83,6 @@ export default class AppEnvConstructor {
     this.enabledBackgroundQueryLog = true;
     this.enabledLocalQueryLog = true;
     this.enabledXmppLog = true;
-    // LOG.transports.file.fileName = `ui-log-${Date.now()}.log`;
     LOG.transports.file.file = path.join(
       this.getConfigDirPath(),
       'ui-log',

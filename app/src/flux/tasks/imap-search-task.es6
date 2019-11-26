@@ -11,7 +11,7 @@ Send the SEARCH IMAP command query to native.
 
 export default class IMAPSearchTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
-    query: Attributes.String({
+    query: Attributes.Object({
       modelKey: 'query',
     }),
     paths: Attributes.Collection({
@@ -21,7 +21,7 @@ export default class IMAPSearchTask extends Task {
       modelKey: 'fullTextSearch',
     })
   });
-  constructor({ accountId, paths = [], fullTextSearch = '', query = '{}', ...rest } = {}) {
+  constructor({ accountId, paths = [], fullTextSearch = '', query = {}, ...rest } = {}) {
     super(rest);
     this.accountId = accountId;
     this.fullTextSearch = fullTextSearch;

@@ -30,6 +30,10 @@ export default class TrashFromSenderTask extends Task {
     return this.aid;
   }
 
+  set accountId(a) {
+    // no-op
+  }
+
   onError(err) {
     // noop
   }

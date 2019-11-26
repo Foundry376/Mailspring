@@ -224,7 +224,7 @@ class MovePicker extends React.Component {
             ref={el => (this._moveEl = el)}
             title={'Move to Folder'}
             onClick={this._onOpenMovePopover}
-            className={'btn btn-toolbar btn-category-picker btn-hide-when-crowded'}
+            className={'btn btn-toolbar btn-category-picker'}
           >
             <RetinaImg
               name={'folder.svg'}
@@ -240,7 +240,7 @@ class MovePicker extends React.Component {
               ref={el => (this._labelEl = el)}
               title={'Apply Labels'}
               onClick={this._onOpenLabelsPopover}
-              className={'btn btn-toolbar btn-category-picker btn-hide-when-crowded'}
+              className={'btn btn-toolbar btn-category-picker'}
             >
               <RetinaImg
                 name={'label.svg'}

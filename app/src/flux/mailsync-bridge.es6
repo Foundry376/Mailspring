@@ -19,6 +19,7 @@ import KeyManager from '../key-manager';
 import Actions from './actions';
 import Utils from './models/utils';
 import AnalyzeDBTask from './tasks/analyze-db-task';
+import SiftChangeSharingOptTask from './tasks/sift-change-sharing-opt-task';
 
 const MAX_CRASH_HISTORY = 10;
 
@@ -240,9 +241,9 @@ export default class MailsyncBridge {
   }, 100);
 
   onDataShareOptionsChange({ optOut = false } = {}) {
-    if (!this._sift || (optOut !== this._sift.dataShareOptOut)) {
-      this.killSift('Data Share option change');
-      this.startSift('Data Share option change');
+    if (this._sift) {
+      const task = new SiftChangeSharingOptTask({ sharingOpt: !optOut ? 1 : 0});
+      this._onQueueTask(task);
     }
   }
 

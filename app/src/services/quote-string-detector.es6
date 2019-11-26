@@ -26,7 +26,7 @@ export default function quoteStringDetector(doc) {
         if (/wrote:\s*$/gim.test(node.nodeValue)) {
           seenInitialQuoteEnd = true;
           quoteNodesToRemove.push(node);
-          if (/On \S/gim.test(node.nodeValue)) {
+          if (/[On,At] \S/gim.test(node.nodeValue)) {
             // The beginning of the quoted string may be in the same node
             return quoteNodesToRemove;
           }
@@ -38,7 +38,7 @@ export default function quoteStringDetector(doc) {
         }
       } else {
         quoteNodesToRemove.push(node);
-        if (/On \S/gim.test(node.nodeValue)) {
+        if (/[On,At] \S/gim.test(node.nodeValue)) {
           // This means we've reached the beginning of the quoted string.
           return quoteNodesToRemove;
         }

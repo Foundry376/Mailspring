@@ -74,22 +74,15 @@ export class Privacy extends React.Component {
         this.setState({ deletingUserData: true }, () => {
           const task = new SiftExpungeUserDataTask();
           Actions.queueTask(task);
-          this._expungeUserDataTimout = setTimeout(() => {
-            AppEnv.logWarning('Waiting for expunge user data timeout, restarting app anyways');
-            this.expungeLocalAndReboot();
-          }, 3000);
           TaskQueue.waitForPerformRemote(task)
             .then(() => {
-              if (this._expungeUserDataTimout) {
-                clearTimeout(this._expungeUserDataTimout);
-              }
               this.expungeLocalAndReboot();
             })
             .catch(() => {
-              if (this._expungeUserDataTimout) {
-                clearTimeout(this._expungeUserDataTimout);
-              }
-              this.expungeLocalAndReboot();
+              AppEnv.showErrorDialog({
+                title: 'Delete data failed.',
+                message: 'Expunging data from remote server failed, Please try again',
+              });
             });
         });
       }

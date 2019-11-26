@@ -1,4 +1,4 @@
-var ErrorLogger, _, app, remote;
+var ErrorLogger, _, app, remote, ipcMain;
 const path = require('path');
 let ipcRenderer = null;
 if (process.type === 'renderer') {
@@ -7,6 +7,7 @@ if (process.type === 'renderer') {
   app = remote.app;
 } else {
   app = require('electron').app;
+  ipcMain = require('electron').ipcMain;
 }
 const { getDeviceHash } = require('./system-utils');
 var appVersion = app.getVersion();

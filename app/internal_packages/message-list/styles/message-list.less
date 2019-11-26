@@ -653,6 +653,7 @@ body.platform-win32 {
     div {
       font-weight: @font-weight-semi-bold;
       color: @blue;
+      cursor: pointer;
     }
   }
 
@@ -671,6 +672,15 @@ body.platform-win32 {
         border: 0;
         padding: 0;
         overflow: auto;
+      }
+
+      &.original-iframe-container iframe {
+        background: #fff;
+        box-sizing: content-box;
+        border-right: 9px solid #fff;
+        margin-right: -9px;
+        border-left: 15px solid #fff;
+        margin-left: -15px;
       }
     }
   }

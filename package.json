@@ -20,7 +20,7 @@
     "babel-preset-react": "6.x.x",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "^6.1.0",
+    "electron": "6.1.5",
     "electron-installer-dmg": "^3.0.0",
     "electron-packager": "^14.1.0",
     "electron-rebuild": "^1.8.6",
@@ -63,6 +63,7 @@
   "scripts": {
     "copyassets": "node scripts/copyassets.js",
     "postinstall-to-be-delete": "node scripts/postinstall.js",
+    "start-with-proxy": "HTTP_PROXY=http://127.0.0.1:1087 HTTPS_PROXY=http://127.0.0.1:1087 node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
     "start": "node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",
     "test": "node_modules/.bin/electron ./app --enable-logging --test",

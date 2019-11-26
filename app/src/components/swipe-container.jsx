@@ -89,7 +89,7 @@ export default class SwipeContainer extends React.Component {
     this.phase = Phase.None;
     this.fired = false;
     this.isEnabled = null;
-    this.swipeBufferX = 50;
+    this.swipeBufferX = 25;
     this.state = {
       fullDistance: 'unknown',
       currentX: 0,
@@ -412,9 +412,7 @@ export default class SwipeContainer extends React.Component {
             ? move_folder_el
             : null}
         </div>
-        <div style={{ transform: `translate3d(${currentBufferX}px, 0, 0)` }}>
-          {this.props.children}
-        </div>
+        <div style={{ transform: `translateX(${currentBufferX}px)` }}>{this.props.children}</div>
       </div>
     );
   }

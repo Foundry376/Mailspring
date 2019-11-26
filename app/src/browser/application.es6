@@ -264,7 +264,7 @@ export default class Application extends EventEmitter {
     }
   }
   reportError(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs && !this.inDevMode()) {
+    if (grabLogs && !this.devMode) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'error');
     } else {
       this._reportLog(error, extra, { noWindows }, 'error');
@@ -272,14 +272,14 @@ export default class Application extends EventEmitter {
   }
 
   reportWarning(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs && !this.inDevMode()) {
+    if (grabLogs && !this.devMode) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'warning');
     } else {
       this._reportLog(error, extra, { noWindows }, 'warning');
     }
   }
   reportLog(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs && !this.inDevMode()) {
+    if (grabLogs && !this.devMode) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'log');
     } else {
       this._reportLog(error, extra, { noWindows }, 'log');
@@ -317,11 +317,11 @@ export default class Application extends EventEmitter {
       console.log(e);
     }
     if (type.toLocaleLowerCase() === 'error') {
-      this.errorLogger.reportError(error, extra);
+      global.errorLogger.reportError(error, extra);
     } else if (type.toLocaleLowerCase() === 'warning') {
-      this.errorLogger.reportWarning(error, extra);
+      global.errorLogger.reportWarning(error, extra);
     } else {
-      this.errorLogger.reportLog(error, extra);
+      global.errorLogger.reportLog(error, extra);
     }
   }
   _expandReportLog(extra = {}) {
@@ -477,24 +477,56 @@ export default class Application extends EventEmitter {
     });
   }
 
+  processReportErrorEvent(params, level = 'error'){
+    try {
+      const errorParams = JSON.parse(params.errorJSON || '{}');
+      const extra = { errorData: {}};
+      if (params.extra) {
+        extra.errorData = params.extra;
+      }
+      if (params.errorData) {
+        extra.errorData = params.errorData;
+      }
+      let err;
+      if (typeof params.errorMessage === 'string') {
+        err = new Error(params.errorMessage);
+      } else {
+        err = new Error();
+      }
+      err = Object.assign(err, errorParams);
+      if (level === 'error') {
+        this.reportError(err, extra, { grabLogs: params.grabLogs });
+      } else if (level === 'warning') {
+        this.reportWarning(err, extra, { grabLogs: params.grabLogs });
+      } else {
+        this.reportLog(err, extra, { grabLogs: params.grabLogs });
+      }
+    } catch (parseError) {
+      console.error(parseError);
+      global.errorLogger.reportError(parseError, {});
+    }
+  }
+
   initSupportInfo() {
     if (this.config) {
       this.config.set('core.support.native', this.nativeVersion);
     }
-    // if (!getDeviceHash) {
-    //   getDeviceHash = require('./system-utils').getDeviceHash;
-    // }
-    // const deviceHash = this.config.get('core.support.id');
-    // if (!deviceHash || deviceHash === 'Unknown') {
-    //   getDeviceHash()
-    //     .then(id => {
-    //       this.config.set('core.support.id', id);
-    //     })
-    //     .catch(e => {
-    //       AppEnv.reportError(new Error('failed to init support id'));
-    //       this.config.set('core.support.id', 'Unknown');
-    //     });
-    // }
+    if (!getDeviceHash) {
+      getDeviceHash = require('../system-utils').getDeviceHash;
+    }
+    const deviceHash = this.config.get('core.support.id');
+    if (!deviceHash || deviceHash === 'Unknown') {
+      getDeviceHash()
+        .then(id => {
+          this.config.set('core.support.id', id);
+        })
+        .catch(e => {
+          AppEnv.reportError(new Error('failed to init support id'));
+          this.config.set('core.support.id', 'Unknown');
+        });
+    }
+    LOG.transports.file.file = path.join(this.configDirPath, 'ui-log', 'application.log');
+    LOG.transports.console.level = false;
   }
 
   autoStartRestore() {
@@ -1405,42 +1437,16 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('report-error', (event, params = {}) => {
-      try {
-        const errorParams = JSON.parse(params.errorJSON || '{}');
-        const extra = JSON.parse(params.extra || '{}');
-        let err = new Error();
-        err = Object.assign(err, errorParams);
-        global.errorLogger.reportError(err, extra);
-      } catch (parseError) {
-        console.error(parseError);
-        global.errorLogger.reportError(parseError, {});
-      }
+      console.log(`\n----\nreport-error\n`);
+      this.processReportErrorEvent(params, 'error');
       event.returnValue = true;
     });
     ipcMain.on('report-warning', (event, params = {}) => {
-      try {
-        const errorParams = JSON.parse(params.errorJSON || '{}');
-        const extra = JSON.parse(params.extra || '{}');
-        let err = new Error();
-        err = Object.assign(err, errorParams);
-        global.errorLogger.reportWarning(err, extra);
-      } catch (parseError) {
-        console.error(parseError);
-        global.errorLogger.reportError(parseError, {});
-      }
+      this.processReportErrorEvent(params, 'warning');
       event.returnValue = true;
     });
     ipcMain.on('report-log', (event, params = {}) => {
-      try {
-        const errorParams = JSON.parse(params.errorJSON || '{}');
-        const extra = JSON.parse(params.extra || '{}');
-        let err = new Error();
-        err = Object.assign(err, errorParams);
-        global.errorLogger.reportLog(err, extra);
-      } catch (parseError) {
-        console.error(parseError);
-        global.errorLogger.reportError(parseError, {});
-      }
+      this.processReportErrorEvent(params, 'log');
       event.returnValue = true;
     });
     ipcMain.on('grab-log', (event, params = {}) => {

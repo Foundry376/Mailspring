@@ -164,6 +164,7 @@ class SidebarItem {
         iconName: perspective.iconName,
         bgColor: perspective.bgColor,
         iconColor: perspective.iconColor || perspective.bgColor,
+        className: perspective.className,
         mode: perspective.mode,
         iconStyles: perspective.iconStyles,
         children: [],
@@ -414,7 +415,7 @@ class SidebarItem {
   }
 
   static forSift(accountIds, siftCategory, opts = {}) {
-    if (!Array.isArray(accountIds) ) {
+    if (!Array.isArray(accountIds)) {
       accountIds = [accountIds];
     }
     const perspective = MailboxPerspective.forSiftCategory({

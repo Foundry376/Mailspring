@@ -157,6 +157,31 @@
       img {
         vertical-align: top;
       }
+      &.sift {
+        border-radius: 50%;
+        height: 18px;
+        width: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        img {
+          background-color: @text-color-inverse !important;
+          width: 14px !important;
+          height: 14px !important;
+        }
+        &.sift-Travel {
+          background-color: @blue;
+        }
+        &.sift-Bill {
+          background-color: @green;
+        }
+        &.sift-Packages {
+          background-color: @purple;
+        }
+        &.sift-Entertainment {
+          background-color: @orange;
+        }
+      }
     }
     .name {
       order: 2;

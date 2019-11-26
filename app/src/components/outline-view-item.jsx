@@ -138,6 +138,7 @@ class OutlineViewItem extends Component {
       onEdited: PropTypes.func,
       bgColor: PropTypes.string,
       iconColor: PropTypes.string,
+      className: PropTypes.string,
     }).isRequired,
   };
 
@@ -325,8 +326,9 @@ class OutlineViewItem extends Component {
     if (item.iconStyles) {
       Object.assign(styles, item.iconStyles);
     }
+    let classNames = item.className || '';
     return (
-      <div className="icon">
+      <div className={`icon ${classNames}`}>
         <RetinaImg
           name={item.iconName}
           isIcon={true}
