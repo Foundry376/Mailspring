@@ -62,6 +62,7 @@ lazyLoad('Switch', 'switch');
 lazyLoad('FixedPopover', 'fixed-popover');
 lazyLoad('DatePickerPopover', 'date-picker-popover');
 lazyLoad('Modal', 'modal');
+lazyLoad('FullScreenModal', 'full-screen-modal');
 lazyLoad('Webview', 'webview');
 lazyLoad('FeatureUsedUpModal', 'feature-used-up-modal');
 lazyLoad('BillingModal', 'billing-modal');
