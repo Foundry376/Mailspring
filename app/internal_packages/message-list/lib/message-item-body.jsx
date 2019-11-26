@@ -55,6 +55,7 @@ export default class MessageItemBody extends React.Component {
     downloads: PropTypes.object.isRequired,
     calendar: PropTypes.object,
     setTrackers: PropTypes.func,
+    viewOriginalEmail: PropTypes.bool,
   };
 
   constructor(props, context) {
@@ -186,6 +187,7 @@ export default class MessageItemBody extends React.Component {
           showQuotedText={showQuotedText}
           content={this._mergeBodyWithFiles(processedBody)}
           message={message}
+          viewOriginalEmail={this.props.viewOriginalEmail}
           setTrackers={this.props.setTrackers}
         />
       );

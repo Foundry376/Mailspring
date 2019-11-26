@@ -393,7 +393,7 @@ const preferencesTemplateFill = {
             {
               label: 'Privacy',
               component: Privacy,
-              keywords: [],
+              keywords: ['data'],
             },
           ],
         },
