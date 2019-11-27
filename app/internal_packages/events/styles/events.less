@@ -14,7 +14,15 @@
   border-radius: @border-radius-base;
   border: 1px solid @border-color-divider;
   color: @text-color;
-
+  margin-bottom: 16px;
+  padding-left: 8px;
+  box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
+  .open-external {
+    color: @accent-primary;
+    font-size: @font-size-base;
+    font-weight: @font-weight-semi-bold;
+    cursor: pointer;
+  }
   .event-header {
     padding: 10px;
     overflow: hidden;
@@ -36,6 +44,7 @@
       font-size: @font-size-h4;
       font-weight: @font-weight-semi-bold;
       color: @text-color;
+      user-select: text;
     }
   }
 
@@ -63,8 +72,18 @@
         padding-bottom: @padding-small-horizontal;
       }
       .event-location{
+        user-select: text;
         display: inline-block;
         padding-bottom: @padding-small-horizontal;
+        .open-external {
+          border-radius: 40px;
+          position: relative;
+          top: 12px;
+          left: 6px;
+          float: right;
+          overflow: hidden;
+          margin-top: -24px;
+        }
       }
       .event-organizer{
         display: inline-block;
@@ -73,12 +92,21 @@
     }
 
     .event-actions {
-      display: inline-block;
-      float: right;
-      padding: 16px 0 0 0;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 16px 0 0;
       z-index: 4;
       text-align: center;
       margin-left: -6px;
+      width: 100%;
+      .open-external{
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+      }
       .btn-rsvp {
         float: left;
         padding: 0 15px;
