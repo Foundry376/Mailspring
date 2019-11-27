@@ -10,25 +10,26 @@
   .component_modal_wrap {
     height: 100%;
     width: 100%;
-    background: rgba(0, 0, 0, 0.75);
+    background: fade(@text-color, 70%);
   }
   .modal_content {
     position: absolute;
-    height: 440px;
-    width: 680px;
+    height: 500px;
+    width: 752px;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
     margin: auto;
-    background: #fff;
+    background: @background-primary;
     border-radius: 5px;
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.1), 0 20px 30px 0 rgba(0, 0, 0, 0.2);
 
     .modal-close {
       position: absolute;
       top: -36px;
       right: -36px;
-      background: #fff;
+      background: @background-primary;
       cursor: pointer;
     }
   }
