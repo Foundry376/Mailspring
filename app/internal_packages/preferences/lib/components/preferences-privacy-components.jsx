@@ -198,14 +198,14 @@ export class Privacy extends React.Component {
             mode={RetinaImg.Mode.ContentPreserve}
             style={{ width: 150, height: 150 }}
           />
-          <h3>Data makes our technology work better for you.</h3>
+          <h2>Data makes our technology work better for you.</h2>
           <p>
             We use data shared with us (that does not identify you) to invent new app features, and
             create research about national purchase trends. We never share your emails, or any data
             that can be used to track you personally for advertising.
-          </p>
-          <p>
-            You can opt-out of data sharing at any time. Keep in mind, out data practices allow us
+            <br />
+            <br />
+            You can opt-out of data sharing at any time. Keep in mind, our data practices allow us
             to offer you this amazing Email app for free.
           </p>
           <div
