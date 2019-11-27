@@ -110,7 +110,6 @@ export default class EmailAvatar extends Component {
       }
     });
     if (!sendMessage) {
-      console.error(`cannot find message send from account: ${JSON.stringify(messages)}`);
       return messages[messages.length - 1];
     }
     return sendMessage;
