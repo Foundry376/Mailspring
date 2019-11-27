@@ -41,29 +41,41 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 20px;
-  img {
-    height: 120px;
-    width: 120px;
-  }
+  padding-top: 30px;
+  text-align: center;
+  font-family: 'SF UI Text';
 
-  h3 {
-    font-weight: @font-weight-semi-bold;
+  h2 {
+    font-size: 24px;
+    font-family: 'SF UI Text';
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 29px;
+    margin: 30px 0 15px;
   }
 
   p {
-    width: 380px;
-    text-align: center;
+    width: 500px;
     color: @text-color-very-subtle;
+    font-size: @font-size-large;
+    line-height: 20px;
+    margin-bottom: 30px;
   }
 
   .modal-btn-confirm {
-    color: @text-color-link;
-    font-weight: @font-weight-semi-bold;
+    line-height: 16px;
+    letter-spacing: -0.28px;
+    font-weight: 700;
+    color: #39f;
+    margin-bottom: 15px;
+    cursor: pointer;
   }
 
   .modal-btn-cancel {
-    color: @text-color-very-subtle;
-    font-weight: @font-weight-semi-bold;
+    color: @gray-light;
+    font-weight: 700;
+    letter-spacing: -0.28px;
+    line-height: 16px;
+    cursor: pointer;
   }
 }
