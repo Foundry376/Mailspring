@@ -116,6 +116,8 @@ class AccountStore extends MailspringStore {
           const account = this.accountForId(obj.accountId);
           if (account && obj.key === 'ErrorAuthentication' && account.syncState !== Account.SYNC_STATE_AUTH_FAILED) {
             Actions.updateAccount(account.id, { syncState: Account.SYNC_STATE_AUTH_FAILED })
+          } else if (account && obj.key === Account.INSUFFICIENT_PERMISSION && account.syncState !== Account.INSUFFICIENT_PERMISSION){
+            Actions.updateAccount(account.id, { syncState: Account.INSUFFICIENT_PERMISSION })
           }
         }
       });
@@ -283,7 +285,6 @@ class AccountStore extends MailspringStore {
     if (erroredAccounts.length === 0) {
       return;
     } else if (erroredAccounts.length > 1) {
-      console.log('parse account error');
       const message = {
         id: `account-error`,
         accountIds: erroredAccounts.map(account => account.id),
@@ -313,11 +314,24 @@ class AccountStore extends MailspringStore {
           message.description = `Cannot authenticate with ${erroredAccount.emailAddress}`;
           message.actions = [
             {
+              text: 'Okay',
+              onClick: () => Actions.removeAppMessage(message)
+            },
+            {
+              text: 'Reconnect',
+              onClick: () => this._reconnectAccount(erroredAccount)
+            },
+          ];
+          break;
+        case Account.INSUFFICIENT_PERMISSION:
+          message.description = `${erroredAccount.emailAddress} lack permission to perform action`;
+          message.actions = [
+            {
               text: 'Check Again',
               onClick: () => this._forceRelaunchClients([erroredAccount])
             },
             {
-              text: 'Reconnect',
+              text: 'Reauthenticate',
               onClick: () => this._reconnectAccount(erroredAccount)
             },
           ];
