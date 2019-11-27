@@ -1,4 +1,4 @@
-const { BrowserWindow, app, dialog } = require('electron');
+const { BrowserWindow, app, dialog, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const url = require('url');
@@ -248,7 +248,15 @@ module.exports = class MailspringWindow extends EventEmitter {
       if (!this.loaded) {
         return;
       }
-
+      console.log('\n----\nunresponsive\n\n');
+      ipcMain.emit('report-error', {
+          errorData: this.browserWindow
+            ? this.browserWindow.loadSettings
+            : 'browserWindow not available',
+          grabLogs: true,
+        },
+      );
+      console.log('\n----\nunresponsive\n\n');
       const chosen = dialog.showMessageBoxSync(this.browserWindow, {
         type: 'warning',
         buttons: ['Close', 'Keep Waiting'],
@@ -258,9 +266,6 @@ module.exports = class MailspringWindow extends EventEmitter {
       if (chosen === 0) {
         this.browserWindow.destroy();
       }
-      console.log('\n----\nunresponsive\n\n');
-      // global.application.reportError(new Error(`unresponsive for window ${this.windowKey}`), {errorData: this.browserWindow ? this.browserWindow.loadSettings : 'browserWindow not available'}, {grabLogs: true});
-      console.log('\n----\nunresponsive\n\n');
     });
 
     this.browserWindow.webContents.on('crashed', (event, killed) => {

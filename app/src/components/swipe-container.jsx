@@ -13,8 +13,8 @@ const SpringBounceFactory = options => {
   };
 };
 const SpringBounceFunction = SpringBounceFactory({
-  frequency: 360,
-  friction: 440,
+  frequency: 300,
+  friction: 540,
 });
 
 const Phase = {
@@ -154,7 +154,7 @@ export default class SwipeContainer extends React.Component {
     this._onDragWithVelocity(velocity);
 
     if (this.phase === Phase.GestureConfirmed) {
-      e.preventDefault(); // here has an error: Unable to preventDefault inside passive event listener due to target being treated as passive.
+      // e.preventDefault(); // here has an error: Unable to preventDefault inside passive event listener due to target being treated as passive.
     }
   };
 
@@ -176,7 +176,8 @@ export default class SwipeContainer extends React.Component {
     let { fullDistance, thresholdDistance } = this.state;
 
     if (fullDistance === 'unknown') {
-      fullDistance = ReactDOM.findDOMNode(this).clientWidth;
+      fullDistance = ReactDOM.findDOMNode(this).clientWidth + this.swipeBufferX;
+      this.containerWidth = ReactDOM.findDOMNode(this).clientWidth;
       thresholdDistance = 66;
     }
 
@@ -328,7 +329,14 @@ export default class SwipeContainer extends React.Component {
     let { currentX } = this.state;
 
     const f = (Date.now() - settleStartTime) / 1400.0;
-    currentX = lastDragX + SpringBounceFunction(f) * (targetX - lastDragX);
+    if (targetX === 0 && swipeStep) {
+      const direction = lastDragX > 0 ? 1 : -1;
+      // f * 0.94 can lower speed 
+      currentX = (this.containerWidth - SpringBounceFunction(f * 0.94) * (this.containerWidth)) * direction;
+    } else {
+      currentX = lastDragX + SpringBounceFunction(f) * (targetX - lastDragX);
+    }
+
 
     const shouldFinish = f >= 1.0;
     const mostlyFinished =

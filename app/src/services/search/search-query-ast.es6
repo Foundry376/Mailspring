@@ -179,11 +179,16 @@ class DateQueryExpression extends QueryExpression {
   }
 
   toJSON() {
-    let data = DateUtils.getChronoPast().parseDate(this.text.token.s);
-    if (!data) {
-      data = 0;
+    let data;
+    if (isFinite(parseInt(this.text.token.s))) {
+      data = this.text.token.s;
     } else {
-      data = Math.floor(data.getTime() / 1000);
+      data = DateUtils.getChronoPast().parseDate(this.text.token.s);
+      if (!data) {
+        data = 0;
+      } else {
+        data = Math.floor(data.getTime() / 1000);
+      }
     }
     this.text.token.s = data;
     return super.toJSON();

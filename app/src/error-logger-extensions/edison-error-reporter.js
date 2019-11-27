@@ -3,6 +3,12 @@ const { getDeviceHash, getOSInfo } = require('../system-utils');
 const _ = require('underscore');
 const request = require('request');
 const fs = require('fs');
+let processEmitter = null;
+if(process.type === 'renderer'){
+  processEmitter = require('electron').ipcRenderer;
+}else{
+  processEmitter = require('electron').ipcMain;
+}
 module.exports = class EdisonErrorReporter {
   constructor({ inSpecMode, inDevMode, resourcePath }) {
     this.inSpecMode = inSpecMode;
@@ -156,29 +162,25 @@ module.exports = class EdisonErrorReporter {
     };
     this.errorStack.forEach(stack => {
       const tmp = formify(stack);
-      request.post({ url: 'https://cp.stag.easilydo.cc/api/log2/', formData: tmp }, (err, httpResponse, body) => {
-        if (err) {
-          console.log(`\n---> \nupload failed: ${err}`);
+      request.post(
+        { url: 'https://cp.stag.easilydo.cc/api/log2/', formData: tmp },
+        (err, httpResponse, body) => {
+          if (err) {
+            console.log(`\n---> \nupload failed: ${err}`);
+            this.onSendToServerFailed(err, tmp);
+            return;
+          }
+          console.log(`\n---> \nupload success ${body}`);
+          this.onSendToServerSuccess(tmp);
         }
-        console.log(`\n---> \nupload success ${body}`);
-      });
-    })
-    // var req = https.request(options, function(res) {
-    //   var _data = '';
-    //   res.on('error', function(error) {
-    //     console.log(error);
-    //   });
-    //
-    //   res.on('data', function(chunk) {
-    //     _data += chunk;
-    //   });
-    //
-    //   res.on('end', function() {
-    //     // console.log("\n--->>\nresult:", _data);
-    //   });
-    // });
-    // req.write(content);
-    // req.end();
+      );
+    });
     this.errorStack = [];
+  }
+  onSendToServerSuccess = (payload = {}) => {
+    processEmitter.emit('upload-to-report-server', { success: true, error: null, payload });
+  };
+  onSendToServerFailed = (err, payload = {}) => {
+    processEmitter.emit('upload-to-report-server', { success: false, error: err, payload });
   }
 };

@@ -42,7 +42,6 @@ const getDeviceHash = () => {
     //   })
     //   .join('-');
   });
-
 };
 const getOSInfo = () => {
   let cpuModel = os.cpus();
