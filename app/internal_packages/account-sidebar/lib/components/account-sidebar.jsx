@@ -1,4 +1,5 @@
 const React = require('react');
+import { ipcRenderer } from 'electron';
 const { Utils, AccountStore } = require('mailspring-exports');
 const { OutlineView, ScrollRegion, Flexbox } = require('mailspring-component-kit');
 const AccountSwitcher = require('./account-switcher');
@@ -11,7 +12,7 @@ class AccountSidebar extends React.Component {
   static containerStyles = {
     minWidth: 165,
     maxWidth: 250,
-    flexShrink: 0
+    flexShrink: 0,
   };
 
   constructor(props) {
@@ -21,6 +22,7 @@ class AccountSidebar extends React.Component {
   }
 
   componentDidMount() {
+    ipcRenderer.on('after-add-account', this._afterAddAccount);
     this._mounted = true;
     const pos = window.sessionStorage.getItem('sidebar_scroll_position');
     console.warn(`setting scroll ${pos}`);
@@ -39,23 +41,33 @@ class AccountSidebar extends React.Component {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  // when pop Thread sheet, should set root sheet's account-sidebar position 
+  // when pop Thread sheet, should set root sheet's account-sidebar position
   _setScrollbarPosition = () => {
-    const accountSidebar = document.querySelector(`[data-id='Threads'] .account-sidebar .scroll-region-content`);
-    const siftSidebar = document.querySelector(`[data-id='Sift'] .account-sidebar .scroll-region-content`);
+    const accountSidebar = document.querySelector(
+      `[data-id='Threads'] .account-sidebar .scroll-region-content`
+    );
+    const siftSidebar = document.querySelector(
+      `[data-id='Sift'] .account-sidebar .scroll-region-content`
+    );
     const pos = window.sessionStorage.getItem('sidebar_scroll_position');
     if (accountSidebar && pos) {
       accountSidebar.scrollTop = pos;
     }
-    if(siftSidebar && pos){
+    if (siftSidebar && pos) {
       siftSidebar.scrollTop = pos;
     }
   };
 
   componentWillUnmount() {
+    ipcRenderer.removeListener('after-add-account', this._afterAddAccount);
     this._setScrollbarPosition();
     return this.unsubscribers.map(unsubscribe => unsubscribe());
   }
+
+  _afterAddAccount = () => {
+    SidebarStore.setAllCollapsed();
+    this._accountSideBarWrapEl.scrollTop = 0;
+  };
 
   _onStoreChange = () => {
     if (this._mounted) {

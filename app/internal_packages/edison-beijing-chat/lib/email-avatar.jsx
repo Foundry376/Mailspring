@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { gradientColorForString } from '../utils/colors';
 import { getLogo } from '../utils/restjs';
 import { LottieImg } from 'mailspring-component-kit';
+import { FocusedPerspectiveStore, AccountStore } from 'mailspring-exports';
 
 const ConfigProfileKey = 'core.appearance.profile';
 export default class EmailAvatar extends Component {
@@ -14,12 +15,13 @@ export default class EmailAvatar extends Component {
     if (props.thread) {
       const messages = props.thread.__messages;
       if (messages && messages.length) {
-        const message = messages[messages.length - 1];
+        let message = messages[messages.length - 1];
         from = message.from && message.from[0];
         let to = message.to && message.to[0];
         if (!from && to) {
           from = to;
         }
+        this._parseAvatarForSendMessage(messages, from, props);
       }
       from = from || {};
     } else if (props.message) {
@@ -68,6 +70,46 @@ export default class EmailAvatar extends Component {
         showPicture: AppEnv.config.get(ConfigProfileKey) || !isListModel,
       });
     });
+  }
+
+  _parseAvatarForSendMessage = (messages, from, props) => {
+    const currentPerspective = FocusedPerspectiveStore.current();
+    if (currentPerspective && props.mode && ( props.mode === 'list' )) {
+      const cats = currentPerspective.categories();
+      if (cats.length > 0 && cats[0].role === 'sent') {
+        const message = this._findLatestSendMessage(messages);
+        const to = message.to && message.to[0];
+        const cc = message.cc && message.cc[0];
+        const bcc = message.bcc && message.bcc[0];
+        from = to || cc || bcc;
+      }
+    }
+  };
+  _findLatestSendMessage(messages){
+    let sendMessage = null;
+    const replaceSendMessage = newMessage => {
+      if (!sendMessage) {
+        sendMessage = newMessage;
+      } else {
+        if (newMessage.date.getTime() > sendMessage.date.getTime()) {
+          sendMessage = newMessage;
+        }
+      }
+    };
+    messages.forEach(message => {
+      if(!message.from || (message.from.length === 0)){
+        replaceSendMessage(message);
+      }else{
+        const email = message.from[0].email;
+        const account = AccountStore.accountForEmail(email);
+        if(account){
+          if(account.id === message.accountId){
+            replaceSendMessage(message);
+          }
+        }
+      }
+    });
+    return sendMessage;
   }
 
   componentDidMount = async () => {

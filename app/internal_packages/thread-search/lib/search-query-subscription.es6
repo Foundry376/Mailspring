@@ -57,10 +57,10 @@ class SearchQuerySubscription extends MutableQuerySubscription {
   }
 
   _performRemoteSearch = ({ accountIds, parsedQuery = null, searchQuery = '' } = {}) => {
-      let queryJSON = '{}';
+      let queryJSON = {};
       let genericText = '';
       if (parsedQuery) {
-        queryJSON = JSON.stringify(parsedQuery);
+        queryJSON = parsedQuery;
         genericText = IMAPSearchQueryBackend.folderNamesForQuery(parsedQuery);
       } else {
         genericText = searchQuery;

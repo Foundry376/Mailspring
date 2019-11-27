@@ -9,7 +9,7 @@ const asMap = arr => {
   return obj;
 };
 
-const sanitizeURL = function(val, rules) {
+const sanitizeURL = function (val, rules) {
   if (!val) {
     return null;
   }
@@ -336,6 +336,7 @@ const Preset = {
         'classid',
         'classname',
         'clear',
+        'class',
         'colspan',
         'cols',
         'color',

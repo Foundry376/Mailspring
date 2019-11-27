@@ -23,6 +23,7 @@ export default class EmailFrame extends React.Component {
     message: PropTypes.object,
     showQuotedText: PropTypes.bool,
     setTrackers: PropTypes.func,
+    viewOriginalEmail: PropTypes.bool,
   };
 
   componentDidMount() {
@@ -42,7 +43,7 @@ export default class EmailFrame extends React.Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const { content, showQuotedText, message = {} } = this.props;
+    const { content, showQuotedText, message = {}, viewOriginalEmail } = this.props;
     const nextMessage = nextProps.message || {};
 
     return (
@@ -52,7 +53,8 @@ export default class EmailFrame extends React.Component {
       (message.id === nextMessage.id &&
         nextMessage.version > message.version &&
         content === nextProps.content) ||
-      !Utils.isEqualReact(message.pluginMetadata, nextMessage.pluginMetadata)
+      !Utils.isEqualReact(message.pluginMetadata, nextMessage.pluginMetadata) ||
+      nextProps.viewOriginalEmail !== viewOriginalEmail
     );
   }
 
@@ -121,9 +123,9 @@ export default class EmailFrame extends React.Component {
       `);
     }
     doc.write(
-      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent(
-        isPlainBody
-      )}</div>`
+      `<div id='inbox-html-wrapper' class="${process.platform} ${
+        this.props.viewOriginalEmail ? 'original' : null
+      }">${this._emailContent(isPlainBody)}</div>`
     );
     doc.close();
 
@@ -134,7 +136,7 @@ export default class EmailFrame extends React.Component {
 
     // dark mode
     // when dark mode, inverse content
-    if (AppEnv.isDarkTheme()) {
+    if (AppEnv.isDarkTheme() && !this.props.viewOriginalEmail) {
       this.applyDarkMode(doc);
     }
 
@@ -349,7 +351,9 @@ export default class EmailFrame extends React.Component {
   render() {
     return (
       <div
-        className="iframe-container"
+        className={`iframe-container  ${
+          this.props.viewOriginalEmail ? 'original-iframe-container' : null
+        }`}
         ref={el => {
           this._iframeHeightHolderEl = el;
         }}

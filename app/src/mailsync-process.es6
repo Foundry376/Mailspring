@@ -121,7 +121,11 @@ export default class MailsyncProcess extends EventEmitter {
       IDENTITY_SERVER: 'unknown',
     };
     if (process.env.HTTP_PROXY) {
+      console.log(`\n----\n---PROXY SET: ${process.env.HTTP_PROXY}`);
       env.HTTP_PROXY = process.env.HTTP_PROXY;
+    }
+    if (process.env.HTTPS_PROXY){
+      console.log(`\n----\n---PROXY SET: ${process.env.HTTPS_PROXY}`);
       env.HTTPS_PROXY = process.env.HTTPS_PROXY;
     }
     if (process.type === 'renderer') {

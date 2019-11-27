@@ -87,7 +87,6 @@ export default class AppEnvConstructor {
     this.enabledBackgroundQueryLog = true;
     this.enabledLocalQueryLog = true;
     this.enabledXmppLog = true;
-    // LOG.transports.file.fileName = `ui-log-${Date.now()}.log`;
     LOG.transports.file.file = path.join(
       this.getConfigDirPath(),
       'ui-log',
@@ -649,6 +648,10 @@ export default class AppEnvConstructor {
       // console.log('no options send for appenv.close');
     }
     return this.getCurrentWindow().close();
+  }
+
+  hide() {
+    return this.getCurrentWindow().hide();
   }
 
   quit() {

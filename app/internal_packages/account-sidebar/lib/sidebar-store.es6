@@ -77,6 +77,12 @@ class SidebarStore extends MailspringStore {
     }
   };
 
+  setAllCollapsed = () => {
+    FocusedPerspectiveStore.sidebarAccountIds().forEach(id => {
+      this._onSetCollapsedByKey(id, true);
+    });
+  };
+
   _onSetCollapsedByName = (itemName, collapsed) => {
     let item = _.findWhere(this.standardSection().items, { name: itemName });
     if (!item) {

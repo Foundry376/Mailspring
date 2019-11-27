@@ -6,10 +6,10 @@ const {
   PropTypes,
   DateUtils,
   Message,
-  EventRSVPTask,
-  DatabaseStore,
   CalendarStore,
+  AttachmentStore,
 } = require('mailspring-exports');
+import { remote } from 'electron';
 const moment = require('moment-timezone');
 
 class EventHeader extends React.Component {
@@ -73,28 +73,30 @@ class EventHeader extends React.Component {
     return `${duration} ${startDate}${startTime} ${end}${repeat}`;
   }
 
+  _onContextMenu = () => {
+    const menu = new remote.Menu();
+    menu.append(new remote.MenuItem({ role: 'copy' }));
+    menu.popup({});
+  };
+
   render() {
     if (this.state.event != null) {
       return (
         <div className="event-wrapper">
           <div className="event-header">
-            <RetinaImg
-              name="icon-RSVP-calendar-mini@2x.png"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-            <span className="event-title-text">Event: </span>
-            <span className="event-title">{this.state.event.summary}</span>
+            <span className="event-title" onContextMenu={this._onContextMenu}>{this.state.event.summary || 'Event'}</span>
+            <RetinaImg name={'feed-calendar.svg'} style={{ width: 20 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </div>
           <div className="event-body">
-            <div className="event-date">
+            <div className="event-data">
               <div className="event-time">
-                When: {this.renderWhen()}
+                <span className="event-key-name">When</span>
+                {this.renderWhen()}
               </div>
-              <div className="event-location">
-                Location: {this.state.event.location ? this.state.event.location : 'Unknown'}
-              </div>
+              {this._renderLocation()}
               <div className="event-organizer">
-                Organizer: {this.state.event.organizer ? this.state.event.organizer.name : 'Unknown'}
+                <span className="event-key-name">Organizer</span>
+                {this.state.event.organizer ? this.state.event.organizer.name : 'Unknown'}
               </div>
             </div>
             {this._renderEventActions()}
@@ -111,11 +113,11 @@ class EventHeader extends React.Component {
       return null;
     }
 
-    const actions = [{ status: 1, label: 'Accept', css: 'yes' }, { status: 3, label: 'Maybe', css: 'maybe' }, { status: 2, label: 'No', css: 'no' }];
+    const actions = [{ status: 1, label: 'Yes', css: 'yes' }, { status: 3, label: 'Maybe', css: 'maybe' }, { status: 2, label: 'No', css: 'no' }];
 
     return (
       <div className="event-actions">
-        {actions.map(item => {
+        <div>{actions.map(item => {
           const { status, label, css } = item;
           let classes = 'btn btn-rsvp ';
           if (this.props.message.calendarStatus() === status) {
@@ -126,10 +128,48 @@ class EventHeader extends React.Component {
               {label}
             </div>
           );
-        })}
+        })}</div>
+        <div className="open-external" onClick={this._openCalenderExternally}>more details</div>
       </div>
     );
   }
+
+  _renderLocation = () => {
+    let locationString = 'Unknown';
+    if (this.state.event.location) {
+      locationString = this.state.event.location;
+    }
+    return (
+      <div className="event-location" onContextMenu={this._onContextMenu}>
+        <span className="event-key-name">Location</span>
+        <span>{locationString}</span>
+        {this.state.event.location &&
+          <span className="open-external" onClick={this._openMapExternally}>
+            <RetinaImg name={'map-preview.png'}
+                mode={RetinaImg.Mode.ContentPreserve}
+                style={{ width: 40, height: 40 }}/>
+        </span>}
+      </div>
+    );
+  };
+
+  _openMapExternally = _.throttle(() => {
+      const searchQueryBase = 'https://www.openstreetmap.org/search?commit=Go&query=';
+      const searchQuery = `${searchQueryBase}${encodeURI(this.state.event.location)}`
+    remote.shell.openExternal(searchQuery);
+  }, 500);
+
+  _openCalenderExternally = _.throttle(() => {
+    const file = this.props.message.files.filter(file => {
+      return file.id === this.props.message.calendarFileId;
+    });
+    if (file.length > 0) {
+      const filePath = AttachmentStore.pathForFile(file[0]);
+      if (filePath) {
+        remote.shell.openItem(filePath);
+      }
+    }
+  }, 500);
 
   _rsvp = (message, status) => {
     if (this.props.message.calendarStatus() !== status) {

@@ -1210,6 +1210,9 @@ class DraftStore extends MailspringStore {
   _onSendDraft = async (headerMessageId, options = {}) => {
     if (!AppEnv.isMainWindow()) {
       AppEnv.logDebug('send draft, not main window');
+      if (AppEnv.isComposerWindow()) {
+        AppEnv.hide();
+      }
       return;
     }
     if (this._draftsSending[headerMessageId]) {
