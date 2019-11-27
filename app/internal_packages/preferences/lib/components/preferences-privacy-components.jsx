@@ -193,7 +193,11 @@ export class Privacy extends React.Component {
           className="privacys-opt-out-modal"
           onCancel={this._onCloseOptOutModal}
         >
-          <RetinaImg name={`inbox-nomail-3.png`} mode={RetinaImg.Mode.ContentPreserve} />
+          <RetinaImg
+            name={`inbox-nomail-3.png`}
+            mode={RetinaImg.Mode.ContentPreserve}
+            style={{ width: 150, height: 150 }}
+          />
           <h3>Data makes our technology work better for you.</h3>
           <p>
             We use data shared with us (that does not identify you) to invent new app features, and
