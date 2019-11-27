@@ -1,6 +1,6 @@
 import fs from 'fs';
 import temp from 'temp';
-import { shell } from 'electron';
+import { remote } from 'electron';
 import { React, PropTypes, RegExpUtils } from 'mailspring-exports';
 
 const FormErrorMessage = props => {
@@ -14,7 +14,7 @@ const FormErrorMessage = props => {
     const onViewLog = () => {
       const logPath = temp.path({ suffix: '.log' });
       fs.writeFileSync(logPath, log);
-      shell.openItem(logPath);
+      remote.shell.openItem(logPath);
     };
     rawLogLink = (
       <a href="" onClick={onViewLog} style={{ paddingLeft: 5 }}>
