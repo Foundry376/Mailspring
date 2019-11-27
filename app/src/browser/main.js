@@ -21,6 +21,14 @@ const mkdirp = require('mkdirp');
 if (typeof process.setFdLimit === 'function') {
   process.setFdLimit(1024);
 }
+if (process.env.HTTP_PROXY) {
+  app.commandLine.appendSwitch('proxy-server', process.env.HTTP_PROXY);
+  app.commandLine.appendSwitch('proxy-bypass-list', '<local>;');
+}
+if (process.env.HTTPS_PROXY){
+  app.commandLine.appendSwitch('proxy-server', process.env.HTTPS_PROXY);
+  app.commandLine.appendSwitch('proxy-bypass-list', '<local>;');
+}
 
 const setupConfigDir = args => {
   let dirname = 'EdisonMail';
