@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { colorForString } from '../../../utils/colors';
 import { RetinaImg } from 'mailspring-component-kit';
 
-import { remote, shell } from 'electron';
+import { remote } from 'electron';
 
 import { isJsonStr } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
@@ -160,7 +160,7 @@ export default class Msg extends PureComponent {
   }
 
   openFile(filePath) {
-    shell.openItem(filePath);
+    remote.shell.openItem(filePath);
   }
 
   onKeyDown = event => {

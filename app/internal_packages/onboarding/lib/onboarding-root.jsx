@@ -20,8 +20,12 @@ import InitialDonePage from './page-initial-done';
 import LoginErrorPage from './page-login-error';
 import AddAnotherAccountPage from './page-account-add-another';
 import GdprTerms from './page-gdpr-terms';
+import LoginPage from './page-login';
+import SorryPage from './page-sorry';
 
 const PageComponents = {
+  login: LoginPage,
+  sorry: SorryPage,
   welcome: WelcomePage,
   tutorial: TutorialPage,
   authenticate: AuthenticatePage,
