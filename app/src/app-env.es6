@@ -1539,8 +1539,20 @@ export default class AppEnvConstructor {
     // There is an optional param called force=true which will bypass all of the invite logic and automatically accept the user into the program regardless of how many invites have been shared.
     let response = '';
     try {
-      response = await fetch(WebServerRoot + 'unlock?type=' + type + '&apiKey=' + WebServerApiKey + '&email=' + email);
-      response = await response.json();
+      response = await fetch(WebServerRoot
+        + 'unlock?type=' + type
+        + '&apiKey=' + WebServerApiKey
+        + '&email=' + email
+        + (force ? '&force=true' : '')
+      );
+      if (response.status === 200) {
+        response = {
+          status: 'OK',
+          message: await response.text()
+        };
+      } else {
+        response = await response.json();
+      }
     } catch (err) {
       console.error('checkUnlock ERROR:', err);
       response = {
