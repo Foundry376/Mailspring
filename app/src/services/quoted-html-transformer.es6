@@ -201,9 +201,9 @@ class QuotedHTMLTransformer {
     quoteElements = quoteElements.concat(unwrappedSignatureNodes);
 
     // Keep quotes that are followed by non-quote blocks (eg: inline reply text)
-    quoteElements = quoteElements.filter(
-      el => !this._isElementFollowedByUnquotedElement(el, quoteElements)
-    );
+    // quoteElements = quoteElements.filter(
+    //   el => !this._isElementFollowedByUnquotedElement(el, quoteElements)
+    // );
 
     return quoteElements;
   }

@@ -42,21 +42,41 @@ export default class MessageParticipants extends React.Component {
     }
     return names.join(', ');
   }
-
-  _onSelectText = e => {
+  _onSelectText = (selectParent, e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const textNode = e.currentTarget.childNodes[0];
-    const range = document.createRange();
-    range.setStart(textNode, 0);
-    range.setEnd(textNode, textNode.length);
     const selection = document.getSelection();
     selection.removeAllRanges();
-    selection.addRange(range);
+    selection.addRange(this._chooseRange(e, selectParent));
   };
+  _chooseRange = (e, selectParent = false) => {
+    let children;
+    if(selectParent){
+      children = [e.currentTarget.parentNode];
+    }else{
+      children = e.currentTarget.childNodes;
+    }
+    const range = document.createRange();
+    if(children.length > 1){
+      const firstChild = e.currentTarget.firstElementChild;
+      const lastChild = e.currentTarget.lastElementChild;
+      range.setStart(firstChild, 0);
+      if(lastChild.childNodes.length > 3){
+        range.setEnd(lastChild, 3);
+      } else if (lastChild.childNodes.length === 2){
+        range.setEnd(lastChild, 1);
+      } else {
+        range.setEndAfter(lastChild);
+      }
+    }else {
+      const textNode = children[0];
+      range.setStart(textNode, 0);
+      range.setEndAfter(textNode);
+    }
+    return range;
+  }
 
-  _onContactContextMenu = contact => {
+  _onContactContextMenu = (contact, e) => {
     const menu = new Menu();
     menu.append(new MenuItem({ role: 'copy' }));
     menu.append(
@@ -77,29 +97,28 @@ export default class MessageParticipants extends React.Component {
 
       if (c.name && c.name.length > 0 && c.name !== c.email) {
         return (
-          <div key={`${c.email}-${i}`} className="participant selectable">
-            <div className="participant-primary" onClick={this._onSelectText}>
+          <div key={`${c.email}-${i}`} className="participant selectable"
+               onClick={this._onSelectText.bind(this, false)}
+               onDoubleClick={this._onSelectText.bind(this, true)}
+               onContextMenu={this._onContactContextMenu.bind(this, c)}>
+            <div className="participant-primary" >
               {c.fullName()}
             </div>
             <div className="participant-secondary">
               {' <'}
-              <span
-                onClick={this._onSelectText}
-                onContextMenu={() => this._onContactContextMenu(c)}
-              >
-                {c.email}
-              </span>
-              {`>${comma}`}
+              <span>{c.email}</span>
+              {`>`}
+              <span>{comma}</span>
             </div>
           </div>
         );
       }
       return (
-        <div key={`${c.email}-${i}`} className="participant selectable">
+        <div key={`${c.email}-${i}`} className="participant selectable"
+             onDoubleClick={this._onSelectText.bind(this, true)}
+             onContextMenu={this._onContactContextMenu.bind(this, c)}>
           <div className="participant-primary">
-            <span onClick={this._onSelectText} onContextMenu={() => this._onContactContextMenu(c)}>
-              {c.email}
-            </span>
+            <span onClick={this._onSelectText.bind(this, false)}>{c.email}</span>
             {comma}
           </div>
         </div>

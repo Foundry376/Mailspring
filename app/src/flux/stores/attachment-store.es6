@@ -2,7 +2,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
-import { remote, shell } from 'electron';
+import { remote } from 'electron';
 import mkdirp from 'mkdirp';
 import MailspringStore from 'mailspring-store';
 import DraftStore from './draft-store';
@@ -395,13 +395,13 @@ class AttachmentStore extends MailspringStore {
       this._prepareAndResolveFilePath(file)
         .catch(this._catchFSErrors)
         // Passively ignore
-        .catch(() => {})
+        .catch(() => { })
     );
   };
 
   _fetchAndOpen = file => {
     return this._prepareAndResolveFilePath(file)
-      .then(filePath => shell.openItem(filePath))
+      .then(filePath => remote.shell.openItem(filePath))
       .catch(this._catchFSErrors)
       .catch(error => {
         return this._presentError({ file, error });
@@ -445,7 +445,7 @@ class AttachmentStore extends MailspringStore {
               AppEnv.config.get('core.attachments.openFolderAfterDownload')
             ) {
               this._lastDownloadDirectory = newDownloadDirectory;
-              shell.showItemInFolder(actualSavePath);
+              remote.shell.showItemInFolder(actualSavePath);
             }
           }
         })
@@ -491,7 +491,7 @@ class AttachmentStore extends MailspringStore {
               lastSavePaths.length > 0 &&
               AppEnv.config.get('core.attachments.openFolderAfterDownload')
             ) {
-              shell.showItemInFolder(lastSavePaths[0]);
+              remote.shell.showItemInFolder(lastSavePaths[0]);
             }
             return resolve(lastSavePaths);
           })
@@ -684,7 +684,7 @@ class AttachmentStore extends MailspringStore {
 
   // Handlers
 
-  _onSelectAttachment = ({ headerMessageId, onCreated = () => {}, type = '*' }) => {
+  _onSelectAttachment = ({ headerMessageId, onCreated = () => { }, type = '*' }) => {
     this._assertIdPresent(headerMessageId);
 
     // When the dialog closes, it triggers `Actions.addAttachment`
@@ -711,7 +711,7 @@ class AttachmentStore extends MailspringStore {
     headerMessageId,
     inline = false,
     filePaths = [],
-    onCreated = () => {},
+    onCreated = () => { },
   }) => {
     if (!Array.isArray(filePaths) || filePaths.length === 0) {
       throw new Error('_onAddAttachments must have an array of filePaths');
@@ -761,7 +761,7 @@ class AttachmentStore extends MailspringStore {
     headerMessageId,
     filePath,
     inline = false,
-    onCreated = () => {},
+    onCreated = () => { },
   }) => {
     this._assertIdPresent(headerMessageId);
 

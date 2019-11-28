@@ -115,7 +115,8 @@ blockquote {
 }
   .sections blockquote p {
     font-family: Menlo, Consolas, Monaco, monospace;
-    font-size: 12px; line-height: 16px;
+    font-size: 12px; 
+    line-height: 16px;
     color: #999;
     margin: 10px 0 0;
     white-space: pre-wrap;

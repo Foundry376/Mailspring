@@ -10,7 +10,7 @@ import {
 import { autolink } from './autolinker';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
-import { shell } from 'electron';
+import { remote } from 'electron';
 import fs from 'fs';
 import sharp from 'sharp';
 import { removeTrackers } from './body-remove-trackers';
@@ -124,7 +124,7 @@ export default class EmailFrame extends React.Component {
     }
     doc.write(
       `<div id='inbox-html-wrapper' class="${process.platform} ${
-        this.props.viewOriginalEmail ? 'original' : null
+      this.props.viewOriginalEmail ? 'original' : null
       }">${this._emailContent(isPlainBody)}</div>`
     );
     doc.close();
@@ -202,7 +202,7 @@ export default class EmailFrame extends React.Component {
 
   _openInlineImage(e) {
     if (e.target) {
-      shell.openItem(decodeURIComponent(e.target.src.replace('file://', '')));
+      remote.shell.openItem(decodeURIComponent(e.target.src.replace('file://', '')));
     }
   }
 
@@ -353,7 +353,7 @@ export default class EmailFrame extends React.Component {
       <div
         className={`iframe-container  ${
           this.props.viewOriginalEmail ? 'original-iframe-container' : null
-        }`}
+          }`}
         ref={el => {
           this._iframeHeightHolderEl = el;
         }}

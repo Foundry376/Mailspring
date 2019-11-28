@@ -809,9 +809,18 @@ class DraftStore extends MailspringStore {
     return this._draftSessions[headerMessageId];
   }
 
-  _onPopoutFeedbackDraft = async ({ to, subject = '' } = {}) => {
-    const toContact = Contact.fromObject(to);
-    const draft = await DraftFactory.createDraft({ to: [toContact], subject: subject });
+  _onPopoutFeedbackDraft = async ({ to, subject = '', body } = {}) => {
+    const draftData = {
+      subject
+    }
+    if (to) {
+      const toContact = Contact.fromObject(to);
+      draftData.to = [toContact];
+    }
+    if (body) {
+      draftData.body = body
+    }
+    const draft = await DraftFactory.createDraft(draftData);
     await this._finalizeAndPersistNewMessage(draft, { popout: true });
   };
 
@@ -1201,6 +1210,9 @@ class DraftStore extends MailspringStore {
   _onSendDraft = async (headerMessageId, options = {}) => {
     if (!AppEnv.isMainWindow()) {
       AppEnv.logDebug('send draft, not main window');
+      if (AppEnv.isComposerWindow()) {
+        AppEnv.hide();
+      }
       return;
     }
     if (this._draftsSending[headerMessageId]) {

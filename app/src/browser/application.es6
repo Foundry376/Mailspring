@@ -673,7 +673,8 @@ export default class Application extends EventEmitter {
 
     if (hasAccount && hasIdentity && agree) {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
-    } else {
+    }
+    else {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
         title: 'Welcome to EdisonMail',
       });
@@ -865,6 +866,17 @@ export default class Application extends EventEmitter {
         });
       }
     });
+
+    this.on('application:send-share', body => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow) {
+        mainWindow.sendMessage('composeFeedBack', {
+          subject: '',
+          body
+        });
+      }
+    });
+
     this.on('application:bug-report', () => {
       const bugReportWindow = this.windowManager.get(WindowManager.BUG_REPORT_WINDOW);
       if (bugReportWindow) {
@@ -1408,6 +1420,14 @@ export default class Application extends EventEmitter {
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
       if (onboarding) {
         onboarding.close();
+      }
+    });
+
+    ipcMain.on('open-main-window-make-onboarding-on-top', () => {
+      this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW, { hidden: true });
+      const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
+      if (onboarding) {
+        onboarding.focus();
       }
     });
 

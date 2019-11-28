@@ -27,7 +27,7 @@ export default class Account extends ModelWithMetadata {
   static SYNC_STATE_OK = 'ok';
 
   static SYNC_STATE_AUTH_FAILED = 'invalid';
-
+  static INSUFFICIENT_PERMISSION = 'ErrorInsufficientPermission';
   static SYNC_STATE_ERROR = 'sync_error';
 
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
