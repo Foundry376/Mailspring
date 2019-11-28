@@ -61,6 +61,8 @@
     "underscore": "1.8.x"
   },
   "scripts": {
+    "ndmg": "sh scripts/notarize_dmg.sh",
+    "nzip": "sh scripts/notarize_zip.sh",
     "copyassets": "node scripts/copyassets.js",
     "postinstall-to-be-delete": "node scripts/postinstall.js",
     "start-with-proxy": "HTTP_PROXY=http://127.0.0.1:1087 HTTPS_PROXY=http://127.0.0.1:1087 node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
