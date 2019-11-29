@@ -70,6 +70,25 @@ export default class SheetContainer extends React.Component {
     BlockedSendersStore.syncBlockedSenders();
   };
 
+  toggleMaximize = (e) => {
+    if (e.target &&
+      (
+        e.target.contentEditable === 'true' ||
+        e.target.tagName === 'INPUT'
+      )
+    ) {
+      return;
+    }
+    const win = AppEnv.getCurrentWindow();
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
   _toolbarContainerElement() {
     const rootSheet = this.state.stack[0];
     const { toolbar } = AppEnv.getLoadSettings();
@@ -88,6 +107,7 @@ export default class SheetContainer extends React.Component {
           top: 0,
         }}
         className="sheet-toolbar"
+        onDoubleClick={this.toggleMaximize}
       >
         <Toolbar
           data={rootSheet}
