@@ -77,7 +77,7 @@ export default class MailsyncProcess extends EventEmitter {
     this.syncInitilMessageSend = false;
     this._sendMessageQueue = [];
     this._mode = '';
-    this.dataShareOptOut = false;
+    this.dataPrivacyOptions = { isGDPR: false, optOut: false };
   }
 
   _showStatusWindow(mode) {
@@ -144,12 +144,18 @@ export default class MailsyncProcess extends EventEmitter {
       args.push('--info', mode);
     }
     if (mode === mailSyncModes.SIFT) {
-      if (this.dataShareOptOut) {
+      if (this.dataPrivacyOptions.optOut) {
         args.push('--sharingOpt', 0);
       } else {
         args.push('--sharingOpt', 1);
       }
+      if (this.dataPrivacyOptions.isGDPR) {
+        args.push('--isGDPR', 1);
+      } else {
+        args.push('--isGDPR', 0);
+      }
     }
+    console.log(`\n\n\n\n\nprocess mode: ${mode} args: ${args.join(' ')}`);
     this._proc = spawn(this.binaryPath, args, { env });
 
     /* Allow us to buffer up to 1MB on stdin instead of 16k. This is necessary
@@ -294,6 +300,13 @@ export default class MailsyncProcess extends EventEmitter {
 
   sift() {
     this.sync(mailSyncModes.SIFT);
+  }
+  updatePrivacyOptions(options){
+    if (!options || !options.dataShare) {
+      return;
+    }
+    this.dataPrivacyOptions.isGDPR = options.isGDPR;
+    this.dataPrivacyOptions.optOut = options.dataShare.optOut;
   }
 
   sync(mode = mailSyncModes.SYNC) {

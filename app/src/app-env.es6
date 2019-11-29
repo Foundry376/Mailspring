@@ -167,11 +167,7 @@ export default class AppEnvConstructor {
       ipcRenderer.on('system-theme-changed', (e, isDarkMode) => {
         AppEnv.themes.setActiveTheme(isDarkMode ? 'ui-dark' : 'ui-light');
       });
-      if (this.config.get('core.privacy.dataShare.optOut')) {
-
-      } else {
-        this.mailsyncBridge.startSift('Main window started');
-      }
+      this.mailsyncBridge.startSift('Main window started');
     }
   }
   sendSyncMailNow(accountId) {

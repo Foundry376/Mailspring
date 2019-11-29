@@ -80,6 +80,15 @@ class GdprTerms extends Component {
       })
       return;
     }
+    AppEnv.config.set('core.privacy.isGDPR', this.state.isEU);
+    if (this.state.isEU) {
+      AppEnv.config.set(
+        'core.privacy.dataShare.optOut',
+        !this.state.gdpr_check_all || !this.state.gdpr_checks[1],
+      );
+    } else {
+      AppEnv.config.set('core.privacy.dataShare.optOut', false);
+    }
     AppEnv.config.set("agree", true);
     OnboardingActions.moveToPage('initial-preferences');
   }

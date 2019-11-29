@@ -495,7 +495,7 @@ export default class MailsyncBridge {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._sift = client;
     client.identity = IdentityStore.identity();
-    client.dataShareOptOut = AppEnv.config.get('core.privacy.dataShare.optOut');
+    client.updatePrivacyOptions(AppEnv.config.get('core.privacy'));
     const allAccountsJSON = [];
     for (const acct of AccountStore.accounts()) {
       const fullAccountJSON = (await KeyManager.insertAccountSecrets(acct)).toJSON();
