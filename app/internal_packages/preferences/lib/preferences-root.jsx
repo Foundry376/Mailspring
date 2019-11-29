@@ -101,6 +101,25 @@ class PreferencesRoot extends React.Component {
     IFrameSearcher.highlightSearchInDocument(this._regionId, searchValue, node, null);
   };
 
+  toggleMaximize = (e) => {
+    if (e.target &&
+      (
+        e.target.contentEditable === 'true' ||
+        e.target.tagName === 'INPUT'
+      )
+    ) {
+      return;
+    }
+    const win = AppEnv.getCurrentWindow();
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
   render() {
     const { tab, selection, tabs } = this.props;
 
@@ -122,7 +141,7 @@ class PreferencesRoot extends React.Component {
           <PreferencesTabsBar tabs={tabs} selection={selection} />
           <div style={{ flex: 1 }}>
             <Flexbox direction="column">
-              <div className="searchBar">
+              <div className="searchBar" onDoubleClick={this.toggleMaximize}>
                 <div className="tabName">{tab.tabId}</div>
                 <InputSearch
                   showPreIcon
