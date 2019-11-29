@@ -516,8 +516,8 @@ class DraftStore extends MailspringStore {
   };
 
   _onBeforeUnload = readyToUnload => {
-    if (AppEnv.isOnboardingWindow() || AppEnv.isEmptyWindow()) {
-      AppEnv.reportWarning(`Is not proper window and is empty window ${AppEnv.isEmptyWindow()}`);
+    if (AppEnv.isOnboardingWindow() || AppEnv.isEmptyWindow() || AppEnv.isBugReportingWindow()) {
+      console.log(`Is not proper window or is empty window ${AppEnv.isEmptyWindow()}`);
       return true;
     }
     const promises = [];
@@ -687,15 +687,7 @@ class DraftStore extends MailspringStore {
         this._finalizeAndPersistNewMessage(draft).then(() => {
           Actions.sendDraft(draft.headerMessageId);
         }).catch(e => {
-          AppEnv.grabLogs()
-            .then(filename => {
-              if (typeof filename === 'string' && filename.length > 0) {
-                AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: e, files: [filename] });
-              }
-            })
-            .catch(e => {
-              AppEnv.reportError(new Error('Quick reply failed'));
-            });
+          AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: e}, {grabLogs: true});
         });
       });
   };
@@ -790,15 +782,7 @@ class DraftStore extends MailspringStore {
         return { headerMessageId: draft.headerMessageId, draft };
       })
       .catch(t => {
-        AppEnv.grabLogs()
-          .then(filename => {
-            if (typeof filename === 'string' && filename.length > 0) {
-              AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: task, files: [filename] });
-            }
-          })
-          .catch(e => {
-            AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
-          });
+        AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: task}, {grabLogs: true});
         return { headerMessageId: draft.headerMessageId, draft };
       });
   }
@@ -1096,23 +1080,14 @@ class DraftStore extends MailspringStore {
     if (changeSendStatus) {
       delete this._draftsSending[headerMessageId];
     } else {
-      AppEnv.grabLogs()
-        .then(filename => {
-          if (typeof filename === 'string' && filename.length > 0) {
-            AppEnv.reportError(
-              new Error(
-                `Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout /
-                1000} seconds`
-              ),
-              { files: [filename] }
-            );
-          }
-        })
-        .catch(e => {
-          AppEnv.reportError(
-            new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout / 1000} seconds`),
-          );
-        });
+      AppEnv.reportError(
+        new Error(
+          `Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout /
+          1000} seconds`
+        ),
+        {},
+        { grabLogs: true }
+      );
     }
     if (trigger) {
       this.trigger({ headerMessageId });

@@ -249,13 +249,13 @@ module.exports = class MailspringWindow extends EventEmitter {
         return;
       }
       console.log('\n----\nunresponsive\n\n');
-      ipcMain.emit('report-error', {
-          errorData: this.browserWindow
-            ? this.browserWindow.loadSettings
-            : 'browserWindow not available',
-          grabLogs: true,
-        },
-      );
+      const extraJSON = {
+        errorData: this.browserWindow
+          ? this.browserWindow.loadSettings
+          : 'browserWindow not available',
+        grabLogs: true,
+      };
+      ipcMain.emit('report-error', {extraJSON});
       console.log('\n----\nunresponsive\n\n');
       const chosen = dialog.showMessageBoxSync(this.browserWindow, {
         type: 'warning',

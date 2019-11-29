@@ -275,21 +275,21 @@ export default class AppEnvConstructor {
   };
   _expandReportLog(error, extra = {}) {
     try {
-      getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
-      if (typeof extra === 'string') {
-        console.warn('extra is not an object:' + extra);
-        extra = {
-          errorData: extra,
-        };
-      }
-      extra.osInfo = getOSInfo();
-      extra.native = this.config.get('core.support.native');
+      // getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
+      // if (typeof extra === 'string') {
+      //   console.warn('extra is not an object:' + extra);
+      //   extra = {
+      //     errorData: extra,
+      //   };
+      // }
+      // extra.osInfo = getOSInfo();
+      // extra.native = this.config.get('core.support.native');
       extra.chatEnabled = this.config.get('core.workspace.enableChat');
-      extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
+      // extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
       extra.pluginIds = JSON.stringify(this._findPluginsFromError(error));
-      if (!!extra.errorData) {
-        extra.errorData = JSON.stringify(extra.errorData);
-      }
+      // if (!!extra.errorData) {
+      //   extra.errorData = JSON.stringify(extra.errorData);
+      // }
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];
@@ -303,7 +303,7 @@ export default class AppEnvConstructor {
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
   reportError(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs && !this.inDevMode()) {
+    if (grabLogs) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'error');
     } else {
       this._reportLog(error, extra, { noWindows }, 'error');
@@ -311,14 +311,14 @@ export default class AppEnvConstructor {
   }
 
   reportWarning(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs && !this.inDevMode()) {
+    if (grabLogs) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'warning');
     } else {
       this._reportLog(error, extra, { noWindows }, 'warning');
     }
   }
   reportLog(error, extra = {}, { noWindows, grabLogs = false } = {}) {
-    if (grabLogs && !this.inDevMode()) {
+    if (grabLogs) {
       this._grabLogAndReportLog(error, extra, { noWindows }, 'log');
     } else {
       this._reportLog(error, extra, { noWindows }, 'log');
@@ -326,15 +326,17 @@ export default class AppEnvConstructor {
   }
 
   _grabLogAndReportLog(error, extra, { noWindows } = {}, type = '') {
-    this.grabLogs()
-      .then(filename => {
-        extra.files = [filename];
-        this._reportLog(error, extra, { noWindows }, type);
-      })
-      .catch(e => {
-        extra.grabLogError = e;
-        this._reportLog(error, extra, { noWindows }, type);
-      });
+    extra.grabLogs = true;
+    this._reportLog(error, extra, { noWindows }, type);
+    // this.grabLogs()
+    //   .then(filename => {
+    //     extra.files = [filename];
+    //     this._reportLog(error, extra, { noWindows }, type);
+    //   })
+    //   .catch(e => {
+    //     extra.grabLogError = e;
+    //     this._reportLog(error, extra, { noWindows }, type);
+    //   });
   }
 
   _reportLog(error, extra = {}, { noWindows } = {}, type = '') {
@@ -367,7 +369,11 @@ export default class AppEnvConstructor {
       const strippedError = this._stripSensitiveData(error);
       error = strippedError;
       if (!!extra.errorData) {
-        extra.errorData = this._stripSensitiveData(extra.errorData);
+        if(typeof extra.errorData === 'string'){
+          extra.errorData = this._stripSensitiveData(extra.errorData);
+        }else{
+          extra.errorData = this._stripSensitiveData(JSON.stringify(extra.errorData));
+        }
       }
     } catch (e) {
       console.log(e);
@@ -530,6 +536,9 @@ export default class AppEnvConstructor {
   }
   isOnboardingWindow() {
     return this.getWindowType() === 'onboarding';
+  }
+  isBugReportingWindow() {
+    return this.getWindowType() === 'bugreport';
   }
 
   isDisableZoomWindow() {
@@ -1328,44 +1337,45 @@ export default class AppEnvConstructor {
   }
   grabLogs(fileName = '') {
     return new Promise((resolve, reject) => {
-      const resourcePath = this.getConfigDirPath();
-      const logPath = path.dirname(LOG.transports.file.findLogPath());
-      if (fileName === '') {
-        fileName = parseInt(Date.now());
-      }
-      const outputPath = path.join(resourcePath, 'upload-log', `logs-${fileName}.zip`);
-      const output = fs.createWriteStream(outputPath);
-      const archive = archiver('zip', {
-        zlib: { level: 9 }, // Sets the compression level.
-      });
-
-      output.on('close', function () {
-        console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
-        console.log('archiver has been finalized and the output file descriptor has closed.');
-        resolve(outputPath);
-      });
-      output.on('end', function () {
-        console.log('\n----->\nData has been drained');
-        resolve(outputPath);
-      });
-      archive.on('warning', function (err) {
-        if (err.code === 'ENOENT') {
-          console.log(err);
-        } else {
-          output.close();
-          console.log(err);
-          reject(err);
-        }
-      });
-      archive.on('error', function (err) {
-        output.close();
-        console.log(err);
-        reject(err);
-      });
-      archive.pipe(output);
-      archive.directory(logPath, 'uiLog');
-      archive.glob(path.join(resourcePath, '*.log'), {}, { prefix: 'nativeLog' });
-      archive.finalize();
+      resolve();
+      // const resourcePath = this.getConfigDirPath();
+      // const logPath = path.dirname(LOG.transports.file.findLogPath());
+      // if (fileName === '') {
+      //   fileName = parseInt(Date.now());
+      // }
+      // const outputPath = path.join(resourcePath, 'upload-log', `logs-${fileName}.zip`);
+      // const output = fs.createWriteStream(outputPath);
+      // const archive = archiver('zip', {
+      //   zlib: { level: 9 }, // Sets the compression level.
+      // });
+      //
+      // output.on('close', function () {
+      //   console.log('\n--->\n' + archive.pointer() + ' total bytes\n');
+      //   console.log('archiver has been finalized and the output file descriptor has closed.');
+      //   resolve(outputPath);
+      // });
+      // output.on('end', function () {
+      //   console.log('\n----->\nData has been drained');
+      //   resolve(outputPath);
+      // });
+      // archive.on('warning', function (err) {
+      //   if (err.code === 'ENOENT') {
+      //     console.log(err);
+      //   } else {
+      //     output.close();
+      //     console.log(err);
+      //     reject(err);
+      //   }
+      // });
+      // archive.on('error', function (err) {
+      //   output.close();
+      //   console.log(err);
+      //   reject(err);
+      // });
+      // archive.pipe(output);
+      // archive.directory(logPath, 'uiLog');
+      // archive.glob(path.join(resourcePath, '*.log'), {}, { prefix: 'nativeLog' });
+      // archive.finalize();
     });
   }
 
@@ -1480,7 +1490,7 @@ export default class AppEnvConstructor {
   }
 
   mockReportError(str = {}, extra = {}, opts = {}) {
-    this.reportError(new Error(str), extra, opts);
+    this.reportError(new Error('oeuoeueouoe'), {errorData: {task: {abc: 1, bbc: 2}, abc: 'eeee'}});
   }
 
   syncSiftFolders() {
@@ -1530,8 +1540,8 @@ export default class AppEnvConstructor {
   }
 
   checkUnlock = async (email, force) => {
-    // This is a request that is intended to be sent by the mac app to check if the user is available to unlock. 
-    // It will respond with true if the user has been accepted into the beta if not it will return the number of invites needed to unlock. 
+    // This is a request that is intended to be sent by the mac app to check if the user is available to unlock.
+    // It will respond with true if the user has been accepted into the beta if not it will return the number of invites needed to unlock.
     // There is an optional param called force=true which will bypass all of the invite logic and automatically accept the user into the program regardless of how many invites have been shared.
     let response = '';
     try {

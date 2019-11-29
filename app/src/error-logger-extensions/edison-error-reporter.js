@@ -78,6 +78,7 @@ module.exports = class EdisonErrorReporter {
           level: type,
           time: now,
           version: this.getVersion(),
+          logID: extra.logID || '',
           data: {
             time: now,
             version: this.getVersion(),
@@ -94,6 +95,7 @@ module.exports = class EdisonErrorReporter {
         level: type,
         time: now,
         version: this.getVersion(),
+        logID: extra.logID || '',
         data: {
           time: now,
           version: this.getVersion(),
@@ -162,9 +164,14 @@ module.exports = class EdisonErrorReporter {
     };
     this.errorStack.forEach(stack => {
       const tmp = formify(stack);
-      request.post(
-        { url: 'https://cp.stag.easilydo.cc/api/log2/', formData: tmp },
-        (err, httpResponse, body) => {
+      const options = { url: 'https://cp.stag.easilydo.cc/api/log2/', formData: tmp, timeout: 15000 };
+      if (process.env.HTTP_PROXY) {
+        options.proxy = process.env.HTTP_PROXY;
+      }
+      if (process.env.HTTPS_PROXY) {
+        options.proxy = process.env.HTTPS_PROXY;
+      }
+      request.post(options, (err, httpResponse, body) => {
           if (err) {
             console.log(`\n---> \nupload failed: ${err}`);
             this.onSendToServerFailed(err, tmp);
@@ -178,9 +185,9 @@ module.exports = class EdisonErrorReporter {
     this.errorStack = [];
   }
   onSendToServerSuccess = (payload = {}) => {
-    processEmitter.emit('upload-to-report-server', { success: true, error: null, payload });
+    processEmitter.emit('upload-to-report-server', { status: 'complete', error: null, payload });
   };
   onSendToServerFailed = (err, payload = {}) => {
-    processEmitter.emit('upload-to-report-server', { success: false, error: err, payload });
+    processEmitter.emit('upload-to-report-server', { status: 'failed', error: err, payload });
   }
 };

@@ -757,15 +757,11 @@ export default class DraftEditingSession extends MailspringStore {
     try {
       await TaskQueue.waitForPerformLocal(task);
     } catch (e) {
-      AppEnv.grabLogs()
-        .then(filename => {
-          if (typeof filename === 'string' && filename.length > 0) {
-            AppEnv.reportError(new Error('SyncbackDraft Task not returned'), { errorData: task, files: [filename] });
-          }
-        })
-        .catch(e => {
-          AppEnv.reportError(new Error('SyncbackDraft Task not returned'));
-        });
+      AppEnv.reportError(
+        new Error('SyncbackDraft Task not returned'),
+        { errorData: task },
+        { grabLogs: true }
+      );
     }
   }
   set needUpload(val) {

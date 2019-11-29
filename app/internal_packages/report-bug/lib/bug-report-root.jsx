@@ -1,5 +1,7 @@
 import React from 'react';
-
+import { ipcRenderer } from 'electron';
+import uuid from 'uuid';
+import { LottieImg } from 'mailspring-component-kit';
 export default class BugReportRoot extends React.PureComponent {
   static displayName = 'BugReportRoot';
   static containerRequired = false;
@@ -11,7 +13,12 @@ export default class BugReportRoot extends React.PureComponent {
       uploadScreenShots: false,
       description: '',
       submitting: false,
+      submitButtonText: 'Submit',
     };
+    this.logID = '';
+    this.mounted = false;
+    this.minimizeTimeout = null;
+    this.failSafeTimeout = null;
   }
   UNSAFE_componentWillMount() {
     AppEnv.setWindowTitle('Bug Report');
@@ -20,40 +27,76 @@ export default class BugReportRoot extends React.PureComponent {
   componentDidMount() {
     AppEnv.center();
     AppEnv.displayWindow();
+    ipcRenderer.on('upload-to-report-server', this._onReportUploaded);
+    this.mounted = true;
+  }
+  componentWillUnmount() {
+    this.mounted = false;
+    clearTimeout(this.failSafeTimeout);
+    clearTimeout(this.minimizeTimeout);
+    ipcRenderer.removeListener('upload-to-report-server', this._onReportUploaded);
   }
 
-  onSubmit = () => {
-    this.setState({ submitting: true });
-    const promises = [];
-    const files = [];
-    if (this.state.uploadLogs) {
-      promises.push(AppEnv.grabLogs('User-Bug-Report'));
+  _onReportUploaded = (event, data) => {
+    if(!this.mounted){
+      return;
     }
-    if (this.state.uploadScreenShots) {
-      promises.push(AppEnv.captureScreen());
-    }
-    if (promises.length > 0) {
-      Promise.all(promises)
-        .then(values => {
-          for (let i = 0; i < values.length; i++) {
-            if (values[i].length > 0) {
-              files.push(values[i]);
-            }
+    if (data.payload.logID === this.logID) {
+      if (data.status === 'complete') {
+        this.setState({ submitButtonText: 'Report Submitted' });
+        if (this.failSafeTimeout) {
+          clearTimeout(this.failSafeTimeout);
+        }
+        if (this.minimizeTimeout) {
+          clearTimeout(this.minimizeTimeout);
+        }
+        setTimeout(() => {
+          if (this.mounted) {
+            AppEnv.close();
           }
-          AppEnv.reportError({}, { errorData: this.state.description, files: files });
-          AppEnv.close();
-        })
-        .catch(e => {
-          console.error('error file');
-          AppEnv.reportError(e, {
-            errorData: { message: 'upload error file failed', description: this.state.description },
-          });
-          AppEnv.close();
-        });
+        }, 2000);
+      } else if (data.status === 'uploading') {
+        this.setState({ submitButtonText: 'Uploading...' });
+      } else {
+        if(this.failSafeTimeout){
+          clearTimeout(this.failSafeTimeout);
+        }
+        if (this.minimizeTimeout) {
+          clearTimeout(this.minimizeTimeout);
+        }
+        AppEnv.displayWindow();
+        this.setState({ submitting: false, submitButtonText: 'Try Again' });
+        AppEnv.showErrorDialog({ title: 'Reporting bug failed', message: 'Uploading to server failed. Please try again'});
+      }
     } else {
-      AppEnv.reportError({}, { errorData: this.state.description });
-      AppEnv.close();
+      console.log(`logID: ${this.logID}, data: ${data.payload.logID}`);
     }
+  };
+
+  onSubmit = () => {
+    this.logID = uuid();
+    let buttonText = 'Uploading...';
+    if (this.state.uploadLogs) {
+      buttonText = 'Generating Logs..';
+    }
+    this.setState({ submitting: true, submitButtonText: buttonText });
+    AppEnv.reportError(
+      new Error(this.state.description),
+      { errorData: this.state.description, logID: this.logID },
+      { grabLogs: this.state.uploadLogs }
+    );
+    clearTimeout(this.minimizeTimeout);
+    this.minimizeTimeout = setTimeout(() => {
+      if (this.mounted) {
+        AppEnv.minimize();
+      }
+    }, 1500);
+    clearTimeout(this.failSafeTimeout);
+    this.failSafeTimeout = setTimeout(() => {
+      if (this.mounted) {
+        AppEnv.close();
+      }
+    }, 180000);
   };
   onToggleUploadLogs = () => {
     this.setState({ uploadLogs: !this.state.uploadLogs });
@@ -64,6 +107,24 @@ export default class BugReportRoot extends React.PureComponent {
   onDescriptionChange = event => {
     this.setState({ description: event.target.value });
   };
+  renderSubmitButton() {
+    if(!this.state.submitting){
+      return <div>
+        <button className="btn btn-large btn-report-bug" onClick={this.onSubmit}>
+          {this.state.submitButtonText}
+        </button>
+      </div>
+    }
+    return <div>
+      <button className="btn btn-large btn-report-bug">
+        <LottieImg
+          name="loading-spinner-white"
+          size={{ width: 32, height: 32 }}
+          style={{ marginRight: '12px', marginLeft: '-44px', display: 'inline-block', float: 'left' }}
+        />
+        {this.state.submitButtonText}</button>
+    </div>
+  }
 
   render() {
     return (
@@ -87,22 +148,18 @@ export default class BugReportRoot extends React.PureComponent {
           />
           <label onClick={this.onToggleUploadLogs}>Include log files</label>
         </div>
-        <div className="item-checkbox">
-          <input
-            type="checkbox"
-            disabled={this.state.submitting}
-            checked={this.state.uploadScreenShots}
-            onChange={this.onToggleUploadScreenShots}
-          />
-          <label onClick={this.onToggleUploadScreenShots}>
-            Include app screenshot, this will ONLY include Edison Mail app screenshots.
-          </label>
-        </div>
-        <div>
-          <button className="btn btn-large btn-report-bug" onClick={this.onSubmit}>
-            Submit
-          </button>
-        </div>
+        {/*<div className="item-checkbox">*/}
+        {/*  <input*/}
+        {/*    type="checkbox"*/}
+        {/*    disabled={this.state.submitting}*/}
+        {/*    checked={this.state.uploadScreenShots}*/}
+        {/*    onChange={this.onToggleUploadScreenShots}*/}
+        {/*  />*/}
+        {/*  <label onClick={this.onToggleUploadScreenShots}>*/}
+        {/*    Include app screenshot, this will ONLY include Edison Mail app screenshots.*/}
+        {/*  </label>*/}
+        {/*</div>*/}
+        {this.renderSubmitButton()}
       </div>
     );
   }

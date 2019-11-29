@@ -299,23 +299,28 @@ export default class Application extends EventEmitter {
   }
 
   _reportLog(error, extra = {}, { noWindows } = {}, type = '') {
-    extra = this._expandReportLog(error, extra);
-    if (type.toLocaleLowerCase() === 'error') {
-      this.logError(error);
-    } else if (type.toLocaleLowerCase() === 'warning') {
-      this.logWarning(error);
-    } else {
-      this.logDebug(error);
-    }
-    try {
-      const strippedError = this._stripSensitiveData(error);
-      error = strippedError;
-      if (!!extra.errorData) {
-        extra.errorData = this._stripSensitiveData(extra.errorData);
+    extra = this._expandReportLog(extra);
+    if (!extra.noUILog) {
+      //We only log application log. Individual window log is written in AppEnv
+      if (type.toLocaleLowerCase() === 'error') {
+        this.logError(error);
+      } else if (type.toLocaleLowerCase() === 'warning') {
+        this.logWarning(error);
+      } else {
+        this.logDebug(error);
       }
-    } catch (e) {
-      console.log(e);
+      // And since data send from renderer is already stripProcessed we don't need to do it again here.
+      try {
+        const strippedError = this._stripSensitiveData(error);
+        error = strippedError;
+        if (!!extra.errorData) {
+          extra.errorData = this._stripSensitiveData(extra.errorData);
+        }
+      } catch (e) {
+        console.log(e);
+      }
     }
+    ipcMain.emit('upload-to-report-server', { status: 'uploading', error: null, payload: {logID: extra.logID || ''} });
     if (type.toLocaleLowerCase() === 'error') {
       global.errorLogger.reportError(error, extra);
     } else if (type.toLocaleLowerCase() === 'warning') {
@@ -324,13 +329,13 @@ export default class Application extends EventEmitter {
       global.errorLogger.reportLog(error, extra);
     }
   }
-  _expandReportLog(extra = {}) {
+  _expandReportLog = (extra = {}) => {
     try {
       getOSInfo = getOSInfo || require('../system-utils').getOSInfo;
       extra.osInfo = getOSInfo();
-      extra.chatEnabled = this.config.get('core.workspace.enableChat');
+      extra.native = this.nativeVersion;
       extra.appConfig = JSON.stringify(this.config.cloneForErrorLog());
-      if (!!extra.errorData) {
+      if (!!extra.errorData && (typeof extra.errorData !== 'string') ) {
         extra.errorData = JSON.stringify(extra.errorData);
       }
     } catch (err) {
@@ -338,7 +343,7 @@ export default class Application extends EventEmitter {
       extra.pluginIds = [];
     }
     return extra;
-  }
+  };
   _stripSensitiveData(str = '') {
     const _stripData = (key, strData) => {
       let leftStr = '"';
@@ -479,27 +484,30 @@ export default class Application extends EventEmitter {
 
   processReportErrorEvent(params, level = 'error'){
     try {
-      const errorParams = JSON.parse(params.errorJSON || '{}');
-      const extra = { errorData: {}};
-      if (params.extra) {
-        extra.errorData = params.extra;
-      }
-      if (params.errorData) {
-        extra.errorData = params.errorData;
+      let errorParams;
+      let extraParams;
+      try {
+        errorParams = JSON.parse(params.errorJSON || '{}');
+        extraParams = JSON.parse(params.extraJSON || '{}');
+      } catch (e) {
+        errorParams = {};
+        extraParams = {};
       }
       let err;
       if (typeof params.errorMessage === 'string') {
         err = new Error(params.errorMessage);
+      } else if (typeof extraParams.message === 'string'){
+        err = new Error(extraParams.message);
       } else {
         err = new Error();
       }
       err = Object.assign(err, errorParams);
       if (level === 'error') {
-        this.reportError(err, extra, { grabLogs: params.grabLogs });
+        this.reportError(err, extraParams, { grabLogs: extraParams.grabLogs });
       } else if (level === 'warning') {
-        this.reportWarning(err, extra, { grabLogs: params.grabLogs });
+        this.reportWarning(err, extraParams, { grabLogs: extraParams.grabLogs });
       } else {
-        this.reportLog(err, extra, { grabLogs: params.grabLogs });
+        this.reportLog(err, extraParams, { grabLogs: extraParams.grabLogs });
       }
     } catch (parseError) {
       console.error(parseError);
@@ -1481,6 +1489,16 @@ export default class Application extends EventEmitter {
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {
         main.sendMessage('after-add-account', account);
+      }
+    });
+    ipcMain.on('upload-to-report-server', data => {
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main){
+        main.sendMessage('upload-to-report-server', data);
+      }
+      const bugReportWindow = this.windowManager.get(WindowManager.BUG_REPORT_WINDOW);
+      if (bugReportWindow) {
+        bugReportWindow.sendMessage('upload-to-report-server', data);
       }
     });
   }
