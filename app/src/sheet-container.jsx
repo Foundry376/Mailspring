@@ -107,12 +107,14 @@ export default class SheetContainer extends React.Component {
   }
 
   isValidUser = () => {
-    const agree = AppEnv.config.get('agree');
-    const shareCounts = AppEnv.config.get('invite.count') || 0;
-    if (!AppEnv.isMainWindow()) {
-      return true;
-    }
-    return agree || shareCounts >= 5;
+    // comment out invite flow
+    // const agree = AppEnv.config.get('agree');
+    // const shareCounts = AppEnv.config.get('invite.count') || 0;
+    // if (!AppEnv.isMainWindow()) {
+    //   return true;
+    // }
+    // return agree || shareCounts >= 5;
+    return true;
   }
 
   render() {
