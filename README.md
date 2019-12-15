@@ -24,6 +24,8 @@ You can download compiled versions of Mailspring for Windows, Mac OS X, and Linu
 
 Mailspring's UI is entirely open-source and pull requests and contributions are welcome! There are three ways to contribute: building a plugin, building a theme, and submitting pull requests to the project itself. When you're getting started, you may want to join our [public slack](https://join-mailspring-slack.herokuapp.com/) so you can ask questions and learn from other people doing development.
 
+Mailspring's MailSync, however, is closed source. You can read more about the reasons why this is in the [roadmap](https://github.com/Foundry376/Mailspring/blob/master/ROADMAP.md#why-is-mailsync-closed-source).
+
 ### Building A Plugin
 
 Plugins lie at the heart of Mailspring and give it its powerful features. Building your own plugins allows you to integrate the app with other tools, experiment with new workflows, and more. Follow the [Getting Started guide](https://Foundry376.github.io/Mailspring/) to write your first plugin in five minutes.
