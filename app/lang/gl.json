@@ -199,7 +199,7 @@
     "Email": "Correo electrónico",
     "Email Address": "Enderezo electrónico",
     "Empty": "Baleiro",
-    "Empty %@ now": "Vazia %@ agora",
+    "Empty %@ now": "Baleirar %@ agora",
     "Enable": "Activar",
     "Enable read receipts %@ or link tracking %@ to see notifications here.": "Activa os recibos de lectura %@ ou o seguimento da ligazón %@ para ver as notificacións aquí.",
     "Enable verbose IMAP / SMTP logging": "Activar rexistro IMAP / SMTP detallado",
