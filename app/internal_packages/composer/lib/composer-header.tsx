@@ -161,7 +161,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
   };
 
   _renderFields = () => {
-    const { to, cc, bcc, to_list, from} = this.props.draft;
+    const { to, cc, bcc, to_list, from, from_spoof} = this.props.draft;
 
     // Note: We need to physically add and remove these elements, not just hide them.
     // If they're hidden, shift-tab between fields breaks.
@@ -179,7 +179,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
         label={localized('To')}
         change={this._onChangeParticipants}
         className="composer-participant-field to-field"
-        participants={{ to, cc, bcc, to_list}}
+        participants={{ to, cc, bcc, to_list, from_spoof}}
         draft={this.props.draft}
         session={this.props.session}
       />
@@ -198,7 +198,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
               label={localized('List')}
               change={this._onChangeParticipants}
               className="composer-participant-field to-list-field"
-              participants={{to, cc, bcc, to_list}}
+              participants={{ to, cc, bcc, to_list, from_spoof}}
               draft={this.props.draft}
               session={this.props.session}
           />
@@ -219,7 +219,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Cc)}
           className="composer-participant-field cc-field"
-          participants={{ to, cc, bcc, to_list }}
+          participants={{ to, cc, bcc, to_list, from_spoof}}
           draft={this.props.draft}
           session={this.props.session}
         />
@@ -240,7 +240,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Bcc)}
           className="composer-participant-field bcc-field"
-          participants={{ to, cc, bcc, to_list}}
+          participants={{ to, cc, bcc, to_list, from_spoof}}
           draft={this.props.draft}
           session={this.props.session}
         />
@@ -261,6 +261,26 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           session={this.props.session}
           onChange={this._onChangeParticipants}
         />
+      );
+    }
+
+    if (this.state.enabledFields.includes((Fields.Spoof))) {
+      fields.push(
+          <ParticipantsTextField
+              ref={el => {
+                if (el) {
+                  this._els[Fields.Spoof] = el;
+                }
+              }}
+              key="from_spoof"
+              field="from_spoof"
+              label={localized('Spoof')}
+              change={this._onChangeParticipants}
+              className="composer-participant-field spoof-field"
+              participants={{to, cc, bcc, to_list, from_spoof}}
+              draft={this.props.draft}
+              session={this.props.session}
+          />
       );
     }
 

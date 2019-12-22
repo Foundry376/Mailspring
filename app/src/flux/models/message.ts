@@ -87,6 +87,11 @@ export class Message extends ModelWithMetadata {
       itemClass: Contact,
     }),
 
+    from_spoof: Attributes.Collection({
+      modelKey: 'from_spoof',
+      itemClass: Contact,
+    }),
+
     replyTo: Attributes.Collection({
       modelKey: 'replyTo',
       itemClass: Contact,
@@ -180,6 +185,7 @@ export class Message extends ModelWithMetadata {
   public bcc: Contact[];
   public to_list: Contact[];
   public from: Contact[];
+  public from_spoof: Contact[];
   public replyTo: Contact[];
   public files: File[];
   public events: Event[];
@@ -209,6 +215,7 @@ export class Message extends ModelWithMetadata {
     this.bcc = this.bcc || [];
     this.to_list = this.to_list || [];
     this.from = this.from || [];
+    this.from_spoof = this.from_spoof || [];
     this.replyTo = this.replyTo || [];
     this.files = this.files || [];
     this.events = this.events || [];

@@ -47,7 +47,8 @@ export class SendDraftTask extends Task {
     } else {
       task.draft.body = applyExtensionTransforms(task.draft, null);
     }
-
+    if (task.draft.from_spoof.length > 0)
+      task.draft.from = task.draft.from_spoof;
     return task;
   }
 
@@ -103,6 +104,9 @@ export class SendDraftTask extends Task {
 
     if (!this.draft.from[0]) {
       throw new Error('SendDraftTask - you must populate `from` before sending.');
+    }
+    if (this.draft.from_spoof.length > 0){
+      return;
     }
     if (!account) {
       throw new Error('SendDraftTask - you can only send drafts from a configured account.');

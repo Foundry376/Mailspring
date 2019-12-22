@@ -327,8 +327,8 @@ class DraftStore extends MailspringStore {
   };
 
   _onBulkSend = async (data, sendOptions) => {
-    let copyFields = {"body":'', "events":'', "file_ids":'', "files":'', "from":'', "cc":'',
-                      "bcc":'', "metadata":'', "replyTo":'', "starred":'', "subject":''};
+    let copyFields = {"body":'', "events":'', "file_ids":'', "files":'', "from":'', "cc":'', "bcc":'',
+                      "metadata":'', "replyTo":'', "starred":'', "subject":'', "from_spoof":''};
     for (const k of Object.keys(copyFields)) {
       copyFields[k] = data[k];
     }

@@ -49,6 +49,18 @@ export default class ComposerHeaderActions extends React.Component<ComposerHeade
       );
     }
 
+    if (!this.props.enabledFields.includes(Fields.Spoof)) {
+      items.push(
+          <span
+              className="action show-spoof"
+              key="from_spoof"
+              onClick={() => this.props.onShowAndFocusField(Fields.Spoof)}
+          >
+          {localized('Spoof')}
+        </span>
+      );
+    }
+
     if (!this.props.enabledFields.includes(Fields.Bcc)) {
       items.push(
         <span

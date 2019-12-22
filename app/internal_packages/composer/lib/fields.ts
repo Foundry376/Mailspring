@@ -4,6 +4,7 @@ const Fields = {
   Bcc: 'textFieldBcc',
   List: 'textFieldToList',
   From: 'fromField',
+  Spoof: 'fromSpoof',
   Subject: 'textFieldSubject',
   Body: 'contentBody',
   ParticipantFields: [],
@@ -18,8 +19,9 @@ Fields.Order = {
   textFieldCc: 3,
   textFieldBcc: 4,
   fromField: -1, // Not selectable
-  textFieldSubject: 5,
-  contentBody: 6,
+  fromSpoof: 5,
+  textFieldSubject: 6,
+  contentBody: 7,
 };
 
 export default Fields;
