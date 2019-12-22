@@ -398,6 +398,17 @@ export const composePopoutDraft = create('composePopoutDraft', ActionScopeWindow
 export const composeNewBlankDraft = create('composeNewBlankDraft', ActionScopeWindow);
 
 /*
+  Public: Individually send same message to each one in `to_list` and `to`
+
+  *Scope: Window*
+
+  ```
+  Actions.bulkDraftSend(Message, {actionSend.configKey})
+  ```
+  */
+export const bulkDraftSend = create('bulkDraftSend', ActionScopeWindow);
+
+/*
   Public: Open a new composer window for a new draft addressed to the given recipient
 
   *Scope: Window*

@@ -2,6 +2,7 @@ const Fields = {
   To: 'textFieldTo',
   Cc: 'textFieldCc',
   Bcc: 'textFieldBcc',
+  List: 'textFieldToList',
   From: 'fromField',
   Subject: 'textFieldSubject',
   Body: 'contentBody',
@@ -9,12 +10,13 @@ const Fields = {
   Order: {},
 };
 
-Fields.ParticipantFields = [Fields.To, Fields.Cc, Fields.Bcc];
+Fields.ParticipantFields = [Fields.To, Fields.List, Fields.Cc, Fields.Bcc];
 
 Fields.Order = {
   textFieldTo: 1,
-  textFieldCc: 2,
-  textFieldBcc: 3,
+  textFiledToList: 2,
+  textFieldCc: 3,
+  textFieldBcc: 4,
   fromField: -1, // Not selectable
   textFieldSubject: 5,
   contentBody: 6,

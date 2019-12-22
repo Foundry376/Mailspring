@@ -83,7 +83,12 @@ export class SendActionButton extends React.Component<
       if (AppEnv.config.get('core.sending.sounds')) {
         SoundRegistry.playSound('hit-send');
       }
-      Actions.sendDraft(this.props.draft.headerMessageId, { actionKey: sendAction.configKey });
+      if (this.props.draft.to_list.length > 0){
+        Actions.bulkDraftSend(this.props.draft, {actionKey: sendAction.configKey});
+      }
+      else {
+        Actions.sendDraft(this.props.draft.headerMessageId, {actionKey: sendAction.configKey});
+      }
     }
   };
 

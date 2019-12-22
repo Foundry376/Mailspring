@@ -161,7 +161,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
   };
 
   _renderFields = () => {
-    const { to, cc, bcc, from } = this.props.draft;
+    const { to, cc, bcc, to_list, from} = this.props.draft;
 
     // Note: We need to physically add and remove these elements, not just hide them.
     // If they're hidden, shift-tab between fields breaks.
@@ -179,11 +179,31 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
         label={localized('To')}
         change={this._onChangeParticipants}
         className="composer-participant-field to-field"
-        participants={{ to, cc, bcc }}
+        participants={{ to, cc, bcc, to_list}}
         draft={this.props.draft}
         session={this.props.session}
       />
     );
+
+    if (this.state.enabledFields.includes(Fields.List)) {
+      fields.push(
+          <ParticipantsTextField
+              ref={el => {
+                if (el) {
+                  this._els[Fields.List] = el;
+                }
+              }}
+              key="to_list"
+              field="to_list"
+              label={localized('List')}
+              change={this._onChangeParticipants}
+              className="composer-participant-field to-list-field"
+              participants={{to, cc, bcc, to_list}}
+              draft={this.props.draft}
+              session={this.props.session}
+          />
+      );
+    }
 
     if (this.state.enabledFields.includes(Fields.Cc)) {
       fields.push(
@@ -199,7 +219,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Cc)}
           className="composer-participant-field cc-field"
-          participants={{ to, cc, bcc }}
+          participants={{ to, cc, bcc, to_list }}
           draft={this.props.draft}
           session={this.props.session}
         />
@@ -220,7 +240,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Bcc)}
           className="composer-participant-field bcc-field"
-          participants={{ to, cc, bcc }}
+          participants={{ to, cc, bcc, to_list}}
           draft={this.props.draft}
           session={this.props.session}
         />

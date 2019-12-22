@@ -37,6 +37,18 @@ export default class ComposerHeaderActions extends React.Component<ComposerHeade
       );
     }
 
+    if (!this.props.enabledFields.includes(Fields.List)) {
+      items.push(
+          <span
+              className="action show-list"
+              key="list"
+              onClick={() => this.props.onShowAndFocusField(Fields.List)}
+          >
+          {localized('List')}
+        </span>
+      );
+    }
+
     if (!this.props.enabledFields.includes(Fields.Bcc)) {
       items.push(
         <span

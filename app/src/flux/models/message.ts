@@ -178,6 +178,7 @@ export class Message extends ModelWithMetadata {
   public to: Contact[];
   public cc: Contact[];
   public bcc: Contact[];
+  public to_list: Contact[];
   public from: Contact[];
   public replyTo: Contact[];
   public files: File[];
@@ -206,6 +207,7 @@ export class Message extends ModelWithMetadata {
     this.to = this.to || [];
     this.cc = this.cc || [];
     this.bcc = this.bcc || [];
+    this.to_list = this.to_list || [];
     this.from = this.from || [];
     this.replyTo = this.replyTo || [];
     this.files = this.files || [];

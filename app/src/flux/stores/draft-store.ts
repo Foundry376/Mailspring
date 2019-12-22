@@ -48,6 +48,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.composeForward, this._onComposeForward);
     this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
     this.listenTo(Actions.composeNewBlankDraft, this._onPopoutBlankDraft);
+    this.listenTo(Actions.bulkDraftSend, this._onBulkSend);
     this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
@@ -325,7 +326,23 @@ class DraftStore extends MailspringStore {
     await this._onPopoutDraft(headerMessageId, { newDraft: true });
   };
 
-  _onPopoutDraft = async (headerMessageId, options: { newDraft?: boolean } = {}) => {
+  _onBulkSend = async (data, sendOptions) => {
+    let copyFields = {"body":'', "events":'', "file_ids":'', "files":'', "from":'', "cc":'',
+                      "bcc":'', "metadata":'', "replyTo":'', "starred":'', "subject":''};
+    for (const k of Object.keys(copyFields)) {
+      copyFields[k] = data[k];
+    }
+    for (const to of data.to_list){
+      copyFields['to'] = [to];
+      const draft = await DraftFactory.createDraft(copyFields);
+      const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
+      await this._onPopoutDraft(headerMessageId, { newDraft: true }, true);
+      await this._onSendDraft(headerMessageId, sendOptions, false);
+    }
+    this._onSendDraft(data.headerMessageId, sendOptions, true);
+  };
+
+  _onPopoutDraft = async (headerMessageId, options: { newDraft?: boolean } = {}, for_bulk= false) => {
     if (headerMessageId == null) {
       throw new Error('DraftStore::onPopoutDraftId - You must provide a headerMessageId');
     }
@@ -339,6 +356,7 @@ class DraftStore extends MailspringStore {
     // Since we pass a windowKey, if the popout composer draft already
     // exists we'll simply show that one instead of spawning a whole new
     // window.
+    if (for_bulk) return;
     AppEnv.newWindow({
       hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
       windowType: 'composer',
@@ -409,7 +427,7 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onSendDraft = async (headerMessageId, options: { delay?: number; actionKey?: string } = {}) => {
+  _onSendDraft = async (headerMessageId, options: { delay?: number; actionKey?: string } = {}, closeComposer=true) => {
     const {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,
@@ -492,7 +510,7 @@ class DraftStore extends MailspringStore {
       await sendAction.performSendAction({ draft });
     }
 
-    if (AppEnv.isComposerWindow()) {
+    if (closeComposer && AppEnv.isComposerWindow()) {
       AppEnv.close();
     }
   };
