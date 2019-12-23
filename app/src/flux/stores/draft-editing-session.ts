@@ -435,6 +435,27 @@ export class DraftEditingSession extends MailspringStore {
     await TaskQueue.waitForPerformLocal(task);
   }
 
+  async substituteVariables() {
+    const draft = this.draft();
+    let data = {subject:"", body:""};
+    for (const k of Object.keys(data)) {
+      data[k] = draft[k].replace(RegExp(/\[\[(.*?)]]/g), (m, key) => {
+        if (key == "subject") {
+          return draft.subject;
+        }
+        else if (["to_email", "cc_email", "bcc_email", "from_email", "replyTo_email"].some((value => {return value.match(key)}))) {
+          return draft[key.split("_")[0]].map((value) => {
+            return key.match("email") ? value.email : value.fullName()
+          }).join(", ");
+        }
+        else if (key == "date") {
+          return draft.formattedDate();
+        }
+      });
+    }
+    return data;
+  }
+
   changeSetApplyChanges = changes => {
     if (this._destroyed) {
       return;

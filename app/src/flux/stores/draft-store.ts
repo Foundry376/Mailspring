@@ -472,6 +472,10 @@ class DraftStore extends MailspringStore {
       session.changes.addPluginMetadata('send-later', sendLaterMetadataValue);
     }
 
+    // Substitute variables in the subject and body
+    const { body, subject } = await session.substituteVariables();
+    session.changes.add({ body, subject });
+
     await session.changes.commit();
     await session.teardown();
 
