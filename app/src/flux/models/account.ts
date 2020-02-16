@@ -77,18 +77,25 @@ export class Account extends ModelWithMetadata {
     syncError: Attributes.Object({
       modelKey: 'syncError',
     }),
+
+    authedAt: Attributes.DateTime({
+      modelKey: 'authedAt',
+    }),
   };
 
   public name: string;
   public provider: string;
   public emailAddress: string;
+  public authedAt: Date;
   public settings: {
     imap_host: string;
+    imap_port: number;
     imap_username: string;
     imap_password: string;
     imap_allow_insecure_ssl: boolean;
     imap_security: 'SSL / TLS' | 'STARTTLS' | 'none';
     smtp_host: string;
+    smtp_port: number;
     smtp_username: string;
     smtp_password: string;
     smtp_allow_insecure_ssl: boolean;
@@ -107,6 +114,7 @@ export class Account extends ModelWithMetadata {
     this.aliases = this.aliases || [];
     this.label = this.label || this.emailAddress;
     this.syncState = this.syncState || Account.SYNC_STATE_OK;
+    this.authedAt = this.authedAt || new Date(0);
     this.autoaddress = this.autoaddress || {
       type: 'bcc',
       value: '',

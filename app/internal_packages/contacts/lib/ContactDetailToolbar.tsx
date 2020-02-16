@@ -50,22 +50,19 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
   };
 
   _onEdit = () => {
-    if (showGPeopleReadonlyNotice(this.props.perspective.accountId)) {
+    const contacts = this.actionSet();
+    const contact = contacts[0];
+    if (!contact || showGPeopleReadonlyNotice(contact.accountId)) {
       return;
     }
-    const actionSet = this.actionSet();
-    Store.setEditing(actionSet[0].id);
+    Store.setEditing(contact.id);
   };
 
   _onDelete = () => {
     const contacts = this.actionSet();
-    if (
-      contacts.some(c => c.source === 'gpeople') &&
-      showGPeopleReadonlyNotice(this.props.perspective.accountId)
-    ) {
+    if (contacts.some(c => c.source === 'gpeople' && showGPeopleReadonlyNotice(c.accountId))) {
       return;
     }
-
     Actions.queueTask(
       DestroyContactTask.forRemoving({
         contacts: this.actionSet(),
@@ -90,7 +87,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     }
 
     const commands = {};
-    if (perspective && perspective.type === 'group' && actionSet.length > 0) {
+    if (perspective.type === 'group' && actionSet.length > 0) {
       commands['core:remove-from-view'] = this._onRemoveFromSource;
     }
     if (actionSet.length > 0) {
@@ -103,7 +100,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     return (
       <BindGlobalCommands key={Object.keys(commands).join(',')} commands={commands}>
         <div style={{ display: 'flex', order: 1000, marginRight: 10 }}>
-          {perspective && perspective.type === 'group' && (
+          {perspective.type === 'group' && (
             <button
               tabIndex={-1}
               title={localized('Remove from Group')}

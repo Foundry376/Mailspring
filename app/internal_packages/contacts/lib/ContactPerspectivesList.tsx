@@ -11,7 +11,7 @@ import {
   ChangeContactGroupMembershipTask,
   localized,
 } from 'mailspring-exports';
-import { ContactsPerspective, Store } from './Store';
+import { ContactsPerspective, Store, ContactsPerspectiveForGroup } from './Store';
 import {
   ScrollRegion,
   OutlineView,
@@ -28,11 +28,11 @@ interface ContactsPerspectivesProps {
   groups: ContactGroup[];
   books: ContactBook[];
   findInMailDisabled: string[];
-  selected: ContactsPerspective | null;
-  onSelect: (item: ContactsPerspective | null) => void;
+  selected: ContactsPerspective;
+  onSelect: (item: ContactsPerspective) => void;
 }
 
-function perspectiveForGroup(g: ContactGroup): ContactsPerspective {
+function perspectiveForGroup(g: ContactGroup): ContactsPerspectiveForGroup {
   return {
     accountId: g.accountId,
     type: 'group',
@@ -47,7 +47,7 @@ interface OutlineViewForAccountProps {
   books: ContactBook[];
   findInMailDisabled: boolean;
   selected: ContactsPerspective | null;
-  onSelect: (item: ContactsPerspective | null) => void;
+  onSelect: (item: ContactsPerspective) => void;
 }
 
 const OutlineViewForAccount = ({
@@ -178,8 +178,8 @@ const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectives
           name: 'All Contacts',
           iconName: 'people.png',
           children: [],
-          selected: selected === null,
-          onSelect: () => onSelect(null),
+          selected: selected.type === 'unified',
+          onSelect: () => onSelect({ type: 'unified' }),
         }}
       />
     </section>
@@ -190,7 +190,7 @@ const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectives
         findInMailDisabled={findInMailDisabled.includes(a.id)}
         books={books.filter(b => b.accountId === a.id)}
         groups={groups.filter(b => b.accountId === a.id)}
-        selected={selected && selected.accountId === a.id ? selected : null}
+        selected={'accountId' in selected && selected.accountId === a.id ? selected : null}
         onSelect={onSelect}
       />
     ))}

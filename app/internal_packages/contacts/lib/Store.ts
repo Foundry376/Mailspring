@@ -10,7 +10,7 @@ import MailspringStore from 'mailspring-store';
 import { ListTabular } from 'mailspring-component-kit';
 
 class ContactsWindowStore extends MailspringStore {
-  _perspective: ContactsPerspective | null = null;
+  _perspective: ContactsPerspective = { type: 'unified' };
   _listSource = new ListTabular.DataSource.DumbArrayDataSource<Contact>();
 
   _contacts: Contact[] = [];
@@ -83,15 +83,15 @@ class ContactsWindowStore extends MailspringStore {
     this.trigger();
   }
 
-  setPerspective(perspective: ContactsPerspective | null) {
+  setPerspective(perspective: ContactsPerspective) {
     let q = DatabaseStore.findAll<Contact>(Contact)
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false));
 
-    if (perspective && perspective.type === 'all') {
+    if (perspective.type === 'all') {
       q.where(Contact.attributes.source.not('mail'));
     }
-    if (perspective && perspective.type === 'group') {
+    if (perspective.type === 'group') {
       q.where(Contact.attributes.contactGroups.contains(perspective.groupId));
     }
 
@@ -116,13 +116,14 @@ class ContactsWindowStore extends MailspringStore {
   }
 
   repopulate() {
+    const perspective = this._perspective;
     let filtered = [...this._contacts];
 
-    if (this._perspective) {
+    if (perspective.type !== 'unified') {
       filtered = filtered.filter(c => {
-        if (c.accountId !== this._perspective.accountId) return false;
-        if (c.source !== 'mail' && this._perspective.type === 'found-in-mail') return false;
-        if (c.source === 'mail' && this._perspective.type !== 'found-in-mail') return false;
+        if (c.accountId !== perspective.accountId) return false;
+        if (c.source !== 'mail' && perspective.type === 'found-in-mail') return false;
+        if (c.source === 'mail' && perspective.type !== 'found-in-mail') return false;
         return true;
       });
     }
@@ -140,7 +141,15 @@ class ContactsWindowStore extends MailspringStore {
   }
 }
 
+export type ContactsPerspectiveForGroup = {
+  label: string;
+  accountId: string;
+  groupId: string;
+  type: 'group';
+};
+
 export type ContactsPerspective =
+  | { type: 'unified' }
   | {
       label: string;
       accountId: string;
@@ -151,11 +160,6 @@ export type ContactsPerspective =
       accountId: string;
       type: 'found-in-mail';
     }
-  | {
-      label: string;
-      accountId: string;
-      groupId: string;
-      type: 'group';
-    };
+  | ContactsPerspectiveForGroup;
 
 export const Store = new ContactsWindowStore();

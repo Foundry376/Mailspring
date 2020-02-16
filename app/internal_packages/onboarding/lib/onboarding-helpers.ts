@@ -16,7 +16,7 @@ const GMAIL_SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email', // email address
   'https://www.googleapis.com/auth/userinfo.profile', // G+ profile
   'https://mail.google.com/', // email
-  'https://www.googleapis.com/auth/contacts.readonly', // contacts
+  'https://www.googleapis.com/auth/contacts', // contacts
   'https://www.googleapis.com/auth/calendar', // calendar
 ];
 
@@ -206,7 +206,7 @@ export function buildGmailAuthURL() {
   )}&access_type=offline&select_account%20consent`;
 }
 
-export async function finalizeAndValidateAccount(account) {
+export async function finalizeAndValidateAccount(account: Account) {
   if (account.settings.imap_host) {
     account.settings.imap_host = account.settings.imap_host.trim();
   }
@@ -217,7 +217,9 @@ export async function finalizeAndValidateAccount(account) {
   account.id = idForAccount(account.emailAddress, account.settings);
 
   // handle special case for exchange/outlook/hotmail username field
-  account.settings.username = account.settings.username || account.settings.email;
+  // TODO BG: I don't think this line is in use but not 100% sure
+  (account.settings as any).username =
+    (account.settings as any).username || (account.settings as any).email;
 
   if (account.settings.imap_port) {
     account.settings.imap_port /= 1;
@@ -233,6 +235,8 @@ export async function finalizeAndValidateAccount(account) {
   const proc = new MailsyncProcess(AppEnv.getLoadSettings());
   proc.identity = IdentityStore.identity();
   proc.account = account;
-  const { response } = await proc.test();
-  return new Account(response.account);
+  await proc.test();
+
+  // Record the date of successful auth
+  account.authedAt = new Date();
 }

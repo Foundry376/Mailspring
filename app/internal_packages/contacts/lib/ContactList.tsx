@@ -110,7 +110,7 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
         ref={this._searchEl}
         value={props.search}
         placeholder={`${localized('Search')} ${
-          props.perspective ? props.perspective.label : 'All Contacts'
+          props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
         }`}
         onChange={e => props.setSearch(e.currentTarget.value)}
       />

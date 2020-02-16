@@ -1,13 +1,22 @@
-import { AccountStore } from 'mailspring-exports';
+import { AccountStore, localized } from 'mailspring-exports';
 import { remote } from 'electron';
+
+const CONTACTS_OAUTH_SCOPE_ADDED = new Date(1581867440474);
 
 export const showGPeopleReadonlyNotice = (accountId: string) => {
   const acct = AccountStore.accountForId(accountId);
-  if (acct && acct.provider === 'gmail') {
+  if (
+    acct &&
+    acct.provider === 'gmail' &&
+    (!acct.authedAt || acct.authedAt < CONTACTS_OAUTH_SCOPE_ADDED)
+  ) {
     remote.dialog.showMessageBox({
-      message: 'Coming Soon for Google Accounts',
-      detail:
-        "We've added support for creating, updating and deleting contacts in Google accounts, but Google is still reviewing Mailspring's use of the Google People API so we're unable to sync these changes back to their servers. Stay tuned!",
+      message: localized(`Please re-authenticate with Google`),
+      detail: localized(
+        `To make changes to contacts in this account, you'll need to re-authorize Mailspring to access your data.\n\n` +
+          `In Mailspring's main window, go to Preferences > Accounts, select this account, and click "Re-authenticate". ` +
+          `You'll be prompted to give Mailspring additional permission to update and delete your contacts.`
+      ),
     });
     return true;
   }

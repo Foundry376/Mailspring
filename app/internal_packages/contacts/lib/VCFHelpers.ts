@@ -130,5 +130,5 @@ export const parseName = (name: { _data: string } | null) => {
 };
 
 export const formatDisplayName = (name: ContactBase['name']) => {
-  return `${name.givenName} ${name.familyName}`;
+  return `${name.givenName || ''} ${name.familyName || ''}`.trim();
 };

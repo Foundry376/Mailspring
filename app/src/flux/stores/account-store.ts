@@ -240,6 +240,7 @@ class _AccountStore extends MailspringStore {
       const existing = this._accounts[existingIdx];
       existing.syncState = Account.SYNC_STATE_OK;
       existing.name = cleanAccount.name;
+      existing.authedAt = cleanAccount.authedAt;
       existing.emailAddress = cleanAccount.emailAddress;
       existing.settings = cleanAccount.settings;
     }

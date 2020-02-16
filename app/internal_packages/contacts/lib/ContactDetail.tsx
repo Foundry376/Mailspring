@@ -73,7 +73,7 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     const { editing, contacts, focusedId, perspective } = this.props;
 
     const contact =
-      editing === 'new'
+      editing === 'new' && 'accountId' in perspective
         ? emptyContactForAccountId(perspective.accountId)
         : contacts.find(c => c.id === focusedId);
 
@@ -95,11 +95,14 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
   };
 
   onSaveChanges = () => {
+    const { perspective } = this.props;
     const contact = apply(this.state.contact, this.state.data);
+
+    if (!('accountId' in perspective)) return;
 
     const task = contact.id
       ? SyncbackContactTask.forUpdating({ contact })
-      : SyncbackContactTask.forCreating({ contact, accountId: this.props.perspective.accountId });
+      : SyncbackContactTask.forCreating({ contact, accountId: perspective.accountId });
     Actions.queueTask(task);
     Store.setEditing(false);
   };

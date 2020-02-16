@@ -17,17 +17,19 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
   }
 
   onAdd = () => {
-    if (showGPeopleReadonlyNotice(this.props.perspective.accountId)) {
-      return;
-    }
+    const { perspective } = this.props;
+
+    if (!('accountId' in perspective)) return;
+    if (showGPeopleReadonlyNotice(perspective.accountId)) return;
+
     Actions.setFocus({ collection: 'contact', item: null });
     Store.setEditing('new');
   };
 
   render() {
     const { editing, perspective } = this.props;
-    const enabled = editing === false && perspective && perspective.accountId;
-    const acct = perspective && AccountStore.accountForId(perspective.accountId);
+    const enabled = 'accountId' in perspective && editing === false && perspective.accountId;
+    const acct = 'accountId' in perspective && AccountStore.accountForId(perspective.accountId);
 
     return (
       <div style={{ display: 'flex', order: 1000 }}>
