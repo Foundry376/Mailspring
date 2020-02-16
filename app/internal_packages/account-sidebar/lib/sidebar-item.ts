@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import { remote } from 'electron';
 import _str from 'underscore.string';
 import { OutlineViewItem } from 'mailspring-component-kit';
 import {
@@ -9,6 +10,7 @@ import {
   CategoryStore,
   Actions,
   RegExpUtils,
+  localized,
 } from 'mailspring-exports';
 
 import * as SidebarActions from './sidebar-actions';
@@ -42,12 +44,25 @@ const toggleItemCollapsed = function(item) {
 };
 
 const onDeleteItem = function(item) {
-  // TODO Delete multiple categories at once
   if (item.deleted === true) {
     return;
   }
   const category = item.perspective.category();
   if (!category) {
+    return;
+  }
+
+  const chosen = remote.dialog.showMessageBox({
+    type: 'info',
+    message: localized('Are you sure?'),
+    detail: localized(
+      'Deleting folders and labels cannot be undone and it may take a few minutes for changes to sync to Mailspring.'
+    ),
+    buttons: [localized('Delete'), localized('Cancel')],
+    defaultId: 0,
+  });
+
+  if (chosen !== 0) {
     return;
   }
 
@@ -147,7 +162,9 @@ export default class SidebarItem {
 
           // We can't inspect the drag payload until drop, so we use a dataTransfer
           // type to encode the account IDs of threads currently being dragged.
-          const accountsType = event.dataTransfer.types.find(t => t.startsWith('mailspring-accounts='));
+          const accountsType = event.dataTransfer.types.find(t =>
+            t.startsWith('mailspring-accounts=')
+          );
           const accountIds = (accountsType || '').replace('mailspring-accounts=', '').split(',');
           return target.canReceiveThreadsFromAccountIds(accountIds);
         },
