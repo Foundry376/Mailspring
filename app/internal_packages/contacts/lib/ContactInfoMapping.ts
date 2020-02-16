@@ -216,6 +216,11 @@ export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
     const val = changes[key];
 
     if (key === 'name') {
+      if ('displayName' in val) {
+        // UI only edits surname + given name so we sync the full string
+        // to the new values here if Google provided us with one initially.
+        val.displayName = VCFHelpers.formatDisplayName(val);
+      }
       if (!info.names || info.names.length === 0) {
         info.names = [Object.assign({ metadata }, val)];
       } else {
@@ -248,7 +253,7 @@ export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
 
 export function parse(contact: Contact): ContactParseResult {
   try {
-    return !contact.info
+    return !contact.info || Object.keys(contact.info).length === 0
       ? fromContact(contact)
       : 'vcf' in contact.info
       ? fromVCF(contact.info)
