@@ -1,6 +1,6 @@
 @import 'ui-variables';
 
-@token-top: lighten(@background-secondary,0.6%);
+@token-top: lighten(@background-secondary, 0.6%);
 @token-bottom: darken(@background-secondary, 2.5%);
 
 @token-hover-top: mix(@token-top, @component-active-color, 92%);
@@ -12,11 +12,8 @@
 @token-invalid-selected-top: mix(@token-top, red, 60%);
 @token-invalid-selected-bottom: mix(@token-bottom, red, 55%);
 
-@base-box-shadow: 0 0.5px 0 rgba(0,0,0,0.17),
-  0 -0.5px 0 rgba(0,0,0,0.17),
-  0.5px 0 0 rgba(0,0,0,0.17),
-  -0.5px 0 0 rgba(0,0,0,0.17),
-  0 1px 1px rgba(0, 0, 0, 0.1);
+@base-box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.17), 0 -0.5px 0 rgba(0, 0, 0, 0.17),
+  0.5px 0 0 rgba(0, 0, 0, 0.17), -0.5px 0 0 rgba(0, 0, 0, 0.17), 0 1px 1px rgba(0, 0, 0, 0.1);
 
 .tokenizing-field {
   display: block;
@@ -70,11 +67,14 @@
 
   .token-editing-input {
     max-width: 100%;
-    font-size: 15px;
+    font-size: 14px;
     line-height: 17px;
     padding: 2em; //0.5em @spacing-three-quarters 0.5em @spacing-three-quarters;
     padding-right: 1.5em;
     margin: 3px 6px 6px 1px;
+    input {
+      font-size: 14px;
+    }
   }
 
   .token {
