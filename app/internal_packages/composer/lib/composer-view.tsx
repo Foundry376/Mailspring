@@ -66,12 +66,15 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   _keymapHandlers = {
     'composer:send-message': () => this.sendButton.current.primarySend(),
-    'composer:delete-empty-draft': () => this.props.draft.pristine && this._onDestroyDraft(),
     'composer:show-and-focus-bcc': () => this.header.current.showAndFocusField(Fields.Bcc),
     'composer:show-and-focus-cc': () => this.header.current.showAndFocusField(Fields.Cc),
     'composer:focus-to': () => this.header.current.showAndFocusField(Fields.To),
     'composer:show-and-focus-from': () => {},
     'composer:select-attachment': () => this._onSelectAttachment(),
+    'composer:delete-empty-draft': (e: Event) => {
+      this.props.draft.pristine && this._onDestroyDraft();
+      e.preventDefault();
+    },
   };
 
   constructor(props) {

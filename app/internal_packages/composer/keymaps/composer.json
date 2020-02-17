@@ -5,5 +5,5 @@
   "composer:show-and-focus-from": "mod+shift+f",
   "composer:send-message": "mod+enter",
   "composer:no-op": "del",
-  "composer:delete-empty-draft": "escape"
+  "composer:delete-empty-draft": "mod+escape"
 }
