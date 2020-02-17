@@ -76,7 +76,10 @@ const CreatePageForForm = FormComponent => {
       return errorFieldNames.length === 0 && populated;
     }
 
-    onFieldChange = (event, { afterSetState }: { afterSetState?: () => void } = {}) => {
+    onFieldChange = (
+      event: { target: { id: string; value: any; type?: string; checked?: boolean } },
+      { afterSetState }: { afterSetState?: () => void } = {}
+    ) => {
       const next = this.state.account.clone();
 
       let val = event.target.value;
@@ -84,7 +87,7 @@ const CreatePageForForm = FormComponent => {
         val = event.target.checked;
       }
       if (event.target.id === 'emailAddress') {
-        val = val.trim();
+        val = `${val}`.trim();
       }
 
       if (event.target.id.includes('.')) {

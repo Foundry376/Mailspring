@@ -12,7 +12,7 @@ interface AccountIMAPSettingsFormProps {
   submitting: boolean;
   onConnect: () => void;
   onFieldChange: (
-    e: { target: { value: string; id: string } },
+    event: { target: { id: string; value: any; type?: string; checked?: boolean } },
     opts?: { afterSetState: () => void }
   ) => void;
   onFieldKeyPress: () => void;
@@ -61,11 +61,16 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
     if (!['imap', 'smtp'].includes(protocol)) {
       throw new Error(`Can't render port dropdown for protocol '${protocol}'`);
     }
-    const { account: { settings }, submitting, onFieldKeyPress, onFieldChange } = this.props;
+    const {
+      account: { settings },
+      submitting,
+      onFieldKeyPress,
+      onFieldChange,
+    } = this.props;
 
     const field = `${protocol}_port`;
     const values = protocol === 'imap' ? StandardIMAPPorts : StandardSMTPPorts;
-    const isStandard = values.includes(settings[field] / 1);
+    const isStandard = Number.isInteger(settings[field]) && values.includes(settings[field]);
     const customValue = isStandard ? '0' : settings[field];
 
     // When you change the port, automatically switch the security setting to
@@ -74,22 +79,25 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
     const onPortChange = event => {
       const port = event.target.value / 1;
 
-      onFieldChange(event, {
-        afterSetState: () => {
-          if (port === 143 && settings.imap_security !== 'none') {
-            onFieldChange({ target: { value: 'none', id: 'settings.imap_security' } });
-          }
-          if (port === 993 && settings.imap_security !== 'SSL / TLS') {
-            onFieldChange({ target: { value: 'SSL / TLS', id: 'settings.imap_security' } });
-          }
-          if (port === 25 && settings.smtp_security !== 'none') {
-            onFieldChange({ target: { value: 'none', id: 'settings.smtp_security' } });
-          }
-          if (port === 587 && settings.smtp_security !== 'STARTTLS') {
-            onFieldChange({ target: { value: 'STARTTLS', id: 'settings.smtp_security' } });
-          }
-        },
-      });
+      onFieldChange(
+        { target: { value: port, id: event.target.id } },
+        {
+          afterSetState: () => {
+            if (port === 143 && settings.imap_security !== 'none') {
+              onFieldChange({ target: { value: 'none', id: 'settings.imap_security' } });
+            }
+            if (port === 993 && settings.imap_security !== 'SSL / TLS') {
+              onFieldChange({ target: { value: 'SSL / TLS', id: 'settings.imap_security' } });
+            }
+            if (port === 25 && settings.smtp_security !== 'none') {
+              onFieldChange({ target: { value: 'none', id: 'settings.smtp_security' } });
+            }
+            if (port === 587 && settings.smtp_security !== 'STARTTLS') {
+              onFieldChange({ target: { value: 'STARTTLS', id: 'settings.smtp_security' } });
+            }
+          },
+        }
+      );
     };
 
     return (
@@ -131,7 +139,12 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
   }
 
   renderSecurityDropdown(protocol) {
-    const { account: { settings }, submitting, onFieldKeyPress, onFieldChange } = this.props;
+    const {
+      account: { settings },
+      submitting,
+      onFieldKeyPress,
+      onFieldChange,
+    } = this.props;
 
     return (
       <div>
@@ -165,7 +178,7 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
             onKeyPress={onFieldKeyPress}
             onChange={onFieldChange}
           />
-          <label htmlFor={`${protocol}_allow_insecure_ssl"`} className="checkbox">
+          <label htmlFor={`settings.${protocol}_allow_insecure_ssl`} className="checkbox">
             {localized('Allow insecure SSL')}
           </label>
         </span>
