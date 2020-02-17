@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Tháinig mailspring ar earráidí a raibh an cuntas seo ann. Cuireadh tuairiscí céimnithe chuig an bhfoireann Mailspring agus oibreoimid na hearráidí seo a shocrú sa chéad scaoileadh eile.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Tá Mailspring ag teastáil go bhfuil sé taisce le haghaidh %@. Ag brath ar mhéid an bhosca poist, féadfaidh sé cúpla soicind nó cúpla nóiméad a thógáil. Feicfear foláireamh nuair a bhíonn an glanadh críochnaithe.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Is bogearraí neamhspleách %@ é Mailspring, agus ligeann ioncam suibscríobh dúinn am a chaitheamh agus an táirge a fheabhsú.",
-  "Mailspring is offline": "Tá Mailspring as líne",
+  "One or more accounts are having connection issues.": "Tá Mailspring as líne",
   "Mailspring is running in dev mode and may be slower!": "Tá Mailspring ag rith i mód dev agus d'fhéadfadh sé a bheith níos moille!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Tá Mailspring ag smaoineamh ar an snáithe seo agus tá sé ceangailte leis an scamall. Le snáitheanna fada, féadfaidh sé seo nóiméad a ghlacadh.",
   "Mailspring is unable to sync %@": "Ní féidir le Mailspring info %@",

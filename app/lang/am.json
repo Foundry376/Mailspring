@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ከዚህ መለያ ጋር በማመሳሰል ስህተት አጋጥሞታል. የብልሽት ሪፖርቶች ወደ Mailspring ቡድን ተልከዋል, እናም እነዚህን ስህተቶች በሚቀጥለው ቅጂ ላይ ለማስተካከል እንሰራለን.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring ለ %@ መሸጎጫ እያጸዳ ነው. በመሌእክት ሳጥኑ መጠን መሰረት ይሄ ጥቂት ሰከንዶችን ወይም ጥቂት ደቂቃዎችን ሊወስድ ይችላል. ማጽዳት ሲጠናቀቅ ማንቂያ ይመጣል.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring ገለልተኛ የሆነ %@ ሶፍትዌር ነው, እና የደንበኝነት ምዝገባ ገቢም ምርቱን ለማቆምና ለማሻሻል ያስችላል.",
-  "Mailspring is offline": "Mailspring ከመስመር ውጭ ነው",
+  "One or more accounts are having connection issues.": "Mailspring ከመስመር ውጭ ነው",
   "Mailspring is running in dev mode and may be slower!": "Mailspring በ devility ውስጥ እያሄደ ሲሆን ቀስ እያለ ሊሆን ይችላል!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring ይህን ክር ማመሳሰል እና ከደመናው ጋር አባሪነት ነው. ለረጅም ተከታታዮች ይህ ትንሽ ጊዜ ሊወስድ ይችላል.",
   "Mailspring is unable to sync %@": "Mailspring ማመሳሰል አልቻለም %@",

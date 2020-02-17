@@ -131,13 +131,6 @@ export const cancelTask = create('cancelTask', ActionScopeMainWindow);
 export const queueUndoOnlyTask = create('queueUndoOnlyTask', ActionScopeMainWindow);
 
 /*
-  Public: Dequeue a {Task} matching the description provided.
-
-  *Scope: Main Window*
-  */
-export const checkOnlineStatus = create('checkOnlineStatus', ActionScopeWindow);
-
-/*
   Public: Open the preferences view.
 
   *Scope: Global*

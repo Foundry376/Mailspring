@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring พบข้อผิดพลาดในการซิงค์บัญชีนี้ รายงานข้อขัดข้องถูกส่งไปยังทีม Mailspring และเราจะดำเนินการแก้ไขข้อผิดพลาดเหล่านี้ในรุ่นถัดไป",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring กำลังล้างแคชสำหรับ %@ อาจใช้เวลาสองสามวินาทีหรือสองสามนาทีขึ้นอยู่กับขนาดของกล่องจดหมาย การแจ้งเตือนจะปรากฏขึ้นเมื่อการล้างข้อมูลเสร็จสมบูรณ์",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring เป็นซอฟต์แวร์อิสระ %@ และรายได้จากการสมัครสมาชิกช่วยให้เราใช้เวลาในการบำรุงรักษาและปรับปรุงผลิตภัณฑ์",
-  "Mailspring is offline": "Mailspring ออฟไลน์",
+  "One or more accounts are having connection issues.": "Mailspring ออฟไลน์",
   "Mailspring is running in dev mode and may be slower!": "Mailspring กำลังทำงานในโหมด dev และอาจช้ากว่านี้!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring กำลังซิงค์เธรดนี้และเป็นไฟล์แนบในระบบคลาวด์ สำหรับหัวข้อยาวอาจใช้เวลาสักครู่",
   "Mailspring is unable to sync %@": "Mailspring ไม่สามารถซิงค์ได้ %@",

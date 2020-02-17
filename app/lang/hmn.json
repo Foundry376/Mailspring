@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ntsib yuam kev syncing cov nyiaj no. Cov ntaub ntawv sib tsoo tau raug xa mus rau Mailspring pab neeg thiab peb yuav ua haujlwm los txhim kho cov teeb meem no tom ntej tso.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring yog clearing nws tus cache rau %@. Nyob ntawm qhov loj ntawm lub thawv ntawv, qhov no yuav siv li ob peb feeb lossis ob peb feeb. Kev ceeb toom yuav tshwm sim thaum qhov kev ntxuav tu tiav.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring yog ywj siab %@ software, thiab cov nyiaj tau txais txiaj ntsig pub rau peb siv sij hawm tswj thiab txhim kho cov khoom.",
-  "Mailspring is offline": "Mailspring yog offline",
+  "One or more accounts are having connection issues.": "Mailspring yog offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring khiav hauv hom dev thiab tej zaum yuav qeeb qeeb!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring syncing cov xov no thiab nws cov attachments rau huab. Rau ntev threads, qhov no yuav siv sij hawm ib pliag.",
   "Mailspring is unable to sync %@": "Mailspring yog tsis tau sync %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring naišao je na pogreške u sinkroniziranju ovog računa. Izvješća o rušenju slanja poslana su ekipi Mailspring i radit ćemo u rješavanju ovih pogrešaka u sljedećem izdanju.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring čisti njegovu predmemoriju za %@. Ovisno o veličini spremnika, to može potrajati nekoliko sekundi ili nekoliko minuta. Kada se čišćenje dovrši, pojavit će se upozorenje.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring je neovisni %@ softver, a prihod od pretplate daje nam vremena da zadržimo vrijeme održavanja i poboljšanja proizvoda.",
-  "Mailspring is offline": "Mailspring je odsutan trenutno",
+  "One or more accounts are having connection issues.": "Mailspring je odsutan trenutno",
   "Mailspring is running in dev mode and may be slower!": "Mailspring se izvodi u dev načinu rada i može biti sporiji!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sinkronizira tu nit i to je privitke na oblak. Za dugačke teme to može potrajati.",
   "Mailspring is unable to sync %@": "Mailspring ne može sinkronizirati %@",

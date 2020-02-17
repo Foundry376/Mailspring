@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "ამ ანგარიშის სინქრონიზაციისას შეცდომები შეექმნა. Crash ანგარიშები გაიგზავნა Mailspring გუნდი და ჩვენ ვიმუშავებთ დაფიქსირება ამ შეცდომების მომდევნო გათავისუფლებას.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring გადის მისი ქეში %@. საფოსტო ყუთის ზომაზე დამოკიდებულია რამდენიმე წამი ან რამდენიმე წუთი. გაფრთხილება გამოჩნდება, როდესაც გასუფთავება დასრულებულია.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring დამოუკიდებელია %@ პროგრამული უზრუნველყოფა, და სააბონენტო შემოსავლები საშუალებას გვაძლევს დროის გატარება და გაუმჯობესება პროდუქტი.",
-  "Mailspring is offline": "ფოსტა არ არის ფორუმზე",
+  "One or more accounts are having connection issues.": "ფოსტა არ არის ფორუმზე",
   "Mailspring is running in dev mode and may be slower!": "Mailspring გაშვებულია dev რეჟიმში და შეიძლება იყოს ნელი!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring- ი ამ თემის სინქრონიზაციას ახდენს და ის ღრუბლებს ანიჭებს. ხანგრძლივი ნიშნების გამო, შეიძლება მომენტში.",
   "Mailspring is unable to sync %@": "Mailspring- ს არ შეუძლია სინქრონიზაცია %@",

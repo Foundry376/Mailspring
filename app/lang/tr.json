@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring, bu hesabı senkronize eden hatalarla karşılaştı. Kilitlenme raporları Mailspring ekibine gönderildi ve bu hataları bir sonraki sürümde düzeltmek için çalışacağız.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring, %@ için önbelleğini temizliyor. Posta kutusunun boyutuna bağlı olarak, bu birkaç saniye veya birkaç dakika sürebilir. Temizleme tamamlandığında bir uyarı görünecektir.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring bağımsız %@ bir yazılımdır ve abonelik geliri, ürünü korumak ve geliştirmek için zaman harcamamızı sağlar.",
-  "Mailspring is offline": "Mailspring çevrimdışı",
+  "One or more accounts are having connection issues.": "Mailspring çevrimdışı",
   "Mailspring is running in dev mode and may be slower!": "Mailspring, dev modunda çalışıyor ve daha yavaş olabilir!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring bu konuyu ve eklerini buluta senkronize ediyor. Uzun iş parçacıkları için, bu biraz zaman alabilir.",
   "Mailspring is unable to sync %@": "Mailspring senkronize edemiyor %@",

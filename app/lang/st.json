@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring liphoso tse kopaneng le tsona li lumellana le akhaonto ena. Litlaleho tsa ho senya li rometsoe sehlopheng sa Mailspring 'me re tla sebetsa ho lokisa liphoso tsena ho lokolloa ho latelang.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring e hlakola hore e bolokile %@. Ho itšetlehile ka boholo ba lebokose la poso, sena se ka 'na sa nka metsotsoana e seng mekae kapa metsotso e seng mekae. Tlhokomeliso e tla hlaha ha ho hloekisoa ho phethiloe.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring ke software e ikemetseng, 'me chelete ea ho ngolisa e re fa nako ea ho boloka le ho ntlafatsa sehlahisoa.",
-  "Mailspring is offline": "Mailspring ha e nahane",
+  "One or more accounts are having connection issues.": "Mailspring ha e nahane",
   "Mailspring is running in dev mode and may be slower!": "Mailspring e sebetsa ka mokhoa oa dev 'me e ka' na ea lieha!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring e lumellana le khoele ena 'me e na le li-attachments ho leru. Bakeng sa likhoele tse telele, sena se ka 'na sa nka nakoana.",
   "Mailspring is unable to sync %@": "Mailspring ha e khone ho lumellana %@",

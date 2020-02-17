@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "واجهت Mailspring أخطاء في مزامنة هذا الحساب. تم إرسال تقارير الأعطال إلى فريق Mailspring وسنعمل على إصلاح هذه الأخطاء في الإصدار التالي.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "تقوم Mailspring بمسح ذاكرة التخزين المؤقت لـ %@. استنادًا إلى حجم صندوق البريد ، قد يستغرق هذا بضع ثوانٍ أو بضع دقائق. سيظهر تنبيه عند اكتمال عملية التنظيف.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "إن Mailspring عبارة عن برنامج %@ مستقل ، وتتيح لنا عائدات الاشتراك قضاء بعض الوقت في الحفاظ على المنتج وتحسينه.",
-  "Mailspring is offline": "Mailspring غير متصل",
+  "One or more accounts are having connection issues.": "Mailspring غير متصل",
   "Mailspring is running in dev mode and may be slower!": "Mailspring قيد التشغيل في وضع مطور وقد يكون أبطأ!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "تقوم Mailspring بمزامنة هذا الموضوع ومرفقاته مع السحابة. لخيوط طويلة ، قد يستغرق هذا لحظة.",
   "Mailspring is unable to sync %@": "Mailspring غير قادر على المزامنة %@",

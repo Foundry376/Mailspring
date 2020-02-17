@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring radās kļūdas, sinhronizējot šo kontu. Avāriju pārskati ir nosūtīti Mailspring komandai, un mēs strādāsim, lai novērstu šīs kļūdas nākamajā laidienā.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Pasta foršs tiek notīrīts par %@. Atkarībā no pastkastes lieluma tas var ilgt dažas sekundes vai dažas minūtes. Kad tīrīšana ir pabeigta, parādīsies brīdinājums.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring ir neatkarīga %@ programmatūra, un abonēšanas ieņēmumi ļauj mums pavadīt laiku, saglabājot un uzlabojot produktu.",
-  "Mailspring is offline": "Mailspring ir bezsaistē",
+  "One or more accounts are having connection issues.": "Mailspring ir bezsaistē",
   "Mailspring is running in dev mode and may be slower!": "Mailspring darbojas dev režīmā un var būt lēnāks!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sinhronizē šo pavedienu, un tas ir pielikumi mākonim. Gariem pavedieniem tas var aizņemt kādu brīdi.",
   "Mailspring is unable to sync %@": "Mailspring nevar sinhronizēt %@",

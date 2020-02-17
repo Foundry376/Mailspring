@@ -118,7 +118,6 @@ export default class MailsyncBridge {
     Actions.fetchBodies.listen(this._onFetchBodies, this);
 
     AccountStore.listen(this.ensureClients, this);
-    OnlineStatusStore.listen(this._onOnlineStatusChanged, this);
 
     AppEnv.onBeforeUnload(this._onBeforeUnload);
     AppEnv.onReadyToUnload(this._onReadyToUnload);
@@ -407,6 +406,13 @@ export default class MailsyncBridge {
         continue;
       }
 
+      // Note: these deltas don't reflect a real model - we just stream in the process
+      // state changes (online / offline) alongside the database changes.
+      if (modelClass === 'ProcessState' && modelJSONs.length) {
+        OnlineStatusStore.onSyncProcessStateReceived(modelJSONs[0]);
+        continue;
+      }
+
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);
 
@@ -487,11 +493,5 @@ export default class MailsyncBridge {
       client.kill();
     }
     this._clients = {};
-  };
-
-  _onOnlineStatusChanged = ({ onlineDidChange, wakingFromSleep }) => {
-    if (wakingFromSleep || (onlineDidChange && OnlineStatusStore.isOnline())) {
-      this.sendSyncMailNow();
-    }
   };
 }

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "මෙම ගිණුම සමමුහුර්තකරණය කිරීමේදී Mailspring අසමත් විය. මිස්ස්පිං කණ්ඩායම වෙත කඩා වැටීම් වාර්තා යවා ඇති අතර ඊළඟ නිකුතුවේදී මෙම දෝෂ නිවැරදි කිරීමට අපි කටයුතු කරමු.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring %@ සඳහා එය කෑෂ් ඉවත් කර ඇත. තැපැල් පෙට්ටියේ විශාලත්වය අනුව මෙය තත්පර කිහිපයක් හෝ මිනිත්තු කිහිපයක් ගතවිය හැක. පිරිසිදු කිරීම සම්පූර්ණ වූ විට අවදි වන්නේය.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring ස්වාධීන %@ මෘදුකාංගය වන අතර, දායකත්ව ආදායම අපට නිශ්පාදනය නඩත්තු කිරීම හා වැඩිදියුණු කිරීම සඳහා වැය කරයි.",
-  "Mailspring is offline": "Mailspring නොබැදී ඇත",
+  "One or more accounts are having connection issues.": "Mailspring නොබැදී ඇත",
   "Mailspring is running in dev mode and may be slower!": "Mailspring dev හි මාදිලිය තුල ක්රියාත්මක වන අතර එය මන්දගාමී විය හැක!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring මෙම නූල් සමමුහුර්ත කර එය වලාකාවේ ඇමුණුම් වේ. දිගු නූල් මේ සඳහා මොහොතක් ගත වේ.",
   "Mailspring is unable to sync %@": "Mailspring සමමුහුර්ත කිරීමට නොහැකි විය හැක",

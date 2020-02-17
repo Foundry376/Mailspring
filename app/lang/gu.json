@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ને આ એકાઉન્ટને સમન્વયિત કરવામાં ભૂલ આવી. ક્રેશ રિપોર્ટ્સ મેલસ્પ્રિંગ ટીમને મોકલવામાં આવી છે અને અમે આ ભૂલોને આગલી રીલીઝમાં ઠીક કરવા માટે કાર્ય કરીશું.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring તેના કેશને %@ માટે સાફ કરી રહ્યું છે. મેલબોક્સના કદના આધારે, આમાં થોડો સેકંડ અથવા થોડો સમય લાગી શકે છે. સફાઈ પૂર્ણ થાય ત્યારે ચેતવણી દેખાશે.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "મેલ્સપ્રિગ એ સ્વતંત્ર %@ સૉફ્ટવેર છે અને સબ્સ્ક્રિપ્શન આવક અમને ઉત્પાદનને જાળવવા અને સુધારવામાં સમય પસાર કરે છે.",
-  "Mailspring is offline": "મેલસ્પ્રિંગ ઑફલાઇન છે",
+  "One or more accounts are having connection issues.": "મેલસ્પ્રિંગ ઑફલાઇન છે",
   "Mailspring is running in dev mode and may be slower!": "Mailspring dev મોડમાં ચાલી રહ્યું છે અને ધીમું થઈ શકે છે!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "મેલ્સપ્રિગ આ થ્રેડને સમન્વયિત કરે છે અને તે મેઘમાં જોડાણ ધરાવે છે. લાંબા થ્રેડો માટે, આમાં થોડો સમય લાગી શકે છે.",
   "Mailspring is unable to sync %@": "મેઇલસ્પ્રિંગ સમન્વયિત કરવામાં અસમર્થ છે %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspringがこのアカウントを同期する際にエラーが発生しました。クラッシュレポートはMailspringチームに送信されており、次のリリースでこれらのエラーを修正するよう努めます。",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspringは%@のキャッシュをクリアしています。メールボックスのサイズによっては、数秒または数分かかることがあります。クリーンアップが完了すると、警告が表示されます。",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspringは独立したソフトウェアであり、サブスクリプションの収入は私達が製品を維持し改良するために使用されます。",
-  "Mailspring is offline": "Mailspringはオフラインです",
+  "One or more accounts are having connection issues.": "Mailspringはオフラインです",
   "Mailspring is running in dev mode and may be slower!": "Mailspringは開発者モードで動作しており、速度が遅くなる可能性があります。",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspringはこのスレッドとそれをクラウドに添付しています。長いスレッドの場合、これには時間がかかることがあります。",
   "Mailspring is unable to sync %@": "Mailspringは%@を同期できません",

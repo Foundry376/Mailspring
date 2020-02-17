@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring在同步此帐户时遇到错误。崩溃报告已发送给Mailspring团队，我们将努力在下一版本中修复这些错误。",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring正在清除%@的缓存。根据邮箱的大小，这可能需要几秒钟或几分钟。清理完成后将显示警报。",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring是独立的%@软件，订阅收入使我们可以花时间维护和改进产品。",
-  "Mailspring is offline": "Mailspring离线",
+  "One or more accounts are having connection issues.": "Mailspring离线",
   "Mailspring is running in dev mode and may be slower!": "Mailspring正在开发模式下运行，可能会更慢！",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring正在同步此线程及其对云的附件。对于长线程，这可能需要一些时间。",
   "Mailspring is unable to sync %@": "Mailspring无法同步%@",

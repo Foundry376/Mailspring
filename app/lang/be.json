@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring паўсталі памылкі пры сінхранізацыі гэтага рахунку. Справаздачы пра памылкі былі адпраўленыя ў каманду Mailspring, і мы будзем працаваць, каб выправіць гэтыя памылкі ў наступным выпуску.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring расчышчае гэта кэш %@. У залежнасці ад памеру паштовага скрыні, гэта можа заняць некалькі секунд або некалькі хвілін. Папярэджанне з'яўляецца, калі ачыстка завершана.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring незалежны %@ праграмнае забеспячэнне, а даход падпіскі дазваляе марнаваць час на падтрыманне і паляпшэнне прадукту.",
-  "Mailspring is offline": "Mailspring па-за форуму",
+  "One or more accounts are having connection issues.": "Mailspring па-за форуму",
   "Mailspring is running in dev mode and may be slower!": "Mailspring працуе ў рэжыме распрацоўніка і можа быць павольней!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring сінхранізуе гэтую нітку, і гэта ўкладанне ў воблака. Для доўгіх нітак, гэта можа заняць некаторы час.",
   "Mailspring is unable to sync %@": "Mailspring не можа сінхранізаваць %@",

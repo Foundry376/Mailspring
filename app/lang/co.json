@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring hà scontri erruri chì si syncing stu cuntu. Crash hè statu mandatu à u parcru Mailspring è avemu travagliatu per riparà quelli errori in u prossime liberu.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring hè chjarificatu u cache per %@. Sicondu a dimensione di u cartulare, pudete piglià parechji sicondi o pocu minuti. Una alerta parearà quandu a nucera hè completa.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring hè un prugramma indipendenti %@, è l'ingaghjamentu di sottolineu permette a passà tempu di mantenimentu è di migliurà u pruduttu.",
-  "Mailspring is offline": "Mailspring hè offline",
+  "One or more accounts are having connection issues.": "Mailspring hè offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring hè in corruzzione in modu di devu è pò esse più lento!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring hè syncing stu filu è hè anche à u nulu. Per i filamenti longi, questu pò piglià un mumentu.",
   "Mailspring is unable to sync %@": "Mailspring hè incapaz à sync %@",

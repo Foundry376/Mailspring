@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ဒီ account ကိုထပ်တူပြုခြင်းအမှားများကြုံတွေ့။ လေယာဉ်ပျက်ကျအစီရင်ခံစာများ Mailspring အဖွဲ့ကိုစေလွှတ်ပါပြီကျနော်တို့လာမယ့်ဖြန့်ချိတွင်ဤအမှားများကို fix မှအလုပ်လုပ်ပါလိမ့်မယ်။",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring က %@ ကို cache ကိုဖွင့်ရှင်းလင်းရေးဖြစ်ပါတယ်။ အဆိုပါစာတိုက်ပုံး၏အရွယ်အစားပေါ်တွင် မူတည်. ဒီစက္ကန့်အနည်းငယ်သို့မဟုတ်မိနစ်အနည်းငယ်ကြာနိုင်ပါသည်။ cleanup ပြီးဆုံးသောအခါသတိပေးချက်တစ်ခုပေါ်လာပါလိမ့်မယ်။",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring လွတ်လပ်သော %@ software ကိုဖြစ်ပြီး, ကြေးပေးသွင်းဝင်ငွေကိုထုတ်ကုန်ထိန်းသိမ်းခြင်းနှင့်တိုးတက်ကောင်းမွန်ရေးအချိန်ဖြုန်းခွင့်ပြုပါတယ်။",
-  "Mailspring is offline": "Mailspring အော့ဖ်လိုင်းဖြစ်ပါသည်",
+  "One or more accounts are having connection issues.": "Mailspring အော့ဖ်လိုင်းဖြစ်ပါသည်",
   "Mailspring is running in dev mode and may be slower!": "Mailspring dev mode မှာလည်ပတ်နေနှင့်နှေးကွေးစေခြင်းငှါ,",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring ဒီချည်ထပ်တူပြုခြင်းနှင့်ကမိုဃ်းတိမ်ကိုမှ attachment များကိုပါပဲ။ ရှည်လျားသောချည်အဘို့, ဒီခဏယူနိုငျသညျ။",
   "Mailspring is unable to sync %@": "Mailspring %@ တိုက်ဆိုင်ညှိယူနိုင်ခြင်းဖြစ်ပါသည်",

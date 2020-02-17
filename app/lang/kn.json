@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "ಈ ಖಾತೆಯನ್ನು ಸಿಂಕ್ ಮಾಡುವಲ್ಲಿ ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ದೋಷಗಳನ್ನು ಎದುರಿಸಿದೆ. ಕ್ರ್ಯಾಶ್ ವರದಿಗಳನ್ನು ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ತಂಡಕ್ಕೆ ಕಳುಹಿಸಲಾಗಿದೆ ಮತ್ತು ಮುಂದಿನ ಬಿಡುಗಡೆಗಳಲ್ಲಿ ಈ ದೋಷಗಳನ್ನು ಸರಿಪಡಿಸಲು ನಾವು ಕೆಲಸ ಮಾಡುತ್ತೇವೆ.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಇದು %@ ಗಾಗಿ ಅದರ ಸಂಗ್ರಹವನ್ನು ತೆರವುಗೊಳಿಸುತ್ತದೆ. ಮೇಲ್ಬಾಕ್ಸ್ನ ಗಾತ್ರವನ್ನು ಅವಲಂಬಿಸಿ, ಇದು ಕೆಲವು ಸೆಕೆಂಡುಗಳು ಅಥವಾ ಕೆಲವು ನಿಮಿಷಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಬಹುದು. ಸ್ವಚ್ಛಗೊಳಿಸುವಿಕೆ ಪೂರ್ಣಗೊಂಡಾಗ ಎಚ್ಚರಿಕೆಯನ್ನು ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಎಂಬುದು ಸ್ವತಂತ್ರ %@ ಸಾಫ್ಟ್ವೇರ್ ಆಗಿದೆ, ಮತ್ತು ಚಂದಾದಾರಿಕೆ ಆದಾಯವು ಉತ್ಪನ್ನವನ್ನು ನಿರ್ವಹಿಸಲು ಮತ್ತು ಸುಧಾರಿಸಲು ಸಮಯವನ್ನು ಕಳೆಯಲು ಅನುಮತಿಸುತ್ತದೆ.",
-  "Mailspring is offline": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಆಫ್ಲೈನ್ ​​ಆಗಿದೆ",
+  "One or more accounts are having connection issues.": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಆಫ್ಲೈನ್ ​​ಆಗಿದೆ",
   "Mailspring is running in dev mode and may be slower!": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ದೇವ್ ಮೋಡ್ನಲ್ಲಿ ಚಾಲನೆಯಾಗುತ್ತಿದೆ ಮತ್ತು ನಿಧಾನವಾಗಿರಬಹುದು!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಈ ಥ್ರೆಡ್ ಅನ್ನು ಸಿಂಕ್ ಮಾಡುತ್ತದೆ ಮತ್ತು ಇದು ಕ್ಲೌಡ್ಗೆ ಲಗತ್ತುಗಳನ್ನು ಹೊಂದಿದೆ. ದೀರ್ಘ ಎಳೆಗಳಿಗೆ, ಇದು ಸ್ವಲ್ಪ ಸಮಯ ತೆಗೆದುಕೊಳ್ಳಬಹುದು.",
   "Mailspring is unable to sync %@": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ಗೆ ಸಿಂಕ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುವುದಿಲ್ಲ %@",

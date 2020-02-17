@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring dia nahita fahadisoana nanitsy ity kaonty ity. Tatitra an-dalambe no nalefa tany amin'ny ekipan'ny Mailspring ary hiasa hamaha ireo fahadisoana amin'ny famoahana manaraka isika.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring dia manazava izany fa ny cache dia ho an'ny %@. Mety hila segondra vitsy na minitra vitsivitsy ianao, arakaraka ny haben'ny mailaka. Hisy fanairana iray rehefa tapitra ny fanadiovana.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring dia sehatra mahaleotena %@, ary ny fidiram-bola dia ahafahantsika mandany fotoana hihazonana sy hanatsarana ny vokatra.",
-  "Mailspring is offline": "Mailspring dia offline",
+  "One or more accounts are having connection issues.": "Mailspring dia offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring dia mihazakazaka amin'ny dev mode ary mety ho mora kokoa!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring dia manitsy ity kofehy ity ary ny fidirana amin'ny rahona. Ho an'ny filalaovana lava dia mety haka fotoana kely izany.",
   "Mailspring is unable to sync %@": "Mailspring dia tsy afaka manova %@",

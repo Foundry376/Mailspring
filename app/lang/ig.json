@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring zutere njehie na-ejikọta akaụntụ a. E zigara ndị ọrụ Mailspring ozi akụkọ mberede na anyị ga-arụ ọrụ iji dozie njehie ndị a na ntọhapụ ọzọ.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring na-ekpochapụ ya oghere maka %@. Dabere n'ụdị igbe igbe, nke a nwere ike were sekọnd ole na ole ma ọ bụ minit ole na ole. A njikere ga-apụta mgbe cleanup zuru ezu.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring bụ software nke onwe %@, na ego ntinye aha na-enyere anyị aka iwepụta oge na-arụ ọrụ ma melite ngwaahịa ahụ.",
-  "Mailspring is offline": "Mailspring bụ offline",
+  "One or more accounts are having connection issues.": "Mailspring bụ offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring na-agba ọsọ na mode dev ma nwee ike ịdị nwayọọ.",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring na-arụkọ ọrụ a ma ọ bụ ihe mgbakwunye na ígwé ojii. Maka ogologo oge, nke a nwere ike iwe oge.",
   "Mailspring is unable to sync %@": "Mailspring enweghị ike ịmekọrịta %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring gặp lỗi khi đồng bộ hóa tài khoản này. Báo cáo sự cố đã được gửi đến nhóm Mailspring và chúng tôi sẽ cố gắng khắc phục các lỗi này trong bản phát hành tiếp theo.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring đang xóa bộ nhớ cache của nó cho %@. Tùy thuộc vào kích thước của hộp thư, quá trình này có thể mất vài giây hoặc vài phút. Một cảnh báo sẽ xuất hiện khi quá trình dọn dẹp hoàn tất.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring là phần mềm độc lập %@ và doanh thu đăng ký cho phép chúng tôi dành thời gian duy trì và cải tiến sản phẩm.",
-  "Mailspring is offline": "Mailspring đang ẩn",
+  "One or more accounts are having connection issues.": "Mailspring đang ẩn",
   "Mailspring is running in dev mode and may be slower!": "Mailspring đang chạy ở chế độ dev và có thể chậm hơn!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring đang đồng bộ chủ đề này và nó là phần đính kèm vào đám mây. Đối với các chuỗi dài, quá trình này có thể mất một chút thời gian.",
   "Mailspring is unable to sync %@": "Mailspring không thể đồng bộ hóa %@",

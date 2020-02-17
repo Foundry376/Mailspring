@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring mengalami kesalahan menyinkronkan akun ini. Laporan kerusakan telah dikirim ke tim Mailspring dan kami akan berusaha memperbaiki kesalahan ini di rilis berikutnya.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring membersihkan cache-nya untuk %@. Tergantung pada ukuran kotak surat, ini mungkin memerlukan beberapa detik atau beberapa menit. Peringatan akan muncul saat pembersihan selesai.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring adalah perangkat lunak %@ independen, dan pendapatan berlangganan memungkinkan kita menghabiskan waktu untuk mempertahankan dan meningkatkan produk.",
-  "Mailspring is offline": "Mailspring sedang offline",
+  "One or more accounts are having connection issues.": "Mailspring sedang offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring berjalan dalam mode dev dan mungkin lebih lambat!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring menyinkronkan utas ini dan lampiran ke cloud. Untuk utas panjang, ini mungkin memerlukan beberapa saat.",
   "Mailspring is unable to sync %@": "Keturunan tidak dapat disinkronkan %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring a întâmpinat erori la sincronizarea acestui cont. Rapoartele de eroare au fost trimise echipei Mailspring și vom rezolva aceste erori în următoarea versiune.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring clarifică cache-ul pentru %@. În funcție de dimensiunea căsuței poștale, aceasta poate dura câteva secunde sau câteva minute. O alertă va apărea când curățarea este completă.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring este software independent, iar veniturile din abonament ne permit să petrecem timpul menținând și îmbunătățind produsul.",
-  "Mailspring is offline": "Mailspring este offline",
+  "One or more accounts are having connection issues.": "Mailspring este offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring rulează în modul dev și poate fi mai lent!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sincronizează acest thread și este atașamentele la cloud. Pentru fire lungi, poate dura un moment.",
   "Mailspring is unable to sync %@": "Mailspring nu poate sincroniza %@",

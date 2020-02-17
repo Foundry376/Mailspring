@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Amaphutha we-Mailspring ahlangabezane nawo avumelanisa le akhawunti. Imibiko yokuphahlazeka ithunyelwe eqenjini le-Mailspring futhi sizosebenza ukulungisa la maphutha ekukhululweni okulandelayo.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "I-Mailspring isula isilondolozi se- %@. Kuye ngobukhulu bebhokisi lemeyili, lokhu kungathatha imizuzwana embalwa noma imizuzu embalwa. Isixwayiso sizovela lapho ukuhlanza kuqediwe.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "I-Mailspring isofthiwe esizimele %@, futhi imali yokubhalisa ivumela ukuthi sisebenzise isikhathi sokulondoloza nokuthuthukisa umkhiqizo.",
-  "Mailspring is offline": "I-Mailspring ayixhunyiwe ku-intanethi",
+  "One or more accounts are having connection issues.": "I-Mailspring ayixhunyiwe ku-intanethi",
   "Mailspring is running in dev mode and may be slower!": "I-Mailspring isebenza kwimodi ye-dev futhi ingase ihambe kancane!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "I-Mailspring ivumelanisa le ntambo futhi izinamathisela efwini. Ngemicu ende, lokhu kungathatha isikhashana.",
   "Mailspring is unable to sync %@": "I-Mailspring ayikwazi ukuvumelanisa %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "I tutuki nga hapa i te haukoti i tenei kaute. Kua tukuna nga ripoata crash ki te kapa Mailspring, a ka mahi matou ki te whakatika i enei hapa i roto i te tuku atu.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Kei te taraihia e te mailspring he huna mo %@. I runga i te rahi o te pouaka-pouaka, ka tango pea i etahi hēkona ranei i etahi meneti. Ka puta he mataaratanga ka oti te horoi.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "He mea motuhake te mahi a te Mailspring, a, ka taea e nga moni ohauru te uru ki te pupuri me te whakapai ake i te hua.",
-  "Mailspring is offline": "Kua tuimotu te Mailspring",
+  "One or more accounts are having connection issues.": "Kua tuimotu te Mailspring",
   "Mailspring is running in dev mode and may be slower!": "Kei te rere te mowpring i te aratau taunoa, a ka neke ake pea!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "E hono ana te mailspring i tenei miro, a ko nga tapiritanga ki te kapua. Mo te roa o nga aho, ka tango pea tenei i tetahi wa.",
   "Mailspring is unable to sync %@": "Kaore e taea e te Mailspring te tukutahi %@",

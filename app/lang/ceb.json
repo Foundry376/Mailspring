@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Nakatagbo ang Mailspring mga kasaypanan sa pag-sync niini nga asoy. Ang mga taho sa Crash gipadala ngadto sa team sa Mailspring ug kami magtrabaho aron ayuhon kini nga mga sayop sa sunod nga pagpagawas.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Ang Mailspring mao ang paglimpyo niini nga cache alang sa %@. Depende sa gidak-on sa mailbox, mahimo kini nga pipila ka segundo o pipila ka minuto. Ang usa ka alerto makita sa panahon sa paglimpyo.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Ang Mailspring usa ka independente nga software, ug ang kita sa subskripsyon nagtugot kanato nga mogahin og panahon sa pagpadayon ug pagpalambo sa produkto.",
-  "Mailspring is offline": "Mailspring na offline",
+  "One or more accounts are having connection issues.": "Mailspring na offline",
   "Mailspring is running in dev mode and may be slower!": "Ang Mailspring nagdagan sa dev mode ug mahimo nga hinayhinay!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Ang Mailspring naghiusa sa kini nga hilo ug kini mga panagang sa panganod. Alang sa taas nga mga thread, mahimo kini nga usa ka gutlo.",
   "Mailspring is unable to sync %@": "Ang Mailspring dili maka-sync %@",

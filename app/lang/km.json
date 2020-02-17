@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring មានកំហុសដែលធ្វើសមកាលកម្មគណនីនេះ។ របាយការណ៍គាំងត្រូវបានបញ្ជូនទៅក្រុម Mailspring ហើយយើងនឹងធ្វើការដោះស្រាយកំហុសទាំងនេះនៅក្នុងការចេញផ្សាយបន្ទាប់។",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring កំពុងសំអាតឃ្លាំងសម្ងាត់របស់វាសម្រាប់ %@ ។ អាស្រ័យលើទំហំនៃប្រអប់សំបុត្រវាអាចចំណាយពេលពីរបីនាទីឬពីរបីនាទី។ ការជូនដំណឹងនឹងបង្ហាញនៅពេលសម្អាតបញ្ចប់។",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring គឺជាឯករាជ្យ %@ ផ្នែកទន់ហើយចំណូលពីការជាវអនុញ្ញាតឱ្យយើងចំណាយពេលវេលាថែរក្សានិងកែលម្អផលិតផល។",
-  "Mailspring is offline": "Mailspring គឺនៅក្រៅបណ្ដាញ",
+  "One or more accounts are having connection issues.": "Mailspring គឺនៅក្រៅបណ្ដាញ",
   "Mailspring is running in dev mode and may be slower!": "Mailspring កំពុងដំណើរការនៅក្នុងរបៀប dev ហើយអាចនឹងយឺតជាង!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring កំពុងធ្វើសមកាលកម្មខ្សែស្រឡាយនេះហើយវាជាឯកសារភ្ជាប់ទៅពពក។ សម្រាប់ខ្សែស្រឡាយវែងវាអាចប្រើពេលបន្តិច។",
   "Mailspring is unable to sync %@": "Mailspring មិនអាចធ្វើសមកាលកម្ម %@",

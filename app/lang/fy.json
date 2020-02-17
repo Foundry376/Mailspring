@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring joech fouten dy't dit akkount synsysteem syngronisearje. Untwerpberjochten binne stjoerd nei it Mailspringteam en wy sille wurkje om dizze flater yn 'e folgjende release te beheinen.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring is dúdlik dat it cache is foar %@. Ofhinklik fan de grutte fan it postfak, kin dit in pear sekonden of inkele minuten nimme. In warskôging sil ferskine as it skjinwurk folslein is.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring is ûnôfhinklik %@ software, en abonnemintferliening soarget foar ús tiid te hâlden en ferbetterjen fan it produkt.",
-  "Mailspring is offline": "Mailspring is offline",
+  "One or more accounts are having connection issues.": "One or more accounts are having connection issues.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring rint yn devmodus en kin slimmer wêze!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sil dizze thread syntaktisearje en it is oanfollingen oan 'e wolk. Foar lange triedden kin dit in momint nimme.",
   "Mailspring is unable to sync %@": "Mailspring kin net syncene %@",

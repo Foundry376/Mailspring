@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Το Mailspring αντιμετώπισε σφάλματα κατά τη συγχρονισμό αυτού του λογαριασμού. Οι αναφορές σφαλμάτων έχουν σταλεί στην ομάδα Mailspring και θα προσπαθήσουμε να διορθώσουμε αυτά τα σφάλματα στην επόμενη έκδοση.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Το Mailspring καθαρίζει την κρυφή μνήμη του για το %@. Ανάλογα με το μέγεθος του γραμματοκιβωτίου, αυτό μπορεί να διαρκέσει μερικά δευτερόλεπτα ή λίγα λεπτά. Θα εμφανιστεί μια ειδοποίηση όταν ολοκληρωθεί ο καθαρισμός.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Το Mailspring είναι ανεξάρτητο %@ λογισμικό και τα έσοδα από συνδρομές μας επιτρέπουν να ξοδεύουμε χρόνο για τη συντήρηση και τη βελτίωση του προϊόντος.",
-  "Mailspring is offline": "Ο χρήστης Mailspring είναι εκτός σύνδεσης",
+  "One or more accounts are having connection issues.": "Ο χρήστης Mailspring είναι εκτός σύνδεσης",
   "Mailspring is running in dev mode and may be slower!": "Το Mailspring εκτελείται σε λειτουργία dev και μπορεί να είναι πιο αργή!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Το Mailspring συγχρονίζει αυτό το νήμα και είναι συνημμένα στο σύννεφο. Για μακρά θέματα, μπορεί να διαρκέσει μια στιγμή.",
   "Mailspring is unable to sync %@": "Το Mailspring δεν μπορεί να συγχρονίσει %@",

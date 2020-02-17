@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring fandt fejl ved at synkronisere denne konto. Crash-rapporter er blevet sendt til Mailspring-teamet, og vi vil arbejde for at rette disse fejl i den næste udgave.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring rydder det cache for %@. Afhængigt af postkassens størrelse kan det tage et par sekunder eller et par minutter. Der vises en advarsel, når oprydning er færdig.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring er uafhængig %@ software, og abonnementsindtægter giver os mulighed for at bruge tid til at opretholde og forbedre produktet.",
-  "Mailspring is offline": "Mailspring er offline",
+  "One or more accounts are having connection issues.": "Mailspring er offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring kører i dev-tilstand og kan være langsommere!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring synkroniserer denne tråd, og det er vedhæftede filer til skyen. For lange tråde kan det tage et øjeblik.",
   "Mailspring is unable to sync %@": "Mailspring kan ikke synkronisere %@",

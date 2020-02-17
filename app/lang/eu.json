@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring-ek akatsak kontu hau sinkronizatu du. Crash txostenak Mailspring taldera bidali dira eta hurrengo bertsioan erroreak konponduko ditugu.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring-k cachea garbitzen du %@. Postontziaren tamainaren arabera, segundo batzuk edo minutu batzuk behar izan ditzake. Alerta bat agertuko da garbiketa amaitutakoan.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring independentea da %@ softwarea, eta harpidetza-sarrerak produktua mantendu eta hobetzeko denbora ematen digu.",
-  "Mailspring is offline": "Mailspring konexiorik gabe dago",
+  "One or more accounts are having connection issues.": "Mailspring konexiorik gabe dago",
   "Mailspring is running in dev mode and may be slower!": "Mailspring dev modutik exekutatzen ari da eta motelagoa izan daiteke!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring haria honela sinkronizatzen ari da eta hodeirako eranskinak ditu. Hari luzeak, une batez hartu ahal izango dira.",
   "Mailspring is unable to sync %@": "Mailspring ezin da sinkronizatu %@",

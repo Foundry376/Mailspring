@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ltaqa 'ma' żbalji li jissinkronizzaw dan il-kont. Ir-rapporti tal-ħbit ġew mibgħuta lit-tim ta 'Mailspring u aħna ser naħdmu biex niffissaw dawn l-iżbalji fir-rilaxx li jmiss.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring qed jikklerja l-cache għal %@. Skont id-daqs tal-kaxxa tal-posta, dan jista 'jieħu ftit sekondi jew ftit minuti. Twissija tidher meta t-tindif ikun komplut.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring huwa software indipendenti %@, u d-dħul tas-sottoskrizzjoni jippermettilna nqattgħu ħin iż-żamma u t-titjib tal-prodott.",
-  "Mailspring is offline": "Mailspring huwa offline",
+  "One or more accounts are having connection issues.": "Mailspring huwa offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring qed jaħdem fil-mod dev u jista 'jkun aktar bil-mod!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring huwa syncing dan il-ħajt u huwa annessi mal-sħaba. Għal ħjut twal, dan jista 'jieħu mument.",
   "Mailspring is unable to sync %@": "Mailspring ma jistax jissinkronizza %@",

@@ -410,7 +410,7 @@
     "O Mailspring está limpando seu cache para %@. Dependendo do tamanho da caixa de correio, isso pode levar alguns segundos ou alguns minutos. Um alerta aparecerá quando a limpeza estiver concluída.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.":
     "A Mailspring é um software independente %@, e a receita de assinaturas nos permite gastar tempo mantendo e melhorando o produto.",
-  "Mailspring is offline": "Mailspring está offline",
+  "One or more accounts are having connection issues.": "Mailspring está offline",
   "Mailspring is running in dev mode and may be slower!":
     "Mailspring está sendo executado no modo dev e pode ser mais lento!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.":

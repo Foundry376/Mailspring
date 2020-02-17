@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring энэ дансыг синк хийхэд алдаа гарсан. Сүйрлийн тайланг Mailspring баг руу илгээсэн бөгөөд дараагийн хувилбарт эдгээр алдааг засахын тулд ажиллах болно.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring нь [cга] -ийн кэшийг цэвэрлэж байна. Захианы хайрцагны хэмжээнээс хамаараад хэдэн секунд эсвэл хэдэн минут болно. Цэвэрлэх үед анхааруулга гарч ирнэ.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring нь бие даасан [еф] програм хангамж бөгөөд захиалгын орлого нь бүтээгдэхүүнийг арчлан сайжруулахад цаг зарцуулах боломжийг олгодог.",
-  "Mailspring is offline": "Mailspring офлайн байна",
+  "One or more accounts are having connection issues.": "Mailspring офлайн байна",
   "Mailspring is running in dev mode and may be slower!": "Mailspring нь dev горимд ажиллаж байгаа бөгөөд илүү удаан байж болох юм!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring энэ утаснуудыг синхрончлох бөгөөд энэ нь үүл рүү хавсаргадаг. Урт утаснуудад энэ нь түр зуур болно.",
   "Mailspring is unable to sync %@": "Mailspring синхрончилж чадахгүй байна [зн]",

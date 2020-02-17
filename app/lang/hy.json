@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring- ը հանդիպեց այս հաշվի համաժամացման սխալների հետ: Crash Reports- ը ուղարկվել է Mailspring թիմին եւ մենք կփորձենք ամրագրել այս սխալները հաջորդ թողարկումում:",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring- ը քլիրինգ է անում %@ - ի համար: Կախված փոստարկղի չափից, դա կարող է տեւել մի քանի վայրկյան կամ մի քանի րոպե: Մաքրման ավարտը կհայտնվի ահազանգ:",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring- ը անկախ %@ ծրագրակազմ է, եւ բաժանորդագրության եկամուտը թույլ է տալիս ծախսել ժամանակի պահպանումը եւ բարելավումը:",
-  "Mailspring is offline": "Mailspring- ը անցանց է",
+  "One or more accounts are having connection issues.": "Mailspring- ը անցանց է",
   "Mailspring is running in dev mode and may be slower!": "Mailspring- ը աշխատում է հսկայի ռեժիմում եւ կարող է դանդաղ:",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring- ը համաժամեցվում է այս թեմային, եւ դա կցորդներ է ամպին: Երկար տողերի համար դա կարող է տեւել մի պահ:",
   "Mailspring is unable to sync %@": "Mailspring- ը չի կարողանում համաժամեցնել %@",

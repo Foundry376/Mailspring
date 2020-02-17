@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring tekkis vigu selle konto sünkroonimisel. Crash-aruanded on saadetud mailspringi meeskonnale ja me töötame selle vea parandamiseks järgmises väljaandes.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Palliprojekt kustutab selle %@ jaoks vahemälu. Sõltuvalt postkasti suurusest võib see võtta paar sekundit või paar minutit. Kui puhastamine on lõpetatud, ilmub märguanne.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring on sõltumatu %@ tarkvara ja tellimustoode võimaldab meil kulutada aega toote hooldamiseks ja täiustamiseks.",
-  "Mailspring is offline": "Mailspring on võrguühenduseta",
+  "One or more accounts are having connection issues.": "Mailspring on võrguühenduseta",
   "Mailspring is running in dev mode and may be slower!": "Mässirull töötab dev-režiimis ja võib olla aeglasem!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sünkroonib seda lõime ja see on piltide lisamine. Pika lõngaga võib see võtta aega.",
   "Mailspring is unable to sync %@": "Mailspring ei saa sünkroonida %@",

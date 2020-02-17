@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Na maua e le mailspring mea sese na faʻaogaina ai lenei tala. Ua tuʻuina atu ripoti faʻafuaseʻi i le Mailspring ma o le a matou galulue e faʻafetaui nei mea sese i le isi faʻasalaga.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "O loʻo faʻapipiʻi e le mails le cache mo %@. E faʻatatau i le tele o le pusameli, atonu e ono faia ni nai sekone po o ni nai minute. O le a aliali mai pe a maeʻa.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "O le faʻaaogaina o le tautoʻatasi o se polokalama tutoatasi %@, ma tupe maua o faʻasalaga e mafai ai ona faʻaalu le taimi e tausia ma faʻaleleia le oloa.",
-  "Mailspring is offline": "E le tuusao le mailspring",
+  "One or more accounts are having connection issues.": "E le tuusao le mailspring",
   "Mailspring is running in dev mode and may be slower!": "O loʻo taʻavale le mailspring i le dev mode ma e mafai ona faʻagesegese!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "O loʻo faʻapipiʻiina le filosolo i lenei filo ma o ni mea faʻapipiʻi i le ao. Mo ni uumi uumi, atonu e manaʻomia sina taimi.",
   "Mailspring is unable to sync %@": "E le mafai e le mailspring ona faʻatautaia %@",

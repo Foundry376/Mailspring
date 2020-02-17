@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring에서이 계정을 동기화하는 동안 오류가 발생했습니다. 충돌 보고서는 Mailspring 팀에 보내졌으며 우리는 다음 릴리스에서 이러한 오류를 수정하기 위해 노력할 것입니다.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring이 %@에 대한 캐시를 지우고 있습니다. 메일함의 크기에 따라 몇 초 또는 몇 분이 걸릴 수 있습니다. 정리가 완료되면 경고가 나타납니다.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring은 독립적 인 소프트웨어이며 가입 수익을 통해 제품을 유지 관리하고 개선하는 데 많은 시간을 할애 할 수 있습니다.",
-  "Mailspring is offline": "Mailspring은 오프라인 상태입니다.",
+  "One or more accounts are having connection issues.": "Mailspring은 오프라인 상태입니다.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring이 현재 개발자 모드에서 실행 중입니다. 성능이 떨어질 수 있습니다.",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring은이 스레드와 클라우드에 첨부 파일을 동기화합니다. 긴 스레드의 경우이 작업에는 약간의 시간이 걸릴 수 있습니다.",
   "Mailspring is unable to sync %@": "Mailspring이 %@을 (를) 동기화 할 수 없습니다.",

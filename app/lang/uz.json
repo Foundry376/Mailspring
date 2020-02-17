@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Pochta xatida ushbu hisobni sinxronlashda xatolik yuz berdi. Crash hisobotlari Mailspring guruhiga yuborildi va biz ushbu xatlarni keyingi versiyada tuzatishga harakat qilamiz.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring %@ uchun keshni tozalashni amalga oshiradi. Pochta qutisi hajmiga qarab, bu bir necha soniya yoki bir necha daqiqa o'tishi mumkin. Tozalash tugallanganda ogohlantirish paydo bo'ladi.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring mustaqil %@ dasturiy ta'minot va obuna daromadi mahsulotni saqlab turish va takomillashtirishga vaqt sarflashga imkon beradi.",
-  "Mailspring is offline": "Mailspring oflayn rejimida",
+  "One or more accounts are having connection issues.": "Mailspring oflayn rejimida",
   "Mailspring is running in dev mode and may be slower!": "Pochta xabarlari dev rejimi ostida ishlaydi va sekinroq bo'lishi mumkin!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring bu threadni sinxronlashtirmoqda va u bulutga qo'shimchalar. Uzoq iplar uchun bu bir lahzalik vaqt olishi mumkin.",
   "Mailspring is unable to sync %@": "Mailspring sinxronlashtirolmadi %@",

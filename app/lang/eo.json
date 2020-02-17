@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring renkontis erarojn sinkronigante ĉi tiun konton. Malfruaj raportoj estis senditaj al la Mailspring-teamo kaj ni laboros por ripari tiujn erarojn en la sekva eldono.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring liberigas la kaŝmemoron por %@. Depende de la grandeco de la leterkesto, tio eble daŭros kelkajn sekundojn aŭ kelkajn minutojn. Garde aperos kiam la purigo estas kompleta.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring estas sendependa %@ programaro, kaj abono-enspezoj permesas al ni pasigi tempon konservante kaj plibonigante la produkton.",
-  "Mailspring is offline": "Mailspring estas senkonekta",
+  "One or more accounts are having connection issues.": "Mailspring estas senkonekta",
   "Mailspring is running in dev mode and may be slower!": "Mailspring kuras en dev mode kaj povas esti pli malrapida!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sinkrocias ĉi tiun fadenon kaj ĝi estas ligiloj al la nubo. Dum longaj fadenoj, tio eble prenos momenton.",
   "Mailspring is unable to sync %@": "Mailspring ne povas sinkronigi %@",

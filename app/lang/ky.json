@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring Бул эсепти шайкештирип ката кетти. Crash отчеттор Mailspring командасы жиберилген жана кийинки бул каталарды чечүү үчүн иштей аласыз.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring ал %@ үчүн кэш клиринг жатат. кутусуна өлчөмүнө жараша, ал бир нече секунд же бир нече минут талап кылынышы мүмкүн. тазалоо бүткөндөн кийин сергек пайда болот.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring %@ программалык көз карандысыз болуп, абоненттик киреше бизге сактоо жана өнүмдү жакшыртуу убакыт бөлүүгө шарт түзөт.",
-  "Mailspring is offline": "Mailspring сырткары",
+  "One or more accounts are having connection issues.": "Mailspring сырткары",
   "Mailspring is running in dev mode and may be slower!": "Mailspring иштеп чыгуучунун режиминде иштеп жана жай болушу мүмкүн эмес!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring бул жип шайкештирип, аны булут үчүн тиркемелер бар. узун жип Анткени, бул бир аз убакыт талап кылынышы мүмкүн.",
   "Mailspring is unable to sync %@": "Mailspring шайкештештире албай турат %@",

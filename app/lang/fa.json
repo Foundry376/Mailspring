@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring با خطاهای همگام سازی این حساب مواجه شد. گزارش های خرابی به تیم Mailspring ارسال شده است و ما برای رفع این خطاها در نسخه بعدی کار خواهیم کرد.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring این حافظه را برای %@ پاکسازی می کند. بسته به اندازه صندوق پستی، ممکن است چند ثانیه یا چند دقیقه طول بکشد. هنگام پاکسازی کامل، یک هشدار ظاهر می شود.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring مستقل %@ نرم افزار است، و درآمد اشتراک به ما اجازه می دهد زمان صرف شده و نگهداری و بهبود محصول.",
-  "Mailspring is offline": "Mailspring آنلاین نیست",
+  "One or more accounts are having connection issues.": "Mailspring آنلاین نیست",
   "Mailspring is running in dev mode and may be slower!": "Mailspring در حالت dev اجرا می شود و ممکن است کندتر باشد!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring این موضوع را همگام سازی می کند و آن فایل ها به ابر است. برای موضوعات طولانی، این ممکن است یک لحظه برسد.",
   "Mailspring is unable to sync %@": "Mailspring قادر به همگام سازی %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring rankontre erè senkronize kont sa a. Rapò aksidan yo te voye nan ekip la Mailspring epi nou pral travay ranje erè sa yo nan lage nan pwochen an.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring se netwaye kachèt li pou %@. Tou depan de gwosè a nan bwat lèt la, sa a ka pran yon kèk segond oswa kèk minit. Yon alèt ap parèt lè netwayaj la fini.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring se endepandan %@ lojisyèl, ak revni abònman pèmèt nou pase tan kenbe ak amelyore pwodwi a.",
-  "Mailspring is offline": "Mailspring se offline",
+  "One or more accounts are having connection issues.": "Mailspring se offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring ap kouri nan mòd dev epi yo ka pi dousman!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring se senkronize fil sa a ak atachman li nan nwaj la. Pou fil long, sa ka pran yon moman.",
   "Mailspring is unable to sync %@": "Mailspring se kapab senkronize %@",

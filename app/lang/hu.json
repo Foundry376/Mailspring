@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "A Mailspring hibát észlelt a fiók szinkronizálásával kapcsolatban. A balesetekről szóló jelentéseket elküldtük a Mailspring csapatnak, és megpróbáljuk megoldani ezeket a hibákat a következő kiadásban.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "A Mailspring törli a %@ gyorsítótárát. A postafiók méretétől függően ez néhány másodpercig vagy néhány percig tarthat. A tisztítás befejezésekor riasztás jelenik meg.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "A Mailspring független %@ szoftver, és az előfizetési bevétel lehetővé teszi számunkra, hogy időt takarítsunk meg és javítsunk a terméken.",
-  "Mailspring is offline": "Mailspring offline állapotban",
+  "One or more accounts are having connection issues.": "Mailspring offline állapotban",
   "Mailspring is running in dev mode and may be slower!": "A Mailspring dev módban fut, és lassabb lehet!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "A Mailspring szinkronizálja ezt a szálat és csatolmányai a felhőhöz. Hosszú szálak esetén ez egy pillanatig eltarthat.",
   "Mailspring is unable to sync %@": "A Mailspring nem képes szinkronizálni %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ayaa la kulmay khaladaad isku-dhafan xisaabtan. Warbixinnada gawaarida ayaa loo diray kooxda Mailspring waxaanan ku shaqeyn doonnaa si aan u xalino khaladaadahan soo socda ee soo socda.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Codsiyada ayaa cadeeynaya xuduudda %@. Iyada oo ku xiran xajmiga sanduuqa boosta, tani waxay qaadan kartaa dhowr ilbiriqsi ama dhowr daqiiqadood. Feejignaan ayaa soo baxaya marka nadiifinta la dhammeeyo.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring waa mid madaxbannaan %@ software, iyo dakhliga rukunka wuxuu noo ogolaanayaa in aan ku qaadno wakhti sii joogteynta iyo hagaajinta alaabta.",
-  "Mailspring is offline": "Mailspring waa offline",
+  "One or more accounts are having connection issues.": "Mailspring waa offline",
   "Mailspring is running in dev mode and may be slower!": "Codsiyada ayaa ku dhexjiraya habka dabiiciga ah oo laga yaabo in ay noqdaan kuwo gaabis ah!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring waa isku dhejinta mawduucan iyo lifaaqyada daruuraha. Wixii qadado dheer, tani waxay qaadan kartaa daqiiqad.",
   "Mailspring is unable to sync %@": "Mailspring ma awoodi karo in la isku xoqo %@",

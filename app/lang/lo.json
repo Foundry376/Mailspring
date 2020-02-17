@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ພົບຂໍ້ຜິດພາດທີ່ຊິງຕໍ່ບັນຊີນີ້. ບົດລາຍງານ Crash ໄດ້ຖືກສົ່ງໄປຫາທີມງານ Mailspring ແລະພວກເຮົາຈະເຮັດວຽກເພື່ອແກ້ໄຂຂໍ້ຜິດພາດເຫຼົ່ານີ້ໃນການປ່ອຍຕໍ່ໄປ.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring ກໍາລັງຟາດມັນສໍາລັບ %@. ອີງຕາມຂະຫນາດຂອງກ່ອງຈົດຫມາຍ, ນີ້ອາດໃຊ້ເວລາສອງສາມວິນາທີຫຼືສອງສາມນາທີ. ການແຈ້ງເຕືອນຈະປາກົດໃນເວລາທີ່ເຮັດຄວາມສະອາດແລ້ວ.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring ເປັນເອກະລາດ %@ ຊອບແວ, ແລະລາຍຮັບການເຂົ້າເຖິງອະນຸຍາດໃຫ້ພວກເຮົາໃຊ້ເວລາຮັກສາແລະປັບປຸງຜະລິດຕະພັນ.",
-  "Mailspring is offline": "Mailspring is offline",
+  "One or more accounts are having connection issues.": "One or more accounts are having connection issues.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring ແມ່ນໃຊ້ໃນໂຫມດ dev ແລະອາດຈະຊ້າ!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring ກໍາລັງ sync ກະທູ້ນີ້ແລະມັນເປັນໄຟລ໌ແນບກັບເມຄ. ສໍາລັບຫົວຂໍ້ຍາວ, ນີ້ອາດຈະໃຊ້ເວລາບາງ.",
   "Mailspring is unable to sync %@": "Mailspring ບໍ່ສາມາດທີ່ຈະ sync %@",

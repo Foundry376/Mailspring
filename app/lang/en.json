@@ -361,7 +361,7 @@
   "Mailspring has translated this message into %@.": "Mailspring has translated this message into %@.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.",
-  "Mailspring is offline": "Mailspring is offline",
+  "One or more accounts are having connection issues.": "One or more accounts are having connection issues.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring is running in dev mode and may be slower!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.",
   "Mailspring is unable to sync %@": "Mailspring is unable to sync %@",

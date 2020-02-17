@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ha detectat errors en sincronitzar aquest compte. S'han enviat informes d'error a l'equip de Mailspring i treballarem per corregir aquests errors en el pròxim llançament.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring està buidant la vostra memòria cau per a %@. Depenent de la mida de la bústia, això pot trigar uns segons o uns minuts. Es mostrarà una alerta quan es completa la neteja.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring és un programari independent %@, i els ingressos de subscripció ens permeten passar temps mantenint i millorant el producte.",
-  "Mailspring is offline": "Mailspring no està connectat",
+  "One or more accounts are having connection issues.": "Mailspring no està connectat",
   "Mailspring is running in dev mode and may be slower!": "Mailspring s'executa en mode dev i pot ser més lent!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring està sincronitzant aquesta cadena i és adjunts al núvol. Per als fils llargs, això pot trigar un moment.",
   "Mailspring is unable to sync %@": "Mailspring no pot sincronitzar %@",

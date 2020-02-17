@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "\"Mailspring\" susidūrė su šios sąskaitos sinchronizavimu. Bandymų ataskaitos buvo išsiųstos \"Mailspring\" komandai, o mes atliksime darbą, kad ištaisytume šias klaidas kitame leidime.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring išvalo talpyklą %@. Atsižvelgiant į pašto dėžutės dydį, tai gali užtrukti kelias sekundes ar kelias minutes. Pasibaigus valymui bus rodomas perspėjimas.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "\"Mailspring\" yra nepriklausoma %@ programinė įranga, o pajamos iš abonemento leidžia mums praleisti laiką išlaikant ir tobulinant produktą.",
-  "Mailspring is offline": "Mailspring yra neprisijungęs",
+  "One or more accounts are having connection issues.": "Mailspring yra neprisijungęs",
   "Mailspring is running in dev mode and may be slower!": "\"Mailspring\" veikia dev režimu ir gali būti lėtesnis!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "\"Mailspring\" sinchronizuoja šią temą ir jos priedus prie debesies. Dėl ilgų siūlų tai gali užtrukti.",
   "Mailspring is unable to sync %@": "\"Mailspring\" negali sinchronizuoti %@",

@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring di vê hesabê de çewtî çewtiyên xist. Raportên krîza hatine tîpa Mailspring şandin û em ê xebitin ku di van serbestberdana paşê de paşê çareser bikin.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring cache ev e ku ji bo %@. Li ser pîvana mailboxê, ev dikare çend-sê-an-çend çend deqeyan bistînin. Wê hişyar dê dema ku paqijkirina temamî pêk tê.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring bernameyeke serbixwe %@, û dahatiya endamê we destnîşan dike ku wext û wextê hilberîna hilberînê dema we derbas dikin.",
-  "Mailspring is offline": "Mailspring niha negirêdayî ye",
+  "One or more accounts are having connection issues.": "Mailspring niha negirêdayî ye",
   "Mailspring is running in dev mode and may be slower!": "Mailspring di modê dev de dimeşîne û dibe ku bibe!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring ev mijar bişkojk e û ew eşîrên biharê ye. Ji bo dirêjên dirêj, ev dibe ku demek dirêj bikin.",
   "Mailspring is unable to sync %@": "Mailspring nikare sync %@",

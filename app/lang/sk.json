@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Služba Mailspring zaznamenala chyby pri synchronizácii tohto účtu. Správy o zlyhaní boli odoslané do tímu Mailspring a my sa budeme snažiť opraviť tieto chyby v ďalšej verzii.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring vyčistí, že je to cache pre %@. V závislosti od veľkosti poštovej schránky to môže trvať niekoľko sekúnd alebo niekoľko minút. Po dokončení vyčistenia sa zobrazí upozornenie.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring je nezávislý %@ softvér a výnosy z predplatného nám umožňujú tráviť čas údržbou a zdokonaľovaním produktu.",
-  "Mailspring is offline": "Mailspring je offline",
+  "One or more accounts are having connection issues.": "Mailspring je offline",
   "Mailspring is running in dev mode and may be slower!": "Mailspring beží v režime dev a môže byť pomalší!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring synchronizuje túto vlákno a jej prílohy do cloudu. Pri dlhých vláknach to môže chvíľu trvať.",
   "Mailspring is unable to sync %@": "Mailspring nie je schopný synchronizovať %@",

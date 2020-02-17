@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring lenti í villum sem samstilltu þennan reikning. Hrunskýrslur hafa verið sendar til Mailspring liðsins og við munum vinna að því að laga þessar villur í næstu útgáfu.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring er að hreinsa skyndiminni fyrir %@. Það fer eftir stærð pósthólfsins, það getur tekið nokkrar sekúndur eða nokkrar mínútur. Viðvörun birtist þegar hreinsun er lokið.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring er sjálfstæður %@ hugbúnaður og áskriftartekjur leyfa okkur að eyða tíma til að viðhalda og bæta vöruna.",
-  "Mailspring is offline": "Mailspring er ótengdur",
+  "One or more accounts are having connection issues.": "Mailspring er ótengdur",
   "Mailspring is running in dev mode and may be slower!": "Mailspring er í gangi í dev ham og getur verið hægari!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring er að samstilla þessa þráð og það er viðhengi við skýið. Fyrir langa þræði getur þetta tekið smá stund.",
   "Mailspring is unable to sync %@": "Mailspring er ekki hægt að samstilla %@",

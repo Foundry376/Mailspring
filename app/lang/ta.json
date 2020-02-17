@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "இந்த கணக்கை ஒத்திசைக்கும் மின்னஞ்சல்கள் பிழைகள் எதிர்கொண்டன. விபத்து அறிக்கைகள் Mailspring குழுவிற்கு அனுப்பப்பட்டுள்ளன, அடுத்த வெளியீட்டில் இந்த பிழைகளை சரிசெய்ய நாங்கள் வேலை செய்கிறோம்.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "%@ க்காக இது தற்காலிக சேமிப்பில் உள்ளது. அஞ்சல் பெட்டி அளவு பொறுத்து, இது சில வினாடிகள் அல்லது சில நிமிடங்கள் ஆகலாம். தூய்மைப்படுத்தும் முடிவடைந்தவுடன் ஒரு எச்சரிக்கை தோன்றும்.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "மின்னஞ்சல்கள் சுயாதீனமானவை %@ மென்பொருளாகும், மேலும் சந்தா வருவாய் நமக்கு தயாரிப்புகளை பராமரித்தல் மற்றும் மேம்படுத்துவதற்கான நேரத்தை செலவிடுகிறது.",
-  "Mailspring is offline": "மெயில் ஸ்ப்ரிங்க் ஆஃப்லைனில் உள்ளது",
+  "One or more accounts are having connection issues.": "மெயில் ஸ்ப்ரிங்க் ஆஃப்லைனில் உள்ளது",
   "Mailspring is running in dev mode and may be slower!": "மெயில் ஸ்பிரிட் டெவில் பயன்முறையில் இயங்குகிறது மற்றும் மெதுவாக இருக்கலாம்!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "மெயில் ஸ்ப்ரிங் இந்த நூலை ஒத்திவைக்கிறது, அது மேகக்கணிப்பிற்கான இணைப்புகள் ஆகும். நீண்ட நூல்களுக்கு இது ஒரு கணம் ஆகலாம்.",
   "Mailspring is unable to sync %@": "மின்னஞ்சலை ஒத்திசைக்க முடியவில்லை %@",

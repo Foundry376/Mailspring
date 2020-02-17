@@ -351,7 +351,7 @@
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Gwelodd Mailspring wallau sy'n synci'r cyfrif hwn. Anfonwyd adroddiadau cras i dîm Mailspring a byddwn yn gweithio i osod y gwallau hyn yn y datganiad nesaf.",
   "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mae Mailspring yn clirio ei fod yn cache ar gyfer %@. Gan ddibynnu ar faint y blwch post, gall hyn gymryd ychydig eiliadau neu ychydig funudau. Bydd rhybudd yn ymddangos pan fydd y gwaith glanhau wedi'i gwblhau.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mae Mailspring yn feddalwedd annibynnol %@, ac mae refeniw tanysgrifiad yn ein galluogi i dreulio amser yn cynnal a gwella'r cynnyrch.",
-  "Mailspring is offline": "Mailspring yn offline",
+  "One or more accounts are having connection issues.": "Mailspring yn offline",
   "Mailspring is running in dev mode and may be slower!": "Mae Mailspring yn rhedeg mewn modd dev a gall fod yn arafach!",
   "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mae Mailspring yn syncing yr edau hwn ac mae'n atodiadau i'r cwmwl. Ar gyfer edau hir, gall hyn gymryd eiliad.",
   "Mailspring is unable to sync %@": "Ni all Mailspring sync %@",
