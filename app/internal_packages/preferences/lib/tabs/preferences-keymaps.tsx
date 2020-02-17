@@ -132,12 +132,20 @@ export default class PreferencesKeymaps extends React.Component<
               {localized('Restore Defaults')}
             </button>
           </Flexbox>
-          <p>
+          <p style={{ maxWidth: 600 }}>
             {localized(
               'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.'
             )}
           </p>
-          {displayedKeybindings.map(this._renderBindingsSection)}
+          <div className="keymaps-columns-flexbox">
+            <div style={{ flex: 1 }}>
+              {displayedKeybindings.slice(0, 3).map(this._renderBindingsSection)}
+            </div>
+            <div style={{ width: 30 }} />
+            <div style={{ flex: 1 }}>
+              {displayedKeybindings.slice(3).map(this._renderBindingsSection)}
+            </div>
+          </div>
         </section>
         <section>
           <h2>{localized('Customization')}</h2>

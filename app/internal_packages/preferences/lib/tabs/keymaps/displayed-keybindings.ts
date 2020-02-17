@@ -31,6 +31,18 @@ export default [
     ],
   },
   {
+    title: localized('Selection'),
+    items: [
+      ['core:select-item', localized('Select conversation')],
+      ['multiselect-list:select-all', localized('Select all conversations')],
+      ['multiselect-list:deselect-all', localized('Deselect all conversations')],
+      ['thread-list:select-read', localized('Select all read conversations')],
+      ['thread-list:select-unread', localized('Select all unread conversations')],
+      ['thread-list:select-starred', localized('Select all starred conversations')],
+      ['thread-list:select-unstarred', localized('Select all unstarred conversations')],
+    ],
+  },
+  {
     title: localized('Composer'),
     items: [
       ['composer:send-message', localized('Send message')],
@@ -59,18 +71,6 @@ export default [
       ['core:previous-item', localized('Move to newer conversation')],
       ['core:next-item', localized('Move to older conversation')],
       ['core:find-in-thread', localized('Find in thread')],
-    ],
-  },
-  {
-    title: localized('Selection'),
-    items: [
-      ['core:select-item', localized('Select conversation')],
-      ['multiselect-list:select-all', localized('Select all conversations')],
-      ['multiselect-list:deselect-all', localized('Deselect all conversations')],
-      ['thread-list:select-read', localized('Select all read conversations')],
-      ['thread-list:select-unread', localized('Select all unread conversations')],
-      ['thread-list:select-starred', localized('Select all starred conversations')],
-      ['thread-list:select-unstarred', localized('Select all unstarred conversations')],
     ],
   },
   {

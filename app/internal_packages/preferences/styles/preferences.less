@@ -120,8 +120,9 @@
   }
 
   .container-general {
-    width: 80%;
+    width: 100%;
     min-width: 430px;
+    max-width: 800px;
     margin: 0 auto;
 
     .local-data {
@@ -192,8 +193,9 @@
   }
 
   .container-keymaps {
-    width: 40%;
-    min-width: 460px;
+    width: 100%;
+    max-width: 800px;
+    min-width: 430px;
     margin: 0 auto;
 
     .col-left {
@@ -207,6 +209,10 @@
       select {
         width: 75%;
       }
+    }
+
+    .keymaps-columns-flexbox {
+      display: flex;
     }
 
     .shortcut-section-title {
@@ -297,8 +303,13 @@ body.platform-linux {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 680px) {
   .preferences-wrap {
+    .container-keymaps {
+      .keymaps-columns-flexbox {
+        flex-direction: column;
+      }
+    }
     .container-preference-tabs {
       .preferences-tabs .item img.tab-icon {
         margin-bottom: 10px;

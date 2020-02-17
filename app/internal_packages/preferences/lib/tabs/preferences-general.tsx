@@ -57,7 +57,7 @@ class PreferencesGeneral extends React.Component<{
 
   render() {
     return (
-      <div className="container-general" style={{ maxWidth: 800 }}>
+      <div className="container-general">
         <div style={{ display: 'flex' }}>
           <div style={{ width: '50%', paddingRight: 15 }}>
             <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />

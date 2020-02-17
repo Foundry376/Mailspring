@@ -76,9 +76,9 @@ class PreferencesTabsBar extends React.Component<PreferencesTabBarProps> {
     return (
       <div className="container-preference-tabs">
         <Flexbox direction="row" className="preferences-tabs">
-          <div style={{ flex: 1 }} />
+          <div style={{ flex: 0.5 }} />
           {this.renderTabs()}
-          <div style={{ flex: 1 }} />
+          <div style={{ flex: 0.5 }} />
         </Flexbox>
       </div>
     );
