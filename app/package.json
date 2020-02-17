@@ -44,7 +44,7 @@
     "mkdirp": "^0.5",
     "moment": "^2.24.0",
     "moment-round": "^1.0.1",
-    "moment-timezone": "0.5.4",
+    "moment-timezone": "^0.5.27",
     "mousetrap": "^1.5.3",
     "node-emoji": "^1.2.1",
     "optimist": "0.4.0",
