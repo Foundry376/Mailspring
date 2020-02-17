@@ -7,18 +7,15 @@ import RegExpUtils from '../regexp-utils';
 let userAgentDefault = null;
 
 class InlineStyleTransformer {
-  _inlineStylePromises = {};
-  _inlineStyleResolvers = {};
+  _inlineStylePromises: { [key: string]: Promise<string> } = {};
+  _inlineStyleResolvers: { [key: string]: (result: string) => void } = {};
 
   constructor() {
     ipcRenderer.on('inline-styles-result', this._onInlineStylesResult);
   }
 
-  run = html => {
-    if (!html || typeof html !== 'string' || html.length <= 0) {
-      return Promise.resolve(html);
-    }
-    if (!RegExpUtils.looseStyleTag().test(html)) {
+  run = (html: string) => {
+    if (!this._requiresProcessing(html)) {
       return Promise.resolve(html);
     }
 
@@ -27,23 +24,45 @@ class InlineStyleTransformer {
       .update(html)
       .digest('hex');
 
-    // http://stackoverflow.com/questions/8695031/why-is-there-often-a-inside-the-style-tag
-    // https://regex101.com/r/bZ5tX4/1
-    let styled = html.replace(
-      /<style[^>]*>[\n\r \t]*<!--([^</]*)-->[\n\r \t]*<\/style/g,
-      (full, content) => `<style>${content}</style`
-    );
-
-    styled = this._injectUserAgentStyles(styled);
-
     if (this._inlineStylePromises[key] == null) {
+      html = this._prepareHTMLForInlineStyling(html);
+
       this._inlineStylePromises[key] = new Promise(resolve => {
         this._inlineStyleResolvers[key] = resolve;
-        ipcRenderer.send('inline-style-parse', { html: styled, key: key });
+        ipcRenderer.send('inline-style-parse', { html, key });
       });
     }
     return this._inlineStylePromises[key];
   };
+
+  runSync = (html: string) => {
+    if (!this._requiresProcessing(html)) return html;
+    html = this._prepareHTMLForInlineStyling(html);
+    return ipcRenderer.sendSync('inline-style-parse', { html, key: '' });
+  };
+
+  _requiresProcessing(html: string) {
+    if (!html || typeof html !== 'string' || html.length <= 0) {
+      return false;
+    }
+    if (!RegExpUtils.looseStyleTag().test(html)) {
+      return false;
+    }
+    return true;
+  }
+
+  _prepareHTMLForInlineStyling(html: string) {
+    // http://stackoverflow.com/questions/8695031/why-is-there-often-a-inside-the-style-tag
+    // https://regex101.com/r/bZ5tX4/1
+    let result = html.replace(
+      /<style[^>]*>[\n\r \t]*<!--([^</]*)-->[\n\r \t]*<\/style/g,
+      (full, content) => `<style>${content}</style`
+    );
+
+    result = this._injectUserAgentStyles(result);
+
+    return result;
+  }
 
   // This will prepend the user agent stylesheet so we can apply it to the
   // styles properly.

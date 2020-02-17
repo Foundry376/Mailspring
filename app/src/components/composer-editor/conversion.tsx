@@ -27,6 +27,11 @@ import { Rule, ComposerEditorPlugin } from './types';
 import './patch-chrome-ime';
 
 export const schema = {
+  blocks: {
+    [UNEDITABLE_TYPE]: {
+      isVoid: true,
+    },
+  },
   inlines: {
     [VARIABLE_TYPE]: {
       isVoid: true,

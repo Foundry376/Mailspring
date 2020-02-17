@@ -1,8 +1,10 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import * as Immutable from 'immutable';
 import { Editor, Value, Operation, Range } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
+import { InlineStyleTransformer } from 'mailspring-exports';
 import path from 'path';
 import fs from 'fs';
 
@@ -11,7 +13,6 @@ import ComposerEditorToolbar from './composer-editor-toolbar';
 import { schema, plugins, convertFromHTML, convertToHTML, convertToPlainText } from './conversion';
 import { lastUnquotedNode, removeQuotedText } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
-import ReactDOM from 'react-dom';
 
 const AEditor = (SlateEditorComponent as any) as React.ComponentType<
   EditorProps & { ref: any; propsForPlugins: any }
@@ -211,9 +212,17 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
       }
     }
 
-    // handle text/html paste
-    const html = event.clipboardData.getData('text/html');
+    let html = event.clipboardData.getData('text/html');
+
     if (html) {
+      // Unfortuantely, pasting HTML requires an synchronous hop through our main process style
+      // transfomer. This ensures that we inline styles and preserve as much as possible.
+      // (eg: pasting tables from Excel).
+      try {
+        html = InlineStyleTransformer.runSync(html);
+      } catch (err) {
+        //no-op
+      }
       const value = convertFromHTML(html);
       if (value && value.document) {
         editor.insertFragment(value.document);

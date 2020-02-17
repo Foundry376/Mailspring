@@ -576,7 +576,11 @@ export default class Application extends EventEmitter {
         out = html;
       }
       // win = BrowserWindow.fromWebContents(event.sender)
-      event.sender.send('inline-styles-result', { html: out, key });
+      if (key) {
+        event.sender.send('inline-styles-result', { html: out, key });
+      } else {
+        event.returnValue = out;
+      }
     });
 
     app.on('activate', (event, hasVisibleWindows) => {
