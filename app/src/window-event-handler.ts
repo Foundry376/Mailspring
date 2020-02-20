@@ -167,7 +167,8 @@ export default class WindowEventHandler {
     });
 
     document.addEventListener('contextmenu', event => {
-      if ((event.target as HTMLElement).nodeName === 'INPUT') {
+      const nodeName = (event.target as HTMLElement).nodeName;
+      if (nodeName === 'INPUT' || nodeName === 'TEXTAREA') {
         this.openContextualMenuForInput(event);
       }
     });
@@ -303,7 +304,7 @@ export default class WindowEventHandler {
     event.preventDefault();
 
     const textualInputs = ['text', 'password', 'email', 'number', 'range', 'search', 'tel', 'url'];
-    if (!textualInputs.includes(event.target.type)) {
+    if (event.target.nodeName === 'INPUT' && !textualInputs.includes(event.target.type)) {
       return;
     }
 
