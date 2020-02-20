@@ -9,21 +9,43 @@ import { Composer as ComposerExtensionRegistry } from '../../registries/extensio
 import { LocalizedErrorStrings } from '../../mailsync-process';
 import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
+import { Contact } from '../models/contact';
+import { ZERO_WIDTH_SPACE } from '../../components/composer-editor/plaintext';
 
-function applyExtensionTransforms(draft, recipient) {
-  const extensions = ComposerExtensionRegistry.extensions();
-  const fragment = document.createDocumentFragment();
-  const draftBodyRootNode = document.createElement('root');
-  fragment.appendChild(draftBodyRootNode);
-  draftBodyRootNode.innerHTML = draft.body;
+function applyExtensionTransforms(draft: Message, recipient: Contact) {
+  // Note / todo: This code assumes that:
+  // - any changes made to the draft (eg: metadata) should be saved.
+  // - any changes made to a HTML body will be made to draftBodyRootNode NOT to the draft.body
+  // - any changes made to a plaintext body will be made to draft.body.
 
-  for (const ext of extensions) {
-    const extApply = ext.applyTransformsForSending;
-    if (extApply) {
-      extApply({ draft, draftBodyRootNode, recipient });
+  const before = draft.body;
+  const extensions = ComposerExtensionRegistry.extensions().filter(
+    ext => !!ext.applyTransformsForSending
+  );
+
+  if (draft.plaintext) {
+    for (const ext of extensions) {
+      ext.applyTransformsForSending({ draft, recipient });
     }
+    const after = draft.body;
+    draft.body = before;
+    return after;
+  } else {
+    const fragment = document.createDocumentFragment();
+    const draftBodyRootNode = document.createElement('root');
+    fragment.appendChild(draftBodyRootNode);
+    draftBodyRootNode.innerHTML = draft.body;
+
+    for (const ext of extensions) {
+      ext.applyTransformsForSending({ draft, draftBodyRootNode, recipient });
+      if (draft.body !== before) {
+        throw new Error(
+          'applyTransformsForSending should modify the HTML body DOM (draftBodyRootNode) not the draft.body.'
+        );
+      }
+    }
+    return draftBodyRootNode.innerHTML;
   }
-  return draftBodyRootNode.innerHTML;
 }
 
 export class SendDraftTask extends Task {
@@ -36,6 +58,12 @@ export class SendDraftTask extends Task {
     const separateBodies = ComposerExtensionRegistry.extensions().some(
       ext => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
     );
+
+    if (task.draft.plaintext) {
+      // Our editor uses zero-width spaces to differentiate between soft and hard newlines
+      // when you're editing, and we don't want to send these characters.
+      task.draft.body = task.draft.body.replace(new RegExp(ZERO_WIDTH_SPACE, 'g'), '');
+    }
 
     if (separateBodies) {
       task.perRecipientBodies = {

@@ -117,6 +117,7 @@ lazyLoadFrom('ImageAttachmentItem', 'attachment-items');
 lazyLoad('CodeSnippet', 'code-snippet');
 
 lazyLoad('ComposerEditor', 'composer-editor/composer-editor');
+lazyLoad('ComposerEditorPlaintext', 'composer-editor/composer-editor-plaintext');
 lazyLoad('ComposerSupport', 'composer-editor/composer-support');
 
 lazyLoad('ScrollRegion', 'scroll-region');

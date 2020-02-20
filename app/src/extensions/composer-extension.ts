@@ -118,7 +118,7 @@ export class ComposerExtension {
   */
   static applyTransformsForSending(args: {
     draft: Message;
-    draftBodyRootNode: HTMLElement;
+    draftBodyRootNode?: HTMLElement; // Note: Only present for HTML messages
     recipient?: Contact;
   }) {}
 }

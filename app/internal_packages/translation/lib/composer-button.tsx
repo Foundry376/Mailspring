@@ -91,6 +91,9 @@ export class TranslateComposerButton extends React.Component<{
   // image from our package. `RetinaImg` will automatically chose the best image
   // format for our display.
   render() {
+    if (this.props.draft.plaintext) {
+      return <span />;
+    }
     return (
       <button
         tabIndex={-1}

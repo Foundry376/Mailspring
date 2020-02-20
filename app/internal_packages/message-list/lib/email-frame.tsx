@@ -65,16 +65,6 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     if (this._unlisten) this._unlisten();
   }
 
-  _emailContent = () => {
-    // When showing quoted text, always return the pure content
-    if (this.props.showQuotedText) {
-      return this.props.content;
-    }
-    return QuotedHTMLTransformer.removeQuotedHTML(this.props.content, {
-      keepIfWholeBodyIsQuote: true,
-    });
-  };
-
   _writeContent = () => {
     if (this._iframeDocObserver) this._iframeDocObserver.disconnect();
 
@@ -87,16 +77,35 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     // message bodies. This is particularly felt with <table> elements use
     // the `border-collapse: collapse` css property while setting a
     // `padding`.
+    const { message, showQuotedText } = this.props;
     const styles = EmailFrameStylesStore.styles();
     const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
 
+    let content = this.props.content;
+    if (!showQuotedText && !message.plaintext) {
+      content = QuotedHTMLTransformer.removeQuotedHTML(content, {
+        keepIfWholeBodyIsQuote: true,
+      });
+    }
+
     doc.open();
-    doc.write(
-      `<!DOCTYPE html>` +
-        (styles ? `<style>${styles}</style>` : '') +
-        `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`
-    );
-    doc.close();
+
+    if (message.plaintext) {
+      doc.write(
+        `<!DOCTYPE html>` +
+          (styles ? `<style>${styles}</style>` : '') +
+          `<div id='inbox-plain-wrapper' class="${process.platform}"></div>`
+      );
+      doc.close();
+      doc.getElementById('inbox-plain-wrapper').innerText = content;
+    } else {
+      doc.write(
+        `<!DOCTYPE html>` +
+          (styles ? `<style>${styles}</style>` : '') +
+          `<div id='inbox-html-wrapper' class="${process.platform}">${content}</div>`
+      );
+      doc.close();
+    }
 
     if (doc.body && restrictWidth) {
       doc.body.classList.add('restrict-width');
@@ -119,7 +128,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
         try {
           extension.renderedMessageBodyIntoDocument({
             document: doc,
-            message: this.props.message,
+            message: message,
             iframe: iframeEl,
           });
         } catch (e) {

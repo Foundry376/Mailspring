@@ -18,6 +18,7 @@ import {
   KeyCommandsRegion,
   InjectedComponentSet,
   ComposerEditor,
+  ComposerEditorPlaintext,
   ComposerSupport,
 } from 'mailspring-component-kit';
 import { ComposerHeader } from './composer-header';
@@ -155,38 +156,54 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
           onMouseDown={this._onMouseDownComposerBody}
         >
           <div className="composer-body-wrap">
-            <ComposerEditor
-              ref={this.editor}
-              value={draft.bodyEditorState}
-              className={quotedTextHidden && 'hiding-quoted-text'}
-              propsForPlugins={{ draft, session }}
-              onFileReceived={this._onFileReceived}
-              onUpdatedSlateEditor={editor => session.setMountedEditor(editor)}
-              onDrop={e => this.dropzone.current._onDrop(e)}
-              onChange={change => {
-                // We minimize thrashing and support editors in multiple windows by ensuring
-                // non-value changes (eg focus) to the editorState don't trigger database saves
-                const skipSaving =
-                  change.operations.size &&
-                  change.operations.every(
-                    op =>
-                      op.type === 'set_selection' ||
-                      (op.type === 'set_value' &&
-                        Object.keys(op.properties).every(k => k === 'decorations'))
-                  );
-                session.changes.add({ bodyEditorState: change.value }, { skipSaving });
-              }}
-            />
-            <QuotedTextControl
-              quotedTextHidden={quotedTextHidden}
-              quotedTextPresent={quotedTextPresent}
-              onUnhide={() => this.setState({ quotedTextHidden: false })}
-              onRemove={() => {
-                this.setState({ quotedTextHidden: false }, () =>
-                  this.editor.current.removeQuotedText()
-                );
-              }}
-            />
+            {draft.plaintext ? (
+              <ComposerEditorPlaintext
+                ref={this.editor}
+                value={draft.body}
+                propsForPlugins={{ draft, session }}
+                onFileReceived={this._onFileReceived}
+                onDrop={e => this.dropzone.current._onDrop(e)}
+                onChange={body => {
+                  session.changes.add({ body });
+                }}
+              />
+            ) : (
+              <>
+                <ComposerEditor
+                  ref={this.editor}
+                  value={draft.bodyEditorState}
+                  className={quotedTextHidden && 'hiding-quoted-text'}
+                  propsForPlugins={{ draft, session }}
+                  onFileReceived={this._onFileReceived}
+                  onUpdatedSlateEditor={editor => session.setMountedEditor(editor)}
+                  onDrop={e => this.dropzone.current._onDrop(e)}
+                  onChange={change => {
+                    // We minimize thrashing and support editors in multiple windows by ensuring
+                    // non-value changes (eg focus) to the editorState don't trigger database saves
+                    const skipSaving =
+                      change.operations.size &&
+                      change.operations.every(
+                        op =>
+                          op.type === 'set_selection' ||
+                          (op.type === 'set_value' &&
+                            Object.keys(op.properties).every(k => k === 'decorations'))
+                      );
+                    session.changes.add({ bodyEditorState: change.value }, { skipSaving });
+                  }}
+                />
+                <QuotedTextControl
+                  quotedTextHidden={quotedTextHidden}
+                  quotedTextPresent={quotedTextPresent}
+                  onUnhide={() => this.setState({ quotedTextHidden: false })}
+                  onRemove={() => {
+                    this.setState({ quotedTextHidden: false }, () =>
+                      this.editor.current.removeQuotedText()
+                    );
+                  }}
+                />
+              </>
+            )}
+
             <AttachmentsArea draft={draft} />
           </div>
           <div className="composer-footer-region">
@@ -304,6 +321,8 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       headerMessageId: this.props.draft.headerMessageId,
       onCreated: file => {
         if (!this._mounted) return;
+        if (this.props.draft.plaintext) return;
+
         if (Utils.shouldDisplayAsImage(file)) {
           const { draft, session } = this.props;
           const match = draft.files.find(f => f.id === file.id);

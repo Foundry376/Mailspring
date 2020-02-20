@@ -54,7 +54,7 @@ class MessageBodyProcessor {
     });
   }
 
-  updateCacheForMessage = async changedMessage => {
+  updateCacheForMessage = async (changedMessage: Message) => {
     // reprocess any subscription using the new message data. Note that
     // changedMessage may not have a loaded body if it wasn't changed. In
     // that case, we use the previous body. Note: metadata changes, etc.
@@ -96,7 +96,7 @@ class MessageBodyProcessor {
     return this._version;
   }
 
-  subscribe(message, sendInitial, callback) {
+  subscribe(message: Message, sendInitial: boolean, callback) {
     const sub = { message, callback };
 
     if (sendInitial) {
@@ -117,7 +117,7 @@ class MessageBodyProcessor {
     };
   }
 
-  async retrieve(message) {
+  async retrieve(message: Message) {
     const key = this._key(message);
     if (this._recentlyProcessedD[key]) {
       return this._recentlyProcessedD[key];
@@ -128,7 +128,7 @@ class MessageBodyProcessor {
     return output;
   }
 
-  retrieveCached(message) {
+  retrieveCached(message: Message) {
     const key = this._key(message);
     if (this._recentlyProcessedD[key]) {
       return this._recentlyProcessedD[key];
@@ -138,13 +138,13 @@ class MessageBodyProcessor {
 
   // Private Methods
 
-  _key(message) {
+  _key(message: Message) {
     // It's safe to key off of the message ID alone because we invalidate the
     // cache whenever the message is persisted to the database.
     return message.id;
   }
 
-  async _process(message) {
+  async _process(message: Message) {
     if (typeof message.body !== 'string') {
       return { body: '', clipped: false };
     }
@@ -156,6 +156,13 @@ class MessageBodyProcessor {
       // a crawl. We will display a "message clipped notice" later.
       body = body.substr(0, this.MAX_DISPLAY_LENGTH);
       clipped = true;
+    }
+
+    // We do NOT try to sanitize plaintext message bodies as if they were HTML
+    // because it destroys them. But this means that we need to be careful not to
+    // "splat" them directly into the DOM! (Instead use innerText to assign).
+    if (message.plaintext) {
+      return { body, clipped };
     }
 
     // Sanitizing <script> tags, etc. isn't necessary because we use CORS rules

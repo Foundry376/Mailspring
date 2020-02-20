@@ -15,29 +15,44 @@ import InlineStyleTransformer from '../../services/inline-style-transformer';
 import SanitizeTransformer from '../../services/sanitize-transformer';
 import DOMUtils from '../../dom-utils';
 import { Thread } from '../models/Thread';
+import { convertToPlainText, convertFromHTML } from '../../components/composer-editor/conversion';
+import { wrapPlaintext, deepenPlaintextQuote } from '../../components/composer-editor/plaintext';
 
 let DraftStore: typeof import('./draft-store').default = null;
 
 export type ReplyType = 'reply' | 'reply-all';
 export type ReplyBehavior = 'prefer-existing' | 'prefer-existing-if-pristine';
 
-async function prepareBodyForQuoting(body) {
-  // TODO: Fix inline images
-  const cidRE = MessageUtils.cidRegexString;
-
-  // Be sure to match over multiple lines with [\s\S]*
-  // Regex explanation here: https://regex101.com/r/vO6eN2/1
-  let transformed = (body || '').replace(new RegExp(`<img.*${cidRE}[\\s\\S]*?>`, 'igm'), '');
-  transformed = await SanitizeTransformer.run(transformed, SanitizeTransformer.Preset.UnsafeOnly);
-  transformed = await InlineStyleTransformer.run(transformed);
-  return transformed;
-}
-
 class DraftFactory {
+  useHTML() {
+    const forcePlaintext = AppEnv.keymaps.getIsAltKeyDown();
+    return AppEnv.config.get('core.composing.html') && !forcePlaintext;
+  }
+
+  async prepareBodyForQuoting(message: Message) {
+    if (!this.useHTML()) {
+      return deepenPlaintextQuote(
+        message.plaintext ? message.body : convertToPlainText(convertFromHTML(message.body)).trim()
+      );
+    }
+
+    // TODO: Fix inline images
+    const cidRE = MessageUtils.cidRegexString;
+    const cidRegexp = new RegExp(`<img.*${cidRE}[\\s\\S]*?>`, 'igm');
+
+    // Be sure to match over multiple lines with [\s\S]*
+    // Regex explanation here: https://regex101.com/r/vO6eN2/1
+    let transformed = (message.body || '').replace(cidRegexp, '');
+    transformed = await SanitizeTransformer.run(transformed, SanitizeTransformer.Preset.UnsafeOnly);
+    transformed = await InlineStyleTransformer.run(transformed);
+    return transformed;
+  }
+
   async createDraft(fields = {}) {
     const account = this._accountForNewDraft();
+    const rich = this.useHTML();
     const defaults = {
-      body: '<br/>',
+      body: rich ? '<br/>' : '',
       subject: '',
       version: 0,
       unread: false,
@@ -47,6 +62,7 @@ class DraftFactory {
       date: new Date(),
       draft: true,
       pristine: true,
+      plaintext: !rich,
       accountId: account.id,
       cc: [],
       bcc: [],
@@ -60,6 +76,9 @@ class DraftFactory {
     }
     if (account.autoaddress.type === 'bcc') {
       merged.bcc = (merged.bcc || []).concat(autoContacts);
+    }
+    if (merged.plaintext) {
+      merged.body = wrapPlaintext(merged.body);
     }
 
     return new Message(merged);
@@ -131,7 +150,7 @@ class DraftFactory {
       }
     }
 
-    if (query.body) {
+    if (query.body && this.useHTML()) {
       query.body = query.body.replace(/[\n\r]/g, '<br/>');
     }
 
@@ -161,7 +180,7 @@ class DraftFactory {
   }
 
   async createDraftForReply({ message, thread, type }) {
-    const prevBody = await prepareBodyForQuoting(message.body);
+    const prevBody = await this.prepareBodyForQuoting(message);
     let participants = { to: [], cc: [] };
     if (type === 'reply') {
       participants = message.participantsForReply();
@@ -177,7 +196,8 @@ class DraftFactory {
       threadId: thread.id,
       accountId: message.accountId,
       replyToHeaderMessageId: message.headerMessageId,
-      body: `
+      body: this.useHTML()
+        ? `
         <br/>
         <br/>
         <div class="gmail_quote_attribution">${DOMUtils.escapeHTMLCharacters(
@@ -188,23 +208,28 @@ class DraftFactory {
           ${prevBody}
           <br/>
         </blockquote>
-        `,
+        `
+        : `\n\n${message.replyAttributionLine()}\n${prevBody}`,
     });
   }
 
   async createDraftForForward({ thread, message }) {
     // Start downloading the attachments, if they haven't been already
-    message.files.forEach(f => Actions.fetchFile(f));
+    message.files.forEach((f: File) => Actions.fetchFile(f));
 
-    const contactsAsHtml = cs => DOMUtils.escapeHTMLCharacters(_.invoke(cs, 'toString').join(', '));
+    const formatContact = (cs: Contact[]) => {
+      const text = cs.map(c => c.toString()).join(', ');
+      return this.useHTML() ? DOMUtils.escapeHTMLCharacters(text) : text;
+    };
+
     const fields = [];
-    if (message.from.length > 0) fields.push(`From: ${contactsAsHtml(message.from)}`);
+    if (message.from.length > 0) fields.push(`From: ${formatContact(message.from)}`);
     fields.push(`${localized('Subject')}: ${message.subject}`);
     fields.push(`${localized('Date')}: ${message.formattedDate()}`);
-    if (message.to.length > 0) fields.push(`${localized('To')}: ${contactsAsHtml(message.to)}`);
-    if (message.cc.length > 0) fields.push(`${localized('Cc')}: ${contactsAsHtml(message.cc)}`);
+    if (message.to.length > 0) fields.push(`${localized('To')}: ${formatContact(message.to)}`);
+    if (message.cc.length > 0) fields.push(`${localized('Cc')}: ${formatContact(message.cc)}`);
 
-    const body = await prepareBodyForQuoting(message.body);
+    const body = await this.prepareBodyForQuoting(message);
 
     return this.createDraft({
       subject: Utils.subjectWithPrefix(message.subject, 'Fwd:'),
@@ -213,7 +238,8 @@ class DraftFactory {
       threadId: thread.id,
       accountId: message.accountId,
       forwardedHeaderMessageId: message.headerMessageId,
-      body: `
+      body: this.useHTML()
+        ? `
         <br/>
         <div class="gmail_quote">
           <br>
@@ -224,7 +250,10 @@ class DraftFactory {
           ${body}
           <br/>
         </div>
-        `,
+        `
+        : `\n\n---------- ${localized('Forwarded Message')} ---------\n\n${fields.join(
+            '\n'
+          )}\n\n${body}`,
     });
   }
 

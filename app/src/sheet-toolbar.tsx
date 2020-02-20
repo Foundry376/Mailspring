@@ -111,27 +111,23 @@ class ToolbarWindowControls extends React.Component<{}, { alt: boolean }> {
 
   constructor(props) {
     super(props);
-    this.state = { alt: false };
+    this.state = { alt: AppEnv.keymaps.getIsAltKeyDown() };
   }
 
   componentDidMount() {
     if (process.platform === 'darwin') {
-      window.addEventListener('keydown', this._onAlt);
-      window.addEventListener('keyup', this._onAlt);
+      document.addEventListener(AppEnv.keymaps.EVENT_ALT_KEY_STATE_CHANGE, this._onAlt);
     }
   }
 
   componentWillUnmount() {
     if (process.platform === 'darwin') {
-      window.removeEventListener('keydown', this._onAlt);
-      window.removeEventListener('keyup', this._onAlt);
+      document.removeEventListener(AppEnv.keymaps.EVENT_ALT_KEY_STATE_CHANGE, this._onAlt);
     }
   }
 
-  _onAlt = event => {
-    if (this.state.alt !== event.altKey) {
-      this.setState({ alt: event.altKey });
-    }
+  _onAlt = () => {
+    this.setState({ alt: AppEnv.keymaps.getIsAltKeyDown() });
   };
 
   _onMaximize = event => {

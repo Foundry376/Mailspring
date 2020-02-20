@@ -134,29 +134,31 @@ export default class MessageItemBody extends React.Component<
     let merged = body;
 
     // Replace cid: references with the paths to downloaded files
-    this.props.message.files.filter(f => f.contentId).forEach(file => {
-      const download = this.props.downloads[file.id];
-      const safeContentId = Utils.escapeRegExp(file.contentId);
+    this.props.message.files
+      .filter(f => f.contentId)
+      .forEach(file => {
+        const download = this.props.downloads[file.id];
+        const safeContentId = Utils.escapeRegExp(file.contentId);
 
-      // Note: I don't like doing this with RegExp before the body is inserted into
-      // the DOM, but we want to avoid "could not load cid://" in the console.
+        // Note: I don't like doing this with RegExp before the body is inserted into
+        // the DOM, but we want to avoid "could not load cid://" in the console.
 
-      if (download && download.state !== 'finished') {
-        const inlineImgRegexp = new RegExp(
-          `<\\s*img.*src=['"]cid:${safeContentId}['"][^>]*>`,
-          'gi'
-        );
-        // Render a spinner
-        merged = merged.replace(
-          inlineImgRegexp,
-          () =>
-            '<img alt="spinner.gif" src="mailspring://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
-        );
-      } else {
-        const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');
-        merged = merged.replace(cidRegexp, `file://${AttachmentStore.pathForFile(file)}`);
-      }
-    });
+        if (download && download.state !== 'finished') {
+          const inlineImgRegexp = new RegExp(
+            `<\\s*img.*src=['"]cid:${safeContentId}['"][^>]*>`,
+            'gi'
+          );
+          // Render a spinner
+          merged = merged.replace(
+            inlineImgRegexp,
+            () =>
+              '<img alt="spinner.gif" src="mailspring://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
+          );
+        } else {
+          const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');
+          merged = merged.replace(cidRegexp, `file://${AttachmentStore.pathForFile(file)}`);
+        }
+      });
 
     // Replace remaining cid: references - we will not display them since they'll
     // throw "unknown ERR_UNKNOWN_URL_SCHEME". Show a transparent pixel so that there's

@@ -6,7 +6,7 @@ import { OpenTrackingMetadata } from './types';
 
 export default class OpenTrackingComposerExtension extends ComposerExtension {
   static needsPerRecipientBodies(draft) {
-    return !!draft.metadataForPluginId(PLUGIN_ID);
+    return !draft.plaintext && !!draft.metadataForPluginId(PLUGIN_ID);
   }
 
   static applyTransformsForSending({
@@ -18,6 +18,10 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     draft: Message;
     recipient?: Contact;
   }) {
+    if (draft.plaintext) {
+      return;
+    }
+
     // grab message metadata, if any
     const messageUid = draft.headerMessageId;
     const metadata = draft.metadataForPluginId(PLUGIN_ID) as OpenTrackingMetadata;

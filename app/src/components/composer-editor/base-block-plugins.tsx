@@ -60,6 +60,8 @@ function toggleBlockTypeWithBreakout(editor: Editor, type) {
   }
 }
 
+export const BLOCKQUOTE_TYPE = 'blockquote';
+
 export const BLOCK_CONFIG: {
   [key: string]: IEditorToolbarConfigItem;
 } = {
@@ -91,7 +93,7 @@ export const BLOCK_CONFIG: {
     },
   },
   blockquote: {
-    type: 'blockquote',
+    type: BLOCKQUOTE_TYPE,
     tagNames: ['blockquote'],
     render: props => <blockquote {...props.attributes}>{props.children}</blockquote>,
     button: {
@@ -240,7 +242,7 @@ function renderNode(props, editor: Editor = null, next = () => {}) {
 
 const rules = [
   {
-    deserialize(el, next) {
+    deserialize(el: HTMLElement, next) {
       const tagName = el.tagName.toLowerCase();
       let config = Object.values(BLOCK_CONFIG).find(c => c.tagNames.includes(tagName));
 
@@ -248,6 +250,7 @@ const rules = [
       // block elements with monospace font are translated to <code> blocks
       if (
         ['div', 'blockquote'].includes(tagName) &&
+        !el.classList.contains('gmail_default') &&
         (el.style.fontFamily || el.style.font || '').includes('monospace')
       ) {
         config = BLOCK_CONFIG.code;
@@ -327,7 +330,7 @@ export function allNodesInBFSOrder(value: Value) {
 export function isQuoteNode(n: Node) {
   return (
     n.object === 'block' &&
-    (n.type === 'blockquote' ||
+    (n.type === BLOCKQUOTE_TYPE ||
       (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote')))
   );
 }

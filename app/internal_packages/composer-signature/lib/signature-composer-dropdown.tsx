@@ -130,6 +130,9 @@ export default class SignatureComposerDropdown extends React.Component<
   }
 
   render() {
+    if (this.props.draft.plaintext) {
+      return <span />;
+    }
     return (
       <div className="signature-button-dropdown">
         <ButtonDropdown

@@ -17,7 +17,7 @@ import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins, { VARIABLE_TYPE } from './template-plugins';
 import SpellcheckPlugins from './spellcheck-plugins';
 import UneditablePlugins, { UNEDITABLE_TYPE } from './uneditable-plugins';
-import BaseBlockPlugins, { BLOCK_CONFIG } from './base-block-plugins';
+import BaseBlockPlugins, { BLOCK_CONFIG, isQuoteNode } from './base-block-plugins';
 import InlineAttachmentPlugins, { IMAGE_TYPE } from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
@@ -25,6 +25,7 @@ import EmojiPlugins, { EMOJI_TYPE } from './emoji-plugins';
 import { Rule, ComposerEditorPlugin } from './types';
 
 import './patch-chrome-ime';
+import { deepenPlaintextQuote } from './plaintext';
 
 export const schema = {
   blocks: {
@@ -399,10 +400,28 @@ export function convertToPlainText(value: Value) {
 
   const serializeNode = (node: SlateNode) => {
     if (node.object === 'block' && node.type === UNEDITABLE_TYPE) {
-      const html = node.data.get('html');
+      let html = node.data.get('html');
+
+      // On detatched DOM nodes (where the content is not actually rendered onscreen),
+      // innerText and textContent are the same and neither take into account CSS styles
+      // of the various elements. To make the conversion from HTML to text decently well,
+      // we insert newlines on </p> and <br> tags so their textContent contains them:
+      html = html.replace(/<\/p ?>/g, '\n\n</p>');
+      html = html.replace(/<br ?\/?>/g, '\n');
+      html = html.replace(/<\/div ?>/g, '\n</div>');
+
       const div = document.createElement('div');
       div.innerHTML = html;
-      return div.innerText;
+
+      // This creates a ton of extra newlines, so anywhere this more than two empty spaces
+      // we collapse them back down to two.
+      let text = div.textContent;
+      text = text.replace(/\n\n\n+/g, '\n\n').trim();
+      return text;
+    }
+    if (isQuoteNode(node)) {
+      const content = node.nodes.map(serializeNode).join('\n');
+      return deepenPlaintextQuote(content);
     }
     if (node.object === 'document' || (node.object === 'block' && Block.isBlockList(node.nodes))) {
       return node.nodes.map(serializeNode).join('\n');

@@ -1,7 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { localized, PropTypes, Actions } from 'mailspring-exports';
+import { localized, PropTypes, Actions, Message } from 'mailspring-exports';
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 import TemplateStore from './template-store';
 
@@ -101,7 +101,10 @@ class TemplatePopover extends React.Component<{ headerMessageId: string }> {
   }
 }
 
-class TemplatePicker extends React.Component<{ headerMessageId: string }> {
+class TemplatePicker extends React.Component<{
+  headerMessageId: string;
+  draft: Message;
+}> {
   static displayName = 'TemplatePicker';
 
   static propTypes = {
@@ -117,6 +120,9 @@ class TemplatePicker extends React.Component<{ headerMessageId: string }> {
   };
 
   render() {
+    if (this.props.draft.plaintext) {
+      return <span />;
+    }
     return (
       <button
         tabIndex={-1}

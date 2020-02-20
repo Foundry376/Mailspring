@@ -11,6 +11,23 @@
 
 // Basic Rich Editor
 
+.composer-editor-plaintext {
+  textarea {
+    padding: 13px 22px;
+    box-sizing: border-box;
+    resize: none;
+    min-height: @compose-min-height;
+    color: @text-color;
+    outline: none;
+    font-family: @font-family-monospace;
+    &:focus {
+      border: none;
+      box-shadow: none;
+      outline: none;
+    }
+  }
+}
+
 .RichEditor-root {
   padding: 0 22px 0 22px;
   min-height: @compose-min-height;

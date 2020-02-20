@@ -45,7 +45,10 @@ export function extractTextFromHtml(html, param: { maxLength?: number } = {}) {
   if (maxLength && html.length > maxLength) {
     html = html.slice(0, maxLength);
   }
-  return new DOMParser().parseFromString(html, 'text/html').body.innerText;
+  const body = new DOMParser().parseFromString(html, 'text/html').body;
+  body.querySelectorAll('style').forEach(el => el.remove());
+  body.querySelectorAll('script').forEach(el => el.remove());
+  return body.textContent.trim();
 }
 
 export function modelTypesReviver(k, v) {

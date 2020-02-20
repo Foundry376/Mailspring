@@ -57,6 +57,7 @@ export * from '../components/attachment-items';
 export const CodeSnippet: typeof import('../components/code-snippet').default;
 
 export * from '../components/composer-editor/composer-editor';
+export * from '../components/composer-editor/composer-editor-plaintext';
 
 export const ComposerSupport: typeof import('../components/composer-editor/composer-support');
 

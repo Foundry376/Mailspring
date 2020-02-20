@@ -137,7 +137,7 @@ export default class PreferencesKeymaps extends React.Component<
               'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.'
             )}
           </p>
-          <div className="keymaps-columns-flexbox">
+          <div className="two-columns-flexbox">
             <div style={{ flex: 1 }}>
               {displayedKeybindings.slice(0, 3).map(this._renderBindingsSection)}
             </div>

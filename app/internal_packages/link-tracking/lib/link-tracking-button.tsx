@@ -46,6 +46,10 @@ export default class LinkTrackingButton extends React.Component<{
   }
 
   render() {
+    if (this.props.draft.plaintext) {
+      return <span />;
+    }
+
     return (
       <MetadataComposerToggleButton
         iconName="icon-composer-linktracking.png"

@@ -218,7 +218,13 @@ class MessageList extends React.Component<{}, MessageListState> {
       );
 
       if (isBeforeReplyArea) {
-        elements.push(this._renderReplyArea());
+        elements.push(
+          <MessageListReplyArea
+            key="reply-area"
+            onClick={this._onClickReplyArea}
+            replyType={this._replyType()}
+          />
+        );
       }
     });
 
@@ -365,17 +371,6 @@ class MessageList extends React.Component<{}, MessageListState> {
     );
   }
 
-  _renderReplyArea() {
-    return (
-      <div className="footer-reply-area-wrap" onClick={this._onClickReplyArea} key="reply-area">
-        <div className="footer-reply-area">
-          <RetinaImg name={`${this._replyType()}-footer.png`} mode={RetinaImg.Mode.ContentIsMask} />
-          <span className="reply-text">{localized('Write a reply…')}</span>
-        </div>
-      </div>
-    );
-  }
-
   _renderMinifiedBundle(bundle) {
     const BUNDLE_HEIGHT = 36;
     const lines = bundle.messages.slice(0, 10);
@@ -450,4 +445,38 @@ class MessageList extends React.Component<{}, MessageListState> {
   }
 }
 
+class MessageListReplyArea extends React.Component<{ onClick: () => void; replyType: string }> {
+  state = {
+    forcePlaintext: AppEnv.keymaps.getIsAltKeyDown(),
+  };
+
+  componentDidMount() {
+    document.addEventListener(AppEnv.keymaps.EVENT_ALT_KEY_STATE_CHANGE, this.onAltStateChange);
+  }
+  componentWillUnmount() {
+    document.removeEventListener(AppEnv.keymaps.EVENT_ALT_KEY_STATE_CHANGE, this.onAltStateChange);
+  }
+
+  onAltStateChange = () => {
+    this.setState({ forcePlaintext: AppEnv.keymaps.getIsAltKeyDown() });
+  };
+
+  render() {
+    return (
+      <div className="footer-reply-area-wrap" onClick={this.props.onClick}>
+        <div className="footer-reply-area">
+          <RetinaImg
+            name={`${this.props.replyType}-footer.png`}
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
+          <span className="reply-text">
+            {this.state.forcePlaintext
+              ? localized('Write a plain text reply…')
+              : localized('Write a reply…')}
+          </span>
+        </div>
+      </div>
+    );
+  }
+}
 export default SearchableComponentMaker.extend(MessageList);

@@ -114,7 +114,8 @@ h1,
   height: 60px;
 }
 
-#inbox-html-wrapper {
+#inbox-html-wrapper,
+#inbox-plain-wrapper {
   margin-top: 10px;
 }
 
@@ -124,7 +125,8 @@ h1,
   .message-item-wrap,
   .message-item-white-wrap,
   .message-item-area,
-  #inbox-html-wrapper {
+  #inbox-html-wrapper,
+  #inbox-plain-wrapper {
     display: block !important;
     width: auto !important;
     height: auto !important;

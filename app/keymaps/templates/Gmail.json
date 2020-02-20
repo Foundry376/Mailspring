@@ -49,9 +49,9 @@
   "core:report-as-spam": "!",
   "core:delete-item": "#",
 
-  "core:reply": ["r", "mod+r"],
+  "core:reply": ["r", "mod+r", "mod+alt+r"],
   "core:reply-new-window": "shift+r",
-  "core:reply-all": ["a", "mod+shift+r"],
+  "core:reply-all": ["a", "mod+shift+r", "mod+alt+shift+r"],
   "core:reply-all-new-window": "shift+a",
   "core:forward": ["f", "mod+shift+f"],
   "core:forward-new-window": "shift+f",

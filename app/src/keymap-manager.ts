@@ -107,10 +107,26 @@ export default class KeymapManager {
   _removeTemplate?: Disposable;
   _bindingsCache: {};
   _commandsCache: {};
+  _altKeyDown: boolean = false;
+
+  EVENT_ALT_KEY_STATE_CHANGE = 'alt-key-state-change';
 
   constructor({ configDirPath, resourcePath }) {
     this.configDirPath = configDirPath;
     this.resourcePath = resourcePath;
+    window.addEventListener('keydown', this.onCheckModifierState);
+    window.addEventListener('keyup', this.onCheckModifierState);
+  }
+
+  onCheckModifierState = (e: KeyboardEvent) => {
+    if (this._altKeyDown !== e.altKey) {
+      this._altKeyDown = e.altKey;
+      document.dispatchEvent(new CustomEvent(this.EVENT_ALT_KEY_STATE_CHANGE));
+    }
+  };
+
+  getIsAltKeyDown() {
+    return this._altKeyDown;
   }
 
   getUserKeymapPath() {

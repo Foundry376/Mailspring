@@ -144,6 +144,15 @@ export default {
       composing: {
         type: 'object',
         properties: {
+          html: {
+            type: 'boolean',
+            default: true,
+            title: localized('Enable rich text and advanced editor features'),
+            note: localized(
+              'Many features are unavailable in plain-text mode. To create a single ' +
+                'plain-text draft, hold Alt or Option while clicking Compose or Reply.'
+            ),
+          },
           spellcheck: {
             type: 'boolean',
             default: true,

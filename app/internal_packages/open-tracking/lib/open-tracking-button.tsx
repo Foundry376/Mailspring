@@ -46,6 +46,9 @@ export default class OpenTrackingButton extends React.Component<{
   }
 
   render() {
+    if (this.props.draft.plaintext) {
+      return <span />;
+    }
     const enabledValue = {
       open_count: 0,
       open_data: [],

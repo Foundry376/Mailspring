@@ -151,6 +151,11 @@ export class Message extends ModelWithMetadata {
       queryable: false,
     }),
 
+    plaintext: Attributes.Boolean({
+      modelKey: 'plaintext',
+      queryable: false,
+    }),
+
     version: Attributes.Number({
       jsonKey: 'v',
       modelKey: 'version',
@@ -194,6 +199,8 @@ export class Message extends ModelWithMetadata {
   public forwardedHeaderMessageId: string;
   public folder: Folder;
 
+  /** indicates that "body" is plain text, not HTML */
+  public plaintext: boolean;
   public body?: string;
 
   static naturalSortOrder() {

@@ -35,10 +35,13 @@ function forEachATagInBody(draftBodyRootNode, callback) {
  */
 export default class LinkTrackingComposerExtension extends ComposerExtension {
   static needsPerRecipientBodies(draft) {
-    return !!draft.metadataForPluginId(PLUGIN_ID);
+    return !draft.plaintext && !!draft.metadataForPluginId(PLUGIN_ID);
   }
 
   static applyTransformsForSending({ draftBodyRootNode, draft, recipient }) {
+    if (draft.plaintext) {
+      return;
+    }
     const metadata = draft.metadataForPluginId(PLUGIN_ID);
     if (!metadata) {
       return;
@@ -52,9 +55,7 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
         return;
       }
       const encoded = encodeURIComponent(url);
-      const redirectUrl = `${PLUGIN_URL}/link/${draft.headerMessageId}/${
-        links.length
-      }?redirect=${encoded}`;
+      const redirectUrl = `${PLUGIN_URL}/link/${draft.headerMessageId}/${links.length}?redirect=${encoded}`;
 
       links.push({
         url,

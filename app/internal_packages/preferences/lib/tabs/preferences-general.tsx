@@ -58,12 +58,13 @@ class PreferencesGeneral extends React.Component<{
   render() {
     return (
       <div className="container-general">
-        <div style={{ display: 'flex' }}>
-          <div style={{ width: '50%', paddingRight: 15 }}>
+        <div className="two-columns-flexbox">
+          <div style={{ flex: 1 }}>
             <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
             <LanguageSection config={this.props.config} configSchema={this.props.configSchema} />
           </div>
-          <div style={{ width: '50%', paddingLeft: 15 }}>
+          <div style={{ width: 30 }} />
+          <div style={{ flex: 1 }}>
             <ConfigSchemaItem
               configSchema={this.props.configSchema.properties.reading}
               keyName={localized('Reading')}
@@ -72,12 +73,12 @@ class PreferencesGeneral extends React.Component<{
             />
           </div>
         </div>
-        <div style={{ display: 'flex', paddingTop: 30 }}>
-          <div style={{ width: '50%', paddingRight: 15 }}>
+        <div className="two-columns-flexbox" style={{ paddingTop: 30 }}>
+          <div style={{ flex: 1 }}>
             <SendingSection config={this.props.config} configSchema={this.props.configSchema} />
           </div>
-
-          <div style={{ width: '50%', paddingLeft: 15 }}>
+          <div style={{ width: 30 }} />
+          <div style={{ flex: 1 }}>
             <ConfigSchemaItem
               configSchema={this.props.configSchema.properties.composing}
               keyName={localized('Composing')}
@@ -87,22 +88,22 @@ class PreferencesGeneral extends React.Component<{
           </div>
         </div>
 
-        <div style={{ display: 'flex', paddingTop: 30 }}>
-          <div style={{ width: '50%', paddingRight: 15 }}>
+        <div className="two-columns-flexbox" style={{ paddingTop: 30 }}>
+          <div style={{ flex: 1 }}>
             <ConfigSchemaItem
               configSchema={this.props.configSchema.properties.notifications}
               keyName={localized('Notifications')}
               keyPath="core.notifications"
               config={this.props.config}
             />
-
             <div className="platform-note platform-linux-only">
               {localized(
                 'Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.'
               )}
             </div>
           </div>
-          <div style={{ width: '50%', paddingLeft: 15 }}>
+          <div style={{ width: 30 }} />
+          <div style={{ flex: 1 }}>
             <ConfigSchemaItem
               configSchema={this.props.configSchema.properties.attachments}
               keyName={localized('Attachments')}
