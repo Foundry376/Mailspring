@@ -2,32 +2,32 @@ version: '{build}'
 
 branches:
   only:
-  - master
-  - /ci.*/
-  - /stable.*/
+    - master
+    - /ci.*/
+    - /stable.*/
 
 init:
-- ps: $env:commit = $env:appveyor_repo_commit.SubString(0,8)
+  - ps: $env:commit = $env:appveyor_repo_commit.SubString(0,8)
 
 install:
-- ps: Install-Product node $env:NODE_VERSION
-- ps: npm config set msvs_version 2015
+  - ps: Install-Product node $env:NODE_VERSION
+  - ps: npm config set msvs_version 2015
 
-# Extract the codesigning certs, encrypted private ssh key
-- ps: |
-    C:\OpenSSL-Win32\bin\openssl.exe aes-256-cbc -K $env:encrypted_faf2708e46e2_key -iv $env:encrypted_faf2708e46e2_iv -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
-    mkdir app/build/resources/certs;
-    tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
+  # Extract the codesigning certs, encrypted private ssh key
+  - ps: |
+      C:\OpenSSL-Win32\bin\openssl.exe aes-256-cbc -K $env:encrypted_faf2708e46e2_key -iv $env:encrypted_faf2708e46e2_iv -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
+      mkdir app/build/resources/certs;
+      tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
 
-# Clone the submodule
-- ps: |
-    $env:GIT_SSH_COMMAND="ssh -q -i app/build/resources/certs/mailsync-deploy-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
-    git submodule update --init mailsync --quiet *>$null
+  # Clone the submodule
+  - ps: |
+      $env:GIT_SSH_COMMAND="ssh -q -i app/build/resources/certs/mailsync-deploy-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
+      git submodule --quiet update --init mailsync *>$null
 
 build_script:
-- cmd: cd .\mailsync && .\build.cmd && cd ..\
-- cmd: npm install && npm run build
-- cmd: node app/build/create-signed-windows-installer.js
+  - cmd: cd .\mailsync && .\build.cmd && cd ..\
+  - cmd: npm install && npm run build
+  - cmd: node app/build/create-signed-windows-installer.js
 
 before_deploy:
   - cmd: 7z -ttar a dummy %APPVEYOR_BUILD_FOLDER%\app\dist\*.dll %APPVEYOR_BUILD_FOLDER%\app\dist\mailsync.exe -so | 7z -si -tgzip a .\app\dist\mailsync.tar.gz
@@ -37,22 +37,22 @@ before_deploy:
   - ps: Get-ChildItem .\app\dist\RELEASES | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
 
 deploy:
-- provider: S3
-  name: s3-deployment
-  access_key_id: AKIAJQWOM4SPSY3TXI5Q
-  secret_access_key:
-    secure: XlLzz7sdvrtgi4g459NvxLfrH/+hOutb+0Osz29unfi4Zcw9N8H8SEaq6m3ZeWc+
-  region: us-east-1
-  bucket: mailspring-builds
-  folder: "client/$(commit)"
-  set_public: true
+  - provider: S3
+    name: s3-deployment
+    access_key_id: AKIAJQWOM4SPSY3TXI5Q
+    secret_access_key:
+      secure: XlLzz7sdvrtgi4g459NvxLfrH/+hOutb+0Osz29unfi4Zcw9N8H8SEaq6m3ZeWc+
+    region: us-east-1
+    bucket: mailspring-builds
+    folder: 'client/$(commit)'
+    set_public: true
 
-# Stop Appveyor from "Discovering Tests" forever 
+# Stop Appveyor from "Discovering Tests" forever
 test: off
 
 environment:
   matrix:
-  - NODE_VERSION: '11'
+    - NODE_VERSION: '11'
   global:
     SIGN_BUILD: true
     WINDOWS_CODESIGN_CERT: .\app\build\resources\certs\win\win-codesigning.p12
