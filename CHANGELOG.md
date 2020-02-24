@@ -1,8 +1,52 @@
 # Mailspring Changelog
 
+### 1.7.3 (2/24/2020)
+
+**Features:**
+
+- Mailspring has been approved for read-write access to the Google People API and you can now manage contacts in Google accounts! Mailspring will ask you to go to Preferences > Accounts and click "Re-authorize" to grant access to this additional permission before editing contacts.
+
+- We no longer use `is-online` and DNS checks to verify that the app is online. Instead, Mailspring checks that it can reach your actual IMAP / SMTP mail servers. #1357, #1731, #1123
+
+- Mailspring now supports plaintext mail display and composition! It can be enabled via a new setting, or for a single draft by holding Alt/Option when creating it. Most composer features are disabled in ths mode - for more information, check out https://github.com/Foundry376/Mailspring/issues/52#issuecomment-588627578.
+
+**Fixes:**
+
+- Mailspring now prompts you to confirm that you'd like to delete folders and labels. #1785
+
+- When pasting a table from Excel or other forms of HTML that use `<style>` tags, Mailspring inlines the CSS and preserves it better in your message. #1773
+
+- Adding and removing accounts no longer dismisses the app's preferences. #1684
+
+- The performance of the composer has been greatly improved when there are a large number of recipients.
+
+- The "Never Translate German" dialog and other modals no longer freeze the app on some platforms #1685
+
+- Calendar attachments with times like "2019-11-12T::" are now rendered properly in the conversation view.
+
+- The Russian, Chinese, Latin American Spanish and French translations have been improved (thanks @araven, @keyduq, @laichiaheng, and @raven-kg), and the entire app has been localized into Galician thanks to @markoshorro!
+
+- Mailspring no longer crashes with a concurrency issue in some scenarios trying to launch sync on Linux.
+
+- Scheduling reminders, etc. across the DST boundary now works properly in Brazil, which stopped using DST in 2019. #1767
+
+- The default shortcut for deleting an empty draft is now Ctrl/Cmd + Escape, which works within the text editor. #1776
+
+- Mailspring's email address autolinking no longer includes some UTF-8 control characters (most notably &nbsp;) in the email address link. #1796
+
+**Misc:**
+
+- You can now type IMAP configurations with a port number that starts with a default (eg: 2525 for SMTP). #1702
+
+- You can now select text in the contact sidebar (URLs, bios, addresses, etc.) to copy/paste it.
+
+- Preferences > Shortcuts is now split into two columns on wide displays.
+
+- Mailspring is now automatically notorized for macOS Catalina
+
 ### 1.7.2 (10/22/2019)
 
-Fixes:
+**Fixes:**
 
 - Resolves some scenarios that caused calendar and contact sync to crash during service autodiscovery, unnecessarily stopping email sync.
 
@@ -24,8 +68,8 @@ Features:
 
 **Incoming Message Translation**: Mailspring now offers to translate emails you receive in other languages. When you choose to translate an email, Mailspring sends the text of the message to a translation service (currently Yandex) and displays the result. Free users can translate up to 50 messages a week - Mailspring Pro removes the limit and allows you to "Automatically Translate" all messages in particular languages.
 
-  * Note: We're waiting on Google to approve Mailspring for access to the "Read-write Contacts" Oauth scope, so Gmail accounts will be read-only until ~December 2019.
-  
+- Note: We're waiting on Google to approve Mailspring for access to the "Read-write Contacts" Oauth scope, so Gmail accounts will be read-only until ~December 2019.
+
 **Contact Management**: Mailspring now includes a full-featured address book available from the `Window` menu! You can create, update, and delete contacts and contact groups in connected Google and CardDAV-compatible accounts (iCloud, FastMail and others.) Mailspring also allows you to turn off automatic suggestions based on your sent mail, and delete individual contact suggestions. When composing an email, you can now type the name of a group to insert all of the contacts in that group as recipients.
 
 Fixes:
@@ -61,7 +105,6 @@ Developer:
 - On Debian Linux, we suggest rather than require gnomekeyring #998
 
 - The (broken) plugin template has been removed - the starter for a Mailspring plugin is now located at https://github.com/Foundry376/Mailspring-Plugin-Starter #1645
-
 
 ### 1.6.3 (7/1/2019)
 
