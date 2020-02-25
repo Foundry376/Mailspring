@@ -1,6 +1,6 @@
 # Mailspring Changelog
 
-### 1.7.3 (2/24/2020)
+### 1.7.4 (2/24/2020)
 
 **Features:**
 
@@ -43,6 +43,10 @@
 - Preferences > Shortcuts is now split into two columns on wide displays.
 
 - Mailspring is now automatically notorized for macOS Catalina
+
+### 1.7.3 (2/24/2020)
+
+The 1.7.3 release was broken because of Apple's February 2020 changes to macOS codesigning / "hardened runtime" requirements.
 
 ### 1.7.2 (10/22/2019)
 
