@@ -239,4 +239,5 @@ export async function finalizeAndValidateAccount(account: Account) {
 
   // Record the date of successful auth
   account.authedAt = new Date();
+  return account;
 }
