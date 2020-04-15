@@ -4,11 +4,7 @@ import path from 'path';
 import { Utils, MessageBodyProcessor, CategoryStore } from 'mailspring-exports';
 import * as AutoloadImagesActions from './autoload-images-actions';
 
-const ImagesRegexp = /((?:src|background|placeholder|icon|background|poster|srcset)\s*=\s*['"]?(?=\w*:\/\/)|:\s*url\()+([^"')]*)/gi;
-
 class AutoloadImagesStore extends MailspringStore {
-  ImagesRegexp = ImagesRegexp;
-
   _whitelistEmails = {};
   _whitelistMessageIds = {};
   _whitelistEmailsPath = path.join(AppEnv.getConfigDirPath(), 'autoload-images-whitelist.txt');
@@ -26,6 +22,20 @@ class AutoloadImagesStore extends MailspringStore {
     });
   }
 
+  getImagesRegexp = () => {
+    // Matches:
+    // - src='....'
+    // - background="...."
+    // - background: url(....)
+    // - background: url(""...."")
+    // - @import url(....)
+    return /((?:src|background|placeholder|icon|poster|srcset)\s*=\s*['"]?(?=[cid:|\w*:\/\/])|(?::|@import)\s*url\(['"]?)+([^"')]*)/gi;
+  };
+
+  getLinkTagRegexp = () => {
+    return /<link [^>]+>/gi;
+  };
+
   shouldBlockImagesIn = message => {
     const spam = CategoryStore.getSpamCategory(message.accountId);
     const spamFolderId = spam ? spam.id : undefined;
@@ -40,7 +50,9 @@ class AutoloadImagesStore extends MailspringStore {
       return false;
     }
 
-    return ImagesRegexp.test(message.body);
+    const containsImages = this.getImagesRegexp().test(message.body);
+    const containsLinkTags = this.getLinkTagRegexp().test(message.body);
+    return containsImages || containsLinkTags;
   };
 
   _loadWhitelist = () => {
