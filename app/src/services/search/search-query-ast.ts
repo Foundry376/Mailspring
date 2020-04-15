@@ -11,6 +11,9 @@ export class SearchQueryExpressionVisitor {
   visitAnd(node) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
+  visitNot(node) {
+    throw new Error(`Abstract function not implemented!: ${node}`);
+  }
   visitOr(node) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
@@ -69,6 +72,35 @@ export class QueryExpression {
 
   equals(other): boolean {
     throw new Error(`Abstract function not implemented!: ${other}`);
+  }
+}
+
+export class NotQueryExpression extends QueryExpression {
+  e1: QueryExpression;
+  e2: QueryExpression;
+
+  constructor(e1, e2) {
+    super();
+    this.e1 = e1;
+    this.e2 = e2;
+  }
+
+  accept(visitor) {
+    visitor.visitNot(this);
+  }
+
+  _computeIsMatchCompatible() {
+    if (!this.e1 || !this.e2) {
+      return false;
+    }
+    return this.e1.isMatchCompatible() && this.e2.isMatchCompatible();
+  }
+
+  equals(other) {
+    if (!(other instanceof NotQueryExpression)) {
+      return false;
+    }
+    return this.e1.equals(other.e1) && this.e2.equals(other.e2);
   }
 }
 

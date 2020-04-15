@@ -78,9 +78,13 @@ body.platform-win32 {
   &:active {
     cursor: default;
     background: darken(@btn-default-bg-color, 9%);
+    color: @btn-default-text-color;
   }
   &:focus {
     outline: none;
+  }
+  &:hover {
+    color: @btn-default-text-color;
   }
 
   font-size: @font-size-small;

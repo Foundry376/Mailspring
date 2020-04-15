@@ -1,6 +1,7 @@
 import {
   SearchQueryToken,
   OrQueryExpression,
+  NotQueryExpression,
   AndQueryExpression,
   FromQueryExpression,
   ToQueryExpression,
@@ -70,6 +71,7 @@ const reserved = [
   'before',
   'since',
   'after',
+  'not',
 ];
 
 const mightBeReserved = text => {
@@ -299,7 +301,7 @@ const parseSimpleQuery = text => {
   return [new GenericQueryExpression(txt), afterTxt];
 };
 
-const parseOrQuery = text => {
+const parseOrQuery = (text: string) => {
   const [lhs, afterLhs] = parseSimpleQuery(text);
   const [tok, afterOr] = nextToken(afterLhs);
   if (tok === null) {
@@ -321,11 +323,19 @@ const parseAndQuery = text => {
   // Ben Edit: within a search group eg (test is:unread), we assume tokens (eg is:)
   // are separated by an implicit AND when one is not present. The only things that
   // break us out of the AND query are a close paren or an explicit OR token.
-  if (tok.s.toUpperCase() === 'OR' || tok.s.toUpperCase() === ')') {
+  const nextTok = tok.s.toUpperCase();
+  if (nextTok === 'OR' || nextTok === ')') {
     return [lhs, afterLhs];
+  } else if (nextTok === 'NOT') {
+    const [rhs, afterRhs] = parseAndQuery(afterAnd);
+    return [new NotQueryExpression(lhs, rhs), afterRhs];
+  } else if (nextTok === 'AND') {
+    const [rhs, afterRhs] = parseAndQuery(afterAnd);
+    return [new AndQueryExpression(lhs, rhs), afterRhs];
+  } else {
+    const [rhs, afterRhs] = parseAndQuery(afterLhs);
+    return [new AndQueryExpression(lhs, rhs), afterRhs];
   }
-  const [rhs, afterRhs] = parseAndQuery(tok.s.toUpperCase() === 'AND' ? afterAnd : afterLhs);
-  return [new AndQueryExpression(lhs, rhs), afterRhs];
 };
 
 parseQuery = text => {
