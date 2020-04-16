@@ -164,6 +164,10 @@ class PreferencesAccountDetails extends Component<
     AppEnv.mailsyncBridge.resetCacheForAccount(this.state.account);
   };
 
+  _onManageContacts = () => {
+    ipcRenderer.send('command', 'application:show-contacts', {});
+  };
+
   _onContactSupport = () => {
     shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
   };
@@ -266,12 +270,16 @@ class PreferencesAccountDetails extends Component<
           undefined
         )}
         <h6>{localized('Account Settings')}</h6>
-        <div className="btn" onClick={this._onReconnect}>
-          {account.provider === 'imap'
-            ? localized('Update Connection Settings...')
-            : localized('Re-authenticate...')}
+        <div className="btn" onClick={this._onManageContacts}>
+          {localized('Manage Contacts')}
         </div>
-        <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
+        <div className="btn" style={{ marginLeft: 6 }} onClick={this._onReconnect}>
+          {account.provider === 'gmail'
+            ? localized('Re-authenticate...')
+            : localized('Update Connection Settings...')}
+        </div>
+        <h6>{localized('Local Data')}</h6>
+        <div className="btn" onClick={this._onResetCache}>
           {localized('Rebuild Cache...')}
         </div>
       </div>
