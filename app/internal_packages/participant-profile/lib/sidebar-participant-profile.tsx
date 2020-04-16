@@ -488,7 +488,9 @@ export default class SidebarParticipantProfile extends React.Component<
               service="linkedin"
               hostname="www.linkedin.com"
               handle={
-                linkedin && `${linkedin.handle.startsWith('in/') ? '' : 'in/'}${linkedin.handle}`
+                linkedin &&
+                linkedin.handle &&
+                `${linkedin.handle.startsWith('in/') ? '' : 'in/'}${linkedin.handle}`
               }
             />
             <SocialProfileLink
