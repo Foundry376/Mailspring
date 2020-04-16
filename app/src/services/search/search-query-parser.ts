@@ -315,27 +315,42 @@ const parseOrQuery = (text: string) => {
 };
 
 const parseAndQuery = text => {
-  const [lhs, afterLhs] = parseOrQuery(text);
-  const [tok, afterAnd] = nextToken(afterLhs);
+  let [lhs, afterLhs] = parseOrQuery(text);
+  let [tok, afterTok] = nextToken(afterLhs);
   if (tok === null) {
     return [lhs, afterLhs];
   }
   // Ben Edit: within a search group eg (test is:unread), we assume tokens (eg is:)
   // are separated by an implicit AND when one is not present. The only things that
   // break us out of the AND query are a close paren or an explicit OR token.
-  const nextTok = tok.s.toUpperCase();
-  if (nextTok === 'OR' || nextTok === ')') {
+  if (tok.s.toUpperCase() === 'OR' || tok.s.toUpperCase() === ')') {
     return [lhs, afterLhs];
-  } else if (nextTok === 'NOT') {
-    const [rhs, afterRhs] = parseAndQuery(afterAnd);
-    return [new NotQueryExpression(lhs, rhs), afterRhs];
-  } else if (nextTok === 'AND') {
-    const [rhs, afterRhs] = parseAndQuery(afterAnd);
-    return [new AndQueryExpression(lhs, rhs), afterRhs];
   } else {
-    const [rhs, afterRhs] = parseAndQuery(afterLhs);
-    return [new AndQueryExpression(lhs, rhs), afterRhs];
+    let rhsStart = afterLhs;
+    if (tok.s.toUpperCase() === 'AND') {
+      rhsStart = afterTok;
+      [tok, afterTok] = nextToken(afterTok);
+    }
+    if (tok.s.toUpperCase() === 'NOT') {
+      rhsStart = afterTok;
+      const [rhs, afterRhs] = parseAndQuery(rhsStart);
+      return [new NotQueryExpression(lhs, rhs), afterRhs];
+    } else {
+      const [rhs, afterRhs] = parseAndQuery(rhsStart);
+      return [new AndQueryExpression(lhs, rhs), afterRhs];
+    }
   }
+
+  // NOTE: There is a bug in here somewhere where an entire match-based clause NOT'd with
+  // a WHERE-based claused has the wrong precedence. For example:
+  //
+  // is:unread NOT hello AND in:inbox
+  //
+  // is interpreted as:
+  //
+  // is:unread (NOT hello AND in:inbox)
+  //
+  // but typically the NOT should only apply to the very next clause... tbd how to fix.
 };
 
 parseQuery = text => {

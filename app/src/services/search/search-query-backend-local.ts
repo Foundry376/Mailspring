@@ -193,6 +193,12 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
     return this.visitAndGetResult(root);
   }
 
+  visitNot(node) {
+    const lhs = this.visitAndGetResult(node.e1);
+    const rhs = this.visitAndGetResult(node.e2);
+    this._result = `(${lhs} AND NOT ${rhs})`;
+  }
+
   visitAnd(node) {
     const lhs = this.visitAndGetResult(node.e1);
     const rhs = this.visitAndGetResult(node.e2);
@@ -230,13 +236,11 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitUnread(node) {
-    const unread = node.status ? 1 : 0;
-    this._result = `(\`${this._className}\`.\`unread\` = ${unread})`;
+    this._result = `(\`${this._className}\`.\`unread\` ${node.status ? '>' : '='} 0)`;
   }
 
   visitStarred(node) {
-    const starred = node.status ? 1 : 0;
-    this._result = `(\`${this._className}\`.\`starred\` = ${starred})`;
+    this._result = `(\`${this._className}\`.\`starred\` ${node.status ? '>' : '='} 0)`;
   }
 
   visitHasAttachment(/* node */) {
