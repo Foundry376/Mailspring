@@ -108,20 +108,40 @@ export default class KeymapManager {
   _bindingsCache: {};
   _commandsCache: {};
   _altKeyDown: boolean = false;
+  _altKeyTimer: NodeJS.Timeout = null;
 
   EVENT_ALT_KEY_STATE_CHANGE = 'alt-key-state-change';
 
   constructor({ configDirPath, resourcePath }) {
     this.configDirPath = configDirPath;
     this.resourcePath = resourcePath;
-    window.addEventListener('keydown', this.onCheckModifierState);
-    window.addEventListener('keyup', this.onCheckModifierState);
+
+    for (const event of ['keydown', 'keyup', 'click']) {
+      window.addEventListener(event, (e: KeyboardEvent) => this.onUpsertModifierState(e.altKey), {
+        capture: true,
+        passive: true,
+      });
+    }
   }
 
-  onCheckModifierState = (e: KeyboardEvent) => {
-    if (this._altKeyDown !== e.altKey) {
-      this._altKeyDown = e.altKey;
+  onUpsertModifierState = (altKeyDown: boolean) => {
+    if (this._altKeyDown !== altKeyDown) {
+      this._altKeyDown = altKeyDown;
       document.dispatchEvent(new CustomEvent(this.EVENT_ALT_KEY_STATE_CHANGE));
+
+      // It's difficult to reliably detect when the user lets go of the alt key if they:
+      // - start a drag and drag out of the app
+      // - open a native context menu and release the alt key
+      // - background the app and release the alt key
+      //
+      // As a workaround, automatically release the alt key after 3 seconds of inactivity.
+      // This should be fine for all practical use as a modifer key and prevents it from
+      // being indefinitely "stuck" in the on-state.
+      //
+      clearTimeout(this._altKeyTimer);
+      if (altKeyDown) {
+        this._altKeyTimer = setTimeout(() => this.onUpsertModifierState(false), 3 * 1000);
+      }
     }
   };
 

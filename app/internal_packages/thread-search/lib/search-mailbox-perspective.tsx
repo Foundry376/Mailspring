@@ -41,15 +41,17 @@ class SearchMailboxPerspective extends MailboxPerspective {
       <span>
         {localized('No search results')}
         {!inTrash && (
-          <a
-            className="btn"
-            style={{ fontWeight: 'normal' }}
-            onClick={() =>
-              Actions.searchQuerySubmitted(`${this.searchQuery} (in:trash OR in:spam)`)
-            }
-          >
-            {localized('Search messages in trash and spam')}
-          </a>
+          <div>
+            <a
+              className="btn"
+              style={{ fontWeight: 'normal' }}
+              onClick={() =>
+                Actions.searchQuerySubmitted(`${this.searchQuery} (in:trash OR in:spam)`)
+              }
+            >
+              {localized('Search messages in trash and spam')}
+            </a>
+          </div>
         )}
       </span>
     );
