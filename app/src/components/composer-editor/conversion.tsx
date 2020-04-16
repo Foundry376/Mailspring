@@ -188,11 +188,18 @@ const TEXT_RULE_IMPROVED: Rule = {
       return children.split('\n').reduce((array, text, i) => {
         if (i !== 0) array.push(<br />);
         // BEGIN CHANGE
+
         // Replace "a   b c" with "a&nbsp;&nbsp; b c" (to match Gmail's behavior exactly.)
         // In a long run of spaces, all but the last space are converted to &nbsp;.
         // Note: This text is pushed through React's HTML serializer after we're done,
         // so we need to use `\u00A0` which is the unicode character for &nbsp;
         text = text.replace(/([ ]+) /g, (str, match) => match.replace(/ /g, '\u00A0') + ' ');
+
+        // If the first character is whitespace (eg: " a" or " "), replace it with an nbsp.
+        // Even if it's not a run of spaces, this character will be ignored because it's
+        // considered HTML whitespace.
+        text = text.replace(/^ /, '\u00A0');
+
         // END CHANGE
         array.push(text);
         return array;
