@@ -34,12 +34,12 @@ class SendRemindersThreadTimestamp extends Component<SendRemindersThreadTimestam
       return <Fallback {...this.props} />;
     }
 
-    const { expiration } = this.props.thread.metadataForPluginId(PLUGIN_ID);
-    if (!expiration) {
+    const metadata = this.props.thread.metadataForPluginId(PLUGIN_ID);
+    if (!metadata || !metadata.expiration) {
       return <Fallback {...this.props} />;
     }
 
-    const mExpiration = moment(expiration);
+    const mExpiration = moment(metadata.expiration);
 
     return (
       <span
