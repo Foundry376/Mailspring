@@ -153,14 +153,23 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     // If documentElement has a scroll height, prioritize that as height
     // If not, fall back to body scroll height by setting it to auto
     let height = 0;
+    let width = 0;
     if (doc && doc.documentElement && doc.documentElement.scrollHeight > 0) {
+      width = doc.documentElement.scrollWidth;
       height = doc.documentElement.scrollHeight;
     } else if (doc && doc.body) {
       const style = window.getComputedStyle(doc.body);
       if (style.height === '0px') {
         doc.body.style.height = 'auto';
       }
+      width = doc.body.scrollWidth;
       height = doc.body.scrollHeight;
+    }
+
+    if (width > iframeEl.clientWidth) {
+      // the message will scroll horizontally, and we need to add 20px to the height of
+      // the iframe to allow for it's scrollbar. Otherwise it covers the last line of text.
+      height += 20;
     }
 
     this._iframeComponent.setHeightQuietly(height);
