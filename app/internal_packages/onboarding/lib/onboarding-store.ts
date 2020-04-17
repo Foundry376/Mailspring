@@ -32,7 +32,7 @@ class OnboardingStore extends MailspringStore {
     if (existingAccountJSON) {
       // Used when re-adding an account after re-connecting, take the user back
       // to the best page with the most details
-      this._account = new Account(existingAccountJSON);
+      this._account = new Account({}).fromJSON(existingAccountJSON);
       if (this._account.provider === 'gmail') {
         this._pageStack = ['account-choose', 'account-settings-gmail'];
       } else if (this._account.provider === 'imap') {
