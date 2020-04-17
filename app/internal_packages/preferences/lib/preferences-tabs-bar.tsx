@@ -33,15 +33,12 @@ class PreferencesTabItem extends React.Component<PreferencesTabItemProps> {
       active: tabId === selection.tabId,
     });
 
-    let path = `icon-preferences-${tabId.toLowerCase().replace(' ', '-')}.png`;
-    if (!fs.existsSync(Utils.imageNamed(path))) {
-      path = 'icon-preferences-general.png';
-    }
     const icon = (
       <RetinaImg
         style={{ width: 40, height: 40 }}
         className="tab-icon"
-        name={path}
+        name={`icon-preferences-${tabId.toLowerCase().replace(' ', '-')}.png`}
+        fallback={`icon-preferences-general.png`}
         mode={RetinaImg.Mode.ContentPreserve}
       />
     );
