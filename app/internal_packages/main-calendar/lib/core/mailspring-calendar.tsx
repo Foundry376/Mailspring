@@ -10,14 +10,18 @@ import {
   localized,
   DestroyModelTask,
 } from 'mailspring-exports';
-import { ScrollRegion, ResizableRegion, KeyCommandsRegion } from 'mailspring-component-kit';
+import {
+  ScrollRegion,
+  ResizableRegion,
+  KeyCommandsRegion,
+  MiniMonthView,
+} from 'mailspring-component-kit';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { EventSearchBar } from './event-search-bar';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
-import { MiniMonthView } from './mini-month-view';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -34,7 +38,9 @@ export interface MailspringCalendarViewProps {
   dataSource: CalendarDataSource;
   focusedEvent: EventOccurrence;
   disabledCalendars: string[];
-  onChangeCurrentView: (view: CalendarView) => void;
+  focusedMoment: Moment;
+  onChangeView: (view: CalendarView) => void;
+  onChangeFocusedMoment: (moment: Moment) => void;
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
   onCalendarMouseDown: (args: CalendarEventArgs) => void;
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
@@ -65,12 +71,12 @@ interface MailspringCalendarProps {
 }
 
 interface MailspringCalendarState {
-  currentView: CalendarView;
+  view: CalendarView;
   selectedEvents: EventOccurrence[];
   focusedEvent: EventOccurrence | null;
   accounts?: Account[];
   calendars: Calendar[];
-  currentMoment: Moment;
+  focusedMoment: Moment;
   disabledCalendars: string[];
 }
 
@@ -81,10 +87,6 @@ export class MailspringCalendar extends React.Component<
   static displayName = 'MailspringCalendar';
 
   static WeekView = WeekView;
-
-  static defaultProps = {
-    selectedEvents: [],
-  };
 
   static containerStyles = {
     height: '100%',
@@ -99,8 +101,8 @@ export class MailspringCalendar extends React.Component<
       calendars: [],
       focusedEvent: null,
       selectedEvents: [],
-      currentView: CalendarView.WEEK,
-      currentMoment: moment(),
+      view: CalendarView.WEEK,
+      focusedMoment: moment(),
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
     };
   }
@@ -118,27 +120,28 @@ export class MailspringCalendar extends React.Component<
     const calQueryObs = Rx.Observable.fromQuery(calQuery);
     const accQueryObs = Rx.Observable.fromStore(AccountStore);
     const configObs = Rx.Observable.fromConfig<string[] | undefined>(DISABLED_CALENDARS);
-    return Rx.Observable.combineLatest<any>([calQueryObs, accQueryObs, configObs]).subscribe(
-      ([calendars, accountStore, disabledCalendars]: [Calendar[], any, string[] | undefined]) => {
+
+    return Rx.Observable.combineLatest(calQueryObs, accQueryObs, configObs).subscribe(
+      ([calendars, accountStore, disabledCalendars]) => {
         this.setState({
-          accounts: accountStore.accounts() as Account[],
           calendars: calendars,
+          accounts: accountStore.accounts(),
           disabledCalendars: disabledCalendars || [],
         });
       }
     );
   }
 
-  onChangeCurrentView = (currentView: CalendarView) => {
-    this.setState({ currentView });
+  onChangeView = (view: CalendarView) => {
+    this.setState({ view });
   };
 
-  onChangeCurrentMoment = (currentMoment: Moment) => {
-    this.setState({ currentMoment, focusedEvent: null });
+  onChangeFocusedMoment = (focusedMoment: Moment) => {
+    this.setState({ focusedMoment, focusedEvent: null });
   };
 
   _focusEvent = (event: EventOccurrence) => {
-    this.setState({ currentMoment: moment(event.start * 1000), focusedEvent: event });
+    this.setState({ focusedMoment: moment(event.start * 1000), focusedEvent: event });
   };
 
   _openEventPopover(eventModel: EventOccurrence) {
@@ -172,12 +175,12 @@ export class MailspringCalendar extends React.Component<
     });
   };
 
-  _onEventDoubleClick = (eventModel: EventOccurrence) => {
-    this._openEventPopover(eventModel);
+  _onEventDoubleClick = (occurrence: EventOccurrence) => {
+    this._openEventPopover(occurrence);
   };
 
-  _onEventFocused = (eventModel: EventOccurrence) => {
-    this._openEventPopover(eventModel);
+  _onEventFocused = (occurrence: EventOccurrence) => {
+    this._openEventPopover(occurrence);
   };
 
   _onDeleteSelectedEvents = () => {
@@ -207,7 +210,7 @@ export class MailspringCalendar extends React.Component<
   };
 
   render() {
-    const CurrentView = VIEWS[this.state.currentView];
+    const CurrentView = VIEWS[this.state.view];
 
     return (
       <KeyCommandsRegion
@@ -236,17 +239,17 @@ export class MailspringCalendar extends React.Component<
             />
           </ScrollRegion>
           <div style={{ width: '100%' }}>
-            <MiniMonthView value={this.state.currentMoment} onChange={this.onChangeCurrentMoment} />
+            <MiniMonthView value={this.state.focusedMoment} onChange={this.onChangeFocusedMoment} />
           </div>
         </ResizableRegion>
         <CurrentView
           dataSource={this._dataSource}
-          currentMoment={this.state.currentMoment}
+          focusedMoment={this.state.focusedMoment}
           focusedEvent={this.state.focusedEvent}
           selectedEvents={this.state.selectedEvents}
           disabledCalendars={this.state.disabledCalendars}
-          onChangeCurrentView={this.onChangeCurrentView}
-          onChangeCurrentMoment={this.onChangeCurrentMoment}
+          onChangeView={this.onChangeView}
+          onChangeFocusedMoment={this.onChangeFocusedMoment}
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}
           onCalendarMouseMove={this.props.onCalendarMouseMove}

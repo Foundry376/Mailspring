@@ -1,6 +1,6 @@
 import utf7 from 'utf7';
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
@@ -14,7 +14,7 @@ export class SyncbackCategoryTask extends Task {
     existingPath: Attributes.String({
       modelKey: 'existingPath',
     }),
-    created: Attributes.Object({
+    created: Attributes.Obj({
       modelKey: 'created',
     }),
   };

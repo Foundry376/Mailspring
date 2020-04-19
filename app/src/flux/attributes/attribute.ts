@@ -1,5 +1,5 @@
 import { Matcher } from './matcher';
-import SortOrder from './sort-order';
+import { SortOrder } from './sort-order';
 
 /*
 Public: The Attribute class represents a single model attribute, like 'account_id'.
@@ -9,7 +9,7 @@ The Attribute class also exposes convenience methods for generating {Matcher} ob
 
 Section: Database
 */
-export default class Attribute {
+export class Attribute {
   public modelKey: string;
   public tableColumn: string;
   public jsonKey: string;
@@ -23,14 +23,14 @@ export default class Attribute {
     loadFromColumn,
   }: {
     modelKey: string;
-    queryable: boolean;
-    jsonKey: string;
+    queryable?: boolean;
+    jsonKey?: string;
     loadFromColumn?: boolean;
   }) {
     this.modelKey = modelKey;
     this.tableColumn = modelKey;
     this.jsonKey = jsonKey || modelKey;
-    this.queryable = queryable;
+    this.queryable = queryable || false;
     if (loadFromColumn && !queryable) {
       throw new Error('loadFromColumn requires queryable');
     }
@@ -49,7 +49,7 @@ export default class Attribute {
   }
 
   // Public: Returns a {Matcher} for objects `=` to the provided value.
-  equal(val) {
+  equal(val: string | number | boolean) {
     this._assertPresentAndQueryable('equal', val);
     return new Matcher(this, '=', val);
   }
@@ -63,9 +63,7 @@ export default class Attribute {
     }
     if (val.length === 0) {
       console.warn(
-        `Attribute::in (${
-          this.modelKey
-        }) called with an empty set. You should avoid this useless query!`
+        `Attribute::in (${this.modelKey}) called with an empty set. You should avoid this useless query!`
       );
     }
     if (val.length === 1) {

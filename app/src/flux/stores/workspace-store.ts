@@ -41,7 +41,7 @@ interface SheetToolbarDeclaration {
 
 export interface SheetDeclaration {
   id: string;
-  columns: string[];
+  columns: { [mode: string]: { id: string; Toolbar: { id: string } }[] };
   supportedModes: string[];
 
   icon: string;
@@ -52,7 +52,7 @@ export interface SheetDeclaration {
   Toolbar: SheetToolbarDeclaration;
   Header: { id: string };
   Footer: { id: string };
-  Center: { id: string };
+  // Center: { id: string };
 }
 
 /*
@@ -293,23 +293,14 @@ class WorkspaceStore extends MailspringStore {
   // *`columns` An {Object} with keys for each layout mode the Sheet
   //      supports. For each key, provide an array of column names.
   //
-  defineSheet(id, options: Partial<SheetDeclaration> = {}, columns = {}) {
-    // Make sure all the locations have definitions so that packages
-    // can register things into these locations and their toolbars.
-    for (let layout in columns) {
-      const cols = columns[layout];
-      for (let idx = 0; idx < cols.length; idx++) {
-        const col = cols[idx];
-        if (Location[col] == null) {
-          Location[col] = { id: `${col}`, Toolbar: { id: `${col}:Toolbar` } };
-        }
-        cols[idx] = Location[col];
-      }
-    }
-
+  defineSheet(
+    id,
+    options: Partial<SheetDeclaration> = {},
+    columns: { [mode: string]: string[] } = {}
+  ) {
     Sheet[id] = {
       id,
-      columns,
+      columns: {},
       supportedModes: Object.keys(columns),
 
       icon: options.icon,
@@ -324,6 +315,18 @@ class WorkspaceStore extends MailspringStore {
       Header: { id: `Sheet:${id}:Header` },
       Footer: { id: `Sheet:${id}:Footer` },
     };
+
+    // Make sure all the locations have definitions so that packages
+    // can register things into these locations and their toolbars.
+    for (let [mode, cols] of Object.entries(columns)) {
+      Sheet[id].columns[mode] = [];
+      for (let col of cols) {
+        if (Location[col] == null) {
+          Location[col] = { id: `${col}`, Toolbar: { id: `${col}:Toolbar` } };
+        }
+        Sheet[id].columns[mode].push(Location[col]);
+      }
+    }
 
     if (options.root && !this.rootSheet() && !(options as any).silent) {
       this._onSelectRootSheet(Sheet[id]);

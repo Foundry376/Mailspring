@@ -9,10 +9,6 @@ export class HeaderControls extends React.Component<{
 }> {
   static displayName = 'HeaderControls';
 
-  static defaultProps = {
-    headerComonents: false,
-  };
-
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }

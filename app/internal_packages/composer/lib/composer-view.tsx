@@ -62,7 +62,9 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   dropzone = React.createRef<DropZone>();
   sendButton = React.createRef<SendActionButton>();
   focusContainer = React.createRef<KeyCommandsRegion & HTMLDivElement>();
-  editor = React.createRef<ComposerEditor>();
+  editor:
+    | React.RefObject<ComposerEditorPlaintext>
+    | React.RefObject<ComposerEditor> = React.createRef<any>();
   header = React.createRef<ComposerHeader>();
 
   _keymapHandlers = {
@@ -158,7 +160,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
           <div className="composer-body-wrap">
             {draft.plaintext ? (
               <ComposerEditorPlaintext
-                ref={this.editor}
+                ref={this.editor as React.RefObject<ComposerEditorPlaintext>}
                 value={draft.body}
                 propsForPlugins={{ draft, session }}
                 onFileReceived={this._onFileReceived}
@@ -170,7 +172,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
             ) : (
               <>
                 <ComposerEditor
-                  ref={this.editor}
+                  ref={this.editor as React.RefObject<ComposerEditor>}
                   value={draft.bodyEditorState}
                   className={quotedTextHidden && 'hiding-quoted-text'}
                   propsForPlugins={{ draft, session }}

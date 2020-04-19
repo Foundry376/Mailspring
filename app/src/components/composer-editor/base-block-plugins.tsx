@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor, Value, Node } from 'slate';
+import { Editor, Value, Node, Block } from 'slate';
 import SoftBreak from 'slate-soft-break';
 import EditList from '@bengotow/slate-edit-list';
 import AutoReplace from 'slate-auto-replace';

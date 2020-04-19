@@ -1,10 +1,11 @@
 /* eslint global-require: 0 */
-import Attributes from '../attributes';
+import { Matcher, AttributeJoinedData, AttributeCollection, SortOrder } from '../attributes';
 import { QueryRange } from './query-range';
+import { QueryExpression } from '../../services/search/search-query-ast';
 import * as Utils from './utils';
 import { Model } from './model';
 
-const { Matcher, AttributeJoinedData, AttributeCollection } = Attributes;
+type DB = typeof import('mailspring-exports').DatabaseStore;
 
 /*
 Public: ModelQuery exposes an ActiveRecord-style syntax for building database queries
@@ -37,16 +38,16 @@ query.where([Thread.attributes.categories.contains('label-id')])
 
 Section: Database
 */
-export default class ModelQuery<T> {
-  private _database: typeof import('mailspring-exports').DatabaseStore;
-  private _matchers = [];
-  private _orders = [];
+export default class ModelQuery<T extends Model | Model[]> {
+  private _database: DB;
+  private _matchers: Matcher[] = [];
+  private _orders: SortOrder[] = [];
   private _backgroundable = true;
   private _distinct = false;
   private _range = QueryRange.infinite();
   private _returnOne = false;
   private _returnIds = false;
-  private _includeJoinedData = [];
+  private _includeJoinedData: AttributeJoinedData[] = [];
 
   _background = false;
   _count = false;
@@ -58,13 +59,15 @@ export default class ModelQuery<T> {
   // - `database` (optional) An optional reference to a {DatabaseStore} the
   //   query will be executed on.
   //
-  constructor(klass, database) {
+  constructor(klass, database: DB) {
     this._klass = klass.SubclassesUseModelTable || klass;
     this._database = database || require('./database-store').default;
   }
 
   clone(): ModelQuery<T> {
-    const q = new ModelQuery<T>(this._klass, this._database).where(this._matchers).order(this._orders);
+    const q = new ModelQuery<T>(this._klass, this._database)
+      .where(this._matchers)
+      .order(this._orders);
     q._orders = [...this._orders];
     q._includeJoinedData = [...this._includeJoinedData];
     q._range = this._range.clone();
@@ -101,7 +104,12 @@ export default class ModelQuery<T> {
   //
   // This method is chainable.
   //
-  where(matchers: any[] | any) {
+  where(
+    matchers:
+      | Matcher[]
+      | Matcher
+      | { [key: string]: string | string[] | number | number[] | boolean }
+  ) {
     this._assertNotFinalized();
 
     if (matchers instanceof Matcher) {
@@ -119,9 +127,7 @@ export default class ModelQuery<T> {
         const value = matchers[key];
         const attr = this._klass.attributes[key];
         if (!attr) {
-          const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${
-            this._klass.name
-          }`;
+          const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${this._klass.name}`;
           throw new Error(msg);
         }
 
@@ -135,19 +141,19 @@ export default class ModelQuery<T> {
     return this;
   }
 
-  whereAny(matchers) {
+  whereAny(matchers: Matcher[]) {
     this._assertNotFinalized();
     this._matchers.push(new Matcher.Or(matchers));
     return this;
   }
 
-  search(query) {
+  search(query: string) {
     this._assertNotFinalized();
     this._matchers.push(new Matcher.Search(query));
     return this;
   }
 
-  structuredSearch(query) {
+  structuredSearch(query: QueryExpression) {
     this._assertNotFinalized();
     this._matchers.push(new Matcher.StructuredSearch(query));
     return this;
@@ -160,7 +166,7 @@ export default class ModelQuery<T> {
   //
   // This method is chainable.
   //
-  include(attr) {
+  include(attr: AttributeJoinedData) {
     this._assertNotFinalized();
     if (!(attr instanceof AttributeJoinedData)) {
       throw new Error('query.include() must be called with a joined data attribute');
@@ -190,7 +196,7 @@ export default class ModelQuery<T> {
   //
   // This method is chainable.
   //
-  order(ordersOrOrder) {
+  order(ordersOrOrder: SortOrder | SortOrder[]) {
     this._assertNotFinalized();
     const orders = ordersOrOrder instanceof Array ? ordersOrOrder : [ordersOrOrder];
     this._orders = this._orders.concat(orders);
@@ -214,7 +220,7 @@ export default class ModelQuery<T> {
   //
   // This method is chainable.
   //
-  limit(limit) {
+  limit(limit: number) {
     this._assertNotFinalized();
     if (this._returnOne && limit > 1) {
       throw new Error('Cannot use limit > 1 with one()');
@@ -230,7 +236,7 @@ export default class ModelQuery<T> {
   //
   // This method is chainable.
   //
-  offset(offset) {
+  offset(offset: number) {
     this._assertNotFinalized();
     this._range = this._range.clone();
     this._range.offset = offset;
@@ -241,7 +247,7 @@ export default class ModelQuery<T> {
   //
   // A convenience method for setting both limit and offset given a desired page size.
   //
-  page(start, end, pageSize = 50, pagePadding = 100) {
+  page(start: number, end: number, pageSize = 50, pagePadding = 100) {
     const roundToPage = n => Math.max(0, Math.floor(n / pageSize) * pageSize);
     this.offset(roundToPage(start - pagePadding));
     this.limit(roundToPage(end - start + pagePadding * 2));
@@ -272,7 +278,7 @@ export default class ModelQuery<T> {
   // Returns a {Promise} that resolves with the Models returned by the
   // query, or rejects with an error from the Database layer.
   //
-  then<U>(next: (arg0: T) => U ): Promise<U> {
+  then<U>(next: (arg0: T) => U): Promise<U> {
     return this.run().then(next);
   }
 
@@ -283,7 +289,7 @@ export default class ModelQuery<T> {
     return this._database.run<T>(this);
   }
 
-  inflateResult(result) {
+  inflateResult(result: { [key: string]: any }[]) {
     if (!result) {
       return null;
     }
@@ -292,12 +298,12 @@ export default class ModelQuery<T> {
       return result[0].count / 1;
     }
     if (this._returnIds) {
-      return result.map(row => row.id);
+      return result.map(row => row.id as string);
     }
 
     try {
       return result.map(row => {
-        const object = Utils.convertToModel(JSON.parse(row.data));
+        const object: T = Utils.convertToModel(JSON.parse(row.data));
         for (const attrName of Object.keys(this._klass.attributes)) {
           const attr = this._klass.attributes[attrName];
           if (!attr.needsColumn() || !attr.loadFromColumn) {
@@ -321,13 +327,21 @@ export default class ModelQuery<T> {
     }
   }
 
-  formatResult(inflated) {
+  formatResult<U extends Model | Model[] | number>(inflated: U) {
+    if (this._count) {
+      if (typeof inflated != 'number') {
+        throw new Error(`Expected query result to be a number.`);
+      }
+      return inflated;
+    }
+
+    if (!(inflated instanceof Array)) {
+      throw new Error(`Expected query result to be an array.`);
+    }
+
     if (this._returnOne) {
       // be careful not to return "undefined" if no items returned
       return inflated.length > 0 ? inflated[0] : null;
-    }
-    if (this._count) {
-      return inflated;
     }
     return [...inflated];
   }
@@ -355,7 +369,7 @@ export default class ModelQuery<T> {
         result += `, ${attr.tableColumn} `;
       }
       this._includeJoinedData.forEach(attr => {
-        result += `, ${attr.selectSQL(this._klass)} `;
+        result += `, ${attr.selectSQL()} `;
       });
     }
 
@@ -378,9 +392,7 @@ export default class ModelQuery<T> {
 
     if (joins.length === 1 && this._canSubselectForJoin(joins[0], allMatchers)) {
       const subSql = this._subselectSQL(joins[0], this._matchers, order, limit);
-      return `SELECT${distinct} ${result} FROM \`${
-        this._klass.name
-      }\` WHERE \`id\` IN (${subSql}) ${order}`;
+      return `SELECT${distinct} ${result} FROM \`${this._klass.name}\` WHERE \`id\` IN (${subSql}) ${order}`;
     }
 
     return `SELECT${distinct} ${result} FROM \`${
@@ -396,8 +408,8 @@ export default class ModelQuery<T> {
   //
   // Note: This is currently only intended for use in the thread list
   //
-  _canSubselectForJoin(matcher, allMatchers) {
-    const joinAttribute = matcher.attribute();
+  _canSubselectForJoin(matcher: Matcher, allMatchers: Matcher[]) {
+    const joinAttribute = matcher.attribute() as AttributeCollection;
 
     if (!Number.isInteger(this._range.limit)) {
       return false;
@@ -416,8 +428,13 @@ export default class ModelQuery<T> {
     return allMatchersOnJoinTable && allOrdersOnJoinTable;
   }
 
-  _subselectSQL(returningMatcher, subselectMatchers, order, limit) {
-    const returningAttribute = returningMatcher.attribute();
+  _subselectSQL(
+    returningMatcher: Matcher,
+    subselectMatchers: Matcher[],
+    order: string,
+    limit: string
+  ) {
+    const returningAttribute = returningMatcher.attribute() as AttributeCollection;
 
     const table = returningAttribute.tableNameForJoinAgainst(this._klass);
     const wheres = subselectMatchers.map(c => c.whereSQL(this._klass)).filter(c => !!c);
@@ -530,7 +547,7 @@ export default class ModelQuery<T> {
     return all;
   }
 
-  matcherValueForModelKey(key) {
+  matcherValueForModelKey(key: string) {
     const matcher = this._matchers.find(m => m.attr.modelKey === key);
     return matcher ? matcher.val : null;
   }

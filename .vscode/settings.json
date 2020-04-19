@@ -26,5 +26,6 @@
     "thread": "cpp",
     "typeinfo": "cpp"
   },
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

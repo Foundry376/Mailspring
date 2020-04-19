@@ -1,5 +1,5 @@
 import { ChangeMailTask } from './change-mail-task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Folder } from '../models/folder';
 import { localized } from '../../intl';
 import { Message } from '../models/Message';
@@ -21,11 +21,11 @@ export class ChangeFolderTask extends ChangeMailTask {
   static attributes = {
     ...ChangeMailTask.attributes,
 
-    previousFolder: Attributes.Object({
+    previousFolder: Attributes.Obj({
       modelKey: 'previousFolder',
       itemClass: Folder,
     }),
-    folder: Attributes.Object({
+    folder: Attributes.Obj({
       modelKey: 'folder',
       itemClass: Folder,
     }),

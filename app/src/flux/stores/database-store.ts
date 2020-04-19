@@ -218,7 +218,7 @@ class DatabaseStore extends MailspringStore {
   // If a query is made before the database has been opened, the query will be
   // held in a queue and run / resolved when the database is ready.
   _query(query: SQLString, values: SQLValue[] = [], background: boolean = false) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<{ [key: string]: any }[]>(async (resolve, reject) => {
       if (!this._open) {
         this._waiting.push(() => this._query(query, values).then(resolve, reject));
         return;
@@ -403,7 +403,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  find<T extends Model>(klass, id) {
+  find<T extends Model>(klass: typeof Model, id) {
     if (!klass) {
       throw new Error(`DatabaseStore::find - You must provide a class`);
     }
@@ -512,9 +512,12 @@ class DatabaseStore extends MailspringStore {
   // Returns a {Promise} that
   //   - resolves with the result of the database query.
   //
-  run<T>(modelQuery: Query<T>, options = { format: true }): Promise<T> {
+  run<T extends Model | Model[]>(modelQuery: Query<T>, options?: { format: boolean }): Promise<T>;
+  run<U>(modelQuery: Query<any>, options: { format: false }): Promise<U>;
+
+  run(modelQuery: Query<any>, options = { format: true }): Promise<any> {
     return this._query(modelQuery.sql(), [], modelQuery._background).then(result => {
-      let transformed = modelQuery.inflateResult(result);
+      let transformed: any = modelQuery.inflateResult(result);
       if (options.format !== false) {
         transformed = modelQuery.formatResult(transformed);
       }

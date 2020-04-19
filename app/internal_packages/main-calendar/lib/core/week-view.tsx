@@ -32,10 +32,6 @@ export class WeekView extends React.Component<
 > {
   static displayName = 'WeekView';
 
-  static defaultProps = {
-    changeCurrentView: () => {},
-  };
-
   _waitingForShift = 0;
   _mounted: boolean = false;
   _sub?: Disposable;
@@ -65,7 +61,7 @@ export class WeekView extends React.Component<
     wrap.scrollLeft += this._waitingForShift;
     this._waitingForShift = 0;
     if (
-      prevProps.currentMoment !== this.props.currentMoment ||
+      prevProps.focusedMoment !== this.props.focusedMoment ||
       prevProps.disabledCalendars !== this.props.disabledCalendars
     ) {
       this.updateSubscription();
@@ -102,24 +98,24 @@ export class WeekView extends React.Component<
   }
 
   _calculateMomentRange() {
-    const { currentMoment } = this.props;
+    const { focusedMoment } = this.props;
     let start: Moment;
 
     // NOTE: Since we initialize a new time from one of the properties of
-    // the props.currentMomet, we need to check for the timezone!
+    // the props.focusedMoment, we need to check for the timezone!
     //
     // Other relative operations (like adding or subtracting time) are
     // independent of a timezone.
-    const tz = currentMoment.tz();
+    const tz = focusedMoment.tz();
     if (tz) {
-      start = moment.tz([currentMoment.year()], tz);
+      start = moment.tz([focusedMoment.year()], tz);
     } else {
-      start = moment([currentMoment.year()]);
+      start = moment([focusedMoment.year()]);
     }
 
     start = start
       .weekday(0)
-      .week(currentMoment.week())
+      .week(focusedMoment.week())
       .subtract(BUFFER_DAYS, 'days');
 
     const end = moment(start)
@@ -187,17 +183,17 @@ export class WeekView extends React.Component<
   }
 
   _onClickToday = () => {
-    this.props.changeCurrentMoment(this._now());
+    this.props.onChangeFocusedMoment(this._now());
   };
 
   _onClickNextWeek = () => {
-    const newMoment = moment(this.props.currentMoment).add(1, 'week');
-    this.props.changeCurrentMoment(newMoment);
+    const newMoment = moment(this.props.focusedMoment).add(1, 'week');
+    this.props.onChangeFocusedMoment(newMoment);
   };
 
   _onClickPrevWeek = () => {
-    const newMoment = moment(this.props.currentMoment).subtract(1, 'week');
-    this.props.changeCurrentMoment(newMoment);
+    const newMoment = moment(this.props.focusedMoment).subtract(1, 'week');
+    this.props.onChangeFocusedMoment(newMoment);
   };
 
   _gridHeight() {

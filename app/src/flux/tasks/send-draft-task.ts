@@ -2,7 +2,7 @@
 import { AccountStore } from '../stores/account-store';
 import { Task } from './task';
 import * as Actions from '../actions';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Message } from '../models/message';
 import SoundRegistry from '../../registries/sound-registry';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
@@ -82,14 +82,14 @@ export class SendDraftTask extends Task {
   static attributes = {
     ...Task.attributes,
 
-    draft: Attributes.Object({
+    draft: Attributes.Obj({
       modelKey: 'draft',
       itemClass: Message,
     }),
     headerMessageId: Attributes.String({
       modelKey: 'headerMessageId',
     }),
-    perRecipientBodies: Attributes.Object({
+    perRecipientBodies: Attributes.Obj({
       modelKey: 'perRecipientBodies',
     }),
 

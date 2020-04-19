@@ -1,4 +1,5 @@
-import Attribute from './attribute';
+import { Attribute } from './attribute';
+import { Model } from '../models/model';
 
 /*
 Public: Represents a particular sort direction on a particular column. You should not
@@ -14,16 +15,16 @@ DatabaseStore.findBy<Message>(Message)
 
 Section: Database
 */
-export default class SortOrder {
+export class SortOrder {
   public attr: Attribute;
   public direction: 'ASC' | 'DESC';
 
-  constructor(attr, direction: 'ASC' | 'DESC' = 'DESC') {
+  constructor(attr: Attribute, direction: 'ASC' | 'DESC' = 'DESC') {
     this.attr = attr;
     this.direction = direction;
   }
 
-  orderBySQL(klass) {
+  orderBySQL(klass: typeof Model) {
     return `\`${klass.name}\`.\`${this.attr.tableColumn}\` ${this.direction}`;
   }
 

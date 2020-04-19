@@ -68,7 +68,7 @@ export default class SendLaterStatus extends Component<SendLaterStatusProps, Sen
         SendDraftTask,
         { headerMessageId: draft.headerMessageId },
         { includeCompleted: true }
-      ).pop(),
+      ).pop() as SendDraftTask,
     };
   }
 

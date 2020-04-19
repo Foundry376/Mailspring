@@ -1,11 +1,10 @@
-
 export {};
 declare global {
   module NodeJS {
     interface Global {
       jasmine: any;
       shellStartTime: number;
-      errorLogger: import('../../error-logger');
+      errorLogger: any;
       application: import('../application').default;
     }
   }

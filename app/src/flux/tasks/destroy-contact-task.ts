@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Contact } from '../models/contact';
 import { AttributeValues } from '../models/model';
 import { localized } from 'mailspring-exports';

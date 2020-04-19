@@ -13,9 +13,10 @@ import {
   DateQueryExpression,
   InQueryExpression,
   HasAttachmentQueryExpression,
+  QueryExpression,
 } from './search-query-ast';
 
-const nextStringToken = text => {
+const nextStringToken = (text: string): [SearchQueryToken, string] => {
   if (text[0] !== '"') {
     throw new Error('Expected string token to begin with double quote (")');
   }
@@ -44,7 +45,7 @@ const isWhitespace = c => {
   }
 };
 
-const consumeWhitespace = text => {
+const consumeWhitespace = (text: string) => {
   let pos = 0;
   while (pos < text.length && isWhitespace(text[pos])) {
     pos += 1;
@@ -74,7 +75,7 @@ const reserved = [
   'not',
 ];
 
-const mightBeReserved = text => {
+const mightBeReserved = (text: string) => {
   for (const r of reserved) {
     if (r.startsWith(text) || r.toUpperCase().startsWith(text)) {
       return true;
@@ -83,7 +84,7 @@ const mightBeReserved = text => {
   return false;
 };
 
-const isValidNonStringChar = c => {
+const isValidNonStringChar = (c: string) => {
   switch (c) {
     case '(':
     case ')':
@@ -94,7 +95,7 @@ const isValidNonStringChar = c => {
   }
 };
 
-const isValidNonStringText = text => {
+const isValidNonStringText = (text: string) => {
   if (text.length < 1) {
     return false;
   }
@@ -107,7 +108,7 @@ const isValidNonStringText = text => {
   return true;
 };
 
-const nextToken = text => {
+const nextToken = (text: string): [SearchQueryToken, string] => {
   const newText = consumeWhitespace(text);
   if (newText.length === 0) {
     return [null, newText];
@@ -179,7 +180,7 @@ const nextToken = text => {
  *     | [^\s]+
  * STRING: DQUOTE [^"]* DQUOTE
  */
-const consumeExpectedToken = (text, token) => {
+const consumeExpectedToken = (text: string, token: string) => {
   const [tok, afterTok] = nextToken(text);
   if (tok.s !== token) {
     throw new Error(`Expected '${token}', got '${tok.s}'`);
@@ -187,7 +188,7 @@ const consumeExpectedToken = (text, token) => {
   return afterTok;
 };
 
-const parseText = text => {
+const parseText = (text: string): [QueryExpression, string] => {
   const [tok, afterTok] = nextToken(text);
   if (tok === null) {
     throw new Error('Expected text but none available');
@@ -195,7 +196,7 @@ const parseText = text => {
   return [new TextQueryExpression(tok), afterTok];
 };
 
-const parseIsQuery = text => {
+const parseIsQuery = (text: string): [QueryExpression, string] => {
   const afterColon = consumeExpectedToken(text, ':');
   const [tok, afterTok] = nextToken(afterColon);
   if (tok === null) {
@@ -217,7 +218,7 @@ const parseIsQuery = text => {
   return null;
 };
 
-const parseHasQuery = text => {
+const parseHasQuery = (text: string): [QueryExpression, string] => {
   const afterColon = consumeExpectedToken(text, ':');
   const [tok, afterTok] = nextToken(afterColon);
   if (tok === null) {
@@ -235,8 +236,7 @@ const parseHasQuery = text => {
   return null;
 };
 
-let parseQuery = null; // Satisfy our robot overlords.
-const parseSimpleQuery = text => {
+const parseSimpleQuery = (text: string): [QueryExpression, string] => {
   const [tok, afterTok] = nextToken(text);
   if (tok === null) {
     return [null, afterTok];
@@ -301,7 +301,7 @@ const parseSimpleQuery = text => {
   return [new GenericQueryExpression(txt), afterTxt];
 };
 
-const parseOrQuery = (text: string) => {
+const parseOrQuery = (text: string): [QueryExpression, string] => {
   const [lhs, afterLhs] = parseSimpleQuery(text);
   const [tok, afterOr] = nextToken(afterLhs);
   if (tok === null) {
@@ -314,7 +314,7 @@ const parseOrQuery = (text: string) => {
   return [new OrQueryExpression(lhs, rhs), afterRhs];
 };
 
-const parseAndQuery = text => {
+const parseAndQuery = (text: string): [QueryExpression, string] => {
   let [lhs, afterLhs] = parseOrQuery(text);
   let [tok, afterTok] = nextToken(afterLhs);
   if (tok === null) {
@@ -353,11 +353,11 @@ const parseAndQuery = text => {
   // but typically the NOT should only apply to the very next clause... tbd how to fix.
 };
 
-parseQuery = text => {
+const parseQuery = (text: string) => {
   return parseAndQuery(text);
 };
 
-const parseQueryWrapper = text => {
+const parseQueryWrapper = (text: string) => {
   let currText = text;
   const exps = [];
   while (currText.length > 0) {
@@ -373,7 +373,7 @@ const parseQueryWrapper = text => {
     throw new Error('Unable to parse query');
   }
 
-  let result = null;
+  let result: QueryExpression = null;
   for (let i = exps.length - 1; i >= 0; --i) {
     if (result === null) {
       result = exps[i];
@@ -385,7 +385,7 @@ const parseQueryWrapper = text => {
 };
 
 export class SearchQueryParser {
-  static parse(query) {
+  static parse(query: string) {
     return parseQueryWrapper(query);
   }
 }

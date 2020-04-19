@@ -4,11 +4,15 @@ import { MutableQueryResultSet } from './mutable-query-result-set';
 import ModelQuery from './query';
 import { Model } from './model';
 import DatabaseChangeRecord from '../stores/database-change-record';
+import { QueryResultSet } from './query-result-set';
+
+type QuerySubscriptionResult<T extends Model> = QueryResultSet<T> | number | T | T[];
+type QuerySubscriptionCallback<T extends Model> = (result: QuerySubscriptionResult<T>) => void;
 
 export class QuerySubscription<T extends Model> {
   _set: MutableQueryResultSet<T> = null;
-  _callbacks = [];
-  _lastResult = undefined; // null is a valid result!
+  _callbacks: QuerySubscriptionCallback<T>[] = [];
+  _lastResult: QuerySubscriptionResult<T> | undefined = undefined; // null is a valid result!
   _updateInFlight = false;
   _queuedChangeRecords = [];
   _queryVersion = 1;
@@ -16,7 +20,7 @@ export class QuerySubscription<T extends Model> {
   _options: any;
 
   constructor(
-    query,
+    query: ModelQuery<T> | ModelQuery<T[]>,
     options: {
       initialModels?: T[];
       emitResultSet?: boolean;
@@ -53,7 +57,7 @@ export class QuerySubscription<T extends Model> {
     return this._query;
   };
 
-  addCallback = callback => {
+  addCallback = (callback: QuerySubscriptionCallback<T>) => {
     if (!(callback instanceof Function)) {
       throw new Error(`QuerySubscription:addCallback - expects a function, received ${callback}`);
     }
@@ -63,11 +67,11 @@ export class QuerySubscription<T extends Model> {
     }
   };
 
-  hasCallback = callback => {
+  hasCallback = (callback: QuerySubscriptionCallback<T>) => {
     return this._callbacks.indexOf(callback) !== -1;
   };
 
-  removeCallback(callback) {
+  removeCallback(callback: QuerySubscriptionCallback<T>) {
     if (!(callback instanceof Function)) {
       throw new Error(
         `QuerySubscription:removeCallback - expects a function, received ${callback}`
@@ -170,7 +174,7 @@ export class QuerySubscription<T extends Model> {
     }
   };
 
-  _itemSortOrderHasChanged(old, updated) {
+  _itemSortOrderHasChanged(old: T, updated: T) {
     if (!old || !updated) return true;
 
     for (const descriptor of this._query.orderSortDescriptors()) {
@@ -211,7 +215,7 @@ export class QuerySubscription<T extends Model> {
     }
   }
 
-  _getMissingRange = (desiredRange, currentRange) => {
+  _getMissingRange = (desiredRange: QueryRange, currentRange: QueryRange) => {
     if (currentRange && !currentRange.isInfinite() && !desiredRange.isInfinite()) {
       const ranges = QueryRange.rangesBySubtracting(desiredRange, currentRange);
       return ranges.length === 1 ? ranges[0] : desiredRange;
@@ -219,7 +223,7 @@ export class QuerySubscription<T extends Model> {
     return desiredRange;
   };
 
-  _getQueryForRange = (range, fetchEntireModels: boolean) => {
+  _getQueryForRange = (range: QueryRange, fetchEntireModels: boolean) => {
     let rangeQuery = null;
     if (!range.isInfinite()) {
       rangeQuery = rangeQuery || this._query.clone();
@@ -233,7 +237,10 @@ export class QuerySubscription<T extends Model> {
     return rangeQuery;
   };
 
-  _fetchRange(range, { version, fetchEntireModels }) {
+  _fetchRange(
+    range: QueryRange,
+    { version, fetchEntireModels }: { version: number; fetchEntireModels: boolean }
+  ) {
     const rangeQuery = this._getQueryForRange(range, fetchEntireModels);
     const haveModels = this._set && this._set.modelCacheCount() > 0;
 
@@ -308,7 +315,8 @@ export class QuerySubscription<T extends Model> {
       this._set.setQuery(this._query);
       this._lastResult = this._set.immutableClone();
     } else {
-      this._lastResult = this._query.formatResult(this._set.models());
+      const models = this._set.models();
+      this._lastResult = this._query.formatResult(models);
     }
 
     this._callbacks.forEach(callback => callback(this._lastResult));

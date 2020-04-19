@@ -101,6 +101,7 @@ lazyLoad('DropdownMenu', 'dropdown-menu');
 lazyLoad('OutlineViewItem', 'outline-view-item');
 lazyLoad('OutlineView', 'outline-view');
 lazyLoad('DateInput', 'date-input');
+lazyLoad('MiniMonthView', 'mini-month-view');
 lazyLoad('DatePicker', 'date-picker');
 lazyLoad('TimePicker', 'time-picker');
 lazyLoad('Table', 'table/table');
