@@ -109,9 +109,7 @@ module.exports = ErrorLogger = (function() {
     crashReporter.start({
       productName: 'Mailspring',
       companyName: 'Mailspring',
-      submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${
-        process.platform
-      }`,
+      submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
       uploadToServer: true,
       autoSubmit: true,
       extra: {

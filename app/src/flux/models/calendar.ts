@@ -1,5 +1,5 @@
 import { Model, AttributeValues } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 
 /**
 Public: The Calendar model represents a Calendar object.

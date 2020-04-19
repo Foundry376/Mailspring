@@ -3,7 +3,7 @@ import { Contact } from './contact';
 import { Folder } from './folder';
 import { Label } from './label';
 import { Category } from './category';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import DatabaseStore from '../stores/database-store';
 import { ModelWithMetadata } from './model-with-metadata';
 

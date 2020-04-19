@@ -82,7 +82,7 @@ class GithubUserStore extends MailspringStore {
           `https://api.github.com/search/repositories?q=user:${profile.login}&sort=stars&order=desc`
         );
         // Sort the repositories by their stars (`-` for descending order)
-        profile.repos = _.sortBy(repos.items, repo => -repo.stargazers_count);
+        profile.repos = _.sortBy(repos.items, repo => -repo['stargazers_count']);
         // Trigger so that our React components refresh their state and display
         // the updated data.
         this.trigger(this);

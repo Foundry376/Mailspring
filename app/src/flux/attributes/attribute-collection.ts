@@ -1,4 +1,4 @@
-import Attribute from './attribute';
+import { Attribute } from './attribute';
 import { Matcher } from './matcher';
 import { Model } from '../models/model';
 
@@ -30,7 +30,7 @@ The value of this attribute is always an array of other model objects.
 
 Section: Database
 */
-export default class AttributeCollection extends Attribute {
+export class AttributeCollection extends Attribute {
   itemClass: typeof Model;
   joinOnField: string;
   joinTableName: string;
@@ -39,19 +39,16 @@ export default class AttributeCollection extends Attribute {
   constructor({
     modelKey,
     jsonKey,
+    queryable,
     itemClass,
     joinOnField,
     joinQueryableBy,
     joinTableName,
-    queryable,
-  }: {
-    modelKey: string;
-    jsonKey: string;
-    queryable: boolean;
-    itemClass: typeof Model;
-    joinOnField: string;
-    joinTableName: string;
-    joinQueryableBy: string[];
+  }: ConstructorParameters<typeof Attribute>[0] & {
+    itemClass?: typeof Model;
+    joinOnField?: string;
+    joinTableName?: string;
+    joinQueryableBy?: string[];
   }) {
     super({ modelKey, jsonKey, queryable });
     this.itemClass = itemClass;
@@ -60,7 +57,7 @@ export default class AttributeCollection extends Attribute {
     this.joinQueryableBy = joinQueryableBy || [];
   }
 
-  toJSON(vals) {
+  toJSON(vals: (object | Model)[]) {
     if (!vals) {
       return [];
     }
@@ -72,16 +69,14 @@ export default class AttributeCollection extends Attribute {
     return vals.map(val => {
       if (this.itemClass && !(val instanceof this.itemClass)) {
         throw new Error(
-          `AttributeCollection::toJSON: Value \`${val}\` in ${this.modelKey} is not an ${
-            this.itemClass.name
-          }`
+          `AttributeCollection::toJSON: Value \`${val}\` in ${this.modelKey} is not an ${this.itemClass.name}`
         );
       }
-      return val.toJSON !== undefined ? val.toJSON() : val;
+      return 'toJSON' in val && val.toJSON !== undefined ? val.toJSON() : val;
     });
   }
 
-  fromJSON(json) {
+  fromJSON(json: object[]) {
     const Klass = this.itemClass;
 
     if (!json || !(json instanceof Array)) {

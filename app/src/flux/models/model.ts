@@ -1,5 +1,5 @@
-import Attributes from '../attributes';
-import Attribute from '../attributes/attribute';
+import * as Attributes from '../attributes';
+import { Attribute } from '../attributes/attribute';
 
 /**
 Public: A base class for API objects that provides abstract support for
@@ -35,6 +35,10 @@ type ModelAttributes = {
   version: Attribute;
   [attribute: string]: Attribute;
 };
+
+export interface ModelClass {
+  new (): Model;
+}
 
 export class Model implements HasStaticAttributes {
   'constructor': typeof Model; // prettier-ignore

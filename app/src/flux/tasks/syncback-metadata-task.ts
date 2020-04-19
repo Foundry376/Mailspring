@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Model, AttributeValues } from '../models/model';
 
 export class SyncbackMetadataTask extends Task {
@@ -54,10 +54,10 @@ export class SyncbackMetadataTask extends Task {
     modelHeaderMessageId: Attributes.String({
       modelKey: 'modelHeaderMessageId',
     }),
-    value: Attributes.Object({
+    value: Attributes.Obj({
       modelKey: 'value',
     }),
-    undoValue: Attributes.Object({
+    undoValue: Attributes.Obj({
       modelKey: 'undoValue',
     }),
   };

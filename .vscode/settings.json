@@ -29,5 +29,6 @@
   "git.ignoreLimitWarning": true,
   "files.exclude": {
     "**/*.dll": true
-  }
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

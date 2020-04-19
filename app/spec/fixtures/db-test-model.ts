@@ -5,14 +5,11 @@
  */
 import { Model } from '../../src/flux/models/model';
 import { Category } from '../../src/flux/models/category';
-import Attributes from '../../src/flux/attributes';
+import * as Attributes from '../../src/flux/attributes';
 
 class TestModel extends Model {
   static attributes = {
-    id: Attributes.String({
-      queryable: true,
-      modelKey: 'id',
-    }),
+    ...Model.attributes,
 
     clientId: Attributes.String({
       queryable: true,

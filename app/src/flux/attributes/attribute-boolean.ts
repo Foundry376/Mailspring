@@ -1,4 +1,4 @@
-import Attribute from './attribute';
+import { Attribute } from './attribute';
 import { Matcher } from './matcher';
 /*
 Public: The value of this attribute is always a boolean. Null values are coerced to false.
@@ -8,7 +8,7 @@ String attributes can be queries using `equal` and `not`. Matching on
 
 Section: Database
 */
-export default class AttributeBoolean extends Attribute {
+export class AttributeBoolean extends Attribute {
   toJSON(val) {
     return val;
   }

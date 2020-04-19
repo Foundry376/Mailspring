@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Contact } from '../models/contact';
 import { AttributeValues } from '../models/model';
 
@@ -7,7 +7,7 @@ export class SyncbackContactTask extends Task {
   static attributes = {
     ...Task.attributes,
 
-    contact: Attributes.Object({
+    contact: Attributes.Obj({
       modelKey: 'contact',
       itemClass: Contact,
     }),

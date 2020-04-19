@@ -439,11 +439,13 @@ export function convertToPlainText(value: Value) {
       text = text.replace(/\n\n\n+/g, '\n\n').trim();
       return text;
     }
-    if (isQuoteNode(node)) {
+    if (isQuoteNode(node) && node.object === 'block') {
       const content = node.nodes.map(serializeNode).join('\n');
       return deepenPlaintextQuote(content);
     }
-    if (node.object === 'document' || (node.object === 'block' && Block.isBlockList(node.nodes))) {
+    if (node.object === 'document') {
+      return node.nodes.map(serializeNode).join('\n');
+    } else if (node.object === 'block' && Block.isBlockList(node.nodes)) {
       return node.nodes.map(serializeNode).join('\n');
     } else {
       return node.text;

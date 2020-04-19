@@ -39,7 +39,7 @@ export default class AppEnvConstructor {
   windowEventHandler: import('./window-event-handler').default;
   actionBridge: import('./flux/action-bridge').default;
   mailsyncBridge: import('./flux/mailsync-bridge').default;
-  errorLogger: import('./error-logger');
+  errorLogger: any;
   savedState: any;
   isReloading: boolean;
 
