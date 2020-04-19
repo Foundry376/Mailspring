@@ -4,7 +4,6 @@ import { RetinaImg } from 'mailspring-component-kit';
 
 export class HeaderControls extends React.Component<{
   title: string;
-  headerComponents: React.ReactNode;
   nextAction: () => void;
   prevAction: () => void;
 }> {
@@ -48,7 +47,7 @@ export class HeaderControls extends React.Component<{
           <span className="title">{this.props.title}</span>
           {this._renderNextAction()}
         </div>
-        {this.props.headerComponents}
+        {this.props.children}
       </div>
     );
   }

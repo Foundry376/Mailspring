@@ -1,22 +1,19 @@
 import React, { Component } from 'react';
 import { Event, DatabaseStore, localized } from 'mailspring-exports';
 import { SearchBar } from 'mailspring-component-kit';
+import { EventOccurrence, occurrencesForEvents } from './calendar-data-source';
+import moment from 'moment';
 
 interface EventSearchBarProps {
   disabledCalendars: string[];
-  onSelectEvent: (event: Event) => void;
+  onSelectEvent: (event: EventOccurrence) => void;
 }
 
 export class EventSearchBar extends Component<
   EventSearchBarProps,
-  { query: string; suggestions: Event[] }
+  { query: string; suggestions: EventOccurrence[] }
 > {
   static displayName = 'EventSearchBar';
-
-  static defaultProps = {
-    disabledCalendars: [],
-    onSelectEvent: (event: Event) => {},
-  };
 
   constructor(props) {
     super(props);
@@ -41,7 +38,16 @@ export class EventSearchBar extends Component<
       .search(query)
       .limit(10)
       .then(events => {
-        this.setState({ suggestions: events });
+        this.setState({
+          suggestions: occurrencesForEvents(events, {
+            startUnix: moment()
+              .add(-2, 'years')
+              .unix(),
+            endUnix: moment()
+              .add(2, 'years')
+              .unix(),
+          }),
+        });
       });
   };
 

@@ -1,10 +1,11 @@
 import moment from 'moment';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { EventOccurrence } from './calendar-data-source';
+
 export interface CalendarEventArgs {
-  event?: Event;
+  event?: EventOccurrence;
   time: number;
   x: number;
   y: number;
