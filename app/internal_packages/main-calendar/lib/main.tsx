@@ -1,7 +1,7 @@
 import React from 'react';
 import { WorkspaceStore, ComponentRegistry } from 'mailspring-exports';
-import { CalendarWrapper } from './calendar-wrapper';
 import { QuickEventButton } from './quick-event-button';
+import { MailspringCalendar } from './core/mailspring-calendar';
 
 const Notice = () =>
   AppEnv.inDevMode() ? (
@@ -16,7 +16,7 @@ const Notice = () =>
 Notice.displayName = 'Notice';
 
 export function activate() {
-  ComponentRegistry.register(CalendarWrapper, {
+  ComponentRegistry.register(MailspringCalendar, {
     location: WorkspaceStore.Location.Center,
   });
   ComponentRegistry.register(Notice, {
@@ -28,6 +28,6 @@ export function activate() {
 }
 
 export function deactivate() {
-  ComponentRegistry.unregister(CalendarWrapper);
+  ComponentRegistry.unregister(MailspringCalendar);
   ComponentRegistry.unregister(QuickEventButton);
 }

@@ -17,9 +17,9 @@ interface WeekViewEventColumnProps {
   dayEnd: number;
   focusedEvent: EventOccurrence;
   eventOverlap: any;
-  onEventClick: () => void;
-  onEventDoubleClick: () => void;
-  onEventFocused: () => void;
+  onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
+  onEventDoubleClick: (event: EventOccurrence) => void;
+  onEventFocused: (event: EventOccurrence) => void;
   selectedEvents: EventOccurrence[];
 }
 

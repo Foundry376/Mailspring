@@ -1,11 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import classnames from 'classnames';
 
 interface MiniMonthViewProps {
-  value: number;
-  onChange: (val: number) => void;
+  value: Moment;
+  onChange: (moment: Moment) => void;
 }
 
 interface MiniMonthViewState {
@@ -15,11 +15,6 @@ interface MiniMonthViewState {
 
 export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonthViewState> {
   static displayName = 'MiniMonthView';
-
-  static defaultProps = {
-    value: moment().valueOf(),
-    onChange: () => {},
-  };
 
   today = moment();
 
@@ -32,62 +27,27 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     this.setState(this._stateFromProps(newProps));
   }
 
-  _stateFromProps(props) {
-    const m = props.value ? moment(props.value) : moment();
+  _stateFromProps(props: MiniMonthViewProps) {
     return {
-      shownYear: m.year(),
-      shownMonth: m.month(),
+      shownYear: props.value.year(),
+      shownMonth: props.value.month(),
     };
   }
 
-  _shownMonthMoment() {
-    return moment([this.state.shownYear, this.state.shownMonth]);
-  }
-
-  _changeMonth = by => {
-    const newMonth = this.state.shownMonth + by;
-    const newMoment = this._shownMonthMoment().month(newMonth);
-    this.setState({
-      shownYear: newMoment.year(),
-      shownMonth: newMoment.month(),
-    });
-  };
-
-  _renderLegend() {
-    const weekdayGen = moment([2016]);
-    const legendEls = [];
-    for (let i = 0; i < 7; i++) {
-      const dayStr = weekdayGen.weekday(i).format('dd'); // Locale aware!
-      legendEls.push(
-        <span key={i} className="weekday">
-          {dayStr}
-        </span>
-      );
-    }
-    return <div className="legend">{legendEls}</div>;
-  }
-
-  _onClickDay = event => {
-    if (!event.target.dataset.timestamp) {
-      return;
-    }
-    const newVal = moment(parseInt(event.target.dataset.timestamp, 10)).valueOf();
-    this.props.onChange(newVal);
-  };
-
-  _isSameDay(m1, m2) {
+  _isSameDay(m1: Moment, m2: Moment) {
     return m1.dayOfYear() === m2.dayOfYear() && m1.year() === m2.year();
   }
 
-  _renderDays() {
-    const dayIter = this._shownMonthMoment().date(1);
+  _renderDays(month: Moment) {
+    const curMonthNumber = month.month();
+
+    const dayIter = month.clone().date(1);
     const startWeek = dayIter.week();
-    const curMonth = this.state.shownMonth;
     const endWeek = moment(dayIter)
       .date(dayIter.daysInMonth())
       .week();
+
     const weekEls = [];
-    const valDay = moment(this.props.value);
     for (let week = startWeek; week <= endWeek; week++) {
       dayIter.week(week); // Locale aware!
       const dayEls = [];
@@ -97,11 +57,11 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
         const className = classnames({
           day: true,
           today: this._isSameDay(dayIter, this.today),
-          'cur-day': this._isSameDay(dayIter, valDay),
-          'cur-month': dayIter.month() === curMonth,
+          'cur-day': this._isSameDay(dayIter, this.props.value),
+          'cur-month': dayIter.month() === curMonthNumber,
         });
         dayEls.push(
-          <div className={className} key={`${week}-${weekday}`} data-timestamp={dayIter.valueOf()}>
+          <div className={className} key={`${week}-${weekday}`} data-unix={dayIter.valueOf()}>
             {dayStr}
           </div>
         );
@@ -113,26 +73,47 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
       );
     }
     return (
-      <div className="day-grid" onClick={this._onClickDay}>
+      <div
+        className="day-grid"
+        onClick={event => {
+          if (event.target instanceof HTMLElement && event.target.dataset.unix) {
+            this.props.onChange(moment(Number(event.target.dataset.unix)));
+          }
+        }}
+      >
         {weekEls}
       </div>
     );
   }
 
   render() {
+    const weekdayGen = moment(this.state.shownYear);
+    const month = moment([this.state.shownYear, this.state.shownMonth]);
+
+    const onChangeMonth = (delta: number) => {
+      const next = month.clone().add(delta, 'months');
+      this.setState({ shownYear: next.year(), shownMonth: next.month() });
+    };
+
     return (
       <div className="mini-month-view">
         <div className="header">
-          <div className="btn btn-icon" onClick={_.partial(this._changeMonth, -1)}>
+          <div className="btn btn-icon" onClick={() => onChangeMonth(-1)}>
             &lsaquo;
           </div>
-          <span className="month-title">{this._shownMonthMoment().format('MMMM YYYY')}</span>
-          <div className="btn btn-icon" onClick={_.partial(this._changeMonth, 1)}>
+          <span className="month-title">{month.format('MMMM YYYY')}</span>
+          <div className="btn btn-icon" onClick={() => onChangeMonth(1)}>
             &rsaquo;
           </div>
         </div>
-        {this._renderLegend()}
-        {this._renderDays()}
+        <div className="legend">
+          {[0, 1, 2, 3, 4, 5, 6].map(i => (
+            <span key={i} className="weekday">
+              {weekdayGen.weekday(i).format('dd')}
+            </span>
+          ))}
+        </div>
+        {this._renderDays(month)}
       </div>
     );
   }

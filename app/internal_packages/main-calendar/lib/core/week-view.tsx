@@ -4,19 +4,18 @@ import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Utils, Event } from 'mailspring-exports';
-import { ScrollRegion } from 'mailspring-component-kit';
-import { TopBanner } from './top-banner';
+import { Utils } from 'mailspring-exports';
+import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
 import { HeaderControls } from './header-controls';
-import { FooterControls } from './footer-controls';
-import { CalendarDataSource, EventOccurrence } from './calendar-data-source';
+import { EventOccurrence } from './calendar-data-source';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
-import { CalendarEventContainer, CalendarEventArgs } from './calendar-event-container';
+import { CalendarEventContainer } from './calendar-event-container';
 import { CurrentTimeIndicator } from './current-time-indicator';
 import { Disposable } from 'rx-core';
 import { overlapForEvents, maxConcurrentEvents } from './week-view-helpers';
+import { MailspringCalendarViewProps } from './mailspring-calendar';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -27,36 +26,14 @@ const INTERVAL_TIME = moment.duration(30, 'minutes').as('seconds');
 // This pre-fetches from Utils to prevent constant disc access
 const overlapsBounds = Utils.overlapsBounds;
 
-interface WeekViewProps {
-  dataSource: CalendarDataSource;
-  currentMoment: Moment;
-  focusedEvent: EventOccurrence;
-  bannerComponents: React.ReactChildren;
-  headerComponents: React.ReactChildren;
-  footerComponents: React.ReactChildren;
-  disabledCalendars: string[];
-  changeCurrentView: () => void;
-  changeCurrentMoment: (moment: Moment) => void;
-  onCalendarMouseUp: (args: CalendarEventArgs) => void;
-  onCalendarMouseDown: (args: CalendarEventArgs) => void;
-  onCalendarMouseMove: (args: CalendarEventArgs) => void;
-  onEventClick: () => void;
-  onEventDoubleClick: () => void;
-  onEventFocused: () => void;
-  selectedEvents: EventOccurrence[];
-}
-
 export class WeekView extends React.Component<
-  WeekViewProps,
+  MailspringCalendarViewProps,
   { intervalHeight: number; events: EventOccurrence[] }
 > {
   static displayName = 'WeekView';
 
   static defaultProps = {
     changeCurrentView: () => {},
-    bannerComponents: false,
-    headerComponents: false,
-    footerComponents: false,
   };
 
   _waitingForShift = 0;
@@ -116,8 +93,8 @@ export class WeekView extends React.Component<
     this._sub = this.props.dataSource
       .buildObservable({
         disabledCalendars: this.props.disabledCalendars,
-        startTime: start.unix(),
-        endTime: end.unix(),
+        startUnix: start.unix(),
+        endUnix: end.unix(),
       })
       .subscribe(state => {
         this.setState(state);
@@ -207,22 +184,6 @@ export class WeekView extends React.Component<
       days.push(moment(start).weekday(i));
     }
     return days;
-  }
-
-  _headerComponents() {
-    const left = (
-      <button
-        key="today"
-        className="btn"
-        ref="todayBtn"
-        onClick={this._onClickToday}
-        style={{ position: 'absolute', left: 10 }}
-      >
-        Today
-      </button>
-    );
-    const right = false;
-    return [left, right, this.props.headerComponents];
   }
 
   _onClickToday = () => {
@@ -394,15 +355,26 @@ export class WeekView extends React.Component<
           onCalendarMouseDown={this.props.onCalendarMouseDown}
           onCalendarMouseMove={this.props.onCalendarMouseMove}
         >
-          <TopBanner bannerComponents={this.props.bannerComponents} />
+          <div className="top-banner">
+            <InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} direction="row" />
+          </div>
 
           <HeaderControls
             title={headerText}
             ref="headerControls"
-            headerComponents={this._headerComponents()}
             nextAction={this._onClickNextWeek}
             prevAction={this._onClickPrevWeek}
-          />
+          >
+            <button
+              key="today"
+              className="btn"
+              ref="todayBtn"
+              onClick={this._onClickToday}
+              style={{ position: 'absolute', left: 10 }}
+            >
+              Today
+            </button>
+          </HeaderControls>
 
           <div className="calendar-body-wrap">
             <div className="calendar-legend">
@@ -469,8 +441,6 @@ export class WeekView extends React.Component<
               getScrollRegion={() => this.refs.eventGridWrap}
             />
           </div>
-
-          <FooterControls footerComponents={this.props.footerComponents} />
         </CalendarEventContainer>
       </div>
     );
