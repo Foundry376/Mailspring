@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import { Event, DatabaseStore } from 'mailspring-exports';
 import { SearchBar } from 'mailspring-component-kit';
-import PropTypes from 'prop-types';
 
-class EventSearchBar extends Component<
-  {
-    disabledCalendars: string[];
-    onSelectEvent: (event: Event) => void;
-  },
+interface EventSearchBarProps {
+  disabledCalendars: string[];
+  onSelectEvent: (event: Event) => void;
+}
+
+export class EventSearchBar extends Component<
+  EventSearchBarProps,
   { query: string; suggestions: Event[] }
 > {
   static displayName = 'EventSearchBar';
@@ -84,5 +85,3 @@ class EventSearchBar extends Component<
     );
   }
 }
-
-export default EventSearchBar;

@@ -3,11 +3,11 @@ import React from 'react';
 import { remote } from 'electron';
 
 import { KeyCommandsRegion } from 'mailspring-component-kit';
-import CalendarDataSource from './core/calendar-data-source';
-import CalendarEventPopover from './core/calendar-event-popover';
-import MailspringCalendar from './core/mailspring-calendar';
+import { CalendarDataSource } from './core/calendar-data-source';
+import { CalendarEventPopover } from './core/calendar-event-popover';
+import { MailspringCalendar } from './core/mailspring-calendar';
 
-export default class CalendarWrapper extends React.Component<{}, { selectedEvents: Event[] }> {
+export class CalendarWrapper extends React.Component<{}, { selectedEvents: Event[] }> {
   static displayName = 'CalendarWrapper';
   static containerRequired = false;
 

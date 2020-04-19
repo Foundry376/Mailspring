@@ -1,7 +1,6 @@
 import React from 'react';
-import { PropTypes, Utils } from 'mailspring-exports';
 
-export default class FooterControls extends React.Component<{
+export class FooterControls extends React.PureComponent<{
   footerComponents: React.ReactChildren;
 }> {
   static displayName = 'FooterControls';
@@ -9,10 +8,6 @@ export default class FooterControls extends React.Component<{
   static defaultProps = {
     footerComponents: false,
   };
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
-  }
 
   render() {
     if (!this.props.footerComponents) {

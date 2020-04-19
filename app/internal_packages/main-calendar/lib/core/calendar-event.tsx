@@ -19,7 +19,7 @@ interface CalendarEventProps {
   onFocused: (event: Event) => void;
 }
 
-export default class CalendarEvent extends React.Component<CalendarEventProps> {
+export class CalendarEvent extends React.Component<CalendarEventProps> {
   static displayName = 'CalendarEvent';
 
   static defaultProps = {

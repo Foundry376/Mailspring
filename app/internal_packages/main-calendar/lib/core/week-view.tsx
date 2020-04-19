@@ -4,17 +4,17 @@ import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils, Event } from 'mailspring-exports';
+import { Utils, Event } from 'mailspring-exports';
 import { ScrollRegion } from 'mailspring-component-kit';
-import TopBanner from './top-banner';
-import HeaderControls from './header-controls';
-import FooterControls from './footer-controls';
-import CalendarDataSource from './calendar-data-source';
-import EventGridBackground from './event-grid-background';
-import WeekViewEventColumn from './week-view-event-column';
-import WeekViewAllDayEvents from './week-view-all-day-events';
-import CalendarEventContainer from './calendar-event-container';
-import CurrentTimeIndicator from './current-time-indicator';
+import { TopBanner } from './top-banner';
+import { HeaderControls } from './header-controls';
+import { FooterControls } from './footer-controls';
+import { CalendarDataSource } from './calendar-data-source';
+import { EventGridBackground } from './event-grid-background';
+import { WeekViewEventColumn } from './week-view-event-column';
+import { WeekViewAllDayEvents } from './week-view-all-day-events';
+import { CalendarEventContainer, CalendarEventArgs } from './calendar-event-container';
+import { CurrentTimeIndicator } from './current-time-indicator';
 import { Disposable } from 'rx-core';
 
 const BUFFER_DAYS = 7; // in each direction
@@ -36,16 +36,16 @@ interface WeekViewProps {
   disabledCalendars: string[];
   changeCurrentView: () => void;
   changeCurrentMoment: (moment: Moment) => void;
-  onCalendarMouseUp: () => void;
-  onCalendarMouseDown: () => void;
-  onCalendarMouseMove: () => void;
+  onCalendarMouseUp: (args: CalendarEventArgs) => void;
+  onCalendarMouseDown: (args: CalendarEventArgs) => void;
+  onCalendarMouseMove: (args: CalendarEventArgs) => void;
   onEventClick: () => void;
   onEventDoubleClick: () => void;
   onEventFocused: () => void;
   selectedEvents: Event[];
 }
 
-export default class WeekView extends React.Component<
+export class WeekView extends React.Component<
   WeekViewProps,
   { intervalHeight: number; events: Event[] }
 > {
@@ -316,7 +316,7 @@ export default class WeekView extends React.Component<
   };
 
   _gridHeight() {
-    return DAY_DUR / INTERVAL_TIME * this.state.intervalHeight;
+    return (DAY_DUR / INTERVAL_TIME) * this.state.intervalHeight;
   }
 
   _centerScrollRegion() {
@@ -350,7 +350,7 @@ export default class WeekView extends React.Component<
 
     const curTime = moment(start);
     for (let tsec = stepStart; tsec <= DAY_DUR; tsec += step) {
-      const y = tsec / DAY_DUR * height;
+      const y = (tsec / DAY_DUR) * height;
       yield { time: curTime, yPos: y };
       curTime.add(duration, 'seconds');
     }
@@ -385,7 +385,7 @@ export default class WeekView extends React.Component<
       return;
     }
 
-    const edgeWidth = event.currentTarget.clientWidth / DAYS_IN_VIEW * 2;
+    const edgeWidth = (event.currentTarget.clientWidth / DAYS_IN_VIEW) * 2;
 
     if (event.currentTarget.scrollLeft < edgeWidth) {
       this._waitingForShift = event.currentTarget.clientWidth;

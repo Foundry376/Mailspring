@@ -2,7 +2,7 @@ import React from 'react';
 import { Utils } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
-export default class HeaderControls extends React.Component<{
+export class HeaderControls extends React.Component<{
   title: string;
   headerComponents: React.ReactNode;
   nextAction: () => void;

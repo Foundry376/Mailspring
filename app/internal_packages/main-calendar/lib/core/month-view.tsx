@@ -1,7 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-export default class MonthView extends React.Component<{ changeView: (view: string) => void }> {
+export class MonthView extends React.Component<{ changeView: (view: string) => void }> {
   static displayName = 'MonthView';
 
   _onClick = () => {
