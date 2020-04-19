@@ -200,6 +200,7 @@ export type MessageUtils = typeof import('../flux/models/message-utils').default
 export const MessageUtils: MessageUtils;
 
 // Services
+export * from '../services/autolinker';
 export type KeyManager = typeof import('../key-manager').default;
 export const KeyManager: KeyManager;
 export type SoundRegistry = typeof import('../registries/sound-registry').default;

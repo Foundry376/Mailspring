@@ -50,7 +50,7 @@ export class EmailFrame extends React.Component<{ content: string }> {
     );
     doc.close();
 
-    // autolink(doc, {async: true});
+    // autolink(doc.body, {async: true});
     // autoscaleImages(doc);
     // addInlineDownloadPrompts(doc);
 
