@@ -2,8 +2,22 @@ import Rx from 'rx-lite';
 import { Event, Matcher, DatabaseStore } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
 
-export default class CalendarDataSource {
-  observable: Rx.Observable<{ events: Event[] }>;
+export interface EventOccurrence {
+  start: number; // unix
+  end: number; // unix
+  id: string;
+  calendarId: string;
+  title: string;
+  location: string;
+  displayTitle: string;
+  description: string;
+  isAllDay: boolean;
+  organizer: { email: string } | null;
+  attendees: { email: string; name: string }[];
+}
+
+export class CalendarDataSource {
+  observable: Rx.Observable<{ events: EventOccurrence[] }>;
 
   buildObservable({ startTime, endTime, disabledCalendars }) {
     const end = Event.attributes.recurrenceEnd;
@@ -22,7 +36,7 @@ export default class CalendarDataSource {
 
     const query = DatabaseStore.findAll<Event>(Event).where(matcher);
     this.observable = Rx.Observable.fromQuery(query).flatMapLatest(results => {
-      const events = [];
+      const events: EventOccurrence[] = [];
       results.forEach(result => {
         const icalExpander = new IcalExpander({ ics: result.ics, maxIterations: 100 });
         const expanded = icalExpander.between(new Date(startTime * 1000), new Date(endTime * 1000));
@@ -37,6 +51,7 @@ export default class CalendarDataSource {
             id: `${result.id}-e${idx}`,
             calendarId: result.calendarId,
             title: item.summary,
+            location: item.location,
             displayTitle: item.summary,
             description: item.description,
             isAllDay: end - start >= 86400 - 1,

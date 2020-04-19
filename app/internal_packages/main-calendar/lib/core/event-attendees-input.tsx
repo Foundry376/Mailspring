@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import { remote, clipboard } from 'electron';
-import { Utils, Contact, ContactStore, RegExpUtils } from 'mailspring-exports';
+import { Utils, Contact, ContactStore, RegExpUtils, localized } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
 const TokenRenderer = (props: { token: Contact }) => {
@@ -119,7 +119,7 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
     const menu = new MenuClass();
     menu.append(
       new MenuItem({
-        label: `Copy ${participant.email}`,
+        label: `${localized(`Copy`)} ${participant.email}`,
         click: () => clipboard.writeText(participant.email),
       })
     );

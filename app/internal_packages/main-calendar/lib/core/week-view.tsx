@@ -9,13 +9,14 @@ import { ScrollRegion } from 'mailspring-component-kit';
 import { TopBanner } from './top-banner';
 import { HeaderControls } from './header-controls';
 import { FooterControls } from './footer-controls';
-import { CalendarDataSource } from './calendar-data-source';
+import { CalendarDataSource, EventOccurrence } from './calendar-data-source';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer, CalendarEventArgs } from './calendar-event-container';
 import { CurrentTimeIndicator } from './current-time-indicator';
 import { Disposable } from 'rx-core';
+import { overlapForEvents, maxConcurrentEvents } from './week-view-helpers';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -29,7 +30,7 @@ const overlapsBounds = Utils.overlapsBounds;
 interface WeekViewProps {
   dataSource: CalendarDataSource;
   currentMoment: Moment;
-  focusedEvent: Event;
+  focusedEvent: EventOccurrence;
   bannerComponents: React.ReactChildren;
   headerComponents: React.ReactChildren;
   footerComponents: React.ReactChildren;
@@ -42,12 +43,12 @@ interface WeekViewProps {
   onEventClick: () => void;
   onEventDoubleClick: () => void;
   onEventFocused: () => void;
-  selectedEvents: Event[];
+  selectedEvents: EventOccurrence[];
 }
 
 export class WeekView extends React.Component<
   WeekViewProps,
-  { intervalHeight: number; events: Event[] }
+  { intervalHeight: number; events: EventOccurrence[] }
 > {
   static displayName = 'WeekView';
 
@@ -125,7 +126,7 @@ export class WeekView extends React.Component<
 
   _calculateMomentRange() {
     const { currentMoment } = this.props;
-    let start;
+    let start: Moment;
 
     // NOTE: Since we initialize a new time from one of the properties of
     // the props.currentMomet, we need to check for the timezone!
@@ -180,7 +181,7 @@ export class WeekView extends React.Component<
         dayEnd={dayUnix + DAY_DUR - 1}
         key={day.valueOf()}
         events={events}
-        eventOverlap={this._eventOverlap(events)}
+        eventOverlap={overlapForEvents(events)}
         focusedEvent={this.props.focusedEvent}
         selectedEvents={this.props.selectedEvents}
         onEventClick={this.props.onEventClick}
@@ -194,89 +195,12 @@ export class WeekView extends React.Component<
     if (_.size(allDayOverlap) === 0) {
       return 0;
     }
-    return this._maxConcurrentEvents(allDayOverlap) * MIN_INTERVAL_HEIGHT + 1;
-  }
-
-  /*
-   * Computes the overlap between a set of events in not O(n^2).
-   *
-   * Returns a hash keyed by event id whose value is an object:
-   *   - concurrentEvents: number of concurrent events
-   *   - order: the order in that series of concurrent events
-   */
-  _eventOverlap(events) {
-    const times = {};
-    for (const event of events) {
-      if (!times[event.start]) {
-        times[event.start] = [];
-      }
-      if (!times[event.end]) {
-        times[event.end] = [];
-      }
-      times[event.start].push(event);
-      times[event.end].push(event);
-    }
-    const sortedTimes = Object.keys(times)
-      .map(k => parseInt(k, 10))
-      .sort();
-    const overlapById = {};
-    let startedEvents = [];
-    for (const t of sortedTimes) {
-      for (const e of times[t]) {
-        if (e.start === t) {
-          overlapById[e.id] = { concurrentEvents: 1, order: null };
-          startedEvents.push(e);
-        }
-        if (e.end === t) {
-          startedEvents = _.reject(startedEvents, o => o.id === e.id);
-        }
-      }
-      for (const e of startedEvents) {
-        if (!overlapById[e.id]) {
-          overlapById[e.id] = {};
-        }
-        const numEvents = this._findMaxConcurrent(startedEvents, overlapById);
-        overlapById[e.id].concurrentEvents = numEvents;
-        if (overlapById[e.id].order === null) {
-          // Dont' re-assign the order.
-          const order = this._findAvailableOrder(startedEvents, overlapById);
-          overlapById[e.id].order = order;
-        }
-      }
-    }
-    return overlapById;
-  }
-
-  _findMaxConcurrent(startedEvents, overlapById) {
-    let max = 1;
-    for (const e of startedEvents) {
-      max = Math.max(overlapById[e.id].concurrentEvents || 1, max);
-    }
-    return Math.max(max, startedEvents.length);
-  }
-
-  _findAvailableOrder(startedEvents, overlapById) {
-    const orders = startedEvents.map(e => overlapById[e.id].order);
-    let order = 1;
-    while (true) {
-      if (orders.indexOf(order) === -1) {
-        return order;
-      }
-      order += 1;
-    }
-  }
-
-  _maxConcurrentEvents(eventOverlap) {
-    let maxConcurrent = -1;
-    _.each(eventOverlap, ({ concurrentEvents }) => {
-      maxConcurrent = Math.max(concurrentEvents, maxConcurrent);
-    });
-    return maxConcurrent;
+    return maxConcurrentEvents(allDayOverlap) * MIN_INTERVAL_HEIGHT + 1;
   }
 
   _daysInView() {
     const { start } = this._calculateMomentRange();
-    const days = [];
+    const days: Moment[] = [];
     for (let i = 0; i < DAYS_IN_VIEW + BUFFER_DAYS * 2; i++) {
       // moment::weekday is locale aware since some weeks start on diff
       // days. See http://momentjs.com/docs/#/get-set/weekday/
@@ -421,14 +345,15 @@ export class WeekView extends React.Component<
 
   // We calculate events by days so we only need to iterate through all
   // events in the span once.
-  _eventsByDay(days) {
-    const map = { allDay: [] };
+  _eventsByDay(days: Moment[]) {
+    const map: { allDay: EventOccurrence[]; [dayUnix: string]: EventOccurrence[] } = { allDay: [] };
+
     const unixDays = days.map(d => d.unix());
-    unixDays.forEach(d => {
-      map[d] = [];
-      return;
+    unixDays.forEach(day => {
+      map[`${day}`] = [];
     });
-    for (const event of this.state.events) {
+
+    this.state.events.forEach(event => {
       if (event.isAllDay) {
         map.allDay.push(event);
       } else {
@@ -438,11 +363,12 @@ export class WeekView extends React.Component<
             end: day + DAY_DUR - 1,
           };
           if (overlapsBounds(bounds, event)) {
-            map[day].push(event);
+            map[`${day}`].push(event);
           }
         }
       }
-    }
+    });
+
     return map;
   }
 
@@ -450,7 +376,7 @@ export class WeekView extends React.Component<
     const days = this._daysInView();
     const todayColumnIdx = days.findIndex(d => this._isToday(d));
     const eventsByDay = this._eventsByDay(days);
-    const allDayOverlap = this._eventOverlap(eventsByDay.allDay);
+    const allDayOverlap = overlapForEvents(eventsByDay.allDay);
     const tickGen = this._tickGenerator.bind(this);
     const gridHeight = this._gridHeight();
 

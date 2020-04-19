@@ -1,4 +1,4 @@
-import { Actions, DestroyModelTask, Event } from 'mailspring-exports';
+import { Actions, DestroyModelTask, Event, localized } from 'mailspring-exports';
 import React from 'react';
 import { remote } from 'electron';
 
@@ -23,10 +23,8 @@ export class CalendarWrapper extends React.Component<{}, { selectedEvents: Event
     if (!eventEl) {
       return;
     }
-    const eventRect = eventEl.getBoundingClientRect();
-
     Actions.openPopover(<CalendarEventPopover event={eventModel} />, {
-      originRect: eventRect,
+      originRect: eventEl.getBoundingClientRect(),
       direction: 'right',
       fallbackDirection: 'left',
     });
@@ -65,9 +63,11 @@ export class CalendarWrapper extends React.Component<{}, { selectedEvents: Event
     }
     const response = remote.dialog.showMessageBox({
       type: 'warning',
-      buttons: ['Delete', 'Cancel'],
-      message: 'Delete or decline these events?',
-      detail: `Are you sure you want to delete or decline invitations for the selected event(s)?`,
+      buttons: [localized('Delete'), localized('Cancel')],
+      message: localized('Delete or decline these events?'),
+      detail: localized(
+        `Are you sure you want to delete or decline invitations for the selected event(s)?`
+      ),
     });
     if (response === 0) {
       // response is button array index
