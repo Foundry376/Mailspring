@@ -1,6 +1,6 @@
 import React from 'react';
 import { Event, Utils } from 'mailspring-exports';
-import CalendarEvent from './calendar-event';
+import { CalendarEvent } from './calendar-event';
 
 /*
  * Displays the all day events across the top bar of the week event view.
@@ -18,7 +18,7 @@ interface WeekViewAllDayEventsProps {
   allDayOverlap: any;
 }
 
-export default class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsProps> {
+export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsProps> {
   static displayName = 'WeekViewAllDayEvents';
 
   shouldComponentUpdate(nextProps, nextState) {

@@ -2,16 +2,25 @@ import moment from 'moment';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 
-export default class CalendarEventContainer extends React.Component {
+export interface CalendarEventArgs {
+  event?: Event;
+  time: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  mouseIsDown: boolean;
+}
+
+interface CalendarEventContainerProps {
+  onCalendarMouseDown: (args: CalendarEventArgs) => void;
+  onCalendarMouseMove: (args: CalendarEventArgs) => void;
+  onCalendarMouseUp: (args: CalendarEventArgs) => void;
+}
+
+export class CalendarEventContainer extends React.Component<CalendarEventContainerProps> {
   static displayName = 'CalendarEventContainer';
-
-  static propTypes = {
-    onCalendarMouseUp: PropTypes.func,
-    onCalendarMouseDown: PropTypes.func,
-    onCalendarMouseMove: PropTypes.func,
-  };
 
   _DOMCache: {
     eventColumn?: any;

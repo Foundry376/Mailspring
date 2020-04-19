@@ -1,10 +1,10 @@
 import React from 'react';
 import _ from 'underscore';
 import { remote, clipboard } from 'electron';
-import { PropTypes, Utils, Contact, ContactStore, RegExpUtils } from 'mailspring-exports';
+import { Utils, Contact, ContactStore, RegExpUtils } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
-const TokenRenderer = props => {
+const TokenRenderer = (props: { token: Contact }) => {
   const { email, cn } = props.token;
   let chipText = email;
   if (cn && cn.length > 0 && cn !== email) {
@@ -23,10 +23,6 @@ const TokenRenderer = props => {
   );
 };
 
-TokenRenderer.propTypes = {
-  token: PropTypes.object,
-};
-
 interface EventAttendeesInputProps {
   attendees: any[];
   change: (next: any[]) => void;
@@ -35,7 +31,7 @@ interface EventAttendeesInputProps {
   onFocus?: () => void;
 }
 
-export default class EventAttendeesInput extends React.Component<EventAttendeesInputProps> {
+export class EventAttendeesInput extends React.Component<EventAttendeesInputProps> {
   static displayName = 'EventAttendeesInput';
 
   shouldComponentUpdate(nextProps, nextState) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 
 interface EventGridBackgroundProps {
   height: number;
@@ -9,7 +9,7 @@ interface EventGridBackgroundProps {
   intervalHeight: number;
 }
 
-export default class EventGridBackground extends React.Component<EventGridBackgroundProps> {
+export class EventGridBackground extends React.Component<EventGridBackgroundProps> {
   static displayName = 'EventGridBackground';
 
   _lastHoverRect: { x?; y?; width?; height? } = {};
@@ -47,7 +47,7 @@ export default class EventGridBackground extends React.Component<EventGridBackgr
     doStroke('major', '#e0e0e0'); // Major ticks
   }
 
-  mouseMove({ x, y, width }) {
+  onMouseMove({ x, y, width }) {
     if (!width || x == null || y == null) {
       return;
     }
@@ -77,7 +77,7 @@ export default class EventGridBackground extends React.Component<EventGridBackgr
       height: this.props.height,
     };
     return (
-      <div className="event-grid-bg-wrap">
+      <div className="event-grid-bg-wrap" onMouseMove={this.onMouseMove}>
         <div ref="cursor" className="cursor" />
         <canvas ref="canvas" className="event-grid-bg" style={styles} />
       </div>

@@ -1,13 +1,6 @@
 import moment from 'moment';
 import React from 'react';
-import {
-  PropTypes,
-  Event,
-  Actions,
-  DatabaseStore,
-  DateUtils,
-  SyncbackEventTask,
-} from 'mailspring-exports';
+import { Event, Actions, DateUtils, SyncbackEventTask } from 'mailspring-exports';
 import {
   DatePicker,
   RetinaImg,
@@ -15,7 +8,7 @@ import {
   TabGroupRegion,
   TimePicker,
 } from 'mailspring-component-kit';
-import EventAttendeesInput from './event-attendees-input';
+import { EventAttendeesInput } from './event-attendees-input';
 
 interface CalendarEventPopoverProps {
   event: Event;
@@ -31,14 +24,10 @@ interface CalendarEventPopoverState {
   title: string;
 }
 
-export default class CalendarEventPopover extends React.Component<
+export class CalendarEventPopover extends React.Component<
   CalendarEventPopoverProps,
   CalendarEventPopoverState
 > {
-  static propTypes = {
-    event: PropTypes.object.isRequired,
-  };
-
   constructor(props) {
     super(props);
     const { description, start, end, location, attendees } = this.props.event;
@@ -287,7 +276,11 @@ export default class CalendarEventPopover extends React.Component<
         <div className="section">{this.renderTime()}</div>
         <ScrollRegion className="section invitees">
           <div className="label">Invitees: </div>
-          <div>{attendees.map((a, idx) => <div key={idx}> {a.cn} </div>)}</div>
+          <div>
+            {attendees.map((a, idx) => (
+              <div key={idx}> {a.cn} </div>
+            ))}
+          </div>
         </ScrollRegion>
         <ScrollRegion className="section description">
           <div className="description">

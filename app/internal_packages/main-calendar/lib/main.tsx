@@ -1,7 +1,7 @@
 import React from 'react';
 import { WorkspaceStore, ComponentRegistry } from 'mailspring-exports';
-import CalendarWrapper from './calendar-wrapper';
-import QuickEventButton from './quick-event-button';
+import { CalendarWrapper } from './calendar-wrapper';
+import { QuickEventButton } from './quick-event-button';
 
 const Notice = () => (
   <div className="preview-notice">

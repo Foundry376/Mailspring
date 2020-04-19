@@ -2,14 +2,15 @@ import moment, { Moment } from 'moment';
 import React from 'react';
 import { Rx, DatabaseStore, AccountStore, Calendar, Account, Event } from 'mailspring-exports';
 import { ScrollRegion, ResizableRegion } from 'mailspring-component-kit';
-import WeekView from './week-view';
-import MonthView from './month-view';
-import EventSearchBar from './event-search-bar';
-import CalendarSourceList from './calendar-source-list';
-import CalendarDataSource from './calendar-data-source';
+import { WeekView } from './week-view';
+import { MonthView } from './month-view';
+import { EventSearchBar } from './event-search-bar';
+import { CalendarSourceList } from './calendar-source-list';
+import { CalendarDataSource } from './calendar-data-source';
 import { WEEK_VIEW, MONTH_VIEW } from './calendar-constants';
-import MiniMonthView from './mini-month-view';
+import { MiniMonthView } from './mini-month-view';
 import { Disposable } from 'rx-core';
+import { CalendarEventArgs } from './calendar-event-container';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -64,9 +65,9 @@ interface MailspringCalendarProps {
    * includes the `currentView` as well as things like the `time` at the
    * click coordinate.
    */
-  onCalendarMouseUp?: () => void;
-  onCalendarMouseDown?: () => void;
-  onCalendarMouseMove?: () => void;
+  onCalendarMouseUp?: (args: CalendarEventArgs) => void;
+  onCalendarMouseDown?: (args: CalendarEventArgs) => void;
+  onCalendarMouseMove?: (args: CalendarEventArgs) => void;
 
   onEventClick: (e: React.MouseEvent, event: Event) => void;
   onEventDoubleClick: (event: Event) => void;
@@ -84,7 +85,7 @@ interface MailspringCalendarState {
   disabledCalendars: string[];
 }
 
-export default class MailspringCalendar extends React.Component<
+export class MailspringCalendar extends React.Component<
   MailspringCalendarProps,
   MailspringCalendarState
 > {

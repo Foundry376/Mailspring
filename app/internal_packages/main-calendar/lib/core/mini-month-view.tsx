@@ -1,19 +1,20 @@
 import _ from 'underscore';
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import classnames from 'classnames';
 
-export default class MiniMonthView extends React.Component<
-  { value: number; onChange: (val: number) => void },
-  { shownYear: number; shownMonth: number }
-> {
-  static displayName = 'MiniMonthView';
+interface MiniMonthViewProps {
+  value: number;
+  onChange: (val: number) => void;
+}
 
-  static propTypes = {
-    value: PropTypes.number,
-    onChange: PropTypes.func,
-  };
+interface MiniMonthViewState {
+  shownYear: number;
+  shownMonth: number;
+}
+
+export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonthViewState> {
+  static displayName = 'MiniMonthView';
 
   static defaultProps = {
     value: moment().valueOf(),

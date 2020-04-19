@@ -7,7 +7,8 @@ interface QuickEventPopoverSttae {
   end: Moment | null;
   leftoverText: string | null;
 }
-export default class QuickEventPopover extends React.Component<{}, QuickEventPopoverSttae> {
+
+export class QuickEventPopover extends React.Component<{}, QuickEventPopoverSttae> {
   constructor(props) {
     super(props);
     this.state = {
@@ -18,7 +19,10 @@ export default class QuickEventPopover extends React.Component<{}, QuickEventPop
   }
 
   onInputKeyDown = event => {
-    const { key, target: { value } } = event;
+    const {
+      key,
+      target: { value },
+    } = event;
     if (value.length > 0 && ['Enter', 'Return'].includes(key)) {
       // This prevents onInputChange from being fired
       event.stopPropagation();

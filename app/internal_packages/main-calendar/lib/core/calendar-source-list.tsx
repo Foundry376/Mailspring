@@ -2,13 +2,13 @@
 import _ from 'underscore';
 import classnames from 'classnames';
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import { calcColor } from './calendar-helpers';
+import { Calendar, Account } from 'mailspring-exports';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
-function renderCalendarToggles(calendars, disabledCalendars) {
+function renderCalendarToggles(calendars: Calendar[], disabledCalendars: string[]) {
   return calendars.map(calendar => {
     const calendarId = calendar.id;
     const onClick = () => {
@@ -43,7 +43,12 @@ function renderCalendarToggles(calendars, disabledCalendars) {
   });
 }
 
-export default function CalendarSourceList(props) {
+interface CalendarSourceListProps {
+  accounts: Account[];
+  calendars: Calendar[];
+  disabledCalendars: string[];
+}
+export function CalendarSourceList(props: CalendarSourceListProps) {
   const calsByAccountId = _.groupBy(props.calendars, 'accountId');
   const accountSections = [];
   for (const accountId of Object.keys(calsByAccountId)) {
@@ -61,9 +66,3 @@ export default function CalendarSourceList(props) {
   }
   return <div className="calendar-source-list-wrap">{accountSections}</div>;
 }
-
-CalendarSourceList.propTypes = {
-  accounts: PropTypes.array,
-  calendars: PropTypes.array,
-  disabledCalendars: PropTypes.array,
-};
