@@ -1,8 +1,14 @@
 import { EventedIFrame } from 'mailspring-component-kit';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils, QuotedHTMLTransformer, MessageStore, Message } from 'mailspring-exports';
-import { autolink } from './autolinker';
+import {
+  PropTypes,
+  Utils,
+  QuotedHTMLTransformer,
+  MessageStore,
+  Message,
+  Autolink,
+} from 'mailspring-exports';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
 
@@ -118,7 +124,10 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
 
     window.requestAnimationFrame(() => {
-      autolink(doc, { async: true });
+      Autolink(doc.body, {
+        async: true,
+        telAggressiveMatch: false,
+      });
       adjustImages(doc);
 
       for (const extension of MessageStore.extensions()) {

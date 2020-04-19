@@ -53,22 +53,7 @@ export interface MailspringCalendarViewProps {
 /*
  * Mailspring Calendar
  */
-interface MailspringCalendarProps {
-  /*
-   * The following are a set of supported interaction handlers.
-   *
-   * These are passed a custom set of arguments in a single object that
-   * includes the `currentView` as well as things like the `time` at the
-   * click coordinate.
-   */
-  onCalendarMouseUp?: (args: CalendarEventArgs) => void;
-  onCalendarMouseDown?: (args: CalendarEventArgs) => void;
-  onCalendarMouseMove?: (args: CalendarEventArgs) => void;
-
-  onEventClick: (e: React.MouseEvent, event: EventOccurrence) => void;
-  onEventDoubleClick: (event: EventOccurrence) => void;
-  onEventFocused: (event: EventOccurrence) => void;
-}
+interface MailspringCalendarProps {}
 
 interface MailspringCalendarState {
   view: CalendarView;
@@ -209,6 +194,10 @@ export class MailspringCalendar extends React.Component<
     }
   };
 
+  _onCalendarMouseDown = () => {};
+  _onCalendarMouseMove = () => {};
+  _onCalendarMouseUp = () => {};
+
   render() {
     const CurrentView = VIEWS[this.state.view];
 
@@ -250,12 +239,12 @@ export class MailspringCalendar extends React.Component<
           disabledCalendars={this.state.disabledCalendars}
           onChangeView={this.onChangeView}
           onChangeFocusedMoment={this.onChangeFocusedMoment}
-          onCalendarMouseUp={this.props.onCalendarMouseUp}
-          onCalendarMouseDown={this.props.onCalendarMouseDown}
-          onCalendarMouseMove={this.props.onCalendarMouseMove}
-          onEventClick={this.props.onEventClick}
-          onEventDoubleClick={this.props.onEventDoubleClick}
-          onEventFocused={this.props.onEventFocused}
+          onCalendarMouseUp={this._onCalendarMouseUp}
+          onCalendarMouseDown={this._onCalendarMouseDown}
+          onCalendarMouseMove={this._onCalendarMouseMove}
+          onEventClick={this._onEventClick}
+          onEventDoubleClick={this._onEventDoubleClick}
+          onEventFocused={this._onEventFocused}
         />
       </KeyCommandsRegion>
     );

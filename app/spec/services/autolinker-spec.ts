@@ -1,11 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { autolink } from '../lib/autolinker';
+import { Autolink } from '../../src/services/autolinker';
 
 describe('autolink', function autolinkSpec() {
   const fixturesDir = path.join(__dirname, 'autolinker-fixtures');
-  fs
-    .readdirSync(fixturesDir)
+  fs.readdirSync(fixturesDir)
     .filter(filename => filename.indexOf('-in.html') !== -1)
     .forEach(filename => {
       it(`should properly autolink a variety of email bodies ${filename}`, () => {
@@ -17,7 +16,7 @@ describe('autolink', function autolinkSpec() {
         const expected = fs.readFileSync(expectedPath).toString();
 
         div.innerHTML = input;
-        autolink({ body: div });
+        Autolink(div);
 
         expect(div.innerHTML).toEqual(expected);
       });
