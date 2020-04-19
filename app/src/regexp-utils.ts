@@ -164,9 +164,10 @@ const RegExpUtils = {
       // (last character must not be puncation, hence two groups)
       '(?:[\\+=~%\\/\\.\\w\\-_@]*[\\+~%\\/\\w\\-:_])?',
 
-      // optionally followed by: a query string and/or a #location
-      // (last character must not be puncation, hence two groups)
-      "(?:\\?[\\-\\+=&;:%@$\\(\\)'\\*\\/~\\!\\.,\\w_]*[\\-\\+=&;~%@\\w_\\/])?",
+      // optionally followed by one or more query string ?asd=asd&as=asd type sections
+      "(?:\\?[\\-\\+=&;:%@$\\(\\)'\\*\\/~\\!\\.,\\w_]*[\\-\\+=&;~%@\\w_\\/])*",
+
+      // optionally followed by a #search-or-hash section
       "(?:#['\\$\\&\\(\\)\\*\\+,;=\\.\\!\\/\\\\\\w%-?]*[\\/\\\\\\w])?",
       ')?',
       ')',
