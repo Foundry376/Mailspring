@@ -3,6 +3,7 @@ import moment, { Moment } from 'moment';
 import classnames from 'classnames';
 import { Utils, Event } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
+import { EventOccurrence } from './calendar-data-source';
 
 /*
  * This display a single column of events in the Week View.
@@ -11,15 +12,15 @@ import { CalendarEvent } from './calendar-event';
  * column-by-column basis.
  */
 interface WeekViewEventColumnProps {
-  events: Event[];
+  events: EventOccurrence[];
   day: Moment;
   dayEnd: number;
-  focusedEvent: Event;
+  focusedEvent: EventOccurrence;
   eventOverlap: any;
   onEventClick: () => void;
   onEventDoubleClick: () => void;
   onEventFocused: () => void;
-  selectedEvents: Event[];
+  selectedEvents: EventOccurrence[];
 }
 
 export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {

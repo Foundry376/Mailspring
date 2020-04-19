@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Utils } from 'mailspring-exports';
 
-export default class EmailFrame extends React.Component<{ content: string }> {
+export class EmailFrame extends React.Component<{ content: string }> {
   static displayName = 'EmailFrame';
 
   _mounted: boolean = false;

@@ -1,6 +1,6 @@
 import moment from 'moment';
 import React from 'react';
-import { Event, Actions, DateUtils, SyncbackEventTask } from 'mailspring-exports';
+import { Actions, DateUtils, SyncbackEventTask } from 'mailspring-exports';
 import {
   DatePicker,
   RetinaImg,
@@ -9,9 +9,10 @@ import {
   TimePicker,
 } from 'mailspring-component-kit';
 import { EventAttendeesInput } from './event-attendees-input';
+import { EventOccurrence } from './calendar-data-source';
 
 interface CalendarEventPopoverProps {
-  event: Event;
+  event: EventOccurrence;
 }
 
 interface CalendarEventPopoverState {

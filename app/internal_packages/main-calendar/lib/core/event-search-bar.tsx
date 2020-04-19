@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Event, DatabaseStore } from 'mailspring-exports';
+import { Event, DatabaseStore, localized } from 'mailspring-exports';
 import { SearchBar } from 'mailspring-component-kit';
 
 interface EventSearchBarProps {
@@ -74,7 +74,7 @@ export class EventSearchBar extends Component<
       <SearchBar
         query={query}
         suggestions={suggestions}
-        placeholder="Search all events"
+        placeholder={localized('Search all events')}
         suggestionKey={event => event.id}
         suggestionRenderer={this.renderEvent}
         onSearchQueryChanged={this.onSearchQueryChanged}
