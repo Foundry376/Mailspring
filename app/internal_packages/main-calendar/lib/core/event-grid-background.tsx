@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Utils } from 'mailspring-exports';
+import { tickGenerator } from './week-view-helpers';
 
 interface EventGridBackgroundProps {
   height: number;
   numColumns: number;
-  tickGenerator: (arg: { type: string }) => Array<{ yPos }>;
   intervalHeight: number;
 }
 
@@ -36,9 +36,9 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
     const doStroke = (type, strokeStyle) => {
       ctx.strokeStyle = strokeStyle;
       ctx.beginPath();
-      for (const { yPos } of this.props.tickGenerator({ type })) {
-        ctx.moveTo(0, yPos);
-        ctx.lineTo(canvas.width, yPos);
+      for (const { y } of tickGenerator(type, this.props.intervalHeight)) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
       }
       ctx.stroke();
     };
