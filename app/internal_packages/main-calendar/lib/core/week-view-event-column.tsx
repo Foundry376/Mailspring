@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import { Utils, Event } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
 import { EventOccurrence } from './calendar-data-source';
+import { overlapForEvents } from './week-view-helpers';
 
 /*
  * This display a single column of events in the Week View.
@@ -16,7 +17,6 @@ interface WeekViewEventColumnProps {
   day: Moment;
   dayEnd: number;
   focusedEvent: EventOccurrence;
-  eventOverlap: any;
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;
@@ -35,7 +35,6 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       events,
       focusedEvent,
       selectedEvents,
-      eventOverlap,
       dayEnd,
       day,
       onEventClick,
@@ -47,10 +46,12 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       'event-column': true,
       weekend: day.day() === 0 || day.day() === 6,
     });
+    const overlap = overlapForEvents(events);
     const end = moment(day)
       .add(1, 'day')
       .subtract(1, 'millisecond')
       .valueOf();
+
     return (
       <div className={className} key={day.valueOf()} data-start={day.valueOf()} data-end={end}>
         {events.map(e => (
@@ -58,12 +59,12 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
             ref={`event-${e.id}`}
             event={e}
             selected={selectedEvents.includes(e)}
-            order={eventOverlap[e.id].order}
+            order={overlap[e.id].order}
             focused={focusedEvent ? focusedEvent.id === e.id : false}
             key={e.id}
             scopeEnd={dayEnd}
             scopeStart={day.unix()}
-            concurrentEvents={eventOverlap[e.id].concurrentEvents}
+            concurrentEvents={overlap[e.id].concurrentEvents}
             onClick={onEventClick}
             onDoubleClick={onEventDoubleClick}
             onFocused={onEventFocused}

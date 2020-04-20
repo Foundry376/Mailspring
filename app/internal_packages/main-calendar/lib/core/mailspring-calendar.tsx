@@ -34,9 +34,16 @@ const VIEWS = {
   [CalendarView.MONTH]: MonthView,
 };
 
-export interface MailspringCalendarViewProps {
-  dataSource: CalendarDataSource;
+export interface EventRendererProps {
   focusedEvent: EventOccurrence;
+  selectedEvents: EventOccurrence[];
+  onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
+  onEventDoubleClick: (event: EventOccurrence) => void;
+  onEventFocused: (event: EventOccurrence) => void;
+}
+
+export interface MailspringCalendarViewProps extends EventRendererProps {
+  dataSource: CalendarDataSource;
   disabledCalendars: string[];
   focusedMoment: Moment;
   onChangeView: (view: CalendarView) => void;
@@ -44,10 +51,6 @@ export interface MailspringCalendarViewProps {
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
   onCalendarMouseDown: (args: CalendarEventArgs) => void;
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
-  onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
-  onEventDoubleClick: (event: EventOccurrence) => void;
-  onEventFocused: (event: EventOccurrence) => void;
-  selectedEvents: EventOccurrence[];
 }
 
 /*

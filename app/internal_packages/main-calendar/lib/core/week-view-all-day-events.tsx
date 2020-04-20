@@ -3,6 +3,7 @@ import { Event, Utils } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
 import { EventOccurrence } from './calendar-data-source';
 import { OverlapByEventId } from './week-view-helpers';
+import { EventRendererProps } from './mailspring-calendar';
 
 /*
  * Displays the all day events across the top bar of the week event view.
@@ -11,7 +12,7 @@ import { OverlapByEventId } from './week-view-helpers';
  * we can use `shouldComponentUpdate` to selectively re-render these
  * events.
  */
-interface WeekViewAllDayEventsProps {
+interface WeekViewAllDayEventsProps extends EventRendererProps {
   end: number;
   start: number;
   height: number;
@@ -28,23 +29,27 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
   }
 
   render() {
-    const eventComponents = this.props.allDayEvents.map(e => {
-      return (
-        <CalendarEvent
-          event={e}
-          order={this.props.allDayOverlap[e.id].order}
-          key={e.id}
-          scopeStart={this.props.start}
-          scopeEnd={this.props.end}
-          direction="horizontal"
-          fixedSize={this.props.minorDim}
-          concurrentEvents={this.props.allDayOverlap[e.id].concurrentEvents}
-        />
-      );
-    });
+    const { height, allDayEvents, allDayOverlap, selectedEvents, focusedEvent } = this.props;
+
     return (
-      <div className="all-day-events" style={{ height: this.props.height }}>
-        {eventComponents}
+      <div className="all-day-events" style={{ height: height }}>
+        {allDayEvents.map(e => (
+          <CalendarEvent
+            event={e}
+            order={allDayOverlap[e.id].order}
+            key={e.id}
+            selected={selectedEvents.includes(e)}
+            focused={focusedEvent ? focusedEvent.id === e.id : false}
+            scopeStart={this.props.start}
+            scopeEnd={this.props.end}
+            direction="horizontal"
+            fixedSize={this.props.minorDim}
+            concurrentEvents={allDayOverlap[e.id].concurrentEvents}
+            onClick={this.props.onEventClick}
+            onDoubleClick={this.props.onEventDoubleClick}
+            onFocused={this.props.onEventFocused}
+          />
+        ))}
       </div>
     );
   }
