@@ -52,7 +52,7 @@ const onDeleteItem = function(item) {
     return;
   }
 
-  const chosen = remote.dialog.showMessageBox({
+  const response = remote.dialog.showMessageBoxSync({
     type: 'info',
     message: localized('Are you sure?'),
     detail: localized(
@@ -62,7 +62,7 @@ const onDeleteItem = function(item) {
     defaultId: 0,
   });
 
-  if (chosen !== 0) {
+  if (response !== 0) {
     return;
   }
 

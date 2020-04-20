@@ -129,10 +129,11 @@ export class WeekView extends React.Component<
     };
   }
 
-  _renderDateLabel = (day, idx) => {
+  _renderDateLabel = (day: Moment, idx: number) => {
     const className = classnames({
       'day-label-wrap': true,
       'is-today': this._isToday(day),
+      'is-hard-stop': day.weekday() == 1,
     });
     return (
       <div className={className} key={idx}>
@@ -194,27 +195,24 @@ export class WeekView extends React.Component<
     });
   };
 
-  _onScrollGrid = event => {
-    this._legendWrapEl.current.scrollTop = event.target.scrollTop;
-  };
+  _onScrollCalendarArea = (event: React.UIEvent) => {
+    console.log(event.currentTarget.scrollLeft);
+    // if (!event.currentTarget.scrollLeft || this._waitingForShift) {
+    //   return;
+    // }
 
-  _onScrollCalendarArea = event => {
-    if (!event.currentTarget.scrollLeft || this._waitingForShift) {
-      return;
-    }
+    // const edgeWidth = (event.currentTarget.clientWidth / DAYS_IN_VIEW) * 2;
 
-    const edgeWidth = (event.currentTarget.clientWidth / DAYS_IN_VIEW) * 2;
-
-    if (event.currentTarget.scrollLeft < edgeWidth) {
-      this._waitingForShift = event.currentTarget.clientWidth;
-      this._onClickPrevWeek();
-    } else if (
-      event.currentTarget.scrollLeft >
-      event.currentTarget.scrollWidth - event.currentTarget.clientWidth - edgeWidth
-    ) {
-      this._waitingForShift = -event.currentTarget.clientWidth;
-      this._onClickNextWeek();
-    }
+    // if (event.currentTarget.scrollLeft < edgeWidth) {
+    //   this._waitingForShift = event.currentTarget.clientWidth;
+    //   this._onClickPrevWeek();
+    // } else if (
+    //   event.currentTarget.scrollLeft >
+    //   event.currentTarget.scrollWidth - event.currentTarget.clientWidth - edgeWidth
+    // ) {
+    //   this._waitingForShift = -event.currentTarget.clientWidth;
+    //   this._onClickNextWeek();
+    // }
   };
 
   _renderEventGridLabels() {
@@ -292,7 +290,7 @@ export class WeekView extends React.Component<
             <div
               className="calendar-area-wrap"
               ref={this._calendarWrapEl}
-              onWheel={this._onScrollCalendarArea}
+              onScroll={this._onScrollCalendarArea}
             >
               <div className="week-header" style={{ width: `${this._bufferRatio() * 100}%` }}>
                 <div className="date-labels">{days.map(this._renderDateLabel)}</div>
@@ -315,7 +313,7 @@ export class WeekView extends React.Component<
                 className="event-grid-wrap"
                 ref={this._gridScrollRegion}
                 scrollbarRef={this._scrollbar}
-                onScroll={this._onScrollGrid}
+                onScroll={event => (this._legendWrapEl.current.scrollTop = event.target.scrollTop)}
                 onViewportResize={this._setIntervalHeight}
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >

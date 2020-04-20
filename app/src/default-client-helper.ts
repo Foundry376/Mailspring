@@ -35,7 +35,7 @@ export class DefaultClientHelperWindows {
   }
 
   resetURLScheme() {
-    remote.dialog.showMessageBox(
+    remote.dialog.showMessageBoxSync(
       {
         type: 'info',
         buttons: [localized('Learn More')],
@@ -62,7 +62,7 @@ export class DefaultClientHelperWindows {
       },
       (err, didMakeDefault) => {
         if (err) {
-          remote.dialog.showMessageBox({
+          remote.dialog.showMessageBoxSync({
             type: 'error',
             buttons: [localized('OK')],
             message: localized('An error has occurred'),
@@ -70,7 +70,7 @@ export class DefaultClientHelperWindows {
           });
         }
         if (!didMakeDefault) {
-          remote.dialog.showMessageBox(
+          remote.dialog.showMessageBoxSync(
             {
               type: 'info',
               buttons: [localized('Learn More')],

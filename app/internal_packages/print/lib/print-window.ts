@@ -79,7 +79,7 @@ export default class PrintWindow {
         contextIsolation: false,
       },
     });
-    this.browserWin.setMenu(null);
+    this.browserWin.removeMenu();
     fs.writeFileSync(tmpMessagesPath, `window.printMessages = ${printMessages}`);
     fs.writeFileSync(this.tmpFile, content);
   }

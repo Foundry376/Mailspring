@@ -141,6 +141,7 @@ body.platform-win32 {
         overflow-x: auto;
         overflow-y: hidden;
         position: relative;
+        scroll-snap-type: x mandatory;
       }
 
       .calendar-legend {
@@ -201,6 +202,10 @@ body.platform-win32 {
       text-align: center;
       flex: 1;
       box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
+      scroll-snap-align: start;
+      &.is-hard-stop {
+        scroll-snap-stop: always;
+      }
       &.is-today {
         .date-label {
           color: @accent-primary;

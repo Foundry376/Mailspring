@@ -278,6 +278,23 @@ const start = () => {
     app.removeListener('open-file', onOpenFileBeforeReady);
     app.removeListener('open-url', onOpenUrlBeforeReady);
 
+    // Block remote JS execution in a second way in case our <meta> tag approach
+    // is compromised somehow https://www.electronjs.org/docs/tutorial/security
+    // This CSP string should match the one in app/static/index.html
+    require('electron').session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      if (details.url.startsWith('devtools://')) {
+        return callback(details);
+      }
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [
+            "default-src * mailspring:; script-src 'self' 'unsafe-inline' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:;",
+          ],
+        },
+      });
+    });
+
     // eslint-disable-next-line
     const Application = require(path.join(options.resourcePath, 'src', 'browser', 'application'))
       .default;
