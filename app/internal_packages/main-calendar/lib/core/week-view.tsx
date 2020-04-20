@@ -19,6 +19,7 @@ import { MailspringCalendarViewProps } from './mailspring-calendar';
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
 const MIN_INTERVAL_HEIGHT = 21;
+const DAY_PORTION_SHOWN_VERTICALLY = 11 / 24;
 const DAY_DUR = moment.duration(1, 'day').as('seconds');
 const INTERVAL_TIME = moment.duration(30, 'minutes').as('seconds');
 
@@ -32,7 +33,10 @@ export class WeekView extends React.Component<
   _mounted: boolean = false;
   _scrollbar = React.createRef<any>();
   _sub?: Disposable;
-  _lastWrapHeight: number;
+
+  _legendWrapEl = React.createRef<HTMLDivElement>();
+  _calendarWrapEl = React.createRef<HTMLDivElement>();
+  _gridScrollRegion = React.createRef<ScrollRegion>();
 
   constructor(props) {
     super(props);
@@ -45,18 +49,21 @@ export class WeekView extends React.Component<
   componentDidMount() {
     this._mounted = true;
     this._centerScrollRegion();
-    this._setIntervalHeight();
-    window.addEventListener('resize', this._setIntervalHeight, true);
-    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap) as HTMLElement;
+
+    // Shift ourselves right by a week because we preload 7 days on either side
+    const wrap = this._calendarWrapEl.current;
     wrap.scrollLeft += wrap.clientWidth;
+
     this.updateSubscription();
+    this._setIntervalHeight();
   }
 
   componentDidUpdate(prevProps) {
-    this._setIntervalHeight();
-    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap) as HTMLElement;
-    wrap.scrollLeft += this._waitingForShift;
-    this._waitingForShift = 0;
+    if (this._waitingForShift) {
+      const wrap = this._calendarWrapEl.current;
+      wrap.scrollLeft += this._waitingForShift;
+      this._waitingForShift = 0;
+    }
     if (
       prevProps.focusedMoment !== this.props.focusedMoment ||
       prevProps.disabledCalendars !== this.props.disabledCalendars
@@ -68,7 +75,6 @@ export class WeekView extends React.Component<
   componentWillUnmount() {
     this._mounted = false;
     this._sub && this._sub.dispose();
-    window.removeEventListener('resize', this._setIntervalHeight);
   }
 
   // Indirection for testing purposes
@@ -170,7 +176,7 @@ export class WeekView extends React.Component<
   }
 
   _centerScrollRegion() {
-    const wrap = ReactDOM.findDOMNode(this.refs.eventGridWrap) as HTMLElement;
+    const wrap = this._gridScrollRegion.current.viewportEl;
     wrap.scrollTop = this._gridHeight() / 2 - wrap.getBoundingClientRect().height / 2;
   }
 
@@ -209,25 +215,18 @@ export class WeekView extends React.Component<
   _setIntervalHeight = () => {
     if (!this._mounted) {
       return;
-    } // Resize unmounting is delayed in tests
-    const wrap = ReactDOM.findDOMNode(this.refs.eventGridWrap) as HTMLElement;
-    const wrapHeight = wrap.getBoundingClientRect().height;
-    if (this._lastWrapHeight === wrapHeight) {
-      return;
     }
-    this._lastWrapHeight = wrapHeight;
-    const numIntervals = Math.floor(DAY_DUR / INTERVAL_TIME);
-    (ReactDOM.findDOMNode(
-      this.refs.eventGridLegendWrap
-    ) as HTMLElement).style.height = `${wrapHeight}px`;
+    const wrap = this._gridScrollRegion.current.viewportEl;
+    const wrapHeight = wrap.getBoundingClientRect().height;
+    const numIntervals = Math.floor((DAY_DUR * DAY_PORTION_SHOWN_VERTICALLY) / INTERVAL_TIME);
+    this._legendWrapEl.current.style.height = `${wrapHeight}px`;
     this.setState({
       intervalHeight: Math.max(wrapHeight / numIntervals, MIN_INTERVAL_HEIGHT),
     });
   };
 
   _onScrollGrid = event => {
-    (ReactDOM.findDOMNode(this.refs.eventGridLegendWrap) as HTMLElement).scrollTop =
-      event.target.scrollTop;
+    this._legendWrapEl.current.scrollTop = event.target.scrollTop;
   };
 
   _onScrollCalendarArea = event => {
@@ -291,7 +290,6 @@ export class WeekView extends React.Component<
     return (
       <div className="calendar-view week-view">
         <CalendarEventContainer
-          ref="calendarEventContainer"
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}
           onCalendarMouseMove={this.props.onCalendarMouseMove}
@@ -302,14 +300,12 @@ export class WeekView extends React.Component<
 
           <HeaderControls
             title={headerText}
-            ref="headerControls"
             nextAction={this._onClickNextWeek}
             prevAction={this._onClickPrevWeek}
           >
             <button
               key="today"
               className="btn"
-              ref="todayBtn"
               onClick={this._onClickToday}
               style={{ position: 'absolute', left: 10 }}
             >
@@ -322,7 +318,7 @@ export class WeekView extends React.Component<
               <div className="date-label-legend" style={{ height: allDayBarHeight + 75 + 1 }}>
                 <span className="legend-text">All Day</span>
               </div>
-              <div className="event-grid-legend-wrap" ref="eventGridLegendWrap">
+              <div className="event-grid-legend-wrap" ref={this._legendWrapEl}>
                 <div className="event-grid-legend" style={{ height: gridHeight }}>
                   {this._renderEventGridLabels()}
                 </div>
@@ -331,14 +327,13 @@ export class WeekView extends React.Component<
 
             <div
               className="calendar-area-wrap"
-              ref="calendarAreaWrap"
+              ref={this._calendarWrapEl}
               onWheel={this._onScrollCalendarArea}
             >
               <div className="week-header" style={{ width: `${this._bufferRatio() * 100}%` }}>
                 <div className="date-labels">{days.map(this._renderDateLabel)}</div>
 
                 <WeekViewAllDayEvents
-                  ref="weekViewAllDayEvents"
                   minorDim={MIN_INTERVAL_HEIGHT}
                   height={allDayBarHeight}
                   start={range.bufferedStart.unix()}
@@ -354,9 +349,10 @@ export class WeekView extends React.Component<
               </div>
               <ScrollRegion
                 className="event-grid-wrap"
-                ref="eventGridWrap"
+                ref={this._gridScrollRegion}
                 scrollbarRef={this._scrollbar}
                 onScroll={this._onScrollGrid}
+                onViewportResize={this._setIntervalHeight}
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >
                 <div className="event-grid" style={{ height: gridHeight }}>
@@ -393,7 +389,7 @@ export class WeekView extends React.Component<
             </div>
             <ScrollRegion.Scrollbar
               ref={this._scrollbar}
-              getScrollRegion={() => this.refs.eventGridWrap}
+              getScrollRegion={() => this._gridScrollRegion.current}
             />
           </div>
         </CalendarEventContainer>

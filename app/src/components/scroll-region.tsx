@@ -20,7 +20,7 @@ interface TicksProvider {
 interface ScrollbarProps {
   scrollTooltipComponent?: React.ComponentType<ScrollRegionTooltipComponentProps>;
   scrollbarTickProvider?: TicksProvider;
-  getScrollRegion?: (...args: any[]) => any;
+  getScrollRegion?: () => ScrollRegion;
 }
 
 interface ScrollSharedState {
@@ -223,8 +223,11 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
 }
 
 export interface ScrollRegionProps {
+  ref?: React.Ref<ScrollRegion>;
   onScroll?: (...args: any[]) => any;
   onScrollEnd?: (...args: any[]) => any;
+  onViewportResize?: (size: { width: number; height: number }) => void;
+  onContentResize?: (size: { width: number; height: number }) => void;
   className?: string;
   scrollTooltipComponent?: React.ComponentType<ScrollRegionTooltipComponentProps>;
   scrollbarTickProvider?: TicksProvider;
@@ -258,7 +261,7 @@ export enum ScrollPosition {
 The ScrollRegion component attaches a custom scrollbar.
 */
 export class ScrollRegion extends React.Component<
-  ScrollRegionProps & React.HTMLProps<HTMLDivElement>,
+  ScrollRegionProps & React.HTMLProps<any>,
   ScrollRegionState
 > {
   static displayName = 'ScrollRegion';
@@ -266,6 +269,8 @@ export class ScrollRegion extends React.Component<
   static propTypes = {
     onScroll: PropTypes.func,
     onScrollEnd: PropTypes.func,
+    onContentResize: PropTypes.func,
+    onViewportResize: PropTypes.func,
     className: PropTypes.string,
     scrollTooltipComponent: PropTypes.func,
     scrollbarTickProvider: PropTypes.object,
@@ -277,7 +282,7 @@ export class ScrollRegion extends React.Component<
   // Concept from https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UITableView_Class/#//apple_ref/c/tdef/UITableViewScrollPosition
   static Scrollbar = Scrollbar;
 
-  _contentRef = React.createRef<HTMLDivElement>();
+  _viewportRef = React.createRef<HTMLDivElement>();
   _innerRef = React.createRef<HTMLDivElement>();
   _ownScrollbarRef = React.createRef<Scrollbar>();
 
@@ -292,23 +297,32 @@ export class ScrollRegion extends React.Component<
     ...InitialSharedState,
   };
 
-  get scrollTop() {
-    return this._contentRef.current ? this._contentRef.current.scrollTop : 0;
+  public get viewportEl() {
+    return this._viewportRef.current;
   }
 
-  set scrollTop(val) {
-    this._contentRef.current.scrollTop = val;
+  public get contentEl() {
+    return this._innerRef.current;
+  }
+
+  public get scrollTop() {
+    return this._viewportRef.current ? this._viewportRef.current.scrollTop : 0;
+  }
+
+  public set scrollTop(val) {
+    this._viewportRef.current.scrollTop = val;
   }
 
   componentDidMount() {
     this._mounted = true;
 
-    const viewportEl = this._contentRef.current;
+    const viewportEl = this._viewportRef.current;
     const innerWrapperEl = this._innerRef.current;
 
     this._viewportHeightObserver = new window.ResizeObserver(entries => {
       if (entries[0] && entries[0].contentRect.height !== this.state.viewportHeight) {
         this._setSharedState({ viewportHeight: entries[0].contentRect.height });
+        this.props.onViewportResize && this.props.onViewportResize(entries[0].contentRect);
       }
     });
     this._totalHeightObserver = new window.ResizeObserver(entries => {
@@ -316,6 +330,7 @@ export class ScrollRegion extends React.Component<
       // and the contentRect.height is the inner padded size, not the bounding box size.
       if (entries[0] && entries[0].contentRect.height !== this.state.totalHeight) {
         this._setSharedState({ totalHeight: entries[0].target.clientHeight });
+        this.props.onContentResize && this.props.onContentResize(entries[0].contentRect);
       }
     });
 
@@ -382,7 +397,7 @@ export class ScrollRegion extends React.Component<
     return (
       <div className={containerClasses} {...otherProps}>
         {this._scrollbarComponent}
-        <div className="scroll-region-content" onScroll={this._onScroll} ref={this._contentRef}>
+        <div className="scroll-region-content" onScroll={this._onScroll} ref={this._viewportRef}>
           <div className="scroll-region-content-inner" ref={this._innerRef}>
             {this.props.children}
           </div>
@@ -429,7 +444,7 @@ export class ScrollRegion extends React.Component<
 
   _scroll({ position, settle, done }, clientRectProviderCallback) {
     let settleFn;
-    const contentNode = this._contentRef.current;
+    const viewportNode = this._viewportRef.current;
     if (position == null) {
       position = ScrollRegion.ScrollPosition.Visible;
     }
@@ -445,24 +460,24 @@ export class ScrollRegion extends React.Component<
 
     settleFn(() => {
       // If another scroll call has been made since ours, don't do anything.
-      if (this._scrollToTaskId !== taskId || !contentNode) {
+      if (this._scrollToTaskId !== taskId || !viewportNode) {
         return typeof done === 'function' ? done(false) : undefined;
       }
 
-      const contentClientRect = contentNode.getBoundingClientRect();
+      const contentClientRect = viewportNode.getBoundingClientRect();
       const rect = _.clone(clientRectProviderCallback());
       if (!rect || !contentClientRect) return;
 
       // For sanity's sake, convert the client rectangle we get into a rect
       // relative to the contentRect of our scroll region.
-      rect.top = rect.top - contentClientRect.top + contentNode.scrollTop;
-      rect.bottom = rect.bottom - contentClientRect.top + contentNode.scrollTop;
+      rect.top = rect.top - contentClientRect.top + viewportNode.scrollTop;
+      rect.bottom = rect.bottom - contentClientRect.top + viewportNode.scrollTop;
 
       // Also give ourselves a representation of the visible region, in the same
       // coordinate space as `rect`
       const contentVisibleRect = _.clone(contentClientRect) as any;
-      contentVisibleRect.top += contentNode.scrollTop;
-      contentVisibleRect.bottom += contentNode.scrollTop;
+      contentVisibleRect.top += viewportNode.scrollTop;
+      contentVisibleRect.bottom += viewportNode.scrollTop;
 
       if (position === ScrollRegion.ScrollPosition.Top) {
         this.scrollTop = rect.top;
@@ -476,7 +491,7 @@ export class ScrollRegion extends React.Component<
         }
       } else if (position === ScrollRegion.ScrollPosition.Visible) {
         const distanceBelowBottom =
-          rect.top + rect.height - (contentClientRect.height + contentNode.scrollTop);
+          rect.top + rect.height - (contentClientRect.height + viewportNode.scrollTop);
         const distanceAboveTop = this.scrollTop - rect.top;
         if (distanceBelowBottom >= 0) {
           this.scrollTop += distanceBelowBottom;
@@ -492,13 +507,13 @@ export class ScrollRegion extends React.Component<
   }
 
   _settleHeight = callback => {
-    const contentNode = this._contentRef.current;
+    const viewportNode = this._viewportRef.current;
     let lastContentHeight = -1;
     var scrollIfSettled = () => {
       if (!this._mounted) {
         return;
       }
-      const contentRect = contentNode.getBoundingClientRect();
+      const contentRect = viewportNode.getBoundingClientRect();
       if (contentRect.height !== lastContentHeight) {
         lastContentHeight = contentRect.height;
       } else {
@@ -519,7 +534,7 @@ export class ScrollRegion extends React.Component<
     // onScroll events propogate, which is a bit strange. We could actually be
     // receiving a scroll event for a textarea inside the scroll region.
     // See Preferences > Signatures > textarea
-    if (event.target !== this._contentRef.current) {
+    if (event.target !== this._viewportRef.current) {
       return;
     }
 

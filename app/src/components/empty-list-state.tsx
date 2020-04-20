@@ -69,7 +69,7 @@ class EmptyInboxState extends React.Component<{}, { width: number; height: numbe
       window.requestAnimationFrame(() =>
         this.setState({
           width: entries[0].contentRect.width,
-          height: entries[0].contentRect.width,
+          height: entries[0].contentRect.height,
         })
       )
     );
