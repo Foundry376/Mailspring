@@ -3,7 +3,6 @@ import _ from 'underscore';
 import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
 import { HeaderControls } from './header-controls';
 import { EventOccurrence } from './calendar-data-source';
@@ -13,15 +12,19 @@ import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CurrentTimeIndicator } from './current-time-indicator';
 import { Disposable } from 'rx-core';
-import { overlapForEvents, maxConcurrentEvents, eventsGroupedByDay } from './week-view-helpers';
+import {
+  overlapForEvents,
+  maxConcurrentEvents,
+  eventsGroupedByDay,
+  TICKS_PER_DAY,
+  tickGenerator,
+} from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
 const MIN_INTERVAL_HEIGHT = 21;
 const DAY_PORTION_SHOWN_VERTICALLY = 11 / 24;
-const DAY_DUR = moment.duration(1, 'day').as('seconds');
-const INTERVAL_TIME = moment.duration(30, 'minutes').as('seconds');
 
 export class WeekView extends React.Component<
   MailspringCalendarViewProps,
@@ -171,57 +174,23 @@ export class WeekView extends React.Component<
     this.props.onChangeFocusedMoment(newMoment);
   };
 
-  _gridHeight() {
-    return (DAY_DUR / INTERVAL_TIME) * this.state.intervalHeight;
-  }
-
   _centerScrollRegion() {
     const wrap = this._gridScrollRegion.current.viewportEl;
-    wrap.scrollTop = this._gridHeight() / 2 - wrap.getBoundingClientRect().height / 2;
-  }
-
-  // This generates the ticks used mark the event grid and the
-  // corresponding legend in the week view.
-  *_tickGenerator({ type }) {
-    const height = this._gridHeight();
-
-    let step = INTERVAL_TIME;
-    let stepStart = 0;
-
-    // We only use a moment object so we can properly localize the "time"
-    // part. The day is irrelevant. We just need to make sure we're
-    // picking a non-DST boundary day.
-    const start = moment([2015, 1, 1]);
-
-    let duration = INTERVAL_TIME;
-    if (type === 'major') {
-      step = INTERVAL_TIME * 2;
-      duration += INTERVAL_TIME;
-    } else if (type === 'minor') {
-      step = INTERVAL_TIME * 2;
-      stepStart = INTERVAL_TIME;
-      duration += INTERVAL_TIME;
-      start.add(INTERVAL_TIME, 'seconds');
-    }
-
-    const curTime = moment(start);
-    for (let tsec = stepStart; tsec <= DAY_DUR; tsec += step) {
-      const y = (tsec / DAY_DUR) * height;
-      yield { time: curTime, yPos: y };
-      curTime.add(duration, 'seconds');
-    }
+    wrap.scrollTop = wrap.scrollHeight / 2 - wrap.clientHeight / 2;
   }
 
   _setIntervalHeight = () => {
     if (!this._mounted) {
       return;
     }
-    const wrap = this._gridScrollRegion.current.viewportEl;
-    const wrapHeight = wrap.getBoundingClientRect().height;
-    const numIntervals = Math.floor((DAY_DUR * DAY_PORTION_SHOWN_VERTICALLY) / INTERVAL_TIME);
-    this._legendWrapEl.current.style.height = `${wrapHeight}px`;
+    const viewportHeight = this._gridScrollRegion.current.viewportEl.clientHeight;
+    this._legendWrapEl.current.style.height = `${viewportHeight}px`;
+
     this.setState({
-      intervalHeight: Math.max(wrapHeight / numIntervals, MIN_INTERVAL_HEIGHT),
+      intervalHeight: Math.max(
+        viewportHeight / (TICKS_PER_DAY * DAY_PORTION_SHOWN_VERTICALLY),
+        MIN_INTERVAL_HEIGHT
+      ),
     });
   };
 
@@ -250,16 +219,12 @@ export class WeekView extends React.Component<
 
   _renderEventGridLabels() {
     const labels = [];
-    let centering = 0;
-    for (const { time, yPos } of this._tickGenerator({ type: 'major' })) {
-      const hr = time.format('LT'); // Locale time. 2:00 pm or 14:00
-      const style = { top: yPos - centering };
+    for (const { time, y } of tickGenerator('major', this.state.intervalHeight)) {
       labels.push(
-        <span className="legend-text" key={yPos} style={style}>
-          {hr}
+        <span className="legend-text" key={y} style={{ top: y === 0 ? y : y - 8 }}>
+          {time.format('LT')}
         </span>
       );
-      centering = 8; // center all except the 1st one.
     }
     return labels.slice(0, labels.length - 1);
   }
@@ -272,8 +237,7 @@ export class WeekView extends React.Component<
     const days = this._daysInView();
     const eventsByDay = eventsGroupedByDay(this.state.events, days);
     const todayColumnIdx = days.findIndex(d => this._isToday(d));
-    const tickGen = this._tickGenerator.bind(this);
-    const gridHeight = this._gridHeight();
+    const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
     const range = this._calculateMomentRange();
 
@@ -319,7 +283,7 @@ export class WeekView extends React.Component<
                 <span className="legend-text">All Day</span>
               </div>
               <div className="event-grid-legend-wrap" ref={this._legendWrapEl}>
-                <div className="event-grid-legend" style={{ height: gridHeight }}>
+                <div className="event-grid-legend" style={{ height: totalHeight }}>
                   {this._renderEventGridLabels()}
                 </div>
               </div>
@@ -355,11 +319,11 @@ export class WeekView extends React.Component<
                 onViewportResize={this._setIntervalHeight}
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >
-                <div className="event-grid" style={{ height: gridHeight }}>
+                <div className="event-grid" style={{ height: totalHeight }}>
                   {days.map(day => (
                     <WeekViewEventColumn
                       day={day}
-                      dayEnd={day.unix() + DAY_DUR - 1}
+                      dayEnd={day.unix() + 24 * 60 * 60 - 1}
                       key={day.valueOf()}
                       events={eventsByDay[day.unix()]}
                       focusedEvent={this.props.focusedEvent}
@@ -373,16 +337,14 @@ export class WeekView extends React.Component<
                     visible={
                       todayColumnIdx > BUFFER_DAYS && todayColumnIdx <= BUFFER_DAYS + DAYS_IN_VIEW
                     }
-                    gridHeight={gridHeight}
+                    gridHeight={totalHeight}
                     numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
                     todayColumnIdx={todayColumnIdx}
                   />
                   <EventGridBackground
-                    height={gridHeight}
+                    height={totalHeight}
                     intervalHeight={this.state.intervalHeight}
                     numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
-                    ref="eventGridBg"
-                    tickGenerator={tickGen}
                   />
                 </div>
               </ScrollRegion>
