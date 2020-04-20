@@ -8,6 +8,11 @@ import {
 
 const TrackingBlacklist = [
   {
+    name: 'NGPVan',
+    pattern: 'click.ngpvan.com/',
+    homepage: 'https://click.ngpvan.com',
+  },
+  {
     name: 'Sidekick',
     pattern: 't.signaux',
     homepage: 'http://getsidekick.com',
