@@ -10,7 +10,6 @@ export interface EventOccurrence {
   calendarId: string;
   title: string;
   location: string;
-  displayTitle: string;
   description: string;
   isAllDay: boolean;
   organizer: { email: string } | null;
@@ -69,7 +68,6 @@ export function occurrencesForEvents(
         calendarId: result.calendarId,
         title: item.summary,
         location: item.location,
-        displayTitle: item.summary,
         description: item.description,
         isAllDay: end - start >= 86400 - 1,
         organizer: item.organizer ? { email: item.organizer } : null,

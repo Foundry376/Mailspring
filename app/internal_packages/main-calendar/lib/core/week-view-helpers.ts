@@ -1,4 +1,9 @@
 import { EventOccurrence } from './calendar-data-source';
+import { Moment } from 'moment';
+import { Utils } from 'mailspring-exports';
+
+// This pre-fetches from Utils to prevent constant disc access
+const overlapsBounds = Utils.overlapsBounds;
 
 export interface OverlapByEventId {
   [id: string]: { concurrentEvents: number; order: null | number };
@@ -76,4 +81,31 @@ export function findAvailableOrder(ongoing: EventOccurrence[], overlapById: Over
 
 export function maxConcurrentEvents(eventOverlap: OverlapByEventId) {
   return Math.max(-1, ...Object.values(eventOverlap).map(o => o.concurrentEvents));
+}
+
+export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
+  const map: { allDay: EventOccurrence[]; [dayUnix: string]: EventOccurrence[] } = { allDay: [] };
+
+  const unixDays = days.map(d => d.unix());
+  unixDays.forEach(day => {
+    map[`${day}`] = [];
+  });
+
+  events.forEach(event => {
+    if (event.isAllDay) {
+      map.allDay.push(event);
+    } else {
+      for (const day of unixDays) {
+        const bounds = {
+          start: day,
+          end: day + 24 * 60 * 60 - 1,
+        };
+        if (overlapsBounds(bounds, event)) {
+          map[`${day}`].push(event);
+        }
+      }
+    }
+  });
+
+  return map;
 }

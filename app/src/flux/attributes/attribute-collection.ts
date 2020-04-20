@@ -72,7 +72,7 @@ export class AttributeCollection extends Attribute {
           `AttributeCollection::toJSON: Value \`${val}\` in ${this.modelKey} is not an ${this.itemClass.name}`
         );
       }
-      return 'toJSON' in val && val.toJSON !== undefined ? val.toJSON() : val;
+      return val && typeof val === 'object' && 'toJSON' in val ? val.toJSON() : val;
     });
   }
 
