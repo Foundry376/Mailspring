@@ -12,7 +12,7 @@
     "node": "11.x"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^5.2.2",
+    "@types/better-sqlite3": "^5.4.0",
     "@types/classnames": "^2.2.7",
     "@types/debug": "^4.1.2",
     "@types/deep-extend": "^0.4.31",
@@ -55,7 +55,7 @@
     "@typescript-eslint/parser": "^1.4.2",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "4.2.2",
+    "electron": "8.2.2",
     "electron-installer-dmg": "0.2.x",
     "electron-packager": "14.2.x",
     "electron-winstaller": "2.x.x",

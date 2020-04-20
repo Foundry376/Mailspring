@@ -33,7 +33,7 @@ class SubmitLocalizationsBar extends React.Component {
         json: true,
       });
       if (status === 'success') {
-        remote.dialog.showMessageBox({
+        remote.dialog.showMessageBoxSync({
           type: 'info',
           buttons: [localized('OK')],
           message: localized('Thank you!'),

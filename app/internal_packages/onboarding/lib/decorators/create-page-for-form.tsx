@@ -148,7 +148,7 @@ const CreatePageForForm = FormComponent => {
         account.settings.imap_host.includes('imap.gmail.com')
       ) {
         didWarnAboutGmailIMAP = true;
-        const buttonIndex = remote.dialog.showMessageBox({
+        const buttonIndex = remote.dialog.showMessageBoxSync({
           type: 'warning',
           buttons: [localized('Go Back'), localized('Continue')],
           message: localized('Are you sure?'),

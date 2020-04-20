@@ -155,7 +155,7 @@ class TemplateStore extends MailspringStore {
 
   _displayDialog(title, message, buttons) {
     return (
-      remote.dialog.showMessageBox({
+      remote.dialog.showMessageBoxSync({
         title: title,
         message: title,
         detail: message,

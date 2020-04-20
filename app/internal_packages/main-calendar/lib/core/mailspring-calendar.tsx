@@ -175,7 +175,7 @@ export class MailspringCalendar extends React.Component<
     if (this.state.selectedEvents.length === 0) {
       return;
     }
-    const response = remote.dialog.showMessageBox({
+    const response = remote.dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
       message: localized('Delete or decline these events?'),

@@ -366,7 +366,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     }
 
     if (warnings.length > 0 && !options.force) {
-      const response = dialog.showMessageBox({
+      const response = dialog.showMessageBoxSync({
         type: 'warning',
         buttons: [localized('Send Anyway'), localized('Cancel')],
         message: localized('Are you sure?'),

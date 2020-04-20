@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import cld from '@paulcbetts/cld';
+import cld from 'cld';
 import { remote } from 'electron';
 import {
   localized,
@@ -237,7 +237,7 @@ export class TranslateMessageHeader extends React.Component<
   _onNeverForLanguage = () => {
     if (!this.state.detected) return;
 
-    const response = remote.dialog.showMessageBox({
+    const response = remote.dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Yes'), localized('Cancel')],
       message: localized('Are you sure?'),
