@@ -79,12 +79,22 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
             }
           }
 
-          _bodyEditorValue = edits
+          edits = edits
             .replaceNodeByKey(first.key, Block.create({ type: 'div' }))
             .moveToRangeOfDocument()
-            .insertFragment(inHTMLEditorValue.document)
-            .moveToStart()
-            .focus().value;
+            .insertFragment(inHTMLEditorValue.document);
+
+          // occasionally inserting the fragment adds a new line at the beginning of the value.
+          // It's unclear why this happens and it appears to be specific to replies.
+          const firstBlock = edits.value.document.getBlocks().first();
+          if (firstBlock.text === '') {
+            edits = edits.removeNodeByKey(firstBlock.key);
+          }
+
+          // Note: We must re-focus the body or the composer is blurred after this operation
+          edits = edits.moveToStart().focus();
+
+          _bodyEditorValue = edits.value;
         } catch (err) {
           // deleting and re-inserting the whole document seems to push Slate pretty hard and it
           // sometimes fails with odd schema issues (undefined node, invalid range.) Just fall
