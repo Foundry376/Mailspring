@@ -27,7 +27,7 @@ export interface ComposerEditorPlugin {
   toolbarComponents?: React.ComponentType<ComposerEditorPluginToolbarComponentProps>[];
   toolbarSectionClass?: string;
 
-  commands?: { [command: string]: (event: any, editor: Editor) => Editor };
+  commands?: { [command: string]: (event: CustomEvent, editor: Editor) => Editor };
 
   onChange?(editor: Editor, next: () => void);
   onPaste?: (event, editor: Editor, next: () => void) => void;
