@@ -1,5 +1,27 @@
 # Mailspring Changelog
 
+### 1.7.6 (4/21/2020)
+
+**Fixes:**
+
+- When re-authenticating existing from Preferences > Accounts, Mailspring no longer gets stuck displaying the settings window in some scenarios.
+
+- When applying templates in the composer, Mailspring correctly clears the styling of the first line of your draft.
+
+- When switching signatures in the composer, Mailspring no longer mangles your draft content in some scenarios.
+
+- In the composer, `Select-all` + `Delete` no longer fails to delete your text if the very last block of your message is your signature.
+
+- In the composer, undoing past the end of your "undo history" no longer removes focus from the editor.
+
+- Mailspring now autolinks URLs that contain multiple `?` in the query string correctly.
+
+- Mailspring uses relative URLs for it's own assets, so the filesystem path to the application can safely contain characters like `#` and `?` safely. #1366
+
+- When messages must scroll horizontally, we add 20px to the computed height to account for the scrollbar and avoid clipping the last line of text. #1762
+
+- Fixes an occasional issue that could cause the people sidebar to become blank if the user's LinkedIn handle was malformed. #1909
+
 ### 1.7.5 (4/16/2020)
 
 **Features:**
