@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { Editor, Value } from 'slate';
+import { Editor, Value, Block } from 'slate';
 
 import RegExpUtils from '../../regexp-utils';
 import { localized } from '../../intl';
@@ -79,15 +79,11 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
             }
           }
 
-          const [newFirst, ...newRest] = inHTMLEditorValue.document.nodes.toArray();
-
-          // replace the first node in the document with the first node of the new
-          // document, and then "insert" the remaining new nodes at the end.
-          edits = edits.replaceNodeByKey(first.key, newFirst).moveToEndOfDocument();
-          for (const block of newRest) {
-            edits = edits.insertBlock(block);
-          }
-          _bodyEditorValue = edits.moveToStart().value;
+          _bodyEditorValue = edits
+            .replaceNodeByKey(first.key, Block.create({ type: 'div' }))
+            .moveToRangeOfDocument()
+            .insertFragment(inHTMLEditorValue.document)
+            .moveToStart().value;
         } catch (err) {
           // deleting and re-inserting the whole document seems to push Slate pretty hard and it
           // sometimes fails with odd schema issues (undefined node, invalid range.) Just fall
