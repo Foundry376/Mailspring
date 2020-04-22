@@ -83,7 +83,8 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
             .replaceNodeByKey(first.key, Block.create({ type: 'div' }))
             .moveToRangeOfDocument()
             .insertFragment(inHTMLEditorValue.document)
-            .moveToStart().value;
+            .moveToStart()
+            .focus().value;
         } catch (err) {
           // deleting and re-inserting the whole document seems to push Slate pretty hard and it
           // sometimes fails with odd schema issues (undefined node, invalid range.) Just fall
