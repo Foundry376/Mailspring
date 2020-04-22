@@ -22,6 +22,8 @@
 
 - Fixes an occasional issue that could cause the people sidebar to become blank if the user's LinkedIn handle was malformed. #1909
 
+- A new button in Preferences > Accounts allows you to quickly retrieve + copy the last ~50 lines of your sync logs, making it much easier to collect information we need for debugging.
+
 ### 1.7.5 (4/16/2020)
 
 **Features:**
