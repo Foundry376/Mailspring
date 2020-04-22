@@ -1,7 +1,8 @@
 /* eslint global-require: 0 */
+import fs from 'fs';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { shell, ipcRenderer } from 'electron';
+import { shell, ipcRenderer, remote } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
 import {
   localized,
@@ -172,15 +173,59 @@ class PreferencesAccountDetails extends Component<
     shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
   };
 
+  _onShowErrorDetails = async () => {
+    const { id, syncState, settings, provider } = this.props.account;
+    const filepath = require('path').join(
+      remote.app.getPath('temp'),
+      `error-details-${id}-${Date.now()}.html`
+    );
+
+    try {
+      const logs = await AppEnv.mailsyncBridge.tailClientLog(id);
+      const result = [
+        `Mailspring Version: ${AppEnv.getVersion()}`,
+        `Platform: ${process.platform}`,
+        `Account State: ${syncState}`,
+        `Account Provider: ${provider}`,
+        `IMAP Server: ${settings.imap_host}`,
+        `SMTP Server: ${settings.smtp_host}`,
+        `--------------------------------------------`,
+        logs,
+      ].join('\n');
+
+      fs.writeFileSync(
+        filepath,
+        `<div style="white-space: pre-wrap; font-family: monospace;">${result}</div>`
+      );
+    } catch (err) {
+      AppEnv.showErrorDialog({ title: 'Error', message: `Could not retrieve sync logs. ${err}` });
+      return;
+    }
+    const win = new remote.BrowserWindow({
+      width: 800,
+      height: 600,
+      title: `Account ${id} - Recent Logs`,
+      webPreferences: {
+        javascript: false,
+        nodeIntegration: false,
+      },
+    });
+    win.loadURL(`file://${filepath}`);
+  };
+
   // Renderers
 
-  _renderErrorDetail(message, buttonText, buttonAction) {
+  _renderErrorDetail(message, actions: { text: string; action: () => void }[]) {
     return (
       <div className="account-error-detail">
         <div className="message">{message}</div>
-        <a className="action" onClick={buttonAction}>
-          {buttonText}
-        </a>
+        <div style={{ display: 'flex', flexShrink: 0 }}>
+          {actions.map(({ text, action }) => (
+            <a className="action" onClick={action} key={text}>
+              {text}
+            </a>
+          ))}
+        </div>
       </div>
     );
   }
@@ -195,16 +240,20 @@ class PreferencesAccountDetails extends Component<
             `Mailspring can no longer authenticate with %@. The password or authentication may have changed.`,
             account.emailAddress
           ),
-          localized('Reconnect'),
-          this._onReconnect
+          [
+            { text: localized('Reconnect'), action: this._onReconnect },
+            { text: localized('Error Details...'), action: this._onShowErrorDetails },
+          ]
         );
       case Account.SYNC_STATE_ERROR:
         return this._renderErrorDetail(
           localized(
             `Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.`
           ),
-          localized('Try Reconnecting'),
-          this._onReconnect
+          [
+            { text: localized('Reconnect'), action: this._onReconnect },
+            { text: localized('Error Details...'), action: this._onShowErrorDetails },
+          ]
         );
       default:
         return null;
