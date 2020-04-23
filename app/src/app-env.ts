@@ -813,13 +813,14 @@ export default class AppEnvConstructor {
         detail: message,
       });
     }
-    const result = await remote.dialog.showMessageBoxSync(winToShow, {
+
+    const result = remote.dialog.showMessageBoxSync(winToShow, {
       type: 'warning',
       buttons: [localized('Okay'), localized('Show Detail')],
       message: title,
       detail: message,
     });
-    if (result.response === 1) {
+    if (result === 1) {
       const { Actions } = require('mailspring-exports');
       const { CodeSnippet } = require('mailspring-component-kit');
       Actions.openModal({

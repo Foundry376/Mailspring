@@ -41,6 +41,7 @@ export interface ModelClass {
 }
 
 export class Model implements HasStaticAttributes {
+  // @ts-ignore
   'constructor': typeof Model; // prettier-ignore
 
   static attributes: ModelAttributes = {

@@ -253,13 +253,14 @@ on the result. */
       });
     } else {
       if (node.nodes && node.nodes instanceof Array) {
+        // @ts-ignore
         node.nodes = node.nodes.map(applyMark);
       }
     }
 
     return node;
   };
-
+  // @ts-ignore
   return mark.nodes.reduce(function(nodes, node) {
     const ret = applyMark(node);
     if (Array.isArray(ret)) return nodes.concat(ret);

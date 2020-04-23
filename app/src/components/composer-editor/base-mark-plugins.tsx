@@ -298,7 +298,7 @@ const BaseMarkPlugin: ComposerEditorPlugin = {
             let size = 2;
             if (provided.endsWith('px')) {
               // 16px = 12pt
-              size = PT_TO_SIZE[Math.round(Number(provided.replace('px', '')) / 1 * 0.75)];
+              size = PT_TO_SIZE[Math.round((Number(provided.replace('px', '')) / 1) * 0.75)];
             }
             if (provided.endsWith('em')) {
               // 1em = 12pt
@@ -315,7 +315,7 @@ const BaseMarkPlugin: ComposerEditorPlugin = {
       }),
     ]),
   renderMark,
-  commands: {
+  appCommands: {
     'contenteditable:bold': (event, editor) => editor.toggleMark(MARK_CONFIG.bold.type),
     'contenteditable:underline': (event, editor) => editor.toggleMark(MARK_CONFIG.underline.type),
     'contenteditable:italic': (event, editor) => editor.toggleMark(MARK_CONFIG.italic.type),

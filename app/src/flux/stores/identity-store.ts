@@ -21,11 +21,31 @@ export interface IIdentity {
   stripePlanEffective: string;
   featureUsage: {
     [featureKey: string]: {
+      featureLimitName: 'pro';
       usedInPeriod: number;
       quota: number;
+      period: 'weekly' | 'monthly';
     };
   };
 }
+
+export const EMPTY_IDENTITY: IIdentity = {
+  id: '',
+  token: '',
+  firstName: '',
+  lastName: '',
+  emailAddress: '',
+  stripePlan: 'basic',
+  stripePlanEffective: '',
+  featureUsage: {},
+};
+
+export const EMPTY_FEATURE_USAGE = {
+  featureLimitName: 'pro',
+  period: 'monthly',
+  usedInPeriod: 0,
+  quota: 0,
+};
 
 class _IdentityStore extends MailspringStore {
   _identity: IIdentity = null;
@@ -139,7 +159,7 @@ class _IdentityStore extends MailspringStore {
    * for the full list of utm_ labels.
    */
   async fetchSingleSignOnURL(
-    path,
+    path: string,
     { source, campaign, content }: { source?: string; campaign?: string; content?: string } = {}
   ) {
     if (!this._identity) {

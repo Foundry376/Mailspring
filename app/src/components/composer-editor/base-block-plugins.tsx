@@ -370,7 +370,7 @@ const MailspringBaseBlockPlugin: ComposerEditorPlugin = {
     .filter(config => config.button)
     .map(BuildToggleButton),
   renderNode,
-  commands: {
+  appCommands: {
     'core:select-all': (event, editor: Editor) => {
       // If the document contains void blocks the browser's natural solution is to set
       // the selection to a DOM fragment range not to a contenteditable text range
@@ -420,8 +420,8 @@ const plugins: ComposerEditorPlugin[] = [
 
   // Pressing backspace when you're at the top of the document should not delete down
   {
-    onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
-      if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
+    onKeyDown: function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
+      if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.altKey) {
         return next();
       }
       const { selection, focusText, document } = editor.value;
@@ -444,7 +444,7 @@ const plugins: ComposerEditorPlugin[] = [
 
   // Return breaks you out of blockquotes completely
   {
-    onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
+    onKeyDown: function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
       if (event.shiftKey) {
         return next();
       }

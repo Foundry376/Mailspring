@@ -223,7 +223,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
 }
 
 export interface ScrollRegionProps {
-  ref?: React.Ref<ScrollRegion>;
+  ref?: React.Ref<ScrollRegion> | string;
   onScroll?: (...args: any[]) => any;
   onScrollEnd?: (...args: any[]) => any;
   onViewportResize?: (size: { width: number; height: number }) => void;
