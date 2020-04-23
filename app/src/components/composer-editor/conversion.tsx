@@ -187,7 +187,7 @@ const TEXT_RULE_IMPROVED: Rule = {
     if (obj.object === 'string') {
       return children.split('\n').reduce((array, text, i) => {
         if (i !== 0) array.push(<br />);
-        // BEGIN CHANGE
+        // BEGIN CHANGES
 
         // Replace "a   b c" with "a&nbsp;&nbsp; b c" (to match Gmail's behavior exactly.)
         // In a long run of spaces, all but the last space are converted to &nbsp;.
@@ -200,7 +200,20 @@ const TEXT_RULE_IMPROVED: Rule = {
         // considered HTML whitespace.
         text = text.replace(/^ /, '\u00A0');
 
-        // END CHANGE
+        // \r handling: CRLF delimited text pasted into the editor (on Windows) is not processed
+        // properly by Slate. It splits on \n leaving the preceding \r lying around. When the
+        // serializer encounters text nodes containing just a `\r`, it doesn't flip them to
+        // <br/> tags because they're not empty, but the character is HTML whitespace and
+        // renders with zero height causing blank newlines to disappear.
+
+        // If the only character is a \r, replace it with an nbsp.
+        if (text === '\r') text = '\u00A0';
+
+        // If the text contains a trailing \r, remove it. This stray char shouldn't matter but
+        // also shouldn't be in the HTML string.
+        text = text.replace(/\r$/, '');
+
+        // END CHANGES
         array.push(text);
         return array;
       }, []);
