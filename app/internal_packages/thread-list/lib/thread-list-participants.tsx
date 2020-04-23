@@ -59,7 +59,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       if (spacer) {
         accumulate('...');
       } else {
-        let short = '';
+        let short = contact.email;
         if (contact.name && contact.name.length > 0) {
           if (items.length > 1) {
             short = contact.displayName({
@@ -69,8 +69,6 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
           } else {
             short = contact.displayName({ includeAccountLabel: false });
           }
-        } else {
-          short = contact.email;
         }
         if (idx < items.length - 1 && !items[idx + 1].spacer) {
           short += ', ';

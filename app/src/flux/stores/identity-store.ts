@@ -19,6 +19,12 @@ export interface IIdentity {
   emailAddress: string;
   stripePlan: string;
   stripePlanEffective: string;
+  featureUsage: {
+    [featureKey: string]: {
+      usedInPeriod: number;
+      quota: number;
+    };
+  };
 }
 
 class _IdentityStore extends MailspringStore {

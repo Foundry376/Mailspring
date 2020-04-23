@@ -73,9 +73,7 @@ class FeatureUsageStore extends MailspringStore {
   }
 
   displayUpgradeModal(feature, lexicon) {
-    //
     const featureData = this._dataForFeature(feature);
-    const { iconUrl } = lexicon;
     let { headerText, rechargeText } = lexicon;
 
     if (!featureData.quota) {
@@ -94,7 +92,7 @@ class FeatureUsageStore extends MailspringStore {
         <FeatureUsedUpModal
           modalClass={feature}
           headerText={headerText}
-          iconUrl={iconUrl}
+          iconUrl={lexicon.iconUrl}
           rechargeText={rechargeText}
         />
       ),
@@ -145,7 +143,7 @@ class FeatureUsageStore extends MailspringStore {
     this._waitForModalClose = [];
   };
 
-  _dataForFeature(feature) {
+  _dataForFeature(feature: string) {
     const identity = IdentityStore.identity();
     if (!identity) {
       return {};
