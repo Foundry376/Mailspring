@@ -83,6 +83,7 @@
     "joanna": "0.0.9",
     "license-extractor": "^1.0.4",
     "load-grunt-parent-tasks": "^0.1.2",
+    "node-gyp": "^6.1.0",
     "meta-marked": "^0.4.2",
     "node-gyp": "^7.1.0",
     "mkdirp": "^0.5.1",
