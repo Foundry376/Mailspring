@@ -318,9 +318,9 @@ class WorkspaceStore extends MailspringStore {
 
     // Make sure all the locations have definitions so that packages
     // can register things into these locations and their toolbars.
-    for (let [mode, cols] of Object.entries(columns)) {
+    for (const [mode, cols] of Object.entries(columns)) {
       Sheet[id].columns[mode] = [];
-      for (let col of cols) {
+      for (const col of cols) {
         if (Location[col] == null) {
           Location[col] = { id: `${col}`, Toolbar: { id: `${col}:Toolbar` } };
         }
