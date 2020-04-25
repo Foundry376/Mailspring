@@ -1,6 +1,7 @@
 import {
   SearchQueryExpressionVisitor,
   OrQueryExpression,
+  NotQueryExpression,
   AndQueryExpression,
   DateQueryExpression,
   UnreadStatusQueryExpression,
@@ -31,6 +32,13 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
     const lhs = this.visitAndGetResult(node.e1);
     const rhs = this.visitAndGetResult(node.e2);
     this._result = `(${lhs} AND ${rhs})`;
+  }
+
+  visitNot(node) {
+    this._assertIsMatchCompatible(node);
+    const lhs = this.visitAndGetResult(node.e1);
+    const rhs = this.visitAndGetResult(node.e2);
+    this._result = `(${lhs} NOT ${rhs})`;
   }
 
   visitOr(node) {
@@ -117,6 +125,16 @@ class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
     this._result = new OrQueryExpression(lhs, rhs);
   }
 
+  visitNot(node) {
+    if (node.isMatchCompatible()) {
+      this._result = this._matchVisitor.visit(node);
+      return;
+    }
+    const lhs = this.visitAndGetResult(node.e1);
+    const rhs = this.visitAndGetResult(node.e2);
+    this._result = new NotQueryExpression(lhs, rhs);
+  }
+
   visitFrom(node) {
     this._result = this._matchVisitor.visit(node);
   }
@@ -175,6 +193,12 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
     return this.visitAndGetResult(root);
   }
 
+  visitNot(node) {
+    const lhs = this.visitAndGetResult(node.e1);
+    const rhs = this.visitAndGetResult(node.e2);
+    this._result = `(${lhs} AND NOT ${rhs})`;
+  }
+
   visitAnd(node) {
     const lhs = this.visitAndGetResult(node.e1);
     const rhs = this.visitAndGetResult(node.e2);
@@ -212,13 +236,11 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitUnread(node) {
-    const unread = node.status ? 1 : 0;
-    this._result = `(\`${this._className}\`.\`unread\` = ${unread})`;
+    this._result = `(\`${this._className}\`.\`unread\` ${node.status ? '>' : '='} 0)`;
   }
 
   visitStarred(node) {
-    const starred = node.status ? 1 : 0;
-    this._result = `(\`${this._className}\`.\`starred\` = ${starred})`;
+    this._result = `(\`${this._className}\`.\`starred\` ${node.status ? '>' : '='} 0)`;
   }
 
   visitHasAttachment(/* node */) {
@@ -247,9 +269,7 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
     // in sqlite3, you use '' to escape a '. Weird right?
     const escaped = node.rawQuery.replace(/'/g, "''");
 
-    this._result = `(\`${
-      this._className
-    }\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '${escaped}'))`;
+    this._result = `(\`${this._className}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '${escaped}'))`;
   }
 }
 

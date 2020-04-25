@@ -233,12 +233,18 @@ class AttachmentStore extends MailspringStore {
         this._lastDownloadDirectory = dirPath;
         AppEnv.savedState.lastDownloadDirectory = dirPath;
 
+        const seenPaths = new Set();
         const lastSavePaths = [];
         const savePromises = files.map(file => {
-          const savePath = path.join(dirPath, file.safeDisplayName());
+          let externalPath = path.join(dirPath, file.safeDisplayName());
+          while (seenPaths.has(externalPath) || fs.existsSync(externalPath)) {
+            externalPath = this._incrementPathToAvoidCollision(externalPath);
+          }
+          seenPaths.add(externalPath);
+
           return this._prepareAndResolveFilePath(file)
-            .then(filePath => this._writeToExternalPath(filePath, savePath))
-            .then(() => lastSavePaths.push(savePath));
+            .then(filePath => this._writeToExternalPath(filePath, externalPath))
+            .then(() => lastSavePaths.push(externalPath));
         });
 
         Promise.all(savePromises)
@@ -258,6 +264,19 @@ class AttachmentStore extends MailspringStore {
       });
     });
   };
+
+  _incrementPathToAvoidCollision(attemptedPath: string) {
+    const ext = path.extname(attemptedPath);
+    const dir = path.dirname(attemptedPath);
+    let name = path.basename(attemptedPath, ext);
+    const match = /-(\d+)$/.exec(name);
+    let counter = 0;
+    if (match) {
+      counter = Number(match[1]);
+      name = name.substr(0, match.index);
+    }
+    return `${dir}/${name}-${counter + 1}${ext}`;
+  }
 
   _defaultSaveDir() {
     let home = '';

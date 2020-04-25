@@ -43,24 +43,6 @@ class CrashTracker {
     delete this._tooManyFailures[key];
   }
 
-  tailClientLog(accountId) {
-    let log = '';
-    const logfile = `mailsync-${accountId}.log`;
-    try {
-      const logpath = path.join(AppEnv.getConfigDirPath(), logfile);
-      const { size } = fs.statSync(logpath);
-      const tailSize = Math.min(1200, size);
-      const buffer = Buffer.alloc(tailSize);
-      const fd = fs.openSync(logpath, 'r');
-      fs.readSync(fd, buffer, 0, tailSize, size - tailSize);
-      log = buffer.toString('UTF8');
-      log = log.substr(log.indexOf('\n') + 1);
-    } catch (logErr) {
-      console.warn(`Could not append ${logfile} to mailsync exception report: ${logErr}`);
-    }
-    return log;
-  }
-
   recordClientCrash(fullAccountJSON, { code, error, signal }) {
     this._appendCrashToHistory(fullAccountJSON);
 
@@ -188,6 +170,24 @@ export default class MailsyncBridge {
   async forceRelaunchClient(account: Account) {
     const keys = await KeyManager._getKeyHash();
     this._launchClient(account, keys, { force: true });
+  }
+
+  async tailClientLog(accountId: string) {
+    let log = '';
+    const logfile = `mailsync-${accountId}.log`;
+    try {
+      const logpath = path.join(AppEnv.getConfigDirPath(), logfile);
+      const { size } = fs.statSync(logpath);
+      const tailSize = Math.min(3000, size);
+      const buffer = Buffer.alloc(tailSize);
+      const fd = fs.openSync(logpath, 'r');
+      fs.readSync(fd, buffer, 0, tailSize, size - tailSize);
+      log = buffer.toString('UTF8');
+      log = log.substr(log.indexOf('\n') + 1);
+    } catch (logErr) {
+      console.warn(`Could not append ${logfile} to mailsync exception report: ${logErr}`);
+    }
+    return log;
   }
 
   sendSyncMailNow() {

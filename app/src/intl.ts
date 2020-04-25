@@ -27,7 +27,21 @@ const RTL_LANGS = [
 // For now, we only default to a localized version of Mailspring if the translations
 // have been manually reviewed by a contributor. We have Google translations in /tons/
 // of languages but in many languages the translations are poor.
-const VERIFIED_LANGS = ['en', 'de', 'es', 'fr', 'ko', 'pl', 'ja', 'zh-TW', 'pt-BR', 'gl'];
+const VERIFIED_LANGS = [
+  'en',
+  'de',
+  'es',
+  'fr',
+  'ko',
+  'pl',
+  'ja',
+  'zh-CN',
+  'zh-TW',
+  'pt-BR',
+  'gl',
+  'ru',
+  'uk',
+];
 
 const LANG_NAMES = {
   af: 'Afrikaans',

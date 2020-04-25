@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { Editor, Value } from 'slate';
+import { Editor, Value, Block } from 'slate';
 
 import RegExpUtils from '../../regexp-utils';
 import { localized } from '../../intl';
@@ -69,19 +69,32 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
         const inHTMLEditorValue = convertFromHTML(inHTML);
         try {
           // try to apply the new value to the existing document to preserve undo history.
-          _bodyEditorValue = session._mountedEditor
-            .moveToRangeOfDocument()
-            .delete()
-            .insertFragment(inHTMLEditorValue.document)
-            .moveToRangeOfDocument()
-            .moveToStart().value;
+          let edits = session._mountedEditor.moveToStartOfDocument();
 
-          // occasionally inserting the new document adds a new line at the beginning of the value.
-          // It's unclaer why this happens...
-          const firstBlock = _bodyEditorValue.document.getBlocks().first();
-          if (firstBlock.text === '') {
-            _bodyEditorValue = session._mountedEditor.removeNodeByKey(firstBlock.key).value;
+          // remove all but the very first node in the document
+          const [first, ...rest] = edits.value.document.nodes.toArray();
+          for (const item of rest) {
+            if (edits.value.document.getPath(item.key)) {
+              edits = edits.removeNodeByKey(item.key);
+            }
           }
+
+          edits = edits
+            .replaceNodeByKey(first.key, Block.create({ type: 'div' }))
+            .moveToRangeOfDocument()
+            .insertFragment(inHTMLEditorValue.document);
+
+          // occasionally inserting the fragment adds a new line at the beginning of the value.
+          // It's unclear why this happens and it appears to be specific to replies.
+          const firstBlock = edits.value.document.getBlocks().first();
+          if (firstBlock.text === '') {
+            edits = edits.removeNodeByKey(firstBlock.key);
+          }
+
+          // Note: We must re-focus the body or the composer is blurred after this operation
+          edits = edits.moveToStart().focus();
+
+          _bodyEditorValue = edits.value;
         } catch (err) {
           // deleting and re-inserting the whole document seems to push Slate pretty hard and it
           // sometimes fails with odd schema issues (undefined node, invalid range.) Just fall

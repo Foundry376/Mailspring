@@ -1,6 +1,7 @@
 import {
   SearchQueryToken,
   OrQueryExpression,
+  NotQueryExpression,
   AndQueryExpression,
   FromQueryExpression,
   ToQueryExpression,
@@ -70,6 +71,7 @@ const reserved = [
   'before',
   'since',
   'after',
+  'not',
 ];
 
 const mightBeReserved = text => {
@@ -299,7 +301,7 @@ const parseSimpleQuery = text => {
   return [new GenericQueryExpression(txt), afterTxt];
 };
 
-const parseOrQuery = text => {
+const parseOrQuery = (text: string) => {
   const [lhs, afterLhs] = parseSimpleQuery(text);
   const [tok, afterOr] = nextToken(afterLhs);
   if (tok === null) {
@@ -313,8 +315,8 @@ const parseOrQuery = text => {
 };
 
 const parseAndQuery = text => {
-  const [lhs, afterLhs] = parseOrQuery(text);
-  const [tok, afterAnd] = nextToken(afterLhs);
+  let [lhs, afterLhs] = parseOrQuery(text);
+  let [tok, afterTok] = nextToken(afterLhs);
   if (tok === null) {
     return [lhs, afterLhs];
   }
@@ -323,9 +325,32 @@ const parseAndQuery = text => {
   // break us out of the AND query are a close paren or an explicit OR token.
   if (tok.s.toUpperCase() === 'OR' || tok.s.toUpperCase() === ')') {
     return [lhs, afterLhs];
+  } else {
+    let rhsStart = afterLhs;
+    if (tok.s.toUpperCase() === 'AND') {
+      rhsStart = afterTok;
+      [tok, afterTok] = nextToken(afterTok);
+    }
+    if (tok.s.toUpperCase() === 'NOT') {
+      rhsStart = afterTok;
+      const [rhs, afterRhs] = parseAndQuery(rhsStart);
+      return [new NotQueryExpression(lhs, rhs), afterRhs];
+    } else {
+      const [rhs, afterRhs] = parseAndQuery(rhsStart);
+      return [new AndQueryExpression(lhs, rhs), afterRhs];
+    }
   }
-  const [rhs, afterRhs] = parseAndQuery(tok.s.toUpperCase() === 'AND' ? afterAnd : afterLhs);
-  return [new AndQueryExpression(lhs, rhs), afterRhs];
+
+  // NOTE: There is a bug in here somewhere where an entire match-based clause NOT'd with
+  // a WHERE-based claused has the wrong precedence. For example:
+  //
+  // is:unread NOT hello AND in:inbox
+  //
+  // is interpreted as:
+  //
+  // is:unread (NOT hello AND in:inbox)
+  //
+  // but typically the NOT should only apply to the very next clause... tbd how to fix.
 };
 
 parseQuery = text => {

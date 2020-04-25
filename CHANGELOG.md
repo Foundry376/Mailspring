@@ -1,5 +1,61 @@
 # Mailspring Changelog
 
+### 1.7.6 (4/21/2020)
+
+**Fixes:**
+
+- When re-authenticating existing from Preferences > Accounts, Mailspring no longer gets stuck displaying the settings window in some scenarios.
+
+- When applying templates in the composer, Mailspring correctly clears the styling of the first line of your draft.
+
+- When switching signatures in the composer, Mailspring no longer mangles your draft content in some scenarios.
+
+- In the composer, `Select-all` + `Delete` no longer fails to delete your text if the very last block of your message is your signature.
+
+- In the composer, undoing past the end of your "undo history" no longer removes focus from the editor.
+
+- Mailspring now autolinks URLs that contain multiple `?` in the query string correctly.
+
+- Mailspring uses relative URLs for it's own assets, so the filesystem path to the application can safely contain characters like `#` and `?` safely. #1366
+
+- When messages must scroll horizontally, we add 20px to the computed height to account for the scrollbar and avoid clipping the last line of text. #1762
+
+- Fixes an occasional issue that could cause the people sidebar to become blank if the user's LinkedIn handle was malformed. #1909
+
+- A new button in Preferences > Accounts allows you to quickly retrieve + copy the last ~50 lines of your sync logs, making it much easier to collect information we need for debugging.
+
+### 1.7.5 (4/16/2020)
+
+**Features:**
+
+- Search now supports the `NOT` operator as long as there is a positive search term. (ex: `in:inbox NOT is:unread`) #1605
+
+**Fixes:**
+
+- A major issue has been resolved that prevented IMAP accounts (including Yahoo, Yandex, etc.) from being connected correctly. I'm sorry it's taken so long for this patch to be released. Thanks to @Kozzi11 for the fix and everyone for helping to track down the bug. #1868
+
+- Disabling image autoloading now works consistently and also prevents requests for external stylesheets and web fonts that could be used for tracking.
+
+- Mailspring no longer gets "stuck" creating all drafts and replies in plaintext in some cases. #1894
+
+- Localizations have been improved for Simplified Chinese and Russian (Thanks @anthonywong, @raven-kg), and @dvomaks added a Ukranian translation! All three have been added to the "verified localizations" list so they're easier to find in the language dropdown.
+
+- If your machine's hostname contains spaces, Mailspring will strip them when identifying itself to SMTP servers to avoid being rejected in some cases. If it cannot determine your hostname it will fall back to your IP address similar to how Thunderbird works. #1808
+
+- Deleting a "Found in Mail" contact from a CardDAV account (Fastmail, etc.) no longer causes sync to crash. #1722
+
+- On Linux, Mailspring now depends on python2 for Ubuntu 20.
+
+- On Linux, Mailspring's lists itself as a "Mail Client" rather than saying "Mailspring Mailspring" (Thanks @@SaeedBaig)
+
+- When downloading attachments, Mailspring will not overwrite files in the selected folder and will choose unique names for attachments with the same name. #1901
+
+- The LinkedIn URLs in the contact sidebar no longer contain duplicate `in/in/` fragments in some cases. #1875
+
+- In the composer, lines containing a single space or starting with a single space are now preserved upon sending. #1874
+
+- Sent mail reminders look better in the ui-dark theme and returning to the reminders view after clearing the last reminder no longer causes a crash. #689
+
 ### 1.7.4 (2/24/2020)
 
 **Features:**

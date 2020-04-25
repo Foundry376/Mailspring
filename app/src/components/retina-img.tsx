@@ -88,7 +88,6 @@ type RetinaImgProps = {
   fallback?: string;
   selected?: boolean;
   active?: boolean;
-  resourcePath?: string;
 };
 
 export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<HTMLImageElement>> {
@@ -104,7 +103,6 @@ export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<
     fallback: PropTypes.string,
     selected: PropTypes.bool,
     active: PropTypes.bool,
-    resourcePath: PropTypes.string,
   };
 
   shouldComponentUpdate = nextProps => {
@@ -123,7 +121,7 @@ export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<
       pathName = `${basename}-selected.${ext}`;
     }
 
-    return Utils.imageNamed(pathName, this.props.resourcePath);
+    return Utils.imageNamed(pathName);
   };
 
   render() {

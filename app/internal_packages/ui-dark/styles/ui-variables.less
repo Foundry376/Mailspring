@@ -73,3 +73,20 @@ img.content-light {
 .thread-list .list-item:not(.unread):not(.selected):not(.focused) {
   color: #aaa;
 }
+
+.thread-list .list-item.thread-list-reminder-item {
+  background-color: #312856;
+
+  &.unread {
+    background-color: #312856;
+    &:not(.focused):not(.selected) {
+      background-color: #312856;
+    }
+  }
+}
+
+.send-reminders-header {
+  color: #7d5bef;
+  background: #312856;
+  border-bottom: 1px solid #4d3b8a;
+}

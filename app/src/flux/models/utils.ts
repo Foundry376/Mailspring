@@ -7,7 +7,7 @@ import _ from 'underscore';
 import fs from 'fs-plus';
 import path from 'path';
 
-let DefaultResourcePath = null;
+let ResourcePath = null;
 import DatabaseObjectRegistry from '../../registries/database-object-registry';
 
 export function waitFor(latch, options: { timeout?: number } = {}) {
@@ -234,14 +234,9 @@ export function isTempId(id) {
 let _imageData = null;
 let _imageCache = {};
 
-export function imageNamed(fullname, resourcePath?) {
-  const [name, ext] = fullname.split('.');
-
-  if (DefaultResourcePath == null) {
-    DefaultResourcePath = AppEnv.getLoadSettings().resourcePath;
-  }
-  if (resourcePath == null) {
-    resourcePath = DefaultResourcePath;
+function ensureImageCacheReady() {
+  if (ResourcePath == null) {
+    ResourcePath = AppEnv.getLoadSettings().resourcePath;
   }
 
   if (!_imageData) {
@@ -249,60 +244,74 @@ export function imageNamed(fullname, resourcePath?) {
     _imageCache = JSON.parse(_imageData) || {};
   }
 
-  if (!_imageCache || !_imageCache[resourcePath]) {
+  if (!_imageCache || !_imageCache[ResourcePath]) {
     if (_imageCache == null) {
       _imageCache = {};
     }
-    if (_imageCache[resourcePath] == null) {
-      _imageCache[resourcePath] = {};
+    if (_imageCache[ResourcePath] == null) {
+      _imageCache[ResourcePath] = {};
     }
-    const imagesPath = path.join(resourcePath, 'static', 'images');
+
+    const imagesPath = path.join(ResourcePath, 'static', 'images');
     const files = fs.listTreeSync(imagesPath);
     for (let file of files) {
       // On Windows, we get paths like C:\images\compose.png, but
       // Chromium doesn't accept the backward slashes. Convert to
       // C:/images/compose.png
       file = file.replace(/\\/g, '/');
+
+      // On all platforms, characters like "#" and "?" are valid in filepaths
+      // but invalid in URLs. When possible, switch back to paths relative to
+      // the static dir to avoid chars in the path that could cause images not
+      // to load. Not: does not use path.join because we remove trailing slash.
+      file = file.replace(`${ResourcePath}/static/`, '');
+
       const basename = path.basename(file);
-      _imageCache[resourcePath][basename] = file;
+      _imageCache[ResourcePath][basename] = file;
     }
     AppEnv.fileListCache().imageData = JSON.stringify(_imageCache);
   }
+}
+
+export function imageNamed(fullname: string) {
+  const [name, ext] = fullname.split('.');
+
+  ensureImageCacheReady();
 
   const plat = process.platform != null ? process.platform : '';
   const ratio = window.devicePixelRatio != null ? window.devicePixelRatio : 1;
 
   let attempt = `${name}-${plat}@${ratio}x.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   attempt = `${name}@${ratio}x.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   attempt = `${name}-${plat}.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   attempt = `${name}.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   attempt = `${name}-${plat}@2x.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   attempt = `${name}@2x.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   attempt = `${name}-${plat}@1x.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   attempt = `${name}@1x.${ext}`;
-  if (_imageCache[resourcePath][attempt]) {
-    return _imageCache[resourcePath][attempt];
+  if (_imageCache[ResourcePath][attempt]) {
+    return _imageCache[ResourcePath][attempt];
   }
   return null;
 }

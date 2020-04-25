@@ -78,6 +78,12 @@
             text-align: center;
             padding: 3px @padding-base-horizontal;
             color: @text-color-inverse;
+            flex: 1;
+            border-top: solid rgba(255, 255, 255, 0.5) 1px;
+            border-right: solid rgba(255, 255, 255, 0.5) 1px;
+            &:last-child {
+              border-right: 0;
+            }
           }
           .action:hover {
             background-color: rgba(255, 255, 255, 0.15);

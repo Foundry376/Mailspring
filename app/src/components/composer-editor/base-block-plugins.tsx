@@ -371,6 +371,14 @@ const MailspringBaseBlockPlugin: ComposerEditorPlugin = {
     .map(BuildToggleButton),
   renderNode,
   commands: {
+    'core:select-all': (event, editor: Editor) => {
+      // If the document contains void blocks the browser's natural solution is to set
+      // the selection to a DOM fragment range not to a contenteditable text range
+      // (or something like that.) This makes select-all + delete work consistently.
+      event.preventDefault();
+      event.stopPropagation();
+      return editor.moveToRangeOfDocument();
+    },
     'contenteditable:quote': (event, editor: Editor) => {
       const { isActive, onToggle } = BLOCK_CONFIG.blockquote.button;
       return onToggle(editor, isActive(editor.value));
