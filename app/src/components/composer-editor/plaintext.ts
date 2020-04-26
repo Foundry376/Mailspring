@@ -110,3 +110,10 @@ export function wrapPlaintextWithSelection(
     selectionEnd: resultSelectionEnd,
   };
 }
+
+export function convertPlaintextToHTML(plain: string) {
+  const div = document.createElement('div');
+  div.innerText = plain;
+  div.style.whiteSpace = 'pre-wrap';
+  return div.outerHTML;
+}

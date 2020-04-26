@@ -16,7 +16,11 @@ import SanitizeTransformer from '../../services/sanitize-transformer';
 import DOMUtils from '../../dom-utils';
 import { Thread } from '../models/Thread';
 import { convertToPlainText, convertFromHTML } from '../../components/composer-editor/conversion';
-import { wrapPlaintext, deepenPlaintextQuote } from '../../components/composer-editor/plaintext';
+import {
+  wrapPlaintext,
+  deepenPlaintextQuote,
+  convertPlaintextToHTML,
+} from '../../components/composer-editor/plaintext';
 
 let DraftStore: typeof import('./draft-store').default = null;
 
@@ -31,10 +35,13 @@ class DraftFactory {
 
   async prepareBodyForQuoting(message: Message) {
     if (!this.useHTML()) {
-      return deepenPlaintextQuote(
-        message.plaintext ? message.body : convertToPlainText(convertFromHTML(message.body)).trim()
-      );
+      const content = message.plaintext
+        ? message.body
+        : convertToPlainText(convertFromHTML(message.body)).trim();
+      return deepenPlaintextQuote(content);
     }
+
+    const content = message.plaintext ? convertPlaintextToHTML(message.body) : message.body;
 
     // TODO: Fix inline images
     const cidRE = MessageUtils.cidRegexString;
@@ -42,7 +49,7 @@ class DraftFactory {
 
     // Be sure to match over multiple lines with [\s\S]*
     // Regex explanation here: https://regex101.com/r/vO6eN2/1
-    let transformed = (message.body || '').replace(cidRegexp, '');
+    let transformed = (content || '').replace(cidRegexp, '');
     transformed = await SanitizeTransformer.run(transformed, SanitizeTransformer.Preset.UnsafeOnly);
     transformed = await InlineStyleTransformer.run(transformed);
     return transformed;
