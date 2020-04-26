@@ -174,7 +174,6 @@ module.exports = grunt => {
         /\.yml$/i,
         /\.gz/i,
         /\.zip/i,
-        /\.pdb$/,
         /\.h$/,
         /\.cc$/,
         /\.flow$/,
