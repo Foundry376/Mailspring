@@ -312,6 +312,7 @@ export default class MailsyncBridge {
       const isAuthFailure =
         `${error}`.includes('Response Code: 401') || // mailspring services
         `${error}`.includes('Response Code: 403') || // mailspring services
+        `${error}`.includes('invalid_grant') || // Google
         `${error}`.includes('ErrorAuthentication'); // mailcore
 
       if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
