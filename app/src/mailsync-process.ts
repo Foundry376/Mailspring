@@ -100,6 +100,7 @@ export class MailsyncProcess extends EventEmitter {
       height: 108,
       show: false,
       center: true,
+      autoHideMenuBar: true,
       resizable: false,
       minimizable: false,
       maximizable: false,
