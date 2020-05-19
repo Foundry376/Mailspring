@@ -1,5 +1,29 @@
 # Mailspring Changelog
 
+### 1.7.7 (TBD)
+
+**Fixes:**
+
+- Mailspring now ships with the latest OpenSSL-1.1.0f on Windows and Linux, which resolves connection issues with Yahoo and other IMAP providers using the latest SSL / TLS features. #1974
+
+- When testing IMAP auth, mailcore and libssl debug logs are included in the "Detailed Log" output, which will make the above easier to track down in the future. #1974
+
+- On Windows, pasting CRLF delimited plain text does not result in newlines being lost. #1756
+
+- The Message "Actions" menu now includes "Show original"
+
+- Groups of more than 999 contacts no longer cause “sqlite too many variables” errors during contact sync. #1951
+
+- Google token expiration via password reset is handled properly and presents as an authentication error and not a connection error.
+
+- When replying to plain email using the rich editor, quoted plaintext is converted to HTML #1853
+
+**Developer:**
+
+- On Windows, we ship the mailsync pdb files so stack traces viewed in the sync logs have function names for easy reporting / triage.
+
+- Contact and calendar sync issues no longer halt email sync under any circumstances. We will continue to improve the quality of calendar sync, but want to ensure an uninterrutped email experience.
+
 ### 1.7.6 (4/21/2020)
 
 **Fixes:**
