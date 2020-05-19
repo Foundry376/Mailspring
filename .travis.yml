@@ -6,7 +6,7 @@ git:
 language: node_js
 
 node_js:
-  - "11"
+  - '11'
 
 addons:
   artifacts:
@@ -40,8 +40,8 @@ addons:
 branches:
   only:
     - master
-    - "/ci-.*/"
-    - "/stable.*/"
+    - '/ci-.*/'
+    - '/stable.*/'
 
 matrix:
   include:
@@ -95,7 +95,7 @@ services:
   - docker
 
 deploy:
-  "on":
+  'on':
     branch: master
     condition: $TRAVIS_OS_NAME = linux
   provider: script
