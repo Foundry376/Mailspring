@@ -4,13 +4,13 @@
 
 **Fixes:**
 
-- Mailspring now ships with the latest OpenSSL-1.1.0f on Windows and Linux, which resolves connection issues with Yahoo and other IMAP providers using the latest SSL / TLS features. #1974
+- Mailspring now ships with OpenSSL-1.1.0f on Windows and Linux, which resolves connection issues with Yahoo and other IMAP providers that recently began requiring newer SSL / TLS features. #1974
 
-- When testing IMAP auth, mailcore and libssl debug logs are included in the "Detailed Log" output, which will make the above easier to track down in the future. #1974
+- When testing IMAP auth, mailcore and libetpan debug logs are included in the "Detailed Log" output, which will make the above easier to track down in the future. #1974
 
 - On Windows, pasting CRLF delimited plain text does not result in newlines being lost. #1756
 
-- The Message "Actions" menu now includes "Show original"
+- Mailspring no longer fails to connect to SMTP servers on older Linux distros (Ubuntu 14, etc.) that do not have `realpath` installed. #1974
 
 - Groups of more than 999 contacts no longer cause “sqlite too many variables” errors during contact sync. #1951
 

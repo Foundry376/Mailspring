@@ -43,6 +43,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
     const showOriginal = {
       name: localized('Show Original'),
+      image: 'ic-dropdown-whitespace.png',
       select: this._onShowOriginal,
     };
 
@@ -59,7 +60,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
     const itemContent = item => (
       <span>
         <RetinaImg name={item.image} mode={RetinaImg.Mode.ContentIsMask} />
-        &nbsp;&nbsp;{item.name}
+        &nbsp;&nbsp;{item.name}&nbsp;&nbsp;
       </span>
     );
 
