@@ -197,5 +197,17 @@ var DOMUtils = {
   looksLikeBlockElement(node) {
     return ['BR', 'P', 'BLOCKQUOTE', 'DIV', 'TABLE'].includes(node.nodeName);
   },
+
+  getWorkspaceCssNumberProperty(property, defaultValue) {
+    const workspaceElement = document.querySelector('mailspring-workspace');
+    if (workspaceElement) {
+      const value = getComputedStyle(workspaceElement).getPropertyValue(`--${property}`);
+      if (value.length > 0) {
+        return +value;
+      }
+    }
+
+    return defaultValue;
+  },
 };
 export default DOMUtils;

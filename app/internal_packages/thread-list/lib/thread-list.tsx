@@ -18,6 +18,7 @@ import {
   ChangeStarredTask,
   ChangeFolderTask,
   ChangeLabelsTask,
+  DOMUtils,
   ExtensionRegistry,
   FocusedContentStore,
   FocusedPerspectiveStore,
@@ -33,8 +34,8 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
   static displayName = 'ThreadList';
 
   static containerStyles = {
-    minWidth: 300,
-    maxWidth: 3000,
+    minWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-min-width', 300),
+    maxWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-max-width', 3000),
   };
 
   refs: {
@@ -86,10 +87,10 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
     let columns, itemHeight;
     if (this.state.style === 'wide') {
       columns = ThreadListColumns.Wide;
-      itemHeight = 36;
+      itemHeight = DOMUtils.getWorkspaceCssNumberProperty('thread-list-item-height-wide', 36);
     } else {
       columns = ThreadListColumns.Narrow;
-      itemHeight = 85;
+      itemHeight = DOMUtils.getWorkspaceCssNumberProperty('thread-list-item-height-narrow', 85);
     }
 
     return (
@@ -234,9 +235,10 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
   _onDragEnd = event => {};
 
   _onResize = (event?: any) => {
+    const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty('thread-list-narrow-style-width', 540);
     const current = this.state.style;
     const desired =
-      (ReactDOM.findDOMNode(this) as HTMLElement).offsetWidth < 540 ? 'narrow' : 'wide';
+      (ReactDOM.findDOMNode(this) as HTMLElement).offsetWidth < narrowStyleWidth ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }
