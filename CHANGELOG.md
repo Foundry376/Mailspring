@@ -1,6 +1,20 @@
 # Mailspring Changelog
 
-### 1.7.7 (TBD)
+### 1.7.8 (5/24/2020)
+
+**Fixes:**
+
+- Resolves a critical SMTP connection problem on Linux for Office365, manually configured Gmail, and other accounts that used the LOGIN SMTP authentication mechanism. #1996, https://github.com/cyrusimap/cyrus-sasl/pull/613
+
+- Plain text messages using a multipart MIME structure with one or more attachments now render correctly as plaintext.
+
+- "Sync Mail Now" is displayed in Preferences > Shortcuts so it's easier to map it to a custom shortcut. #1941
+
+**Developer:**
+
+- Mailspring now uses CSS properties on `mailspring-workspace` to set the height of the thread list and other key components so themes can customize them! See #2004 for details and thanks to @sergeystoma for this improvement!
+
+### 1.7.7 (5/20/2020)
 
 **Fixes:**
 
