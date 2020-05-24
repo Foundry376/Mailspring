@@ -5,6 +5,7 @@ export default [
     title: localized('Application'),
     items: [
       ['application:new-message', localized('New Message')],
+      ['window:sync-mail-now', localized('Sync New Mail Now')],
       ['core:focus-search', localized('Search')],
     ],
   },
