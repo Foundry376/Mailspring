@@ -105,12 +105,13 @@ class QuotedHTMLTransformer {
       return;
     }
 
-    // Find back-to-back <br><br> at the top level and de-duplicate them
-    const { children } = doc.body;
+    // Find back-to-back <br><br> at the top level and de-duplicate them. Note that
+    // some emails contain TEXT<br>TEXT<br>TEXT, so the only ELEMENT children may be the <brs>
+    const nodes = doc.body.childNodes;
     const extraTailBrTags = [];
-    for (let i = children.length - 1; i >= 0; i--) {
-      const curr = children[i];
-      const next = children[i - 1];
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const curr = nodes[i];
+      const next = nodes[i - 1];
       if (curr && curr.nodeName === 'BR' && next && next.nodeName === 'BR') {
         extraTailBrTags.push(curr);
       } else {
