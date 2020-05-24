@@ -203,11 +203,17 @@ var DOMUtils = {
     if (workspaceElement) {
       const value = getComputedStyle(workspaceElement).getPropertyValue(`--${property}`);
       if (value.length > 0) {
-        return +value;
+        const num = Number(value.replace('px', '').trim());
+        if (!isNaN(num)) {
+          return num;
+        } else {
+          console.warn(`Unable to interpret --${property}:${value}, provide a value in px.`);
+        }
       }
     }
 
     return defaultValue;
   },
 };
+
 export default DOMUtils;
