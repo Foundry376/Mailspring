@@ -26,5 +26,8 @@
     "thread": "cpp",
     "typeinfo": "cpp"
   },
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "files.exclude": {
+    "**/*.dll": true
+  }
 }
