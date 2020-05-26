@@ -71,5 +71,7 @@ client_secret.json
 **.so*
 **.bin
 **.tar.gz
+**.dll
+/app/mailsync.exe
 /app/mailsync.dSYM
 .idea
