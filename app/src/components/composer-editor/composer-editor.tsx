@@ -311,8 +311,19 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
     new RegExp(String.fromCharCode(0), 'g'),
     ''
   );
+  const xdgCopiedFiles = (
+    (ElectronClipboard.read('text/uri-list') || '')
+      .split('\r\n') // yes, really
+      .filter(path => path.startsWith('file://'))
+      .map(path => path.replace('file://', ''))
+      .filter(path => path.length)
+  )
   if (macCopiedFile.length || winCopiedFile.length) {
     onFileReceived(macCopiedFile || winCopiedFile);
+    return true;
+  }
+  if (xdgCopiedFiles.length) {
+    xdgCopiedFiles.forEach(onFileReceived);
     return true;
   }
 
