@@ -277,33 +277,34 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
   if (event.clipboardData.items.length === 0) {
     return false;
   }
-  const item = event.clipboardData.items[0];
+  for (const i in event.clipboardData.items) {
+    const item = event.clipboardData.items[i];
+    // If the pasteboard has a file on it, stream it to a temporary
+    // file and fire our `onFilePaste` event.
+    if (item.kind === 'file') {
+      const temp = require('temp');
+      const blob = item.getAsFile();
+      const ext =
+        {
+          'image/png': '.png',
+          'image/jpg': '.jpg',
+          'image/tiff': '.tiff',
+        }[item.type] || '';
 
-  // If the pasteboard has a file on it, stream it to a temporary
-  // file and fire our `onFilePaste` event.
-  if (item.kind === 'file') {
-    const temp = require('temp');
-    const blob = item.getAsFile();
-    const ext =
-      {
-        'image/png': '.png',
-        'image/jpg': '.jpg',
-        'image/tiff': '.tiff',
-      }[item.type] || '';
-
-    const reader = new FileReader();
-    reader.addEventListener('loadend', () => {
-      const buffer = Buffer.from(new Uint8Array(reader.result as any));
-      const tmpFolder = temp.path('-mailspring-attachment');
-      const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
-      fs.mkdir(tmpFolder, () => {
-        fs.writeFile(tmpPath, buffer, () => {
-          onFileReceived(tmpPath);
+      const reader = new FileReader();
+      reader.addEventListener('loadend', () => {
+        const buffer = Buffer.from(new Uint8Array(reader.result as any));
+        const tmpFolder = temp.path('-mailspring-attachment');
+        const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
+        fs.mkdir(tmpFolder, () => {
+          fs.writeFile(tmpPath, buffer, () => {
+            onFileReceived(tmpPath);
+          });
         });
       });
-    });
-    reader.readAsArrayBuffer(blob);
-    return true;
+      reader.readAsArrayBuffer(blob);
+      return true;
+    }
   }
 
   const macCopiedFile = decodeURI(ElectronClipboard.read('public.file-url').replace('file://', ''));
