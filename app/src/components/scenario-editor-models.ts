@@ -96,7 +96,7 @@ export const Comparators = {
         name: localized('equals'),
         arrayMatchFn: Array.prototype.some,
       },
-      ({ actual, desired }) => actual === desired
+      ({ actual, desired }) => actual.toLowerCase() === desired.toLowerCase()
     ),
 
     matchesExpression: new Comparator(
