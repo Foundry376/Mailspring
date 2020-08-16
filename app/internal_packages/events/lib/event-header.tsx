@@ -103,8 +103,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       return null;
     }
 
-    const startMoment = moment(icsEvent.startDate.toJSDate()).tz(DateUtils.timeZone);
-    const endMoment = moment(icsEvent.endDate.toJSDate()).tz(DateUtils.timeZone);
+    const startMoment = moment.tz(icsEvent.startDate.toString(), icsEvent.startDate.timezone).tz(DateUtils.timeZone);
+    const endMoment = moment.tz(icsEvent.endDate.toString(), icsEvent.endDate.timezone).tz(DateUtils.timeZone);
 
     const daySeconds = 24 * 60 * 60 * 1000;
     let day = '';
@@ -201,12 +201,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             {actionStatus === status || actionStatus !== inflight ? (
               actionLabel
             ) : (
-              <RetinaImg
-                width={18}
-                name="sending-spinner.gif"
-                mode={RetinaImg.Mode.ContentPreserve}
-              />
-            )}
+                <RetinaImg
+                  width={18}
+                  name="sending-spinner.gif"
+                  mode={RetinaImg.Mode.ContentPreserve}
+                />
+              )}
           </div>
         ))}
       </div>
