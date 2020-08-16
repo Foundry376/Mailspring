@@ -277,6 +277,8 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
   if (event.clipboardData.items.length === 0) {
     return false;
   }
+  // See https://github.com/Foundry376/Mailspring/pull/2104 - if you right-click + Copy Image in Chrome,
+  // the image file is item 1, not item 0. We want to prefer the files whenever one is present.
   for (const i in event.clipboardData.items) {
     const item = event.clipboardData.items[i];
     // If the pasteboard has a file on it, stream it to a temporary
