@@ -23,7 +23,10 @@ const AccountProviders = [
         <strong>{localized('Important')}:</strong>{' '}
         {localizedReactFragment(
           'Yahoo requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.',
-          <a href="https://help.yahoo.com/kb/SLN15241.html?guccounter=1">
+          <a
+            style={{ fontWeight: 600 }}
+            href="https://help.yahoo.com/kb/SLN15241.html?guccounter=1"
+          >
             {localized('these instructions')}
           </a>
         )}
@@ -49,7 +52,9 @@ const AccountProviders = [
         <strong>{localized('Important')}:</strong>{' '}
         {localizedReactFragment(
           'iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.',
-          <a href="https://support.apple.com/en-us/HT204397">{localized('these instructions')}</a>
+          <a style={{ fontWeight: 600 }} href="https://support.apple.com/en-us/HT204397">
+            {localized('these instructions')}
+          </a>
         )}
       </span>
     ),
@@ -65,7 +70,10 @@ const AccountProviders = [
         <strong>{localized('Important')}:</strong>{' '}
         {localizedReactFragment(
           'FastMail requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.',
-          <a href="https://www.fastmail.com/help/clients/apppassword.html">
+          <a
+            style={{ fontWeight: 600 }}
+            href="https://www.fastmail.com/help/clients/apppassword.html"
+          >
             {localized('these instructions')}
           </a>
         )}
@@ -85,7 +93,9 @@ const AccountProviders = [
         <strong>{localized('Important')}:</strong>{' '}
         {localizedReactFragment(
           'GMX requires that you %@ before using email clients like Mailspring.',
-          <a href="https://support.gmx.com/pop-imap/toggle.html">{localized('enable IMAP')}</a>
+          <a style={{ fontWeight: 600 }} href="https://support.gmx.com/pop-imap/toggle.html">
+            {localized('enable IMAP')}
+          </a>
         )}
       </span>
     ),
@@ -98,11 +108,19 @@ const AccountProviders = [
     displayName: 'Yandex',
     note: (
       <span>
-        <strong>{localized('Important')}:</strong>
+        <strong>{localized('Important')}:</strong>{' '}
         {localizedReactFragment(
-          'You may need to %@ to your Yandex account before connecting email apps. If you use two-factor auth, you need to create an %@ for Mailspring.',
-          <a href="https://phone-passport.yandex.com/phones">{localized('link a phone number')}</a>,
-          <a href="https://yandex.com/support/passport/authorization/app-passwords.html">
+          'You must %@ and you may need to %@ to connect to your Yandex account. If you use two-factor auth, you must create an %@ for Mailspring.',
+          <a style={{ fontWeight: 600 }} href="https://mail.yandex.com/#setup/client">
+            {localized('enable IMAP')}
+          </a>,
+          <a style={{ fontWeight: 600 }} href="https://phone-passport.yandex.com/phones">
+            {localized('link a phone number')}
+          </a>,
+          <a
+            style={{ fontWeight: 600 }}
+            href="https://yandex.com/support/passport/authorization/app-passwords.html"
+          >
             {localized('App Password')}
           </a>
         )}
