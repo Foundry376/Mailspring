@@ -6433,5 +6433,24 @@
     "smtp_port": "465",
     "smtp_security": "SSL / TLS",
     "smtp_user_format": "email"
+  },
+  "hostinger.com": {
+    "display_name": "HOSTINGER",
+    "display_short_name": "HOSTINGER",
+    "imap_host": "imap.hostinger.com",
+    "imap_port": "993",
+    "imap_security": "SSL / TLS",
+    "imap_user_format": "email",
+    "imap_authentication": [
+      "password-cleartext"
+    ],
+    "smtp_host": "smtp.hostinger.com",
+    "smtp_port": "465",
+    "smtp_security": "SSL / TLS",
+    "smtp_user_format": "email",
+    "smtp_authentication": [
+      "password-cleartext"
+    ],
+    "enable_steps": []
   }
 }

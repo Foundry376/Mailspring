@@ -277,33 +277,36 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
   if (event.clipboardData.items.length === 0) {
     return false;
   }
-  const item = event.clipboardData.items[0];
+  // See https://github.com/Foundry376/Mailspring/pull/2104 - if you right-click + Copy Image in Chrome,
+  // the image file is item 1, not item 0. We want to prefer the files whenever one is present.
+  for (const i in event.clipboardData.items) {
+    const item = event.clipboardData.items[i];
+    // If the pasteboard has a file on it, stream it to a temporary
+    // file and fire our `onFilePaste` event.
+    if (item.kind === 'file') {
+      const temp = require('temp');
+      const blob = item.getAsFile();
+      const ext =
+        {
+          'image/png': '.png',
+          'image/jpg': '.jpg',
+          'image/tiff': '.tiff',
+        }[item.type] || '';
 
-  // If the pasteboard has a file on it, stream it to a temporary
-  // file and fire our `onFilePaste` event.
-  if (item.kind === 'file') {
-    const temp = require('temp');
-    const blob = item.getAsFile();
-    const ext =
-      {
-        'image/png': '.png',
-        'image/jpg': '.jpg',
-        'image/tiff': '.tiff',
-      }[item.type] || '';
-
-    const reader = new FileReader();
-    reader.addEventListener('loadend', () => {
-      const buffer = Buffer.from(new Uint8Array(reader.result as any));
-      const tmpFolder = temp.path('-mailspring-attachment');
-      const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
-      fs.mkdir(tmpFolder, () => {
-        fs.writeFile(tmpPath, buffer, () => {
-          onFileReceived(tmpPath);
+      const reader = new FileReader();
+      reader.addEventListener('loadend', () => {
+        const buffer = Buffer.from(new Uint8Array(reader.result as any));
+        const tmpFolder = temp.path('-mailspring-attachment');
+        const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
+        fs.mkdir(tmpFolder, () => {
+          fs.writeFile(tmpPath, buffer, () => {
+            onFileReceived(tmpPath);
+          });
         });
       });
-    });
-    reader.readAsArrayBuffer(blob);
-    return true;
+      reader.readAsArrayBuffer(blob);
+      return true;
+    }
   }
 
   const macCopiedFile = decodeURI(ElectronClipboard.read('public.file-url').replace('file://', ''));
@@ -311,8 +314,19 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
     new RegExp(String.fromCharCode(0), 'g'),
     ''
   );
+  const xdgCopiedFiles = (
+    (ElectronClipboard.read('text/uri-list') || '')
+      .split('\r\n') // yes, really
+      .filter(path => path.startsWith('file://'))
+      .map(path => path.replace('file://', ''))
+      .filter(path => path.length)
+  )
   if (macCopiedFile.length || winCopiedFile.length) {
     onFileReceived(macCopiedFile || winCopiedFile);
+    return true;
+  }
+  if (xdgCopiedFiles.length) {
+    xdgCopiedFiles.forEach(onFileReceived);
     return true;
   }
 
