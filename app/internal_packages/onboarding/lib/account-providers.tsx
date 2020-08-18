@@ -6,7 +6,7 @@ const AccountProviders = [
     displayName: 'Gmail or G Suite',
     icon: 'ic-settings-account-gmail.png',
     headerIcon: 'setup-icon-provider-gmail.png',
-    color: '#e99999',
+    color: '#FFFFFF00',
   },
   {
     provider: 'office365',

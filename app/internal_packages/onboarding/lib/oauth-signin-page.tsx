@@ -13,7 +13,7 @@ interface OAuthSignInPageProps {
   buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
   onSuccess: (account: Account) => void;
   onTryAgain: () => void;
-  iconName: string;
+  providerConfig: object;
   serviceName: string;
 }
 
@@ -200,7 +200,8 @@ export default class OAuthSignInPage extends React.Component<
       <div className={`page account-setup ${this.props.serviceName.toLowerCase()}`}>
         <div className="logo-container">
           <RetinaImg
-            name={this.props.iconName}
+            name={this.props.providerConfig.headerIcon}
+            style={{ backgroundColor: this.props.providerConfig.color, borderRadius: 44 }}
             mode={RetinaImg.Mode.ContentPreserve}
             className="logo"
           />

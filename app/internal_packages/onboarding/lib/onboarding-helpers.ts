@@ -1,24 +1,65 @@
 /* eslint global-require: 0 */
 
+import qs from 'querystring';
 import crypto from 'crypto';
-import { Account, IdentityStore, MailsyncProcess } from 'mailspring-exports';
+import uuidv4 from 'uuid/v4';
+import { Account, IdentityStore, MailsyncProcess, localized } from 'mailspring-exports';
 import MailspringProviderSettings from './mailspring-provider-settings.json';
 import MailcoreProviderSettings from './mailcore-provider-settings.json';
 import dns from 'dns';
 
 export const LOCAL_SERVER_PORT = 12141;
-export const LOCAL_REDIRECT_URI = `http://127.0.0.1:${LOCAL_SERVER_PORT}`;
+
 const GMAIL_CLIENT_ID =
   process.env.MS_GMAIL_CLIENT_ID ||
   '662287800555-0a5h4ii0e9hsbpq0mqtul7fja0jhf9uf.apps.googleusercontent.com';
 
+const O365_CLIENT_ID = process.env.MS_O365_CLIENT_ID || '8787a430-6eee-41e1-b914-681d90d35625';
+
 const GMAIL_SCOPES = [
+  'https://mail.google.com/', // email
   'https://www.googleapis.com/auth/userinfo.email', // email address
   'https://www.googleapis.com/auth/userinfo.profile', // G+ profile
-  'https://mail.google.com/', // email
   'https://www.googleapis.com/auth/contacts', // contacts
   'https://www.googleapis.com/auth/calendar', // calendar
 ];
+
+const O365_SCOPES = [
+  'user.read', // email address
+  'offline_access',
+  'Contacts.ReadWrite', // contacts
+  'Contacts.ReadWrite.Shared', // contacts
+  'Calendars.ReadWrite', // calendar
+  'Calendars.ReadWrite.Shared', // calendar
+
+  // Future note: When you exchane the refresh token for an access token, you may
+  // request these two OR the above set but NOT BOTH, because Microsoft has mapped
+  // two underlying systems with different tokens onto the single flow and you
+  // need to get an outlook token and not a Micrsosoft Graph token to use these APIs.
+  // https://stackoverflow.com/questions/61597263/
+  'https://outlook.office.com/IMAP.AccessAsUser.All', // email
+  'https://outlook.office.com/SMTP.Send', // email
+];
+
+// Re-created only at onboarding page load / auth session start because storing
+// verifier would require additional state refactoring
+const CODE_VERIFIER = uuidv4();
+const CODE_CHALLENGE = crypto
+  .createHash('sha256')
+  .update(CODE_VERIFIER, 'utf8')
+  .digest('base64')
+  .replace(/\+/g, '-')
+  .replace(/\//g, '_')
+  .replace(/=/g, '');
+
+interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  scope: string;
+  refresh_token: string;
+  id_token: string;
+}
 
 function idForAccount(emailAddress: string, connectionSettings) {
   // changing your connection security settings / ports shouldn't blow
@@ -37,6 +78,25 @@ function idForAccount(emailAddress: string, connectionSettings) {
     .update(idString, 'utf8')
     .digest('hex')
     .substr(0, 8);
+}
+
+async function fetchPostWithFormBody<T>(url: string, body: { [key: string]: string }) {
+  const resp = await fetch(url, {
+    method: 'POST',
+    body: Object.entries(body)
+      .map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value))
+      .join('&'),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
+  });
+  const json = ((await resp.json()) || {}) as T;
+  if (!resp.ok) {
+    throw new Error(
+      `OAuth Code exchange returned ${resp.status} ${resp.statusText}: ${JSON.stringify(json)}`
+    );
+  }
+  return json;
 }
 
 function mxRecordsForDomain(domain) {
@@ -142,39 +202,24 @@ export async function expandAccountWithCommonSettings(account: Account) {
 
 export async function buildGmailAccountFromAuthResponse(code: string) {
   /// Exchange code for an access token
-  const body = [];
-  body.push(`code=${encodeURIComponent(code)}`);
-  body.push(`client_id=${encodeURIComponent(GMAIL_CLIENT_ID)}`);
-  body.push(`redirect_uri=${encodeURIComponent(LOCAL_REDIRECT_URI)}`);
-  body.push(`grant_type=${encodeURIComponent('authorization_code')}`);
-
-  const resp = await fetch('https://www.googleapis.com/oauth2/v4/token', {
-    method: 'POST',
-    body: body.join('&'),
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-    },
-  });
-
-  const json = (await resp.json()) || {};
-  if (!resp.ok) {
-    throw new Error(
-      `Gmail OAuth Code exchange returned ${resp.status} ${resp.statusText}: ${JSON.stringify(
-        json
-      )}`
-    );
-  }
-  const { access_token, refresh_token } = json;
+  const { access_token, refresh_token } = await fetchPostWithFormBody<TokenResponse>(
+    'https://www.googleapis.com/oauth2/v4/token',
+    {
+      code: code,
+      client_id: GMAIL_CLIENT_ID,
+      redirect_uri: `http://127.0.0.1:${LOCAL_SERVER_PORT}`,
+      grant_type: 'authorization_code',
+    }
+  );
 
   // get the user's email address
   const meResp = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
-    method: 'GET',
     headers: { Authorization: `Bearer ${access_token}` },
   });
   const me = await meResp.json();
   if (!meResp.ok) {
     throw new Error(
-      `Gmail profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
+      `Gmail profile request returned ${meResp.status} ${meResp.statusText}: ${JSON.stringify(me)}`
     );
   }
   const account = await expandAccountWithCommonSettings(
@@ -198,12 +243,75 @@ export async function buildGmailAccountFromAuthResponse(code: string) {
   return account;
 }
 
+export async function buildO365AccountFromAuthResponse(code: string) {
+  /// Exchange code for an access token
+  const { access_token, refresh_token } = await fetchPostWithFormBody<TokenResponse>(
+    `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
+    {
+      code: code,
+      scope: O365_SCOPES.filter(f => !f.startsWith('https://outlook.office.com')).join(' '),
+      client_id: O365_CLIENT_ID,
+      code_verifier: CODE_VERIFIER,
+      grant_type: `authorization_code`,
+      redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}`,
+    }
+  );
+
+  // get the user's email address
+  const meResp = await fetch('https://graph.microsoft.com/v1.0/me', {
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+  const me = await meResp.json();
+  if (!meResp.ok) {
+    throw new Error(
+      `O365 profile request returned ${meResp.status} ${meResp.statusText}: ${JSON.stringify(me)}`
+    );
+  }
+  if (!me.mail) {
+    throw new Error(localized(`There is no email mailbox associated with this account.`));
+  }
+
+  const account = await expandAccountWithCommonSettings(
+    new Account({
+      name: me.displayName,
+      emailAddress: me.mail,
+      provider: 'office365',
+      settings: {
+        refresh_client_id: O365_CLIENT_ID,
+        refresh_token: refresh_token,
+      },
+    })
+  );
+
+  account.id = idForAccount(me.email, account.settings);
+
+  // test the account locally to ensure the refresh token can be exchanged for an account token.
+  await finalizeAndValidateAccount(account);
+
+  return account;
+}
+
 export function buildGmailAuthURL() {
-  return `https://accounts.google.com/o/oauth2/auth?client_id=${GMAIL_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-    LOCAL_REDIRECT_URI
-  )}&response_type=code&scope=${encodeURIComponent(
-    GMAIL_SCOPES.join(' ')
-  )}&access_type=offline&select_account%20consent`;
+  return `https://accounts.google.com/o/oauth2/auth?${qs.stringify({
+    client_id: GMAIL_CLIENT_ID,
+    redirect_uri: `http://127.0.0.1:${LOCAL_SERVER_PORT}`,
+    response_type: 'code',
+    scope: GMAIL_SCOPES.join(' '),
+    access_type: 'offline',
+    prompt: 'select_account consent',
+  })}`;
+}
+
+export function buildO365AuthURL() {
+  return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${qs.stringify({
+    client_id: O365_CLIENT_ID,
+    redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}`,
+    response_type: 'code',
+    scope: O365_SCOPES.join(' '),
+    response_mode: 'query',
+    code_challenge: CODE_CHALLENGE,
+    code_challenge_method: 'S256',
+  })}`;
 }
 
 export async function finalizeAndValidateAccount(account: Account) {
