@@ -23,6 +23,8 @@ import {
   FocusedContentStore,
   FocusedPerspectiveStore,
   FolderSyncProgressStore,
+  Thread,
+  TaskFactory,
 } from 'mailspring-exports';
 
 import * as ThreadListColumns from './thread-list-columns';
@@ -116,6 +118,7 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
               'thread-list:select-unread': this._onSelectUnread,
               'thread-list:select-starred': this._onSelectStarred,
               'thread-list:select-unstarred': this._onSelectUnstarred,
+              'thread-list:select-unread-mark-as-read': this._onSelectUnreadMarkAsRead,
             }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragItems={this._onDragItems}
@@ -280,6 +283,24 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
     const dataSource = ThreadListStore.dataSource();
     const items = dataSource.itemsCurrentlyInViewMatching(item => !item.starred);
     this.refs.list.handler().onSelect(items);
+  };
+
+  _onSelectUnreadMarkAsRead = () => {
+    const dataSource = ThreadListStore.dataSource();
+    const items = dataSource.itemsCurrentlyInViewMatching(item => item.unread) as Thread[];
+    
+    if (items.length === 0) {
+      return;
+    }
+
+    Actions.queueTask(
+      TaskFactory.taskForSettingUnread({
+        threads: items,
+        unread: false,
+        source: 'Toolbar Button: Thread List',
+      })
+    );
+    Actions.popSheet();
   };
 }
 
