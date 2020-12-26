@@ -169,6 +169,11 @@ class PreferencesAccountDetails extends Component<
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
 
+  _onResetAccountColor = () => {
+    this.state.account.accountColor = '';
+    this._saveChanges();
+  }
+
   _onContactSupport = () => {
     shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
   };
@@ -318,6 +323,18 @@ class PreferencesAccountDetails extends Component<
         ) : (
           undefined
         )}
+        <h6>{localized('Account Color')}</h6>
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <input
+            type="color"
+            value={account.accountColor}
+            onBlur={this._saveChanges}
+            onChange={e => this._setState({ accountColor: e.target.value })}
+          />
+          <div className="btn" style={{ marginLeft: 6 }} onClick={this._onResetAccountColor}>
+            {localized('Reset Account Color')}
+          </div>
+        </div>
         <h6>{localized('Account Settings')}</h6>
         <div className="btn" onClick={this._onManageContacts}>
           {localized('Manage Contacts')}

@@ -134,7 +134,7 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
       .filter(ext => ext.cssClassNamesForThreadListItem != null)
       .reduce((prev, ext) => prev + ' ' + ext.cssClassNamesForThreadListItem(item), ' ');
 
-    const props: any = { className: classes };
+    const props: any = { className: classes, accountId: item.accountId };
 
     props.shouldEnableSwipe = () => {
       const perspective = FocusedPerspectiveStore.current();

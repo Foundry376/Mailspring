@@ -1,6 +1,6 @@
 import SwipeContainer from './swipe-container';
 import React from 'react';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { AccountStore, PropTypes, Utils } from 'mailspring-exports';
 import { ListTabularColumn } from './list-tabular';
 
 type ListTabularItemProps = {
@@ -12,11 +12,18 @@ type ListTabularItemProps = {
   item: object;
   itemProps?: {
     className?: string;
+    accountId?: string;
   };
   onSelect?: (...args: any[]) => any;
   onClick?: (...args: any[]) => any;
   onDoubleClick?: (...args: any[]) => any;
 };
+
+type Style = {
+  height: number,
+  borderLeftWidth: string,
+  borderLeftColor?: string
+}
 
 export default class ListTabularItem extends React.Component<ListTabularItemProps> {
   static displayName = 'ListTabularItem';
@@ -63,6 +70,17 @@ export default class ListTabularItem extends React.Component<ListTabularItemProp
       this._columnCache = this._columns();
     }
 
+    // Getting the account color from the preferences
+    // TODO: This needs to be updated automatically when the account color is changed
+    const account = AccountStore.accountForId(this.props.itemProps.accountId);
+    const style: Style = {
+      height: this.props.metrics.height,
+      borderLeftWidth: '8px',
+    }
+    if (account.accountColor != '') {
+      style.borderLeftColor = account.accountColor
+    }
+
     return (
       <SwipeContainer
         {...props}
@@ -74,7 +92,7 @@ export default class ListTabularItem extends React.Component<ListTabularItemProp
           height: this.props.metrics.height,
         }}
       >
-        <div className={className} style={{ height: this.props.metrics.height }}>
+        <div className={className} style={style}>
           {this._columnCache}
         </div>
       </SwipeContainer>
