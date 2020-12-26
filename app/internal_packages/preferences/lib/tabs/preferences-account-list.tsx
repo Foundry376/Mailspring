@@ -13,6 +13,15 @@ interface PreferencesAccountListProps {
   onRemoveAccount: (account: Account) => void;
 }
 
+interface Style {
+  borderLeftColor?: string,
+  borderLeftWidth?: string,
+  borderLeftStyle?: string,
+  paddingLeft?: string,
+  paddingRight?: string,
+  marginLeft?: string,
+}
+
 class PreferencesAccountList extends Component<PreferencesAccountListProps> {
   static propTypes = {
     accounts: PropTypes.array,
@@ -42,9 +51,15 @@ class PreferencesAccountList extends Component<PreferencesAccountListProps> {
     const label = account.label;
     const accountSub = `${account.name || localized('No name provided')} <${account.emailAddress}>`;
     const syncError = account.hasSyncStateError();
+    let style: Style = {}
+    if (account.accountColor) {
+      style = { borderLeftColor: account.accountColor, borderLeftWidth: '8px', borderLeftStyle: 'solid' }
+    } else {
+      style = { marginLeft: '8px' }
+    }
 
     return (
-      <div className={classnames({ account: true, 'sync-error': syncError })} key={account.id}>
+      <div style={style} className={classnames({ account: true, 'sync-error': syncError })} key={account.id}>
         <Flexbox direction="row" style={{ alignItems: 'middle' }}>
           <div style={{ textAlign: 'center' }}>
             <RetinaImg
