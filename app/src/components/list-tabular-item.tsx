@@ -77,7 +77,7 @@ export default class ListTabularItem extends React.Component<ListTabularItemProp
       height: this.props.metrics.height,
       borderLeftWidth: '8px',
     }
-    if (account.accountColor != '') {
+    if (account && account.accountColor != '') {
       style.borderLeftColor = account.accountColor
     }
 
