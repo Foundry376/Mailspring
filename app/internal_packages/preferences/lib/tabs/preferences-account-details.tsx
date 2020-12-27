@@ -169,6 +169,16 @@ class PreferencesAccountDetails extends Component<
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
 
+  _onSetAccountColor = (accountColorChanged) => {
+    // TODO: Ensure that the account color is updated in all places where it is displayed:
+    // - internal_packages/composer/lib/account-contict-field.tsx
+    // - internal_packages/contacts/lib/ContactsList.tsx
+    // - internal_packages/preferecnes/lib/preferences-account-list.tsx
+    // - internal/packages/thread-list/lib/thread-lib-participants.tsx
+    // - src/components/outline-view.tsx
+    this._setState(accountColorChanged)
+  }
+
   _onResetAccountColor = () => {
     this.state.account.accountColor = '';
     this._saveChanges();
@@ -329,7 +339,7 @@ class PreferencesAccountDetails extends Component<
             type="color"
             value={account.accountColor}
             onBlur={this._saveChanges}
-            onChange={e => this._setState({ accountColor: e.target.value })}
+            onChange={e => this._onSetAccountColor({ accountColor: e.target.value })}
           />
           <div className="btn" style={{ marginLeft: 6 }} onClick={this._onResetAccountColor}>
             {localized('Reset Account Color')}
