@@ -13,15 +13,6 @@ interface PreferencesAccountListProps {
   onRemoveAccount: (account: Account) => void;
 }
 
-interface Style {
-  borderLeftColor?: string,
-  borderLeftWidth?: string,
-  borderLeftStyle?: string,
-  paddingLeft?: string,
-  paddingRight?: string,
-  marginLeft?: string,
-}
-
 class PreferencesAccountList extends Component<PreferencesAccountListProps> {
   static propTypes = {
     accounts: PropTypes.array,

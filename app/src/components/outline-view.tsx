@@ -42,16 +42,6 @@ interface OutlineViewState {
   showCreateInput: boolean;
 }
 
-interface Style {
-  borderLeftColor?: string,
-  borderLeftWidth?: string,
-  borderLeftStyle?: string,
-  paddingLeft?: string,
-  paddingRight?: string,
-  marginLeft?: string,
-  height?: string,
-}
-
 /*
  * Renders a section that contains a list of {@link OutlineViewItem}s. These items can
  * be arbitrarily nested. See docs for {@link OutlineViewItem}.

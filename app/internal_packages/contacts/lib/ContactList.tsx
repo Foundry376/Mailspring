@@ -11,16 +11,6 @@ import {
 import { ContactsPerspective, Store } from './Store';
 import _ from 'underscore';
 
-interface Style {
-  borderLeftColor?: string,
-  borderLeftWidth?: string,
-  borderLeftStyle?: string,
-  paddingLeft?: string,
-  paddingRight?: string,
-  marginLeft?: string,
-  height?: string,
-}
-
 const ContactColumn = new ListTabular.Column({
   name: 'Item',
   flex: 1,

@@ -2,16 +2,6 @@ import React from 'react';
 import { AccountStore, PropTypes, Utils } from 'mailspring-exports';
 import { ThreadWithMessagesMetadata } from './types';
 
-interface Style {
-  borderLeftColor?: string,
-  borderLeftWidth?: string,
-  borderLeftStyle?: string,
-  paddingLeft?: string,
-  paddingRight?: string,
-  marginLeft?: string,
-  height?: string,
-}
-
 class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
   static displayName = 'ThreadListParticipants';
 

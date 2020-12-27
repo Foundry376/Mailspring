@@ -20,14 +20,6 @@ interface AccountContactFieldProps {
   onChange: (val: { from: Contact[]; cc: Contact[]; bcc: Contact[] }) => void;
 }
 
-interface Style {
-  borderLeftColor?: string,
-  borderLeftWidth?: string,
-  borderLeftStyle?: string,
-  paddingLeft?: string,
-  paddingRight?: string,
-  marginLeft?: string,
-}
 export default class AccountContactField extends React.Component<AccountContactFieldProps> {
   static displayName = 'AccountContactField';
 
