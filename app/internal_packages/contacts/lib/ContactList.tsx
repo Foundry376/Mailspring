@@ -1,5 +1,5 @@
 import React from 'react';
-import { Contact, localized, CanvasUtils } from 'mailspring-exports';
+import { Contact, localized, CanvasUtils, AccountStore } from 'mailspring-exports';
 import {
   FocusContainer,
   MultiselectList,
@@ -11,14 +11,37 @@ import {
 import { ContactsPerspective, Store } from './Store';
 import _ from 'underscore';
 
+interface Style {
+  borderLeftColor?: string,
+  borderLeftWidth?: string,
+  borderLeftStyle?: string,
+  paddingLeft?: string,
+  paddingRight?: string,
+  marginLeft?: string,
+  height?: string,
+}
+
 const ContactColumn = new ListTabular.Column({
   name: 'Item',
   flex: 1,
   resolver: (contact: Contact) => {
     // until we revisit the UI to accommodate more icons
+    const account = AccountStore.accountForId(contact.accountId);
+    let style: Style = {}
+    if (account && account.accountColor) {
+      if (account.accountColor) {
+        style = {
+          height: '50%',
+          paddingLeft: '4px',
+          borderLeftWidth: '4px',
+          borderLeftColor: account.accountColor,
+          borderLeftStyle: 'solid',
+        }
+      }
+    }
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-        <div className="subject" dir="auto">
+        <div style={style} className="subject" dir="auto">
           {contact.name}
         </div>
       </div>
@@ -109,9 +132,8 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
         type="text"
         ref={this._searchEl}
         value={props.search}
-        placeholder={`${localized('Search')} ${
-          props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
-        }`}
+        placeholder={`${localized('Search')} ${props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
+          }`}
         onChange={e => props.setSearch(e.currentTarget.value)}
       />
       {props.search.length > 0 && (
