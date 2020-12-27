@@ -2,6 +2,16 @@ import React from 'react';
 import { AccountStore, PropTypes, Utils } from 'mailspring-exports';
 import { ThreadWithMessagesMetadata } from './types';
 
+interface Style {
+  borderLeftColor?: string,
+  borderLeftWidth?: string,
+  borderLeftStyle?: string,
+  paddingLeft?: string,
+  paddingRight?: string,
+  marginLeft?: string,
+  height?: string,
+}
+
 class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
   static displayName = 'ThreadListParticipants';
 
@@ -17,14 +27,19 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
   render() {
     const items = this.getTokens();
     const account = AccountStore.accountForId(this.props.thread.accountId);
-    const style = {
-      borderLeftWidth: '4px',
-      borderLeftColor: account.accountColor,
-      borderLeftStyle: 'solid',
-      paddingLeft: '4px',
+    let style: Style = {}
+    if (account.accountColor) {
+      style = {
+        height: '50%',
+        paddingLeft: '4px',
+        borderLeftWidth: '4px',
+        borderLeftColor: account.accountColor,
+        borderLeftStyle: 'solid',
+      }
     }
     return (
-      <div className="participants" dir="auto" style={style}>
+      <div className="participants" dir="auto">
+        <span style={style}></span>
         {this.renderSpans(items)}
       </div>
     );
