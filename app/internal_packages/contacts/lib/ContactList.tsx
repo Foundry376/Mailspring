@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { Contact, localized, CanvasUtils, AccountStore } from 'mailspring-exports';
 import {
   FocusContainer,
@@ -17,7 +17,7 @@ const ContactColumn = new ListTabular.Column({
   resolver: (contact: Contact) => {
     // until we revisit the UI to accommodate more icons
     const account = AccountStore.accountForId(contact.accountId);
-    let style: Style = {}
+    let style: CSSProperties = {}
     if (account && account.accountColor) {
       if (account.accountColor) {
         style = {

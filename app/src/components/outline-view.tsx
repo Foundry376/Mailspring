@@ -1,5 +1,5 @@
 import { Utils, localized, AccountStore } from 'mailspring-exports';
-import React, { Component } from 'react';
+import React, { Component, CSSProperties } from 'react';
 import { DropZone } from './drop-zone';
 import { RetinaImg } from './retina-img';
 import OutlineViewItem from './outline-view-item';
@@ -182,7 +182,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   _renderHeading(allowCreate, collapsed, collapsible) {
     const collapseLabel = collapsed ? localized('Show') : localized('Hide');
     const account = AccountStore.accountForEmail(this.props.title);
-    let style: Style = {}
+    let style: CSSProperties = {}
     if (account && account.accountColor) {
       if (account.accountColor) {
         style = {

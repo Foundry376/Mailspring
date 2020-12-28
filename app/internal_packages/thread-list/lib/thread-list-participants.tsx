@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { AccountStore, PropTypes, Utils } from 'mailspring-exports';
 import { ThreadWithMessagesMetadata } from './types';
 
@@ -17,7 +17,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
   render() {
     const items = this.getTokens();
     const account = AccountStore.accountForId(this.props.thread.accountId);
-    let style: Style = {}
+    let style: CSSProperties = {}
     if (account.accountColor) {
       style = {
         height: '50%',

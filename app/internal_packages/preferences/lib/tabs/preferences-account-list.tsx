@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, CSSProperties } from 'react';
 import { localized, Account } from 'mailspring-exports';
 import { RetinaImg, Flexbox, EditableList } from 'mailspring-component-kit';
 import classnames from 'classnames';
@@ -42,7 +42,7 @@ class PreferencesAccountList extends Component<PreferencesAccountListProps> {
     const label = account.label;
     const accountSub = `${account.name || localized('No name provided')} <${account.emailAddress}>`;
     const syncError = account.hasSyncStateError();
-    let style: Style = {}
+    let style: CSSProperties = {}
     if (account.accountColor) {
       style = { borderLeftColor: account.accountColor, borderLeftWidth: '8px', borderLeftStyle: 'solid' }
     } else {

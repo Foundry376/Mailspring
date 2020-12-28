@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {
@@ -60,7 +60,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     const multipleAccounts = this.props.accounts.length > 1;
     const hasAliases = this.props.accounts[0] && this.props.accounts[0].aliases.length > 0;
     const account = this.props.accounts.find(account => account.id == this.props.value.accountId)
-    let style: Style = {
+    let style: CSSProperties = {
       paddingLeft: '8px',
       paddingRight: '8px',
     }
@@ -103,7 +103,7 @@ export default class AccountContactField extends React.Component<AccountContactF
 
   _renderMenuItem = contact => {
     const account = AccountStore.accountForId(contact.accountId)
-    let style: Style = {
+    let style: CSSProperties = {
       paddingLeft: '8px',
       paddingRight: '8px',
     }
