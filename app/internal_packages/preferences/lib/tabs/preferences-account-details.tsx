@@ -169,6 +169,21 @@ class PreferencesAccountDetails extends Component<
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
 
+  _onSetAccountColor = (accountColorChanged) => {
+    // TODO: Ensure that the account color is updated in all places where it is displayed:
+    // - internal_packages/composer/lib/account-contict-field.tsx
+    // - internal_packages/contacts/lib/ContactsList.tsx
+    // - internal_packages/preferecnes/lib/preferences-account-list.tsx
+    // - internal/packages/thread-list/lib/thread-lib-participants.tsx
+    // - src/components/outline-view.tsx
+    this._setState(accountColorChanged)
+  }
+
+  _onResetAccountColor = () => {
+    this.state.account.accountColor = '';
+    this._saveChanges();
+  }
+
   _onContactSupport = () => {
     shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
   };
@@ -318,6 +333,18 @@ class PreferencesAccountDetails extends Component<
         ) : (
           undefined
         )}
+        <h6>{localized('Account Color')}</h6>
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <input
+            type="color"
+            value={account.accountColor}
+            onBlur={this._saveChanges}
+            onChange={e => this._onSetAccountColor({ accountColor: e.target.value })}
+          />
+          <div className="btn" style={{ marginLeft: 6 }} onClick={this._onResetAccountColor}>
+            {localized('Reset Account Color')}
+          </div>
+        </div>
         <h6>{localized('Account Settings')}</h6>
         <div className="btn" onClick={this._onManageContacts}>
           {localized('Manage Contacts')}

@@ -1,5 +1,5 @@
-import { Utils, localized } from 'mailspring-exports';
-import React, { Component } from 'react';
+import { Utils, localized, AccountStore } from 'mailspring-exports';
+import React, { Component, CSSProperties } from 'react';
 import { DropZone } from './drop-zone';
 import { RetinaImg } from './retina-img';
 import OutlineViewItem from './outline-view-item';
@@ -181,6 +181,19 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
 
   _renderHeading(allowCreate, collapsed, collapsible) {
     const collapseLabel = collapsed ? localized('Show') : localized('Hide');
+    const account = AccountStore.accountForEmail(this.props.title);
+    let style: CSSProperties = {}
+    if (account && account.accountColor) {
+      if (account.accountColor) {
+        style = {
+          height: '50%',
+          paddingLeft: '4px',
+          borderLeftWidth: '4px',
+          borderLeftColor: account.accountColor,
+          borderLeftStyle: 'solid',
+        }
+      }
+    }
     return (
       <DropZone
         className="heading"
@@ -188,7 +201,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
         onDragStateChange={this._onDragStateChange}
         shouldAcceptDrop={() => true}
       >
-        <span className="text" title={this.props.title}>
+        <span style={style} className="text" title={this.props.title}>
           {this.props.title}
         </span>
         {allowCreate ? this._renderCreateButton() : null}
