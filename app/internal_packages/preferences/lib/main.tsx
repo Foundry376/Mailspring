@@ -62,8 +62,9 @@ export function activate() {
     'Preferences',
     {},
     {
-      split: ['Preferences'],
       list: ['Preferences'],
+      split: ['Preferences'],
+      splitVertical: ['Preferences'],
     }
   );
 

@@ -139,7 +139,7 @@ class AppearanceModeSwitch extends React.Component<
   };
 
   _renderModeOptions() {
-    return ['list', 'split'].map(mode => (
+    return ['list', 'split', 'splitVertical'].map(mode => (
       <AppearanceModeOption
         mode={mode}
         key={mode}
@@ -174,6 +174,7 @@ const AppearanceModeOption = function AppearanceModeOption(props) {
   const label = {
     list: localized('Single Panel'),
     split: localized('Two Panel'),
+    splitVertical: localized('Two Panel Vertical'),
   }[props.mode];
 
   return (
