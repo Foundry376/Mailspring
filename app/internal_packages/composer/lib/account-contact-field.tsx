@@ -59,22 +59,16 @@ export default class AccountContactField extends React.Component<AccountContactF
     const label = this.props.value.toString();
     const multipleAccounts = this.props.accounts.length > 1;
     const hasAliases = this.props.accounts[0] && this.props.accounts[0].aliases.length > 0;
-    const account = this.props.accounts.find(account => account.id == this.props.value.accountId)
+    const account = AccountStore.accountForEmail(this.props.value.email);
     let style: CSSProperties = {
-      paddingLeft: '8px',
-      paddingRight: '8px',
     }
-    if (account.accountColor) {
+    if (account && account.accountColor) {
       style = {
         ...style,
-        borderLeftWidth: '8px',
         borderLeftColor: account.accountColor,
+        paddingLeft: '8px',
+        borderLeftWidth: '8px',
         borderLeftStyle: 'solid',
-      }
-    } else {
-      style = {
-        ...style,
-        marginLeft: '8px',
       }
     }
 
@@ -90,12 +84,19 @@ export default class AccountContactField extends React.Component<AccountContactF
         />
       );
     }
-    return this._renderAccountSpan(label);
+    return this._renderAccountSpan(label, style);
   }
 
-  _renderAccountSpan = label => {
+  _renderAccountSpan = (label, style) => {
+    style = {
+      ...style,
+      position: 'relative',
+      top: 13,
+      left: '0.5em',
+    }
+
     return (
-      <span className="from-single-name" style={{ position: 'relative', top: 13, left: '0.5em' }}>
+      <span className="from-single-name" style={style}>
         {label}
       </span>
     );
@@ -103,21 +104,14 @@ export default class AccountContactField extends React.Component<AccountContactF
 
   _renderMenuItem = contact => {
     const account = AccountStore.accountForId(contact.accountId)
-    let style: CSSProperties = {
-      paddingLeft: '8px',
-      paddingRight: '8px',
-    }
-    if (account.accountColor) {
+    let style: CSSProperties = {}
+    if (account && account.accountColor) {
       style = {
         ...style,
         borderLeftColor: account.accountColor,
+        paddingLeft: '8px',
         borderLeftWidth: '8px',
         borderLeftStyle: 'solid',
-      }
-    } else {
-      style = {
-        ...style,
-        marginLeft: '8px',
       }
     }
     const className = classnames({
