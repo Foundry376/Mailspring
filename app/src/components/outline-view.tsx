@@ -183,13 +183,13 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     const collapseLabel = collapsed ? localized('Show') : localized('Hide');
     const account = AccountStore.accountForEmail(this.props.title);
     let style: CSSProperties = {}
-    if (account && account.accountColor) {
-      if (account.accountColor) {
+    if (account && account.color) {
+      if (account.color) {
         style = {
           height: '50%',
           paddingLeft: '4px',
           borderLeftWidth: '4px',
-          borderLeftColor: account.accountColor,
+          borderLeftColor: account.color,
           borderLeftStyle: 'solid',
         }
       }

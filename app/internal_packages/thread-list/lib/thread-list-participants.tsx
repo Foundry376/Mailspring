@@ -18,12 +18,12 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     const items = this.getTokens();
     const account = AccountStore.accountForId(this.props.thread.accountId);
     let style: CSSProperties = {}
-    if (account.accountColor) {
+    if (account.color) {
       style = {
         height: '50%',
         paddingLeft: '4px',
         borderLeftWidth: '4px',
-        borderLeftColor: account.accountColor,
+        borderLeftColor: account.color,
         borderLeftStyle: 'solid',
       }
     }
