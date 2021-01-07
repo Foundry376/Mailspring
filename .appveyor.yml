@@ -6,6 +6,8 @@ branches:
     - /ci.*/
     - /stable.*/
 
+skip_non_tags: true
+
 init:
   - ps: $env:commit = $env:appveyor_repo_commit.SubString(0,8)
 
