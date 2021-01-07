@@ -177,7 +177,7 @@ class SidebarSection {
   }
 
   static forUserCategories(
-    account,
+    account: Account,
     { title, collapsible }: { title?: string; collapsible?: boolean } = {}
   ): ISidebarSection {
     let onCollapseToggled;
@@ -239,12 +239,14 @@ class SidebarSection {
     if (collapsible) {
       onCollapseToggled = toggleSectionCollapsed;
     }
+    const titleColor = account.color;
 
     return {
       title,
       iconName,
       items,
       collapsed,
+      titleColor,
       onCollapseToggled,
       onItemCreated(displayName) {
         if (!displayName) {

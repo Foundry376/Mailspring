@@ -27,6 +27,7 @@ export interface ISidebarSection {
   items: ISidebarItem[];
   iconName?: string;
   collapsed?: boolean;
+  titleColor?: string;
   onCollapseToggled?: () => void;
   onItemCreated?: (displayName) => void;
 }
