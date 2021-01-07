@@ -1,4 +1,4 @@
-import { Utils, localized, AccountStore } from 'mailspring-exports';
+import { Utils, localized } from 'mailspring-exports';
 import React, { Component, CSSProperties } from 'react';
 import { DropZone } from './drop-zone';
 import { RetinaImg } from './retina-img';
@@ -34,6 +34,7 @@ interface OutlineViewProps {
   items: IOutlineViewItem[];
   iconName?: string;
   collapsed?: boolean;
+  titleColor?: string;
   onCollapseToggled?: (props: OutlineViewProps) => void;
   onItemCreated?: (displayName) => void;
 }
@@ -63,6 +64,7 @@ interface OutlineViewState {
  * OutlineViewItem}s
  * @param {boolean} props.collapsed - Whether the OutlineView is collapsed or
  * not
+ * @param {string} props.titleColor - Colored bar that is displayed to highlight the title
  * @param {props.onItemCreated} props.onItemCreated
  * @param {props.onCollapseToggled} props.onCollapseToggled
  * @class OutlineView
@@ -83,6 +85,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
    */
   static propTypes = {
     title: PropTypes.string,
+    titleColor: PropTypes.string,
     iconName: PropTypes.string,
     items: PropTypes.array,
     collapsed: PropTypes.bool,
@@ -181,17 +184,14 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
 
   _renderHeading(allowCreate, collapsed, collapsible) {
     const collapseLabel = collapsed ? localized('Show') : localized('Hide');
-    const account = AccountStore.accountForEmail(this.props.title);
     let style: CSSProperties = {}
-    if (account && account.accountColor) {
-      if (account.accountColor) {
-        style = {
-          height: '50%',
-          paddingLeft: '4px',
-          borderLeftWidth: '4px',
-          borderLeftColor: account.accountColor,
-          borderLeftStyle: 'solid',
-        }
+    if (this.props.titleColor) {
+      style = {
+        height: '50%',
+        paddingLeft: '4px',
+        borderLeftWidth: '4px',
+        borderLeftColor: this.props.titleColor,
+        borderLeftStyle: 'solid',
       }
     }
     return (

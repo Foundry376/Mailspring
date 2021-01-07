@@ -62,10 +62,10 @@ export default class AccountContactField extends React.Component<AccountContactF
     const account = AccountStore.accountForEmail(this.props.value.email);
     let style: CSSProperties = {
     }
-    if (account && account.accountColor) {
+    if (account && account.color) {
       style = {
         ...style,
-        borderLeftColor: account.accountColor,
+        borderLeftColor: account.color,
         paddingLeft: '8px',
         borderLeftWidth: '8px',
         borderLeftStyle: 'solid',
@@ -105,10 +105,10 @@ export default class AccountContactField extends React.Component<AccountContactF
   _renderMenuItem = contact => {
     const account = AccountStore.accountForId(contact.accountId)
     let style: CSSProperties = {}
-    if (account && account.accountColor) {
+    if (account && account.color) {
       style = {
         ...style,
-        borderLeftColor: account.accountColor,
+        borderLeftColor: account.color,
         paddingLeft: '8px',
         borderLeftWidth: '8px',
         borderLeftStyle: 'solid',

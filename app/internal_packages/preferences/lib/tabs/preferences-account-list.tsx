@@ -43,8 +43,8 @@ class PreferencesAccountList extends Component<PreferencesAccountListProps> {
     const accountSub = `${account.name || localized('No name provided')} <${account.emailAddress}>`;
     const syncError = account.hasSyncStateError();
     let style: CSSProperties = {}
-    if (account.accountColor) {
-      style = { borderLeftColor: account.accountColor, borderLeftWidth: '8px', borderLeftStyle: 'solid' }
+    if (account.color) {
+      style = { borderLeftColor: account.color, borderLeftWidth: '8px', borderLeftStyle: 'solid' }
     } else {
       style = { marginLeft: '8px' }
     }

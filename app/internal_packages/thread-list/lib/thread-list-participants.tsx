@@ -1,5 +1,6 @@
-import React, { CSSProperties } from 'react';
-import { AccountStore, PropTypes, Utils } from 'mailspring-exports';
+import React from 'react';
+import { PropTypes, Utils } from 'mailspring-exports';
+import { AccountColorBar } from 'mailspring-component-kit';
 import { ThreadWithMessagesMetadata } from './types';
 
 class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
@@ -16,20 +17,9 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
 
   render() {
     const items = this.getTokens();
-    const account = AccountStore.accountForId(this.props.thread.accountId);
-    let style: CSSProperties = {}
-    if (account.accountColor) {
-      style = {
-        height: '50%',
-        paddingLeft: '4px',
-        borderLeftWidth: '4px',
-        borderLeftColor: account.accountColor,
-        borderLeftStyle: 'solid',
-      }
-    }
     return (
       <div className="participants" dir="auto">
-        <span style={style}></span>
+        <AccountColorBar accountId={this.props.thread.accountId} />
         {this.renderSpans(items)}
       </div>
     );

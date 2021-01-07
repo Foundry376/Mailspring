@@ -65,6 +65,7 @@ export * from '../components/scroll-region';
 export * from '../components/resizable-region';
 export * from '../components/mail-label';
 
+export const AccountColorBar: typeof import('../components/account-color-bar').default;
 export const MailLabelSet: typeof import('../components/mail-label-set').default;
 export const MailImportantIcon: typeof import('../components/mail-important-icon').default;
 

@@ -18,15 +18,13 @@ const ContactColumn = new ListTabular.Column({
     // until we revisit the UI to accommodate more icons
     const account = AccountStore.accountForId(contact.accountId);
     let style: CSSProperties = {}
-    if (account && account.accountColor) {
-      if (account.accountColor) {
-        style = {
-          height: '50%',
-          paddingLeft: '4px',
-          borderLeftWidth: '4px',
-          borderLeftColor: account.accountColor,
-          borderLeftStyle: 'solid',
-        }
+    if (account && account.color) {
+      style = {
+        height: '50%',
+        paddingLeft: '4px',
+        borderLeftWidth: '4px',
+        borderLeftColor: account.color,
+        borderLeftStyle: 'solid',
       }
     }
     return (
