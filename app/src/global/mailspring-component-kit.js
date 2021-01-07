@@ -123,6 +123,7 @@ lazyLoad('ComposerSupport', 'composer-editor/composer-support');
 lazyLoad('ScrollRegion', 'scroll-region');
 lazyLoad('ResizableRegion', 'resizable-region');
 
+lazyLoad('AccountColorBar', 'account-color-bar');
 lazyLoadFrom('MailLabel', 'mail-label');
 lazyLoadFrom('LabelColorizer', 'mail-label');
 lazyLoad('MailLabelSet', 'mail-label-set');
