@@ -57,7 +57,7 @@ class PreferencesAccountDetails extends Component<
   {
     account: Account;
   }
-> {
+  > {
   static propTypes = {
     account: PropTypes.object,
     onAccountUpdated: PropTypes.func.isRequired,
@@ -107,7 +107,7 @@ class PreferencesAccountDetails extends Component<
     this.props.onAccountUpdated(this.props.account, this.state.account);
   };
 
-  _setState = (updates, callback = () => {}) => {
+  _setState = (updates, callback = () => { }) => {
     const account = Object.assign(this.state.account.clone(), updates);
     this.setState({ account }, callback);
   };
@@ -168,6 +168,21 @@ class PreferencesAccountDetails extends Component<
   _onManageContacts = () => {
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
+
+  _onSetColor = (colorChanged) => {
+    // TODO: Ensure that the account color is updated in all places where it is displayed:
+    // - internal_packages/composer/lib/account-contict-field.tsx
+    // - internal_packages/contacts/lib/ContactsList.tsx
+    // - internal_packages/preferecnes/lib/preferences-account-list.tsx
+    // - internal/packages/thread-list/lib/thread-lib-participants.tsx
+    // - src/components/outline-view.tsx
+    this._setState(colorChanged)
+  }
+
+  _onResetColor = () => {
+    this.state.account.color = '';
+    this._saveChanges();
+  }
 
   _onContactSupport = () => {
     shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
@@ -316,8 +331,20 @@ class PreferencesAccountDetails extends Component<
             </select>
           </div>
         ) : (
-          undefined
-        )}
+            undefined
+          )}
+        <h6>{localized('Account Color')}</h6>
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <input
+            type="color"
+            value={account.color}
+            onBlur={this._saveChanges}
+            onChange={e => this._onSetColor({ color: e.target.value })}
+          />
+          <div className="btn" style={{ marginLeft: 6 }} onClick={this._onResetColor}>
+            {localized('Reset Account Color')}
+          </div>
+        </div>
         <h6>{localized('Account Settings')}</h6>
         <div className="btn" onClick={this._onManageContacts}>
           {localized('Manage Contacts')}

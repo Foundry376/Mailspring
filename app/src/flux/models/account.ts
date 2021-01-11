@@ -81,6 +81,10 @@ export class Account extends ModelWithMetadata {
     authedAt: Attributes.DateTime({
       modelKey: 'authedAt',
     }),
+
+    color: Attributes.String({
+      modelKey: 'color',
+    }),
   };
 
   public name: string;
@@ -108,6 +112,7 @@ export class Account extends ModelWithMetadata {
   public defaultAlias: string;
   public syncState: string;
   public syncError: string;
+  public color: string;
 
   constructor(args) {
     super(args);
@@ -119,6 +124,7 @@ export class Account extends ModelWithMetadata {
       type: 'bcc',
       value: '',
     };
+    this.color = this.color || '';
   }
 
   toJSON() {

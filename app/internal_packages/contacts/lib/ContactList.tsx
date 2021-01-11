@@ -1,5 +1,5 @@
-import React from 'react';
-import { Contact, localized, CanvasUtils } from 'mailspring-exports';
+import React, { CSSProperties } from 'react';
+import { Contact, localized, CanvasUtils, AccountStore } from 'mailspring-exports';
 import {
   FocusContainer,
   MultiselectList,
@@ -16,9 +16,20 @@ const ContactColumn = new ListTabular.Column({
   flex: 1,
   resolver: (contact: Contact) => {
     // until we revisit the UI to accommodate more icons
+    const account = AccountStore.accountForId(contact.accountId);
+    let style: CSSProperties = {}
+    if (account && account.color) {
+      style = {
+        height: '50%',
+        paddingLeft: '4px',
+        borderLeftWidth: '4px',
+        borderLeftColor: account.color,
+        borderLeftStyle: 'solid',
+      }
+    }
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-        <div className="subject" dir="auto">
+        <div style={style} className="subject" dir="auto">
           {contact.name}
         </div>
       </div>
@@ -109,9 +120,8 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
         type="text"
         ref={this._searchEl}
         value={props.search}
-        placeholder={`${localized('Search')} ${
-          props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
-        }`}
+        placeholder={`${localized('Search')} ${props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
+          }`}
         onChange={e => props.setSearch(e.currentTarget.value)}
       />
       {props.search.length > 0 && (

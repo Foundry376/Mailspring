@@ -3,7 +3,7 @@ import { Utils, DOMUtils, Account, AccountStore } from 'mailspring-exports';
 import { OutlineView, ScrollRegion, Flexbox } from 'mailspring-component-kit';
 import AccountSwitcher from './account-switcher';
 import SidebarStore from '../sidebar-store';
-import { ISidebarSection, ISidebarItem } from '../types';
+import { ISidebarSection } from '../types';
 
 interface AccountSidebarState {
   accounts: Account[];

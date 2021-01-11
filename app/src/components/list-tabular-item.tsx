@@ -86,8 +86,7 @@ export default class ListTabularItem extends React.Component<ListTabularItemProp
     return (this.props.columns || []).map(column => {
       if (names[column.name]) {
         console.warn(
-          `ListTabular: Columns do not have distinct names, will cause React error! \`${
-            column.name
+          `ListTabular: Columns do not have distinct names, will cause React error! \`${column.name
           }\` twice.`
         );
       }
