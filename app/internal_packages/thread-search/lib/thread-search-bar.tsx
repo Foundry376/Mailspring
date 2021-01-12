@@ -7,6 +7,7 @@ import {
   FocusedPerspectiveStore,
   WorkspaceStore,
   MailboxPerspective,
+  AccountStore,
 } from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
@@ -306,7 +307,13 @@ class ThreadSearchBar extends Component<
 
   _placeholder = () => {
     if (this._initialQueryForPerspective() === '') {
-      return localized('Search all mailboxes');
+      const countMailboxes = FocusedPerspectiveStore.current()?.accountIds?.length || 0;
+      if (countMailboxes == 1) {
+        const account = AccountStore.accountForId(FocusedPerspectiveStore.current().accountIds[0]);
+        return localized('Search') + ' ' + account.label;
+      } else {
+        return localized('Search all mailboxes');
+      }
     }
     return localized(`Search`) + ' ' + this.props.perspective.name || '';
   };
