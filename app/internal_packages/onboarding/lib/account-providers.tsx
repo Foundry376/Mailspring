@@ -69,7 +69,7 @@ const AccountProviders = [
       <span>
         <strong>{localized('Important')}:</strong>{' '}
         {localizedReactFragment(
-          'FastMail requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.',
+          'FastMail requires that you create a unique app password of type IMAP for email apps like Mailspring. Follow %@ to create one and then paste it below.',
           <a
             style={{ fontWeight: 600 }}
             href="https://www.fastmail.com/help/clients/apppassword.html"
