@@ -1,10 +1,10 @@
 ---
 name: Task
-about: Contributor-only form! (Issues created by non-contributors will be autoclosed.)
+about: Contributor-only form! (Issues created by non-contributors will be closed.)
 assignees: ''
 
 ---
-<!-- WARNING: All issues created by non-contributors will be autoclosed.
+<!-- WARNING: All issues created by non-contributors WILL be closed.
   -- Please use https://community.getmailspring.com/ for all bug reports
   -- and feature requests.
   -->
