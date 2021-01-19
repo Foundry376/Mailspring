@@ -43,7 +43,7 @@
     "mkdirp": "^0.5",
     "moment": "^2.24.0",
     "moment-round": "^1.0.1",
-    "moment-timezone": "^0.5.27",
+    "moment-timezone": "^0.5.32",
     "mousetrap": "^1.5.3",
     "node-emoji": "^1.2.1",
     "optimist": "0.4.0",
@@ -78,6 +78,7 @@
     "utf7": "^1.0.2",
     "uuid": "^3.0.0",
     "vcf": "^2.0.5",
+    "windows-iana": "^4.2.1",
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
     "xlsx": "0.14.1"
   },
