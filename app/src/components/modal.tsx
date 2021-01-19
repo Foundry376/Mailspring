@@ -25,7 +25,7 @@ class Modal extends React.Component<ModalProps, ModalState> {
     width: PropTypes.number,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   state = {
     offset: 0,

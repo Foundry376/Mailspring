@@ -401,11 +401,11 @@ export default class AppEnvConstructor {
   // Extended: Move current window to the center of the screen.
   center() {
     if (process.platform === 'linux') {
-      let dimensions = this.getWindowDimensions();
-      let display =
+      const dimensions = this.getWindowDimensions();
+      const display =
         remote.screen.getDisplayMatching(dimensions) || remote.screen.getPrimaryDisplay();
-      let x = display.bounds.x + (display.bounds.width - dimensions.width) / 2;
-      let y = display.bounds.y + (display.bounds.height - dimensions.height) / 2;
+      const x = display.bounds.x + (display.bounds.width - dimensions.width) / 2;
+      const y = display.bounds.y + (display.bounds.height - dimensions.height) / 2;
 
       return this.setPosition(x, y);
     } else {
@@ -849,7 +849,7 @@ export default class AppEnvConstructor {
 
   restoreWindowState() {
     try {
-      let stateString = window.localStorage.getItem(this.getWindowStateKey());
+      const stateString = window.localStorage.getItem(this.getWindowStateKey());
       if (stateString != null) {
         this.savedState = JSON.parse(stateString);
       }

@@ -53,7 +53,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     inflight: undefined,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
   _subscription: Rx.IDisposable;
 
   componentWillUnmount() {

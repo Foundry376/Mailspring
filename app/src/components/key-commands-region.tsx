@@ -117,11 +117,11 @@ export class KeyCommandsRegion extends React.Component<
 
   _lastFocusElement: HTMLElement = null;
   _losingFocusToElement: HTMLElement = null;
-  _losingFocusFrames: number = 0;
+  _losingFocusFrames = 0;
   _lostFocusToElement: HTMLElement = null;
   _localDisposable?: Disposable;
   _globalDisposable?: Disposable;
-  _goingout: boolean = false;
+  _goingout = false;
 
   state = {
     focused: false,

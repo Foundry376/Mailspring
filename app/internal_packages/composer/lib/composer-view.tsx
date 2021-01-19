@@ -56,7 +56,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     className: PropTypes.string,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
   _mouseDownTarget: HTMLElement = null;
 
   dropzone = React.createRef<DropZone>();

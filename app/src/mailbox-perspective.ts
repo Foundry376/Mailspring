@@ -530,7 +530,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   // - if finished category === "archive" remove the label
   // - if finished category === "trash" move to trash folder, keep labels intact
   //
-  tasksForRemovingItems(threads, source: string = 'Removed from list') {
+  tasksForRemovingItems(threads, source = 'Removed from list') {
     ChangeLabelsTask =
       ChangeLabelsTask || require('./flux/tasks/change-labels-task').ChangeLabelsTask;
     ChangeFolderTask =

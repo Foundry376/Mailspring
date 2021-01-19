@@ -261,7 +261,7 @@ on the result. */
   };
 
   return mark.nodes.reduce(function(nodes, node) {
-    var ret = applyMark(node);
+    const ret = applyMark(node);
     if (Array.isArray(ret)) return nodes.concat(ret);
     nodes.push(ret);
     return nodes;

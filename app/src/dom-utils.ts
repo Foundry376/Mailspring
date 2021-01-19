@@ -28,7 +28,7 @@ var DOMUtils = {
     if (node.nodeType === Node.TEXT_NODE) {
       return node;
     }
-    for (let childNode of node.childNodes) {
+    for (const childNode of node.childNodes) {
       if (childNode.nodeType === Node.TEXT_NODE) {
         return childNode;
       } else if (childNode.nodeType === Node.ELEMENT_NODE) {

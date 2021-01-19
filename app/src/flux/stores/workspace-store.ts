@@ -296,7 +296,7 @@ class WorkspaceStore extends MailspringStore {
   defineSheet(id, options: Partial<SheetDeclaration> = {}, columns = {}) {
     // Make sure all the locations have definitions so that packages
     // can register things into these locations and their toolbars.
-    for (let layout in columns) {
+    for (const layout in columns) {
       const cols = columns[layout];
       for (let idx = 0; idx < cols.length; idx++) {
         const col = cols[idx];

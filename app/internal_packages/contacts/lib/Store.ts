@@ -17,7 +17,7 @@ class ContactsWindowStore extends MailspringStore {
   _contactsSubscription: MutableQuerySubscription<Contact>;
   _groups: ContactGroup[] = [];
   _books: ContactBook[] = [];
-  _search: string = '';
+  _search = '';
   _filtered: Contact[] | null = null;
   _editing: string | 'new' | false = false;
 
@@ -84,7 +84,7 @@ class ContactsWindowStore extends MailspringStore {
   }
 
   setPerspective(perspective: ContactsPerspective) {
-    let q = DatabaseStore.findAll<Contact>(Contact)
+    const q = DatabaseStore.findAll<Contact>(Contact)
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false));
 

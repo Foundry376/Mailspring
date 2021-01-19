@@ -15,7 +15,7 @@ class RefreshButton extends React.Component<{}, { refreshing: boolean }> {
     this.state = { refreshing: false };
   }
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   componentDidMount() {
     this._mounted = true;

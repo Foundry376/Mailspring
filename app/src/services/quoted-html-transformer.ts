@@ -423,7 +423,7 @@ class QuotedHTMLTransformer {
     // This traverses the DOM, walking up the tree and adding all siblings below
     // our current path to the array.
     let head = headerContainer;
-    let results = [];
+    const results = [];
     while (head) {
       results.push(head);
       while (head && !head.nextElementSibling) {

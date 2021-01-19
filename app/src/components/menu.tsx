@@ -202,7 +202,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
 
   static defaultProps = { onEscape() {} };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   constructor(props) {
     super(props);

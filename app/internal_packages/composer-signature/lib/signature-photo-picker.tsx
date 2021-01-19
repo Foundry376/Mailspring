@@ -74,7 +74,7 @@ export default class SignaturePhotoPicker extends React.Component<
     const img = new Image();
     img.onload = () => {
       let scale = Math.min(MAX_IMAGE_RES / img.width, MAX_IMAGE_RES / img.height, 1);
-      let scaleDesired = scale;
+      const scaleDesired = scale;
       let source: any = img;
 
       let times = 0;

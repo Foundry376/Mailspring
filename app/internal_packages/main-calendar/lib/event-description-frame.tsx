@@ -10,7 +10,7 @@ export default class EmailFrame extends React.Component<{ content: string }> {
     content: PropTypes.string.isRequired,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
   _unlisten?: () => void;
   _iframeComponent: EventedIFrame;
   _iframeHeightHolderEl: HTMLDivElement;

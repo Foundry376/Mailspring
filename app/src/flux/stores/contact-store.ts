@@ -80,7 +80,7 @@ class ContactStore extends MailspringStore {
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending())
       .then(async _results => {
-        let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
+        const results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
         if (results.length > limit) {
           results.length = limit;
         }

@@ -41,7 +41,7 @@ export default class EmojiToolbarPopover extends React.Component<
   static displayName = 'EmojiToolbarPopover';
 
   _canvasEl: HTMLCanvasElement;
-  _mounted: boolean = false;
+  _mounted = false;
   _emojiPreloadImage = new Image();
 
   constructor(props) {
