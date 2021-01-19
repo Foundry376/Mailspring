@@ -135,7 +135,9 @@ class AppearanceModeSwitch extends React.Component<
   }
 
   _onApplyChanges = () => {
-    AppEnv.commands.dispatch(`navigation:select-${this.state.value}-mode`);
+    // The command to be called contains an `off` as this denotes the current
+    // state that is used to show the menu item in an (in)active state.
+    AppEnv.commands.dispatch(`navigation:${this.state.value}-mode-off`);
   };
 
   _renderModeOptions() {
