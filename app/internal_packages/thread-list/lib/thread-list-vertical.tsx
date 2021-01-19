@@ -9,17 +9,17 @@ class ThreadListVertical extends React.Component<{}, { style: string; syncing: b
   render() {
     return (
       <>
-        <div style={{ height: '50%', width: '100%', boxShadow: '0 0.5px 0 #dddddd' }}>
+        <div style={{ height: '40%', width: '100%' }}>
           <InjectedComponentSet
             matching={{ location: WorkspaceStore.Location.ThreadList, modes: ['split'] }}
           />
         </div>
-        <div className="sheet-toolbar">
-          <InjectedComponentSet
-            matching={{ location: WorkspaceStore.Location.MessageList.Toolbar, modes: ['split'] }}
-          />
-        </div>
-        <div style={{ height: '50%', width: '100%' }}>
+        <div style={{ height: '60%', width: '100%', borderTop: '0.5px solid #dddddd' }}>
+          <div className="sheet-toolbar" style={{ borderBottom: '0' }}>
+            <InjectedComponentSet
+              matching={{ location: WorkspaceStore.Location.MessageList.Toolbar, modes: ['split'] }}
+            />
+          </div>
           <InjectedComponentSet
             matching={{ location: WorkspaceStore.Location.MessageList, modes: ['split'] }}
           />
