@@ -16,10 +16,12 @@ export function activate() {
 
   ComponentRegistry.register(ThreadList, {
     location: WorkspaceStore.Location.ThreadList,
+    modes: ['split', 'list'],
   });
 
   ComponentRegistry.register(ThreadListVertical, {
-    location: WorkspaceStore.Location.ThreadListVertical,
+    location: WorkspaceStore.Location.ThreadList,
+    modes: ['splitVertical'],
   });
 
   ComponentRegistry.register(SelectedItemsStack, {
