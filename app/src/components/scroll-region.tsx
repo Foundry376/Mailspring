@@ -493,6 +493,7 @@ export class ScrollRegion extends React.Component<
   _settleHeight = callback => {
     const contentNode = ReactDOM.findDOMNode(this.refs.content) as HTMLElement;
     let lastContentHeight = -1;
+    // eslint-disable-next-line no-var
     var scrollIfSettled = () => {
       if (!this._mounted) {
         return;

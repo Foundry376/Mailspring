@@ -1,3 +1,5 @@
+/* eslint-disable no-var */
+/* eslint-disable prefer-rest-params */
 const _ = require('underscore');
 var isPlainObject, plus, splitKeyPath;
 splitKeyPath = function(keyPath) {

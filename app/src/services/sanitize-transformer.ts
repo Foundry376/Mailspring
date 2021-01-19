@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 /*
 The sanitizer implementation here is loosely based on
 https://www.quaxio.com/html_white_listed_sanitizer/

@@ -1,3 +1,6 @@
+/* eslint-disable no-var */
+/* eslint-disable no-constant-condition */
+/* eslint-disable no-prototype-builtins */
 /*
  * decaffeinate suggestions:
  * DS104: Avoid inline assignments

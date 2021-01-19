@@ -75,7 +75,8 @@ class FeatureUsageStore extends MailspringStore {
   displayUpgradeModal(feature, lexicon) {
     //
     const featureData = this._dataForFeature(feature);
-    let { headerText, rechargeText, iconUrl } = lexicon;
+    const { iconUrl } = lexicon;
+    let { headerText, rechargeText } = lexicon;
 
     if (!featureData.quota) {
       headerText = localized(`Uhoh - that's a pro feature!`);
