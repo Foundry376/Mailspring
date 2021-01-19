@@ -135,10 +135,9 @@ export default class SignaturePhotoPicker extends React.Component<
         )
       );
       return;
-    } finally {
-      if (!this._isMounted) return;
-      this.setState({ isUploading: false });
     }
+    if (!this._isMounted) return;
+    this.setState({ isUploading: false });
 
     this.props.onChange({
       target: { value: `${link}?t=${Date.now()}&msw=${width}&msh=${height}`, id: 'photoURL' },

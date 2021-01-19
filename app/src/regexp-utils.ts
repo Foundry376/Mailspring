@@ -52,6 +52,7 @@ const RegExpUtils = {
   // http://www.regexpal.com/?fam=93928
   // NOTE: This does not match full urls with `http` protocol components.
   domainRegex() {
+    // eslint-disable-next-line no-misleading-character-class
     return new RegExp(
       `^(?!:\\/\\/)([a-zA-Z${UnicodeEmailChars}0-9-_]+\\.)*[a-zA-Z${UnicodeEmailChars}0-9][a-zA-Z${UnicodeEmailChars}0-9-_]+\\.[a-zA-Z]{2,11}?`,
       'i'

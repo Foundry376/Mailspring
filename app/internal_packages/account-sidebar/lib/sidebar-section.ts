@@ -106,7 +106,7 @@ class SidebarSection {
     ];
     const items = [];
 
-    for (var names of standardNames) {
+    for (let names of standardNames) {
       names = Array.isArray(names) ? names : [names];
       const categories = CategoryStore.getCategoriesWithRoles(accounts, ...names);
       if (categories.length === 0) {
@@ -196,7 +196,7 @@ class SidebarSection {
     const seenItems = {};
     for (const category of CategoryStore.userCategories(account)) {
       // https://regex101.com/r/jK8cC2/1
-      var item, parentKey;
+      let item, parentKey;
       const re = RegExpUtils.subcategorySplitRegex();
       const itemKey = category.displayName.replace(re, '/');
 

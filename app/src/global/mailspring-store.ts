@@ -91,11 +91,10 @@ export default class MailspringStore {
 
   fetchInitialState(listenable, defaultCallback = null) {
     defaultCallback = (defaultCallback && this[defaultCallback]) || defaultCallback;
-    const me = this;
     if (defaultCallback instanceof Function && listenable.getInitialState instanceof Function) {
       const data = listenable.getInitialState();
       if (data && data.then instanceof Function) {
-        data.then(() => defaultCallback.apply(me, arguments));
+        data.then((...args) => defaultCallback.apply(this, args));
       } else {
         defaultCallback.call(this, data);
       }

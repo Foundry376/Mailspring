@@ -4,6 +4,7 @@ import { Value } from 'slate';
 function numberOfTrailingBRs(text) {
   let count = 0;
   text = text.trim();
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (text.endsWith('<br/>')) {
       text = text.substr(0, text.length - 5);
@@ -66,9 +67,7 @@ export function applySignature(body, signature) {
       additionalWhitespace = ''; // never add whitespace when we already have 2 spaces
     }
 
-    return `${contentBefore}${additionalWhitespace}<signature id="${signature.id}">${
-      signature.body
-    }</signature>${contentAfter}`;
+    return `${contentBefore}${additionalWhitespace}<signature id="${signature.id}">${signature.body}</signature>${contentAfter}`;
   } else {
     return newBody;
   }

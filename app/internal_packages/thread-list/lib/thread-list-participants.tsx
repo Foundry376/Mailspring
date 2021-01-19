@@ -30,7 +30,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     let accumulated = null;
     let accumulatedUnread = false;
 
-    const flush = function () {
+    const flush = function() {
       if (accumulated) {
         spans.push(
           <span key={spans.length} className={`unread-${accumulatedUnread}`}>
@@ -42,7 +42,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       accumulatedUnread = false;
     };
 
-    const accumulate = function (text, unread?: boolean) {
+    const accumulate = function(text, unread?: boolean) {
       if (accumulated && unread && accumulatedUnread !== unread) {
         flush();
       }
@@ -59,7 +59,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       if (spacer) {
         accumulate('...');
       } else {
-        var short;
+        let short = '';
         if (contact.name && contact.name.length > 0) {
           if (items.length > 1) {
             short = contact.displayName({
@@ -149,7 +149,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     if (
       list.length === 0 &&
       (this.props.thread.participants != null ? this.props.thread.participants.length : undefined) >
-      0
+        0
     ) {
       list.push({ contact: this.props.thread.participants[0], unread: false });
     }

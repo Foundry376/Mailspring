@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-var DOMUtils = {
+const DOMUtils = {
   findLastTextNode(node) {
     if (!node) {
       return null;

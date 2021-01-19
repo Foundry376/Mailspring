@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 /*
  * decaffeinate suggestions:
  * DS207: Consider shorter variations of null checks
@@ -13,7 +14,7 @@ import DatabaseObjectRegistry from '../../registries/database-object-registry';
 export function waitFor(latch, options: { timeout?: number } = {}) {
   const timeout = options.timeout || 400;
   const expire = Date.now() + timeout;
-  return new Promise(function(resolve, reject) {
+  return new Promise<void>(function(resolve, reject) {
     var attempt = function() {
       if (Date.now() > expire) {
         return reject(new Error(`Utils.waitFor hit timeout (${timeout}ms) without firing.`));
@@ -406,7 +407,6 @@ export function isEqual(
       console.log('isEqual is false', a, b, options);
     }
     return value;
-  } else {
   }
   return value;
 }

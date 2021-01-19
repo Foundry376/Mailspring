@@ -400,7 +400,7 @@ class ThreadSearchBar extends Component<
                       e.preventDefault();
                     }}
                   >
-                    {localized('Learn more')} >
+                    {localized('Learn more')} &gt;
                   </a>
                 </div>
               )}
