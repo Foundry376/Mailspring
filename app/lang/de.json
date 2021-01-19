@@ -224,6 +224,7 @@
   "Failed to save \"%@\"": "Fehler beim Speichern von \"%@\"",
   "Failed to save config.json: %@": "Fehler beim Speichern von config.json: %@",
   "False": "Falsch",
+  "FastMail requires that you create a unique app password of type IMAP for email apps like Mailspring. Follow %@ to create one and then paste it below.": "FastMail erfordert, dass Sie ein eindeutiges App-Passwort vom Type IMAP für E-Mail-Apps wie Mailspring erstellen. Folgen Sie %@, um eines zu erstellen, und fügen Sie es anschließend ein.",
   "Fax": "Fax",
   "Feedback": "Feedback",
   "File": "Datei",
@@ -886,7 +887,7 @@
   "ends with": "endet mit",
   "equals": "ist gleich",
   "folder or label": "Ordner oder Label",
-  "iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.": "iCloud erfordert, dass Sie ein eindeutiges App-Passwort für E-Mail-Apps wie Mailspring erstellen. Folgen Sie %@, um einen zu erstellen, und fügen Sie ihn anschließend ein.",
+  "iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.": "iCloud erfordert, dass Sie ein eindeutiges App-Passwort für E-Mail-Apps wie Mailspring erstellen. Folgen Sie %@, um eines zu erstellen, und fügen Sie es anschließend ein.",
   "in %@": "in %@",
   "link a phone number": "Verlinken Sie eine Telefonnummer",
   "matches expression": "stimmt mit dem Ausdruck überein",
@@ -899,7 +900,7 @@
   "seconds": "Sekunden",
   "selected": "ausgewählt",
   "then": "dabei",
-  "these instructions": "diese Anweisungen",
+  "these instructions": "diesen Anweisungen",
   "threads": "Themen",
   "week": "Woche",
   "All Translations Used": "Alle verwendeten Übersetzungen",
@@ -921,5 +922,6 @@
   "Translating from %1$@ to %2$@.": "Übersetzen von %1$@ nach %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Leider werden Übersetzungsdienste pro Zeichen in Rechnung gestellt und wir können diese Funktion nicht kostenlos anbieten.",
   "View activity": "Aktivität anzeigen",
+  "Yahoo requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.": "Yahoo erfordert, dass Sie ein eindeutiges App-Passwort für E-Mail-Apps wie Mailspring erstellen. Folgen Sie %@, um eines zu erstellen, und fügen Sie es anschließend ein.",
   "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mit Mailspring Basic können Sie jeweils bis zu %1$@ E-Mails übersetzen."
 }
