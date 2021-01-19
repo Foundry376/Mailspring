@@ -1,5 +1,33 @@
 # Mailspring Changelog
 
+### 1.8.0 (1/19/2021)
+
+**Features:**
+
+- You can now choose a color for each account in Preferences > Accounts and conversations in the unified mailbox are colorized! (#2240, thanks @Phylu)
+
+**Fixes:**
+
+- The search bar's placeholder text now reflects the accounts you're viewing (#2252, thanks @Phylu)
+
+- The "equal to" mail rule logic now supports matching against empty strings (eg subject = "No Subject") correctly (#2254, thanks @Phylu)
+
+- Updated Turkish, Bengali, Chinese, and French translations (thanks @emintufan, @EwenQuim, @Aftabuzzaman and @johnpoint)
+
+- Support for pasting files sent in the text/uri-list format or as a secondary pasteboard item (@akdor1154)
+
+- Autofill for the Hostinger email provider (@merkys7)
+
+- The Yandex connection screen now includes instructions to enable IMAP #2111
+
+- The event header that appears when an email contains an ICS attachment now shows the correct timezone. #2093, #2255
+
+- On Linux, Mailspring no longer specifies `python` or `git` as package dependencies unnecessarily.
+
+**Developer:**
+
+- Mailspring now uses Electron 4.2.12 in preparation for a jump to Electron 8+.
+
 ### 1.7.8 (5/24/2020)
 
 **Fixes:**
