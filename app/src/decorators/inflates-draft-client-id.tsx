@@ -27,7 +27,7 @@ function InflatesDraftClientId(
 
     static containerRequired = false;
 
-    _mounted: boolean = false;
+    _mounted = false;
     _sessionUnlisten?: () => void;
 
     constructor(props) {

@@ -248,7 +248,7 @@ export class EventedIFrame extends React.Component<
     const nodeRect = node.getBoundingClientRect();
 
     const eventAttrs = {};
-    for (let key of Object.keys(event)) {
+    for (const key of Object.keys(event)) {
       if (['webkitMovementX', 'webkitMovementY'].includes(key)) {
         continue;
       }
@@ -374,7 +374,7 @@ export class EventedIFrame extends React.Component<
         new MenuItem({
           label: localized('Copy Image'),
           click() {
-            let img = new Image();
+            const img = new Image();
             img.addEventListener(
               'load',
               function() {

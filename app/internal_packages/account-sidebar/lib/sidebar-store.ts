@@ -87,7 +87,7 @@ class SidebarStore extends MailspringStore {
   _onSetCollapsedByName = (itemName: string, collapsed: boolean) => {
     let item = this.standardSection().items.find(i => i.name === itemName);
     if (!item) {
-      for (let section of this.userSections()) {
+      for (const section of this.userSections()) {
         item = _.findWhere(section.items, { name: itemName });
         if (item) {
           break;

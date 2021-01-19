@@ -15,7 +15,7 @@ const helper = new DefaultClientHelper();
 const service = new SystemStartService();
 
 class DefaultMailClientItem extends React.Component<{}, DefaultMailClientItemState> {
-  _mounted: boolean = false;
+  _mounted = false;
 
   state: DefaultMailClientItemState = { defaultClient: helper.available() ? false : 'unknown' };
 

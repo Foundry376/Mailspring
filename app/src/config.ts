@@ -291,9 +291,9 @@ export default class Config {
   }
 
   static addSchemaEnforcers(filters) {
-    for (var typeName in filters) {
-      var functions = filters[typeName];
-      for (let name in functions) {
+    for (const typeName in filters) {
+      const functions = filters[typeName];
+      for (const name in functions) {
         const enforcerFunction = functions[name];
         this.addSchemaEnforcer(typeName, enforcerFunction);
       }
@@ -306,10 +306,10 @@ export default class Config {
     if (!Array.isArray(types)) {
       types = [types];
     }
-    for (let type of types) {
+    for (const type of types) {
       try {
         const enforcerFunctions = this.schemaEnforcers[type].concat(this.schemaEnforcers['*']);
-        for (let enforcer of enforcerFunctions) {
+        for (const enforcer of enforcerFunctions) {
           // At some point in one's life, one must call upon an enforcer.
           value = enforcer.call(this, keyPath, value, schema);
         }
@@ -492,7 +492,7 @@ export default class Config {
   getSchema(keyPath) {
     const keys = splitKeyPath(keyPath);
     let { schema } = this;
-    for (let key of keys) {
+    for (const key of keys) {
       if (schema == null) {
         break;
       }
@@ -575,7 +575,7 @@ export default class Config {
 
     let rootSchema = this.schema;
     if (keyPath) {
-      for (let key of splitKeyPath(keyPath)) {
+      for (const key of splitKeyPath(keyPath)) {
         rootSchema.type = 'object';
         if (rootSchema.properties == null) {
           rootSchema.properties = {};
@@ -650,7 +650,7 @@ export default class Config {
   setDefaults(keyPath: string, defaults) {
     if (defaults != null && isPlainObject(defaults)) {
       const keys = splitKeyPath(keyPath);
-      for (let key in defaults) {
+      for (const key in defaults) {
         const childValue = defaults[key];
         if (!defaults.hasOwnProperty(key)) {
           continue;
@@ -690,7 +690,7 @@ export default class Config {
     ) {
       const defaults = {};
       const properties = schema.properties || {};
-      for (let key in properties) {
+      for (const key in properties) {
         const value = properties[key];
         defaults[key] = this.extractDefaultsFromSchema(value);
       }
@@ -699,7 +699,7 @@ export default class Config {
   }
 
   makeValueConformToSchema(keyPath, value) {
-    let schema = this.getSchema(keyPath);
+    const schema = this.getSchema(keyPath);
     if (schema) {
       value = Config.executeSchemaEnforcers(keyPath, value, schema);
     }
@@ -839,7 +839,7 @@ Config.addSchemaEnforcers({
       }
 
       const newValue = {};
-      for (let prop in value) {
+      for (const prop in value) {
         const propValue = value[prop];
         const childSchema = schema.properties[prop];
         if (childSchema != null) {
@@ -872,7 +872,7 @@ Config.addSchemaEnforcers({
       const itemSchema = schema.items;
       if (itemSchema != null) {
         const newValue = [];
-        for (let item of value) {
+        for (const item of value) {
           try {
             newValue.push(this.executeSchemaEnforcers(keyPath, item, itemSchema));
           } catch (error) {
@@ -906,7 +906,7 @@ Config.addSchemaEnforcers({
         return value;
       }
 
-      for (let possibleValue of possibleValues) {
+      for (const possibleValue of possibleValues) {
         // Using `isEqual` for possibility of placing enums on array and object schemas
         if (_.isEqual(possibleValue, value)) {
           return value;
@@ -945,7 +945,7 @@ var splitKeyPath = function(keyPath) {
 var withoutEmptyObjects = function(object) {
   let resultObject = undefined;
   if (isPlainObject(object)) {
-    for (let key in object) {
+    for (const key in object) {
       const value = object[key];
       const newValue = withoutEmptyObjects(value);
       if (newValue != null) {

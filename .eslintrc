@@ -18,8 +18,13 @@
     "node": true,
     "jasmine": true
   },
-  "plugins": ["@typescript-eslint"],
-  "extends": ["plugin:@typescript-eslint/recommended", "prettier", "prettier/@typescript-eslint"],
+  "plugins": ["react"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended", 
+    "prettier",
+    "prettier/@typescript-eslint"],
   "rules": {
     "no-cond-assign": 0,
     "@typescript-eslint/explicit-member-accessibility": 0,
@@ -36,7 +41,9 @@
     "@typescript-eslint/class-name-casing": 0,
     "@typescript-eslint/prefer-namespace-keyword": 0,
     "@typescript-eslint/no-object-literal-type-assertion": 0,
-    "@typescript-eslint/array-type": 0
+    "@typescript-eslint/array-type": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0,
+    "@typescript-eslint/no-empty-function": 0
   },
   "settings": {
     "import/core-modules": [

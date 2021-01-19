@@ -58,7 +58,7 @@ export function unmerge(menu: IMenuItem[], item: IMenuItem) {
 
   if (matchingItem != null) {
     if (item.submenu != null) {
-      for (let submenuItem of Array.from(item.submenu)) {
+      for (const submenuItem of Array.from(item.submenu)) {
         unmerge(matchingItem.submenu, submenuItem);
       }
     }
@@ -110,7 +110,7 @@ export function cloneMenuItem(item: IMenuItem) {
 
 export function forEachMenuItem(menu: IMenuItem[], callback: (item: IMenuItem) => void) {
   const result = [];
-  for (let item of Array.from(menu)) {
+  for (const item of Array.from(menu)) {
     if (item.submenu != null) {
       forEachMenuItem(item.submenu, callback);
     }

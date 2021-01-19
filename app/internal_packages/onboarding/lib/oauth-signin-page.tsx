@@ -47,7 +47,7 @@ export default class OAuthSignInPage extends React.Component<
   _server?: http.Server;
   _startTimer: NodeJS.Timeout;
   _warnTimer: NodeJS.Timeout;
-  _mounted: boolean = false;
+  _mounted = false;
 
   state: OAuthSignInPageState = {
     authStage: 'initial',

@@ -18,7 +18,7 @@ class ComponentRegistry extends MailspringStore {
     };
   } = {};
   _cache = {};
-  _showComponentRegions: boolean = false;
+  _showComponentRegions = false;
 
   // Public: Register a new component with the Component Registry.
   // Typically, packages call this method from their main `activate` method

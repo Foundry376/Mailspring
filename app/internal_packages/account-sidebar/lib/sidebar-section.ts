@@ -194,7 +194,7 @@ class SidebarSection {
     //
     const items = [];
     const seenItems = {};
-    for (let category of CategoryStore.userCategories(account)) {
+    for (const category of CategoryStore.userCategories(account)) {
       // https://regex101.com/r/jK8cC2/1
       var item, parentKey;
       const re = RegExpUtils.subcategorySplitRegex();

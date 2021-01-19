@@ -8,7 +8,13 @@ Thanks for checking out Mailspring! We'd love for you to contribute. Whether you
 
 ### Filing an Issue
 
-If you have a feature request or bug to report, _please_ search for existing issues **including closed ones!**: https://github.com/Foundry376/Mailspring/issues?utf8=%E2%9C%93&q=is%3Aissue. If someone has already requested the feature you have in mind, upvote it using the "Add Reaction" feature - our team often sorts issues to find the most upvoted ones. For bugs, please verify that you're running the latest version of Mailspring. If you file an issue without providing detail, we may close it without comment.
+If you have a bug to report or a feature to suggest, you may do so on our [Discourse](https://community.getmailspring.com/). Please carefully follow all instructions in the template for the given type of
+issue you're reporting.
+
+We also ask that you search for existing issues, *including closed ones!* We're in the process of migrating
+our issues to [Discourse](https://community.getmailspring.com/). If someone has already requested the feature you have in mind, upvote it using the "Add Reaction" feature - our team often looks for issues that have community support.
+
+For bugs, please verify that you're running the latest version of Mailspring. If you file an issue without providing detail, we may close it without comment.
 
 ### Pull requests
 
@@ -80,6 +86,10 @@ Back in 2015 and 2016, the Nylas Mail team made a huge effort to document the co
 #### Discussion Etiquette
 
 In order to keep the conversation clear and transparent, please limit discussion to English and keep things on topic with the issue. Be considerate to others and try to be courteous and professional at all times.
+
+Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
+
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
 #### Testing Localization
 

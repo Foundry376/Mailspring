@@ -71,8 +71,8 @@ export class TranslateMessageHeader extends React.Component<
 > {
   static displayName = 'TranslateMessageHeader';
 
-  _mounted: boolean = false;
-  _detectionStarted: boolean = false;
+  _mounted = false;
+  _detectionStarted = false;
 
   state: TranslateMessageHeaderState = {
     detected: null,

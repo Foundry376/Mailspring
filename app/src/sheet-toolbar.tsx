@@ -226,7 +226,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     sheetDepth: PropTypes.number,
   };
 
-  mounted: boolean = false;
+  mounted = false;
   unlisteners: Array<() => void> = [];
 
   constructor(props) {

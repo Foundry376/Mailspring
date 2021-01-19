@@ -93,7 +93,7 @@ type WebviewState = {
 export default class Webview extends React.Component<WebviewProps, WebviewState> {
   static displayName = 'Webview';
 
-  _mounted: boolean = false;
+  _mounted = false;
   _disposable?: Disposable;
 
   state: WebviewState = {

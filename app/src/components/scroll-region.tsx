@@ -280,7 +280,7 @@ export class ScrollRegion extends React.Component<
   // Concept from https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UITableView_Class/#//apple_ref/c/tdef/UITableViewScrollPosition
   static Scrollbar = Scrollbar;
 
-  _mounted: boolean = false;
+  _mounted = false;
   _scrollToTaskId = 0;
   _scrollbarComponent = null;
   _totalHeightObserver = null;

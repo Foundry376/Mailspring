@@ -451,7 +451,7 @@ class SanitizeTransformer {
   Preset = Preset;
 
   sanitizeNode(node: Element, settings) {
-    let nodeName = node.nodeName.toLowerCase();
+    const nodeName = node.nodeName.toLowerCase();
     if (nodeName === '#text') {
       return true; // text nodes are always safe, don't need to clone them
     }
@@ -470,7 +470,7 @@ class SanitizeTransformer {
 
       // Nodes with text contents / no contents: replace with a `span` with the same children.
       // This allows us to ignore things like tables / table cells and still get their contents.
-      let replacementNode = document.createElement('span');
+      const replacementNode = document.createElement('span');
       for (const child of Array.from(node.childNodes)) {
         replacementNode.appendChild(child);
       }
@@ -517,8 +517,8 @@ class SanitizeTransformer {
 
   async run(body, settings) {
     if (settings.fragment) {
-      var doc = document.implementation.createHTMLDocument();
-      var div = doc.createElement('div');
+      const doc = document.implementation.createHTMLDocument();
+      const div = doc.createElement('div');
       div.innerHTML = body;
       this.sanitizeNode(div, settings);
       return div.innerHTML;

@@ -108,7 +108,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
         continue;
       }
 
-      for (let contact of message[field]) {
+      for (const contact of message[field]) {
         if (tokens.length === 0) {
           tokens.push({ contact, unread: message.unread });
         } else {

@@ -36,7 +36,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     onChange: () => {},
   };
 
-  _gotoScrollStartOnUpdate: boolean = false;
+  _gotoScrollStartOnUpdate = false;
 
   constructor(props) {
     super(props);

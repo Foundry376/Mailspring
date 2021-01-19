@@ -16,8 +16,8 @@ export default class ComposerEditorToolbar extends React.Component<
   ComposerEditorToolbarProps,
   ComposerEditorToolbarState
 > {
-  _mounted: boolean = false;
-  _topClip: number = 0;
+  _mounted = false;
+  _topClip = 0;
   _el: HTMLElement;
   _floatingEl: HTMLElement;
   _heightObserver: ResizeObserver;
@@ -63,7 +63,7 @@ export default class ComposerEditorToolbar extends React.Component<
 
   _onScroll = () => {
     if (!this._el) return;
-    let { top, height } = this._el.getBoundingClientRect();
+    const { top, height } = this._el.getBoundingClientRect();
     const max = this._el.parentElement.clientHeight - height;
 
     if (top < this._topClip) {
@@ -78,7 +78,7 @@ export default class ComposerEditorToolbar extends React.Component<
   render() {
     const { editor, plugins, value } = this.props;
 
-    let sectionItems = [];
+    const sectionItems = [];
 
     if (!this.state.visible) {
       return (

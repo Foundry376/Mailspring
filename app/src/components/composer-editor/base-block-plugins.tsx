@@ -15,7 +15,7 @@ function nodeIsEmpty(node: Node) {
   }
 
   if (node.object !== 'text') {
-    let children = ((node.nodes.toArray ? node.nodes.toArray() : node.nodes) || []) as any;
+    const children = ((node.nodes.toArray ? node.nodes.toArray() : node.nodes) || []) as any;
     if (children.length === 0) {
       return true;
     }
@@ -132,7 +132,7 @@ export const BLOCK_CONFIG: {
         } else {
           const value = editor.value;
           // Collect all the text fragments which are being converted to a code block
-          let texts = value.document
+          const texts = value.document
             .getTextsAtRange(value.selection as any)
             .toArray()
             .map(t => {
@@ -258,7 +258,7 @@ const rules = [
 
       // div elements that are entirely empty and have no meaningful-looking styles applied
       // would probably just add extra whitespace
-      let empty = !el.hasChildNodes();
+      const empty = !el.hasChildNodes();
       if (tagName === 'div' && empty) {
         const s = (el.getAttribute('style') || '').toLowerCase();
         if (!s.includes('background') && !s.includes('margin') && !s.includes('padding')) {

@@ -197,7 +197,7 @@ export default class ThemeManager {
 
   cssContentsOfLessStylesheet(lessStylesheetPath) {
     try {
-      let less = fs.readFileSync(lessStylesheetPath, 'utf8').toString();
+      const less = fs.readFileSync(lessStylesheetPath, 'utf8').toString();
       return this.lessCache.cssForFile(lessStylesheetPath, less);
     } catch (error) {
       let message = `Error loading Less stylesheet: ${lessStylesheetPath}`;

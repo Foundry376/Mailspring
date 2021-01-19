@@ -17,6 +17,7 @@ import {
   DatabaseStore,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
+import { findOneIana } from "windows-iana";
 
 const moment = require('moment-timezone');
 
@@ -52,7 +53,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     inflight: undefined,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
   _subscription: Rx.IDisposable;
 
   componentWillUnmount() {
@@ -103,8 +104,22 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       return null;
     }
 
-    const startMoment = moment.tz(icsEvent.startDate.toString(), icsEvent.startDate.timezone).tz(DateUtils.timeZone);
-    const endMoment = moment.tz(icsEvent.endDate.toString(), icsEvent.endDate.timezone).tz(DateUtils.timeZone);
+    // Workaround to convert calendar invites sent out from Microsoft calendars to IANA timezones
+    // that can be handled by moments-timezone.
+    let startTimezone = findOneIana(icsEvent.startDate.timezone) || icsEvent.startDate.timezone;
+    let endTimezone = findOneIana(icsEvent.endDate.timezone) || icsEvent.endDate.timezone;
+
+    // Workaround to convert calendar invites sent out from Google calendar with "Z" timezone
+    // to IANA timezone that can be handled by moments-timezone.
+    if (startTimezone === "Z") {
+      startTimezone = "UTC";
+    }
+    if (endTimezone === "Z") {
+      endTimezone = "UTC";
+    }
+
+    const startMoment = moment.tz(icsEvent.startDate.toString(), startTimezone).tz(DateUtils.timeZone);
+    const endMoment = moment.tz(icsEvent.endDate.toString(), endTimezone).tz(DateUtils.timeZone);
 
     const daySeconds = 24 * 60 * 60 * 1000;
     let day = '';

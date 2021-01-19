@@ -151,7 +151,7 @@ class _IdentityStore extends MailspringStore {
       qs.utm_content = content;
     }
 
-    let pathWithUtm = url.parse(path, true);
+    const pathWithUtm = url.parse(path, true);
     pathWithUtm.query = Object.assign({}, qs, pathWithUtm.query || {});
 
     const pathWithUtmString = url.format({

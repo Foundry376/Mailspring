@@ -5,7 +5,7 @@ import React from 'react';
 export default class ModeToggle extends React.Component<{}, { hidden: boolean }> {
   static displayName = 'ModeToggle';
 
-  _mounted: boolean = false;
+  _mounted = false;
   _unsubscriber: () => void;
   column = WorkspaceStore.Location.MessageListSidebar;
 

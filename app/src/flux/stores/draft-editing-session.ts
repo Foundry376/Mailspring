@@ -180,7 +180,7 @@ export class DraftEditingSession extends MailspringStore {
 
   _draft: MessageWithEditorState = null;
   _draftPromise: Promise<Message> = null;
-  _destroyed: boolean = false;
+  _destroyed = false;
   _mountedEditor: Editor | null = null;
 
   headerMessageId: string;

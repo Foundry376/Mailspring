@@ -118,7 +118,7 @@ export default class ApplicationMenu {
   // Returns an Array of native menu items.
   flattenMenuTemplate(template) {
     let items = [];
-    for (let item of template) {
+    for (const item of template) {
       items.push(item);
       if (item.submenu) {
         items = items.concat(this.flattenMenuTemplate(item.submenu));
@@ -132,7 +132,7 @@ export default class ApplicationMenu {
   // enable - If true enables all window specific items, if false disables all
   //          window specific items.
   enableWindowSpecificItems(enable) {
-    for (let item of this.flattenMenuItems(this.menu)) {
+    for (const item of this.flattenMenuItems(this.menu)) {
       if (item.metadata && item.metadata['windowSpecific']) {
         item.enabled = enable;
       }

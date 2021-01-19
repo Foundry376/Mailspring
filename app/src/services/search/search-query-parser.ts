@@ -315,7 +315,7 @@ const parseOrQuery = (text: string) => {
 };
 
 const parseAndQuery = text => {
-  let [lhs, afterLhs] = parseOrQuery(text);
+  const [lhs, afterLhs] = parseOrQuery(text);
   let [tok, afterTok] = nextToken(afterLhs);
   if (tok === null) {
     return [lhs, afterLhs];

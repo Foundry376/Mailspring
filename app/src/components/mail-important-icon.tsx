@@ -47,7 +47,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
 
     if (props.showIfAvailableForAnyAccount) {
       const perspective = FocusedPerspectiveStore.current();
-      for (let accountId of perspective.accountIds) {
+      for (const accountId of perspective.accountIds) {
         const account = AccountStore.accountForId(accountId);
         const accountImportant = CategoryStore.getCategoryByRole(account, 'important');
         if (accountImportant) {

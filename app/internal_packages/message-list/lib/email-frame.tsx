@@ -21,12 +21,12 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     showQuotedText: PropTypes.bool,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
   _unlisten: () => void;
   _iframeComponent: EventedIFrame;
   _iframeWrapperEl: HTMLDivElement;
   _iframeDocObserver: ResizeObserver;
-  _lastFitSize: string = '';
+  _lastFitSize = '';
 
   componentDidMount() {
     this._mounted = true;
