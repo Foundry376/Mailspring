@@ -1,0 +1,76 @@
+@import 'ui-variables';
+@import 'ui-mixins';
+
+.unsubscribe-wrapper {
+  cursor: default;
+  position: relative;
+  font-size: @font-size-small;
+  margin-top: @spacing-standard;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  display: inline-block;
+  border-radius: @border-radius-base;
+  border: 1px solid @border-color-divider;
+
+  .unsubscribe-header {
+    border-bottom: 1px solid @border-color-divider;
+    padding: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    img {
+      margin-right: 20px;
+    }
+
+    .unsubscribe-title-text {
+      color: @text-color-very-subtle;
+    }
+
+    .unsubscribe-title {
+      color: @text-color;
+    }
+  }
+
+  .unsubscribe-body {
+    padding: @padding-small-horizontal;
+    color: @text-color;
+
+    .unsubscribe-actions {
+      display: flex;
+
+      .btn-unsubscribe {
+        margin-right: 10.5px;
+        margin-top: 5px;
+        min-width: 85px;
+        text-align: center;
+
+        &:hover {
+          background: mix(@background-primary, @text-color, 95%);
+        }
+        &:active {
+          background: mix(@background-primary, @text-color, 92%);
+        }
+
+        &.UNSUBSCRIBED {
+          background: @color-success;
+          color: @white;
+        }
+      }
+    }
+  }
+}
+
+body.platform-win32 {
+  .unsubscribe-wrapper {
+    border-radius: 0;
+    .unsubscribe-body {
+      .unsubscribe-actions {
+        .btn-rsvp {
+          border-radius: 0;
+        }
+      }
+    }
+  }
+}
