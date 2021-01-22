@@ -1,5 +1,7 @@
 {
   "window:toggle-full-screen": "f11",
   "window:reload": "ctrl+shift+r",
-  "window:toggle-dev-tools": "ctrl+shift+i"
+  "window:toggle-dev-tools": "ctrl+shift+i",
+  
+  "multiselect-list:select-all": "ctrl+a"
 }

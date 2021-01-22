@@ -2,7 +2,6 @@
   "application:new-message": ["c", "mod+n"],
 
   "navigation:go-to-inbox": "i",
-  "multiselect-list:select-all": "shift+x",
 
   "core:pop-sheet": "u",
   "core:previous-item": "k",

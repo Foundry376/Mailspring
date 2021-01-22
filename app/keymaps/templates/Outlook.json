@@ -26,7 +26,5 @@
   "contenteditable:outdent": "mod+shift+t",
   "contenteditable:indent": "mod+t",
 
-  "multiselect-list:select-all": "ctrl+a",
-
   "application:quit": "alt+f4"
 }
