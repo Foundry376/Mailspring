@@ -193,12 +193,12 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
   }
 
   _launcherPath() {
-    return path.join('/', 'usr', 'share', 'applications', 'mailspring.desktop');
+    return path.join('/', 'usr', 'share', 'applications', 'Mailspring.desktop');
   }
 
   _shortcutPath() {
     const configDir = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
-    return path.join(configDir, 'autostart', 'mailspring.desktop');
+    return path.join(configDir, 'autostart', 'Mailspring.desktop');
   }
 }
 
