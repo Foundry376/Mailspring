@@ -445,6 +445,7 @@
   "Of your emails are opened": "Ihrer E-Mails sind geöffnet",
   "Offline": "Immer offline starten",
   "Okay": "okay",
+  "On Linux you need to restart Mailspring for the tray icon to disappear.": "Unter Linux musst du Mailspring neu starten, damit das Symbol in der Menüleiste verschwindet.",
   "One message in this thread is hidden because it was moved to trash or spam.": "Eine Nachricht in diesem Thread ist ausgeblendet, weil sie in Papierkorb oder Spam verschoben wurde.",
   "One or more of your mail rules have been disabled.": "Eine oder mehrere E-Mail-Regeln wurden deaktiviert.",
   "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox.": "Eine oder mehrere Ihrer Mail-Regeln erfordern, dass die Nachrichtentexte verarbeitet werden. Diese Regeln können nicht für Ihr gesamtes Postfach ausgeführt werden.",
