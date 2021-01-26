@@ -403,7 +403,7 @@ export default class Application extends EventEmitter {
 
     this.on('application:view-getting-started', () => {
       const helpUrl =
-        'https://community.getmailspring.com/t/quick-start-guide/241';
+        'https://community.getmailspring.com/pub/quick-start-guide';
       shell.openExternal(helpUrl);
     });
 
