@@ -12,7 +12,9 @@ interface ITemplate {
   path: string;
   name: string;
 }
-const { Conversion: { convertFromHTML, convertToHTML } } = ComposerSupport;
+const {
+  Conversion: { convertFromHTML, convertToHTML },
+} = ComposerSupport;
 
 interface TemplateEditorProps {
   template: ITemplate;
@@ -82,7 +84,7 @@ class TemplateEditor extends React.Component<
         <div className="section note">
           {localizedReactFragment(
             'Changes are saved automatically. View the %@ for tips and tricks.',
-            <a href="https://foundry376.zendesk.com/hc/en-us/articles/115001875231-Using-quick-reply-templates">
+            <a href="https://community.getmailspring.com/t/reply-faster-with-email-templates/167">
               {localized('Templates Guide')}
             </a>
           )}

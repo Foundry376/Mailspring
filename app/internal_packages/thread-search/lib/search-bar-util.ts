@@ -18,7 +18,7 @@ export const TokenAndTermRegexp = () =>
   /(^|\s)(i[ns]?|s[iu]?[nb]?[cj]?e?c?t?|fr?o?m?|to?|ha?s?|be?f?o?r?e?|af?t?e?r?)(?::? ?$|: ?("[^"]*"?|[^\s]+))/gi;
 
 export const LearnMoreURL =
-  'https://foundry376.zendesk.com/hc/en-us/articles/115002212931-Search-with-advanced-Gmail-style-queries';
+  'https://community.getmailspring.com/t/search-with-advanced-gmail-style-queries/153';
 
 export const rankOfRole = role => {
   const rank = ['inbox', 'important', 'snoozed', 'sent', 'all', 'spam', 'trash'].indexOf(role);
