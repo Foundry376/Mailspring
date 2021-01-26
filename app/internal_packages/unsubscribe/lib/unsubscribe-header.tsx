@@ -1,7 +1,10 @@
 import React from 'react';
+const { shell } = require('electron')
 import {
+  localized,
   Message,
 } from 'mailspring-exports';
+import { RetinaImg } from 'mailspring-component-kit';
 
 interface UnsubscribeHeaderProps {
   message: Message;
@@ -13,7 +16,8 @@ interface UnsubscribeHeaderState {
 
 
 interface UnsubscribeAction {
-  unsubscribe(): void
+  href: string;
+  innerText: string;
 }
 
 /*
@@ -25,25 +29,40 @@ export class UnsubscribeHeader extends React.Component<UnsubscribeHeaderProps, U
   static displayName = 'UnsubscribeHeader';
 
   state = {};
+  unsubscribeAction: UnsubscribeAction;
 
   componentWillUnmount() {
   }
 
   componentDidMount() {
-    const { message, unsubscribeAction } = this.props;
+    // const { message, unsubscribeAction } = this.props;
   }
 
   componentDidUpdate(prevProps, prevState) {
   }
 
   render() {
+    const { unsubscribeAction } = this.props;
     return (
-      <div className="event-wrapper">
-        <div className="event-header">
-          Unsubscribe from the mailinglist.
+      <div className="unsubscribe-wrapper">
+        <div className="unsubscribe-header">
+          <div className="unsubscribe-button">
+            <RetinaImg name="toolbar-unsubscribe.png" onClick={() => this._unsubscribe(unsubscribeAction.href)} mode={RetinaImg.Mode.ContentIsMask} />
+          </div>
+          <span className="unsubscribe-title-text">{localized('Unsubscribe')}: </span>
+          <span className="unsubscribe-title">{unsubscribeAction.innerText}</span>
+        </div>
+        <div className="unsubscribe-body">
+          <div className="unsubscribe-action">
+            <div className="btn btn-large btn-unsubscribe" onClick={() => this._unsubscribe(unsubscribeAction.href)}>{localized('Unsubscribe')}</div>
+          </div>
         </div>
       </div>
     );
+  }
+
+  private _unsubscribe(url: string) {
+    shell.openExternal(url);
   }
 
 }

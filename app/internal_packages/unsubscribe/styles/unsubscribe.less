@@ -8,7 +8,6 @@
   margin-top: @spacing-standard;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   width: 100%;
   display: inline-block;
   border-radius: @border-radius-base;
@@ -31,20 +30,40 @@
     .unsubscribe-title {
       color: @text-color;
     }
+
+    .unsubscribe-button {
+      float: right;
+      border-radius: @border-radius-base;
+      border: 1px solid @border-color-divider;
+      padding: 2px 4px;
+      line-height: 16px;
+
+      &:hover {
+        background: mix(@background-primary, @text-color, 95%);
+      }
+      &:active {
+        background: mix(@background-primary, @text-color, 92%);
+      }
+
+      img {
+        background: @text-color-subtle;
+        margin: 0;
+      }
+    }
   }
 
   .unsubscribe-body {
     padding: @padding-small-horizontal;
     color: @text-color;
 
-    .unsubscribe-actions {
+    .unsubscribe-action {
       display: flex;
 
       .btn-unsubscribe {
         margin-right: 10.5px;
         margin-top: 5px;
         min-width: 85px;
-        text-align: center;
+        margin: auto;
 
         &:hover {
           background: mix(@background-primary, @text-color, 95%);
@@ -66,7 +85,7 @@ body.platform-win32 {
   .unsubscribe-wrapper {
     border-radius: 0;
     .unsubscribe-body {
-      .unsubscribe-actions {
+      .unsubscribe-action {
         .btn-rsvp {
           border-radius: 0;
         }
