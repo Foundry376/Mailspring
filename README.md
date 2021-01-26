@@ -30,7 +30,7 @@ Mailspring's UI is entirely open-source and pull requests and contributions are 
 
 Mailspring's MailSync, however, is closed source. You can read more about the reasons why this is in the [roadmap](https://github.com/Foundry376/Mailspring/blob/master/ROADMAP.md#why-is-mailsync-closed-source).
 
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
 ### Building A Plugin
 
