@@ -78,12 +78,14 @@ class DefaultMailClientItem extends React.Component<{}, DefaultMailClientItemSta
   }
 }
 
+interface LaunchSystemStartItemState {
+  launchOnStart: boolean | 'unavailable';
+}
+
 class LaunchSystemStartItem extends React.Component {
   _service = new SystemStartService();
-  state = {
-    available: false,
-    launchOnStart: false,
-  };
+
+  state: LaunchSystemStartItemState = { launchOnStart: 'unavailable' };
 
   _mounted: boolean;
 
@@ -92,12 +94,13 @@ class LaunchSystemStartItem extends React.Component {
 
     const available = await service.checkAvailability();
     if (!this._mounted) return;
-    this.setState({ available });
 
     if (available) {
-      const launchOnStart = service.doesLaunchOnSystemStart();
+      const launchOnStart = await service.doesLaunchOnSystemStart();
       if (!this._mounted) return;
-      this.setState({ launchOnStart });
+      this.setState({ launchOnStart: launchOnStart });
+    } else {
+      this.setState({ launchOnStart: 'unavailable' });
     }
   }
 
@@ -117,7 +120,7 @@ class LaunchSystemStartItem extends React.Component {
   };
 
   render() {
-    if (!this.state.available) return false;
+    if (this.state.launchOnStart === 'unavailable') return false;
 
     return (
       <div className="item">
