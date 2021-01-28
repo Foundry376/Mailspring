@@ -1006,10 +1006,8 @@
   "Yahoo is unavailable.": "Yahoo não está disponível.",
   "Yes": "Sim",
   "You": "Você",
-  "You are using %@, which is free! You can link up to four email accounts and try pro features like send later, read receipts and reminders a few times a week.":
-    "Você está usando %@, que é grátis! Você pode vincular até quatro contas de e-mail e tentar recursos pro como enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
-  "You are using %@, which is free! You can link up to four email accounts and try pro features like snooze, send later, read receipts and reminders a few times a week.":
-    "Você está usando %@, que é grátis! Você pode vincular até quatro contas de e-mail e experimentar recursos pro como adiar, enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
+  "You are using %@, which is free! You can try pro features like snooze, send later, read receipts and reminders a few times a week.":
+    "Você está usando %@, que é grátis! Você pode experimentar recursos pro como adiar, enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
   "You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.":
     "Você pode adicionar lembretes a %1$@ emails cada %2$@ com o Mailspring Basic.",
   "You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.":
@@ -1043,8 +1041,8 @@
     "Você está em um canal de pré-lançamento. Nós adoraríamos o seu feedback.",
   "You're running the latest version of Mailspring (%@).":
     "Você está executando a versão mais recente do Mailspring (%@).",
-  "You're syncing more than four accounts — please consider paying for Mailspring Pro!":
-    "Você está sincronizando mais de quatro contas - considere pagar pelo Mailspring Pro!",
+  "Please consider paying for Mailspring Pro!":
+    "Considere pagar pelo Mailspring Pro!",
   "You've reached your quota": "Você atingiu sua cota",
   "Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@":
     "Seu ID de Mailspring não possui campos obrigatórios - talvez seja necessário redefinir o Mailspring. %@",
