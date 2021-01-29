@@ -426,6 +426,32 @@
       "trash": "Trash"
     }
   },
+  "yahoo.com.br": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.mail.yahoo.com.br",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.mail.yahoo.com.br",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["yahoo\\.com\\.br"],
+    "mailboxes": {
+      "drafts": "Draft",
+      "allmail": "Archive",
+      "spam": "Bulk Mail",
+      "sentmail": "Sent",
+      "trash": "Trash"
+    }
+  },
   "yahoo": {
     "servers": {
       "imap": [

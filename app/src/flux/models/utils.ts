@@ -635,6 +635,7 @@ export const commonDomains = {
   'yahoo.co.kr': true,
   'yahoo.co.id': true,
   'yahoo.co.in': true,
+  'yahoo.com.br': true,
   'yahoo.com.sg': true,
   'yahoo.com.ph': true,
   'hotmail.fr': true,

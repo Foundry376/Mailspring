@@ -5735,6 +5735,22 @@
     ],
     "enable_steps": []
   },
+  "yahoo.com.br": {
+    "display_name": "Yahoo! Brasil",
+    "display_short_name": "Yahoo! Brasil",
+    "imap_host": "",
+    "imap_port": "",
+    "imap_security": "SSL / TLS",
+    "imap_user_format": "email",
+    "smtp_host": "smtp.mail.yahoo.co.br",
+    "smtp_port": "465",
+    "smtp_security": "SSL / TLS",br
+    "smtp_user_format": "email-without-domain",
+    "smtp_authentication": [
+      "password-cleartext"
+    ],
+    "enable_steps": []
+  },
   "ybb.ne.jp": {
     "display_name": "Yahoo! BB",
     "display_short_name": "Yahoo! BB",
