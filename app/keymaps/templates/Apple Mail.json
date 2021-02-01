@@ -10,6 +10,8 @@
   "navigation:go-to-tasks": "command+ctrl+7",
   "navigation:go-to-label": "command+ctrl+8",
 
+  "multiselect-list:select-all": "command+a",
+
   "core:find-in-thread": "mod+f",
   "core:find-in-thread-next": "mod+g",
   "core:find-in-thread-previous": "mod+shift+g",

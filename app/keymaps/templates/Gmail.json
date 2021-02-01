@@ -8,6 +8,7 @@
   "navigation:go-to-tasks": "g k",
   "navigation:go-to-label": "g l",
 
+  "multiselect-list:select-all": "* a",
   "multiselect-list:deselect-all": "* n",
 
   "thread-list:select-read": "* r",
