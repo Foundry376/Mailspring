@@ -19,7 +19,7 @@ export class UnsubscribeHeader extends React.Component<UnsubscribeHeaderProps> {
   render() {
     const { unsubscribeAction } = this.props;
     return (
-      <a className="unsubscribe-action" onClick={() => this._unsubscribe(unsubscribeAction)}>{localized('Unsubscribe Now')}</a>
+      <a className="unsubscribe-action" onClick={() => this._unsubscribe(unsubscribeAction)}>{localized('Unsubscribe')}</a>
     );
   }
 
