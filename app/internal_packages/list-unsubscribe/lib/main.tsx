@@ -73,7 +73,6 @@ function bestUnsubscribeLink(message): string {
 
   for (const link of links) {
     for (const re of regexps) {
-      console.log(link.href, link.innerText);
       if (re.test(link.href)) {
         // If the URL contains e.g. "unsubscribe" we assume that we have correctly
         // detected the unsubscribe link.
