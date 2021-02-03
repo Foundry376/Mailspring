@@ -4,7 +4,7 @@ import {
   Message,
   ComponentRegistry,
 } from 'mailspring-exports';
-import { UnsubscribeHeader, UnsubscribeAction } from './unsubscribe-header';
+import { UnsubscribeHeader } from './unsubscribe-header';
 
 const regexps = [
   // English
@@ -60,26 +60,39 @@ const regexps = [
   /notisinställningar/gi,
 ];
 
-function bestUnsubscribeAction(message): UnsubscribeAction {
+interface UnsubscribeAction {
+  href: string;
+  innerText: string;
+}
+
+function bestUnsubscribeLink(message): string {
   const dom = cheerio.load(message.body);
   const links = _getLinks(dom);
 
+  let result = null;
+
   for (const link of links) {
     for (const re of regexps) {
-      if (re.test(link.href) || re.test(link.innerText)) {
-        return link;
+      console.log(link.href, link.innerText);
+      if (re.test(link.href)) {
+        // If the URL contains e.g. "unsubscribe" we assume that we have correctly
+        // detected the unsubscribe link.
+        return link.href;
+      }
+      if (re.test(link.innerText)) {
+        // If the URL does not contain "unsubscribe", but the text around the link contains
+        // it, it is a possible candidate, we we still check all other links for a better match
+        result = link.href;
       }
     }
   }
 
-  return null;
+  return result;
 }
 
 const UnsubscribeHeaderContainer: React.FunctionComponent<{ message: Message }> = ({ message }) => {
-  //console.log("Trying to display Unsubscribe Container")
-  //console.log(message);
-  const unsubscribeAction = bestUnsubscribeAction(message)
-  return unsubscribeAction ? <UnsubscribeHeader message={message} unsubscribeAction={unsubscribeAction} /> : null;
+  const unsubscribeAction = bestUnsubscribeLink(message)
+  return unsubscribeAction ? <UnsubscribeHeader unsubscribeAction={unsubscribeAction} /> : null;
 };
 
 UnsubscribeHeaderContainer.displayName = 'UnsubscribeContainer';
