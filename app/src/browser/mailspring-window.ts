@@ -215,9 +215,9 @@ export default class MailspringWindow extends EventEmitter {
     //
     // This uses the DOM's `beforeunload` event.
     this.browserWindow.on('close', event => {
-      if (this.neverClose && !global.application.isQuitting()) {
+      if (this.neverClose && !global.application.isQuitting() && global.application.config.get('core.workspace.systemTray')) {
         // For neverClose windows (like the main window) simply hide and
-        // take out of full screen.
+        // take out of full screen as long as the tray indicator is switched on.
         event.preventDefault();
         if (this.browserWindow.isFullScreen()) {
           this.browserWindow.once('leave-full-screen', () => {
