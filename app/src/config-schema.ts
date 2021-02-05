@@ -36,7 +36,6 @@ export default {
             type: 'boolean',
             default: true,
             title: localized('Show icon in menu bar / system tray'),
-            platforms: ['darwin', 'linux'],
             note: localized(
               'On Linux you need to restart Mailspring for the tray icon to disappear.'
             ),
