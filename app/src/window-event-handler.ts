@@ -146,7 +146,7 @@ export default class WindowEventHandler {
       'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
       'core:redo': e => (isTextInput(e.target) ? webContents.redo() : getUndoStore().redo()),
       'core:select-all': e =>
-        isIFrame(e.target) || isTextInput(e.target) ? webContents.selectAll() : null,
+        isIFrame(e.target) || isTextInput(e.target) ? webContents.selectAll() : AppEnv.commands.dispatch('multiselect-list:select-all'),
     });
 
     // "Pinch to zoom" on the Mac gets translated by the system into a
