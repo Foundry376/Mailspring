@@ -35,7 +35,7 @@ ln -s ../share/mailspring/mailspring %{buildroot}/usr/bin/mailspring
 chmod 755 %{buildroot}/usr/bin/mailspring
 
 mkdir -p %{buildroot}/usr/share/applications/
-mv mailspring.desktop %{buildroot}/usr/share/applications/
+mv Mailspring.desktop %{buildroot}/usr/share/applications/
 
 mkdir -p %{buildroot}/usr/share/appdata/
 mv mailspring.appdata.xml %{buildroot}/usr/share/appdata/
@@ -48,7 +48,7 @@ done
 %files
 /usr/bin/mailspring
 /usr/share/mailspring
-/usr/share/applications/mailspring.desktop
+/usr/share/applications/Mailspring.desktop
 /usr/share/appdata/mailspring.appdata.xml
 /usr/share/icons/hicolor/16x16/apps/mailspring.png
 /usr/share/icons/hicolor/32x32/apps/mailspring.png

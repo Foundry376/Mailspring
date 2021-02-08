@@ -58,8 +58,8 @@ module.exports = grunt => {
     const specInFilePath = path.join(linuxAssetsDir, 'redhat', 'mailspring.spec.in');
     writeFromTemplate(specInFilePath, templateData);
 
-    // This populates mailspring.desktop
-    const desktopInFilePath = path.join(linuxAssetsDir, 'mailspring.desktop.in');
+    // This populates Mailspring.desktop
+    const desktopInFilePath = path.join(linuxAssetsDir, 'Mailspring.desktop.in');
     writeFromTemplate(desktopInFilePath, templateData);
 
     // This populates mailspring.appdata.xml
@@ -103,7 +103,7 @@ module.exports = grunt => {
         installedSize: installedSize,
       };
       writeFromTemplate(path.join(linuxAssetsDir, 'debian', 'control.in'), data);
-      writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.desktop.in'), data);
+      writeFromTemplate(path.join(linuxAssetsDir, 'Mailspring.desktop.in'), data);
       writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.appdata.xml.in'), data);
 
       const icon = path.join(

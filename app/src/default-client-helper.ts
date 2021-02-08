@@ -103,7 +103,7 @@ export class DefaultClientHelperLinux {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
     exec(`xdg-mime query default x-scheme-handler/${scheme}`, (err, stdout) =>
-      err ? callback(err) : callback(stdout.trim() === 'mailspring.desktop')
+      err ? callback(err) : callback(stdout.trim() === 'Mailspring.desktop')
     );
   }
 
@@ -113,7 +113,7 @@ export class DefaultClientHelperLinux {
     );
   }
   registerForURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
-    exec(`xdg-mime default mailspring.desktop x-scheme-handler/${scheme}`, err =>
+    exec(`xdg-mime default Mailspring.desktop x-scheme-handler/${scheme}`, err =>
       err ? callback(err) : callback(null, null)
     );
   }

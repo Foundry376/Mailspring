@@ -37,6 +37,7 @@ const VERIFIED_LANGS = [
   'ja',
   'zh-CN',
   'zh-TW',
+  'pt',
   'pt-BR',
   'gl',
   'ru',
