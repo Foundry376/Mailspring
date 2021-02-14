@@ -41,6 +41,7 @@ export default [
       ['thread-list:select-unread', localized('Select all unread conversations')],
       ['thread-list:select-starred', localized('Select all starred conversations')],
       ['thread-list:select-unstarred', localized('Select all unstarred conversations')],
+      ['thread-list:select-unread-mark-as-read', localized('Select Unread and Mark as Read')],
     ],
   },
   {
