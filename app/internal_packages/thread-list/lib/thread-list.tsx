@@ -34,7 +34,7 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
   static displayName = 'ThreadList';
 
   static containerStyles = {
-    minWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-min-width', 300),
+    minWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-min-width', 100),
     maxWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-max-width', 3000),
   };
 
