@@ -12,7 +12,7 @@
   "main": "./src/browser/main.js",
   "dependencies": {
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
-    "better-sqlite3": "6.0.1",
+    "better-sqlite3": "^7.1.2",
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
     "classnames": "1.2.1",
