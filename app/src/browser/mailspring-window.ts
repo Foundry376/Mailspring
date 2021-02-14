@@ -217,22 +217,28 @@ export default class MailspringWindow extends EventEmitter {
     this.browserWindow.on('close', event => {
       if (this.neverClose && !global.application.isQuitting()) {
         // For neverClose windows (like the main window) simply hide and
-        // take out of full screen.
-        event.preventDefault();
-        if (this.browserWindow.isFullScreen()) {
-          this.browserWindow.once('leave-full-screen', () => {
+        // take out of full screen as long as the tray indicator is switched on.
+        if (global.application.config.get('core.workspace.systemTray')) {
+          // Tray indicator is switched on therefore hiding the main window only.
+          event.preventDefault();
+          if (this.browserWindow.isFullScreen()) {
+            this.browserWindow.once('leave-full-screen', () => {
+              this.browserWindow.hide();
+            });
+            this.browserWindow.setFullScreen(false);
+          } else {
             this.browserWindow.hide();
-          });
-          this.browserWindow.setFullScreen(false);
-        } else {
-          this.browserWindow.hide();
-        }
+          }
 
-        // HOWEVER! If the neverClose window is the last window open, and
-        // it looks like there's no windows actually quit the application
-        // on Linux & Windows.
-        if (!this.isSpec) {
-          global.application.windowManager.quitWinLinuxIfNoWindows();
+          // HOWEVER! If the neverClose window is the last window open, and
+          // it looks like there's no windows actually quit the application
+          // on Linux & Windows.
+          if (!this.isSpec) {
+            global.application.windowManager.quitWinLinuxIfNoWindows();
+          }
+        } else {
+          // Tray indicator is switched off, therefore quitting the application.
+          app.quit();
         }
       }
     });
