@@ -558,12 +558,13 @@ export default class AppEnvConstructor {
   }
 
   restoreWindowDimensions() {
+    const settings = this.getLoadSettings();
     let dimensions = this.savedState.windowDimensions;
     if (!this.isValidDimensions(dimensions)) {
       dimensions = this.getDefaultWindowDimensions();
     }
     this.setWindowDimensions(dimensions);
-    if (dimensions.maximized && process.platform !== 'darwin') {
+    if (dimensions.maximized && !settings.initializeInBackground) {
       this.maximize();
     }
     if (dimensions.fullScreen) {
