@@ -7,13 +7,14 @@ import url from 'url';
 
 import FormErrorMessage from './form-error-message';
 import { LOCAL_SERVER_PORT } from './onboarding-helpers';
+import AccountProviders from './account-providers';
 
 interface OAuthSignInPageProps {
   providerAuthPageUrl: string;
   buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
   onSuccess: (account: Account) => void;
   onTryAgain: () => void;
-  providerConfig: object;
+  providerConfig: (typeof AccountProviders)[0];
   serviceName: string;
 }
 

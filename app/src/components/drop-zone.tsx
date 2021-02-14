@@ -5,7 +5,7 @@ import _ from 'underscore';
 interface DropZoneProps {
   id?: string;
   className?: string;
-  style?: any;
+  style?: React.CSSProperties;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   shouldAcceptDrop: (e: React.DragEvent<HTMLDivElement>) => boolean;

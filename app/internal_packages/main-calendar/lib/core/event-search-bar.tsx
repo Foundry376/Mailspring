@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Event, DatabaseStore, localized } from 'mailspring-exports';
-import { SearchBar } from 'mailspring-component-kit';
 import { EventOccurrence, occurrencesForEvents } from './calendar-data-source';
 import moment from 'moment';
 
@@ -76,18 +75,18 @@ export class EventSearchBar extends Component<
     // TODO BG
     return <span />;
 
-    return (
-      <SearchBar
-        query={query}
-        suggestions={suggestions}
-        placeholder={localized('Search all events')}
-        suggestionKey={event => event.id}
-        suggestionRenderer={this.renderEvent}
-        onSearchQueryChanged={this.onSearchQueryChanged}
-        onSelectSuggestion={this.onSelectEvent}
-        onClearSearchQuery={this.onClearSearchQuery}
-        onClearSearchSuggestions={this.onClearSearchSuggestions}
-      />
-    );
+    // return (
+    //   <SearchBar
+    //     query={query}
+    //     suggestions={suggestions}
+    //     placeholder={localized('Search all events')}
+    //     suggestionKey={event => event.id}
+    //     suggestionRenderer={this.renderEvent}
+    //     onSearchQueryChanged={this.onSearchQueryChanged}
+    //     onSelectSuggestion={this.onSelectEvent}
+    //     onClearSearchQuery={this.onClearSearchQuery}
+    //     onClearSearchSuggestions={this.onClearSearchSuggestions}
+    //   />
+    // );
   }
 }

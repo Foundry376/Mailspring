@@ -6,7 +6,7 @@ import classNames from 'classnames';
 type SpinnerProps = {
   visible?: boolean;
   withCover?: boolean;
-  style?: object;
+  style?: React.CSSProperties;
 };
 type SpinnerState = {
   hidden: boolean;

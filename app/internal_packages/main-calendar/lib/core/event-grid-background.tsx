@@ -47,7 +47,11 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
     doStroke('major', '#e0e0e0'); // Major ticks
   }
 
-  onMouseMove({ x, y, width }) {
+  onMouseMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const width = e.currentTarget.clientWidth;
+    const x = e.clientX;
+    const y = e.clientY;
+
     if (!width || x == null || y == null) {
       return;
     }

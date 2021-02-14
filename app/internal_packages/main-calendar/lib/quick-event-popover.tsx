@@ -2,13 +2,13 @@ import React from 'react';
 import { Actions, Calendar, DatabaseStore, DateUtils, Event, localized } from 'mailspring-exports';
 import { Moment } from 'moment';
 
-interface QuickEventPopoverSttae {
+interface QuickEventPopoverState {
   start: Moment | null;
   end: Moment | null;
   leftoverText: string | null;
 }
 
-export class QuickEventPopover extends React.Component<{}, QuickEventPopoverSttae> {
+export class QuickEventPopover extends React.Component<{}, QuickEventPopoverState> {
   constructor(props) {
     super(props);
     this.state = {
@@ -35,7 +35,15 @@ export class QuickEventPopover extends React.Component<{}, QuickEventPopoverStta
     this.setState(DateUtils.parseDateString(event.target.value));
   };
 
-  createEvent = async ({ leftoverText, start, end }) => {
+  createEvent = async ({
+    leftoverText,
+    start,
+    end,
+  }: {
+    leftoverText: string;
+    start: Moment;
+    end: Moment;
+  }) => {
     const allCalendars = await DatabaseStore.findAll<Calendar>(Calendar);
     const editableCals = allCalendars.filter(c => !c.readOnly);
     if (editableCals.length === 0) {

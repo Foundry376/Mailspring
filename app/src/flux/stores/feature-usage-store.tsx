@@ -54,7 +54,7 @@ export interface FeatureLexicon {
  * Valid periods are:
  * 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'unlimited'
  */
-class FeatureUsageStore extends MailspringStore {
+class _FeatureUsageStore extends MailspringStore {
   _waitForModalClose = [];
   NoProAccessError = NoProAccessError;
   _disp: Rx.Disposable;
@@ -164,4 +164,4 @@ class FeatureUsageStore extends MailspringStore {
   }
 }
 
-export default new FeatureUsageStore();
+export const FeatureUsageStore = new _FeatureUsageStore();
