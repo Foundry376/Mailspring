@@ -27,6 +27,7 @@ export default [
       ['core:mark-as-unread', localized('Mark as %@', localized('Unread'))],
       ['core:mark-important', localized('Mark as %@', localized('Important')) + ' (Gmail)'],
       ['core:mark-unimportant', localized('Mark as %@', localized('Not Important')) + ' (Gmail)'],
+      ['thread-list:mark-all-as-read', localized('Mark All as %@', localized('Read'))],
       ['core:remove-and-previous', localized('Remove and show previous')],
       ['core:remove-and-next', localized('Remove and show next')],
     ],
@@ -41,7 +42,6 @@ export default [
       ['thread-list:select-unread', localized('Select all unread conversations')],
       ['thread-list:select-starred', localized('Select all starred conversations')],
       ['thread-list:select-unstarred', localized('Select all unstarred conversations')],
-      ['thread-list:select-unread-mark-as-read', localized('Select Unread and Mark as Read')],
     ],
   },
   {

@@ -118,7 +118,7 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
               'thread-list:select-unread': this._onSelectUnread,
               'thread-list:select-starred': this._onSelectStarred,
               'thread-list:select-unstarred': this._onSelectUnstarred,
-              'thread-list:select-unread-mark-as-read': this._onSelectUnreadMarkAsRead,
+              'thread-list:mark-all-as-read': this._onMarkAllAsRead,
             }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragItems={this._onDragItems}
@@ -238,10 +238,15 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
   _onDragEnd = event => {};
 
   _onResize = (event?: any) => {
-    const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty('thread-list-narrow-style-width', 540);
+    const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty(
+      'thread-list-narrow-style-width',
+      540
+    );
     const current = this.state.style;
     const desired =
-      (ReactDOM.findDOMNode(this) as HTMLElement).offsetWidth < narrowStyleWidth ? 'narrow' : 'wide';
+      (ReactDOM.findDOMNode(this) as HTMLElement).offsetWidth < narrowStyleWidth
+        ? 'narrow'
+        : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }
@@ -285,10 +290,10 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
     this.refs.list.handler().onSelect(items);
   };
 
-  _onSelectUnreadMarkAsRead = () => {
+  _onMarkAllAsRead = () => {
     const dataSource = ThreadListStore.dataSource();
     const items = dataSource.itemsCurrentlyInViewMatching(item => item.unread) as Thread[];
-    
+
     if (items.length === 0) {
       return;
     }

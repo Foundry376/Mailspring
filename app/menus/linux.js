@@ -41,7 +41,10 @@ module.exports = {
         { label: localized('Select All Starred'), command: 'thread-list:select-starred' },
         { label: localized('Select All Unstarred'), command: 'thread-list:select-unstarred' },
         { type: 'separator' },
-        { label: localized('Select Unread and Mark as Read'), command: 'thread-list:select-unread-mark-as-read' },
+        {
+          label: localized('Mark All as %@', localized('Read')),
+          command: 'thread-list:mark-all-as-read',
+        },
         { type: 'separator' },
         {
           label: localized('Find'),
