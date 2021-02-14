@@ -9,7 +9,8 @@
     "url": "git+https://github.com/Foundry376/Mailspring.git"
   },
   "engines": {
-    "node": "11.x"
+    "node": ">=11",
+    "npm": ">=7"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^5.4.0",
@@ -55,15 +56,15 @@
     "@typescript-eslint/parser": "^4.7.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "8.2.2",
+    "electron": "8.5.5",
     "electron-installer-dmg": "0.2.x",
     "electron-packager": "14.2.x",
     "electron-winstaller": "2.x.x",
     "eslint": "7.13.0",
     "eslint-config-prettier": "7.2.0",
-    "eslint-plugin-react": "7.22.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "7.22.0",
     "fs-extra": "2.x.x",
     "fs-plus": "2.x.x",
     "gitbook-cli": "^2.3.2",
@@ -83,10 +84,9 @@
     "joanna": "0.0.9",
     "license-extractor": "^1.0.4",
     "load-grunt-parent-tasks": "^0.1.2",
-    "node-gyp": "^6.1.0",
     "meta-marked": "^0.4.2",
-    "node-gyp": "^7.1.0",
     "mkdirp": "^0.5.1",
+    "node-gyp": "^7.1.0",
     "prettier": "^1.10.0",
     "request": "^2.88.0",
     "rimraf": "^2.6.1",
