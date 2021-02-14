@@ -99,6 +99,7 @@ export default class MailspringWindow extends EventEmitter {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        webviewTag: true,
       },
       autoHideMenuBar,
     };
@@ -286,7 +287,7 @@ export default class MailspringWindow extends EventEmitter {
         return;
       }
 
-      const chosen = dialog.showMessageBox(this.browserWindow, {
+      const chosen = dialog.showMessageBoxSync(this.browserWindow, {
         type: 'warning',
         buttons: ['Close', 'Keep Waiting'],
         message: 'Mailspring is not responding',
@@ -312,7 +313,7 @@ export default class MailspringWindow extends EventEmitter {
       if (this.neverClose) {
         this.browserWindow.reload();
       } else {
-        const chosen = dialog.showMessageBox({
+        const chosen = dialog.showMessageBoxSync({
           type: 'warning',
           buttons: ['Close Window', 'Reload', 'Keep It Open'],
           message: 'Mailspring has crashed',

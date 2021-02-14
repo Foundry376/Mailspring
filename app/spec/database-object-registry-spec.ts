@@ -1,7 +1,7 @@
 /* eslint quote-props: 0 */
 import _ from 'underscore';
 import { Model } from '../src/flux/models/model';
-import Attributes from '../src/flux/attributes';
+import * as Attributes from '../src/flux/attributes';
 import DatabaseObjectRegistry from '../src/registries/database-object-registry';
 
 class GoodTest extends Model {

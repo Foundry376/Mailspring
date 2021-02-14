@@ -7,9 +7,11 @@ import PropTypes from 'prop-types';
 import { ScrollRegion, ScrollRegionProps } from './scroll-region';
 import { Spinner } from './spinner';
 
-import ListDataSource from './list-data-source';
-import ListSelection from './list-selection';
-import ListTabularItem from './list-tabular-item';
+export * from './list-data-source';
+
+import { ListDataSource } from './list-data-source';
+import { ListSelection } from './list-selection';
+import { ListTabularItem } from './list-tabular-item';
 
 export class ListTabularColumn {
   name: string;
@@ -134,8 +136,6 @@ interface ListTabularState {
   loaded: any;
   empty: any;
 }
-
-export type ListDataSource = ListDataSource;
 
 export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   static displayName = 'ListTabular';

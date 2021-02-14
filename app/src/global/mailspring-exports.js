@@ -194,6 +194,7 @@ lazyLoad(`MailRulesTemplates`, 'mail-rules-templates');
 lazyLoad(`MailRulesProcessor`, 'mail-rules-processor');
 lazyLoad(`MailboxPerspective`, 'mailbox-perspective');
 lazyLoad(`NativeNotifications`, 'native-notifications');
+lazyLoad(`Autolink`, 'services/autolinker');
 lazyLoad(`SanitizeTransformer`, 'services/sanitize-transformer');
 lazyLoad(`QuotedHTMLTransformer`, 'services/quoted-html-transformer');
 lazyLoad(`InlineStyleTransformer`, 'services/inline-style-transformer');

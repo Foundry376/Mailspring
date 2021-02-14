@@ -26,6 +26,7 @@ export default class PrintWindow {
       .join('');
 
     const content = `
+      <!DOCTYPE html>
       <html>
         <head>
           <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:;">
@@ -79,7 +80,7 @@ export default class PrintWindow {
         contextIsolation: false,
       },
     });
-    this.browserWin.setMenu(null);
+    this.browserWin.removeMenu();
     fs.writeFileSync(tmpMessagesPath, `window.printMessages = ${printMessages}`);
     fs.writeFileSync(this.tmpFile, content);
   }

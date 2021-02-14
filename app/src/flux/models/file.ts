@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 import path from 'path';
 import { Model, AttributeValues } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { localized } from '../../intl';
 import RegExpUtils from '../../regexp-utils';
 

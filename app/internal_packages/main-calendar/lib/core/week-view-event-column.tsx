@@ -1,8 +1,10 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import { PropTypes, Utils, Event } from 'mailspring-exports';
-import CalendarEvent from './calendar-event';
+import { Utils, Event } from 'mailspring-exports';
+import { CalendarEvent } from './calendar-event';
+import { EventOccurrence } from './calendar-data-source';
+import { overlapForEvents } from './week-view-helpers';
 
 /*
  * This display a single column of events in the Week View.
@@ -11,71 +13,63 @@ import CalendarEvent from './calendar-event';
  * column-by-column basis.
  */
 interface WeekViewEventColumnProps {
-  events: Event[];
+  events: EventOccurrence[];
   day: Moment;
   dayEnd: number;
-  focusedEvent: Event;
-  eventOverlap: any;
-  onEventClick: () => void;
-  onEventDoubleClick: () => void;
-  onEventFocused: () => void;
-  selectedEvents: Event[];
+  focusedEvent: EventOccurrence;
+  onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
+  onEventDoubleClick: (event: EventOccurrence) => void;
+  onEventFocused: (event: EventOccurrence) => void;
+  selectedEvents: EventOccurrence[];
 }
 
-export default class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {
+export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {
   static displayName = 'WeekViewEventColumn';
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  renderEvents() {
+  render() {
     const {
       events,
       focusedEvent,
       selectedEvents,
-      eventOverlap,
       dayEnd,
       day,
       onEventClick,
       onEventDoubleClick,
       onEventFocused,
     } = this.props;
-    return events.map(e => (
-      <CalendarEvent
-        ref={`event-${e.id}`}
-        event={e}
-        selected={selectedEvents.includes(e)}
-        order={eventOverlap[e.id].order}
-        focused={focusedEvent ? focusedEvent.id === e.id : false}
-        key={e.id}
-        scopeEnd={dayEnd}
-        scopeStart={day.unix()}
-        concurrentEvents={eventOverlap[e.id].concurrentEvents}
-        onClick={onEventClick}
-        onDoubleClick={onEventDoubleClick}
-        onFocused={onEventFocused}
-      />
-    ));
-  }
 
-  render() {
     const className = classnames({
       'event-column': true,
-      weekend: this.props.day.day() === 0 || this.props.day.day() === 6,
+      weekend: day.day() === 0 || day.day() === 6,
     });
-    const end = moment(this.props.day)
+    const overlap = overlapForEvents(events);
+    const end = moment(day)
       .add(1, 'day')
       .subtract(1, 'millisecond')
       .valueOf();
+
     return (
-      <div
-        className={className}
-        key={this.props.day.valueOf()}
-        data-start={this.props.day.valueOf()}
-        data-end={end}
-      >
-        {this.renderEvents()}
+      <div className={className} key={day.valueOf()} data-start={day.valueOf()} data-end={end}>
+        {events.map(e => (
+          <CalendarEvent
+            ref={`event-${e.id}`}
+            event={e}
+            selected={selectedEvents.includes(e)}
+            order={overlap[e.id].order}
+            focused={focusedEvent ? focusedEvent.id === e.id : false}
+            key={e.id}
+            scopeEnd={dayEnd}
+            scopeStart={day.unix()}
+            concurrentEvents={overlap[e.id].concurrentEvents}
+            onClick={onEventClick}
+            onDoubleClick={onEventDoubleClick}
+            onFocused={onEventFocused}
+          />
+        ))}
       </div>
     );
   }

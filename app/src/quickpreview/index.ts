@@ -148,7 +148,7 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
       {
         label: 'Select All',
         accelerator: 'CmdOrCtrl+A',
-        role: 'selectall',
+        role: 'selectAll',
       },
     ],
   },

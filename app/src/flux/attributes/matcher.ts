@@ -1,6 +1,8 @@
 import LocalSearchQueryBackend from '../../services/search/search-query-backend-local';
-import Attribute from './attribute';
-import AttributeCollection from './attribute-collection';
+import { QueryExpression } from '../../services/search/search-query-ast';
+import { Attribute } from './attribute';
+import { AttributeCollection } from './attribute-collection';
+import { Model } from '../models/model';
 
 // https://www.sqlite.org/faq.html#q14
 // That's right. Two single quotes in a row…
@@ -82,7 +84,7 @@ export class Matcher {
     return this.val;
   }
 
-  evaluate(model) {
+  evaluate(model: typeof Model) {
     let modelValue = model[this.attr.modelKey];
     if (modelValue instanceof Function) {
       modelValue = modelValue();
@@ -207,7 +209,7 @@ export class Matcher {
 class OrCompositeMatcher extends Matcher {
   children: Matcher[];
 
-  constructor(children) {
+  constructor(children: Matcher[]) {
     super();
     this.children = children;
   }
@@ -224,7 +226,7 @@ class OrCompositeMatcher extends Matcher {
     return this.children.some(matcher => matcher.evaluate(model));
   }
 
-  joinSQL(klass) {
+  joinSQL(klass: typeof Model) {
     const joins = [];
     for (const matcher of this.children) {
       const join = matcher.joinSQL(klass);
@@ -235,7 +237,7 @@ class OrCompositeMatcher extends Matcher {
     return joins.length ? joins.join(' ') : false;
   }
 
-  whereSQL(klass) {
+  whereSQL(klass: typeof Model) {
     const wheres = this.children.map(matcher => matcher.whereSQL(klass));
     return `(${wheres.join(' OR ')})`;
   }
@@ -244,7 +246,7 @@ class OrCompositeMatcher extends Matcher {
 class AndCompositeMatcher extends Matcher {
   children: Matcher[];
 
-  constructor(children) {
+  constructor(children: Matcher[]) {
     super();
     this.children = children;
   }
@@ -261,7 +263,7 @@ class AndCompositeMatcher extends Matcher {
     return this.children.every(m => m.evaluate(model));
   }
 
-  joinSQL(klass) {
+  joinSQL(klass: typeof Model) {
     const joins = [];
     for (const matcher of this.children) {
       const join = matcher.joinSQL(klass);
@@ -272,22 +274,22 @@ class AndCompositeMatcher extends Matcher {
     return joins.join(' ');
   }
 
-  whereSQL(klass) {
+  whereSQL(klass: typeof Model) {
     const wheres = this.children.map(m => m.whereSQL(klass));
     return `(${wheres.join(' AND ')})`;
   }
 }
 
 class NotCompositeMatcher extends AndCompositeMatcher {
-  whereSQL(klass) {
+  whereSQL(klass: typeof Model) {
     return `NOT (${super.whereSQL(klass)})`;
   }
 }
 
 class StructuredSearchMatcher extends Matcher {
-  _searchQuery: string;
+  _searchQuery: QueryExpression;
 
-  constructor(searchQuery) {
+  constructor(searchQuery: QueryExpression) {
     super(null, null, null);
     this._searchQuery = searchQuery;
   }
@@ -308,7 +310,7 @@ class StructuredSearchMatcher extends Matcher {
     return true;
   }
 
-  whereSQL(klass) {
+  whereSQL(klass: typeof Model) {
     return new LocalSearchQueryBackend(klass.name).compile(this._searchQuery);
   }
 }
@@ -316,7 +318,7 @@ class StructuredSearchMatcher extends Matcher {
 class SearchMatcher extends Matcher {
   searchQuery: string;
 
-  constructor(searchQuery) {
+  constructor(searchQuery: string) {
     if (typeof searchQuery !== 'string' || searchQuery.length === 0) {
       throw new Error('You must pass a string with non-zero length to search.');
     }
@@ -345,7 +347,7 @@ class SearchMatcher extends Matcher {
     return true;
   }
 
-  whereSQL(klass) {
+  whereSQL(klass: typeof Model) {
     const searchTable = `${klass.name}Search`;
     return `\`${klass.name}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '"${this.searchQuery}"*' LIMIT 1000)`;
   }

@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "command": "./node_modules/.bin/tsc",
+  "type": "shell",
+  "args": ["-w", "-p", "./app", "--noEmit"],
+  "presentation": {
+    "reveal": "silent"
+  },
+  "isBackground": true,
+  "problemMatcher": "$tsc-watch"
+}

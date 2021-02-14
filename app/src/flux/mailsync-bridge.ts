@@ -14,7 +14,7 @@ import DatabaseStore from './stores/database-store';
 import OnlineStatusStore from './stores/online-status-store';
 import DatabaseChangeRecord from './stores/database-change-record';
 import DatabaseObjectRegistry from '../registries/database-object-registry';
-import { MailsyncProcess } from '../mailsync-process';
+import { MailsyncProcess, MailsyncProcessExit } from '../mailsync-process';
 import KeyManager from '../key-manager';
 import * as Actions from './actions';
 import * as Utils from './models/utils';
@@ -43,7 +43,9 @@ class CrashTracker {
     delete this._tooManyFailures[key];
   }
 
-  recordClientCrash(fullAccountJSON, { code, error, signal }) {
+  recordClientCrash(fullAccountJSON, crash: MailsyncProcessExit) {
+    console.log(`Sync worker exited.`, crash);
+
     this._appendCrashToHistory(fullAccountJSON);
 
     // We now let crashpad do this, because Sentry was losing it's mind.
@@ -298,7 +300,7 @@ export default class MailsyncBridge {
     client.identity = IdentityStore.identity();
     client.sync();
     client.on('deltas', this._onIncomingMessages);
-    client.on('close', ({ code, error, signal }) => {
+    client.on('close', ({ code, error, signal }: MailsyncProcessExit) => {
       if (this._clients[account.id] !== client) {
         return;
       }

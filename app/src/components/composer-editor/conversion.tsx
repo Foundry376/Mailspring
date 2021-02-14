@@ -253,13 +253,14 @@ on the result. */
       });
     } else {
       if (node.nodes && node.nodes instanceof Array) {
+        // @ts-ignore
         node.nodes = node.nodes.map(applyMark);
       }
     }
 
     return node;
   };
-
+  // @ts-ignore
   return mark.nodes.reduce(function(nodes, node) {
     const ret = applyMark(node);
     if (Array.isArray(ret)) return nodes.concat(ret);
@@ -439,11 +440,13 @@ export function convertToPlainText(value: Value) {
       text = text.replace(/\n\n\n+/g, '\n\n').trim();
       return text;
     }
-    if (isQuoteNode(node)) {
+    if (isQuoteNode(node) && node.object === 'block') {
       const content = node.nodes.map(serializeNode).join('\n');
       return deepenPlaintextQuote(content);
     }
-    if (node.object === 'document' || (node.object === 'block' && Block.isBlockList(node.nodes))) {
+    if (node.object === 'document') {
+      return node.nodes.map(serializeNode).join('\n');
+    } else if (node.object === 'block' && Block.isBlockList(node.nodes)) {
       return node.nodes.map(serializeNode).join('\n');
     } else {
       return node.text;

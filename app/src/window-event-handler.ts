@@ -70,7 +70,7 @@ export default class WindowEventHandler {
       window.dispatchEvent(new Event('scroll-touch-end'));
     });
 
-    window.onbeforeunload = () => {
+    window.onbeforeunload = e => {
       if (AppEnv.inSpecMode()) {
         return undefined;
       }
@@ -84,6 +84,7 @@ export default class WindowEventHandler {
         AppEnv.saveWindowStateAndUnload();
         return undefined;
       }
+      e.preventDefault();
       return false;
     };
 
@@ -163,6 +164,7 @@ export default class WindowEventHandler {
     document.addEventListener('click', (event: MouseEvent) => {
       if ((event.target as HTMLElement).closest('[href]')) {
         this.openLink(event);
+        event.preventDefault();
       }
     });
 

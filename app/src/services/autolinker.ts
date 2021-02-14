@@ -10,6 +10,18 @@ function _matchesAnyRegexp(text, regexps) {
 }
 
 function _runOnTextNode(node, matchers) {
+  // Important: This method iterates through the matchers to find the LONGEST match,
+  // and then inserts the <a> tag for it and operates on the remaining previous / next
+  // siblings.
+  //
+  // It looks for the longest match so that URLs that contain phone number fragments
+  // are parsed as URLs, etc. Here's an example:
+  // https://sequoia.zoom.com/j/9158385033
+  //
+  // We might be able to "order" the regexps carefully to achieve the same result, but
+  // that would be pretty fragile and this "longest" algo more clearly expresses the
+  // behavior we really want.
+  //
   if (node.parentElement) {
     const withinScript = node.parentElement.tagName === 'SCRIPT';
     const withinStyle = node.parentElement.tagName === 'STYLE';
@@ -44,17 +56,26 @@ function _runOnTextNode(node, matchers) {
     const range = document.createRange();
     range.setStart(node, match.index);
     range.setEnd(node, match.index + match[0].length);
-    const aTag = DOMUtils.wrap(range, 'A');
+    const aTag: HTMLAnchorElement = DOMUtils.wrap(range, 'A');
     aTag.href = href;
     aTag.title = href;
+
+    _runOnTextNode(aTag.previousSibling, matchers);
+    _runOnTextNode(aTag.nextSibling, matchers);
     return;
   }
 }
 
-export function autolink(doc, { async } = { async: false }) {
+export function Autolink(
+  body: HTMLElement,
+  options: {
+    async: boolean;
+    telAggressiveMatch: boolean;
+  }
+) {
   // Traverse the new DOM tree and make things that look like links clickable,
   // and ensure anything with an href has a title attribute.
-  const textWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  const textWalker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
   const matchers = [
     [
       'mailto:',
@@ -65,12 +86,12 @@ export function autolink(doc, { async } = { async: false }) {
         exclude: [/\..*[/|?].*@/],
       },
     ],
-    ['tel:', RegExpUtils.phoneRegex()],
+    ['tel:', RegExpUtils.phoneRegex({ aggressive: options.telAggressiveMatch })],
     ['', RegExpUtils.mailspringCommandRegex()],
     ['', RegExpUtils.urlRegex()],
   ];
 
-  if (async) {
+  if (options.async) {
     const fn = deadline => {
       while (textWalker.nextNode()) {
         _runOnTextNode(textWalker.currentNode, matchers);
@@ -88,7 +109,7 @@ export function autolink(doc, { async } = { async: false }) {
   }
 
   // Traverse the new DOM tree and make sure everything with an href has a title.
-  const aTagWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
+  const aTagWalker = document.createTreeWalker(body, NodeFilter.SHOW_ELEMENT, {
     acceptNode: node =>
       (node as HTMLLinkElement).href ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP,
   });

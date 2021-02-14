@@ -1,16 +1,23 @@
-import { exec } from 'child_process';
 import fs from 'fs';
+import { exec } from 'child_process';
 import { remote, shell } from 'electron';
 import { localized } from './intl';
 
 const bundleIdentifier = 'com.mailspring.mailspring';
 
-export class DefaultClientHelperWindows {
+interface DCH {
+  available(): boolean;
+  isRegisteredForURLScheme(scheme: string, callback: (registered: boolean | Error) => void): void;
+  resetURLScheme(scheme, callback: (error?: Error) => {}): void;
+  registerForURLScheme(scheme: string, callback: (error?: Error) => {}): void;
+}
+
+export class DefaultClientHelperWindows implements DCH {
   available() {
     return true;
   }
 
-  isRegisteredForURLScheme(scheme, callback) {
+  isRegisteredForURLScheme(scheme: string, callback: (registered: boolean | Error) => void) {
     if (!callback) {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
@@ -34,25 +41,24 @@ export class DefaultClientHelperWindows {
     );
   }
 
-  resetURLScheme() {
-    remote.dialog.showMessageBox(
-      {
-        type: 'info',
-        buttons: [localized('Learn More')],
-        message: localized('Visit Windows Settings to change your default mail client'),
-        detail: localized(
-          "You'll find Mailspring, along with other options, listed in Default Apps > Mail."
-        ),
-      },
-      () => {
-        shell.openExternal(
-          'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
-        );
-      }
-    );
+  async resetURLScheme() {
+    const { response } = await remote.dialog.showMessageBox({
+      type: 'info',
+      buttons: [localized('Learn More')],
+      message: localized('Visit Windows Settings to change your default mail client'),
+      detail: localized(
+        "You'll find Mailspring, along with other options, listed in Default Apps > Mail."
+      ),
+    });
+
+    if (response === 0) {
+      shell.openExternal(
+        'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
+      );
+    }
   }
 
-  registerForURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
+  registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
     // Ensure that our registry entires are present
     const WindowsUpdater = remote.require('./windows-updater');
     WindowsUpdater.createRegistryEntries(
@@ -60,45 +66,45 @@ export class DefaultClientHelperWindows {
         allowEscalation: true,
         registerDefaultIfPossible: true,
       },
-      (err, didMakeDefault) => {
+      async (err, didMakeDefault) => {
         if (err) {
-          remote.dialog.showMessageBox({
+          await remote.dialog.showMessageBox({
             type: 'error',
             buttons: [localized('OK')],
             message: localized('An error has occurred'),
             detail: err.message,
           });
+          return;
         }
+
         if (!didMakeDefault) {
-          remote.dialog.showMessageBox(
-            {
-              type: 'info',
-              buttons: [localized('Learn More')],
-              defaultId: 1,
-              message: localized(
-                'Visit Windows Settings to finish making Mailspring your mail client'
-              ),
-              detail: localized("Click 'Learn More' to view instructions in our knowledge base."),
-            },
-            () => {
-              shell.openExternal(
-                'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
-              );
-            }
-          );
+          const { response } = await remote.dialog.showMessageBox({
+            type: 'info',
+            buttons: [localized('Learn More')],
+            defaultId: 1,
+            message: localized(
+              'Visit Windows Settings to finish making Mailspring your mail client'
+            ),
+            detail: localized("Click 'Learn More' to view instructions in our knowledge base."),
+          });
+          if (response === 0) {
+            shell.openExternal(
+              'http://support.getmailspring.com/hc/en-us/articles/115001881412-Choose-Mailspring-as-the-default-mail-client-on-Windows'
+            );
+          }
         }
-        callback(null, null);
+        callback(null);
       }
     );
   }
 }
 
-export class DefaultClientHelperLinux {
+export class DefaultClientHelperLinux implements DCH {
   available() {
     return !process.env.SNAP;
   }
 
-  isRegisteredForURLScheme(scheme, callback) {
+  isRegisteredForURLScheme(scheme: string, callback: (registered: boolean | Error) => void) {
     if (!callback) {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
@@ -107,26 +113,26 @@ export class DefaultClientHelperLinux {
     );
   }
 
-  resetURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
+  resetURLScheme(scheme: string, callback = (error?: Error) => {}) {
     exec(`xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`, err =>
-      err ? callback(err) : callback(null, null)
+      err ? callback(err) : callback(null)
     );
   }
-  registerForURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
+  registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
     exec(`xdg-mime default Mailspring.desktop x-scheme-handler/${scheme}`, err =>
-      err ? callback(err) : callback(null, null)
+      err ? callback(err) : callback(null)
     );
   }
 }
 
-export class DefaultClientHelperMac {
+export class DefaultClientHelperMac implements DCH {
   secure = false;
 
   available() {
     return true;
   }
 
-  getLaunchServicesPlistPath(callback) {
+  getLaunchServicesPlistPath(callback: (plist: string) => void) {
     const secure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
     const insecure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices.plist`;
 
@@ -189,7 +195,7 @@ export class DefaultClientHelperMac {
     });
   }
 
-  isRegisteredForURLScheme(scheme, callback) {
+  isRegisteredForURLScheme(scheme: string, callback: (registered: boolean) => void) {
     if (!callback) {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
@@ -204,7 +210,7 @@ export class DefaultClientHelperMac {
     });
   }
 
-  resetURLScheme(scheme, callback) {
+  resetURLScheme(scheme: string, callback = (error?: Error) => {}) {
     this.readDefaults(defaults => {
       // Remove anything already registered for the scheme
       for (let ii = defaults.length - 1; ii >= 0; ii--) {
@@ -216,7 +222,7 @@ export class DefaultClientHelperMac {
     });
   }
 
-  registerForURLScheme(scheme, callback) {
+  registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
     this.readDefaults(defaults => {
       // Remove anything already registered for the scheme
       for (let ii = defaults.length - 1; ii >= 0; ii--) {
@@ -236,14 +242,16 @@ export class DefaultClientHelperMac {
   }
 }
 
-let Default: any = null;
+let Default:
+  | typeof DefaultClientHelperMac
+  | typeof DefaultClientHelperLinux
+  | typeof DefaultClientHelperWindows = null;
+
 if (process.platform === 'darwin') {
   Default = DefaultClientHelperMac;
-} else if (process.platform === 'linux') {
-  Default = DefaultClientHelperLinux;
 } else if (process.platform === 'win32') {
   Default = DefaultClientHelperWindows;
 } else {
-  Default = {};
+  Default = DefaultClientHelperLinux;
 }
 export const DefaultClientHelper = Default;

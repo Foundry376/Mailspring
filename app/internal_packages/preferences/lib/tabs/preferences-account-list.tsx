@@ -23,7 +23,7 @@ class PreferencesAccountList extends Component<PreferencesAccountListProps> {
     onRemoveAccount: PropTypes.func.isRequired,
   };
 
-  _renderAccountStateIcon(account) {
+  _renderAccountStateIcon(account: Account) {
     if (account.syncState !== 'running') {
       return (
         <div className="sync-error-icon">
@@ -38,7 +38,7 @@ class PreferencesAccountList extends Component<PreferencesAccountListProps> {
     return null;
   }
 
-  _renderAccount = account => {
+  _renderAccount = (account: Account) => {
     const label = account.label;
     const accountSub = `${account.name || localized('No name provided')} <${account.emailAddress}>`;
     const syncError = account.hasSyncStateError();

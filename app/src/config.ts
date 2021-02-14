@@ -925,10 +925,11 @@ Config.addSchemaEnforcers({
   },
 });
 
-var isPlainObject = value =>
-  _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value);
+function isPlainObject(value) {
+  return _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value);
+}
 
-var splitKeyPath = function(keyPath) {
+function splitKeyPath(keyPath) {
   if (keyPath == null) {
     return [];
   }
@@ -943,9 +944,9 @@ var splitKeyPath = function(keyPath) {
   }
   keyPathArray.push(keyPath.substr(startIndex, keyPath.length));
   return keyPathArray;
-};
+}
 
-var withoutEmptyObjects = function(object) {
+function withoutEmptyObjects(object) {
   let resultObject = undefined;
   if (isPlainObject(object)) {
     for (const key in object) {
@@ -962,4 +963,4 @@ var withoutEmptyObjects = function(object) {
     resultObject = object;
   }
   return resultObject;
-};
+}

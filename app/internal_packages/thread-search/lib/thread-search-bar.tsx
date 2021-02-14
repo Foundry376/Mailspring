@@ -23,26 +23,27 @@ import {
   wrapInQuotes,
 } from './search-bar-util';
 
-class ThreadSearchBar extends Component<
-  {
-    query: string;
-    isSearching: boolean;
-    perspective: MailboxPerspective;
-  },
-  {
-    suggestions: {
-      token: string;
-      term: string;
-      description: string;
-      termSuggestions: string[] | ((term: string, accountIds: string[]) => Promise<any>);
-    }[];
-    focused: boolean;
-    selected?: {
-      description: any;
-    };
-    selectedIdx: number;
-  }
-> {
+interface ThreadSearchBarProps {
+  query: string;
+  isSearching: boolean;
+  perspective: MailboxPerspective;
+}
+
+interface ThreadSearchBarState {
+  suggestions: {
+    token: string;
+    term: string;
+    description: string;
+    termSuggestions: string[] | ((term: string, accountIds: string[]) => Promise<any>);
+  }[];
+  focused: boolean;
+  selected?: {
+    description: any;
+  };
+  selectedIdx: number;
+}
+
+class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarState> {
   static displayName = 'ThreadSearchBar';
 
   static propTypes = {

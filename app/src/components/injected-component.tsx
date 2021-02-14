@@ -10,7 +10,7 @@ type InjectedComponentProps = {
   className?: string;
   exposedProps?: object;
   fallback?: (...args: any[]) => any;
-  style?: object;
+  style?: React.CSSProperties;
   requiredMethods?: string[];
   onComponentDidChange?: (...args: any[]) => any;
 };

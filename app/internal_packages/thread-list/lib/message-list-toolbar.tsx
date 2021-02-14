@@ -9,7 +9,7 @@ function getObservable() {
   return Rx.Observable.combineLatest(
     Rx.Observable.fromStore(FocusedContentStore),
     ThreadListStore.selectionObservable(),
-    (store: FocusedContentStore, items: Thread[]) => ({
+    (store, items) => ({
       focusedThread: store.focused('thread'),
       items,
     })

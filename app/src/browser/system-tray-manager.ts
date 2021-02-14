@@ -41,7 +41,7 @@ function _getIcon(iconPath, isTemplateImg = false) {
   }
   const icon = nativeImage.createFromPath(iconPath);
   if (isTemplateImg) {
-    icon.setTemplateImage(true);
+    icon.isMacTemplateImage = true;
   }
   return icon;
 }

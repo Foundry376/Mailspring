@@ -10,7 +10,7 @@ type RequestIdleCallbackDeadline = {
 export {};
 
 declare global {
-  let AppEnv: import('../app-env').default;
+  const AppEnv: import('../app-env').default;
 
   interface Window {
     $m: any;

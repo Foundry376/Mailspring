@@ -119,8 +119,7 @@ export const WorkspaceStore: WorkspaceStore;
 export type MailRulesStore = typeof import('../flux/stores/mail-rules-store').default;
 export const MailRulesStore: MailRulesStore;
 export * from '../flux/stores/send-actions-store';
-export type FeatureUsageStore = typeof import('../flux/stores/feature-usage-store').default;
-export const FeatureUsageStore: FeatureUsageStore;
+export * from '../flux/stores/feature-usage-store';
 export type ThreadCountsStore = typeof import('../flux/stores/thread-counts-store').default;
 export const ThreadCountsStore: ThreadCountsStore;
 export type AttachmentStore = typeof import('../flux/stores/attachment-store').default;
@@ -200,6 +199,7 @@ export type MessageUtils = typeof import('../flux/models/message-utils').default
 export const MessageUtils: MessageUtils;
 
 // Services
+export * from '../services/autolinker';
 export type KeyManager = typeof import('../key-manager').default;
 export const KeyManager: KeyManager;
 export type SoundRegistry = typeof import('../registries/sound-registry').default;

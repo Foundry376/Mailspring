@@ -57,7 +57,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
         t => sig.body === RenderSignatureData({ ...sig.data, templateName: t.name })
       );
       if (!htmlMatchesATemplate) {
-        const idx = remote.dialog.showMessageBox({
+        const idx = remote.dialog.showMessageBoxSync({
           type: 'warning',
           buttons: [localized('Cancel'), localized('Continue')],
           message: localized('Revert custom HTML?'),

@@ -20,7 +20,6 @@ xdescribe('Open tracking composer extension', function openTrackingComposerExten
     beforeEach(() => {
       this.draftBodyRootNode = nodeForHTML(beforeBody);
       this.draft = new Message({
-        clientId: clientId,
         accountId: accountId,
         body: beforeBody,
       });

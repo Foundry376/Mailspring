@@ -1,4 +1,4 @@
-import Attribute from './attribute';
+import { Attribute } from './attribute';
 import { Matcher } from './matcher';
 
 /*
@@ -6,7 +6,7 @@ Public: The value of this attribute is always a Javascript `Date`, or `null`.
 
 Section: Database
 */
-export default class AttributeDateTime extends Attribute {
+export class AttributeDateTime extends Attribute {
   toJSON(val) {
     if (!val) {
       return null;

@@ -5,6 +5,7 @@ import {
   localized,
   localizedReactFragment,
   IIdentity,
+  EMPTY_IDENTITY,
 } from 'mailspring-exports';
 import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
 import { shell } from 'electron';
@@ -158,7 +159,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
 
   _getStateFromStores() {
     return {
-      identity: IdentityStore.identity() || {},
+      identity: IdentityStore.identity() || { ...EMPTY_IDENTITY },
     };
   }
 

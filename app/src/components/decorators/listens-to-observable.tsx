@@ -1,10 +1,27 @@
 import React from 'react';
 
-function ListensToObservable(ComposedComponent, { getObservable, getStateFromObservable }) {
+function ListensToObservable<T, U, V>(
+  ComposedComponent: typeof React.Component & {
+    displayName?: string;
+    containerRequired?: boolean;
+    containerStyles?: object;
+  },
+  {
+    getObservable,
+    getStateFromObservable,
+  }: {
+    getObservable: (props: T) => Rx.Observable<U>;
+    getStateFromObservable: (data: U, { props: T }) => V;
+  }
+) {
   return class extends ComposedComponent {
     static displayName = ComposedComponent.displayName;
     static containerRequired = ComposedComponent.containerRequired;
     static containerStyles = ComposedComponent.containerStyles;
+
+    disposable: any;
+    unmounted: boolean;
+    observable: Rx.Observable<U>;
 
     constructor(props) {
       super(props);

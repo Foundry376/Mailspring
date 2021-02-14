@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 import _str from 'underscore.string';
 import { Model, AttributeValues } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
 import { AccountStore } from '../stores/account-store';
@@ -391,7 +391,7 @@ export class Contact extends Model {
       modelKey: 'refs',
     }),
 
-    info: Attributes.Object({
+    info: Attributes.Obj({
       modelKey: 'info',
     }),
   };

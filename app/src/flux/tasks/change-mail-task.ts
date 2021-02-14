@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Thread } from '../models/thread';
 import { Message } from '../models/message';
 import { AttributeValues } from '../models/model';
