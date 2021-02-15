@@ -7,7 +7,7 @@ export default function moveToApplications() {
   }
 
   // prompt the user and ask if they'd like to move the application
-  const idx = dialog.showMessageBox({
+  const idx = dialog.showMessageBoxSync({
     type: 'question',
     buttons: [localized('Move to Applications'), localized('Not Now')],
     defaultId: 0,

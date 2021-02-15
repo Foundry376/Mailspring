@@ -1,4 +1,4 @@
-import moment from 'moment-timezone';
+import moment, { Moment } from 'moment-timezone';
 
 // Init locale for moment
 moment.locale(navigator.language);
@@ -268,7 +268,13 @@ const DateUtils = {
 
   getChronoPast,
 
-  parseDateString(dateLikeString) {
+  parseDateString(
+    dateLikeString: string
+  ): {
+    leftoverText: string;
+    start: Moment;
+    end: Moment;
+  } {
     const parsed = getChrono().parse(dateLikeString);
     const gotTime = { start: false, end: false };
     const gotDay = { start: false, end: false };

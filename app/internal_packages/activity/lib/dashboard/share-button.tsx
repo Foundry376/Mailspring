@@ -5,6 +5,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 
 function buildShareHTML(htmlEl, styleEl) {
   return `
+    <!DOCTYPE html>
     <html lang="en">
     <head>
     <meta charset="utf-8"> 

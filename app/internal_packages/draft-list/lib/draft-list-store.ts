@@ -61,11 +61,12 @@ class DraftListStore extends MailspringStore {
 
       const subscription = new MutableQuerySubscription(query, { emitResultSet: true });
       const $resultSet = Rx.Observable.combineLatest(
-        [
-          Rx.Observable.fromNamedQuerySubscription('draft-list', subscription),
-          Rx.Observable.fromStore(OutboxStore) as any,
-        ],
-        (resultSet: QueryResultSet<Message>, outbox) => {
+        Rx.Observable.fromNamedQuerySubscription('draft-list', subscription),
+        Rx.Observable.fromStore(OutboxStore),
+        (resultSet, outboxStore) => {
+          if (!(resultSet instanceof QueryResultSet)) {
+            throw 'Set emitResultSet=true and did not receive a QueryResultSet';
+          }
           // Generate a new result set that includes additional information on
           // the draft objects. This is similar to what we do in the thread-list,
           // where we set thread.__messages to the message array.
@@ -73,7 +74,7 @@ class DraftListStore extends MailspringStore {
 
           // TODO BG modelWithId: task.headerMessageId does not work
           mailboxPerspective.accountIds.forEach(aid => {
-            OutboxStore.itemsForAccount(aid).forEach(task => {
+            outboxStore.itemsForAccount(aid).forEach(task => {
               let draft = resultSet.modelWithId(task.headerMessageId) as any;
               if (draft) {
                 draft = draft.clone();

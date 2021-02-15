@@ -14,7 +14,12 @@ class FoundInMailEnabledBarWithData extends React.Component<FoundInMailEnabledBa
   static displayName = 'FoundInMailEnabledBar';
 
   _onToggle = () => {
-    const accountId = this.props.perspective.accountId;
+    const { perspective } = this.props;
+    if (!perspective || perspective.type !== 'found-in-mail') {
+      return false;
+    }
+
+    const accountId = perspective.accountId;
     let disabled = AppEnv.config.get(CONFIG_KEY);
     if (disabled.includes(accountId)) {
       disabled = disabled.filter(i => i !== accountId);

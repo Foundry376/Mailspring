@@ -2,17 +2,12 @@ import React from 'react';
 import { Utils } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
-export default class HeaderControls extends React.Component<{
+export class HeaderControls extends React.Component<{
   title: string;
-  headerComponents: React.ReactNode;
   nextAction: () => void;
   prevAction: () => void;
 }> {
   static displayName = 'HeaderControls';
-
-  static defaultProps = {
-    headerComonents: false,
-  };
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
@@ -48,7 +43,7 @@ export default class HeaderControls extends React.Component<{
           <span className="title">{this.props.title}</span>
           {this._renderNextAction()}
         </div>
-        {this.props.headerComponents}
+        {this.props.children}
       </div>
     );
   }

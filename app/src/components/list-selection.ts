@@ -2,9 +2,9 @@ import _ from 'underscore';
 
 import { Model } from '../flux/models/model';
 import DatabaseStore from '../flux/stores/database-store';
-import ListDataSource from './list-data-source';
+import { ListDataSource } from './list-data-source';
 
-export default class ListSelection {
+export class ListSelection {
   _caches: {
     ids?: string[];
   } = {};

@@ -31,9 +31,7 @@ export default class PleaseSubscribeNotification extends React.Component<{}, { m
 
     let msg = null;
     if (stripePlan === 'Basic' && accountCount > 4) {
-      msg = localized(
-        `You're syncing more than four accounts — please consider paying for Mailspring Pro!`
-      );
+      msg = localized(`Please consider paying for Mailspring Pro!`);
     }
     if (stripePlan !== stripePlanEffective) {
       msg = localized(`We're having trouble billing your Mailspring subscription.`);

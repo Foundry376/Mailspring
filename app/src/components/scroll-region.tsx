@@ -17,21 +17,32 @@ interface TicksProvider {
   listen: (callback: (Ticks) => void) => () => void;
 }
 
-type ScrollbarProps = {
+interface ScrollbarProps {
   scrollTooltipComponent?: React.ComponentType<ScrollRegionTooltipComponentProps>;
   scrollbarTickProvider?: TicksProvider;
-  getScrollRegion?: (...args: any[]) => any;
-};
+  getScrollRegion?: () => ScrollRegion;
+}
 
-type ScrollbarState = {
+interface ScrollSharedState {
   totalHeight: number;
-  trackHeight: number;
   viewportHeight: number;
   viewportScrollTop: number;
   dragging: boolean;
   scrolling: boolean;
-  scrollbarTicks?: Ticks;
+}
+
+const InitialSharedState: ScrollSharedState = {
+  totalHeight: 0,
+  viewportHeight: 0,
+  viewportScrollTop: 0,
+  dragging: false,
+  scrolling: false,
 };
+
+interface ScrollbarState extends ScrollSharedState {
+  trackHeight: number;
+  scrollbarTicks?: Ticks;
+}
 
 class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   static displayName = 'Scrollbar';
@@ -49,24 +60,16 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     getScrollRegion: PropTypes.func,
   };
 
-  _heightObserver: ResizeObserver;
+  _heightObserver: ResizeObserver = null;
   _tickUnsub?: () => void;
   _trackOffset: number;
   _mouseOffsetWithinHandle: number;
 
-  constructor(props) {
-    super(props);
-    this._heightObserver = null;
-    this.state = {
-      totalHeight: 0,
-      trackHeight: 0,
-      viewportHeight: 0,
-      viewportScrollTop: 0,
-      dragging: false,
-      scrolling: false,
-      scrollbarTicks: [],
-    };
-  }
+  state = {
+    ...InitialSharedState,
+    trackHeight: 0,
+    scrollbarTicks: [],
+  };
 
   componentDidMount() {
     const trackEl = ReactDOM.findDOMNode(this.refs.track) as HTMLElement;
@@ -220,21 +223,18 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
 }
 
 export interface ScrollRegionProps {
+  ref?: React.Ref<ScrollRegion> | string;
   onScroll?: (...args: any[]) => any;
   onScrollEnd?: (...args: any[]) => any;
+  onViewportResize?: (size: { width: number; height: number }) => void;
+  onContentResize?: (size: { width: number; height: number }) => void;
   className?: string;
   scrollTooltipComponent?: React.ComponentType<ScrollRegionTooltipComponentProps>;
   scrollbarTickProvider?: TicksProvider;
-  getScrollbar?: (...args: any[]) => any;
+  scrollbarRef?: React.RefObject<Scrollbar>;
 }
 
-type ScrollRegionState = {
-  totalHeight: number;
-  viewportHeight: number;
-  viewportScrollTop: number;
-  scrolling: boolean;
-  dragging: boolean;
-};
+interface ScrollRegionState extends ScrollSharedState {}
 
 interface ScrollToOptions {
   position?: string;
@@ -261,7 +261,7 @@ export enum ScrollPosition {
 The ScrollRegion component attaches a custom scrollbar.
 */
 export class ScrollRegion extends React.Component<
-  ScrollRegionProps & React.HTMLProps<HTMLDivElement>,
+  ScrollRegionProps & React.HTMLProps<any>,
   ScrollRegionState
 > {
   static displayName = 'ScrollRegion';
@@ -269,16 +269,22 @@ export class ScrollRegion extends React.Component<
   static propTypes = {
     onScroll: PropTypes.func,
     onScrollEnd: PropTypes.func,
+    onContentResize: PropTypes.func,
+    onViewportResize: PropTypes.func,
     className: PropTypes.string,
     scrollTooltipComponent: PropTypes.func,
     scrollbarTickProvider: PropTypes.object,
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
-    getScrollbar: PropTypes.func,
+    scrollbarRef: PropTypes.object,
   };
 
   static ScrollPosition = ScrollPosition;
   // Concept from https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UITableView_Class/#//apple_ref/c/tdef/UITableViewScrollPosition
   static Scrollbar = Scrollbar;
+
+  _viewportRef = React.createRef<HTMLDivElement>();
+  _innerRef = React.createRef<HTMLDivElement>();
+  _ownScrollbarRef = React.createRef<Scrollbar>();
 
   _mounted = false;
   _scrollToTaskId = 0;
@@ -288,30 +294,35 @@ export class ScrollRegion extends React.Component<
   _onScrollEnd: () => void;
 
   state = {
-    totalHeight: 0,
-    viewportHeight: 0,
-    viewportScrollTop: 0,
-    dragging: false,
-    scrolling: false,
+    ...InitialSharedState,
   };
 
-  get scrollTop() {
-    return (ReactDOM.findDOMNode(this.refs.content) as HTMLElement).scrollTop;
+  public get viewportEl() {
+    return this._viewportRef.current;
   }
 
-  set scrollTop(val) {
-    (ReactDOM.findDOMNode(this.refs.content) as HTMLElement).scrollTop = val;
+  public get contentEl() {
+    return this._innerRef.current;
+  }
+
+  public get scrollTop() {
+    return this._viewportRef.current ? this._viewportRef.current.scrollTop : 0;
+  }
+
+  public set scrollTop(val) {
+    this._viewportRef.current.scrollTop = val;
   }
 
   componentDidMount() {
     this._mounted = true;
 
-    const viewportEl = ReactDOM.findDOMNode(this.refs.content) as HTMLElement;
-    const innerWrapperEl = ReactDOM.findDOMNode(this.refs.inner) as HTMLElement;
+    const viewportEl = this._viewportRef.current;
+    const innerWrapperEl = this._innerRef.current;
 
     this._viewportHeightObserver = new window.ResizeObserver(entries => {
       if (entries[0] && entries[0].contentRect.height !== this.state.viewportHeight) {
         this._setSharedState({ viewportHeight: entries[0].contentRect.height });
+        this.props.onViewportResize && this.props.onViewportResize(entries[0].contentRect);
       }
     });
     this._totalHeightObserver = new window.ResizeObserver(entries => {
@@ -319,22 +330,27 @@ export class ScrollRegion extends React.Component<
       // and the contentRect.height is the inner padded size, not the bounding box size.
       if (entries[0] && entries[0].contentRect.height !== this.state.totalHeight) {
         this._setSharedState({ totalHeight: entries[0].target.clientHeight });
+        this.props.onContentResize && this.props.onContentResize(entries[0].contentRect);
       }
     });
 
     this._totalHeightObserver.observe(innerWrapperEl);
     this._viewportHeightObserver.observe(viewportEl);
 
-    this._setSharedState({
+    const dims = {
       viewportScrollTop: 0,
       viewportHeight: viewportEl.clientHeight,
       totalHeight: innerWrapperEl.clientHeight,
-    });
-  }
+    };
+    this._setSharedState(dims);
 
-  componentWillReceiveProps(props) {
-    if (this.shouldInvalidateScrollbarComponent(props)) {
-      this._scrollbarComponent = null;
+    // If we are using a scrollbar attached elsewhere and handed to us through the ref, there's
+    // a good chance it was mounted at the same time we were and the `ref` is not valid yet.
+    // Wait a tick and send it the sizing so it sizes the handle correctly.
+    if (this.props.scrollbarRef && !this.props.scrollbarRef.current) {
+      window.requestAnimationFrame(() => {
+        this._mounted && this._setSharedState(dims);
+      });
     }
   }
 
@@ -348,7 +364,7 @@ export class ScrollRegion extends React.Component<
     if (newProps.scrollTooltipComponent !== this.props.scrollTooltipComponent) {
       return true;
     }
-    if (newProps.getScrollbar !== this.props.getScrollbar) {
+    if (newProps.scrollbarRef !== this.props.scrollbarRef) {
       return true;
     }
     return false;
@@ -363,11 +379,11 @@ export class ScrollRegion extends React.Component<
         scrolling: this.state.scrolling,
       });
 
-    if (!this.props.getScrollbar) {
+    if (!this.props.scrollbarRef) {
       if (this._scrollbarComponent == null) {
         this._scrollbarComponent = (
           <Scrollbar
-            ref="scrollbar"
+            ref={this._ownScrollbarRef}
             scrollbarTickProvider={this.props.scrollbarTickProvider}
             scrollTooltipComponent={this.props.scrollTooltipComponent}
             getScrollRegion={this._getSelf}
@@ -381,8 +397,8 @@ export class ScrollRegion extends React.Component<
     return (
       <div className={containerClasses} {...otherProps}>
         {this._scrollbarComponent}
-        <div className="scroll-region-content" onScroll={this._onScroll} ref="content">
-          <div className="scroll-region-content-inner" ref="inner">
+        <div className="scroll-region-content" onScroll={this._onScroll} ref={this._viewportRef}>
+          <div className="scroll-region-content-inner" ref={this._innerRef}>
             {this.props.children}
           </div>
         </div>
@@ -428,7 +444,7 @@ export class ScrollRegion extends React.Component<
 
   _scroll({ position, settle, done }, clientRectProviderCallback) {
     let settleFn;
-    const contentNode = ReactDOM.findDOMNode(this.refs.content) as HTMLElement;
+    const viewportNode = this._viewportRef.current;
     if (position == null) {
       position = ScrollRegion.ScrollPosition.Visible;
     }
@@ -444,24 +460,24 @@ export class ScrollRegion extends React.Component<
 
     settleFn(() => {
       // If another scroll call has been made since ours, don't do anything.
-      if (this._scrollToTaskId !== taskId || !contentNode) {
+      if (this._scrollToTaskId !== taskId || !viewportNode) {
         return typeof done === 'function' ? done(false) : undefined;
       }
 
-      const contentClientRect = contentNode.getBoundingClientRect();
+      const contentClientRect = viewportNode.getBoundingClientRect();
       const rect = _.clone(clientRectProviderCallback());
       if (!rect || !contentClientRect) return;
 
       // For sanity's sake, convert the client rectangle we get into a rect
       // relative to the contentRect of our scroll region.
-      rect.top = rect.top - contentClientRect.top + contentNode.scrollTop;
-      rect.bottom = rect.bottom - contentClientRect.top + contentNode.scrollTop;
+      rect.top = rect.top - contentClientRect.top + viewportNode.scrollTop;
+      rect.bottom = rect.bottom - contentClientRect.top + viewportNode.scrollTop;
 
       // Also give ourselves a representation of the visible region, in the same
       // coordinate space as `rect`
       const contentVisibleRect = _.clone(contentClientRect) as any;
-      contentVisibleRect.top += contentNode.scrollTop;
-      contentVisibleRect.bottom += contentNode.scrollTop;
+      contentVisibleRect.top += viewportNode.scrollTop;
+      contentVisibleRect.bottom += viewportNode.scrollTop;
 
       if (position === ScrollRegion.ScrollPosition.Top) {
         this.scrollTop = rect.top;
@@ -475,7 +491,7 @@ export class ScrollRegion extends React.Component<
         }
       } else if (position === ScrollRegion.ScrollPosition.Visible) {
         const distanceBelowBottom =
-          rect.top + rect.height - (contentClientRect.height + contentNode.scrollTop);
+          rect.top + rect.height - (contentClientRect.height + viewportNode.scrollTop);
         const distanceAboveTop = this.scrollTop - rect.top;
         if (distanceBelowBottom >= 0) {
           this.scrollTop += distanceBelowBottom;
@@ -491,14 +507,13 @@ export class ScrollRegion extends React.Component<
   }
 
   _settleHeight = callback => {
-    const contentNode = ReactDOM.findDOMNode(this.refs.content) as HTMLElement;
+    const viewportNode = this._viewportRef.current;
     let lastContentHeight = -1;
-    // eslint-disable-next-line no-var
-    var scrollIfSettled = () => {
+    const scrollIfSettled = () => {
       if (!this._mounted) {
         return;
       }
-      const contentRect = contentNode.getBoundingClientRect();
+      const contentRect = viewportNode.getBoundingClientRect();
       if (contentRect.height !== lastContentHeight) {
         lastContentHeight = contentRect.height;
       } else {
@@ -509,17 +524,17 @@ export class ScrollRegion extends React.Component<
     scrollIfSettled();
   };
 
-  _setSharedState(state) {
-    const scrollbar = this.props.getScrollbar ? this.props.getScrollbar() : this.refs.scrollbar;
-    if (scrollbar) scrollbar.setState(state);
-    this.setState(state);
+  _setSharedState(state: Partial<ScrollSharedState>) {
+    const scrollbar = (this.props.scrollbarRef || this._ownScrollbarRef).current;
+    if (scrollbar) scrollbar.setState(state as any);
+    this.setState(state as any);
   }
 
   _onScroll = event => {
     // onScroll events propogate, which is a bit strange. We could actually be
     // receiving a scroll event for a textarea inside the scroll region.
     // See Preferences > Signatures > textarea
-    if (event.target !== ReactDOM.findDOMNode(this.refs.content)) {
+    if (event.target !== this._viewportRef.current) {
       return;
     }
 

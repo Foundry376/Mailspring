@@ -1,12 +1,12 @@
 import { Model, AttributeValues } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 
 /**
  Cloud-persisted data that is associated with a single Mailspring API object
  (like a `Thread`, `Message`, or `Account`).
  */
 export class PluginMetadata extends Model {
-  static attributes = {
+  static attributes = ({
     pluginId: Attributes.String({
       modelKey: 'pluginId',
     }),
@@ -14,10 +14,10 @@ export class PluginMetadata extends Model {
       jsonKey: 'v',
       modelKey: 'version',
     }),
-    value: Attributes.Object({
+    value: Attributes.Obj({
       modelKey: 'value',
     }),
-  };
+  } as unknown) as typeof Model['attributes'];
 
   public pluginId: string;
   public version: number;

@@ -1,5 +1,5 @@
 import { Model, AttributeValues } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Contact } from './contact';
 
 // the Chrono node module is huge

@@ -22,7 +22,7 @@ mkdir -p $RPM_BUILD_ROOT/RPMS
 cp -r "$APP_CONTENTS_DIRECTORY/"* "$RPM_BUILD_ROOT/BUILD"
 cp -r "$LINUX_ASSETS_DIRECTORY/icons" "$RPM_BUILD_ROOT/BUILD"
 cp "$BUILD_DIRECTORY/mailspring.spec" "$RPM_BUILD_ROOT/SPECS"
-cp "$BUILD_DIRECTORY/mailspring.desktop" "$RPM_BUILD_ROOT/BUILD"
+cp "$BUILD_DIRECTORY/Mailspring.desktop" "$RPM_BUILD_ROOT/BUILD"
 cp "$BUILD_DIRECTORY/mailspring.appdata.xml" "$RPM_BUILD_ROOT/BUILD"
 
 rpmbuild -ba "$BUILD_DIRECTORY/mailspring.spec"

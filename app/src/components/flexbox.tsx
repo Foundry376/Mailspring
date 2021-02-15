@@ -4,7 +4,7 @@ import React from 'react';
 type FlexboxProps = {
   direction?: string;
   inline?: boolean;
-  style?: object;
+  style?: React.CSSProperties;
   height?: string;
 };
 /*

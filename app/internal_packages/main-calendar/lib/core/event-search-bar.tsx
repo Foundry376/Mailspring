@@ -1,21 +1,18 @@
 import React, { Component } from 'react';
-import { Event, DatabaseStore } from 'mailspring-exports';
-import { SearchBar } from 'mailspring-component-kit';
-import PropTypes from 'prop-types';
+import { Event, DatabaseStore, localized } from 'mailspring-exports';
+import { EventOccurrence, occurrencesForEvents } from './calendar-data-source';
+import moment from 'moment';
 
-class EventSearchBar extends Component<
-  {
-    disabledCalendars: string[];
-    onSelectEvent: (event: Event) => void;
-  },
-  { query: string; suggestions: Event[] }
+interface EventSearchBarProps {
+  disabledCalendars: string[];
+  onSelectEvent: (event: EventOccurrence) => void;
+}
+
+export class EventSearchBar extends Component<
+  EventSearchBarProps,
+  { query: string; suggestions: EventOccurrence[] }
 > {
   static displayName = 'EventSearchBar';
-
-  static defaultProps = {
-    disabledCalendars: [],
-    onSelectEvent: (event: Event) => {},
-  };
 
   constructor(props) {
     super(props);
@@ -40,7 +37,16 @@ class EventSearchBar extends Component<
       .search(query)
       .limit(10)
       .then(events => {
-        this.setState({ suggestions: events });
+        this.setState({
+          suggestions: occurrencesForEvents(events, {
+            startUnix: moment()
+              .add(-2, 'years')
+              .unix(),
+            endUnix: moment()
+              .add(2, 'years')
+              .unix(),
+          }),
+        });
       });
   };
 
@@ -69,20 +75,18 @@ class EventSearchBar extends Component<
     // TODO BG
     return <span />;
 
-    return (
-      <SearchBar
-        query={query}
-        suggestions={suggestions}
-        placeholder="Search all events"
-        suggestionKey={event => event.id}
-        suggestionRenderer={this.renderEvent}
-        onSearchQueryChanged={this.onSearchQueryChanged}
-        onSelectSuggestion={this.onSelectEvent}
-        onClearSearchQuery={this.onClearSearchQuery}
-        onClearSearchSuggestions={this.onClearSearchSuggestions}
-      />
-    );
+    // return (
+    //   <SearchBar
+    //     query={query}
+    //     suggestions={suggestions}
+    //     placeholder={localized('Search all events')}
+    //     suggestionKey={event => event.id}
+    //     suggestionRenderer={this.renderEvent}
+    //     onSearchQueryChanged={this.onSearchQueryChanged}
+    //     onSelectSuggestion={this.onSelectEvent}
+    //     onClearSearchQuery={this.onClearSearchQuery}
+    //     onClearSearchSuggestions={this.onClearSearchSuggestions}
+    //   />
+    // );
   }
 }
-
-export default EventSearchBar;

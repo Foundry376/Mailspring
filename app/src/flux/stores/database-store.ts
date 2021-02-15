@@ -4,7 +4,7 @@ import createDebug from 'debug';
 import childProcess, { ChildProcess } from 'child_process';
 import LRU from 'lru-cache';
 import Sqlite3 from 'better-sqlite3';
-import { remote, EventEmitter } from 'electron';
+import { remote } from 'electron';
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
 import { Model } from '../models/model';
 import MailspringStore from '../../global/mailspring-store';
@@ -51,28 +51,22 @@ function handleUnrecoverableDatabaseError(
 
 async function openDatabase(dbPath) {
   try {
-    const database = await new Promise<Sqlite3.Database>((resolve, reject) => {
-      const db = new Sqlite3(dbPath, { readonly: true }) as Sqlite3.Database & EventEmitter;
-      db.on('close', reject);
-      db.on('open', () => {
-        // https://www.sqlite.org/wal.html
-        // WAL provides more concurrency as readers do not block writers and a writer
-        // does not block readers. Reading and writing can proceed concurrently.
-        db.pragma(`journal_mode = WAL`);
+    const db = new Sqlite3(dbPath, { readonly: true, timeout: 10000 }) as Sqlite3.Database;
 
-        // Note: These are properties of the connection, so they must be set regardless
-        // of whether the database setup queries are run.
+    // https://www.sqlite.org/wal.html
+    // WAL provides more concurrency as readers do not block writers and a writer
+    // does not block readers. Reading and writing can proceed concurrently.
+    db.pragma(`journal_mode = WAL`);
 
-        // https://www.sqlite.org/intern-v-extern-blob.html
-        // A database page size of 8192 or 16384 gives the best performance for large BLOB I/O.
-        db.pragma(`main.page_size = 8192`);
-        db.pragma(`main.cache_size = 20000`);
-        db.pragma(`main.synchronous = NORMAL`);
+    // Note: These are properties of the connection, so they must be set regardless
+    // of whether the database setup queries are run.
 
-        resolve(db);
-      });
-    });
-    return database;
+    // https://www.sqlite.org/intern-v-extern-blob.html
+    // A database page size of 8192 or 16384 gives the best performance for large BLOB I/O.
+    db.pragma(`main.page_size = 8192`);
+    db.pragma(`main.cache_size = 20000`);
+    db.pragma(`main.synchronous = NORMAL`);
+    return db;
   } catch (err) {
     handleUnrecoverableDatabaseError(err);
     return null;
@@ -218,7 +212,7 @@ class DatabaseStore extends MailspringStore {
   // If a query is made before the database has been opened, the query will be
   // held in a queue and run / resolved when the database is ready.
   _query(query: SQLString, values: SQLValue[] = [], background = false) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<{ [key: string]: any }[]>(async (resolve, reject) => {
       if (!this._open) {
         this._waiting.push(() => this._query(query, values).then(resolve, reject));
         return;
@@ -403,7 +397,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  find<T extends Model>(klass, id) {
+  find<T extends Model>(klass: typeof Model, id) {
     if (!klass) {
       throw new Error(`DatabaseStore::find - You must provide a class`);
     }
@@ -512,9 +506,12 @@ class DatabaseStore extends MailspringStore {
   // Returns a {Promise} that
   //   - resolves with the result of the database query.
   //
-  run<T>(modelQuery: Query<T>, options = { format: true }): Promise<T> {
+  run<T extends Model | Model[]>(modelQuery: Query<T>, options?: { format: boolean }): Promise<T>;
+  run<U>(modelQuery: Query<any>, options: { format: false }): Promise<U>;
+
+  run(modelQuery: Query<any>, options = { format: true }): Promise<any> {
     return this._query(modelQuery.sql(), [], modelQuery._background).then(result => {
-      let transformed = modelQuery.inflateResult(result);
+      let transformed: any = modelQuery.inflateResult(result);
       if (options.format !== false) {
         transformed = modelQuery.formatResult(transformed);
       }

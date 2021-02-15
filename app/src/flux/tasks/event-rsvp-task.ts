@@ -1,6 +1,6 @@
 import { Task } from './task';
 import { AttributeValues } from '../models/model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import {
   localized,
   ICSParticipantStatus,

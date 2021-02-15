@@ -191,7 +191,7 @@ describe('ThreadListParticipants', function() {
           },
         ];
 
-        for (let scenario of scenarios) {
+        for (const scenario of scenarios) {
           const thread = new Thread();
           thread.__messages = scenario.in;
           const participants = ReactTestUtils.renderIntoDocument(

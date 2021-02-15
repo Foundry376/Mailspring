@@ -27,7 +27,7 @@ parts:
     source-type: deb
     # Correct path to icon.
     prepare: |
-      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' usr/share/applications/mailspring.desktop
+      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' usr/share/applications/Mailspring.desktop
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/themes
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/icons
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds
@@ -54,7 +54,7 @@ parts:
 apps:
   mailspring:
     command: desktop-launch $SNAP/usr/share/mailspring/mailspring
-    desktop: usr/share/applications/mailspring.desktop
+    desktop: usr/share/applications/Mailspring.desktop
     environment:
       # Correct the TMPDIR path for Chromium Framework/Electron to
       # ensure libappindicator has readable resources.

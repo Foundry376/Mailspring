@@ -50,7 +50,7 @@ export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivEleme
 
       const node = nodes[idx] as HTMLInputElement;
 
-      if (node.tabIndex === -1) {
+      if (node.tabIndex === -1 && !node.isContentEditable) {
         continue;
       }
       node.focus();

@@ -8,5 +8,7 @@
   "window:reload": "mod+alt+l",
   "window:toggle-dev-tools": "meta+alt+i",
   "window:attach-to-xcode": "meta+alt+k",
-  "window:open-mailsync-logs": "meta+shift+k"
+  "window:open-mailsync-logs": "meta+shift+k",
+
+  "multiselect-list:select-all": "command+a"
 }

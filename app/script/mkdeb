@@ -35,7 +35,7 @@ ln -s "../share/mailspring/mailspring" "$TARGET/usr/bin/mailspring"
 chmod +x "$TARGET/usr/bin/mailspring"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/applications"
-cp "$OUTPUT_PATH/mailspring.desktop" "$TARGET/usr/share/applications"
+cp "$OUTPUT_PATH/Mailspring.desktop" "$TARGET/usr/share/applications"
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/appdata"
 cp "$OUTPUT_PATH/mailspring.appdata.xml" "$TARGET/usr/share/appdata"
 

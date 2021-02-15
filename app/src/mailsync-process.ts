@@ -14,6 +14,12 @@ import { IIdentity, Account } from 'mailspring-exports';
 
 let Utils = null;
 
+export interface MailsyncProcessExit {
+  code: number;
+  error?: Error;
+  signal: string;
+}
+
 export const LocalizedErrorStrings = {
   ErrorConnection: localized(
     'Connection Error - Unable to connect to the server / port you provided.'
@@ -163,7 +169,10 @@ export class MailsyncProcess extends EventEmitter {
         const rs = new Readable();
         rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
         rs.push(null);
-        rs.pipe(this._proc.stdin, { end: false });
+        rs.pipe(
+          this._proc.stdin,
+          { end: false }
+        );
       });
     }
   }
@@ -267,7 +276,7 @@ export class MailsyncProcess extends EventEmitter {
     });
 
     let cleanedUp = false;
-    const onStreamCloseOrExit = (code, signal) => {
+    const onStreamCloseOrExit = (code: number, signal: string) => {
       if (cleanedUp) {
         return;
       }
@@ -291,7 +300,7 @@ export class MailsyncProcess extends EventEmitter {
       }
 
       cleanedUp = true;
-      this.emit('close', { code, error, signal });
+      this.emit('close', { code, error, signal } as MailsyncProcessExit);
     };
 
     this._proc.on('error', error => {

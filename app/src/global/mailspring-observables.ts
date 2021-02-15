@@ -8,6 +8,7 @@ import { Model } from '../flux/models/model';
 import ModelQuery from '../flux/models/query';
 import MailspringStore from 'mailspring-store';
 import { Category } from '../flux/models/category';
+import { QueryResultSet } from '../flux/models/query-result-set';
 
 interface ICategoryOperators {
   sort(): Observable<Category[]> & ICategoryOperators;
@@ -44,7 +45,7 @@ const CategoryOperators = {
 const CategoryObservables = {
   forAllAccounts() {
     const folders = Rx.Observable.fromQuery<Folder[]>(DatabaseStore.findAll<Folder>(Folder));
-    const labels = Rx.Observable.fromQuery(DatabaseStore.findAll<Label>(Label));
+    const labels = Rx.Observable.fromQuery<Label[]>(DatabaseStore.findAll<Label>(Label));
     const joined = Rx.Observable.combineLatest<Category[], Category[], Category[]>(
       folders,
       labels,
@@ -150,7 +151,7 @@ Rx.Observable.fromAction = (action: any) => {
   });
 };
 
-Rx.Observable.fromQuery = <T>(query: ModelQuery<T>) => {
+Rx.Observable.fromQuery = <T extends Model | Model[]>(query: ModelQuery<T>) => {
   return Rx.Observable.create(observer => {
     const unsubscribe = QuerySubscriptionPool.add(query, result => observer.onNext(result));
     return Rx.Disposable.create(unsubscribe);
@@ -172,15 +173,15 @@ Rx.Observable.fromNamedQuerySubscription = <T extends Model>(
 declare global {
   namespace Rx {
     export interface ObservableStatic {
-      fromStore(store: MailspringStore): Observable<MailspringStore>;
+      fromStore<T extends MailspringStore>(store: T): Observable<T>;
       fromListSelection<T>(store: MailspringStore & { dataSource(): any }): Observable<T[]>;
       fromConfig<T>(configKey: string): Observable<T>;
       fromAction<T>(action: any): Observable<T>;
-      fromQuery<T>(query: ModelQuery<T>): Observable<T>;
+      fromQuery<T extends Model | Model[]>(query: ModelQuery<T>): Observable<T>;
       fromNamedQuerySubscription<T extends Model>(
         name: string,
         sub: QuerySubscription<T>
-      ): Observable<Model[]>;
+      ): Observable<T[] | QueryResultSet<T>>;
     }
   }
 }

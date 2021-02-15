@@ -73,7 +73,7 @@ type ResizableRegionProps = {
   initialHeight?: number;
   minHeight?: number;
   maxHeight?: number;
-  style?: object;
+  style?: React.CSSProperties;
 };
 
 type ResizableRegionState = {

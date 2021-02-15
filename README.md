@@ -7,17 +7,25 @@
 
 Mailspring's UI is open source (GPLv3) and written in TypeScript with [Electron](https://github.com/atom/electron) and [React](https://facebook.github.io/react/) - it's built on a plugin architecture and was designed to be easy to extend. Check out [CONTRIBUTING.md](https://github.com/Foundry376/Mailspring/blob/master/CONTRIBUTING.md) to get started!
 
-Mailspring's sync engine is spawned by the Electron application and runs locally on your computer. It will be open-sourced in the future but is [currently closed source.](https://github.com/Foundry376/Mailspring/blob/master/ROADMAP.md#why-is-mailsync-closed-source) When you set up your development environment, Mailspring uses the latest version of the sync process we've shipped for your platform so you don't need to pull sources or install its compile-time dependencies.
+Mailspring's sync engine is spawned by the Electron application and runs locally on your computer. [It is open source (GPLv3) and written in C++ and C.](https://github.com/Foundry376/Mailspring-Sync) For convenience, however, when you set up your development environment, Mailspring uses the latest version of the sync engine we've shipped for your platform so you don't need to pull sources or install its compile-time dependencies.
 
 ![Mailspring Screenshot](https://github.com/Foundry376/Mailspring/raw/master/screenshots/hero_graphic_mac%402x.png)
 
 ## Features
 
-Mailspring comes packed with powerful features like Unified Inbox, Snooze, Send Later, Mail Rules, Templates and more. Mailspring Pro, which you can unlock with a monthly subscription, adds even more features for people who send a ton of email: link tracking, read receipts, mailbox analytics, contact and company profiles. **All of these features run in the client - Mailspring does not send your email credentials to the cloud.** For a full list of features, check out [getmailspring.com](https://getmailspring.com/).
+Mailspring comes packed with powerful features like Unified Inbox, Snooze, Send
+Later, Mail Rules, Templates and more. Mailspring Pro, which you can unlock
+with a monthly subscription, adds even more features for people who send a ton
+of email: link tracking, read receipts, mailbox analytics, contact and company
+profiles. **All of these features run in the client - Mailspring does not send
+your email credentials to the cloud.** For a full list of features, check out
+[getmailspring.com](https://getmailspring.com/).
 
 ## Download Mailspring
 
-You can download compiled versions of Mailspring for Windows, Mac OS X, and Linux (deb, rpm and snap) from [https://getmailspring.com/download](https://getmailspring.com/download).
+You can download compiled versions of Mailspring for Windows, Mac OS X, and
+Linux (deb, rpm and snap) from
+[https://getmailspring.com/download](https://getmailspring.com/download).
 
 ## Getting Help
 
@@ -26,38 +34,63 @@ You can find community-based help and discussion with other Mailspring users on 
 
 ## Contributing
 
-Mailspring's UI is entirely open-source and pull requests and contributions are welcome! There are three ways to contribute: building a plugin, building a theme, and submitting pull requests to the project itself. When you're getting started, you may want to join our [Discourse](https://community.getmailspring.com/) so you can ask questions and learn from other people doing development.
+Mailspring is entirely open-source. Pull requests and contributions are
+welcome! There are three ways to contribute: building a plugin, building a
+theme, and submitting pull requests to the project itself. When you're getting
+started, you may want to join our
+[Discourse](https://community.getmailspring.com/) so you can ask questions and
+learn from other people doing development.
 
-Mailspring's MailSync, however, is closed source. You can read more about the reasons why this is in the [roadmap](https://github.com/Foundry376/Mailspring/blob/master/ROADMAP.md#why-is-mailsync-closed-source).
-
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
 ### Building A Plugin
 
-Plugins lie at the heart of Mailspring and give it its powerful features. Building your own plugins allows you to integrate the app with other tools, experiment with new workflows, and more. Follow the [Getting Started guide](https://Foundry376.github.io/Mailspring/) to write your first plugin in five minutes.
+Plugins lie at the heart of Mailspring and give it its powerful features.
+Building your own plugins allows you to integrate the app with other tools,
+experiment with new workflows, and more. Follow the [Getting Started
+guide](https://Foundry376.github.io/Mailspring/) to write your first plugin in
+five minutes.
 
-- To create your own theme, check out the [Mailspring-Theme-Starter](https://github.com/Foundry376/Mailspring-Theme-Starter).
+- To create your own theme, check out the
+  [Mailspring-Theme-Starter](https://github.com/Foundry376/Mailspring-Theme-Starter).
 
-- To create your own plugin, check out the [Mailspring-Plugin-Starter](https://github.com/Foundry376/Mailspring-Plugin-Starter).
+- To create your own plugin, check out the
+  [Mailspring-Plugin-Starter](https://github.com/Foundry376/Mailspring-Plugin-Starter).
 
-A plugin "store" like the Chrome Web Store is coming soon, and will make it easy for other users to discover plugins you create. (Right now, users need to "sideload" the plugins into the app by downloading them and copying them into place.)
+A plugin "store" like the Chrome Web Store is coming soon, and will make it
+easy for other users to discover plugins you create. (Right now, users need to
+"sideload" the plugins into the app by downloading them and copying them into
+place.)
 
-You can share and browse Mailspring Plugins, and discuss plugin development with other developers, on our
+You can share and browse Mailspring Plugins, and discuss plugin development
+with other developers, on our
 [Discourse](https://community.getmailspring.com/).
 
 ### Building a Theme
 
-The Mailspring user interface is styled using CSS, which means it's easy to modify and extend. Mailspring comes stock with a few beautiful themes, and there are many more which have been built by community developers. To start creating a theme, [clone the theme starter](https://github.com/Foundry376/Mailspring-Theme-Starter)!
+The Mailspring user interface is styled using CSS, which means it's easy to
+modify and extend. Mailspring comes stock with a few beautiful themes, and
+there are many more which have been built by community developers. To start
+creating a theme, [clone the theme starter](https://github.com/Foundry376/Mailspring-Theme-Starter)!
 
-If you are updating an existing Nylas theme for Mailspring here is a [step by step tutorial](https://foundry376.zendesk.com/hc/en-us/articles/115001918391-How-do-I-update-an-N1-Nylas-Mail-theme-for-Mailspring-). Notice: as part of the update process you will probably need to [import mailspring base variables](https://github.com/Foundry376/Mailspring/issues/326#issuecomment-343757775).
+If you are updating an existing Nylas theme for Mailspring here is a [step by
+step tutorial](https://foundry376.zendesk.com/hc/en-us/articles/115001918391-How-do-I-update-an-N1-Nylas-Mail-theme-for-Mailspring-).
+Notice: as part of the update process you will probably need to [import
+mailspring base variables](https://github.com/Foundry376/Mailspring/issues/326#issuecomment-343757775).
 
-You can share and browse Mailspring Themes, and discuss theme development with other developers, on our
-[Discourse](https://community.getmailspring.com/).
+You can share and browse Mailspring Themes, and discuss theme development with other developers, on our [Discourse](https://community.getmailspring.com/).
 
 ### Localizing / Translating
 
-Mailspring 1.5.0 and above support localization. If you're a fluent speaker of another language, we'd love your help improving translations. Check out the [LOCALIZATION](https://github.com/Foundry376/Mailspring/blob/master/LOCALIZATION.md) guide for more information. You can discuss localization and translation with other developers on our [Discourse](https://community.getmailspring.com/).
+Mailspring (1.5.0 and above) supports localization. If you're a fluent speaker of
+another language, we'd love your help improving translations. Check out the
+[LOCALIZATION](https://github.com/Foundry376/Mailspring/blob/master/LOCALIZATION.md)
+guide for more information. You can discuss localization and translation with
+other developers on our [Discourse](https://community.getmailspring.com/).
 
 ### Contributing to Mailspring Core
 
-Pull requests are always welcome - check out [CONTRIBUTING](https://github.com/Foundry376/Mailspring/blob/master/CONTRIBUTING.md) for more information about setting up the development environment, running tests locally, and submitting pull requests.
+Pull requests are always welcome - check out
+[CONTRIBUTING](https://github.com/Foundry376/Mailspring/blob/master/CONTRIBUTING.md)
+for more information about setting up the development environment, running
+tests locally, and submitting pull requests.

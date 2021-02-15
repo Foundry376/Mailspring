@@ -84,7 +84,7 @@ type RetinaImgProps = {
   name?: string;
   url?: string;
   className?: string;
-  style?: object;
+  style?: React.CSSProperties;
   fallback?: string;
   selected?: boolean;
   active?: boolean;

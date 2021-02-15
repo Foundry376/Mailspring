@@ -7,7 +7,7 @@ function isUndoSend(block) {
   return (
     block.tasks.length === 1 &&
     block.tasks[0] instanceof SyncbackMetadataTask &&
-    block.tasks[0].value.isUndoSend
+    (block.tasks[0].value as any).isUndoSend
   );
 }
 

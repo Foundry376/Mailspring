@@ -69,7 +69,7 @@ export class SidebarPluginContainer extends React.Component {
   static containerStyles = {
     order: 1,
     flexShrink: 0,
-    minWidth: 200,
+    minWidth: 150,
     maxWidth: 300,
   };
 

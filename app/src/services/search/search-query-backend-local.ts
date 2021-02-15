@@ -8,6 +8,7 @@ import {
   StarredStatusQueryExpression,
   HasAttachmentQueryExpression,
   MatchQueryExpression,
+  QueryExpression,
 } from './search-query-ast';
 import { DateUtils } from 'mailspring-exports';
 
@@ -99,7 +100,7 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
 class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
   private _matchVisitor = new MatchQueryExpressionVisitor();
 
-  visit(root) {
+  visit(root: QueryExpression) {
     return this.visitAndGetResult(root);
   }
 
@@ -280,7 +281,7 @@ export default class LocalSearchQueryBackend {
     this._modelClassName = modelClassName;
   }
 
-  compile(ast) {
+  compile(ast: QueryExpression) {
     const condenser = new MatchCompatibleQueryCondenser();
     const intermediateAST = condenser.visit(ast);
 
