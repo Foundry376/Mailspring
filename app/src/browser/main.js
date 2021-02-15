@@ -8,7 +8,9 @@ const fs = require('fs');
 fs.statSyncNoException = function(...args) {
   try {
     return fs.statSync.apply(fs, args);
-  } catch (e) {}
+  } catch (e) {
+    //pass
+  }
   return false;
 };
 
@@ -16,7 +18,7 @@ console.inspect = function consoleInspect(val) {
   console.log(util.inspect(val, true, 7, true));
 };
 
-const app = require('electron').app;
+const { app, session } = require('electron');
 const path = require('path');
 const mkdirp = require('mkdirp');
 
@@ -281,7 +283,7 @@ const start = () => {
     // Block remote JS execution in a second way in case our <meta> tag approach
     // is compromised somehow https://www.electronjs.org/docs/tutorial/security
     // This CSP string should match the one in app/static/index.html
-    require('electron').session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       if (details.url.startsWith('devtools://')) {
         return callback(details);
       }
