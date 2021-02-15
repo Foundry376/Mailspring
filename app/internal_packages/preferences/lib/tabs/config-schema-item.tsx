@@ -53,7 +53,7 @@ class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
     // In the future, we may add an option to reveal "advanced settings"
     if (this.props.configSchema.advanced) return false;
 
-    let note = this.props.configSchema.note ? (
+    const note = this.props.configSchema.note ? (
       <div className="platform-note">{this.props.configSchema.note}</div>
     ) : null;
 

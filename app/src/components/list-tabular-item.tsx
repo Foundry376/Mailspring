@@ -18,7 +18,7 @@ type ListTabularItemProps = {
   onDoubleClick?: (...args: any[]) => any;
 };
 
-export default class ListTabularItem extends React.Component<ListTabularItemProps> {
+export class ListTabularItem extends React.Component<ListTabularItemProps> {
   static displayName = 'ListTabularItem';
   static propTypes = {
     metrics: PropTypes.object,
@@ -86,9 +86,7 @@ export default class ListTabularItem extends React.Component<ListTabularItemProp
     return (this.props.columns || []).map(column => {
       if (names[column.name]) {
         console.warn(
-          `ListTabular: Columns do not have distinct names, will cause React error! \`${
-            column.name
-          }\` twice.`
+          `ListTabular: Columns do not have distinct names, will cause React error! \`${column.name}\` twice.`
         );
       }
       names[column.name] = true;

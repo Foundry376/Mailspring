@@ -13,7 +13,7 @@ type DatePickerState = {
   focused: boolean;
 };
 
-export default class DatePicker extends React.Component<DatePickerProps, DatePickerState> {
+export class DatePicker extends React.Component<DatePickerProps, DatePickerState> {
   static displayName = 'DatePicker';
 
   static contextTypes = {

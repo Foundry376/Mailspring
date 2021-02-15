@@ -213,7 +213,7 @@ export function updateEmojiMark(editor: Editor, existing, { typed, suggestions, 
   editor.moveToFocus();
 }
 
-function onKeyDown(event, editor: Editor, next: () => void) {
+function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
   if ([' ', 'Return', 'Enter'].includes(event.key)) {
     const emoji = editor.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
     if (!emoji) return next();
@@ -239,7 +239,7 @@ function onKeyDown(event, editor: Editor, next: () => void) {
   return next();
 }
 
-function onKeyUp(event, editor: Editor, next: () => void) {
+function onKeyUp(event: React.KeyboardEvent, editor: Editor, next: () => void) {
   const emoji = editor.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
   if (!emoji) {
     const { offset, key } = editor.value.selection.focus;

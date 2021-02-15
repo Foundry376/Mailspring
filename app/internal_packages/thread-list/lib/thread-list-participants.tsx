@@ -1,5 +1,6 @@
 import React from 'react';
 import { PropTypes, Utils } from 'mailspring-exports';
+import { AccountColorBar } from 'mailspring-component-kit';
 import { ThreadWithMessagesMetadata } from './types';
 
 class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
@@ -18,6 +19,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     const items = this.getTokens();
     return (
       <div className="participants" dir="auto">
+        <AccountColorBar accountId={this.props.thread.accountId} />
         {this.renderSpans(items)}
       </div>
     );
@@ -57,7 +59,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       if (spacer) {
         accumulate('...');
       } else {
-        var short;
+        let short = contact.email;
         if (contact.name && contact.name.length > 0) {
           if (items.length > 1) {
             short = contact.displayName({
@@ -67,8 +69,6 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
           } else {
             short = contact.displayName({ includeAccountLabel: false });
           }
-        } else {
-          short = contact.email;
         }
         if (idx < items.length - 1 && !items[idx + 1].spacer) {
           short += ', ';
@@ -106,7 +106,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
         continue;
       }
 
-      for (let contact of message[field]) {
+      for (const contact of message[field]) {
         if (tokens.length === 0) {
           tokens.push({ contact, unread: message.unread });
         } else {

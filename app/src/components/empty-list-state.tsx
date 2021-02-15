@@ -69,7 +69,7 @@ class EmptyInboxState extends React.Component<{}, { width: number; height: numbe
       window.requestAnimationFrame(() =>
         this.setState({
           width: entries[0].contentRect.width,
-          height: entries[0].contentRect.width,
+          height: entries[0].contentRect.height,
         })
       )
     );
@@ -128,7 +128,7 @@ class EmptyListState extends React.Component<
   static displayName = 'EmptyListState';
   static propTypes = { visible: PropTypes.bool.isRequired };
 
-  _mounted: boolean = false;
+  _mounted = false;
   _unlisteners = [];
 
   constructor(props) {
@@ -163,7 +163,7 @@ class EmptyListState extends React.Component<
 
   componentWillUnmount() {
     this._mounted = false;
-    for (let unlisten of Array.from(this._unlisteners)) {
+    for (const unlisten of Array.from(this._unlisteners)) {
       unlisten();
     }
   }

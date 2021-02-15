@@ -1,6 +1,6 @@
 /* eslint quote-props: 0 */
 import ModelQuery from '../../src/flux/models/query';
-import Attributes from '../../src/flux/attributes';
+import * as Attributes from '../../src/flux/attributes';
 import { Message } from '../../src/flux/models/message';
 import { Thread } from '../../src/flux/models/thread';
 import { Account } from '../../src/flux/models/account';

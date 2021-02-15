@@ -101,6 +101,7 @@ lazyLoad('DropdownMenu', 'dropdown-menu');
 lazyLoad('OutlineViewItem', 'outline-view-item');
 lazyLoad('OutlineView', 'outline-view');
 lazyLoad('DateInput', 'date-input');
+lazyLoad('MiniMonthView', 'mini-month-view');
 lazyLoad('DatePicker', 'date-picker');
 lazyLoad('TimePicker', 'time-picker');
 lazyLoad('Table', 'table/table');
@@ -123,6 +124,7 @@ lazyLoad('ComposerSupport', 'composer-editor/composer-support');
 lazyLoad('ScrollRegion', 'scroll-region');
 lazyLoad('ResizableRegion', 'resizable-region');
 
+lazyLoad('AccountColorBar', 'account-color-bar');
 lazyLoadFrom('MailLabel', 'mail-label');
 lazyLoadFrom('LabelColorizer', 'mail-label');
 lazyLoad('MailLabelSet', 'mail-label-set');

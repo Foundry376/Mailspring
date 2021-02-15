@@ -23,6 +23,8 @@ import {
   FocusedContentStore,
   FocusedPerspectiveStore,
   FolderSyncProgressStore,
+  Thread,
+  TaskFactory,
 } from 'mailspring-exports';
 
 import * as ThreadListColumns from './thread-list-columns';
@@ -34,7 +36,7 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
   static displayName = 'ThreadList';
 
   static containerStyles = {
-    minWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-min-width', 300),
+    minWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-min-width', 100),
     maxWidth: DOMUtils.getWorkspaceCssNumberProperty('thread-list-max-width', 3000),
   };
 
@@ -116,6 +118,7 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
               'thread-list:select-unread': this._onSelectUnread,
               'thread-list:select-starred': this._onSelectStarred,
               'thread-list:select-unstarred': this._onSelectUnstarred,
+              'thread-list:mark-all-as-read': this._onMarkAllAsRead,
             }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragItems={this._onDragItems}
@@ -235,10 +238,15 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
   _onDragEnd = event => {};
 
   _onResize = (event?: any) => {
-    const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty('thread-list-narrow-style-width', 540);
+    const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty(
+      'thread-list-narrow-style-width',
+      540
+    );
     const current = this.state.style;
     const desired =
-      (ReactDOM.findDOMNode(this) as HTMLElement).offsetWidth < narrowStyleWidth ? 'narrow' : 'wide';
+      (ReactDOM.findDOMNode(this) as HTMLElement).offsetWidth < narrowStyleWidth
+        ? 'narrow'
+        : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }
@@ -280,6 +288,24 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
     const dataSource = ThreadListStore.dataSource();
     const items = dataSource.itemsCurrentlyInViewMatching(item => !item.starred);
     this.refs.list.handler().onSelect(items);
+  };
+
+  _onMarkAllAsRead = () => {
+    const dataSource = ThreadListStore.dataSource();
+    const items = dataSource.itemsCurrentlyInViewMatching(item => item.unread) as Thread[];
+
+    if (items.length === 0) {
+      return;
+    }
+
+    Actions.queueTask(
+      TaskFactory.taskForSettingUnread({
+        threads: items,
+        unread: false,
+        source: 'Toolbar Button: Thread List',
+      })
+    );
+    Actions.popSheet();
   };
 }
 

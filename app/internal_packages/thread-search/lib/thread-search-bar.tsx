@@ -7,6 +7,7 @@ import {
   FocusedPerspectiveStore,
   WorkspaceStore,
   MailboxPerspective,
+  AccountStore,
 } from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
@@ -22,26 +23,27 @@ import {
   wrapInQuotes,
 } from './search-bar-util';
 
-class ThreadSearchBar extends Component<
-  {
-    query: string;
-    isSearching: boolean;
-    perspective: MailboxPerspective;
-  },
-  {
-    suggestions: {
-      token: string;
-      term: string;
-      description: string;
-      termSuggestions: string[] | ((term: string, accountIds: string[]) => Promise<any>);
-    }[];
-    focused: boolean;
-    selected?: {
-      description: any;
-    };
-    selectedIdx: number;
-  }
-> {
+interface ThreadSearchBarProps {
+  query: string;
+  isSearching: boolean;
+  perspective: MailboxPerspective;
+}
+
+interface ThreadSearchBarState {
+  suggestions: {
+    token: string;
+    term: string;
+    description: string;
+    termSuggestions: string[] | ((term: string, accountIds: string[]) => Promise<any>);
+  }[];
+  focused: boolean;
+  selected?: {
+    description: any;
+  };
+  selectedIdx: number;
+}
+
+class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarState> {
   static displayName = 'ThreadSearchBar';
 
   static propTypes = {
@@ -306,7 +308,13 @@ class ThreadSearchBar extends Component<
 
   _placeholder = () => {
     if (this._initialQueryForPerspective() === '') {
-      return localized('Search all mailboxes');
+      const countMailboxes = FocusedPerspectiveStore.current()?.accountIds?.length || 0;
+      if (countMailboxes == 1) {
+        const account = AccountStore.accountForId(FocusedPerspectiveStore.current().accountIds[0]);
+        return localized('Search') + ' ' + account.label;
+      } else {
+        return localized('Search all mailboxes');
+      }
     }
     return localized(`Search`) + ' ' + this.props.perspective.name || '';
   };
@@ -393,7 +401,7 @@ class ThreadSearchBar extends Component<
                       e.preventDefault();
                     }}
                   >
-                    {localized('Learn more')} >
+                    {localized('Learn more')} &gt;
                   </a>
                 </div>
               )}

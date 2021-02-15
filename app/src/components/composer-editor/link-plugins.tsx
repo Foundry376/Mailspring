@@ -106,7 +106,7 @@ const BaseLinkPlugin: ComposerEditorPlugin = {
     }),
   ],
   onPaste,
-  onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
+  onKeyDown: function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
     // ensure space and enter always terminate links
     if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {
       return next();
@@ -117,14 +117,16 @@ const BaseLinkPlugin: ComposerEditorPlugin = {
     }
     return next();
   },
-  renderMark,
+  renderMark: ({ mark, children, targetIsHTML }, editor, next) => {
+    return renderMark({ mark, children, targetIsHTML }, editor, next);
+  },
   rules,
-  commands: {
+  appCommands: {
     'contenteditable:insert-link': (event, editor) => {
       // want to see a hack? here you go!
       // 1: find our container and then find the link toolbar icon - this approach
       // ensures we get the link button in the /current/ composer.
-      const linkButton = event.target
+      const linkButton = (event.target as HTMLElement)
         .closest('.RichEditor-root')
         .querySelector('.fa.fa-link')
         .closest('button');

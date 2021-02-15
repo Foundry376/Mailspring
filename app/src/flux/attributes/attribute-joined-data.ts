@@ -1,4 +1,4 @@
-import Attribute from './attribute';
+import { Attribute } from './attribute';
 
 const NullPlaceholder = '!NULLVALUE!';
 
@@ -32,12 +32,17 @@ JoinedData attributes cannot be `queryable`.
 
 Section: Database
 */
-export default class AttributeJoinedData extends Attribute {
+export class AttributeJoinedData extends Attribute {
   static NullPlaceholder = NullPlaceholder;
 
   modelTable: string;
 
-  constructor({ modelKey, jsonKey, modelTable, queryable }) {
+  constructor({
+    modelKey,
+    jsonKey,
+    modelTable,
+    queryable,
+  }: ConstructorParameters<typeof Attribute>[0] & { modelTable?: string }) {
     super({ modelKey, jsonKey, queryable });
     this.modelTable = modelTable;
   }
@@ -65,8 +70,6 @@ export default class AttributeJoinedData extends Attribute {
   }
 
   includeSQL(klass) {
-    return `LEFT OUTER JOIN \`${this.modelTable}\` ON \`${this.modelTable}\`.\`id\` = \`${
-      klass.name
-    }\`.\`id\``;
+    return `LEFT OUTER JOIN \`${this.modelTable}\` ON \`${this.modelTable}\`.\`id\` = \`${klass.name}\`.\`id\``;
   }
 }

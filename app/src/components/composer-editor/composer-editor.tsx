@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import * as Immutable from 'immutable';
 import { Editor, Value, Operation, Range } from 'slate';
-import { Editor as SlateEditorComponent, EditorProps } from 'slate-react';
+import { Editor as SlateEditorComponent, EditorProps, Plugin } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 import { InlineStyleTransformer } from 'mailspring-exports';
 import path from 'path';
@@ -44,8 +44,8 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
     // every render.
     this._pluginKeyHandlers = {};
     plugins.forEach(plugin => {
-      if (!plugin.commands) return;
-      Object.entries(plugin.commands).forEach(
+      if (!plugin.appCommands) return;
+      Object.entries(plugin.appCommands).forEach(
         ([command, handler]: [string, (event: any, val: any) => any]) => {
           this._pluginKeyHandlers[command] = event => {
             if (!this._mounted) return;
@@ -262,7 +262,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
             onCopy={this.onCopy}
             onPaste={this.onPaste}
             spellCheck={false}
-            plugins={plugins}
+            plugins={(plugins as any) as Plugin[]}
             propsForPlugins={propsForPlugins}
           />
         </div>

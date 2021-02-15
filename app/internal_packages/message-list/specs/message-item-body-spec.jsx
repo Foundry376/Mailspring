@@ -122,7 +122,7 @@ xdescribe('MessageItem', function() {
       snippet: 'snippet one...',
       subject: 'Subject One',
       threadId: 'thread_12345',
-      accountId: window.TEST_ACCOUNT_ID,
+      accountId: TEST_ACCOUNT_ID,
     });
 
     // Generate the test component. Should be called after @message is configured

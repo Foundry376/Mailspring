@@ -74,6 +74,11 @@ module.exports = {
         { label: localized('Select All Unstarred'), command: 'thread-list:select-unstarred' },
         { type: 'separator' },
         {
+          label: localized('Mark All as %@', localized('Read')),
+          command: 'thread-list:mark-all-as-read',
+        },
+        { type: 'separator' },
+        {
           label: localized('Find'),
           submenu: [
             { label: localized('Find in Mailbox') + '...', command: 'core:focus-search' },

@@ -74,7 +74,7 @@ export default class SignaturePhotoPicker extends React.Component<
     const img = new Image();
     img.onload = () => {
       let scale = Math.min(MAX_IMAGE_RES / img.width, MAX_IMAGE_RES / img.height, 1);
-      let scaleDesired = scale;
+      const scaleDesired = scale;
       let source: any = img;
 
       let times = 0;
@@ -135,10 +135,9 @@ export default class SignaturePhotoPicker extends React.Component<
         )
       );
       return;
-    } finally {
-      if (!this._isMounted) return;
-      this.setState({ isUploading: false });
     }
+    if (!this._isMounted) return;
+    this.setState({ isUploading: false });
 
     this.props.onChange({
       target: { value: `${link}?t=${Date.now()}&msw=${width}&msh=${height}`, id: 'photoURL' },

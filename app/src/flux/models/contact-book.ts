@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import { Model, AttributeValues } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 
 export class ContactBook extends Model {
   static attributes = {

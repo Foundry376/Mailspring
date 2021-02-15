@@ -1,6 +1,6 @@
 /* eslint no-unused-vars: 0*/
 import _ from 'underscore';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { ChangeMailTask } from './change-mail-task';
 import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';

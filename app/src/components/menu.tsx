@@ -17,7 +17,7 @@ export interface MenuNameEmailContentProps {
   email?: string;
 }
 
-export interface MenuProps extends HTMLProps<HTMLDivElement> {
+export interface MenuProps extends HTMLProps<any> {
   className?: string;
   footerComponents?: React.ReactNode;
   headerComponents?: React.ReactNode;
@@ -202,7 +202,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
 
   static defaultProps = { onEscape() {} };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   constructor(props) {
     super(props);

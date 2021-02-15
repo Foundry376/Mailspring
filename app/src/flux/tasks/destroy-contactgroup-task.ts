@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { ContactGroup } from '../models/contact-group';
 import { AttributeValues } from '../models/model';
 import { SyncbackContactGroupTask } from './syncback-contactgroup-task';
@@ -8,7 +8,7 @@ export class DestroyContactGroupTask extends Task {
   static attributes = {
     ...Task.attributes,
 
-    group: Attributes.Object({
+    group: Attributes.Obj({
       modelKey: 'group',
       itemClass: ContactGroup,
     }),

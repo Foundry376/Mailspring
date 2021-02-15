@@ -1,15 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
+import { tickGenerator } from './week-view-helpers';
 
 interface EventGridBackgroundProps {
   height: number;
   numColumns: number;
-  tickGenerator: (arg: { type: string }) => Array<{ yPos }>;
   intervalHeight: number;
 }
 
-export default class EventGridBackground extends React.Component<EventGridBackgroundProps> {
+export class EventGridBackground extends React.Component<EventGridBackgroundProps> {
   static displayName = 'EventGridBackground';
 
   _lastHoverRect: { x?; y?; width?; height? } = {};
@@ -36,9 +36,9 @@ export default class EventGridBackground extends React.Component<EventGridBackgr
     const doStroke = (type, strokeStyle) => {
       ctx.strokeStyle = strokeStyle;
       ctx.beginPath();
-      for (const { yPos } of this.props.tickGenerator({ type })) {
-        ctx.moveTo(0, yPos);
-        ctx.lineTo(canvas.width, yPos);
+      for (const { y } of tickGenerator(type, this.props.intervalHeight)) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
       }
       ctx.stroke();
     };
@@ -47,7 +47,11 @@ export default class EventGridBackground extends React.Component<EventGridBackgr
     doStroke('major', '#e0e0e0'); // Major ticks
   }
 
-  mouseMove({ x, y, width }) {
+  onMouseMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const width = e.currentTarget.clientWidth;
+    const x = e.clientX;
+    const y = e.clientY;
+
     if (!width || x == null || y == null) {
       return;
     }
@@ -77,7 +81,7 @@ export default class EventGridBackground extends React.Component<EventGridBackgr
       height: this.props.height,
     };
     return (
-      <div className="event-grid-bg-wrap">
+      <div className="event-grid-bg-wrap" onMouseMove={this.onMouseMove}>
         <div ref="cursor" className="cursor" />
         <canvas ref="canvas" className="event-grid-bg" style={styles} />
       </div>

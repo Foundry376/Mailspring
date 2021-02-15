@@ -126,7 +126,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
 
     _workspaceTimer?: NodeJS.Timeout;
     _themesTimer?: NodeJS.Timeout;
-    _mounted: boolean = false;
+    _mounted = false;
     _disposables: Disposable[];
     _unlisteners = [];
 

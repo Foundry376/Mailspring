@@ -16,7 +16,7 @@ import ThreadListIcon from './thread-list-icon';
 
 // Get and format either last sent or last received timestamp depending on thread-list being viewed
 const ThreadListTimestamp = function({ thread }) {
-  let rawTimestamp = FocusedPerspectiveStore.current().isSent()
+  const rawTimestamp = FocusedPerspectiveStore.current().isSent()
     ? thread.lastMessageSentTimestamp
     : thread.lastMessageReceivedTimestamp;
   const timestamp = rawTimestamp ? DateUtils.shortTimeString(rawTimestamp) : localized('No Date');

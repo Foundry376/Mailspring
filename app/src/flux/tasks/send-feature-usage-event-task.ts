@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { AccountStore } from '../stores/account-store';
 import { AttributeValues } from '../models/model';
 

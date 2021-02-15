@@ -5,6 +5,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 
 function buildShareHTML(htmlEl, styleEl) {
   return `
+    <!DOCTYPE html>
     <html lang="en">
     <head>
     <meta charset="utf-8"> 
@@ -40,7 +41,7 @@ function buildShareHTML(htmlEl, styleEl) {
 }
 
 export default class ShareButton extends React.Component<{}, { link: string; loading: boolean }> {
-  _mounted: boolean = false;
+  _mounted = false;
   _linkEl: HTMLInputElement;
 
   constructor(props) {

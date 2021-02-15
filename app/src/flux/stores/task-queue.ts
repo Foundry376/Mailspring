@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
-import { Rx, SyncbackDraftTask } from 'mailspring-exports';
+import { Rx } from 'mailspring-exports';
 import { Task } from '../tasks/task';
 import DatabaseStore from './database-store';
 
@@ -46,8 +46,8 @@ class TaskQueue extends MailspringStore {
   _completed: Task[] = [];
   _currentSequentialId = Date.now();
 
-  _waitingForLocal: Array<{ task: Task; resolve: (arg: Task) => void }> = [];
-  _waitingForRemote: Array<{ task: Task; resolve: (arg: Task) => void }> = [];
+  _waitingForLocal: Array<{ task: Task; resolve: (arg: any) => void }> = [];
+  _waitingForRemote: Array<{ task: Task; resolve: (arg: any) => void }> = [];
 
   constructor() {
     super();
@@ -95,8 +95,12 @@ class TaskQueue extends MailspringStore {
     return [...this._queue, ...this._completed];
   }
 
-  findTasks(typeOrClass, matching = {}, { includeCompleted }: { includeCompleted?: boolean } = {}) {
-    const type = typeOrClass instanceof String ? typeOrClass : typeOrClass.name;
+  findTasks(
+    typeOrClass: string | typeof Task,
+    matching = {},
+    { includeCompleted }: { includeCompleted?: boolean } = {}
+  ) {
+    const type = typeof typeOrClass === 'string' ? typeOrClass : typeOrClass.name;
     const tasks = includeCompleted ? [...this._queue, ...this._completed] : this._queue;
 
     const matches = tasks.filter(task => {
@@ -112,24 +116,24 @@ class TaskQueue extends MailspringStore {
     return matches;
   }
 
-  waitForPerformLocal = task => {
+  waitForPerformLocal = <T extends Task>(task: T) => {
     const upToDateTask = [...this._queue, ...this._completed].find(t => t.id === task.id);
     if (upToDateTask && upToDateTask.hasRunLocally()) {
-      return Promise.resolve(upToDateTask);
+      return Promise.resolve(upToDateTask as T);
     }
 
-    return new Promise(resolve => {
+    return new Promise<T>(resolve => {
       this._waitingForLocal.push({ task, resolve });
     });
   };
 
-  waitForPerformRemote = task => {
+  waitForPerformRemote = <T extends Task>(task: T) => {
     const upToDateTask = [...this._queue, ...this._completed].find(t => t.id === task.id);
     if (upToDateTask && upToDateTask.status === Task.Status.Complete) {
-      return Promise.resolve(upToDateTask);
+      return Promise.resolve<T>(upToDateTask as T);
     }
 
-    return new Promise(resolve => {
+    return new Promise<T>(resolve => {
       this._waitingForRemote.push({ task, resolve });
     });
   };

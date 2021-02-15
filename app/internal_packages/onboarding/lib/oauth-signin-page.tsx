@@ -7,13 +7,14 @@ import url from 'url';
 
 import FormErrorMessage from './form-error-message';
 import { LOCAL_SERVER_PORT } from './onboarding-helpers';
+import AccountProviders from './account-providers';
 
 interface OAuthSignInPageProps {
   providerAuthPageUrl: string;
   buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
   onSuccess: (account: Account) => void;
   onTryAgain: () => void;
-  providerConfig: object;
+  providerConfig: (typeof AccountProviders)[0];
   serviceName: string;
 }
 
@@ -47,7 +48,7 @@ export default class OAuthSignInPage extends React.Component<
   _server?: http.Server;
   _startTimer: NodeJS.Timeout;
   _warnTimer: NodeJS.Timeout;
-  _mounted: boolean = false;
+  _mounted = false;
 
   state: OAuthSignInPageState = {
     authStage: 'initial',
@@ -79,18 +80,16 @@ export default class OAuthSignInPage extends React.Component<
         response.end('Unknown Request');
       }
     });
-    this._server.listen(LOCAL_SERVER_PORT, err => {
-      if (err) {
-        AppEnv.showErrorDialog({
-          title: localized('Unable to Start Local Server'),
-          message: localized(
-            `To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@`,
-            err
-          ),
-        });
-        return;
-      }
+    this._server.once('error', err => {
+      AppEnv.showErrorDialog({
+        title: localized('Unable to Start Local Server'),
+        message: localized(
+          `To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@`,
+          err
+        ),
+      });
     });
+    this._server.listen(LOCAL_SERVER_PORT);
   }
 
   componentWillUnmount() {

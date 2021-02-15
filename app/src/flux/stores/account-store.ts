@@ -14,6 +14,7 @@ const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
 
 export type IAliasSet = Array<Contact & { isAlias?: boolean }>;
+
 /*
 Public: The AccountStore listens to changes to the available accounts in
 the database and exposes the currently active Account via {::current}
@@ -160,7 +161,7 @@ class _AccountStore extends MailspringStore {
    * Actions.updateAccount is called directly from the local-sync worker.
    * This will update the account with its updated sync state
    */
-  _onUpdateAccount = (id, updated) => {
+  _onUpdateAccount = (id: string, updated: Partial<Account>) => {
     const idx = this._accounts.findIndex(a => a.id === id);
     let account = this._accounts[idx];
     if (!account) return;
@@ -176,7 +177,7 @@ class _AccountStore extends MailspringStore {
    * the AccountStore and runs `ensureK2Consistency`. This will actually
    * delete the Account on the local sync side.
    */
-  _onRemoveAccount = id => {
+  _onRemoveAccount = (id: string) => {
     const account = this._accounts.find(a => a.id === id);
     if (!account) return;
 
@@ -209,7 +210,7 @@ class _AccountStore extends MailspringStore {
     }
   };
 
-  _onReorderAccount = (id, newIdx) => {
+  _onReorderAccount = (id: string, newIdx: number) => {
     const existingIdx = this._accounts.findIndex(a => a.id === id);
     if (existingIdx === -1) return;
     const account = this._accounts[existingIdx];
@@ -219,7 +220,7 @@ class _AccountStore extends MailspringStore {
     this._save();
   };
 
-  addAccount = async account => {
+  addAccount = async (account: Account) => {
     if (!account.emailAddress || !account.provider || !(account instanceof Account)) {
       throw new Error(`Returned account data is invalid: ${JSON.stringify(account)}`);
     }

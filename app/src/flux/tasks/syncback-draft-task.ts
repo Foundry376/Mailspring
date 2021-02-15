@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { Message } from '../models/message';
 import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
@@ -11,7 +11,7 @@ export class SyncbackDraftTask extends Task {
     headerMessageId: Attributes.String({
       modelKey: 'headerMessageId',
     }),
-    draft: Attributes.Object({
+    draft: Attributes.Obj({
       modelKey: 'draft',
       itemClass: Message,
     }),

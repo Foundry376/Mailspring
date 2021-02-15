@@ -28,7 +28,7 @@ class DateInput extends Component<DateInputProps, DateInputState> {
     onDateSubmitted: () => {},
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   constructor(props) {
     super(props);

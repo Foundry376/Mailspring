@@ -7,7 +7,7 @@ function isUndoSend(block) {
   return (
     block.tasks.length === 1 &&
     block.tasks[0] instanceof SyncbackMetadataTask &&
-    block.tasks[0].value.isUndoSend
+    (block.tasks[0].value as any).isUndoSend
   );
 }
 
@@ -52,7 +52,7 @@ class Countdown extends React.Component<{ expiration: number }, { x: number }> {
 
   render() {
     // subtract a few ms so we never round up to start time + 1 by accident
-    let diff = Math.min(
+    const diff = Math.min(
       Math.max(0, this.props.expiration - Date.now()),
       AppEnv.config.get('core.sending.undoSend')
     );

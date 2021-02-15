@@ -32,7 +32,7 @@ export default class InitialPreferencesPage extends React.Component {
           <div className="basic-explanation">
             <p>
               {localizedReactFragment(
-                `You are using %@, which is free! You can link up to four email accounts and try pro features like send later, read receipts and reminders a few times a week.`,
+                `You are using %@, which is free! You can try pro features like snooze, send later, read receipts and reminders a few times a week.`,
                 <strong>Mailspring Basic</strong>
               )}
             </p>

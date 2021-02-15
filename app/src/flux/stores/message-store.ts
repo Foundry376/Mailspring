@@ -16,7 +16,7 @@ const FolderNamesHiddenByDefault = ['spam', 'trash'];
 class _MessageStore extends MailspringStore {
   FolderNamesHiddenByDefault = FolderNamesHiddenByDefault;
 
-  _showingHiddenItems: boolean = false;
+  _showingHiddenItems = false;
   _items?: Message[];
   _thread?: Thread;
   _itemsExpanded: { [messageId: string]: 'explicit' | 'default' };
@@ -200,7 +200,7 @@ class _MessageStore extends MailspringStore {
   }
 
   _setWindowTitle() {
-    let title = 'Mailspring' + (this._thread ? ' · ' + this._thread.subject : '');
+    const title = 'Mailspring' + (this._thread ? ' · ' + this._thread.subject : '');
     electron.remote.getCurrentWindow().setTitle(title);
   }
 
@@ -318,7 +318,7 @@ class _MessageStore extends MailspringStore {
   }
 
   _fetchExpandedAttachments(items) {
-    for (let item of items) {
+    for (const item of items) {
       if (!this._itemsExpanded[item.id]) continue;
       item.files.map(file => Actions.fetchFile(file));
     }

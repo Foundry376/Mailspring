@@ -42,16 +42,21 @@ const RegExpUtils = {
   // http://www.regexpal.com/?fam=94521
   // NOTE: This is not exhaustive, and balances what is technically a phone number
   // with what would be annoying to linkify. eg: 12223334444 does not match.
-  phoneRegex() {
-    return new RegExp(
-      /([+(]+|\b)(?:(\d{1,3}[- ()]*)?)(\d{3})[- )]+(\d{3})[- ]+(\d{4})(?: *x(\d+))?\b/g
-    );
+  phoneRegex({ aggressive }: { aggressive: boolean }) {
+    return aggressive
+      ? new RegExp(
+          /([+(]+|\b)(?:(\d{1,3}[- ()]*)?)(\d{2,4})?[- )]?(\d{2,4})[- )]?(\d{2,4})[- ]?(\d{3,4})([,#\d]*)( *x(\d+))?/g
+        )
+      : new RegExp(
+          /([+(]+|\b)(?:(\d{1,3}[- ()]*)?)(\d{3})[- )]+(\d{3})[- ]+(\d{4})(?: *x(\d+))?\b/g
+        );
   },
 
   // http://stackoverflow.com/a/16463966
   // http://www.regexpal.com/?fam=93928
   // NOTE: This does not match full urls with `http` protocol components.
   domainRegex() {
+    // eslint-disable-next-line no-misleading-character-class
     return new RegExp(
       `^(?!:\\/\\/)([a-zA-Z${UnicodeEmailChars}0-9-_]+\\.)*[a-zA-Z${UnicodeEmailChars}0-9][a-zA-Z${UnicodeEmailChars}0-9-_]+\\.[a-zA-Z]{2,11}?`,
       'i'

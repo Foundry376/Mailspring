@@ -33,19 +33,17 @@ const PageTopBar = props => {
     backButton = null;
   }
 
+  const style: any = {
+    top: 0,
+    left: 26,
+    right: 0,
+    height: 27,
+    zIndex: 100,
+    position: 'absolute',
+    WebkitAppRegion: 'drag',
+  };
   return (
-    <div
-      className="dragRegion"
-      style={{
-        top: 0,
-        left: 26,
-        right: 0,
-        height: 27,
-        zIndex: 100,
-        position: 'absolute',
-        WebkitAppRegion: 'drag',
-      }}
-    >
+    <div className="dragRegion" style={style}>
       {backButton}
     </div>
   );

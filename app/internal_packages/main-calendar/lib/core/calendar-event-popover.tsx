@@ -1,12 +1,12 @@
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import React from 'react';
 import {
-  PropTypes,
-  Event,
   Actions,
-  DatabaseStore,
   DateUtils,
   SyncbackEventTask,
+  localized,
+  RegExpUtils,
+  Autolink,
 } from 'mailspring-exports';
 import {
   DatePicker,
@@ -15,10 +15,12 @@ import {
   TabGroupRegion,
   TimePicker,
 } from 'mailspring-component-kit';
-import EventAttendeesInput from './event-attendees-input';
+import { EventAttendeesInput } from './event-attendees-input';
+import { EventOccurrence } from './calendar-data-source';
+import { EventTimerangePicker } from './event-timerange-picker';
 
 interface CalendarEventPopoverProps {
-  event: Event;
+  event: EventOccurrence;
 }
 
 interface CalendarEventPopoverState {
@@ -31,36 +33,28 @@ interface CalendarEventPopoverState {
   title: string;
 }
 
-export default class CalendarEventPopover extends React.Component<
+export class CalendarEventPopover extends React.Component<
   CalendarEventPopoverProps,
   CalendarEventPopoverState
 > {
-  static propTypes = {
-    event: PropTypes.object.isRequired,
-  };
-
   constructor(props) {
     super(props);
-    const { description, start, end, location, attendees } = this.props.event;
+    const { description, start, end, location, attendees, title } = this.props.event;
 
     this.state = {
       description,
       start,
       end,
       location,
-      title: this.props.event.displayTitle,
+      title,
       editing: false,
-      attendees: attendees || [],
+      attendees,
     };
   }
 
   componentWillReceiveProps = nextProps => {
-    const { description, start, end, location, attendees } = nextProps.event;
-    this.setState({ description, start, end, location });
-    this.setState({
-      attendees: attendees || [],
-      title: nextProps.event.displayTitle,
-    });
+    const { description, start, end, location, attendees, title } = nextProps.event;
+    this.setState({ description, start, end, location, attendees, title });
   };
 
   onEdit = () => {
@@ -89,34 +83,7 @@ export default class CalendarEventPopover extends React.Component<
     Actions.queueTask(task);
   };
 
-  extractNotesFromDescription(node) {
-    const els = node.querySelectorAll('meta[itemprop=description]');
-    let notes: string = null;
-    if (els.length) {
-      notes = Array.from(els)
-        .map((el: any) => el.content)
-        .join('\n');
-    } else {
-      notes = node.innerText;
-    }
-    while (true) {
-      const nextNotes = notes.replace('\n\n', '\n');
-      if (nextNotes === notes) {
-        break;
-      }
-      notes = nextNotes;
-    }
-    return notes;
-  }
-
   // If on the hour, formats as "3 PM", else formats as "3:15 PM"
-  formatTime(momentTime) {
-    const min = momentTime.minutes();
-    if (min === 0) {
-      return momentTime.format('h A');
-    }
-    return momentTime.format('h:mm A');
-  }
 
   updateAttendees = attendees => {
     this.setState({ attendees });
@@ -128,86 +95,10 @@ export default class CalendarEventPopover extends React.Component<
     this.setState(updates);
   };
 
-  _onChangeDay = newTimestamp => {
-    const newDay = moment(newTimestamp);
-    const start = this.getStartMoment();
-    const end = this.getEndMoment();
-    start.year(newDay.year());
-    end.year(newDay.year());
-    start.dayOfYear(newDay.dayOfYear());
-    end.dayOfYear(newDay.dayOfYear());
-    this.setState({ start: start.unix(), end: end.unix() });
-  };
-
-  _onChangeStartTime = newTimestamp => {
-    const newStart = moment(newTimestamp);
-    let newEnd = this.getEndMoment();
-    if (newEnd.isSameOrBefore(newStart)) {
-      const leftInDay = moment(newStart)
-        .endOf('day')
-        .diff(newStart);
-      const move = Math.min(leftInDay, moment.duration(1, 'hour').asMilliseconds());
-      newEnd = moment(newStart).add(move, 'ms');
-    }
-    this.setState({ start: newStart.unix(), end: newEnd.unix() });
-  };
-
-  _onChangeEndTime = newTimestamp => {
-    const newEnd = moment(newTimestamp);
-    let newStart = this.getStartMoment();
-    if (newStart.isSameOrAfter(newEnd)) {
-      const sinceDay = moment(newEnd).diff(newEnd.startOf('day'));
-      const move = Math.min(sinceDay, moment.duration(1, 'hour').asMilliseconds());
-      newStart = moment(newEnd).subtract(move, 'ms');
-    }
-    this.setState({ end: newEnd.unix(), start: newStart.unix() });
-  };
-
-  renderTime() {
-    const startMoment = this.getStartMoment();
-    const endMoment = this.getEndMoment();
-    const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
-    const timeRange = `${this.formatTime(startMoment)} - ${this.formatTime(endMoment)}`;
-    return (
-      <div>
-        {date}
-        <br />
-        {timeRange}
-      </div>
-    );
-  }
-
-  renderEditableTime() {
-    const startVal = this.state.start * 1000;
-    const endVal = this.state.end * 1000;
-    return (
-      <div className="row time">
-        <RetinaImg name="ic-eventcard-time@2x.png" mode={RetinaImg.Mode.ContentPreserve} />
-        <span>
-          <TimePicker value={startVal} onChange={this._onChangeStartTime} />
-          to
-          <TimePicker value={endVal} onChange={this._onChangeEndTime} />
-          <span className="timezone">
-            {moment()
-              .tz(DateUtils.timeZone)
-              .format('z')}
-          </span>
-          &nbsp; on &nbsp;
-          <DatePicker value={startVal} onChange={this._onChangeDay} />
-        </span>
-      </div>
-    );
-  }
-
   renderEditable = () => {
     const { title, description, start, end, location, attendees } = this.state;
 
-    const fragment = document.createDocumentFragment();
-    const descriptionRoot = document.createElement('root');
-    fragment.appendChild(descriptionRoot);
-    descriptionRoot.innerHTML = description;
-
-    const notes = this.extractNotesFromDescription(descriptionRoot);
+    const notes = extractNotesFromDescription(description);
 
     return (
       <div className="calendar-event-popover" tabIndex={0}>
@@ -230,9 +121,15 @@ export default class CalendarEventPopover extends React.Component<
               this.updateField('location', e.target.value);
             }}
           />
-          <div className="section">{this.renderEditableTime()}</div>
           <div className="section">
-            <div className="label">Invitees: </div>
+            <EventTimerangePicker
+              start={start}
+              end={end}
+              onChange={({ start, end }) => this.setState({ start, end })}
+            />
+          </div>
+          <div className="section">
+            <div className="label">{localized(`Invitees`)}:</div>
             <EventAttendeesInput
               className="event-participant-field"
               attendees={attendees}
@@ -242,7 +139,7 @@ export default class CalendarEventPopover extends React.Component<
             />
           </div>
           <div className="section">
-            <div className="label">Notes: </div>
+            <div className="label">{localized(`Notes`)}:</div>
             <input
               type="text"
               value={notes}
@@ -251,8 +148,8 @@ export default class CalendarEventPopover extends React.Component<
               }}
             />
           </div>
-          <span onClick={this.saveEdits}>Save</span>
-          <span onClick={() => Actions.closePopover()}>Cancel</span>
+          <span onClick={this.saveEdits}>{localized(`Save`)}</span>
+          <span onClick={() => Actions.closePopover()}>{localized(`Cancel`)}</span>
         </TabGroupRegion>
       </div>
     );
@@ -262,14 +159,56 @@ export default class CalendarEventPopover extends React.Component<
     if (this.state.editing) {
       return this.renderEditable();
     }
-    const { title, description, location, attendees } = this.state;
+    return (
+      <CalendarEventPopoverUnenditable
+        {...this.props}
+        onEdit={() => this.setState({ editing: true })}
+      />
+    );
+  }
+}
 
-    const fragment = document.createDocumentFragment();
-    const descriptionRoot = document.createElement('root');
-    fragment.appendChild(descriptionRoot);
-    descriptionRoot.innerHTML = description;
+class CalendarEventPopoverUnenditable extends React.Component<{
+  event: EventOccurrence;
+  onEdit: () => void;
+}> {
+  descriptionRef = React.createRef<HTMLDivElement>();
 
-    const notes = this.extractNotesFromDescription(descriptionRoot);
+  renderTime() {
+    const startMoment = moment(this.props.event.start * 1000);
+    const endMoment = moment(this.props.event.end * 1000);
+    const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
+    const timeRange = `${formatTime(startMoment)} - ${formatTime(endMoment)}`;
+    return (
+      <div>
+        {date}
+        <br />
+        {timeRange}
+      </div>
+    );
+  }
+
+  componentDidMount() {
+    this.autolink();
+  }
+
+  componentDidUpdate() {
+    this.autolink();
+  }
+
+  autolink() {
+    if (!this.descriptionRef.current) return;
+    Autolink(this.descriptionRef.current, {
+      async: false,
+      telAggressiveMatch: true,
+    });
+  }
+
+  render() {
+    const { event, onEdit } = this.props;
+    const { title, description, location, attendees } = event;
+
+    const notes = extractNotesFromDescription(description);
 
     return (
       <div className="calendar-event-popover" tabIndex={0}>
@@ -280,22 +219,67 @@ export default class CalendarEventPopover extends React.Component<
             name="edit-icon.png"
             title="Edit Item"
             mode={RetinaImg.Mode.ContentIsMask}
-            onClick={this.onEdit}
+            onClick={onEdit}
           />
         </div>
-        <div className="location">{location}</div>
+        {location && (
+          <div className="location">
+            {location.startsWith('http') || location.startsWith('tel:') ? (
+              <a href={location}>{location}</a>
+            ) : (
+              location
+            )}
+          </div>
+        )}
         <div className="section">{this.renderTime()}</div>
         <ScrollRegion className="section invitees">
-          <div className="label">Invitees: </div>
-          <div>{attendees.map((a, idx) => <div key={idx}> {a.cn} </div>)}</div>
+          <div className="label">{localized(`Invitees`)}: </div>
+          <div>
+            {attendees.map((a, idx) => (
+              <div key={idx}> {a.cn}</div>
+            ))}
+          </div>
         </ScrollRegion>
         <ScrollRegion className="section description">
           <div className="description">
-            <div className="label">Notes: </div>
-            <div>{notes}</div>
+            <div className="label">{localized(`Notes`)}: </div>
+            <div ref={this.descriptionRef}>{notes}</div>
           </div>
         </ScrollRegion>
       </div>
     );
   }
+}
+
+function extractNotesFromDescription(description: string) {
+  const fragment = document.createDocumentFragment();
+  const descriptionRoot = document.createElement('root');
+  fragment.appendChild(descriptionRoot);
+  descriptionRoot.innerHTML = description;
+
+  const els = descriptionRoot.querySelectorAll('meta[itemprop=description]');
+  let notes: string = null;
+  if (els.length) {
+    notes = Array.from(els)
+      .map((el: any) => el.content)
+      .join('\n');
+  } else {
+    notes = descriptionRoot.innerText;
+  }
+  while (true) {
+    const nextNotes = notes.replace('\n\n', '\n');
+    if (nextNotes === notes) {
+      break;
+    }
+    notes = nextNotes;
+  }
+  return notes;
+}
+
+function formatTime(momentTime: Moment) {
+  const min = momentTime.minutes();
+  if (min === 0) {
+    return momentTime.format('h A');
+  }
+  return momentTime.format('h:mm A');
 }

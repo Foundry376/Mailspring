@@ -6,7 +6,7 @@ export default class CommandRegistry {
   emitter = new Emitter();
   listenerCounts = {};
   listenerCountChanges = {};
-  pendingEmit: boolean = false;
+  pendingEmit = false;
 
   add(
     target: Element,

@@ -42,7 +42,8 @@ export const DropdownMenu: typeof import('../components/dropdown-menu').default;
 export const OutlineViewItem: typeof import('../components/outline-view-item').default;
 export * from '../components/outline-view';
 export const DateInput: typeof import('../components/date-input').default;
-export const DatePicker: typeof import('../components/date-picker').default;
+export * from '../components/mini-month-view';
+export * from '../components/date-picker';
 export const TimePicker: typeof import('../components/time-picker').default;
 export const Table: typeof import('../components/table/table').default;
 export const TableRow: typeof import('../components/table/table').TableRow;
@@ -65,6 +66,7 @@ export * from '../components/scroll-region';
 export * from '../components/resizable-region';
 export * from '../components/mail-label';
 
+export const AccountColorBar: typeof import('../components/account-color-bar').default;
 export const MailLabelSet: typeof import('../components/mail-label-set').default;
 export const MailImportantIcon: typeof import('../components/mail-important-icon').default;
 

@@ -160,7 +160,7 @@ class AttachmentStore extends MailspringStore {
       .then(filePath => shell.openItem(filePath))
       .catch(this._catchFSErrors)
       .catch(error => {
-        return this._presentError({ file, error });
+        this._presentError({ file, error });
       });
   };
 
@@ -214,54 +214,56 @@ class AttachmentStore extends MailspringStore {
 
   _fetchAndSaveAll = files => {
     const defaultPath = this._defaultSaveDir();
-    const options = {
-      defaultPath,
-      title: localized('Save Into...'),
-      buttonLabel: localized('Download All'),
-      properties: ['openDirectory', 'createDirectory'],
-    };
 
     return new Promise(resolve => {
-      AppEnv.showOpenDialog(options, selected => {
-        if (!selected) {
-          return;
-        }
-        const dirPath = selected[0];
-        if (!dirPath) {
-          return;
-        }
-        this._lastDownloadDirectory = dirPath;
-        AppEnv.savedState.lastDownloadDirectory = dirPath;
-
-        const seenPaths = new Set();
-        const lastSavePaths = [];
-        const savePromises = files.map(file => {
-          let externalPath = path.join(dirPath, file.safeDisplayName());
-          while (seenPaths.has(externalPath) || fs.existsSync(externalPath)) {
-            externalPath = this._incrementPathToAvoidCollision(externalPath);
+      AppEnv.showOpenDialog(
+        {
+          defaultPath,
+          title: localized('Save Into...'),
+          buttonLabel: localized('Download All'),
+          properties: ['openDirectory', 'createDirectory'],
+        },
+        selected => {
+          if (!selected) {
+            return;
           }
-          seenPaths.add(externalPath);
+          const dirPath = selected[0];
+          if (!dirPath) {
+            return;
+          }
+          this._lastDownloadDirectory = dirPath;
+          AppEnv.savedState.lastDownloadDirectory = dirPath;
 
-          return this._prepareAndResolveFilePath(file)
-            .then(filePath => this._writeToExternalPath(filePath, externalPath))
-            .then(() => lastSavePaths.push(externalPath));
-        });
-
-        Promise.all(savePromises)
-          .then(() => {
-            if (
-              lastSavePaths.length > 0 &&
-              AppEnv.config.get('core.attachments.openFolderAfterDownload')
-            ) {
-              shell.showItemInFolder(lastSavePaths[0]);
+          const seenPaths = new Set();
+          const lastSavePaths = [];
+          const savePromises = files.map(file => {
+            let externalPath = path.join(dirPath, file.safeDisplayName());
+            while (seenPaths.has(externalPath) || fs.existsSync(externalPath)) {
+              externalPath = this._incrementPathToAvoidCollision(externalPath);
             }
-            return resolve(lastSavePaths);
-          })
-          .catch(this._catchFSErrors)
-          .catch(error => {
-            return this._presentError({ error });
+            seenPaths.add(externalPath);
+
+            return this._prepareAndResolveFilePath(file)
+              .then(filePath => this._writeToExternalPath(filePath, externalPath))
+              .then(() => lastSavePaths.push(externalPath));
           });
-      });
+
+          Promise.all(savePromises)
+            .then(() => {
+              if (
+                lastSavePaths.length > 0 &&
+                AppEnv.config.get('core.attachments.openFolderAfterDownload')
+              ) {
+                shell.showItemInFolder(lastSavePaths[0]);
+              }
+              return resolve(lastSavePaths);
+            })
+            .catch(this._catchFSErrors)
+            .catch(error => {
+              this._presentError({ error });
+            });
+        }
+      );
     });
   };
 
@@ -309,7 +311,7 @@ class AttachmentStore extends MailspringStore {
     const name = file ? file.displayName() : localized('one or more files');
     const errorString = error ? error.toString() : '';
 
-    return remote.dialog.showMessageBox({
+    remote.dialog.showMessageBoxSync({
       type: 'warning',
       message: localized('Download Failed'),
       detail: localized(
@@ -335,7 +337,7 @@ class AttachmentStore extends MailspringStore {
     }
 
     if (message) {
-      remote.dialog.showMessageBox({
+      remote.dialog.showMessageBoxSync({
         type: 'warning',
         message: localized('Download Failed'),
         detail: `${message}\n\n${error.message}`,

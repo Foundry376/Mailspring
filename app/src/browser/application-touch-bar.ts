@@ -118,7 +118,9 @@ export default class ApplicationTouchBar {
     // Take a single linear pass through the touch bar items and place
     // consecutive items with the same `group` key into touchbar groups.
     // This results in /very slightly/ tighter spacing in the touchbar.
-    const final: Electron.TouchBarGroup[] = [];
+    const final: Array<
+      Electron.TouchBarButton | Electron.TouchBarSpacer | Electron.TouchBarGroup
+    > = [];
     let group: Array<Electron.TouchBarButton | Electron.TouchBarSpacer> = [];
     let groupName = null;
 

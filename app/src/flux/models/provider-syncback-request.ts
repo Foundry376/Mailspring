@@ -1,5 +1,5 @@
 import { Model } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 
 export default class ProviderSyncbackRequest extends Model {
   static attributes = {
@@ -10,15 +10,15 @@ export default class ProviderSyncbackRequest extends Model {
       modelKey: 'type',
     }),
 
-    error: Attributes.Object({
+    error: Attributes.Obj({
       modelKey: 'error',
     }),
 
-    props: Attributes.Object({
+    props: Attributes.Obj({
       modelKey: 'props',
     }),
 
-    responseJSON: Attributes.Object({
+    responseJSON: Attributes.Obj({
       modelKey: 'responseJSON',
       jsonKey: 'response_json',
     }),

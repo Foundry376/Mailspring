@@ -57,7 +57,7 @@ export async function postStaticAsset({ filename, blob }) {
   } else {
     body.set('file', blob, filename);
   }
-  let resp = await makeRequest({
+  const resp = await makeRequest({
     server: 'identity',
     method: 'POST',
     path: `/api/save-public-asset`,

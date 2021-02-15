@@ -61,7 +61,7 @@ export default class SheetContainer extends React.Component<{}, SheetContainerSt
     this.setState(this._getStateFromStores());
   };
 
-  _lastToolbarClickTime: number = 0;
+  _lastToolbarClickTime = 0;
 
   _onToolbarDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (process.platform !== 'darwin') return;

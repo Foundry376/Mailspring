@@ -422,7 +422,7 @@ export class TokenizingTextField extends React.Component<
     tokenClassNames: () => '',
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   constructor(props) {
     super(props);

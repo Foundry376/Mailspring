@@ -23,7 +23,7 @@ export default class NewsletterSignup extends React.Component<
     emailAddress: PropTypes.string,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   constructor(props) {
     super(props);

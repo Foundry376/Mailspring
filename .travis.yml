@@ -88,8 +88,7 @@ after_success:
   # Grab the version number from the .deb product and update the snapcraft.yml file
   - sed "s/MAILSPRING_VERSION/$(grep -E -o '([0-9]+.[0-9]+.[0-9]+)' <<< "$(find app/dist -type f -name mailspring-*.deb)")/g" snap/snapcraft.template.yaml > snap/snapcraft.yaml
   # Decrypt the snapcraft login information
-  - openssl aes-256-cbc -K $encrypted_60f7ef72bfa6_key -iv $encrypted_60f7ef72bfa6_iv
-    -in .snapcraft/travis_snapcraft.cfg -out .snapcraft/snapcraft.cfg -d
+  - openssl aes-256-cbc -K $encrypted_d506bd5213c4_key -iv $encrypted_d506bd5213c4_iv -in .snapcraft/credentials.enc -out .snapcraft/credentials -d
 
 services:
   - docker
@@ -99,5 +98,5 @@ deploy:
     branch: master
     condition: $TRAVIS_OS_NAME = linux
   provider: script
-  script: docker run -v $(pwd):$(pwd) -t snapcore/snapcraft sh -c "apt update -qq && cd $(pwd) && snapcraft && snapcraft push *.snap --release edge"
+  script: docker run -v $(pwd):$(pwd) -t snapcore/snapcraft sh -c "apt update -qq && cd $(pwd) && snapcraft && snapcraft login --with .snapcraft/credentials && (snapcraft push *.snap --release edge || true)"
   skip_cleanup: true

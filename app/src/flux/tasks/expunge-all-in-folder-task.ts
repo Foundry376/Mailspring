@@ -1,6 +1,6 @@
 import { Task } from './task';
 import { Folder } from '../models/folder';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
@@ -8,7 +8,7 @@ export class ExpungeAllInFolderTask extends Task {
   static attributes = {
     ...Task.attributes,
 
-    folder: Attributes.Object({
+    folder: Attributes.Obj({
       modelKey: 'folder',
       itemClass: Folder,
     }),

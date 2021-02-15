@@ -37,6 +37,7 @@ const VERIFIED_LANGS = [
   'ja',
   'zh-CN',
   'zh-TW',
+  'pt',
   'pt-BR',
   'gl',
   'ru',
@@ -236,7 +237,7 @@ export function localizedReactFragment(en, ...subs) {
   // Support "%@ and %@" OR "%1$@ and %2$@" which allows for param reordering.
   // The translation may contain this format even if the original string does not.
 
-  let parts = [];
+  const parts = [];
   let match = null;
   let used = 0;
   while ((match = /%(?:(\d)+\$)?@/g.exec(translated))) {

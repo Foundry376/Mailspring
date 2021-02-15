@@ -1,16 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import Moment from 'moment';
 import classNames from 'classnames';
 
-export default class CurrentTimeIndicator extends React.Component<
-  {
-    gridHeight: number;
-    numColumns: number;
-    todayColumnIdx: number;
-    visible: boolean;
-  },
+interface CurrentTimeIndicatorProps {
+  gridHeight: number;
+  numColumns: number;
+  todayColumnIdx: number;
+  visible: boolean;
+}
+
+export class CurrentTimeIndicator extends React.Component<
+  CurrentTimeIndicatorProps,
   { msecIntoDay: number }
 > {
   _movementTimer = null;
@@ -48,7 +49,7 @@ export default class CurrentTimeIndicator extends React.Component<
 
     const todayMarker =
       todayColumnIdx !== -1 ? (
-        <div style={{ left: `${Math.round(todayColumnIdx * 100 / numColumns)}%` }} />
+        <div style={{ left: `${Math.round((todayColumnIdx * 100) / numColumns)}%` }} />
       ) : null;
 
     return (

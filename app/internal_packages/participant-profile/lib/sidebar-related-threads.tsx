@@ -28,7 +28,7 @@ export default class RelatedThreads extends React.Component<
     threads: [],
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   componentDidMount() {
     this._mounted = true;

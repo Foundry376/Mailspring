@@ -27,6 +27,7 @@ export default [
       ['core:mark-as-unread', localized('Mark as %@', localized('Unread'))],
       ['core:mark-important', localized('Mark as %@', localized('Important')) + ' (Gmail)'],
       ['core:mark-unimportant', localized('Mark as %@', localized('Not Important')) + ' (Gmail)'],
+      ['thread-list:mark-all-as-read', localized('Mark All as %@', localized('Read'))],
       ['core:remove-and-previous', localized('Remove and show previous')],
       ['core:remove-and-next', localized('Remove and show next')],
     ],

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {
@@ -19,6 +19,7 @@ interface AccountContactFieldProps {
   draft: Message;
   onChange: (val: { from: Contact[]; cc: Contact[]; bcc: Contact[] }) => void;
 }
+
 export default class AccountContactField extends React.Component<AccountContactFieldProps> {
   static displayName = 'AccountContactField';
 
@@ -58,6 +59,18 @@ export default class AccountContactField extends React.Component<AccountContactF
     const label = this.props.value.toString();
     const multipleAccounts = this.props.accounts.length > 1;
     const hasAliases = this.props.accounts[0] && this.props.accounts[0].aliases.length > 0;
+    const account = AccountStore.accountForEmail(this.props.value.email);
+    let style: CSSProperties = {
+    }
+    if (account && account.color) {
+      style = {
+        ...style,
+        borderLeftColor: account.color,
+        paddingLeft: '8px',
+        borderLeftWidth: '8px',
+        borderLeftStyle: 'solid',
+      }
+    }
 
     if (multipleAccounts || hasAliases) {
       return (
@@ -66,28 +79,48 @@ export default class AccountContactField extends React.Component<AccountContactF
             this._dropdownComponent = cm;
           }}
           bordered={false}
-          primaryItem={<span>{label}</span>}
+          primaryItem={<span style={style}>{label}</span>}
           menu={this._renderAccounts(this.props.accounts)}
         />
       );
     }
-    return this._renderAccountSpan(label);
+    return this._renderAccountSpan(label, style);
   }
 
-  _renderAccountSpan = label => {
+  _renderAccountSpan = (label, style) => {
+    style = {
+      ...style,
+      position: 'relative',
+      top: 13,
+      left: '0.5em',
+    }
+
     return (
-      <span className="from-single-name" style={{ position: 'relative', top: 13, left: '0.5em' }}>
+      <span className="from-single-name" style={style}>
         {label}
       </span>
     );
   };
 
   _renderMenuItem = contact => {
+    const account = AccountStore.accountForId(contact.accountId)
+    let style: CSSProperties = {}
+    if (account && account.color) {
+      style = {
+        ...style,
+        borderLeftColor: account.color,
+        paddingLeft: '8px',
+        borderLeftWidth: '8px',
+        borderLeftStyle: 'solid',
+      }
+    }
     const className = classnames({
       contact: true,
       'is-alias': contact.isAlias,
     });
-    return <span className={className}>{contact.toString()}</span>;
+    return <div className={className} style={style}>
+      {contact.toString()}
+    </div>;
   };
 
   _renderAccounts(accounts) {

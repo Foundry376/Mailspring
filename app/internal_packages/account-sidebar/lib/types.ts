@@ -12,7 +12,7 @@ export interface ISidebarItem {
   collapsed: boolean;
   counterStyle: string;
   onDelete?: () => void;
-  onEdited?: () => void;
+  onEdited?: (item, name: string) => void;
   onCollapseToggled: () => void;
   onDrop: (item, event) => void;
   shouldAcceptDrop: (item, event) => void;
@@ -27,6 +27,7 @@ export interface ISidebarSection {
   items: ISidebarItem[];
   iconName?: string;
   collapsed?: boolean;
+  titleColor?: string;
   onCollapseToggled?: () => void;
   onItemCreated?: (displayName) => void;
 }

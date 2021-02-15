@@ -5,7 +5,7 @@ import { File } from 'mailspring-exports';
 
 let quickPreviewWindow = null;
 let captureWindow = null;
-let captureQueue = [];
+const captureQueue = [];
 
 const FileSizeLimit = 5 * 1024 * 1024;
 const ThumbnailWidth = 320 * (11 / 8.5);
@@ -148,7 +148,7 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
       {
         label: 'Select All',
         accelerator: 'CmdOrCtrl+A',
-        role: 'selectall',
+        role: 'selectAll',
       },
     ],
   },

@@ -4,7 +4,7 @@ export function calcColor(calendarId) {
   let bgColor = AppEnv.config.get(`calendar.colors.${calendarId}`);
   if (!bgColor) {
     const hue = Utils.hueForString(calendarId);
-    bgColor = `hsla(${hue}, 50%, 45%, 0.35)`;
+    bgColor = `hsla(${hue}, 80%, 45%, 0.55)`;
   }
   return bgColor;
 }

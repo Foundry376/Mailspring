@@ -39,7 +39,7 @@ export default class AppEnvConstructor {
   windowEventHandler: import('./window-event-handler').default;
   actionBridge: import('./flux/action-bridge').default;
   mailsyncBridge: import('./flux/mailsync-bridge').default;
-  errorLogger: import('./error-logger');
+  errorLogger: any;
   savedState: any;
   isReloading: boolean;
 
@@ -401,11 +401,11 @@ export default class AppEnvConstructor {
   // Extended: Move current window to the center of the screen.
   center() {
     if (process.platform === 'linux') {
-      let dimensions = this.getWindowDimensions();
-      let display =
+      const dimensions = this.getWindowDimensions();
+      const display =
         remote.screen.getDisplayMatching(dimensions) || remote.screen.getPrimaryDisplay();
-      let x = display.bounds.x + (display.bounds.width - dimensions.width) / 2;
-      let y = display.bounds.y + (display.bounds.height - dimensions.height) / 2;
+      const x = display.bounds.x + (display.bounds.width - dimensions.width) / 2;
+      const y = display.bounds.y + (display.bounds.height - dimensions.height) / 2;
 
       return this.setPosition(x, y);
     } else {
@@ -558,12 +558,13 @@ export default class AppEnvConstructor {
   }
 
   restoreWindowDimensions() {
+    const settings = this.getLoadSettings();
     let dimensions = this.savedState.windowDimensions;
     if (!this.isValidDimensions(dimensions)) {
       dimensions = this.getDefaultWindowDimensions();
     }
     this.setWindowDimensions(dimensions);
-    if (dimensions.maximized && process.platform !== 'darwin') {
+    if (dimensions.maximized && !settings.initializeInBackground) {
       this.maximize();
     }
     if (dimensions.fullScreen) {
@@ -679,8 +680,8 @@ export default class AppEnvConstructor {
     );
 
     const browserWindow = this.getCurrentWindow();
-    if (browserWindow.isResizable() !== loadSettings.resizable) {
-      browserWindow.setResizable(loadSettings.resizable);
+    if (browserWindow.resizable !== loadSettings.resizable) {
+      browserWindow.resizable = loadSettings.resizable;
     }
 
     if (!loadSettings.hidden) {
@@ -781,18 +782,20 @@ export default class AppEnvConstructor {
     remote.process.exit(status);
   }
 
-  showOpenDialog(options, callback) {
-    return callback(remote.dialog.showOpenDialog(this.getCurrentWindow(), options));
+  async showOpenDialog(options: Electron.OpenDialogOptions, callback: (paths: string[]) => void) {
+    const result = await remote.dialog.showOpenDialog(this.getCurrentWindow(), options);
+    callback(result.filePaths);
   }
 
-  showSaveDialog(options, callback) {
+  async showSaveDialog(options: Electron.SaveDialogOptions, callback: (path: string) => void) {
     if (options.title == null) {
       options.title = 'Save File';
     }
-    return callback(remote.dialog.showSaveDialog(this.getCurrentWindow(), options));
+    const result = await remote.dialog.showSaveDialog(this.getCurrentWindow(), options);
+    callback(result.filePath);
   }
 
-  showErrorDialog(
+  async showErrorDialog(
     messageData,
     { showInMainWindow, detail }: { showInMainWindow?: boolean; detail?: string } = {}
   ) {
@@ -814,33 +817,29 @@ export default class AppEnvConstructor {
     }
 
     if (!detail) {
-      return remote.dialog.showMessageBox(winToShow, {
+      return remote.dialog.showMessageBoxSync(winToShow, {
         type: 'warning',
         buttons: [localized('Okay')],
         message: title,
         detail: message,
       });
     }
-    return remote.dialog.showMessageBox(
-      winToShow,
-      {
-        type: 'warning',
-        buttons: [localized('Okay'), localized('Show Detail')],
-        message: title,
-        detail: message,
-      },
-      buttonIndex => {
-        if (buttonIndex === 1) {
-          const { Actions } = require('mailspring-exports');
-          const { CodeSnippet } = require('mailspring-component-kit');
-          Actions.openModal({
-            component: CodeSnippet({ intro: message, code: detail, className: 'error-details' }),
-            width: 500,
-            height: 300,
-          });
-        }
-      }
-    );
+
+    const result = remote.dialog.showMessageBoxSync(winToShow, {
+      type: 'warning',
+      buttons: [localized('Okay'), localized('Show Detail')],
+      message: title,
+      detail: message,
+    });
+    if (result === 1) {
+      const { Actions } = require('mailspring-exports');
+      const { CodeSnippet } = require('mailspring-component-kit');
+      Actions.openModal({
+        component: CodeSnippet({ intro: message, code: detail, className: 'error-details' }),
+        width: 500,
+        height: 300,
+      });
+    }
   }
 
   // Delegate to the browser's process fileListCache
@@ -859,7 +858,7 @@ export default class AppEnvConstructor {
 
   restoreWindowState() {
     try {
-      let stateString = window.localStorage.getItem(this.getWindowStateKey());
+      const stateString = window.localStorage.getItem(this.getWindowStateKey());
       if (stateString != null) {
         this.savedState = JSON.parse(stateString);
       }

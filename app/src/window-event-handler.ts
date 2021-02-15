@@ -70,7 +70,7 @@ export default class WindowEventHandler {
       window.dispatchEvent(new Event('scroll-touch-end'));
     });
 
-    window.onbeforeunload = () => {
+    window.onbeforeunload = e => {
       if (AppEnv.inSpecMode()) {
         return undefined;
       }
@@ -84,6 +84,7 @@ export default class WindowEventHandler {
         AppEnv.saveWindowStateAndUnload();
         return undefined;
       }
+      e.preventDefault();
       return false;
     };
 
@@ -146,7 +147,7 @@ export default class WindowEventHandler {
       'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
       'core:redo': e => (isTextInput(e.target) ? webContents.redo() : getUndoStore().redo()),
       'core:select-all': e =>
-        isIFrame(e.target) || isTextInput(e.target) ? webContents.selectAll() : null,
+        isIFrame(e.target) || isTextInput(e.target) ? webContents.selectAll() : AppEnv.commands.dispatch('multiselect-list:select-all'),
     });
 
     // "Pinch to zoom" on the Mac gets translated by the system into a
@@ -163,6 +164,7 @@ export default class WindowEventHandler {
     document.addEventListener('click', (event: MouseEvent) => {
       if ((event.target as HTMLElement).closest('[href]')) {
         this.openLink(event);
+        event.preventDefault();
       }
     });
 

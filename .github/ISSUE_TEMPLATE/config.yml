@@ -1,5 +1,17 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Mailspring Knowledge Base
-    url: https://support.getmailspring.com
-    about: If you're curious about how to use Mailspring or looking for instructions, you may find what you need in our knowledge base!
+  - name: Report Bug
+    url: https://community.getmailspring.com/c/bugs
+    about: Report a bug in the Mailspring client.
+  - name: Report Service Issue
+    url: https://community.getmailspring.com/c/service-issues
+    about: Report Mailspring account and Premium service problems.
+  - name: Report Sync Issue
+    url: https://community.getmailspring.com/c/sync
+    about: Report sync problems between Mailspring and an email service.
+  - name: Report Packaging Issue
+    url: https://community.getmailspring.com/c/packaging
+    about: Report problems with Mailspring packaging or installation.
+  - name: Suggest a Feature
+    url: https://community.getmailspring.com/c/features
+    about: Suggest a feature for Mailspring.

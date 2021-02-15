@@ -5,6 +5,7 @@ import {
   Actions,
   MailspringAPIRequest,
   RegExpUtils,
+  FeatureLexicon,
 } from 'mailspring-exports';
 
 export const TranslatePopupOptions = {
@@ -118,7 +119,7 @@ export const AllLanguages = {
   ms: 'Malay',
 };
 
-export const TranslationsUsedLexicon = {
+export const TranslationsUsedLexicon: FeatureLexicon = {
   headerText: localized('All Translations Used'),
   rechargeText: `${localized(
     'You can translate up to %1$@ emails each %2$@ with Mailspring Basic.'
@@ -184,13 +185,13 @@ function forEachTranslatableText(doc: Document, callback: (el: Node, text: strin
 // We maintain a cache of blocks of text we've translated. Because the user may have a whole
 // mailbox of very similar or templated emails, this can cut down on the amount of text we
 // need to translate for a new email dramatically.
-let translatedSnippetCache = new LRU<string, string>({ max: 1000 });
+const translatedSnippetCache = new LRU<string, string>({ max: 1000 });
 let translatedSnippetLang = '';
 
 export async function translateMessageBody(
   html: string,
   targetLang?: string,
-  silent: boolean = false
+  silent = false
 ): Promise<string | false> {
   if (translatedSnippetLang !== targetLang) {
     translatedSnippetCache.reset();

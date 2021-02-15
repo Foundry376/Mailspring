@@ -237,7 +237,7 @@ export default class SidebarParticipantProfile extends React.Component<
     order: 0,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
 
   state: SidebarParticipantProfileState = {
     trialing: !IdentityStore.hasProFeatures(),

@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 /*
  * decaffeinate suggestions:
  * DS207: Consider shorter variations of null checks
@@ -14,7 +15,7 @@ export function waitFor(latch, options: { timeout?: number } = {}) {
   const timeout = options.timeout || 400;
   const expire = Date.now() + timeout;
   return new Promise(function(resolve, reject) {
-    var attempt = function() {
+    const attempt = () => {
       if (Date.now() > expire) {
         return reject(new Error(`Utils.waitFor hit timeout (${timeout}ms) without firing.`));
       }
@@ -79,7 +80,7 @@ export function convertToModel(json) {
 
 export function fastOmit(props, without) {
   const otherProps = Object.assign({}, props);
-  for (let w of without) {
+  for (const w of without) {
     delete otherProps[w];
   }
   return otherProps;
@@ -94,9 +95,9 @@ export function escapeRegExp(str) {
 }
 
 export function range(left, right, inclusive = true) {
-  let range = [];
-  let ascending = left < right;
-  let end = !inclusive ? right : ascending ? right + 1 : right - 1;
+  const range = [];
+  const ascending = left < right;
+  const end = !inclusive ? right : ascending ? right + 1 : right - 1;
   for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
     range.push(i);
   }
@@ -115,7 +116,7 @@ export function wordSearchRegExp(str = '') {
 // Takes an optional customizer. The customizer is passed the key and the
 // new cloned value for that key. The customizer is expected to either
 // modify the value and return it or simply be the identity function.
-export function deepClone(object, customizer?, stackSeen = [], stackRefs = []) {
+export function deepClone<T>(object: T, customizer?, stackSeen = [], stackRefs = []): T {
   let newObject;
   if (!_.isObject(object)) {
     return object;
@@ -145,7 +146,7 @@ export function deepClone(object, customizer?, stackSeen = [], stackRefs = []) {
 
   // It's important to use getOwnPropertyNames instead of Object.keys to
   // get the non-enumerable items as well.
-  for (let key of Object.getOwnPropertyNames(object)) {
+  for (const key of Object.getOwnPropertyNames(object)) {
     const newVal = deepClone(object[key], customizer, stackSeen, stackRefs);
     if (_.isFunction(customizer)) {
       newObject[key] = customizer(key, newVal);
@@ -158,7 +159,7 @@ export function deepClone(object, customizer?, stackSeen = [], stackRefs = []) {
 
 export function toSet(arr = []) {
   const set = {};
-  for (let item of arr) {
+  for (const item of arr) {
     set[item] = true;
   }
   return set;
@@ -406,7 +407,6 @@ export function isEqual(
       console.log('isEqual is false', a, b, options);
     }
     return value;
-  } else {
   }
   return value;
 }

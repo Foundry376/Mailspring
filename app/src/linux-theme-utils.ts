@@ -224,7 +224,7 @@ function getIconFromTheme(
   scale: 1 | 2 = 1
 ) {
   const icons = __getAllIconPaths(theme, iconName, size, contexts, scale);
-  for (let path of icons) {
+  for (const path of icons) {
     if (fs.existsSync(path)) {
       return fs.realpathSync(path);
     }
@@ -258,7 +258,7 @@ function getIconPath(iconName: string, size: number, context: string | string[],
   }
 
   // in case the icon was not found in the theme, we search the inherited themes
-  for (let key of inherits) {
+  for (const key of inherits) {
     const inheritsTheme = getIconTheme(inherits[key]);
     if (!inheritsTheme) continue;
     icon = getIconFromTheme(inheritsTheme, iconName, size, context);

@@ -44,7 +44,7 @@ class SnoozePopover extends Component<{
     swipeCallback: () => {},
   };
 
-  didSnooze: boolean = false;
+  didSnooze = false;
 
   componentWillUnmount() {
     this.props.swipeCallback(this.didSnooze);

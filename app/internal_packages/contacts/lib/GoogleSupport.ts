@@ -10,7 +10,7 @@ export const showGPeopleReadonlyNotice = (accountId: string) => {
     acct.provider === 'gmail' &&
     (!acct.authedAt || acct.authedAt < CONTACTS_OAUTH_SCOPE_ADDED)
   ) {
-    remote.dialog.showMessageBox({
+    remote.dialog.showMessageBoxSync({
       message: localized(`Please re-authenticate with Google`),
       detail: localized(
         `To make changes to contacts in this account, you'll need to re-authorize Mailspring to access your data.\n\n` +

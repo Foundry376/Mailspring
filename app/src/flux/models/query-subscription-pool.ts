@@ -2,6 +2,7 @@
 import { QuerySubscription } from './query-subscription';
 import DatabaseChangeRecord from '../stores/database-change-record';
 import ModelQuery from './query';
+import { Model } from './model';
 let DatabaseStore = null;
 
 /*
@@ -97,7 +98,7 @@ class QuerySubscriptionPool {
     return stack.slice(ii, ii + 4).join('\n');
   }
 
-  _keyForQuery<T>(query: ModelQuery<T>) {
+  _keyForQuery<T extends Model | Model[]>(query: ModelQuery<T>) {
     return query.sql();
   }
 

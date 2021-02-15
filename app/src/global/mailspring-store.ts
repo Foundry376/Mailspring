@@ -2,11 +2,18 @@ import { EventEmitter } from 'events';
 
 // A very, very simple Flux implementation
 
-export default class MailspringStore {
-  _emitter: EventEmitter;
-  subscriptions: Array<{ stop: () => void; listenable: { hasListener?: (a: any) => boolean } }>;
+export type ListenableCallback = (...args: any[]) => void;
 
-  hasListener(listenable) {
+export interface Listenable {
+  listen: (callback: ListenableCallback, thisArg: MailspringStore) => () => void;
+  hasListener?: (a: any) => boolean;
+}
+
+export default class MailspringStore implements Listenable {
+  _emitter: EventEmitter;
+  subscriptions: Array<{ stop: () => void; listenable: Listenable }>;
+
+  hasListener(listenable: Listenable) {
     for (const sub of this.subscriptions || []) {
       if (
         sub.listenable === listenable ||
@@ -18,7 +25,7 @@ export default class MailspringStore {
     return false;
   }
 
-  validateListening(listenable) {
+  validateListening(listenable: Listenable) {
     if (listenable === this) {
       return 'Listener is not able to listen to itself';
     }
@@ -32,7 +39,7 @@ export default class MailspringStore {
     }
   }
 
-  listenTo(listenable, callback, defaultCallback = null) {
+  listenTo(listenable: Listenable, callback: ListenableCallback) {
     this.subscriptions = this.subscriptions || [];
 
     const err = this.validateListening(listenable);
@@ -40,13 +47,10 @@ export default class MailspringStore {
       throw err;
     }
 
-    this.fetchInitialState(listenable, defaultCallback);
-
-    const resolvedCallback = this[callback] || callback;
-    if (!resolvedCallback) {
-      throw new Error('@listenTo called with undefined callback');
+    if (!callback) {
+      throw new Error('@listenTo called with no callback');
     }
-    const desub = listenable.listen(resolvedCallback, this);
+    const desub = listenable.listen(callback, this);
 
     const subscription = {
       stop: () => {
@@ -64,7 +68,7 @@ export default class MailspringStore {
     return subscription;
   }
 
-  stopListeningTo(listenable) {
+  stopListeningTo(listenable: Listenable) {
     const subs = this.subscriptions || [];
     for (const sub of subs) {
       if (sub.listenable === listenable) {
@@ -89,19 +93,6 @@ export default class MailspringStore {
     }
   }
 
-  fetchInitialState(listenable, defaultCallback = null) {
-    defaultCallback = (defaultCallback && this[defaultCallback]) || defaultCallback;
-    const me = this;
-    if (defaultCallback instanceof Function && listenable.getInitialState instanceof Function) {
-      const data = listenable.getInitialState();
-      if (data && data.then instanceof Function) {
-        data.then(() => defaultCallback.apply(me, arguments));
-      } else {
-        defaultCallback.call(this, data);
-      }
-    }
-  }
-
   setupEmitter() {
     if (this._emitter) {
       return;
@@ -112,7 +103,7 @@ export default class MailspringStore {
     return this._emitter.setMaxListeners(250);
   }
 
-  listen(callback: (...args: any[]) => void, bindContext: object = this) {
+  listen(callback: ListenableCallback, bindContext: object = this) {
     if (!callback) {
       throw new Error('@listen called with undefined callback');
     }

@@ -1,4 +1,5 @@
 import { Node, Editor, Value, Mark, Block, Inline } from 'slate';
+import { Plugin, RenderMarkProps } from 'slate-react';
 
 export interface Rule {
   deserialize?: (
@@ -8,11 +9,11 @@ export interface Rule {
   serialize?: (obj: any, children: string) => React.ReactNode | void;
 }
 
-export interface ComposerEditorPlugin {
+export interface ComposerEditorPlugin extends Omit<Plugin, 'onKeyDown'> {
   renderMark?: (
-    { mark, children, targetIsHTML }: { mark: Mark; children: any; targetIsHTML?: boolean },
-    editor: Editor | null,
-    next: () => void
+    { mark, children, targetIsHTML }: RenderMarkProps & { targetIsHTML?: boolean },
+    editor?: Editor,
+    next?: () => void
   ) => void | string | JSX.Element;
 
   renderNode?: (
@@ -27,15 +28,11 @@ export interface ComposerEditorPlugin {
   toolbarComponents?: React.ComponentType<ComposerEditorPluginToolbarComponentProps>[];
   toolbarSectionClass?: string;
 
-  commands?: { [command: string]: (event: CustomEvent, editor: Editor) => Editor };
+  appCommands?: { [command: string]: (event: CustomEvent, editor: Editor) => Editor };
 
   onChange?(editor: Editor, next: () => void);
-  onPaste?: (event, editor: Editor, next: () => void) => void;
-  onKeyDown?: (event, editor: Editor, next: () => void) => void;
-  onKeyUp?: (event, editor: Editor, next: () => void) => void;
-  onClick?: (event, editor: Editor, next: () => void) => void;
-  onCompositionStart?: (event, editor: Editor, next: () => void) => void;
-  onCompositionEnd?: (event, editor: Editor, next: () => void) => void;
+  onKeyDown?: (event: React.KeyboardEvent, editor: Editor, next: () => void) => void;
+  onKeyUp?: (event: React.KeyboardEvent, editor: Editor, next: () => void) => void;
 }
 
 export interface ComposerEditorPluginToolbarComponentProps {

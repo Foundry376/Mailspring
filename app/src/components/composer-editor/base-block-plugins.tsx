@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor, Value, Node } from 'slate';
+import { Editor, Value, Node, Block } from 'slate';
 import SoftBreak from 'slate-soft-break';
 import EditList from '@bengotow/slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
@@ -15,7 +15,7 @@ function nodeIsEmpty(node: Node) {
   }
 
   if (node.object !== 'text') {
-    let children = ((node.nodes.toArray ? node.nodes.toArray() : node.nodes) || []) as any;
+    const children = ((node.nodes.toArray ? node.nodes.toArray() : node.nodes) || []) as any;
     if (children.length === 0) {
       return true;
     }
@@ -132,7 +132,7 @@ export const BLOCK_CONFIG: {
         } else {
           const value = editor.value;
           // Collect all the text fragments which are being converted to a code block
-          let texts = value.document
+          const texts = value.document
             .getTextsAtRange(value.selection as any)
             .toArray()
             .map(t => {
@@ -258,7 +258,7 @@ const rules = [
 
       // div elements that are entirely empty and have no meaningful-looking styles applied
       // would probably just add extra whitespace
-      let empty = !el.hasChildNodes();
+      const empty = !el.hasChildNodes();
       if (tagName === 'div' && empty) {
         const s = (el.getAttribute('style') || '').toLowerCase();
         if (!s.includes('background') && !s.includes('margin') && !s.includes('padding')) {
@@ -370,7 +370,7 @@ const MailspringBaseBlockPlugin: ComposerEditorPlugin = {
     .filter(config => config.button)
     .map(BuildToggleButton),
   renderNode,
-  commands: {
+  appCommands: {
     'core:select-all': (event, editor: Editor) => {
       // If the document contains void blocks the browser's natural solution is to set
       // the selection to a DOM fragment range not to a contenteditable text range
@@ -420,8 +420,8 @@ const plugins: ComposerEditorPlugin[] = [
 
   // Pressing backspace when you're at the top of the document should not delete down
   {
-    onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
-      if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
+    onKeyDown: function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
+      if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.altKey) {
         return next();
       }
       const { selection, focusText, document } = editor.value;
@@ -444,7 +444,7 @@ const plugins: ComposerEditorPlugin[] = [
 
   // Return breaks you out of blockquotes completely
   {
-    onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
+    onKeyDown: function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
       if (event.shiftKey) {
         return next();
       }

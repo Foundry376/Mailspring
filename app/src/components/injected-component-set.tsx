@@ -87,7 +87,7 @@ export class InjectedComponentSet extends React.Component<
     containersRequired: true,
   };
 
-  _mounted: boolean = false;
+  _mounted = false;
   _componentUnlistener?: () => void;
 
   constructor(props, context) {
