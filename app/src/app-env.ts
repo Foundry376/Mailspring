@@ -598,7 +598,6 @@ export default class AppEnvConstructor {
   }
 
   getThreadListVerticalHeight() {
-    console.log("Get Thread List Vertical Height,", this.savedState.threadListVerticalHeight);
     return this.savedState.threadListVerticalHeight;
   }
 
