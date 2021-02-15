@@ -1,5 +1,6 @@
 import React from 'react';
-import { PropTypes, MailspringAPIRequest } from 'mailspring-exports';
+import qs from 'querystring';
+import { PropTypes, MailspringAPIRequest, IdentityAuthResponse } from 'mailspring-exports';
 import { Webview } from 'mailspring-component-kit';
 import * as OnboardingActions from './onboarding-actions';
 
@@ -11,23 +12,23 @@ export default class AuthenticatePage extends React.Component {
   };
 
   _src() {
-    const n1Version = AppEnv.getVersion();
-    return `${MailspringAPIRequest.rootURLForServer(
-      'identity'
-    )}/onboarding?utm_medium=N1&utm_source=OnboardingPage&N1_version=${n1Version}&client_edition=basic`;
+    return `${MailspringAPIRequest.rootURLForServer('identity')}/onboarding?${qs.stringify({
+      version: AppEnv.getVersion(),
+      skipSupported: true,
+    })}`;
   }
 
-  _onDidFinishLoad = webview => {
+  _onDidFinishLoad = async (webview: Electron.WebviewTag) => {
     const receiveUserInfo = `
       var a = document.querySelector('#identity-result');
       result = a ? a.innerText : null;
     `;
-    webview.executeJavaScript(receiveUserInfo, false, result => {
-      this.setState({ ready: true, webviewLoading: false });
-      if (result !== null) {
-        OnboardingActions.identityJSONReceived(JSON.parse(atob(result)));
-      }
-    });
+    const result = await webview.executeJavaScript(receiveUserInfo, false);
+    this.setState({ ready: true, webviewLoading: false });
+    if (result !== null) {
+      const parsed = JSON.parse(atob(result)) as IdentityAuthResponse;
+      OnboardingActions.identityJSONReceived(parsed);
+    }
 
     const openExternalLink = `
       var el = document.querySelector('.open-external');

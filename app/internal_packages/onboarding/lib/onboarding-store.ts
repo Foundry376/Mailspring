@@ -1,4 +1,10 @@
-import { localized, AccountStore, Account, IdentityStore } from 'mailspring-exports';
+import {
+  localized,
+  AccountStore,
+  Account,
+  IdentityStore,
+  IdentityAuthResponse,
+} from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 
@@ -111,17 +117,22 @@ class OnboardingStore extends MailspringStore {
     this.trigger();
   };
 
-  _onIdentityJSONReceived = async json => {
+  _onIdentityJSONReceived = async (json: IdentityAuthResponse) => {
     const isFirstAccount = AccountStore.accounts().length === 0;
+    const emptyAccount = this._account.clone();
 
-    await IdentityStore.saveIdentity(json);
+    if ('skipped' in json) {
+      await IdentityStore.saveIdentity(null);
+    } else {
+      await IdentityStore.saveIdentity(json);
+
+      emptyAccount.name = `${json.firstName || ''} ${json.lastName || ''}`;
+      emptyAccount.emailAddress = json.emailAddress;
+    }
 
     setTimeout(() => {
       if (isFirstAccount) {
-        const next = this._account.clone();
-        next.name = `${json.firstName || ''} ${json.lastName || ''}`;
-        next.emailAddress = json.emailAddress;
-        this._onSetAccount(next);
+        this._onSetAccount(emptyAccount);
         OnboardingActions.moveToPage('account-choose');
       } else {
         this._onOnboardingComplete();

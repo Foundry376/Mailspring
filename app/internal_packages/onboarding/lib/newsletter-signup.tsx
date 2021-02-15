@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
-import { localized, MailspringAPIRequest } from 'mailspring-exports';
+import { IdentityStore, localized, MailspringAPIRequest } from 'mailspring-exports';
 
 interface NewsletterSignupProps {
   name: string;
@@ -54,6 +54,11 @@ export default class NewsletterSignup extends React.Component<
 
   _onGetStatus = async (props = this.props) => {
     this._setState({ status: 'Pending' });
+
+    if (!IdentityStore.identity()) {
+      return;
+    }
+
     try {
       const { status } = await MailspringAPIRequest.makeRequest({
         server: 'identity',
@@ -144,6 +149,10 @@ export default class NewsletterSignup extends React.Component<
   }
 
   render() {
+    if (!IdentityStore.identity()) {
+      return <span />;
+    }
+
     return (
       <Flexbox direction="row" height="auto" style={{ textAlign: 'left' }}>
         <div style={{ minWidth: 15 }}>{this._renderControl()}</div>

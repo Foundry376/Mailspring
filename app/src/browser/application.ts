@@ -269,9 +269,8 @@ export default class Application extends EventEmitter {
 
     const accounts = this.config.get('accounts');
     const hasAccount = accounts && accounts.length > 0;
-    const hasIdentity = this.config.get('identity.id');
 
-    if (hasAccount && hasIdentity) {
+    if (hasAccount) {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
     } else {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
@@ -355,6 +354,19 @@ export default class Application extends EventEmitter {
         return;
       }
       win.browserWindow.inspectElement(x, y);
+    });
+
+    this.on('application:add-identity', () => {
+      const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
+      if (onboarding) {
+        onboarding.show();
+        onboarding.focus();
+      } else {
+        this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
+          title: localized('Welcome to Mailspring'),
+          windowProps: {},
+        });
+      }
     });
 
     this.on('application:add-account', ({ existingAccountJSON } = {}) => {
