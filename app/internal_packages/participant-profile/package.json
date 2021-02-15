@@ -4,7 +4,8 @@
   "title": "Participant Profile",
   "description": "Information about a participant",
 
-  "isOptional": false,
+  "isOptional": true,
+  "isIdentityRequired": true,
 
   "main": "lib/main",
   "windowTypes": {

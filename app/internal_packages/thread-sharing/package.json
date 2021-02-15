@@ -7,6 +7,8 @@
     "production": "https://share.getmailspring.com"
   },
 
+  "isOptional": true,
+  "isIdentityRequired": true,
   "title": "Thread Sharing",
   "description": "Share a thread through the web.",
   "main": "./lib/main",

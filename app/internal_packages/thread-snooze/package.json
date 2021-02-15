@@ -4,6 +4,8 @@
   "title": "Thread Snooze",
   "description": "Snooze mail!",
   "main": "lib/main",
+  "isOptional": true,
+  "isIdentityRequired": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
