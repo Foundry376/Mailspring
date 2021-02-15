@@ -31,17 +31,6 @@ export interface IIdentity {
 
 export type IdentityAuthResponse = IIdentity | { skipped: true };
 
-export const EMPTY_IDENTITY: IIdentity = {
-  id: '',
-  token: '',
-  firstName: '',
-  lastName: '',
-  emailAddress: '',
-  stripePlan: 'basic',
-  stripePlanEffective: '',
-  featureUsage: {},
-};
-
 export const EMPTY_FEATURE_USAGE = {
   featureLimitName: 'pro',
   period: 'monthly',
@@ -140,9 +129,10 @@ class _IdentityStore extends MailspringStore {
    * cache and set the token from the keychain.
    */
   _onIdentityChanged = async () => {
-    const next = Object.assign({}, AppEnv.config.get('identity') || {});
-    next.token = await KeyManager.getPassword(KEYCHAIN_NAME);
-    this._identity = next;
+    const value = AppEnv.config.get('identity');
+    this._identity = value
+      ? { ...value, token: await KeyManager.getPassword(KEYCHAIN_NAME) }
+      : null;
     this.trigger();
   };
 

@@ -5,10 +5,9 @@ import {
   localized,
   localizedReactFragment,
   IIdentity,
-  EMPTY_IDENTITY,
 } from 'mailspring-exports';
 import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
-import { shell } from 'electron';
+import { shell, ipcRenderer } from 'electron';
 
 class RefreshButton extends React.Component<{}, { refreshing: boolean }> {
   constructor(props) {
@@ -137,7 +136,7 @@ const ProTourFeatures = [
   },
 ];
 
-class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
+class PreferencesIdentity extends React.Component<{}, { identity: IIdentity | null }> {
   static displayName = 'PreferencesIdentity';
 
   unsubscribe: () => void;
@@ -159,7 +158,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
 
   _getStateFromStores() {
     return {
-      identity: IdentityStore.identity() || { ...EMPTY_IDENTITY },
+      identity: IdentityStore.identity(),
     };
   }
 
@@ -171,7 +170,38 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
     });
   };
 
-  _renderBasic() {
+  _onLinkIdentity = () => {
+    ipcRenderer.send('command', 'application:add-identity');
+  };
+
+  _renderNoIdentity() {
+    return (
+      <>
+        <div className="row padded">
+          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            <div className="basic-explanation" style={{ display: 'flex' }}>
+              {localizedReactFragment(
+                `You are not signed in to Mailspring. Link the app to a free Mailspring ID to use great free features like send later and snoozing, or upgrade to Mailspring Pro for unlimited message translation and more.`
+              )}
+              <div
+                className="btn btn-emphasis"
+                onClick={this._onLinkIdentity}
+                style={{ verticalAlign: 'top', flexShrink: 0, marginLeft: 30 }}
+              >
+                <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} />{' '}
+                {localized(`Setup Mailspring ID`)}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="row padded" style={{ paddingTop: 0 }}>
+          <ExploreMailspringPro />
+        </div>
+      </>
+    );
+  }
+
+  _renderBasicPlan() {
     const onLearnMore = () => shell.openExternal('https://getmailspring.com/pro');
     return (
       <div className="row padded">
@@ -193,92 +223,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
               `Upgrade to %@ to use all these great features permanently:`,
               <a onClick={onLearnMore}>{localized('Mailspring Pro')}</a>
             )}
-            <div className="features">
-              <ul>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Rich contact profiles`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Follow-up reminders`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Read Receipts`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Link tracking`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Powerful template support`)}
-                </li>
-              </ul>
-              <ul>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Send Later`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Company overviews`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Snooze messages`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`Mailbox insights`)}
-                </li>
-                <li>
-                  <RetinaImg
-                    name="pro-feature-checkmark.png"
-                    style={{ paddingRight: 8 }}
-                    mode={RetinaImg.Mode.ContentDark}
-                  />
-                  {localized(`... and much more!`)}
-                </li>
-              </ul>
-            </div>
+            <ExploreMailspringSmall />
           </div>
           <div className="subscription-actions">
             <div className="pro-feature-ring">
@@ -296,6 +241,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
             </div>
           </div>
         </div>
+        <ExploreMailspringPro />
       </div>
     );
   }
@@ -325,25 +271,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
           )}
           {unpaidNote}
         </div>
-        <div className="feature-explore-title">{localized('Explore Mailspring Pro')}</div>
-        <div className="feature-explore-grid">
-          {ProTourFeatures.map(item => (
-            <a key={item.title} className="feature" href={item.link}>
-              <div className="popout">
-                <RetinaImg name="thread-popout.png" mode={RetinaImg.Mode.ContentDark} />
-              </div>
-              <h3>
-                <RetinaImg
-                  name={item.icon}
-                  style={{ paddingRight: 8 }}
-                  mode={RetinaImg.Mode.ContentDark}
-                />
-                {item.title}
-              </h3>
-              <p>{item.text}</p>
-            </a>
-          ))}
-        </div>
+        <ExploreMailspringPro />
         <div style={{ paddingTop: 15 }}>
           <OpenIdentityPageButton
             label={localized('Manage Billing')}
@@ -358,46 +286,162 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
 
   render() {
     const { identity } = this.state;
-    const {
-      firstName,
-      lastName,
-      emailAddress,
-      stripePlan = '',
-      stripePlanEffective = '',
-    } = identity;
-
-    const logout = () => Actions.logoutMailspringIdentity();
+    const stripePlan = identity ? identity.stripePlan : null;
 
     return (
       <div className="container-identity">
         <div className="identity-content-box">
-          <div className="row padded">
-            <div className="identity-info">
-              <RefreshButton />
-              <div className="name">
-                {firstName} {lastName}
-              </div>
-              <div className="email">{emailAddress}</div>
-              <div className="identity-actions">
-                <OpenIdentityPageButton
-                  label={localized('Account Details')}
-                  path="/dashboard"
-                  source="Preferences"
-                  campaign="Dashboard"
-                />
-                <div className="btn minor-width" onClick={logout}>
-                  {localized('Sign Out')}
-                </div>
-              </div>
-            </div>
-          </div>
-          {stripePlan === 'Basic'
-            ? this._renderBasic()
-            : this._renderPaidPlan(stripePlan, stripePlanEffective)}
+          {identity && <IdentitySummary identity={identity} />}
+
+          {!stripePlan
+            ? this._renderNoIdentity()
+            : stripePlan === 'Basic'
+            ? this._renderBasicPlan()
+            : this._renderPaidPlan(stripePlan, identity.stripePlanEffective)}
         </div>
       </div>
     );
   }
 }
+
+const ExploreMailspringSmall: React.FunctionComponent = () => (
+  <div className="features">
+    <ul>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Rich contact profiles`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Follow-up reminders`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Read Receipts`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Link tracking`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Powerful template support`)}
+      </li>
+    </ul>
+    <ul>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Send Later`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Company overviews`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Snooze messages`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`Mailbox insights`)}
+      </li>
+      <li>
+        <RetinaImg
+          name="pro-feature-checkmark.png"
+          style={{ paddingRight: 8 }}
+          mode={RetinaImg.Mode.ContentDark}
+        />
+        {localized(`... and much more!`)}
+      </li>
+    </ul>
+  </div>
+);
+
+const ExploreMailspringPro: React.FunctionComponent = () => (
+  <>
+    <div className="feature-explore-title">{localized('Explore Mailspring Pro')}</div>
+    <div className="feature-explore-grid">
+      {ProTourFeatures.map(item => (
+        <a key={item.title} className="feature" href={item.link}>
+          <div className="popout">
+            <RetinaImg name="thread-popout.png" mode={RetinaImg.Mode.ContentDark} />
+          </div>
+          <h3>
+            <RetinaImg
+              name={item.icon}
+              style={{ paddingRight: 8 }}
+              mode={RetinaImg.Mode.ContentDark}
+            />
+            {item.title}
+          </h3>
+          <p>{item.text}</p>
+        </a>
+      ))}
+    </div>
+  </>
+);
+
+const IdentitySummary: React.FunctionComponent<{ identity: IIdentity }> = props => {
+  const { firstName, lastName, emailAddress } = props.identity;
+  const logout = () => Actions.logoutMailspringIdentity();
+  return (
+    <div className="row padded">
+      <div className="identity-info">
+        <RefreshButton />
+        <div className="name">
+          {firstName} {lastName}
+        </div>
+        <div className="email">{emailAddress}</div>
+        <div className="identity-actions">
+          <OpenIdentityPageButton
+            label={localized('Account Details')}
+            path="/dashboard"
+            source="Preferences"
+            campaign="Dashboard"
+          />
+          <div className="btn minor-width" onClick={logout}>
+            {localized('Sign Out')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default PreferencesIdentity;
