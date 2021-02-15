@@ -26,7 +26,7 @@ export function activate() {
 
   ComponentRegistry.register(ToggleWithTutorialTip, {
     location: WorkspaceStore.Sheet.Threads.Toolbar.Right,
-    modes: ['split'],
+    modes: ['split', 'splitVertical'],
   });
 }
 

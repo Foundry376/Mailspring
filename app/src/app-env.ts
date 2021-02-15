@@ -594,7 +594,6 @@ export default class AppEnvConstructor {
   }
 
   storeThreadListVerticalHeight(height) {
-    console.log("Store Thread List Vertical Height:", height)
     this.savedState.threadListVerticalHeight = height;
   }
 
