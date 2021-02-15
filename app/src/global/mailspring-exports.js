@@ -145,7 +145,6 @@ load(`FeatureUsageStore`, 'flux/stores/feature-usage-store');
 load(`ThreadCountsStore`, 'flux/stores/thread-counts-store');
 load(`AttachmentStore`, 'flux/stores/attachment-store');
 load(`OnlineStatusStore`, 'flux/stores/online-status-store');
-load(`UpdateChannelStore`, 'flux/stores/update-channel-store');
 load(`PreferencesUIStore`, 'flux/stores/preferences-ui-store');
 load(`FocusedContentStore`, 'flux/stores/focused-content-store');
 load(`MessageBodyProcessor`, 'flux/stores/message-body-processor');
