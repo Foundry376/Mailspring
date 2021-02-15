@@ -29,6 +29,8 @@ export interface IIdentity {
   };
 }
 
+export type IdentityAuthResponse = IIdentity | { skipped: true };
+
 export const EMPTY_IDENTITY: IIdentity = {
   id: '',
   token: '',
@@ -103,7 +105,7 @@ class _IdentityStore extends MailspringStore {
     }, 1000 * 60 * 10); // 10 minutes
   }
 
-  async saveIdentity(identity) {
+  async saveIdentity(identity: IIdentity | null) {
     if (!identity) {
       this._identity = null;
       await KeyManager.deletePassword(KEYCHAIN_NAME);

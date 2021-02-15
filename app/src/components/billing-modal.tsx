@@ -59,7 +59,7 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
     this._mounted = false;
   }
 
-  _onDidFinishLoad = webview => {
+  _onDidFinishLoad = async (webview: Electron.WebviewTag) => {
     /**
      * Ahh webviews…
      *
@@ -73,28 +73,28 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
       var a = document.querySelector('#payment-success-data');
       result = a ? a.innerText : null;
     `;
-    webview.executeJavaScript(receiveUserInfo, false, async result => {
-      if (!result) return;
-      if (result !== IdentityStore.identityId()) {
-        AppEnv.reportError(
-          new Error(
-            'id.getmailspring.com/payment_success did not have a valid #payment-success-data field'
-          )
-        );
-      }
-      const listenForContinue = `
+
+    const result = await webview.executeJavaScript(receiveUserInfo, false);
+    if (!result) return;
+    if (result !== IdentityStore.identityId()) {
+      AppEnv.reportError(
+        new Error(
+          'id.getmailspring.com/payment_success did not have a valid #payment-success-data field'
+        )
+      );
+    }
+    const listenForContinue = `
         var el = document.querySelector('#continue-btn');
         if (el) {el.addEventListener('click', function(event) {console.log("continue clicked")})}
       `;
-      webview.executeJavaScript(listenForContinue);
-      webview.addEventListener('console-message', e => {
-        if (e.message === 'continue clicked') {
-          // See comment on componentWillUnmount
-          Actions.closeModal();
-        }
-      });
-      await IdentityStore.fetchIdentity();
+    webview.executeJavaScript(listenForContinue);
+    webview.addEventListener('console-message', e => {
+      if (e.message === 'continue clicked') {
+        // See comment on componentWillUnmount
+        Actions.closeModal();
+      }
     });
+    await IdentityStore.fetchIdentity();
 
     /**
      * If we see any links on the page, we should open them in new
