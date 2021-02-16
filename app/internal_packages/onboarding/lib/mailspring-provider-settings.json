@@ -4729,9 +4729,6 @@
   "yahoo.com.ar": {
     "alias": "yahoo.com"
   },
-  "yahoo.com.br": {
-    "alias": "yahoo.com"
-  },
   "yahoo.com.mx": {
     "alias": "yahoo.com"
   },
@@ -5744,7 +5741,7 @@
     "imap_user_format": "email",
     "smtp_host": "smtp.mail.yahoo.co.br",
     "smtp_port": "465",
-    "smtp_security": "SSL / TLS",br
+    "smtp_security": "SSL / TLS",
     "smtp_user_format": "email-without-domain",
     "smtp_authentication": [
       "password-cleartext"
