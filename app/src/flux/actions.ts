@@ -1,4 +1,5 @@
 import Reflux from 'reflux';
+import { Listenable } from 'mailspring-store';
 
 const ActionScopeWindow = 'window';
 const ActionScopeGlobal = 'global';
@@ -57,7 +58,7 @@ Section: General
 */
 
 type ActionFn = (...args: any[]) => void;
-interface Action extends ActionFn {
+interface Action extends ActionFn, Listenable {
   actionName: string;
   scope: 'window' | 'global' | 'main';
   sync: boolean;

@@ -1,4 +1,4 @@
-import Attribute from './attribute';
+import { Attribute } from './attribute';
 import { Matcher } from './matcher';
 
 /*
@@ -9,7 +9,7 @@ String attributes can be queries using `equal`, `not`, and `startsWith`. Matchin
 
 Section: Database
 */
-export default class AttributeString extends Attribute {
+export class AttributeString extends Attribute {
   toJSON(val) {
     return val;
   }

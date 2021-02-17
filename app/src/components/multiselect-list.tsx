@@ -9,7 +9,7 @@ import { KeyCommandsRegion } from 'mailspring-component-kit';
 
 import MultiselectListInteractionHandler from './multiselect-list-interaction-handler';
 import MultiselectSplitInteractionHandler from './multiselect-split-interaction-handler';
-import ListDataSource from './list-data-source';
+import { ListDataSource } from './list-data-source';
 
 export interface MultiselectListProps extends ListTabularProps {
   focusedId?: string;

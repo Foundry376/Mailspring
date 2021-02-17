@@ -49,7 +49,7 @@ class ThreadListStore extends MailspringStore {
   };
 
   selectionObservable = () => {
-    return Rx.Observable.fromListSelection(this);
+    return Rx.Observable.fromListSelection<Thread>(this);
   };
 
   // Inbound Events

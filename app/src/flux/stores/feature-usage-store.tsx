@@ -3,13 +3,19 @@ import React from 'react';
 import MailspringStore from 'mailspring-store';
 import { FeatureUsedUpModal } from 'mailspring-component-kit';
 import * as Actions from '../actions';
-import { IdentityStore } from './identity-store';
+import { IdentityStore, EMPTY_FEATURE_USAGE, IIdentity } from './identity-store';
 import { SendFeatureUsageEventTask } from '../tasks/send-feature-usage-event-task';
 import { localized } from '../../intl';
 
 class NoProAccessError extends Error {}
 
 const UsageRecordedServerSide = ['contact-profiles', 'translation'];
+
+export interface FeatureLexicon {
+  headerText: string;
+  rechargeText: string;
+  iconUrl: string;
+}
 
 /**
  * FeatureUsageStore is backed by the IdentityStore
@@ -48,7 +54,7 @@ const UsageRecordedServerSide = ['contact-profiles', 'translation'];
  * Valid periods are:
  * 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'unlimited'
  */
-class FeatureUsageStore extends MailspringStore {
+class _FeatureUsageStore extends MailspringStore {
   _waitForModalClose = [];
   NoProAccessError = NoProAccessError;
   _disp: Rx.Disposable;
@@ -72,10 +78,8 @@ class FeatureUsageStore extends MailspringStore {
     this._usub();
   }
 
-  displayUpgradeModal(feature, lexicon) {
-    //
+  displayUpgradeModal(feature: string, lexicon: FeatureLexicon) {
     const featureData = this._dataForFeature(feature);
-    const { iconUrl } = lexicon;
     let { headerText, rechargeText } = lexicon;
 
     if (!featureData.quota) {
@@ -84,7 +88,7 @@ class FeatureUsageStore extends MailspringStore {
       headerText = headerText || localized("You've reached your quota");
 
       const time = featureData.period === 'monthly' ? localized('month') : localized('week');
-      rechargeText = rechargeText.replace('%1$@', featureData.quota).replace('%2$@', time);
+      rechargeText = rechargeText.replace('%1$@', `${featureData.quota}`).replace('%2$@', time);
     }
 
     Actions.openModal({
@@ -94,7 +98,7 @@ class FeatureUsageStore extends MailspringStore {
         <FeatureUsedUpModal
           modalClass={feature}
           headerText={headerText}
-          iconUrl={iconUrl}
+          iconUrl={lexicon.iconUrl}
           rechargeText={rechargeText}
         />
       ),
@@ -105,7 +109,7 @@ class FeatureUsageStore extends MailspringStore {
     });
   }
 
-  isUsable(feature) {
+  isUsable(feature: string) {
     const { usedInPeriod, quota } = this._dataForFeature(feature);
     if (!quota) {
       return true;
@@ -113,7 +117,7 @@ class FeatureUsageStore extends MailspringStore {
     return usedInPeriod < quota;
   }
 
-  async markUsedOrUpgrade(feature, lexicon = {}) {
+  async markUsedOrUpgrade(feature: string, lexicon: FeatureLexicon) {
     if (!this.isUsable(feature)) {
       // throws if the user declines
       await this.displayUpgradeModal(feature, lexicon);
@@ -121,8 +125,8 @@ class FeatureUsageStore extends MailspringStore {
     this.markUsed(feature);
   }
 
-  markUsed(feature) {
-    const next = JSON.parse(JSON.stringify(IdentityStore.identity()));
+  markUsed(feature: string) {
+    const next: IIdentity = JSON.parse(JSON.stringify(IdentityStore.identity()));
     if (!next || !next.featureUsage) return;
 
     if (next.featureUsage[feature]) {
@@ -145,18 +149,19 @@ class FeatureUsageStore extends MailspringStore {
     this._waitForModalClose = [];
   };
 
-  _dataForFeature(feature) {
+  _dataForFeature(feature: string) {
     const identity = IdentityStore.identity();
     if (!identity) {
-      return {};
+      return EMPTY_FEATURE_USAGE;
     }
+
     const usage = identity.featureUsage || {};
     if (!usage[feature]) {
       AppEnv.reportError(new Error(`Warning: No usage information available for ${feature}`));
-      return {};
+      return EMPTY_FEATURE_USAGE;
     }
     return usage[feature];
   }
 }
 
-export default new FeatureUsageStore();
+export const FeatureUsageStore = new _FeatureUsageStore();

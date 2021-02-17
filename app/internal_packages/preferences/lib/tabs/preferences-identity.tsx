@@ -5,6 +5,7 @@ import {
   localized,
   localizedReactFragment,
   IIdentity,
+  EMPTY_IDENTITY,
 } from 'mailspring-exports';
 import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
 import { shell } from 'electron';
@@ -153,7 +154,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
 
   _getStateFromStores() {
     return {
-      identity: IdentityStore.identity() || {},
+      identity: IdentityStore.identity() || { ...EMPTY_IDENTITY },
     };
   }
 
@@ -172,7 +173,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <div className="basic-explanation">
             {localizedReactFragment(
-              `You are using %@, which is free! You can link up to four email accounts and try pro features like snooze, send later, read receipts and reminders a few times a week.`,
+              `You are using %@, which is free! You can try pro features like snooze, send later, read receipts and reminders a few times a week.`,
               <strong>{localized('Mailspring Basic')}</strong>
             )}
             <span className="platform-linux-only">

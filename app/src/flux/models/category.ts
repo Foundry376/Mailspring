@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 import utf7 from 'utf7';
 import { Model, AttributeValues } from './model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { localized } from '../../intl';
 
 // We look for a few standard categories and display them in the Mailboxes
@@ -107,7 +107,7 @@ export class Category extends Model {
       queryable: true,
       modelKey: 'path',
     }),
-    localStatus: Attributes.Object({
+    localStatus: Attributes.Obj({
       modelKey: 'localStatus',
     }),
   };

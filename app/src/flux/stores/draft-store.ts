@@ -179,7 +179,7 @@ class DraftStore extends MailspringStore {
     // this is a fake status!
     for (const draft of drafts) {
       if (this._draftsSending[draft.headerMessageId]) {
-        const m = draft.metadataForPluginId('send-later');
+        const m = draft.metadataForPluginId('send-later') as any;
         if (m && m.isUndoSend && !m.expiration) {
           delete this._draftsSending[draft.headerMessageId];
         }

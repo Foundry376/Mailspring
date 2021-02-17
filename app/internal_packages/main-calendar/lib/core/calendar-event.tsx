@@ -1,25 +1,26 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { Event } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
+import { EventOccurrence } from './calendar-data-source';
 import { calcColor } from './calendar-helpers';
 
 interface CalendarEventProps {
-  event: Event;
+  event: EventOccurrence;
   order: number;
-  selected?: boolean;
+  selected: boolean;
   scopeEnd: number;
   scopeStart: number;
   direction: 'horizontal' | 'vertical';
   fixedSize: number;
-  focused?: boolean;
+  focused: boolean;
   concurrentEvents: number;
-  onClick: (e: React.MouseEvent<any>, event: Event) => void;
-  onDoubleClick: (event: Event) => void;
-  onFocused: (event: Event) => void;
+
+  onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
+  onDoubleClick: (event: EventOccurrence) => void;
+  onFocused: (event: EventOccurrence) => void;
 }
 
-export default class CalendarEvent extends React.Component<CalendarEventProps> {
+export class CalendarEvent extends React.Component<CalendarEventProps> {
   static displayName = 'CalendarEvent';
 
   static defaultProps = {
@@ -116,7 +117,7 @@ export default class CalendarEvent extends React.Component<CalendarEventProps> {
         onDoubleClick={() => onDoubleClick(event)}
       >
         <span className="default-header" style={{ order: 0 }}>
-          {event.displayTitle}
+          {event.title}
         </span>
         <InjectedComponentSet
           className="event-injected-components"

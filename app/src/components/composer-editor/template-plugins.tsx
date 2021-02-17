@@ -64,7 +64,7 @@ const rules = [
   },
 ];
 
-function onKeyDown(event, editor: Editor, next: () => void) {
+function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
   // If the user has a template variable selected and types a character,
   // delete the template variable. By default you just can't type.
   if (

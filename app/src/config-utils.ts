@@ -1,16 +1,16 @@
 /* eslint-disable no-var */
 /* eslint-disable prefer-rest-params */
 const _ = require('underscore');
-var isPlainObject, plus, splitKeyPath;
-splitKeyPath = function(keyPath) {
-  var char, i, keyPathArray, startIndex, _i, _len;
-  startIndex = 0;
-  keyPathArray = [];
+
+function splitKeyPath(keyPath) {
+  let _i;
+  let startIndex = 0;
+  const keyPathArray = [];
   if (keyPath == null) {
     return keyPathArray;
   }
-  for (i = _i = 0, _len = keyPath.length; _i < _len; i = ++_i) {
-    char = keyPath[i];
+  for (let i = (_i = 0); _i < keyPath.length; i = ++_i) {
+    const char = keyPath[i];
     if (char === '.' && (i === 0 || keyPath[i - 1] !== '\\')) {
       keyPathArray.push(keyPath.substring(startIndex, i));
       startIndex = i + 1;
@@ -18,55 +18,56 @@ splitKeyPath = function(keyPath) {
   }
   keyPathArray.push(keyPath.substr(startIndex, keyPath.length));
   return keyPathArray;
-};
-isPlainObject = function(value) {
+}
+
+function isPlainObject(value) {
   return _.isObject(value) && !_.isArray(value);
-};
+}
 
 export function remove(array, element) {
-  var index;
-  index = array.indexOf(element);
+  const index = array.indexOf(element);
   if (index >= 0) {
     array.splice(index, 1);
   }
   return array;
 }
+
 export function deepClone(object) {
   if (_.isArray(object)) {
     return object.map(function(value) {
-      return plus.deepClone(value);
+      return deepClone(value);
     });
   } else if (_.isObject(object) && !_.isFunction(object)) {
     return _.mapObject(object, function(value) {
-      return plus.deepClone(value);
+      return deepClone(value);
     });
   } else {
     return object;
   }
 }
-export function deepExtend(target) {
-  var i, key, object, result, _i, _len, _ref;
-  result = target;
-  i = 0;
-  while (++i < arguments.length) {
-    object = arguments[i];
+
+export function deepExtend(...args) {
+  let result = args[0];
+  let i = 0;
+  while (++i < args.length) {
+    const object = args[i];
     if (isPlainObject(result) && isPlainObject(object)) {
-      _ref = Object.keys(object);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        key = _ref[_i];
-        result[key] = plus.deepExtend(result[key], object[key]);
+      const _ref = Object.keys(object);
+      for (let _i = 0; _i < _ref.length; _i++) {
+        const key = _ref[_i];
+        result[key] = deepExtend(result[key], object[key]);
       }
     } else {
-      result = plus.deepClone(object);
+      result = deepClone(object);
     }
   }
   return result;
 }
+
 export function valueForKeyPath(object, keyPath) {
-  var key, keys, _i, _len;
-  keys = splitKeyPath(keyPath);
-  for (_i = 0, _len = keys.length; _i < _len; _i++) {
-    key = keys[_i];
+  const keys = splitKeyPath(keyPath);
+  for (let _i = 0; _i < keys.length; _i++) {
+    const key = keys[_i];
     object = object[key];
     if (object == null) {
       return;
@@ -74,11 +75,11 @@ export function valueForKeyPath(object, keyPath) {
   }
   return object;
 }
+
 export function setValueForKeyPath(object, keyPath, value) {
-  var key, keys;
-  keys = splitKeyPath(keyPath);
+  const keys = splitKeyPath(keyPath);
   while (keys.length > 1) {
-    key = keys.shift();
+    const key = keys.shift();
     if (object[key] == null) {
       object[key] = {};
     }

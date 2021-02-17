@@ -1,5 +1,5 @@
 import { Task } from './task';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { AttributeValues } from '../models/model';
 
 export class GetMessageRFC2822Task extends Task {

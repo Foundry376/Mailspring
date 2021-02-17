@@ -1,11 +1,12 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { MailspringCalendarViewProps } from './mailspring-calendar';
+import { CalendarView } from './calendar-constants';
 
-export default class MonthView extends React.Component<{ changeView: (view: string) => void }> {
+export class MonthView extends React.Component<MailspringCalendarViewProps> {
   static displayName = 'MonthView';
 
   _onClick = () => {
-    this.props.changeView('WeekView');
+    this.props.onChangeView(CalendarView.WEEK);
   };
 
   render() {

@@ -3,5 +3,7 @@
   "core:paste": "shift+insert",
   "window:toggle-full-screen": "f11",
   "window:reload": "mod+alt+l",
-  "window:toggle-dev-tools": "mod+alt+i"
+  "window:toggle-dev-tools": "mod+alt+i",
+  
+  "multiselect-list:select-all": "ctrl+a"
 }

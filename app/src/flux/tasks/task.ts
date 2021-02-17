@@ -1,9 +1,8 @@
 /* eslint no-unused-vars: 0*/
 import _ from 'underscore';
 import { Model } from '../models/model';
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { generateTempId } from '../models/utils';
-import { PermanentErrorCodes } from '../mailspring-api-request';
 
 const Status = {
   Local: 'local', // means the task has NOT run the local phase yet
@@ -14,7 +13,7 @@ const Status = {
 
 export class Task extends Model {
   static Status = Status;
-  static SubclassesUseModelTable = Task;
+  static SubclassesUseModelTable: typeof Model = Task;
 
   static attributes = {
     ...Model.attributes,
@@ -26,7 +25,7 @@ export class Task extends Model {
     source: Attributes.String({
       modelKey: 'source',
     }),
-    error: Attributes.Object({
+    error: Attributes.Obj({
       modelKey: 'error',
     }),
   };

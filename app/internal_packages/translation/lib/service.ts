@@ -5,6 +5,7 @@ import {
   Actions,
   MailspringAPIRequest,
   RegExpUtils,
+  FeatureLexicon,
 } from 'mailspring-exports';
 
 export const TranslatePopupOptions = {
@@ -118,7 +119,7 @@ export const AllLanguages = {
   ms: 'Malay',
 };
 
-export const TranslationsUsedLexicon = {
+export const TranslationsUsedLexicon: FeatureLexicon = {
   headerText: localized('All Translations Used'),
   rechargeText: `${localized(
     'You can translate up to %1$@ emails each %2$@ with Mailspring Basic.'

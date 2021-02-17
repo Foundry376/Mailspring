@@ -68,7 +68,7 @@ const declareOptions = argv => {
   const optimist = require('optimist');
   const options = optimist(argv);
   options.usage(
-    `Mailspring\n\nUsage: mailspring [options]\n\nRun Mailspring: The open source extensible email client\n\n\`mailspring --dev\` to start the client in dev mode.\n\n\`mailspring --test\` to run unit tests.`
+    `Mailspring\n\nUsage: mailspring [options] [recipient] [attachment]\n\nRun Mailspring: The open source extensible email client\n\n\`mailspring mailto:johndoe@example.com\` to compose an e-mail to johndoe@example.com.\n\`mailspring ./attachment.txt\` to compose an e-mail with a text file attached.\n\`mailspring --dev\` to start the client in dev mode.\n\`mailspring --test\` to run unit tests.`
   );
   options
     .alias('d', 'dev')
@@ -277,6 +277,23 @@ const start = () => {
   app.on('ready', () => {
     app.removeListener('open-file', onOpenFileBeforeReady);
     app.removeListener('open-url', onOpenUrlBeforeReady);
+
+    // Block remote JS execution in a second way in case our <meta> tag approach
+    // is compromised somehow https://www.electronjs.org/docs/tutorial/security
+    // This CSP string should match the one in app/static/index.html
+    require('electron').session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      if (details.url.startsWith('devtools://')) {
+        return callback(details);
+      }
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [
+            "default-src * mailspring:; script-src 'self' 'unsafe-inline' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:;",
+          ],
+        },
+      });
+    });
 
     // eslint-disable-next-line
     const Application = require(path.join(options.resourcePath, 'src', 'browser', 'application'))

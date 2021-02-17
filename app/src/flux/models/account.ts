@@ -1,6 +1,7 @@
 /* eslint global-require:0 */
-import Attributes from '../attributes';
+import * as Attributes from '../attributes';
 import { ModelWithMetadata } from './model-with-metadata';
+import { MailsyncProcessExit } from 'mailspring-exports';
 
 let CategoryStore = null;
 let Contact = null;
@@ -50,7 +51,7 @@ export class Account extends ModelWithMetadata {
       modelKey: 'emailAddress',
     }),
 
-    settings: Attributes.Object({
+    settings: Attributes.Obj({
       modelKey: 'settings',
     }),
 
@@ -58,15 +59,15 @@ export class Account extends ModelWithMetadata {
       modelKey: 'label',
     }),
 
-    autoaddress: Attributes.Object({
+    autoaddress: Attributes.Obj({
       modelKey: 'autoaddress',
     }),
 
-    aliases: Attributes.Object({
+    aliases: Attributes.Obj({
       modelKey: 'aliases',
     }),
 
-    defaultAlias: Attributes.Object({
+    defaultAlias: Attributes.Obj({
       modelKey: 'defaultAlias',
     }),
 
@@ -74,7 +75,7 @@ export class Account extends ModelWithMetadata {
       modelKey: 'syncState',
     }),
 
-    syncError: Attributes.Object({
+    syncError: Attributes.Obj({
       modelKey: 'syncError',
     }),
 
@@ -111,7 +112,7 @@ export class Account extends ModelWithMetadata {
   public aliases: string[];
   public defaultAlias: string;
   public syncState: string;
-  public syncError: string;
+  public syncError: MailsyncProcessExit | null;
   public color: string;
 
   constructor(args) {

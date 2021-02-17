@@ -1,4 +1,4 @@
-import Attribute from './attribute';
+import { Attribute } from './attribute';
 import { Matcher } from './matcher';
 
 /*
@@ -6,7 +6,7 @@ Public: The value of this attribute is always a number, or null.
 
 Section: Database
 */
-export default class AttributeNumber extends Attribute {
+export class AttributeNumber extends Attribute {
   toJSON(val) {
     return val;
   }

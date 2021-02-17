@@ -41,7 +41,7 @@ function _getIcon(iconPath, isTemplateImg = false) {
   }
   const icon = nativeImage.createFromPath(iconPath);
   if (isTemplateImg) {
-    icon.setTemplateImage(true);
+    icon.isMacTemplateImage = true;
   }
   return icon;
 }
@@ -104,7 +104,9 @@ class SystemTrayManager {
   }
 
   destroyTray() {
-    if (this._tray) {
+    // Due to https://github.com/electron/electron/issues/17622
+    // we cannot destroy the tray icon on linux.
+    if (this._tray && process.platform !== 'linux') {
       this._tray.removeListener('click', this._onClick);
       this._tray.destroy();
       this._tray = null;

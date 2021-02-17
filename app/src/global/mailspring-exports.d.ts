@@ -119,16 +119,13 @@ export const WorkspaceStore: WorkspaceStore;
 export type MailRulesStore = typeof import('../flux/stores/mail-rules-store').default;
 export const MailRulesStore: MailRulesStore;
 export * from '../flux/stores/send-actions-store';
-export type FeatureUsageStore = typeof import('../flux/stores/feature-usage-store').default;
-export const FeatureUsageStore: FeatureUsageStore;
+export * from '../flux/stores/feature-usage-store';
 export type ThreadCountsStore = typeof import('../flux/stores/thread-counts-store').default;
 export const ThreadCountsStore: ThreadCountsStore;
 export type AttachmentStore = typeof import('../flux/stores/attachment-store').default;
 export const AttachmentStore: AttachmentStore;
 export type OnlineStatusStore = typeof import('../flux/stores/online-status-store').default;
 export const OnlineStatusStore: OnlineStatusStore;
-export type UpdateChannelStore = typeof import('../flux/stores/update-channel-store').default;
-export const UpdateChannelStore: UpdateChannelStore;
 export * from '../flux/stores/preferences-ui-store';
 export type FocusedContentStore = typeof import('../flux/stores/focused-content-store').default;
 export const FocusedContentStore: FocusedContentStore;
@@ -200,6 +197,7 @@ export type MessageUtils = typeof import('../flux/models/message-utils').default
 export const MessageUtils: MessageUtils;
 
 // Services
+export * from '../services/autolinker';
 export type KeyManager = typeof import('../key-manager').default;
 export const KeyManager: KeyManager;
 export type SoundRegistry = typeof import('../registries/sound-registry').default;

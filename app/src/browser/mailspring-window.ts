@@ -99,6 +99,7 @@ export default class MailspringWindow extends EventEmitter {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        webviewTag: true,
       },
       autoHideMenuBar,
     };
@@ -217,22 +218,28 @@ export default class MailspringWindow extends EventEmitter {
     this.browserWindow.on('close', event => {
       if (this.neverClose && !global.application.isQuitting()) {
         // For neverClose windows (like the main window) simply hide and
-        // take out of full screen.
-        event.preventDefault();
-        if (this.browserWindow.isFullScreen()) {
-          this.browserWindow.once('leave-full-screen', () => {
+        // take out of full screen as long as the tray indicator is switched on.
+        if (global.application.config.get('core.workspace.systemTray')) {
+          // Tray indicator is switched on therefore hiding the main window only.
+          event.preventDefault();
+          if (this.browserWindow.isFullScreen()) {
+            this.browserWindow.once('leave-full-screen', () => {
+              this.browserWindow.hide();
+            });
+            this.browserWindow.setFullScreen(false);
+          } else {
             this.browserWindow.hide();
-          });
-          this.browserWindow.setFullScreen(false);
-        } else {
-          this.browserWindow.hide();
-        }
+          }
 
-        // HOWEVER! If the neverClose window is the last window open, and
-        // it looks like there's no windows actually quit the application
-        // on Linux & Windows.
-        if (!this.isSpec) {
-          global.application.windowManager.quitWinLinuxIfNoWindows();
+          // HOWEVER! If the neverClose window is the last window open, and
+          // it looks like there's no windows actually quit the application
+          // on Linux & Windows.
+          if (!this.isSpec) {
+            global.application.windowManager.quitWinLinuxIfNoWindows();
+          }
+        } else {
+          // Tray indicator is switched off, therefore quitting the application.
+          app.quit();
         }
       }
     });
@@ -280,7 +287,7 @@ export default class MailspringWindow extends EventEmitter {
         return;
       }
 
-      const chosen = dialog.showMessageBox(this.browserWindow, {
+      const chosen = dialog.showMessageBoxSync(this.browserWindow, {
         type: 'warning',
         buttons: ['Close', 'Keep Waiting'],
         message: 'Mailspring is not responding',
@@ -306,7 +313,7 @@ export default class MailspringWindow extends EventEmitter {
       if (this.neverClose) {
         this.browserWindow.reload();
       } else {
-        const chosen = dialog.showMessageBox({
+        const chosen = dialog.showMessageBoxSync({
           type: 'warning',
           buttons: ['Close Window', 'Reload', 'Keep It Open'],
           message: 'Mailspring has crashed',

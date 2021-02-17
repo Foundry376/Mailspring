@@ -28,7 +28,7 @@ class PreferencesGeneral extends React.Component<{
   };
 
   _onResetAccountsAndSettings = () => {
-    const chosen = remote.dialog.showMessageBox({
+    const chosen = remote.dialog.showMessageBoxSync({
       type: 'info',
       message: localized('Are you sure?'),
       buttons: [localized('Cancel'), localized('Reset')],

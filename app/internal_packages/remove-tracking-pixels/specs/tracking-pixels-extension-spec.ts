@@ -1,6 +1,7 @@
 /* eslint no-irregular-whitespace: 0 */
 import fs from 'fs';
 import { removeTrackingPixels } from '../lib/main';
+import { Message } from 'mailspring-exports';
 
 const readFixture = name => {
   return fs
@@ -19,7 +20,7 @@ describe('TrackingPixelsExtension', function trackingPixelsExtension() {
       accountId: '1234',
       isFromMe: () => true,
     };
-    removeTrackingPixels(message);
+    removeTrackingPixels(message as Message);
     expect(message.body).toEqual(expected);
   });
 
@@ -32,7 +33,7 @@ describe('TrackingPixelsExtension', function trackingPixelsExtension() {
       accountId: '1234',
       isFromMe: () => false,
     };
-    removeTrackingPixels(message);
+    removeTrackingPixels(message as Message);
     expect(message.body).toEqual(expected);
   });
 });

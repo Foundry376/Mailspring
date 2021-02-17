@@ -1,5 +1,5 @@
 import { QueryResultSet } from './query-result-set';
-import AttributeJoinedData from '../attributes/attribute-joined-data';
+import { AttributeJoinedData } from '../attributes/attribute-joined-data';
 import { Model } from './model';
 import ModelQuery from './query';
 

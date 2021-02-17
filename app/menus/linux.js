@@ -42,6 +42,11 @@ module.exports = {
         { label: localized('Select All Unstarred'), command: 'thread-list:select-unstarred' },
         { type: 'separator' },
         {
+          label: localized('Mark All as %@', localized('Read')),
+          command: 'thread-list:mark-all-as-read',
+        },
+        { type: 'separator' },
+        {
           label: localized('Find'),
           submenu: [
             { label: localized('Find in Mailbox') + '...', command: 'core:focus-search' },
@@ -176,7 +181,6 @@ module.exports = {
         { label: localized('Install a Plugin') + '...', command: 'window:install-package' },
         { type: 'separator' },
         { label: localized('Reload'), command: 'window:reload' },
-        { label: localized('Toggle Localizer Tools'), command: 'window:toggle-localizer-tools' },
         { label: localized('Toggle Developer Tools'), command: 'window:toggle-dev-tools' },
         {
           label: localized('Toggle Component Regions'),

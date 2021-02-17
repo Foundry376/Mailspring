@@ -115,7 +115,7 @@ class Spellchecker {
     if ({}.hasOwnProperty.call(this._customDict, word)) {
       return false;
     }
-    return !(this.handler as any).handleElectronSpellCheck(word);
+    return !(this.handler as any).handleElectronSpellCheck([word]);
   };
 
   learnWord = word => {

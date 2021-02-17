@@ -47,7 +47,7 @@ const PREF_DESCENDING_ORDER = 'core.reading.descendingOrderMessageList';
 class MessageList extends React.Component<{}, MessageListState> {
   static displayName = 'MessageList';
   static containerStyles = {
-    minWidth: 500,
+    minWidth: 480,
     maxWidth: 999999,
   };
 
