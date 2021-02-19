@@ -32,7 +32,7 @@ let IdentityStore = null;
 
 // server option
 
-export function rootURLForServer(server) {
+export function rootURLForServer(server: 'identity') {
   const env = AppEnv.config.get('env');
 
   if (!['development', 'staging', 'production'].includes(env)) {
@@ -49,7 +49,13 @@ export function rootURLForServer(server) {
   throw new Error('rootURLForServer: You must provide a valid `server` value');
 }
 
-export async function postStaticAsset({ filename, blob }) {
+export async function postStaticAsset({
+  filename,
+  blob,
+}: {
+  filename: string;
+  blob: 'string' | Blob;
+}) {
   const body = new FormData();
   body.set('filename', filename);
   if (typeof blob === 'string') {
@@ -66,7 +72,7 @@ export async function postStaticAsset({ filename, blob }) {
   return resp.link;
 }
 
-export async function postStaticPage({ html, key }) {
+export async function postStaticPage({ html, key }: { html: string; key: string }) {
   const json = await makeRequest({
     server: 'identity',
     method: 'POST',
@@ -78,37 +84,50 @@ export async function postStaticPage({ html, key }) {
   return json.link;
 }
 
-export async function makeRequest(options) {
+export async function makeRequest({
+  body,
+  path,
+  server,
+  ...rest
+}: {
+  server: 'identity'; // future-proofing
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  path: string;
+  body?: { [key: string]: any };
+  timeout?: number;
+  json?: true;
+}) {
   // for some reason when `fetch` completes, the stack trace has been lost.
   // In case the request failsm capture the stack now.
-  const root = rootURLForServer(options.server);
+  const root = rootURLForServer(server);
+  const url = `${root}${path}`;
 
-  options.headers = options.headers || new Headers();
-  options.headers.set('Accept', 'application/json');
-  options.credentials = 'include';
+  IdentityStore = IdentityStore || require('./stores/identity-store').IdentityStore;
+  const identity = IdentityStore.identity();
+  if (!identity) {
+    throw new Error('makeRequest: A Mailspring identity is required.');
+  }
 
-  if (!options.auth && options.auth !== false) {
-    if (options.server === 'identity') {
-      IdentityStore = IdentityStore || require('./stores/identity-store').IdentityStore;
-      const username = IdentityStore.identity().token;
-      options.headers.set('Authorization', `Basic ${btoa(`${username}:`)}`);
+  const init: RequestInit = { ...rest };
+  init.headers = new Headers();
+  init.headers.set('Accept', 'application/json');
+  init.credentials = 'include';
+  init.headers.set('Authorization', `Basic ${btoa(`${IdentityStore.identity().token}:`)}`);
+
+  if (body) {
+    if (body instanceof FormData) {
+      init.body = body;
+    } else {
+      init.headers.set('Content-Type', 'application/json');
+      init.body = JSON.stringify(body);
     }
   }
 
-  if (options.path) {
-    options.url = `${root}${options.path}`;
-  }
-
-  if (options.body && !(options.body instanceof FormData)) {
-    options.headers.set('Content-Type', 'application/json');
-    options.body = JSON.stringify(options.body);
-  }
-
-  const desc = `${options.method || 'GET'} ${options.url}`;
+  const desc = `${init.method || 'GET'} ${url}`;
   const error = new APIError(`${desc} failed`);
   let resp = null;
   try {
-    resp = await fetch(options.url, options);
+    resp = await fetch(url, init);
   } catch (uselessFetchError) {
     // TypeError: Failed to fetch when user is offline, with no stack trace.
     throw error;
