@@ -1,6 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import { remote } from 'electron';
 import url from 'url';
+import querystring from 'querystring';
 
 import * as Utils from '../models/utils';
 import * as Actions from '../actions';
@@ -190,8 +191,7 @@ class _IdentityStore extends MailspringStore {
     try {
       const json = await makeRequest({
         server: 'identity',
-        path: '/api/login-link',
-        qs: qs,
+        path: `/api/login-link?${querystring.stringify(qs)}`,
         body: body,
         timeout: 1500,
         method: 'POST',
