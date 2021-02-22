@@ -165,7 +165,24 @@ const parseCommandLine = argv => {
       continue;
     }
     if (arg.startsWith('mailto:') || arg.startsWith('mailspring:')) {
-      urlsToOpen.push(arg);
+      let mailCreated = false;
+
+      const mailtoUrl = new URL(arg);
+      // Handle links from nautilus-sendto in the form
+      // mailto:?attach=file:///path/to/file.txt and attach it to an e-mail
+      mailtoUrl.searchParams.forEach((value, key) => {
+        if (key === "attach") {
+          // We need to strip the leading `file://` in order to detect the files
+          pathsToOpen.push(value.replace(/^file:\/\//, ""));
+          mailCreated = true;
+        }
+      })
+
+      // Check if another draft window should be opened if there is a recipient set
+      // Prevents duplicate draft window for links such as mailto:?attach=file:///path/to/file.txt
+      if (!mailCreated || (mailtoUrl.pathname !== '')) {
+        urlsToOpen.push(arg);
+      }
     } else if (arg[0] !== '-' && /[/|\\]/.test(arg)) {
       pathsToOpen.push(arg);
     }
