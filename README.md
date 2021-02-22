@@ -43,6 +43,31 @@ learn from other people doing development.
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
+### Running Mailspring from Source
+
+To install all dependencies and run Mailspring from its source code, 
+run the following commands from the root directory of the Mailspring repository:
+
+```
+npm install
+npm start
+```
+
+You can attach command line parameters by separating them using a double hyphen:
+
+```
+npm start -- --help
+```
+
+### Building Mailspring
+
+To build Mailspring, you need to run the following command from the root directory
+of the Mailspring repository:
+
+```
+npm run-script build
+```
+
 ### Building A Plugin
 
 Plugins lie at the heart of Mailspring and give it its powerful features.
