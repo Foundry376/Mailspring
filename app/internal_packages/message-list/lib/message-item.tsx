@@ -226,6 +226,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
           onClick={this._onClickParticipants}
           isDetailed={this.state.detailedHeaders}
         />
+        {this._renderSubject()}
         {this._renderFolder()}
         {this._renderHeaderDetailToggle()}
       </header>
@@ -264,6 +265,21 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
         }}
       >
         <RetinaImg name={'message-disclosure-triangle.png'} mode={RetinaImg.Mode.ContentIsMask} />
+      </div>
+    );
+  }
+
+  _renderSubject() {
+    if (!this.state.detailedHeaders) {
+      return false;
+    }
+
+    const subject = this.props.message.subject;
+
+    return (
+      <div className="header-row">
+        <div className="header-label">{localized('Subject')}:&nbsp;</div>
+        <div className="header-name">{subject}</div>
       </div>
     );
   }
