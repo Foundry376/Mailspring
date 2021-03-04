@@ -245,6 +245,54 @@ export class DraftEditingSession extends MailspringStore {
     this._mountedEditor = editor;
   }
 
+  shouldWarnReplyAll = (): boolean => {
+    // Warn about reply-all
+    // If the default settings is to reply all, never warn about replying to all.
+    const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
+    if (defaultReplyType === 'reply-all') { return false; }
+
+    // If there's only one recipient, reply all doesn't matter.
+    if ( (this._draft.to.length + this._draft.cc.length) === 1 ) {
+      return false;
+    }
+
+    /* FIXME: I need to get participantsForReplyAll from the message being
+     * REPLIED TO, not the current draft. HOW??? */
+    let replyAllRecipients = this._draft.participantsForReplyAll();
+
+    /* If any recipients were added or removed, we assume the user
+     * deliberately edited the recipients, so a warning about reply all
+     * would be useless. */
+    if (
+      replyAllRecipients.to.length !== this._draft.to.length ||
+      replyAllRecipients.cc.length !== this._draft.cc.length
+    ) {
+      return false;
+    }
+
+    console.log(replyAllRecipients.to.length);
+    console.log(this._draft.to.length);
+    console.log(replyAllRecipients.cc.length);
+    console.log(this._draft.cc.length);
+
+    // Compare the current recipients and the reply all recipients.
+    let replyAllTo = new Set(replyAllRecipients.to.map(x => x.email));
+    let replyAllCC = new Set(replyAllRecipients.cc.map(x => x.email));
+
+    let currentTo = new Set(this._draft.to.map(x => !replyAllTo.has(x.email) ? x.email : null));
+    let currentCC = new Set(this._draft.cc.map(x => !replyAllCC.has(x.email) ? x.email : null));
+    currentTo.delete(null);
+    currentCC.delete(null);
+
+    // If current to and cc exactly match participantsForReplyAll, warn.
+    if (currentTo.size === 0 && currentCC.size === 0) {
+      return true;  // We need to warn!
+    }
+
+    // Otherwise, assume the recipients have been edited, so don't warn.
+    return false;
+  }
+
   validateDraftForSending() {
     const warnings = [];
     const errors = [];
@@ -296,6 +344,10 @@ export class DraftEditingSession extends MailspringStore {
     const signatureIndex = cleaned.indexOf('<signature>');
     if (signatureIndex !== -1) {
       cleaned = cleaned.substr(0, signatureIndex - 1);
+    }
+
+    if (this.shouldWarnReplyAll()) {
+      warnings.push(localized('You are replying to everyone. Are you sure?'));
     }
 
     if (cleaned.toLowerCase().includes('attach') && !hasAttachment) {
