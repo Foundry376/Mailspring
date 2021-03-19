@@ -12,6 +12,8 @@ import {
 
 import { Notifier } from '../lib/main';
 
+// TODO: Add some tests here @nocommit
+
 describe('UnreadNotifications', function UnreadNotifications() {
   beforeEach(() => {
     this.notifier = new Notifier();

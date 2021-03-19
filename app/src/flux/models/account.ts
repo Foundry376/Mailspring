@@ -10,6 +10,13 @@ export interface AccountAutoaddress {
   value: string;
   type: 'cc' | 'bcc';
 }
+
+export enum NotifyFor {
+  Inbox = 'inbox',
+  All = 'all',
+  None = 'none',
+}
+
 /*
  * Public: The Account model represents a Account served by the Mailspring Platform API.
  * Every object on the Mailspring platform exists within a Account, which typically represents
@@ -86,6 +93,10 @@ export class Account extends ModelWithMetadata {
     color: Attributes.String({
       modelKey: 'color',
     }),
+
+    notifyFor: Attributes.String({
+      modelKey: 'notifyFor',
+    }),
   };
 
   public name: string;
@@ -114,6 +125,7 @@ export class Account extends ModelWithMetadata {
   public syncState: string;
   public syncError: MailsyncProcessExit | null;
   public color: string;
+  public notifyFor: NotifyFor;
 
   constructor(args) {
     super(args);
@@ -126,6 +138,7 @@ export class Account extends ModelWithMetadata {
       value: '',
     };
     this.color = this.color || '';
+    this.notifyFor = this.notifyFor || NotifyFor.Inbox;
   }
 
   toJSON() {

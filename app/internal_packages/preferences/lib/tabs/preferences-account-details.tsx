@@ -354,6 +354,18 @@ class PreferencesAccountDetails extends Component<
             ? localized('Re-authenticate...')
             : localized('Update Connection Settings...')}
         </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3, marginTop: 6 }}>
+          {localized('Notify for')}:
+          <select
+            style={{ marginTop: 0, marginLeft: 8 }}
+            value={account.notifyFor}
+            onChange={e => this._setStateAndSave({ notifyFor: e.target.value })}
+          >
+            <option value="inbox">{localized('Inbox Only')}</option>
+            <option value="all">{localized('All Folders')}</option>
+            <option value="none">{localized('None')}</option>
+          </select>
+        </div>
         <h6>{localized('Local Data')}</h6>
         <div className="btn" onClick={this._onResetCache}>
           {localized('Rebuild Cache...')}

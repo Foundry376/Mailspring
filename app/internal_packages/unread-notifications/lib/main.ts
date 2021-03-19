@@ -8,9 +8,13 @@ import {
   NativeNotifications,
   DatabaseStore,
   localized,
+  Account,
 } from 'mailspring-exports';
+import { NotifyFor } from '../../../src/flux/models/account';
 
 const WAIT_FOR_CHANGES_DELAY = 400;
+// Notifications will never be shown for these roles
+const DO_NOT_NOTIFY_ROLES: ReadonlySet<string> = new Set(['spam', 'trash']);
 
 export class Notifier {
   activationTime = Date.now();
@@ -119,7 +123,7 @@ export class Notifier {
     this.unnotifiedQueue = [];
   }
 
-  _notifyOne({ message, thread }) {
+  _notifyOne({ message, thread }: { message: Message; thread: Thread }) {
     const from = message.from[0] ? message.from[0].displayName() : 'Unknown';
     const title = from;
     let subtitle = null;
@@ -149,7 +153,15 @@ export class Notifier {
           AppEnv.showErrorDialog(`Can't find that thread`);
           return;
         }
-        Actions.ensureCategoryIsFocused('inbox', thread.accountId);
+
+        // If the thread is in the inbox, focus on the inbox
+        // Otherwise, focus on the 'first' category the thread is in.
+        let categoryToFocus = thread.categories[0] && thread.categories[0].role;
+        if (categoryToFocus == null || thread.categories.some(c => c.role === 'inbox')) {
+          categoryToFocus = 'inbox';
+        }
+
+        Actions.ensureCategoryIsFocused(categoryToFocus, thread.accountId);
         Actions.setFocus({ collection: 'thread', item: thread });
       },
     });
@@ -187,7 +199,7 @@ export class Notifier {
     true
   );
 
-  _onNewMessagesReceived(newMessages) {
+  _onNewMessagesReceived(newMessages: ReadonlyArray<Message>) {
     if (newMessages.length === 0) {
       return Promise.resolve();
     }
@@ -213,16 +225,18 @@ export class Notifier {
         threads[t.id] = t;
       }
 
-      // Filter new messages to just the ones in the inbox
-      const newMessagesInInbox = newMessages.filter(({ threadId }) => {
-        return threads[threadId] && threads[threadId].categories.find(c => c.role === 'inbox');
+      // Filter new messages to just the ones we want to show notifications for
+      const newMessagesToNotify = newMessages.filter(message => {
+        const thread = threads[message.threadId];
+        const account = AccountStore.accountForId(message.accountId);
+        return thread && shouldNotifyFor(thread, account);
       });
 
-      if (newMessagesInInbox.length === 0) {
+      if (newMessagesToNotify.length === 0) {
         return;
       }
 
-      for (const msg of newMessagesInInbox) {
+      for (const msg of newMessagesToNotify) {
         this.unnotifiedQueue.push({ message: msg, thread: threads[msg.threadId] });
       }
       if (!this.hasScheduledNotify) {
@@ -230,6 +244,19 @@ export class Notifier {
         this._notifyMessages();
       }
     });
+  }
+}
+
+export function shouldNotifyFor(thread: Thread, account: Account): boolean {
+  switch (account.notifyFor || NotifyFor.Inbox) {
+    case NotifyFor.None:
+      return false;
+
+    case NotifyFor.Inbox:
+      return thread.categories.find(c => c.role === 'inbox');
+
+    case NotifyFor.All:
+      return thread.categories.some(c => !DO_NOT_NOTIFY_ROLES.has(c.role));
   }
 }
 
