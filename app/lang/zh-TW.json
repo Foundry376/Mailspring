@@ -349,7 +349,7 @@
   "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linux上的Mailspring桌面通知需要Zenity。您可能需要將其與軟件包管理器一起安裝。",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring不支持擴展名為的樣式表：%@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring在同步此帳號時遇到錯誤。崩潰報告已發送給Mailspring團隊，我們將努力在下一版本中修復這些錯誤。",
-  "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring正在清除%@的緩存。根據郵箱的大小，這可能需要幾秒鐘或幾分鐘。清理完成後將顯示警報。",
+  "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring正在清除%@的緩存。根據郵箱的大小，這可能需要幾秒鐘或幾分鐘。清理完成後將顯示警報。",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring是獨立的%@軟件，訂閱收入使我們可以花時間維護和改進產品。",
   "One or more accounts are having connection issues.": "Mailspring離線",
   "Mailspring is running in dev mode and may be slower!": "Mailspring正在開發模式下運行，可能會更慢！",
