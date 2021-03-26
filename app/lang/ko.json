@@ -349,7 +349,7 @@
   "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linux에서 Mailspring의 바탕 화면 알림을 활성화하려면 Zenity가 필요합니다. 패키지 관리자와 함께 설치해야 할 수도 있습니다.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring은 확장자가 있는 스타일 시트를 지원하지 않습니다 : %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring에서 이 계정을 동기화하는 동안 오류가 발생했습니다. 충돌 보고서는 Mailspring 팀에 보내졌으며 우리는 다음 릴리스에서 이러한 오류를 수정하기 위해 노력할 것입니다.",
-  "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring이 %@에 대한 캐시를 지우고 있습니다. 메일함의 크기에 따라 몇 초 또는 몇 분이 걸릴 수 있습니다. 정리가 완료되면 알림이 표시됩니다.",
+  "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring이 %@에 대한 캐시를 지우고 있습니다. 메일함의 크기에 따라 몇 초 또는 몇 분이 걸릴 수 있습니다. 정리가 완료되면 알림이 표시됩니다.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring은 독립적인 소프트웨어입니다. 구독 수익은 제품을 유지 관리하고 개선하는 데 사용됩니다.",
   "One or more accounts are having connection issues.": "Mailspring은 오프라인 상태입니다.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring이 현재 개발자 모드에서 실행 중입니다. 성능이 떨어질 수 있습니다.",
