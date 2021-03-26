@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes, Utils } from 'mailspring-exports';
 
-const ResizableHandle: { [side: string]: IResizeHandle } = {
+export const ResizableHandle: { [side: string]: IResizeHandle } = {
   Top: {
     axis: 'vertical',
     className: 'flexbox-handle-vertical flexbox-handle-top',

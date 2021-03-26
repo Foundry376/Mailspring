@@ -593,6 +593,14 @@ export default class AppEnvConstructor {
     return this.savedState.columnWidths[id];
   }
 
+  storeThreadListVerticalHeight(height) {
+    this.savedState.threadListVerticalHeight = height;
+  }
+
+  getThreadListVerticalHeight() {
+    return this.savedState.threadListVerticalHeight;
+  }
+
   async startWindow() {
     const { windowType } = this.getLoadSettings();
 

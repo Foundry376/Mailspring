@@ -30,7 +30,7 @@ export default {
           mode: {
             type: 'string',
             default: 'list',
-            enum: ['split', 'list'],
+            enum: ['split', 'list', 'splitVertical'],
           },
           systemTray: {
             type: 'boolean',

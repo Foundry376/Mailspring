@@ -119,6 +119,7 @@ class WorkspaceStore extends MailspringStore {
         {
           list: ['RootSidebar', 'ThreadList'],
           split: ['RootSidebar', 'ThreadList', 'MessageList', 'MessageListSidebar'],
+          splitVertical: ['RootSidebar', 'ThreadList', 'MessageListSidebar'],
         }
       );
       this.defineSheet('Thread', {}, { list: ['MessageList', 'MessageListSidebar'] });
@@ -222,8 +223,14 @@ class WorkspaceStore extends MailspringStore {
           'core:pop-sheet': () => this.popSheet(),
         },
         this._preferredLayoutMode === 'list'
-          ? { 'navigation:select-split-mode': () => this._onSelectLayoutMode('split') }
-          : { 'navigation:select-list-mode': () => this._onSelectLayoutMode('list') }
+          ? { 'navigation:list-mode-on': () => this._onSelectLayoutMode('list') }
+          : { 'navigation:list-mode-off': () => this._onSelectLayoutMode('list') },
+        this._preferredLayoutMode === 'split'
+          ? { 'navigation:split-mode-on': () => this._onSelectLayoutMode('split') }
+          : { 'navigation:split-mode-off': () => this._onSelectLayoutMode('split') },
+        this._preferredLayoutMode === 'splitVertical'
+          ? { 'navigation:splitVertical-mode-on': () => this._onSelectLayoutMode('splitVertical') }
+          : { 'navigation:splitVertical-mode-off': () => this._onSelectLayoutMode('splitVertical') }
       )
     );
   }
