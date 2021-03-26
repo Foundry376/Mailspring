@@ -394,19 +394,19 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-help', () => {
-      const helpUrl = 'http://support.getmailspring.com/hc/en-us';
+      const helpUrl = 'https://community.getmailspring.com/docs';
       shell.openExternal(helpUrl);
     });
 
     this.on('application:view-getting-started', () => {
       const helpUrl =
-        'https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started';
+        'https://community.getmailspring.com/pub/quick-start-guide';
       shell.openExternal(helpUrl);
     });
 
-    this.on('application:view-faq', () => {
+    this.on('application:view-community', () => {
       const helpUrl =
-        'https://foundry376.zendesk.com/hc/en-us/sections/115000521892-Frequently-Asked-Questions';
+        'https://community.getmailspring.com/';
       shell.openExternal(helpUrl);
     });
 

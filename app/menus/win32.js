@@ -212,7 +212,7 @@ module.exports = {
       label: localized('Getting Started Guide') + '...',
       command: 'application:view-getting-started',
     },
-    { label: localized('Frequently Asked Questions') + '...', command: 'application:view-faq' },
+    { label: localized('Mailspring Community') + '...', command: 'application:view-community' },
     { type: 'separator' },
     { label: localized('Sync New Mail Now'), command: 'window:sync-mail-now' },
     { type: 'separator' },

@@ -48,8 +48,7 @@ class RefreshButton extends React.Component<{}, { refreshing: boolean }> {
 
 const ProTourFeatures = [
   {
-    link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115003340291--Add-reminders-to-sent-messages',
+    link: 'https://community.getmailspring.com/t/add-reminders-to-sent-messages/157',
     icon: `icon-composer-reminders.png`,
     title: localized(`Follow-up reminders`),
     text: localized(
@@ -57,8 +56,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115001881272--View-contact-and-company-profiles',
+    link: 'https://community.getmailspring.com/t/view-contact-and-company-profiles/159',
     icon: `toolbar-person-sidebar.png`,
     title: localized(`Rich contact profiles`),
     text: localized(
@@ -67,7 +65,7 @@ const ProTourFeatures = [
   },
   {
     link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115001875431--Enable-read-receipts-link-tracking-and-notifications',
+      'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
     icon: `icon-composer-eye.png`,
     title: localized(`Read Receipts`),
     text: localized(
@@ -75,8 +73,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115001875231--Reply-faster-with-email-templates',
+    link: 'https://community.getmailspring.com/t/reply-faster-with-email-templates/167',
     icon: `toolbar-templates.png`,
     title: localized(`Mail Templates`),
     text: localized(
@@ -85,7 +82,7 @@ const ProTourFeatures = [
   },
   {
     link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115001875431--Enable-read-receipts-link-tracking-and-notifications',
+      'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
     icon: `icon-composer-linktracking.png`,
     title: localized(`Link tracking`),
     text: localized(
@@ -93,8 +90,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115001882012--Schedule-messages-to-send-later',
+    link: 'https://community.getmailspring.com/t/schedule-messages-to-send-later/158',
     icon: `icon-composer-sendlater.png`,
     title: localized(`Send Later`),
     text: localized(
@@ -102,8 +98,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115001881272--View-contact-and-company-profiles',
+    link: 'https://community.getmailspring.com/t/view-contact-and-company-profiles/159',
     icon: `icon-composer-reminders.png`,
     title: localized(`Company overviews`),
     text: localized(
@@ -111,8 +106,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://foundry376.zendesk.com/hc/en-us/articles/115001881232--Snooze-emails-to-handle-them-later',
+    link: 'https://community.getmailspring.com/t/snooze-emails-to-handle-them-later/161',
     icon: `toolbar-snooze.png`,
     title: localized(`Snooze messages`),
     text: localized(
@@ -120,7 +114,8 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://foundry376.zendesk.com/hc/en-us/articles/115002507891-Activity-Reports-In-Depth',
+    link:
+      'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
     icon: `icon-toolbar-activity.png`,
     title: localized(`Mailbox insights`),
     text: localized(
@@ -128,7 +123,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://foundry376.zendesk.com/hc/en-us/articles/360031102452',
+    link: 'https://community.getmailspring.com/t/automatically-translate-incoming-email/166',
     icon: `pro-feature-translation.png`,
     title: localized(`Automatic Translation`),
     text: localized(
@@ -319,7 +314,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
             <strong
               style={{ textTransform: 'capitalize' }}
             >{`Mailspring ${planDisplayName}`}</strong>,
-            <a href="https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started">
+            <a href="https://community.getmailspring.com/docs?topic=241">
               {localized(`Help Center`)}
             </a>
           )}

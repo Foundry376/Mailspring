@@ -98,10 +98,9 @@ modify and extend. Mailspring comes stock with a few beautiful themes, and
 there are many more which have been built by community developers. To start
 creating a theme, [clone the theme starter](https://github.com/Foundry376/Mailspring-Theme-Starter)!
 
-If you are updating an existing Nylas theme for Mailspring here is a [step by
-step tutorial](https://foundry376.zendesk.com/hc/en-us/articles/115001918391-How-do-I-update-an-N1-Nylas-Mail-theme-for-Mailspring-).
-Notice: as part of the update process you will probably need to [import
-mailspring base variables](https://github.com/Foundry376/Mailspring/issues/326#issuecomment-343757775).
+If you are updating an existing Nylas theme for Mailspring here is a
+[step by step tutorial](https://community.getmailspring.com/t/updating-an-n1-nylas-mail-theme-for-mailspring/195).
+Notice: as part of the update process you will probably need to [import mailspring base variables](https://github.com/Foundry376/Mailspring/issues/326#issuecomment-343757775).
 
 You can share and browse Mailspring Themes, and discuss theme development with other developers, on our [Discourse](https://community.getmailspring.com/).
 
