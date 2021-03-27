@@ -8,7 +8,7 @@ class ThreadListVertical extends React.Component<{}, { style: string; syncing: b
   static containerRequired = false;
 
   render() {
-    const minHeight = 150;
+    const minHeight = 100;
     const initialHeight = AppEnv.getThreadListVerticalHeight() || 400;
     return (
       <>
@@ -22,9 +22,7 @@ class ThreadListVertical extends React.Component<{}, { style: string; syncing: b
             matching={{ location: WorkspaceStore.Location.ThreadList, modes: ['split'] }}
           />
         </ResizableRegion>
-        <ResizableRegion
-          minHeight={minHeight}
-        >
+        <ResizableRegion>
           <div style={{ height: '100%', width: '100%', borderTop: '0.5px solid #dddddd' }}>
             <div className="sheet-toolbar" style={{ borderBottom: '0' }}>
               <InjectedComponentSet

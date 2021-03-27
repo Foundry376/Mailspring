@@ -43,6 +43,31 @@ learn from other people doing development.
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
+### Running Mailspring from Source
+
+To install all dependencies and run Mailspring from its source code, 
+run the following commands from the root directory of the Mailspring repository:
+
+```
+npm install
+npm start
+```
+
+You can attach command line parameters by separating them using a double hyphen:
+
+```
+npm start -- --help
+```
+
+### Building Mailspring
+
+To build Mailspring, you need to run the following command from the root directory
+of the Mailspring repository:
+
+```
+npm run-script build
+```
+
 ### Building A Plugin
 
 Plugins lie at the heart of Mailspring and give it its powerful features.
@@ -73,10 +98,9 @@ modify and extend. Mailspring comes stock with a few beautiful themes, and
 there are many more which have been built by community developers. To start
 creating a theme, [clone the theme starter](https://github.com/Foundry376/Mailspring-Theme-Starter)!
 
-If you are updating an existing Nylas theme for Mailspring here is a [step by
-step tutorial](https://foundry376.zendesk.com/hc/en-us/articles/115001918391-How-do-I-update-an-N1-Nylas-Mail-theme-for-Mailspring-).
-Notice: as part of the update process you will probably need to [import
-mailspring base variables](https://github.com/Foundry376/Mailspring/issues/326#issuecomment-343757775).
+If you are updating an existing Nylas theme for Mailspring here is a
+[step by step tutorial](https://community.getmailspring.com/t/updating-an-n1-nylas-mail-theme-for-mailspring/195).
+Notice: as part of the update process you will probably need to [import mailspring base variables](https://github.com/Foundry376/Mailspring/issues/326#issuecomment-343757775).
 
 You can share and browse Mailspring Themes, and discuss theme development with other developers, on our [Discourse](https://community.getmailspring.com/).
 

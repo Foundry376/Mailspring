@@ -126,8 +126,6 @@ export type AttachmentStore = typeof import('../flux/stores/attachment-store').d
 export const AttachmentStore: AttachmentStore;
 export type OnlineStatusStore = typeof import('../flux/stores/online-status-store').default;
 export const OnlineStatusStore: OnlineStatusStore;
-export type UpdateChannelStore = typeof import('../flux/stores/update-channel-store').default;
-export const UpdateChannelStore: UpdateChannelStore;
 export * from '../flux/stores/preferences-ui-store';
 export type FocusedContentStore = typeof import('../flux/stores/focused-content-store').default;
 export const FocusedContentStore: FocusedContentStore;

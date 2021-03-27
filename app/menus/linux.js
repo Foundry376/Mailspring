@@ -195,7 +195,6 @@ module.exports = {
         { label: localized('Install a Plugin') + '...', command: 'window:install-package' },
         { type: 'separator' },
         { label: localized('Reload'), command: 'window:reload' },
-        { label: localized('Toggle Localizer Tools'), command: 'window:toggle-localizer-tools' },
         { label: localized('Toggle Developer Tools'), command: 'window:toggle-dev-tools' },
         {
           label: localized('Toggle Component Regions'),
@@ -235,7 +234,7 @@ module.exports = {
         { label: localized('Mailspring Help'), command: 'application:view-help' },
         { type: 'separator' },
         { label: localized('Getting Started Guide'), command: 'application:view-getting-started' },
-        { label: localized('Frequently Asked Questions'), command: 'application:view-faq' },
+        { label: localized('Mailspring Community'), command: 'application:view-community' },
         { type: 'separator' },
         { label: localized('View License'), command: 'application:view-license' },
       ],
