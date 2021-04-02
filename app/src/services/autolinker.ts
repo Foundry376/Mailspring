@@ -30,7 +30,8 @@ function _runOnTextNode(node, matchers) {
       return;
     }
   }
-  if (node.textContent.trim().length < 4) {
+  let nodeTextContentLen = node.textContent.trim().length;
+  if (nodeTextContentLen < 4 || nodeTextContentLen > 5_000) {
     return;
   }
 
