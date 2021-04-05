@@ -4,6 +4,7 @@
   "main": "./lib/main",
 
   "isOptional": true,
+  "isIdentityRequired": true,
 
   "title": "Translation",
   "description": "Translate your drafts in the composer into other languages using the Yandex Translation API.",

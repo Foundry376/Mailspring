@@ -53,7 +53,7 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => cat.role === 'drafts').map(cat =>
+    const items = _.reject(cats, cat => ['drafts', 'snoozed'].includes(cat.role)).map(cat =>
       SidebarItem.forCategories([cat], { editable: false, deletable: false })
     );
 
@@ -95,15 +95,7 @@ class SidebarSection {
       return this.standardSectionForAccount(accounts[0]);
     }
 
-    const standardNames = [
-      'inbox',
-      'important',
-      'snoozed',
-      'sent',
-      ['archive', 'all'],
-      'spam',
-      'trash',
-    ];
+    const standardNames = ['inbox', 'important', 'sent', ['archive', 'all'], 'spam', 'trash'];
     const items = [];
 
     for (const nameOrNames of standardNames) {

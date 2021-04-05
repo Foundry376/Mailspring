@@ -11,6 +11,7 @@
   },
 
   "isOptional": true,
+  "isIdentityRequired": true,
 
   "title":"Activity Notifications and Dashboard",
   "icon":"./assets/icon.png",

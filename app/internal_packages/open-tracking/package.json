@@ -12,6 +12,7 @@
   "description": "Track when email messages have been opened by recipients.",
   "icon": "./icon.png",
   "isOptional": true,
+  "isIdentityRequired": true,
   "supportedEnvs": ["development", "staging", "production"],
 
   "repository": {

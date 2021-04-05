@@ -1,7 +1,8 @@
-import { localized, ComponentRegistry } from 'mailspring-exports';
+import { localized, ComponentRegistry, ExtensionRegistry } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 
 import { ToolbarSnooze, QuickActionSnooze } from './snooze-buttons';
+import * as AccountSidebarExtension from './snooze-account-sidebar-extension';
 import { SnoozeMailLabel } from './snooze-mail-label';
 import { SnoozeStore } from './snooze-store';
 
@@ -17,12 +18,14 @@ export function activate() {
   ComponentRegistry.register(ToolbarSnoozeWithTutorialTip, { role: 'ThreadActionsToolbarButton' });
   ComponentRegistry.register(QuickActionSnooze, { role: 'ThreadListQuickAction' });
   ComponentRegistry.register(SnoozeMailLabel, { role: 'Thread:MailLabel' });
+  ExtensionRegistry.AccountSidebar.register(AccountSidebarExtension);
 }
 
 export function deactivate() {
   ComponentRegistry.unregister(ToolbarSnooze);
   ComponentRegistry.unregister(QuickActionSnooze);
   ComponentRegistry.unregister(SnoozeMailLabel);
+  ExtensionRegistry.AccountSidebar.unregister(AccountSidebarExtension);
   SnoozeStore.deactivate();
 }
 

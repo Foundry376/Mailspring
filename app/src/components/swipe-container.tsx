@@ -152,9 +152,12 @@ export default class SwipeContainer extends React.Component<
 
     this._onDragWithVelocity(velocity);
 
-    if (this.phase === Phase.GestureConfirmed) {
-      e.preventDefault();
-    }
+    // This no longer works - we need to pass passive: true to the event listener and bind it manually
+    // to preventDefault. https://developers.google.com/web/updates/2019/02/scrolling-intervention
+    // I think this should be fine though.
+    // if (this.phase === Phase.GestureConfirmed) {
+    // e.preventDefault();
+    // }
   };
 
   _onDragWithVelocity = velocityX => {
@@ -238,14 +241,20 @@ export default class SwipeContainer extends React.Component<
     if (this.trackingTouchIdentifier === null) {
       return;
     }
-    if (e.cancelable === false) {
-      // Chrome has already started interpreting these touch events as a scroll.
-      // We can no longer call preventDefault to make them ours.
-      if ([Phase.GestureStarting, Phase.GestureConfirmed].includes(this.phase)) {
-        this._onReset();
-      }
-      return;
-    }
+
+    // Note: Chrome now treats touch events as passive (non-blocking) so we're unable
+    // to explicitly claim the touch events. Thankfully specifying touchAction: 'pan-x pan-y'
+    // seems to enable an automatic "one or the other" treatment so you can't scroll vertically
+    // while swiping.
+
+    // if (e.cancelable === false) {
+    // Chrome has already started interpreting these touch events as a scroll.
+    // We can no longer call preventDefault to make them ours.
+    // if ([Phase.GestureStarting, Phase.GestureConfirmed].includes(this.phase)) {
+    //   this._onReset();
+    // }
+    //   return;
+    // }
     let trackingTouch = null;
     for (let ii = 0; ii < e.changedTouches.length; ii++) {
       const touch = e.changedTouches.item(ii);
@@ -384,6 +393,7 @@ export default class SwipeContainer extends React.Component<
         onTouchEnd={this._onTouchEnd}
         onTouchCancel={this._onTouchEnd}
         {...otherProps}
+        style={{ touchAction: 'pan-x pan-y', ...otherProps.style }}
       >
         <div style={backingStyles} className={backingClass} />
         <div style={{ transform: `translate3d(${currentX}px, 0, 0)` }}>{this.props.children}</div>
