@@ -149,7 +149,11 @@ const ContactAttributes = ({
               <Icons.Crown />
             </label>
             <div>
-              {new Date(item.date.year, item.date.month - 1, item.date.day).toLocaleDateString()}
+              { // If there is no year given, solely display the month and day
+                item.date.year ?
+                  new Date(item.date.year, item.date.month - 1, item.date.day).toLocaleDateString() :
+                  new Date(new Date().getFullYear(), item.date.month - 1, item.date.day).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })
+              }
             </div>
           </div>
         ))}
