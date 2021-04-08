@@ -35,12 +35,14 @@ const VERIFIED_LANGS = [
   'ko',
   'pl',
   'ja',
+  'ko',
   'zh-CN',
   'zh-TW',
   'pt',
   'pt-BR',
   'gl',
   'ru',
+  'cs',
   'uk',
 ];
 
