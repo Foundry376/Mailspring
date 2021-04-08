@@ -8,7 +8,7 @@ const rimraf = require('rimraf');
 const targz = require('targz');
 const { safeExec } = require('./utils/child-process-wrapper.js');
 
-const npmElectronTarget = require('../package.json').devDependencies.electron;
+const npmElectronTarget = require('../package.json').dependencies.electron;
 const npmEnvs = {
   system: process.env,
   electron: Object.assign({}, process.env, {
