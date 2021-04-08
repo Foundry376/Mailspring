@@ -22,6 +22,7 @@ export * from '../mailsync-process';
 export * from '../flux/attributes/matcher';
 export type DatabaseStore = typeof import('../flux/stores/database-store').default;
 export const DatabaseStore: DatabaseStore;
+export * from '../flux/stores/database-change-record';
 export * from '../flux/models/query-result-set';
 export * from '../flux/models/query-subscription';
 export * from '../flux/models/mutable-query-result-set';

@@ -23,7 +23,10 @@ interface State {
   };
 }
 
-export default class PreferencesCategoryMapper extends React.Component<{}, State> {
+export default class PreferencesCategoryMapper extends React.Component<
+  Record<string, unknown>,
+  State
+> {
   _unlisten?: () => void;
 
   constructor(props) {

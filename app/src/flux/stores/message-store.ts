@@ -8,8 +8,8 @@ import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import electron from 'electron';
-import DatabaseChangeRecord from './database-change-record';
 import { MessageViewExtension } from 'mailspring-exports';
+import { DatabaseChangeRecord } from './database-change-record';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
@@ -114,7 +114,7 @@ class _MessageStore extends MailspringStore {
     return this.trigger();
   }
 
-  _onDataChanged(change) {
+  _onDataChanged(change: DatabaseChangeRecord<any>) {
     if (!this._thread) return;
 
     if (change.objectClass === Message.name) {
@@ -179,7 +179,7 @@ class _MessageStore extends MailspringStore {
   }
 
   _onApplyFocusChange() {
-    const focused = FocusedContentStore.focused('thread');
+    const focused = FocusedContentStore.focused('thread') as Thread;
     if (focused === null) {
       this._lastMarkedAsReadThreadId = null;
     }

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { localized, Actions, DateUtils } from 'mailspring-exports';
 import DateInput from './date-input';
 import { Menu } from './menu';
+import { Moment } from 'moment';
 
 const { DATE_FORMAT_SHORT, DATE_FORMAT_LONG } = DateUtils;
 
@@ -10,7 +11,7 @@ type DatePickerPopoverProps = {
   footer?: React.ReactNode;
   onSelectDate?: (...args: any[]) => any;
   header: React.ReactNode;
-  dateOptions: object;
+  dateOptions: { [optionKey: string]: () => Moment | Date };
   shouldSelectDateWhenInterpreted?: boolean;
 };
 

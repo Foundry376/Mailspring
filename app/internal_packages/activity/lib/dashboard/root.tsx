@@ -123,6 +123,7 @@ class RootWithTimespan extends React.Component<
 
   async _forEachMessageIn(accountIds, startUnix, endUnix, callback) {
     let chunkStartUnix = startUnix;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const messages = await this._onFetchChunk(accountIds, chunkStartUnix, endUnix);
       if (!this._mounted) {

@@ -5,7 +5,10 @@ import { RetinaImg } from 'mailspring-component-kit';
 import ActivityList from './activity-list';
 import ActivityEventStore from '../activity-event-store';
 
-class ActivityListButton extends React.Component<{}, { unreadCount: number | string }> {
+class ActivityListButton extends React.Component<
+  Record<string, unknown>,
+  { unreadCount: number | string }
+> {
   static displayName = 'ActivityListButton';
 
   _unsub: () => void;

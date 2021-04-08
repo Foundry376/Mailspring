@@ -1,6 +1,6 @@
 import { Emitter, Disposable, CompositeDisposable } from 'event-kit';
 
-type CommandCallback = (event: CustomEvent) => void;
+export type CommandCallback = (event: CustomEvent) => void;
 
 export default class CommandRegistry {
   emitter = new Emitter();

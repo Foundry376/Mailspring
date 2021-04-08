@@ -14,7 +14,6 @@ type ModalProps = {
 type ModalState = {
   animateClass: boolean;
   offset: number;
-  dimensions: {};
 };
 
 class Modal extends React.Component<ModalProps, ModalState> {
@@ -29,7 +28,6 @@ class Modal extends React.Component<ModalProps, ModalState> {
 
   state = {
     offset: 0,
-    dimensions: {},
     animateClass: false,
   };
 

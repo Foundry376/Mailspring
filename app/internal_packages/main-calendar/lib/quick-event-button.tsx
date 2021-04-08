@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Actions } from 'mailspring-exports';
 import { QuickEventPopover } from './quick-event-popover';
 
-export class QuickEventButton extends React.Component<{}> {
+export class QuickEventButton extends React.Component<Record<string, unknown>> {
   static displayName = 'QuickEventButton';
 
   onClick = event => {

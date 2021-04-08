@@ -40,7 +40,7 @@ TokenRenderer.propTypes = {
 type ParticipantsTextFieldProps = {
   field?: string;
   label?: string;
-  participants: object;
+  participants: { to: Contact[]; cc: Contact[]; bcc: Contact[] };
   change: (...args: any[]) => any;
   className?: string;
   onEmptied?: (...args: any[]) => any;
@@ -243,7 +243,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
   render() {
     return (
       <div className={this.props.className}>
-        <TokenizingTextField
+        <TokenizingTextField<Contact>
           ref={el => {
             this._textfieldEl = el;
           }}

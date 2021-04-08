@@ -9,7 +9,7 @@ import {
 import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
 import { shell, ipcRenderer } from 'electron';
 
-class RefreshButton extends React.Component<{}, { refreshing: boolean }> {
+class RefreshButton extends React.Component<Record<string, unknown>, { refreshing: boolean }> {
   constructor(props) {
     super(props);
     this.state = { refreshing: false };
@@ -131,7 +131,10 @@ const ProTourFeatures = [
   },
 ];
 
-class PreferencesIdentity extends React.Component<{}, { identity: IIdentity | null }> {
+class PreferencesIdentity extends React.Component<
+  Record<string, unknown>,
+  { identity: IIdentity | null }
+> {
   static displayName = 'PreferencesIdentity';
 
   unsubscribe: () => void;

@@ -41,6 +41,7 @@ export interface ModelClass {
 }
 
 export class Model implements HasStaticAttributes {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   'constructor': typeof Model; // prettier-ignore
 

@@ -14,7 +14,10 @@ const DELAY_FOR_SHEET_ANIMATION = 25;
 const helper = new DefaultClientHelper();
 const service = new SystemStartService();
 
-class DefaultMailClientItem extends React.Component<{}, DefaultMailClientItemState> {
+class DefaultMailClientItem extends React.Component<
+  Record<string, unknown>,
+  DefaultMailClientItemState
+> {
   _mounted = false;
 
   state: DefaultMailClientItemState = { defaultClient: helper.available() ? false : 'unknown' };

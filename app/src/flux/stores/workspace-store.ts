@@ -27,14 +27,14 @@ interface SheetSet {
   [key: string]: SheetDeclaration;
 }
 
-interface SheetLocations {
+export interface SheetLocations {
   [locationKey: string]: {
     id: string;
     Toolbar: SheetToolbarDeclaration;
   };
 }
 
-interface SheetToolbarDeclaration {
+export interface SheetToolbarDeclaration {
   Left: { id: string };
   Right: { id: string };
 }
@@ -68,7 +68,7 @@ class WorkspaceStore extends MailspringStore {
   Sheet: SheetSet = (Sheet = {} as SheetSet);
 
   private _preferredLayoutMode: string;
-  private _hiddenLocations: {};
+  private _hiddenLocations: { [locationId: string]: SheetLocations[''] };
   private _sheetStack: SheetDeclaration[];
   private _shortcuts?: Disposable;
 
@@ -155,7 +155,7 @@ class WorkspaceStore extends MailspringStore {
     this.trigger(this);
   };
 
-  _onToggleLocationHidden = location => {
+  _onToggleLocationHidden = (location: SheetLocations['']) => {
     if (!location.id) {
       throw new Error('Actions.toggleWorkspaceLocationHidden - pass a WorkspaceStore.Location');
     }

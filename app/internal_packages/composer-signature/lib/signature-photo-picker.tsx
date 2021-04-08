@@ -78,6 +78,7 @@ export default class SignaturePhotoPicker extends React.Component<
       let source: any = img;
 
       let times = 0;
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         // instead of scaling from 1 to 0.4, we'll scale in steps where each step is >= 50%.
         // Adding intermediate step improves visual quality a lot for logos, text, etc.

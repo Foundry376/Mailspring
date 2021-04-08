@@ -24,7 +24,7 @@ Section: Stores
 class _AccountStore extends MailspringStore {
   private _version: number;
   private _accounts: Account[];
-  private _caches: {};
+  private _caches: { [key: string]: any };
 
   constructor() {
     super();

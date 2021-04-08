@@ -8,7 +8,10 @@ interface QuickEventPopoverState {
   leftoverText: string | null;
 }
 
-export class QuickEventPopover extends React.Component<{}, QuickEventPopoverState> {
+export class QuickEventPopover extends React.Component<
+  Record<string, unknown>,
+  QuickEventPopoverState
+> {
   constructor(props) {
     super(props);
     this.state = {

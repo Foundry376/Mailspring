@@ -21,7 +21,7 @@ export interface MenuProps extends HTMLProps<any> {
   className?: string;
   footerComponents?: React.ReactNode;
   headerComponents?: React.ReactNode;
-  itemContext?: object;
+  itemContext?: any;
   itemContent: (...args: any[]) => any;
   itemKey: (...args: any[]) => any;
   itemChecked?: (...args: any[]) => any;

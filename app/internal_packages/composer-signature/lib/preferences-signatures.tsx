@@ -180,7 +180,10 @@ interface PreferencesSignaturesState {
   accountsAndAliases: IAliasSet;
 }
 
-export default class PreferencesSignatures extends React.Component<{}, PreferencesSignaturesState> {
+export default class PreferencesSignatures extends React.Component<
+  Record<string, unknown>,
+  PreferencesSignaturesState
+> {
   static displayName = 'PreferencesSignatures';
 
   unsubscribers = [];

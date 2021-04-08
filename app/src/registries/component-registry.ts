@@ -1,5 +1,17 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
+import { SheetToolbarDeclaration } from '../flux/stores/workspace-store';
+
+type LocationDescriptor = { id: string } | SheetToolbarDeclaration;
+
+export interface ComponentRegistryDescriptor {
+  mode?: string;
+  modes?: string[];
+  location?: LocationDescriptor;
+  locations?: LocationDescriptor[];
+  role?: string;
+  roles?: string[];
+}
 
 /**
 Public: The ComponentRegistry maintains an index of React components registered
@@ -12,7 +24,7 @@ class ComponentRegistry extends MailspringStore {
   _registry: {
     [displayName: string]: {
       modes?: string[];
-      locations?: string[];
+      locations?: LocationDescriptor[];
       roles?: string[];
       component: React.ComponentType;
     };
@@ -44,7 +56,7 @@ class ComponentRegistry extends MailspringStore {
   //
   // This method is chainable.
   //
-  register(component, options) {
+  register(component, options: ComponentRegistryDescriptor) {
     if (component.view) {
       return console.warn(
         'Ignoring component trying to register with old CommandRegistry.register syntax'
@@ -75,9 +87,7 @@ class ComponentRegistry extends MailspringStore {
       this._registry[component.displayName].component !== component
     ) {
       throw new Error(
-        `ComponentRegistry.register(): A different component was already registered with the name ${
-          component.displayName
-        }`
+        `ComponentRegistry.register(): A different component was already registered with the name ${component.displayName}`
       );
     }
 
@@ -108,7 +118,7 @@ class ComponentRegistry extends MailspringStore {
   //
   // Returns a {React.Component}
   //
-  findComponentByName(name) {
+  findComponentByName(name: string) {
     return this._registry[name] && this._registry[name].component;
   }
 
@@ -142,7 +152,7 @@ class ComponentRegistry extends MailspringStore {
 
   Returns an {Array} of {React.Component} objects
   */
-  findComponentsMatching(descriptor) {
+  findComponentsMatching(descriptor: ComponentRegistryDescriptor) {
     if (!descriptor) {
       throw new Error('ComponentRegistry.findComponentsMatching called without descriptor');
     }
@@ -196,7 +206,7 @@ class ComponentRegistry extends MailspringStore {
   //
   triggerDebounced = _.debounce(() => this.trigger(this), 16);
 
-  _pluralizeDescriptor(descriptor) {
+  _pluralizeDescriptor(descriptor: ComponentRegistryDescriptor) {
     let { locations, modes, roles } = descriptor;
     if (descriptor.mode) {
       modes = [descriptor.mode];

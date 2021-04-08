@@ -10,6 +10,7 @@ import { KeyCommandsRegion } from 'mailspring-component-kit';
 import MultiselectListInteractionHandler from './multiselect-list-interaction-handler';
 import MultiselectSplitInteractionHandler from './multiselect-split-interaction-handler';
 import { ListDataSource } from './list-data-source';
+import { CommandCallback } from '../registries/command-registry';
 
 export interface MultiselectListProps extends ListTabularProps {
   focusedId?: string;
@@ -18,7 +19,9 @@ export interface MultiselectListProps extends ListTabularProps {
   className: string;
   columns: ListTabularColumn[];
   itemPropsProvider: (...args: any[]) => any;
-  keymapHandlers?: object;
+  keymapHandlers?: {
+    [command: string]: CommandCallback;
+  };
   onFocusItem?: (item: any) => void;
   onDragItems?: (event: React.DragEvent, items: any) => void;
   onSetCursorPosition?: (item: any) => void;
@@ -55,7 +58,7 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
   };
 
   unsubscribers: (() => void)[];
-  itemPropsProvider: (item: any, idx: number) => object;
+  itemPropsProvider: (item: any, idx: number) => { [key: string]: any };
   refs: {
     list: ListTabular;
   };

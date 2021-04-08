@@ -12,7 +12,10 @@ interface AccountSidebarState {
   standardSection: ISidebarSection;
 }
 
-export default class AccountSidebar extends React.Component<{}, AccountSidebarState> {
+export default class AccountSidebar extends React.Component<
+  Record<string, unknown>,
+  AccountSidebarState
+> {
   static displayName = 'AccountSidebar';
 
   static containerRequired = false;

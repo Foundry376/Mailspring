@@ -3,7 +3,7 @@ import { QueryRange } from './query-range';
 import { MutableQueryResultSet } from './mutable-query-result-set';
 import ModelQuery from './query';
 import { Model } from './model';
-import DatabaseChangeRecord from '../stores/database-change-record';
+import { DatabaseChangeRecord } from '../stores/database-change-record';
 import { QueryResultSet } from './query-result-set';
 
 type QuerySubscriptionResult<T extends Model> = QueryResultSet<T> | number | T | T[];
@@ -89,7 +89,7 @@ export class QuerySubscription<T extends Model> {
     return this._callbacks.length;
   };
 
-  applyChangeRecord = (record: DatabaseChangeRecord) => {
+  applyChangeRecord = (record: DatabaseChangeRecord<Model>) => {
     if (!this._query || record.objectClass !== this._query.objectClass()) {
       return;
     }

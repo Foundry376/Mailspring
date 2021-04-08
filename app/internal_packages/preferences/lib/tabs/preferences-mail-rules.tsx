@@ -31,7 +31,10 @@ interface PreferencesMailRulesState {
   conditionTemplates: ReturnType<typeof ConditionTemplatesForAccount>;
 }
 
-class PreferencesMailRules extends React.Component<{}, PreferencesMailRulesState> {
+class PreferencesMailRules extends React.Component<
+  Record<string, unknown>,
+  PreferencesMailRulesState
+> {
   static displayName = 'PreferencesMailRules';
 
   _unsubscribers = [];

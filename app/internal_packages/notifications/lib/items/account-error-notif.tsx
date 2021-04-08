@@ -4,7 +4,7 @@ import { localized, Account, AccountStore, Actions, KeyManager } from 'mailsprin
 import { Notification } from 'mailspring-component-kit';
 
 export default class AccountErrorNotification extends React.Component<
-  {},
+  Record<string, unknown>,
   { accounts: Account[]; checking: boolean; debugKeyPressed: boolean }
 > {
   static displayName = 'AccountErrorNotification';

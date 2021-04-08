@@ -159,7 +159,10 @@ class InitialPreferencesOptions extends React.Component<
   }
 }
 
-class InitialPreferencesPage extends React.Component<{}, { account: Account }> {
+class InitialPreferencesPage extends React.Component<
+  Record<string, unknown>,
+  { account: Account }
+> {
   static displayName = 'InitialPreferencesPage';
 
   _unlisten?: () => void;

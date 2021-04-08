@@ -15,6 +15,7 @@ import {
   MailspringAPIRequest,
   QuotedHTMLTransformer,
   ComponentRegistry,
+  DatabaseChangeRecord,
 } from 'mailspring-exports';
 
 import plugin from '../package.json';
@@ -32,7 +33,7 @@ interface MailspringLinkParams {
   lastDate?: number;
   date?: number;
 }
-const _parseOpenThreadUrl = mailspringUrlString => {
+const _parseOpenThreadUrl = (mailspringUrlString: string) => {
   const parsedUrl = url.parse(mailspringUrlString);
   const params = querystring.parse(parsedUrl.query) as any;
   return {
@@ -68,7 +69,7 @@ const _findCorrespondingThread = (
   ]);
 };
 
-const _onOpenThreadFromWeb = (event, mailspringUrl) => {
+const _onOpenThreadFromWeb = (event, mailspringUrl: string) => {
   const params = _parseOpenThreadUrl(mailspringUrl);
 
   _findCorrespondingThread(params)
@@ -86,7 +87,7 @@ const _onOpenThreadFromWeb = (event, mailspringUrl) => {
     });
 };
 
-const _onDatabaseChange = change => {
+const _onDatabaseChange = (change: DatabaseChangeRecord<any>) => {
   if (change.type !== 'persist' || change.objectClass !== Thread.name) {
     return;
   }
@@ -98,12 +99,12 @@ const _onDatabaseChange = change => {
   });
 };
 
-export function isShared(thread) {
+export function isShared(thread: Thread) {
   const metadata = thread.metadataForPluginId(PLUGIN_ID) || {};
   return metadata.shared || false;
 }
 
-export function sharingURLForThread(thread) {
+export function sharingURLForThread(thread: Thread) {
   const metadata = thread.metadataForPluginId(PLUGIN_ID) || {};
   if (!metadata || !metadata.key || !metadata.shared) {
     return null;
@@ -133,7 +134,7 @@ const syncThreadToWebSoon = (thread: Thread) => {
   }
 };
 
-export const syncThreadToWeb = async thread => {
+export const syncThreadToWeb = async (thread: Thread) => {
   const metadata = thread.metadataForPluginId(PLUGIN_ID) || {};
 
   let messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id }).include(
@@ -205,7 +206,7 @@ export const syncThreadToWeb = async thread => {
   );
 };
 
-export const unsyncThread = async thread => {
+export const unsyncThread = async (thread: Thread) => {
   const metadata = thread.metadataForPluginId(PLUGIN_ID) || {};
   await MailspringAPIRequest.postStaticAsset({
     filename: metadata.key,

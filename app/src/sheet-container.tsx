@@ -14,7 +14,10 @@ interface SheetContainerState {
   error?: string;
 }
 
-export default class SheetContainer extends React.Component<{}, SheetContainerState> {
+export default class SheetContainer extends React.Component<
+  Record<string, unknown>,
+  SheetContainerState
+> {
   static displayName = 'SheetContainer';
 
   _toolbarComponents = {};

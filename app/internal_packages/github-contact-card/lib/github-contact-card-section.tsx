@@ -50,7 +50,7 @@ GithubProfile.propTypes = {
 };
 
 export default class GithubContactCardSection extends React.Component<
-  {},
+  Record<string, unknown>,
   { loading: boolean; profile: any }
 > {
   static displayName = 'GithubContactCardSection';

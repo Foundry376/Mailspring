@@ -95,7 +95,10 @@ const BasicContent = ({ block, onMouseEnter, onMouseLeave }) => {
   );
 };
 
-export default class UndoRedoToast extends React.Component<{}, { block: any }> {
+export default class UndoRedoToast extends React.Component<
+  Record<string, unknown>,
+  { block: any }
+> {
   static displayName = 'UndoRedoToast';
   static containerRequired = false;
 

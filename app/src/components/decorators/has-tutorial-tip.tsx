@@ -116,7 +116,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     return ComposedComponent;
   }
 
-  return class extends React.Component<{}, { visible: boolean }> {
+  return class extends React.Component<Record<string, unknown>, { visible: boolean }> {
     static displayName = ComposedComponent.displayName;
     static containerRequired = ComposedComponent.containerRequired;
     static containerStyles = ComposedComponent.containerStyles;

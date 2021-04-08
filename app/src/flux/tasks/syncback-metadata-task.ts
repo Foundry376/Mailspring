@@ -11,8 +11,8 @@ export class SyncbackMetadataTask extends Task {
   }: {
     model: Model;
     pluginId: string;
-    value: object;
-    undoValue?: object;
+    value: { [key: string]: any };
+    undoValue?: { [key: string]: any };
   }) {
     if (!pluginId) {
       throw new Error('SyncbackMetadataTask.forSaving: You must specify a pluginId.');
@@ -66,8 +66,8 @@ export class SyncbackMetadataTask extends Task {
   modelId: string;
   modelClassName: string;
   modelHeaderMessageId?: string;
-  value: object;
-  undoValue: object;
+  value: { [key: string]: any };
+  undoValue: { [key: string]: any };
 
   constructor(data: AttributeValues<typeof SyncbackMetadataTask.attributes> = {}) {
     super(data);

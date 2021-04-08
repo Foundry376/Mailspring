@@ -57,7 +57,7 @@ export class AttributeCollection extends Attribute {
     this.joinQueryableBy = joinQueryableBy || [];
   }
 
-  toJSON(vals: (object | Model)[]) {
+  toJSON(vals: (Record<string, any> | Model)[]) {
     if (!vals) {
       return [];
     }
@@ -76,7 +76,7 @@ export class AttributeCollection extends Attribute {
     });
   }
 
-  fromJSON(json: object[]) {
+  fromJSON(json: Record<string, any>[]) {
     const Klass = this.itemClass;
 
     if (!json || !(json instanceof Array)) {

@@ -71,6 +71,7 @@ export function findMaxConcurrent(ongoing: EventOccurrence[], overlapById: Overl
 export function findAvailableOrder(ongoing: EventOccurrence[], overlapById: OverlapByEventId) {
   const orders = ongoing.map(e => overlapById[e.id].order);
   let order = 1;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (!orders.includes(order)) {
       return order;

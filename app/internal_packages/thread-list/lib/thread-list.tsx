@@ -32,7 +32,10 @@ import ThreadListScrollTooltip from './thread-list-scroll-tooltip';
 import ThreadListStore from './thread-list-store';
 import ThreadListContextMenu from './thread-list-context-menu';
 
-class ThreadList extends React.Component<{}, { style: string; syncing: boolean }> {
+class ThreadList extends React.Component<
+  Record<string, unknown>,
+  { style: string; syncing: boolean }
+> {
   static displayName = 'ThreadList';
 
   static containerStyles = {

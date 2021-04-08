@@ -411,14 +411,12 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-getting-started', () => {
-      const helpUrl =
-        'https://community.getmailspring.com/pub/quick-start-guide';
+      const helpUrl = 'https://community.getmailspring.com/pub/quick-start-guide';
       shell.openExternal(helpUrl);
     });
 
     this.on('application:view-community', () => {
-      const helpUrl =
-        'https://community.getmailspring.com/';
+      const helpUrl = 'https://community.getmailspring.com/';
       shell.openExternal(helpUrl);
     });
 

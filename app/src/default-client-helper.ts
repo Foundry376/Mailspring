@@ -8,8 +8,8 @@ const bundleIdentifier = 'com.mailspring.mailspring';
 interface DCH {
   available(): boolean;
   isRegisteredForURLScheme(scheme: string, callback: (registered: boolean | Error) => void): void;
-  resetURLScheme(scheme, callback: (error?: Error) => {}): void;
-  registerForURLScheme(scheme: string, callback: (error?: Error) => {}): void;
+  resetURLScheme(scheme, callback: (error?: Error) => void): void;
+  registerForURLScheme(scheme: string, callback: (error?: Error) => void): void;
 }
 
 export class DefaultClientHelperWindows implements DCH {

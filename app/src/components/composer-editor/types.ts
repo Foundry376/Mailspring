@@ -9,7 +9,7 @@ export interface Rule {
   serialize?: (obj: any, children: string) => React.ReactNode | void;
 }
 
-export interface ComposerEditorPlugin extends Omit<Plugin, 'onKeyDown'> {
+export interface ComposerEditorPlugin extends Omit<Plugin<Editor>, 'onKeyDown'> {
   renderMark?: (
     { mark, children, targetIsHTML }: RenderMarkProps & { targetIsHTML?: boolean },
     editor?: Editor,

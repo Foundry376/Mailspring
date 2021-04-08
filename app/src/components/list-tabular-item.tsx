@@ -9,7 +9,7 @@ type ListTabularItemProps = {
     height: number;
   };
   columns: ListTabularColumn[];
-  item: object;
+  item: any; // template type soon?
   itemProps?: {
     className?: string;
   };

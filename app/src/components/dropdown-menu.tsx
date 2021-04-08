@@ -11,7 +11,7 @@ const Attachment = {
 
 interface DropdownMenuProps extends MenuProps {
   className?: string;
-  intitialSelectionItem?: object;
+  intitialSelectionItem?: any;
   attachment?: string;
   headerComponents?: React.ReactNode;
 }

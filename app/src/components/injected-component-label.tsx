@@ -1,9 +1,10 @@
 /* eslint react/prefer-stateless-function: 0 */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { ComponentRegistryDescriptor } from '../registries/component-registry';
 
 type InjectedComponentLabelProps = {
-  matching?: object
+  matching?: ComponentRegistryDescriptor;
 };
 
 export default class InjectedComponentLabel extends React.Component<InjectedComponentLabelProps> {

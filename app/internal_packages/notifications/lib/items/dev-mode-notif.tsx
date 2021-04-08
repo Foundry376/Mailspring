@@ -1,7 +1,10 @@
 import { localized, React } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
-export default class DevModeNotification extends React.Component<{}, { inDevMode: boolean }> {
+export default class DevModeNotification extends React.Component<
+  Record<string, unknown>,
+  { inDevMode: boolean }
+> {
   static displayName = 'DevModeNotification';
 
   constructor(props) {

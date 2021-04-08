@@ -253,15 +253,13 @@ on the result. */
       });
     } else {
       if (node.nodes && node.nodes instanceof Array) {
-        // @ts-ignore
-        node.nodes = node.nodes.map(applyMark);
+        node.nodes = node.nodes.map(applyMark as any);
       }
     }
 
     return node;
   };
-  // @ts-ignore
-  return mark.nodes.reduce(function(nodes, node) {
+  return (mark as any).nodes.reduce(function(nodes, node) {
     const ret = applyMark(node);
     if (Array.isArray(ret)) return nodes.concat(ret);
     nodes.push(ret);
@@ -334,6 +332,7 @@ export function convertFromHTML(html: string) {
       return;
     }
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const last = node.nodes[node.nodes.length - 1];
       if (!last) {
@@ -462,7 +461,7 @@ so we can debug challenging problems but not leak PII. */
 export function convertToShapeWithoutContent(value: Value) {
   // Sidenote: this uses JSON.stringify to "walk" every key-value pair
   // in the entire JSON tree and have the opportunity to replace the values.
-  let json: object = { error: 'toJSON failed' };
+  let json: { [key: string]: any } = { error: 'toJSON failed' };
   try {
     json = value.toJSON();
   } catch (err) {

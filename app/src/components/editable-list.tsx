@@ -58,20 +58,20 @@ type EditableListProps = {
   itemContent?: (...args: any[]) => any;
   className?: string;
   showEditIcon?: boolean;
-  createInputProps?: object;
+  createInputProps?: any; // convert to template type soon
   onCreateItem?: (...args: any[]) => any;
   onDeleteItem?: (...args: any[]) => any;
   onReorderItem?: (...args: any[]) => any;
   onItemEdited?: (...args: any[]) => any;
   onItemCreated?: (...args: any[]) => any;
-  selected?: string | object;
+  selected?: string | any;
   onSelectItem?: (...args: any[]) => any;
 };
 type EditableListState = {
   dropInsertionIndex: number;
   editingIndex: number;
   creatingItem: boolean;
-  selected?: string | object;
+  selected?: string | any;
 };
 
 /*

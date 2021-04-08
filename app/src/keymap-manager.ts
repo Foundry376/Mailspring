@@ -105,8 +105,8 @@ export default class KeymapManager {
   userKeymap?: KeymapFile;
   _unobserveTemplate?: Disposable;
   _removeTemplate?: Disposable;
-  _bindingsCache: {};
-  _commandsCache: {};
+  _bindingsCache: any;
+  _commandsCache: any;
   _altKeyDown = false;
   _altKeyTimer: NodeJS.Timeout = null;
 

@@ -95,7 +95,7 @@ class TemplateEditor extends React.Component<
 }
 
 export default class PreferencesTemplates extends React.Component<
-  {},
+  Record<string, unknown>,
   { selected: ITemplate; templates: ITemplate[] }
 > {
   static displayName = 'PreferencesTemplates';

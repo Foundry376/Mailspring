@@ -5,6 +5,7 @@ import {
   DatabaseStore,
   Thread,
   DraftFactory,
+  DatabaseChangeRecord,
 } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 
@@ -46,7 +47,7 @@ class SendRemindersStore extends MailspringStore {
     transferReminderMetadataFromDraftToThread({ headerMessageId, accountId });
   };
 
-  _onDatabaseChanged = ({ type, objects, objectClass }) => {
+  _onDatabaseChanged = ({ type, objects, objectClass }: DatabaseChangeRecord<Thread>) => {
     if (objectClass !== Thread.name) {
       return;
     }

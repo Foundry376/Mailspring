@@ -9,7 +9,7 @@ class SearchableComponent {
   __regionId: string;
   __searchTerm: any;
   __searchIndex: any;
-  _searchableListener?: () => {};
+  _searchableListener?: () => void;
 
   componentDidMount(superMethod, ...args) {
     if (superMethod) superMethod.apply(this, args);

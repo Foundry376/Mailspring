@@ -4,12 +4,13 @@ import { PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
 import { Flexbox } from './flexbox';
 import InjectedComponentErrorBoundary from './injected-component-error-boundary';
 import InjectedComponentLabel from './injected-component-label';
+import { ComponentRegistryDescriptor } from '../registries/component-registry';
 
 type InjectedComponentSetProps = {
-  matching: object;
+  matching: ComponentRegistryDescriptor;
   className?: string;
   matchLimit?: number;
-  exposedProps?: object;
+  exposedProps?: any;
   containersRequired?: boolean;
   deferred?: boolean;
   inline?: boolean;

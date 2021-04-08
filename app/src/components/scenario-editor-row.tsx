@@ -92,12 +92,18 @@ class SourceSelect extends React.Component<SourceSelectProps, SourceSelectState>
   }
 }
 
+interface ScenarioEditorRowValue {
+  templateKey: string;
+  comparatorKey: string;
+  value: string;
+}
+
 interface ScenarioEditorRowProps {
-  instance: { templateKey: string; comparatorKey: string; value: string };
+  instance: ScenarioEditorRowValue;
   removable: boolean;
   templates: Template[];
-  onChange: (item: object) => void;
-  onInsert: (item: object) => void;
+  onChange: (item: ScenarioEditorRowValue) => void;
+  onInsert: () => void;
   onRemove: () => void;
 }
 export default class ScenarioEditorRow extends React.Component<ScenarioEditorRowProps> {
@@ -142,7 +148,7 @@ export default class ScenarioEditorRow extends React.Component<ScenarioEditorRow
     );
   }
 
-  _renderComparator(template) {
+  _renderComparator(template: Template) {
     const options = Object.keys(template.comparators).map(key => (
       <option key={key} value={key}>
         {template.comparators[key].name}
@@ -158,7 +164,7 @@ export default class ScenarioEditorRow extends React.Component<ScenarioEditorRow
     );
   }
 
-  _renderValue(template) {
+  _renderValue(template: Template) {
     if (template.type === Template.Type.Enum) {
       return (
         <SourceSelect

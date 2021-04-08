@@ -25,7 +25,7 @@ class ToolbarSpacer extends React.Component<{ order: number }> {
   }
 }
 
-class WindowTitle extends React.Component<{}, { title: string }> {
+class WindowTitle extends React.Component<Record<string, unknown>, { title: string }> {
   static displayName = 'WindowTitle';
 
   private disposable?: Disposable;
@@ -50,7 +50,7 @@ class WindowTitle extends React.Component<{}, { title: string }> {
   }
 }
 
-class ToolbarBack extends React.Component<{}, { categoryName: string }> {
+class ToolbarBack extends React.Component<Record<string, unknown>, { categoryName: string }> {
   static displayName = 'ToolbarBack';
 
   // These stores are only required when this Toolbar is actually needed.
@@ -106,7 +106,7 @@ class ToolbarBack extends React.Component<{}, { categoryName: string }> {
   }
 }
 
-class ToolbarWindowControls extends React.Component<{}, { alt: boolean }> {
+class ToolbarWindowControls extends React.Component<Record<string, unknown>, { alt: boolean }> {
   static displayName = 'ToolbarWindowControls';
 
   constructor(props) {

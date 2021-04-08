@@ -158,7 +158,7 @@ global.Promise.prototype.isRejected = isRejected;
 (global.Promise as any).promisify = promisify;
 (global.Promise as any).promisifyAll = promisifyAll;
 
-type ResolvableProps<T> = object & { [K in keyof T]: T[K] | Promise<T[K]> };
+type ResolvableProps<T> = Record<string, unknown> & { [K in keyof T]: T[K] | Promise<T[K]> };
 type IterateFunction<T, R> = (item: T, index: number, arrayLength: number) => Promise<R>;
 
 interface PromiseConstructor {

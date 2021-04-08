@@ -266,6 +266,7 @@ function extractNotesFromDescription(description: string) {
   } else {
     notes = descriptionRoot.innerText;
   }
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const nextNotes = notes.replace('\n\n', '\n');
     if (nextNotes === notes) {

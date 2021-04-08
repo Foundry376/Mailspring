@@ -39,7 +39,7 @@ type FixedPopoverProps = {
 };
 
 type FixedPopoverState = {
-  offset: {};
+  offset: { x?: number; y?: number };
   direction: any;
   visible: boolean;
 };
@@ -369,4 +369,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   }
 }
 
-export default compose(FixedPopover, AutoFocuses);
+export default compose(
+  FixedPopover,
+  AutoFocuses
+);

@@ -6,9 +6,9 @@ The DatabaseChangeRecord contains information about what type of model changed,
 and references to the new model values. All mutations to the database produce these
 change records.
 */
-export default class DatabaseChangeRecord {
-  objects: Model[];
-  objectsRawJSON: object[];
+export class DatabaseChangeRecord<T extends Model> {
+  objects: T[];
+  objectsRawJSON: Record<string, any>[];
   type: string;
   objectClass: any;
 

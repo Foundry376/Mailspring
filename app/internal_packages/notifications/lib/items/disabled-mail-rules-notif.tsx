@@ -3,7 +3,7 @@ import { localized, MailRulesStore, Actions } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class DisabledMailRulesNotification extends React.Component<
-  {},
+  Record<string, unknown>,
   { disabledRules: any[] }
 > {
   static displayName = 'DisabledMailRulesNotification';

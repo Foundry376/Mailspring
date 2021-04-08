@@ -20,7 +20,10 @@ interface ActivitySidebarState {
   expanded: boolean;
 }
 
-export default class ActivitySidebar extends React.Component<{}, ActivitySidebarState> {
+export default class ActivitySidebar extends React.Component<
+  Record<string, unknown>,
+  ActivitySidebarState
+> {
   static displayName = 'ActivitySidebar';
 
   static containerRequired = false;

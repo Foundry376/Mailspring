@@ -6,7 +6,10 @@ import { localized } from 'mailspring-exports';
 import ThemeOption, { toSelector } from './theme-option';
 import { Disposable } from 'event-kit';
 
-class ThemePicker extends React.Component<{}, { themes: any[]; activeTheme: string }> {
+class ThemePicker extends React.Component<
+  Record<string, unknown>,
+  { themes: any[]; activeTheme: string }
+> {
   static displayName = 'ThemePicker';
 
   themes = AppEnv.themes;

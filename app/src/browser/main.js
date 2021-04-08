@@ -207,8 +207,8 @@ const parseCommandLine = argv => {
   };
 };
 
-const extractMailtoLink = (mailtoLink) => {
-  console.log(mailtoLink)
+const extractMailtoLink = mailtoLink => {
+  console.log(mailtoLink);
 
   // Handle links in the form mailto:test@example.com?attach=file:///path/to/file.txt
   // This will handle links e.g. for nautilus-sendto and attach the attachments correctly.
@@ -221,21 +221,21 @@ const extractMailtoLink = (mailtoLink) => {
 
   const mailtoUrl = new URL(mailtoLink);
   mailtoUrl.searchParams.forEach((value, key) => {
-    if (key === "attach") {
+    if (key === 'attach') {
       // We need to strip the leading `file://` in order to detect the files
-      pathsToOpen.push(value.replace(/^file:\/\//, ""));
+      pathsToOpen.push(value.replace(/^file:\/\//, ''));
       mailCreated = true;
     }
-  })
+  });
 
   // Check if another draft window should be opened if there is a recipient set
   // Prevents duplicate draft window for links such as mailto:?attach=file:///path/to/file.txt
-  if (!mailCreated || (mailtoUrl.pathname !== '')) {
+  if (!mailCreated || mailtoUrl.pathname !== '') {
     urlsToOpen.push(mailtoLink);
   }
 
-  return { urlsToOpen, pathsToOpen }
-}
+  return { urlsToOpen, pathsToOpen };
+};
 
 /*
  * "Squirrel will spawn your app with command line flags on first run, updates,]

@@ -11,7 +11,10 @@ interface State {
   registered?: boolean;
 }
 
-export default class DefaultClientNotification extends React.Component<{}, State> {
+export default class DefaultClientNotification extends React.Component<
+  Record<string, unknown>,
+  State
+> {
   static displayName = 'DefaultClientNotification';
 
   helper = new DefaultClientHelper();

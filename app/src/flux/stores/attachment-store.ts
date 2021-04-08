@@ -29,6 +29,8 @@ const fileAccessibleAtPath = async filePath => {
   }
 };
 
+export type AttachmentDownloadData = null;
+
 class AttachmentStore extends MailspringStore {
   _filePreviewPaths = {};
   _filesDirectory: string = path.join(AppEnv.getConfigDirPath(), 'files');
@@ -70,14 +72,14 @@ class AttachmentStore extends MailspringStore {
     );
   }
 
-  getDownloadDataForFile(fileId: string): null {
+  getDownloadDataForFile(fileId: string): AttachmentDownloadData {
     // if we ever support downloads again, put this back
     return null;
   }
 
   // Returns a hash of download objects keyed by fileId
   getDownloadDataForFiles(fileIds: string[] = []) {
-    const downloadData: { [fileId: string]: null } = {};
+    const downloadData: { [fileId: string]: AttachmentDownloadData } = {};
     fileIds.forEach(fileId => {
       downloadData[fileId] = this.getDownloadDataForFile(fileId);
     });

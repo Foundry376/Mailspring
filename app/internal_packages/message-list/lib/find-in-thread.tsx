@@ -8,7 +8,10 @@ interface FindInThreadProps {
   globalIndex: number;
   resultsLength: number;
 }
-export default class FindInThread extends React.Component<{}, FindInThreadProps> {
+export default class FindInThread extends React.Component<
+  Record<string, unknown>,
+  FindInThreadProps
+> {
   static displayName = 'FindInThread';
 
   _usub: () => void;

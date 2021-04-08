@@ -17,7 +17,7 @@ type MetadataComposerToggleButtonProps = {
   iconName?: string;
   pluginId: string;
   pluginName: string;
-  metadataEnabledValue: object;
+  metadataEnabledValue: any;
   errorMessage: (...args: any[]) => any;
   draft: Message;
   session: DraftEditingSession;

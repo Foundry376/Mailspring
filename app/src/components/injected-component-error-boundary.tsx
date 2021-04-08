@@ -7,7 +7,7 @@ https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html
 Section: Component Kit
 */
 export default class InjectedComponentErrorBoundary extends React.Component<
-  {},
+  Record<string, unknown>,
   { error: string | null }
 > {
   static displayName = 'InjectedComponentErrorBoundary';

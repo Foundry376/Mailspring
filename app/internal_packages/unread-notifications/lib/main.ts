@@ -8,6 +8,7 @@ import {
   NativeNotifications,
   DatabaseStore,
   localized,
+  DatabaseChangeRecord,
 } from 'mailspring-exports';
 
 const WAIT_FOR_CHANGES_DELAY = 400;
@@ -30,7 +31,7 @@ export class Notifier {
   }
 
   // async for testing
-  async _onDatabaseChanged({ objectClass, objects, objectsRawJSON }) {
+  async _onDatabaseChanged({ objectClass, objects, objectsRawJSON }: DatabaseChangeRecord<any>) {
     if (AppEnv.config.get('core.notifications.enabled') === false) {
       return;
     }

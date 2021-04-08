@@ -36,7 +36,10 @@ interface OnboardingRootState {
   account: Account;
 }
 
-export default class OnboardingRoot extends React.Component<{}, OnboardingRootState> {
+export default class OnboardingRoot extends React.Component<
+  Record<string, unknown>,
+  OnboardingRootState
+> {
   static displayName = 'OnboardingRoot';
   static containerRequired = false;
 

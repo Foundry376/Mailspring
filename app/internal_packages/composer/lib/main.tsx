@@ -15,7 +15,7 @@ import ComposerView from './composer-view';
 const ComposerViewForDraftClientId = InflatesDraftClientId(ComposerView);
 
 class ComposerWithWindowProps extends React.Component<
-  {},
+  Record<string, unknown>,
   { headerMessageId: string; errorMessage?: string; errorDetail?: string }
 > {
   static displayName = 'ComposerWithWindowProps';

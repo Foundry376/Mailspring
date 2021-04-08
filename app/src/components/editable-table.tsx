@@ -68,7 +68,7 @@ type EditableTableCellProps = {
   rowIdx?: any;
   colIdx?: any;
   isHeader?: boolean;
-  inputProps?: object;
+  inputProps?: any;
   InputRenderer?: any;
   onAddRow?: (...args: any[]) => any;
   onCellEdited: (...args: any[]) => any;
@@ -113,7 +113,9 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
   }
 
   onInputBlur = event => {
-    const { target: { value } } = event;
+    const {
+      target: { value },
+    } = event;
     const { tableDataSource, isHeader, rowIdx, colIdx, onCellEdited } = this.props;
     const currentValue = tableDataSource.cellAt({ rowIdx, colIdx });
     if (value != null && value !== currentValue) {
@@ -170,7 +172,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
 
 type EditableTableProps = {
   tableDataSource?: any;
-  inputProps?: object;
+  inputProps?: any;
   InputRenderer?: any;
   onCellEdited: (...args: any[]) => any;
   onAddColumn?: (...args: any[]) => any;

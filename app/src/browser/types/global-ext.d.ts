@@ -11,7 +11,7 @@ declare global {
 
   module Electron {
     interface BrowserWindow {
-      loadSettings: object;
+      loadSettings: { [key: string]: unknown };
       loadSettingsChangedSinceGetURL: boolean;
       updateLoadSettings: boolean;
     }

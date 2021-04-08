@@ -4,6 +4,9 @@ import WorkspaceStore from './workspace-store';
 import DatabaseStore from './database-store';
 import * as Actions from '../actions';
 import { Model } from '../models/model';
+import { DatabaseChangeRecord } from './database-change-record';
+import { Thread } from '../models/thread';
+import { Message } from '../models/message';
 
 /**
 Public: The FocusedContentStore provides access to the objects currently selected
@@ -47,9 +50,15 @@ _onFocusChanged: =>
 Section: Stores
 */
 class FocusedContentStore extends MailspringStore {
-  _focused: object;
-  _focusedUsingClick: object;
-  _keyboardCursor: object;
+  _focused: {
+    [view: string]: Model | null;
+  };
+  _focusedUsingClick: {
+    [view: string]: boolean;
+  };
+  _keyboardCursor: {
+    [view: string]: Model | null;
+  };
   _keyboardCursorEnabled: boolean;
 
   constructor() {
@@ -94,7 +103,7 @@ class FocusedContentStore extends MailspringStore {
     }
   };
 
-  _onFocusKeyboard = ({ collection, item }) => {
+  _onFocusKeyboard = ({ collection, item }: { collection: string; item: Model | null }) => {
     if (item && !(item instanceof Model)) {
       throw new Error('focusKeyboard() requires a Model or null');
     }
@@ -167,7 +176,7 @@ class FocusedContentStore extends MailspringStore {
     this.trigger({ impactsCollection: () => true });
   };
 
-  _onDataChange = change => {
+  _onDataChange = (change: DatabaseChangeRecord<Model>) => {
     // If one of the objects we're storing in our focused or keyboard cursor
     // dictionaries has changed, we need to let our observers know, since they
     // may now be holding on to outdated data.
@@ -205,6 +214,8 @@ class FocusedContentStore extends MailspringStore {
   - `collection` The {String} name of a collection. Standard collections are
     listed above.
   */
+  focused(colletion: 'thread'): Thread | null;
+  focused(colletion: 'message'): Message | null;
   focused(collection: string) {
     return this._focused[collection];
   }

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, { Component } from 'react';
+import React, { Component, CSSProperties } from 'react';
 import { Utils, Model } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
@@ -42,7 +42,7 @@ type ListTabularRowsProps = {
   columns: any[];
   draggable?: boolean;
   itemHeight?: number;
-  innerStyles?: object;
+  innerStyles?: CSSProperties;
   onSelect?: (...args: any[]) => any;
   onClick?: (...args: any[]) => any;
   onDoubleClick?: (...args: any[]) => any;
@@ -70,7 +70,15 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  renderRow({ item, idx, itemProps = {} }: { item: Model; idx: number; itemProps?: object }) {
+  renderRow({
+    item,
+    idx,
+    itemProps = {},
+  }: {
+    item: Model;
+    idx: number;
+    itemProps?: { [key: string]: any };
+  }) {
     if (!item) {
       return false;
     }

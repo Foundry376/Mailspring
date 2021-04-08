@@ -12,12 +12,13 @@ import { Account } from './models/account';
 import { AccountStore } from './stores/account-store';
 import DatabaseStore from './stores/database-store';
 import OnlineStatusStore from './stores/online-status-store';
-import DatabaseChangeRecord from './stores/database-change-record';
+import { DatabaseChangeRecord } from './stores/database-change-record';
 import DatabaseObjectRegistry from '../registries/database-object-registry';
 import { MailsyncProcess, MailsyncProcessExit } from '../mailsync-process';
 import KeyManager from '../key-manager';
 import * as Actions from './actions';
 import * as Utils from './models/utils';
+import { Model } from 'mailspring-exports';
 
 const MAX_CRASH_HISTORY = 10;
 
@@ -184,7 +185,7 @@ export default class MailsyncBridge {
       const buffer = Buffer.alloc(tailSize);
       const fd = fs.openSync(logpath, 'r');
       fs.readSync(fd, buffer, 0, tailSize, size - tailSize);
-      log = buffer.toString('UTF8');
+      log = buffer.toString('utf-8');
       log = log.substr(log.indexOf('\n') + 1);
     } catch (logErr) {
       console.warn(`Could not append ${logfile} to mailsync exception report: ${logErr}`);
@@ -223,7 +224,7 @@ export default class MailsyncBridge {
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
-    resetClient.kill = () => { };
+    resetClient.kill = () => {};
 
     this._clients[account.id] = resetClient;
 
@@ -431,7 +432,7 @@ export default class MailsyncBridge {
     }
   };
 
-  _onIncomingChangeRecord = (record: DatabaseChangeRecord) => {
+  _onIncomingChangeRecord = (record: DatabaseChangeRecord<Model>) => {
     // Allow observers of the database to handle this change
     DatabaseStore.trigger(record);
 

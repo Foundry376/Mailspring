@@ -55,7 +55,7 @@ const Steps = [
 ];
 
 export default class TutorialPage extends React.Component<
-  {},
+  Record<string, unknown>,
   { appeared: boolean; seen: any[]; current: any }
 > {
   static displayName = 'TutorialPage';

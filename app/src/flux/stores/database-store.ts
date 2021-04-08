@@ -10,7 +10,6 @@ import { Model } from '../models/model';
 import MailspringStore from '../../global/mailspring-store';
 import * as Utils from '../models/utils';
 import Query from '../models/query';
-import DatabaseChangeRecord from './database-change-record';
 
 const debug = createDebug('app:RxDB');
 const debugVerbose = createDebug('app:RxDB:all');
@@ -130,8 +129,6 @@ are in your displayed set before refreshing.
 Section: Database
 */
 class DatabaseStore extends MailspringStore {
-  static ChangeRecord = DatabaseChangeRecord;
-
   _open = false;
   _waiting = [];
   _preparedStatementCache = new LRU<string, Sqlite3.Statement<any[]>>({ max: 500 });
@@ -356,7 +353,8 @@ class DatabaseStore extends MailspringStore {
         if (this._agent) this._agent.kill('SIGTERM');
         this._agent = null;
       });
-      this._agent.on('message', ({ type, id, results, agentTime }) => {
+      this._agent.on('message', (message: Record<string, any>) => {
+        const { type, id, results, agentTime } = message;
         if (type === 'results' && this._agentOpenQueries[id]) {
           this._agentOpenQueries[id]({ results, agentTime });
           delete this._agentOpenQueries[id];

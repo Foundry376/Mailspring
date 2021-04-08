@@ -62,7 +62,7 @@ interface Action extends ActionFn, Listenable {
   actionName: string;
   scope: 'window' | 'global' | 'main';
   sync: boolean;
-  listen: (callback: (...args: any[]) => any, thisObj?: object) => () => void;
+  listen: (callback: (...args: any[]) => any, thisObj?: any) => () => void;
 }
 
 const scopes: {

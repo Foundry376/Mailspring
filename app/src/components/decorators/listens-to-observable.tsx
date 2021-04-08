@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 
 function ListensToObservable<T, U, V>(
   ComposedComponent: typeof React.Component & {
     displayName?: string;
     containerRequired?: boolean;
-    containerStyles?: object;
+    containerStyles?: CSSProperties;
   },
   {
     getObservable,

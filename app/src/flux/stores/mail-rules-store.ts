@@ -11,6 +11,7 @@ import { localized } from '../../intl';
 
 import { Template } from '../../components/scenario-editor-models';
 import { ConditionMode, ConditionTemplates, ActionTemplates } from '../../mail-rules-templates';
+import { DatabaseChangeRecord } from 'mailspring-exports';
 
 const RulesJSONKey = 'MailRules-V2';
 const AutoSinceJSONKey = 'MailRules-Auto-Since';
@@ -97,7 +98,7 @@ class MailRulesStore extends MailspringStore {
     return this._reprocessing;
   }
 
-  _onDatabaseChanged = record => {
+  _onDatabaseChanged = (record: DatabaseChangeRecord<Message>) => {
     if (record.type !== 'persist' || record.objectClass !== Message.name) return;
 
     // Note: Mailsync processes incoming new emails in two phases. First it fetches the

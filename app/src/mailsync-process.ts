@@ -217,7 +217,7 @@ export class MailsyncProcess extends EventEmitter {
 
         try {
           const lastLine = buffer
-            .toString('UTF-8')
+            .toString('utf-8')
             .split('\n')
             .pop();
           const response = JSON.parse(lastLine);

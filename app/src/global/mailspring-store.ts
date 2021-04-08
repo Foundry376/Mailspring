@@ -103,7 +103,7 @@ export default class MailspringStore implements Listenable {
     return this._emitter.setMaxListeners(250);
   }
 
-  listen(callback: ListenableCallback, bindContext: object = this) {
+  listen(callback: ListenableCallback, bindContext: any = this) {
     if (!callback) {
       throw new Error('@listen called with undefined callback');
     }

@@ -87,7 +87,7 @@ export interface TableRowProps {
   displayNumbers?: boolean;
   tableDataSource: TableDataSource;
   rowIdx: number;
-  extraProps: object;
+  extraProps: any;
   CellRenderer: any;
 }
 
@@ -152,7 +152,7 @@ export interface TableProps {
   rowHeight: number;
   bodyHeight: number;
   tableDataSource: TableDataSource;
-  extraProps: object;
+  extraProps: any;
   RowRenderer: any;
   CellRenderer: any;
 }

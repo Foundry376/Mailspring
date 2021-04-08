@@ -5,7 +5,7 @@ import { AttachmentItem, ImageAttachmentItem } from 'mailspring-component-kit';
 
 interface MessageAttachmentsProps {
   files: File[];
-  downloads: object;
+  downloads: { [fileId: string]: null };
   headerMessageId: string;
   filePreviewPaths: {
     [fileId: string]: string;

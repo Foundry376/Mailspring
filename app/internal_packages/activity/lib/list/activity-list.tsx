@@ -10,8 +10,8 @@ import ActivityListItemContainer from './activity-list-item-container';
 import ActivityListEmptyState from './activity-list-empty-state';
 
 class ActivityList extends React.Component<
-  {},
-  { collapsedToggles: {}; empty: boolean; actions: any[] }
+  Record<string, unknown>,
+  { collapsedToggles: { [key: string]: any }; empty: boolean; actions: any[] }
 > {
   static displayName = 'ActivityList';
 

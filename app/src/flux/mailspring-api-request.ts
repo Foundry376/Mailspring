@@ -54,7 +54,7 @@ export async function postStaticAsset({
   blob,
 }: {
   filename: string;
-  blob: 'string' | Blob;
+  blob: string | Blob;
 }) {
   const body = new FormData();
   body.set('filename', filename);

@@ -334,7 +334,7 @@ class DraftFactory {
 
       // Remove participants present in the reply-all set and not the reply set
       for (const key of ['to', 'cc']) {
-        updated[key] = _.reject<Contact>(updated[key], contact => {
+        updated[key] = _.reject<Contact[]>(updated[key], contact => {
           const inReplySet = _.findWhere(replySet[key], { email: contact.email });
           const inReplyAllSet = _.findWhere(replyAllSet[key], { email: contact.email });
           return inReplyAllSet && !inReplySet;

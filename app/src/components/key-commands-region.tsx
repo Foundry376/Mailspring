@@ -4,10 +4,15 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { Disposable } from 'rx-core';
+import { CommandCallback } from '../registries/command-registry';
 
 interface KeyCommandsRegionProps extends React.HTMLProps<HTMLDivElement> {
-  localHandlers?: object;
-  globalHandlers?: object;
+  localHandlers?: {
+    [command: string]: CommandCallback;
+  };
+  globalHandlers?: {
+    [command: string]: CommandCallback;
+  };
   onFocusIn?: (...args: any[]) => any;
   onFocusOut?: (...args: any[]) => any;
 }
@@ -163,7 +168,14 @@ export class KeyCommandsRegion extends React.Component<
   _setupListeners({
     localHandlers,
     globalHandlers,
-  }: { localHandlers?: any; globalHandlers?: any } = {}) {
+  }: {
+    localHandlers?: {
+      [command: string]: CommandCallback;
+    };
+    globalHandlers?: {
+      [command: string]: CommandCallback;
+    };
+  } = {}) {
     const $el = ReactDOM.findDOMNode(this) as Element;
     $el.addEventListener('focusin', this._onFocusIn);
     $el.addEventListener('focusout', this._onFocusOut);

@@ -17,6 +17,7 @@ import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import { localized } from '../../intl';
+import { DatabaseChangeRecord } from './database-change-record';
 
 interface IThreadMessageModelOrId {
   thread?: Thread;
@@ -166,7 +167,7 @@ class DraftStore extends MailspringStore {
     return true;
   };
 
-  _onDataChanged = change => {
+  _onDataChanged = (change: DatabaseChangeRecord<Message>) => {
     if (change.objectClass !== Message.name) {
       return;
     }
@@ -247,8 +248,8 @@ class DraftStore extends MailspringStore {
     messageId,
   }: IThreadMessageModelOrId): Promise<{ thread: Thread; message: Message }> {
     const queries: {
-      thread?: Thread | { then: (next: any) => Promise<{}> };
-      message?: Message | { then: (next: any) => Promise<{}> };
+      thread?: Thread | { then: (next: any) => Promise<Thread> };
+      message?: Message | { then: (next: any) => Promise<Message> };
     } = {};
 
     if (thread) {

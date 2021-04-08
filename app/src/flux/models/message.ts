@@ -256,7 +256,7 @@ export class Message extends ModelWithMetadata {
   // `to`, `cc`, `bcc` && (optionally) `from` fields.
   participants({ includeFrom = true, includeBcc = false } = {}) {
     const seen = {};
-    const all = [];
+    const all: Contact[] = [];
     let contacts = [...this.to, ...this.cc];
     if (includeFrom) {
       contacts = _.union(contacts, this.from || []);

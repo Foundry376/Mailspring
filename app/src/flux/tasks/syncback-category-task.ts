@@ -21,7 +21,7 @@ export class SyncbackCategoryTask extends Task {
 
   path: string;
   existingPath: string;
-  created: object;
+  created: any;
 
   static forCreating({ name, accountId }: { name: string; accountId: string }) {
     return new SyncbackCategoryTask({

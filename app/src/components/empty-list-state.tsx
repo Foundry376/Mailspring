@@ -51,7 +51,10 @@ class EmptyPerspectiveState extends React.Component<EmptyPerspectiveStateProps> 
   }
 }
 
-class EmptyInboxState extends React.Component<{}, { width: number; height: number }> {
+class EmptyInboxState extends React.Component<
+  Record<string, unknown>,
+  { width: number; height: number }
+> {
   static displayName = 'EmptyInboxState';
 
   static propTypes = { containerRect: PropTypes.object };

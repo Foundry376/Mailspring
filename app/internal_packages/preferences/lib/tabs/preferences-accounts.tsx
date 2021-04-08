@@ -9,7 +9,10 @@ interface PreferencesAccountsState {
   selected: Account;
 }
 
-class PreferencesAccounts extends React.Component<{}, PreferencesAccountsState> {
+class PreferencesAccounts extends React.Component<
+  Record<string, unknown>,
+  PreferencesAccountsState
+> {
   static displayName = 'PreferencesAccounts';
 
   unsubscribe: () => void;

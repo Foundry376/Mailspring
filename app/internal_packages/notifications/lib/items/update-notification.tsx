@@ -9,7 +9,10 @@ interface UpdateNotificationState {
   updateIsManual: boolean;
 }
 
-export default class UpdateNotification extends React.Component<{}, UpdateNotificationState> {
+export default class UpdateNotification extends React.Component<
+  Record<string, unknown>,
+  UpdateNotificationState
+> {
   static displayName = 'UpdateNotification';
 
   disposable?: Disposable;
