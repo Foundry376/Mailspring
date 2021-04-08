@@ -216,30 +216,37 @@ export default class MailspringWindow extends EventEmitter {
     //
     // This uses the DOM's `beforeunload` event.
     this.browserWindow.on('close', event => {
-      if (this.neverClose && !global.application.isQuitting()) {
+      if (global.application.isQuitting()) {
+        return;
+      }
+
+      const isLastWindow = global.application.windowManager.getVisibleWindowCount() === 1;
+      const isTrayEnabled = global.application.config.get('core.workspace.systemTray');
+      const runWithoutWindowsOpen = isTrayEnabled || process.platform === 'darwin';
+
+      if (isLastWindow && !runWithoutWindowsOpen) {
+        // Tray indicator is switched off, closing the last window should quit the application.
+        app.quit();
+        return;
+      }
+
+      if (this.neverClose) {
         // For neverClose windows (like the main window) simply hide and
         // take out of full screen as long as the tray indicator is switched on.
-        if (global.application.config.get('core.workspace.systemTray')) {
-          // Tray indicator is switched on therefore hiding the main window only.
-          event.preventDefault();
-          if (this.browserWindow.isFullScreen()) {
-            this.browserWindow.once('leave-full-screen', () => {
-              this.browserWindow.hide();
-            });
-            this.browserWindow.setFullScreen(false);
-          } else {
+        // Tray indicator is switched on therefore hiding the main window only.
+        event.preventDefault();
+        if (this.browserWindow.isFullScreen()) {
+          this.browserWindow.once('leave-full-screen', () => {
             this.browserWindow.hide();
-          }
-
-          // HOWEVER! If the neverClose window is the last window open, and
-          // it looks like there's no windows actually quit the application
-          // on Linux & Windows.
-          if (!this.isSpec) {
-            global.application.windowManager.quitWinLinuxIfNoWindows();
-          }
+          });
+          this.browserWindow.setFullScreen(false);
         } else {
-          // Tray indicator is switched off, therefore quitting the application.
-          app.quit();
+          this.browserWindow.hide();
+        }
+        // HOWEVER! If the neverClose window is broken and is not actually loaded and
+        // no other windows are visible, quit because the user may not be able to.
+        if (!this.isSpec) {
+          global.application.windowManager.quitWinLinuxIfNoWindows();
         }
       }
     });
