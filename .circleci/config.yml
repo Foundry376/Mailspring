@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: bengotow/mailspring-build:march2019
+      - image: circleci/node:12.9.1-stretch
     steps:
       - checkout
       - restore_cache:
