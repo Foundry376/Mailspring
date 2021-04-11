@@ -416,6 +416,10 @@ export default class MailsyncBridge {
         OnlineStatusStore.onSyncProcessStateReceived(modelJSONs[0]);
         continue;
       }
+      if (modelClass === 'ProcessAccountSecretsUpdated' && modelJSONs.length) {
+        KeyManager.extractAndStoreAccountSecrets(new Account(modelJSONs[0]));
+        continue;
+      }
 
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);

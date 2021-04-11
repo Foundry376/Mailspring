@@ -31,7 +31,7 @@ class KeyManager {
     }
   }
 
-  async extractAccountSecrets(account: Account) {
+  async extractAndStoreAccountSecrets(account: Account) {
     try {
       const keys = await this._getKeyHash();
       keys[`${account.emailAddress}-imap`] = account.settings.imap_password;

@@ -227,7 +227,7 @@ class _AccountStore extends MailspringStore {
 
     // send the account JSON and cloud token to the KeyManager,
     // which gives us back a version with no secrets.
-    const cleanAccount = await KeyManager.extractAccountSecrets(account);
+    const cleanAccount = await KeyManager.extractAndStoreAccountSecrets(account);
 
     this._loadAccounts();
 
