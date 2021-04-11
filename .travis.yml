@@ -67,6 +67,10 @@ before_install:
     DISPLAY=nothing:0
     git submodule update --init mailsync
 
+# Resolves https://travis-ci.community/t/npm-ci-will-fail-if-cached-dependency-includes-npm/4203/6
+# Don't run the copy of npm inside node_modules when erasing + building the node_modules...
+install: PATH=$(echo "$PATH" | sed 's/.\/node_modules\/.bin://') npm ci
+
 before_script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
 
