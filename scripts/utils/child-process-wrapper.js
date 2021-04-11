@@ -7,24 +7,28 @@ exports.safeExec = function(command, options, callback) {
     callback = options;
     options = {};
   }
-  if (!options)
-    options = {};
+  if (!options) options = {};
 
   // This needed to be increased for `apm test` runs that generate many failures
   // The default is 200KB.
   options.maxBuffer = 1024 * 1024;
 
-  options.stdio = "inherit"
+  options.stdio = 'inherit';
   var child = childProcess.exec(command, options, function(error, stdout, stderr) {
-    if (error && !options.ignoreStderr)
+    if (error && !options.ignoreStderr) {
+      console.error(`safeExec: the command exited with ${error} ${error.code}`);
+      console.error('`------------- stderr ------------');
+      console.error(stderr);
+      console.error('`------------- stdout ------------');
+      console.error(stdout);
       process.exit(error.code || 1);
-    else
+    } else {
       callback(null, stdout);
+    }
   });
   child.stderr.pipe(process.stderr);
-  if (!options.ignoreStdout)
-    child.stdout.pipe(process.stdout);
-}
+  if (!options.ignoreStdout) child.stdout.pipe(process.stdout);
+};
 
 // Same with safeExec but call child_process.spawn instead.
 exports.safeSpawn = function(command, args, options, callback) {
@@ -32,15 +36,13 @@ exports.safeSpawn = function(command, args, options, callback) {
     callback = options;
     options = {};
   }
-  options.stdio = "inherit"
+  options.stdio = 'inherit';
   var child = childProcess.spawn(command, args, options);
   child.on('error', function(error) {
-    console.error('Command \'' + command + '\' failed: ' + error.message);
+    console.error("Command '" + command + "' failed: " + error.message);
   });
   child.on('exit', function(code) {
-    if (code != 0)
-      process.exit(code);
-    else
-      callback(null);
+    if (code != 0) process.exit(code);
+    else callback(null);
   });
-}
+};

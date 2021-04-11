@@ -13,6 +13,7 @@
   "dependencies": {
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
     "better-sqlite3": "^7.1.2",
+    "cheerio": "^1.0.0-rc.6",
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
     "classnames": "1.2.1",
@@ -35,7 +36,7 @@
     "jasmine-json": "~0.0",
     "jasmine-react-helpers": "^0.2",
     "jasmine-reporters": "1.x.x",
-    "juice": "^5.2.0",
+    "juice": "^7.0.0",
     "keytar": "5.5.0",
     "less-cache": "1.1.0",
     "lru-cache": "^4.0.1",
