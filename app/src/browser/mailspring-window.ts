@@ -221,7 +221,9 @@ export default class MailspringWindow extends EventEmitter {
       }
 
       const isLastWindow = global.application.windowManager.getVisibleWindowCount() === 1;
-      const isTrayEnabled = global.application.config.get('core.workspace.systemTray');
+      // The configuration value may be `undefined` when it has not been manually set to true in the preferences
+      // This check against false prevents that Mailspring is closed when configuring the first mail account
+      const isTrayEnabled = global.application.config.get('core.workspace.systemTray') !== false;
       const runWithoutWindowsOpen = isTrayEnabled || process.platform === 'darwin';
 
       if (isLastWindow && !runWithoutWindowsOpen) {
