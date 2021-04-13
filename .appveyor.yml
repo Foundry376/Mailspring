@@ -27,8 +27,9 @@ install:
       git submodule --quiet update --init mailsync *>$null
 
 build_script:
+  - cmd: npm install
   - cmd: cd .\mailsync && .\build.cmd && cd ..\
-  - cmd: npm install && npm run build
+  - cmd: npm run build
   - cmd: node app/build/create-signed-windows-installer.js
 
 before_deploy:
