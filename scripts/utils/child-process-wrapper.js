@@ -15,7 +15,7 @@ exports.safeExec = function(command, options, callback) {
 
   options.stdio = 'inherit';
   var child = childProcess.exec(command, options, function(error, stdout, stderr) {
-    if (error && !options.ignoreStderr) {
+    if (error && error.code && !options.ignoreStderr) {
       console.error(`safeExec: the command exited with ${error} ${error.code}`);
       console.error('`------------- stderr ------------');
       console.error(stderr);
