@@ -5,7 +5,9 @@ jobs:
       - image: circleci/node:12.9.1-stretch
     steps:
       - checkout
-      - sudo apt-get update && sudo apt-get install libsecret-1-dev
+      - run:
+          name: 'Install packages'
+          command: sudo apt-get update && sudo apt-get install libsecret-1-dev libxkbfile-dev
       - restore_cache:
           name: Restore Package Cache
           keys:
