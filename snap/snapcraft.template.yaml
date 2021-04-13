@@ -53,7 +53,7 @@ parts:
 
 apps:
   mailspring:
-    command: desktop-launch $SNAP/usr/share/mailspring/mailspring
+    command: desktop-launch $SNAP/usr/share/mailspring/mailspring --no-sandbox
     desktop: usr/share/applications/Mailspring.desktop
     environment:
       # Correct the TMPDIR path for Chromium Framework/Electron to

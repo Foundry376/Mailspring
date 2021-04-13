@@ -2,7 +2,7 @@
 Name=<%= productName %>
 Comment=<%= description %>
 GenericName=Mail Client
-Exec=/usr/bin/mailspring %U
+Exec=mailspring %U
 Icon=mailspring
 Type=Application
 StartupNotify=true
@@ -109,4 +109,4 @@ Name[zh_CN]=新邮件
 Name[zh_TW]=新增郵件
 Name[zh]=新信息
 Name[zu]=Umyalezo omusha
-Exec=/usr/bin/mailspring mailto:
+Exec=mailspring mailto:
