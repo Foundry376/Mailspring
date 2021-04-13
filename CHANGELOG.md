@@ -1,6 +1,6 @@
 # Mailspring Changelog
 
-### 1.9.0 (4/9/2021)
+### 1.9.0 (4/13/2021)
 
 **Features:**
 
