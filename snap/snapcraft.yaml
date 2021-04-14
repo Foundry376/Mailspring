@@ -1,32 +1,17 @@
 name: mailspring
 adopt-info: mailspring
-description: |
-  An extensible desktop mail app built on the modern web.
 
 confinement: strict
+base: core18
 
 architectures:
   - build-on: amd64
-
-plugs:
-  gtk-3-themes:
-    interface: content
-    target: $SNAP/share/themes
-    default-provider: gtk-common-themes:gtk-3-themes
-  icon-themes:
-    interface: content
-    target: $SNAP/share/icons
-    default-provider: gtk-common-themes:icon-themes
-  sound-themes:
-    interface: content
-    target: $SNAP/share/sounds
-    default-provider: gtk-common-themes:sounds-themes
 
 parts:
   mailspring:
     plugin: nil
     override-pull: |
-      deb="$(ls $SNAPCRAFT_STAGE/../app/dist/mailspring-*.deb)"
+      deb="$(ls $SNAPCRAFT_PROJECT_DIR/app/dist/mailspring-*.deb)"
       snapcraftctl set-version "$(basename "$deb" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")"
       dpkg -x "$deb" "$SNAPCRAFT_PART_SRC"
     override-build: |
@@ -34,39 +19,25 @@ parts:
       snapcraftctl build
       sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' \
         $SNAPCRAFT_PART_INSTALL/usr/share/applications/Mailspring.desktop
-      mkdir -p $SNAPCRAFT_PART_INSTALL/share/themes
-      mkdir -p $SNAPCRAFT_PART_INSTALL/share/icons
-      mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds
+    prime:
+      - -usr/share/mailspring/chrome-sandbox
     parse-info: [usr/share/appdata/mailspring.appdata.xml]
-    after:
-      - desktop-gtk3
     stage-packages:
-      - gir1.2-gnomekeyring-1.0
-      - libcanberra-gtk-module
-      - libasound2
-      - libcurl3
-      - libgconf2-4
-      - libgcrypt20
-      - libsecret-1-0
-      - libnotify4
       - libnspr4
       - libnss3
-      - libpulse0
-      - libpcre3
       - libxkbfile1
       - libxss1
-      - libxtst6
-      - python
 
 apps:
   mailspring:
-    command: desktop-launch $SNAP/usr/share/mailspring/mailspring --no-sandbox
+    command: usr/bin/mailspring --no-sandbox
     common-id: mailspring
     desktop: usr/share/applications/Mailspring.desktop
+    extensions: [gnome-3-34]
     environment:
+      HOME: $SNAP_USER_COMMON
       # Correct the TMPDIR path for Chromium Framework/Electron to
       # ensure libappindicator has readable resources.
-      HOME: $SNAP_USER_COMMON
       TMPDIR: $XDG_RUNTIME_DIR
       # Fallback to XWayland if running in a Wayland session.
       DISABLE_WAYLAND: 1
