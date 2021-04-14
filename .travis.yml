@@ -19,6 +19,7 @@ addons:
       - Mailspring.zip
       - $(find . -type f -name mailspring-*.deb | tr "\n" ":")
       - $(find . -type f -name mailspring-*.rpm | tr "\n" ":")
+      - $(find . -type f -name mailspring-*.snap | tr "\n" ":")
   apt:
     sources:
       - ubuntu-toolchain-r-test
