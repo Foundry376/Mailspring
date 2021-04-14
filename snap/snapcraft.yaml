@@ -1,10 +1,13 @@
 name: mailspring
-version: MAILSPRING_VERSION
 summary: The best email app for people and teams at work
+adopt-info: mailspring
 description: |
   An extensible desktop mail app built on the modern web.
 
 confinement: strict
+
+architectures:
+  - build-on: amd64
 
 plugs:
   gtk-3-themes:
@@ -22,12 +25,16 @@ plugs:
 
 parts:
   mailspring:
-    plugin: dump
-    source: ./app/dist/mailspring-MAILSPRING_VERSION-amd64.deb
-    source-type: deb
-    # Correct path to icon.
-    prepare: |
-      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' usr/share/applications/Mailspring.desktop
+    plugin: nil
+    override-pull: |
+      deb="$(ls $SNAPCRAFT_STAGE/../app/dist/mailspring-*.deb)"
+      snapcraftctl set-version "$(basename "$deb" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")"
+      dpkg -x "$deb" "$SNAPCRAFT_PART_SRC"
+    override-build: |
+      cp -a "$SNAPCRAFT_PART_SRC"/* "$SNAPCRAFT_PART_INSTALL"
+      snapcraftctl build
+      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' \
+        $SNAPCRAFT_PART_INSTALL/usr/share/applications/Mailspring.desktop
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/themes
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/icons
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds

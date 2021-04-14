@@ -101,8 +101,6 @@ cache:
     - /var/lib/docker/aufs
 
 after_success:
-  # Grab the version number from the .deb product and update the snapcraft.yml file
-  - sed "s/MAILSPRING_VERSION/$(grep -E -o '([0-9]+.[0-9]+.[0-9]+)' <<< "$(find app/dist -type f -name mailspring-*.deb)")/g" snap/snapcraft.template.yaml > snap/snapcraft.yaml
   # Decrypt the snapcraft login information
   - openssl aes-256-cbc -K $encrypted_d506bd5213c4_key -iv $encrypted_d506bd5213c4_iv -in .snapcraft/credentials.enc -out .snapcraft/credentials -d
 
