@@ -71,11 +71,14 @@ matrix:
 
 before_install:
   # Decrypt and uncompress code signing certs, etc.
-  - openssl aes-256-cbc -K $encrypted_faf2708e46e2_key -iv $encrypted_faf2708e46e2_iv
-    -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
+  - if [ -n "$encrypted_faf2708e46e2_key" ] || [ "$TRAVIS_REPO_SLUG" = "Foundry376/Mailspring" ]; then
+    openssl aes-256-cbc -K $encrypted_faf2708e46e2_key -iv $encrypted_faf2708e46e2_iv
+    -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d; fi
   - mkdir app/build/resources/certs;
-  - tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
-  - source app/build/resources/certs/mac/set_unix_env.sh;
+  - tar xvf app/build/resources/certs.tar --directory=app/build/resources/ ||
+    [ "$TRAVIS_REPO_SLUG" != "Foundry376/Mailspring" ]
+  - source app/build/resources/certs/mac/set_unix_env.sh ||
+    [ "$TRAVIS_REPO_SLUG" != "Foundry376/Mailspring" ]
   # Checkout the C++ Mailsync codebase
   - git submodule update --init mailsync
 
