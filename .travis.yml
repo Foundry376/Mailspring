@@ -75,11 +75,8 @@ before_install:
   - mkdir app/build/resources/certs;
   - tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
   - source app/build/resources/certs/mac/set_unix_env.sh;
-  # Checkout the (currently private) C++ Mailsync codebase
-  - GIT_SSH_COMMAND='ssh -i app/build/resources/certs/mailsync-deploy-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-    SSH_ASKPASS=/Users/travis/build/Foundry376/Mailspring/app/build/resources/certs/ssh-askpass-fix
-    DISPLAY=nothing:0
-    git submodule update --init mailsync
+  # Checkout the C++ Mailsync codebase
+  - git submodule update --init mailsync
 
 # Resolves https://travis-ci.community/t/npm-ci-will-fail-if-cached-dependency-includes-npm/4203/6
 # Don't run the copy of npm inside node_modules when erasing + building the node_modules...
