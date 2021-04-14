@@ -1,5 +1,4 @@
 name: mailspring
-summary: The best email app for people and teams at work
 adopt-info: mailspring
 description: |
   An extensible desktop mail app built on the modern web.
@@ -38,6 +37,7 @@ parts:
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/themes
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/icons
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds
+    parse-info: [usr/share/appdata/mailspring.appdata.xml]
     after:
       - desktop-gtk3
     stage-packages:
@@ -61,6 +61,7 @@ parts:
 apps:
   mailspring:
     command: desktop-launch $SNAP/usr/share/mailspring/mailspring --no-sandbox
+    common-id: mailspring
     desktop: usr/share/applications/Mailspring.desktop
     environment:
       # Correct the TMPDIR path for Chromium Framework/Electron to
