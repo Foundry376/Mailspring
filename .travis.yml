@@ -23,19 +23,35 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
+      - autoconf
+      - automake
       - build-essential
       - clang
+      - cmake
       - execstack
       - fakeroot
-      - g++-4.8
+      - g++-5
       - git
+      - libc-ares-dev
+      - libctemplate-dev
+      - libcurl4-openssl-dev
+      - libglib2.0-dev
       - libgnome-keyring-dev
+      - libicu-dev
+      - libsasl2-dev
+      - libsasl2-modules
+      - libsasl2-modules-gssapi-mit
       - libsecret-1-dev
-      - xvfb
-      - rpm
+      - libssl-dev
+      - libtidy-dev
+      - libtool
       - libxext-dev
-      - libxtst-dev
       - libxkbfile-dev
+      - libxml2-dev
+      - libxtst-dev
+      - rpm
+      - uuid-dev
+      - xvfb
 
 branches:
   only:
@@ -46,16 +62,14 @@ branches:
 matrix:
   include:
     - os: linux
-      env: CC=gcc-4.8 CXX=g++-4.8
-      dist: trusty
+      env: CC=gcc-5 CXX=g++-5
+      dist: xenial
     - os: osx
       osx_image: xcode10.1
       env: CC=clang CXX=clang++ SIGN_BUILD=true
 
 before_install:
   # Decrypt and uncompress code signing certs, etc.
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install cmake execstack g++-5 autoconf automake libtool libc-ares-dev libctemplate-dev libcurl4-openssl-dev libicu-dev libxext-dev libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit libssl-dev libtidy-dev libxtst-dev libxkbfile-dev libglib2.0-dev libxml2-dev uuid-dev; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-5 CXX=g++-5; fi
   - openssl aes-256-cbc -K $encrypted_faf2708e46e2_key -iv $encrypted_faf2708e46e2_iv
     -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
   - mkdir app/build/resources/certs;
@@ -72,7 +86,7 @@ before_install:
 install: PATH=$(echo "$PATH" | sed 's/.\/node_modules\/.bin://') npm ci
 
 before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then Xvfb :99 & export DISPLAY=:99.0; fi
 
 script:
   - npm run ci-setup-mac-keychain
