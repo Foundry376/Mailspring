@@ -258,11 +258,6 @@ export default class Application extends EventEmitter {
 
   // Configures required javascript environment flags.
   setupJavaScriptArguments() {
-    if (process.env.SNAP && process.platform === 'linux') {
-      // https://snapcraft.io/docs/browser-support-interface
-      // https://github.com/electron-userland/electron-builder/blob/df5d050e47f2030e48e65c0e3b542c3aec61e9de/packages/app-builder-lib/src/targets/snap.ts#L197-L202
-      app.commandLine.appendSwitch('no-sandbox');
-    }
     app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
     app.commandLine.appendSwitch('js-flags', '--harmony');
   }
