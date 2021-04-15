@@ -34,6 +34,27 @@ module.exports = grunt => {
     callback();
   }
   /**
+   * For Electron versions that support the setuid sandbox on Linux, changes the permissions of
+   * the `chrome-sandbox` executable as appropriate.
+   *
+   * The sandbox helper executable must have the setuid (`+s` / `0o4000`) bit set.
+   *
+   * This doesn't work on Windows because you can't set that bit there.
+   *
+   * See: https://github.com/electron/electron/pull/17269#issuecomment-470671914
+   */
+  function runUpdateSandboxHelperPermissions(buildPath, electronVersion, platform, arch, callback) {
+    // https://github.com/electron-userland/electron-installer-common/blob/feaf7a9b4c947e8838befc8772da71903990c652/src/sandboxhelper.js
+    const helperPath = path.resolve(buildPath, 'chrome-sandbox');
+    if (fs.existsSync(helperPath)) {
+      console.log('---> Changing chrome-sandbox permissions');
+      fs.chmodSync(helperPath, 0o4755);
+    } else {
+      console.log('---> Could not find chrome-sandbox to change permissions');
+    }
+    callback();
+  }
+  /**
    * We have to resolve the symlink paths (and cache the results) before
    * copying over the files since some symlinks may be relative paths (like
    * those created by lerna). We'll keep absolute references of those paths
@@ -248,6 +269,7 @@ module.exports = grunt => {
       afterCopy: [
         runCopyPlatformSpecificResources,
         runWriteCommitHashIntoPackage,
+        runUpdateSandboxHelperPermissions,
         runCopySymlinkedPackages,
         runTranspilers,
       ],
