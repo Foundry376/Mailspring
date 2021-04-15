@@ -169,10 +169,7 @@ export class MailsyncProcess extends EventEmitter {
         const rs = new Readable();
         rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
         rs.push(null);
-        rs.pipe(
-          this._proc.stdin,
-          { end: false }
-        );
+        rs.pipe(this._proc.stdin, { end: false });
       });
     }
   }
@@ -256,7 +253,12 @@ export class MailsyncProcess extends EventEmitter {
     if (this._proc.stdout) {
       this._proc.stdout.on('data', data => {
         const added = data.toString();
-        outBuffer += added;
+        try {
+          outBuffer += added;
+        } catch (err) {
+          console.error(`Mailsync process buffer is ${outBuffer.length} chars, out of memory.`);
+          outBuffer = '';
+        }
 
         if (added.indexOf('\n') !== -1) {
           const msgs = outBuffer.split('\n');

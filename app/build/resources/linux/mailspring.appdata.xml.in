@@ -26,7 +26,7 @@
   <launchable type="desktop-id"><%= name %>.desktop</launchable>
 
   <developer_name>Mailspring</developer_name>
-  <project_license>GPL-3.0+ AND LicenseRef-proprietary</project_license>
+  <project_license>GPL-3.0+</project_license>
 
   <screenshots>
     <screenshot type="default">https://getmailspring.com/static/img/hero_graphic_linux@2x.png</screenshot>
