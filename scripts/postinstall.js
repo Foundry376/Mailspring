@@ -109,12 +109,15 @@ if (cacheElectronTarget !== npmElectronTarget) {
   rimraf.sync(appModulesPath);
 }
 
+// Audit is emitted with npm ls, no need to run it on EVERY command which is an odd default
+const opts = ' --no-audit';
+
 // run `npm install` in ./app with Electron NPM config
-npm('install', { cwd: './app', env: 'electron' }).then(() => {
+npm(`install${opts}`, { cwd: './app', env: 'electron' }).then(() => {
   // run `npm dedupe` in ./app with Electron NPM config
-  npm('dedupe', { cwd: './app', env: 'electron' }).then(() => {
+  npm(`dedupe${opts}`, { cwd: './app', env: 'electron' }).then(() => {
     // run `npm ls` in ./app - detects missing peer dependencies, etc.
-    npm('ls', { cwd: './app', env: 'electron' }).then(() => {
+    npm(`ls`, { cwd: './app', env: 'electron' }).then(() => {
       // write the marker with the electron version
       fs.writeFileSync(cacheVersionPath, npmElectronTarget);
 
