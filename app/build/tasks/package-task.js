@@ -45,7 +45,7 @@ module.exports = grunt => {
    */
   function runUpdateSandboxHelperPermissions(buildPath, electronVersion, platform, arch, callback) {
     // https://github.com/electron-userland/electron-installer-common/blob/feaf7a9b4c947e8838befc8772da71903990c652/src/sandboxhelper.js
-    const helperPath = path.resolve(buildPath, '..', 'chrome-sandbox');
+    const helperPath = path.resolve(buildPath, '..', '..', 'chrome-sandbox');
     if (fs.existsSync(helperPath)) {
       console.log('---> Changing chrome-sandbox permissions');
       fs.chmodSync(helperPath, 0o4755);
