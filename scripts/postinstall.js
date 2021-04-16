@@ -101,7 +101,8 @@ function downloadMailsync() {
 // For speed, we cache app/node_modules. However, we need to
 // be sure to do a full rebuild of native node modules when the
 // Electron version changes. To do this we check a marker file.
-const appModulesPath = path.resolve(__dirname, '..', 'app', 'node_modules');
+const appPath = path.resolve(__dirname, '..', 'app');
+const appModulesPath = path.resolve(appPath, 'node_modules');
 const cacheVersionPath = path.join(appModulesPath, '.postinstall-target-version');
 const cacheElectronTarget =
   fs.existsSync(cacheVersionPath) && fs.readFileSync(cacheVersionPath).toString();
@@ -139,13 +140,19 @@ async function run() {
   await npm(`ls`, { cwd: './app', env: 'electron' });
 
   // rebuild sqlite3 using our custom amalgamation, which has USLEEP enabled
-  if (await sqliteMissingUsleep()) {
+  if (process.platform === 'win32' || (await sqliteMissingUsleep())) {
+    // remove the existing build so NPM can't see that it's already present
     rimraf.sync(path.join(appModulesPath, 'better-sqlite3'));
+    // install the module pointing to our local sqlite source with custom #DEFINEs set
+    const amalgamationPath = path.join(appPath, 'build', 'sqlite-amalgamation');
     await npm(
       `install better-sqlite3@${appDependencies['better-sqlite3']} ` +
-        `--no-save --no-audit --build-from-source --sqlite3="$(pwd)/build/sqlite-amalgamation"`,
+        `--no-save --no-audit --build-from-source --sqlite3="${amalgamationPath}"`,
       { cwd: './app', env: 'electron' }
     );
+    // remove the build symlinks so that we can build an installer for the app without
+    // symlinks out to the sqlite-amalgamation directory.
+    rimraf.sync(path.join(appModulesPath, 'better-sqlite3', 'build', 'Release', 'obj'));
   }
 
   // if SQlite was STILL not built with HAVE_USLEEP, do not ship this build! We need usleep
