@@ -1,5 +1,15 @@
 # Mailspring Changelog
 
+### 1.9.1 (4/16/2021)
+
+**Fixes:**
+
+- Mailspring no longer closes after you link your first account if the system tray has not been configured.
+
+- Mailspring's connections to its database no longer time out (causing the red account warning) while syncing more than ~4 accounts, thanks to an updated build of SQLite.
+
+Thanks to everyone for reporting these issues and contributing the information we needed to track them down!
+
 ### 1.9.0 (4/13/2021)
 
 **Features:**
