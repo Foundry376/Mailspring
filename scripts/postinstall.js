@@ -107,26 +107,22 @@ const cacheElectronTarget =
   fs.existsSync(cacheVersionPath) && fs.readFileSync(cacheVersionPath).toString();
 
 if (cacheElectronTarget !== npmElectronTarget) {
-  console.log(`\n-- Clearing app/node_modules --`);
+  console.log(
+    `\n-- Clearing app/node_modules (${cacheElectronTarget} !== ${npmElectronTarget}) --`
+  );
   rimraf.sync(appModulesPath);
 }
 
 // Audit is emitted with npm ls, no need to run it on EVERY command which is an odd default
-const opts = ' --no-audit';
 
-async function verifySqliteBuiltCorrectly() {
+async function sqliteMissingUsleep() {
   return new Promise(resolve => {
     const sqliteLibDir = path.join(appModulesPath, 'better-sqlite3', 'build', 'Release');
     safeExec(
       `nm '${sqliteLibDir}/sqlite3.a' | grep usleep`,
       { ignoreStderr: true },
       (err, resp) => {
-        if (resp === '') {
-          console.error(`better-sqlite compiled without -HAVE_USLEEP, do not ship this build!`);
-          process.exit(1001);
-        } else {
-          resolve();
-        }
+        resolve(resp === '');
       }
     );
   });
@@ -134,28 +130,33 @@ async function verifySqliteBuiltCorrectly() {
 
 async function run() {
   // run `npm install` in ./app with Electron NPM config
-  await npm(`install${opts}`, { cwd: './app', env: 'electron' });
-
-  // rebuild sqlite3 using our custom amalgamation, which has USLEEP enabled
-  await npm(
-    `install better-sqlite3@${appDependencies['better-sqlite3']} ` +
-      `--no-save --no-audit --build-from-source --sqlite3="$(pwd)/build/sqlite-amalgamation"`,
-    { cwd: './app', env: 'electron' }
-  );
+  await npm(`install --no-audit`, { cwd: './app', env: 'electron' });
 
   // run `npm dedupe` in ./app with Electron NPM config
-  await npm(`dedupe${opts}`, { cwd: './app', env: 'electron' });
+  await npm(`dedupe --no-audit`, { cwd: './app', env: 'electron' });
 
   // run `npm ls` in ./app - detects missing peer dependencies, etc.
   await npm(`ls`, { cwd: './app', env: 'electron' });
 
-  // if SQlite was not built with HAVE_USLEEP, do not ship this build! We need usleep
+  // rebuild sqlite3 using our custom amalgamation, which has USLEEP enabled
+  if (await sqliteMissingUsleep()) {
+    rimraf.sync(path.join(appModulesPath, 'better-sqlite3'));
+    await npm(
+      `install better-sqlite3@${appDependencies['better-sqlite3']} ` +
+        `--no-save --no-audit --build-from-source --sqlite3="$(pwd)/build/sqlite-amalgamation"`,
+      { cwd: './app', env: 'electron' }
+    );
+  }
+
+  // if SQlite was STILL not built with HAVE_USLEEP, do not ship this build! We need usleep
   // support so that multiple processes can connect to the sqlite file at the same time.
   // Without it, transactions only retry every 1 sec instead of every 10ms, leading to
   // awful db lock contention.
-  if (['linux', 'darwin'].includes(process.platform)) {
-    await verifySqliteBuiltCorrectly();
+  if (['linux', 'darwin'].includes(process.platform) && (await sqliteMissingUsleep())) {
+    console.error(`better-sqlite compiled without -HAVE_USLEEP, do not ship this build!`);
+    process.exit(1001);
   }
+
   // write the marker with the electron version
   fs.writeFileSync(cacheVersionPath, npmElectronTarget);
 
