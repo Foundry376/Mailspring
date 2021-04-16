@@ -139,7 +139,7 @@ async function run() {
   // rebuild sqlite3 using our custom amalgamation, which has USLEEP enabled
   await npm(
     `install better-sqlite3@${appDependencies['better-sqlite3']} ` +
-      `--no-save --build-from-source --sqlite3="$(pwd)/build/sqlite-amalgamation"`,
+      `--no-save --no-audit --build-from-source --sqlite3="$(pwd)/build/sqlite-amalgamation"`,
     { cwd: './app', env: 'electron' }
   );
 
