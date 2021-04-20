@@ -28,6 +28,23 @@ parts:
       - libxkbfile1
       - libxss1
 
+  cleanup:
+    after: [mailspring]
+    plugin: nil
+    build-snaps: [core18, gnome-3-34-1804]
+    override-prime: |
+      set -eux
+      build_snaps="core18 gnome-3-34-1804"
+      for snap in $build_snaps; do
+        cd "/snap/$snap/current" && \
+        find . -type f,l -exec rm -fv "$SNAPCRAFT_PRIME/{}" "$SNAPCRAFT_PRIME/usr/{}" \;
+      done
+      for CRUFT in bug lintian man; do
+        rm -rf $SNAPCRAFT_PRIME/usr/share/$CRUFT
+      done
+      find $SNAPCRAFT_PRIME/usr/share/doc/ -type f -not -name 'copyright' -delete -print
+      find $SNAPCRAFT_PRIME/usr/share -type d -empty -delete -print
+
 apps:
   mailspring:
     command: usr/bin/mailspring --no-sandbox
