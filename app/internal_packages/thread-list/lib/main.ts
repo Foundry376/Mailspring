@@ -6,10 +6,13 @@ import ThreadListVertical from './thread-list-vertical';
 import ThreadListEmptyFolderBar from './thread-list-empty-folder-bar';
 import MessageListToolbar from './message-list-toolbar';
 import SelectedItemsStack from './selected-items-stack';
+import * as ThreadPermalinkHandler from './thread-permalink-handler';
 
 import { UpButton, DownButton, MoveButtons, FlagButtons } from './thread-toolbar-buttons';
 
 export function activate() {
+  ThreadPermalinkHandler.activate();
+
   ComponentRegistry.register(ThreadListEmptyFolderBar, {
     location: WorkspaceStore.Location.ThreadList,
   });
