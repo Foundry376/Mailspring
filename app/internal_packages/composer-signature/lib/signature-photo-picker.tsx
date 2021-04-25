@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized, PropTypes, MailspringAPIRequest } from 'mailspring-exports';
+import { localized, PropTypes, MailspringAPIRequest, IdentityStore } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
@@ -157,6 +157,8 @@ export default class SignaturePhotoPicker extends React.Component<
     // we don't display the <input> for data URLs because they can be
     // long and the UI becomes slow.
     const isMailspringURL = resolvedURL && resolvedURL.includes('getmailspring.com');
+    const isUploadEnabled = IdentityStore.identity() !== null;
+
     const dropNote =
       resolvedURL && resolvedURL !== ''
         ? localized('Click to replace')
@@ -169,26 +171,28 @@ export default class SignaturePhotoPicker extends React.Component<
       <div className="field photo-picker">
         <label>Picture</label>
         <div style={{ display: 'flex' }}>
-          <div>
-            <DropZone
-              onClick={this._onChooseImage}
-              onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
-              onDrop={e => this._onChooseImageFilePath(e.dataTransfer.files[0].path)}
-              shouldAcceptDrop={e => (e as any).dataTransfer.types.includes('Files')}
-              style={{
-                backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,
-              }}
-              className={`photo-well ${isDropping && 'dropping'}`}
-            >
-              {isUploading && (
-                <RetinaImg
-                  style={{ width: 14, height: 14 }}
-                  name="inline-loading-spinner.gif"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                />
-              )}
-            </DropZone>
-          </div>
+          {isUploadEnabled && (
+            <div>
+              <DropZone
+                onClick={this._onChooseImage}
+                onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
+                onDrop={e => this._onChooseImageFilePath(e.dataTransfer.files[0].path)}
+                shouldAcceptDrop={e => (e as any).dataTransfer.types.includes('Files')}
+                style={{
+                  backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,
+                }}
+                className={`photo-well ${isDropping && 'dropping'}`}
+              >
+                {isUploading && (
+                  <RetinaImg
+                    style={{ width: 14, height: 14 }}
+                    name="inline-loading-spinner.gif"
+                    mode={RetinaImg.Mode.ContentPreserve}
+                  />
+                )}
+              </DropZone>
+            </div>
+          )}
           <div className="photo-options">
             <select
               id="photoURL"
@@ -223,7 +227,7 @@ export default class SignaturePhotoPicker extends React.Component<
               ))}
           </div>
         </div>
-        <div className="drop-note">{dropNote}</div>
+        {isUploadEnabled && <div className="drop-note">{dropNote}</div>}
       </div>
     );
   }
