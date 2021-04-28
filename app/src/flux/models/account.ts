@@ -86,6 +86,10 @@ export class Account extends ModelWithMetadata {
     color: Attributes.String({
       modelKey: 'color',
     }),
+
+    containerFolder: Attributes.String({
+      modelKey: 'containerFolder',
+    }),
   };
 
   public name: string;
@@ -114,6 +118,7 @@ export class Account extends ModelWithMetadata {
   public syncState: string;
   public syncError: MailsyncProcessExit | null;
   public color: string;
+  public containerFolder: string;
 
   constructor(args) {
     super(args);
@@ -126,6 +131,7 @@ export class Account extends ModelWithMetadata {
       value: '',
     };
     this.color = this.color || '';
+    this.containerFolder = this.containerFolder || '';
   }
 
   toJSON() {

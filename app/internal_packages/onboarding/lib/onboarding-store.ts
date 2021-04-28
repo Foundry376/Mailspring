@@ -103,6 +103,17 @@ class OnboardingStore extends MailspringStore {
     if (!(acct instanceof Account)) {
       throw new Error('OnboardingActions.setAccount expects an Account instance.');
     }
+    // because protonmail do not support nested folders for now, returning escaped delimiters
+    // https://protonmail.com/support/knowledge-base/creating-folders/#comment-10460
+    // on protonmail by default Folders set as container folder
+    const containerFolderDefault = AccountStore.containerFolderDefaultGetter();
+    if (containerFolderDefault === '') {
+      if (acct.emailAddress.split('@')[1] === 'protonmail.com') {
+        acct.containerFolder = 'Folders';
+      }
+    } else {
+      acct.containerFolder = containerFolderDefault;
+    }
     this._account = acct;
     this.trigger();
   };

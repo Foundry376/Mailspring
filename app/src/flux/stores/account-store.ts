@@ -12,6 +12,7 @@ import * as Utils from '../models/utils';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
+const configСontainerFolderDefaultKey = 'containerFolderDefault';
 
 export type IAliasSet = Array<Contact & { isAlias?: boolean }>;
 
@@ -24,6 +25,7 @@ Section: Stores
 class _AccountStore extends MailspringStore {
   private _version: number;
   private _accounts: Account[];
+  private _containerFolderDefault: string;
   private _caches: { [key: string]: any };
 
   constructor() {
@@ -32,6 +34,7 @@ class _AccountStore extends MailspringStore {
     this.listenTo(Actions.removeAccount, this._onRemoveAccount);
     this.listenTo(Actions.updateAccount, this._onUpdateAccount);
     this.listenTo(Actions.reorderAccount, this._onReorderAccount);
+    this.listenTo(Actions.updateContainerFolderDefault, this._onUpdateContainerFolderDefault);
 
     AppEnv.config.onDidChange(configVersionKey, async change => {
       // If we already have this version of the accounts config, it means we
@@ -81,6 +84,7 @@ class _AccountStore extends MailspringStore {
       this._caches = {};
       this._version = AppEnv.config.get(configVersionKey) || 0;
       this._accounts = [];
+      this._containerFolderDefault = AppEnv.config.get(configСontainerFolderDefaultKey) || '';
       for (const json of AppEnv.config.get(configAccountsKey) || []) {
         this._accounts.push(new Account({}).fromJSON(json));
       }
@@ -154,6 +158,7 @@ class _AccountStore extends MailspringStore {
     });
     AppEnv.config.set(configAccountsKey, configAccounts);
     AppEnv.config.set(configVersionKey, this._version);
+    AppEnv.config.set(configСontainerFolderDefaultKey, this._containerFolderDefault);
     this._trigger();
   };
 
@@ -220,6 +225,11 @@ class _AccountStore extends MailspringStore {
     this._save();
   };
 
+  _onUpdateContainerFolderDefault = (containerFolderDefault: string) => {
+    this._containerFolderDefault = containerFolderDefault;
+    AppEnv.config.set(configСontainerFolderDefaultKey, this._containerFolderDefault);
+  };
+
   addAccount = async (account: Account) => {
     if (!account.emailAddress || !account.provider || !(account instanceof Account)) {
       throw new Error(`Returned account data is invalid: ${JSON.stringify(account)}`);
@@ -253,6 +263,10 @@ class _AccountStore extends MailspringStore {
     this._caches[key] = this._caches[key] || fn();
     return this._caches[key] as T;
   }
+
+  containerFolderDefaultGetter = () => {
+    return this._containerFolderDefault;
+  };
 
   // Public: Returns an {Array} of {Account} objects
   accounts = () => {

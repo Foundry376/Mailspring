@@ -1,10 +1,12 @@
 import React from 'react';
 import {
+  localized,
   AccountStore,
   CategoryStore,
   Category,
   Actions,
   ChangeRoleMappingTask,
+  ChangeContainerFolderTask,
   Folder,
 } from 'mailspring-exports';
 
@@ -21,6 +23,10 @@ interface State {
   all: {
     [accountId: string]: Category[];
   };
+  containerFolderDefault: string;
+  containerFolders: {
+    [containerFolders: string]: string;
+  }
 }
 
 export default class PreferencesCategoryMapper extends React.Component<
@@ -58,7 +64,13 @@ export default class PreferencesCategoryMapper extends React.Component<
         assignments[cat.accountId][cat.role] = cat;
       }
     }
-    return { assignments, all };
+
+    const containerFolderDefault = AccountStore.containerFolderDefaultGetter();
+    const containerFolders = {};
+    AccountStore.accounts().map(account => (
+      containerFolders[account.id] = account.containerFolder || '';
+    ));
+    return { assignments, all, containerFolderDefault, containerFolders };
   }
 
   _onCategorySelection = async (account, role, category) => {
@@ -71,6 +83,19 @@ export default class PreferencesCategoryMapper extends React.Component<
       })
     );
   };
+
+  _setStateContainerFolders = (container) => {
+    const containerFolders = Object.assign(JSON.parse(JSON.stringify(this.state.containerFolders)), container);
+    this.setState({ containerFolders });
+  }
+
+  _updateContainerFolderDefault = () => {
+    Actions.updateContainerFolderDefault(this.state.containerFolderDefault);
+  }
+
+  _updateAccount = (accountId, updates: Partial<Account>) => {
+    Actions.updateAccount(accountId, updates);
+  }
 
   _renderRoleSection = (account, role) => {
     if (!account) return false;
@@ -106,10 +131,24 @@ export default class PreferencesCategoryMapper extends React.Component<
   render() {
     return (
       <div className="category-mapper-container">
+        <h6>{localized('Default Container Folder (folder/subfolder)')}</h6>
+        <input
+          type="text"
+          value={this.state.containerFolderDefault}
+          onBlur={e => this._updateContainerFolderDefault()}
+          onChange={e => this.setState({ containerFolderDefault: e.target.value })}
+        />
         {AccountStore.accounts().map(account => (
           <div key={account.id}>
             <div className="account-section-title">{account.label}</div>
             {SELECTABLE_ROLES.map(role => this._renderRoleSection(account, role))}
+            <h6>{localized('Custom Container Folder')}</h6>
+            <input
+              type="text"
+              value={this.state.containerFolders[account.id]}
+              onBlur={e => this._updateAccount(account.id, {containerFolder: e.target.value})}
+              onChange={e => this._setStateContainerFolders({ [account.id]: e.target.value })}
+            />
           </div>
         ))}
       </div>

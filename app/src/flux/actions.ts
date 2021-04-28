@@ -180,6 +180,17 @@ export const updateAccount = create('updateAccount', ActionScopeWindow);
 export const reorderAccount = create('reorderAccount', ActionScopeWindow);
 
 /*
+  Public: Update provided containerFolderDefault
+
+  *Scope: Window*
+
+  ```
+  Actions.updateContainerFolderDefault(newContainerFolderDefault)
+  ```
+  */
+export const updateContainerFolderDefault = create('updateContainerFolderDefault', ActionScopeWindow);
+
+/*
   Public: Select the provided sheet in the current window. This action changes
   the top level sheet.
 
