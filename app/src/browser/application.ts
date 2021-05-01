@@ -713,6 +713,11 @@ export default class Application extends EventEmitter {
       }
       event.returnValue = true;
     });
+
+    ipcMain.on('resize-window', (event, params) => {
+      const sourceWindow = BrowserWindow.fromWebContents(event.sender);
+      sourceWindow.setSize(params.width, params.height);
+    });
   }
 
   // Public: Executes the given command.

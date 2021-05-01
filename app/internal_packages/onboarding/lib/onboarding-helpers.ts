@@ -3,7 +3,7 @@
 import qs from 'querystring';
 import crypto from 'crypto';
 import uuidv4 from 'uuid/v4';
-import { Account, IdentityStore, MailsyncProcess, localized } from 'mailspring-exports';
+import { Account, AccountStore, IdentityStore, MailsyncProcess, localized } from 'mailspring-exports';
 import MailspringProviderSettings from './mailspring-provider-settings.json';
 import MailcoreProviderSettings from './mailcore-provider-settings.json';
 import dns from 'dns';
@@ -162,6 +162,8 @@ export async function expandAccountWithCommonSettings(account: Account) {
       smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
       smtp_security: smtp.starttls ? 'STARTTLS' : smtp.ssl ? 'SSL / TLS' : 'none',
       smtp_allow_insecure_ssl: false,
+
+      container_folder: '',
     };
     populated.settings = Object.assign(defaults, populated.settings);
     return populated;
@@ -195,8 +197,17 @@ export async function expandAccountWithCommonSettings(account: Account) {
     smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
     smtp_security: mstemplate.smtp_security || 'STARTTLS',
     smtp_allow_insecure_ssl: mstemplate.smtp_allow_insecure_ssl || false,
+    container_folder: mstemplate.container_folder,
   };
   populated.settings = Object.assign(defaults, populated.settings);
+
+  // because protonmail do not support nested folders for now, returning escaped delimiters
+  // https://protonmail.com/support/knowledge-base/creating-folders/#comment-10460
+  // on protonmail by default Folders set as container folder
+  const containerFolderDefault = AccountStore.containerFolderDefaultGetter();
+  if (containerFolderDefault !== 'Mailspring' && (populated.settings.container_folder === '' || populated.settings.container_folder === undefined)) {
+    populated.settings.container_folder = containerFolderDefault;
+  }
   return populated;
 }
 
