@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import React from 'react';
 import { localized, Account } from 'mailspring-exports';
 import CreatePageForForm from './decorators/create-page-for-form';
@@ -56,6 +57,10 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
 
     return { errorMessage, errorFieldNames, populated: true };
   };
+
+  componentDidMount () {
+    ipcRenderer.send('resize-window', {width: 900, height: 660});
+  }
 
   renderPortDropdown(protocol) {
     if (!['imap', 'smtp'].includes(protocol)) {
@@ -201,6 +206,9 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
           type="password"
           {...this.props}
         />
+        {type === 'imap' && (
+          <FormField field={`settings.container_folder`} title={'Custom Container Folder'} {...this.props} />
+        )}
       </div>
     );
   }

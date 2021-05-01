@@ -86,10 +86,6 @@ export class Account extends ModelWithMetadata {
     color: Attributes.String({
       modelKey: 'color',
     }),
-
-    containerFolder: Attributes.String({
-      modelKey: 'containerFolder',
-    }),
   };
 
   public name: string;
@@ -110,6 +106,7 @@ export class Account extends ModelWithMetadata {
     smtp_allow_insecure_ssl: boolean;
     smtp_security: 'SSL / TLS' | 'STARTTLS' | 'none';
     refresh_token: string;
+    container_folder: string;
   };
   public label: string;
   public autoaddress: AccountAutoaddress;
@@ -118,7 +115,6 @@ export class Account extends ModelWithMetadata {
   public syncState: string;
   public syncError: MailsyncProcessExit | null;
   public color: string;
-  public containerFolder: string;
 
   constructor(args) {
     super(args);
@@ -131,7 +127,6 @@ export class Account extends ModelWithMetadata {
       value: '',
     };
     this.color = this.color || '';
-    this.containerFolder = this.containerFolder || '';
   }
 
   toJSON() {

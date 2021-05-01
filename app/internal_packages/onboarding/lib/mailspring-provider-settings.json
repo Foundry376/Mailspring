@@ -6452,5 +6452,31 @@
       "password-cleartext"
     ],
     "enable_steps": []
+  },
+  "protonmail.com": {
+    "imap_host": "127.0.0.1",
+    "imap_port": "1143",
+    "imap_security": "STARTTLS",
+    "imap_user_format": "email",
+    "imap_allow_insecure_ssl": true,
+    "smtp_host": "127.0.0.1",
+    "smtp_port": "1025",
+    "smtp_security": "STARTTLS",
+    "smtp_user_format": "email",
+    "smtp_allow_insecure_ssl": true,
+    "container_folder": "Folders"
+  },
+  "pm.me": {
+    "imap_host": "127.0.0.1",
+    "imap_port": "1143",
+    "imap_security": "STARTTLS",
+    "imap_user_format": "email",
+    "imap_allow_insecure_ssl": true,
+    "smtp_host": "127.0.0.1",
+    "smtp_port": "1025",
+    "smtp_security": "STARTTLS",
+    "smtp_user_format": "email",
+    "smtp_allow_insecure_ssl": true,
+    "container_folder": "Folders"
   }
 }
