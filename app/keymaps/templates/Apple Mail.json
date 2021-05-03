@@ -29,6 +29,7 @@
   "core:star-item": "mod+shift+l",
   "core:focus-search": "mod+alt+f",
   "core:archive-item": "command+ctrl+a",
+  "core:snooze-item": "mod+h",
 
   "composer:send-message": "mod+shift+d"
 }

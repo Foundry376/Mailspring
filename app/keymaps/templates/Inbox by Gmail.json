@@ -26,6 +26,7 @@
   "core:archive-item": "e",
   "core:report-as-spam": "!",
   "core:delete-item": "#",
+  "core:snooze-item": "h",
 
   "core:reply": ["r", "mod+r", "mod+alt+r"],
   "core:reply-new-window": "shift+r",
