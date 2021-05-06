@@ -19,6 +19,7 @@ export function activate() {
 
   ComponentRegistry.register(ThreadList, {
     location: WorkspaceStore.Location.ThreadList,
+    role: 'ThreadList',
     modes: ['split', 'list'],
   });
 

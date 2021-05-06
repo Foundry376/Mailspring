@@ -22,7 +22,7 @@ class ThreadListVertical extends React.Component<
           onResize={h => this._onResize(h)}
         >
           <InjectedComponentSet
-            matching={{ location: WorkspaceStore.Location.ThreadList, modes: ['split'] }}
+            matching={{ role: 'ThreadList' }}
           />
         </ResizableRegion>
         <ResizableRegion>
