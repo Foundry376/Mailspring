@@ -175,7 +175,7 @@ export default class ScenarioEditorRow extends React.Component<ScenarioEditorRow
       );
     }
 
-    if (template.type === Template.Type.String) {
+    if (template.type === Template.Type.String || template.type === Template.Type.InputString) {
       return <input type="text" value={this.props.instance.value} onChange={this._onChangeValue} />;
     }
     return false;

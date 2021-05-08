@@ -5,6 +5,7 @@ import * as Actions from './flux/actions';
 import { Thread } from './flux/models/thread';
 import { Folder } from './flux/models/folder';
 import { Label } from './flux/models/label';
+import { Contact } from './flux/models/contact';
 import CategoryStore from './flux/stores/category-store';
 import DatabaseStore from './flux/stores/database-store';
 import TaskQueue from './flux/stores/task-queue';
@@ -72,6 +73,15 @@ const MailRulesActions: {
       threads: [thread],
       source: 'Mail Rules',
     });
+  },
+
+  forward: (message, thread, value) => {
+    Actions.composeAndSendForward({
+      thread: thread,
+      message: message,
+      to: [new Contact({email: value})]
+    });
+    return undefined;
   },
 
   changeFolder: async (message, thread, value) => {
