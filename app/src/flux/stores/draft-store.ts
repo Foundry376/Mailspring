@@ -10,6 +10,7 @@ import { SyncbackMetadataTask } from '../tasks/syncback-metadata-task';
 import { SendDraftTask } from '../tasks/send-draft-task';
 import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 import { Thread } from '../models/thread';
+import { Contact } from '../models/contact';
 import { Message } from '../models/message';
 import * as Actions from '../actions';
 import TaskQueue from './task-queue';
@@ -47,6 +48,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(DatabaseStore, this._onDataChanged);
     this.listenTo(Actions.composeReply, this._onComposeReply);
     this.listenTo(Actions.composeForward, this._onComposeForward);
+    this.listenTo(Actions.composeAndSendForward, this._onComposeAndSendForward);
     this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
     this.listenTo(Actions.composeNewBlankDraft, this._onPopoutBlankDraft);
     this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
@@ -235,11 +237,47 @@ class DraftStore extends MailspringStore {
     messageId,
     popout,
   }: IThreadMessageModelOrId & { popout?: boolean }) => {
+    return await this._composeForward({
+      thread: thread,
+      threadId: threadId,
+      message: message,
+      messageId: messageId,
+      popout: popout 
+    });
+  };
+
+  _onComposeAndSendForward = async({
+    thread,
+    threadId,
+    message,
+    messageId,
+    to
+  }) => {
+    const { headerMessageId, draft } = await this._composeForward({
+      thread: thread,
+      threadId: threadId,
+      message: message,
+      messageId: messageId,
+    }, to);
+    Actions.sendDraft(headerMessageId);
+  }
+
+  _composeForward = async ({ 
+    thread,
+    threadId,
+    message,
+    messageId,
+    popout,
+  }: IThreadMessageModelOrId & { popout?: boolean }, to?: Contact[]) => {
     const resolved = await this._modelifyContext({ thread, threadId, message, messageId });
     if (!resolved.message || !resolved.thread) return;
     const draft = await DraftFactory.createDraftForForward(resolved);
+    if (to) {
+      draft.to = to
+    }
     return this._finalizeAndPersistNewMessage(draft, { popout });
   };
+  
 
   _modelifyContext({
     thread,

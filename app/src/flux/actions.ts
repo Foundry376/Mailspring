@@ -368,6 +368,15 @@ export const composeReply = create('composeReply', ActionScopeWindow);
 export const composeForward = create('composeForward', ActionScopeWindow);
 
 /*
+  Public: Compose and send a new draft for forwarding the provided threadId and messageId. See
+  {::composeReply} for parameters and behavior.
+
+  *Scope: Window*
+  */
+export const composeAndSendForward = create('composeAndSendForward', ActionScopeWindow);
+
+
+/*
   Public: Pop out the draft with the provided ID so the user can edit it in another
   window.
 
