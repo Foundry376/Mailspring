@@ -24,6 +24,7 @@ export default [
       ['core:change-labels', localized('Change Labels')],
       ['core:change-folders', localized('Change Folder')],
       ['core:mark-as-read', localized('Mark as %@', localized('Read'))],
+      ['core:report-as-spam', localized('Mark as %@', localized('Spam'))],
       ['core:mark-as-unread', localized('Mark as %@', localized('Unread'))],
       ['core:mark-important', localized('Mark as %@', localized('Important')) + ' (Gmail)'],
       ['core:mark-unimportant', localized('Mark as %@', localized('Not Important')) + ' (Gmail)'],
