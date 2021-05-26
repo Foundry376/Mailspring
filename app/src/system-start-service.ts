@@ -86,8 +86,7 @@ class SystemStartServiceDarwin extends SystemStartServiceBase {
   _launchdPlist() {
     return {
       Label: 'com.mailspring.mailspring',
-      Program: this._launcherPath(),
-      ProgramArguments: ['--background'],
+      ProgramArguments: [this._launcherPath(), '--background'],
       RunAtLoad: true,
     };
   }
