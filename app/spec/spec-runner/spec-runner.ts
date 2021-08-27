@@ -120,8 +120,9 @@ class SpecRunner {
   }
 
   _setupWindow() {
-    window.addEventListener('core:close', () => window.close());
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('beforeunload', (e) => {
+      // TODO(flotwig): figure out a way to stop the tests from quitting prematurely that is not this
+      e.returnValue = 'foo'
       AppEnv.storeWindowDimensions();
       AppEnv.saveWindowState();
     });
