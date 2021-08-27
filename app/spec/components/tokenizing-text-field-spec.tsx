@@ -24,6 +24,8 @@ const participant2 = new Contact({
   id: '2',
   email: 'burgers@mailspring.com',
   name: 'Mailspring Burger Basket',
+  hidden: false,
+  source: 'mail',
 });
 const participant3 = new Contact({
   id: '3',
@@ -153,7 +155,7 @@ describe('TokenizingTextField', function() {
 
       expect(dragStartEventData).toEqual({
         'mailspring-token-items':
-          '[{"id":"2","name":"Mailspring Burger Basket","email":"burgers@mailspring.com","__cls":"Contact"}]',
+          '[{"id":"2","name":"Mailspring Burger Basket","h":false,"s":"mail","email":"burgers@mailspring.com","gis":[],"__cls":"Contact"}]',
         'text/plain': 'Mailspring Burger Basket <burgers@mailspring.com>',
       });
 
@@ -416,16 +418,14 @@ describe('TokenizingTextField.Token', function() {
       );
     });
 
-    it('should enter editing mode', function() {
-      expect(this.token.state().editing).toBe(false);
+      expect(this.token.state().editing).toBe(null);
       this.token.simulate('doubleClick', {});
-      expect(this.token.state().editing).toBe(true);
+      expect(this.token.state().editing).toBe('ben@mailspring.com');
     });
 
-    it('should call onEdit to commit the new token value when the edit field is blurred', function() {
-      expect(this.token.state().editing).toBe(false);
+      expect(this.token.state().editing).toBe(null);
       this.token.simulate('doubleClick', {});
-      expect(this.token.state().editing).toBe(true);
+      expect(this.token.state().editing).toBe('ben@mailspring.com');
       const tokenEditInput = this.token.find('input');
       tokenEditInput.getDOMNode().value = 'new tag content';
       tokenEditInput.simulate('change');
@@ -446,9 +446,9 @@ describe('TokenizingTextField.Token', function() {
           onEdited: null,
         })
       );
-      expect(this.token.state().editing).toBe(false);
+      expect(this.token.state().editing).toBe(null);
       this.token.simulate('doubleClick', {});
-      expect(this.token.state().editing).toBe(false);
+      expect(this.token.state().editing).toBe(null);
     }));
 });
 

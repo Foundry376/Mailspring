@@ -16,7 +16,7 @@ describe('autolink', function autolinkSpec() {
         const expected = fs.readFileSync(expectedPath).toString();
 
         div.innerHTML = input;
-        Autolink(div);
+        Autolink(div, { async: false, telAggressiveMatch: false });
 
         expect(div.innerHTML).toEqual(expected);
       });
