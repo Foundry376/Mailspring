@@ -1,5 +1,31 @@
 # Mailspring Changelog
 
+### 1.9.2 (9/5/2021)
+
+**Features:**
+
+- ProtonBridge integration is now possible thanks to #2323 (Thanks @bl00mber!)
+
+- You can create mail rules that forward your emails from **Preferences > Mail Rules** (Thanks @stanvanrooy!)
+
+- Snoozing now has a shortcut! `h` in the Gmail keybindings, `Ctrl-H` and `Cmd-H` for other configurations. (Thanks @avelino!)
+
+**Fixes:**
+
+- Signature image upload is correctly disabled if you are signed out of Mailspring ID since we can't store your assets in a GDPR-compliant way without authentication.
+
+- Mailbox permalinks continue to work outside of the thread-sharing plugin
+
+- Strange layout bug for trash / spam folders on vertical layout has been fixed
+
+- The "Mark as spam" keyboard shortcut is now configurable from Preferences > Shortcuts
+
+- Launching Mailspring in the background on startup now works correctly on macOS.
+
+**Localization:**
+
+- German and Czech localizations have been improved and the app has been fully localized into Turkish! (Thanks to @SiderealArt, @emintufan and @Phylu)
+
 ### 1.9.1 (4/16/2021)
 
 **Fixes:**
