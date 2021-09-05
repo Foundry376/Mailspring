@@ -40,6 +40,7 @@ const VERIFIED_LANGS = [
   'pt',
   'pt-BR',
   'gl',
+  'tr',
   'ru',
   'cs',
   'uk',
