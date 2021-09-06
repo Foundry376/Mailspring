@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "%1$@ -ден %2$@ -ге аудару.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Өкінішке орай, аударма қызметтері әр таңбаға төленеді және біз бұл мүмкіндікті ақысыз ұсына алмаймыз.",
   "View activity": "Әрекетті көру",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basic көмегімен әр %2$@ дейін электрондық поштаны аудара аласыз."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basic көмегімен әр %2$@ дейін электрондық поштаны аудара аласыз.",
+  "Default send behavior": "Әдепкі жіберу әрекеті",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Тек Windows және Linux - macOS жүйесінде емле тексеру тілін жүйе тергенде анықтайды.",
+  "Send and Archive": "Жіберу және мұрағаттау"
 }

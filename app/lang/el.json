@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Μεταφράζοντας από %1$@ σε %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Δυστυχώς, ο λογαριασμός μεταφραστικών υπηρεσιών ανά χαρακτήρα και δεν μπορούμε να προσφέρουμε αυτό το χαρακτηριστικό δωρεάν.",
   "View activity": "Προβολή δραστηριότητας",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Μπορείτε να μεταφράσετε έως και %1$@ ηλεκτρονικά μηνύματα κάθε %2$@ με Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Μπορείτε να μεταφράσετε έως και %1$@ ηλεκτρονικά μηνύματα κάθε %2$@ με Mailspring Basic.",
+  "Default send behavior": "Προεπιλεγμένη συμπεριφορά αποστολής",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Μόνο Windows και Linux - στο macOS, η γλώσσα ορθογραφικού ελέγχου ανιχνεύεται από το σύστημα καθώς πληκτρολογείτε.",
+  "Send and Archive": "Αποστολή και αρχειοθέτηση"
 }

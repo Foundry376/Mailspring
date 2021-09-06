@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "%1$@から%2$@に翻訳します。",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "残念ながら、翻訳サービスは1文字につき請求するので、この機能を無料で提供することはできません。",
   "View activity": "アクティビティを見る",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "あなたはMailspring Basicを使って各%2$@ Eメールまで翻訳することができます。"
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "あなたはMailspring Basicを使って各%2$@ Eメールまで翻訳することができます。",
+  "Default send behavior": "デフォルトの送信動作",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "WindowsおよびLinuxのみ-macOSでは、入力時にシステムによってスペルチェック言語が検出されます。",
+  "Send and Archive": "送信してアーカイブ"
 }

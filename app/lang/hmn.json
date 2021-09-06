@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Txhais los ntawm %1$@ rau %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Hmoov tsis zoo, kev txhais lus kev pab cuam nuj nqi rau ib tus cwj pwm thiab peb tsis tuaj yeem muab qhov tshwj xeeb no pub dawb.",
   "View activity": "Saib kev ua ub no",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Koj tuaj yeem txhais txog li %1$@ email txhua %2$@ nrog Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Koj tuaj yeem txhais txog li %1$@ email txhua %2$@ nrog Mailspring Basic.",
+  "Default send behavior": "Default xa tus cwj pwm",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows thiab Linux nkaus xwb - ntawm macOS, cov lus kuaj pom tau pom los ntawm cov kab ke raws li koj ntaus ntawv.",
+  "Send and Archive": "Xa thiab khaws"
 }

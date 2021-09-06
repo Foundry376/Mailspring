@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Përkthimi nga %1$@ në %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Fatkeqësisht, faturat e shërbimeve të përkthimit për karakter dhe ne nuk mund ta ofrojmë këtë veçori falas.",
   "View activity": "Shikoni aktivitetin",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ju mund të përktheni deri në %1$@ email secila %2$@ me Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ju mund të përktheni deri në %1$@ email secila %2$@ me Mailspring Basic.",
+  "Default send behavior": "Sjellja e parazgjedhur e dërgimit",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Vetëm Windows dhe Linux - në macOS, gjuha e kontrollimit të drejtshkrimit zbulohet nga sistemi ndërsa shtypni.",
+  "Send and Archive": "Dërgo dhe Arkivo"
 }

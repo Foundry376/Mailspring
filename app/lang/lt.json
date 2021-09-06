@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Vertimas iš %1$@ į %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Deja, vertimo paslaugos išrašo sąskaitą už simbolį ir mes negalime pasiūlyti šios funkcijos nemokamai.",
   "View activity": "Peržiūrėkite veiklą",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Galite išversti iki %1$@ el. Laiškų kiekviename %2$@ naudodami „Mailspring Basic“."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Galite išversti iki %1$@ el. Laiškų kiekviename %2$@ naudodami „Mailspring Basic“.",
+  "Default send behavior": "Numatytasis siuntimo elgesys",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Tik „Windows“ ir „Linux“ - „MacOS“ sistemoje rašymo metu kalba nustato rašybos tikrinimo kalbą.",
+  "Send and Archive": "Siųsti ir archyvuoti"
 }

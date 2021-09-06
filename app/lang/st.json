@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "E fetolela ho tloha %1$@ ho isa %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Ka bomalimabe, lits'ebeletso tsa phetolelo li lefisa sebapali ka seng mme ha re khone ho fana ka sesebelisoa sena mahala.",
   "View activity": "Sheba tšebetso",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "O ka fetolela ho isa ho %1$@ imeile ka ngoe %2$@ ka Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "O ka fetolela ho isa ho %1$@ imeile ka ngoe %2$@ ka Mailspring Basic.",
+  "Default send behavior": "Boitšoaro bo ikhethileng ba ho romella",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows le Linux feela - ho macOS, puo ea spellcheck e fumanoa ke sistimi ha u ntse u thaepa.",
+  "Send and Archive": "Romella 'me Archive"
 }

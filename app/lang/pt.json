@@ -104,7 +104,7 @@
   "Cleanup Error": "Erro de limpeza",
   "Cleanup Started": "Limpeza iniciada",
   "Clear Selection": "Limpar seleção",
-  "Clear reminder": "Limpar lembrete",   
+  "Clear reminder": "Limpar lembrete",
   "Click 'Learn More' to view instructions in our knowledge base.": "Clique \"Saber mais\" para ver as instruções na nossa base de conhecimento.",
   "Click any theme to apply:": "Clique num tema para aplicar:",
   "Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.": "Clique nos atalhos para os editar. Para ainda mais controlo, pode editar o diretório de atalhos diretamente abaixo.",
@@ -680,7 +680,7 @@
   "Stop": "Parar",
   "Subject": "Assunto",
   "Subject Line": "Linha de assunto",
-  "Submit": "Enviar",  
+  "Submit": "Enviar",
   "Submit Improved Localizations": "Enviar localizações melhoradas",
   "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Inscreva-se em diferentes canais de atualização para receber as novidades acerca da aplicação. Tenha em atenção de que alguns canais de atualização podem ser menos estáveis!",
   "Subscription": "Subscrição",
@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Traduzindo de %1$@ para %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Infelizmente, os serviços de tradução são cobrados por personagem e não podemos oferecer este recurso gratuitamente.",
   "View activity": "Visualizar atividade",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Você pode traduzir até %1$@ e-mails cada %2$@ com o Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Você pode traduzir até %1$@ e-mails cada %2$@ com o Mailspring Basic.",
+  "Default send behavior": "Comportamento de envio padrão",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Apenas Windows e Linux - no macOS, o idioma da verificação ortográfica é detectado pelo sistema conforme você digita.",
+  "Send and Archive": "Enviar e arquivar"
 }

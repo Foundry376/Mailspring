@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Превод от %1$@ в %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "За съжаление, преводаческите услуги се таксуват на знак и не можем да предложим тази функция безплатно.",
   "View activity": "Вижте активността",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Можете да преведете до %1$@ имейли всеки %2$@ с Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Можете да преведете до %1$@ имейли всеки %2$@ с Mailspring Basic.",
+  "Default send behavior": "Поведение при изпращане по подразбиране",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Само за Windows и Linux - в macOS езикът за проверка на правописа се открива от системата, докато пишете.",
+  "Send and Archive": "Изпращане и архивиране"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "ແປຈາກ %1$@ ເປັນ %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "ແຕ່ໂຊກບໍ່ດີ, ຄ່າບໍລິການແປພາສາຕໍ່ຕົວ ໜັງ ສືແລະພວກເຮົາບໍ່ສາມາດສະ ເໜີ ຄຸນລັກສະນະນີ້ໄດ້ໂດຍບໍ່ເສຍຄ່າ.",
   "View activity": "ເບິ່ງກິດຈະ ກຳ",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ທ່ານສາມາດແປເຖິງ %1$@ ອີເມວແຕ່ລະ %2$@ ກັບ Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ທ່ານສາມາດແປເຖິງ %1$@ ອີເມວແຕ່ລະ %2$@ ກັບ Mailspring Basic.",
+  "Default send behavior": "ພຶດຕິ ກຳ ການສົ່ງເລີ່ມຕົ້ນ",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows ແລະ Linux ເທົ່ານັ້ນ - ຢູ່ໃນ macOS, ລະບົບກວດພົບການກວດການສະກົດຄໍາໂດຍລະບົບທີ່ເຈົ້າພິມ.",
+  "Send and Archive": "ສົ່ງແລະເກັບ"
 }

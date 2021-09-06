@@ -926,5 +926,8 @@
   "Translating from %1$@ to %2$@.": "Перевод с %1$@ на %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "К сожалению, услуги перевода оплачиваются одним персонажем, и мы не можем предложить эту функцию бесплатно.",
   "View activity": "Просмотр активности",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Вы можете перевести до %1$@ электронных писем каждый %2$@ с помощью Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Вы можете перевести до %1$@ электронных писем каждый %2$@ с помощью Mailspring Basic.",
+  "Default send behavior": "Поведение при отправке по умолчанию",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Только для Windows и Linux - в macOS язык проверки орфографии определяется системой при вводе текста.",
+  "Send and Archive": "Отправить и архивировать"
 }

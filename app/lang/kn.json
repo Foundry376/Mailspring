@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "%1$@ ನಿಂದ %2$@ ಗೆ ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "ದುರದೃಷ್ಟವಶಾತ್, ಪ್ರತಿ ಅಕ್ಷರಕ್ಕೆ ಅನುವಾದ ಸೇವೆಗಳ ಬಿಲ್ ಮತ್ತು ನಾವು ಈ ವೈಶಿಷ್ಟ್ಯವನ್ನು ಉಚಿತವಾಗಿ ನೀಡಲು ಸಾಧ್ಯವಿಲ್ಲ.",
   "View activity": "ಚಟುವಟಿಕೆಯನ್ನು ವೀಕ್ಷಿಸಿ",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ಮೇಲ್‌ಸ್ಪ್ರಿಂಗ್ ಬೇಸಿಕ್‌ನೊಂದಿಗೆ ನೀವು ಪ್ರತಿ %1$@ ಇಮೇಲ್‌ಗಳನ್ನು %2$@ ವರೆಗೆ ಅನುವಾದಿಸಬಹುದು."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ಮೇಲ್‌ಸ್ಪ್ರಿಂಗ್ ಬೇಸಿಕ್‌ನೊಂದಿಗೆ ನೀವು ಪ್ರತಿ %1$@ ಇಮೇಲ್‌ಗಳನ್ನು %2$@ ವರೆಗೆ ಅನುವಾದಿಸಬಹುದು.",
+  "Default send behavior": "ಡೀಫಾಲ್ಟ್ ಕಳುಹಿಸುವ ನಡವಳಿಕೆ",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "ವಿಂಡೋಸ್ ಮತ್ತು ಲಿನಕ್ಸ್ ಮಾತ್ರ - ಮ್ಯಾಕೋಸ್‌ನಲ್ಲಿ, ನೀವು ಟೈಪ್ ಮಾಡಿದಂತೆ ಸಿಸ್ಟಮ್‌ನಿಂದ ಕಾಗುಣಿತವನ್ನು ಪತ್ತೆ ಮಾಡಲಾಗುತ್ತದೆ.",
+  "Send and Archive": "ಕಳುಹಿಸಿ ಮತ್ತು ಆರ್ಕೈವ್ ಮಾಡಿ"
 }

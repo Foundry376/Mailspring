@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Oersette fan %1$@ nei %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Spitigernôch rekkenje oersettsjinsten per teken en kinne wy dizze funksje net fergees oanbiede.",
   "View activity": "Aktiviteit besjen",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Jo kinne oant %1$@ e-post elk %2$@ oersette mei Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Jo kinne oant %1$@ e-post elk %2$@ oersette mei Mailspring Basic.",
+  "Default send behavior": "Standert ferstjoeringsgedrach",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Allinnich Windows en Linux - op macOS wurdt de staveringshifkingstaal ûntdutsen troch it systeem as jo typen.",
+  "Send and Archive": "Stjoer en argyfearje"
 }

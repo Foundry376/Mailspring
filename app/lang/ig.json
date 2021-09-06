@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Site na %1$@ gaa na %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Ọ bụ ihe nwute, ọrụ ntụgharị ụgwọ maka otu agwa na anyị enweghị ike ịnye atụmatụ a n'efu.",
   "View activity": "View ọrụ",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "You nwere ike ịtụgharị gaa na %1$@ ozi ịntanetị ọ bụla [with] na Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "You nwere ike ịtụgharị gaa na %1$@ ozi ịntanetị ọ bụla [with] na Mailspring Basic.",
+  "Default send behavior": "Omume izipu izizi",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows na Linux naanị - na macOS, sistemụ na -achọpụta asụsụ nyocha ahụ ka ị na -ede.",
+  "Send and Archive": "Zipụ na ebe ndebe akwụkwọ"
 }

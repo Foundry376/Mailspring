@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "%1$@ ਤੋਂ %2$@ ਵਿੱਚ ਅਨੁਵਾਦ ਕਰ ਰਿਹਾ ਹੈ.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "ਬਦਕਿਸਮਤੀ ਨਾਲ, ਅਨੁਵਾਦ ਸੇਵਾਵਾਂ ਪ੍ਰਤੀ ਚਰਿੱਤਰ ਦਾ ਬਿਲ ਹੈ ਅਤੇ ਅਸੀਂ ਇਸ ਵਿਸ਼ੇਸ਼ਤਾ ਨੂੰ ਮੁਫਤ ਵਿੱਚ ਪੇਸ਼ ਨਹੀਂ ਕਰ ਸਕਦੇ.",
   "View activity": "ਗਤੀਵਿਧੀ ਵੇਖੋ",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ਤੁਸੀਂ ਹਰੇਕ %2$@ ਈਮੇਲ ਦਾ ਮੇਲਸਪ੍ਰਿੰਗ ਬੇਸਿਕ ਨਾਲ ਅਨੁਵਾਦ ਕਰ ਸਕਦੇ ਹੋ."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ਤੁਸੀਂ ਹਰੇਕ %2$@ ਈਮੇਲ ਦਾ ਮੇਲਸਪ੍ਰਿੰਗ ਬੇਸਿਕ ਨਾਲ ਅਨੁਵਾਦ ਕਰ ਸਕਦੇ ਹੋ.",
+  "Default send behavior": "ਪੂਰਵ -ਨਿਰਧਾਰਤ ਭੇਜਣ ਵਿਵਹਾਰ",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "ਸਿਰਫ ਵਿੰਡੋਜ਼ ਅਤੇ ਲੀਨਕਸ - ਮੈਕੋਸ ਤੇ, ਤੁਹਾਡੇ ਦੁਆਰਾ ਟਾਈਪ ਕਰਦੇ ਸਮੇਂ ਸਿਸਟਮ ਦੁਆਰਾ ਸਪੈਲ ਚੈਕ ਭਾਸ਼ਾ ਦਾ ਪਤਾ ਲਗਾਇਆ ਜਾਂਦਾ ਹੈ.",
+  "Send and Archive": "ਭੇਜੋ ਅਤੇ ਪੁਰਾਲੇਖ ਕਰੋ"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Faʻaliliuga mai %1$@ i %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "O le mea e leaga ai, o le faʻasalaga o pili o le auʻaunaga mo amio ma e le mafai ona tatou ofoina atu lenei vaega mo le leai o se totogi",
   "View activity": "Vaʻavaʻai i galuega",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "E mafai ona e suʻeina i [email] imeli i le %2$@ i le Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "E mafai ona e suʻeina i [email] imeli i le %2$@ i le Mailspring Basic.",
+  "Default send behavior": "Le amio lelei lafo mai",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Naʻo Windows ma Linux - i luga ole macOS, o le sipela e iloa e le faiga a o e tipiina.",
+  "Send and Archive": "Lafo ma teuina faamaumauga"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "[To] से %1$@ में अनुवाद।",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "दुर्भाग्य से, अनुवाद सेवाएं प्रति चरित्र बिल और हम मुफ्त में यह सुविधा प्रदान नहीं कर सकते।",
   "View activity": "गतिविधि देखें",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "आप प्रत्येक [।] ईमेल [M] तक मेलस्प्रिंग बेसिक के साथ अनुवाद कर सकते हैं।"
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "आप प्रत्येक [।] ईमेल [M] तक मेलस्प्रिंग बेसिक के साथ अनुवाद कर सकते हैं।",
+  "Default send behavior": "डिफ़ॉल्ट भेजें व्यवहार",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "केवल विंडोज़ और लिनक्स - मैकोज़ पर, जैसे ही आप टाइप करते हैं, सिस्टम द्वारा वर्तनी जांच भाषा का पता लगाया जाता है।",
+  "Send and Archive": "भेजें और संग्रहीत करें"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "กำลังแปลจาก %1$@ ถึง %2$@",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "น่าเสียดายที่ค่าบริการแปลต่อตัวอักษรและเราไม่สามารถให้บริการนี้ได้ฟรี",
   "View activity": "ดูกิจกรรม",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "คุณสามารถแปลได้มากถึง %1$@ อีเมลแต่ละ %2$@ ด้วย Mailspring Basic"
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "คุณสามารถแปลได้มากถึง %1$@ อีเมลแต่ละ %2$@ ด้วย Mailspring Basic",
+  "Default send behavior": "พฤติกรรมการส่งเริ่มต้น",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows และ Linux เท่านั้น - บน macOS ระบบจะตรวจพบภาษาตรวจการสะกดขณะที่คุณพิมพ์",
+  "Send and Archive": "ส่งและเก็บถาวร"
 }

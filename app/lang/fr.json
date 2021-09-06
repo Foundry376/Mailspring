@@ -921,5 +921,8 @@
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Malheureusement, les services de traduction sont facturés par caractère et nous ne pouvons pas offrir cette fonctionnalité gratuitement.",
   "View activity": "Voir l'activité",
   "View License": "Voir la licence",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Vous pouvez traduire jusqu'à %1$@ emails chacun avec Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Vous pouvez traduire jusqu'à %1$@ emails chacun avec Mailspring Basic.",
+  "Default send behavior": "Comportement d'envoi par défaut",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows et Linux uniquement - sur macOS, la langue du correcteur orthographique est détectée par le système au fur et à mesure que vous tapez.",
+  "Send and Archive": "Envoyer et archiver"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Pagsasalin gikan sa %1$@ hangtod sa %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Ikasubo, ang bill sa mga serbisyo sa paghubad matag kinaiya ug dili kami makahatag sa kini nga bahin nga libre.",
   "View activity": "Tan-awa ang kalihokan",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mahimo nimong mahubad hangtod sa %1$@ ang mga email sa matag %2$@ nga adunay Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mahimo nimong mahubad hangtod sa %1$@ ang mga email sa matag %2$@ nga adunay Mailspring Basic.",
+  "Default send behavior": "Default nga pamatasan sa pagpadala",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Ang Windows ug Linux ra - sa macOS, ang sinultian sa spellcheck nakit-an sa sistema samtang nag-type ka.",
+  "Send and Archive": "Magpadala ug Archive"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Dịch từ %1$@ sang %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Thật không may, hóa đơn dịch vụ dịch thuật cho mỗi ký tự và chúng tôi không thể cung cấp tính năng này miễn phí.",
   "View activity": "Xem hoạt động",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Bạn có thể dịch tối đa %1$@ email mỗi %2$@ với Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Bạn có thể dịch tối đa %1$@ email mỗi %2$@ với Mailspring Basic.",
+  "Default send behavior": "Hành vi gửi mặc định",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Chỉ dành cho Windows và Linux - trên macOS, ngôn ngữ kiểm tra chính tả được hệ thống phát hiện khi bạn nhập.",
+  "Send and Archive": "Gửi và lưu trữ"
 }

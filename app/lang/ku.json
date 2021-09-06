@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Wergera ji %1$@ ber %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Mixabin, karûbarên werger werger ji bo karakterê ye û em nikarin vê taybetmendiyê belaş pêşkêş bikin.",
   "View activity": "Viewalakiyê binihêrin",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Hûn dikarin bi Mailspring Basic re her sêşemê [%1$@ bi e-nameyê wergerînin."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Hûn dikarin bi Mailspring Basic re her sêşemê [%1$@ bi e-nameyê wergerînin.",
+  "Default send behavior": "Tevgerê şandina xwerû",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Tenê Windows û Linux - li ser macOS, dema ku hûn dinivîsin, pergala rastnivîsê ji hêla pergalê ve tê tesbît kirin.",
+  "Send and Archive": "Sendandin û Arşîv kirin"
 }

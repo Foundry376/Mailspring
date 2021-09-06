@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Ukuguqula ukusuka [[] ukuya ku- %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Ngelishwa, iinkonzo zokuguqulela zibhida ngohlobo ngalunye kwaye asinakho ukubonelela ngesi simahla.",
   "View activity": "Jonga umsebenzi",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ungaguqulela kwii- %1$@ ii-imeyile nganye %2$@ ngeMailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ungaguqulela kwii- %1$@ ii-imeyile nganye %2$@ ngeMailspring Basic.",
+  "Default send behavior": "Ukuziphatha okungagqibekanga kokuthumela",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "IWindows kunye neLinux kuphela - kwiMacOS, ulwimi lokukhangelwa kupelo lubonwa yinkqubo njengoko uchwetheza.",
+  "Send and Archive": "Thumela kunye noVimba"
 }

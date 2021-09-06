@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "%1$@ tik %2$@ tik itzultzea.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Zoritxarrez, itzulpen zerbitzuek pertsonaia bakoitzeko faktura dute eta ezin dugu funtzio hau doan eskainiko.",
   "View activity": "Ikusi jarduera",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basic-ekin %1$@ mezu elektroniko bakoitzeko %2$@ mezuak itzuli ditzakezu Mailspring Basic-ekin."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basic-ekin %1$@ mezu elektroniko bakoitzeko %2$@ mezuak itzuli ditzakezu Mailspring Basic-ekin.",
+  "Default send behavior": "Bidalketa lehenetsitako portaera",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows eta Linux soilik - macOS-en, ortografiaren hizkuntza sistemak hautematen du idatzi ahala.",
+  "Send and Archive": "Bidali eta Artxibatu"
 }

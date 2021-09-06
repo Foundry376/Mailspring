@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "从%1$@到%2$@的翻译。",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "很遗憾，翻译服务按字符收费，我们无法免费提供此功能。",
   "View activity": "查看活动",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "您可以使用Mailspring Basic翻译每个%2$@最多%1$@个电子邮件。"
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "您可以使用Mailspring Basic翻译每个%2$@最多%1$@个电子邮件。",
+  "Default send behavior": "默认发送行为",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "仅限 Windows 和 Linux - 在 macOS 上，系统会在您键入时检测拼写检查语言。",
+  "Send and Archive": "发送和存档"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Cyfieithu o %1$@ i %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Yn anffodus, bil gwasanaethau cyfieithu fesul cymeriad ac ni allwn gynnig y nodwedd hon am ddim.",
   "View activity": "Gweld gweithgaredd",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Gallwch gyfieithu hyd at %1$@ e-bost bob %2$@ gyda Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Gallwch gyfieithu hyd at %1$@ e-bost bob %2$@ gyda Mailspring Basic.",
+  "Default send behavior": "Ymddygiad anfon diofyn",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows a Linux yn unig - ar macOS, mae'r system gwirio sillafu yn cael ei chanfod gan y system wrth i chi deipio.",
+  "Send and Archive": "Anfon ac Archifo"
 }

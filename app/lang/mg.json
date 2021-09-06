@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Mandika teny avy amin'ny %1$@ mankany %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Mampalahelo fa ny volavolan-dalàna momba ny fandikan-teny isaky ny toetray ary tsy afaka manolotra an'ity maimaimpoana izahay ity.",
   "View activity": "Hijery ny hetsika",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Azonao adika ny %1$@ mailaka tsirairay %2$@ miaraka amin'ny Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Azonao adika ny %1$@ mailaka tsirairay %2$@ miaraka amin'ny Mailspring Basic.",
+  "Default send behavior": "Fomba fitondran-tena mandefasa",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows sy Linux ihany - amin'ny macOS, ny rafitra tsipelina dia hitan'ny rafitra rehefa manoratra ianao.",
+  "Send and Archive": "Alefaso ary tahirizo"
 }

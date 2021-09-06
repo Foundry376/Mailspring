@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Tulkošana no %1$@ uz %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Diemžēl tulkošanas pakalpojumi izraksta rēķinu par vienu rakstzīmi, un mēs šo funkciju nevaram piedāvāt bez maksas.",
   "View activity": "Skatīt darbību",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Izmantojot Mailspring Basic, jūs varat tulkot līdz %1$@ e-pastus katrā %2$@."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Izmantojot Mailspring Basic, jūs varat tulkot līdz %1$@ e-pastus katrā %2$@.",
+  "Default send behavior": "Sūtīšanas noklusējuma darbība",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Tikai Windows un Linux - operētājsistēmā macOS rakstīšanas laikā sistēma nosaka pareizrakstības pārbaudes valodu.",
+  "Send and Archive": "Sūtīt un arhivēt"
 }

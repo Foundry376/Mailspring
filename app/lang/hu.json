@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Fordítás %1$@ -től %2$@ -ig.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Sajnos a fordítási szolgáltatások karakterenként számláznak, és ezt a szolgáltatást nem kínáljuk ingyenesen.",
   "View activity": "Tevékenység megtekintése",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mindegyik %1$@ e-mailt lefordíthatja a [Mailspring Basic] segítségével."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mindegyik %1$@ e-mailt lefordíthatja a [Mailspring Basic] segítségével.",
+  "Default send behavior": "Alapértelmezett küldési viselkedés",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Csak Windows és Linux esetén - a macOS rendszerben a helyesírás -ellenőrző nyelvet gépelés közben észleli a rendszer.",
+  "Send and Archive": "Küldés és archiválás"
 }

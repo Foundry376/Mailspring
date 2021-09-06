@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "ከ %1$@ ወደ %2$@ በመተርጎም ላይ።",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "እንደ አለመታደል ሆኖ የትርጉም አገልግሎቶች በአንድ ፊደል ሂሳብ ይከፍላሉ እና ይህንን ባህሪይ በነጻ መስጠት አንችልም።",
   "View activity": "እንቅስቃሴን ይመልከቱ ፡፡",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ከ ‹ፖስታ› ቤዚክስ እያንዳንዳቸው እስከ %1$@ ኢሜይሎች መተርጎም ይችላሉ ፡፡"
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "ከ ‹ፖስታ› ቤዚክስ እያንዳንዳቸው እስከ %1$@ ኢሜይሎች መተርጎም ይችላሉ ፡፡",
+  "Default send behavior": "ነባሪ የመላኪያ ባህሪ",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "ዊንዶውስ እና ሊኑክስ ብቻ - በ macOS ላይ የፊደል ማረሚያ ቋንቋ ሲተይቡ በስርዓቱ ተገኝቷል።",
+  "Send and Archive": "ይላኩ እና በማህደር ያስቀምጡ"
 }

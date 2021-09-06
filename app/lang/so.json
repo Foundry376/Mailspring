@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Ka turjumida %1$@ ilaa %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Nasiib darrose, adeegyada tarjumaadda ayaa biil u sameeya dabeecad kasta oo aanaan ku siin karno astaantan lacag la’aan.",
   "View activity": "Eeg waxqabadka",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Waad u tarjumi kartaa ilaa %1$@ emayl kasta %2$@ oo leh '' Mail 'aasaaska ah."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Waad u tarjumi kartaa ilaa %1$@ emayl kasta %2$@ oo leh '' Mail 'aasaaska ah.",
+  "Default send behavior": "Dabeecadda dirista ee caadiga ah",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Daaqadaha iyo Linux kaliya - macOS, luuqadda sixidda waxaa lagu ogaadaa nidaamka sida aad wax u qorto.",
+  "Send and Archive": "Dir oo Kaydso"
 }

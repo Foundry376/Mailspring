@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Fassara daga %1$@ zuwa %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Abun takaici, sabis na fassarar kowane haraji kuma ba za mu iya bayar da wannan fasalin kyauta ba.",
   "View activity": "Duba aiki",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Kuna iya fassara har zuwa %1$@ imel kowane %2$@ tare da springan asalin."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Kuna iya fassara har zuwa %1$@ imel kowane %2$@ tare da springan asalin.",
+  "Default send behavior": "Halin aika tsoho",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows da Linux kawai - akan macOS, tsarin yana gano harshen sihirin yayin da kuke bugawa.",
+  "Send and Archive": "Aika da Amsoshi"
 }

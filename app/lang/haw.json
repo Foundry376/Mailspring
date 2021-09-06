@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Ke kamaʻilio ʻana mai %1$@ a %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Minamina, nā lawelawe lawelawe unuhi i kēlā me kēia ʻano a ʻaʻole hiki iā mākou ke hāʻawi i kēia ʻāpana no ka manuahi.",
   "View activity": "Nānā ka hana",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Hiki iā ʻoe ke unuhi i nā leka uila %1$@ kēlā me kēia %2$@ me Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Hiki iā ʻoe ke unuhi i nā leka uila %1$@ kēlā me kēia %2$@ me Mailspring Basic.",
+  "Default send behavior": "Lawe hoʻouna i ka lawena",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "ʻO Windows a me Linux wale nō - ma ka macOS, ʻike ʻia ka ʻōlelo spellcheck e ka ʻōnaehana i kāu kikokiko ʻana.",
+  "Send and Archive": "E hoʻouna a waihona"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Översättning från %1$@ till %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Tyvärr fakturerar översättningstjänster per tecken och vi kan inte erbjuda den här funktionen gratis.",
   "View activity": "Visa aktivitet",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Du kan översätta upp till %1$@ e-postmeddelanden varje %2$@ med Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Du kan översätta upp till %1$@ e-postmeddelanden varje %2$@ med Mailspring Basic.",
+  "Default send behavior": "Standard sändningsbeteende",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Endast Windows och Linux - på macOS upptäcks stavningskontrollspråket av systemet medan du skriver.",
+  "Send and Archive": "Skicka och arkivera"
 }

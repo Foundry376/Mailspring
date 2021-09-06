@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Թարգմանություն %1$@ -ից %2$@:",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Դժբախտաբար, թարգմանությունների ծառայություններն ըստ նիշի օրինագիծ են, և մենք չենք կարող անվճար առաջարկել այս հնարավորությունը:",
   "View activity": "Դիտեք գործունեությունը",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Կարող եք թարգմանել մինչև %1$@ էլ. Փոստերից յուրաքանչյուրը %2$@ ՝ Mailspring Basic- ով:"
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Կարող եք թարգմանել մինչև %1$@ էլ. Փոստերից յուրաքանչյուրը %2$@ ՝ Mailspring Basic- ով:",
+  "Default send behavior": "Կանխադրված ուղարկման վարքագիծը",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Միայն Windows- ը և Linux- ը `macOS- ում, մուտքագրելիս համակարգի կողմից հայտնաբերվում է ուղղագրության ստուգման լեզուն:",
+  "Send and Archive": "Ուղարկել և արխիվացնել"
 }

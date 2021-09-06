@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Tõlkimine %1$@ -st %2$@ -le.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Kahjuks esitavad tõlketeenused arve tähemärgi kohta ja me ei saa seda funktsiooni tasuta pakkuda.",
   "View activity": "Vaadake tegevust",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basicuga saate tõlkida kuni %1$@ e-kirja iga %2$@ kohta."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basicuga saate tõlkida kuni %1$@ e-kirja iga %2$@ kohta.",
+  "Default send behavior": "Saatmise vaikekäitumine",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Ainult Windows ja Linux - MacOS -is tuvastab süsteem kirjutamise ajal õigekirjakontrolli keele.",
+  "Send and Archive": "Saada ja arhiveeri"
 }

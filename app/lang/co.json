@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Traduttu da %1$@ à %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Sfortunatamente, i servizii di traduzzione sò fatturati per carattere è ùn pudemu micca offre questa funzione gratuitamente.",
   "View activity": "Vede attività",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Pudete traduce finu à %1$@ email ognunu %2$@ cù Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Pudete traduce finu à %1$@ email ognunu %2$@ cù Mailspring Basic.",
+  "Default send behavior": "Cumportamentu predeterminatu di inviu",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows è Linux solu - in macOS, a lingua di verificazione ortografica hè rilevata da u sistema mentre scrive.",
+  "Send and Archive": "Mandà è Archive"
 }

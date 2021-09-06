@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Kääntäminen %1$@ - [to].",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Valitettavasti käännöspalvelut laskuttavat merkkiä kohden, emmekä voi tarjota tätä ominaisuutta ilmaiseksi.",
   "View activity": "Näytä aktiviteetti",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basic -sovelluksella voit kääntää jopa %1$@ sähköpostiviestiä %2$@."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Mailspring Basic -sovelluksella voit kääntää jopa %1$@ sähköpostiviestiä %2$@.",
+  "Default send behavior": "Oletuslähetyskäyttäytyminen",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Vain Windows ja Linux - MacOS -järjestelmä havaitsee oikeinkirjoituksen tarkistuksen kielen kirjoittaessasi.",
+  "Send and Archive": "Lähetä ja arkistoi"
 }

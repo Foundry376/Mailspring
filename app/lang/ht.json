@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Translated from %1$@ to [].",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Malerezman, tradiksyon sèvis bòdwo pou chak karaktè e nou pa ka ofri karakteristik sa a pou gratis.",
   "View activity": "View aktivite",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ou ka tradui jiska [email] Imèl chak %2$@ ak Mailspring Debaz."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ou ka tradui jiska [email] Imèl chak %2$@ ak Mailspring Debaz.",
+  "Default send behavior": "Default voye konpòtman",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows ak Linux sèlman - sou macOS, lang spellcheck la detekte pa sistèm lan pandan w ap tape.",
+  "Send and Archive": "Voye ak Achiv"
 }

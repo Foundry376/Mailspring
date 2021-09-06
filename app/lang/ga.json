@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Ag aistriú ó %1$@ go %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Ar an drochuair, ní féidir linn an ghné seo a thairiscint saor in aisce do bhille na seirbhísí aistriúcháin in aghaidh an charachtair.",
   "View activity": "Féach ar ghníomhaíocht",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Is féidir leat suas le %1$@ ríomhphost a aistriú gach %2$@ le Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Is féidir leat suas le %1$@ ríomhphost a aistriú gach %2$@ le Mailspring Basic.",
+  "Default send behavior": "Réamhshocrú iompar seolta",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows agus Linux amháin - ar macOS, braitheann an córas an teanga seiceála de réir mar a chlóscríobhann tú.",
+  "Send and Archive": "Seol agus Cartlann"
 }

@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Ko te whakamaori mai i %1$@ ki %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Kia aroha mai, pire ratonga whakamaori mo ia ahuatanga me te kore e taea e matou te tuku i tenei waahanga koreutu.",
   "View activity": "Tirohia te mahi",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ka taea e koe te whakamaoritanga ki te %1$@ nga imeera mo %2$@ me Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Ka taea e koe te whakamaoritanga ki te %1$@ nga imeera mo %2$@ me Mailspring Basic.",
+  "Default send behavior": "Whanonga tuku taunoa",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Ko te Matapihi me te Linux anake - i runga i te macOS, ka kitea te reo takikupu e te punaha i a koe e tuhi ana.",
+  "Send and Archive": "Tukuna me te Waati"
 }

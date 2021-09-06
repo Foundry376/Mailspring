@@ -917,5 +917,8 @@
   "Translating from %1$@ to %2$@.": "Ag eadar-theangachadh bho %1$@ gu %2$@.",
   "Unfortunately, translation services bill per character and we can't offer this feature for free.": "Gu mì-fhortanach, bile seirbheisean eadar-theangachaidh gach caractar agus chan urrainn dhuinn am feart seo a thabhann an-asgaidh.",
   "View activity": "Thoir sùil air gnìomhachd",
-  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Faodaidh tu eadar-theangachadh suas gu %1$@ puist-d gach %2$@ le Mailspring Basic."
+  "You can translate up to %1$@ emails each %2$@ with Mailspring Basic.": "Faodaidh tu eadar-theangachadh suas gu %1$@ puist-d gach %2$@ le Mailspring Basic.",
+  "Default send behavior": "Default cuir giùlan",
+  "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Windows agus Linux a-mhàin - air macOS, lorgar an cànan litreachaidh leis an t-siostam mar a thaghas tu.",
+  "Send and Archive": "Cuir agus Tasglann"
 }
