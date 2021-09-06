@@ -10,7 +10,6 @@ if (process.type === 'renderer') {
 }
 
 var appVersion = app.getVersion();
-var crashReporter = require('electron').crashReporter;
 var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter');
 
 // A globally available ErrorLogger that can report errors to various
@@ -106,7 +105,10 @@ module.exports = ErrorLogger = (function() {
   /////////////////////////////////////////////////////////////////////
 
   ErrorLogger.prototype._startCrashReporter = function(args) {
-    crashReporter.start({
+    if (process.type === 'renderer') {
+      return;
+    }
+    require('electron').crashReporter.start({
       productName: 'Mailspring',
       companyName: 'Mailspring',
       submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
