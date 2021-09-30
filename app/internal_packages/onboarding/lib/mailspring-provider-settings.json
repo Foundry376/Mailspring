@@ -6454,6 +6454,12 @@
     "enable_steps": []
   },
   "protonmail.com": {
+    "alias": "protonmail"
+  },
+  "protonmail.ch": {
+    "alias": "protonmail"
+  },
+  "protonmail": {
     "imap_host": "127.0.0.1",
     "imap_port": "1143",
     "imap_security": "STARTTLS",
