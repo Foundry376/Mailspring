@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro를 통해 사이드바에서 상대방의 연락처나 회사 정보 등을 확인할 수 있습니다.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "이 초안을 보내기 시작한 이후 보낸 사람 주소가 변경되었습니다. 초안을 다시 확인한 다음 '보내기'를 다시 클릭하십시오.",
   "The message contains an empty template area.": "메세지에 빈 템플릿 영역이 있습니다.",
-  "The message contains an illegial attachment that is not allowed by the server.": "메세지에 서버에서 허용하지 않는 불법적인 첨부 파일이 있습니다.",
+  "The message contains an illegal attachment that is not allowed by the server.": "메세지에 서버에서 허용하지 않는 불법적인 첨부 파일이 있습니다.",
   "The message has been blocked because no sender is configured.": "보낸 사람이 구성되어 있지 않기 때문에 메세지가 차단되었습니다.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "야후가 메세지를 차단했습니다. 일일 보내는 한도를 초과했습니다.",
   "The message has been blocked by Yahoo's outbound spam filter.": "이 메세지는 야후의 아웃 바운드 스팸 필터에 의해 차단되었습니다.",

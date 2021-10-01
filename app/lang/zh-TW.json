@@ -722,7 +722,7 @@
     "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "自您開始發送此草稿以來，發件人地址已更改。仔細檢查草稿並再次單擊“發送”。",
     "The Mailspring Team": "Mailspring 團隊",
     "The message contains an empty template area.": "該訊息包含一個空模板區域。",
-    "The message contains an illegial attachment that is not allowed by the server.": "該訊息包含伺服器不允許的非法附件。",
+    "The message contains an illegal attachment that is not allowed by the server.": "該訊息包含伺服器不允許的非法附件。",
     "The message has been blocked because no sender is configured.": "因為尚未設定發件人，所以郵件已被阻止。",
     "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "該消息已被 Yahoo 阻止 - 您已超出每日發送限制。",
     "The message has been blocked by Yahoo's outbound spam filter.": "該郵件已被 Yahoo 的出站垃圾郵件過濾阻止。",

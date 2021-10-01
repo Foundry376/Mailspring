@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro හි ඇමතුම් පැති තීරුව මඟින් ඔබ විද්යුත් තැපැල් ලිපිනයට එවන පුද්ගලයින් හා සමාගම් පිළිබඳ තොරතුරු පෙන්වයි.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "ඔබ මෙම කෙටුම්පත යැවීමට පටන් ගත් තැන් සිට ලිපිනය වෙනස් කර ඇත. කෙටුම්පත දෙවරක් පරීක්ෂා කර නැවත 'යවන්න' ක්ලික් කරන්න.",
   "The message contains an empty template area.": "හිස් මාතෘභූම කලාපයේ පණිවුඩය අඩංගු වේ.",
-  "The message contains an illegial attachment that is not allowed by the server.": "පණිවුඩය සර්වරය විසින් ඉඩ නොදෙන නීති විරෝධී ඇමුණුමක් අඩංගු වේ.",
+  "The message contains an illegal attachment that is not allowed by the server.": "පණිවුඩය සර්වරය විසින් ඉඩ නොදෙන නීති විරෝධී ඇමුණුමක් අඩංගු වේ.",
   "The message has been blocked because no sender is configured.": "යවන්නා විසින් සැකසූ බැවින් පණිවුඩය අවහිර කර ඇත.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "මෙම පණිවිඩය යාහූ විසින් අවහිර කර ඇත - ඔබ ඔබගේ දිනපතා යැවීමේ සීමාව ඉක්මවා ඇත.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Yahoo පණිවිඩයේ පිටස්තර ස්පෑම් පෙරහන් මඟින් පණිවුඩය අවහිර කර ඇත.",

@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "\"Mailspring Pro\" kontaktinėje šoninėje juostoje pateikiama informacija apie žmones ir įmones, su kuriomis siunčiate el. Laiškus.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Nuo adreso pasikeitė nuo tada, kai pradėjote siųsti šį juodraštį. Dukart patikrinkite juodraštį ir dar kartą spustelėkite \"Siųsti\".",
   "The message contains an empty template area.": "Pranešime yra tuščia šablono srities.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Pranešime yra neteisėtas priedas, kurio neleidžia serveris.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Pranešime yra neteisėtas priedas, kurio neleidžia serveris.",
   "The message has been blocked because no sender is configured.": "Pranešimas blokuotas, nes nė vienas siuntėjas nėra sukonfigūruotas.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "\"Yahoo\" užblokavo pranešimą - viršijote dienos siuntimo limitą.",
   "The message has been blocked by Yahoo's outbound spam filter.": "\"Yahoo\" siunčiamas šlamšto filtras blokavo pranešimą.",

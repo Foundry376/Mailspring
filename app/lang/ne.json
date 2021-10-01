@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring प्रो मा सम्पर्क साइडबार तपाई मान्छे र कम्पनीहरूसँग इमेल गर्दै हुनुहुन्छ भनेर जानकारी दिन्छ।",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "यस ठेगानाबाट परिवर्तन भएको छ किनकि तपाईंले यस मस्यौदा पठाउनु भएको थियो। ड्राफ्ट जाँच गर्नुहोस् र पुन: पठाउनुहोस् 'फेरि क्लिक गर्नुहोस्।",
   "The message contains an empty template area.": "सन्देशमा खाली टेम्प्लेट क्षेत्र छ।",
-  "The message contains an illegial attachment that is not allowed by the server.": "सन्देशमा एक अवैध अनुलग्नक समावेश छ जुन सर्वरद्वारा अनुमति छैन।",
+  "The message contains an illegal attachment that is not allowed by the server.": "सन्देशमा एक अवैध अनुलग्नक समावेश छ जुन सर्वरद्वारा अनुमति छैन।",
   "The message has been blocked because no sender is configured.": "सन्देश ब्लक गरिएको छ किनभने कुनै प्रेषक कन्फिगर गरिएको छैन।",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "सन्देश याहू द्वारा रोकिएको छ - तपाईले तपाइँको दैनिक पठाउने सीमा पार गर्नुभएको छ।",
   "The message has been blocked by Yahoo's outbound spam filter.": "यो याहूको आउटबाउन्ड स्प्याम फिल्टरद्वारा सन्देश ब्लक गरिएको छ।",

@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Bilah sisi kontak di Mailspring Pro menampilkan informasi tentang orang dan perusahaan yang Anda kirimi email.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Alamat dari telah berubah sejak Anda mulai mengirim draf ini. Periksa kembali draf dan klik 'Kirim' lagi.",
   "The message contains an empty template area.": "Pesan itu berisi area template kosong.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Pesan berisi lampiran ilegal yang tidak diizinkan oleh server.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Pesan berisi lampiran ilegal yang tidak diizinkan oleh server.",
   "The message has been blocked because no sender is configured.": "Pesan telah diblokir karena tidak ada pengirim yang dikonfigurasi.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Pesan telah diblokir oleh Yahoo - Anda telah melampaui batas pengiriman harian Anda.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Pesan telah diblokir oleh filter spam keluar Yahoo.",

@@ -708,7 +708,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Бічна панель контактів у Mailspring Pro показує інформацію про людей та компанії, з якими ви листуєтесь за допомогою електроннї пошти.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Адреса відправлення змінилася з того часу, як ви почали надсилати цю чернетку. Двічі перевірте чернетку та знову натисніть \"Надіслати\".",
   "The message contains an empty template area.": "Повідомлення містить порожню область шаблону.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Повідомлення містить нелегальне вкладення, яке не дозволено сервером.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Повідомлення містить нелегальне вкладення, яке не дозволено сервером.",
   "The message has been blocked because no sender is configured.": "Повідомлення заблоковано, тому що ніякий відправник не налаштований.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Повідомлення Yahoo заблокували повідомлення - ви перевищили щоденний ліміт відправлень.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Повідомлення було заблоковано відправним спамом-фільтром Yahoo.",
