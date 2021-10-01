@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mae'r bar ochr cyswllt yn Mailspring Pro yn dangos gwybodaeth am y bobl a'r cwmnïau rydych chi'n anfon e-bost ato.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Mae'r cyfeiriad o'r cyfeiriad wedi newid ers i chi ddechrau anfon y drafft hwn. Gwiriwch y drafft yn ddwbl a chliciwch 'Anfon' eto.",
   "The message contains an empty template area.": "Mae'r neges yn cynnwys ardal templed gwag.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Mae'r neges yn cynnwys atodiad anghyfreithlon nad yw'r gweinydd yn ei ganiatáu.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Mae'r neges yn cynnwys atodiad anghyfreithlon nad yw'r gweinydd yn ei ganiatáu.",
   "The message has been blocked because no sender is configured.": "Mae'r neges wedi ei rhwystro oherwydd nad oes unrhyw anfonwr wedi'i ffurfweddu.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Mae'r neges wedi'i rhwystro gan Yahoo - rydych chi wedi rhagori ar eich cyfyngiad anfon dyddiol.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Mae'r neges wedi ei rwystro gan hidlydd sbam allbound Yahoo.",

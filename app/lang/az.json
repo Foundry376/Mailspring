@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro-də əlaqəli yan çubuğunuz e-poçt ünvanladığınız insanların və şirkətlərin məlumatlarını göstərir.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Bu layihəni göndərməyə başladığınızdan bəri ünvanı dəyişdi. Taslağı iki dəfə yoxlayın və 'Göndər' düyməsinə yenidən basın.",
   "The message contains an empty template area.": "Mesajda boş şablon sahəsi var.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Mesajda server tərəfindən icazə verilməyən qanunsuz bir əlavə var.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Mesajda server tərəfindən icazə verilməyən qanunsuz bir əlavə var.",
   "The message has been blocked because no sender is configured.": "Heç göndərən konfiqurasiya olmadığı üçün mesaj bloklanmışdır.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Mesaj Yahoo tərəfindən bloklanmışdır - gündəlik göndərmə limitinizi aşdınız.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Mesajın Yahoo giden spam filtrləri tərəfindən maneə törədilib.",

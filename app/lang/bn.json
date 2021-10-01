@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro এ যোগাযোগের সাইডবার আপনি যাদের ইমেল করছেন তাদের সম্পর্কে তথ্য এবং সংস্থাগুলি দেখায়।",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "আপনি এই খসড়াটি পাঠানো শুরু করার পরে থেকে ঠিকানা পরিবর্তন হয়েছে। খসড়াটি আবার পরীক্ষা করুন এবং আবার 'পাঠান' ক্লিক করুন।",
   "The message contains an empty template area.": "বার্তা একটি খালি টেমপ্লেট এলাকা রয়েছে।",
-  "The message contains an illegial attachment that is not allowed by the server.": "বার্তাটিতে একটি অবৈধ সংযুক্তি রয়েছে যা সার্ভার দ্বারা অনুমোদিত নয়।",
+  "The message contains an illegal attachment that is not allowed by the server.": "বার্তাটিতে একটি অবৈধ সংযুক্তি রয়েছে যা সার্ভার দ্বারা অনুমোদিত নয়।",
   "The message has been blocked because no sender is configured.": "বার্তাটি অবরুদ্ধ করা হয়েছে কারণ কোন প্রেরক কনফিগার করা নেই।",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "বার্তা ইয়াহু দ্বারা অবরুদ্ধ করা হয়েছে - আপনি আপনার দৈনিক প্রেরণ সীমা অতিক্রম করেছে।",
   "The message has been blocked by Yahoo's outbound spam filter.": "বার্তা ইয়াহু এর আউটবাউন্ড স্প্যাম ফিল্টার দ্বারা অবরুদ্ধ করা হয়েছে।",

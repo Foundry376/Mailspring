@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "ແຖບດ້ານຂ້າງໃນ Mailspring Pro ສະແດງຂໍ້ມູນກ່ຽວກັບປະຊາຊົນແລະບໍລິສັດທີ່ທ່ານສົ່ງອີເມວກັບ.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "ທີ່ຢູ່ຈາກທີ່ໄດ້ປ່ຽນແປງນັບຕັ້ງແຕ່ທ່ານໄດ້ເລີ່ມສົ່ງຮ່າງນີ້. ກວດເບິ່ງສອງຄັ້ງແລະກົດປຸ່ມ 'ສົ່ງ' ອີກຄັ້ງ.",
   "The message contains an empty template area.": "ຂໍ້ຄວາມປະກອບດ້ວຍພື້ນທີ່ແມ່ແບບເປົ່າ.",
-  "The message contains an illegial attachment that is not allowed by the server.": "ຂໍ້ຄວາມປະກອບມີການຕິດຕັ້ງຜິດກົດຫມາຍທີ່ບໍ່ຖືກອະນຸຍາດໂດຍເຄື່ອງແມ່ຂ່າຍ.",
+  "The message contains an illegal attachment that is not allowed by the server.": "ຂໍ້ຄວາມປະກອບມີການຕິດຕັ້ງຜິດກົດຫມາຍທີ່ບໍ່ຖືກອະນຸຍາດໂດຍເຄື່ອງແມ່ຂ່າຍ.",
   "The message has been blocked because no sender is configured.": "ຂໍ້ຄວາມໄດ້ຖືກສະກັດກັ້ນເນື່ອງຈາກວ່າຜູ້ສົ່ງບໍ່ມີການຕັ້ງຄ່າ.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "ຂໍ້ຄວາມໄດ້ຖືກບລັອກໂດຍ Yahoo - ທ່ານໄດ້ເກີນຂອບເຂດກໍານົດການສົ່ງຂອງທ່ານປະຈໍາວັນ.",
   "The message has been blocked by Yahoo's outbound spam filter.": "ຂໍ້ຄວາມໄດ້ຖືກບລັອກໂດຍການກັ່ນຕອງ spam ຂອງ Yahoo.",

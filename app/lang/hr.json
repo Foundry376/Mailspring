@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Kontaktna bočna traka u programu Mailspring Pro prikazuje informacije o osobama i tvrtkama s kojima šaljete e-poštu.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Od adrese se promijenilo jer ste počeli slati ovaj nacrt. Dvaput provjerite nacrt i ponovo kliknite \"Pošalji\".",
   "The message contains an empty template area.": "Poruka sadrži prazno područje predloška.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Poruka sadrži illegialni privitak koji poslužitelj ne dopušta.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Poruka sadrži illegalni privitak koji poslužitelj ne dopušta.",
   "The message has been blocked because no sender is configured.": "Poruka je blokirana jer nijedan pošiljatelj nije konfiguriran.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Yahoo je blokirao poruku - prekoračili ste dnevno ograničenje slanja.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Poruka blokira Yahooov outbound spam filter.",

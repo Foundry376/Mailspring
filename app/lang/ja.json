@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Proの連絡先サイドバーには、メールを送信している人や企業に関する情報が表示されます。",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "この下書きの送信を開始してから送信元アドレスが変更されました。下書きをもう一度確認し、もう一度%@をクリックします。",
   "The message contains an empty template area.": "メッセージに空のテンプレート領域が含まれています。",
-  "The message contains an illegial attachment that is not allowed by the server.": "メッセージには、サーバーによって許可されていない不正な添付ファイルが含まれています。",
+  "The message contains an illegal attachment that is not allowed by the server.": "メッセージには、サーバーによって許可されていない不正な添付ファイルが含まれています。",
   "The message has been blocked because no sender is configured.": "送信者が設定されていないため、メッセージはブロックされています。",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "メッセージはYahooによってブロックされています - あなたは1日の送信制限を超えています。",
   "The message has been blocked by Yahoo's outbound spam filter.": "メッセージはYahooの外向きのスパムフィルタによってブロックされています。",

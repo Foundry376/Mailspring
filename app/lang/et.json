@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro-i kontakt-külgriba näitab teavet inimeste ja ettevõtete kohta, kellele meilisõnumid edastatakse.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Selle aadressi saatmine on muutunud pärast selle eelnõu saatmist. Veenduge eelnõu üle ja klõpsake uuesti \"Saada\".",
   "The message contains an empty template area.": "Sõnum sisaldab tühja malli ala.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Sõnum sisaldab illegaalset manust, mida server ei luba.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Sõnum sisaldab illegaalset manust, mida server ei luba.",
   "The message has been blocked because no sender is configured.": "Sõnum on blokeeritud, kuna ükski saatja pole konfigureeritud.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Yahoo on blokeerinud sõnumi - olete ületanud oma igapäevase saatmise piiri.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Yahoo väljuva rämpsposti filtri sõnum on blokeeritud.",

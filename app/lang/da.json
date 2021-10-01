@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Kontakt sidebjælken i Mailspring Pro viser oplysninger om de personer og virksomheder, du sender email med.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Fra adressen er ændret, siden du begyndte at sende dette udkast. Dobbeltkryd udkastet og klik på 'Send' igen.",
   "The message contains an empty template area.": "Meddelelsen indeholder et tomt skabelonområde.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Beskeden indeholder en ulovlig vedhæftet fil, som ikke er tilladt af serveren.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Beskeden indeholder en ulovlig vedhæftet fil, som ikke er tilladt af serveren.",
   "The message has been blocked because no sender is configured.": "Meddelelsen er blevet blokeret, fordi ingen afsender er konfigureret.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Beskeden er blevet blokeret af Yahoo - du har overskredet din daglige afsendelsesgrænse.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Meddelelsen er blevet blokeret af Yahoo's udgående spamfilter.",

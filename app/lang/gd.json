@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Tha am barra-conaltraidh ann am Mailspring Pro a 'sealltainn fiosrachadh mu na daoine agus na companaidhean ris a bheil thu a' cur post-d.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Tha an seòladh bhon t-seòladh air atharrachadh bho thòisich thu a 'cur an dreach seo. Dèan sùil dùbailte air an dreach agus briog air 'Cuir' a-rithist.",
   "The message contains an empty template area.": "Tha raon teamplaid falamh anns a 'bhrath.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Tha ceangaltas mì-laghail anns a 'bhrath nach eil cead aig an fhrithealaiche.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Tha ceangaltas mì-laghail anns a 'bhrath nach eil cead aig an fhrithealaiche.",
   "The message has been blocked because no sender is configured.": "Chaidh an teachdaireachd a bhacadh seach nach eil an seòladh air a rèiteachadh.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Chuir Yahoo bacadh air a 'bhrath - tha thu air a dhol thairis air a' chrìochan làitheil agad.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Chaidh bacadh a chur air a 'bhrath leis a' chriathradh spam a thug a-mach Yahoo.",

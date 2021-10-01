@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro ကိုအတွက်အဆက်အသွယ် sidebar မှာသင်နှင့်အတူအီးမေးလ်ပို့ခြင်းနေတဲ့လူများနှင့်ကုမ္ပဏီများကအကြောင်းသတင်းအချက်အလက်ပြသထားတယ်။",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "သင်ဤမူကြမ်းပေးပို့ခြင်းစတင်ခဲ့ကတည်းကလိပ်စာကနေပြောင်းလဲခဲ့ပါသည်။ မူကြမ်းကို Double-စစ်ဆေးနှင့်နောက်တဖန် '' Send '' ကိုကလစ်နှိပ်ပါ။",
   "The message contains an empty template area.": "အဆိုပါသတင်းစကားတစ်ခုအချည်းနှီးသော template ကိုဧရိယာများပါဝင်သည်။",
-  "The message contains an illegial attachment that is not allowed by the server.": "အဆိုပါသတင်းစကားကိုဆာဗာများကခွင့်မပြုကြောင်းတစ်ခု illegial ပူးတွဲဖိုင်ကိုပါရှိသည်။",
+  "The message contains an illegal attachment that is not allowed by the server.": "အဆိုပါသတင်းစကားကိုဆာဗာများကခွင့်မပြုကြောင်းတစ်ခု illegal ပူးတွဲဖိုင်ကိုပါရှိသည်။",
   "The message has been blocked because no sender is configured.": "အဘယ်သူမျှမပေးပို့သူပြင်ဆင်ပြီးဖြစ်ပါသည်ကြောင့်မက်ဆေ့ခ်ျကိုပိတ်ဆို့ခဲ့တာဖြစ်ပါတယ်။",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "အဆိုပါသတင်းစကားကို Yahoo ကပိတ်ဆို့ထားပြီး - သငျန့်သတ်ချက်မပို့သင့်ရဲ့နေ့စဉ်ထက်ကျော်လွန်ပါပြီ။",
   "The message has been blocked by Yahoo's outbound spam filter.": "အဆိုပါသတင်းစကားကို Yahoo ရဲ့အပြင်ထွက် spam များကို filter ကိုပိတ်ဆို့ခဲ့တာဖြစ်ပါတယ်။",

@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Контактната лента за контакт во Mailspring Pro покажува информации за луѓето и компаниите со коишто испраќате е-пошта.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Од адресата се промени откако почнавте да го праќате овој предлог. Двојно проверете го нацртот и кликнете 'Испрати' повторно.",
   "The message contains an empty template area.": "Пораката содржи празен образец област.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Пораката содржи нелегиран прилог што не е дозволен од страна на серверот.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Пораката содржи нелегиран прилог што не е дозволен од страна на серверот.",
   "The message has been blocked because no sender is configured.": "Пораката е блокирана бидејќи ниеден испраќач не е конфигуриран.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Пораката е блокирана од Yahoo - Вие го надминавте дневното ограничување за испраќање.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Пораката е блокирана од излезниот филтер за спам на Јаху.",

@@ -56,7 +56,7 @@ export const LocalizedErrorStrings = {
   // sending related
   ErrorSendMessageNotAllowed: localized('Sending is not enabled for this account.'),
   ErrorSendMessageIllegalAttachment: localized(
-    'The message contains an illegial attachment that is not allowed by the server.'
+    'The message contains an illegal attachment that is not allowed by the server.'
   ),
   ErrorYahooSendMessageSpamSuspected: localized(
     "The message has been blocked by Yahoo's outbound spam filter."

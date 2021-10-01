@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "نوار کناری تماس در Mailspring طرفدار اطلاعات مربوط به افراد و شرکت هایی را که با آن ایمیل می کنید، نشان می دهد.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "آدرس از زمان ارسال این پیش نویس تغییر کرده است. پیش نویس را بررسی کنید و دوباره روی «ارسال» کلیک کنید.",
   "The message contains an empty template area.": "پیام حاوی یک منطقه خالی الگو است.",
-  "The message contains an illegial attachment that is not allowed by the server.": "پیام حاوی یک پیوست غیر قانونی است که توسط سرور مجاز نیست.",
+  "The message contains an illegal attachment that is not allowed by the server.": "پیام حاوی یک پیوست غیر قانونی است که توسط سرور مجاز نیست.",
   "The message has been blocked because no sender is configured.": "پیام بسته شده است زیرا هیچ فرستنده پیکربندی نشده است.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "یاهو مسدود شده است - شما از حد مجاز روزانه خود فراتر رفته اید.",
   "The message has been blocked by Yahoo's outbound spam filter.": "این پیام توسط فیلتر هرزنامه یابی یاهو مسدود شده است.",

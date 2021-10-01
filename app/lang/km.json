@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "របារចំហៀងទំនាក់ទំនងក្នុង Mailspring Pro បង្ហាញព័ត៌មានអំពីមនុស្សនិងក្រុមហ៊ុនដែលអ្នកកំពុងផ្ញើអ៊ីមែល។",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "អាសយដ្ឋានពីនេះបានផ្លាស់ប្តូរចាប់តាំងពីអ្នកចាប់ផ្តើមផ្ញើសេចក្តីព្រាងនេះ។ សូមពិនិត្យសេចក្តីព្រាងរួចចុច 'ផ្ញើ' ម្តងទៀត។",
   "The message contains an empty template area.": "សារមានតំបន់ពុម្ពទទេមួយ។",
-  "The message contains an illegial attachment that is not allowed by the server.": "សារមានឯកសារភ្ជាប់ដែលមិនស្របច្បាប់ដែលមិនត្រូវបានអនុញ្ញាតដោយម៉ាស៊ីនមេ។",
+  "The message contains an illegal attachment that is not allowed by the server.": "សារមានឯកសារភ្ជាប់ដែលមិនស្របច្បាប់ដែលមិនត្រូវបានអនុញ្ញាតដោយម៉ាស៊ីនមេ។",
   "The message has been blocked because no sender is configured.": "សារត្រូវបានរារាំងពីព្រោះគ្មានអ្នកផ្ញើរត្រូវបានកំណត់។",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "សារត្រូវបានរារាំងដោយ Yahoo - អ្នកបានកម្រិតហួសកំណត់នៃការផ្ញើរប្រចាំថ្ងៃរបស់អ្នក។",
   "The message has been blocked by Yahoo's outbound spam filter.": "សារត្រូវបានរារាំងដោយតម្រងសារឥតបានការរបស់ Yahoo ។",

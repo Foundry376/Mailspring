@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Panel kontaktów w programie Mailspring Pro zawiera informacje o osobach i firmach, z którymi wymieniasz wiadomości e-mail.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Adres wysyłki zmienił się od czasu wysłania tej wersji roboczej. Dwukrotnie sprawdź wersję roboczą i ponownie naciśnij \"Wyślij\".",
   "The message contains an empty template area.": "Wiadomość zawiera obszar pusty szablonu.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Wiadomość zawiera załączniki niedozwolone przez serwer.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Wiadomość zawiera załączniki niedozwolone przez serwer.",
   "The message has been blocked because no sender is configured.": "Wiadomość została zablokowana, ponieważ nie skonfigurowano żadnego nadawcy.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Wiadomość została zablokowana przez Yahoo - przekroczyłeś dzienny limit wysyłania wiadomości.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Wiadomość została zablokowana przez wychodzący filtr spamu Yahoo.",
