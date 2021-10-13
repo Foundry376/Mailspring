@@ -9,6 +9,9 @@ compression: lzo
 architectures:
   - build-on: amd64
 
+assumes:
+  - command-chain
+
 parts:
   mailspring:
     plugin: nil
@@ -29,6 +32,11 @@ parts:
       - libnss3
       - libxkbfile1
       - libxss1
+      
+  homeishome-launch:
+    plugin: nil
+    stage-snaps:
+      - homeishome-launch            
 
   cleanup:
     after: [mailspring]
@@ -50,6 +58,8 @@ parts:
 apps:
   mailspring:
     command: usr/bin/mailspring --no-sandbox
+    command-chain: 
+      - bin/homeishome-launch      
     common-id: mailspring
     desktop: usr/share/applications/Mailspring.desktop
     extensions: [gnome-3-34]
