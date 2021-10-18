@@ -23,7 +23,7 @@
   <url type="homepage">https://getmailspring.com/</url>
   <url type="bugtracker">https://github.com/Foundry376/Mailspring/issues</url>
   <url type="help">http://support.getmailspring.com/</url>
-  <launchable type="desktop-id"><%= name %>.desktop</launchable>
+  <launchable type="desktop-id"><%= productName %>.desktop</launchable>
 
   <developer_name>Mailspring</developer_name>
   <project_license>GPL-3.0+</project_license>
