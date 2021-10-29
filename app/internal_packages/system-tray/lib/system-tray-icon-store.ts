@@ -7,13 +7,10 @@ import { BadgeStore } from 'mailspring-exports';
 const { platform } = process;
 const INBOX_ZERO_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero.png');
 const INBOX_FULL_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full.png');
-const INBOX_FULL_UNREAD_ICON = path.join(
-  __dirname,
-  '..',
-  'assets',
-  platform,
-  'MenuItem-Inbox-Full-NewItems.png'
-);
+const INBOX_FULL_UNREAD_ICON = path.join( __dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-NewItems.png');
+const INBOX_ZERO_WHITE_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero-light.png');
+const INBOX_FULL_WHITE_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-light.png');
+const INBOX_FULL_UNREAD_WHITE_ICON = path.join( __dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-NewItems-light.png');
 
 /*
 Current / Intended Behavior:
@@ -36,6 +33,12 @@ class SystemTrayIconStore {
   static INBOX_FULL_ICON = INBOX_FULL_ICON;
 
   static INBOX_FULL_UNREAD_ICON = INBOX_FULL_UNREAD_ICON;
+
+  static INBOX_ZERO_WHITE_ICON = INBOX_ZERO_WHITE_ICON;
+
+  static INBOX_FULL_WHITE_ICON = INBOX_FULL_WHITE_ICON;
+
+  static INBOX_FULL_UNREAD_WHITE_ICON = INBOX_FULL_UNREAD_WHITE_ICON;
 
   _windowBackgrounded = false;
   _unsubscribers: (() => void)[];
@@ -79,12 +82,26 @@ class SystemTrayIconStore {
     const unread = BadgeStore.unread();
     const unreadString = (+unread).toLocaleString();
     const isInboxZero = BadgeStore.total() === 0;
+    //const { systemPreferences } = require('electron')
+    //const darkMode = systemPreferences.isDarkMode()
+    //let darkMode = Electron.nativeTheme.shouldUseDarkColors
+    let darkMode = false;
+    //Electron.systemPreferences.isDarkMode();
 
     let icon = { path: INBOX_FULL_ICON, isTemplateImg: true };
-    if (isInboxZero) {
-      icon = { path: INBOX_ZERO_ICON, isTemplateImg: true };
-    } else if (this._windowBackgrounded && unread !== 0) {
-      icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
+    if (darkMode) {
+      icon = { path: INBOX_FULL_WHITE_ICON, isTemplateImg: true };
+      if (isInboxZero) {
+        icon = { path: INBOX_ZERO_WHITE_ICON, isTemplateImg: true };
+      } else if (this._windowBackgrounded && unread !== 0) {
+        icon = { path: INBOX_FULL_UNREAD_WHITE_ICON, isTemplateImg: false };
+      }
+    } else {
+      if (isInboxZero) {
+        icon = { path: INBOX_ZERO_ICON, isTemplateImg: true };
+      } else if (this._windowBackgrounded && unread !== 0) {
+        icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
+      }
     }
     ipcRenderer.send('update-system-tray', icon.path, unreadString, icon.isTemplateImg);
   };
