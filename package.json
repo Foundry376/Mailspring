@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@types/better-sqlite3": "^5.4.0",
-    "@types/classnames": "^2.2.7",
     "@types/debug": "^4.1.2",
     "@types/deep-extend": "^0.4.31",
     "@types/electron-spellchecker": "^1.1.1",
@@ -24,7 +23,6 @@
     "@types/fs-plus": "^3.0.1",
     "@types/graceful-fs": "^4.1.3",
     "@types/jasmine": "^1.3.1",
-    "@types/keytar": "^4.0.1",
     "@types/lru-cache": "^5.1.0",
     "@types/mkdirp": "^0.5.2",
     "@types/moment-round": "^1.0.3",

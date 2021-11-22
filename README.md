@@ -45,10 +45,11 @@ learn from other people doing development.
 
 ### Running Mailspring from Source
 
-To install all dependencies and run Mailspring from its source code, 
+To install all dependencies and run Mailspring from its source code,
 run the following commands from the root directory of the Mailspring repository:
 
 ```
+export npm_config_arch=x64 # If you are on an M1 / Apple Silicon Mac
 npm install
 npm start
 ```
