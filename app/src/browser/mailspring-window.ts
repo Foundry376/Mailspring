@@ -100,6 +100,7 @@ export default class MailspringWindow extends EventEmitter {
         nodeIntegration: true,
         contextIsolation: false,
         webviewTag: true,
+        enableRemoteModule: true,
       },
       autoHideMenuBar,
     };
