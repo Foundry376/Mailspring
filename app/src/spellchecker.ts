@@ -7,28 +7,27 @@ import { localized } from './intl';
 const { app, MenuItem } = remote;
 const customDictFilePath = path.join(AppEnv.getConfigDirPath(), 'custom-dict.json');
 
+const { webFrame } = require('electron');
+
 class Spellchecker {
   private _customDictLoaded = false;
   private _saveOnLoad = false;
   private _savingCustomDict = false;
   private _saveAgain = false;
+  private _win;
 
   private _customDict = {};
 
-  public handler: import('electron-spellchecker').SpellCheckHandler;
-
   constructor() {
-    this.handler = null;
 
     // Nobody will notice if spellcheck isn't available for a few seconds and it
     // takes a considerable amount of time to startup (212ms in dev mode on my 2017 MBP)
     const initHandler = () => {
+      this._win = AppEnv.getCurrentWindow();
       this._loadCustomDict();
 
       const initialLanguage = AppEnv.config.get('core.composing.spellcheckDefaultLanguage');
-      const { SpellCheckHandler } = require('electron-spellchecker'); //eslint-disable-line
-      this.handler = new SpellCheckHandler(initialLanguage);
-      this.handler['isMisspelledCache'] = new LRUCache({ max: 5000 });
+      this._switchToLanguage(initialLanguage);
 
       // Monitor language setting for changes. Note that as the user types in a draft we
       // change spellcheck to that language.
@@ -42,17 +41,23 @@ class Spellchecker {
     } else {
       setTimeout(initHandler, 5000);
     }
+
   }
 
   _switchToLanguage = lang => {
     if (lang === null || lang === undefined || lang === '') {
       lang = app.getLocale() || 'en-US';
     }
-    this.handler.switchLanguage(lang);
-    this.handler['isMisspelledCache'].reset();
+
+    // Only switch to a language that is supported by the system.
+    // Otherwise stay at the current language. Default language is the OS language.
+    if (this._win.webContents.session.availableSpellCheckerLanguages.includes(lang)) {
+      this._win.webContents.session.setSpellCheckerLanguages([lang])
+    }
   };
 
   _loadCustomDict = () => {
+    /*
     fs.readFile(customDictFilePath, (err, data) => {
       let fileData: any = data;
       if (err) {
@@ -72,9 +77,11 @@ class Spellchecker {
         this._saveOnLoad = false;
       }
     });
+    */
   };
 
   _saveCustomDict = () => {
+    /*
     // If we haven't loaded the dict yet, saving could overwrite all the things.
     // Wait until the loaded dict is merged with our working copy before saving
     if (this._customDictLoaded) {
@@ -99,16 +106,20 @@ class Spellchecker {
     } else {
       this._saveOnLoad = true;
     }
+    */
   };
 
   provideHintText = text => {
+    /*
     if (!this.handler) {
       return false;
     }
     this.handler.provideHintText(text);
+    */
   };
 
   isMisspelled = (word: string) => {
+    /*
     if (!this.handler) {
       return false;
     }
@@ -116,21 +127,32 @@ class Spellchecker {
       return false;
     }
     return !(this.handler as any).handleElectronSpellCheck([word]);
+    */
   };
 
   learnWord = word => {
+    /*
     this._customDict[word] = '';
     this._saveCustomDict();
+    */
   };
 
   unlearnWord = word => {
+    /*
     if (word in this._customDict) {
       delete this._customDict[word];
       this._saveCustomDict();
     }
+    */
   };
 
   appendSpellingItemsToMenu = async ({ menu, word, onCorrect, onDidLearn }) => {
+    //console.log(this._win.webContents.session.availableSpellCheckerLanguages);
+
+    // TODO: Re-Add Spellchecking
+    //console.log(webFrame.isWordMisspelled(word));
+    //console.log(webFrame.getWordSuggestions(word));
+    /*
     if (this.isMisspelled(word)) {
       const corrections = await this.handler.currentSpellchecker.getCorrectionsForMisspelling(word);
       if (corrections.length > 0) {
@@ -161,6 +183,7 @@ class Spellchecker {
       menu.append(new MenuItem({ type: 'separator' }));
     }
   };
-}
+  */
+  }
 
 export default new Spellchecker();
