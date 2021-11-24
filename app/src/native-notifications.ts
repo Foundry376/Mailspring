@@ -12,6 +12,7 @@ const DEFAULT_ICON = path.resolve(
   'mailspring.png'
 );
 
+// TODO: Fix notifications on MacOS
 let MacNotifierNotification = null;
 if (platform === 'darwin') {
   try {
