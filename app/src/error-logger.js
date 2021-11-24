@@ -106,7 +106,7 @@ module.exports = ErrorLogger = (function() {
   /////////////////////////////////////////////////////////////////////
 
   ErrorLogger.prototype._startCrashReporter = function(args) {
-    crashReporter.start({
+    /* crashReporter.start({
       productName: 'Mailspring',
       companyName: 'Mailspring',
       submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
@@ -116,7 +116,7 @@ module.exports = ErrorLogger = (function() {
         ver: appVersion,
         platform: process.platform,
       },
-    });
+    }) */
   };
 
   ErrorLogger.prototype._extendNativeConsole = function(args) {
