@@ -61,6 +61,7 @@ const setupErrorLogger = (args = {}) => {
     inDevMode: args.devMode,
     resourcePath: args.resourcePath,
   });
+  errorLogger.startCrashReporter();
   process.on('uncaughtException', errorLogger.reportError);
   process.on('unhandledRejection', errorLogger.reportError);
   return errorLogger;

@@ -28,14 +28,13 @@ var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter
 //
 // The errorLogger will report errors to a log file as well as to 3rd
 // party reporting services if enabled.
-module.exports = ErrorLogger = (function() {
+module.exports = ErrorLogger = (function () {
   function ErrorLogger(args) {
     this.reportError = this.reportError.bind(this);
+    this.startCrashReporter = this.startCrashReporter.bind(this);
     this.inSpecMode = args.inSpecMode;
     this.inDevMode = args.inDevMode;
     this.resourcePath = args.resourcePath;
-
-    this._startCrashReporter();
 
     this._extendErrorObject();
 
@@ -101,12 +100,8 @@ module.exports = ErrorLogger = (function() {
     console.error(error, extra);
   };
 
-  /////////////////////////////////////////////////////////////////////
-  ////////////////////////// PRIVATE METHODS //////////////////////////
-  /////////////////////////////////////////////////////////////////////
-
-  ErrorLogger.prototype._startCrashReporter = function(args) {
-    /* crashReporter.start({
+  ErrorLogger.prototype.startCrashReporter = function () {
+    crashReporter.start({
       productName: 'Mailspring',
       companyName: 'Mailspring',
       submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
@@ -116,10 +111,14 @@ module.exports = ErrorLogger = (function() {
         ver: appVersion,
         platform: process.platform,
       },
-    }) */
+    })
   };
 
-  ErrorLogger.prototype._extendNativeConsole = function(args) {
+  /////////////////////////////////////////////////////////////////////
+  ////////////////////////// PRIVATE METHODS //////////////////////////
+  /////////////////////////////////////////////////////////////////////
+
+  ErrorLogger.prototype._extendNativeConsole = function (args) {
     console.debug = this._consoleDebug.bind(this);
   };
 
