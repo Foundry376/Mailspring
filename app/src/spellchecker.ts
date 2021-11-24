@@ -119,15 +119,13 @@ class Spellchecker {
   };
 
   isMisspelled = (word: string) => {
-    /*
-    if (!this.handler) {
-      return false;
-    }
+
     if ({}.hasOwnProperty.call(this._customDict, word)) {
       return false;
     }
-    return !(this.handler as any).handleElectronSpellCheck([word]);
-    */
+
+    return webFrame.isWordMisspelled(word)
+
   };
 
   learnWord = word => {
@@ -147,14 +145,9 @@ class Spellchecker {
   };
 
   appendSpellingItemsToMenu = async ({ menu, word, onCorrect, onDidLearn }) => {
-    //console.log(this._win.webContents.session.availableSpellCheckerLanguages);
 
-    // TODO: Re-Add Spellchecking
-    //console.log(webFrame.isWordMisspelled(word));
-    //console.log(webFrame.getWordSuggestions(word));
-    /*
     if (this.isMisspelled(word)) {
-      const corrections = await this.handler.currentSpellchecker.getCorrectionsForMisspelling(word);
+      const corrections = webFrame.getWordSuggestions(word);
       if (corrections.length > 0) {
         corrections.forEach(correction => {
           menu.append(
@@ -183,7 +176,7 @@ class Spellchecker {
       menu.append(new MenuItem({ type: 'separator' }));
     }
   };
-  */
-  }
+
+}
 
 export default new Spellchecker();
