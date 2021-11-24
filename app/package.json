@@ -17,7 +17,7 @@
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
     "classnames": "1.2.1",
-    "cld": "2.6.0",
+    "cld": "2.7.1",
     "collapse-whitespace": "^1.1.6",
     "debug": "github:emorikawa/debug#nylas",
     "deep-extend": "0.6.0",
