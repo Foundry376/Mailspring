@@ -281,7 +281,7 @@ export default {
             ],
             title: localized('Spellcheck language'),
             note: localized(
-              'If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.'
+              'Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.'
             ),
           },
         },
