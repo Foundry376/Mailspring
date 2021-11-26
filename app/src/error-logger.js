@@ -10,7 +10,6 @@ if (process.type === 'renderer') {
 }
 
 var appVersion = app.getVersion();
-var crashReporter = require('electron').crashReporter;
 var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter');
 
 // A globally available ErrorLogger that can report errors to various
@@ -31,10 +30,11 @@ var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter
 module.exports = ErrorLogger = (function () {
   function ErrorLogger(args) {
     this.reportError = this.reportError.bind(this);
-    this.startCrashReporter = this.startCrashReporter.bind(this);
     this.inSpecMode = args.inSpecMode;
     this.inDevMode = args.inDevMode;
     this.resourcePath = args.resourcePath;
+
+    this._startCrashReporter();
 
     this._extendErrorObject();
 
@@ -100,8 +100,15 @@ module.exports = ErrorLogger = (function () {
     console.error(error, extra);
   };
 
-  ErrorLogger.prototype.startCrashReporter = function () {
-    crashReporter.start({
+  /////////////////////////////////////////////////////////////////////
+  ////////////////////////// PRIVATE METHODS //////////////////////////
+  /////////////////////////////////////////////////////////////////////
+
+  ErrorLogger.prototype._startCrashReporter = function (args) {
+    if (process.type === 'renderer') {
+      return;
+    }
+    require('electron').crashReporter.start({
       productName: 'Mailspring',
       companyName: 'Mailspring',
       submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
@@ -113,10 +120,6 @@ module.exports = ErrorLogger = (function () {
       },
     })
   };
-
-  /////////////////////////////////////////////////////////////////////
-  ////////////////////////// PRIVATE METHODS //////////////////////////
-  /////////////////////////////////////////////////////////////////////
 
   ErrorLogger.prototype._extendNativeConsole = function (args) {
     console.debug = this._consoleDebug.bind(this);
