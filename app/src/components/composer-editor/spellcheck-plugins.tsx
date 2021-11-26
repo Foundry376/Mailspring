@@ -167,14 +167,6 @@ function onSpellcheckFocusedNode(editor) {
 function onSpellcheckFullDocument(editor) {
   const { value } = editor;
 
-  // re-determine the language the document is written in
-  if (value.focusBlock) {
-    const text = value.focusBlock.text;
-    if (text.length > 60) {
-      AppEnv.spellchecker.provideHintText(text.substr(text.length - 512, 512));
-    }
-  }
-
   // spellcheck all text nodes
   const texts = collectSpellcheckableTextNodes(value.document);
   const decorations = [];
