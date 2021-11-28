@@ -4,9 +4,6 @@ import { Spellchecker } from 'mailspring-exports';
 
 describe('Spellchecker', function spellcheckerTests() {
   beforeEach(() => {
-    // electron-spellchecker is under heavy development, make sure we can still
-    // rely on this method
-    expect(Spellchecker.handler.handleElectronSpellCheck).toBeDefined();
     this.customDict = '{}';
     spyOn(fs, 'writeFile').andCallFake((path, customDict, cb) => {
       this.customDict = customDict;
@@ -15,16 +12,12 @@ describe('Spellchecker', function spellcheckerTests() {
     spyOn(fs, 'readFile').andCallFake((path, cb) => {
       cb(null, this.customDict);
     });
-    // Apparently handleElectronSpellCheck returns !misspelled
-    spyOn(Spellchecker.handler, 'handleElectronSpellCheck').andReturn(false);
-    Spellchecker.handler['isMisspelledCache'].reset();
   });
 
   it('does not call spellchecker when word has already been learned', () => {
     Spellchecker.learnWord('mispaelled');
     const misspelled = Spellchecker.isMisspelled('mispaelled');
     expect(misspelled).toBe(false);
-    expect(Spellchecker.handler.handleElectronSpellCheck).not.toHaveBeenCalled();
   });
 
   describe('when a custom word is added', () => {
