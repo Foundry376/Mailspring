@@ -104,21 +104,6 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
   componentDidMount() {
     this._mounted = true;
     this._setupWebview(this.props);
-
-    // Workaround: The webview doesn't receive any of the standard commands - they're
-    // caught in the parent page and not forwarded into the focused <webview />, so
-    // we're attaching listeners to the <webview /> node in our DOM and forwarding the
-    // events into the child DOM manually.
-    const webview = ReactDOM.findDOMNode(this.refs.webview) as Electron.WebviewTag;
-    this._disposable = AppEnv.commands.add(webview, {
-      'core:copy': () => webview.getWebContents().copy(),
-      'core:cut': () => webview.getWebContents().cut(),
-      'core:paste': () => webview.getWebContents().paste(),
-      'core:paste-and-match-style': () => webview.getWebContents().pasteAndMatchStyle(),
-      'core:undo': e => webview.getWebContents().undo(),
-      'core:redo': e => webview.getWebContents().redo(),
-      'core:select-all': e => webview.getWebContents().selectAll(),
-    });
   }
 
   componentWillReceiveProps(nextProps: WebviewProps) {
