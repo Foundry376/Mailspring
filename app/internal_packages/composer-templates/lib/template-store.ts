@@ -7,7 +7,7 @@ import {
   QuotedHTMLTransformer,
   RegExpUtils,
 } from 'mailspring-exports';
-import { remote } from 'electron';
+
 import MailspringStore from 'mailspring-store';
 import path from 'path';
 import fs from 'fs';
@@ -150,12 +150,12 @@ class TemplateStore extends MailspringStore {
   }
 
   _displayError(message) {
-    remote.dialog.showErrorBox(localized('Template Creation Error'), message);
+    require('@electron/remote').dialog.showErrorBox(localized('Template Creation Error'), message);
   }
 
   _displayDialog(title, message, buttons) {
     return (
-      remote.dialog.showMessageBoxSync({
+      require('@electron/remote').dialog.showMessageBoxSync({
         title: title,
         message: title,
         detail: message,

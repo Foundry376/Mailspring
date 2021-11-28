@@ -1,4 +1,4 @@
-import { remote } from 'electron';
+
 import React from 'react';
 import {
   localized,
@@ -27,7 +27,7 @@ interface SignatureEditorProps {
   accountsAndAliases: IAliasSet;
 }
 
-interface SignatureEditorState {}
+interface SignatureEditorState { }
 
 class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEditorState> {
   _onTitleChange = event => {
@@ -57,7 +57,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
         t => sig.body === RenderSignatureData({ ...sig.data, templateName: t.name })
       );
       if (!htmlMatchesATemplate) {
-        const idx = remote.dialog.showMessageBoxSync({
+        const idx = require('@electron/remote').dialog.showMessageBoxSync({
           type: 'warning',
           buttons: [localized('Cancel'), localized('Continue')],
           message: localized('Revert custom HTML?'),
@@ -131,43 +131,43 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
 
         {!resolvedData.templateName
           ? [
-              <div key="header" className="section-header">
-                {localized('Raw Source')}
-              </div>,
-              <textarea
-                id="body"
-                key={`textarea ${signature.id}`}
-                className="section raw-html"
-                spellCheck={false}
-                onChange={this._onRawBodyChange}
-                defaultValue={signature.body || ''}
-              />,
-            ]
+            <div key="header" className="section-header">
+              {localized('Raw Source')}
+            </div>,
+            <textarea
+              id="body"
+              key={`textarea ${signature.id}`}
+              className="section raw-html"
+              spellCheck={false}
+              onChange={this._onRawBodyChange}
+              defaultValue={signature.body || ''}
+            />,
+          ]
           : [
-              <div key="header" className="section-header">
-                {localized('Information')}
-              </div>,
-              <div key="section" className="section information">
-                {DataShape.map(item => (
-                  <div className="field" key={item.key}>
-                    <label>{item.label}</label>
-                    <input
-                      type="text"
-                      onChange={this._onDataFieldChange}
-                      placeholder={item.placeholder}
-                      id={item.key}
-                      value={data[item.key] || ''}
-                    />
-                  </div>
-                ))}
-                <SignaturePhotoPicker
-                  id={signature.id}
-                  data={data}
-                  resolvedURL={resolvedData.photoURL}
-                  onChange={this._onDataFieldChange}
-                />
-              </div>,
-            ]}
+            <div key="header" className="section-header">
+              {localized('Information')}
+            </div>,
+            <div key="section" className="section information">
+              {DataShape.map(item => (
+                <div className="field" key={item.key}>
+                  <label>{item.label}</label>
+                  <input
+                    type="text"
+                    onChange={this._onDataFieldChange}
+                    placeholder={item.placeholder}
+                    id={item.key}
+                    value={data[item.key] || ''}
+                  />
+                </div>
+              ))}
+              <SignaturePhotoPicker
+                id={signature.id}
+                data={data}
+                resolvedURL={resolvedData.photoURL}
+                onChange={this._onDataFieldChange}
+              />
+            </div>,
+          ]}
       </div>
     );
   }

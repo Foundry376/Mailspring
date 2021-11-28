@@ -42,7 +42,6 @@ function buildContextMenu(fns: {
   onRemoveAttachment?: () => void;
   onSaveAttachment?: () => void;
 }) {
-  const { remote } = require('electron');
   const template: Electron.MenuItemConstructorOptions[] = [];
   if (fns.onOpenAttachment) {
     template.push({
@@ -68,7 +67,7 @@ function buildContextMenu(fns: {
       label: localized('Save Into...'),
     });
   }
-  remote.Menu.buildFromTemplate(template).popup({});
+  require('@electron/remote').Menu.buildFromTemplate(template).popup({});
 }
 
 const ProgressBar: React.FunctionComponent<{

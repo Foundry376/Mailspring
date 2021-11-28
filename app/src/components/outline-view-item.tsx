@@ -267,8 +267,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     event.stopPropagation();
     const item = this.props.item;
     const contextMenuLabel = item.contextMenuLabel || item.name;
-    const { remote } = require('electron');
-    const { Menu, MenuItem } = remote;
+    const { Menu, MenuItem } = require('@electron/remote');
     const menu = new Menu();
 
     if (this.props.item.onEdited) {

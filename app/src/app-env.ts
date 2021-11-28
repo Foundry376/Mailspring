@@ -2,7 +2,7 @@
 /* eslint import/no-dynamic-require: 0 */
 import _ from 'underscore';
 import path from 'path';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { Emitter } from 'event-kit';
 import { mapSourcePosition } from 'source-map-support';
 import { localized, isRTL, initializeLocalization } from './intl';
@@ -342,7 +342,7 @@ export default class AppEnvConstructor {
   }
 
   quit() {
-    return remote.app.quit();
+    return require('@electron/remote').app.quit();
   }
 
   // Essential: Get the size of current window.
@@ -395,7 +395,7 @@ export default class AppEnvConstructor {
 
   // Extended: Get the current window
   getCurrentWindow() {
-    return remote.getCurrentWindow();
+    return require('@electron/remote').getCurrentWindow();
   }
 
   // Extended: Move current window to the center of the screen.
@@ -403,7 +403,7 @@ export default class AppEnvConstructor {
     if (process.platform === 'linux') {
       const dimensions = this.getWindowDimensions();
       const display =
-        remote.screen.getDisplayMatching(dimensions) || remote.screen.getPrimaryDisplay();
+        require('@electron/remote').screen.getDisplayMatching(dimensions) || require('@electron/remote').screen.getPrimaryDisplay();
       const x = display.bounds.x + (display.bounds.width - dimensions.width) / 2;
       const y = display.bounds.y + (display.bounds.height - dimensions.height) / 2;
 
@@ -538,7 +538,7 @@ export default class AppEnvConstructor {
   }
 
   getDefaultWindowDimensions() {
-    let { width, height } = remote.screen.getPrimaryDisplay().workAreaSize;
+    let { width, height } = require('@electron/remote').screen.getPrimaryDisplay().workAreaSize;
     let x = 0;
     let y = 0;
 
@@ -776,12 +776,12 @@ export default class AppEnvConstructor {
   }
 
   exit(status) {
-    remote.app.emit('will-exit');
-    remote.process.exit(status);
+    require('@electron/remote').app.emit('will-exit');
+    require('@electron/remote').process.exit(status);
   }
 
   async showOpenDialog(options: Electron.OpenDialogOptions, callback: (paths: string[]) => void) {
-    const result = await remote.dialog.showOpenDialog(this.getCurrentWindow(), options);
+    const result = await require('@electron/remote').dialog.showOpenDialog(this.getCurrentWindow(), options);
     callback(result.filePaths);
   }
 
@@ -789,7 +789,7 @@ export default class AppEnvConstructor {
     if (options.title == null) {
       options.title = 'Save File';
     }
-    const result = await remote.dialog.showSaveDialog(this.getCurrentWindow(), options);
+    const result = await require('@electron/remote').dialog.showSaveDialog(this.getCurrentWindow(), options);
     callback(result.filePath);
   }
 
@@ -811,11 +811,11 @@ export default class AppEnvConstructor {
 
     let winToShow = null;
     if (showInMainWindow) {
-      winToShow = remote.getGlobal('application').getMainWindow();
+      winToShow = require('@electron/remote').getGlobal('application').getMainWindow();
     }
 
     if (!detail) {
-      return remote.dialog.showMessageBoxSync(winToShow, {
+      return require('@electron/remote').dialog.showMessageBoxSync(winToShow, {
         type: 'warning',
         buttons: [localized('Okay')],
         message: title,
@@ -823,7 +823,7 @@ export default class AppEnvConstructor {
       });
     }
 
-    const result = remote.dialog.showMessageBoxSync(winToShow, {
+    const result = require('@electron/remote').dialog.showMessageBoxSync(winToShow, {
       type: 'warning',
       buttons: [localized('Okay'), localized('Show Detail')],
       message: title,
@@ -842,7 +842,7 @@ export default class AppEnvConstructor {
 
   // Delegate to the browser's process fileListCache
   fileListCache() {
-    return remote.getGlobal('application').fileListCache;
+    return require('@electron/remote').getGlobal('application').fileListCache;
   }
 
   getWindowStateKey() {
@@ -869,7 +869,7 @@ export default class AppEnvConstructor {
   }
 
   crashMainProcess() {
-    remote.process.crash();
+    require('@electron/remote').process.crash();
   }
 
   crashRenderProcess() {

@@ -25,7 +25,7 @@ import { CalendarView } from './calendar-constants';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
-import { remote } from 'electron';
+
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -56,7 +56,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 /*
  * Mailspring Calendar
  */
-interface MailspringCalendarProps {}
+interface MailspringCalendarProps { }
 
 interface MailspringCalendarState {
   view: CalendarView;
@@ -175,7 +175,7 @@ export class MailspringCalendar extends React.Component<
     if (this.state.selectedEvents.length === 0) {
       return;
     }
-    const response = remote.dialog.showMessageBoxSync({
+    const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
       message: localized('Delete or decline these events?'),
@@ -197,9 +197,9 @@ export class MailspringCalendar extends React.Component<
     }
   };
 
-  _onCalendarMouseDown = () => {};
-  _onCalendarMouseMove = () => {};
-  _onCalendarMouseUp = () => {};
+  _onCalendarMouseDown = () => { };
+  _onCalendarMouseMove = () => { };
+  _onCalendarMouseUp = () => { };
 
   render() {
     const CurrentView = VIEWS[this.state.view];

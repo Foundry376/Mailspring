@@ -247,7 +247,7 @@ export async function translateMessageBody(
     } catch (error) {
       Actions.closePopover();
       if (!silent) {
-        const dialog = require('electron').remote.dialog;
+        const dialog = require('@electron/remote').dialog;
         dialog.showErrorBox(localized('Language Conversion Failed'), error.toString());
       }
       return false;

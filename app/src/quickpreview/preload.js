@@ -61,7 +61,7 @@ global.finishWithWindowCapture = (previewPath, startedAt = Date.now()) => {
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
-        const win = require('electron').remote.getCurrentWindow();
+        const win = const { BrowserWindow } = require('@electron/remote').getCurrentWindow();
         win.capturePage(img => {
           fs.writeFileSync(previewPath, img.toPNG());
           document.title = 'Finished';

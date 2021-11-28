@@ -1,4 +1,4 @@
-import { shell, remote } from 'electron';
+import { shell } from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { RetinaImg } from 'mailspring-component-kit';
@@ -148,7 +148,7 @@ const CreatePageForForm = FormComponent => {
         account.settings.imap_host.includes('imap.gmail.com')
       ) {
         didWarnAboutGmailIMAP = true;
-        const buttonIndex = remote.dialog.showMessageBoxSync({
+        const buttonIndex = require('@electron/remote').dialog.showMessageBoxSync({
           type: 'warning',
           buttons: [localized('Go Back'), localized('Continue')],
           message: localized('Are you sure?'),

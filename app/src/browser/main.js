@@ -5,7 +5,7 @@ const util = require('util');
 
 // TODO: Remove when upgrading to Electron 4
 const fs = require('fs');
-fs.statSyncNoException = function(...args) {
+fs.statSyncNoException = function (...args) {
   try {
     return fs.statSync.apply(fs, args);
   } catch (e) {
@@ -283,6 +283,8 @@ const start = () => {
   if (handleStartupEventWithSquirrel()) {
     return;
   }
+
+  require('@electron/remote/main').initialize();
 
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);

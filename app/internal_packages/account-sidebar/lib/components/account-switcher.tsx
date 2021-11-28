@@ -1,7 +1,7 @@
 import React from 'react';
 import { Account, localized, Actions, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import * as AccountCommands from '../account-commands';
 
 export default class AccountSwitcher extends React.Component<{
@@ -39,7 +39,7 @@ export default class AccountSwitcher extends React.Component<{
   };
 
   _onShowMenu = () => {
-    const menu = remote.Menu.buildFromTemplate(this._makeMenuTemplate());
+    const menu = require('@electron/remote').Menu.buildFromTemplate(this._makeMenuTemplate());
     menu.popup({});
   };
 

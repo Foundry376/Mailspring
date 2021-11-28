@@ -1,9 +1,9 @@
 import path from 'path';
 import fs from 'fs';
-import { remote } from 'electron';
+
 import { localized } from 'mailspring-exports';
 
-const { app, BrowserWindow } = remote;
+const { app, BrowserWindow } = require('@electron/remote');
 
 export default class PrintWindow {
   browserWin: Electron.BrowserWindow;

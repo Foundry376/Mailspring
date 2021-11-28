@@ -1,4 +1,4 @@
-import { remote } from 'electron';
+
 import keytar from 'keytar';
 import { localized } from './intl';
 import { Account } from 'mailspring-exports';
@@ -104,7 +104,7 @@ class KeyManager {
     if (process.platform === 'linux') {
       more = localized('Make sure you have `libsecret` installed and a keyring is present. ');
     }
-    remote.dialog.showMessageBoxSync({
+    require('@electron/remote').dialog.showMessageBoxSync({
       type: 'error',
       buttons: [localized('Quit')],
       message: localized(
@@ -116,7 +116,7 @@ class KeyManager {
 
     // tell the app to exit and rethrow the error to ensure code relying
     // on the passwords being saved never runs (saving identity for example)
-    remote.app.quit();
+    require('@electron/remote').app.quit();
     throw err;
   }
 }

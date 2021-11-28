@@ -12,9 +12,9 @@ import {
 
 type TemplateItem =
   | {
-      label: string;
-      click: () => void;
-    }
+    label: string;
+    click: () => void;
+  }
   | { type: 'separator' };
 
 export default class ThreadListContextMenu {
@@ -212,13 +212,13 @@ export default class ThreadListContextMenu {
         Actions.queueTasks(
           allInSpam
             ? TaskFactory.tasksForMarkingNotSpam({
-                source: 'Context Menu: Thread List',
-                threads: this.threads,
-              })
+              source: 'Context Menu: Thread List',
+              threads: this.threads,
+            })
             : TaskFactory.tasksForMarkingAsSpam({
-                source: 'Context Menu: Thread List',
-                threads: this.threads,
-              })
+              source: 'Context Menu: Thread List',
+              threads: this.threads,
+            })
         );
       },
     };
@@ -262,9 +262,8 @@ export default class ThreadListContextMenu {
   }
 
   displayMenu() {
-    const { remote } = require('electron');
     this.menuItemTemplate().then(template => {
-      remote.Menu.buildFromTemplate(template).popup({});
+      require('@electron/remote').Menu.buildFromTemplate(template).popup({});
     });
   }
 }
