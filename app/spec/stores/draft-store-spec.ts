@@ -13,7 +13,7 @@ import {
   FocusedContentStore,
 } from 'mailspring-exports';
 
-import { remote } from 'electron';
+
 import DraftFactory from '../../src/flux/stores/draft-factory';
 
 class TestExtension extends ComposerExtension {
@@ -27,7 +27,7 @@ xdescribe('DraftStore', function draftStore() {
     this.fakeThread = new Thread({ id: 'fake-thread', headerMessageId: 'fake-thread' });
     this.fakeMessage = new Message({ id: 'fake-message', headerMessageId: 'fake-message' });
 
-    spyOn(AppEnv, 'newWindow').andCallFake(() => {});
+    spyOn(AppEnv, 'newWindow').andCallFake(() => { });
     spyOn(DatabaseStore, 'run').andCallFake(query => {
       if (query._klass === Thread) {
         return Promise.resolve(this.fakeThread);
@@ -179,7 +179,7 @@ xdescribe('DraftStore', function draftStore() {
           commit() {
             return Promise.resolve();
           },
-          teardown() {},
+          teardown() { },
         },
         teardown: this.draftSessionTeardown,
       };
@@ -317,7 +317,7 @@ xdescribe('DraftStore', function draftStore() {
         prepare() {
           return Promise.resolve(session);
         },
-        teardown() {},
+        teardown() { },
         draft: () => this.draft,
         changes: {
           commit: ({ force } = {}) => {
@@ -427,7 +427,7 @@ xdescribe('DraftStore', function draftStore() {
     it("displays a popup in the main window if there's an error", () => {
       spyOn(AppEnv, 'isMainWindow').andReturn(true);
       spyOn(FocusedContentStore, 'focused').andReturn({ id: 't1' });
-      spyOn(remote.dialog, 'showMessageBox');
+      spyOn(require('@electron/remote').dialog, 'showMessageBox');
       spyOn(Actions, 'composePopoutDraft');
       DraftStore._draftsSending[this.draft.headerMessageId] = true;
       Actions.draftDeliveryFailed({
@@ -438,8 +438,8 @@ xdescribe('DraftStore', function draftStore() {
       advanceClock(400);
       expect(DraftStore.isSendingDraft(this.draft.headerMessageId)).toBe(false);
       expect(DraftStore.trigger).toHaveBeenCalledWith(this.draft.headerMessageId);
-      expect(remote.dialog.showMessageBox).toHaveBeenCalled();
-      const dialogArgs = remote.dialog.showMessageBox.mostRecentCall.args[1];
+      expect(require('@electron/remote').dialog.showMessageBox).toHaveBeenCalled();
+      const dialogArgs = require('@electron/remote').dialog.showMessageBox.mostRecentCall.args[1];
       expect(dialogArgs.detail).toEqual('boohoo');
       expect(Actions.composePopoutDraft).not.toHaveBeenCalled();
     });
@@ -491,7 +491,7 @@ xdescribe('DraftStore', function draftStore() {
           commit() {
             return Promise.resolve();
           },
-          reset() {},
+          reset() { },
         },
         teardown: this.draftTeardown,
       };

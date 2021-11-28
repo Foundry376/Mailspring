@@ -33,7 +33,7 @@ export default class UpdateNotification extends React.Component<
   }
 
   getStateFromStores() {
-    const updater = remote.getGlobal('application').autoUpdateManager;
+    const updater = require('@electron/remote').getGlobal('application').autoUpdateManager;
     const updateAvailable = updater.getState() === 'update-available';
     const info = updateAvailable ? updater.getReleaseDetails() : {};
     return {

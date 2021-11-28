@@ -1,14 +1,14 @@
-import { remote, webFrame } from 'electron';
+import { webFrame } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { localized } from './intl';
 
-const { app, MenuItem } = remote;
+const { app, MenuItem } = require('@electron/remote');
 const customDictFilePath = path.join(AppEnv.getConfigDirPath(), 'custom-dict.json');
 
 class Spellchecker {
 
-  private _session = remote.getCurrentWebContents().session;
+  private _session = require('@electron/remote').getCurrentWebContents().session;
 
   constructor() {
     //this._session = ;

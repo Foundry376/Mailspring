@@ -201,7 +201,7 @@ class _MessageStore extends MailspringStore {
 
   _setWindowTitle() {
     const title = 'Mailspring' + (this._thread ? ' · ' + this._thread.subject : '');
-    electron.remote.getCurrentWindow().setTitle(title);
+    require('@electron/remote').getCurrentWindow().setTitle(title);
   }
 
   _markAsRead() {

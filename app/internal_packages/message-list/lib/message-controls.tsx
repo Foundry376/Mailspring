@@ -1,5 +1,5 @@
 /* eslint global-require: 0 */
-import { remote } from 'electron';
+
 import React from 'react';
 import {
   localized,
@@ -100,8 +100,8 @@ export default class MessageControls extends React.Component<MessageControlsProp
   };
 
   _onShowActionsMenu = () => {
-    const SystemMenu = remote.Menu;
-    const SystemMenuItem = remote.MenuItem;
+    const SystemMenu = require('@electron/remote').Menu;
+    const SystemMenuItem = require('@electron/remote').MenuItem;
 
     // Todo: refactor this so that message actions are provided
     // dynamically. Waiting to see if this will be used often.
@@ -121,7 +121,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
   _onShowOriginal = async () => {
     const { message } = this.props;
-    const filepath = require('path').join(remote.app.getPath('temp'), message.id);
+    const filepath = require('path').join(require('@electron/remote').app.getPath('temp'), message.id);
     const task = new GetMessageRFC2822Task({
       messageId: message.id,
       accountId: message.accountId,
@@ -129,7 +129,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
     });
     Actions.queueTask(task);
     await TaskQueue.waitForPerformRemote(task);
-    const win = new remote.BrowserWindow({
+    const win = newrequire('@electron/remote').BrowserWindow({
       width: 800,
       height: 600,
       title: `${message.subject} - RFC822`,

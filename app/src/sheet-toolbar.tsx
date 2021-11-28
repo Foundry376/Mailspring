@@ -3,7 +3,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import { remote } from 'electron';
+
 import { localized, isRTL, Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import { SheetDeclaration } from './flux/stores/workspace-store';
 import { Flexbox } from './components/flexbox';
@@ -162,7 +162,7 @@ class ToolbarMenuControl extends React.Component {
   static displayName = 'ToolbarMenuControl';
 
   _onOpenMenu = () => {
-    const { applicationMenu } = remote.getGlobal('application');
+    const { applicationMenu } = require('@electron/remote').getGlobal('application');
     applicationMenu.menu.popup({});
   };
 
@@ -307,7 +307,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     // Record our overall height for sheets
     if (el.clientHeight !== lastReportedToolbarHeight) {
       lastReportedToolbarHeight = el.clientHeight;
-      remote.getCurrentWindow().setSheetOffset(el.clientHeight);
+      require('@electron/remote').getCurrentWindow().setSheetOffset(el.clientHeight);
     }
   }
 

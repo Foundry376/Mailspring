@@ -1,7 +1,7 @@
 import os from 'os';
 import _fs from 'fs';
 import path from 'path';
-import { remote, shell } from 'electron';
+import { shell } from 'electron';
 import mkdirp from 'mkdirp';
 import MailspringStore from 'mailspring-store';
 import DraftStore from './draft-store';
@@ -313,7 +313,7 @@ class AttachmentStore extends MailspringStore {
     const name = file ? file.displayName() : localized('one or more files');
     const errorString = error ? error.toString() : '';
 
-    remote.dialog.showMessageBoxSync({
+    require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       message: localized('Download Failed'),
       detail: localized(
@@ -339,7 +339,7 @@ class AttachmentStore extends MailspringStore {
     }
 
     if (message) {
-      remote.dialog.showMessageBoxSync({
+      require('@electron/remote').dialog.showMessageBoxSync({
         type: 'warning',
         message: localized('Download Failed'),
         detail: `${message}\n\n${error.message}`,

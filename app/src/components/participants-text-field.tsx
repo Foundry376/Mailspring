@@ -1,5 +1,5 @@
 import React from 'react';
-import { remote, clipboard, ipcRenderer } from 'electron';
+import { clipboard, ipcRenderer } from 'electron';
 import {
   localized,
   PropTypes,
@@ -201,8 +201,8 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
 
   _onShowContextMenu = participant => {
     // Warning: Menu is already initialized as Menu.ts!
-    const MenuClass = remote.Menu;
-    const MenuItem = remote.MenuItem;
+    const MenuClass = require('@electron/remote').Menu;
+    const MenuItem = require('@electron/remote').MenuItem;
 
     const menu = new MenuClass();
     menu.append(

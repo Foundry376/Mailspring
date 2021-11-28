@@ -1,5 +1,5 @@
 /* eslint global-require: 0 */
-import { shell, ipcRenderer, remote } from 'electron';
+import { shell, ipcRenderer } from 'electron';
 import url from 'url';
 import { localized } from './intl';
 
@@ -238,8 +238,8 @@ export default class WindowEventHandler {
       callback();
     }
     setTimeout(() => {
-      if (remote.getGlobal('application').isQuitting()) {
-        remote.app.quit();
+      if (require('@electron/remote').getGlobal('application').isQuitting()) {
+        require('@electron/remote').app.quit();
       } else if (AppEnv.isReloading) {
         AppEnv.isReloading = false;
         AppEnv.reload();
@@ -295,7 +295,7 @@ export default class WindowEventHandler {
       // (T1927) Be sure to escape them once, and completely, before we try to open them. This logic
       // *might* apply to http/https as well but it's unclear.
       const sanitized = encodeURI(decodeURI(resolved));
-      remote.getGlobal('application').openUrl(sanitized);
+      require('@electron/remote').getGlobal('application').openUrl(sanitized);
     } else if (['http:', 'https:', 'tel:'].includes(protocol)) {
       shell.openExternal(resolved, { activate: !metaKey });
     }
@@ -349,10 +349,10 @@ export default class WindowEventHandler {
     hasSelectedText,
     {
       onCorrect,
-      onRestoreSelection = () => {},
+      onRestoreSelection = () => { },
     }: { onCorrect?: (correction: string) => void; onRestoreSelection?: () => void }
   ) {
-    const { Menu, MenuItem } = remote;
+    const { Menu, MenuItem } = require('@electron/remote');
     const menu = new Menu();
 
     if (word) {
@@ -403,11 +403,11 @@ export default class WindowEventHandler {
     if (!AppEnv.inDevMode()) {
       console.log(
         "%c Welcome to Mailspring! If you're exploring the source or building a " +
-          "plugin, you should enable debug flags. It's slower, but " +
-          'gives you better exceptions, the debug version of React, ' +
-          'and more. Choose %c Developer > Run with Debug Flags %c ' +
-          'from the menu. Also, check out http://Foundry376.github.io/Mailspring/ ' +
-          'for documentation and sample code!',
+        "plugin, you should enable debug flags. It's slower, but " +
+        'gives you better exceptions, the debug version of React, ' +
+        'and more. Choose %c Developer > Run with Debug Flags %c ' +
+        'from the menu. Also, check out http://Foundry376.github.io/Mailspring/ ' +
+        'for documentation and sample code!',
         'background-color: antiquewhite;',
         'background-color: antiquewhite; font-weight:bold;',
         'background-color: antiquewhite; font-weight:normal;'

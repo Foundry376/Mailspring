@@ -1,14 +1,13 @@
 const fs = require('fs');
-const remote = require('electron').remote;
-const win = remote.getCurrentWindow();
-const webcontents = remote.getCurrentWebContents();
+const win = require('@electron/remote').getCurrentWindow();
+const webcontents = require('@electron/remote').getCurrentWebContents();
 
 win.addListener('page-title-updated', event => {
   event.preventDefault();
 });
 
 global.printToPDF = async () => {
-  const { filePath } = await remote.dialog.showSaveDialog({
+  const { filePath } = awaitrequire('@electron/remote').dialog.showSaveDialog({
     defaultPath: `${win.getTitle()}.pdf`,
   });
 
@@ -24,7 +23,7 @@ global.printToPDF = async () => {
     },
     (error, data) => {
       if (error) {
-        remote.dialog.showErrorBox('An Error Occurred', `${error}`);
+        require('@electron/remote').dialog.showErrorBox('An Error Occurred', `${error}`);
         return;
       }
 
