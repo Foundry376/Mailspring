@@ -62,9 +62,9 @@ you'll want to get the source, build it, and run it locally.
 
 ## Installing Prerequisites
 
-You'll need git and a version of Node.JS (any v14.11.0 is recommended
-with npm v7+). Newer versions may not be able to install all dependencies at the moment.
-[nvm](https://github.com/creationix/nvm) is also highly
+You'll need git and a recent version of Node.JS (any v17.1.0+ is recommended
+with npm v8.1.2+). [nvm](https://github.com/creationix/nvm) is also highly
+recommended. Based on your platform, you'll also need:
 
 **Windows:**
 
@@ -91,9 +91,6 @@ Mailspring,install dependencies, and launch the app:
 ```
 git clone https://github.com/foundry376/mailspring
 cd mailspring
-nvm install v14.11.0
-nvm use v14.11.0
-nvm install-latest-npm
 npm install
 npm start
 ```
