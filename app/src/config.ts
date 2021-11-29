@@ -12,12 +12,11 @@
 let app, errorLogger, webContentsId;
 import _ from 'underscore';
 import { valueForKeyPath, setValueForKeyPath, remove } from './config-utils';
-import { remote } from 'electron';
 import { Emitter } from 'event-kit';
 
 if (process.type === 'renderer') {
-  app = remote.getGlobal('application');
-  webContentsId = remote.getCurrentWebContents().id;
+  app = require('@electron/remote').getGlobal('application');
+  webContentsId = require('@electron/remote').getCurrentWebContents().id;
   ({ errorLogger } = AppEnv);
 } else {
   app = global.application;
@@ -466,7 +465,7 @@ export default class Config {
     }
 
     // Ensure that we never send anything but plain javascript objects through
-    // remote. Specifically, we don't want to serialize and send function bodies
+    //require('@electron/remote'). Specifically, we don't want to serialize and send function bodies
     // across the IPC bridge.
     if (_.isObject(value)) {
       value = JSON.parse(JSON.stringify(value));

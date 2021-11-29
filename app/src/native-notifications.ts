@@ -16,7 +16,8 @@ const DEFAULT_ICON = path.resolve(
 let MacNotifierNotification = null;
 if (platform === 'darwin') {
   try {
-    MacNotifierNotification = require('node-mac-notifier');
+    MacNotifierNotification = true
+    // MacNotifierNotification = require('node-mac-notifier');
   } catch (err) {
     console.error(
       'node-mac-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.'
@@ -42,14 +43,14 @@ class NativeNotifications {
   private resolvedIcon: string = null;
 
   constructor() {
-    if (MacNotifierNotification) {
+    /*if (MacNotifierNotification) {
       AppEnv.onBeforeUnload(() => {
         Object.keys(this._macNotificationsByTag).forEach(key => {
           this._macNotificationsByTag[key].close();
         });
         return true;
       });
-    }
+    }*/
     this.resolvedIcon = this.getIcon();
   }
 
@@ -133,7 +134,7 @@ class NativeNotifications {
     body,
     tag,
     canReply,
-    onActivate = args => {},
+    onActivate = args => { },
   }: INotificationOptions = {}) {
     let notif = null;
 
@@ -142,12 +143,14 @@ class NativeNotifications {
     }
 
     if (MacNotifierNotification) {
+      //if (false) {
       if (tag && this._macNotificationsByTag[tag]) {
         this._macNotificationsByTag[tag].close();
       }
-      notif = new MacNotifierNotification(title, {
-        bundleId: 'com.mailspring.mailspring',
-        canReply: canReply,
+      notif = new Notification(title, {
+        //bundleId: 'com.mailspring.mailspring',
+        hasReply: canReply,
+        replyPlaceholder: "placholder",
         subtitle: subtitle,
         body: body,
         id: tag,

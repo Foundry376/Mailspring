@@ -4,7 +4,7 @@ import createDebug from 'debug';
 import childProcess, { ChildProcess } from 'child_process';
 import LRU from 'lru-cache';
 import Sqlite3 from 'better-sqlite3';
-import { remote } from 'electron';
+
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
 import { Model } from '../models/model';
 import MailspringStore from '../../global/mailspring-store';
@@ -38,7 +38,7 @@ function handleUnrecoverableDatabaseError(
   err = new Error(`Manually called handleUnrecoverableDatabaseError`)
 ) {
   AppEnv.errorLogger.reportError(err);
-  const app = remote.getGlobal('application');
+  const app = require('@electron/remote').getGlobal('application');
   if (!app) {
     throw new Error('handleUnrecoverableDatabaseError: `app` is not ready!');
   }

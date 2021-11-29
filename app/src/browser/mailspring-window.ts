@@ -124,6 +124,7 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
+    require("@electron/remote/main").enable(this.browserWindow.webContents);
     (this.browserWindow as any).updateLoadSettings = this.updateLoadSettings;
 
     this.handleEvents();

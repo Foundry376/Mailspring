@@ -1,4 +1,4 @@
-window.eval = global.eval = function() {
+window.eval = global.eval = function () {
   throw new Error('Sorry, N1 does not support window.eval() for security reasons.');
 };
 
@@ -18,7 +18,7 @@ function setLoadTime(loadTime) {
 }
 
 function handleSetupError(error) {
-  var currentWindow = require('electron').remote.getCurrentWindow();
+  var currentWindow = require('@electron/remote').getCurrentWindow();
   currentWindow.setSize(800, 600);
   currentWindow.center();
   currentWindow.show();
@@ -27,8 +27,7 @@ function handleSetupError(error) {
 }
 
 function copyEnvFromMainProcess() {
-  const remote = require('electron').remote; //eslint-disable-line
-  const newEnv = Object.assign({}, process.env, JSON.parse(JSON.stringify(remote.process.env)));
+  const newEnv = Object.assign({}, process.env, JSON.parse(JSON.stringify(require('@electron/remote').process.env)));
   process.env = newEnv;
 }
 
@@ -54,7 +53,7 @@ function setupVmCompatibility() {
   }
 }
 
-window.onload = function() {
+window.onload = function () {
   try {
     var startTime = Date.now();
 

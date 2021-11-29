@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import cld from 'cld';
-import { remote } from 'electron';
+
 import {
   localized,
   Message,
@@ -237,7 +237,7 @@ export class TranslateMessageHeader extends React.Component<
   _onNeverForLanguage = () => {
     if (!this.state.detected) return;
 
-    const response = remote.dialog.showMessageBoxSync({
+    const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Yes'), localized('Cancel')],
       message: localized('Are you sure?'),
@@ -341,15 +341,15 @@ export class TranslateMessageHeader extends React.Component<
                 items={[
                   prefs.automatic.includes(this.state.detected)
                     ? {
-                        key: 'always',
-                        label: localized('Stop translating %@', fromLanguage),
-                        select: this._onDisableAlwaysForLanguage,
-                      }
+                      key: 'always',
+                      label: localized('Stop translating %@', fromLanguage),
+                      select: this._onDisableAlwaysForLanguage,
+                    }
                     : {
-                        key: 'always',
-                        label: localized('Always translate %@', fromLanguage) + ` (Pro)`,
-                        select: this._onAlwaysForLanguage,
-                      },
+                      key: 'always',
+                      label: localized('Always translate %@', fromLanguage) + ` (Pro)`,
+                      select: this._onAlwaysForLanguage,
+                    },
                   {
                     key: 'never',
                     label: localized('Never translate %@', fromLanguage),
