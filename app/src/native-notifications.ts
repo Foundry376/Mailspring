@@ -12,19 +12,6 @@ const DEFAULT_ICON = path.resolve(
   'mailspring.png'
 );
 
-// TODO: Fix notifications on MacOS
-let MacNotifierNotification = null;
-if (platform === 'darwin') {
-  try {
-    MacNotifierNotification = true
-    // MacNotifierNotification = require('node-mac-notifier');
-  } catch (err) {
-    console.error(
-      'node-mac-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.'
-    );
-  }
-}
-
 type INotificationCallback = (
   args: { response: string | null; activationType: 'replied' | 'clicked' }
 ) => any;
@@ -43,14 +30,6 @@ class NativeNotifications {
   private resolvedIcon: string = null;
 
   constructor() {
-    /*if (MacNotifierNotification) {
-      AppEnv.onBeforeUnload(() => {
-        Object.keys(this._macNotificationsByTag).forEach(key => {
-          this._macNotificationsByTag[key].close();
-        });
-        return true;
-      });
-    }*/
     this.resolvedIcon = this.getIcon();
   }
 
@@ -142,38 +121,13 @@ class NativeNotifications {
       return null;
     }
 
-    if (MacNotifierNotification) {
-      //if (false) {
-      if (tag && this._macNotificationsByTag[tag]) {
-        this._macNotificationsByTag[tag].close();
-      }
-      notif = new Notification(title, {
-        //bundleId: 'com.mailspring.mailspring',
-        hasReply: canReply,
-        replyPlaceholder: "placholder",
-        subtitle: subtitle,
-        body: body,
-        id: tag,
-        icon: this.resolvedIcon,
-      });
-      notif.addEventListener('reply', ({ response }) => {
-        onActivate({ response, activationType: 'replied' });
-      });
-      notif.addEventListener('click', () => {
-        onActivate({ response: null, activationType: 'clicked' });
-      });
-      if (tag) {
-        this._macNotificationsByTag[tag] = notif;
-      }
-    } else {
-      notif = new Notification(title, {
-        silent: true,
-        body: subtitle,
-        tag: tag,
-        icon: this.resolvedIcon,
-      });
-      notif.onclick = onActivate;
-    }
+    notif = new Notification(title, {
+      silent: true,
+      body: subtitle,
+      tag: tag,
+      icon: this.resolvedIcon,
+    });
+    notif.onclick = onActivate;
     return notif;
   }
 }
