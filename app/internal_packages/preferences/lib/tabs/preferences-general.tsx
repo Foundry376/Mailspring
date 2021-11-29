@@ -22,7 +22,7 @@ class PreferencesGeneral extends React.Component<{
   };
 
   _onReboot = () => {
-    const app = const { BrowserWindow } = require('@electron/remote').app;
+    const app = require('@electron/remote').app;
     app.relaunch();
     app.quit();
   };
