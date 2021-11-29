@@ -12,6 +12,7 @@
   "main": "./src/browser/main.js",
   "dependencies": {
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
+    "@electron/remote": "^2.0.1",
     "better-sqlite3": "^7.1.2",
     "cheerio": "^1.0.0-rc.6",
     "chromium-net-errors": "1.0.3",
