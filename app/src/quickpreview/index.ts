@@ -270,7 +270,7 @@ async function _generateCrossplatformPreview({ file, filePath, previewPath, stra
 }
 
 function _createCaptureWindow() {
-  const win = newrequire('@electron/remote').BrowserWindow({
+  const win = require('@electron/remote').BrowserWindow({
     width: ThumbnailWidth,
     height: ThumbnailWidth,
     show: false,

@@ -216,7 +216,7 @@ class PreferencesAccountDetails extends Component<
       AppEnv.showErrorDialog({ title: 'Error', message: `Could not retrieve sync logs. ${err}` });
       return;
     }
-    const win = newrequire('@electron/remote').BrowserWindow({
+    const win = require('@electron/remote').BrowserWindow({
       width: 800,
       height: 600,
       title: `Account ${id} - Recent Logs`,

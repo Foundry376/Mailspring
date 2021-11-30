@@ -129,7 +129,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
     });
     Actions.queueTask(task);
     await TaskQueue.waitForPerformRemote(task);
-    const win = newrequire('@electron/remote').BrowserWindow({
+    const win = require('@electron/remote').BrowserWindow({
       width: 800,
       height: 600,
       title: `${message.subject} - RFC822`,
