@@ -159,7 +159,7 @@ class AttachmentStore extends MailspringStore {
 
   _fetchAndOpen = file => {
     return this._prepareAndResolveFilePath(file)
-      .then(filePath => shell.openItem(filePath))
+      .then(filePath => shell.openPath(filePath))
       .catch(this._catchFSErrors)
       .catch(error => {
         this._presentError({ file, error });

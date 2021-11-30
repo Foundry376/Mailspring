@@ -21,7 +21,7 @@ const FormErrorMessage = (props: FormErrorProps) => {
     const onViewLog = () => {
       const logPath = temp.path({ suffix: '.log' });
       fs.writeFileSync(logPath, log);
-      shell.openItem(logPath);
+      shell.openPath(logPath);
     };
     rawLogLink = (
       <a href="" onClick={onViewLog} style={{ paddingLeft: 5 }}>

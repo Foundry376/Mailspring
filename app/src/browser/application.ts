@@ -453,7 +453,7 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-license', () => {
-      shell.openItem(path.join(this.resourcePath, 'static', 'all_licenses.html'));
+      shell.openPath(path.join(this.resourcePath, 'static', 'all_licenses.html'));
     });
 
     if (process.platform === 'darwin') {
