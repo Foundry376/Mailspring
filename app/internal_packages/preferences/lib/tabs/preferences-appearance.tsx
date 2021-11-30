@@ -97,8 +97,8 @@ class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
             className="btn btn-small"
             style={{ float: 'right' }}
             onClick={() => {
-              const { BrowserWindow } = require('@electron/remote').app.relaunch();
-              const { BrowserWindow } = require('@electron/remote').app.quit();
+              require('@electron/remote').app.relaunch();
+              require('@electron/remote').app.quit();
             }}
           >
             {localized('Relaunch')}
