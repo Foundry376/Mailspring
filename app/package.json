@@ -73,7 +73,7 @@
     "source-map-support": "^0.3.2",
     "temp": "^0.8",
     "tld": "^0.0.2",
-    "underscore": "1.8.x",
+    "underscore": "^1.13.1",
     "underscore.string": "^3.3.5",
     "utf7": "^1.0.2",
     "uuid": "^3.0.0",
