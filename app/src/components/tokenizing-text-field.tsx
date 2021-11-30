@@ -782,9 +782,9 @@ export class TokenizingTextField<T> extends React.Component<
   };
 
   _showDefaultTokenMenu = token => {
-    const menu = newrequire('@electron/remote').Menu();
+    const menu = require('@electron/remote').Menu();
     menu.append(
-      newrequire('@electron/remote').MenuItem({
+      require('@electron/remote').MenuItem({
         click: () => this._removeTokens([token]),
         label: localized('Remove'),
       })
@@ -792,7 +792,7 @@ export class TokenizingTextField<T> extends React.Component<
 
     if (this.props.onEditMotion) {
       menu.append(
-        newrequire('@electron/remote').MenuItem({
+        require('@electron/remote').MenuItem({
           label: localized('Edit'),
           click: () => this.props.onEditMotion(token),
         })
