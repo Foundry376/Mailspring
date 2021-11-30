@@ -40,7 +40,7 @@
     "keytar": "7.7.0",
     "less-cache": "1.1.0",
     "lru-cache": "^4.0.1",
-    "mammoth": "1.4.7",
+    "mammoth": "1.4.19",
     "mkdirp": "^0.5",
     "moment": "^2.24.0",
     "moment-round": "^1.0.1",
