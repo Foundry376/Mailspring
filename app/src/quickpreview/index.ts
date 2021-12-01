@@ -204,7 +204,7 @@ export function displayQuickPreviewWindow(filePath) {
   }
 
   if (quickPreviewWindow === null) {
-    const { BrowserWindow } = require('@electron/remote')
+    const { BrowserWindow } = require('@electron/remote');
     quickPreviewWindow = new BrowserWindow({
       width: 800,
       height: 600,
@@ -270,7 +270,8 @@ async function _generateCrossplatformPreview({ file, filePath, previewPath, stra
 }
 
 function _createCaptureWindow() {
-  const win = require('@electron/remote').BrowserWindow({
+  const { BrowserWindow } = require('@electron/remote');
+  const win = new BrowserWindow({
     width: ThumbnailWidth,
     height: ThumbnailWidth,
     show: false,
