@@ -118,7 +118,8 @@ export default class MessageItemBody extends React.Component<
     const { message } = this.props;
     const filepath = require('path').join(require('@electron/remote').app.getPath('temp'), `${message.id}.html`);
     fs.writeFileSync(filepath, message.body);
-    const win = require('@electron/remote').BrowserWindow({
+    const { BrowserWindow } = require('electron');
+    const win = new BrowserWindow({
       title: `${message.subject}`,
       width: 800,
       height: 600,
