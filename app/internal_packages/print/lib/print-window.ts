@@ -80,6 +80,7 @@ export default class PrintWindow {
         contextIsolation: false,
       },
     });
+    require("@electron/remote").require("@electron/remote/main").enable(this.browserWin.webContents);
     this.browserWin.removeMenu();
     fs.writeFileSync(tmpMessagesPath, `window.printMessages = ${printMessages}`);
     fs.writeFileSync(this.tmpFile, content);
