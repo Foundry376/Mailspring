@@ -7,7 +7,7 @@ win.addListener('page-title-updated', event => {
 });
 
 global.printToPDF = async () => {
-  const { filePath } = awaitrequire('@electron/remote').dialog.showSaveDialog({
+  const { filePath } = await require('@electron/remote').dialog.showSaveDialog({
     defaultPath: `${win.getTitle()}.pdf`,
   });
 
@@ -20,14 +20,8 @@ global.printToPDF = async () => {
       pageSize: 'Letter',
       printBackground: true,
       landscape: false,
-    },
-    (error, data) => {
-      if (error) {
-        require('@electron/remote').dialog.showErrorBox('An Error Occurred', `${error}`);
-        return;
-      }
-
-      fs.writeFileSync(filename, data);
+    }).then(data => {
+      fs.writeFileSync(filePath, data);
     }
-  );
+    );
 };
