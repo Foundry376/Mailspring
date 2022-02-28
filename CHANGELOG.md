@@ -1,5 +1,25 @@
 # Mailspring Changelog
 
+## 1.10.0 (2/28/2022)
+
+This release moves Mailspring from Electron 8 to Electron 14 thanks to the hard work of @Phylu and other community members! 🎉 This brings Wayland support on Linux and many performance and security improvements.
+
+- This will allow Mailspring to ship Universal builds for MacOS ARM machines!
+
+- Mailspring now uses the system spellchecker more directly - on MacOS, the spellcheck language is auto-determined as you type.
+
+- We have temporarily removed the ability to reply directly from notification toasts on MacOS, pending futher support for it in Electron.
+
+**Features:**
+
+- The Mailspring snapcraft distribution now loads using LZO, which significantly improves launch performance. (Thanks to @kz6fittycent)
+
+- Mailspring now skips "All Mail" when syncing Protonmail accounts which prevents messages from thrashing between folders and consuming significant CPU. (Thanks to @bl00mber and others!)
+
+- Mailspring now defaults to SSL / TLS on port 465 for SMTP, per RFC 8314 (Thanks to @slokhorst)
+
+- We now go back to inbox after "Remove and show next/previous" for last email (Thanks to @nino)
+
 ### 1.9.2 (9/5/2021)
 
 **Features:**
