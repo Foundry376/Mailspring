@@ -4,9 +4,6 @@ const rimraf = require('rimraf');
 const fs = require('fs-plus');
 var fs_extra = require('fs-extra');
 
-const joanna = require('joanna');
-const tello = require('tello');
-
 module.exports = function(grunt) {
   let { cp, mkdir, rm } = grunt.config('taskHelpers');
 
@@ -46,6 +43,9 @@ module.exports = function(grunt) {
 
   return grunt.registerTask('docs-build', 'Builds the API docs in src', function() {
     grunt.log.writeln('Time to build the docs!');
+
+    const joanna = require('joanna');
+    const tello = require('tello');
 
     let done = this.async();
 
