@@ -6,9 +6,6 @@ import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
 import { AccountStore } from '../stores/account-store';
 import { localized } from '../../intl';
-import { ContactGroup } from './contact-group';
-
-let FocusedPerspectiveStore = null; // Circular Dependency
 
 export interface ContactInfoVCF {
   vcf: string;
