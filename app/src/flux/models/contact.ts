@@ -505,16 +505,10 @@ export class Contact extends Model {
       return null;
     }
 
-    if (includeAccountLabel) {
-      FocusedPerspectiveStore =
-        FocusedPerspectiveStore || require('../stores/focused-perspective-store').default;
-      if (
-        account &&
-        (FocusedPerspectiveStore.current().accountIds.length > 1 || forceAccountLabel)
-      ) {
-        return `You (${account.label})`;
-      }
+    if (includeAccountLabel && account && (AccountStore.accounts().length > 1 || forceAccountLabel)) {
+      return `${localized('You')} (${account.label})`;
     }
+
     return localized('You');
   }
 
