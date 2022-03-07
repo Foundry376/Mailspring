@@ -6,9 +6,6 @@ import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
 import { AccountStore } from '../stores/account-store';
 import { localized } from '../../intl';
-import { ContactGroup } from './contact-group';
-
-let FocusedPerspectiveStore = null; // Circular Dependency
 
 export interface ContactInfoVCF {
   vcf: string;
@@ -505,16 +502,10 @@ export class Contact extends Model {
       return null;
     }
 
-    if (includeAccountLabel) {
-      FocusedPerspectiveStore =
-        FocusedPerspectiveStore || require('../stores/focused-perspective-store').default;
-      if (
-        account &&
-        (FocusedPerspectiveStore.current().accountIds.length > 1 || forceAccountLabel)
-      ) {
-        return `You (${account.label})`;
-      }
+    if (includeAccountLabel && account && (AccountStore.accounts().length > 1 || forceAccountLabel)) {
+      return `${localized('You')} (${account.label})`;
     }
+
     return localized('You');
   }
 

@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "แถบด้านข้างของที่อยู่ติดต่อใน Mailspring Pro จะแสดงข้อมูลเกี่ยวกับบุคคลและ บริษัท ที่คุณส่งอีเมลด้วย",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "ที่อยู่ดังกล่าวมีการเปลี่ยนแปลงตั้งแต่คุณเริ่มส่งร่างนี้ ตรวจสอบแบบร่างและคลิก 'ส่ง' อีกครั้ง",
   "The message contains an empty template area.": "ข้อความมีพื้นที่ว่างในเทมเพลต",
-  "The message contains an illegial attachment that is not allowed by the server.": "ข้อความมีไฟล์แนบที่ไม่ได้รับอนุญาตโดยเซิร์ฟเวอร์",
+  "The message contains an illegal attachment that is not allowed by the server.": "ข้อความมีไฟล์แนบที่ไม่ได้รับอนุญาตโดยเซิร์ฟเวอร์",
   "The message has been blocked because no sender is configured.": "ข้อความถูกบล็อกเนื่องจากไม่มีการกำหนดค่าผู้ส่ง",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "ข้อความถูกบล็อกโดย Yahoo - คุณใช้เวลาเกินขีด จำกัด การส่งรายวันของคุณแล้ว",
   "The message has been blocked by Yahoo's outbound spam filter.": "ข้อความถูกบล็อกโดยตัวกรองจดหมายขยะขาออกของ Yahoo",

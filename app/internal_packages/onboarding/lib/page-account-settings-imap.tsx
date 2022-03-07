@@ -97,6 +97,9 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
             if (port === 25 && settings.smtp_security !== 'none') {
               onFieldChange({ target: { value: 'none', id: 'settings.smtp_security' } });
             }
+            if (port === 465 && settings.smtp_security !== 'SSL / TLS') {
+              onFieldChange({ target: { value: 'SSL / TLS', id: 'settings.smtp_security' } });
+            }
             if (port === 587 && settings.smtp_security !== 'STARTTLS') {
               onFieldChange({ target: { value: 'STARTTLS', id: 'settings.smtp_security' } });
             }

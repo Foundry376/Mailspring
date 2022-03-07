@@ -59,8 +59,7 @@ describe('SignatureComposerDropdown', function signatureComposerDropdown() {
         this.button,
         'header-container'
       );
-      this.noSignature = ReactTestUtils.findRenderedDOMComponentWithClass(header, 'item');
-      ReactTestUtils.Simulate.mouseDown(this.noSignature);
+      ReactTestUtils.Simulate.mouseDown(header.querySelector('.item'));
       expect(this.button.props.session.changes.add).toHaveBeenCalledWith({
         body: `${this.button.props.draft.body}`,
       });

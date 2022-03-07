@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "A Mailspring Pro partneroldali oldalsávja tájékoztatást nyújt azon felhasználókról és vállalatokról, amelyekkel e-maileket küld.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "A címről a cím megváltozott, mióta elkezdte elküldeni ezt a tervezetet. Ellenőrizze duplán a rajzot, és ismét kattintson a \"Küldés\" gombra.",
   "The message contains an empty template area.": "Az üzenet üres sablonterületet tartalmaz.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Az üzenet olyan illegiális mellékletet tartalmaz, amelyet a szerver nem engedélyezett.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Az üzenet olyan illegiális mellékletet tartalmaz, amelyet a szerver nem engedélyezett.",
   "The message has been blocked because no sender is configured.": "Az üzenet le van tiltva, mert nincs beállítva a küldő.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Az üzenetet blokkolta a Yahoo - meghaladta a napi küldési korlátot.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Az üzenetet blokkolta a Yahoo kimenő spamszűrője.",

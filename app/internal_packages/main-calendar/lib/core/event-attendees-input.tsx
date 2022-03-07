@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import { remote, clipboard } from 'electron';
+import { clipboard } from 'electron';
 import { Utils, Contact, ContactStore, RegExpUtils, localized } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
@@ -113,8 +113,8 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
 
   _onShowContextMenu = participant => {
     // Warning: Menu is already initialized as Menu.cjsx!
-    const MenuClass = remote.Menu;
-    const MenuItem = remote.MenuItem;
+    const MenuClass = require('@electron/remote').Menu;
+    const MenuItem = require('@electron/remote').MenuItem;
 
     const menu = new MenuClass();
     menu.append(

@@ -1,9 +1,9 @@
 import path from 'path';
 import fs from 'fs';
-import { remote } from 'electron';
+
 import { localized } from 'mailspring-exports';
 
-const { app, BrowserWindow } = remote;
+const { app, BrowserWindow } = require('@electron/remote');
 
 export default class PrintWindow {
   browserWin: Electron.BrowserWindow;
@@ -80,6 +80,7 @@ export default class PrintWindow {
         contextIsolation: false,
       },
     });
+    require("@electron/remote").require("@electron/remote/main").enable(this.browserWin.webContents);
     this.browserWin.removeMenu();
     fs.writeFileSync(tmpMessagesPath, `window.printMessages = ${printMessages}`);
     fs.writeFileSync(this.tmpFile, content);

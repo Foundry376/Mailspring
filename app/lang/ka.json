@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "საკონტაქტო გვერდი მარშრუტის პროში აჩვენებს ინფორმაციას იმ ადამიანებისა და კომპანიების შესახებ, რომელთანაც თქვენ ელ.ფოსტით მიმართავთ.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "მისამართიდან შეიცვალა, რადგან დაიწყე ეს პროექტი. ორმაგი შემოწმება პროექტი და დააჭირეთ \"გაგზავნა\" ერთხელ.",
   "The message contains an empty template area.": "შეტყობინება შეიცავს ცარიელი თარგის არეალს.",
-  "The message contains an illegial attachment that is not allowed by the server.": "შეტყობინება შეიცავს არალეგალურ დანართს, რომელიც სერვერის მიერ არ არის დაშვებული.",
+  "The message contains an illegal attachment that is not allowed by the server.": "შეტყობინება შეიცავს არალეგალურ დანართს, რომელიც სერვერის მიერ არ არის დაშვებული.",
   "The message has been blocked because no sender is configured.": "შეტყობინება დაბლოკილია, რადგან გამგზავნი არ არის კონფიგურირებული.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "შეტყობინება დაბლოკილია Yahoo - თქვენ გადააჭარბეთ თქვენი ყოველდღიური გაგზავნის ლიმიტს.",
   "The message has been blocked by Yahoo's outbound spam filter.": "შეტყობინება დაბლოკილია Yahoo- ის გამავალი სპამის ფილტრის საშუალებით.",

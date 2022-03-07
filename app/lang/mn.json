@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro дахь холбоо барих скрипт нь таны имэйл илгээж байгаа хүмүүсийн тухай мэдээлэл харуулдаг.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Та энэ төслийг илгээхээсээ өмнө хаягаас өөрчлөгдсөн байна. Draftыг дахин шалгаад 'Илгээх' дээр дарна уу.",
   "The message contains an empty template area.": "Мессеж хоосон загварыг агуулна.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Мессеж нь серверт зөвшөөрөгдөөгүй хууль бус хавсралт агуулж байна.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Мессеж нь серверт зөвшөөрөгдөөгүй хууль бус хавсралт агуулж байна.",
   "The message has been blocked because no sender is configured.": "Захиалагч тохируулаагүй тул зурвасыг хориглосон байна.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Энэ мессежийг Yahoo хориглуулсан - та өдөр тутмын илгээсэн хязгаараас хэтэрсэн байна.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Yahoo-ийн гадагшаа спам шүүлтүүрээр зурвасыг хориглосон байна.",

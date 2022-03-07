@@ -363,7 +363,7 @@ On Thu, Mar 3, 2016 I went to my writing club and wrote:
 
     it('preserves <br> tags in the middle and only chops off tail', function() {
       const input0 = 'hello<br><br>world<br><br><blockquote>foolololol</blockquote>';
-      const expect0 = 'hello<br>world';
+      const expect0 = 'hello<br><br>world';
       expect(QuotedHTMLTransformer.removeQuotedHTML(input0)).toEqual(expect0);
     });
 

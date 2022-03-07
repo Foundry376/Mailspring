@@ -1,5 +1,5 @@
 import path from 'path';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { BadgeStore } from 'mailspring-exports';
 
 // Must be absolute real system path

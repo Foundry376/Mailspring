@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { localized } from '../intl';
 import _ from 'underscore';
 
@@ -140,8 +140,8 @@ export default class MailsyncBridge {
       title: localized(`Verbose logging is now %@`, phrase),
       message,
     });
-    remote.app.relaunch();
-    remote.app.quit();
+    require('@electron/remote').app.relaunch();
+    require('@electron/remote').app.quit();
   }
 
   clients() {
@@ -224,7 +224,7 @@ export default class MailsyncBridge {
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
-    resetClient.kill = () => {};
+    resetClient.kill = () => { };
 
     this._clients[account.id] = resetClient;
 
@@ -485,7 +485,7 @@ export default class MailsyncBridge {
     // If other windows are open, delay the closing of the main window
     // by 400ms the first time beforeUnload is called so other windows
     // ave a chance to save drafts before we kill the workers.
-    if (remote.getGlobal('application').windowManager.getOpenWindowCount() <= 1) {
+    if (require('@electron/remote').getGlobal('application').windowManager.getOpenWindowCount() <= 1) {
       return true;
     }
     if (this._lastWait && Date.now() - this._lastWait < 2000) {

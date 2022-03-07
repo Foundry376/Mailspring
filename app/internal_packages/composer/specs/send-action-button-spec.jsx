@@ -88,7 +88,7 @@ describe('SendActionButton', function describeBlock() {
       GoodSendAction,
     ]);
     const sendActionButton = render(this.draft);
-    const button = sendActionButton.find('button').first();
+    const button = sendActionButton.find('.primary-item').first();
     button.simulate('click');
     expect(this.isValidDraft).toHaveBeenCalled();
     expect(Actions.sendDraft).toHaveBeenCalledWith(this.draft.headerMessageId, {
@@ -102,7 +102,7 @@ describe('SendActionButton', function describeBlock() {
       GoodSendAction,
     ]);
     const sendActionButton = render(this.draft, { isValid: false });
-    const button = sendActionButton.find('button').first();
+    const button = sendActionButton.find('.primary-item').first();
     button.simulate('click');
     expect(this.isValidDraft).toHaveBeenCalled();
     expect(Actions.sendDraft).not.toHaveBeenCalled();

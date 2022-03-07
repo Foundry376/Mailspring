@@ -2,9 +2,9 @@ import _ from 'underscore';
 import classnames from 'classnames';
 import React from 'react';
 import { localized, Actions, Contact } from 'mailspring-exports';
-import { remote } from 'electron';
 
-const { Menu, MenuItem } = remote;
+
+const { Menu, MenuItem } = require('@electron/remote');
 const MAX_COLLAPSED = 5;
 
 interface MessageParticipantsProps {

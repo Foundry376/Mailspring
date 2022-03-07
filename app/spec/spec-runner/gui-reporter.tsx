@@ -202,8 +202,7 @@ class N1GuiReporter extends React.Component {
   };
 
   onReloadSpecs = () => {
-    require('electron')
-      .remote.getCurrentWindow()
+    require('@electron/remote').getCurrentWindow()
       .reload();
   };
 }

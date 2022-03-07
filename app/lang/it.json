@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "La barra laterale dei contatti in Mailspring Pro mostra informazioni sulle persone e le società con cui stai inviando e-mail.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "L'indirizzo mittente è cambiato da quando hai iniziato a inviare questa bozza. Ricontrolla la bozza e fai di nuovo clic su \"Invia\".",
   "The message contains an empty template area.": "Il messaggio contiene un'area del modello vuota.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Il messaggio contiene un allegato illegale non consentito dal server.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Il messaggio contiene un allegato illegale non consentito dal server.",
   "The message has been blocked because no sender is configured.": "Il messaggio è stato bloccato perché nessun mittente è configurato.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Il messaggio è stato bloccato da Yahoo: hai superato il limite di invio giornaliero.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Il messaggio è stato bloccato dal filtro spam in uscita di Yahoo.",

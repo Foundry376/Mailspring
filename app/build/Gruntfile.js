@@ -48,7 +48,7 @@ module.exports = grunt => {
 
   grunt.registerTask('docs', ['docs-build', 'docs-render']);
 
-  grunt.registerTask('lint', ['eslint', 'lesslint', 'csslint']);
+  grunt.registerTask('lint', ['eslint']);
 
   if (grunt.option('platform') === 'win32') {
     grunt.registerTask('build-client', [

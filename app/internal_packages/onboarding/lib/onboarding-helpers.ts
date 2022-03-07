@@ -192,10 +192,10 @@ export async function expandAccountWithCommonSettings(account: Account) {
     imap_security: mstemplate.imap_security || 'SSL / TLS',
     imap_allow_insecure_ssl: mstemplate.imap_allow_insecure_ssl || false,
     smtp_host: mstemplate.smtp_host,
-    smtp_port: mstemplate.smtp_port || 587,
+    smtp_port: mstemplate.smtp_port || 465,
     smtp_username: usernameWithFormat(mstemplate.smtp_user_format),
     smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
-    smtp_security: mstemplate.smtp_security || 'STARTTLS',
+    smtp_security: mstemplate.smtp_security || 'SSL / TLS',
     smtp_allow_insecure_ssl: mstemplate.smtp_allow_insecure_ssl || false,
     container_folder: mstemplate.container_folder,
   };

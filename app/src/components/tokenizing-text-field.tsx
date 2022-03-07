@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import _ from 'underscore';
-import { remote } from 'electron';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { localized, PropTypes, Utils, RegExpUtils } from 'mailspring-exports';
@@ -782,9 +782,9 @@ export class TokenizingTextField<T> extends React.Component<
   };
 
   _showDefaultTokenMenu = token => {
-    const menu = new remote.Menu();
+    const menu = require('@electron/remote').Menu();
     menu.append(
-      new remote.MenuItem({
+      require('@electron/remote').MenuItem({
         click: () => this._removeTokens([token]),
         label: localized('Remove'),
       })
@@ -792,7 +792,7 @@ export class TokenizingTextField<T> extends React.Component<
 
     if (this.props.onEditMotion) {
       menu.append(
-        new remote.MenuItem({
+        require('@electron/remote').MenuItem({
           label: localized('Edit'),
           click: () => this.props.onEditMotion(token),
         })
@@ -984,8 +984,8 @@ export class TokenizingTextField<T> extends React.Component<
         {this.props.label && <div className="tokenizing-field-label">{`${this.props.label}:`}</div>}
         <div className={fieldClasses}>
           {this.state.inputValue.length > 0 ||
-          this.props.placeholder === undefined ||
-          this.props.tokens.length > 0 ? (
+            this.props.placeholder === undefined ||
+            this.props.tokens.length > 0 ? (
             false
           ) : (
             <div className="placeholder">{this.props.placeholder}</div>

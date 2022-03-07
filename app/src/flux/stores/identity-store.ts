@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { remote } from 'electron';
+
 import url from 'url';
 import querystring from 'querystring';
 
@@ -141,8 +141,8 @@ class _IdentityStore extends MailspringStore {
     await this.saveIdentity(null);
     // We need to relaunch the app to clear the webview session
     // and prevent the webview from re signing in with the same MailspringID
-    remote.app.relaunch();
-    remote.app.quit();
+    require('@electron/remote').app.relaunch();
+    require('@electron/remote').app.quit();
   };
 
   /**

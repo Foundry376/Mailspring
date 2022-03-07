@@ -1,4 +1,4 @@
-import { remote } from 'electron';
+
 import { exec } from 'child_process';
 import path from 'path';
 import { File } from 'mailspring-exports';
@@ -158,27 +158,27 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
       {
         label: 'Reload',
         accelerator: 'CmdOrCtrl+R',
-        click: function(item, focusedWindow) {
+        click: function (item, focusedWindow) {
           if (focusedWindow) focusedWindow.reload();
         },
       },
       {
         label: 'Toggle Full Screen',
-        accelerator: (function() {
+        accelerator: (function () {
           if (process.platform === 'darwin') return 'Ctrl+Command+F';
           else return 'F11';
         })(),
-        click: function(item, focusedWindow) {
+        click: function (item, focusedWindow) {
           if (focusedWindow) focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
         },
       },
       {
         label: 'Toggle Developer Tools',
-        accelerator: (function() {
+        accelerator: (function () {
           if (process.platform === 'darwin') return 'Alt+Command+I';
           else return 'Ctrl+Shift+I';
         })(),
-        click: function(item, focusedWindow) {
+        click: function (item, focusedWindow) {
           if (focusedWindow) focusedWindow.webContents.toggleDevTools();
         },
       },
@@ -204,7 +204,8 @@ export function displayQuickPreviewWindow(filePath) {
   }
 
   if (quickPreviewWindow === null) {
-    quickPreviewWindow = new remote.BrowserWindow({
+    const { BrowserWindow } = require('@electron/remote');
+    quickPreviewWindow = new BrowserWindow({
       width: 800,
       height: 600,
       center: true,
@@ -219,7 +220,7 @@ export function displayQuickPreviewWindow(filePath) {
     quickPreviewWindow.once('closed', () => {
       quickPreviewWindow = null;
     });
-    quickPreviewWindow.setMenu(remote.Menu.buildFromTemplate(PreviewWindowMenuTemplate));
+    quickPreviewWindow.setMenu(require('@electron/remote').Menu.buildFromTemplate(PreviewWindowMenuTemplate));
   } else {
     quickPreviewWindow.show();
   }
@@ -269,7 +270,8 @@ async function _generateCrossplatformPreview({ file, filePath, previewPath, stra
 }
 
 function _createCaptureWindow() {
-  const win = new remote.BrowserWindow({
+  const { BrowserWindow } = require('@electron/remote');
+  const win = new BrowserWindow({
     width: ThumbnailWidth,
     height: ThumbnailWidth,
     show: false,

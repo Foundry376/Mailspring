@@ -57,7 +57,7 @@ class PreferencesAccountDetails extends Component<
   {
     account: Account;
   }
-  > {
+> {
   static propTypes = {
     account: PropTypes.object,
     onAccountUpdated: PropTypes.func.isRequired,
@@ -191,7 +191,7 @@ class PreferencesAccountDetails extends Component<
   _onShowErrorDetails = async () => {
     const { id, syncState, settings, provider } = this.props.account;
     const filepath = require('path').join(
-      remote.app.getPath('temp'),
+      require('@electron/remote').app.getPath('temp'),
       `error-details-${id}-${Date.now()}.html`
     );
 
@@ -216,7 +216,8 @@ class PreferencesAccountDetails extends Component<
       AppEnv.showErrorDialog({ title: 'Error', message: `Could not retrieve sync logs. ${err}` });
       return;
     }
-    const win = new remote.BrowserWindow({
+    const { BrowserWindow } = require('electron');
+    const win = new BrowserWindow({
       width: 800,
       height: 600,
       title: `Account ${id} - Recent Logs`,
@@ -331,8 +332,8 @@ class PreferencesAccountDetails extends Component<
             </select>
           </div>
         ) : (
-            undefined
-          )}
+          undefined
+        )}
         <h6>{localized('Account Color')}</h6>
         <div style={{ display: 'flex', alignItems: 'flex-end' }}>
           <input

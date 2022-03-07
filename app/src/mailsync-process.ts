@@ -56,7 +56,7 @@ export const LocalizedErrorStrings = {
   // sending related
   ErrorSendMessageNotAllowed: localized('Sending is not enabled for this account.'),
   ErrorSendMessageIllegalAttachment: localized(
-    'The message contains an illegial attachment that is not allowed by the server.'
+    'The message contains an illegal attachment that is not allowed by the server.'
   ),
   ErrorYahooSendMessageSpamSuspected: localized(
     "The message has been blocked by Yahoo's outbound spam filter."
@@ -112,7 +112,7 @@ export class MailsyncProcess extends EventEmitter {
       maximizable: false,
       closable: false,
       fullscreenable: false,
-      webPreferences: { nodeIntegration: false, javascript: false, contextIsolation: false },
+      webPreferences: { nodeIntegration: false, javascript: false, contextIsolation: false, enableRemoteModule: true },
     });
     this._win.setContentSize(350, 90);
     this._win.once('ready-to-show', () => {

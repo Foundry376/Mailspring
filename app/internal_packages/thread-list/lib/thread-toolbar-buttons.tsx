@@ -105,13 +105,15 @@ class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
   _onRemoveAndShift = ({ offset }) => {
     const dataSource = ThreadListStore.dataSource();
     const focusedId = FocusedContentStore.focusedId('thread');
-    const focusedIdx = Math.min(
-      dataSource.count() - 1,
-      Math.max(0, dataSource.indexOfId(focusedId) + offset)
-    );
-    const item = dataSource.get(focusedIdx);
+    const focusedIdx = dataSource.indexOfId(focusedId) + offset;
+    let item;
+    if (focusedIdx < dataSource.count() && focusedIdx >= 0) {
+      item = dataSource.get(focusedIdx);
+    }
     this._onRemoveFromView();
-    Actions.setFocus({ collection: 'thread', item });
+    if (item) {
+      Actions.setFocus({ collection: 'thread', item });
+    }
   };
 
   _onRemoveFromView = () => {

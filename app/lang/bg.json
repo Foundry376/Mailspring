@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Страничната лента за връзка в Mailspring Pro показва информация за хората и компаниите, с които изпращате имейли.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Адресът от адрес се е променил, откакто сте започнали да изпращате този чернова. Проверете отново черновата и кликнете върху \"Изпрати\" отново.",
   "The message contains an empty template area.": "Съобщението съдържа празна област на шаблона.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Съобщението съдържа незаконно прикачен файл, който не е разрешен от сървъра.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Съобщението съдържа незаконно прикачен файл, който не е разрешен от сървъра.",
   "The message has been blocked because no sender is configured.": "Съобщението е блокирано, защото няма конфигуриран подател.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Съобщението е блокирано от Yahoo - сте превишили дневния си лимит за изпращане.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Съобщението бе блокирано от филтъра за изходящ спам на Yahoo.",

@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Mailspring Pro中的联系人侧栏显示有关您通过电子邮件发送的人员和公司的信息。",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "自您开始发送此草稿以来，发件人地址已更改。仔细检查草稿并再次单击“发送”。",
   "The message contains an empty template area.": "该邮件包含一个空模板区域。",
-  "The message contains an illegial attachment that is not allowed by the server.": "该邮件包含服务器不允许的非法附件。",
+  "The message contains an illegal attachment that is not allowed by the server.": "该邮件包含服务器不允许的非法附件。",
   "The message has been blocked because no sender is configured.": "邮件已被阻止，因为未配置发件人。",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "该邮件已被Yahoo阻止 - 您已超出每日发送限制。",
   "The message has been blocked by Yahoo's outbound spam filter.": "该邮件已被Yahoo的出站垃圾邮件过滤器阻止。",

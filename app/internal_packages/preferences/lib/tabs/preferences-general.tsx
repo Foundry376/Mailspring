@@ -8,7 +8,7 @@ import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
 import LanguageSection from './language-section';
 import { ConfigLike, ConfigSchemaLike } from '../types';
-import { remote } from 'electron';
+
 
 class PreferencesGeneral extends React.Component<{
   config: ConfigLike;
@@ -22,13 +22,13 @@ class PreferencesGeneral extends React.Component<{
   };
 
   _onReboot = () => {
-    const app = require('electron').remote.app;
+    const app = require('@electron/remote').app;
     app.relaunch();
     app.quit();
   };
 
   _onResetAccountsAndSettings = () => {
-    const chosen = remote.dialog.showMessageBoxSync({
+    const chosen = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'info',
       message: localized('Are you sure?'),
       buttons: [localized('Cancel'), localized('Reset')],

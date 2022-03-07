@@ -706,7 +706,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "Taispeánann an barra taobh teagmhála i Mailspring Pro faisnéis faoi na daoine agus na cuideachtaí a bhfuil tú ag ríomhphost.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "Tá athrú tagtha ón seoladh ó thosaigh tú ag dréacht an dréacht seo. Déan an dréacht a sheiceáil agus cliceáil 'Seol' arís.",
   "The message contains an empty template area.": "Tá réimse teimpléad folamh sa teachtaireacht.",
-  "The message contains an illegial attachment that is not allowed by the server.": "Tá ceangaltán neamhdhleathach sa teachtaireacht nach bhfuil cead ag an bhfreastalaí.",
+  "The message contains an illegal attachment that is not allowed by the server.": "Tá ceangaltán neamhdhleathach sa teachtaireacht nach bhfuil cead ag an bhfreastalaí.",
   "The message has been blocked because no sender is configured.": "Cuireadh bac ar an teachtaireacht toisc nach bhfuil aon seoltóir cumraithe.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "Tá Yahoo curtha bac ar an teachtaireacht - sháraigh tú do theorainn sheasta laethúil.",
   "The message has been blocked by Yahoo's outbound spam filter.": "Tá an teachtaireacht curtha bac ar scagair scam amach Yahoo.",

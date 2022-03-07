@@ -62,8 +62,8 @@ you'll want to get the source, build it, and run it locally.
 
 ## Installing Prerequisites
 
-You'll need git and a recent version of Node.JS (any v7.2.1+ is recommended
-with npm v3.10.10+). [nvm](https://github.com/creationix/nvm) is also highly
+You'll need git and a recent version of Node.JS (currently v16.X is recommended
+with npm v8.1.2+). [nvm](https://github.com/creationix/nvm) is also highly
 recommended. Based on your platform, you'll also need:
 
 **Windows:**

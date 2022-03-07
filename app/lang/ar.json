@@ -707,7 +707,7 @@
   "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "يعرض الشريط الجانبي لجهة الاتصال في Mailspring Pro معلومات حول الأشخاص والشركات التي ترسل إليها بريدًا إلكترونيًا.",
   "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "لقد تغير العنوان منذ أن بدأت بإرسال هذا المسودة. تحقق جيدًا من المسودة وانقر فوق \"إرسال\" مرة أخرى.",
   "The message contains an empty template area.": "تحتوي الرسالة على مساحة قالب فارغة.",
-  "The message contains an illegial attachment that is not allowed by the server.": "تحتوي الرسالة على مرفق غير قانوني لا يسمح به الخادم.",
+  "The message contains an illegal attachment that is not allowed by the server.": "تحتوي الرسالة على مرفق غير قانوني لا يسمح به الخادم.",
   "The message has been blocked because no sender is configured.": "تم حظر الرسالة لعدم تكوين أي مرسل.",
   "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "تم حظر الرسالة بواسطة Yahoo - لقد تجاوزت حد الإرسال اليومي.",
   "The message has been blocked by Yahoo's outbound spam filter.": "تم حظر الرسالة بواسطة مرشح البريد العشوائي الصادر في Yahoo.",

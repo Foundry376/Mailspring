@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import path from 'path';
 import fs from 'fs';
-import { remote } from 'electron';
+
 import { Flexbox } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 
@@ -70,11 +70,11 @@ export default class PreferencesKeymaps extends React.Component<
     if (!fs.existsSync(keymapsFile)) {
       fs.writeFileSync(keymapsFile, '{}');
     }
-    remote.shell.showItemInFolder(keymapsFile);
+    require('@electron/remote').shell.showItemInFolder(keymapsFile);
   }
 
   _onDeleteUserKeymap() {
-    const chosen = remote.dialog.showMessageBoxSync({
+    const chosen = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'info',
       message: localized('Are you sure?'),
       detail: localized('Delete your custom key bindings and reset to the template defaults?'),

@@ -4,6 +4,7 @@ adopt-info: mailspring
 
 confinement: strict
 base: core18
+compression: lzo
 
 architectures:
   - build-on: amd64
