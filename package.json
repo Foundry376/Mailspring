@@ -1,12 +1,12 @@
 {
   "name": "mailspring-root",
   "version": "0.0.1",
-  "description": "Packages required to develop and build Mailspring",
+  "description": "Packages required to develop and build EmailFerry",
   "author": "Mailspring",
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Foundry376/Mailspring.git"
+    "url": "git+https://github.com/ArnavVashisthCodingAccountnew/Mailspring.git"
   },
   "engines": {
     "node": "^16",
