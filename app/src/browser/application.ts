@@ -453,7 +453,9 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-license', () => {
-      shell.openPath(path.join(this.resourcePath, 'static', 'all_licenses.html'));
+      // Workaround to correctly get the unpacked path of the licenses file.
+      // For more information, see: https://github.com/electron/electron/issues/6262
+      shell.openPath(path.join(this.resourcePath, 'static', 'all_licenses.html').replace("app.asar", "app.asar.unpacked"));
     });
 
     if (process.platform === 'darwin') {

@@ -15,8 +15,8 @@ const npmEnvs = {
   system: process.env,
   electron: Object.assign({}, process.env, {
     npm_config_target: npmElectronTarget,
-    npm_config_arch: process.arch,
-    npm_config_target_arch: process.arch,
+    npm_config_arch: process.platform === 'win32' ? 'ia32' : process.arch,
+    npm_config_target_arch: process.platform === 'win32' ? 'ia32' : process.arch,
     npm_config_disturl: 'https://atom.io/download/electron',
     npm_config_runtime: 'electron',
     npm_config_build_from_source: true,
@@ -35,8 +35,8 @@ function npm(cmd, options) {
         cwd: path.resolve(__dirname, '..', cwd),
         env: npmEnvs[env],
       },
-      err => {
-        return err ? reject(err) : resolve(null);
+      (err, stdout) => {
+        return err ? reject(err) : resolve(stdout);
       }
     );
   });
@@ -145,14 +145,23 @@ async function run() {
     rimraf.sync(path.join(appModulesPath, 'better-sqlite3'));
     // install the module pointing to our local sqlite source with custom #DEFINEs set
     const amalgamationPath = path.join(appPath, 'build', 'sqlite-amalgamation');
-    await npm(
+    const resp = await npm(
       `install better-sqlite3@${appDependencies['better-sqlite3']} ` +
         `--no-save --no-audit --build-from-source --sqlite3="${amalgamationPath}"`,
       { cwd: './app', env: 'electron' }
     );
+    console.log(`better-sqlite stdout: ${resp}`);
+
     // remove the build symlinks so that we can build an installer for the app without
     // symlinks out to the sqlite-amalgamation directory.
     rimraf.sync(path.join(appModulesPath, 'better-sqlite3', 'build', 'Release', 'obj'));
+
+    if (!fs.existsSync(path.join(appModulesPath, 'better-sqlite3', 'build', 'Release'))) {
+      console.error(`better-sqlite did not recompile successfully!`);
+      process.exit(1001);
+    } else {
+      console.error(`better-sqlite recompiled successfully!`);
+    }
   }
 
   // if SQlite was STILL not built with HAVE_USLEEP, do not ship this build! We need usleep
