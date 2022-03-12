@@ -1,5 +1,13 @@
 # Mailspring Changelog
 
+## 1.10.1 (3/12/2022)
+
+This release fixes a critical issue in 1.10.0 that caused the app to fail to launch on Windows. This was caused by upstream changes to our AppVeyor build pipeline that changed the default compilation architecture from ia32 to x64 on Windows. We're sorry it took so long to track this down!
+
+- Fixes the "View License" menu item on Windows (Thanks @Phylu!)
+
+- References to "You" in Mailspring now include the label of the relevant account anytime more than one account is present. (Thanks @Phylu!)
+
 ## 1.10.0 (2/28/2022)
 
 This release moves Mailspring from Electron 8 to Electron 14 thanks to the hard work of @Phylu and other community members! 🎉 This brings Wayland support on Linux and many performance and security improvements.
