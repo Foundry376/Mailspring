@@ -62,7 +62,6 @@ export default class AppEnvConstructor {
 
     // Add 'src/global/' to module search path.
     const globalPath = path.join(resourcePath, 'src', 'global');
-    // require('module').globalPaths.push(globalPath);
     require('app-module-path').addPath(globalPath);
 
     const Config = require('./config').default;
