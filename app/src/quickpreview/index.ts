@@ -1,5 +1,5 @@
 
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import path from 'path';
 import { File } from 'mailspring-exports';
 
@@ -336,13 +336,14 @@ function _generateNextCrossplatformPreview() {
 }
 
 async function _generateQuicklookPreview({ filePath }: { filePath: string }) {
-  const dirQuoted = `"${path.dirname(filePath).replace(/"/g, '\\"')}"`;
-  const pathQuoted = `"${filePath.replace(/"/g, '\\"')}"`;
+  const dirQuoted = path.dirname(filePath).replace(/"/g, '\\"')
+  const pathQuoted = filePath.replace(/"/g, '\\"')
 
   return new Promise(resolve => {
-    const cmd = `qlmanage -t -f ${window.devicePixelRatio} -s ${ThumbnailWidth} -o ${dirQuoted} ${pathQuoted}`;
+    const cmd = '/usr/bin/qlmanage';
+    const args = ['-t', "-f", `${window.devicePixelRatio}`, '-s', `${ThumbnailWidth}`, '-o', dirQuoted, pathQuoted]
 
-    exec(cmd, (error, stdout, stderr) => {
+    execFile(cmd, args, (error, stdout, stderr) => {
       // Note: sometimes qlmanage outputs to stderr but still successfully
       // produces a thumbnail. It complains about bad plugins pretty often.
       if (
