@@ -1,5 +1,11 @@
 # Mailspring Changelog
 
+## 1.10.2 (3/29/2022)
+
+This release fixes an issue with Mailspring's quicklook implementation that surfaced yesterday and could allow for remote code execution using specially crafted attachments. Thanks to `posix` for reporting the issue and @Phylu for the fix.
+
+- This release also improves Mailspring's Turkish localization (Thanks @emintufan!)
+
 ## 1.10.1 (3/12/2022)
 
 This release fixes a critical issue in 1.10.0 that caused the app to fail to launch on Windows. This was caused by upstream changes to our AppVeyor build pipeline that changed the default compilation architecture from ia32 to x64 on Windows. We're sorry it took so long to track this down!
