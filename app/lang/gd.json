@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ chan urrainnear a cheangal ris oir tha e nas motha na 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ chaidh a chuir a-steach agus a chomasachadh. Chan fheum feum a thòiseachadh! Mura faic thu am plugan air a luchdachadh, dèan cinnteach gu bheil mearachd ann.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ is e eòlaire a th 'ann. Feuch ri bhith ga cho-èigneachadh agus ga cheangal a-rithist.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ tha teachdaireachdan san t-snàthainn seo falaichte oir chaidh a ghluasad gu sgudal no spama.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ tha teachdaireachdan san t-snàthainn seo falaichte oir chaidh a ghluasad gu sgudal no spama.",
   "%@ others": "%@ feadhainn eile",
   "%@ recently %@ %@": "%@ o chionn ghoirid %@ %@",
   "(No Recipients)": "(Chan fhaigh duine sam bith)",

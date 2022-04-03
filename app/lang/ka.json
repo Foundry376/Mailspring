@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ არ შეიძლება მიერთებული, რადგან 25MB- ზე მეტია.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ დამონტაჟდა და ჩართულია. არ უნდა გადატვირთოთ! თუ ვერ ხედავთ მოდულის დატვირთვას, შეამოწმეთ კონსოლი შეცდომებისთვის.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ არის დირექტორია. სცადეთ შეკუმშვა და ისევ დაამატეთ.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "ამ ველში %@ შეტყობინებები დამალულია, რადგან წაშლილია ან სპამში.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "ამ ველში %@ შეტყობინებები დამალულია, რადგან წაშლილია ან სპამში.",
   "%@ others": "%@ სხვები",
   "%@ recently %@ %@": "%@ ცოტა ხნის წინ %@ %@",
   "(No Recipients)": "(არ მიმღებები)",

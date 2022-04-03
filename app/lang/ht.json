@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ pa ka tache paske li pi gwo pase 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ te enstale ak pèmèt. Pa bezwen rekòmanse! Si ou pa wè Plugin la chaje, tcheke konsole a pou erè.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ se yon anyè. Eseye konpresyon li ak atache l 'ankò.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ mesaj nan fil sa a yo kache paske li te demenaje ale rete nan fatra oswa Spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ mesaj nan fil sa a yo kache paske li te demenaje ale rete nan fatra oswa Spam.",
   "%@ others": "%@ lòt moun",
   "%@ recently %@ %@": "%@ dènyèman %@ %@",
   "(No Recipients)": "(Pa gen benefisyè)",

@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ma tistax tiġi mehmuża minħabba li hija ikbar minn 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ġie installat u attivat. M'hemmx għalfejn terġa 'tibda! Jekk ma tarax il-plugin mgħobbi, iċċekkja l-console għal żbalji.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ huwa direttorju. Ipprova kompressjoni u torganizzaha mill-ġdid.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ il-messaġġi f'dan il-ħajt huma moħbija minħabba li tmexxa għal trash jew spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ il-messaġġi f'dan il-ħajt huma moħbija minħabba li tmexxa għal trash jew spam.",
   "%@ others": "%@ oħrajn",
   "%@ recently %@ %@": "%@ dan l-aħħar %@ %@",
   "(No Recipients)": "(Ebda Riċevitur)",

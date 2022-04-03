@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "[Элсэн] dili mahimong ikabit tungod kay kini mas dako pa kay sa 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "[Элсэн] gi-instalar ug na-enable. Dili kinahanglan nga magsugod pag-usab! Kon wala nimo makita ang plugin nga gisudlan, susiha ang console alang sa mga kasaypanan.",
   "%@ is a directory. Try compressing it and attaching it again.": "[СУ] usa ka directory. Sulayi pagsumpo kini ug ibutang kini pag-usab.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "[Єн] mga mensahe niini nga thread gitago tungod kay kini gibalhin sa basura o spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "[Єн] mga mensahe niini nga thread gitago tungod kay kini gibalhin sa basura o spam.",
   "%@ others": "%@ sa uban",
   "%@ recently %@ %@": "[Болг] Mga bag-ong [Ян] [болгосон]",
   "(No Recipients)": "(Wala'y mga Nagadawat",

@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ni mogoče pripeti, ker je večji od 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ je bil nameščen in omogočen. Ni potrebe po ponovnem zagonu! Če ne vidite naloženega vtičnika, preverite konzolo za napake.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ je direktorij. Poskusite ga stisniti in ponovno pripeti.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ sporočila v tej niti so skrita, ker so bila premaknjena v smeti ali nezaželeno pošto.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ sporočila v tej niti so skrita, ker so bila premaknjena v smeti ali nezaželeno pošto.",
   "%@ others": "%@ drugih",
   "%@ recently %@ %@": "%@ pred kratkim %@ %@",
   "(No Recipients)": "(Brez prejemnikov)",

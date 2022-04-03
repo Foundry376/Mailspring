@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ kan ikke vedhæftes, fordi den er større end 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ er blevet installeret og aktiveret. Ingen grund til at genstarte! Hvis du ikke kan se plugin'et, skal du kontrollere konsollen for fejl.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ er en mappe. Prøv at komprimere det og vedhæfte det igen.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ meddelelser i denne tråd er skjult, fordi den blev flyttet til papirkurven eller spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ meddelelser i denne tråd er skjult, fordi den blev flyttet til papirkurven eller spam.",
   "%@ others": "%@ andre",
   "%@ recently %@ %@": "%@ for nylig %@ %@",
   "(No Recipients)": "(Ingen modtagere)",

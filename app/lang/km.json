@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@មិនអាចភ្ជាប់បានទេព្រោះវាធំជាង 25MB ។",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ត្រូវបានតំឡើងនិងបើកដំណើរការ។ មិនចាំបាច់ចាប់ផ្ដើមឡើងវិញទេ! ប្រសិនបើអ្នកមិនឃើញកម្មវិធីជំនួយដែលបានផ្ទុកសូមពិនិត្យកុងសូលដើម្បីរកកំហុស។",
   "%@ is a directory. Try compressing it and attaching it again.": "%@គឺជាថតមួយ។ សាកល្បងបង្រួមវានិងភ្ជាប់វាម្តងទៀត។",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@សារនៅក្នុងខ្សែស្រឡាយនេះត្រូវបានលាក់ព្រោះវាត្រូវបានផ្លាស់ទីទៅធុងសំរាមឬសារឥតបានការ។",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@សារនៅក្នុងខ្សែស្រឡាយនេះត្រូវបានលាក់ព្រោះវាត្រូវបានផ្លាស់ទីទៅធុងសំរាមឬសារឥតបានការ។",
   "%@ others": "%@ផ្សេងៗទៀត",
   "%@ recently %@ %@": "%@នាពេលថ្មីៗនេះ%@%@",
   "(No Recipients)": "(អ្នកទទួលមិនមាន)",

@@ -47,7 +47,7 @@ export class MessageListHiddenMessagesToggle extends React.Component {
     } else {
       if (numberOfHiddenItems > 1) {
         message = localized(
-          `%@ messages in this thread are hidden because it was moved to trash or spam.`,
+          `%@ messages in this thread are hidden because they were moved to trash or spam.`,
           numberOfHiddenItems
         );
       } else {

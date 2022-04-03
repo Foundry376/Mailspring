@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ne peut pas être joint car sa taille est supérieure à 25 Mo.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ a été installé et activé. Pas besoin de redémarrer! Si vous ne voyez pas le plug-in, vérifiez les erreurs dans la console.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ est un répertoire. Essayez d'en faire une archive et de le joindre à nouveau.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ des messages de cette conversation sont masqués car ils ont été déplacés vers la corbeille ou en spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ des messages de cette conversation sont masqués car ils ont été déplacés vers la corbeille ou en spam.",
   "%@ others": "%@ autres",
   "%@ recently %@ %@": "%@ récemment %@ %@",
   "(No Recipients)": "(Aucun destinataire)",

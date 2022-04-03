@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ nem csatolható, mert nagyobb, mint 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ telepítve és engedélyezve van. Nincs újraindítás! Ha nem látja a betöltött bővítményt, ellenőrizze a konzolt hiba esetén.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ egy könyvtár. Próbálja meg összenyomni és újra csatolni.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ A témában szereplő üzenetek rejtettek, mert a szemetet vagy a levélszemét helyébe került.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ A témában szereplő üzenetek rejtettek, mert a szemetet vagy a levélszemét helyébe került.",
   "%@ others": "%@ továbbival",
   "%@ recently %@ %@": "%@ a közelmúltban %@ %@",
   "(No Recipients)": "(Nincs címzett)",

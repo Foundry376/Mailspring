@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದೆ ಏಕೆಂದರೆ ಅದನ್ನು ಲಗತ್ತಿಸಲಾಗುವುದಿಲ್ಲ.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ಅನ್ನು ಸ್ಥಾಪಿಸಲಾಗಿದೆ ಮತ್ತು ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಮರುಪ್ರಾರಂಭಿಸಬೇಕಾಗಿಲ್ಲ! ನೀವು ಪ್ಲಗ್ಇನ್ ಲೋಡ್ ಮಾಡದಿದ್ದರೆ, ದೋಷಗಳಿಗಾಗಿ ಕನ್ಸೊಲ್ ಅನ್ನು ಪರೀಕ್ಷಿಸಿ.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ಒಂದು ಕೋಶವಾಗಿದೆ. ಅದನ್ನು ಕುಗ್ಗಿಸಲು ಪ್ರಯತ್ನಿಸಿ ಮತ್ತು ಮತ್ತೆ ಅದನ್ನು ಲಗತ್ತಿಸಿ.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ ಈ ಥ್ರೆಡ್ನ ಸಂದೇಶಗಳನ್ನು ಮರೆಮಾಡಲಾಗಿದೆ ಏಕೆಂದರೆ ಅದನ್ನು ಕಸದ ಅಥವಾ ಸ್ಪ್ಯಾಮ್ಗೆ ಸ್ಥಳಾಂತರಿಸಲಾಗಿದೆ.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ ಈ ಥ್ರೆಡ್ನ ಸಂದೇಶಗಳನ್ನು ಮರೆಮಾಡಲಾಗಿದೆ ಏಕೆಂದರೆ ಅದನ್ನು ಕಸದ ಅಥವಾ ಸ್ಪ್ಯಾಮ್ಗೆ ಸ್ಥಳಾಂತರಿಸಲಾಗಿದೆ.",
   "%@ others": "%@ ಇತರರು",
   "%@ recently %@ %@": "%@ ಇತ್ತೀಚೆಗೆ %@ %@",
   "(No Recipients)": "(ಸ್ವೀಕೃತದಾರರು ಇಲ್ಲ)",

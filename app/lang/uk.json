@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ не може бути доданий, оскільки він більше 25 Мб.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ було встановлено та увімкнено. Не потрібно перезавантажувати! Якщо ви не бачите завантажений плагін, перевірте консоль на наявність помилок.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ це каталог. Спробуйте стиснути його та приєднати його знову.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ повідомлення в цьому ланцюжку приховані, оскільки вони було переміщені в кошик або спам.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ повідомлення в цьому ланцюжку приховані, оскільки вони було переміщені в кошик або спам.",
   "%@ others": "ще %@",
   "%@ recently %@ %@": "%@ нещодавно %@ %@",
   "(No Recipients)": "(Без отримувачів)",
