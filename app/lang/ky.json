@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ал 25mb чоъураак болот, анткени тиркелген мүмкүн эмес.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ орнотулган жана иштеткен. Кереги жок кайра! Сиз плагин көргөн жокмун жүктөлгөн болсо, каталарды консолун текшерет.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ каталог болуп саналат. аны кысып, кайра кошуп көр.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ бул бутакта кабарлар аны таштанды же спам көчүп, анткени катылган.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ бул бутакта кабарлар аны таштанды же спам көчүп, анткени катылган.",
   "%@ others": "%@ башкалар",
   "%@ recently %@ %@": "%@ Жакында %@ %@",
   "(No Recipients)": "(No алуучулар)",

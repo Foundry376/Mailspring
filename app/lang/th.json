@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "ไม่สามารถแนบ %@ ได้เนื่องจากมีขนาดใหญ่กว่า 25MB",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ได้รับการติดตั้งและเปิดใช้งานแล้ว ไม่ต้องรีสตาร์ท! หากคุณไม่เห็นปลั๊กอินโหลดให้ตรวจสอบคอนโซลเพื่อดูข้อผิดพลาด",
   "%@ is a directory. Try compressing it and attaching it again.": "%@เป็นไดเรกทอรี ลองบีบอัดและติดอีกครั้ง",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "ข้อความ%@ในหัวข้อนี้ถูกซ่อนไว้เพราะถูกย้ายไปที่ถังขยะหรือสแปม",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "ข้อความ%@ในหัวข้อนี้ถูกซ่อนไว้เพราะถูกย้ายไปที่ถังขยะหรือสแปม",
   "%@ others": "อีก %@",
   "%@ recently %@ %@": "%@เมื่อเร็ว ๆ นี้%@%@",
   "(No Recipients)": "(ไม่มีผู้รับ)",

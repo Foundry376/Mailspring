@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "က 25MB ထက်ပိုကြီးတဲ့သောကွောငျ့%@ပူးတွဲမရနိုင်ပါ။",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ installed နှင့် enabled ခဲ့တာဖြစ်ပါတယ်။ ပြန်လည်စတင်ရန်အဘယ်သူမျှမလိုအပ်ပါ! သင် plugin ကို loaded ကိုတွေ့မြင်ဘူးဆိုရငျ, အမှားအယွင်းများများအတွက် console ကိုစစ်ဆေးပါ။",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ Directory ဖြစ်ပါတယ်။ ကချုံ့ခြင်းနှင့်တဖန်ပူးတွဲကြိုးစားပါ။",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "ဒါကြောင့်အမှိုက်သို့မဟုတ် spam များကိုသို့ပြောင်းရွှေ့ခံခဲ့ရသည်ဘာဖြစ်လို့လဲဆိုတော့%@ဒီချည်ထဲမှာမက်ဆေ့ခ်ျကိုဝှကျထားနေကြသည်။",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "ဒါကြောင့်အမှိုက်သို့မဟုတ် spam များကိုသို့ပြောင်းရွှေ့ခံခဲ့ရသည်ဘာဖြစ်လို့လဲဆိုတော့%@ဒီချည်ထဲမှာမက်ဆေ့ခ်ျကိုဝှကျထားနေကြသည်။",
   "%@ others": "အခြားသူတွေ%@",
   "%@ recently %@ %@": "%@မကြာသေးမီက%@%@",
   "(No Recipients)": "(အဘယ်သူမျှမလက်ခံသူများ)",

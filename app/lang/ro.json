@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ nu poate fi atașat deoarece este mai mare de 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ a fost instalat și activat. Nu este nevoie să reporniți! Dacă nu vedeți pluginul încărcat, verificați consola pentru erori.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ este un director. Încercați să o comprimați și să o atașați din nou.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ Mesajele din acest thread sunt ascunse deoarece au fost mutate în coșul de gunoi sau spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ Mesajele din acest thread sunt ascunse deoarece au fost mutate în coșul de gunoi sau spam.",
   "%@ others": "încă %@",
   "%@ recently %@ %@": "%@ recent %@ %@",
   "(No Recipients)": "(Niciun destinatar)",

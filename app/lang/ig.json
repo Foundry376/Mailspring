@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ enweghị ike ịtinye n'ihi na ọ ka ibu 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ arụnyere na enyere. Enweghị mkpa ịmalitegharịa! Ọ bụrụ na ịnweghị ịhụ ngwa mgbakwunye ahụ, lelee njikwa maka njehie.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ bụ ndekọ. Gbalịa ịmịnye ya ma tinye ya ọzọ.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ ozi dị na eri a zoro ezo n'ihi na a kpaliri ya ka ọ bụrụ ihe ntancha ma ọ bụ spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ ozi dị na eri a zoro ezo n'ihi na a kpaliri ya ka ọ bụrụ ihe ntancha ma ọ bụ spam.",
   "%@ others": "[Ndị ọzọ]",
   "%@ recently %@ %@": "%@ na nso nso a %@ %@",
   "(No Recipients)": "(Ọ dịghị Ndị Nri)",

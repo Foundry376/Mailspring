@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ aan lagu lifaaqi karin sababtoo ah waxay ka weyn tahay 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ayaa la rakibay lana awooday. Looma baahna inaad dib u bilowdo! Haddii aadan arkaynin fiilada lagu rakibay, hubi qalab loogu talagalay qaladaad.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ waa buug. Isku day inaad isku deyso oo mar kale ku xir.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ fariimaha ku jira nambarkan qarsoodi ah maxaa yeelay waxaa loo wareejiyey qashin ama spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ fariimaha ku jira nambarkan qarsoodi ah maxaa yeelay waxaa loo wareejiyey qashin ama spam.",
   "%@ others": "%@ kuwa kale",
   "%@ recently %@ %@": "%@ dhawaan %@ %@",
   "(No Recipients)": "(Looma baahna ardayda)",

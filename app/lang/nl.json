@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ kan niet worden bijgevoegd omdat deze groter is dan 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ is geïnstalleerd en ingeschakeld. Het is niet nodig opnieuw op te starten! Als de plug-in niet wordt geladen, controleert u de console op fouten.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ is een map. Probeer het te comprimeren en opnieuw bij te voegen.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ berichten in deze conversatie zijn verborgen omdat deze naar prullenbak of spam zijn verplaatst.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ berichten in deze conversatie zijn verborgen omdat deze naar prullenbak of spam zijn verplaatst.",
   "%@ others": "%@ anderen",
   "%@ recently %@ %@": "%@ onlangs %@ %@",
   "(No Recipients)": "(Geen geadresseerden)",

@@ -4,7 +4,7 @@
     "%@ cannot be attached because it is larger than 25MB.": "%@ non se pode conectar porque é maior que 25 MB.",
     "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ instalouse e habilitado. Non é necesario reiniciar. Se non ves o complemento cargado, consulta a consola por erros.",
     "%@ is a directory. Try compressing it and attaching it again.": "%@ é un directorio. Tenta comprimir e anexalo de novo.",
-    "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ as mensaxes neste fío están ocultas porque se mudou para lixo ou spam.",
+    "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ as mensaxes neste fío están ocultas porque se mudou para lixo ou spam.",
     "%@ others": "%@ outros",
     "%@ recently %@ %@": "%@ recentemente %@ %@",
     "(No Recipients)": "(Sen destinatarios)",

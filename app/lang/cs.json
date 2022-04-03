@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ nelze připojit, protože je větší než 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ byl nainstalován a povolen. Není třeba restartovat! Pokud nevidíte načtený plugin, zkontrolujte chyby v konzoli.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ je adresář. Zkuste jej zkomprimovat a znovu připojit.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ zprávy v tomto vláknu jsou skryté, protože byly přesunuty do koše nebo spamu.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ zprávy v tomto vláknu jsou skryté, protože byly přesunuty do koše nebo spamu.",
   "%@ others": "další (%@)",
   "%@ recently %@ %@": "%@ nedávno %@ %@",
   "(No Recipients)": "(žádní příjemci)",

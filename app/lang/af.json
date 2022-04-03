@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ kan nie aangeheg word nie, want dit is groter as 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ is geïnstalleer en aangeskakel. Nie nodig om weer te begin nie! As jy nie die prop gelaai het nie, gaan die konsole na foute.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ is 'n gids. Probeer dit te komprimeer en weer aan te heg.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ boodskappe in hierdie draad is weggesteek omdat dit na asblik of gemorspos verskuif is.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ boodskappe in hierdie draad is weggesteek omdat dit na asblik of gemorspos verskuif is.",
   "%@ others": "%@ ander",
   "%@ recently %@ %@": "%@ onlangs %@ %@",
   "(No Recipients)": "(Geen Ontvangers)",

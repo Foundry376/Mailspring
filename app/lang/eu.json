@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ezin da erantsi 25MB baino handiagoa delako.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ instalatu eta gaitu da. Ez da berrabiarazi beharrik! Ez baduzu plugina kargatzen ikusi, kontsultatu erroreak lortzeko kontsola.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ direktorio bat da. Saiatu konprimitzea eta berriro lotzea.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ hari honetako mezuak ezkutatuta daude zaborrontzira edo zaborrontzira eraman delako.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ hari honetako mezuak ezkutatuta daude zaborrontzira edo zaborrontzira eraman delako.",
   "%@ others": "%@ Beste batzuk",
   "%@ recently %@ %@": "%@ duela gutxi %@ %@",
   "(No Recipients)": "(Hartzaileak ez)",

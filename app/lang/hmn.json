@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ tsis tuaj yeem raug txuas vim nws loj dua 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ tau raug ntsia thiab muaj peev xwm. Tsis tas yuav pib dua! Yog tias koj tsis pom cov plugin loaded, xyuas cov console kom raug.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ yog ib lub npe. Sim nrawm nws thiab txuas nws dua.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ cov lus nyob rau hauv cov xov no raug muab zais vim nws tau tsiv mus rau khib nyiab los yog spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ cov lus nyob rau hauv cov xov no raug muab zais vim nws tau tsiv mus rau khib nyiab los yog spam.",
   "%@ others": "%@ lwm tus",
   "%@ recently %@ %@": "%@ tsis ntev los no %@ %@",
   "(No Recipients)": "(Tsis muaj neeg tuaj yeem)",

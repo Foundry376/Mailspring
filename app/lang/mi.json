@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ e kore e taea te hono atu no te mea nui atu i te 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ kua tautaa, kua whakahohea. Kaua e tīmata anō! Mena kaore koe e kite i te pihikete i utaina, tirohia te papatohu mo nga hapa.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ he whaiaronga. Whakamātauria te pehi me te hono ano.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ Kei te huna nga karere i tenei miro no te mea kua nekehia ki te otaota.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ Kei te huna nga karere i tenei miro no te mea kua nekehia ki te otaota.",
   "%@ others": "%@ atu",
   "%@ recently %@ %@": "%@ tata nei %@ %@",
   "(No Recipients)": "(Kore Kaiwhiwhi)",

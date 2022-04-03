@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ayikwazi ukunamathela ngoba inkulu kune-25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ifakwe futhi inikwe amandla. Asikho isidingo sokuqala kabusha! Uma ungaboni i-plugin elayishiwe, hlola i-console ngamaphutha.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ iyinhlangano lwemibhalo. Zama ukuyicindezela futhi uyihlanganise kabusha.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ imilayezo kulolu chungechunge ifihliwe ngoba idluliselwe kudoti noma ugaxekile.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ imilayezo kulolu chungechunge ifihliwe ngoba idluliselwe kudoti noma ugaxekile.",
   "%@ others": "%@ abanye",
   "%@ recently %@ %@": "%@ kamuva %@ %@",
   "(No Recipients)": "(Azikho Abamukeli)",
