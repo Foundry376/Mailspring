@@ -84,6 +84,6 @@
   },
   "optionalDependencies": {
     "macos-notification-state": "^1.3.6",
-    "windows-quiet-hours": "^1.2.5"
+    "windows-quiet-hours": "^2.0.0"
   }
 }
