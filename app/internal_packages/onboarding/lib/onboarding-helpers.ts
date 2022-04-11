@@ -32,7 +32,7 @@ const O365_SCOPES = [
   'Calendars.ReadWrite', // calendar
   'Calendars.ReadWrite.Shared', // calendar
 
-  // Future note: When you exchane the refresh token for an access token, you may
+  // Future note: When you exchange the refresh token for an access token, you may
   // request these two OR the above set but NOT BOTH, because Microsoft has mapped
   // two underlying systems with different tokens onto the single flow and you
   // need to get an outlook token and not a Micrsosoft Graph token to use these APIs.
