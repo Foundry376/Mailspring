@@ -324,6 +324,21 @@ const start = () => {
     app.removeListener('open-file', onOpenFileBeforeReady);
     app.removeListener('open-url', onOpenUrlBeforeReady);
 
+    // Setting the Origin Header to 'localhost' when logging in on Office 365
+    // Otherwise O365 will produce a 400 error on the OAuth Login Process
+    const filter = {
+      urls: ["*://login.microsoftonline.com/*"]
+    };
+
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+      filter,
+      (details, callback) => {
+        console.log(details);
+        details.requestHeaders['Origin'] = 'localhost';
+        callback({ requestHeaders: details.requestHeaders });
+      }
+    );
+
     // Block remote JS execution in a second way in case our <meta> tag approach
     // is compromised somehow https://www.electronjs.org/docs/tutorial/security
     // This CSP string should match the one in app/static/index.html
