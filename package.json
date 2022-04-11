@@ -53,7 +53,7 @@
     "app-module-path": "^2.2.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "17.1.1",
+    "electron": "17.3.1",
     "electron-installer-dmg": "^3.0.0",
     "electron-packager": "15.2.x",
     "electron-winstaller": "2.x.x",
