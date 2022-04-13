@@ -2,6 +2,8 @@ import path from 'path';
 import { ipcRenderer } from 'electron';
 import { BadgeStore } from 'mailspring-exports';
 
+import nativeTheme from 'electron';
+
 // Must be absolute real system path
 // https://github.com/atom/electron/issues/1299
 const { platform } = process;
@@ -82,10 +84,8 @@ class SystemTrayIconStore {
     const unread = BadgeStore.unread();
     const unreadString = (+unread).toLocaleString();
     const isInboxZero = BadgeStore.total() === 0;
-    //const { systemPreferences } = require('electron')
-    //const darkMode = systemPreferences.isDarkMode()
-    //let darkMode = Electron.nativeTheme.shouldUseDarkColors
     let darkMode = false;
+    console.log("NATIVE THEME::", nativeTheme)
     //Electron.systemPreferences.isDarkMode();
 
     let icon = { path: INBOX_FULL_ICON, isTemplateImg: true };
