@@ -8,20 +8,22 @@ branches:
 
 skip_non_tags: true
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 init:
   - ps: $env:commit = $env:appveyor_repo_commit.SubString(0,8)
 
 install:
   - ps: Install-Product node $env:NODE_VERSION
-  - ps: npm config set msvs_version 2017
+  - ps: npm config set msvs_version 2019
+  - ps: node --version
+  - ps: npm --version
 
   # Extract the codesigning certs, encrypted private ssh key
   - ps: |
       C:\OpenSSL-Win32\bin\openssl.exe aes-256-cbc -K $env:encrypted_faf2708e46e2_key -iv $env:encrypted_faf2708e46e2_iv -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
       mkdir app/build/resources/certs;
-      tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
+      tar xf app/build/resources/certs.tar --directory=app/build/resources/;
 
   # Clone the submodule
   - ps: |
@@ -30,6 +32,7 @@ install:
 
 build_script:
   - cmd: npm install
+  - cmd: npm install --global windows-build-tools
   - cmd: cd .\mailsync && .\build.cmd && cd ..\
   - cmd: npm run build
   - cmd: node app/build/create-signed-windows-installer.js
@@ -69,6 +72,6 @@ environment:
       secure: B2pwd1AlmQHjIpIau1NylfEMkwJJ5u7NhxgZcU8WicwP6+cmePnAacYIwpe1fXEf
 
 cache:
-  - node_modules -> package.json
-  - app\node_modules -> app\package.json
-  - '%USERPROFILE%\.npm'
+  # - node_modules -> package.json
+  # - app\node_modules -> app\package.json
+  # - '%USERPROFILE%\.npm'
