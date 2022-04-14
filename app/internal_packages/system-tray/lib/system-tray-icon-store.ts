@@ -1,7 +1,7 @@
 import path from 'path';
 import { ipcRenderer } from 'electron';
 import { BadgeStore } from 'mailspring-exports';
-import nativeTheme from 'electron';
+import { nativeTheme } from '@electron/remote';
 
 // Must be absolute real system path
 // https://github.com/atom/electron/issues/1299
@@ -13,8 +13,6 @@ const INBOX_FULL_UNREAD_ICON = path.join( __dirname, '..', 'assets', platform, '
 const INBOX_ZERO_LIGHT_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero-light.png');
 const INBOX_FULL_LIGHT_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-light.png');
 const INBOX_FULL_UNREAD_LIGHT_ICON = path.join( __dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-NewItems-light.png');
-
-
 /*
 Current / Intended Behavior:
 
@@ -101,8 +99,8 @@ class SystemTrayIconStore {
     const unread = BadgeStore.unread();
     const unreadString = (+unread).toLocaleString();
     const isInboxZero = BadgeStore.total() === 0;
-    let darkMode = true;
-    darkMode = nativeTheme.shouldUseDarkMode;
+    const darkMode = nativeTheme.shouldUseDarkColors;
+    console.log("nativeTheme.shouldUseDarkColors is: ", darkMode)
 
     let icon = { path: INBOX_FULL_ICON, isTemplateImg: true };
     if (darkMode) {
