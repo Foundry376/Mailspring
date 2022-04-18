@@ -33,6 +33,8 @@ addons:
       - build-essential
       - libgnome-keyring-dev
       - libsecret-1-dev
+      - execstack
+      - fakeroot
       - rpm
       - g++-5
       - uuid-dev

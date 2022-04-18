@@ -50,7 +50,6 @@
     "@types/uuid": "^3.4.4",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
-    "app-module-path": "^2.2.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
     "electron": "18.0.3",

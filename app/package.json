@@ -11,6 +11,7 @@
   "license": "GPL-3.0",
   "main": "./src/browser/main.js",
   "dependencies": {
+    "app-module-path": "^2.2.0",
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
     "@electron/remote": "^2.0.1",
     "better-sqlite3": "^7.5.0",
