@@ -25,21 +25,12 @@ install:
       mkdir app/build/resources/certs;
       tar xf app/build/resources/certs.tar --directory=app/build/resources/;
 
-  # Clone the submodule
-  - ps: |
-      $env:GIT_SSH_COMMAND="ssh -q -i app/build/resources/certs/mailsync-deploy-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
-      git submodule --quiet update --init mailsync *>$null
-
 build_script:
   - cmd: npm install
-  - cmd: npm install --global windows-build-tools
-  - cmd: cd .\mailsync && .\build.cmd && cd ..\
   - cmd: npm run build
   - cmd: node app/build/create-signed-windows-installer.js
 
 before_deploy:
-  - cmd: 7z -ttar a dummy %APPVEYOR_BUILD_FOLDER%\app\dist\*.dll %APPVEYOR_BUILD_FOLDER%\app\dist\*.pdb %APPVEYOR_BUILD_FOLDER%\app\dist\mailsync.exe -so | 7z -si -tgzip a .\app\dist\mailsync.tar.gz
-  - ps: Get-ChildItem .\app\dist\*.tar.gz | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
   - ps: Get-ChildItem .\app\dist\MailspringSetup.exe | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
   - ps: Get-ChildItem .\app\dist\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
   - ps: Get-ChildItem .\app\dist\RELEASES | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
@@ -72,6 +63,6 @@ environment:
       secure: B2pwd1AlmQHjIpIau1NylfEMkwJJ5u7NhxgZcU8WicwP6+cmePnAacYIwpe1fXEf
 
 cache:
-  # - node_modules -> package.json
-  # - app\node_modules -> app\package.json
-  # - '%USERPROFILE%\.npm'
+  - node_modules -> package.json
+  - app\node_modules -> app\package.json
+  - '%USERPROFILE%\.npm'

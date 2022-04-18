@@ -14,7 +14,6 @@ addons:
     target_paths: client/${TRAVIS_COMMIT:0:8}/${TRAVIS_OS_NAME}
     permissions: public-read
     paths:
-      - mailsync.tar.gz
       - Mailspring.dmg
       - Mailspring.zip
       - $(find . -type f -name mailspring-*.deb | tr "\n" ":")
@@ -31,33 +30,11 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - autoconf
-      - automake
       - build-essential
-      - clang
-      - cmake
-      - execstack
-      - fakeroot
-      - g++-5
-      - git
-      - libc-ares-dev
-      - libctemplate-dev
-      - libcurl4-openssl-dev
-      - libglib2.0-dev
       - libgnome-keyring-dev
-      - libicu-dev
-      - libsasl2-dev
-      - libsasl2-modules
-      - libsasl2-modules-gssapi-mit
       - libsecret-1-dev
-      - libssl-dev
-      - libtidy-dev
-      - libtool
-      - libxext-dev
-      - libxkbfile-dev
-      - libxml2-dev
-      - libxtst-dev
       - rpm
+      - g++-5
       - uuid-dev
       - xvfb
 
@@ -71,7 +48,7 @@ matrix:
   include:
     - os: linux
       env: CC=gcc-5 CXX=g++-5
-      dist: xenial
+      dist: bionic
     - os: osx
       osx_image: xcode10.1
       env: CC=clang CXX=clang++ SIGN_BUILD=true
@@ -86,8 +63,6 @@ before_install:
     [ "$TRAVIS_REPO_SLUG" != "Foundry376/Mailspring" ]
   - source app/build/resources/certs/mac/set_unix_env.sh ||
     [ "$TRAVIS_REPO_SLUG" != "Foundry376/Mailspring" ]
-  # Checkout the C++ Mailsync codebase
-  - git submodule update --init mailsync
 
 # Resolves https://travis-ci.community/t/npm-ci-will-fail-if-cached-dependency-includes-npm/4203/6
 # Don't run the copy of npm inside node_modules when erasing + building the node_modules...
@@ -99,15 +74,12 @@ before_script:
 script:
   - npm run ci-setup-mac-keychain
   - npm run lint
-  - mailsync/build.sh
-  - mv ./mailsync ./mailsync-src
   - DEBUG=electron-packager,electron-osx-sign npm run build
 
 cache:
   directories:
     - node_modules
     - app/node_modules
-    - /tmp/mailsync-build-deps-v2
 
 after_success:
   # Prepare the snapcraft environment
