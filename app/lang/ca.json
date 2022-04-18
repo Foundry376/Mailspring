@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ no es pot connectar perquè és més gran que 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ s'ha instal·lat i habilitat. No cal reiniciar! Si no veieu el connector carregat, consulteu la consola per obtenir errors.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ és un directori. Intenteu comprimir-lo i connectar-lo de nou.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ els missatges d'aquest fil s'oculten perquè s'ha traslladat a la paperera o al correu brossa.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ els missatges d'aquest fil s'oculten perquè s'ha traslladat a la paperera o al correu brossa.",
   "%@ others": "%@ més",
   "%@ recently %@ %@": "%@ recentment %@ %@",
   "(No Recipients)": "(Sense destinataris)",

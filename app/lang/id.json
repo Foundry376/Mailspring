@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ tidak dapat dilampirkan karena lebih besar dari 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ telah diinstal dan diaktifkan. Tidak perlu me-restart! Jika Anda tidak melihat plugin dimuat, periksa konsol untuk kesalahan.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ adalah direktori. Coba mengompres dan melampirkannya lagi.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ pesan di utas ini disembunyikan karena dipindahkan ke sampah atau spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ pesan di utas ini disembunyikan karena dipindahkan ke sampah atau spam.",
   "%@ others": "%@ lainnya",
   "%@ recently %@ %@": "%@ baru-baru ini %@ %@",
   "(No Recipients)": "(Tidak Ada Penerima)",

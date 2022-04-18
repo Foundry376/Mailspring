@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25MB қарағанда үлкен болғандықтан, оған қосыла алмайды.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ орнатылған және қосылған. Қайта іске қосудың қажеті жоқ! Жүктелген плагинді көрмесеңіз, консольді қателерге тексеріңіз.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ - каталог. Оны қысып көріңіз және оны қайтадан орнатыңыз.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ осы ағындағы хабарламалар жасырылады, себебі ол қоқысқа немесе спамға жылжытылды.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ осы ағындағы хабарламалар жасырылады, себебі ол қоқысқа немесе спамға жылжытылды.",
   "%@ others": "%@ басқалар",
   "%@ recently %@ %@": "%@ жақында %@ %@",
   "(No Recipients)": "(Жоқ алушылар)",

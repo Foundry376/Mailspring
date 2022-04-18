@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ nikarin girêdan ji ber ku ew ji 25MB mezintir e.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ sazkirin û çalak kirin. Pêdiviya hewce ne hewce ye! Ger hûn pelê barkirinê nebînin, kontrola konsolê kontrol bikin.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ pirtûkxaneyê ye. Vebijêrin lêgerîna wî û dîsa veguhestin.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ Peyama vê mijara veşartî nebe, çimkî ew bi qeçax an jî spama veguherandin.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ Peyama vê mijara veşartî nebe, çimkî ew bi qeçax an jî spama veguherandin.",
   "%@ others": "%@ din",
   "%@ recently %@ %@": "%@ dawîn %@ %@",
   "(No Recipients)": "(Na Serkeftî nîne)",

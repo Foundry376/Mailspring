@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ayikwazi ukuqhotyoshelweyo kuba inkulu kune-25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ifakiwe kwaye inikwe amandla. Akukho mfuneko yokuqalisa kwakhona! Ukuba awuyi kubona iplagi elayishiwe, khangela ikhonsole ngokuphambuka.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ yincwadi. Zama ukuyixilonga kwaye uyifake kwakhona.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ imiyalezo kule mfihla iyafihlakeleka ngenxa yokuba ishukunyiswa kudoti okanye ugaxekile.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ imiyalezo kule mfihla iyafihlakeleka ngenxa yokuba ishukunyiswa kudoti okanye ugaxekile.",
   "%@ others": "%@ abanye",
   "%@ recently %@ %@": "%@ kutshanje %@ %@",
   "(No Recipients)": "(Akukho Abafumanayo)",

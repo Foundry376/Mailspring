@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ kin net oanpast wurde omdat it grutter is as 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ is ynstalleare en ynskeakele. Gjin need op 'e nij! As jo ​​de plugin net laden sjogge, kontrolearje de konsole foar fouten.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ is in directory. Besykje te komprimearjen en it opnij oan te nimmen.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ berjochten yn dizze thread binne ferburgen omdat it ferpleatst waard nei jiske of spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ berjochten yn dizze thread binne ferburgen omdat it ferpleatst waard nei jiske of spam.",
   "%@ others": "%@ oaren",
   "%@ recently %@ %@": "%@ onlangs %@ %@",
   "(No Recipients)": "(Gjin ûntfangers)",

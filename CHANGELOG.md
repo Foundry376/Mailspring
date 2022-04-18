@@ -1,5 +1,21 @@
 # Mailspring Changelog
 
+## 1.10.3 (4/14/2022)
+
+This release fixes several important issues and moves Mailspring to Electron 18:
+
+- Fix the show original functionality by correctly electron/remote (Thanks @Phylu!)
+
+- Adjust text when messages are hidden after being moved to trash or spam (Thanks @Phylu!)
+
+- Upgrade electron to 18.0.1 and windows-quiet-hours to 2.0.0 in order to fix notifications on windows (Thanks @Phylu!)
+
+- Fix spellchecking by adjusting languages based on the supported hunspell languages (Thanks @Phylu!)
+
+- Updated some wrong auto translations to Spanish (Thanks @Javiermartingonzalez!)
+
+- Fix login to Office 365 Accounts (Thanks @Phylu!)
+
 ## 1.10.2 (3/29/2022)
 
 This release fixes an issue with Mailspring's quicklook implementation that surfaced yesterday and could allow for remote code execution using specially crafted attachments. Thanks to `posix` for reporting the issue and @Phylu for the fix.

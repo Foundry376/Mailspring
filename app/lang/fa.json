@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ نمی تواند متصل شود چرا که آن بزرگتر از 25MB است.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ نصب و فعال شده است. بدون نیاز به راه اندازی مجدد! اگر پلاگین را بارگیری نکنید، کنسول را برای خطاها بررسی کنید.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ دایرکتوری است. سعی کنید آن را فشرده کنید و دوباره آن را ببندید.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ پیام های این موضوع پنهان شده اند زیرا به سطل زباله یا هرزنامه منتقل شده اند.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ پیام های این موضوع پنهان شده اند زیرا به سطل زباله یا هرزنامه منتقل شده اند.",
   "%@ others": "%@ دیگران",
   "%@ recently %@ %@": "%@ به تازگی %@ %@",
   "(No Recipients)": "(بدون دریافت کنندگان)",

@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ لا يمكن إرفاقه لأنه أكبر من 25 ميغابايت.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ تم تثبيتها وتمكينها. لا حاجة لإعادة! إذا لم تشاهد المكوّن الإضافي الذي تم تحميله ، فتحقق من وحدة التحكم بحثًا عن الأخطاء.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ هو دليل. حاول ضغطها ثم إرفاقها مرة أخرى.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ تكون الرسائل في سلسلة المحادثات هذه مخفية نظرًا لأنه تم نقلها إلى المهملات أو الرسائل غير المرغوب فيها.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ تكون الرسائل في سلسلة المحادثات هذه مخفية نظرًا لأنه تم نقلها إلى المهملات أو الرسائل غير المرغوب فيها.",
   "%@ others": "%@ آخرين",
   "%@ recently %@ %@": "%@ %@ %@ مؤخرا",
   "(No Recipients)": "(لا يوجد مستلمون)",

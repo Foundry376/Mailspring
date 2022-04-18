@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ संलग्न नहीं किया जा सकता क्योंकि यह 25 एमबी से बड़ा है।",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ स्थापित और सक्षम किया गया है। पुनरारंभ करने की कोई ज़रूरत नहीं है! यदि आपको प्लगइन लोड नहीं होता है, तो त्रुटियों के लिए कंसोल की जांच करें।",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ एक निर्देशिका है। इसे संपीड़ित करने और इसे फिर से जोड़ने का प्रयास करें।",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ इस धागे में संदेश छुपाए गए हैं क्योंकि इसे ट्रैश या स्पैम में ले जाया गया था।",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ इस धागे में संदेश छुपाए गए हैं क्योंकि इसे ट्रैश या स्पैम में ले जाया गया था।",
   "%@ others": "%@ अन्य",
   "%@ recently %@ %@": "%@ हाल ही में %@ %@",
   "(No Recipients)": "(कोई प्राप्तकर्ता नहीं)",

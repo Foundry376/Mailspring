@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "25MB ஐ விட பெரியதாக இருப்பதால் %@ இணைக்க முடியாது.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ நிறுவப்பட்டு செயல்படுத்தப்பட்டது. மறுதொடக்கம் தேவையில்லை! சொருகி ஏற்றப்பட்டதை நீங்கள் காணவில்லை என்றால், பிழைகள் கன்சோலை சரிபார்க்கவும்.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ஒரு அடைவு. அதை அழுத்தி அதை மீண்டும் இணைக்கவும்.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ இந்த நூலில் உள்ள செய்திகள் மறைக்கப்பட்டன, ஏனெனில் அது குப்பை அல்லது ஸ்பேம் நகர்த்தப்பட்டது.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ இந்த நூலில் உள்ள செய்திகள் மறைக்கப்பட்டன, ஏனெனில் அது குப்பை அல்லது ஸ்பேம் நகர்த்தப்பட்டது.",
   "%@ others": "%@ மற்றவர்கள்",
   "%@ recently %@ %@": "%@ சமீபத்தில் %@ %@",
   "(No Recipients)": "(பெறுநர்கள் இல்லை)",

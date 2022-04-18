@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ nevar pievienot, jo tas ir lielāks par 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ir instalēta un iespējota. Nav nepieciešams restartēt! Ja neredzat ielādēto spraudni, pārbaudiet konsole par kļūdām.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ir katalogs. Mēģiniet to saspiest un piestiprināt vēlreiz.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ ziņas šajā pavedē ir slēptas, jo tās tika pārvietotas uz miskasti vai surogātpastu.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ ziņas šajā pavedē ir slēptas, jo tās tika pārvietotas uz miskasti vai surogātpastu.",
   "%@ others": "%@ citi",
   "%@ recently %@ %@": "%@ nesen %@ %@",
   "(No Recipients)": "(Nav saņēmēju)",

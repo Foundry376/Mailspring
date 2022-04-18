@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ không thể được gắn bởi vì nó lớn hơn 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ đã được cài đặt và kích hoạt. Không cần phải khởi động lại! Nếu bạn không thấy plugin được tải, hãy kiểm tra lỗi giao diện điều khiển.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ là một thư mục. Hãy thử nén và đính kèm lại.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ thư trong chuỗi này bị ẩn vì thư đã bị chuyển vào thùng rác hoặc spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ thư trong chuỗi này bị ẩn vì thư đã bị chuyển vào thùng rác hoặc spam.",
   "%@ others": "%@ người khác",
   "%@ recently %@ %@": "%@ gần đây %@ %@",
   "(No Recipients)": "(Không có người nhận)",
