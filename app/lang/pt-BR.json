@@ -8,7 +8,7 @@
     "%@ foi instalado e ativado. Não há necessidade de reiniciar! Se você não ver o plug-in carregado, verifique se há erros no console.",
   "%@ is a directory. Try compressing it and attaching it again.":
     "%@ é um diretório. Tente comprimir e anexar novamente.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.":
+  "%@ messages in this thread are hidden because they were moved to trash or spam.":
     "%@ mensagens nesta conversa estão ocultas porque foram movidas para lixo ou spam.",
   "%@ others": "mais %@",
   "%@ recently %@ %@": "%@ recentemente %@ %@",

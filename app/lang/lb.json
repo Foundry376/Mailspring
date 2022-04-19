@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ kann net verbonnen sinn, well et méi wéi 25MB sinn.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ass installéiert a aktivéiert ginn. Kee Grond fir nei ze starten! Wann Dir de Plugin net gelueden gesitt, kontrolléiert d'Konsole fir Feeler.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ass e Verwalter. Verspriechen et ze drécke an et nees erëmzeginn.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ Messagen an dësem Thread verstoppt ginn, well se an de Mais oder Spam verschoben gouf.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ Messagen an dësem Thread verstoppt ginn, well se an de Mais oder Spam verschoben gouf.",
   "%@ others": "%@ aner",
   "%@ recently %@ %@": "%@ kuerzem %@ %@",
   "(No Recipients)": "(Neen Entréeën)",

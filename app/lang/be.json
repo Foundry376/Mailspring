@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ не могуць быць прымацаваныя, таму што гэта больш, чым 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ быў усталяваны і ўключаны. Няма неабходнасці перазагрузкі! Калі вы не бачыце убудова загружаны, праверце кансоль на наяўнасць памылак.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ з'яўляецца каталогам. Паспрабуйце сціснуць яго і прыклаўшы яго зноў.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ паведамленні ў гэтай тэме схаваныя, таму што ён быў перамешчаны ў кошык або спам.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ паведамленні ў гэтай тэме схаваныя, таму што ён быў перамешчаны ў кошык або спам.",
   "%@ others": "%@ іншыя",
   "%@ recently %@ %@": "%@ %@ %@ нядаўна",
   "(No Recipients)": "(Няма Атрымальнікі)",

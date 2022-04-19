@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ከ 25 ሜባ በላይ ስለሆነ መያያዝ አይቻልም.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ተጭኗል እናም ነቅቷል. እንደገና ማስጀመር አያስፈልግም! ተሰኪው ከተጫነ, የኮንፒውሉ ስህተት ላላቸው ስህተቶች ይመልከቱ.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ማውጫ ነው. ማመላከት እና እንደገና ማያያዝ ይሞክሩ.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ በዚህ ፈለግ ውስጥ ያሉ መልዕክቶች ተደብቀው ወደ መጣያ ወይም አይፈለጌ መልዕክት ስለተወሰዱ ነው.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ በዚህ ፈለግ ውስጥ ያሉ መልዕክቶች ተደብቀው ወደ መጣያ ወይም አይፈለጌ መልዕክት ስለተወሰዱ ነው.",
   "%@ others": "%@ ሌሎች",
   "%@ recently %@ %@": "%@ በቅርብ %@ %@",
   "(No Recipients)": "(ምንም ተቀባዮች)",

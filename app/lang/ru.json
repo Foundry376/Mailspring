@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ не может быть прикреплен, потому что он больше 25 МБ.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ был установлен и включен. Не нужно перезапускать! Если вы не видите загруженный плагин, проверьте консоль на наличие ошибок.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ это каталог. Попробуйте сжать его и прикрепить снова.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ сообщения в этой цепочке скрыты, потому что они были перемещены в корзину или спам.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ сообщения в этой цепочке скрыты, потому что они были перемещены в корзину или спам.",
   "%@ others": "%@ др.",
   "%@ recently %@ %@": "%@ недавно %@ %@",
   "(No Recipients)": "(Нет получателей)",

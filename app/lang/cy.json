@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "Ni ellir cysylltu â %@ oherwydd ei fod yn fwy na 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ wedi ei osod a'i alluogi. Does dim angen ailgychwyn! Os nad ydych yn gweld yr ategyn wedi'i lwytho, edrychwch ar y consol am wallau.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ yw cyfeiriadur. Ceisiwch ei gywasgu a'i atodi eto.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ Mae negeseuon yn yr erthygl hon yn gudd oherwydd ei fod yn cael ei symud i sbwriel neu sbam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ Mae negeseuon yn yr erthygl hon yn gudd oherwydd ei fod yn cael ei symud i sbwriel neu sbam.",
   "%@ others": "%@ eraill",
   "%@ recently %@ %@": "%@ yn ddiweddar %@ %@",
   "(No Recipients)": "(Dim Derbynwyr)",

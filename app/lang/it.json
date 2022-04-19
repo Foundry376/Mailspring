@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ non può essere allegato perché è più grande di 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ è stato installato e abilitato. Non c'è bisogno di riavviare! Se non vedi caricato il plugin, controlla la console per eventuali errori.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ è una directory. Prova a comprimerla e allegarla di nuovo.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ i messaggi in questo thread sono nascosti perché sono stati spostati nel cestino o nello spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ i messaggi in questo thread sono nascosti perché sono stati spostati nel cestino o nello spam.",
   "%@ others": "Altri %@",
   "%@ recently %@ %@": "%@ recentemente %@ %@",
   "(No Recipients)": "(Nessun destinatario)",

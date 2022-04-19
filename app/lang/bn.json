@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ সংযুক্ত করা যাবে না কারণ এটি 25MB চেয়ে বড়।",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ইনস্টল করা হয়েছে এবং সক্রিয় করা হয়েছে। পুনরায় চালু করার দরকার নেই! প্লাগিন লোড করা না থাকলে, কনসোলের জন্য কনসোল পরীক্ষা করুন।",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ একটি ডিরেক্টরি। এটি সংকুচিত করার চেষ্টা করুন এবং এটি আবার সংযুক্ত।",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ এই থ্রেডে বার্তা লুকানো কারণ এটি ট্র্যাশ বা স্প্যামে সরানো হয়েছে।",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ এই থ্রেডে বার্তা লুকানো কারণ এটি ট্র্যাশ বা স্প্যামে সরানো হয়েছে।",
   "%@ others": "%@ অন্যান্য",
   "%@ recently %@ %@": "%@ সম্প্রতি %@ %@",
   "(No Recipients)": "(কোন প্রাপক নেই)",

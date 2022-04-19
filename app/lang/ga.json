@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "Ní féidir %@ a bheith ag gabháil leis toisc go bhfuil sé níos mó ná 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "Tá suiteáilte agus cumasaithe %@. Ní gá a atosú! Mura bhfeiceann tú an breiseán atá luchtaithe, seiceáil an consól le haghaidh earráidí.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ Is eolaire é. Déan iarracht é a chomhbhrú agus é a cheangal arís.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ Tá teachtaireachtaí sa snáithe seo i bhfolach toisc gur aistríodh é go bruscar nó ar spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ Tá teachtaireachtaí sa snáithe seo i bhfolach toisc gur aistríodh é go bruscar nó ar spam.",
   "%@ others": "%@ daoine eile",
   "%@ recently %@ %@": "%@ le déanaí %@ %@",
   "(No Recipients)": "(Uimh Fhaighteoirí)",

@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ tsy azo ampifandraisana satria lehibe noho 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ dia napetraka ary navela. Tsy mila fanavaozana intsony! Raha tsy hitanao ilay plugin load, dia jereo ny konsole amin'ny diso.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ dia rakitra. Andramo ny famoretana ary avereno izany indray.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ ireo hafatra ao anatin'io lohahevitra io dia miafina satria nalefa any amin'ny fako na spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ ireo hafatra ao anatin'io lohahevitra io dia miafina satria nalefa any amin'ny fako na spam.",
   "%@ others": "%@ hafa",
   "%@ recently %@ %@": "%@ vao haingana %@ %@",
   "(No Recipients)": "(No Receivers)",

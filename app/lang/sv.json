@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ kan inte fästas eftersom den är större än 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ har installerats och aktiverats. Inget behov av att starta om! Om du inte ser pluginbelastningen, kontrollera konsolen för fel.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ är en katalog. Prova att komprimera den och fästa den igen.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@-meddelanden i den här tråden är dolda eftersom den flyttades till skräp eller spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@-meddelanden i den här tråden är dolda eftersom den flyttades till skräp eller spam.",
   "%@ others": "%@ andra",
   "%@ recently %@ %@": "%@ nyligen %@ %@",
   "(No Recipients)": "(Inga mottagare)",

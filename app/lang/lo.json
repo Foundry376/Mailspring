@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ບໍ່ສາມາດຄັດຕິດໄດ້ເພາະມັນມີຂະຫນາດໃຫຍ່ກວ່າ 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ໄດ້ຖືກຕິດຕັ້ງແລະເປີດໃຊ້ງານ. ບໍ່ຈໍາເປັນຕ້ອງເລີ່ມຕົ້ນໃຫມ່! ຖ້າທ່ານບໍ່ເຫັນ plugin loaded, ກວດເບິ່ງ console ສໍາລັບຂໍ້ຜິດພາດ.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ແມ່ນໄດເລກະທໍລີ. ລອງຕີມັນແລະຕິດມັນອີກ.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ ຂໍ້ຄວາມໃນກະທູ້ນີ້ແມ່ນຖືກເຊື່ອງໄວ້ຍ້ອນວ່າມັນຖືກຍ້າຍໄປຂີ້ເຫຍື້ອຫຼືຂີ້ເຫຍື້ອ.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ ຂໍ້ຄວາມໃນກະທູ້ນີ້ແມ່ນຖືກເຊື່ອງໄວ້ຍ້ອນວ່າມັນຖືກຍ້າຍໄປຂີ້ເຫຍື້ອຫຼືຂີ້ເຫຍື້ອ.",
   "%@ others": "%@ ອື່ນໆ",
   "%@ recently %@ %@": "%@ recently %@ %@",
   "(No Recipients)": "(ຜູ້ຮັບທີ່ບໍ່ມີ)",

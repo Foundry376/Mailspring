@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "파일 %@의 크기가 25MB를 넘어가서 첨부할 수 없습니다.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "플러그인 %@이(가) 설치 및 활성화되었습니다. 다시 시작할 필요가 없습니다! 로드 된 플러그인이 표시되지 않으면 콘솔에서 오류를 확인하십시오.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@는 디렉토리입니다. 압축해서 첨부해보세요.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "이 스레드의 %@개의 메세지는 휴지통이나 스팸으로 이동했기 때문에 숨겨져 있습니다.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "이 스레드의 %@개의 메세지는 휴지통이나 스팸으로 이동했기 때문에 숨겨져 있습니다.",
   "%@ others": "%@명",
   "%@ recently %@ %@": "%@ 최근 %@ %@",
   "(No Recipients)": "(수신자 없음)",

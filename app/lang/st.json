@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ e ke ke ea khomareloa kaha e kholo ho feta 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ e kentse mme e khoneha. Ha ho hlokahale ho qala hape! Haeba u sa bone plugin e jereng, hlahloba console bakeng sa liphoso.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ke mohala. Leka ho e hatisa le ho e kenya hape.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ melaetsa ea khoele ena e patehile hobane e isitsoe ho litšila kapa spam.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ melaetsa ea khoele ena e patehile hobane e isitsoe ho litšila kapa spam.",
   "%@ others": "%@ ba bang",
   "%@ recently %@ %@": "%@ haufinyane %@ %@",
   "(No Recipients)": "(Ha ho baeti)",

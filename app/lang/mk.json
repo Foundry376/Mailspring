@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ не може да се прикачи бидејќи е поголем од 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ е инсталиран и овозможен. Нема потреба да се рестартира! Ако не го видите вчитаниот приклучок, проверете ја конзолата за грешки.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ е директориум. Обидете се да ја компресирате и повторно да го прикачите.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ пораките во оваа тема се скриени затоа што биле преместени во ѓубре или спам.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ пораките во оваа тема се скриени затоа што биле преместени во ѓубре или спам.",
   "%@ others": "%@ други",
   "%@ recently %@ %@": "%@ неодамна %@ %@",
   "(No Recipients)": "(Нема примачи)",

@@ -8,35 +8,29 @@ branches:
 
 skip_non_tags: true
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 init:
   - ps: $env:commit = $env:appveyor_repo_commit.SubString(0,8)
 
 install:
   - ps: Install-Product node $env:NODE_VERSION
-  - ps: npm config set msvs_version 2017
+  - ps: npm config set msvs_version 2019
+  - ps: node --version
+  - ps: npm --version
 
   # Extract the codesigning certs, encrypted private ssh key
   - ps: |
       C:\OpenSSL-Win32\bin\openssl.exe aes-256-cbc -K $env:encrypted_faf2708e46e2_key -iv $env:encrypted_faf2708e46e2_iv -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
       mkdir app/build/resources/certs;
-      tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
-
-  # Clone the submodule
-  - ps: |
-      $env:GIT_SSH_COMMAND="ssh -q -i app/build/resources/certs/mailsync-deploy-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
-      git submodule --quiet update --init mailsync *>$null
+      tar xf app/build/resources/certs.tar --directory=app/build/resources/;
 
 build_script:
   - cmd: npm install
-  - cmd: cd .\mailsync && .\build.cmd && cd ..\
   - cmd: npm run build
   - cmd: node app/build/create-signed-windows-installer.js
 
 before_deploy:
-  - cmd: 7z -ttar a dummy %APPVEYOR_BUILD_FOLDER%\app\dist\*.dll %APPVEYOR_BUILD_FOLDER%\app\dist\*.pdb %APPVEYOR_BUILD_FOLDER%\app\dist\mailsync.exe -so | 7z -si -tgzip a .\app\dist\mailsync.tar.gz
-  - ps: Get-ChildItem .\app\dist\*.tar.gz | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
   - ps: Get-ChildItem .\app\dist\MailspringSetup.exe | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
   - ps: Get-ChildItem .\app\dist\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
   - ps: Get-ChildItem .\app\dist\RELEASES | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }

@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ਨੱਥੀ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ ਕਿਉਂਕਿ ਇਹ 25MB ਤੋਂ ਵੱਡਾ ਹੈ.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ਨੂੰ ਸਥਾਪਿਤ ਅਤੇ ਸਮਰਥਿਤ ਕੀਤਾ ਗਿਆ ਹੈ ਮੁੜ ਸ਼ੁਰੂ ਕਰਨ ਦੀ ਕੋਈ ਲੋੜ ਨਹੀਂ! ਜੇ ਤੁਸੀਂ ਪਲੱਗਇਨ ਨੂੰ ਲੋਡ ਨਹੀਂ ਕਰਦੇ ਹੋ, ਤਾਂ ਗਲਤੀਆਂ ਲਈ ਕਨਸੋਲ ਵੇਖੋ.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ ਇਕ ਡਾਇਰੈਕਟਰੀ ਹੈ. ਇਸ ਨੂੰ ਕੰਪਰੈੱਸ ਕਰਨ ਅਤੇ ਮੁੜ ਜੋੜਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ ਇਸ ਥ੍ਰੈਸ਼ ਵਿੱਚ ਸੰਦੇਸ਼ ਲੁਕਾਏ ਜਾਂਦੇ ਹਨ ਕਿਉਂਕਿ ਇਸਨੂੰ ਕੂੜੇ ਜਾਂ ਸਪੈਮ ਵਿੱਚ ਲਿਜਾਇਆ ਗਿਆ ਸੀ.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ ਇਸ ਥ੍ਰੈਸ਼ ਵਿੱਚ ਸੰਦੇਸ਼ ਲੁਕਾਏ ਜਾਂਦੇ ਹਨ ਕਿਉਂਕਿ ਇਸਨੂੰ ਕੂੜੇ ਜਾਂ ਸਪੈਮ ਵਿੱਚ ਲਿਜਾਇਆ ਗਿਆ ਸੀ.",
   "%@ others": "%@ ਹੋਰ",
   "%@ recently %@ %@": "%@ ਹਾਲ ਹੀ ਵਿੱਚ %@ %@",
   "(No Recipients)": "(ਕੋਈ ਪ੍ਰਾਪਤਕਰਤਾ ਨਹੀਂ)",

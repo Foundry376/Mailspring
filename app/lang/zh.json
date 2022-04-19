@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@因为大于25MB所以无法附加。",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@已安装并启用。无需重启！如果您没有看到加载的插件，请检查控制台是否有错误。",
   "%@ is a directory. Try compressing it and attaching it again.": "%@是一个目录。尝试压缩它并再次连接。",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@此线程中的邮件被隐藏，因为它被移动到垃圾邮件或垃圾邮件。",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@此线程中的邮件被隐藏，因为它被移动到垃圾邮件或垃圾邮件。",
   "%@ others": "%@其他人",
   "%@ recently %@ %@": "%@最近%@%@",
   "(No Recipients)": "（没有收件人）",

@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ එය 25MB ට වඩා විශාල වන බැවින් එයට ඇමිණිය නොහැකිය.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ස්ථාපනය කර සක්රීය කර ඇත. නැවත ආරම්භ කිරීම අවශ්ය නොවේ! ඔබ ප්ලගිනය නැරඹීම නොලැබුණහොත්, දෝශයන් සඳහා කොන්සෝලය පරීක්ෂා කරන්න.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ නාමාවලියකි. එය සම්පීඩනය කර නැවත එය සවි කර බලන්න.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ මෙම කූඩයේ පණිවිඩය කුණු කූඩයට හෝ ස්පෑම් වෙතට මාරු කර ඇති නිසා සැඟව සිටී.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ මෙම කූඩයේ පණිවිඩය කුණු කූඩයට හෝ ස්පෑම් වෙතට මාරු කර ඇති නිසා සැඟව සිටී.",
   "%@ others": "%@ අන් අය",
   "%@ recently %@ %@": "%@ මෑතදී %@ %@",
   "(No Recipients)": "(කිසිදු ලබන්නන්)",

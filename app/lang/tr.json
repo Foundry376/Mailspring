@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25 MB'den büyük olduğu için eklenemez.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ kuruldu ve etkinleştirildi. Yeniden başlatmaya gerek yok! Yüklenen eklentiyi görmüyorsanız, hatalar için konsolu denetleyin.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ bir dizindir. Sıkıştırmayı ve yeniden eklemeyi deneyin.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "Bu ileti dizisindeki %@ ileti çöp kutusuna veya spam'e taşındığından gizlendi.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "Bu ileti dizisindeki %@ ileti çöp kutusuna veya spam'e taşındığından gizlendi.",
   "%@ others": "diğer %@ kişi",
   "%@ recently %@ %@": "%@ son zamanlarda %@ %@",
   "(No Recipients)": "(Alıcı Yok)",

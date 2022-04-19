@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25MB-ээс их учраас хавсаргаж болохгүй.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ суулгаж, идэвхжүүлсэн. Дахин эхлүүлэх шаардлагагүй! Хэрэв та залгаасын ачаалалыг хараагүй бол консолыг алдаа шалгаарай.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ нь сан юм. Үүнийг шахаж дахин оруулаарай.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ Энэ зурвас дахь мессежүүд нь хогийн сав, эсвэл спам руу зөөсөн учраас далдлагдсан байна.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ Энэ зурвас дахь мессежүүд нь хогийн сав, эсвэл спам руу зөөсөн учраас далдлагдсан байна.",
   "%@ others": "%@ бусад",
   "%@ recently %@ %@": "%@ саяхан %@ %@",
   "(No Recipients)": "(Хүлээн авагч байхгүй)",

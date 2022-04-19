@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ne povas esti ligita ĉar ĝi estas pli granda ol 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ estis instalita kaj ebligita. Ne necesas rekomenci! Se vi ne vidas la kromprogramon ŝarĝita, kontrolu la konzolon por eraroj.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ estas dosierujo. Provu kunpremi ĝin kaj kunigi ĝin denove.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ mesaĝoj en ĉi tiu fadeno estas kaŝitaj ĉar ĝi estis movita al rubujo aŭ spamo.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ mesaĝoj en ĉi tiu fadeno estas kaŝitaj ĉar ĝi estis movita al rubujo aŭ spamo.",
   "%@ others": "%@ aliaj",
   "%@ recently %@ %@": "%@ ĵus %@ %@",
   "(No Recipients)": "(Neniuj Ricevantoj)",

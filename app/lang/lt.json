@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ negalima pridėti, nes jis didesnis nei 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ buvo įdiegtas ir įjungtas. Nereikia iš naujo paleisti! Jei nematote įkėto įskiepio, patikrinkite, ar konsolėje nėra klaidų.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ yra katalogas. Pabandykite jį suspausti ir pritvirtinti dar kartą.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ pranešimai šioje temoje yra paslėpti, nes jis buvo perkeltas į šiukšliadėžę arba šlamštą.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ pranešimai šioje temoje yra paslėpti, nes jis buvo perkeltas į šiukšliadėžę arba šlamštą.",
   "%@ others": "%@ kiti",
   "%@ recently %@ %@": "%@ neseniai %@ %@",
   "(No Recipients)": "(Ne gavėjai)",

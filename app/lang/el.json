@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ δεν μπορεί να συνδεθεί επειδή είναι μεγαλύτερο από 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ έχει εγκατασταθεί και ενεργοποιηθεί. Δεν χρειάζεται να ξεκινήσετε ξανά! Εάν δεν βλέπετε το plugin που έχει φορτωθεί, ελέγξτε την κονσόλα για σφάλματα.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ είναι ένας κατάλογος. Δοκιμάστε να το συμπιέσετε και να το προσαρτήσετε ξανά.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ μηνύματα σε αυτό το νήμα είναι κρυμμένα επειδή μεταφέρθηκαν σε σκουπίδια ή ανεπιθύμητα μηνύματα.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ μηνύματα σε αυτό το νήμα είναι κρυμμένα επειδή μεταφέρθηκαν σε σκουπίδια ή ανεπιθύμητα μηνύματα.",
   "%@ others": "%@ ακόμη",
   "%@ recently %@ %@": "%@ πρόσφατα %@ %@",
   "(No Recipients)": "(Δεν υπάρχει παραλήπτης)",

@@ -4,7 +4,7 @@
   "%@ cannot be attached because it is larger than 25MB.": "%@ ùn pò micca esse affissu perchè hè più grande ca 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ hè statu stallatu è attivatu. Ùn ci hè bisognu di restituisce. Se ùn vede micca u plugin cargado, verificate a cunsola per i errore.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ hè un direttu. Pruvà a cumpressione è attacheti novu.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ i missaghji in stu filu sò oculati perchè fù trasfirutu à a papilla o un puzzicheghju.",
+  "%@ messages in this thread are hidden because they were moved to trash or spam.": "%@ i missaghji in stu filu sò oculati perchè fù trasfirutu à a papilla o un puzzicheghju.",
   "%@ others": "%@ altri",
   "%@ recently %@ %@": "%@ recientemente %@ %@",
   "(No Recipients)": "(Nisun destinatariu)",
