@@ -76,7 +76,7 @@ class SystemTrayIconStore {
   _updateIcon = () => {
     if (platform == 'linux'){
       //nativeTheme.on("updated", () => {
-      //   self._updateIconLinux();
+      //   this._updateIconLinux();
       //});
       this._updateIconLinux();
       return;
@@ -121,9 +121,5 @@ class SystemTrayIconStore {
   };
 
 }
-
-
-
-
 
 export default SystemTrayIconStore;
