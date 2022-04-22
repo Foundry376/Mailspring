@@ -14,7 +14,7 @@
     "app-module-path": "^2.2.0",
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
     "@electron/remote": "^2.0.1",
-    "better-sqlite3": "^7.5.0",
+    "better-sqlite3": "^7.5.1",
     "cheerio": "^1.0.0-rc.6",
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
