@@ -322,6 +322,7 @@ export function buildO365AuthURL() {
     response_mode: 'query',
     code_challenge: CODE_CHALLENGE,
     code_challenge_method: 'S256',
+    prompt: 'select_account',
   })}`;
 }
 
