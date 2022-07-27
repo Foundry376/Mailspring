@@ -74,6 +74,7 @@ export default class SendRemindersPopoverButton extends Component<{
         title={title}
         tabIndex={-1}
         className={`send-reminders-toolbar-button ${className}`}
+        style={{ order: -109 }}
         onClick={this.onClick}
       >
         <RetinaImg name="ic-toolbar-native-reminder.png" mode={RetinaImg.Mode.ContentIsMask} />
