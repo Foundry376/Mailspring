@@ -86,6 +86,13 @@ const declareOptions = argv => {
       'safe',
       'Do not load packages from the settings `packages` or `dev/packages` folders.'
     );
+  // The options --enable-crashpad and --allow-file-access-from-files are added to the command line options by electron when opening a second instance of Mailspring.
+  // If they are not defined as boolean options here, they will "swallow" every argument that is passed after them. This leads to the "Send To" functionality not working
+  // if mailspring is already running.
+  options
+    .boolean('enable-crashpad')
+  options
+    .boolean('allow-file-access-from-files')
   options
     .alias('h', 'help')
     .boolean('h')
