@@ -16,8 +16,8 @@ const npmEnvs = {
   system: process.env,
   electron: Object.assign({}, process.env, {
     npm_config_target: npmElectronTarget,
-    npm_config_arch: process.platform === 'win32' ? 'ia32' : process.arch,
-    npm_config_target_arch: process.platform === 'win32' ? 'ia32' : process.arch,
+    npm_config_arch: process.arch,
+    npm_config_target_arch: process.arch,
     npm_config_disturl: 'https://atom.io/download/electron',
     npm_config_runtime: 'electron',
     npm_config_build_from_source: true,
