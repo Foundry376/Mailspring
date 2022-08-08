@@ -31,9 +31,9 @@ build_script:
   - cmd: node app/build/create-signed-windows-installer.js
 
 before_deploy:
-  - ps: Get-ChildItem .\app\dist\MailspringSetup.exe | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
-  - ps: Get-ChildItem .\app\dist\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
-  - ps: Get-ChildItem .\app\dist\RELEASES | % { Push-AppveyorArtifact $_.FullName -FileName "win-ia32/$($_.Name)" -DeploymentName s3-deployment }
+  - ps: Get-ChildItem .\app\dist\MailspringSetup.exe | % { Push-AppveyorArtifact $_.FullName -FileName "win-x64/$($_.Name)" -DeploymentName s3-deployment }
+  - ps: Get-ChildItem .\app\dist\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName "win-x64/$($_.Name)" -DeploymentName s3-deployment }
+  - ps: Get-ChildItem .\app\dist\RELEASES | % { Push-AppveyorArtifact $_.FullName -FileName "win-x64/$($_.Name)" -DeploymentName s3-deployment }
 
 deploy:
   - provider: S3

@@ -48,7 +48,7 @@ function getMailsyncURL(callback) {
   const distDir = {
     'darwin-x64': 'osx',
     'darwin-arm64': 'osx',
-    'win32-x64': 'win-ia32', // serve 32-bit since backwards compatibility is great
+    'win32-x64': 'win-ia32', // At this time, Mailsync is still 32-bit
     'win32-ia32': 'win-ia32',
     'linux-x64': 'linux',
     'linux-ia32': null,
