@@ -7,6 +7,7 @@ import { Account, AccountStore, IdentityStore, MailsyncProcess, localized } from
 import MailspringProviderSettings from './mailspring-provider-settings.json';
 import MailcoreProviderSettings from './mailcore-provider-settings.json';
 import dns from 'dns';
+import fetch from 'node-fetch';
 
 export const LOCAL_SERVER_PORT = 12141;
 
