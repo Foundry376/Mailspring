@@ -265,7 +265,7 @@ export async function buildO365AccountFromAuthResponse(code: string) {
       client_id: O365_CLIENT_ID,
       code_verifier: CODE_VERIFIER,
       grant_type: `authorization_code`,
-      redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}`,
+      redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}/desktop`,
     }
   );
 
@@ -317,7 +317,7 @@ export function buildGmailAuthURL() {
 export function buildO365AuthURL() {
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${qs.stringify({
     client_id: O365_CLIENT_ID,
-    redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}`,
+    redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}/desktop`,
     response_type: 'code',
     scope: O365_SCOPES.join(' '),
     response_mode: 'query',
