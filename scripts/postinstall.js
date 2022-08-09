@@ -28,7 +28,9 @@ function npm(cmd, options) {
   const { cwd, env } = Object.assign({ cwd: '.', env: 'system' }, options);
 
   return new Promise((resolve, reject) => {
-    console.log(`\n-- Running npm ${cmd} in ${cwd} with ${env} config --`);
+    console.log(
+      `\n-- Running npm ${cmd} in ${cwd} with ${env} config (arch=${npmEnvs[env].npm_config_target_arch}) --`
+    );
 
     safeExec(
       `npm ${cmd}`,

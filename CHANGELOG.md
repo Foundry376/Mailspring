@@ -1,5 +1,19 @@
 # Mailspring Changelog
 
+## 1.10.4 (8/9/2022)
+
+This release updates Mailspring to address a recent Google policy change and fixes email sync with Gmail accounts. This release also moves Mailspring to 64-bit on Windows (Thanks @ronymesquita), and adds an Apple Silicon build for M1 and M2 Macs, dramatically improving performance on those machines. (It's super noticeable!)
+
+Changes:
+
+- Spanish translation has been improved (Thanks @EdR13!)
+
+- When connecting an Office365 account, you're now prompted to choose an email account on the web. (Thanks @fanrenng!)
+
+- Mailspring now uses longer-lived Office365 credentials, eliminating the need to sign back in to your account periodically. (Thanks @fanrenng)
+
+- Linux sendto functionality has been fixed to correctly handle electron internal options (#2409) (Thanks @Phylu!)
+
 ## 1.10.3 (4/14/2022)
 
 This release fixes several important issues and moves Mailspring to Electron 18:
