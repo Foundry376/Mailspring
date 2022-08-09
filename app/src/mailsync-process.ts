@@ -105,7 +105,7 @@ export class MailsyncProcess extends EventEmitter {
 
   _showStatusWindow(mode) {
     if (this._win) return;
-    const { BrowserWindow } = require('electron');
+    const { BrowserWindow } = require('@electron/remote');
     this._win = new BrowserWindow({
       width: 350,
       height: 108,
@@ -117,7 +117,12 @@ export class MailsyncProcess extends EventEmitter {
       maximizable: false,
       closable: false,
       fullscreenable: false,
-      webPreferences: { nodeIntegration: false, javascript: false, contextIsolation: false, enableRemoteModule: true },
+      webPreferences: {
+        nodeIntegration: false,
+        javascript: false,
+        contextIsolation: false,
+        enableRemoteModule: true,
+      },
     });
     this._win.setContentSize(350, 90);
     this._win.once('ready-to-show', () => {
@@ -330,7 +335,7 @@ export class MailsyncProcess extends EventEmitter {
     console.log(`Sending to mailsync ${this.account ? this.account.id : '?'}`, json);
     const msg = `${JSON.stringify(json)}\n`;
     try {
-      this._proc.stdin.write(msg, 'UTF8');
+      this._proc.stdin.write(msg, 'utf-8');
     } catch (error) {
       if (error && error.message.includes('socket has been ended')) {
         // The process probably already exited and we missed it somehow,
