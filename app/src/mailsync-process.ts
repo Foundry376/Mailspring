@@ -12,6 +12,11 @@ import fs from 'fs';
 import { localized } from './intl';
 import { IIdentity, Account } from 'mailspring-exports';
 
+import {
+  GMAIL_CLIENT_ID,
+  GMAIL_CLIENT_SECRET,
+} from '../internal_packages/onboarding/lib/onboarding-constants';
+
 let Utils = null;
 
 export interface MailsyncProcessExit {
@@ -137,6 +142,8 @@ export class MailsyncProcess extends EventEmitter {
   _spawnProcess(mode) {
     const env = {
       CONFIG_DIR_PATH: this.configDirPath,
+      GMAIL_CLIENT_ID: GMAIL_CLIENT_ID,
+      GMAIL_CLIENT_SECRET: GMAIL_CLIENT_SECRET,
       IDENTITY_SERVER: 'unknown',
     };
     if (process.type === 'renderer') {

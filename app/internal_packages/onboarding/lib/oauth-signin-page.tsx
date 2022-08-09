@@ -6,7 +6,7 @@ import http from 'http';
 import url from 'url';
 
 import FormErrorMessage from './form-error-message';
-import { LOCAL_SERVER_PORT } from './onboarding-helpers';
+import { LOCAL_SERVER_PORT } from './onboarding-constants';
 import AccountProviders from './account-providers';
 
 interface OAuthSignInPageProps {
@@ -14,7 +14,7 @@ interface OAuthSignInPageProps {
   buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
   onSuccess: (account: Account) => void;
   onTryAgain: () => void;
-  providerConfig: (typeof AccountProviders)[0];
+  providerConfig: typeof AccountProviders[0];
   serviceName: string;
 }
 

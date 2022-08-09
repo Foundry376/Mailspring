@@ -2,56 +2,27 @@
 
 import qs from 'querystring';
 import crypto from 'crypto';
-import uuidv4 from 'uuid/v4';
-import { Account, AccountStore, IdentityStore, MailsyncProcess, localized } from 'mailspring-exports';
+import {
+  Account,
+  AccountStore,
+  IdentityStore,
+  MailsyncProcess,
+  localized,
+} from 'mailspring-exports';
 import MailspringProviderSettings from './mailspring-provider-settings.json';
 import MailcoreProviderSettings from './mailcore-provider-settings.json';
 import dns from 'dns';
 import fetch from 'node-fetch';
-
-export const LOCAL_SERVER_PORT = 12141;
-
-const GMAIL_CLIENT_ID =
-  process.env.MS_GMAIL_CLIENT_ID ||
-  '662287800555-0a5h4ii0e9hsbpq0mqtul7fja0jhf9uf.apps.googleusercontent.com';
-
-const O365_CLIENT_ID = process.env.MS_O365_CLIENT_ID || '8787a430-6eee-41e1-b914-681d90d35625';
-
-const GMAIL_SCOPES = [
-  'https://mail.google.com/', // email
-  'https://www.googleapis.com/auth/userinfo.email', // email address
-  'https://www.googleapis.com/auth/userinfo.profile', // G+ profile
-  'https://www.googleapis.com/auth/contacts', // contacts
-  'https://www.googleapis.com/auth/calendar', // calendar
-];
-
-const O365_SCOPES = [
-  'user.read', // email address
-  'offline_access',
-  'Contacts.ReadWrite', // contacts
-  'Contacts.ReadWrite.Shared', // contacts
-  'Calendars.ReadWrite', // calendar
-  'Calendars.ReadWrite.Shared', // calendar
-
-  // Future note: When you exchange the refresh token for an access token, you may
-  // request these two OR the above set but NOT BOTH, because Microsoft has mapped
-  // two underlying systems with different tokens onto the single flow and you
-  // need to get an outlook token and not a Micrsosoft Graph token to use these APIs.
-  // https://stackoverflow.com/questions/61597263/
-  'https://outlook.office.com/IMAP.AccessAsUser.All', // email
-  'https://outlook.office.com/SMTP.Send', // email
-];
-
-// Re-created only at onboarding page load / auth session start because storing
-// verifier would require additional state refactoring
-const CODE_VERIFIER = uuidv4();
-const CODE_CHALLENGE = crypto
-  .createHash('sha256')
-  .update(CODE_VERIFIER, 'utf8')
-  .digest('base64')
-  .replace(/\+/g, '-')
-  .replace(/\//g, '_')
-  .replace(/=/g, '');
+import {
+  GMAIL_CLIENT_ID,
+  GMAIL_CLIENT_SECRET,
+  LOCAL_SERVER_PORT,
+  O365_SCOPES,
+  O365_CLIENT_ID,
+  CODE_VERIFIER,
+  GMAIL_SCOPES,
+  CODE_CHALLENGE,
+} from './onboarding-constants';
 
 interface TokenResponse {
   access_token: string;
@@ -206,7 +177,11 @@ export async function expandAccountWithCommonSettings(account: Account) {
   // https://protonmail.com/support/knowledge-base/creating-folders/#comment-10460
   // on protonmail by default Folders set as container folder
   const containerFolderDefault = AccountStore.containerFolderDefaultGetter();
-  if (containerFolderDefault !== 'Mailspring' && (populated.settings.container_folder === '' || populated.settings.container_folder === undefined)) {
+  if (
+    containerFolderDefault !== 'Mailspring' &&
+    (populated.settings.container_folder === '' ||
+      populated.settings.container_folder === undefined)
+  ) {
     populated.settings.container_folder = containerFolderDefault;
   }
   return populated;
@@ -219,6 +194,7 @@ export async function buildGmailAccountFromAuthResponse(code: string) {
     {
       code: code,
       client_id: GMAIL_CLIENT_ID,
+      client_secret: GMAIL_CLIENT_SECRET,
       redirect_uri: `http://127.0.0.1:${LOCAL_SERVER_PORT}`,
       grant_type: 'authorization_code',
     }
