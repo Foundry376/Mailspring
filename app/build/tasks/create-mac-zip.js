@@ -15,7 +15,7 @@ module.exports = grunt => {
     }
 
     const orig = process.cwd();
-    process.chdir(path.join(grunt.config('outputDir'), 'Mailspring-darwin-x64'));
+    process.chdir(path.join(grunt.config('outputDir'), `Mailspring-darwin-${process.arch}`));
 
     spawn(
       {

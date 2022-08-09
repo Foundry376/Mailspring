@@ -6,7 +6,11 @@ module.exports = grunt => {
     const done = this.async();
     const dmgPath = path.join(grunt.config('outputDir'), 'Mailspring.dmg');
     createDMG({
-      appPath: path.join(grunt.config('outputDir'), 'Mailspring-darwin-x64', 'Mailspring.app'),
+      appPath: path.join(
+        grunt.config('outputDir'),
+        `Mailspring-darwin-${process.arch}`,
+        'Mailspring.app'
+      ),
       name: 'Mailspring',
       background: path.resolve(
         grunt.config('appDir'),
