@@ -2,6 +2,7 @@
 import { dialog, nativeImage } from 'electron';
 import { EventEmitter } from 'events';
 import path from 'path';
+import os from 'os';
 import fs from 'fs';
 import { localized } from '../intl';
 
@@ -48,6 +49,15 @@ export default class AutoUpdateManager extends EventEmitter {
       id: this.config.get('identity.id') || 'anonymous',
       channel: this.preferredChannel,
     };
+
+    // If we're on the x64 Mac build, but the machine has an Apple-branded
+    // processor, switch the user to the arm64 build.
+    if (params.platform === 'darwin' && process.arch === 'x64') {
+      const cpus = os.cpus();
+      if (cpus.length && cpus[0].model.startsWith('Apple ')) {
+        params.arch = 'arm64';
+      }
+    }
 
     let host = `updates.getmailspring.com`;
     if (this.config.get('env') === 'staging') {
