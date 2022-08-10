@@ -1,5 +1,15 @@
 # Mailspring Changelog
 
+## 1.10.5 (8/10/2022)
+
+Changes:
+
+- Fixes a critical issue with the app crashing for Spanish users due to an error in the localization files.
+
+- Czech translation has been improved (Thanks Ivo Šmerek!)
+
+- Users with Apple Silicon Mac devices will receive the Arm64 build automatically when 1.10.6 is released.
+
 ## 1.10.4 (8/9/2022)
 
 This release updates Mailspring to address a recent Google policy change and fixes email sync with Gmail accounts. This release also moves Mailspring to 64-bit on Windows (Thanks @ronymesquita), and adds an Apple Silicon build for M1 and M2 Macs, dramatically improving performance on those machines. (It's super noticeable!)
