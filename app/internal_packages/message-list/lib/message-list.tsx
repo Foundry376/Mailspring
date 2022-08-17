@@ -352,8 +352,9 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
       <div className="message-subject-wrap">
         <MailImportantIcon thread={this.state.currentThread} />
         <div style={{ flex: 1 }}>
-          <span className="message-subject"
-            onContextMenu={() => _onSubjectContextMenu()}>{subject}</span>
+          <span className="message-subject" onContextMenu={() => _onSubjectContextMenu()}>
+            {subject}
+          </span>
           <MailLabelSet
             removable
             includeCurrentCategories
@@ -371,15 +372,15 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
         />
       </div>
     );
-    
+
     function _onSubjectContextMenu() {
       console.log(window.getSelection());
-      if (window.getSelection()?.type == "Range") {
+      if (window.getSelection()?.type == 'Range') {
         const menu = new Menu();
         menu.append(new MenuItem({ role: 'copy' }));
         menu.popup({});
       }
-    };
+    }
   }
 
   _renderMinifiedBundle(bundle) {
