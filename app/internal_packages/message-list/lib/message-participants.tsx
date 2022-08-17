@@ -34,18 +34,25 @@ export default class MessageParticipants extends React.Component<MessageParticip
   }
 
   _shortNames(contacts = [], max = MAX_COLLAPSED) {
-    let names = contacts.map(c =>
-      c.displayName({
-        includeAccountLabel: true,
-        compact: !AppEnv.config.get('core.reading.detailedNames'),
-      })
+    let names = contacts.map((c, i) =>
+      <span>
+        {i > 0 && ", "}
+        <span onContextMenu={() => this._onContactContextMenu(c)}>{
+          c.displayName({
+            includeAccountLabel: true,
+            compact: !AppEnv.config.get('core.reading.detailedNames'),
+          })
+        }</span>
+      </span>
     );
+    
     if (names.length > max) {
       const extra = names.length - max;
       names = names.slice(0, max);
-      names.push(`and ${extra} more`);
+      names.push(<span>and ${extra} more</span>);
     }
-    return names.join(', ');
+    
+    return names;
   }
 
   _onSelectText = e => {
@@ -63,10 +70,17 @@ export default class MessageParticipants extends React.Component<MessageParticip
 
   _onContactContextMenu = contact => {
     const menu = new Menu();
-    menu.append(new MenuItem({ role: 'copy' }));
+    menu.append(
+      window.getSelection()?.type == "Range"
+        ? new MenuItem({ role: 'copy' })
+        : new MenuItem({
+          label: `${localized(`Copy`)} "${contact.email}"`,
+          click: () => navigator.clipboard.writeText(contact.email),
+        })
+    );
     menu.append(
       new MenuItem({
-        label: `${localized(`Email`)} ${contact.email}`,
+        label: `${localized(`Email`)} ${contact.name ?? contact.email}`,
         click: () => Actions.composeNewDraftToRecipient(contact),
       })
     );
@@ -83,15 +97,15 @@ export default class MessageParticipants extends React.Component<MessageParticip
       if (c.name && c.name.length > 0 && c.name !== c.email) {
         return (
           <div key={`${c.email}-${i}`} className="participant selectable">
-            <div className="participant-primary" onClick={this._onSelectText}>
+            <div className="participant-primary" 
+              onClick={this._onSelectText}
+              onContextMenu={() => this._onContactContextMenu(c)}
+            >
               {c.fullName()}
             </div>
             <div className="participant-secondary">
               {' <'}
-              <span
-                onClick={this._onSelectText}
-                onContextMenu={() => this._onContactContextMenu(c)}
-              >
+              <span onClick={this._onSelectText}>
                 {c.email}
               </span>
               {`>${comma}`}
