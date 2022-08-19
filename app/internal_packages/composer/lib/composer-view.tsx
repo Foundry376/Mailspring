@@ -380,13 +380,17 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     if (recipientWarnings.length > 0 && !options.forceRecipientWarnings) {
       const response = dialog.showMessageBoxSync({
         type: 'warning',
-        buttons: [localized('Send Anyway'), localized('Cancel')],
+        buttons: [localized('Send Anyway'), localized('Send & Ignore Warnings For This Email'), localized('Cancel')],
         message: localized('Are you sure?'),
         detail: recipientWarnings.join('. '),
       });
       if (response === 0) {
         // response is button array index
-        return this._isValidDraft({ forceRecipientWarnings: true });
+        return this._isValidDraft({ forceRecipientWarnings: true, forceMiscWarnings: options.forceMiscWarnings });
+      } else if (response === 1) {
+        // Send & Ignore Future Warnings for Recipient Email
+        session.addRecipientsToWarningBlacklist()
+        return this._isValidDraft({ forceRecipientWarnings: true, forceMiscWarnings: options.forceMiscWarnings });
       }
       return false;
     }
@@ -399,7 +403,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       });
       if (response === 0) {
         // response is button array index
-        return this._isValidDraft({ forceMiscWarnings: true });
+        return this._isValidDraft({ forceRecipientWarnings: options.forceRecipientWarnings, forceMiscWarnings: true });
       }
       return false;
     }

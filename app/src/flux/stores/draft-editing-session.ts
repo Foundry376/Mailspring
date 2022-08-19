@@ -294,7 +294,7 @@ export class DraftEditingSession extends MailspringStore {
         );
       }
       const name = contact.fullName();
-      if (name && name.length && name !== contact.email) {
+      if (name && name.length && name !== contact.email && !this.checkRecipientInWarningBlacklist(contact.email)) {
         allNames.push(name.toLowerCase()); // ben gotow
         allNames.push(...name.toLowerCase().split(' ')); // ben, gotow
         allNames.push(...name.toLowerCase().split('-')); // anne-marie => anne, marie
@@ -349,6 +349,22 @@ export class DraftEditingSession extends MailspringStore {
 
     return { recipientErrors, recipientWarnings };
   }
+
+  addRecipientsToWarningBlacklist() {
+    const allRecipients = [...this._draft.to, ...this._draft.cc, ...this._draft.bcc];
+    const allRecipientEmails = allRecipients.map(contact =>  contact.email);
+    let blacklist = JSON.parse(localStorage.getItem("recipientWarningBlacklist"));
+    if (blacklist === null) blacklist = [];
+    blacklist.push(...allRecipientEmails);
+    localStorage.setItem("recipientWarningBlacklist", JSON.stringify(blacklist));
+  }
+  
+  checkRecipientInWarningBlacklist(email) {
+    const blacklist = JSON.parse(localStorage.getItem("recipientWarningBlacklist"));
+    if (blacklist && blacklist.includes(email)) return true;
+    return false;
+  }
+
 
   // This function makes sure the draft is attached to a valid account, and changes
   // it's accountId if the from address does not match the account for the from
