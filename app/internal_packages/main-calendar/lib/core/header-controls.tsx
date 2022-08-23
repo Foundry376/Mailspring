@@ -64,7 +64,7 @@ export class HeaderControls extends React.Component<{
           ].map(buttonOptions => (
             <button
               key={buttonOptions.view}
-              className={'viewBtn ' + (buttonOptions.isDisabled ? 'cur-view' : '')}
+              className={buttonOptions.isDisabled ? 'cur-view-btn' : 'view-btn'}
               onClick={() => this._changeView(buttonOptions.view)}
               disabled={buttonOptions.isDisabled}
             >

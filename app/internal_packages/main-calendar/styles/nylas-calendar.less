@@ -352,18 +352,26 @@ body.platform-win32 {
         0 0.5px 1px rgba(0, 0, 0, 0.15);
       overflow: hidden;
 
-      .viewBtn {
+      .view-btn {
         width: 60px;
         border: 0;
         cursor: default;
         display: inline-block;
         color: @btn-default-text-color;
         background: @background-primary;
+
+        &:hover {
+          background: darken(@background-primary, 5%);
+        }
       }
 
-      .cur-view {
-        background-color: @accent-primary;
+      .cur-view-btn {
+        width: 60px;
+        border: 0;
+        cursor: default;
+        display: inline-block;
         color: @text-color-inverse;
+        background: @accent-primary;
       }
     }
   }
