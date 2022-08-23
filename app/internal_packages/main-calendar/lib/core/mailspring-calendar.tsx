@@ -26,7 +26,6 @@ import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
 
-
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 const VIEWS = {
@@ -56,7 +55,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 /*
  * Mailspring Calendar
  */
-interface MailspringCalendarProps { }
+interface MailspringCalendarProps {}
 
 interface MailspringCalendarState {
   view: CalendarView;
@@ -197,9 +196,9 @@ export class MailspringCalendar extends React.Component<
     }
   };
 
-  _onCalendarMouseDown = () => { };
-  _onCalendarMouseMove = () => { };
-  _onCalendarMouseUp = () => { };
+  _onCalendarMouseDown = () => {};
+  _onCalendarMouseMove = () => {};
+  _onCalendarMouseUp = () => {};
 
   render() {
     const CurrentView = VIEWS[this.state.view];
