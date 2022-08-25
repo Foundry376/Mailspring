@@ -12,7 +12,6 @@ import {
   RegExpUtils,
 } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
-import { ipcRenderer, SaveDialogReturnValue } from 'electron';
 import { dialog } from '@electron/remote';
 
 interface MessageControlsProps {
