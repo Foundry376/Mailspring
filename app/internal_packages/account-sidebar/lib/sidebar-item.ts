@@ -11,14 +11,22 @@ import {
   Actions,
   RegExpUtils,
   localized,
+  MessageStore,
+  GetMessageRFC2822Task,
+  MutableQuerySubscription,
+  Thread,
+  Message,
+  DatabaseStore,
+  Folder,
 } from 'mailspring-exports';
 
 import * as SidebarActions from './sidebar-actions';
 import { ISidebarItem } from './types';
+import { dialog } from '@electron/remote';
 
 const idForCategories = categories => _.pluck(categories, 'id').join('-');
 
-const countForItem = function (perspective) {
+const countForItem = function(perspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
   if (perspective.isInbox() || unreadCountEnabled) {
     return perspective.unreadCount();
@@ -28,7 +36,7 @@ const countForItem = function (perspective) {
 
 const isItemSelected = perspective => FocusedPerspectiveStore.current().isEqual(perspective);
 
-const isItemCollapsed = function (id) {
+const isItemCollapsed = function(id) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
     return AppEnv.savedState.sidebarKeysCollapsed[id];
   } else {
@@ -36,14 +44,14 @@ const isItemCollapsed = function (id) {
   }
 };
 
-const toggleItemCollapsed = function (item) {
+const toggleItemCollapsed = function(item) {
   if (!(item.children.length > 0)) {
     return;
   }
   SidebarActions.setKeyCollapsed(item.id, !isItemCollapsed(item.id));
 };
 
-const onDeleteItem = function (item) {
+const onDeleteItem = function(item) {
   if (item.deleted === true) {
     return;
   }
@@ -74,7 +82,40 @@ const onDeleteItem = function (item) {
   );
 };
 
-const onEditItem = function (item, value) {
+const onExportItem = async function(item) {
+  const filepath = await dialog.showOpenDialog({
+    properties: ['openDirectory', 'createDirectory'],
+  });
+
+  if (!filepath.canceled && filepath.filePaths[0]) {
+    await DatabaseStore.findAll<Message>(Message, { remoteFolderId: this.id }).then(messages => {
+      const tasks = [];
+
+      messages.forEach(message => {
+        const savePath = `${filepath.filePaths[0]}/${
+          message.subject
+        } - ${message.date.toLocaleString('sv-SE')} - ${message.id.substring(0, 10)}.eml`
+          .replace(/:/g, ';')
+          .replace(RegExpUtils.illegalPathCharacters(), '-')
+          .replace(RegExpUtils.unicodeControlCharacters(), '-');
+
+        tasks.push(
+          new GetMessageRFC2822Task({
+            messageId: message.id,
+            accountId: message.accountId,
+            filepath: savePath,
+          })
+        );
+      });
+
+      if (tasks.length > 0) {
+        Actions.queueTasks(tasks);
+      }
+    });
+  }
+};
+
+const onEditItem = function(item, value) {
   let newDisplayName;
   if (!value) {
     return;
@@ -134,6 +175,7 @@ export default class SidebarItem {
         counterStyle,
         onDelete: opts.deletable ? onDeleteItem : undefined,
         onEdited: opts.editable ? onEditItem : undefined,
+        onExport: opts.exportable ? onExportItem : undefined,
         onCollapseToggled: toggleItemCollapsed,
 
         onDrop(item, event) {
@@ -190,6 +232,9 @@ export default class SidebarItem {
     if (opts.editable == null) {
       opts.editable = true;
     }
+
+    opts.exportable = true;
+
     opts.contextMenuLabel = contextMenuLabel;
     return this.forPerspective(id, perspective, opts);
   }

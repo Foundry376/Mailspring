@@ -317,6 +317,20 @@ const RegExpUtils = {
   subcategorySplitRegex() {
     return /[./\\]/g;
   },
+
+  // Finds illegal path characters
+  // https://kb.acronis.com/content/39790
+  illegalPathCharacters() {
+    return /[/?<>\\:*|"]/g;
+  },
+
+  // Finds Unicode Control codes
+  // C0 0x00-0x1f & C1 (0x80-0x9f)
+  // http://en.wikipedia.org/wiki/C0_and_C1_control_codes
+  unicodeControlCharacters() {
+    // eslint-disable-next-line no-control-regex
+    return /[\x00-\x1f\x80-\x9f]/g;
+  },
 };
 
 export default RegExpUtils;

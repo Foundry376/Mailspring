@@ -9,6 +9,7 @@ import {
   GetMessageRFC2822Task,
   Thread,
   Message,
+  RegExpUtils,
 } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 import { ipcRenderer, SaveDialogReturnValue } from 'electron';
@@ -162,10 +163,13 @@ export default class MessageControls extends React.Component<MessageControlsProp
     const { message } = this.props;
 
     const filepath = await dialog.showSaveDialog({
-      filters: [{ name: 'Email', extensions: ['.eml'] }],
-      defaultPath: `${message.subject} - ${new Date().toLocaleDateString(
+      filters: [{ name: 'Email', extensions: ['eml'] }],
+      defaultPath: `${message.subject} - ${message.date.toLocaleString(
         'sv-SE'
-      )} - ${message.id.substring(0, 10)}.eml`,
+      )} - ${message.id.substring(0, 10)}.eml`
+        .replace(/:/g, ';')
+        .replace(RegExpUtils.illegalPathCharacters(), '-')
+        .replace(RegExpUtils.unicodeControlCharacters(), '-'),
     });
 
     if (!filepath.canceled && filepath.filePath) {
