@@ -3,7 +3,6 @@ import classnames from 'classnames';
 import React from 'react';
 import { localized, Actions, Contact } from 'mailspring-exports';
 
-
 const { Menu, MenuItem } = require('@electron/remote');
 const MAX_COLLAPSED = 5;
 
@@ -34,24 +33,24 @@ export default class MessageParticipants extends React.Component<MessageParticip
   }
 
   _shortNames(contacts = [], max = MAX_COLLAPSED) {
-    let names = contacts.map((c, i) =>
+    let names = contacts.map((c, i) => (
       <span>
-        {i > 0 && ", "}
-        <span onContextMenu={() => this._onContactContextMenu(c)}>{
-          c.displayName({
+        {i > 0 && ', '}
+        <span onContextMenu={() => this._onContactContextMenu(c)}>
+          {c.displayName({
             includeAccountLabel: true,
             compact: !AppEnv.config.get('core.reading.detailedNames'),
-          })
-        }</span>
+          })}
+        </span>
       </span>
-    );
-    
+    ));
+
     if (names.length > max) {
       const extra = names.length - max;
       names = names.slice(0, max);
       names.push(<span>and ${extra} more</span>);
     }
-    
+
     return names;
   }
 
@@ -71,12 +70,12 @@ export default class MessageParticipants extends React.Component<MessageParticip
   _onContactContextMenu = contact => {
     const menu = new Menu();
     menu.append(
-      window.getSelection()?.type == "Range"
+      window.getSelection()?.type == 'Range'
         ? new MenuItem({ role: 'copy' })
         : new MenuItem({
-          label: `${localized(`Copy`)} "${contact.email}"`,
-          click: () => navigator.clipboard.writeText(contact.email),
-        })
+            label: `${localized(`Copy`)} "${contact.email}"`,
+            click: () => navigator.clipboard.writeText(contact.email),
+          })
     );
     menu.append(
       new MenuItem({
@@ -97,7 +96,8 @@ export default class MessageParticipants extends React.Component<MessageParticip
       if (c.name && c.name.length > 0 && c.name !== c.email) {
         return (
           <div key={`${c.email}-${i}`} className="participant selectable">
-            <div className="participant-primary" 
+            <div
+              className="participant-primary"
               onClick={this._onSelectText}
               onContextMenu={() => this._onContactContextMenu(c)}
             >
@@ -105,7 +105,10 @@ export default class MessageParticipants extends React.Component<MessageParticip
             </div>
             <div className="participant-secondary">
               {' <'}
-              <span onClick={this._onSelectText}>
+              <span
+                onClick={this._onSelectText}
+                onContextMenu={() => this._onContactContextMenu(c)}
+              >
                 {c.email}
               </span>
               {`>${comma}`}
