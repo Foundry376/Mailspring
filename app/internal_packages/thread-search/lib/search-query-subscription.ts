@@ -7,6 +7,7 @@ import {
   ComponentRegistry,
   MutableQuerySubscription,
 } from 'mailspring-exports';
+import { SortOrder } from 'src/flux/attributes';
 
 class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _searchQuery: string;
@@ -46,9 +47,29 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
       console.info('Failed to parse local search query, falling back to generic query', e);
       dbQuery = dbQuery.search(this._searchQuery);
     }
+
+    let order = Thread.attributes.lastMessageReceivedTimestamp.descending();
+
+    const orderBy: string | undefined = AppEnv.config.get('core.lastUsedOrder');
+    if (orderBy) {
+      switch (orderBy) {
+        case '2':
+          order = Thread.attributes.subject.ascending();
+          break;
+
+        case '3':
+          order = Thread.attributes.subject.descending();
+          break;
+
+        case '0':
+          order = Thread.attributes.lastMessageReceivedTimestamp.ascending();
+          break;
+      }
+    }
+
     dbQuery = dbQuery
       .background()
-      .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
+      .order(order)
       .limit(1000);
 
     this.replaceQuery(dbQuery);

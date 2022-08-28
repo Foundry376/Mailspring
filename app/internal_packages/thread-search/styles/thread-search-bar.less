@@ -3,9 +3,13 @@
 
 @token-color: @accent-primary;
 
+.thread-search-container {
+  order: -100;
+  width: 100%;
+}
+
 .thread-search-bar {
   position: relative;
-  order: -100;
   overflow: visible;
   z-index: 100;
   width: 450px;
@@ -124,4 +128,12 @@
       color: transparent;
     }
   }
+}
+
+.btn.thread-search-sort {
+  box-shadow: @shadow-border !important;
+  height: 23px;
+  margin-left: 5px;
+  margin-top: 5px;
+  white-space: nowrap;
 }

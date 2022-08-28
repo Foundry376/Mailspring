@@ -1,6 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
+import {
+  ListensToFluxStore,
+  RetinaImg,
+  KeyCommandsRegion,
+  DropdownMenu,
+  Flexbox,
+} from 'mailspring-component-kit';
 import {
   localized,
   Actions,
@@ -41,6 +47,7 @@ interface ThreadSearchBarState {
     description: any;
   };
   selectedIdx: number;
+  lastSortBy: string;
 }
 
 class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarState> {
@@ -61,6 +68,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
       focused: false,
       selected: null,
       selectedIdx: -1,
+      lastSortBy: AppEnv.config.get('core.lastUsedOrder') || '0',
     };
   }
 
@@ -325,54 +333,60 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
 
     const showPlaceholder = !this.state.focused && !query;
     const showX = this.state.focused || !!(perspective as any).searchQuery;
+    const list = [
+      { id: '0', name: 'Date (ASC)' },
+      { id: '1', name: 'Date (DESC)' },
+      { id: '2', name: 'Subject (ASC)' },
+      { id: '3', name: 'Subject (DESC)' },
+    ];
 
     return (
-      <KeyCommandsRegion
-        className={`thread-search-bar ${showPlaceholder ? 'placeholder' : ''}`}
-        globalHandlers={{
-          'core:focus-search': () => {
-            // If the user is in list mode, we need to clear the selection because the
-            // thread action bar appears over the search bar. Kind of a hack.
-            if (WorkspaceStore.layoutMode() === 'list') {
-              AppEnv.commands.dispatch('multiselect-list:deselect-all');
-            }
-            Actions.popSheet();
-            this._fieldEl.focus();
-          },
-        }}
-      >
-        {isSearching ? (
-          <RetinaImg
-            className="search-accessory search loading"
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentPreserve}
+      <Flexbox className="thread-search-container">
+        <KeyCommandsRegion
+          className={`thread-search-bar ${showPlaceholder ? 'placeholder' : ''}`}
+          globalHandlers={{
+            'core:focus-search': () => {
+              // If the user is in list mode, we need to clear the selection because the
+              // thread action bar appears over the search bar. Kind of a hack.
+              if (WorkspaceStore.layoutMode() === 'list') {
+                AppEnv.commands.dispatch('multiselect-list:deselect-all');
+              }
+              Actions.popSheet();
+              this._fieldEl.focus();
+            },
+          }}
+        >
+          {isSearching ? (
+            <RetinaImg
+              className="search-accessory search loading"
+              name="inline-loading-spinner.gif"
+              mode={RetinaImg.Mode.ContentPreserve}
+            />
+          ) : (
+            <RetinaImg
+              className="search-accessory search"
+              name="searchloupe.png"
+              mode={RetinaImg.Mode.ContentDark}
+              onClick={() => this._fieldEl.focus()}
+            />
+          )}
+          <TokenizingContenteditable
+            ref={el => (this._fieldEl = el)}
+            value={showPlaceholder ? this._placeholder() : query}
+            onKeyDown={this._onKeyDown}
+            onFocus={this._onFocus}
+            onBlur={this._onBlur}
+            onChange={this._onSearchQueryChanged}
           />
-        ) : (
-          <RetinaImg
-            className="search-accessory search"
-            name="searchloupe.png"
-            mode={RetinaImg.Mode.ContentDark}
-            onClick={() => this._fieldEl.focus()}
-          />
-        )}
-        <TokenizingContenteditable
-          ref={el => (this._fieldEl = el)}
-          value={showPlaceholder ? this._placeholder() : query}
-          onKeyDown={this._onKeyDown}
-          onFocus={this._onFocus}
-          onBlur={this._onBlur}
-          onChange={this._onSearchQueryChanged}
-        />
-        {showX && (
-          <RetinaImg
-            name="searchclear.png"
-            className="search-accessory clear"
-            mode={RetinaImg.Mode.ContentDark}
-            onMouseDown={this._onClearSearchQuery}
-          />
-        )}
-        {this.state.suggestions.length > 0 &&
-          this.state.focused && (
+          {showX && (
+            <RetinaImg
+              name="searchclear.png"
+              className="search-accessory clear"
+              mode={RetinaImg.Mode.ContentDark}
+              onMouseDown={this._onClearSearchQuery}
+            />
+          )}
+          {this.state.suggestions.length > 0 && this.state.focused && (
             <div className="suggestions">
               {suggestions.map((s, idx) => (
                 <div
@@ -407,9 +421,26 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
               )}
             </div>
           )}
-      </KeyCommandsRegion>
+        </KeyCommandsRegion>
+        <DropdownMenu
+          className="thread-search-sort"
+          attachment={DropdownMenu.Attachment.RightEdge}
+          items={list}
+          intitialSelectionItem={list.filter(x => x.id === (this.state.lastSortBy || '1'))[0]}
+          defaultSelectedIndex={Number.parseInt(this.state.lastSortBy) || -1}
+          itemKey={item => item.id}
+          itemContent={item => item.name}
+          onSelect={this._onSortSelect}
+          style={{ order: 100 }}
+        />
+      </Flexbox>
     );
   }
+
+  private _onSortSelect = (item: any) => {
+    this.setState({ lastSortBy: item.id });
+    AppEnv.config.set('core.lastUsedOrder', item.id);
+  };
 }
 
 export default ListensToFluxStore(ThreadSearchBar, {
