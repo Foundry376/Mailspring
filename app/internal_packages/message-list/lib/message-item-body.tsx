@@ -13,6 +13,7 @@ import {
 import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
 import EmailFrame from './email-frame';
+import { BrowserWindow } from '@electron/remote';
 
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
@@ -116,9 +117,11 @@ export default class MessageItemBody extends React.Component<
 
   _onShowClipped = async () => {
     const { message } = this.props;
-    const filepath = require('path').join(require('@electron/remote').app.getPath('temp'), `${message.id}.html`);
+    const filepath = require('path').join(
+      require('@electron/remote').app.getPath('temp'),
+      `${message.id}.html`
+    );
     fs.writeFileSync(filepath, message.body);
-    const { BrowserWindow } = require('electron');
     const win = new BrowserWindow({
       title: `${message.subject}`,
       width: 800,
