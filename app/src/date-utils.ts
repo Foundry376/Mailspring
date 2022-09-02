@@ -1,5 +1,4 @@
 import moment, { Moment } from 'moment-timezone';
-import { options } from 'optimist';
 
 // Init locale for moment
 moment.locale(navigator.language);
@@ -394,41 +393,36 @@ const DateUtils = {
     const now = moment();
     const diff = now.diff(datetime, 'days', true);
     const isSameDay = now.isSame(datetime, 'days');
-    let format = null;
     const opts: Intl.DateTimeFormatOptions = {
       hour12: !AppEnv.config.get('core.workspace.use24HourClock'),
     };
 
     if (diff <= 1 && isSameDay) {
       // Time if less than 1 day old
-      format = DateUtils.getTimeFormat(null);
       opts.hour = 'numeric';
       opts.minute = '2-digit';
-    } else if (diff < 2 && !isSameDay) {
-      // Month and day with time if up to 2 days ago
-      format = `MMM D, ${DateUtils.getTimeFormat(null)}`;
-      opts.month = 'short';
-      opts.day = 'numeric';
+    } else if (diff < 5 && !isSameDay) {
+      // Weekday with time if up to 2 days ago
+      //opts.month = 'short';
+      //opts.day = 'numeric';
+      opts.weekday = 'short';
       opts.hour = 'numeric';
       opts.minute = '2-digit';
-    } else if (diff >= 2 && diff < 365) {
-      // Month and day up to 1 year old
-      format = 'MMM D';
-      opts.month = 'short';
-      opts.day = 'numeric';
-      return datetime.toLocaleDateString(navigator.language, opts);
     } else {
-      // Month, day and year if over a year old
-      format = 'MMM D YYYY';
-      opts.year = 'numeric';
-      opts.month = 'short';
-      opts.day = 'numeric';
+      if (diff < 365) {
+        // Month and day up to 1 year old
+        opts.month = 'short';
+        opts.day = 'numeric';
+      } else {
+        // Month, day and year if over a year old
+        opts.year = 'numeric';
+        opts.month = 'short';
+        opts.day = 'numeric';
+      }
       return datetime.toLocaleDateString(navigator.language, opts);
     }
 
     return datetime.toLocaleTimeString(navigator.language, opts);
-
-    return moment(datetime).format(format);
   },
 
   /**
@@ -438,9 +432,6 @@ const DateUtils = {
    * @return {String} Formated date/time
    */
   mediumTimeString(datetime: Date) {
-    let format = 'MMMM D, YYYY, ';
-    format += DateUtils.getTimeFormat({ seconds: false, upperCase: true, timeZone: false });
-
     return datetime.toLocaleTimeString(navigator.language, {
       hour12: !AppEnv.config.get('core.workspace.use24HourClock'),
       year: 'numeric',
@@ -448,8 +439,6 @@ const DateUtils = {
       day: 'numeric',
       second: undefined,
     });
-
-    return moment(datetime).format(format);
   },
 
   /**
@@ -472,13 +461,6 @@ const DateUtils = {
       weekday: 'long',
       second: undefined,
     });
-
-    let format = 'dddd, MMMM Do YYYY, ';
-    format += DateUtils.getTimeFormat({ seconds: true, upperCase: true, timeZone: true });
-
-    return moment(datetime)
-      .tz(tz)
-      .format(format);
   },
 };
 
