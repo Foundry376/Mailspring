@@ -34,7 +34,7 @@ export default class MessageParticipants extends React.Component<MessageParticip
 
   _shortNames(contacts = [], max = MAX_COLLAPSED) {
     let names = contacts.map((c, i) => (
-      <span>
+      <span key={`contact-${i}`}>
         {i > 0 && ', '}
         <span onContextMenu={() => this._onContactContextMenu(c)}>
           {c.displayName({
