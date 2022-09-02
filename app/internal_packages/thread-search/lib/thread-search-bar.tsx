@@ -334,10 +334,10 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     const showPlaceholder = !this.state.focused && !query;
     const showX = this.state.focused || !!(perspective as any).searchQuery;
     const list = [
-      { id: '0', name: 'Date (ASC)' },
-      { id: '1', name: 'Date (DESC)' },
-      { id: '2', name: 'Subject (ASC)' },
-      { id: '3', name: 'Subject (DESC)' },
+      { id: '0', name: `${localized('Date')} (${localized('ASC')})` },
+      { id: '1', name: `${localized('Date')} (${localized('DESC')})` },
+      { id: '2', name: `${localized('Subject')} (${localized('ASC')})` },
+      { id: '3', name: `${localized('Subject')} (${localized('DESC')})` },
     ];
 
     return (
