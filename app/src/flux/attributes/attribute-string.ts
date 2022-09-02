@@ -10,6 +10,8 @@ String attributes can be queries using `equal`, `not`, and `startsWith`. Matchin
 Section: Database
 */
 export class AttributeString extends Attribute {
+  applyCaseInsensitivity = true;
+
   toJSON(val) {
     return val;
   }
