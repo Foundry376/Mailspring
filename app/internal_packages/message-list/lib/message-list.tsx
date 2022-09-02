@@ -374,7 +374,6 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     );
 
     function _onSubjectContextMenu() {
-      console.log(window.getSelection());
       if (window.getSelection()?.type == 'Range') {
         const menu = new Menu();
         menu.append(new MenuItem({ role: 'copy' }));
