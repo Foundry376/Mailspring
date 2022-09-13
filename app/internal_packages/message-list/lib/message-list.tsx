@@ -40,6 +40,7 @@ interface MessageListState {
   minified: boolean;
 }
 
+const { Menu, MenuItem } = require('@electron/remote');
 const PREF_REPLY_TYPE = 'core.sending.defaultReplyType';
 const PREF_RESTRICT_WIDTH = 'core.reading.restrictMaxWidth';
 const PREF_DESCENDING_ORDER = 'core.reading.descendingOrderMessageList';
@@ -351,7 +352,9 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
       <div className="message-subject-wrap">
         <MailImportantIcon thread={this.state.currentThread} />
         <div style={{ flex: 1 }}>
-          <span className="message-subject">{subject}</span>
+          <span className="message-subject" onContextMenu={() => _onSubjectContextMenu()}>
+            {subject}
+          </span>
           <MailLabelSet
             removable
             includeCurrentCategories
@@ -369,6 +372,14 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
         />
       </div>
     );
+
+    function _onSubjectContextMenu() {
+      if (window.getSelection()?.type == 'Range') {
+        const menu = new Menu();
+        menu.append(new MenuItem({ role: 'copy' }));
+        menu.popup({});
+      }
+    }
   }
 
   _renderMinifiedBundle(bundle) {

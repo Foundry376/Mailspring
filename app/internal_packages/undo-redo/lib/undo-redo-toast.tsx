@@ -1,7 +1,8 @@
 import React from 'react';
-import { localized, UndoRedoStore, SyncbackMetadataTask } from 'mailspring-exports';
+import { localized, UndoRedoStore, SyncbackMetadataTask, DatabaseStore, Message, Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
+import { PLUGIN_ID } from '../../../internal_packages/send-later/lib/send-later-constants';
 
 function isUndoSend(block) {
   return (
@@ -9,6 +10,29 @@ function isUndoSend(block) {
     block.tasks[0] instanceof SyncbackMetadataTask &&
     (block.tasks[0].value as any).isUndoSend
   );
+}
+
+async function sendMessageNow(block) {
+  if (isUndoSend(block)) {
+      const message = await DatabaseStore.find<Message>(Message, (block.tasks[0] as SyncbackMetadataTask).modelId),
+        newExpiry = Math.floor(Date.now() / 1000);
+
+      Actions.queueTask(
+        SyncbackMetadataTask.forSaving({
+          model: message,
+          pluginId: PLUGIN_ID,
+          value: {
+            expiration: newExpiry,
+          },
+        })
+      );
+      
+      block.tasks[0].value.expiration = newExpiry;
+
+      return true;
+  }
+
+  return false;
 }
 
 function getUndoSendExpiration(block) {
@@ -75,6 +99,10 @@ const UndoSendContent = ({ block, onMouseEnter, onMouseLeave }) => {
     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <Countdown expiration={getUndoSendExpiration(block)} />
       <div className="message">{localized('Sending soon...')}</div>
+      <div className="action" onClick={async () => { await sendMessageNow(block) && onMouseLeave() }}>
+        <RetinaImg name="icon-composer-send.png" mode={RetinaImg.Mode.ContentIsMask} />
+        <span className="send-action-text">{localized('Send now instead')}</span>
+      </div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
         <RetinaImg name="undo-icon@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
         <span className="undo-action-text">{localized('Undo')}</span>
