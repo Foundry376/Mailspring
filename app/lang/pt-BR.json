@@ -864,27 +864,27 @@
     "O modelo e seu arquivo serão excluídos permanentemente.",
   "The thread %@ does not exist in your mailbox!":
     "A conversa %@ não existe na sua caixa de correio!",
-  "Theme Color": "Cor do tema",
+  "Theme Color": "Cor do Tema",
   "Theme and Style": "Tema e Estilo",
   "Themes": "Temas",
   "There are %@ more messages in this thread that are not in spam or trash.":
-    "Há mais %@ mensagens nesta conversa que não estão em spam ou lixo.",
+    "Há mais %@ mensagens nesta conversa que não estão no spam ou lixo.",
   "There are too many active connections to your Gmail account. Please try again later.":
     "Existem muitas conexões ativas para sua conta do Gmail. Por favor, tente novamente mais tarde.",
   "There is one more message in this thread that is not in spam or trash.":
-    "Há mais uma mensagem nesta conversa que não está em spam ou lixo.",
-  "There was an error checking for updates.": "Houve um erro na verificação de atualizações.",
-  "These features were %@ of the messages you sentin this time period, so these numbers do not reflect all of your activity. To enableread receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.":
+    "Há mais uma mensagem nesta conversa que não está no spam ou lixo.",
+  "There was an error checking for updates.": "Houve um erro ao verificar atualizações.",
+  "These features were %@ of the messages you sentin this time period, so these numbers do not reflect all of your activity. To enable read receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.":
     "Esses recursos foram %@ das mensagens que você enviou nesse período de tempo, portanto, esses números não refletem toda a sua atividade. Para habilitar os recibos e o rastreamento de links nos emails enviados, clique nos ícones %@ ou rastreamento de links %@ no compositor.",
-  "This Weekend": "Este fim de semana",
+  "This Weekend": "Este Final de Semana",
   "This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@":
-    "Esta conta é inválida ou Mailspring não pôde encontrar a pasta Caixa de Entrada ou Todos os emails. %@",
+    "Esta conta é inválida ou o Mailspring não pôde encontrar a pasta Caixa de Entrada ou Todos os emails. %@",
   "This looks like a Gmail account! While it's possible to setup an App Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go back and select \"Gmail & Google Apps\" from the provider screen.":
-    "Isso parece uma conta do Gmail! Embora seja possível configurar uma senha de aplicativo e se conectar ao Gmail via IMAP, a Mailspring também oferece suporte ao Google OAuth. Volte e selecione \"Gmail e Google Apps\" na tela do provedor.",
+    "Isso parece uma conta do Gmail! Embora seja possível configurar uma senha de aplicativo e se conectar ao Gmail via IMAP, o Mailspring também oferece suporte ao Google OAuth. Volte e selecione \"Gmail e Google Apps\" na tela de provedor.",
   "This message has not been opened": "Esta mensagem não foi aberta",
   "This message looks suspicious!": "Esta mensagem parece suspeita!",
   "This plugin or theme %@ does not list \"mailspring\" in it's package.json's \"engines\" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@":
-    "Este plugin ou tema %@ não lista \"mailspring\" no campo \"engines\" do package.json. Peça ao desenvolvedor para testar o plug-in com Mailspring e adicioná-lo, ou siga as instruções aqui: %@",
+    "Este plugin ou tema %@ não lista \"mailspring\" no campo \"engines\" do package.json. Peça ao desenvolvedor para testar o plug-in com o Mailspring e adicioná-lo, ou siga as instruções aqui: %@",
   "This rule has been disabled. Make sure the actions below are valid and re-enable the rule.":
     "Esta regra foi desativada. Certifique-se de que as ações abaixo sejam válidas e reative a regra.",
   "This thread has been moved to the top of your inbox by Mailspring.":
@@ -902,9 +902,9 @@
   "To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.":
     "Para desenvolver plugins, você deve executar o Mailspring com sinalizadores de depuração. Isso fornece melhores mensagens de erro, a versão de depuração do React e muito mais. Você pode desativá-lo a qualquer momento no menu Desenvolvedor.",
   "To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@":
-    "Para ouvir a resposta do Gmail Oauth, o Mailspring precisa iniciar um servidor da Web na porta $ {LOCAL_SERVER_PORT}. Volte e tente vincular sua conta novamente. Se esse erro persistir, use a opção IMAP/SMTP com uma senha de aplicativo do Gmail.\n\n %@",
+    "Para ouvir a resposta do Gmail Oauth, o Mailspring precisa iniciar um servidor da Web na porta ${LOCAL_SERVER_PORT}. Volte e tente vincular sua conta novamente. Se esse erro persistir, use a opção IMAP/SMTP com uma senha de aplicativo do Gmail.\n\n%@",
   "Today": "Hoje",
-  "Toggle Bold": "Alternar negrito",
+  "Toggle Bold": "Alternar Negrito",
   "Toggle Component Regions": "Alternar Regiões de Componentes",
   "Toggle Dev Tools": "Alternar Ferramentas de Desenvolvimento",
   "Toggle Developer Tools": "Alternar Ferramentas do Desenvolvedor",
@@ -916,72 +916,72 @@
   "Tomorrow Morning": "Amanhã de manhã",
   "Tonight": "Esta noite",
   "Track links in this email": "Acompanhar links neste email",
-  "Track opens and clicks": "Acompanhar abre e clica",
+  "Track opens and clicks": "Acompanhar aberturas e cliques",
   "Translate": "Traduzir",
   "Translate email body…": "Traduzir o corpo do email...",
   "Trash": "Lixeira",
-  "Trashed %@": "Lixeira %@",
+  "Trashed %@": "%@ movido para a Lixera",
   "Travel and Places": "Viagens e Lugares",
   "True": "Verdade",
-  "Try Again": "Tentar Novamente",
+  "Try Again": "Tente Novamente",
   "Try Reconnecting": "Tente reconectar",
   "Try it Now": "Tente agora",
   "Try now": "Tente agora",
   "Twitter Handle": "Twitter ID",
-  "Twitter Profile Image": "Imagem de perfil do Twitter",
+  "Twitter Profile Image": "Imagem de Perfil do Twitter",
   "Two Panel": "Dois painéis",
   "Two Panel Vertical": "Dois Painéis Verticais",
   "Uhoh - that's a pro feature!": "Opa - isso é um recurso pro!",
-  "Unable to Add Account": "Não é possível adicionar conta",
-  "Unable to Start Local Server": "Não é possível iniciar o servidor local",
+  "Unable to Add Account": "Não é Possível Adicionar a Conta",
+  "Unable to Start Local Server": "Não é Possível Iniciar o Servidor Local",
   "Unable to download %@. Check your network connection and try again. %@":
     "Não foi possível baixar %@. Verifique sua conexão de rede e tente novamente. %@",
   "Unable to read package.json for %@: %@": "Não é possível ler package.json para %@: %@",
-  "Unarchived %@": "Desarquivado %@",
+  "Unarchived %@": "%@ desarquivado",
   "Underline": "Sublinhado",
   "Undo": "Desfazer",
   "Undoing changes": "Desfazendo alterações",
   "Unfortunately, link tracking servers are currently not available. Please try again later. Error: %@":
     "Infelizmente, os servidores de rastreamento de links não estão disponíveis no momento. Por favor, tente novamente mais tarde. Erro: %@",
   "Unfortunately, open tracking is currently not available. Please try again later. Error: %@":
-    "Infelizmente, o rastreamento aberto não está disponível no momento. Por favor, tente novamente mais tarde. Erro: %@",
-  "Unlimited Connected Accounts": "Contas conectadas ilimitadas",
-  "Unlimited Contact Profiles": "Perfis de contato ilimitados",
-  "Unlimited Link Tracking": "Acompanhamento ilimitado de links",
-  "Unlimited Read Receipts": "Confirmação de leitura ilimitados",
+    "Infelizmente, o rastreamento de abertura não está disponível no momento. Por favor, tente novamente mais tarde. Erro: %@",
+  "Unlimited Connected Accounts": "Contas Conectadas Ilimitadas",
+  "Unlimited Contact Profiles": "Perfis de Contato Ilimitados",
+  "Unlimited Link Tracking": "Acompanhamento Ilimitado de Links",
+  "Unlimited Read Receipts": "Confirmação de Leitura Ilimitados",
   "Unlimited Reminders": "Lembretes Ilimitados",
   "Unlimited Snoozing": "Adiar Ilimitado",
-  "Unmarked %@ as Spam": "Não marcado %@ como Spam",
-  "Unnamed Attachment": "Anexo Anônimo",
+  "Unmarked %@ as Spam": "%@ Desmarcado como Spam",
+  "Unnamed Attachment": "Anexo sem nome",
   "Unread": "Não lida",
   "Unread Messages": "Mensagens Não Lidas",
-  "Unschedule Send": "Desmarque Enviar",
+  "Unschedule Send": "Desmarque o Envio Adiado",
   "Unsnoozed message": "Mensagem não adiada",
   "Unstar": "Desmarcar",
   "Unstarred": "Sem estrela",
-  "Unstarred %@ threads": "%@ conversas sem estrela",
-  "Unstarring": "Unstarring",
+  "Unstarred %@ threads": "%@ conversas marcadas como sem estrela",
+  "Unstarring": "Removendo estrelas",
   "Untitled": "Sem Título",
-  "Untitled Rule": "Sem nome",
-  "Update Connection Settings...": "Atualizar configurações de conexão...",
+  "Untitled Rule": "Regra Sem Nome",
+  "Update Connection Settings...": "Atualizar Configurações de Conexão...",
   "Update Error": "Erro de Atualização",
   "Updates": "Atualizações",
   "Upgrade": "Atualizar",
   "Upgrade to %@ to use all these great features permanently:":
     "Atualize para %@ para usar todos esses ótimos recursos permanentemente:",
-  "Upgrade to Mailspring Pro": "Atualizar para o Mailspring Pro",
+  "Upgrade to Mailspring Pro": "Atualize para o Mailspring Pro",
   "Upgrade to Pro today!": "Atualize para o Pro hoje!",
-  "Use 24-hour clock": "Use o relógio de 24 horas",
-  "Use Mailspring as default mail client": "Use Mailspring como cliente de email padrão",
+  "Use 24-hour clock": "Utilizar o relógio de 24 horas",
+  "Use Mailspring as default mail client": "Use o Mailspring como cliente de email padrão",
   "Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.":
     "Use a guia Atividade para obter uma visão panorâmica da sua caixa de correio: taxas de abertura e cliques, eficácia da linha de assunto e muito mais.",
-  "Verbose logging is now %@": "O registro detalhado agora é %@",
+  "Verbose logging is now %@": "O registro detalhado agora está %@",
   "Vertical Reading Pane": "Painel de Leitura Vertical",
   "View": "Visualizar",
   "View License": "Visualizar Licença",
-  "View Mail Rules": "Visualizar regras de correio",
+  "View Mail Rules": "Visualizar Regras de Correio",
   "View changelog": "Visualizar registro de alteração",
-  "Visit Thread on GitHub": "Visite o tópico no GitHub",
+  "Visit Thread on GitHub": "Visite o Tópico no GitHub",
   "Visit Windows Settings to change your default mail client":
     "Visite as Configurações do Windows para alterar seu cliente de email padrão",
   "Visit Windows Settings to finish making Mailspring your mail client":
@@ -1014,7 +1014,7 @@
   "Window Controls and Menus": "Controles de Janela e Menus",
   "Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.": "Apenas para Windows e Linux - no macOS, o idioma da correção ortográfica é detectada pelo sistema conforme você digita.",
   "With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.":
-    "Com o acompanhamento de atividades, você saberá assim que alguém ler sua mensagem. Enviando para um grupo? O Mailspring mostra quais destinatários abriram seu email para que você possa acompanhar com precisão.",
+    "Com o acompanhamento de acontecimentos, você saberá assim que alguém ler sua mensagem. Enviando para um grupo? O Mailspring mostra quais destinatários abriram seu email para que você possa acompanhar com precisão.",
   "Would you like to make Mailspring your default mail client?":
     "Você gostaria de tornar o Mailspring seu cliente de email padrão?",
   "Write a reply…": "Escreva uma resposta…",
@@ -1026,21 +1026,21 @@
   "You are using %@, which is free! You can try pro features like snooze, send later, read receipts and reminders a few times a week.":
     "Você está usando %@, que é grátis! Você pode experimentar recursos pro como adiar, enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
   "You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.":
-    "Você pode adicionar lembretes a %1$@ emails cada %2$@ com o Mailspring Basic.",
+    "Você pode adicionar lembretes a %1$@ emails cada %2$@ com o Mailspring Básico.",
   "You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.":
     "Você pode escolher um conjunto de atalhos para usar atalhos de teclado de clientes de email conhecidos. Para editar um atalho, clique na lista abaixo e insira uma substituição no teclado.",
   "You can get open and click notifications for %1$@ emails each %2$@ with Mailspring Basic.":
-    "Você pode abrir e clicar em notificações para %1$@ emails cada %2$@ com o Mailspring Basic.",
+    "Você pode abrir e clicar em notificações para %1$@ emails cada %2$@ com o Mailspring Básico.",
   "You can schedule sending of %1$@ emails each %2$@ with Mailspring Basic.":
-    "Você pode agendar o envio de %1$@ emails cada %2$@ com o Mailspring Basic.",
+    "Você pode agendar o envio de %1$@ emails cada %2$@ com o Mailspring Básico.",
   "You can share %1$@ emails each %2$@ with Mailspring Basic.":
-    "Você pode compartilhar %1$@ emails cada %2$@ com o Mailspring Basic.",
+    "Você pode compartilhar %1$@ emails cada %2$@ com o Mailspring Básico.",
   "You can snooze %1$@ emails each %2$@ with Mailspring Basic.":
-    "Você pode adiar %1$@ emails cada %2$@ com o Mailspring Basic.",
+    "Você pode adiar %1$@ emails cada %2$@ com o Mailspring Básico.",
   "You can switch back to stable from the preferences.":
     "Você pode voltar para estável a partir das preferências.",
   "You can view contact profiles for %1$@ emails each %2$@ with Mailspring Basic.":
-    "Você pode ver os perfis de contato para %1$@ emails cada %2$@ com o Mailspring Basic.",
+    "Você pode ver os perfis de contato para %1$@ emails cada %2$@ com o Mailspring Básico.",
   "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox.":
     "Você não criou nenhuma regra de correio. Para começar, defina uma nova regra acima e diga ao Mailspring como processar sua caixa de entrada.",
   "You may need to %@ to your Yandex account before connecting email apps. If you use two-factor auth, you need to create an %@ for Mailspring.":
@@ -1053,7 +1053,7 @@
   "You need to provide one or more recipients before sending the message.":
     "Você precisa fornecer um ou mais destinatários antes de enviar a mensagem.",
   "You'll find Mailspring, along with other options, listed in Default Apps > Mail.":
-    "Você encontrará o Mailspring, junto com outras opções, listado em Aplicativos padrão > Correio.",
+    "Você encontrará o Mailspring, junto com outras opções, listado em Aplicativos Padrão > Email.",
   "You're on a pre-release channel. We'd love your feedback.":
     "Você está em um canal de pré-lançamento. Nós adoraríamos o seu feedback.",
   "You're running the latest version of Mailspring (%@).":
@@ -1062,11 +1062,11 @@
     "Considere pagar pelo Mailspring Pro!",
   "You've reached your quota": "Você atingiu sua cota",
   "Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@":
-    "Seu ID do Mailspring não possui campos obrigatórios - talvez seja necessário redefinir o Mailspring. %@",
+    "Seu Mailspring ID não possui campos obrigatórios - talvez seja necessário redefinir o Mailspring. %@",
   "Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.":
     "Sua pasta `Enviados` não pôde ser detectada automaticamente. Visite Preferências > Pastas para escolher uma pasta Enviada e tente novamente.",
   "Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.":
-    "Sua pasta `Lixeira` não pôde ser detectada automaticamente. Visite Preferências> Pastas para escolher uma pasta Lixeira e tente novamente.",
+    "Sua pasta `Lixeira` não pôde ser detectada automaticamente. Visite Preferências > Pastas para escolher uma pasta Lixeira e tente novamente.",
   "Your name": "Seu nome",
   "Your updated localization will be reviewed and included in a future version of Mailspring.":
     "Sua localização atualizada será revisada e incluída em uma versão futura do Mailspring.",
@@ -1077,10 +1077,10 @@
   "annual": "anual",
   "attachments": "anexos",
   "begins with": "começa com",
-  "click": "Clique",
+  "click": "clique",
   "contains": "contém",
   "date received or range": "data recebida ou intervalo",
-  "does not contain": "não contem",
+  "does not contain": "não contém",
   "employees": "funcionários",
   "enable IMAP": "ativar o IMAP",
   "ends with": "termina com",
@@ -1089,13 +1089,13 @@
   "iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.":
     "O iCloud exige que você crie uma senha de aplicativo exclusiva para aplicativos de email, como o Mailspring. Siga %@ para criar um e cole-o abaixo.",
   "in %@": "em %@",
-  "link a phone number": "Linkar um número de telefone",
+  "link a phone number": "Conectar um número de telefone",
   "matches expression": "corresponde a expressão",
   "month": "mês",
   "older messages": "mensagens mais antigas",
   "one or more files": "um ou mais arquivos",
   "open": "abrir",
-  "open source": "Código aberto",
+  "open source": "código aberto",
   "processed": "processado",
   "seconds": "segundos",
   "selected": "selecionado(s)",
