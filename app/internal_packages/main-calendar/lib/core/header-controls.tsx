@@ -1,11 +1,14 @@
 import React from 'react';
 import { Utils } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
+import { CalendarView } from './calendar-constants';
 
 export class HeaderControls extends React.Component<{
   title: string;
   nextAction: () => void;
   prevAction: () => void;
+  onChangeView: (view: CalendarView) => void;
+  disabledViewButton: string;
 }> {
   static displayName = 'HeaderControls';
 
@@ -35,6 +38,10 @@ export class HeaderControls extends React.Component<{
     );
   }
 
+  _changeView = newView => {
+    this.props.onChangeView(newView);
+  };
+
   render() {
     return (
       <div className="header-controls">
@@ -42,6 +49,28 @@ export class HeaderControls extends React.Component<{
           {this._renderPrevAction()}
           <span className="title">{this.props.title}</span>
           {this._renderNextAction()}
+        </div>
+        <div className="view-controls">
+          {[
+            //{view: CalendarView.DAY, isDisabled: CalendarView.DAY === this.props.disabledViewButton,},
+            {
+              view: CalendarView.WEEK,
+              isDisabled: CalendarView.WEEK === this.props.disabledViewButton,
+            },
+            {
+              view: CalendarView.MONTH,
+              isDisabled: CalendarView.MONTH === this.props.disabledViewButton,
+            },
+          ].map(buttonOptions => (
+            <button
+              key={buttonOptions.view}
+              className={buttonOptions.isDisabled ? 'cur-view-btn' : 'view-btn'}
+              onClick={() => this._changeView(buttonOptions.view)}
+              disabled={buttonOptions.isDisabled}
+            >
+              {buttonOptions.view}
+            </button>
+          ))}
         </div>
         {this.props.children}
       </div>
