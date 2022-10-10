@@ -1,5 +1,33 @@
 # Mailspring Changelog
 
+## 1.10.6 (10/10/2022)
+
+Features:
+
+- The send later delay can be skipped by clicking the new `Send now instead` button (localization required)
+
+Changes:
+
+- Mailsync now requests fewer emails at a time, fixing compatibility issues with large Office365 accounts. (Thanks @BrandonGillis for extensive testing of this change!)
+
+- Inline image "cid:" references may appear only in `<img src=“”>`, and may not appear elsewhere in message bodies.
+
+- Mailspring uses iframe sandboxing to disallow interactivity in message bodies, in addition to santizing loaded HTML down to a strict list of tags and attributes.
+
+- Fixes a rare ResizeObserver error loop caused by messages resizing as they're unmounted.
+
+- Mailspring's Flatpak version number has been updated.
+
+- The Brazilian Portuguese translation has been reviewed and refined by @matheusreich (#2429)
+
+- Fix the vertical overflow bug (Community - 3507) (Thanks @glenn2223! #2423)
+
+- Fix `[Message Clipped - Show All]` link (Thanks @glenn2223! #2426)
+
+- The message participant list is easier to interact with, thanks to several adjustments by @glenn2223! See https://github.com/Foundry376/Mailspring/pull/2425 for more details.
+
+- The "Recent Emails" content in Mailspring's sidebar now displays the weekday and time (eg: "Mon, 10:15") and shows 5 days of emails rather than 2.
+
 ## 1.10.5 (8/10/2022)
 
 Changes:
