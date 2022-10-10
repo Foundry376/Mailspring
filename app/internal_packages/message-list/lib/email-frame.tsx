@@ -196,6 +196,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       >
         <EventedIFrame
           searchable
+          sandbox="allow-forms allow-same-origin"
           seamless={true}
           style={{ height: 0 }}
           ref={cm => {
