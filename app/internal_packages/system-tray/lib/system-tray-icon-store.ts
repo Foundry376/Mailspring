@@ -7,12 +7,19 @@ import { BadgeStore } from 'mailspring-exports';
 const { platform } = process;
 const INBOX_ZERO_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero.png');
 const INBOX_FULL_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full.png');
-const INBOX_FULL_UNREAD_ICON = path.join(
+const INBOX_FULL_NEW_ICON = path.join(
   __dirname,
   '..',
   'assets',
   platform,
   'MenuItem-Inbox-Full-NewItems.png'
+);
+const INBOX_FULL_UNREAD_ICON = path.join(
+  __dirname,
+  '..',
+  'assets',
+  platform,
+  'MenuItem-Inbox-Full-UnreadItems.png'
 );
 
 /*
@@ -23,12 +30,12 @@ Current / Intended Behavior:
 - If the app is in the foreground, we show a gray "full mailbox" icon.
 
 - If the app is in the backgrorund, WHEN the count changes, we switch to showing
-  a blue "new mail in your mailbox" icon. (Eg: going from 4 unread to 5 unread
+  a red "new mail in your mailbox" icon. (Eg: going from 4 unread to 5 unread
   will trigger it.)
 
-The blue is meant to reflect "new stuff since you last foregrounded the app",
-not an absolute count of unread messages. This is a very old design decision (2014?)
-and maybe it should be reconsidered soon.
+- If you have unread mail, we show a blue "unread mail in your mailbox" icon. (Eg:
+  new mail arrives, icon initially shows red, but when you foregrounded the app,
+  it will switch to blue.)
 */
 class SystemTrayIconStore {
   static INBOX_ZERO_ICON = INBOX_ZERO_ICON;
@@ -83,8 +90,12 @@ class SystemTrayIconStore {
     let icon = { path: INBOX_FULL_ICON, isTemplateImg: true };
     if (isInboxZero) {
       icon = { path: INBOX_ZERO_ICON, isTemplateImg: true };
-    } else if (this._windowBackgrounded && unread !== 0) {
-      icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
+    } else if (unread !== 0) {
+      if (this._windowBackgrounded) {
+        icon = { path: INBOX_FULL_NEW_ICON, isTemplateImg: false };
+      } else {
+        icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
+      }
     }
     ipcRenderer.send('update-system-tray', icon.path, unreadString, icon.isTemplateImg);
   };
