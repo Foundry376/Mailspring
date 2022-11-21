@@ -48,7 +48,7 @@ export default class MessageParticipants extends React.Component<MessageParticip
     if (names.length > max) {
       const extra = names.length - max;
       names = names.slice(0, max);
-      names.push(<span key="contact-more">and ${extra} more</span>);
+      names.push(<span key="contact-more"> and {extra} more</span>);
     }
 
     return names;
