@@ -1,5 +1,15 @@
 # Mailspring Changelog
 
+## 1.10.7 (11/21/2022)
+
+- When creating a new IMAP + SMTP account, Mailspring sends a test message through the SMTP gateway to yourself, instead of attempting to send the message to an invalid address.
+
+- When clicking "Unsubscribe", Mailspring verifies that the unsubscribe URL in the email will open in your default web browser.
+
+- Composer recipient warnings are now optional. (Thanks @arhanjain!)
+
+- The "and X more" display in message contacts no longer includes a stray `$` (Thanks @timdorr)
+
 ## 1.10.6 (10/10/2022)
 
 Features:
