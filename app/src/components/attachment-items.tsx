@@ -362,8 +362,6 @@ export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
       ...extraProps
     } = this.props;
 
-    console.log('pppp', this.props);
-
     return (
       <div
         className={`nylas-attachment-item image-attachment-item ${className || ''}`}
@@ -397,52 +395,125 @@ export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
     );
   }
 
-  private _lastPosition = { x: 0, y: 0 };
-  private _editor = () => document.querySelector('.RichEditor-content div') as HTMLDivElement;
+  private _pData = { x: 0, y: 0, eH: 0 };
+  private _shiftData = {
+    held: false,
+    ratio: { wh: 0, hw: 0 },
+  };
+  private _editor = () => document.querySelector('.compose-body') as HTMLDivElement;
 
-  private thingOne = (ev: MouseEvent) => {
+  private _resizeImage = (
+    ev: (
+      | MouseEvent
+      | {
+          x: number;
+          y: number;
+        }
+    ) & { useWH?: boolean }
+  ) => {
     const img = document.querySelector(
-      '.image-attachment-item[data-resizing] .file-preview img'
-    ) as HTMLImageElement;
+        '.image-attachment-item[data-resizing] .file-preview img'
+      ) as HTMLImageElement,
+      editor = this._editor();
 
     if (img) {
-      img.style.width = `${Math.max(0, img.width - (this._lastPosition.x - ev.pageX))}px`;
-      img.style.height = `${Math.max(0, img.height - (this._lastPosition.y - ev.pageY))}px`;
+      let newWidth = ev.x - img.x,
+        newHeight = ev.y - img.y;
+      const width = ev.useWH ? newHeight * this._shiftData.ratio.wh : img.width;
+
+      if (!this._shiftData.held) {
+        if (
+          (newWidth - width) * this._shiftData.ratio.hw >
+          (newHeight - img.height) * this._shiftData.ratio.wh
+        ) {
+          newHeight = newWidth * this._shiftData.ratio.hw;
+        } else {
+          newWidth = newHeight * this._shiftData.ratio.wh;
+        }
+      }
+
+      img.style.width = `${newWidth}px`;
+      img.style.height = `${newHeight}px`;
     }
 
-    this._lastPosition = { x: ev.pageX, y: ev.pageY };
+    const firstChild = editor.children[0] as HTMLDivElement;
+    if (Number.parseInt(editor.style.flexBasis) < firstChild.offsetHeight) {
+      editor.style.flexBasis = `${firstChild.offsetHeight}px`;
+    }
+
+    this._pData = { x: ev.x, y: ev.y, eH: editor.clientHeight };
+  };
+
+  private _resizeImageKeyPress = (ev: KeyboardEvent) => {
+    const oldHeld = this._shiftData.held;
+
+    this._shiftData.held = ev.shiftKey;
+
+    if (oldHeld !== ev.shiftKey) {
+      this._resizeImage({
+        x: this._pData.x,
+        y: this._pData.y,
+        useWH: true,
+      });
+    }
   };
 
   private _resizeStart = (ev: React.MouseEvent<HTMLDivElement>) => {
     ev.preventDefault();
 
-    this._lastPosition = { x: ev.pageX, y: ev.pageY };
+    const parent = ev.currentTarget.parentNode as HTMLDivElement,
+      imgEl = parent.querySelector('.file-preview img') as HTMLImageElement,
+      editor = this._editor();
 
-    const parent = ev.currentTarget.parentNode as HTMLDivElement;
+    this._pData = { x: ev.pageX, y: ev.pageY, eH: editor.clientHeight };
+    this._shiftData.held = ev.shiftKey;
+    this._shiftData.ratio = { wh: imgEl.width / imgEl.height, hw: imgEl.height / imgEl.width };
+
     parent.dataset.resizing = '1';
-    (parent.querySelector('.file-preview img') as HTMLImageElement).draggable = false;
-    this._editor().addEventListener('mousemove', this.thingOne);
-    this._editor().addEventListener('mouseup', this._resizeEnd);
-    this._editor().addEventListener('mouseleave', this._resizeEnd);
+    imgEl.draggable = false;
+
+    editor.addEventListener('mousemove', this._resizeImage);
+    editor.addEventListener('mouseup', this._resizeEnd);
+    editor.parentElement.parentElement.parentElement.addEventListener(
+      'mouseleave',
+      this._resizeEnd
+    );
+    editor.addEventListener('keydown', this._resizeImageKeyPress);
+    editor.addEventListener('keyup', this._resizeImageKeyPress);
+
+    editor.style.flexBasis = `${(editor.children[0] as HTMLDivElement).offsetHeight}px`;
   };
 
   private _resizeEnd = (ev: MouseEvent) => {
     ev.preventDefault();
 
-    const target = this._editor().querySelector(
-      '.image-attachment-item[data-resizing]'
-    ) as HTMLDivElement;
+    const editor = this._editor(),
+      target = editor.querySelector('.image-attachment-item[data-resizing]') as HTMLDivElement;
 
-    if (target) {
+    if (editor.clientHeight == this._pData.eH && target) {
       delete target.dataset.resizing;
 
-      (target.querySelector('.file-preview img') as HTMLImageElement).draggable = false;
-      this._editor().removeEventListener('mousemove', this.thingOne);
-      this._editor().removeEventListener('mouseup', this._resizeEnd);
-      this._editor().removeEventListener('mouseleave', this._resizeEnd);
+      (target.querySelector('.file-preview img') as HTMLImageElement).draggable = true;
+      editor.removeEventListener('mousemove', this._resizeImage);
+      editor.removeEventListener('mouseup', this._resizeEnd);
+      editor.parentElement.parentElement.parentElement.removeEventListener(
+        'mouseleave',
+        this._resizeEnd
+      );
+      editor.removeEventListener('keydown', this._resizeImageKeyPress);
+      editor.removeEventListener('keyup', this._resizeImageKeyPress);
+
+      editor.animate([{ flexBasis: `${(editor.children[0] as HTMLDivElement).offsetHeight}px` }], {
+        duration: 500,
+        iterations: 1,
+      }).onfinish = () => {
+        editor.style.flexBasis = '';
+      };
 
       const img = target.querySelector('.file-preview img') as HTMLImageElement;
       this.props.onResized(img.width, img.height);
+    } else {
+      this._pData.eH = editor.clientHeight;
     }
   };
 }
