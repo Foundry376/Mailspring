@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import classnames from 'classnames';
-import React, { Component } from 'react';
+import React, { Component, CSSProperties } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import * as Actions from '../flux/actions';
@@ -67,7 +67,9 @@ function buildContextMenu(fns: {
       label: localized('Save Into...'),
     });
   }
-  require('@electron/remote').Menu.buildFromTemplate(template).popup({});
+  require('@electron/remote')
+    .Menu.buildFromTemplate(template)
+    .popup({});
 }
 
 const ProgressBar: React.FunctionComponent<{
@@ -284,11 +286,17 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
   }
 }
 
-export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgProps?: any }> {
+interface ImageAttachmentItemProps extends AttachmentItemProps {
+  onResized: (width: number, height: number) => void;
+  imgProps?: { width: number; height: number };
+}
+
+export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
   static displayName = 'ImageAttachmentItem';
 
   static propTypes = {
     imgProps: PropTypes.object,
+    onResized: PropTypes.func,
     ...propTypes,
   };
 
@@ -308,7 +316,7 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
   };
 
   renderImage() {
-    const { download, filePath, draggable } = this.props;
+    const { download, filePath, draggable, imgProps } = this.props;
     if (download && download.percent <= 5) {
       return (
         <div style={{ width: '100%', height: '100px' }}>
@@ -316,9 +324,22 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
         </div>
       );
     }
+
     const src =
-      download && download.percent < 100 ? `${filePath}?percent=${download.percent}` : filePath;
-    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded} />;
+        download && download.percent < 100 ? `${filePath}?percent=${download.percent}` : filePath,
+      styles: CSSProperties = {};
+
+    if (imgProps) {
+      if (imgProps.height) {
+        styles.height = `${imgProps.height}px`;
+      }
+
+      if (imgProps.width) {
+        styles.width = `${imgProps.width}px`;
+      }
+    }
+
+    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded} style={styles} />;
   }
 
   componentDidMount() {
@@ -340,6 +361,7 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
       onSaveAttachment,
       ...extraProps
     } = this.props;
+
     return (
       <div
         className={`nylas-attachment-item image-attachment-item ${className || ''}`}
@@ -366,7 +388,132 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
             {this.renderImage()}
           </div>
         </div>
+        <div className="resizer" onMouseDown={this._resizeStart}>
+          <i className="gg-arrows-expand-left"></i>
+        </div>
       </div>
     );
   }
+
+  private _pData = { x: 0, y: 0, eH: 0 };
+  private _shiftData = {
+    held: false,
+    ratio: { wh: 0, hw: 0 },
+  };
+  private _editor = () => document.querySelector('.compose-body') as HTMLDivElement;
+
+  private _resizeImage = (
+    ev: (
+      | MouseEvent
+      | {
+          x: number;
+          y: number;
+        }
+    ) & { useWH?: boolean }
+  ) => {
+    const img = document.querySelector(
+        '.image-attachment-item[data-resizing] .file-preview img'
+      ) as HTMLImageElement,
+      editor = this._editor();
+
+    if (img) {
+      let newWidth = ev.x - img.x,
+        newHeight = ev.y - img.y;
+      const width = ev.useWH ? newHeight * this._shiftData.ratio.wh : img.width;
+
+      if (!this._shiftData.held) {
+        if (
+          (newWidth - width) * this._shiftData.ratio.hw >
+          (newHeight - img.height) * this._shiftData.ratio.wh
+        ) {
+          newHeight = newWidth * this._shiftData.ratio.hw;
+        } else {
+          newWidth = newHeight * this._shiftData.ratio.wh;
+        }
+      }
+
+      img.style.width = `${newWidth}px`;
+      img.style.height = `${newHeight}px`;
+    }
+
+    const firstChild = editor.children[0] as HTMLDivElement;
+    if (Number.parseInt(editor.style.flexBasis) < firstChild.offsetHeight) {
+      editor.style.flexBasis = `${firstChild.offsetHeight}px`;
+    }
+
+    this._pData = { x: ev.x, y: ev.y, eH: editor.clientHeight };
+  };
+
+  private _resizeImageKeyPress = (ev: KeyboardEvent) => {
+    const oldHeld = this._shiftData.held;
+
+    this._shiftData.held = ev.shiftKey;
+
+    if (oldHeld !== ev.shiftKey) {
+      this._resizeImage({
+        x: this._pData.x,
+        y: this._pData.y,
+        useWH: true,
+      });
+    }
+  };
+
+  private _resizeStart = (ev: React.MouseEvent<HTMLDivElement>) => {
+    ev.preventDefault();
+
+    const parent = ev.currentTarget.parentNode as HTMLDivElement,
+      imgEl = parent.querySelector('.file-preview img') as HTMLImageElement,
+      editor = this._editor();
+
+    this._pData = { x: ev.pageX, y: ev.pageY, eH: editor.clientHeight };
+    this._shiftData.held = ev.shiftKey;
+    this._shiftData.ratio = { wh: imgEl.width / imgEl.height, hw: imgEl.height / imgEl.width };
+
+    parent.dataset.resizing = '1';
+    imgEl.draggable = false;
+
+    editor.addEventListener('mousemove', this._resizeImage);
+    editor.addEventListener('mouseup', this._resizeEnd);
+    editor.parentElement.parentElement.parentElement.addEventListener(
+      'mouseleave',
+      this._resizeEnd
+    );
+    editor.addEventListener('keydown', this._resizeImageKeyPress);
+    editor.addEventListener('keyup', this._resizeImageKeyPress);
+
+    editor.style.flexBasis = `${(editor.children[0] as HTMLDivElement).offsetHeight}px`;
+  };
+
+  private _resizeEnd = (ev: MouseEvent) => {
+    ev.preventDefault();
+
+    const editor = this._editor(),
+      target = editor.querySelector('.image-attachment-item[data-resizing]') as HTMLDivElement;
+
+    if (editor.clientHeight == this._pData.eH && target) {
+      delete target.dataset.resizing;
+
+      (target.querySelector('.file-preview img') as HTMLImageElement).draggable = true;
+      editor.removeEventListener('mousemove', this._resizeImage);
+      editor.removeEventListener('mouseup', this._resizeEnd);
+      editor.parentElement.parentElement.parentElement.removeEventListener(
+        'mouseleave',
+        this._resizeEnd
+      );
+      editor.removeEventListener('keydown', this._resizeImageKeyPress);
+      editor.removeEventListener('keyup', this._resizeImageKeyPress);
+
+      editor.animate([{ flexBasis: `${(editor.children[0] as HTMLDivElement).offsetHeight}px` }], {
+        duration: 500,
+        iterations: 1,
+      }).onfinish = () => {
+        editor.style.flexBasis = '';
+      };
+
+      const img = target.querySelector('.file-preview img') as HTMLImageElement;
+      this.props.onResized(img.width, img.height);
+    } else {
+      this._pData.eH = editor.clientHeight;
+    }
+  };
 }
