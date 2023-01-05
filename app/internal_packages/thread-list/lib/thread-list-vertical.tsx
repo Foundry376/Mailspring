@@ -23,7 +23,7 @@ class ThreadListVertical extends React.Component<
         >
           <InjectedComponentSet matching={{ role: 'ThreadList' }} />
         </ResizableRegion>
-        <div style={{ position: 'relative', flex: '1 1 0%' }}>
+        <div style={{ flex: '1 1 0%' }}>
           <div
             style={{
               display: 'flex',
