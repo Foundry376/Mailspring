@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/node:12.9.1-stretch
+      - image: cimg/python:3.9-node
     steps:
       - checkout
       - run:

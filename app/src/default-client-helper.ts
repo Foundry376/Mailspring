@@ -42,7 +42,7 @@ export class DefaultClientHelperWindows implements DCH {
   }
 
   async resetURLScheme() {
-    const { response } = awaitrequire('@electron/remote').dialog.showMessageBox({
+    const { response } = await require('@electron/remote').dialog.showMessageBox({
       type: 'info',
       buttons: [localized('Learn More')],
       message: localized('Visit Windows Settings to change your default mail client'),
@@ -58,7 +58,7 @@ export class DefaultClientHelperWindows implements DCH {
     }
   }
 
-  registerForURLScheme(scheme: string, callback = (error?: Error) => { }) {
+  registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
     // Ensure that our registry entires are present
     const WindowsUpdater = require('@electron/remote').require('./windows-updater');
     WindowsUpdater.createRegistryEntries(
@@ -68,7 +68,7 @@ export class DefaultClientHelperWindows implements DCH {
       },
       async (err, didMakeDefault) => {
         if (err) {
-          awaitrequire('@electron/remote').dialog.showMessageBox({
+          await require('@electron/remote').dialog.showMessageBox({
             type: 'error',
             buttons: [localized('OK')],
             message: localized('An error has occurred'),
@@ -78,7 +78,7 @@ export class DefaultClientHelperWindows implements DCH {
         }
 
         if (!didMakeDefault) {
-          const { response } = awaitrequire('@electron/remote').dialog.showMessageBox({
+          const { response } = await require('@electron/remote').dialog.showMessageBox({
             type: 'info',
             buttons: [localized('Learn More')],
             defaultId: 1,
@@ -113,12 +113,12 @@ export class DefaultClientHelperLinux implements DCH {
     );
   }
 
-  resetURLScheme(scheme: string, callback = (error?: Error) => { }) {
+  resetURLScheme(scheme: string, callback = (error?: Error) => {}) {
     exec(`xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`, err =>
       err ? callback(err) : callback(null)
     );
   }
-  registerForURLScheme(scheme: string, callback = (error?: Error) => { }) {
+  registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
     exec(`xdg-mime default Mailspring.desktop x-scheme-handler/${scheme}`, err =>
       err ? callback(err) : callback(null)
     );
@@ -139,7 +139,7 @@ export class DefaultClientHelperMac implements DCH {
     fs.exists(secure, exists => (exists ? callback(secure) : callback(insecure)));
   }
 
-  readDefaults(callback = (result: Error | any, json?: any) => { }) {
+  readDefaults(callback = (result: Error | any, json?: any) => {}) {
     this.getLaunchServicesPlistPath(plistPath => {
       const tmpPath = `${plistPath}.${Math.random()}`;
       exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
@@ -155,7 +155,7 @@ export class DefaultClientHelperMac implements DCH {
           try {
             const json = JSON.parse(data.toString());
             callback(json.LSHandlers, json);
-            fs.unlink(tmpPath, () => { });
+            fs.unlink(tmpPath, () => {});
           } catch (e) {
             callback(e);
           }
@@ -164,7 +164,7 @@ export class DefaultClientHelperMac implements DCH {
     });
   }
 
-  writeDefaults(defaults, callback = (error?: Error) => { }) {
+  writeDefaults(defaults, callback = (error?: Error) => {}) {
     this.getLaunchServicesPlistPath(plistPath => {
       const tmpPath = `${plistPath}.${Math.random()}`;
       exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
@@ -183,7 +183,7 @@ export class DefaultClientHelperMac implements DCH {
           return;
         }
         exec(`plutil -convert binary1 "${tmpPath}" -o "${plistPath}"`, () => {
-          fs.unlink(tmpPath, () => { });
+          fs.unlink(tmpPath, () => {});
           exec(
             '/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user',
             registerErr => {
@@ -210,7 +210,7 @@ export class DefaultClientHelperMac implements DCH {
     });
   }
 
-  resetURLScheme(scheme: string, callback = (error?: Error) => { }) {
+  resetURLScheme(scheme: string, callback = (error?: Error) => {}) {
     this.readDefaults(defaults => {
       // Remove anything already registered for the scheme
       for (let ii = defaults.length - 1; ii >= 0; ii--) {
@@ -222,7 +222,7 @@ export class DefaultClientHelperMac implements DCH {
     });
   }
 
-  registerForURLScheme(scheme: string, callback = (error?: Error) => { }) {
+  registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
     this.readDefaults(defaults => {
       // Remove anything already registered for the scheme
       for (let ii = defaults.length - 1; ii >= 0; ii--) {

@@ -185,10 +185,7 @@ body.platform-win32 {
   position: relative;
   text-align: center;
   display: inline-block;
-  vertical-align: top;
-  margin-bottom: @spacing-standard;
-  margin-right: @spacing-standard;
-  margin-left: @spacing-standard;
+  margin: 0;
   width: initial;
   max-width: calc(~'100% - 30px');
 
@@ -275,6 +272,54 @@ body.platform-win32 {
       max-width: 100%;
       background: url(../static/images/attachments/transparency-background.png) top left repeat;
       background-size: 8px;
+    }
+  }
+
+  .resizer {
+    align-items: center;
+    bottom: 0;
+    background: #000;
+    color: #fff;
+    cursor: nwse-resize;
+    display: flex;
+    height: 20px;
+    justify-content: center;
+    opacity: .3;
+    position: absolute;
+    right: 0;
+    width: 20px;
+    z-index: 9;
+
+    // Thanks: https://css.gg/arrows-expand-left
+    .gg-arrows-expand-left {
+      box-sizing: border-box;
+      position: relative;
+      display: block;
+      transform: scale(0.9);
+      width: 14px;
+      height: 14px;
+      box-shadow:
+          6px 6px 0 -4px,
+          -6px -6px 0 -4px
+    }
+    .gg-arrows-expand-left::before {
+      content: "";
+      display: block;
+      box-sizing: border-box;
+      position: absolute;
+      width: 2px;
+      height: 22px;
+      top: -4px;
+      left: 6px;
+      transform: rotate(-45deg);
+      border-top: 9px solid;
+      border-bottom: 9px solid
+    }
+  }
+
+  &:hover, &[data-resizing] {
+    .resizer {
+      opacity: 1;
     }
   }
 }

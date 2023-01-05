@@ -81,15 +81,15 @@ export default class ViewOnGithubButton extends React.Component<
    * `Store`. Since most of our React Components are registered into
    * {ComponentRegistry} regions instead of manually rendered top-down much
    * of our data is side-loaded from stores instead of passed in as props.
-  */
+   */
   componentDidMount() {
     /*
-    * The `listen` method of {MailspringStore}s (which {GithubStore}
-    * subclasses) returns an "unlistener" function. When the unlistener is
-    * invoked (as it is in `componentWillUnmount`) the listener references
-    * are cleaned up. Every time the `GithubStore` calls its `trigger`
-    * method, the `_onStoreChanged` callback will be fired.
-    */
+     * The `listen` method of {MailspringStore}s (which {GithubStore}
+     * subclasses) returns an "unlistener" function. When the unlistener is
+     * invoked (as it is in `componentWillUnmount`) the listener references
+     * are cleaned up. Every time the `GithubStore` calls its `trigger`
+     * method, the `_onStoreChanged` callback will be fired.
+     */
     this._unlisten = GithubStore.listen(this._onStoreChanged);
   }
 
@@ -117,10 +117,10 @@ export default class ViewOnGithubButton extends React.Component<
   };
 
   /*
-  * getStateFromStores fetches the data the view needs from the
-  * appropriate data source (our GithubStore). We return a basic object
-  * that can be passed directly into `setState`.
-  */
+   * getStateFromStores fetches the data the view needs from the
+   * appropriate data source (our GithubStore). We return a basic object
+   * that can be passed directly into `setState`.
+   */
   _getStateFromStores() {
     return {
       link: GithubStore.link(),
@@ -141,7 +141,7 @@ export default class ViewOnGithubButton extends React.Component<
   * request.
   */
   _openLink = () => {
-    if (this.state.link) {
+    if (this.state.link && /^https?:\/\/.+/i.test(this.state.link)) {
       shell.openExternal(this.state.link);
     }
   };

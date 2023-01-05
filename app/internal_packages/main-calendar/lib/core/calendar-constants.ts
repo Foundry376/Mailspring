@@ -1,5 +1,5 @@
 export enum CalendarView {
-  DAY = 'day',
-  WEEK = 'week',
-  MONTH = 'month',
+  DAY = 'Day',
+  WEEK = 'Week',
+  MONTH = 'Month',
 }

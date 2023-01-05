@@ -151,14 +151,13 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
   };
 
   _onNewWindow = e => {
-    const { protocol } = url.parse(e.url);
-    if (protocol === 'http:' || protocol === 'https:') {
+    if (/^https?:\/\/.+/i.test(e.url)) {
       shell.openExternal(e.url);
     }
   };
 
   _onConsoleMessage = e => {
-    if (/^http.+/i.test(e.message)) {
+    if (/^https?:\/\/.+/i.test(e.message)) {
       shell.openExternal(e.message);
     }
     console.log('Guest page logged a message:', e.message);

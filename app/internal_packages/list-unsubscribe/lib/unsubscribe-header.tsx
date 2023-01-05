@@ -1,8 +1,6 @@
 import React from 'react';
-const { shell } = require('electron')
-import {
-  localized,
-} from 'mailspring-exports';
+const { shell } = require('electron');
+import { localized } from 'mailspring-exports';
 
 interface UnsubscribeHeaderProps {
   unsubscribeAction: string;
@@ -19,14 +17,17 @@ export class UnsubscribeHeader extends React.Component<UnsubscribeHeaderProps> {
   render() {
     const { unsubscribeAction } = this.props;
     return (
-      <a className="unsubscribe-action" onClick={() => this._unsubscribe(unsubscribeAction)}>{localized('Unsubscribe')}</a>
+      <a className="unsubscribe-action" onClick={() => this._unsubscribe(unsubscribeAction)}>
+        {localized('Unsubscribe')}
+      </a>
     );
   }
 
   private _unsubscribe(url: string) {
-    shell.openExternal(url);
+    if (/^https?:\/\/.+/i.test(url)) {
+      shell.openExternal(url);
+    }
   }
-
 }
 
 export default UnsubscribeHeader;

@@ -121,7 +121,15 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     // so it can attach event listeners again.
     this._lastFitSize = '';
     this._iframeComponent.didReplaceDocument();
-    this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
+
+    // Observe the <html> element within the iFrame for changes to it's content
+    // size. We need to disconnect the observer before the HTML element is deleted
+    // or Chrome gets into a "maximum call depth" Observer error.
+    const observedEl = iframeEl.contentDocument.firstElementChild;
+    this._iframeDocObserver.observe(observedEl);
+    iframeEl.contentWindow.addEventListener('beforeunload', () => {
+      this._iframeDocObserver.disconnect();
+    });
 
     window.requestAnimationFrame(() => {
       Autolink(doc.body, {
@@ -196,6 +204,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       >
         <EventedIFrame
           searchable
+          sandbox="allow-forms allow-same-origin"
           seamless={true}
           style={{ height: 0 }}
           ref={cm => {
