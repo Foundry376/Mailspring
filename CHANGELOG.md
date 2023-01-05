@@ -1,5 +1,21 @@
 # Mailspring Changelog
 
+## 1.10.8 (12/29/2022)
+
+_Happy new year! Thanks for your continued support - we're celebrating five years of open-source and the 60th Mailspring release!_
+
+Features:
+
+- You can now drag-to-resize inline images in the composer! (Thanks @glenn2223!)
+
+Bug Fixes:
+
+- Launching Mailspring after a long time no longer causes the app to crash trying to show the vacuum UI. (Thankfully these changes do complete, so this error is recoverable.)
+
+- Mailspring no longer shows "0pm" at 12pm / noon in some scenarios. (Thanks @glenn2223!)
+
+- Updated Italian translations (thanks @andy00087!)
+
 ## 1.10.7 (11/21/2022)
 
 - When creating a new IMAP + SMTP account, Mailspring sends a test message through the SMTP gateway to yourself, instead of attempting to send the message to an invalid address.

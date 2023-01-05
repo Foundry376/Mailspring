@@ -394,7 +394,7 @@ const DateUtils = {
     const diff = now.diff(datetime, 'days', true);
     const isSameDay = now.isSame(datetime, 'days');
     const opts: Intl.DateTimeFormatOptions = {
-      hour12: !AppEnv.config.get('core.workspace.use24HourClock'),
+      hourCycle: AppEnv.config.get('core.workspace.use24HourClock') ? 'h23' : 'h12',
     };
 
     if (diff <= 1 && isSameDay) {
@@ -433,7 +433,7 @@ const DateUtils = {
    */
   mediumTimeString(datetime: Date) {
     return datetime.toLocaleTimeString(navigator.language, {
-      hour12: !AppEnv.config.get('core.workspace.use24HourClock'),
+      hourCycle: AppEnv.config.get('core.workspace.use24HourClock') ? 'h23' : 'h12',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -454,7 +454,7 @@ const DateUtils = {
     // `(?<!\d)${dateTime.getDay()}(?!\d)` replace `$1${localise(ordinal)}`
 
     return datetime.toLocaleTimeString(navigator.language, {
-      hour12: !AppEnv.config.get('core.workspace.use24HourClock'),
+      hourCycle: AppEnv.config.get('core.workspace.use24HourClock') ? 'h23' : 'h12',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
