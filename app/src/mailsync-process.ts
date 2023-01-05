@@ -105,7 +105,14 @@ export class MailsyncProcess extends EventEmitter {
 
   _showStatusWindow(mode) {
     if (this._win) return;
-    const { BrowserWindow } = require('@electron/remote');
+
+    let BrowserWindow;
+    if (process.type === 'renderer') {
+      BrowserWindow = require('@electron/remote').BrowserWindow;
+    } else {
+      BrowserWindow = require('electron').BrowserWindow;
+    }
+
     this._win = new BrowserWindow({
       width: 350,
       height: 108,

@@ -13,9 +13,13 @@ import {
 import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
 import EmailFrame from './email-frame';
+import { BrowserWindow } from '@electron/remote';
 
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
+
+const SpinnerImg =
+  '<img alt="spinner.gif" src="mailspring://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">';
 
 class ConditionalQuotedTextControl extends React.Component<{ body: string; onClick?: () => void }> {
   static displayName = 'ConditionalQuotedTextControl';
@@ -116,9 +120,11 @@ export default class MessageItemBody extends React.Component<
 
   _onShowClipped = async () => {
     const { message } = this.props;
-    const filepath = require('path').join(require('@electron/remote').app.getPath('temp'), `${message.id}.html`);
+    const filepath = require('path').join(
+      require('@electron/remote').app.getPath('temp'),
+      `${message.id}.html`
+    );
     fs.writeFileSync(filepath, message.body);
-    const { BrowserWindow } = require('electron');
     const win = new BrowserWindow({
       title: `${message.subject}`,
       width: 800,
@@ -131,7 +137,7 @@ export default class MessageItemBody extends React.Component<
     win.loadURL(`file://${filepath}`);
   };
 
-  _mergeBodyWithFiles(body) {
+  _mergeBodyWithFiles(body: string) {
     let merged = body;
 
     // Replace cid: references with the paths to downloaded files
@@ -143,21 +149,18 @@ export default class MessageItemBody extends React.Component<
 
         // Note: I don't like doing this with RegExp before the body is inserted into
         // the DOM, but we want to avoid "could not load cid://" in the console.
+        const inlineImgRegexp = new RegExp(
+          `<\\s*img[^>/]*src=['"]cid:${safeContentId}['"][^>]*>`,
+          'gi'
+        );
 
         if (download && download.state !== 'finished') {
-          const inlineImgRegexp = new RegExp(
-            `<\\s*img.*src=['"]cid:${safeContentId}['"][^>]*>`,
-            'gi'
-          );
           // Render a spinner
-          merged = merged.replace(
-            inlineImgRegexp,
-            () =>
-              '<img alt="spinner.gif" src="mailspring://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
-          );
+          merged = merged.replace(inlineImgRegexp, () => SpinnerImg);
         } else {
-          const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');
-          merged = merged.replace(cidRegexp, `file://${AttachmentStore.pathForFile(file)}`);
+          merged = merged.replace(inlineImgRegexp, match =>
+            match.replace(`cid:${file.contentId}`, `file://${AttachmentStore.pathForFile(file)}`)
+          );
         }
       });
 

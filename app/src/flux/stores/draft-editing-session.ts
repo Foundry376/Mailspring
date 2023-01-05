@@ -246,22 +246,55 @@ export class DraftEditingSession extends MailspringStore {
   }
 
   validateDraftForSending() {
-    const warnings = [];
-    const errors = [];
-    const allRecipients = [...this._draft.to, ...this._draft.cc, ...this._draft.bcc];
+    const miscWarnings = [];
+    const miscErrors = [];
     const hasAttachment = this._draft.files && this._draft.files.length > 0;
+
+    if (this._draft.subject.length === 0) {
+      miscWarnings.push(localized('The subject field is blank.'));
+    }
+
+    let cleaned = QuotedHTMLTransformer.removeQuotedHTML(this._draft.body.trim());
+    const sigIndex = cleaned.search(RegExpUtils.mailspringSignatureRegex());
+    cleaned = sigIndex > -1 ? cleaned.substr(0, sigIndex) : cleaned;
+
+    const signatureIndex = cleaned.indexOf('<signature>');
+    if (signatureIndex !== -1) {
+      cleaned = cleaned.substr(0, signatureIndex - 1);
+    }
+
+    if (cleaned.toLowerCase().includes('attach') && !hasAttachment) {
+      miscWarnings.push(localized('The message mentions an attachment but none are attached.'));
+    }
+
+    // Check third party warnings added via Composer extensions
+    for (const extension of ComposerExtensionRegistry.extensions()) {
+      if (!extension.warningsForSending) {
+        continue;
+      }
+      miscWarnings.push(...extension.warningsForSending({ draft: this._draft }));
+    }
+
+    return { miscErrors, miscWarnings };
+  }
+
+
+  validateDraftRecipients() {
+    const recipientWarnings = [];
+    const recipientErrors = [];
+    const allRecipients = [...this._draft.to, ...this._draft.cc, ...this._draft.bcc];
 
     const allNames = [...Utils.commonlyCapitalizedSalutations];
     let unnamedRecipientPresent = false;
 
     for (const contact of allRecipients) {
       if (!ContactStore.isValidContact(contact)) {
-        errors.push(
+        recipientErrors.push(
           `${contact.email} is not a valid email address - please remove or edit it before sending.`
         );
       }
       const name = contact.fullName();
-      if (name && name.length && name !== contact.email) {
+      if (name && name.length && name !== contact.email && !this.checkRecipientInWarningBlacklist(contact.email)) {
         allNames.push(name.toLowerCase()); // ben gotow
         allNames.push(...name.toLowerCase().split(' ')); // ben, gotow
         allNames.push(...name.toLowerCase().split('-')); // anne-marie => anne, marie
@@ -276,17 +309,13 @@ export class DraftEditingSession extends MailspringStore {
     }
 
     if (allRecipients.length === 0) {
-      errors.push(
+      recipientErrors.push(
         localized('You need to provide one or more recipients before sending the message.')
       );
     }
 
-    if (errors.length > 0) {
-      return { errors, warnings };
-    }
-
-    if (this._draft.subject.length === 0) {
-      warnings.push(localized('The subject field is blank.'));
+    if (recipientErrors.length > 0) {
+      return { errors: recipientErrors, warnings: recipientWarnings };
     }
 
     let cleaned = QuotedHTMLTransformer.removeQuotedHTML(this._draft.body.trim());
@@ -296,10 +325,6 @@ export class DraftEditingSession extends MailspringStore {
     const signatureIndex = cleaned.indexOf('<signature>');
     if (signatureIndex !== -1) {
       cleaned = cleaned.substr(0, signatureIndex - 1);
-    }
-
-    if (cleaned.toLowerCase().includes('attach') && !hasAttachment) {
-      warnings.push(localized('The message mentions an attachment but none are attached.'));
     }
 
     if (!unnamedRecipientPresent) {
@@ -312,7 +337,7 @@ export class DraftEditingSession extends MailspringStore {
         if (salutation.endsWith('-')) salutation = salutation.substr(0, salutation.length - 1);
 
         if (!allNames.find(n => n === salutation || (n.length > 1 && salutation.includes(n)))) {
-          warnings.push(
+          recipientWarnings.push(
             localized(
               `The message is addressed to a name that doesn't appear to be a recipient ("%@")`,
               match[1]
@@ -322,16 +347,24 @@ export class DraftEditingSession extends MailspringStore {
       }
     }
 
-    // Check third party warnings added via Composer extensions
-    for (const extension of ComposerExtensionRegistry.extensions()) {
-      if (!extension.warningsForSending) {
-        continue;
-      }
-      warnings.push(...extension.warningsForSending({ draft: this._draft }));
-    }
-
-    return { errors, warnings };
+    return { recipientErrors, recipientWarnings };
   }
+
+  addRecipientsToWarningBlacklist() {
+    const allRecipients = [...this._draft.to, ...this._draft.cc, ...this._draft.bcc];
+    const allRecipientEmails = allRecipients.map(contact =>  contact.email);
+    let blacklist = JSON.parse(localStorage.getItem("recipientWarningBlacklist"));
+    if (blacklist === null) blacklist = [];
+    blacklist.push(...allRecipientEmails);
+    localStorage.setItem("recipientWarningBlacklist", JSON.stringify(blacklist));
+  }
+  
+  checkRecipientInWarningBlacklist(email) {
+    const blacklist = JSON.parse(localStorage.getItem("recipientWarningBlacklist"));
+    if (blacklist && blacklist.includes(email)) return true;
+    return false;
+  }
+
 
   // This function makes sure the draft is attached to a valid account, and changes
   // it's accountId if the from address does not match the account for the from

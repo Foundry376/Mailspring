@@ -342,7 +342,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     });
   };
 
-  _isValidDraft = (options: { force?: boolean } = {}) => {
+  _isValidDraft = (options: { forceRecipientWarnings?: boolean, forceMiscWarnings?: boolean } = {}) => {
     // We need to check the `DraftStore` because the `DraftStore` is
     // immediately and synchronously updated as soon as this function
     // fires. Since `setState` is asynchronous, if we used that as our only
@@ -353,31 +353,61 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
     const dialog = require('@electron/remote').dialog;
     const { session } = this.props;
-    const { errors, warnings } = session.validateDraftForSending();
+    const { recipientErrors, recipientWarnings } = session.validateDraftRecipients();
+    const { miscErrors, miscWarnings } = session.validateDraftForSending();
 
-    if (errors.length > 0) {
+    // Display errors
+    if (recipientErrors.length > 0) {
       dialog.showMessageBox({
         type: 'warning',
         buttons: [localized('Edit Message'), localized('Cancel')],
         message: localized('Cannot send message'),
-        detail: errors[0],
+        detail: recipientErrors[0],
+      });
+      return false;
+    }
+    if (miscErrors.length > 0) {
+      dialog.showMessageBox({
+        type: 'warning',
+        buttons: [localized('Edit Message'), localized('Cancel')],
+        message: localized('Cannot send message'),
+        detail: miscErrors[0],
       });
       return false;
     }
 
-    if (warnings.length > 0 && !options.force) {
+    // Display warnings
+    if (recipientWarnings.length > 0 && !options.forceRecipientWarnings) {
+      const response = dialog.showMessageBoxSync({
+        type: 'warning',
+        buttons: [localized('Send Anyway'), localized('Send & Ignore Warnings For This Email'), localized('Cancel')],
+        message: localized('Are you sure?'),
+        detail: recipientWarnings.join('. '),
+      });
+      if (response === 0) {
+        // response is button array index
+        return this._isValidDraft({ forceRecipientWarnings: true, forceMiscWarnings: options.forceMiscWarnings });
+      } else if (response === 1) {
+        // Send & Ignore Future Warnings for Recipient Email
+        session.addRecipientsToWarningBlacklist()
+        return this._isValidDraft({ forceRecipientWarnings: true, forceMiscWarnings: options.forceMiscWarnings });
+      }
+      return false;
+    }
+    if (miscWarnings.length > 0 && !options.forceMiscWarnings) {
       const response = dialog.showMessageBoxSync({
         type: 'warning',
         buttons: [localized('Send Anyway'), localized('Cancel')],
         message: localized('Are you sure?'),
-        detail: warnings.join('. '),
+        detail: miscWarnings.join('. '),
       });
       if (response === 0) {
         // response is button array index
-        return this._isValidDraft({ force: true });
+        return this._isValidDraft({ forceRecipientWarnings: options.forceRecipientWarnings, forceMiscWarnings: true });
       }
       return false;
     }
+
     return true;
   };
 

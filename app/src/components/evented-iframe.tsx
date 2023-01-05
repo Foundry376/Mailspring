@@ -45,7 +45,7 @@ Any `props` added to the <EventedIFrame> are passed to the iFrame it renders.
 Section: Component Kit
 */
 export class EventedIFrame extends React.Component<
-  EventedIFrameProps & React.HTMLProps<HTMLDivElement>
+  EventedIFrameProps & React.HTMLProps<HTMLIFrameElement>
 > {
   static displayName = 'EventedIFrame';
 
@@ -354,14 +354,14 @@ export class EventedIFrame extends React.Component<
         new MenuItem({
           label: localized('Save Image') + '...',
           click() {
-            AppEnv.showSaveDialog({ defaultPath: srcFilename }, function (path) {
+            AppEnv.showSaveDialog({ defaultPath: srcFilename }, function(path) {
               if (!path) {
                 return;
               }
               const oReq = new XMLHttpRequest();
               oReq.open('GET', src, true);
               oReq.responseType = 'arraybuffer';
-              oReq.onload = function () {
+              oReq.onload = function() {
                 const buffer = Buffer.from(new Uint8Array(oReq.response));
                 fs.writeFile(path, buffer, err => shell.showItemInFolder(path));
               };
@@ -377,7 +377,7 @@ export class EventedIFrame extends React.Component<
             const img = new Image();
             img.addEventListener(
               'load',
-              function () {
+              function() {
                 const canvas = document.createElement('canvas');
                 canvas.width = img.width;
                 canvas.height = img.height;

@@ -342,6 +342,38 @@ body.platform-win32 {
         vertical-align: baseline;
       }
     }
+
+    .view-controls {
+      position: absolute;
+      right: 10px;
+      border-radius: @border-radius-base;
+      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
+        0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15),
+        0 0.5px 1px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+
+      .view-btn {
+        width: 60px;
+        border: 0;
+        cursor: default;
+        display: inline-block;
+        color: @btn-default-text-color;
+        background: @background-primary;
+
+        &:hover {
+          background: darken(@background-primary, 5%);
+        }
+      }
+
+      .cur-view-btn {
+        width: 60px;
+        border: 0;
+        cursor: default;
+        display: inline-block;
+        color: @text-color-inverse;
+        background: @accent-primary;
+      }
+    }
   }
 
   .center-controls {

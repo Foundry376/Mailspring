@@ -156,9 +156,14 @@ class DatabaseStore extends MailspringStore {
   }
 
   _prettyConsoleLog(qa) {
+    const darkTheme =
+        window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+      primaryColor = darkTheme ? 'white' : 'black',
+      purpleColor = darkTheme ? 'pink' : 'purple';
+
     let q = qa.replace(/%/g, '%%');
-    q = `color:black |||%c ${q}`;
-    q = q.replace(/`(\w+)`/g, '||| color:purple |||%c$&||| color:black |||%c');
+    q = `color:${primaryColor} |||%c ${q}`;
+    q = q.replace(/`(\w+)`/g, `||| color:${purpleColor} |||%c$&||| color:${primaryColor} |||%c`);
 
     const colorRules = {
       'color:green': [
@@ -184,7 +189,7 @@ class DatabaseStore extends MailspringStore {
       for (const keyword of colorRules[style]) {
         q = q.replace(
           new RegExp(`\\b${keyword}\\b`, 'g'),
-          `||| ${style} |||%c${keyword}||| color:black |||%c`
+          `||| ${style} |||%c${keyword}||| color:${primaryColor} |||%c`
         );
       }
     }

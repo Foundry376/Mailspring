@@ -6,13 +6,7 @@ Providing localization in many languages is a challenge, and automatic translati
 
 ## Contributing Localizations
 
-#### Option 1: Suggest Changes
-
-From within Mailspring, choose "Developer > Toggle Localizer Tools" from the menu. A yellow bar appears at the bottom of the window. From here, you can use the small "Inspect" button to click text in the window which is untranslated or poorly translated. Type a new translation and click "Submit"!
-
-_Note: These translations are reviewed manually and a Mailspring maintainer will change the necessary files._
-
-#### Option 2: Submit a Pull Request
+#### Submit a Pull Request
 
 If you have a GitHub account, you can improve the localization files directly and submit a Pull Request! If you're interested in providing many translations, or translating things like network error messages you may not ever see yourself, this is the best bet. It also means you'll be recognized as a Mailspring contributor and the Mailspring project will appear on your GitHub profile!
 
