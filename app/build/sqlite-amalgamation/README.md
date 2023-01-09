@@ -34,7 +34,7 @@ If you're using a SQLite3 encryption extension that is a drop-in replacement for
 
 # Bundled configuration
 
-By default, this distribution currently uses SQLite3 **version 3.35.2** with the following [compilation options](https://www.sqlite.org/compile.html):
+By default, this distribution currently uses SQLite3 **version 3.40.1** with the following [compilation options](https://www.sqlite.org/compile.html):
 
 ```
 SQLITE_DQS=0

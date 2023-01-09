@@ -23,6 +23,7 @@ TARGET="$TARGET_ROOT/mailspring-$VERSION-$ARCH"
 mkdir -m $FILE_MODE -p "$TARGET/usr"
 mkdir -m $FILE_MODE -p "$TARGET/usr/share"
 cp -r "$APP_CONTENTS_DIRECTORY" "$TARGET/usr/share/mailspring"
+chmod +rx "$TARGET/usr/share/mailspring"
 
 mkdir -m $FILE_MODE -p "$TARGET/DEBIAN"
 cp "$OUTPUT_PATH/control" "$TARGET/DEBIAN/control"
