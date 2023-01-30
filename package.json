@@ -13,6 +13,7 @@
     "npm": ">=8"
   },
   "dependencies": {
+    "@electron/rebuild": "^3.2.10",
     "@types/better-sqlite3": "^5.4.0",
     "@types/debug": "^4.1.2",
     "@types/deep-extend": "^0.4.31",
@@ -50,9 +51,10 @@
     "@types/uuid": "^3.4.4",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
+    "better-sqlite3": "^8.0.1",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "^22.1.0",
+    "electron": "22.1.0",
     "electron-installer-dmg": "^4.0.0",
     "electron-packager": "15.5.x",
     "electron-winstaller": "2.x.x",
