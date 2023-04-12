@@ -23,7 +23,7 @@ class ThreadListVertical extends React.Component<
         >
           <InjectedComponentSet matching={{ role: 'ThreadList' }} />
         </ResizableRegion>
-        <ResizableRegion>
+        <div style={{ flex: '1 1 0%' }}>
           <div
             style={{
               display: 'flex',
@@ -45,7 +45,7 @@ class ThreadListVertical extends React.Component<
               matching={{ location: WorkspaceStore.Location.MessageList, modes: ['split'] }}
             />
           </div>
-        </ResizableRegion>
+        </div>
       </>
     );
   }
