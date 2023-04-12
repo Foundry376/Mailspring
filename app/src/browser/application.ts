@@ -542,6 +542,19 @@ export default class Application extends EventEmitter {
       }
     });
 
+    const dockMenu = Menu.buildFromTemplate([
+      {
+        label: localized('Compose New Message'),
+        click: () => global.application.emit('application:new-message'),
+      },
+    ]);
+
+    app.whenReady().then(() => {
+      if (process.platform === 'darwin') {
+        app.dock.setMenu(dockMenu)
+      }
+    })
+
     ipcMain.on('new-window', (event, options) => {
       const win = options.windowKey ? this.windowManager.get(options.windowKey) : null;
       if (win) {
