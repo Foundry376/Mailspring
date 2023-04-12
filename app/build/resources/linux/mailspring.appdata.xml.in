@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-  <id>
-    <%= name %>
-  </id>
+  <id><%= name %></id>
   <metadata_license>CC0-1.0</metadata_license>
-  <name>
-    <%= productName %>
-  </name>
-  <summary>
-    <%= description %>
-  </summary>
+  <name><%= productName %></name>
+  <summary><%= description %></summary>
   <description>
     <p>
       Mailspring is a new version of Nylas Mail maintained by one of the original authors. It's
@@ -29,9 +23,7 @@
   <url type="homepage">https://getmailspring.com/</url>
   <url type="bugtracker">https://github.com/Foundry376/Mailspring/issues</url>
   <url type="help">http://support.getmailspring.com/</url>
-  <launchable type="desktop-id">
-    <%= productName %>.desktop
-  </launchable>
+  <launchable type="desktop-id"><%= productName %>.desktop</launchable>
 
   <developer_name>Mailspring</developer_name>
   <project_license>GPL-3.0+</project_license>
