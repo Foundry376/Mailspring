@@ -1,5 +1,8 @@
 # 💌 Mailspring
 
+This fork of Mailspring uses SVG images converted to high-res PNG to display system tray icons that look good on KDE with a light colour theme. Dark colour versions of the SVG files are available, but I have not been able to use the PNG library (native image) to load different images depending on the color scheme.
+![](icons-sample.png) 
+
 [![Travis Status](https://api.travis-ci.com/Foundry376/Mailspring.svg?branch=master)](https://travis-ci.com/github/Foundry376/Mailspring)
 [![AppVeyor Status](https://ci.appveyor.com/api/projects/status/iuuuy6d65u3x6bj6?svg=true)](https://ci.appveyor.com/project/Foundry376/Mailspring)
 

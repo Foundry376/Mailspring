@@ -1,20 +1,18 @@
 import path from 'path';
 import { ipcRenderer } from 'electron';
 import { BadgeStore } from 'mailspring-exports';
+import { nativeTheme } from '@electron/remote';
 
 // Must be absolute real system path
 // https://github.com/atom/electron/issues/1299
 const { platform } = process;
 const INBOX_ZERO_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero.png');
 const INBOX_FULL_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full.png');
-const INBOX_FULL_UNREAD_ICON = path.join(
-  __dirname,
-  '..',
-  'assets',
-  platform,
-  'MenuItem-Inbox-Full-NewItems.png'
-);
-
+const INBOX_FULL_UNREAD_ICON = path.join( __dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-NewItems.png');
+// Only used for Linux (light icons go with dark theme:
+const INBOX_ZERO_LIGHT_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero-light.png');
+const INBOX_FULL_LIGHT_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-light.png');
+const INBOX_FULL_UNREAD_LIGHT_ICON = path.join( __dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-NewItems-light.png');
 /*
 Current / Intended Behavior:
 
@@ -76,6 +74,14 @@ class SystemTrayIconStore {
   };
 
   _updateIcon = () => {
+    if (platform == 'linux'){
+      //nativeTheme.on("updated", () => {
+      //   this._updateIconLinux();
+      //});
+      this._updateIconLinux();
+      return;
+    }
+
     const unread = BadgeStore.unread();
     const unreadString = (+unread).toLocaleString();
     const isInboxZero = BadgeStore.total() === 0;
@@ -88,6 +94,32 @@ class SystemTrayIconStore {
     }
     ipcRenderer.send('update-system-tray', icon.path, unreadString, icon.isTemplateImg);
   };
+
+  _updateIconLinux = () => {
+    const unread = BadgeStore.unread();
+    const unreadString = (+unread).toLocaleString();
+    const isInboxZero = BadgeStore.total() === 0;
+    const darkMode = nativeTheme.shouldUseDarkColors;
+    console.log("nativeTheme.shouldUseDarkColors is: ", darkMode)
+
+    let icon = { path: INBOX_FULL_ICON, isTemplateImg: true };
+    if (darkMode) {
+      icon = { path: INBOX_FULL_LIGHT_ICON, isTemplateImg: true };
+      if (isInboxZero) {
+        icon = { path: INBOX_ZERO_LIGHT_ICON, isTemplateImg: true };
+      } else if (this._windowBackgrounded && unread !== 0) {
+        icon = { path: INBOX_FULL_UNREAD_LIGHT_ICON, isTemplateImg: false };
+      }
+    } else {
+      if (isInboxZero) {
+        icon = { path: INBOX_ZERO_ICON, isTemplateImg: true };
+      } else if (this._windowBackgrounded && unread !== 0) {
+        icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
+      }
+    }
+    ipcRenderer.send('update-system-tray', icon.path, unreadString, icon.isTemplateImg);
+  };
+
 }
 
 export default SystemTrayIconStore;
