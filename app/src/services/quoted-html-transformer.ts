@@ -202,6 +202,7 @@ class QuotedHTMLTransformer {
   _findQuoteElements(doc) {
     const parsers = [
       this._findGmailQuotes,
+      this._findYahooQuotes,
       this._findBlockquoteQuotes,
       this._findQuotesAfterMessageHeaderBlock,
       this._findQuotesAfter__OriginalMessage__,
@@ -275,6 +276,12 @@ class QuotedHTMLTransformer {
     // version marks text but does not cause indentation, but both should be
     // considered quoted text.
     return Array.from(doc.querySelectorAll('.gmail_quote'));
+  }
+  
+  _findYahooQuotes(doc) {
+    // Both Yahoo and AOL wrap their quotes in divs with classes that contain
+    // the text yahoo_quoted
+    return Array.from(doc.querySelectorAll('[class*="yahoo_quoted"]'));
   }
 
   _findBlockquoteQuotes(doc) {
