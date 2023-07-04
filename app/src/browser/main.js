@@ -5,7 +5,7 @@ const util = require('util');
 
 // TODO: Remove when upgrading to Electron 4
 const fs = require('fs');
-fs.statSyncNoException = function (...args) {
+fs.statSyncNoException = function(...args) {
   try {
     return fs.statSync.apply(fs, args);
   } catch (e) {
@@ -89,10 +89,8 @@ const declareOptions = argv => {
   // The options --enable-crashpad and --allow-file-access-from-files are added to the command line options by electron when opening a second instance of Mailspring.
   // If they are not defined as boolean options here, they will "swallow" every argument that is passed after them. This leads to the "Send To" functionality not working
   // if mailspring is already running.
-  options
-    .boolean('enable-crashpad')
-  options
-    .boolean('allow-file-access-from-files')
+  options.boolean('enable-crashpad');
+  options.boolean('allow-file-access-from-files');
   options
     .alias('h', 'help')
     .boolean('h')
@@ -334,17 +332,14 @@ const start = () => {
     // Setting the Origin Header to 'localhost' when logging in on Office 365
     // Otherwise O365 will produce a 400 error on the OAuth Login Process
     const filter = {
-      urls: ["*://login.microsoftonline.com/*"]
+      urls: ['*://login.microsoftonline.com/*'],
     };
 
-    session.defaultSession.webRequest.onBeforeSendHeaders(
-      filter,
-      (details, callback) => {
-        console.log(details);
-        details.requestHeaders['Origin'] = 'localhost';
-        callback({ requestHeaders: details.requestHeaders });
-      }
-    );
+    session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
+      console.log(details);
+      details.requestHeaders['Origin'] = 'localhost';
+      callback({ requestHeaders: details.requestHeaders });
+    });
 
     // Block remote JS execution in a second way in case our <meta> tag approach
     // is compromised somehow https://www.electronjs.org/docs/tutorial/security
@@ -357,7 +352,7 @@ const start = () => {
         responseHeaders: {
           ...details.responseHeaders,
           'Content-Security-Policy': [
-            "default-src * mailspring:; script-src 'self' 'unsafe-inline' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:;",
+            "default-src * mailspring:; script-src 'self' 'unsafe-inline' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:; object-src none; media-src none; manifest-src none;",
           ],
         },
       });
