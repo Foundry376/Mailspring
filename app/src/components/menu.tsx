@@ -27,6 +27,7 @@ export interface MenuProps extends HTMLProps<any> {
   itemChecked?: (...args: any[]) => any;
   items: any[];
   onSelect: (item: any) => any;
+  onExpand: (item: any) => any;
   onEscape?: (...args: any[]) => any;
   defaultSelectedIndex?: number;
 }
@@ -175,6 +176,9 @@ export class Menu extends React.Component<MenuProps, MenuState> {
      - `onSelect` A {Function} called with the selected item when the user clicks
        an item in the menu or confirms their selection with the Enter key.
 
+     - `onExpand` A {Function} called with the selected item when the user presses
+       Tab or right arrow.
+
      - `onEscape` A {Function} called when a user presses escape in the input.
 
      - `defaultSelectedIndex` The index of the item first selected if there
@@ -195,6 +199,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
 
     onSelect: PropTypes.func.isRequired,
 
+    onExpand: PropTypes.func
     onEscape: PropTypes.func,
 
     defaultSelectedIndex: PropTypes.number,
@@ -297,6 +302,12 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     event.stopPropagation();
     if (['Enter', 'Return'].includes(event.key)) {
       this._onEnter();
+    } else {
+      if (this.props.onExpand !== undefined && (event.key === 'Tab' || event.key === 'ArrowRight')) {
+        this._onExpand();
+        event.preventDefault();
+        return;
+      }
     }
     if (event.key === 'Escape') {
       this._onEscape();
@@ -306,6 +317,13 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     } else if (event.key === 'ArrowDown' || event.key === 'Tab') {
       this._onShiftSelectedIndex(1);
       event.preventDefault();
+    }
+  };
+
+  _onExpand = () => {
+    const item = this.props.items[this.state.selectedIndex];
+    if (item != null) {
+      this.props.onExpand(item);
     }
   };
 
@@ -391,6 +409,13 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     const item = this.props.items[this.state.selectedIndex];
     if (item != null) {
       this.props.onSelect(item);
+    }
+  };
+
+  _onExpand = () => {
+    const item = this.props.items[this.state.selectedIndex];
+    if (item != null) {
+      this.props.onExpand(item);
     }
   };
 

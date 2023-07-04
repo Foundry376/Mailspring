@@ -189,6 +189,10 @@ export default class MovePickerPopover extends Component<
     }
   };
 
+  _onCompleteAutosuggest = item => {
+    this.setState(this._recalculateState(this.props, { searchValue: item.displayName }));
+  };
+
   _onSearchValueChange = event => {
     this.setState(this._recalculateState(this.props, { searchValue: event.target.value }));
   };
@@ -261,6 +265,7 @@ export default class MovePickerPopover extends Component<
           itemKey={item => item.id}
           itemContent={this._renderItem}
           onSelect={this._onSelectCategory}
+          onExpand={this._onCompleteAutosuggest}
           onEscape={this._onEscape}
           defaultSelectedIndex={this.state.searchValue === '' ? -1 : 0}
         />
