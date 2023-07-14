@@ -226,6 +226,7 @@ module.exports = {
       ],
     },
     {
+      role: 'help',
       id: 'Help',
       label: localized('Help'),
       submenu: [

@@ -205,6 +205,7 @@ module.exports = {
     },
     { type: 'separator' },
     {
+      role: 'help',
       label: localized('Help') + '...',
       command: 'application:view-help',
     },
