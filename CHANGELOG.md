@@ -1,5 +1,33 @@
 # Mailspring Changelog
 
+## 1.11.0 (07/28/2023)
+
+Features:
+
+- The "Move to Folder" menu action allows you to press Tab or the "→" key to complete the name of the highlighted folder, which makes it easier to complete a path in long folder hierarchies.
+
+- Mailspring now properly identifies and formats quoted text from Yahoo and AOL email. (Thanks @nzayatz14)
+
+- On MacOS, the Mailspring icon in the dock now allows you to compose a new message from the context menu. (thanks @Naroh091)
+
+- Mailspring's menu bar icon is now red for new mail and blue for unread mail, which makes it easier to spot a new message that needs attention. (#2433, thanks @marivaldojr)
+
+Bug Fixes:
+
+- Contact sync no longer crashes when a contact has no display name (thanks @ww-daniel-mora)
+
+- The help menu now offers the standard MacOS "menu search" feature (Thanks @probablykasper)
+
+- Colons are allowed in URLs and no longer break Mailspring's link highlighting. (thanks @choptastic!)
+
+- The email preview is no longer in some cases in vertical layout (thanks @glenn2223!)
+
+- Updated Italian translations (thanks @andy00087!)
+
+Developer:
+
+- Mailspring now uses a more restrictive Content-Security-Policy that includes `object-src none; media-src mailspring:; manifest-src none;`. If your plugin packaged media such as sounds, you may need to reference them via the mailspring:// URL syntax (ala 2b75347c)
+
 ## 1.10.8 (12/29/2022)
 
 _Happy new year! Thanks for your continued support - we're celebrating five years of open-source and the 60th Mailspring release!_
