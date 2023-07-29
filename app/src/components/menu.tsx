@@ -199,7 +199,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
 
     onSelect: PropTypes.func.isRequired,
 
-    onExpand: PropTypes.func
+    onExpand: PropTypes.func,
     onEscape: PropTypes.func,
 
     defaultSelectedIndex: PropTypes.number,
@@ -303,7 +303,10 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     if (['Enter', 'Return'].includes(event.key)) {
       this._onEnter();
     } else {
-      if (this.props.onExpand !== undefined && (event.key === 'Tab' || event.key === 'ArrowRight')) {
+      if (
+        this.props.onExpand !== undefined &&
+        (event.key === 'Tab' || event.key === 'ArrowRight')
+      ) {
         this._onExpand();
         event.preventDefault();
         return;
@@ -409,13 +412,6 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     const item = this.props.items[this.state.selectedIndex];
     if (item != null) {
       this.props.onSelect(item);
-    }
-  };
-
-  _onExpand = () => {
-    const item = this.props.items[this.state.selectedIndex];
-    if (item != null) {
-      this.props.onExpand(item);
     }
   };
 

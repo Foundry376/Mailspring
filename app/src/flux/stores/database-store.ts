@@ -214,6 +214,7 @@ class DatabaseStore extends MailspringStore {
   // If a query is made before the database has been opened, the query will be
   // held in a queue and run / resolved when the database is ready.
   _query(query: SQLString, values: SQLValue[] = [], background = false) {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise<{ [key: string]: any }[]>(async (resolve, reject) => {
       if (!this._open) {
         this._waiting.push(() => this._query(query, values).then(resolve, reject));
@@ -367,6 +368,7 @@ class DatabaseStore extends MailspringStore {
       });
     }
 
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise<AgentResponse>(async resolve => {
       if (!this._agent) {
         // Something bad has happened and we were immediately unable to spawn the query helper.
