@@ -275,6 +275,13 @@ const DateUtils = {
     start: Moment;
     end: Moment;
   } {
+    // Pre-process the input string to handle cases of 3 or 4 digit time strings
+    // to insert colon to make it recognizable by chrono-node.
+    if (/^\d{3,4}$/.test(dateLikeString)) {
+      const len = dateLikeString.length;
+      dateLikeString = dateLikeString.slice(0, len - 2) + ':' + dateLikeString.slice(len - 2);
+    }
+
     const parsed = getChrono().parse(dateLikeString);
     const gotTime = { start: false, end: false };
     const gotDay = { start: false, end: false };
@@ -282,7 +289,7 @@ const DateUtils = {
     const results = { start: moment(now), end: moment(now), leftoverText: dateLikeString };
     for (const item of parsed) {
       for (const val of ['start', 'end']) {
-        if (!(val in item)) {
+        if (!(val in item) || !item[val] || !item[val].knownValues) {
           continue;
         }
         const { day: knownDay, weekday: knownWeekday, hour: knownHour } = item[val].knownValues;
@@ -309,7 +316,7 @@ const DateUtils = {
           results[val].month(month - 1); // moment zero-indexes month
           results[val].date(day);
 
-          if (!gotTime) {
+          if (!gotTime[val]) {
             results[val].hour(hour);
             results[val].minute(minute);
           }
