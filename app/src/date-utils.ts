@@ -131,6 +131,12 @@ function getChronoPast() {
 }
 
 function expandDateLikeString(dateLikeString: string) {
+  // Short format: 123 => 1:23 or 1234 => 12:34
+  if (/^\d{3,4}$/.test(dateLikeString)) {
+    const len = dateLikeString.length;
+    dateLikeString = dateLikeString.slice(0, len - 2) + ':' + dateLikeString.slice(len - 2); // Insert colon
+  }
+
   // Short format: 2h
   if (/^\d+h$/.test(dateLikeString)) {
     const numHours = dateLikeString.match(/^\d+/)[0]; // Extract number
@@ -309,7 +315,7 @@ const DateUtils = {
           results[val].month(month - 1); // moment zero-indexes month
           results[val].date(day);
 
-          if (!gotTime) {
+          if (!gotTime[val]) {
             results[val].hour(hour);
             results[val].minute(minute);
           }
