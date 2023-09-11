@@ -30,7 +30,7 @@ class TemplateStore extends MailspringStore {
     this.listenTo(Actions.deleteTemplate, this._onDeleteTemplate);
     this.listenTo(Actions.renameTemplate, this._onRenameTemplate);
 
-    const welcomeName = 'Welcome to Templates.html';
+    const welcomeName = localized('Welcome to Templates') + '.html';
     const welcomePath = path.join(__dirname, '..', 'assets', welcomeName);
 
     // I know this is a bit of pain but don't do anything that

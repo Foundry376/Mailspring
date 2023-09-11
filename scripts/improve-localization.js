@@ -119,7 +119,7 @@ ${index + 1}/${length} > `,
 			sortedLocalization[key] = localization[key];
 		});
 
-	fs.writeFileSync(`${PATH_TO_LANG}/${LANG}.json`, JSON.stringify(sortedLocalization, null, 4));
+	fs.writeFileSync(`${PATH_TO_LANG}/${LANG}.json`, JSON.stringify(sortedLocalization, null, 2));
 
 	if (ASK) {
 		console.log(`\napp/lang/${LANG}.json improved with ${nbImproved} key(s)!`);
