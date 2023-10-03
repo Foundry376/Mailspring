@@ -19,14 +19,7 @@ export function snoozedUntilMessage(snoozeDate, now = moment()) {
     const date = moment(snoozeDate);
     const hourDifference = moment.duration(date.diff(now)).asHours();
 
-    if (hourDifference < 24) {
-      dateFormat = dateFormat.replace('MMM D, ', '');
-    }
-    if (date.minutes() === 0) {
-      dateFormat = dateFormat.replace(':mm', '');
-    }
-
-    message += ` until ${DateUtils.format(date, dateFormat)}`;
+    message += ` ${DateUtils.format(date, dateFormat)}`;
   }
   return message;
 }
