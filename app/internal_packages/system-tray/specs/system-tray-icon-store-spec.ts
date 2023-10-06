@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron';
 import { BadgeStore } from 'mailspring-exports';
 import SystemTrayIconStore from '../lib/system-tray-icon-store';
 
-const { INBOX_ZERO_ICON, INBOX_FULL_ICON, INBOX_FULL_UNREAD_ICON } = SystemTrayIconStore;
+const { INBOX_ZERO_ICON, INBOX_FULL_ICON, INBOX_FULL_NEW_ICON, INBOX_FULL_UNREAD_ICON } = SystemTrayIconStore;
 
 describe('SystemTrayIconStore', function systemTrayIconStore() {
   beforeEach(() => {
