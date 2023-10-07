@@ -17,7 +17,21 @@ const { safeStorage } = require("@electron/remote");
  * and every key we want to access.
  */
 class KeyManager {
-  SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
+
+  // TODO: Delete the migration from Keytar once its dependency can be removed
+  constructor() {
+    const SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
+    const KEY_NAME = 'Mailspring Keys';
+
+    if (!CredentialStore.isMigrated()) {
+      console.log("Keys not yet migrated. Migrating now...");
+      keytar.getPassword(SERVICE_NAME, KEY_NAME).then(raw => {
+        const keys = JSON.parse(raw) as KeySet;
+        this._writeKeyHash(keys);
+        CredentialStore.setMigrated();
+      });
+    }
+  }
 
   async deleteAccountSecrets(account: Account) {
     try {
@@ -87,9 +101,18 @@ class KeyManager {
   }
 
   async _getKeyHash() {
-    const encryptedCredentials = CredentialStore.get();
-    console.log('Trying to decrpyt: ', encryptedCredentials);
+    // TODO: Remove when Keytar is completely removed
+    // Wait until key migration has finished
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    let isMigrated = CredentialStore.isMigrated();
+    console.log("isMigrated:", isMigrated);
+    while (!isMigrated) {
+      await delay(1000);
+      isMigrated = CredentialStore.isMigrated();
+    }
+
     let raw = '{}';
+    const encryptedCredentials = CredentialStore.get();
     if (encryptedCredentials !== undefined) {
       raw = await safeStorage.decryptString(Buffer.from(encryptedCredentials, "utf-8"));
     }
@@ -101,8 +124,7 @@ class KeyManager {
   }
 
   async _writeKeyHash(keys: KeySet) {
-    console.log('Enrcypting: ', JSON.stringify(keys));
-    const enrcyptedCredentials = safeStorage.encryptString(JSON.stringify(keys))
+    const enrcyptedCredentials = await safeStorage.encryptString(JSON.stringify(keys))
     CredentialStore.set(enrcyptedCredentials);
   }
 
