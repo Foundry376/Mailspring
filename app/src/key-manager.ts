@@ -1,12 +1,15 @@
 import keytar from 'keytar';
 import { localized } from './intl';
-import { Account, CredentialStore } from 'mailspring-exports';
+import { Account } from 'mailspring-exports';
 
 interface KeySet {
   [key: string]: string;
 }
 
 const { safeStorage } = require("@electron/remote");
+
+const configCredentialsKey = 'credentials';
+const configCredentialsMigratedKey = 'credentialsMigratedFromKeytar';
 
 /**
  * A basic wrap around electron's secure key management. Consolidates all of
@@ -23,16 +26,25 @@ class KeyManager {
     const SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
     const KEY_NAME = 'Mailspring Keys';
 
-    if (!CredentialStore.isMigrated()) {
+    if (!this.isMigrated()) {
       console.log("Keys not yet migrated. Migrating now...");
       keytar.getPassword(SERVICE_NAME, KEY_NAME).then(raw => {
         const keys = JSON.parse(raw) as KeySet;
         this._writeKeyHash(keys);
         // TODO: Enable this to clean up the keytar storage after everything is tested thoroughly, but before releasing the next version
         // keytar.deletePassword(SERVICE_NAME, KEY_NAME);
-        CredentialStore.setMigrated();
+        this.setMigrated();
       });
     }
+  }
+
+  isMigrated() {
+    const result = AppEnv.config.get(configCredentialsMigratedKey) || false
+    return result;
+  }
+
+  setMigrated() {
+    AppEnv.config.set(configCredentialsMigratedKey, 'true');
   }
 
   async deleteAccountSecrets(account: Account) {
@@ -106,15 +118,14 @@ class KeyManager {
     // TODO: Remove when Keytar is completely removed
     // Wait until key migration has finished
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-    let isMigrated = CredentialStore.isMigrated();
-    console.log("isMigrated:", isMigrated);
+    let isMigrated = this.isMigrated();
     while (!isMigrated) {
       await delay(1000);
-      isMigrated = CredentialStore.isMigrated();
+      isMigrated = this.isMigrated();
     }
 
     let raw = '{}';
-    const encryptedCredentials = CredentialStore.get();
+    const encryptedCredentials = AppEnv.config.get(configCredentialsKey);
     if (encryptedCredentials !== undefined) {
       raw = await safeStorage.decryptString(Buffer.from(encryptedCredentials, "utf-8"));
     }
@@ -127,7 +138,7 @@ class KeyManager {
 
   async _writeKeyHash(keys: KeySet) {
     const enrcyptedCredentials = await safeStorage.encryptString(JSON.stringify(keys))
-    CredentialStore.set(enrcyptedCredentials);
+    AppEnv.config.set(configCredentialsKey, enrcyptedCredentials);
   }
 
   _reportFatalError(err: Error) {
