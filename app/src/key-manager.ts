@@ -31,8 +31,7 @@ class KeyManager {
       keytar.getPassword(SERVICE_NAME, KEY_NAME).then(raw => {
         const keys = JSON.parse(raw) as KeySet;
         this._writeKeyHash(keys);
-        // TODO: Enable this to clean up the keytar storage after everything is tested thoroughly, but before releasing the next version
-        // keytar.deletePassword(SERVICE_NAME, KEY_NAME);
+        keytar.deletePassword(SERVICE_NAME, KEY_NAME);
         this.setMigrated();
       });
     }
