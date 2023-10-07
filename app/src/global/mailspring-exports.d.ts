@@ -106,6 +106,7 @@ export const OutboxStore: OutboxStore;
 export type PopoverStore = typeof import('../flux/stores/popover-store').default;
 export const PopoverStore: PopoverStore;
 export * from '../flux/stores/account-store';
+export * from '../flux/stores/credential-store';
 export * from '../flux/stores/signature-store';
 export * from '../flux/stores/message-store';
 export type ContactStore = typeof import('../flux/stores/contact-store').default;

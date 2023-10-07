@@ -1,14 +1,15 @@
-
 import keytar from 'keytar';
 import { localized } from './intl';
-import { Account } from 'mailspring-exports';
+import { Account, CredentialStore } from 'mailspring-exports';
 
 interface KeySet {
   [key: string]: string;
 }
 
+const { safeStorage } = require("@electron/remote");
+
 /**
- * A basic wrap around keytar's secure key management. Consolidates all of
+ * A basic wrap around electron's secure key management. Consolidates all of
  * our keys under a single namespaced keymap and provides migration
  * support.
  *
@@ -17,7 +18,6 @@ interface KeySet {
  */
 class KeyManager {
   SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
-  KEY_NAME = 'Mailspring Keys';
 
   async deleteAccountSecrets(account: Account) {
     try {
@@ -68,13 +68,13 @@ class KeyManager {
   }
 
   async deletePassword(keyName: string) {
+    const keys = await this._getKeyHash();
     try {
-      const keys = await this._getKeyHash();
       delete keys[keyName];
-      await this._writeKeyHash(keys);
     } catch (err) {
-      this._reportFatalError(err);
+      console.log('Could not delete password as it did not exist', err);
     }
+    await this._writeKeyHash(keys);
   }
 
   async getPassword(keyName: string) {
@@ -87,7 +87,12 @@ class KeyManager {
   }
 
   async _getKeyHash() {
-    const raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
+    const encryptedCredentials = CredentialStore.get();
+    console.log('Trying to decrpyt: ', encryptedCredentials);
+    let raw = '{}';
+    if (encryptedCredentials !== undefined) {
+      raw = await safeStorage.decryptString(Buffer.from(encryptedCredentials, "utf-8"));
+    }
     try {
       return JSON.parse(raw) as KeySet;
     } catch (err) {
@@ -96,7 +101,9 @@ class KeyManager {
   }
 
   async _writeKeyHash(keys: KeySet) {
-    await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
+    console.log('Enrcypting: ', JSON.stringify(keys));
+    const enrcyptedCredentials = safeStorage.encryptString(JSON.stringify(keys))
+    CredentialStore.set(enrcyptedCredentials);
   }
 
   _reportFatalError(err: Error) {

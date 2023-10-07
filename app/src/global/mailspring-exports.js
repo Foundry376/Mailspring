@@ -132,6 +132,7 @@ load(`ModalStore`, 'flux/stores/modal-store');
 load(`OutboxStore`, 'flux/stores/outbox-store');
 load(`PopoverStore`, 'flux/stores/popover-store');
 load(`AccountStore`, 'flux/stores/account-store');
+load(`CredentialStore`, 'flux/stores/credential-store');
 load(`SignatureStore`, 'flux/stores/signature-store');
 load(`MessageStore`, 'flux/stores/message-store');
 load(`ContactStore`, 'flux/stores/contact-store');
