@@ -1,4 +1,3 @@
-import keytar from 'keytar';
 import { localized } from './intl';
 import { Account } from 'mailspring-exports';
 
@@ -9,7 +8,6 @@ interface KeySet {
 const { safeStorage } = require("@electron/remote");
 
 const configCredentialsKey = 'credentials';
-const configCredentialsMigratedKey = 'credentialsMigratedFromKeytar';
 
 /**
  * A basic wrap around electron's secure key management. Consolidates all of
@@ -20,37 +18,6 @@ const configCredentialsMigratedKey = 'credentialsMigratedFromKeytar';
  * and every key we want to access.
  */
 class KeyManager {
-
-  // TODO: Delete the migration from Keytar once its dependency can be removed
-  constructor() {
-    const SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
-    const KEY_NAME = 'Mailspring Keys';
-
-    console.log("Constructing Key Manager. Keys Migrated?", this.isMigrated());
-
-    if (!this.isMigrated()) {
-      console.log("Keys not yet migrated. Migrating now...");
-      keytar.getPassword(SERVICE_NAME, KEY_NAME).then(raw => {
-        if (raw === null) {
-          raw = "{}";
-        }
-        const keys = JSON.parse(raw) as KeySet;
-        this._writeKeyHash(keys);
-        keytar.deletePassword(SERVICE_NAME, KEY_NAME);
-        this.setMigrated(true);
-        console.log("Key Migration finished");
-      });
-    }
-  }
-
-  isMigrated() {
-    const result = AppEnv.config.get(configCredentialsMigratedKey) || false
-    return result;
-  }
-
-  setMigrated(value: Boolean) {
-    AppEnv.config.set(configCredentialsMigratedKey, value);
-  }
 
   async deleteAccountSecrets(account: Account) {
     try {
@@ -120,16 +87,6 @@ class KeyManager {
   }
 
   async _getKeyHash() {
-    // TODO: Remove when Keytar is completely removed
-    // Wait until key migration has finished
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-    let isMigrated = this.isMigrated();
-    while (!isMigrated) {
-      console.log("Waiting 1 second for migration to finish");
-      await delay(1000);
-      isMigrated = this.isMigrated();
-    }
-
     let raw = '{}';
     const encryptedCredentials = AppEnv.config.get(configCredentialsKey);
     // Check for different null values to prevent issues if a migration from keytar has failed
@@ -161,12 +118,6 @@ class KeyManager {
     if (clickedButton == 0) {
       const shell = require('electron').shell;
       shell.openExternal("https://community.getmailspring.com/t/password-management-error/199")
-    }
-
-    // TODO: Remove when removing the keytar dependencies
-    // If we are in the snap environment and this fails, we ensure that the migration from keytar can run again
-    if (process.env.SNAP) {
-      this.setMigrated(false);
     }
 
     // tell the app to exit and rethrow the error to ensure code relying
