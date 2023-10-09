@@ -15,7 +15,7 @@ import {
 export function snoozedUntilMessage(snoozeDate, now = moment()) {
   let message = localized('Snoozed');
   if (snoozeDate) {
-    let dateFormat = DateUtils.DATE_FORMAT_SHORT;
+    const dateFormat = DateUtils.DATE_FORMAT_SHORT;
     const date = moment(snoozeDate);
     const hourDifference = moment.duration(date.diff(now)).asHours();
 
