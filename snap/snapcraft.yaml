@@ -14,7 +14,7 @@ parts:
     plugin: nil
     override-pull: |
       deb="$(ls $CRAFT_PROJECT_DIR/app/dist/mailspring-*.deb)"
-      craftctl set-version "$(basename "$deb" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")"
+      craftctl set version="$(basename "$deb" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")"
       dpkg -x "$deb" "$CRAFT_PART_SRC"
     override-build: |
       cp -a "$CRAFT_PART_SRC"/* "$CRAFT_PART_INSTALL"
