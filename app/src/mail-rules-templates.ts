@@ -35,6 +35,11 @@ export const ConditionTemplates = [
     },
   }),
 
+  new Template('replyTo', Template.Type.String, {
+    name: localized('Reply to'),
+    valueForMessage: message => [].concat(message.replyTo.map(c => c.email), message.to.map(c => c.name)),
+  }),
+
   new Template('anyAttachmentName', Template.Type.String, {
     name: localized('Attachment name'),
     valueForMessage: message => message.files.map(f => f.filename),
