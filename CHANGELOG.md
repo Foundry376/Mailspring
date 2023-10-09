@@ -1,5 +1,31 @@
 # Mailspring Changelog
 
+## 1.12.0 (10/09/2023)
+
+Features:
+
+- The Windows tray icon styles have been improved, and a new option allows you to opt-out of the red icon style. (Thanks @Phylu)
+
+- Mail rules now support filtering based on the "Reply-to" header. (Thanks @Phylu)
+
+- The "Snooze" UI now allows you to type "600" as a shortcut for for "6:00". (Thanks @ChocoTonic)
+
+Bug Fixes:
+
+- The snooze label is less ambiguous and includes the month and year. (Thanks @Phylu)
+
+Localization:
+
+- British english localizations have been added. (Thanks @danbishop)
+
+- Traditional chinese localizations have been greatly improved. (Thanks @PeterDaveHello)
+
+Developer:
+
+- Mailspring now stores your mail secrets using Electron SafeStorage instead of the deprecated Keytar library thanks to updates by @Phylu. This will allow us to move to a newer version of Electron soon!
+
+- The Snap package now uses core22 and the `gnome` extension. (Thanks @soumyaDghosh)
+
 ## 1.11.0 (07/28/2023)
 
 Features:
