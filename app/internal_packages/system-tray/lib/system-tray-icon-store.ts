@@ -42,6 +42,8 @@ class SystemTrayIconStore {
 
   static INBOX_FULL_ICON = INBOX_FULL_ICON;
 
+  static INBOX_FULL_NEW_ICON = INBOX_FULL_NEW_ICON;
+
   static INBOX_FULL_UNREAD_ICON = INBOX_FULL_UNREAD_ICON;
 
   _windowBackgrounded = false;
@@ -87,14 +89,20 @@ class SystemTrayIconStore {
     const unreadString = (+unread).toLocaleString();
     const isInboxZero = BadgeStore.total() === 0;
 
+    const newMessagesIconStyle = AppEnv.config.get('core.workspace.trayIconStyle') || 'blue';
+
     let icon = { path: INBOX_FULL_ICON, isTemplateImg: true };
     if (isInboxZero) {
       icon = { path: INBOX_ZERO_ICON, isTemplateImg: true };
     } else if (unread !== 0) {
-      if (this._windowBackgrounded) {
-        icon = { path: INBOX_FULL_NEW_ICON, isTemplateImg: false };
-      } else {
+      if (newMessagesIconStyle === 'blue') {
         icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
+      } else {
+        if (this._windowBackgrounded) {
+          icon = { path: INBOX_FULL_NEW_ICON, isTemplateImg: false };
+        } else {
+          icon = { path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false };
+        }
       }
     }
     ipcRenderer.send('update-system-tray', icon.path, unreadString, icon.isTemplateImg);
