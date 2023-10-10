@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 import { ConfigLike } from '../types';
+import SystemTrayIconStore from '../../../system-tray/lib/system-tray-icon-store';
 
 class AppearanceScaleSlider extends React.Component<
   { id: string; config: ConfigLike },
@@ -169,6 +170,50 @@ class AppearanceModeSwitch extends React.Component<
   }
 }
 
+const { INBOX_ZERO_ICON, INBOX_FULL_ICON, INBOX_FULL_NEW_ICON, INBOX_FULL_UNREAD_ICON } = SystemTrayIconStore;
+
+class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
+  kp = 'core.workspace.trayIconStyle';
+
+  onChangeTrayIconStyle = e => {
+    this.props.config.set(this.kp, e.target.value);
+  };
+
+  render() {
+    const val = this.props.config.get(this.kp) || 'blue';
+
+    const options = [
+      ['blue', localized('Blue icon for new and unread messages'), localized('(The same blue tray icon is used whether you have new or old unread messages.)'), INBOX_FULL_UNREAD_ICON],
+      ['red', localized('Red icon for new and blue icon for unread messages'), localized('(A red tray icon is displayed for new messages and a blue icon for older unread messages.)'), INBOX_FULL_NEW_ICON],
+    ];
+
+    return (
+      <section>
+        <h6>{localized('Tray icon for new messages')}</h6>
+        {options.map(([enumValue, description, comment, icon], idx) => (
+          <div key={enumValue} style={{ marginBottom: 10 }}>
+            <label htmlFor={`tray-sympol-radio${idx}`}>
+              <input
+                id={`tray-sympol-radio${idx}`}
+                type="radio"
+                value={enumValue}
+                name="trayIconStyle"
+                checked={val === enumValue}
+                onChange={this.onChangeTrayIconStyle}
+              />
+              <img src={icon} style={{ height: 16, width: 16 }} />
+              {` ${description} `}
+              {comment && (
+                <div style={{ paddingLeft: 24, fontSize: '0.9em', opacity: 0.7 }}>{comment}</div>
+              )}
+            </label>
+          </div>
+        ))}
+      </section>
+    );
+  }
+}
+
 const AppearanceModeOption = function AppearanceModeOption(props) {
   let classname = 'appearance-mode';
   if (props.active) classname += ' active';
@@ -229,6 +274,7 @@ class PreferencesAppearance extends React.Component<{ config: ConfigLike; config
             )}
           </div>
         </section>
+        <TrayIconStylePicker config={this.props.config} />
       </div>
     );
   }

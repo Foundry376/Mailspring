@@ -3,7 +3,7 @@ license: GPL-3.0
 adopt-info: mailspring
 
 confinement: strict
-base: core18
+base: core22
 compression: lzo
 
 architectures:
@@ -13,46 +13,43 @@ parts:
   mailspring:
     plugin: nil
     override-pull: |
-      deb="$(ls $SNAPCRAFT_PROJECT_DIR/app/dist/mailspring-*.deb)"
-      snapcraftctl set-version "$(basename "$deb" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")"
-      dpkg -x "$deb" "$SNAPCRAFT_PART_SRC"
+      deb="$(ls $CRAFT_PROJECT_DIR/app/dist/mailspring-*.deb)"
+      craftctl set version="$(basename "$deb" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")"
+      dpkg -x "$deb" "$CRAFT_PART_SRC"
     override-build: |
-      cp -a "$SNAPCRAFT_PART_SRC"/* "$SNAPCRAFT_PART_INSTALL"
-      snapcraftctl build
+      cp -a "$CRAFT_PART_SRC"/* "$CRAFT_PART_INSTALL"
+      craftctl default
       sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' \
-        $SNAPCRAFT_PART_INSTALL/usr/share/applications/Mailspring.desktop
+        $CRAFT_PART_INSTALL/usr/share/applications/Mailspring.desktop
     prime:
       - -usr/share/mailspring/chrome-sandbox
     parse-info: [usr/share/appdata/mailspring.appdata.xml]
     stage-packages:
-      - libnspr4
-      - libnss3
       - libxkbfile1
-      - libxss1
 
   cleanup:
     after: [mailspring]
     plugin: nil
-    build-snaps: [core18, gnome-3-34-1804]
+    build-snaps: [core22, gnome-42-2204]
     override-prime: |
       set -eux
-      build_snaps="core18 gnome-3-34-1804"
+      build_snaps="core22 gnome-42-2204"
       for snap in $build_snaps; do
         cd "/snap/$snap/current" && \
-        find . -type f,l -exec rm -fv "$SNAPCRAFT_PRIME/{}" "$SNAPCRAFT_PRIME/usr/{}" \;
+        find . -type f,l -exec rm -fv "$CRAFT_PRIME/{}" "$CRAFT_PRIME/usr/{}" \;
       done
       for CRUFT in bug lintian man; do
-        rm -rf $SNAPCRAFT_PRIME/usr/share/$CRUFT
+        rm -rf $CRAFT_PRIME/usr/share/$CRUFT
       done
-      find $SNAPCRAFT_PRIME/usr/share/doc/ -type f -not -name 'copyright' -delete -print
-      find $SNAPCRAFT_PRIME/usr/share -type d -empty -delete -print
+      find $CRAFT_PRIME/usr/share/doc/ -type f -not -name 'copyright' -delete -print
+      find $CRAFT_PRIME/usr/share -type d -empty -delete -print
 
 apps:
   mailspring:
     command: usr/bin/mailspring --no-sandbox
     common-id: mailspring
     desktop: usr/share/applications/Mailspring.desktop
-    extensions: [gnome-3-34]
+    extensions: [gnome]
     environment:
       HOME: $SNAP_USER_COMMON
       # Correct the TMPDIR path for Chromium Framework/Electron to
