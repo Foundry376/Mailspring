@@ -40,3 +40,19 @@ Or, when developing th app and running it from your working copy:
 ```
 npm start -- --lang=de
 ```
+
+## Understanding the scripts
+
+- **format-localizations.js**
+
+  - **Usage:** `node scripts/format-localizations.js`
+  - **Description:** This script finds all uses of `localized()` in ts, tsx, js, jsx files. And include them in _en.json_. It also removes unused translations from all locales and sorts them alphabetically.
+
+- **improve-localization.js**
+
+  - **Usage:** `node scripts/improve-localization.js`
+  - **Description:** This script compares the translations in _en.json_ and in the chosen locale.
+
+    - **Option 1:** It will prompt you for each missing translation. (if you wish to skip a translation, simply leave blank and press Enter)
+
+    - **Option 2:** It will set null to each missing translation, and it will be up to you to replace them directly in the corresponding json file.
