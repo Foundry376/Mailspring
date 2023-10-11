@@ -26,13 +26,19 @@ class KeyManager {
     const SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
     const KEY_NAME = 'Mailspring Keys';
 
+    console.log("Constructing Key Manager. Keys Migrated?", this.isMigrated());
+
     if (!this.isMigrated()) {
       console.log("Keys not yet migrated. Migrating now...");
       keytar.getPassword(SERVICE_NAME, KEY_NAME).then(raw => {
+        if (raw === null) {
+          raw = "{}";
+        }
         const keys = JSON.parse(raw) as KeySet;
         this._writeKeyHash(keys);
         keytar.deletePassword(SERVICE_NAME, KEY_NAME);
         this.setMigrated();
+        console.log("Key Migration finished");
       });
     }
   }
@@ -95,13 +101,13 @@ class KeyManager {
   }
 
   async deletePassword(keyName: string) {
-    const keys = await this._getKeyHash();
     try {
+      const keys = await this._getKeyHash();
       delete keys[keyName];
+      await this._writeKeyHash(keys);
     } catch (err) {
-      console.log('Could not delete password as it did not exist', err);
+      this._reportFatalError(err);
     }
-    await this._writeKeyHash(keys);
   }
 
   async getPassword(keyName: string) {
@@ -119,19 +125,21 @@ class KeyManager {
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     let isMigrated = this.isMigrated();
     while (!isMigrated) {
+      console.log("Waiting 1 second for migration to finish");
       await delay(1000);
       isMigrated = this.isMigrated();
     }
 
     let raw = '{}';
     const encryptedCredentials = AppEnv.config.get(configCredentialsKey);
-    if (encryptedCredentials !== undefined) {
+    // Check for different null values to prevent issues if a migration from keytar has failed
+    if (encryptedCredentials !== undefined && encryptedCredentials !== null && encryptedCredentials !== "null") {
       raw = await safeStorage.decryptString(Buffer.from(encryptedCredentials, "utf-8"));
     }
     try {
       return JSON.parse(raw) as KeySet;
     } catch (err) {
-      return {};
+      return {} as KeySet;
     }
   }
 
@@ -143,7 +151,7 @@ class KeyManager {
   _reportFatalError(err: Error) {
     let more = '';
     if (process.platform === 'linux') {
-      more = localized('Make sure you have `libsecret` installed and a keyring is present. ');
+      more = localized('Make sure you have `libsecret` installed and a keyring is present. If you installed Mailspring via `snap`, please run `sudo snap connect mailspring:password-manager-service` to connect it to your keyring. ');
     }
     require('@electron/remote').dialog.showMessageBoxSync({
       type: 'error',
