@@ -20,6 +20,8 @@ class ThreadListStore extends MailspringStore {
     super();
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
     this.createListDataSource();
+
+    AppEnv.config.observe('core.lastUsedOrder', () => this.createListDataSource());
   }
 
   dataSource = () => {

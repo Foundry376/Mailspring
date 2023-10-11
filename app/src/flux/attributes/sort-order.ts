@@ -18,6 +18,7 @@ Section: Database
 export class SortOrder {
   public attr: Attribute;
   public direction: 'ASC' | 'DESC';
+  public collation: string;
 
   constructor(attr: Attribute, direction: 'ASC' | 'DESC' = 'DESC') {
     this.attr = attr;
@@ -25,7 +26,9 @@ export class SortOrder {
   }
 
   orderBySQL(klass: typeof Model) {
-    return `\`${klass.name}\`.\`${this.attr.tableColumn}\` ${this.direction}`;
+    return `\`${klass.name}\`.\`${this.attr.tableColumn}\` ${
+      this.attr.applyCaseInsensitivity ? 'COLLATE NOCASE' : ''
+    } ${this.direction}`;
   }
 
   attribute() {

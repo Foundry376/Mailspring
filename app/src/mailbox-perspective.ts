@@ -20,6 +20,7 @@ import { Folder } from './flux/models/folder';
 import { Task } from './flux/tasks/task';
 import * as Actions from './flux/actions';
 import { QuerySubscription } from 'mailspring-exports';
+import { SortOrder } from './flux/attributes';
 
 let WorkspaceStore = null;
 let ChangeStarredTask = null;
@@ -384,7 +385,31 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       .where([Thread.attributes.categories.containsAny(this.categories().map(c => c.id))])
       .limit(0);
 
-    if (this.isSent()) {
+    const orderBy: string | undefined = AppEnv.config.get('core.lastUsedOrder');
+
+    if (orderBy) {
+      let order: SortOrder;
+
+      switch (orderBy) {
+        case '2':
+          order = Thread.attributes.subject.ascending();
+          break;
+
+        case '3':
+          order = Thread.attributes.subject.descending();
+          break;
+
+        case '0':
+          order = Thread.attributes.lastMessageReceivedTimestamp.ascending();
+          break;
+
+        default:
+          order = Thread.attributes.lastMessageReceivedTimestamp.descending();
+          break;
+      }
+
+      query.order(order);
+    } else if (this.isSent()) {
       query.order(Thread.attributes.lastMessageSentTimestamp.descending());
     }
 

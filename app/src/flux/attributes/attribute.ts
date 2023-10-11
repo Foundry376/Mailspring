@@ -15,6 +15,7 @@ export class Attribute {
   public jsonKey: string;
   public queryable: boolean;
   public loadFromColumn: boolean;
+  public applyCaseInsensitivity = false;
 
   constructor({
     modelKey,
