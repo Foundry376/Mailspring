@@ -415,8 +415,7 @@ class RootWithTimespan extends React.Component<
             {localizedReactFragment(
               `These features were %@ of the messages you sent
             in this time period, so these numbers do not reflect all of your activity. To enable
-            read receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.
-            `,
+            read receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.`,
               lowTrackingPhrase,
               <RetinaImg
                 name="icon-activity-mailopen.png"

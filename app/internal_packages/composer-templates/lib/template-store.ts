@@ -30,9 +30,6 @@ class TemplateStore extends MailspringStore {
     this.listenTo(Actions.deleteTemplate, this._onDeleteTemplate);
     this.listenTo(Actions.renameTemplate, this._onRenameTemplate);
 
-    const welcomeName = 'Welcome to Templates.html';
-    const welcomePath = path.join(__dirname, '..', 'assets', welcomeName);
-
     // I know this is a bit of pain but don't do anything that
     // could possibly slow down app launch
     fs.exists(this._templatesDir, exists => {
@@ -41,9 +38,11 @@ class TemplateStore extends MailspringStore {
         this.watch();
       } else {
         fs.mkdir(this._templatesDir, () => {
-          fs.readFile(welcomePath, (err, welcome) => {
-            fs.writeFile(path.join(this._templatesDir, welcomeName), welcome, () => {
-              this.watch();
+          this._welcomeTemplate().then(welcomeTemplate => {
+            fs.readFile(welcomeTemplate.path, (err, welcome) => {
+              fs.writeFile(path.join(this._templatesDir, welcomeTemplate.name), welcome, () => {
+                this.watch();
+              });
             });
           });
         });
@@ -299,6 +298,24 @@ class TemplateStore extends MailspringStore {
       }
       session.changes.add({ body: `${templateBody}${current.substr(insertion)}` });
     }
+  }
+
+  _welcomeTemplate(): Promise<{ name: string; path: string }> {
+    const getTemplatePath = name => path.join(__dirname, '..', 'assets', `${name}.html`);
+    let welcomeName = localized('Welcome to Templates');
+
+    return new Promise((resolve, reject) => {
+      fs.exists(getTemplatePath(welcomeName), exists => {
+        if (!exists) {
+          welcomeName = 'Welcome to Templates';
+        }
+
+        resolve({
+          name: `${welcomeName}.html`,
+          path: getTemplatePath(welcomeName),
+        });
+      });
+    });
   }
 }
 
