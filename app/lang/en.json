@@ -397,7 +397,7 @@
   "Mailspring was unable to reset the local cache. %@": "Mailspring was unable to reset the local cache. %@",
   "Mailspring was unable to write to the file location you specified (%@).Try choosing another location.\n\n%@": "Mailspring was unable to write to the file location you specified (%@).Try choosing another location.\n\n%@",
   "Mailspring will no longer offer to translate messages written in %@.": "Mailspring will no longer offer to translate messages written in %@.",
-  "Make sure you have `libsecret` installed and a keyring is present. ": "Make sure you have `libsecret` installed and a keyring is present. ",
+  "Make sure you have `libsecret` installed and a keyring is present. If you installed Mailspring via `snap`, please run `sudo snap connect mailspring:password-manager-service` to connect it to your keyring. ": "Make sure you have `libsecret` installed and a keyring is present. If you installed Mailspring via `snap`, please run `sudo snap connect mailspring:password-manager-service` to connect it to your keyring. ",
   "Manage": "Manage",
   "Manage Accounts": "Manage Accounts",
   "Manage Billing": "Manage Billing",
