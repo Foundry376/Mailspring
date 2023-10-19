@@ -1,6 +1,6 @@
 Package: <%= name %>
 Version: <%= version %>
-Depends: libsecret-1-dev, gconf2, gconf-service, libgtk2.0-0, libudev0 | libudev1, libgcrypt11 | libgcrypt20, libnotify4, libxtst6, libnss3, gvfs-bin | libglib2.0-bin, xdg-utils
+Depends: libsecret-1-dev, libgtk2.0-0, libudev0 | libudev1, libgcrypt11 | libgcrypt20, libnotify4, libxtst6, libnss3, gvfs-bin | libglib2.0-bin, xdg-utils
 Suggests: gir1.2-gnomekeyring-1.0
 Section: <%= section %>
 Priority: optional
