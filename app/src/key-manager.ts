@@ -37,7 +37,7 @@ class KeyManager {
         const keys = JSON.parse(raw) as KeySet;
         this._writeKeyHash(keys);
         keytar.deletePassword(SERVICE_NAME, KEY_NAME);
-        this.setMigrated();
+        this.setMigrated(true);
         console.log("Key Migration finished");
       });
     }
@@ -48,8 +48,8 @@ class KeyManager {
     return result;
   }
 
-  setMigrated() {
-    AppEnv.config.set(configCredentialsMigratedKey, 'true');
+  setMigrated(value: Boolean) {
+    AppEnv.config.set(configCredentialsMigratedKey, value);
   }
 
   async deleteAccountSecrets(account: Account) {
@@ -149,19 +149,25 @@ class KeyManager {
   }
 
   _reportFatalError(err: Error) {
-    let more = '';
-    if (process.platform === 'linux') {
-      more = localized('Make sure you have `libsecret` installed and a keyring is present. If you installed Mailspring via `snap`, please run `sudo snap connect mailspring:password-manager-service` to connect it to your keyring. ');
-    }
-    require('@electron/remote').dialog.showMessageBoxSync({
+    const clickedButton = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'error',
-      buttons: [localized('Quit')],
+      buttons: [localized('Mailspring Help'), localized('Quit')],
       message: localized(
-        `Mailspring could not store your password securely. %@ For more information, visit %@`,
-        more,
-        'http://support.getmailspring.com/hc/en-us/articles/115001875571'
+        `Mailspring could not store your password securely. For more information, visit %@`,
+        'https://community.getmailspring.com/t/password-management-error/199'
       ),
     });
+
+    if (clickedButton == 0) {
+      const shell = require('electron').shell;
+      shell.openExternal("https://community.getmailspring.com/t/password-management-error/199")
+    }
+
+    // TODO: Remove when removing the keytar dependencies
+    // If we are in the snap environment and this fails, we ensure that the migration from keytar can run again
+    if (process.env.SNAP) {
+      this.setMigrated(false);
+    }
 
     // tell the app to exit and rethrow the error to ensure code relying
     // on the passwords being saved never runs (saving identity for example)
