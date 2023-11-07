@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import uuidv4 from 'uuid/v4';
+const { v4: uuidv4 } = require('uuid');
 import * as Actions from '../actions';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
@@ -259,8 +259,8 @@ class DraftFactory {
         </div>
         `
         : `\n\n---------- ${localized('Forwarded Message')} ---------\n\n${fields.join(
-            '\n'
-          )}\n\n${body}`,
+          '\n'
+        )}\n\n${body}`,
     });
   }
 

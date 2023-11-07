@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import uuidv4 from 'uuid/v4';
+const { v4: uuidv4 } = require('uuid');
 
 export const LOCAL_SERVER_PORT = 12141;
 
