@@ -49,7 +49,7 @@ export const DataShape = [
   },
   {
     key: 'instagramURL',
-    label: localized('Instagram URL')
+    label: localized('Instagram URL'),
   },
   {
     key: 'tintColor',
@@ -95,12 +95,6 @@ export const ResolveSignatureData = data => {
     data.photoURL = `https://www.gravatar.com/avatar/${hash}/?s=160&msw=160&msh=160`;
   }
 
-  if (data.photoURL === 'twitter') {
-    data.photoURL = `https://twitter.com/${
-      data.twitterHandle
-    }/profile_image?size=original&msw=128&msh=128`;
-  }
-
   if (data.photoURL === 'company') {
     const domain =
       (data.websiteURL && URL.parse(data.websiteURL).hostname) ||
@@ -117,7 +111,6 @@ export const ResolveSignatureData = data => {
       data.instagramURL = `https://www.instagram.com/${data.instagramURL}`;
     }
   }
-
 
   return data;
 };
