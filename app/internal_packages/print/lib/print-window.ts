@@ -3,7 +3,7 @@ import fs from 'fs';
 
 import { localized } from 'mailspring-exports';
 
-const { app, BrowserWindow } = require('@electron/remote');
+const { app, BrowserWindow, dialog } = require('@electron/remote');
 
 export default class PrintWindow {
   browserWin: Electron.BrowserWindow;
@@ -80,9 +80,24 @@ export default class PrintWindow {
         contextIsolation: false,
       },
     });
-    require('@electron/remote')
-      .require('@electron/remote/main')
-      .enable(this.browserWin.webContents);
+
+    this.browserWin.webContents.ipc.on('print-to-pdf', async () => {
+      const { filePath } = await dialog.showSaveDialog({
+        defaultPath: `${subject}.pdf`,
+      });
+
+      if (!filePath) {
+        return;
+      }
+      const data = await this.browserWin.webContents.printToPDF({
+        margins: { marginType: 'none' },
+        pageSize: 'Letter',
+        printBackground: true,
+        landscape: false,
+      });
+      fs.writeFileSync(filePath, data);
+    });
+
     this.browserWin.removeMenu();
     fs.writeFileSync(tmpMessagesPath, `window.printMessages = ${printMessages}`);
     fs.writeFileSync(this.tmpFile, content);
