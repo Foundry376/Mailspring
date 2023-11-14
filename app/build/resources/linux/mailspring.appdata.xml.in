@@ -33,7 +33,8 @@
   </screenshots>
 
   <releases>
-    <release version="1.12.0" date="2023-10-09" />
+    <release version="1.2.0" date="2023-12-01" />
+    <release version="1.12.0" date="2023-11-14" />
     <release version="1.11.0" date="2023-07-28" />
     <release version="1.10.8" date="2022-12-29" />
     <release version="1.10.7" date="2022-11-21" />
