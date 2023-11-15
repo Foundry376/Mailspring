@@ -28,12 +28,9 @@ addons:
       channel: stable
   apt:
     packages:
-      - build-essential
       - execstack
       - fakeroot
       - rpm
-      - uuid-dev
-      - xvfb
 
 branches:
   only:
