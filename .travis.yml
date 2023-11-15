@@ -27,16 +27,11 @@ addons:
     - name: lxd
       channel: stable
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
       - build-essential
-      - libgnome-keyring-dev
-      - libsecret-1-dev
       - execstack
       - fakeroot
       - rpm
-      - g++-5
       - uuid-dev
       - xvfb
 
@@ -49,8 +44,7 @@ branches:
 matrix:
   include:
     - os: linux
-      env: CC=gcc-5 CXX=g++-5
-      dist: bionic
+      dist: jammy
     - os: osx
       osx_image: xcode10.1
       env: CC=clang CXX=clang++ SIGN_BUILD=true
