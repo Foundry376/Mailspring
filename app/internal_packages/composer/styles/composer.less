@@ -36,6 +36,10 @@
     padding-top: 12px;
     position: relative; // needed for floating emoji picker
     color: @text-color;
+
+    div[contenteditable] {
+      -webkit-user-modify: read-write;
+    }
   }
 }
 
