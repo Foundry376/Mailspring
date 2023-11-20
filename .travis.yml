@@ -41,7 +41,7 @@ branches:
 matrix:
   include:
     - os: linux
-      dist: jammy
+      dist: bionic
     - os: osx
       osx_image: xcode10.1
       env: CC=clang CXX=clang++ SIGN_BUILD=true
