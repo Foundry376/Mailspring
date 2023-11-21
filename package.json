@@ -52,7 +52,7 @@
     "@typescript-eslint/parser": "^4.7.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "27.1.0",
+    "electron": "22.3.26",
     "electron-installer-dmg": "^4.0.0",
     "electron-packager": "17.1.x",
     "electron-winstaller": "5.1.x",
