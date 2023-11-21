@@ -10,7 +10,7 @@ import { makeRequest, rootURLForServer } from '../mailspring-api-request';
 import { Disposable } from 'event-kit';
 
 // Note this key name is used when migrating to Mailspring Pro accounts from old N1.
-const KEYCHAIN_NAME = 'Mailspring Account';
+const PASSWORD_NAME = 'Mailspring Account';
 
 export interface IIdentity {
   id: string;
@@ -41,6 +41,7 @@ export const EMPTY_FEATURE_USAGE = {
 
 class _IdentityStore extends MailspringStore {
   _identity: IIdentity = null;
+  _displayedPasswordError = false;
   _disp: Disposable;
 
   constructor() {
@@ -98,7 +99,7 @@ class _IdentityStore extends MailspringStore {
   async saveIdentity(identity: IIdentity | null) {
     if (!identity) {
       this._identity = null;
-      await KeyManager.deletePassword(KEYCHAIN_NAME);
+      await KeyManager.deletePassword(PASSWORD_NAME);
       AppEnv.config.set('identity', null);
       return;
     }
@@ -114,7 +115,7 @@ class _IdentityStore extends MailspringStore {
       // Note: We /must/ await this because calling config.set below
       // will try to retrieve the password via getPassword.
       // If this fails, the app may quit here.
-      await KeyManager.replacePassword(KEYCHAIN_NAME, nextToken);
+      await KeyManager.replacePassword(PASSWORD_NAME, nextToken);
     }
 
     this._identity = identity;
@@ -132,8 +133,20 @@ class _IdentityStore extends MailspringStore {
   _onIdentityChanged = async () => {
     const value = AppEnv.config.get('identity');
     this._identity = value
-      ? { ...value, token: await KeyManager.getPassword(KEYCHAIN_NAME) }
+      ? { ...value, token: await KeyManager.getPassword(PASSWORD_NAME) }
       : null;
+
+    if (this._identity && !this._identity.token) {
+      const message = `Your Mailspring ID password could not be loaded from your keychain. Please visit Preferences > Subscription and click "Setup Mailspring ID" to sign in to your Mailspring account again.\n\nYour Mailspring ID email address is ${this._identity.emailAddress}.`;
+      console.warn(message);
+
+      if (!this._displayedPasswordError) {
+        this._displayedPasswordError = true;
+        AppEnv.showErrorDialog({ title: 'Please Sign In', message });
+      }
+      this._identity = null;
+    }
+
     this.trigger();
   };
 

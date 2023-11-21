@@ -5,7 +5,7 @@ interface KeySet {
   [key: string]: string;
 }
 
-const { safeStorage } = require("@electron/remote");
+const { safeStorage } = require('@electron/remote');
 
 const configCredentialsKey = 'credentials';
 
@@ -18,7 +18,6 @@ const configCredentialsKey = 'credentials';
  * and every key we want to access.
  */
 class KeyManager {
-
   async deleteAccountSecrets(account: Account) {
     try {
       const keys = await this._getKeyHash();
@@ -90,8 +89,17 @@ class KeyManager {
     let raw = '{}';
     const encryptedCredentials = AppEnv.config.get(configCredentialsKey);
     // Check for different null values to prevent issues if a migration from keytar has failed
-    if (encryptedCredentials !== undefined && encryptedCredentials !== null && encryptedCredentials !== "null") {
-      raw = await safeStorage.decryptString(Buffer.from(encryptedCredentials, "utf-8"));
+    if (
+      encryptedCredentials !== undefined &&
+      encryptedCredentials !== null &&
+      encryptedCredentials !== 'null'
+    ) {
+      try {
+        raw = await safeStorage.decryptString(Buffer.from(encryptedCredentials, 'utf-8'));
+      } catch (err) {
+        console.error('Mailspring encountered an error reading passwords from the keychain.');
+        console.error(err);
+      }
     }
     try {
       return JSON.parse(raw) as KeySet;
@@ -101,7 +109,7 @@ class KeyManager {
   }
 
   async _writeKeyHash(keys: KeySet) {
-    const enrcyptedCredentials = await safeStorage.encryptString(JSON.stringify(keys))
+    const enrcyptedCredentials = await safeStorage.encryptString(JSON.stringify(keys));
     AppEnv.config.set(configCredentialsKey, enrcyptedCredentials);
   }
 
@@ -117,7 +125,7 @@ class KeyManager {
 
     if (clickedButton == 0) {
       const shell = require('electron').shell;
-      shell.openExternal("https://community.getmailspring.com/t/password-management-error/199")
+      shell.openExternal('https://community.getmailspring.com/t/password-management-error/199');
     }
 
     // tell the app to exit and rethrow the error to ensure code relying
