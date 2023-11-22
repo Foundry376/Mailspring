@@ -45,7 +45,7 @@ parts:
 
 apps:
   mailspring:
-    command: usr/bin/mailspring --no-sandbox
+    command: usr/bin/mailspring --no-sandbox --password-store=gnome-libsecret
     common-id: mailspring
     desktop: usr/share/applications/Mailspring.desktop
     extensions: [gnome]
