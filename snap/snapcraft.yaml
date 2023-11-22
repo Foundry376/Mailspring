@@ -56,6 +56,9 @@ apps:
       TMPDIR: $XDG_RUNTIME_DIR
       # Fallback to XWayland if running in a Wayland session.
       DISABLE_WAYLAND: 1
+      # Force using the libsecret local backend in all the cases, even if no
+      # portal is detected.
+      SECRET_BACKEND: file
     plugs:
       - avahi-observe
       - browser-support
