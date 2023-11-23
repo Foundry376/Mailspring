@@ -26,7 +26,6 @@ parts:
     parse-info: [usr/share/appdata/mailspring.appdata.xml]
     stage-packages:
       - libxkbfile1
-      - libnss3
     stage:
       - -usr/lib/*/libsecret-*
 
