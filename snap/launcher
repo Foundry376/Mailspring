@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ -n "$WAYLAND_DISPLAY" ] && \
-   [ "${DISABLE_WAYLAND:-0}" = 0 ] && \
-   [ "${GDK_BACKEND:-wayland}" = "wayland" ]; then
+if [ "${DISABLE_WAYLAND:-0}" = 0 ] && \
+   [ "${GDK_BACKEND:-wayland}" = "wayland" ] && \
+   [ "$(snapctl get wayland-native)" = "true" ]; then
   args="--enable-features=WaylandWindowDecorations --ozone-platform=wayland"
 fi
 
