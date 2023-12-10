@@ -178,12 +178,24 @@ class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
   };
 
   render() {
-    let systemTrayIconScore = new SystemTrayIconStore();
+    const systemTrayIconScore = new SystemTrayIconStore();
     const val = this.props.config.get(this.kp) || 'blue';
 
     const options = [
-      ['blue', localized('Blue icon for new and unread messages'), localized('(The same blue tray icon is used whether you have new or old unread messages.)'), systemTrayIconScore.inboxFullUnreadIcon()],
-      ['red', localized('Red icon for new and blue icon for unread messages'), localized('(A red tray icon is displayed for new messages and a blue icon for older unread messages.)'), systemTrayIconScore.inboxFullNewIcon()],
+      [
+        'blue',
+        localized('Blue icon for new and unread messages'),
+        localized('(The same blue tray icon is used whether you have new or old unread messages.)'),
+        systemTrayIconScore.inboxFullUnreadIcon(),
+      ],
+      [
+        'red',
+        localized('Red icon for new and blue icon for unread messages'),
+        localized(
+          '(A red tray icon is displayed for new messages and a blue icon for older unread messages.)'
+        ),
+        systemTrayIconScore.inboxFullNewIcon(),
+      ],
     ];
 
     return (

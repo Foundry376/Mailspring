@@ -1,5 +1,29 @@
 # Mailspring Changelog
 
+## 1.13.2
+
+This is a patch release that fixes several issues: 
+
+- Composition events in Mailspring's composer should work as expected. (Typing modifier keys, such as Option-E followed by E to create É)
+
+- The composer warn about several more invalid recipient errors correctly (thanks @Phylu!)
+
+- Dark-mode tray support on Windows has been improved with new icons (thanks @Phylu!) 
+
+- The Linux Snap build no longer requests extraneous permissions (thanks @3v1n0!)
+
+## 1.13.1
+
+Mailspring 1.13 now runs on Electron 22, completing a migration process we started in 1.12.0!
+
+If you are upgrading from an old version of Mailspring, download and run 1.12.0 first before installing this version. We've moved from keytar to Electron's safeStorage API for securely storing your email passwords, and version 1.12.0 will perform a migration ensuring your passwords are transitioned.
+
+If you're using the snap version of Mailspring, you may find that Mailspring forgets your passwords when you upgrade. I'm very sorry for the hassle this causes - issues with snap containment in version 1.12.0 caused Mailspring to lose many user's passwords during the upgrade process. If this applies to you, you may see password errors and need to:
+
+    Visit Preferences > Subscription and click Setup Mailspring ID and sign back in to your Mailspring account. (You should see an alert at launch that will remind you which email address you'd used for your Mailspring ID)
+
+    Visit Preferences > Accounts and re-authenticate any accounts shown in red that are having connection difficulty.
+
 ## 1.12.0 (10/09/2023)
 
 Features:
