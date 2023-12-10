@@ -60,10 +60,12 @@ apps:
       - browser-support
       - cups-control
       - opengl
+      - home
       - desktop
       - desktop-legacy
       - network
       - network-bind
+      - password-manager-service
       - pulseaudio
       - unity7
       - x11
