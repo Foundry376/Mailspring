@@ -315,7 +315,7 @@ export class DraftEditingSession extends MailspringStore {
     }
 
     if (recipientErrors.length > 0) {
-      return { errors: recipientErrors, warnings: recipientWarnings };
+      return { recipientErrors: recipientErrors, recipientWarnings: recipientWarnings };
     }
 
     let cleaned = QuotedHTMLTransformer.removeQuotedHTML(this._draft.body.trim());
