@@ -2,8 +2,6 @@ import { ipcRenderer } from 'electron';
 import { BadgeStore } from 'mailspring-exports';
 import SystemTrayIconStore from '../lib/system-tray-icon-store';
 
-const { INBOX_ZERO_ICON, INBOX_FULL_ICON, INBOX_FULL_NEW_ICON, INBOX_FULL_UNREAD_ICON } = SystemTrayIconStore;
-
 describe('SystemTrayIconStore', function systemTrayIconStore() {
   beforeEach(() => {
     spyOn(ipcRenderer, 'send');
@@ -20,7 +18,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(0);
       spyOn(BadgeStore, 'total').andReturn(0);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: INBOX_ZERO_ICON, isTemplateImg: true });
+      expect(getCallData()).toEqual({ path: this.iconStore.inboxZeroIcon(), isTemplateImg: true });
     });
 
     it('shows inbox zero icon when isInboxZero and window is blurred', () => {
@@ -28,7 +26,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(0);
       spyOn(BadgeStore, 'total').andReturn(0);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: INBOX_ZERO_ICON, isTemplateImg: true });
+      expect(getCallData()).toEqual({ path: this.iconStore.inboxZeroIcon(), isTemplateImg: true });
     });
 
     it('shows inbox full icon when not isInboxZero and window is focused', () => {
@@ -36,7 +34,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: INBOX_FULL_ICON, isTemplateImg: true });
+      expect(getCallData()).toEqual({ path: this.iconStore.inboxFullIcon(), isTemplateImg: true });
     });
 
     it('shows inbox full /alt/ icon when not isInboxZero and window is blurred', () => {
@@ -44,7 +42,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: INBOX_FULL_UNREAD_ICON, isTemplateImg: false });
+      expect(getCallData()).toEqual({ path: this.iconStore.inboxFullUnreadIcon(), isTemplateImg: false });
     });
   });
 
@@ -53,7 +51,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'total').andReturn(1);
       this.iconStore._onWindowFocus();
       const { path } = getCallData();
-      expect(path).toBe(INBOX_FULL_ICON);
+      expect(path).toBe(this.iconStore.inboxFullIcon());
     });
 
     it('shows inbox full /alt/ icon ONLY when window is currently blurred and total count changes', () => {
@@ -66,7 +64,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       this.iconStore._updateIcon();
 
       const { path } = getCallData();
-      expect(path).toBe(INBOX_FULL_UNREAD_ICON);
+      expect(path).toBe(this.iconStore.inboxFullUnreadIcon());
     });
 
     it('does not show inbox full /alt/ icon when window is currently focused and total count changes', () => {
@@ -77,7 +75,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       this.iconStore._updateIcon();
 
       const { path } = getCallData();
-      expect(path).toBe(INBOX_FULL_ICON);
+      expect(path).toBe(this.iconStore.inboxFullIcon());
     });
   });
 });
