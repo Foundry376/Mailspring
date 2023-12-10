@@ -45,7 +45,7 @@ parts:
 
 apps:
   mailspring:
-    command: usr/bin/mailspring --no-sandbox
+    command: usr/bin/mailspring --no-sandbox --password-store=gnome-libsecret
     common-id: mailspring
     desktop: usr/share/applications/Mailspring.desktop
     extensions: [gnome]
@@ -56,6 +56,9 @@ apps:
       TMPDIR: $XDG_RUNTIME_DIR
       # Fallback to XWayland if running in a Wayland session.
       DISABLE_WAYLAND: 1
+      # Force using the libsecret local backend in all the cases, even if no
+      # portal is detected.
+      SECRET_BACKEND: file
     plugs:
       - avahi-observe
       - browser-support
@@ -69,7 +72,6 @@ apps:
       - network
       - network-bind
       - network-observe
-      - password-manager-service
       - pulseaudio
       - removable-media
       - screen-inhibit-control
