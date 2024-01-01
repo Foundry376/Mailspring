@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 import { localized } from 'mailspring-exports';
+import { escapeHTML } from 'underscore.string';
 
 const { app, BrowserWindow, dialog } = require('@electron/remote');
 
@@ -21,7 +22,9 @@ export default class PrintWindow {
     const stylesPath = path.join(__dirname, '..', 'static', 'print-styles.css');
     const participantsHtml = participants
       .map(part => {
-        return `<li class="participant"><span>${part.name || ''} &lt;${part.email}&gt;</span></li>`;
+        return `<li class="participant"><span>
+          ${escapeHTML(part.name || '')} &lt;${escapeHTML(part.email)}&gt;
+        </span></li>`;
       })
       .join('');
 
@@ -29,7 +32,7 @@ export default class PrintWindow {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:; object-src none; media-src none; manifest-src none;">
+          <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; frame-src 'none'; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:; object-src none; media-src none; manifest-src none;">
           <meta charset="utf-8">
           ${styleTags}
           <link rel="stylesheet" type="text/css" href="${stylesPath}">
@@ -42,21 +45,23 @@ export default class PrintWindow {
             </div>
             <div style="padding: 10px 14px;">
               <div id="close-button">
-                ${localized('Close')}
+                ${escapeHTML(localized('Close'))}
               </div>
               <div id="print-button">
-                ${localized('Print')}
+                ${escapeHTML(localized('Print'))}
               </div>
               <div id="print-pdf-button">
-                ${localized('Save as PDF')}
+                ${escapeHTML(localized('Save as PDF'))}
               </div>
               <div class="logo-wrapper">
-                <span class="account">${account.name} &lt;${account.email}&gt;</span>
+                <span class="account">${escapeHTML(account.name)} &lt;${escapeHTML(
+      account.email
+    )}&gt;</span>
               </div>
             </div>
           </div>
           <div id="print-header-spacing"></div>
-          <h1 class="print-subject">${subject}</h1>
+          <h1 class="print-subject">${escapeHTML(subject)}</h1>
           <div class="print-participants">
             <ul>
               ${participantsHtml}
