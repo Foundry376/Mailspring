@@ -168,7 +168,7 @@ class MessageBodyProcessor {
     // Sanitizing <script> tags, etc. isn't necessary because we use CORS rules
     // to prevent their execution and sandbox content in the iFrame, but we still
     // want to remove contenteditable attributes and other strange things.
-    body = await SanitizeTransformer.run(body, SanitizeTransformer.Preset.UnsafeOnly);
+    body = await SanitizeTransformer.run(body);
 
     for (const extension of MessageStore.extensions()) {
       if (!extension.formatMessageBody) {

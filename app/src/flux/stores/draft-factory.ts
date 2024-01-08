@@ -50,7 +50,7 @@ class DraftFactory {
     // Be sure to match over multiple lines with [\s\S]*
     // Regex explanation here: https://regex101.com/r/vO6eN2/1
     let transformed = (content || '').replace(cidRegexp, '');
-    transformed = await SanitizeTransformer.run(transformed, SanitizeTransformer.Preset.UnsafeOnly);
+    transformed = await SanitizeTransformer.run(transformed);
     transformed = await InlineStyleTransformer.run(transformed);
     return transformed;
   }
@@ -259,8 +259,8 @@ class DraftFactory {
         </div>
         `
         : `\n\n---------- ${localized('Forwarded Message')} ---------\n\n${fields.join(
-          '\n'
-        )}\n\n${body}`,
+            '\n'
+          )}\n\n${body}`,
     });
   }
 

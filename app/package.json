@@ -11,9 +11,9 @@
   "license": "GPL-3.0",
   "main": "./src/browser/main.js",
   "dependencies": {
-    "app-module-path": "^2.2.0",
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
     "@electron/remote": "^2.0.9",
+    "app-module-path": "^2.2.0",
     "better-sqlite3": "^8.0.1",
     "cheerio": "^1.0.0-rc.6",
     "chromium-net-errors": "1.0.3",
@@ -23,6 +23,7 @@
     "collapse-whitespace": "^1.1.6",
     "debug": "github:emorikawa/debug#nylas",
     "deep-extend": "0.6.0",
+    "dompurify": "^3.0.8",
     "emoji-data": "^0.2.0",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.9.0",
