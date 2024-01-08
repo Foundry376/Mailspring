@@ -1,14 +1,24 @@
 # Mailspring Changelog
 
+## 1.13.3
+
+Happy new year! This is a small update to Mailspring with a few important changes:
+
+- On macOS, long-pressing a key to show it's available subtitutions (eg: `e` to see `é, ê, etc.`) now works properly in the email composer. Sorry for the delay fixing this issue, for many non-english speakers on macOS we know it's a core part of your email workflow.
+
+- We now escape subject and participant names in the print modal, ensuring that they render properly for printing.
+
+- We now use DOMPurify to sanitize the content of HTML emails for display. DOMPurify is maintained by a team of security-oriented web engineers and will ensure Mailspring protects you from the widest possible range of XSS attacks and exploits.
+
 ## 1.13.2
 
-This is a patch release that fixes several issues: 
+This is a patch release that fixes several issues:
 
 - Composition events in Mailspring's composer should work as expected. (Typing modifier keys, such as Option-E followed by E to create É)
 
 - The composer warn about several more invalid recipient errors correctly (thanks @Phylu!)
 
-- Dark-mode tray support on Windows has been improved with new icons (thanks @Phylu!) 
+- Dark-mode tray support on Windows has been improved with new icons (thanks @Phylu!)
 
 - The Linux Snap build no longer requests extraneous permissions (thanks @3v1n0!)
 
