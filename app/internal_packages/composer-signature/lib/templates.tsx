@@ -6,24 +6,52 @@ import querystring from 'querystring';
 const FB_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/fb.gif"
-    width="13"
-    height="13"
+    width="20"
+    height="20"
     alt="Facebook"
   />
 );
+
+const MEDIUM_SHARE = (
+    <img
+        src="https://cdn4.iconfinder.com/data/icons/social-media-2210/24/Medium-512.png"
+        width="20"
+        height="20"
+        alt="Medium"
+    />
+);
+
+const GITHUB_SHARE = (
+    <img
+        src="https://cdn3.iconfinder.com/data/icons/font-awesome-brands/512/github-square-512.png"
+        width="20"
+        height="20"
+        alt="Github"
+    />
+);
+
+const YOUTUBE_SHARE = (
+    <img
+        src="https://cdn1.iconfinder.com/data/icons/logotypes/32/youtube-512.png"
+        width="20"
+        height="20"
+        alt="YouTube"
+    />
+);
+
 const TWITTER_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/twitter.gif"
-    width="13"
-    height="13"
+    width="20"
+    height="20"
     alt="Twitter"
   />
 );
 const LINKEDIN_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/linkedin.gif"
-    width="13"
-    height="13"
+    width="20"
+    height="20"
     alt="LinkedIn"
   />
 );
@@ -31,8 +59,8 @@ const LINKEDIN_SHARE = (
 const INSTAGRAM_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/instagram.gif"
-    width="13"
-    height="13"
+    width="20"
+    height="20"
     alt="Instagram"
   />
 );
@@ -149,6 +177,33 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             {LINKEDIN_SHARE}
           </a>
         )}
+          {props.mediumURL && (
+              <a
+                  href={props.mediumURL}
+                  title="Medium"
+                  style={{ marginRight: 8, color: props.tintColor }}
+              >
+                  {MEDIUM_SHARE}
+              </a>
+          )}
+          {props.githubURL && (
+              <a
+                  href={props.githubURL}
+                  title="GitHub"
+                  style={{ marginRight: 8, color: props.tintColor }}
+              >
+                  {GITHUB_SHARE}
+              </a>
+          )}
+          {props.youtubeURL && (
+              <a
+                  href={props.youtubeURL}
+                  title="YouTube"
+                  style={{ marginRight: 8, color: props.tintColor }}
+              >
+                  {YOUTUBE_SHARE}
+              </a>
+          )}
         {props.twitterHandle && (
           <a
             href={`https://twitter.com/${props.twitterHandle}`}
@@ -430,6 +485,33 @@ const Templates = [
                       {FB_SHARE}
                     </a>
                   )}
+                    {props.mediumURL && (
+                        <a
+                            href={props.mediumURL}
+                            title="Medium"
+                            style={{ marginRight: 8, color: props.tintColor }}
+                        >
+                            {MEDIUM_SHARE}
+                        </a>
+                    )}
+                    {props.githubURL && (
+                        <a
+                            href={props.githubURL}
+                            title="Github"
+                            style={{ marginRight: 8, color: props.tintColor }}
+                        >
+                            {GITHUB_SHARE}
+                        </a>
+                    )}
+                    {props.youtubeURL && (
+                        <a
+                            href={props.youtubeURL}
+                            title="YouTube"
+                            style={{ marginRight: 8, color: props.tintColor }}
+                        >
+                            {YOUTUBE_SHARE}
+                        </a>
+                    )}
                   {props.linkedinURL && (
                     <a
                       href={props.linkedinURL}
