@@ -44,6 +44,18 @@ export const DataShape = [
     label: localized('LinkedIn URL'),
   },
   {
+    key: 'mediumURL',
+    label: localized('Medium Handle'),
+  },
+  {
+    key: 'githubURL',
+    label: localized('GitHub Username'),
+  },
+  {
+    key: 'youtubeURL',
+    label: localized('YouTube'),
+  },
+  {
     key: 'twitterHandle',
     label: localized('Twitter Handle'),
   },
@@ -61,7 +73,7 @@ export const DataShape = [
 export const ResolveSignatureData = data => {
   data = { ...data };
 
-  ['websiteURL', 'facebookURL'].forEach(key => {
+  ['websiteURL', 'facebookURL', 'youtubeURL'].forEach(key => {
     if (data[key] && !data[key].includes(':')) {
       data[key] = `http://${data[key]}`;
     }
@@ -74,6 +86,22 @@ export const ResolveSignatureData = data => {
     }
   }
 
+  // sanitize medium handle
+  if (data.mediumURL) {
+    if (!data.mediumURL.includes('medium.com')) {
+      if (!data.mediumURL.startsWith('@')) {
+        data.mediumURL = `@${data.mediumURL}`;
+      }
+      data.mediumURL = `https://www.medium.com/${data.mediumURL}`;
+    }
+  }
+
+  // sanitize github username
+  if (data.githubURL) {
+    if (!data.githubURL.includes('github.com')) {
+      data.githubURL = `https://www.github.com/${data.githubURL}`;
+    }
+  }
   // sanitize twitter handle
   if (data.twitterHandle) {
     if (data.twitterHandle.includes('/')) {
