@@ -6,35 +6,35 @@ import querystring from 'querystring';
 const FB_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/fb.gif"
-    width="20"
-    height="20"
+    width="13"
+    height="13"
     alt="Facebook"
   />
 );
 
 const MEDIUM_SHARE = (
     <img
-        src="https://cdn4.iconfinder.com/data/icons/social-media-2210/24/Medium-512.png"
-        width="20"
-        height="20"
+        src="https://www.getmailspring.com/signature-assets/medium.gif"
+        width="13"
+        height="13"
         alt="Medium"
     />
 );
 
 const GITHUB_SHARE = (
     <img
-        src="https://cdn3.iconfinder.com/data/icons/font-awesome-brands/512/github-square-512.png"
-        width="20"
-        height="20"
+        src="https://www.getmailspring.com/signature-assets/github.gif"
+        width="13"
+        height="13"
         alt="Github"
     />
 );
 
 const YOUTUBE_SHARE = (
     <img
-        src="https://cdn1.iconfinder.com/data/icons/logotypes/32/youtube-512.png"
-        width="20"
-        height="20"
+        src="https://www.getmailspring.com/signature-assets/youtube.gif"
+        width="13"
+        height="13"
         alt="YouTube"
     />
 );
@@ -42,16 +42,16 @@ const YOUTUBE_SHARE = (
 const TWITTER_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/twitter.gif"
-    width="20"
-    height="20"
+    width="13"
+    height="13"
     alt="Twitter"
   />
 );
 const LINKEDIN_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/linkedin.gif"
-    width="20"
-    height="20"
+    width="13"
+    height="13"
     alt="LinkedIn"
   />
 );
@@ -59,8 +59,8 @@ const LINKEDIN_SHARE = (
 const INSTAGRAM_SHARE = (
   <img
     src="https://www.getmailspring.com/signature-assets/instagram.gif"
-    width="20"
-    height="20"
+    width="13"
+    height="13"
     alt="Instagram"
   />
 );
