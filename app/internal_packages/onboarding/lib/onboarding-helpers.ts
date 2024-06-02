@@ -125,14 +125,14 @@ export async function expandAccountWithCommonSettings(account: Account) {
       imap_port: imap.port,
       imap_username: usernameWithFormat('email'),
       imap_password: populated.settings.imap_password,
-      imap_security: imap.starttls ? 'STARTTLS' : imap.ssl ? 'SSL / TLS' : 'none',
+      imap_security: imap.starttls ? 'STARTTLS' : imap.ssl || imap.tls ? 'SSL / TLS' : 'none',
       imap_allow_insecure_ssl: false,
 
       smtp_host: (smtp.hostname || '').replace('{domain}', domain),
       smtp_port: smtp.port,
       smtp_username: usernameWithFormat('email'),
       smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
-      smtp_security: smtp.starttls ? 'STARTTLS' : smtp.ssl ? 'SSL / TLS' : 'none',
+      smtp_security: smtp.starttls ? 'STARTTLS' : smtp.ssl || smtp.tls ? 'SSL / TLS' : 'none',
       smtp_allow_insecure_ssl: false,
 
       container_folder: '',
@@ -156,18 +156,40 @@ export async function expandAccountWithCommonSettings(account: Account) {
     mstemplate = {};
   }
 
+  let imap_port = Number(mstemplate.imap_port);
+  let imap_security = mstemplate.imap_security;
+  if (!imap_security && !imap_port) {
+    imap_security = 'SSL / TLS';
+    imap_port = 993;
+  } else if (!imap_security && imap_port) {
+    imap_security = imap_port === 993 ? 'SSL / TLS' : 'none';
+  } else if (imap_security && !imap_port) {
+    imap_port = imap_security === 'SSL / TLS' ? 993 : 143;
+  }
+
+  let smtp_port = Number(mstemplate.smtp_port);
+  let smtp_security = mstemplate.smtp_security;
+  if (!smtp_security && !smtp_port) {
+    smtp_security = 'SSL / TLS';
+    smtp_port = 465;
+  } else if (!smtp_security && smtp_port) {
+    smtp_security = smtp_port === 587 ? 'STARTTLS' : smtp_port === 465 ? 'SSL / TLS' : 'none';
+  } else if (smtp_security && !smtp_port) {
+    smtp_port = smtp_security === 'STARTTLS' ? 587 : smtp_security === 'SSL / TLS' ? 465 : 25;
+  }
+
   const defaults = {
-    imap_host: mstemplate.imap_host,
-    imap_port: mstemplate.imap_port || 993,
+    imap_host: mstemplate.imap_host.replace('%EMAILDOMAIN%', domain),
+    imap_port: imap_port,
     imap_username: usernameWithFormat(mstemplate.imap_user_format),
     imap_password: populated.settings.imap_password,
-    imap_security: mstemplate.imap_security || 'SSL / TLS',
+    imap_security: imap_security,
     imap_allow_insecure_ssl: mstemplate.imap_allow_insecure_ssl || false,
-    smtp_host: mstemplate.smtp_host,
-    smtp_port: mstemplate.smtp_port || 465,
+    smtp_host: mstemplate.smtp_host.replace('%EMAILDOMAIN%', domain),
+    smtp_port: smtp_port,
     smtp_username: usernameWithFormat(mstemplate.smtp_user_format),
     smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
-    smtp_security: mstemplate.smtp_security || 'SSL / TLS',
+    smtp_security: smtp_security,
     smtp_allow_insecure_ssl: mstemplate.smtp_allow_insecure_ssl || false,
     container_folder: mstemplate.container_folder,
   };
