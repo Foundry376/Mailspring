@@ -244,6 +244,7 @@ module.exports = grunt => {
             appleId: process.env.APPLE_ID,
             appleIdPassword: process.env.APPLE_ID_PASSWORD,
             ascProvider: process.env.APPLE_ID_ASC_PROVIDER,
+            teamId: process.env.APPLE_TEAM_ID,
           }
         : undefined,
       win32metadata: {
