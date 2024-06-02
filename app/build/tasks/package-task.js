@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */ /* eslint prefer-template: 0 */
 /* eslint quote-props: 0 */
-const packager = require('electron-packager');
+const packager = require('@electron/packager');
 const path = require('path');
 const util = require('util');
 const tmpdir = path.resolve(require('os').tmpdir(), 'nylas-build');

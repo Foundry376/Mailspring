@@ -1,5 +1,5 @@
 import { localized, React } from 'mailspring-exports';
-import { ipcRenderer, remote, shell } from 'electron';
+import { ipcRenderer, shell } from 'electron';
 import { Notification } from 'mailspring-component-kit';
 import { Disposable } from 'event-kit';
 
