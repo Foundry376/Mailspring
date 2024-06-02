@@ -1,6 +1,7 @@
 <body style="padding:0; border:0; margin: 15px; background-color: white;" tabindex="1">
   <style>
     .xlsx-content {
+      margin: -15px;
       margin-bottom: 30px;
     }
     .xlsx-tabs {
@@ -12,7 +13,8 @@
       flex-direction: row;
       height: 30px;
       background: #98a7b9;
-      overflow-x: scroll;
+      overflow-x: auto;
+      overflow-y: hidden;
       white-space: nowrap;
       border-top: 1px solid #777;
     }
@@ -31,6 +33,13 @@
     .xlsx-tabs .tab.active {
       background: white;
     }
+    .xlsx-content table {
+      border-collapse: collapse;
+    }
+    .xlsx-content td {
+      border: 1px solid #eee;
+      padding: 3px;
+    }
   </style>
 
   <div id="the-doc"><canvas id="the-canvas"></canvas></div>
@@ -38,95 +47,140 @@
   <script>
     const div = document.getElementById('the-doc');
 
-    async function runPDFCapture({ filePath, previewPath }) {
-      const canvas = document.getElementById('the-canvas');
-      const context = canvas.getContext('2d');
-      const pdf = await window.nodePDFForFile(filePath);
-      const page = await pdf.getPage(1);
+    function finishWithWindowCapture(previewPath, startedAt = Date.now()) {
+      // Remove scroll bars or they appear in the capture on Windows
+      document.body.style.overflow = 'hidden';
 
-      const viewport = page.getViewport({ scale: 1 });
-      const scale = window.outerWidth / (viewport.width || viewport.viewBox[2]);
-      const scaledViewport = page.getViewport({ scale: scale });
-
-      scaledViewport.height = scaledViewport.height || viewport.viewBox[3] * scale;
-      scaledViewport.width = scaledViewport.width || viewport.viewBox[2] * scale;
-      if (Number.isNaN(scaledViewport.transform[0])) {
-        scaledViewport.transform = [scale, 0, 0, -scale, 0, scaledViewport.height];
+      // Wait up to 1 sec for images in the rendered HTML to finish loading
+      const waitingForImage = Array.from(document.querySelectorAll('img')).find(
+        i => i.complete === false
+      );
+      if (waitingForImage && Date.now() - startedAt < 1000) {
+        setTimeout(() => finishWithWindowCapture(previewPath, startedAt), 50);
+        return;
       }
-      canvas.height = scaledViewport.height;
-      canvas.width = scaledViewport.width;
-      canvas.style.height = scaledViewport.height / window.devicePixelRatio + 'px';
-      canvas.style.width = scaledViewport.width / window.devicePixelRatio + 'px';
 
-      const renderTask = page.render({
-        canvasContext: context,
-        viewport: scaledViewport,
-      });
-
-      await renderTask.promise.then(function() {
-        canvas.toBlob(blob => {
-          const reader = new FileReader();
-          reader.addEventListener('loadend', () => {
-            window.finishWithData(previewPath, new Uint8Array(reader.result));
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(async () => {
+            await window.electronAPI.finishCapture(previewPath);
+            document.title = 'Finished';
           });
-          reader.readAsArrayBuffer(blob);
         });
       });
     }
 
-    async function runXLSX({ filePath, previewPath }) {
-      const data = nodeXLSXForFile(filePath);
-      const workbook = window.xlsx.read(data, { type: 'array', cellStyles: true, cellHTML: true });
+    async function runPDFCapture({ previewPath }) {
+      const canvas = document.getElementById('the-canvas');
+      const context = canvas.getContext('2d');
+      const el = document.createElement('script');
+      el.onload = async () => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs-4.3.136/build/pdf.worker.js';
 
-      div.innerHTML = '';
-
-      if (mode === 'capture') {
-        div.innerHTML = window.xlsx.write(workbook, {
-          sheet: workbook.SheetNames[0],
-          type: 'string',
-          bookType: 'html',
-          header: '<div>',
-          footer: '</div>',
+        const buffer = await window.electronAPI.previewFileAsBuffer();
+        const pdf = await pdfjsLib.getDocument(buffer, {
+          cMapUrl: './pdfjs-4.3.136/web/cmaps',
+          cMapPacked: true,
         });
-        window.finishWithWindowCapture(previewPath);
-      } else {
-        const content = document.createElement('div');
-        content.classList.add('xlsx-content');
-        div.appendChild(content);
-        const tabs = document.createElement('div');
-        tabs.classList.add('xlsx-tabs');
-        div.appendChild(tabs);
 
-        const showTab = sheetName => {
-          document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-          const tab = document.querySelector(`[data-sheet-name="${sheetName}"]`);
-          if (tab) tab.classList.add('active');
+        const page = await pdf.getPage(1);
 
-          content.innerHTML = window.xlsx.write(workbook, {
-            sheet: sheetName,
+        const viewport = page.getViewport({ scale: 1 });
+        const scale = window.outerWidth / (viewport.width || viewport.viewBox[2]);
+        const scaledViewport = page.getViewport({ scale: scale });
+
+        scaledViewport.height = scaledViewport.height || viewport.viewBox[3] * scale;
+        scaledViewport.width = scaledViewport.width || viewport.viewBox[2] * scale;
+        if (Number.isNaN(scaledViewport.transform[0])) {
+          scaledViewport.transform = [scale, 0, 0, -scale, 0, scaledViewport.height];
+        }
+        canvas.height = scaledViewport.height;
+        canvas.width = scaledViewport.width;
+        canvas.style.height = scaledViewport.height / window.devicePixelRatio + 'px';
+        canvas.style.width = scaledViewport.width / window.devicePixelRatio + 'px';
+
+        const renderTask = page.render({
+          canvasContext: context,
+          viewport: scaledViewport,
+        });
+
+        await renderTask.promise.then(function() {
+          canvas.toBlob(blob => {
+            const reader = new FileReader();
+            reader.addEventListener('loadend', async () => {
+              await window.electronAPI.finishWithData(previewPath, new Uint8Array(reader.result));
+              document.title = 'Finished';
+            });
+            reader.readAsArrayBuffer(blob);
+          });
+        });
+      };
+      el.src = `pdfjs-4.3.136/build/pdf.js`;
+      document.body.appendChild(el);
+    }
+
+    async function runXLSX({ previewPath }) {
+      const data = await window.electronAPI.previewFileAsBuffer();
+      const xlsx = document.createElement('script');
+      xlsx.onload = () => {
+        const workbook = window.XLSX.read(data, {
+          type: 'array',
+          cellStyles: true,
+          cellHTML: true,
+        });
+
+        div.innerHTML = '';
+
+        if (mode === 'capture') {
+          div.innerHTML = window.XLSX.write(workbook, {
+            sheet: workbook.SheetNames[0],
             type: 'string',
             bookType: 'html',
             header: '<div>',
             footer: '</div>',
           });
-        };
+          finishWithWindowCapture(previewPath);
+        } else {
+          const content = document.createElement('div');
+          content.classList.add('xlsx-content');
+          div.appendChild(content);
+          const tabs = document.createElement('div');
+          tabs.classList.add('xlsx-tabs');
+          div.appendChild(tabs);
 
-        workbook.SheetNames.forEach(sheetName => {
-          const tab = document.createElement('div');
-          tab.classList.add('tab');
-          tab.innerText = sheetName;
-          tab.dataset.sheetName = sheetName;
-          tab.addEventListener('click', () => showTab(sheetName));
-          tabs.appendChild(tab);
-        });
+          const showTab = sheetName => {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            const tab = document.querySelector(`[data-sheet-name="${sheetName}"]`);
+            if (tab) tab.classList.add('active');
 
-        showTab(workbook.SheetNames[0]);
-      }
+            content.innerHTML = window.XLSX.write(workbook, {
+              sheet: sheetName,
+              type: 'string',
+              bookType: 'html',
+              header: '<div>',
+              footer: '</div>',
+            });
+          };
+
+          workbook.SheetNames.forEach(sheetName => {
+            const tab = document.createElement('div');
+            tab.classList.add('tab');
+            tab.innerText = sheetName;
+            tab.dataset.sheetName = sheetName;
+            tab.addEventListener('click', () => showTab(sheetName));
+            tabs.appendChild(tab);
+          });
+
+          showTab(workbook.SheetNames[0]);
+        }
+      };
+      xlsx.src = './xlsx-0.18.5/xlsx.full.min.js';
+      document.body.appendChild(xlsx);
     }
 
     async function runPrism({ filePath, previewPath, mode }) {
       const ext = filePath.split('.').pop();
-      const str = await nodeStringForFile(filePath, {
+      const str = await window.electronAPI.previewFileAsString({
         truncate: mode === 'capture',
       });
 
@@ -195,7 +249,7 @@
 
         div.style.opacity = 1;
         if (mode === 'capture') {
-          window.finishWithWindowCapture(previewPath);
+          finishWithWindowCapture(previewPath);
         }
       };
 
@@ -205,19 +259,19 @@
       document.body.appendChild(script);
     }
 
-    async function runMammoth({ filePath, previewPath, mode }) {
-      div.innerHTML = await nodeMammothHTMLForFile(filePath);
+    async function runMammoth({ previewPath, mode }) {
+      div.innerHTML = await window.electronAPI.previewFileAsMammothHTML();
       if (mode === 'capture') {
-        window.finishWithWindowCapture(previewPath);
+        finishWithWindowCapture(previewPath);
       }
     }
 
-    async function runSnarkdown({ filePath, previewPath, mode }) {
-      div.innerHTML = await nodeSnarkdownHTMLForFile(filePath);
+    async function runSnarkdown({ previewPath, mode }) {
+      div.innerHTML = await window.electronAPI.previewFileAsSnarkdownHTML();
       div.style.fontFamily =
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
       if (mode === 'capture') {
-        window.finishWithWindowCapture(previewPath);
+        finishWithWindowCapture(previewPath);
       }
     }
 
@@ -228,18 +282,18 @@
     window.requestAnimationFrame(() => {
       if (strategy === 'pdfjs') {
         if (mode === 'capture') {
-          runPDFCapture({ filePath, previewPath });
+          runPDFCapture({ previewPath });
         } else {
           // To view PDFs we use the separate pdfviewer included with pdfjs
         }
       } else if (strategy === 'mammoth') {
-        runMammoth({ mode, filePath, previewPath });
+        runMammoth({ mode, previewPath });
       } else if (strategy === 'snarkdown') {
-        runSnarkdown({ mode, filePath, previewPath });
+        runSnarkdown({ mode, previewPath });
       } else if (strategy === 'prism') {
-        runPrism({ mode, filePath, previewPath });
+        runPrism({ filePath, mode, previewPath });
       } else if (strategy === 'xlsx') {
-        runXLSX({ mode, filePath, previewPath });
+        runXLSX({ mode, previewPath });
       }
     });
   </script>

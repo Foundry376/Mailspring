@@ -22,6 +22,7 @@ import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
+import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
 
 let clipboard = null;
 
@@ -733,6 +734,8 @@ export default class Application extends EventEmitter {
       const sourceWindow = BrowserWindow.fromWebContents(event.sender);
       sourceWindow.setSize(params.width, params.height);
     });
+
+    registerQuickpreviewIPCHandlers(ipcMain);
   }
 
   // Public: Executes the given command.

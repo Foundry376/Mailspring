@@ -14,7 +14,6 @@ addons:
     target_paths: client/${TRAVIS_COMMIT:0:8}/${TRAVIS_OS_NAME}
     permissions: public-read
     paths:
-      - Mailspring.dmg
       - Mailspring.zip
       - $(find . -type f -name mailspring-*.deb | tr "\n" ":")
       - $(find . -type f -name mailspring-*.rpm | tr "\n" ":")
