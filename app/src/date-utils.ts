@@ -64,33 +64,33 @@ function getChronoFuture() {
   }
 
   const chrono = getChrono();
-  const EnforceFutureDate = new chrono.Refiner();
-  EnforceFutureDate.refine = (text, results) => {
-    results.forEach(result => {
-      const current = Object.assign({}, result.start.knownValues, result.start.impliedValues);
 
-      if (result.start.isCertain('weekday') && !result.start.isCertain('day')) {
-        if (isPastDate(current, result.ref)) {
-          result.start.imply('day', result.start.impliedValues.day + 7);
-        }
-      }
+  _chronoFuture = chrono.casual.clone();
+  _chronoFuture.refiners.push({
+    refine: (text, results) => {
+      results.forEach(result => {
+        const current = Object.assign({}, result.start.knownValues, result.start.impliedValues);
 
-      if (result.start.isCertain('day') && !result.start.isCertain('month')) {
-        if (isPastDate(current, result.ref)) {
-          result.start.imply('month', result.start.impliedValues.month + 1);
+        if (result.start.isCertain('weekday') && !result.start.isCertain('day')) {
+          if (isPastDate(current, result.ref)) {
+            result.start.imply('day', result.start.impliedValues.day + 7);
+          }
         }
-      }
-      if (result.start.isCertain('month') && !result.start.isCertain('year')) {
-        if (isPastDate(current, result.ref)) {
-          result.start.imply('year', result.start.impliedValues.year + 1);
-        }
-      }
-    });
-    return results;
-  };
 
-  _chronoFuture = new chrono.Chrono(chrono.options.casualOption());
-  _chronoFuture.refiners.push(EnforceFutureDate);
+        if (result.start.isCertain('day') && !result.start.isCertain('month')) {
+          if (isPastDate(current, result.ref)) {
+            result.start.imply('month', result.start.impliedValues.month + 1);
+          }
+        }
+        if (result.start.isCertain('month') && !result.start.isCertain('year')) {
+          if (isPastDate(current, result.ref)) {
+            result.start.imply('year', result.start.impliedValues.year + 1);
+          }
+        }
+      });
+      return results;
+    },
+  });
   return _chronoFuture;
 }
 
@@ -100,33 +100,33 @@ function getChronoPast() {
   }
 
   const chrono = getChrono();
-  const EnforcePastDate = new chrono.Refiner();
-  EnforcePastDate.refine = (text, results) => {
-    results.forEach(result => {
-      const current = Object.assign({}, result.start.knownValues, result.start.impliedValues);
 
-      if (result.start.isCertain('weekday') && !result.start.isCertain('day')) {
-        if (!isPastDate(current, result.ref)) {
-          result.start.imply('day', result.start.impliedValues.day - 7);
-        }
-      }
+  _chronoPast = chrono.casual.clone();
+  _chronoPast.refiners.push({
+    refine: (text, results) => {
+      results.forEach(result => {
+        const current = Object.assign({}, result.start.knownValues, result.start.impliedValues);
 
-      if (result.start.isCertain('day') && !result.start.isCertain('month')) {
-        if (!isPastDate(current, result.ref)) {
-          result.start.imply('month', result.start.impliedValues.month - 1);
+        if (result.start.isCertain('weekday') && !result.start.isCertain('day')) {
+          if (!isPastDate(current, result.ref)) {
+            result.start.imply('day', result.start.impliedValues.day - 7);
+          }
         }
-      }
-      if (result.start.isCertain('month') && !result.start.isCertain('year')) {
-        if (!isPastDate(current, result.ref)) {
-          result.start.imply('year', result.start.impliedValues.year - 1);
-        }
-      }
-    });
-    return results;
-  };
 
-  _chronoPast = new chrono.Chrono(chrono.options.casualOption());
-  _chronoPast.refiners.push(EnforcePastDate);
+        if (result.start.isCertain('day') && !result.start.isCertain('month')) {
+          if (!isPastDate(current, result.ref)) {
+            result.start.imply('month', result.start.impliedValues.month - 1);
+          }
+        }
+        if (result.start.isCertain('month') && !result.start.isCertain('year')) {
+          if (!isPastDate(current, result.ref)) {
+            result.start.imply('year', result.start.impliedValues.year - 1);
+          }
+        }
+      });
+      return results;
+    },
+  });
   return _chronoPast;
 }
 

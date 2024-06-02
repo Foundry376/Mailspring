@@ -17,7 +17,7 @@
     "better-sqlite3": "^11.0.0",
     "cheerio": "^1.0.0-rc.6",
     "chromium-net-errors": "1.0.3",
-    "chrono-node": "^1.1.2",
+    "chrono-node": "^2.7.6",
     "classnames": "1.2.1",
     "cld": "2.7.1",
     "collapse-whitespace": "^1.1.6",
@@ -60,7 +60,7 @@
     "react-transition-group": "1.2.1",
     "reflux": "0.1.13",
     "rimraf": "2.5.2",
-    "rtlcss": "2.4.0",
+    "rtlcss": "^4.1.1",
     "rx-lite": "4.0.8",
     "slate": "github:bengotow/slate#cd6f40e8",
     "slate-auto-replace": "0.12.1",
@@ -77,12 +77,12 @@
     "tld": "^0.0.2",
     "underscore": "^1.13.1",
     "underscore.string": "^3.3.5",
-    "utf7": "^1.0.2",
+    "utf7": "^1.0.1",
     "uuid": "^3.0.0",
     "vcf": "^2.0.5",
     "windows-iana": "^4.2.1",
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
-    "xlsx": "0.14.1"
+    "xlsx": "^0.18.5"
   },
   "optionalDependencies": {
     "macos-notification-state": "^1.3.6",
