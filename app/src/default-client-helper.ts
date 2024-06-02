@@ -132,113 +132,19 @@ export class DefaultClientHelperMac implements DCH {
     return true;
   }
 
-  getLaunchServicesPlistPath(callback: (plist: string) => void) {
-    const secure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
-    const insecure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices.plist`;
-
-    fs.exists(secure, exists => (exists ? callback(secure) : callback(insecure)));
-  }
-
-  readDefaults(callback = (result: Error | any, json?: any) => {}) {
-    this.getLaunchServicesPlistPath(plistPath => {
-      const tmpPath = `${plistPath}.${Math.random()}`;
-      exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
-        if (err) {
-          callback(err);
-          return;
-        }
-        fs.readFile(tmpPath, (readErr, data) => {
-          if (readErr) {
-            callback(readErr);
-            return;
-          }
-          try {
-            const json = JSON.parse(data.toString());
-            callback(json.LSHandlers, json);
-            fs.unlink(tmpPath, () => {});
-          } catch (e) {
-            callback(e);
-          }
-        });
-      });
-    });
-  }
-
-  writeDefaults(defaults, callback = (error?: Error) => {}) {
-    this.getLaunchServicesPlistPath(plistPath => {
-      const tmpPath = `${plistPath}.${Math.random()}`;
-      exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
-        if (err) {
-          callback(err);
-          return;
-        }
-        try {
-          let data = fs.readFileSync(tmpPath).toString();
-          data = JSON.parse(data);
-          (data as any).LSHandlers = defaults;
-          data = JSON.stringify(data);
-          fs.writeFileSync(tmpPath, data);
-        } catch (e) {
-          callback(e);
-          return;
-        }
-        exec(`plutil -convert binary1 "${tmpPath}" -o "${plistPath}"`, () => {
-          fs.unlink(tmpPath, () => {});
-          exec(
-            '/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user',
-            registerErr => {
-              callback(registerErr);
-            }
-          );
-        });
-      });
-    });
-  }
-
   isRegisteredForURLScheme(scheme: string, callback: (registered: boolean) => void) {
     if (!callback) {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
-    this.readDefaults(defaults => {
-      for (const def of defaults) {
-        if (def.LSHandlerURLScheme === scheme) {
-          callback(def.LSHandlerRoleAll === bundleIdentifier);
-          return;
-        }
-      }
-      callback(false);
-    });
+    return callback(require('@electron/remote').app.isDefaultProtocolClient(scheme));
   }
 
   resetURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    this.readDefaults(defaults => {
-      // Remove anything already registered for the scheme
-      for (let ii = defaults.length - 1; ii >= 0; ii--) {
-        if (defaults[ii].LSHandlerURLScheme === scheme) {
-          defaults.splice(ii, 1);
-        }
-      }
-      this.writeDefaults(defaults, callback);
-    });
+    return callback(require('@electron/remote').app.removeAsDefaultProtocolClient(scheme));
   }
 
   registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    this.readDefaults(defaults => {
-      // Remove anything already registered for the scheme
-      for (let ii = defaults.length - 1; ii >= 0; ii--) {
-        if (defaults[ii].LSHandlerURLScheme === scheme) {
-          defaults.splice(ii, 1);
-        }
-      }
-
-      // Add our scheme default
-      defaults.push({
-        LSHandlerURLScheme: scheme,
-        LSHandlerRoleAll: bundleIdentifier,
-      });
-
-      this.writeDefaults(defaults, callback);
-    });
+    return callback(require('@electron/remote').app.setAsDefaultProtocolClient(scheme));
   }
 }
 

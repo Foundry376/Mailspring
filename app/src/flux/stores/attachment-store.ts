@@ -203,7 +203,7 @@ class AttachmentStore extends MailspringStore {
               AppEnv.config.get('core.attachments.openFolderAfterDownload')
             ) {
               this._lastDownloadDirectory = newDownloadDirectory;
-              shell.showItemInFolder(actualSavePath);
+              require('@electron/remote').shell.showItemInFolder(actualSavePath);
             }
           }
         })
@@ -256,7 +256,7 @@ class AttachmentStore extends MailspringStore {
                 lastSavePaths.length > 0 &&
                 AppEnv.config.get('core.attachments.openFolderAfterDownload')
               ) {
-                shell.showItemInFolder(lastSavePaths[0]);
+                require('@electron/remote').shell.showItemInFolder(lastSavePaths[0]);
               }
               return resolve(lastSavePaths);
             })

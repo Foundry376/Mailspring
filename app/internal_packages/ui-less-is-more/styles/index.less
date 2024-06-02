@@ -45,13 +45,13 @@
 .column-MessageListSidebar,
 .preferences-sidebar,
 .column-DraftList {
-  padding: 5em 0 2em 2em;
+  padding: 3em 0 2em 2em;
   background: @less-background;
 }
 
 // Message List padding
 .column-MessageList {
-  padding: 4.5em 2em 0;
+  padding: 2.5em 2em 0;
 }
 
 // Window Control Button transforms
@@ -252,7 +252,7 @@
 
 // Thread list padding overrides
 .column-ThreadList {
-  padding: 5em 2em 1em;
+  padding: 3em 2em 1em;
 }
 
 // Selected thread list items overrides
@@ -389,7 +389,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Re-center message list in sidebar with padding
 .column-MessageListSidebar {
-  padding: 5em 1em;
+  padding: 3em 1em;
 }
 
 .sidebar-participant-picker {
@@ -550,6 +550,10 @@ body.is-blurred .sheet-toolbar-container {
   box-shadow: none;
 }
 
+
+.composer-full-window {
+  padding-top: 15px;
+}
 // make bottom of composer window uniform in color
 .composer-full-window .composer-inner-wrap .composer-action-bar-wrap {
   background: @less-background;
@@ -605,4 +609,8 @@ body.is-blurred .sheet-toolbar-container {
 .button-dropdown .only-item img.content-mask,
 .button-dropdown .secondary-picker img.content-mask {
   background-color: @less-background;
+}
+
+.thread-list-vertical #message-list  {
+  padding-top: 30px;
 }

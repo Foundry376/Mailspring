@@ -117,7 +117,7 @@ export default class MailsyncBridge {
   openLogs() {
     const { configDirPath } = AppEnv.getLoadSettings();
     const configDirItem = path.join(configDirPath, 'config.json');
-    require('electron').shell.showItemInFolder(configDirItem); // eslint-disable-line
+    require('@electron/remote').shell.showItemInFolder(configDirItem); // eslint-disable-line
   }
 
   toggleVerboseLogging() {
@@ -224,7 +224,7 @@ export default class MailsyncBridge {
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
-    resetClient.kill = () => { };
+    resetClient.kill = () => {};
 
     this._clients[account.id] = resetClient;
 
@@ -485,7 +485,11 @@ export default class MailsyncBridge {
     // If other windows are open, delay the closing of the main window
     // by 400ms the first time beforeUnload is called so other windows
     // ave a chance to save drafts before we kill the workers.
-    if (require('@electron/remote').getGlobal('application').windowManager.getOpenWindowCount() <= 1) {
+    if (
+      require('@electron/remote')
+        .getGlobal('application')
+        .windowManager.getOpenWindowCount() <= 1
+    ) {
       return true;
     }
     if (this._lastWait && Date.now() - this._lastWait < 2000) {

@@ -3,7 +3,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
 import { Actions, localized, localizedReactFragment } from 'mailspring-exports';
-import { shell } from 'electron';
 import { Value } from 'slate';
 
 import TemplateStore from './template-store';
@@ -176,11 +175,15 @@ export default class PreferencesTemplates extends React.Component<
               />
               <a
                 style={{
-                  marginTop: 10,
                   display: 'block',
                   fontSize: '0.9em',
+                  padding: 6,
+                  margin: -6,
+                  marginTop: 4,
                 }}
-                onClick={() => shell.showItemInFolder(TemplateStore.directory())}
+                onClick={() =>
+                  require('@electron/remote').shell.showItemInFolder(TemplateStore.directory())
+                }
               >
                 {localized('Show Templates Folder...')}
               </a>

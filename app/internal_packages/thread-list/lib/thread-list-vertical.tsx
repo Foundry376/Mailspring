@@ -24,15 +24,7 @@ class ThreadListVertical extends React.Component<
           <InjectedComponentSet matching={{ role: 'ThreadList' }} />
         </ResizableRegion>
         <div style={{ flex: '1 1 0%' }}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              width: '100%',
-              borderTop: '0.5px solid #dddddd',
-            }}
-          >
+          <div className="thread-list-vertical">
             <div className="sheet-toolbar" style={{ borderBottom: '0' }}>
               <InjectedComponentSet
                 matching={{

@@ -363,7 +363,9 @@ export class EventedIFrame extends React.Component<
               oReq.responseType = 'arraybuffer';
               oReq.onload = function() {
                 const buffer = Buffer.from(new Uint8Array(oReq.response));
-                fs.writeFile(path, buffer, err => shell.showItemInFolder(path));
+                fs.writeFile(path, buffer, err => {
+                  require('@electron/remote').shell.showItemInFolder(path);
+                });
               };
               oReq.send();
             });
