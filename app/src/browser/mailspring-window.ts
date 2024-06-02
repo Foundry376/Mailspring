@@ -124,7 +124,7 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
-    require("@electron/remote/main").enable(this.browserWindow.webContents);
+    require('@electron/remote/main').enable(this.browserWindow.webContents);
     (this.browserWindow as any).updateLoadSettings = this.updateLoadSettings;
 
     this.handleEvents();
@@ -253,14 +253,6 @@ export default class MailspringWindow extends EventEmitter {
           global.application.windowManager.quitWinLinuxIfNoWindows();
         }
       }
-    });
-
-    this.browserWindow.on('scroll-touch-begin', () => {
-      this.browserWindow.webContents.send('scroll-touch-begin');
-    });
-
-    this.browserWindow.on('scroll-touch-end', () => {
-      this.browserWindow.webContents.send('scroll-touch-end');
     });
 
     this.browserWindow.on('focus', () => {

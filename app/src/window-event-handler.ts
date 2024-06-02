@@ -62,14 +62,6 @@ export default class WindowEventHandler {
       AppEnv.commands.dispatch(command, args[0]);
     });
 
-    ipcRenderer.on('scroll-touch-begin', () => {
-      window.dispatchEvent(new Event('scroll-touch-begin'));
-    });
-
-    ipcRenderer.on('scroll-touch-end', () => {
-      window.dispatchEvent(new Event('scroll-touch-end'));
-    });
-
     window.onbeforeunload = e => {
       if (AppEnv.inSpecMode()) {
         return undefined;
@@ -147,7 +139,18 @@ export default class WindowEventHandler {
       'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
       'core:redo': e => (isTextInput(e.target) ? webContents.redo() : getUndoStore().redo()),
       'core:select-all': e =>
-        isIFrame(e.target) || isTextInput(e.target) ? webContents.selectAll() : AppEnv.commands.dispatch('multiselect-list:select-all'),
+        isIFrame(e.target) || isTextInput(e.target)
+          ? webContents.selectAll()
+          : AppEnv.commands.dispatch('multiselect-list:select-all'),
+    });
+
+    webContents.on('input-event', (e, input) => {
+      if (input.type === 'gestureScrollBegin') {
+        window.dispatchEvent(new Event('gesture-scroll-begin'));
+      }
+      if (input.type === 'gestureScrollEnd') {
+        window.dispatchEvent(new Event('gesture-scroll-end'));
+      }
     });
 
     // "Pinch to zoom" on the Mac gets translated by the system into a
@@ -238,7 +241,11 @@ export default class WindowEventHandler {
       callback();
     }
     setTimeout(() => {
-      if (require('@electron/remote').getGlobal('application').isQuitting()) {
+      if (
+        require('@electron/remote')
+          .getGlobal('application')
+          .isQuitting()
+      ) {
         require('@electron/remote').app.quit();
       } else if (AppEnv.isReloading) {
         AppEnv.isReloading = false;
@@ -295,7 +302,9 @@ export default class WindowEventHandler {
       // (T1927) Be sure to escape them once, and completely, before we try to open them. This logic
       // *might* apply to http/https as well but it's unclear.
       const sanitized = encodeURI(decodeURI(resolved));
-      require('@electron/remote').getGlobal('application').openUrl(sanitized);
+      require('@electron/remote')
+        .getGlobal('application')
+        .openUrl(sanitized);
     } else if (['http:', 'https:', 'tel:'].includes(protocol)) {
       shell.openExternal(resolved, { activate: !metaKey });
     }
@@ -349,7 +358,7 @@ export default class WindowEventHandler {
     hasSelectedText,
     {
       onCorrect,
-      onRestoreSelection = () => { },
+      onRestoreSelection = () => {},
     }: { onCorrect?: (correction: string) => void; onRestoreSelection?: () => void }
   ) {
     const { Menu, MenuItem } = require('@electron/remote');
@@ -403,11 +412,11 @@ export default class WindowEventHandler {
     if (!AppEnv.inDevMode()) {
       console.log(
         "%c Welcome to Mailspring! If you're exploring the source or building a " +
-        "plugin, you should enable debug flags. It's slower, but " +
-        'gives you better exceptions, the debug version of React, ' +
-        'and more. Choose %c Developer > Run with Debug Flags %c ' +
-        'from the menu. Also, check out http://Foundry376.github.io/Mailspring/ ' +
-        'for documentation and sample code!',
+          "plugin, you should enable debug flags. It's slower, but " +
+          'gives you better exceptions, the debug version of React, ' +
+          'and more. Choose %c Developer > Run with Debug Flags %c ' +
+          'from the menu. Also, check out http://Foundry376.github.io/Mailspring/ ' +
+          'for documentation and sample code!',
         'background-color: antiquewhite;',
         'background-color: antiquewhite; font-weight:bold;',
         'background-color: antiquewhite; font-weight:normal;'

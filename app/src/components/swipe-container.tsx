@@ -106,8 +106,8 @@ export default class SwipeContainer extends React.Component<
 
   componentDidMount() {
     this.mounted = true;
-    window.addEventListener('scroll-touch-begin', this._onScrollTouchBegin);
-    window.addEventListener('scroll-touch-end', this._onScrollTouchEnd);
+    window.addEventListener('gesture-scroll-begin', this._onScrollTouchBegin);
+    window.addEventListener('gesture-scroll-end', this._onScrollTouchEnd);
   }
 
   componentWillReceiveProps() {
@@ -127,8 +127,8 @@ export default class SwipeContainer extends React.Component<
   componentWillUnmount() {
     this.phase = Phase.None;
     this.mounted = false;
-    window.removeEventListener('scroll-touch-begin', this._onScrollTouchBegin);
-    window.removeEventListener('scroll-touch-end', this._onScrollTouchEnd);
+    window.removeEventListener('gesture-scroll-begin', this._onScrollTouchBegin);
+    window.removeEventListener('gesture-scroll-end', this._onScrollTouchEnd);
   }
 
   _isEnabled = () => {
