@@ -15,6 +15,9 @@
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+# https://github.com/electron/electron/issues/42510
+chmod 4755 '/opt/Mailspring/chrome-sandbox' || true
+
 case "$1" in
     configure)
     	gtk-update-icon-cache /usr/share/icons/hicolor > /dev/null 2>&1
