@@ -2086,6 +2086,9 @@
     ],
     "enable_steps": []
   },
+  "gmx": {
+    "alias": "gmx.com"
+  },
   "gmx.at": {
     "alias": "gmx.net"
   },
@@ -4430,6 +4433,9 @@
     "alias": "hotmail.com"
   },
   "outlook.co.th": {
+    "alias": "hotmail.com"
+  },
+  "outlook": {
     "alias": "hotmail.com"
   },
   "outlook.com": {

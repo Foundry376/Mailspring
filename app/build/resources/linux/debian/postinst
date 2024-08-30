@@ -16,7 +16,7 @@
 # the debian-policy package
 
 # https://github.com/electron/electron/issues/42510
-chmod 4755 '/opt/Mailspring/chrome-sandbox' || true
+chmod 4755 '/usr/share/mailspring/chrome-sandbox' || true
 
 case "$1" in
     configure)
