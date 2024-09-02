@@ -19,6 +19,8 @@ parts:
     override-build: |
       cp -a "$CRAFT_PART_SRC"/* "$CRAFT_PART_INSTALL"
       craftctl default
+      install -m 755 ${CRAFT_PROJECT_DIR}/snap/launcher \
+        -D ${CRAFT_PART_INSTALL}/bin/mailspring.launcher -v
       sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' \
         $CRAFT_PART_INSTALL/usr/share/applications/Mailspring.desktop
     prime:
@@ -44,7 +46,7 @@ parts:
 
 apps:
   mailspring:
-    command: usr/bin/mailspring --no-sandbox
+    command: bin/mailspring.launcher --no-sandbox
     common-id: mailspring
     desktop: usr/share/applications/Mailspring.desktop
     extensions: [gnome]
@@ -53,8 +55,6 @@ apps:
       # Correct the TMPDIR path for Chromium Framework/Electron to
       # ensure libappindicator has readable resources.
       TMPDIR: $XDG_RUNTIME_DIR
-      # Fallback to XWayland if running in a Wayland session.
-      DISABLE_WAYLAND: 1
     plugs:
       - avahi-observe
       - browser-support
@@ -69,3 +69,4 @@ apps:
       - pulseaudio
       - unity7
       - x11
+      - wayland
