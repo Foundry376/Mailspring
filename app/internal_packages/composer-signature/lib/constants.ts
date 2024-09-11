@@ -117,7 +117,7 @@ export const ResolveSignatureData = data => {
 
   if (data.photoURL === 'gravatar') {
     const hash = crypto
-      .createHash('md5')
+      .createHash('sha256')
       .update((data.email || '').toLowerCase().trim())
       .digest('hex');
     data.photoURL = `https://www.gravatar.com/avatar/${hash}/?s=160&msw=160&msh=160`;

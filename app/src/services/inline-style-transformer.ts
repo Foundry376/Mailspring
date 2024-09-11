@@ -20,7 +20,7 @@ class InlineStyleTransformer {
     }
 
     const key = crypto
-      .createHash('md5')
+      .createHash('sha256')
       .update(html)
       .digest('hex');
 

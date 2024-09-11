@@ -15,7 +15,7 @@ module.exports = class RavenErrorReporter {
         getMac((err, macAddress) => {
           if (!err && macAddress) {
             this.deviceHash = crypto
-              .createHash('md5')
+              .createHash('sha256')
               .update(macAddress)
               .digest('hex');
           }

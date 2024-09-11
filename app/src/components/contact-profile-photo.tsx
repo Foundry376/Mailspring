@@ -16,7 +16,7 @@ export class ContactProfilePhoto extends React.Component<{
     const bgColor = `hsl(${hue}, 50%, 45%)`;
 
     const hash = crypto
-      .createHash('md5')
+      .createHash('sha256')
       .update((contact.email || '').toLowerCase().trim())
       .digest('hex');
     const gravatarBg = `url("https://www.gravatar.com/avatar/${hash}/?s=88&msw=88&msh=88&d=blank")`;
