@@ -15,6 +15,7 @@ import AccountSettingsPageIMAP from './page-account-settings-imap';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
 import InitialPreferencesPage from './page-initial-preferences';
 import InitialSubscriptionPage from './page-initial-subscription';
+import AccountSettingsPageOutlook from './page-account-settings-outlook';
 
 const PageComponents = {
   welcome: WelcomePage,
@@ -24,6 +25,7 @@ const PageComponents = {
   'account-settings': AccountSettingsPage,
   'account-settings-gmail': AccountSettingsPageGmail,
   'account-settings-o365': AccountSettingsPageO365,
+  'account-settings-outlook': AccountSettingsPageOutlook,
   'account-settings-imap': AccountSettingsPageIMAP,
   'account-onboarding-success': AccountOnboardingSuccess,
   'initial-preferences': InitialPreferencesPage,

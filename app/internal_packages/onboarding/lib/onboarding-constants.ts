@@ -17,14 +17,16 @@ export const GMAIL_CLIENT_ID =
 // Note: This is not a security risk for the end-user -- it just means someone could "fork" Mailspring and re-use it's
 // Client ID and Secret. For now, it seems we're on the honor code - Please don't do this.
 //
-export const GMAIL_CLIENT_SECRET = process.env.MS_GMAIL_CLIENT_SECRET || crypto
-  .createDecipheriv(
-    'aes-256-ctr',
-    "don't-be-ev1l-thanks--mailspring",
-    Buffer.from('wgvAx+N05nHqhFxJ9I07jw==', 'base64')
-  )
-  .update(Buffer.from('1EyEGYVh3NBNIbYEdpdMvOzCH7+vrSciGeYZ1F+W6W+yShk=', 'base64'))
-  .toString('utf8');
+export const GMAIL_CLIENT_SECRET =
+  process.env.MS_GMAIL_CLIENT_SECRET ||
+  crypto
+    .createDecipheriv(
+      'aes-256-ctr',
+      "don't-be-ev1l-thanks--mailspring",
+      Buffer.from('wgvAx+N05nHqhFxJ9I07jw==', 'base64')
+    )
+    .update(Buffer.from('1EyEGYVh3NBNIbYEdpdMvOzCH7+vrSciGeYZ1F+W6W+yShk=', 'base64'))
+    .toString('utf8');
 
 export const GMAIL_SCOPES = [
   'https://mail.google.com/', // email
