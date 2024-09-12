@@ -26,9 +26,12 @@ addons:
     - name: lxd
       channel: stable
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
       - execstack
       - fakeroot
+      - g++-10
       - rpm
 
 branches:
@@ -41,6 +44,7 @@ matrix:
   include:
     - os: linux
       dist: bionic
+      env: CC=gcc-10 CXX=g++-10
     - os: osx
       osx_image: xcode13.1
       env: CC=clang CXX=clang++ SIGN_BUILD=true
