@@ -54,7 +54,7 @@ apps:
       # ensure libappindicator has readable resources.
       TMPDIR: $XDG_RUNTIME_DIR
       # Fallback to XWayland if running in a Wayland session.
-      DISABLE_WAYLAND: 1
+      DISABLE_WAYLAND: '1'
     plugs:
       - avahi-observe
       - browser-support
