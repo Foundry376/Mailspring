@@ -152,8 +152,14 @@ export async function expandAccountWithCommonSettings(account: Account) {
     }
     console.log(`Using Mailspring Template: ${JSON.stringify(mstemplate, null, 2)}`);
   } else {
-    console.log(`Using Empty Template`);
-    mstemplate = {};
+    console.log(`Using Fallback Template`);
+    mstemplate = {
+      "imap_host": `imap.${domain}`,
+      "imap_user_format": "email",
+      "smtp_host": `smtp.${domain}`,
+      "smtp_user_format": "email",
+      "container_folder": "",
+    };
   }
 
   let imap_port = Number(mstemplate.imap_port);

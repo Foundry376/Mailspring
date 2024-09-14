@@ -9,7 +9,13 @@ const getLanguage = () => {
 		const interface = readline.createInterface({ input: process.stdin, output: process.stdout });
 		interface.question('Improve localization for which language? ', (answer) => {
 			interface.close();
-			const LANG = answer.toLocaleLowerCase();
+			const langRegion = answer.split('-');
+			let LANG = ""
+			if (langRegion.length == 2) {
+				LANG = langRegion[0].toLocaleLowerCase() + "-" + langRegion[1];
+			} else {
+				LANG = answer.toLocaleLowerCase();
+			}
 			const PATH = `${PATH_TO_LANG}/${LANG}.json`;
 			if (!fs.existsSync(PATH)) {
 				console.log(`\napp/lang/${path.basename(PATH)} not found!`);
