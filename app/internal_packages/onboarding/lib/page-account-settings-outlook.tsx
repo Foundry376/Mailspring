@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Account } from 'mailspring-exports';
-import { buildO365AccountFromAuthResponse, buildO365AuthURL } from './onboarding-helpers';
+import { buildOutlookAccountFromAuthResponse, buildO365AuthURL } from './onboarding-helpers';
 
 import OAuthSignInPage from './oauth-signin-page';
 import * as OnboardingActions from './onboarding-actions';
@@ -25,7 +25,7 @@ export default class AccountSettingsPageOutlook extends React.Component<{ accoun
         serviceName="Outlook"
         providerAuthPageUrl={this._authUrl}
         providerConfig={providerConfig}
-        buildAccountFromAuthResponse={buildO365AccountFromAuthResponse}
+        buildAccountFromAuthResponse={buildOutlookAccountFromAuthResponse}
         onSuccess={this.onSuccess}
         onTryAgain={goBack}
       />

@@ -2514,23 +2514,21 @@
     "alias": "hotmail.com"
   },
   "hotmail.com": {
-    "display_name": "Outlook.com (Microsoft)",
+    "display_name": "Outlook.com",
     "display_short_name": "Outlook",
     "imap_host": "outlook.office365.com",
     "imap_port": "993",
     "imap_security": "SSL / TLS",
     "imap_user_format": "email",
     "imap_authentication": [
-      "OAuth2",
-      "password-cleartext"
+      "OAuth2"
     ],
     "smtp_host": "smtp.office365.com",
     "smtp_port": "587",
     "smtp_security": "STARTTLS",
     "smtp_user_format": "email",
     "smtp_authentication": [
-      "OAuth2",
-      "password-cleartext"
+      "OAuth2"
     ],
     "enable_steps": []
   },

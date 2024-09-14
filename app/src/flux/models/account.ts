@@ -190,8 +190,12 @@ export class Account extends ModelWithMetadata {
       return 'Yahoo';
     } else if (this.provider === 'imap') {
       return 'IMAP';
+    } else if (this.provider === 'yandex') {
+      return 'Yandex';
     } else if (this.provider === 'office365') {
       return 'Office 365';
+    } else if (this.provider === 'outlook') {
+      return 'Outlook';
     }
     return this.provider;
   }
