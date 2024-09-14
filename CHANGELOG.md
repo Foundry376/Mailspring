@@ -1,5 +1,25 @@
 # Mailspring Changelog
 
+## 1.14.0
+
+This version of Mailspring includes several improvements:
+
+- Mailspring now connects to Outlook accounts using OAuth.
+
+- The `autoconfig` database used to identify your IMAP and SMTP settings automatically has been upgraded to reflect changes in provider settings.
+
+- On Windows and Linux, previewing attachments is more robust and works with a wider variety of files. These attachments also have rendered previews in the message view.
+
+- Mailspring allows you to add Medium, GitHub and YouTube links to email signatures created in the app. (#2484) Thanks @sudeephazra!
+
+- Subject lines no longer overflow if they contain single long words (#2485) Thanks @probablykasper!
+
+Developer:
+
+- Mailspring now uses Electron 30, a recent supported release based on Chromium M124 - thanks to @Phylu for lots of PRs and manual testing that helped us move up three years of versions (v17 => v30) in the last 12 months!
+
+- The Changelog now mentions security contributions by Positive Technologies, Payatu, and Sonar in v1.13.3.
+
 ## 1.13.3
 
 Happy new year! This is a small update to Mailspring with a few important changes:
