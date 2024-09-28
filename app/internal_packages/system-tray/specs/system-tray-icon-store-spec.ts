@@ -34,7 +34,10 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: this.iconStore.inboxFullIcon(), isTemplateImg: true });
+      expect(getCallData()).toEqual({
+        path: this.iconStore.inboxFullUnreadIcon(),
+        isTemplateImg: false,
+      });
     });
 
     it('shows inbox full /alt/ icon when not isInboxZero and window is blurred', () => {
@@ -42,7 +45,10 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: this.iconStore.inboxFullUnreadIcon(), isTemplateImg: false });
+      expect(getCallData()).toEqual({
+        path: this.iconStore.inboxFullUnreadIcon(),
+        isTemplateImg: false,
+      });
     });
   });
 
@@ -51,12 +57,12 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'total').andReturn(1);
       this.iconStore._onWindowFocus();
       const { path } = getCallData();
-      expect(path).toBe(this.iconStore.inboxFullIcon());
+      expect(path).toBe(this.iconStore.inboxFullUnreadIcon());
     });
 
-    it('shows inbox full /alt/ icon ONLY when window is currently blurred and total count changes', () => {
+    it('shows inbox full /alt/ icon ONLY when window is currently backgrounded and total count changes', () => {
       this.iconStore._windowBackgrounded = false;
-      this.iconStore._onWindowBlur();
+      this.iconStore._onWindowBackgrounded();
       expect(ipcRenderer.send).not.toHaveBeenCalled();
 
       // BadgeStore triggers a change
@@ -75,7 +81,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       this.iconStore._updateIcon();
 
       const { path } = getCallData();
-      expect(path).toBe(this.iconStore.inboxFullIcon());
+      expect(path).toBe(this.iconStore.inboxFullUnreadIcon());
     });
   });
 });

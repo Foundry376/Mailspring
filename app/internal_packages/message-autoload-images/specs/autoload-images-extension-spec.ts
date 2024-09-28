@@ -29,6 +29,9 @@ describe('AutoloadImagesExtension', function autoloadImagesExtension() {
         };
         AutoloadImagesExtension.formatMessageBody({ message });
 
+        // if (message.body !== scenario.out) {
+        //   fs.writeFileSync(path.join(fixtures, `${scenario.name}-out.actual.html`), message.body);
+        // }
         expect(message.body === scenario.out).toBe(true);
       });
     });

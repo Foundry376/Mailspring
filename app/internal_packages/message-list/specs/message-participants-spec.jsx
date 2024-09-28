@@ -49,7 +49,7 @@ describe('MessageParticipants', function() {
     it('uses short names', function() {
       const actualOut = makeParticipants({ to: test_message.to });
       const to = ReactTestUtils.findRenderedDOMComponentWithClass(actualOut, 'to-contact');
-      expect(ReactDOM.findDOMNode(to).innerHTML).toBe('User');
+      expect(ReactDOM.findDOMNode(to).innerHTML).toBe('<span><span>User</span></span>');
     });
 
     it("doesn't render any To nodes if To array is empty", function() {

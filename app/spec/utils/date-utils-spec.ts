@@ -130,8 +130,8 @@ describe('DateUtils', function dateUtils() {
     });
 
     it('displays a date and time', () => {
-      const datestring = DateUtils.mediumTimeString('1982-10-24 22:45');
-      expect(datestring).toBe('October 24, 1982, 10:45 PM');
+      const datestring = DateUtils.mediumTimeString(new Date('1982-10-24 22:45'));
+      expect(datestring).toBe('October 24, 1982 at 10:45:00 PM');
     });
   });
 
@@ -141,8 +141,8 @@ describe('DateUtils', function dateUtils() {
     });
 
     it('displays a date and time', () => {
-      const datestring = DateUtils.mediumTimeString('1982-10-24 22:45');
-      expect(datestring).toBe('October 24, 1982, 22:45');
+      const datestring = DateUtils.mediumTimeString(new Date('1982-10-24 22:45'));
+      expect(datestring).toBe('October 24, 1982 at 22:45:00');
     });
   });
 
@@ -152,8 +152,8 @@ describe('DateUtils', function dateUtils() {
     });
 
     it('displays a date and time', () => {
-      const datestring = DateUtils.fullTimeString('1982-10-24 22:45');
-      expect(datestring.startsWith(`Sunday, October 24th 1982, 10:45:00 PM`)).toBe(true);
+      const datestring = DateUtils.fullTimeString(new Date('1982-10-24 22:45'));
+      expect(datestring).toEqual(`Sunday, October 24, 1982 at 10:45:00 PM`);
     });
   });
 
@@ -163,8 +163,8 @@ describe('DateUtils', function dateUtils() {
     });
 
     it('displays a date and time', () => {
-      const datestring = DateUtils.fullTimeString('1982-10-24 22:45');
-      expect(datestring.startsWith(`Sunday, October 24th 1982, 22:45:00`)).toBe(true);
+      const datestring = DateUtils.fullTimeString(new Date('1982-10-24 22:45'));
+      expect(datestring).toEqual(`Sunday, October 24, 1982 at 22:45:00`);
     });
   });
 });

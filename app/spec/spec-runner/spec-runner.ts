@@ -115,14 +115,14 @@ class SpecRunner {
 
     AppEnv.restoreWindowDimensions();
     AppEnv.themes.loadStaticStylesheets();
-    AppEnv.themes.requireStylesheet('../../static/style/jasmine');
+    AppEnv.themes.requireStylesheet('../static/style/jasmine');
     AppEnv.keymaps.loadKeymaps();
   }
 
   _setupWindow() {
-    window.addEventListener('beforeunload', (e) => {
+    window.addEventListener('beforeunload', e => {
       // TODO(flotwig): figure out a way to stop the tests from quitting prematurely that is not this
-      e.returnValue = 'foo'
+      e.returnValue = 'foo';
       AppEnv.storeWindowDimensions();
       AppEnv.saveWindowState();
     });

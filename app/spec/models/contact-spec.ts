@@ -142,7 +142,7 @@ describe('Contact', function() {
 
   it('should properly return `You` as the display name for the current user', function() {
     const c1 = new Contact({ name: ' Test Monkey', email: this.account.emailAddress });
-    expect(c1.displayName()).toBe('You');
+    expect(c1.displayName()).toBe('You (tester@mailspring.com)');
     expect(c1.displayName({ compact: true })).toBe('You');
   });
 

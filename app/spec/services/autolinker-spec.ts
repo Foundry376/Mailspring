@@ -18,6 +18,11 @@ describe('autolink', function autolinkSpec() {
         div.innerHTML = input;
         Autolink(div, { async: false, telAggressiveMatch: false });
 
+        // if (div.innerHTML !== expected) {
+        //   const inputPath = path.join(fixturesDir, filename);
+        //   const actualPath = inputPath.replace('-in', '-actual');
+        //   fs.writeFileSync(actualPath, div.innerHTML);
+        // }
         expect(div.innerHTML).toEqual(expected);
       });
     });

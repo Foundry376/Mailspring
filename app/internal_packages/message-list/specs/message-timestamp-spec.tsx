@@ -13,7 +13,7 @@ const msgTime = () => moment([2010, 1, 14, 15, 25, 50, 125]);
 describe('MessageTimestamp', function() {
   beforeEach(function() {
     return (this.item = ReactTestUtils.renderIntoDocument(
-      <MessageTimestamp isDetailed={false} date={msgTime()} onClick={() => {}} />
+      <MessageTimestamp isDetailed={false} date={msgTime().toDate()} onClick={() => {}} />
     ));
   });
 

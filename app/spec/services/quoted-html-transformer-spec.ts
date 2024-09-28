@@ -298,7 +298,7 @@ Hey
   First Middle Last-Last
   <span dir="ltr">
     &lt;
-    <a href="mailto:test@mailspring.com" target="_blank">
+    <a href="mailto:test@mailspring.com" target="_blank" rel="noopener noreferrer">
       test@mailspring.com
     </a>
     &gt;
