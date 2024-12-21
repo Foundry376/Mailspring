@@ -29,7 +29,10 @@
   <project_license>GPL-3.0+</project_license>
 
   <screenshots>
-    <screenshot type="default">https://getmailspring.com/static/img/hero_graphic_linux@2x.png</screenshot>
+    <screenshot type="default">
+      <caption>Mailspring Hero</caption>
+      <image type="source">https://getmailspring.com/static/img/hero_graphic_linux@2x.png</image>
+    </screenshot>
   </screenshots>
 
   <releases>
