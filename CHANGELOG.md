@@ -1,5 +1,17 @@
 # Mailspring Changelog
 
+## 1.15.0
+
+Happy 2025! This version of Mailspring upgraedes the app to Electron 33 and Chromium 130, ensuring the latest upstream bug fixes, security patches and improvements are available in the app.
+
+- macOS 10.15 (Catalina) is no longer supported. macOS 11 (Big Sur) or later is required.
+
+- We are considering dropping Ubuntu 16, Ubuntu 18 and other Linux releases >6 years old. If this would impact you, please let me know at ben@foundry376.com! It's getting harder to build a mailsync binary because our CI services are dropping support.
+
+Fixes:
+
+- Mailspring now conforms to the AppStream metainfo standard. Thanks @mischkl!
+
 ## 1.14.0
 
 This version of Mailspring includes several improvements:

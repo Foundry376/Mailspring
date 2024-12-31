@@ -45,9 +45,11 @@ matrix:
     - os: linux
       dist: bionic
       env: CC=gcc-10 CXX=g++-10
-    - os: osx
-      osx_image: xcode13.1
-      env: CC=clang CXX=clang++ SIGN_BUILD=true
+    # MacOS Universal builds are compiled locally on my machine and published,
+    # because Travis doesn't support Apple Silicon.
+    # - os: osx
+    #   osx_image: xcode13.1
+    #   env: CC=clang CXX=clang++ SIGN_BUILD=true
 
 before_install:
   # Decrypt and uncompress code signing certs, etc.
