@@ -8,14 +8,14 @@ branches:
 
 skip_non_tags: true
 
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 init:
   - ps: $env:commit = $env:appveyor_repo_commit.SubString(0,8)
 
 install:
   - ps: Install-Product node $env:NODE_VERSION
-  - ps: npm config set msvs_version 2019
+  # - ps: npm config set msvs_version 2019
   - ps: node --version
   - ps: npm --version
 
@@ -51,7 +51,7 @@ test: off
 
 environment:
   matrix:
-    - NODE_VERSION: '16'
+    - NODE_VERSION: '22'
   global:
     SIGN_BUILD: true
     WINDOWS_CODESIGN_CERT: .\app\build\resources\certs\win\win-codesigning.p12
