@@ -1,0 +1,17 @@
+{
+  "name": "chrome-i18n",
+  "version": "1.0",
+  "default_locale": "es",
+  "content_scripts": [
+    {
+      "all_frames": false,
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "main.js"
+      ]
+    }
+  ],
+  "manifest_version": 3
+}

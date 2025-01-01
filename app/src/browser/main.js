@@ -335,6 +335,15 @@ const start = () => {
       urls: ['*://login.microsoftonline.com/*'],
     };
 
+    session.defaultSession
+      .loadExtension(
+        path
+          .join(options.resourcePath, 'static', 'extensions', 'chrome-i18n')
+          .replace('app.asar', 'app.asar.unpacked'),
+        { allowFileAccess: true }
+      )
+      .catch(err => console.error(`Error loading language detection extension: ${err}`));
+
     session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
       console.log(details);
       details.requestHeaders['Origin'] = 'localhost';

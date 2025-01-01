@@ -168,6 +168,7 @@ module.exports = grunt => {
             'examples/**',
             '**/src/tasks/**',
             '**/static/all_licenses.html',
+            '**/static/extensions/**',
             '**/node_modules/spellchecker/**',
             '**/node_modules/windows-shortcuts/**',
           ].join(',') +
@@ -208,7 +209,6 @@ module.exports = grunt => {
         /node_modules[/].*[/]tests?$/,
         /node_modules[/].*[/]coverage$/,
         /node_modules[/].*[/]benchmark$/,
-        /@paulbetts[/]+cld[/]+deps[/]+cld/,
       ],
       out: grunt.config('outputDir'),
       overwrite: true,

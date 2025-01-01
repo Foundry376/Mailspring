@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import cld from 'cld';
 
 import {
   localized,
@@ -65,6 +64,25 @@ export class TranslateMessageExtension extends MessageViewExtension {
   };
 }
 
+type CldResult = { languages: { language: string }[] };
+
+function callCldViaExtension(text: string, callback: (err, result: CldResult | null) => void) {
+  const listener = (message: MessageEvent<any>) => {
+    let resp: { response: string; text: string; result: CldResult | null; error: string | null };
+    try {
+      resp = JSON.parse(message.data);
+    } catch (err) {
+      return; // probably not a message for us
+    }
+    if (resp.response === 'detectLanguage' && resp.text === text) {
+      window.removeEventListener('message', listener);
+      callback(resp.error, resp.result);
+    }
+  };
+  window.addEventListener('message', listener);
+  window.postMessage(JSON.stringify({ call: 'detectLanguage', text }), '*');
+}
+
 export class TranslateMessageHeader extends React.Component<
   TranslateMessageHeaderProps,
   TranslateMessageHeaderState
@@ -123,20 +141,28 @@ export class TranslateMessageHeader extends React.Component<
     if (text.length > 1000) text = text.slice(0, 1000);
     if (!text) return;
 
+    if (text.length < 50) {
+      // language detection seems unreliably for very short "hello world" emails
+      return;
+    }
+
     this._detectionStarted = true;
 
-    cld.detect(text, (err, result) => {
-      if (err || !result || !result.languages.length) {
+    callCldViaExtension(text, (err, result) => {
+      if (err || !result || !result.languages?.length) {
         console.warn(`Could not detect message language: ${err.toString()}`);
         return;
       }
-      const detected = result.languages[0].code;
-      const current = getCurrentLocale().split('-')[0];
+      if (!this._mounted) {
+        return;
+      }
 
       // no-op if the current and detected language are the same
+      const detected = result.languages[0].language;
+      const current = getCurrentLocale().split('-')[0];
       if (current === detected) return;
 
-      // no-op if we don't know what either of the language codes are
+      // no-op if we don't know how to translate this language pair
       if (!AllLanguages[current] || !AllLanguages[detected]) return;
 
       const prefs = getPrefs();
@@ -341,15 +367,15 @@ export class TranslateMessageHeader extends React.Component<
                 items={[
                   prefs.automatic.includes(this.state.detected)
                     ? {
-                      key: 'always',
-                      label: localized('Stop translating %@', fromLanguage),
-                      select: this._onDisableAlwaysForLanguage,
-                    }
+                        key: 'always',
+                        label: localized('Stop translating %@', fromLanguage),
+                        select: this._onDisableAlwaysForLanguage,
+                      }
                     : {
-                      key: 'always',
-                      label: localized('Always translate %@', fromLanguage) + ` (Pro)`,
-                      select: this._onAlwaysForLanguage,
-                    },
+                        key: 'always',
+                        label: localized('Always translate %@', fromLanguage) + ` (Pro)`,
+                        select: this._onAlwaysForLanguage,
+                      },
                   {
                     key: 'never',
                     label: localized('Never translate %@', fromLanguage),
