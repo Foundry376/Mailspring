@@ -1,0 +1,61 @@
+name: Build for Linux
+
+on:
+  workflow_dispatch:
+    branches: master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ubuntu:18.04
+
+    steps:
+      - name: Install deps
+        run: |
+          apt-get update -y
+          apt install -y software-properties-common
+          apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+          apt install -y nodejs autoconf automake build-essential clang cmake execstack fakeroot g++-5 git libc-ares-dev libctemplate-dev libcurl4-openssl-dev libglib2.0-dev libgnome-keyring-dev libicu-dev libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit libsecret-1-dev libssl-dev libnss3 libnss3-dev libtidy-dev libtool libxext-dev libxkbfile-dev libxml2-dev libxtst-dev rpm uuid-dev xvfb
+
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./node_modules
+            ./app/node_modules
+          key: ubuntu-deps-${{ hashFiles('yarn.lock') }}-${{ hashFiles('app/package-lock.json') }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: DEBUG=electron-packager npm run build
+
+      - uses: snapcore/action-build@v1
+        id: build
+
+      - uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+          release: edge
+
+      - name: Sync artifacts to S3 bucket
+        run: |
+          aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short HEAD)/osx" \
+            --acl public-read \
+            --exclude "*" --include *.zip
