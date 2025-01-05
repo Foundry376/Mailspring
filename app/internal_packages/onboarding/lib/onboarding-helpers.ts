@@ -433,8 +433,10 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
   if (autoConfig !== false && autoConfig.clientConfig && autoConfig.clientConfig.emailProvider) {
       let provider = autoConfig.clientConfig.emailProvider;
       if(Array.isArray(provider)){
-        console.log('provider was an array');
         provider = provider.find(p => p.attribute_id === domain);
+        if(provider === undefined){
+          return false;
+        }
       }
 
       let imapDetails = null;
