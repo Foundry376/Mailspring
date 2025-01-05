@@ -141,6 +141,10 @@ export async function expandAccountWithCommonSettings(account: Account) {
     return populated;
   }
 
+  if (await TryThunderbirdAutoconfig(populated, account)){
+    return populated;
+  }
+
   // find matching template by domain or provider in the old lookup tables
   // this matches the acccount type presets ("yahoo") and common domains against
   // data derived from Thunderbirds ISPDB.
@@ -376,4 +380,131 @@ export async function finalizeAndValidateAccount(account: Account) {
   // Record the date of successful auth
   account.authedAt = new Date();
   return account;
+}
+
+async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
+  function extractServerDetails(server: { hostname: string; port: string; username: string; socketType: string; }, account: Account) {
+      const details = {
+          host: server.hostname,
+          port: server.port,
+          username: "",
+          security: "",
+      };
+
+      switch (server.username) {
+          case "%EMAILLOCALPART%":
+              details.username = account.emailAddress.split('@')[0];
+              break;
+          default:
+              details.username = account.emailAddress;
+              break;
+      }
+
+      switch (server.socketType) {
+          case "plain":
+              details.security = "None";
+              break;
+          case "STARTTLS":
+              details.security = "STARTTLS";
+              break;
+          case "SSL":
+              details.security = "SSL / TLS";
+              break;
+          default:
+              details.security = "STARTTLS";
+              break;
+      }
+
+      return details;
+  }
+  
+  const domain = account.emailAddress
+  .split('@')
+  .pop()
+  .toLowerCase();
+
+  let url = `https://autoconfig.${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
+  let autoDiscover = await getThunderbirdAutoconfig(url);
+  if(autoDiscover === false){
+    url = `https://${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
+    autoDiscover = await getThunderbirdAutoconfig(url);
+  }
+
+  if (autoDiscover !== false && autoDiscover.clientConfig && autoDiscover.clientConfig.emailProvider) {
+
+      const provider = autoDiscover.clientConfig.emailProvider;
+
+      let imapDetails = null;
+      let smtpDetails = null;
+
+      // Handle IMAP
+      if (Array.isArray(provider.incomingServer)) {
+          for (const incomingServer of provider.incomingServer) {
+              if (incomingServer.attribute_type === "imap") {
+                  imapDetails = extractServerDetails(incomingServer, account);
+                  break;
+              }
+          }
+      } else if (provider.incomingServer.attribute_type === "imap") {
+          imapDetails = extractServerDetails(provider.incomingServer, account);
+      }
+
+      // Handle SMTP
+      if (Array.isArray(provider.outgoingServer)) {
+          for (const outgoingServer of provider.outgoingServer) {
+              if (outgoingServer.attribute_type === "smtp") {
+                  smtpDetails = extractServerDetails(outgoingServer, account);
+                  break;
+              }
+          }
+      } else if (provider.outgoingServer.attribute_type === "smtp") {
+          smtpDetails = extractServerDetails(provider.outgoingServer, account);
+      }
+
+      const settings = {
+          imap_host: imapDetails?.host || `imap.${domain}`,
+          imap_port: imapDetails?.port,
+          imap_username: imapDetails?.username,
+          imap_password: populated.settings.imap_password,
+          imap_security: imapDetails?.security,
+          imap_allow_insecure_ssl: false,
+          smtp_host: smtpDetails?.host || `smtp.${domain}`,
+          smtp_port: smtpDetails?.port,
+          smtp_username: smtpDetails?.username,
+          smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
+          smtp_security: smtpDetails?.security,
+          smtp_allow_insecure_ssl: false,
+          container_folder: "",
+      };
+
+      populated.settings = Object.assign(settings, populated.settings);
+      console.log('Returning populated settings from autoconfig');
+      return populated;
+  } else {
+      return false;
+  }
+}
+
+async function getThunderbirdAutoconfig(url: string) {
+  try {
+      const { XMLParser } = require("fast-xml-parser");
+      const response = await fetch(url);
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const body = await response.text();
+      const parser = new XMLParser({
+          ignoreDeclaration: true,
+          ignoreAttributes: false,
+          attributeNamePrefix: "attribute_"
+      });
+      
+      let parsedBody = parser.parse(body);
+      console.log(JSON.stringify(parsedBody));
+      return parsedBody;
+
+  } catch (error) {
+      return false;
+  }
 }
