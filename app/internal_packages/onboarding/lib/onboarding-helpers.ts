@@ -424,15 +424,15 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
   .toLowerCase();
 
   let url = `https://autoconfig.${domain}/mail/config-v1.1.xml`;
-  let autoDiscover = await getThunderbirdAutoconfig(url);
-  if(autoDiscover === false){
+  let autoConfig = await getThunderbirdAutoconfig(url);
+  if(autoConfig === false){
     url = `https://${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
-    autoDiscover = await getThunderbirdAutoconfig(url);
+    autoConfig = await getThunderbirdAutoconfig(url);
   }
 
-  if (autoDiscover !== false && autoDiscover.clientConfig && autoDiscover.clientConfig.emailProvider) {
+  if (autoConfig !== false && autoConfig.clientConfig && autoConfig.clientConfig.emailProvider) {
 
-      const provider = autoDiscover.clientConfig.emailProvider;
+      const provider = autoConfig.clientConfig.emailProvider;
 
       let imapDetails = null;
       let smtpDetails = null;
@@ -501,7 +501,6 @@ async function getThunderbirdAutoconfig(url: string) {
       });
       
       let parsedBody = parser.parse(body);
-      console.log(JSON.stringify(parsedBody));
       return parsedBody;
 
   } catch (error) {
