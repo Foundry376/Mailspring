@@ -13,6 +13,7 @@
     "npm": ">=8"
   },
   "dependencies": {
+    "@electron/packager": "18.3.2",
     "@types/better-sqlite3": "^7.6.3",
     "@types/debug": "^4.1.2",
     "@types/deep-extend": "^0.4.31",
@@ -53,7 +54,6 @@
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
     "electron": "33.3.0",
-    "@electron/packager": "18.3.2",
     "electron-winstaller": "5.1.x",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "7.2.0",

@@ -80,7 +80,8 @@
     "uuid": "^3.0.0",
     "vcf": "^2.0.5",
     "windows-iana": "^4.2.1",
-    "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7"
+    "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
+    "xml2js": "^0.6.2"
   },
   "optionalDependencies": {
     "macos-notification-state": "^1.3.6",
