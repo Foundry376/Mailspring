@@ -429,10 +429,13 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
     url = `https://${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
     autoConfig = await getThunderbirdAutoconfig(url);
   }
-
+  // emailProvider could potentially be an array
   if (autoConfig !== false && autoConfig.clientConfig && autoConfig.clientConfig.emailProvider) {
-
-      const provider = autoConfig.clientConfig.emailProvider;
+      let provider = autoConfig.clientConfig.emailProvider;
+      if(Array.isArray(provider)){
+        console.log('provider was an array');
+        provider = provider.find(p => p.attribute_id === domain);
+      }
 
       let imapDetails = null;
       let smtpDetails = null;
