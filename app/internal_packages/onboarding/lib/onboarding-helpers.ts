@@ -423,7 +423,7 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
   .pop()
   .toLowerCase();
 
-  let url = `https://autoconfig.${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
+  let url = `https://autoconfig.${domain}/mail/config-v1.1.xml`;
   let autoDiscover = await getThunderbirdAutoconfig(url);
   if(autoDiscover === false){
     url = `https://${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
