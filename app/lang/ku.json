@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring cache ev e ku ji bo %@. Li ser pîvana mailboxê, ev dikare çend-sê-an-çend çend deqeyan bistînin. Wê hişyar dê dema ku paqijkirina temamî pêk tê.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring bernameyeke serbixwe %@, û dahatiya endamê we destnîşan dike ku wext û wextê hilberîna hilberînê dema we derbas dikin.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring di modê dev de dimeşîne û dibe ku bibe!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring ev mijar bişkojk e û ew eşîrên biharê ye. Ji bo dirêjên dirêj, ev dibe ku demek dirêj bikin.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring ev mijar bişkojk e û ew eşîrên biharê ye. Ji bo dirêjên dirêj, ev dibe ku demek dirêj bikin.",
   "Mailspring is unable to sync %@": "Mailspring nikare sync %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring ji bo %@ di %@ çiravên cacheyê herêmê vekin. Mailboxa we dê dest bi hev re dîsa dest pê bike.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring hûn di navnîşên xwe de di nav hemû têkiliyên te de nîşan dide. Guherandinên LinkedIn, Twitter bios, dîrokek peyamê, û bêtir bibînin.",

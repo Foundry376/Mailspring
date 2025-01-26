@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring กำลังล้างแคชสำหรับ %@ อาจใช้เวลาสองสามวินาทีหรือสองสามนาทีขึ้นอยู่กับขนาดของกล่องจดหมาย การแจ้งเตือนจะปรากฏขึ้นเมื่อการล้างข้อมูลเสร็จสมบูรณ์",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring เป็นซอฟต์แวร์อิสระ %@ และรายได้จากการสมัครสมาชิกช่วยให้เราใช้เวลาในการบำรุงรักษาและปรับปรุงผลิตภัณฑ์",
   "Mailspring is running in dev mode and may be slower!": "Mailspring กำลังทำงานในโหมด dev และอาจช้ากว่านี้!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring กำลังซิงค์เธรดนี้และเป็นไฟล์แนบในระบบคลาวด์ สำหรับหัวข้อยาวอาจใช้เวลาสักครู่",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring กำลังซิงค์เธรดนี้และเป็นไฟล์แนบในระบบคลาวด์ สำหรับหัวข้อยาวอาจใช้เวลาสักครู่",
   "Mailspring is unable to sync %@": "Mailspring ไม่สามารถซิงค์ได้ %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring ตั้งค่าแคชภายในเครื่องสำหรับ %@ ในอีก %@ วินาที กล่องจดหมายของคุณจะเริ่มซิงค์อีกครั้ง",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring จะแสดงข้อมูลเกี่ยวกับรายชื่อติดต่อของคุณทั้งหมดภายในกล่องจดหมายของคุณ ดูโปรไฟล์ LinkedIn, ประวัติ Twitter, ประวัติข้อความและอื่น ๆ",

@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring این حافظه را برای %@ پاکسازی می کند. بسته به اندازه صندوق پستی، ممکن است چند ثانیه یا چند دقیقه طول بکشد. هنگام پاکسازی کامل، یک هشدار ظاهر می شود.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring مستقل %@ نرم افزار است، و درآمد اشتراک به ما اجازه می دهد زمان صرف شده و نگهداری و بهبود محصول.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring در حالت dev اجرا می شود و ممکن است کندتر باشد!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring این موضوع را همگام سازی می کند و آن فایل ها به ابر است. برای موضوعات طولانی، این ممکن است یک لحظه برسد.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring این موضوع را همگام سازی می کند و آن فایل ها به ابر است. برای موضوعات طولانی، این ممکن است یک لحظه برسد.",
   "Mailspring is unable to sync %@": "Mailspring قادر به همگام سازی %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring کش کش محلی را برای %@ در %@ ثانیه بازنشانی می کند. صندوق پستی شما دوباره شروع به همگام سازی می کند.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring همه چیز را در مورد مخاطبین خود درست در داخل صندوق پستی نشان می دهد. پروفیلهای LinkedIn، BIOS توییتر، تاریخچه پیام و موارد دیگر را ببینید.",

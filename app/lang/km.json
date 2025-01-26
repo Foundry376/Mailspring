@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring កំពុងសំអាតឃ្លាំងសម្ងាត់របស់វាសម្រាប់ %@ ។ អាស្រ័យលើទំហំនៃប្រអប់សំបុត្រវាអាចចំណាយពេលពីរបីនាទីឬពីរបីនាទី។ ការជូនដំណឹងនឹងបង្ហាញនៅពេលសម្អាតបញ្ចប់។",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring គឺជាឯករាជ្យ %@ ផ្នែកទន់ហើយចំណូលពីការជាវអនុញ្ញាតឱ្យយើងចំណាយពេលវេលាថែរក្សានិងកែលម្អផលិតផល។",
   "Mailspring is running in dev mode and may be slower!": "Mailspring កំពុងដំណើរការនៅក្នុងរបៀប dev ហើយអាចនឹងយឺតជាង!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring កំពុងធ្វើសមកាលកម្មខ្សែស្រឡាយនេះហើយវាជាឯកសារភ្ជាប់ទៅពពក។ សម្រាប់ខ្សែស្រឡាយវែងវាអាចប្រើពេលបន្តិច។",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring កំពុងធ្វើសមកាលកម្មខ្សែស្រឡាយនេះហើយវាជាឯកសារភ្ជាប់ទៅពពក។ សម្រាប់ខ្សែស្រឡាយវែងវាអាចប្រើពេលបន្តិច។",
   "Mailspring is unable to sync %@": "Mailspring មិនអាចធ្វើសមកាលកម្ម %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring កំណត់ឃ្លាំងសម្ងាត់មូលដ្ឋានឡើងវិញសម្រាប់ %@ ក្នុង %@ វិនាទី។ ប្រអប់សំបុត្ររបស់អ្នកនឹងចាប់ផ្តើមធ្វើសមកាលកម្មជាថ្មីម្តងទៀត។",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring បង្ហាញអ្នកនូវអ្វីគ្រប់យ៉ាងអំពីទំនាក់ទំនងរបស់អ្នកនៅខាងក្នុងប្រអប់សំបុត្ររបស់អ្នក។ សូមមើលទម្រង់ LinkedIn, ជីវប្រវត្តិរបស់ Twitter, ប្រវត្តិសាស្រ្តសារនិងច្រើនទៀត។",

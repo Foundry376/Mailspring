@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring ले यो %@ को लागि क्यास खाली गर्दै छ। मेलबक्सको आकारमा निर्भर गर्दछ, यसले केहि सेकेन्ड वा केहि मिनेट लिन सक्छ। सफाई पूरा भएपछि एक सतर्कता देखा पर्नेछ।",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring स्वत: %@ सफ्टवेयर हो, र सदस्यता राजस्वले हामीलाई समयको कायम राख्ने र उत्पादन सुधार गर्न अनुमति दिन्छ।",
   "Mailspring is running in dev mode and may be slower!": "Mailspring देव मोडमा दौडिरहेको छ र ढिलो हुन सक्छ!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring यस थ्रेड सिङ्क गर्दै छ र यो क्लाउडमा संलग्नहरू छन्। लामो थ्रेडको लागि, यसले एक क्षण लिन सक्छ।",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring यस थ्रेड सिङ्क गर्दै छ र यो क्लाउडमा संलग्नहरू छन्। लामो थ्रेडको लागि, यसले एक क्षण लिन सक्छ।",
   "Mailspring is unable to sync %@": "Mailspring सिङ्क गर्न असमर्थ छ %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring स्थानीय क्यास %@ मा %@ सेकेन्ड रिसेट गर्नुहोस्। तपाईंको मेलबक्स अब फेरि सिंक गर्न सुरु हुनेछ।",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring तपाईंलाई आफ्नो इनबक्स भित्र आफ्नो सम्पर्क बारे सबै केहि देखाउँछ। लिङ्क भएका प्रोफाइलहरू, ट्विटर बायोस, सन्देश इतिहास, र थप हेर्नुहोस्।",

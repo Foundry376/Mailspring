@@ -353,7 +353,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring正在清除 %@ 的緩存。根據郵箱的大小，這可能需要幾秒鐘或幾分鐘。清理完成後將顯示警報。",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring是獨立的%@軟件，訂閱收入使我們可以花時間維護和改進產品。",
   "Mailspring is running in dev mode and may be slower!": "Mailspring 正在開發模式下運行，可能會更慢！",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring 正在同步此討論串及其在雲端上的附件。對於較長的討論串，這可能需要一些時間。",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring 正在同步此討論串及其在雲端上的附件。對於較長的討論串，這可能需要一些時間。",
   "Mailspring is unable to sync %@": "Mailspring 無法同步 %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring 在 %@ 秒內重置 %@ 的本地快取。您的郵箱現在將再次開始同步。",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring 會在收件箱內向您顯示有關聯繫人的所有信息。查看 LinkedIn 個人資料，Twitter 簡歷，消息歷史記錄等。",

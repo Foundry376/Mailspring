@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring이 %@에 대한 캐시를 지우고 있습니다. 메일함의 크기에 따라 몇 초 또는 몇 분이 걸릴 수 있습니다. 정리가 완료되면 알림이 표시됩니다.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring은 독립적인 소프트웨어입니다. 구독 수익은 제품을 유지 관리하고 개선하는 데 사용됩니다.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring이 현재 개발자 모드에서 실행 중입니다. 성능이 떨어질 수 있습니다.",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring은 이 스레드와 클라우드에 첨부 파일을 동기화합니다. 긴 스레드의 경우, 이 작업에는 약간의 시간이 걸릴 수 있습니다.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring은 이 스레드와 클라우드에 첨부 파일을 동기화합니다. 긴 스레드의 경우, 이 작업에는 약간의 시간이 걸릴 수 있습니다.",
   "Mailspring is unable to sync %@": "Mailspring이 %@을 (를) 동기화할 수 없습니다.",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring은 %@ 초 동안 %@ 초 동안 로컬 캐시를 초기화합니다. 이제 편지함이 다시 동기화되기 시작합니다.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring을 이용해 받은 편지함에서 연락처 정보를 바로 확인할 수 있습니다! LinkedIn, Twitter와 지난 메세지 기록을 확인하세요.",

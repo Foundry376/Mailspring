@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Palliprojekt kustutab selle %@ jaoks vahemälu. Sõltuvalt postkasti suurusest võib see võtta paar sekundit või paar minutit. Kui puhastamine on lõpetatud, ilmub märguanne.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring on sõltumatu %@ tarkvara ja tellimustoode võimaldab meil kulutada aega toote hooldamiseks ja täiustamiseks.",
   "Mailspring is running in dev mode and may be slower!": "Mässirull töötab dev-režiimis ja võib olla aeglasem!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sünkroonib seda lõime ja see on piltide lisamine. Pika lõngaga võib see võtta aega.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring sünkroonib seda lõime ja see on piltide lisamine. Pika lõngaga võib see võtta aega.",
   "Mailspring is unable to sync %@": "Mailspring ei saa sünkroonida %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring lähtestab kohaliku vahemälu %@ sekundiks %@. Teie postkast hakatakse uuesti sünkroonima.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Kaardiriiul näitab sulle kõike oma kontaktide kohta oma postkasti sees. Vaadake LinkedIn-profiile, Twitter-i BIOS-i, teadete ajalugu ja palju muud.",

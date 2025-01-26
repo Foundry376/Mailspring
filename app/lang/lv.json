@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Pasta foršs tiek notīrīts par %@. Atkarībā no pastkastes lieluma tas var ilgt dažas sekundes vai dažas minūtes. Kad tīrīšana ir pabeigta, parādīsies brīdinājums.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring ir neatkarīga %@ programmatūra, un abonēšanas ieņēmumi ļauj mums pavadīt laiku, saglabājot un uzlabojot produktu.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring darbojas dev režīmā un var būt lēnāks!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring sinhronizē šo pavedienu, un tas ir pielikumi mākonim. Gariem pavedieniem tas var aizņemt kādu brīdi.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring sinhronizē šo pavedienu, un tas ir pielikumi mākonim. Gariem pavedieniem tas var aizņemt kādu brīdi.",
   "Mailspring is unable to sync %@": "Mailspring nevar sinhronizēt %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring %@ sekundē atjauno vietējo kešatmiņu. Jūsu pastkase sāks atkal sinhronizēt.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring parādīs visu, kas attiecas uz jūsu kontaktpersonām, tieši jūsu iesūtnes iekšpusē. Skatiet LinkedIn profilus, Twitter biļeti, ziņu vēsturi un daudz ko citu.",

@@ -354,7 +354,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring is running in dev mode and may be slower!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.",
   "Mailspring is unable to sync %@": "Mailspring is unable to sync %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.",

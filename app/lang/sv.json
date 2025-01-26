@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring rensar sin cache för %@. Beroende på storleken på brevlådan kan det ta några sekunder eller några minuter. En varning visas när rengöringen är klar.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring är oberoende %@ mjukvara, och abonnemangsintäkterna tillåter oss att spendera tid att upprätthålla och förbättra produkten.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring körs i dev-läge och kan vara långsammare!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring synkroniserar den här tråden och det är bilagor till molnet. För långa trådar kan det ta en stund.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring synkroniserar den här tråden och det är bilagor till molnet. För långa trådar kan det ta en stund.",
   "Mailspring is unable to sync %@": "Mailspring kan inte synkronisera %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring återställer lokalbufferten för %@ på %@ sekunder. Din brevlåda börjar nu synkronisera igen.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring visar dig allt om dina kontakter direkt i din inkorg. Se LinkedIn-profiler, Twitter-bios, meddelandehistorik och mycket mer.",

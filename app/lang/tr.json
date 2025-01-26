@@ -352,7 +352,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring, önbelleğini temizliyor %@. Posta kutusunun boyutuna bağlı olarak birkaç saniye veya birkaç dakika sürebilir. Temizleme tamamlandığında bir uyarı görünecektir.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring bağımsız %@ bir yazılımdır ve abonelik geliri, ürünü geliştirmek ve iyileştirmek için zaman harcamamızı sağlar.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring, geliştirici kipinde çalışıyor ve daha yavaş olabilir!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring bu konuyu ve eklerini buluta eşzamanlıyor. Uzun konular için biraz zaman alabilir.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring bu konuyu ve eklerini buluta eşzamanlıyor. Uzun konular için biraz zaman alabilir.",
   "Mailspring is unable to sync %@": "Mailspring %@'yi eşzamanlayamıyor",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring, %@ için yerel belleği %@ saniyede sıfırlayacak. Posta kutunuz artık yeniden eşzamanlamaya başlayacak.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring, kişilerinizle ilgili her şeyi gelen kutunuzda gösterir. LinkedIn profillerini, Twitter biyografilerini, ileti geçmişini ve daha çoğunu görün.",

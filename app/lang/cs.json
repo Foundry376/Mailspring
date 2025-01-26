@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring maže mezipaměť pro %@. V závislosti na velikosti poštovní schránky to může trvat několik sekund nebo několik minut. Po dokončení mazání se zobrazí upozornění.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring je nezávislý %@ software a výnosy z předplatného nám umožňují věnovat čas údržbě a vylepšování produktu.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring běží ve vývojářském režimu a může být pomalejší!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring synchronizuje toto vlákno a jeho přílohy do cloudu. U dlouhých vláken to může chvíli trvat.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring synchronizuje toto vlákno a jeho přílohy do cloudu. U dlouhých vláken to může chvíli trvat.",
   "Mailspring is unable to sync %@": "Mailspring nemůže synchronizovat %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring obnovil mezipaměť pro %@ za %@ sekundy. Vaše schránka se nyní začne znovu synchronizovat.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring vám zobrazí všechny informace o vašich kontaktech přímo v doručené poště. Prohlédněte si profily LinkedIn, Twitter, historii zpráv a další.",

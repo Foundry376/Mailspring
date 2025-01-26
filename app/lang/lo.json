@@ -351,7 +351,7 @@
   "Mailspring is clearing its cache %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring ກໍາລັງຟາດມັນສໍາລັບ %@. ອີງຕາມຂະຫນາດຂອງກ່ອງຈົດຫມາຍ, ນີ້ອາດໃຊ້ເວລາສອງສາມວິນາທີຫຼືສອງສາມນາທີ. ການແຈ້ງເຕືອນຈະປາກົດໃນເວລາທີ່ເຮັດຄວາມສະອາດແລ້ວ.",
   "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring ເປັນເອກະລາດ %@ ຊອບແວ, ແລະລາຍຮັບການເຂົ້າເຖິງອະນຸຍາດໃຫ້ພວກເຮົາໃຊ້ເວລາຮັກສາແລະປັບປຸງຜະລິດຕະພັນ.",
   "Mailspring is running in dev mode and may be slower!": "Mailspring ແມ່ນໃຊ້ໃນໂຫມດ dev ແລະອາດຈະຊ້າ!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring ກໍາລັງ sync ກະທູ້ນີ້ແລະມັນເປັນໄຟລ໌ແນບກັບເມຄ. ສໍາລັບຫົວຂໍ້ຍາວ, ນີ້ອາດຈະໃຊ້ເວລາບາງ.",
+  "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring ກໍາລັງ sync ກະທູ້ນີ້ແລະມັນເປັນໄຟລ໌ແນບກັບເມຄ. ສໍາລັບຫົວຂໍ້ຍາວ, ນີ້ອາດຈະໃຊ້ເວລາບາງ.",
   "Mailspring is unable to sync %@": "Mailspring ບໍ່ສາມາດທີ່ຈະ sync %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring ປັບຄ່າແຄດລັບສໍາລັບ %@ ໃນ %@ ວິນາທີ. ກ່ອງຈົດຫມາຍຂອງທ່ານໃນປັດຈຸບັນຈະເລີ່ມຕົ້ນທີ່ຈະຊິງອີກຄັ້ງ.",
   "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring ສະແດງໃຫ້ເຫັນທຸກສິ່ງທຸກຢ່າງກ່ຽວກັບການຕິດຕໍ່ຂອງທ່ານຢູ່ໃນກ່ອງຈົດຫມາຍຂອງທ່ານ. ເບິ່ງລາຍລະອຽດ LinkedIn, Twitter bios, ປະວັດຂໍ້ຄວາມແລະອື່ນໆ.",
