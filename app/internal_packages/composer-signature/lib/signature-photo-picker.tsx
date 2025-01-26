@@ -1,4 +1,5 @@
 import React from 'react';
+import { webUtils } from 'electron';
 import { localized, PropTypes, MailspringAPIRequest, IdentityStore } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
@@ -176,7 +177,9 @@ export default class SignaturePhotoPicker extends React.Component<
               <DropZone
                 onClick={this._onChooseImage}
                 onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
-                onDrop={e => this._onChooseImageFilePath(e.dataTransfer.files[0].path)}
+                onDrop={e =>
+                  this._onChooseImageFilePath(webUtils.getPathForFile(e.dataTransfer.files[0]))
+                }
                 shouldAcceptDrop={e => (e as any).dataTransfer.types.includes('Files')}
                 style={{
                   backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,

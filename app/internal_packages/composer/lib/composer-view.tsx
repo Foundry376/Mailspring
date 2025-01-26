@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
@@ -10,6 +9,7 @@ import {
   DraftEditingSession,
   MessageWithEditorState,
 } from 'mailspring-exports';
+import { webUtils } from 'electron';
 import {
   DropZone,
   RetinaImg,
@@ -72,7 +72,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     'composer:show-and-focus-bcc': () => this.header.current.showAndFocusField(Fields.Bcc),
     'composer:show-and-focus-cc': () => this.header.current.showAndFocusField(Fields.Cc),
     'composer:focus-to': () => this.header.current.showAndFocusField(Fields.To),
-    'composer:show-and-focus-from': () => { },
+    'composer:show-and-focus-from': () => {},
     'composer:select-attachment': () => this._onSelectAttachment(),
     'composer:delete-empty-draft': (e: Event) => {
       this.props.draft.pristine && this._onDestroyDraft();
@@ -301,10 +301,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     return null;
   };
 
-  _onDrop = event => {
+  _onDrop = (event: React.DragEvent<HTMLDivElement>) => {
     // Accept drops of real files from other applications
     for (const file of Array.from(event.dataTransfer.files)) {
-      this._onFileReceived((file as any).path);
+      this._onFileReceived(webUtils.getPathForFile(file));
       event.preventDefault();
     }
 
@@ -342,7 +342,9 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     });
   };
 
-  _isValidDraft = (options: { forceRecipientWarnings?: boolean, forceMiscWarnings?: boolean } = {}) => {
+  _isValidDraft = (
+    options: { forceRecipientWarnings?: boolean; forceMiscWarnings?: boolean } = {}
+  ) => {
     // We need to check the `DraftStore` because the `DraftStore` is
     // immediately and synchronously updated as soon as this function
     // fires. Since `setState` is asynchronous, if we used that as our only
@@ -380,17 +382,27 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     if (recipientWarnings.length > 0 && !options.forceRecipientWarnings) {
       const response = dialog.showMessageBoxSync({
         type: 'warning',
-        buttons: [localized('Send Anyway'), localized('Send & Ignore Warnings For This Email'), localized('Cancel')],
+        buttons: [
+          localized('Send Anyway'),
+          localized('Send & Ignore Warnings For This Email'),
+          localized('Cancel'),
+        ],
         message: localized('Are you sure?'),
         detail: recipientWarnings.join('. '),
       });
       if (response === 0) {
         // response is button array index
-        return this._isValidDraft({ forceRecipientWarnings: true, forceMiscWarnings: options.forceMiscWarnings });
+        return this._isValidDraft({
+          forceRecipientWarnings: true,
+          forceMiscWarnings: options.forceMiscWarnings,
+        });
       } else if (response === 1) {
         // Send & Ignore Future Warnings for Recipient Email
-        session.addRecipientsToWarningBlacklist()
-        return this._isValidDraft({ forceRecipientWarnings: true, forceMiscWarnings: options.forceMiscWarnings });
+        session.addRecipientsToWarningBlacklist();
+        return this._isValidDraft({
+          forceRecipientWarnings: true,
+          forceMiscWarnings: options.forceMiscWarnings,
+        });
       }
       return false;
     }
@@ -403,7 +415,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       });
       if (response === 0) {
         // response is button array index
-        return this._isValidDraft({ forceRecipientWarnings: options.forceRecipientWarnings, forceMiscWarnings: true });
+        return this._isValidDraft({
+          forceRecipientWarnings: options.forceRecipientWarnings,
+          forceMiscWarnings: true,
+        });
       }
       return false;
     }

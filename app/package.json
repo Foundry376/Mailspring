@@ -82,6 +82,9 @@
     "windows-iana": "^4.2.1",
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7"
   },
+  "resolutions": {
+    "electron": "33.3.0"
+  },
   "optionalDependencies": {
     "macos-notification-state": "^1.3.6",
     "windows-quiet-hours": "^2.0.0"
