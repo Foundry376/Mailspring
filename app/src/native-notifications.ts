@@ -12,9 +12,10 @@ const DEFAULT_ICON = path.resolve(
   'mailspring.png'
 );
 
-type INotificationCallback = (
-  args: { response: string | null; activationType: 'replied' | 'clicked' }
-) => any;
+type INotificationCallback = (args: {
+  response: string | null;
+  activationType: 'replied' | 'clicked';
+}) => any;
 
 type INotificationOptions = {
   title?: string;
@@ -34,9 +35,6 @@ class NativeNotifications {
   }
 
   doNotDisturb() {
-    if (platform === 'win32' && require('windows-quiet-hours').getIsQuietHours()) {
-      return true;
-    }
     if (platform === 'darwin' && require('macos-notification-state').getDoNotDisturb()) {
       return true;
     }
@@ -113,7 +111,7 @@ class NativeNotifications {
     body,
     tag,
     canReply,
-    onActivate = args => { },
+    onActivate = args => {},
   }: INotificationOptions = {}) {
     let notif = null;
 
