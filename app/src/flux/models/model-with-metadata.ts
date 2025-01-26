@@ -79,11 +79,14 @@ export class ModelWithMetadata extends Model {
       return null;
     }
     const value = JSON.parse(JSON.stringify(metadata.value));
-    if (value.expiration) {
-      value.expiration = new Date(value.expiration * 1000);
+    if (value === null || value === undefined) {
+      return null;
     }
     if (Object.keys(value).length === 0) {
       return null;
+    }
+    if (value.expiration) {
+      value.expiration = new Date(value.expiration * 1000);
     }
     return value;
   }
