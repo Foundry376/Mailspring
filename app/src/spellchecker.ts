@@ -7,7 +7,6 @@ const { app, MenuItem } = require('@electron/remote');
 const customDictFilePath = path.join(AppEnv.getConfigDirPath(), 'custom-dict.json');
 
 class Spellchecker {
-
   private _session = require('@electron/remote').getCurrentWebContents().session;
 
   constructor() {
@@ -33,15 +32,18 @@ class Spellchecker {
     } else {
       setTimeout(initHandler, 5000);
     }
-
   }
 
   _switchToLanguage = (lang: string | undefined | null) => {
     if (lang === null || lang === undefined || lang === '') {
       lang = app.getLocale() || 'en-US';
     }
-
-    this._session.setSpellCheckerLanguages([lang]);
+    const supported: string[] = this._session.availableSpellCheckerLanguages || [];
+    if (supported.includes(lang)) {
+      this._session.setSpellCheckerLanguages([lang]);
+    } else if (lang.includes('-') && supported.includes(lang.split('-')[0])) {
+      this._session.setSpellCheckerLanguages([lang.split('-')[0]]);
+    }
   };
 
   _migrateFromCustomDict = () => {
@@ -58,13 +60,12 @@ class Spellchecker {
       }
       const loadedDict = JSON.parse(fileData);
       Object.keys(loadedDict).forEach(word => this._session.addWordToSpellCheckerDictionary(word));
-      fs.unlink(customDictFilePath, () => { });
+      fs.unlink(customDictFilePath, () => {});
     });
-  }
-
+  };
 
   isMisspelled = (word: string) => {
-    return webFrame.isWordMisspelled(word)
+    return webFrame.isWordMisspelled(word);
   };
 
   learnWord = (word: string) => {
@@ -77,7 +78,6 @@ class Spellchecker {
   };
 
   appendSpellingItemsToMenu = async ({ menu, word, onCorrect, onDidLearn }) => {
-
     if (this.isMisspelled(word)) {
       const corrections = webFrame.getWordSuggestions(word);
       if (corrections.length > 0) {
@@ -108,7 +108,6 @@ class Spellchecker {
       menu.append(new MenuItem({ type: 'separator' }));
     }
   };
-
 }
 
 export default new Spellchecker();
