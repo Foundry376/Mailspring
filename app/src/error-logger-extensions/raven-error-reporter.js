@@ -37,6 +37,12 @@ module.exports = class RavenErrorReporter {
       return;
     }
 
+    // Skip some very noisy issues
+    const str = `${err}`.toLowerCase();
+    if (['resize observer', 'resizeobserver', 'enoent'].includes(str)) {
+      return;
+    }
+
     Raven.captureException(err, {
       extra: extra,
       tags: {
@@ -49,7 +55,7 @@ module.exports = class RavenErrorReporter {
   _setupSentry() {
     Raven.disableConsoleAlerts();
     Raven.config(
-      'https://18d04acdd03b4389a36ef7d1d39f8025:5cb2e99bd3634856bfb3711461201439@sentry.io/196829',
+      'https://2c54d9a7349ab0fa781878a84744f7fc@o70907.ingest.us.sentry.io/4508712413233152',
       {
         name: this.deviceHash,
         release: this.getVersion(),
