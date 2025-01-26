@@ -45,9 +45,6 @@ matrix:
     - os: linux
       dist: bionic
       env: CC=gcc-10 CXX=g++-10
-    - os: osx
-      osx_image: xcode14.2
-      env: CC=clang CXX=clang++ SIGN_BUILD=true
 
 before_install:
   # Decrypt and uncompress code signing certs, etc.
