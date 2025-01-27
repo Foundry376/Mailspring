@@ -383,132 +383,135 @@ export async function finalizeAndValidateAccount(account: Account) {
 }
 
 async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
-  function extractServerDetails(server: { hostname: string; port: string; username: string; socketType: string; }, account: Account) {
-      const details = {
-          host: server.hostname,
-          port: server.port,
-          username: "",
-          security: "",
-      };
+  function extractServerDetails(server: { hostname: string;port: string;username: string;socketType: string; }, account: Account) {
+    const details = {
+      host: server.hostname,
+      port: server.port,
+      username: "",
+      security: "",
+    };
 
-      switch (server.username) {
-          case "%EMAILLOCALPART%":
-              details.username = account.emailAddress.split('@')[0];
-              break;
-          default:
-              details.username = account.emailAddress;
-              break;
-      }
+    switch (server.username) {
+      case "%EMAILLOCALPART%":
+        details.username = account.emailAddress.split('@')[0];
+        break;
+      default:
+        details.username = account.emailAddress;
+        break;
+    }
 
-      switch (server.socketType) {
-          case "plain":
-              details.security = "None";
-              break;
-          case "STARTTLS":
-              details.security = "STARTTLS";
-              break;
-          case "SSL":
-              details.security = "SSL / TLS";
-              break;
-          default:
-              details.security = "STARTTLS";
-              break;
-      }
+    switch (server.socketType) {
+      case "plain":
+        details.security = "None";
+        break;
+      case "STARTTLS":
+        details.security = "STARTTLS";
+        break;
+      case "SSL":
+        details.security = "SSL / TLS";
+        break;
+      default:
+        details.security = "STARTTLS";
+        break;
+    }
 
-      return details;
+    return details;
   }
-  
+
   const domain = account.emailAddress
-  .split('@')
-  .pop()
-  .toLowerCase();
+    .split('@')
+    .pop()
+    .toLowerCase();
 
   let url = `https://autoconfig.${domain}/mail/config-v1.1.xml`;
   let autoConfig = await getThunderbirdAutoconfig(url);
-  if(autoConfig === false){
+  if (autoConfig === false) {
     url = `https://${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
     autoConfig = await getThunderbirdAutoconfig(url);
   }
   // emailProvider could potentially be an array
   if (autoConfig !== false && autoConfig.clientConfig && autoConfig.clientConfig.emailProvider) {
-      let provider = autoConfig.clientConfig.emailProvider;
-      if(Array.isArray(provider)){
-        provider = provider.find(p => p.attribute_id === domain);
-        if(provider === undefined){
-          return false;
+    let provider = autoConfig.clientConfig.emailProvider;
+    if (Array.isArray(provider)) {
+      provider = provider.find(p => p.attribute_id === domain);
+      if (provider === undefined) {
+        return false;
+      }
+    }
+
+    if(provider.incomingServer === undefined || provider.outgoingServer === undefined)
+      return false;
+
+    let imapDetails = null;
+    let smtpDetails = null;
+
+    // Handle IMAP
+    if (Array.isArray(provider.incomingServer)) {
+      for (const incomingServer of provider.incomingServer) {
+        if (incomingServer.attribute_type === "imap") {
+          imapDetails = extractServerDetails(incomingServer, account);
+          break;
         }
       }
+    } else if (provider.incomingServer.attribute_type === "imap") {
+      imapDetails = extractServerDetails(provider.incomingServer, account);
+    }
 
-      let imapDetails = null;
-      let smtpDetails = null;
-
-      // Handle IMAP
-      if (Array.isArray(provider.incomingServer)) {
-          for (const incomingServer of provider.incomingServer) {
-              if (incomingServer.attribute_type === "imap") {
-                  imapDetails = extractServerDetails(incomingServer, account);
-                  break;
-              }
-          }
-      } else if (provider.incomingServer.attribute_type === "imap") {
-          imapDetails = extractServerDetails(provider.incomingServer, account);
+    // Handle SMTP
+    if (Array.isArray(provider.outgoingServer)) {
+      for (const outgoingServer of provider.outgoingServer) {
+        if (outgoingServer.attribute_type === "smtp") {
+          smtpDetails = extractServerDetails(outgoingServer, account);
+          break;
+        }
       }
+    } else if (provider.outgoingServer.attribute_type === "smtp") {
+      smtpDetails = extractServerDetails(provider.outgoingServer, account);
+    }
 
-      // Handle SMTP
-      if (Array.isArray(provider.outgoingServer)) {
-          for (const outgoingServer of provider.outgoingServer) {
-              if (outgoingServer.attribute_type === "smtp") {
-                  smtpDetails = extractServerDetails(outgoingServer, account);
-                  break;
-              }
-          }
-      } else if (provider.outgoingServer.attribute_type === "smtp") {
-          smtpDetails = extractServerDetails(provider.outgoingServer, account);
-      }
+    const settings = {
+      imap_host: imapDetails?.host || `imap.${domain}`,
+      imap_port: imapDetails?.port,
+      imap_username: imapDetails?.username,
+      imap_password: populated.settings.imap_password,
+      imap_security: imapDetails?.security,
+      imap_allow_insecure_ssl: false,
+      smtp_host: smtpDetails?.host || `smtp.${domain}`,
+      smtp_port: smtpDetails?.port,
+      smtp_username: smtpDetails?.username,
+      smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
+      smtp_security: smtpDetails?.security,
+      smtp_allow_insecure_ssl: false,
+      container_folder: "",
+    };
 
-      const settings = {
-          imap_host: imapDetails?.host || `imap.${domain}`,
-          imap_port: imapDetails?.port,
-          imap_username: imapDetails?.username,
-          imap_password: populated.settings.imap_password,
-          imap_security: imapDetails?.security,
-          imap_allow_insecure_ssl: false,
-          smtp_host: smtpDetails?.host || `smtp.${domain}`,
-          smtp_port: smtpDetails?.port,
-          smtp_username: smtpDetails?.username,
-          smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
-          smtp_security: smtpDetails?.security,
-          smtp_allow_insecure_ssl: false,
-          container_folder: "",
-      };
-
-      populated.settings = Object.assign(settings, populated.settings);
-      console.log('Returning populated settings from autoconfig');
-      return populated;
+    populated.settings = Object.assign(settings, populated.settings);
+    console.log('Returning populated settings from autoconfig');
+    return populated;
   } else {
-      return false;
+    return false;
   }
 }
 
 async function getThunderbirdAutoconfig(url: string) {
   try {
-      const { XMLParser } = require("fast-xml-parser");
-      const response = await fetch(url);
-      if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+    const { XMLParser } = require("fast-xml-parser");
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-      const body = await response.text();
-      const parser = new XMLParser({
-          ignoreDeclaration: true,
-          ignoreAttributes: false,
-          attributeNamePrefix: "attribute_"
-      });
-      
-      let parsedBody = parser.parse(body);
-      return parsedBody;
+    const body = await response.text();
+    const parser = new XMLParser({
+      ignoreDeclaration: true,
+      ignoreAttributes: false,
+      attributeNamePrefix: "attribute_"
+    });
+
+    let parsedBody = parser.parse(body);
+    return parsedBody;
 
   } catch (error) {
-      return false;
+    return false;
   }
 }
