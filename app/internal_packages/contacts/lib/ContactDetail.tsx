@@ -75,7 +75,7 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     const contact =
       editing === 'new' && 'accountId' in perspective
         ? emptyContactForAccountId(perspective.accountId)
-        : contacts.find(c => c.id === focusedId);
+        : contacts?.find(c => c.id === focusedId);
 
     if (!contact) {
       return { metadata: null, data: null, contact: null };

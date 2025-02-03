@@ -465,6 +465,10 @@ export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
       imgEl = parent.querySelector('.file-preview img') as HTMLImageElement,
       editor = this._editor();
 
+    if (!editor) {
+      return;
+    }
+
     this._pData = { x: ev.pageX, y: ev.pageY, eH: editor.clientHeight };
     this._shiftData.held = ev.shiftKey;
     this._shiftData.ratio = { wh: imgEl.width / imgEl.height, hw: imgEl.height / imgEl.width };

@@ -12,8 +12,6 @@ This is a patch release that resolves several user-reported issues. Thank
 
 - The RPM build no longer generate build_id links to prevent conflicts when installing multiple Electron apps.
 
-# versions of electron apps
-
 ## 1.15.0
 
 Happy 2025! This version of Mailspring upgraedes the app to Electron 33 and Chromium 130, ensuring the latest upstream bug fixes, security patches and improvements are available in the app.

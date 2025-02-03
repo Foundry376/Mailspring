@@ -150,7 +150,7 @@ export class TranslateMessageHeader extends React.Component<
 
     callCldViaExtension(text, (err, result) => {
       if (err || !result || !result.languages?.length) {
-        console.warn(`Could not detect message language: ${err.toString()}`);
+        console.warn(`Could not detect message language: ${err?.toString()}`);
         return;
       }
       if (!this._mounted) {
