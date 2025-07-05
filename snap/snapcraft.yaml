@@ -3,11 +3,11 @@ license: GPL-3.0
 adopt-info: mailspring
 
 confinement: strict
-base: core22
+base: core24
 compression: lzo
 
-architectures:
-  - build-on: amd64
+platforms:
+  amd64:
 
 parts:
   mailspring:
