@@ -23,6 +23,7 @@ import {
   GMAIL_SCOPES,
   CODE_CHALLENGE,
 } from './onboarding-constants';
+import { parseStringPromise } from "xml2js";
 
 interface TokenResponse {
   access_token: string;
@@ -138,6 +139,10 @@ export async function expandAccountWithCommonSettings(account: Account) {
       container_folder: '',
     };
     populated.settings = Object.assign(defaults, populated.settings);
+    return populated;
+  }
+
+  if (await TryThunderbirdAutoconfig(populated, account)){
     return populated;
   }
 
@@ -376,4 +381,135 @@ export async function finalizeAndValidateAccount(account: Account) {
   // Record the date of successful auth
   account.authedAt = new Date();
   return account;
+}
+
+async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
+  function extractServerDetails(server: { hostname: string;port: string;username: string;socketType: string; }, account: Account) {
+    const details = {
+      host: server.hostname,
+      port: server.port,
+      username: "",
+      security: "",
+    };
+
+    switch (server.username) {
+      case "%EMAILLOCALPART%":
+        details.username = account.emailAddress.split('@')[0];
+        break;
+      default:
+        details.username = account.emailAddress;
+        break;
+    }
+
+    switch (server.socketType) {
+      case "plain":
+        details.security = "None";
+        break;
+      case "STARTTLS":
+        details.security = "STARTTLS";
+        break;
+      case "SSL":
+        details.security = "SSL / TLS";
+        break;
+      default:
+        details.security = "STARTTLS";
+        break;
+    }
+
+    return details;
+  }
+
+  const domain = account.emailAddress
+    .split('@')
+    .pop()
+    .toLowerCase();
+
+  let url = `https://autoconfig.${domain}/mail/config-v1.1.xml`;
+  let autoConfig = await getThunderbirdAutoconfig(url);
+  if (autoConfig === false) {
+    url = `https://${domain}/.well-known/autoconfig/mail/config-v1.1.xml`;
+    autoConfig = await getThunderbirdAutoconfig(url);
+  }
+  // emailProvider could potentially be an array
+  if (autoConfig !== false && autoConfig.emailProvider) {
+    let provider = autoConfig.emailProvider;
+    if (Array.isArray(provider)) {
+      provider = provider.find(p => p.$.id === domain);
+      if (provider === undefined) {
+        return false;
+      }
+    }
+
+    if(provider.incomingServer === undefined || provider.outgoingServer === undefined)
+      return false;
+
+    let imapDetails = null;
+    let smtpDetails = null;
+
+    // Handle IMAP
+    if (Array.isArray(provider.incomingServer)) {
+      for (const incomingServer of provider.incomingServer) {
+        if (incomingServer.$.type === "imap") {
+          imapDetails = extractServerDetails(incomingServer, account);
+          break;
+        }
+      }
+    } else if (provider.incomingServer.$.type === "imap") {
+      imapDetails = extractServerDetails(provider.incomingServer, account);
+    }
+
+    // Handle SMTP
+    if (Array.isArray(provider.outgoingServer)) {
+      for (const outgoingServer of provider.outgoingServer) {
+        if (outgoingServer.$.type === "smtp") {
+          smtpDetails = extractServerDetails(outgoingServer, account);
+          break;
+        }
+      }
+    } else if (provider.outgoingServer.$.type === "smtp") {
+      smtpDetails = extractServerDetails(provider.outgoingServer, account);
+    }
+
+    const settings = {
+      imap_host: imapDetails?.host || `imap.${domain}`,
+      imap_port: imapDetails?.port,
+      imap_username: imapDetails?.username,
+      imap_password: populated.settings.imap_password,
+      imap_security: imapDetails?.security,
+      imap_allow_insecure_ssl: false,
+      smtp_host: smtpDetails?.host || `smtp.${domain}`,
+      smtp_port: smtpDetails?.port,
+      smtp_username: smtpDetails?.username,
+      smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
+      smtp_security: smtpDetails?.security,
+      smtp_allow_insecure_ssl: false,
+      container_folder: "",
+    };
+
+    populated.settings = Object.assign(settings, populated.settings);
+    console.log('Returning populated settings from autoconfig');
+    return populated;
+  } else {
+    return false;
+  }
+}
+
+async function getThunderbirdAutoconfig(url: string) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const body = await response.text();
+    const parsedBody = await parseStringPromise(body, {
+      explicitArray: false,
+      mergeAttrs: false,
+      explicitRoot: false,
+    });
+
+    return parsedBody;
+  } catch (error) {
+    return false;
+  }
 }
