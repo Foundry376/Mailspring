@@ -167,6 +167,7 @@ module.exports = grunt => {
             '**/vendor/**',
             'examples/**',
             '**/src/tasks/**',
+            '**/src/quickpreview/**',
             '**/static/all_licenses.html',
             '**/static/extensions/**',
             '**/node_modules/spellchecker/**',

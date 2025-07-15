@@ -6,10 +6,12 @@ let quickPreviewWindow = null;
 let captureWindow = null;
 const captureQueue = [];
 
+const filesRoot = __dirname.replace('app.asar', 'app.asar.unpacked');
+
 const FileSizeLimit = 5 * 1024 * 1024;
 const ThumbnailWidth = 320 * (11 / 8.5);
 const QuicklookIsAvailable = process.platform === 'darwin';
-const PDFJSRoot = path.join(__dirname, 'pdfjs-4.3.136');
+const PDFJSRoot = path.join(filesRoot, 'pdfjs-4.3.136');
 
 const QuicklookBlacklist = [
   'jpg',
@@ -198,7 +200,7 @@ export function displayQuickPreviewWindow(filePath) {
       skipTaskbar: true,
       backgroundColor: isPDF ? '#404040' : '#FFF',
       webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
+        preload: path.join(filesRoot, 'preload.js'),
         nodeIntegration: false,
         contextIsolation: true,
       },
@@ -219,7 +221,7 @@ export function displayQuickPreviewWindow(filePath) {
       search: `file=${encodeURIComponent(`file://${filePath}`)}`,
     });
   } else {
-    quickPreviewWindow.loadFile(path.join(__dirname, 'renderer.html'), {
+    quickPreviewWindow.loadFile(path.join(filesRoot, 'renderer.html'), {
       search: JSON.stringify({ mode: 'display', filePath, strategy }),
     });
   }
@@ -265,7 +267,7 @@ function _createCaptureWindow() {
     height: ThumbnailWidth,
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(filesRoot, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
@@ -295,7 +297,7 @@ function _generateNextCrossplatformPreview() {
   const { strategy, filePath, previewPath, resolve } = captureQueue.pop();
 
   // Start the thumbnail generation
-  captureWindow.loadFile(path.join(__dirname, 'renderer.html'), {
+  captureWindow.loadFile(path.join(filesRoot, 'renderer.html'), {
     search: JSON.stringify({ strategy, mode: 'capture', filePath, previewPath }),
   });
 
