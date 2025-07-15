@@ -400,7 +400,7 @@ export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
     held: false,
     ratio: { wh: 0, hw: 0 },
   };
-  private _editor = () => document.querySelector('.compose-body') as HTMLDivElement;
+  private _editor = () => document.querySelector('.compose-body') as HTMLDivElement | null;
 
   private _resizeImage = (
     ev: (
@@ -436,12 +436,14 @@ export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
       img.style.height = `${newHeight}px`;
     }
 
-    const firstChild = editor.children[0] as HTMLDivElement;
-    if (Number.parseInt(editor.style.flexBasis) < firstChild.offsetHeight) {
-      editor.style.flexBasis = `${firstChild.offsetHeight}px`;
-    }
+    if (editor) {
+      const firstChild = editor.children[0] as HTMLDivElement;
+      if (Number.parseInt(editor.style.flexBasis) < firstChild.offsetHeight) {
+        editor.style.flexBasis = `${firstChild.offsetHeight}px`;
+      }
 
-    this._pData = { x: ev.x, y: ev.y, eH: editor.clientHeight };
+      this._pData = { x: ev.x, y: ev.y, eH: editor.clientHeight };
+    }
   };
 
   private _resizeImageKeyPress = (ev: KeyboardEvent) => {
@@ -491,8 +493,12 @@ export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
   private _resizeEnd = (ev: MouseEvent) => {
     ev.preventDefault();
 
-    const editor = this._editor(),
-      target = editor.querySelector('.image-attachment-item[data-resizing]') as HTMLDivElement;
+    const editor = this._editor();
+    if (!editor) {
+      return;
+    }
+
+    const target = editor.querySelector('.image-attachment-item[data-resizing]') as HTMLDivElement;
 
     if (editor.clientHeight == this._pData.eH && target) {
       delete target.dataset.resizing;
