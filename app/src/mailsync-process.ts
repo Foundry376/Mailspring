@@ -305,7 +305,16 @@ export class MailsyncProcess extends EventEmitter {
       let error = null;
       let lastJSON = null;
       try {
-        lastJSON = outBuffer.length && JSON.parse(outBuffer);
+        if (outBuffer.length) {
+          // Skip debug output that starts with 'dbg::' prefix
+          if (outBuffer.startsWith('dbg::')) {
+            console.log('Skipping debug output from mailsync:', outBuffer);
+          } else {
+            lastJSON = JSON.parse(outBuffer);
+          }
+        }
+      } catch (parseError) {
+        console.warn('Failed to parse mailsync output as JSON:', outBuffer);
       } finally {
         if (lastJSON) {
           if (lastJSON.error) {
