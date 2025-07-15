@@ -106,7 +106,7 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
           // equivalent document of the same shape.
           AppEnv.reportError(new Error(`Unable to insert fragment into existing document.`), {
             underlyingError: err,
-            existingSlateShape: convertToShapeWithoutContent(session._mountedEditor.value),
+            existingSlateShape: session._mountedEditor ? convertToShapeWithoutContent(session._mountedEditor.value) : null,
             incomingSlateShape: convertToShapeWithoutContent(inHTMLEditorValue),
           });
           _bodyEditorValue = inHTMLEditorValue;
