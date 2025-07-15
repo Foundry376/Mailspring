@@ -25,7 +25,7 @@ export class SyncbackCategoryTask extends Task {
 
   static forCreating({ name, accountId }: { name: string; accountId: string }) {
     return new SyncbackCategoryTask({
-      path: utf7.imap.encode(name),
+      path: utf7.imap.encode(String(name)),
       accountId: accountId,
     });
   }
@@ -41,7 +41,7 @@ export class SyncbackCategoryTask extends Task {
   }) {
     return new SyncbackCategoryTask({
       existingPath: path,
-      path: utf7.imap.encode(newName),
+      path: utf7.imap.encode(String(newName)),
       accountId: accountId,
     });
   }
@@ -52,7 +52,7 @@ export class SyncbackCategoryTask extends Task {
 
   label() {
     return this.existingPath
-      ? localized(`Renaming %@`, utf7.imap.decode(this.existingPath))
-      : localized(`Creating %@`, utf7.imap.decode(this.path));
+      ? localized(`Renaming %@`, utf7.imap.decode(String(this.existingPath)))
+      : localized(`Creating %@`, utf7.imap.decode(String(this.path)));
   }
 }
