@@ -37,11 +37,6 @@ module.exports = class RavenErrorReporter {
       return;
     }
 
-    // Skip some very noisy issues
-    const str = `${err}`.toLowerCase();
-    if (['resize observer', 'resizeobserver', 'enoent'].includes(str)) {
-      return;
-    }
 
     Raven.captureException(err, {
       extra: extra,

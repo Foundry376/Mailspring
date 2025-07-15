@@ -152,27 +152,12 @@ export default class AppEnvConstructor {
       resourcePath: this.getLoadSettings().resourcePath,
     });
 
-    // Helper function to check if an error should be ignored and not reported to Sentry
-    const shouldIgnoreError = (error: any): boolean => {
-      const errorMessage = `${error}`.toLowerCase();
-      
-      // ResizeObserver errors happen infrequently but spam Sentry with thousands of reports
-      if (errorMessage.includes('resizeobserver')) {
-        return true;
-      }
-      
-      // Add more ignored error patterns here as needed
-      return false;
-    };
 
     // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
     window.onerror = (message, url, line, column, originalError) => {
       if (!originalError && !message) return;
       if (!originalError) originalError = new Error(`${message}`);
 
-      if (shouldIgnoreError(originalError)) {
-        return;
-      }
 
       if (!this.inDevMode()) {
         return this.reportError(originalError, { url, line, column });
@@ -182,16 +167,10 @@ export default class AppEnvConstructor {
     };
 
     process.on('uncaughtException', error => {
-      if (shouldIgnoreError(error)) {
-        return;
-      }
       this.reportError(error);
     });
 
     process.on('unhandledRejection', error => {
-      if (shouldIgnoreError(error)) {
-        return;
-      }
       this.reportError(error);
     });
 
@@ -200,23 +179,14 @@ export default class AppEnvConstructor {
       // https://developer.mozilla.org/en-US/docs/Web/API/PromiseRejectionEvent
       // In practice, it can have different shapes, so we make our best guess
       if (e instanceof Error) {
-        if (shouldIgnoreError(e)) {
-          return;
-        }
         this.reportError(e);
         return;
       }
       if (e.reason) {
-        if (shouldIgnoreError(e.reason)) {
-          return;
-        }
         this.reportError(e.reason);
         return;
       }
       if ((e as any).detail && (e as any).detail.reason) {
-        if (shouldIgnoreError((e as any).detail.reason)) {
-          return;
-        }
         this.reportError((e as any).detail.reason);
         return;
       }
@@ -231,6 +201,28 @@ export default class AppEnvConstructor {
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
   reportError(error, extra: any = {}) {
+    // Check if this error should be ignored and not reported to Sentry
+    const errorMessage = `${error}`.toLowerCase();
+    
+    // ResizeObserver errors happen infrequently but spam Sentry with thousands of reports
+    if (errorMessage.includes('resizeobserver') || errorMessage.includes('resize observer')) {
+      return;
+    }
+    
+    // File system errors that are commonly "file not found" or similar
+    if (errorMessage.includes('enoent')) {
+      return;
+    }
+    
+    // Authentication errors - these are user configuration issues, not bugs
+    if (
+      errorMessage.includes('authentication error') ||
+      errorMessage.includes('check your username and password') ||
+      (errorMessage.includes('smtp') && errorMessage.includes('authentication'))
+    ) {
+      return;
+    }
+
     try {
       extra.pluginIds = this._findPluginsFromError(error);
     } catch (err) {
