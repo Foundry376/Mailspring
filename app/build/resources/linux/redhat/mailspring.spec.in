@@ -6,7 +6,7 @@ License:        GPLv3
 URL:            https://getmailspring.com/
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 
-ifarch i386 i486 i586 i686
+%ifarch i386 i486 i586 i686
 Recommends: lsb-core-noarch
 Requires: libXss.so.1, libsecret-1.so.0, ca-certificates
 %if 0%{?rhel} >= 8

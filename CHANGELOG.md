@@ -1,5 +1,23 @@
 # Mailspring Changelog
 
+## 1.16.0
+
+- Thunderbird-style Autoconfiguration (#2493)
+
+- Fix in-app previews for PDF attachments on Windows / Linux
+
+- Update and improve zh-TW Traditional Chinese locale (#2498)
+
+- Update Czech translation (#2500)
+
+- snap: Use core24 as base (#2497)
+
+- Change lsb-core-noarch to be an optional dependency in the RPM package. (#2503)
+
+- Fix a few misc application errors logged to our reporting service
+
+- Upgrade to Electron 37.2.2 - Chromium 138, V8 13.8, and Node.js 22.16 for faster JavaScript execution and better email rendering.
+
 ## 1.15.1
 
 This is a patch release that resolves several user-reported issues. Thank
