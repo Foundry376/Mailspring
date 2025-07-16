@@ -75,13 +75,13 @@
       const context = canvas.getContext('2d');
       const el = document.createElement('script');
       el.onload = async () => {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs-4.3.136/build/pdf.worker.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs-4.3.136/build/pdf.worker.mjs';
 
         const buffer = await window.electronAPI.previewFileAsBuffer();
-        const pdf = await pdfjsLib.getDocument(buffer, {
+        const pdf = await (pdfjsLib.getDocument(buffer, {
           cMapUrl: './pdfjs-4.3.136/web/cmaps',
           cMapPacked: true,
-        });
+        }).promise);
 
         const page = await pdf.getPage(1);
 
@@ -115,7 +115,9 @@
           });
         });
       };
-      el.src = `pdfjs-4.3.136/build/pdf.js`;
+
+      el.type="module";
+      el.src = `pdfjs-4.3.136/build/pdf.mjs`;
       document.body.appendChild(el);
     }
 
