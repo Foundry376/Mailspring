@@ -177,6 +177,11 @@ export class Message extends ModelWithMetadata {
       modelKey: 'folder',
       itemClass: Folder,
     }),
+
+    remoteFolderId: Attributes.String({
+      queryable: true,
+      modelKey: 'remoteFolderId',
+    }),
   };
 
   public subject: string;
@@ -198,6 +203,7 @@ export class Message extends ModelWithMetadata {
   public replyToHeaderMessageId: string;
   public forwardedHeaderMessageId: string;
   public folder: Folder;
+  public remoteFolderId: string;
 
   /** indicates that "body" is plain text, not HTML */
   public plaintext: boolean;
