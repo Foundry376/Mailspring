@@ -16,8 +16,8 @@ const npmEnvs = {
   system: process.env,
   electron: Object.assign({}, process.env, {
     npm_config_target: npmElectronTarget,
-    npm_config_arch: process.arch,
-    npm_config_target_arch: process.arch,
+    npm_config_arch: process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch,
+    npm_config_target_arch: process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch,
     npm_config_disturl: 'https://electronjs.org/headers',
     npm_config_runtime: 'electron',
     npm_config_build_from_source: true,
