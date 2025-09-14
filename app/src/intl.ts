@@ -44,6 +44,7 @@ const VERIFIED_LANGS = [
   'ru',
   'cs',
   'uk',
+  'hu',
 ];
 
 const LANG_NAMES = {
