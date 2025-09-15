@@ -10,15 +10,11 @@ jobs:
     container: ubuntu:18.04
 
     steps:
-      - name: Install deps
-        run: |
-          apt-get update -y
-          apt install -y software-properties-common
-          apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
-          apt install -y nodejs autoconf automake build-essential clang cmake execstack fakeroot g++-5 git libc-ares-dev libctemplate-dev libcurl4-openssl-dev libglib2.0-dev libgnome-keyring-dev libicu-dev libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit libsecret-1-dev libssl-dev libnss3 libnss3-dev libtidy-dev libtool libxext-dev libxkbfile-dev libxml2-dev libxtst-dev rpm uuid-dev xvfb
-
       - name: Checkout Repo
         uses: actions/checkout@v3
+
+      - name: Install deps
+        run: .github/workflows/build-linux-setup.sh
 
       - name: Cache NodeJS modules
         uses: actions/cache@v4
