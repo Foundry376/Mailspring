@@ -162,7 +162,13 @@ export default class WindowManager {
       return;
     }
 
-    if (win.loadSettings().hidden) {
+    // FIXED: Don't return early for main window even if it has hidden flag set
+    // The hidden flag is set when starting in background mode (--background flag),
+    // but we should still show the main window when explicitly requested (e.g., when
+    // user clicks the app icon and second-instance event fires).
+    // Only skip windows that are truly meant to stay hidden (like certain dialogs).
+    const settings = win.loadSettings();
+    if (settings.hidden && !settings.mainWindow) {
       return;
     }
 

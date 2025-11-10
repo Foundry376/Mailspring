@@ -5,7 +5,7 @@ const util = require('util');
 
 // TODO: Remove when upgrading to Electron 4
 const fs = require('fs');
-fs.statSyncNoException = function(...args) {
+fs.statSyncNoException = function (...args) {
   try {
     return fs.statSync.apply(fs, args);
   } catch (e) {
@@ -306,7 +306,18 @@ const start = () => {
     }
 
     app.on('second-instance', (event, commandLine, workingDirectory) => {
+      console.log('[SINGLETON] Second instance detected, focusing existing window');
       const otherOpts = parseCommandLine(commandLine);
+
+      // Ensure the main window is shown when a second instance is launched.
+      // This is critical for background mode (--background flag) where the window
+      // may have been created but never shown. The ensureWindow call will now
+      // properly show the window even if it has the hidden flag set.
+      if (global.application && global.application.windowManager) {
+        global.application.windowManager.ensureWindow('default');
+      }
+
+      // Handle any additional launch options (mailto links, file attachments, etc.)
       global.application.handleLaunchOptions(otherOpts);
     });
   }
