@@ -4,13 +4,16 @@ import {
   Rx,
   Actions,
   Thread,
+  Message,
   QueryResultSet,
   WorkspaceStore,
   FocusedContentStore,
   FocusedPerspectiveStore,
+  MutableQuerySubscription,
 } from 'mailspring-exports';
 import { ListTabular, ListDataSource } from 'mailspring-component-kit';
 import ThreadListDataSource from './thread-list-data-source';
+import MessageListDataSource from './message-list-data-source';
 
 class ThreadListStore extends MailspringStore {
   _dataSource?: ListDataSource;
@@ -19,6 +22,12 @@ class ThreadListStore extends MailspringStore {
   constructor() {
     super();
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
+
+    // Listen for changes to the threading configuration
+    AppEnv.config.onDidChange('core.reading.disableThreading', () => {
+      this.createListDataSource();
+    });
+
     this.createListDataSource();
   }
 
@@ -36,12 +45,44 @@ class ThreadListStore extends MailspringStore {
       this._dataSource = null;
     }
 
-    const threadsSubscription = FocusedPerspectiveStore.current().threads();
-    if (threadsSubscription) {
-      this._dataSource = new ThreadListDataSource(threadsSubscription);
-      this._dataSourceUnlisten = this._dataSource.listen(this._onDataChanged, this);
+    const disableThreading = AppEnv.config.get('core.reading.disableThreading');
+    const perspective = FocusedPerspectiveStore.current();
+
+    if (disableThreading) {
+      // Use message-based data source for non-threaded view
+      console.log('[ThreadListStore] Perspective type:', perspective.constructor.name);
+      console.log('[ThreadListStore] Has messages method:', typeof perspective.messages);
+
+      const messagesSubscription = perspective.messages?.();
+      if (messagesSubscription) {
+        console.log('[ThreadListStore] Using MessageListDataSource');
+        // Cast to MutableQuerySubscription since the runtime implementation supports it
+        this._dataSource = new MessageListDataSource(
+          messagesSubscription as any as MutableQuerySubscription<Message>
+        );
+        this._dataSourceUnlisten = this._dataSource.listen(this._onDataChanged, this);
+      } else {
+        // Perspective doesn't support message queries yet, fall back to threads
+        console.warn(
+          'Current perspective does not support non-threaded view, falling back to threaded view'
+        );
+        const threadsSubscription = perspective.threads();
+        if (threadsSubscription) {
+          this._dataSource = new ThreadListDataSource(threadsSubscription);
+          this._dataSourceUnlisten = this._dataSource.listen(this._onDataChanged, this);
+        } else {
+          this._dataSource = new ListTabular.DataSource.Empty();
+        }
+      }
     } else {
-      this._dataSource = new ListTabular.DataSource.Empty();
+      // Use thread-based data source for threaded view (default)
+      const threadsSubscription = perspective.threads();
+      if (threadsSubscription) {
+        this._dataSource = new ThreadListDataSource(threadsSubscription);
+        this._dataSourceUnlisten = this._dataSource.listen(this._onDataChanged, this);
+      } else {
+        this._dataSource = new ListTabular.DataSource.Empty();
+      }
     }
 
     this.trigger(this);
@@ -96,7 +137,7 @@ class ThreadListStore extends MailspringStore {
         return next.modelAtOffset(nextIndex);
       };
 
-      const notInSet = function(model) {
+      const notInSet = function (model) {
         if (matchers) {
           return model.matches(matchers) === false;
         } else {

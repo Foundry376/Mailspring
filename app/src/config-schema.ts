@@ -141,6 +141,15 @@ export default {
             default: false,
             title: localized('Display conversations in descending chronological order'),
           },
+          disableThreading: {
+            type: 'boolean',
+            default: false,
+            title: localized('Disable conversation threading (show individual messages)'),
+            note: localized(
+              'When enabled, messages will be displayed individually instead of grouped by conversation. ' +
+              'This is similar to Gmail\'s "Conversation view off" setting.'
+            ),
+          },
         },
       },
       composing: {

@@ -1,8 +1,19 @@
 import React from 'react';
-import { localized, PropTypes, Actions, TaskFactory, ExtensionRegistry } from 'mailspring-exports';
-import { ThreadWithMessagesMetadata } from './types';
+import {
+  localized,
+  PropTypes,
+  Actions,
+  TaskFactory,
+  ExtensionRegistry,
+  Thread,
+  Message
+} from 'mailspring-exports';
+import { ItemAdapter, isMessage } from './thread-or-message';
 
-class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
+// Import the task class directly for message support
+const { ChangeStarredTask } = require('mailspring-exports');
+
+class ThreadListIcon extends React.Component<{ thread: Thread | Message }> {
   static displayName = 'ThreadListIcon';
   static propTypes = { thread: PropTypes.object };
 
@@ -14,7 +25,8 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
   };
 
   _iconClassNames = () => {
-    if (!this.props.thread) {
+    const item = this.props.thread;
+    if (!item) {
       return 'thread-icon-star-on-hover';
     }
 
@@ -23,14 +35,27 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
       return extensionIconClassNames;
     }
 
-    if (this.props.thread.starred) {
+    if (ItemAdapter.isStarred(item)) {
       return 'thread-icon-star';
     }
 
-    if (this.props.thread.unread) {
+    if (ItemAdapter.isUnread(item)) {
       return 'thread-icon-unread thread-icon-star-on-hover';
     }
 
+    // For messages, show reply/forward icons based on the message itself
+    if (isMessage(item)) {
+      if (ItemAdapter.isFromMe(item)) {
+        if ((item as Message).isForwarded()) {
+          return 'thread-icon-forwarded thread-icon-star-on-hover';
+        } else {
+          return 'thread-icon-replied thread-icon-star-on-hover';
+        }
+      }
+      return 'thread-icon-none thread-icon-star-on-hover';
+    }
+
+    // For threads, check messages
     const msgs = this._nonDraftMessages();
     const last = msgs[msgs.length - 1];
 
@@ -46,7 +71,12 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
   };
 
   _nonDraftMessages() {
-    let msgs = this.props.thread.__messages;
+    const item = this.props.thread;
+    if (isMessage(item)) {
+      return item.draft ? [] : [item];
+    }
+
+    let msgs = (item as any).__messages;
     if (!msgs || !(msgs instanceof Array)) {
       return [];
     }
@@ -72,12 +102,27 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
   }
 
   _onToggleStar = event => {
-    Actions.queueTask(
-      TaskFactory.taskForInvertingStarred({
-        threads: [this.props.thread],
-        source: 'Thread List Icon',
-      })
-    );
+    const item = this.props.thread;
+
+    // Handle starring for both threads and messages
+    if (isMessage(item)) {
+      const starred = !ItemAdapter.isStarred(item);
+      Actions.queueTask(
+        new ChangeStarredTask({
+          messages: [item],
+          starred,
+          source: 'Thread List Icon',
+        })
+      );
+    } else {
+      Actions.queueTask(
+        TaskFactory.taskForInvertingStarred({
+          threads: [item],
+          source: 'Thread List Icon',
+        })
+      );
+    }
+
     // Don't trigger the thread row click
     return event.stopPropagation();
   };

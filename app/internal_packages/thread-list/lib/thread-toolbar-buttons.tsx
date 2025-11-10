@@ -6,6 +6,7 @@ import {
   localized,
   Actions,
   Thread,
+  Message,
   TaskFactory,
   ChangeLabelsTask,
   CategoryStore,
@@ -14,8 +15,26 @@ import {
 } from 'mailspring-exports';
 
 import ThreadListStore from './thread-list-store';
+import { ItemAdapter, isThread } from './thread-or-message';
 
-export class ArchiveButton extends React.Component<{ items: Thread[] }> {
+/**
+ * Helper to get Thread objects from a mixed array of Threads and Messages.
+ * For Messages, we use their thread property to get the parent Thread.
+ * This ensures toolbar operations work correctly in non-threaded view.
+ */
+function getThreadsFromItems(items: (Thread | Message)[]): Thread[] {
+  return items.map(item => {
+    if (isThread(item)) {
+      return item;
+    } else {
+      // For messages, we need the parent thread
+      // The message.thread property should be populated
+      return (item as any).thread as Thread;
+    }
+  }).filter(Boolean); // Remove any nulls
+}
+
+export class ArchiveButton extends React.Component<{ items: (Thread | Message)[] }> {
   static displayName = 'ArchiveButton';
   static containerRequired = false;
 
@@ -25,7 +44,7 @@ export class ArchiveButton extends React.Component<{ items: Thread[] }> {
 
   _onArchive = (event?: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForArchiving({
-      threads: this.props.items,
+      threads: getThreadsFromItems(this.props.items),
       source: 'Toolbar Button: Thread List',
     });
     Actions.queueTasks(tasks);
@@ -37,7 +56,8 @@ export class ArchiveButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const allowed = FocusedPerspectiveStore.current().canArchiveThreads(this.props.items);
+    const threads = getThreadsFromItems(this.props.items);
+    const allowed = FocusedPerspectiveStore.current().canArchiveThreads(threads);
     if (!allowed) {
       return false;
     }
@@ -57,7 +77,7 @@ export class ArchiveButton extends React.Component<{ items: Thread[] }> {
   }
 }
 
-export class TrashButton extends React.Component<{ items: Thread[] }> {
+export class TrashButton extends React.Component<{ items: (Thread | Message)[] }> {
   static displayName = 'TrashButton';
   static containerRequired = false;
 
@@ -67,7 +87,7 @@ export class TrashButton extends React.Component<{ items: Thread[] }> {
 
   _onRemove = (event?: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForMovingToTrash({
-      threads: this.props.items,
+      threads: getThreadsFromItems(this.props.items),
       source: 'Toolbar Button: Thread List',
     });
     Actions.queueTasks(tasks);
@@ -79,7 +99,8 @@ export class TrashButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'trash');
+    const threads = getThreadsFromItems(this.props.items);
+    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(threads, 'trash');
     if (!allowed) {
       return false;
     }
@@ -99,7 +120,7 @@ export class TrashButton extends React.Component<{ items: Thread[] }> {
   }
 }
 
-class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
+class HiddenGenericRemoveButton extends React.Component<{ items: (Thread | Message)[] }> {
   static displayName = 'HiddenGenericRemoveButton';
 
   _onRemoveAndShift = ({ offset }) => {
@@ -118,7 +139,8 @@ class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
 
   _onRemoveFromView = () => {
     const current = FocusedPerspectiveStore.current();
-    const tasks = current.tasksForRemovingItems(this.props.items, 'Keyboard Shortcut');
+    const threads = getThreadsFromItems(this.props.items);
+    const tasks = current.tasksForRemovingItems(threads, 'Keyboard Shortcut');
     Actions.queueTasks(tasks);
     Actions.popSheet();
   };
@@ -139,12 +161,13 @@ class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
   }
 }
 
-class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
+class HiddenToggleImportantButton extends React.Component<{ items: (Thread | Message)[] }> {
   static displayName = 'HiddenToggleImportantButton';
 
   _onSetImportant = important => {
+    const threads = getThreadsFromItems(this.props.items);
     Actions.queueTasks(
-      TaskFactory.tasksForThreadsByAccountId(this.props.items, (accountThreads, accountId) => {
+      TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
         return new ChangeLabelsTask({
           threads: accountThreads,
           source: 'Keyboard Shortcut',
@@ -161,8 +184,9 @@ class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
     if (!AppEnv.config.get('core.workspace.showImportant')) {
       return false;
     }
+    const threads = getThreadsFromItems(this.props.items);
     const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
-      this.props.items,
+      threads,
       'important'
     );
     if (!allowed) {
@@ -170,7 +194,7 @@ class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
     }
 
     const allImportant = this.props.items.every(item =>
-      item.labels.some(c => c.role === 'important')
+      ItemAdapter.getCategories(item).some(c => c.role === 'important')
     );
 
     return (
@@ -188,7 +212,7 @@ class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
   }
 }
 
-export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
+export class MarkAsSpamButton extends React.Component<{ items: (Thread | Message)[] }> {
   static displayName = 'MarkAsSpamButton';
   static containerRequired = false;
 
@@ -200,7 +224,7 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
     // TODO BG REPLACE TASK FACTORY
     const tasks = TaskFactory.tasksForMarkingNotSpam({
       source: 'Toolbar Button: Thread List',
-      threads: this.props.items,
+      threads: getThreadsFromItems(this.props.items),
     });
     Actions.queueTasks(tasks);
     Actions.popSheet();
@@ -212,7 +236,7 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
 
   _onMarkAsSpam = (event?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
-      threads: this.props.items,
+      threads: getThreadsFromItems(this.props.items),
       source: 'Toolbar Button: Thread List',
     });
     Actions.queueTasks(tasks);
@@ -224,7 +248,9 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const allInSpam = this.props.items.every(item => item.folders.some(c => c.role === 'spam'));
+    const allInSpam = this.props.items.every(item =>
+      ItemAdapter.getCategories(item).some(c => c.role === 'spam')
+    );
 
     if (allInSpam) {
       return (
@@ -244,7 +270,8 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
       );
     }
 
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'spam');
+    const threads = getThreadsFromItems(this.props.items);
+    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(threads, 'spam');
     if (!allowed) {
       return false;
     }
@@ -266,7 +293,7 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
   }
 }
 
-export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
+export class ToggleStarredButton extends React.Component<{ items: (Thread | Message)[] }> {
   static displayName = 'ToggleStarredButton';
   static containerRequired = false;
 
@@ -277,7 +304,7 @@ export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
   _onStar = (event?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     Actions.queueTask(
       TaskFactory.taskForInvertingStarred({
-        threads: this.props.items,
+        threads: getThreadsFromItems(this.props.items),
         source: 'Toolbar Button: Thread List',
       })
     );
@@ -288,7 +315,7 @@ export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const postClickStarredState = this.props.items.every(t => t.starred === false);
+    const postClickStarredState = this.props.items.every(item => ItemAdapter.isStarred(item) === false);
     const title = postClickStarredState ? localized('Star') : localized('Unstar');
     const imageName = postClickStarredState ? 'toolbar-star.png' : 'toolbar-star-selected.png';
 
@@ -302,7 +329,7 @@ export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
   }
 }
 
-export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
+export class ToggleUnreadButton extends React.Component<{ items: (Thread | Message)[] }> {
   static displayName = 'ToggleUnreadButton';
   static containerRequired = false;
 
@@ -311,7 +338,7 @@ export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
   };
 
   _onClick = event => {
-    const targetUnread = this.props.items.every(t => t.unread === false);
+    const targetUnread = this.props.items.every(item => ItemAdapter.isUnread(item) === false);
     this._onChangeUnread(targetUnread);
     event.stopPropagation();
     return;
@@ -320,7 +347,7 @@ export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
   _onChangeUnread = targetUnread => {
     Actions.queueTask(
       TaskFactory.taskForSettingUnread({
-        threads: this.props.items,
+        threads: getThreadsFromItems(this.props.items),
         unread: targetUnread,
         source: 'Toolbar Button: Thread List',
       })
@@ -329,7 +356,7 @@ export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const targetUnread = this.props.items.every(t => t.unread === false);
+    const targetUnread = this.props.items.every(item => ItemAdapter.isUnread(item) === false);
     const fragment = targetUnread ? localized('Unread') : localized('Read');
     const key = targetUnread ? 'unread' : 'read';
 

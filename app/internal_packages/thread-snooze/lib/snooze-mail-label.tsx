@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { localized, FocusedPerspectiveStore, Thread } from 'mailspring-exports';
+import { localized, FocusedPerspectiveStore, Thread, Message } from 'mailspring-exports';
 import { RetinaImg, MailLabel } from 'mailspring-component-kit';
 import { PLUGIN_ID } from './snooze-constants';
 import { snoozedUntilMessage } from './snooze-utils';
 
-export class SnoozeMailLabel extends Component<{ thread: Thread }> {
+export class SnoozeMailLabel extends Component<{ thread: Thread | Message }> {
   static displayName = 'SnoozeMailLabel';
 
   static propTypes = {
@@ -24,7 +24,14 @@ export class SnoozeMailLabel extends Component<{ thread: Thread }> {
     }
 
     const { thread } = this.props;
-    if (!thread.categories.find(c => c.role === 'snoozed')) {
+
+    // When showing individual messages, we don't display snooze labels
+    // because messages don't have snooze metadata - only threads do
+    if (thread instanceof Message) {
+      return false;
+    }
+
+    if (!thread.categories || !thread.categories.find(c => c.role === 'snoozed')) {
       return false;
     }
 

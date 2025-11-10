@@ -1,9 +1,9 @@
 import React from 'react';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { PropTypes, Utils, Thread, Message } from 'mailspring-exports';
 import { AccountColorBar } from 'mailspring-component-kit';
-import { ThreadWithMessagesMetadata } from './types';
+import { ItemAdapter, isMessage } from './thread-or-message';
 
-class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
+class ThreadListParticipants extends React.Component<{ thread: Thread | Message }> {
   static displayName = 'ThreadListParticipants';
 
   static propTypes = { thread: PropTypes.object.isRequired };
@@ -30,7 +30,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     let accumulated = null;
     let accumulatedUnread = false;
 
-    const flush = function() {
+    const flush = function () {
       if (accumulated) {
         spans.push(
           <span key={spans.length} className={`unread-${accumulatedUnread}`}>
@@ -42,7 +42,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       accumulatedUnread = false;
     };
 
-    const accumulate = function(text, unread?: boolean) {
+    const accumulate = function (text, unread?: boolean) {
       if (accumulated && unread && accumulatedUnread !== unread) {
         flush();
       }
@@ -77,11 +77,8 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       }
     }
 
-    if (!this.props.thread.__messages) {
-      throw new Error('ThreadListParticipants requires __messages.');
-    }
-
-    const messages = this.props.thread.__messages != null ? this.props.thread.__messages : [];
+    // For messages, show count only if it's a thread with messages
+    const messages = ItemAdapter.getMessages(this.props.thread);
     if (messages.length > 1) {
       accumulate(` (${messages.length})`);
     }
@@ -92,7 +89,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
   }
 
   getTokensFromMessages = () => {
-    const messages = this.props.thread.__messages;
+    const messages = ItemAdapter.getMessages(this.props.thread);
     const tokens = [];
 
     let field = 'from';
@@ -130,26 +127,28 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
   };
 
   getTokensFromParticipants = () => {
-    let contacts = this.props.thread.participants != null ? this.props.thread.participants : [];
+    const participants = ItemAdapter.getParticipants(this.props.thread);
+    let contacts = Array.isArray(participants) ? participants : [];
     contacts = contacts.filter(contact => !contact.isMe());
     return contacts.map(contact => ({ contact, unread: false }));
   };
 
   getTokens = () => {
     let list;
-    if (this.props.thread.__messages instanceof Array) {
+    const messages = ItemAdapter.getMessages(this.props.thread);
+
+    // If we have messages (either from thread or single message), use them
+    if (messages.length > 0) {
       list = this.getTokensFromMessages();
     } else {
       list = this.getTokensFromParticipants();
     }
 
     // If no participants, we should at least add current user as sole participant
-    if (
-      list.length === 0 &&
-      (this.props.thread.participants != null ? this.props.thread.participants.length : undefined) >
-        0
-    ) {
-      list.push({ contact: this.props.thread.participants[0], unread: false });
+    const participants = ItemAdapter.getParticipants(this.props.thread);
+    const participantsArray = Array.isArray(participants) ? participants : [];
+    if (list.length === 0 && participantsArray.length > 0) {
+      list.push({ contact: participantsArray[0], unread: false });
     }
 
     // We only ever want to show three. Ben...Kevin... Marty

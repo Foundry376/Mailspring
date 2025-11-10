@@ -10,6 +10,7 @@ import {
   FocusedPerspectiveStore,
   AccountStore,
   Thread,
+  Message,
   Category,
   Label,
 } from 'mailspring-exports';
@@ -18,7 +19,7 @@ import { Disposable } from 'rx-core';
 const ShowImportantKey = 'core.workspace.showImportant';
 
 type MailImportantIconProps = {
-  thread?: Thread;
+  thread?: Thread | Message;
   showIfAvailableForAnyAccount?: boolean;
 };
 type MailImportantIconState = {
@@ -67,7 +68,9 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
     }
 
     const isImportant =
-      category && _.findWhere(props.thread.labels, { id: category.id } as Partial<Label>) != null;
+      category &&
+      props.thread instanceof Thread &&
+      _.findWhere(props.thread.labels, { id: category.id } as Partial<Label>) != null;
 
     return { visible, category, isImportant };
   };
@@ -123,17 +126,20 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
 
   _onToggleImportant = event => {
     const { category } = this.state;
+    const item = this.props.thread;
 
     if (category) {
       const isImportant =
-        _.findWhere(this.props.thread.labels, { id: category.id } as Partial<Label>) != null;
+        item instanceof Thread &&
+        _.findWhere(item.labels, { id: category.id } as Partial<Label>) != null;
 
       if (!isImportant) {
         Actions.queueTask(
           new ChangeLabelsTask({
             labelsToAdd: [category],
             labelsToRemove: [],
-            threads: [this.props.thread],
+            threads: item instanceof Thread ? [item] : [],
+            messages: item instanceof Message ? [item] : [],
             source: 'Important Icon',
           })
         );
@@ -142,7 +148,8 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
           new ChangeLabelsTask({
             labelsToAdd: [],
             labelsToRemove: [category],
-            threads: [this.props.thread],
+            threads: item instanceof Thread ? [item] : [],
+            messages: item instanceof Message ? [item] : [],
             source: 'Important Icon',
           })
         );

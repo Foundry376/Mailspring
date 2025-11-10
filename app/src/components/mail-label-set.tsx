@@ -8,12 +8,12 @@ import { MailLabel } from './mail-label';
 import * as Actions from '../flux/actions';
 import { ChangeLabelsTask } from '../flux/tasks/change-labels-task';
 import { InjectedComponentSet } from './injected-component-set';
-import { Thread } from 'mailspring-exports';
+import { Thread, Message } from 'mailspring-exports';
 
 const LabelComponentCache = {};
 
 type MailLabelSetProps = {
-  thread: Thread;
+  thread: Thread | Message;
   messages?: any[];
   includeCurrentCategories?: boolean;
   removable?: boolean;
@@ -30,9 +30,12 @@ export default class MailLabelSet extends React.Component<MailLabelSetProps> {
   };
 
   _onRemoveLabel(label) {
+    const item = this.props.thread;
+
     const task = new ChangeLabelsTask({
       source: 'Label Remove Icon',
-      threads: [this.props.thread],
+      threads: item instanceof Thread ? [item] : [],
+      messages: item instanceof Message ? [item] : [],
       labelsToAdd: [],
       labelsToRemove: [label],
     });
@@ -55,7 +58,15 @@ export default class MailLabelSet extends React.Component<MailLabelSetProps> {
       const ignoredIds = [...hidden, ...current].map(l => l.id);
       const ignoredNames = MessageStore.FolderNamesHiddenByDefault;
 
-      for (const label of thread.sortedCategories()) {
+      // Get categories - threads have sortedCategories(), messages don't show labels
+      let categories = [];
+      if (thread instanceof Thread && typeof thread.sortedCategories === 'function') {
+        categories = thread.sortedCategories();
+      }
+      // For individual messages, we could query the thread's labels if needed,
+      // but for now we just don't show labels for messages
+
+      for (const label of categories) {
         const labelExists = CategoryStore.byId(thread.accountId, label.id);
         if (ignoredNames.includes(label.name) || ignoredIds.includes(label.id) || !labelExists) {
           continue;
