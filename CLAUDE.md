@@ -69,13 +69,113 @@ Each plugin in `internal_packages/` has:
 - `styles/` - LESS stylesheets
 - `keymaps/` - Keyboard shortcut definitions
 
-### Sync Engine
+## Core Data Flow: Sync Engine, Tasks, and Observable Database
 
-The email sync is handled by a separate C++ process (Mailspring-Sync) that communicates with the Electron app. The `MailsyncBridge` (`mailsync-bridge.ts`) manages this communication.
+**Important:** The UI is read-only with respect to the database. All database modifications happen in the C++ sync engine (Mailspring-Sync). The Electron app requests changes via Tasks, and the sync engine streams entity changes back to create a real-time UI.
 
-### Database
+### Sync Engine Communication (`mailsync-process.ts`, `mailsync-bridge.ts`)
 
-Uses SQLite via better-sqlite3. The `DatabaseStore` provides the data access layer with a query DSL for type-safe queries.
+The sync engine is a separate C++ process spawned per account:
+
+1. **Electron → Sync Engine**: JSON messages sent via stdin (task requests, commands)
+2. **Sync Engine → Electron**: Newline-delimited JSON streamed via stdout (database change deltas)
+
+```
+┌─────────────────┐         stdin (JSON)          ┌──────────────────┐
+│   Electron UI   │ ──────────────────────────────▶│  Mailspring-Sync │
+│  (TypeScript)   │                                │      (C++)       │
+│                 │ ◀────────────────────────────── │                  │
+└─────────────────┘    stdout (JSON deltas)        └──────────────────┘
+```
+
+The `MailsyncBridge` (in main window only) manages sync process lifecycle, listens to `Actions.queueTask`, and forwards tasks to the appropriate account's sync process.
+
+### Task System (`flux/tasks/`)
+
+Tasks represent operations the user wants to perform (send email, star thread, move to folder). They are **persisted models** stored in the database.
+
+**Task Lifecycle:**
+1. UI calls `Actions.queueTask(new SomeTask({...}))`
+2. `MailsyncBridge._onQueueTask()` validates and sends to sync engine via stdin
+3. Sync engine executes the task (local changes + remote API calls)
+4. Sync engine persists task status updates and emits deltas
+5. Task completion triggers `onSuccess()` or `onError()` callbacks
+
+**Task States** (`flux/tasks/task.ts`):
+- `local` - Not yet executed
+- `remote` - Local phase complete, waiting for remote
+- `complete` - Finished successfully
+- `cancelled` - Cancelled before completion
+
+**Key Task Classes:**
+- `SendDraftTask`, `DestroyDraftTask` - Email composition
+- `ChangeLabelsTask`, `ChangeFolderTask` - Organization
+- `ChangeStarredTask`, `ChangeUnreadTask` - Status flags
+- `SyncbackMetadataTask` - Plugin metadata sync
+
+### Task Queue (`flux/stores/task-queue.ts`)
+
+The TaskQueue store observes Task model changes from the database and provides:
+- `queue()` - Active tasks
+- `completed()` - Finished tasks
+- `waitForPerformLocal(task)` - Promise that resolves when task runs locally
+- `waitForPerformRemote(task)` - Promise that resolves when task fully completes
+
+### Observable Database Pattern
+
+**Database is read-only in Electron** (`flux/stores/database-store.ts`):
+- `DatabaseStore.inTransaction()` throws - writes are not allowed
+- Uses SQLite in WAL mode via better-sqlite3 for concurrent reads
+- The sync engine exclusively handles writes
+
+**Change Records** (`flux/stores/database-change-record.ts`):
+
+When the sync engine modifies data, it emits JSON deltas that become `DatabaseChangeRecord` objects:
+```typescript
+{
+  type: 'persist' | 'unpersist',
+  objectClass: 'Thread' | 'Message' | ...,
+  objects: Model[],
+  objectsRawJSON: object[]
+}
+```
+
+**Reactive Queries** (`flux/models/query-subscription.ts`):
+
+`QuerySubscription` provides live-updating query results:
+```typescript
+// Subscribe to all unread threads
+const subscription = new QuerySubscription(
+  DatabaseStore.findAll(Thread).where({ unread: true })
+);
+subscription.addCallback((threads) => this.setState({ threads }));
+
+// Subscription automatically updates when DatabaseStore triggers
+```
+
+**Observable Integration** (`Rx.Observable.fromQuery`):
+
+Wrap queries as RxJS observables for reactive UI updates:
+```typescript
+Rx.Observable.fromQuery(DatabaseStore.findAll(Thread))
+  .subscribe(threads => this.updateUI(threads));
+```
+
+**ObservableListDataSource** (`flux/stores/observable-list-data-source.ts`):
+
+Adapts QuerySubscription for virtualized list components (MultiselectList), supporting:
+- Windowed/paginated data loading
+- Selection state management
+- Automatic updates from database changes
+
+### Data Flow Summary
+
+```
+User Action → Actions.queueTask() → MailsyncBridge → stdin → Sync Engine
+                                                              │
+                                                              ▼
+UI Updates ← QuerySubscription ← DatabaseStore.trigger() ← stdout deltas
+```
 
 ## Development Notes
 
