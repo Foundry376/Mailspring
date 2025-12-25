@@ -83,3 +83,22 @@ Uses SQLite via better-sqlite3. The `DatabaseStore` provides the data access lay
 - Dev tools accessible via Menu > Developer > Toggle Developer Tools
 - In dev tools console, `$m` provides access to `mailspring-exports` for debugging
 - Dev mode data is stored separately (e.g., `~/.config/Mailspring-dev/` on Linux)
+
+## Claude Hooks
+
+### after_edit
+
+Run linting after modifying TypeScript or JavaScript files.
+
+```json
+{
+  "hooks": {
+    "after_edit": [
+      {
+        "command": "npm run lint",
+        "file_paths": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+      }
+    ]
+  }
+}
+```
