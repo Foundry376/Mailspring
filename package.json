@@ -27,7 +27,6 @@
     "@types/mkdirp": "^0.5.2",
     "@types/moment-round": "^1.0.3",
     "@types/mousetrap": "^1.6.1",
-    "@types/node-emoji": "^1.8.1",
     "@types/optimist": "^0.0.29",
     "@types/proxyquire": "^1.3.28",
     "@types/raven": "^2.5.3",
