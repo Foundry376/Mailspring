@@ -34,9 +34,14 @@ class NativeNotifications {
     this.resolvedIcon = this.getIcon();
   }
 
-  doNotDisturb() {
-    if (platform === 'darwin' && require('macos-notification-state').getDoNotDisturb()) {
-      return true;
+  async doNotDisturb(): Promise<boolean> {
+    if (platform === 'darwin') {
+      try {
+        return await require('macos-notification-state').getDoNotDisturb();
+      } catch (e) {
+        console.warn('Failed to check Do Not Disturb status:', e);
+        return false;
+      }
     }
     return false;
   }
@@ -105,21 +110,19 @@ class NativeNotifications {
     return DEFAULT_ICON;
   }
 
-  displayNotification({
+  async displayNotification({
     title,
     subtitle,
     body,
     tag,
     canReply,
     onActivate = args => {},
-  }: INotificationOptions = {}) {
-    let notif = null;
-
-    if (this.doNotDisturb()) {
+  }: INotificationOptions = {}): Promise<Notification | null> {
+    if (await this.doNotDisturb()) {
       return null;
     }
 
-    notif = new Notification(title, {
+    const notif = new Notification(title, {
       silent: true,
       body: subtitle,
       tag: tag,
