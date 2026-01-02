@@ -1,7 +1,7 @@
 import { execFile } from 'child_process';
 import path from 'path';
 import { File } from 'mailspring-exports';
-import { generatePreviewToken } from '../browser/quickpreview-ipc';
+import { generatePreviewToken, cleanupPreviewToken } from '../browser/quickpreview-ipc';
 
 // Content Security Policy for quickpreview windows
 // Restricts script execution while allowing external images
@@ -356,6 +356,10 @@ function _generateNextCrossplatformPreview() {
     clearTimeout(timer);
     if (captureWindow) {
       captureWindow.removeListener('page-title-updated', onRendererSuccess);
+    }
+    // Clean up the token if preview failed (on success, IPC handler deletes it)
+    if (!success) {
+      cleanupPreviewToken(previewToken);
     }
     process.nextTick(_generateNextCrossplatformPreview);
     resolve(success);

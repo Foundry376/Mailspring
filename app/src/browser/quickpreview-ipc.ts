@@ -18,6 +18,14 @@ export function generatePreviewToken(previewPath: string): string {
 }
 
 /**
+ * Clean up a preview token without using it.
+ * Called when preview times out or window closes.
+ */
+export function cleanupPreviewToken(token: string): void {
+  previewTokens.delete(token);
+}
+
+/**
  * Validate that the IPC sender is a legitimate quickpreview renderer.
  */
 const validateSender = (event: IpcMainInvokeEvent) => {
