@@ -285,6 +285,15 @@ const handleStartupEventWithSquirrel = () => {
 
 const start = () => {
   app.setAppUserModelId('com.squirrel.mailspring.mailspring');
+
+  // Set the app name explicitly for Linux to ensure the system tray icon
+  // gets a unique ID. Without this, all Electron apps share the same
+  // StatusNotifierItem ID on Linux, causing their tray visibility settings
+  // to be synchronized. See: https://github.com/electron/electron/issues/40936
+  if (process.platform === 'linux') {
+    app.setName('Mailspring');
+  }
+
   if (handleStartupEventWithSquirrel()) {
     return;
   }
