@@ -1,5 +1,5 @@
 import React from 'react';
-import NodeEmoji from 'node-emoji';
+import * as NodeEmoji from 'node-emoji';
 import { Actions } from 'mailspring-exports';
 import { Editor, Mark } from 'slate';
 import { Rule, ComposerEditorPlugin, ComposerEditorPluginTopLevelComponentProps } from './types';
@@ -19,10 +19,21 @@ export const EMOJI_TYPE = 'emoji';
 // The size of the list of floating emoji options
 const MAX_EMOJI_SUGGESTIONS = 6;
 
+// Cache all emoji names for efficient autocomplete lookup
+let allEmojiNames: string[] | null = null;
+
+function getAllEmojiNames(): string[] {
+  if (!allEmojiNames) {
+    // In node-emoji v2, use search('') to get all emojis
+    allEmojiNames = NodeEmoji.search('').map(e => e.name).sort();
+  }
+  return allEmojiNames;
+}
+
 /* Returns the official emoji names matching the provided text. */
 export function getEmojiSuggestions(word: string) {
   const emojiOptions = [];
-  const emojiNames = Object.keys(NodeEmoji.emoji).sort();
+  const emojiNames = getAllEmojiNames();
   for (const emojiName of emojiNames) {
     if (word === emojiName.substring(0, word.length)) {
       emojiOptions.push(emojiName);
