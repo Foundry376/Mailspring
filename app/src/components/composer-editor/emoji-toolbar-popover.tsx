@@ -212,8 +212,8 @@ export default class EmojiToolbarPopover extends React.Component<
   calcPosition(event) {
     const rect = event.target.getBoundingClientRect();
     const position = {
-      x: event.pageX - rect.left / 2,
-      y: event.pageY - rect.top / 2,
+      x: event.pageX - rect.left,
+      y: event.pageY - rect.top,
     };
     return position;
   }
