@@ -48,7 +48,6 @@
     "@types/temp": "^0.8.33",
     "@types/underscore": "^1.8.9",
     "@types/underscore.string": "^0.0.33",
-    "@types/uuid": "^3.4.4",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "chalk": "1.x.x",
