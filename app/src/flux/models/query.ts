@@ -487,9 +487,9 @@ export default class ModelQuery<T extends Model | Model[]> {
     }
 
     let sql = ' ORDER BY ';
-    this._orders.forEach(sort => {
-      sql += sort.orderBySQL(this._klass);
-    });
+    sql += this._orders
+      .map(sort => sort.orderBySQL(this._klass))
+      .join(', ')
     return sql;
   }
 
