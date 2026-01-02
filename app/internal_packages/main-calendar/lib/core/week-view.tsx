@@ -197,13 +197,10 @@ export class WeekView extends React.Component<
   };
 
   _onScrollCalendarArea = (event: React.UIEvent) => {
-    console.log(event.currentTarget.scrollLeft);
     // if (!event.currentTarget.scrollLeft || this._waitingForShift) {
     //   return;
     // }
-
     // const edgeWidth = (event.currentTarget.clientWidth / DAYS_IN_VIEW) * 2;
-
     // if (event.currentTarget.scrollLeft < edgeWidth) {
     //   this._waitingForShift = event.currentTarget.clientWidth;
     //   this._onClickPrevWeek();

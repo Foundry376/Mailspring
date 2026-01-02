@@ -17,7 +17,7 @@ import {
   DatabaseStore,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
-import { findOneIana } from "windows-iana";
+import { findOneIana } from 'windows-iana';
 
 const moment = require('moment-timezone');
 
@@ -46,7 +46,7 @@ we fall back to storing the RSVP status in message metadata (so the "Accept" but
 export class EventHeader extends React.Component<EventHeaderProps, EventHeaderState> {
   static displayName = 'EventHeader';
 
-  state = {
+  state: EventHeaderState = {
     icsEvent: undefined,
     icsMethod: undefined,
     icsOriginalData: undefined,
@@ -72,9 +72,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
       const { event, root } = CalendarUtils.parseICSString(data.toString());
 
+      const method = root.getFirstPropertyValue('method');
       this.setState({
         icsEvent: event,
-        icsMethod: (root.getFirstPropertyValue('method') || 'request').toLowerCase(),
+        icsMethod: (typeof method === 'string' ? method : 'request').toLowerCase() as
+          | 'reply'
+          | 'request',
         icsOriginalData: data.toString(),
       });
 
@@ -106,19 +109,21 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     // Workaround to convert calendar invites sent out from Microsoft calendars to IANA timezones
     // that can be handled by moments-timezone.
-    let startTimezone = findOneIana(icsEvent.startDate.timezone) || icsEvent.startDate.timezone;
-    let endTimezone = findOneIana(icsEvent.endDate.timezone) || icsEvent.endDate.timezone;
-
+    let startTimezone = findOneIana(icsEvent.startDate.zone.tzid) || icsEvent.startDate.zone.tzid;
+    let endTimezone = findOneIana(icsEvent.endDate.zone.tzid) || icsEvent.endDate.zone.tzid;
+    console.log(startTimezone, endTimezone, icsEvent, icsEvent.startDate.toString());
     // Workaround to convert calendar invites sent out from Google calendar with "Z" timezone
     // to IANA timezone that can be handled by moments-timezone.
-    if (startTimezone === "Z") {
-      startTimezone = "UTC";
+    if (startTimezone === 'Z') {
+      startTimezone = 'UTC';
     }
-    if (endTimezone === "Z") {
-      endTimezone = "UTC";
+    if (endTimezone === 'Z') {
+      endTimezone = 'UTC';
     }
 
-    const startMoment = moment.tz(icsEvent.startDate.toString(), startTimezone).tz(DateUtils.timeZone);
+    const startMoment = moment
+      .tz(icsEvent.startDate.toString(), startTimezone)
+      .tz(DateUtils.timeZone);
     const endMoment = moment.tz(icsEvent.endDate.toString(), endTimezone).tz(DateUtils.timeZone);
 
     const daySeconds = 24 * 60 * 60 * 1000;
@@ -191,7 +196,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     let status = me.status;
 
-    const icsTimeProperty = icsEvent.component.getFirstPropertyValue('dtstamp');
+    const icsTimeProperty = icsEvent.component.getFirstPropertyValue('dtstamp') as ICAL.Time;
     const icsTime = icsTimeProperty ? icsTimeProperty.toJSDate() : new Date(0);
 
     const metadata = this.props.message.metadataForPluginId('event-rsvp');
@@ -216,12 +221,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             {actionStatus === status || actionStatus !== inflight ? (
               actionLabel
             ) : (
-                <RetinaImg
-                  width={18}
-                  name="sending-spinner.gif"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                />
-              )}
+              <RetinaImg
+                width={18}
+                name="sending-spinner.gif"
+                mode={RetinaImg.Mode.ContentPreserve}
+              />
+            )}
           </div>
         ))}
       </div>
