@@ -179,9 +179,8 @@ export class Notifier {
   }
 
   _playNewMailSound = _.debounce(
-    async () => {
+    () => {
       if (!AppEnv.config.get('core.notifications.sounds')) return;
-      if (await NativeNotifications.doNotDisturb()) return;
       SoundRegistry.playSound('new-mail');
     },
     5000,

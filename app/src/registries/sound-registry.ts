@@ -1,10 +1,14 @@
 import path from 'path';
+import NativeNotifications from '../native-notifications';
 
 class SoundRegistry {
   private _sounds = {};
 
-  playSound(name: string) {
+  async playSound(name: string) {
     if (AppEnv.inSpecMode()) {
+      return;
+    }
+    if (await NativeNotifications.doNotDisturb()) {
       return;
     }
     const src = this._sounds[name];
