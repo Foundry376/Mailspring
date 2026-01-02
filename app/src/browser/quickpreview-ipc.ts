@@ -131,4 +131,10 @@ export function registerQuickpreviewIPCHandlers(ipcMain: IpcMain) {
   ipcMain.handle('quickpreview:previewFileAsSnarkdownHTML', previewFileAsSnarkdownHTML);
   ipcMain.handle('quickpreview:finishWithData', finishWithData);
   ipcMain.handle('quickpreview:finishCapture', finishCapture);
+  ipcMain.handle('quickpreview:generateToken', (_, previewPath: string) => {
+    return generatePreviewToken(previewPath);
+  });
+  ipcMain.handle('quickpreview:cleanupToken', (_, token: string) => {
+    cleanupPreviewToken(token);
+  });
 }

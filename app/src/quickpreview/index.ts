@@ -1,7 +1,17 @@
 import { execFile } from 'child_process';
 import path from 'path';
 import { File } from 'mailspring-exports';
-import { generatePreviewToken, cleanupPreviewToken } from '../browser/quickpreview-ipc';
+import { ipcRenderer } from 'electron';
+
+// Generate token via IPC to ensure it's stored in the main process
+async function generatePreviewToken(previewPath: string): Promise<string> {
+  return ipcRenderer.invoke('quickpreview:generateToken', previewPath);
+}
+
+// Cleanup token via IPC
+function cleanupPreviewToken(token: string): void {
+  ipcRenderer.invoke('quickpreview:cleanupToken', token);
+}
 
 // Content Security Policy for quickpreview windows
 // Restricts script execution while allowing external images
@@ -318,7 +328,7 @@ function _createCaptureWindow() {
   return win;
 }
 
-function _generateNextCrossplatformPreview() {
+async function _generateNextCrossplatformPreview() {
   if (captureQueue.length === 0) {
     if (captureWindow && !captureWindow.isDestroyed()) {
       captureWindow.destroy();
@@ -332,7 +342,8 @@ function _generateNextCrossplatformPreview() {
   const { strategy, filePath, previewPath, resolve } = captureQueue.pop();
 
   // Generate an opaque token for the preview path instead of passing the path directly
-  const previewToken = generatePreviewToken(previewPath);
+  // Token is generated via IPC to ensure it's stored in the main process
+  const previewToken = await generatePreviewToken(previewPath);
 
   // Start the thumbnail generation
   captureWindow.loadFile(path.join(filesRoot, 'renderer.html'), {
