@@ -1,4 +1,3 @@
-import url from 'url';
 import React from 'react';
 import { shell } from 'electron';
 import ReactDOM from 'react-dom';
@@ -127,7 +126,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
     const listeners = {
       'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._webviewDidFinishLoad,
-      'did-get-response-details': this._webviewDidGetResponseDetails,
+      'did-frame-navigate': this._webviewDidFrameNavigate,
       'console-message': this._onConsoleMessage,
       'new-window': this._onNewWindow,
 
@@ -163,23 +162,29 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
     console.log('Guest page logged a message:', e.message);
   };
 
-  _webviewDidGetResponseDetails = ({ httpResponseCode, originalURL }) => {
+  _webviewDidFrameNavigate = ({
+    url: navigatedUrl,
+    httpResponseCode,
+    isMainFrame,
+  }: {
+    url: string;
+    httpResponseCode: number;
+    httpStatusText: string;
+    isMainFrame: boolean;
+  }) => {
     if (!this._mounted) return;
-    if (!originalURL.includes(url.parse(this.props.src).host)) {
-      // This means that some other secondarily loaded resource (like
-      // analytics or Linkedin, etc) got a response. We don't care about
-      // that.
-      return;
-    }
+    // Only handle main frame navigation, ignore secondary resources
+    if (!isMainFrame) return;
+
     if (httpResponseCode >= 400) {
       const error = localized(
         `Could not reach Mailspring. Please try again or contact support@getmailspring.com if the issue persists. (%@: %@)`,
-        originalURL,
+        navigatedUrl,
         httpResponseCode
       );
       this.setState({ ready: false, error: error, webviewLoading: false });
     }
-    this.setState({ webviewLoading: false });
+    this.setState({ ready: true, webviewLoading: false });
   };
 
   _webviewDidFailLoad = ({ errorCode, validatedURL }) => {

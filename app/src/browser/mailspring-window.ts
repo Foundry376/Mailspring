@@ -275,8 +275,8 @@ export default class MailspringWindow extends EventEmitter {
       event.preventDefault();
     });
 
-    this.browserWindow.webContents.on('new-window', (event, url, frameName, disposition) => {
-      event.preventDefault();
+    this.browserWindow.webContents.setWindowOpenHandler(({ url, frameName, disposition }) => {
+      return { action: 'deny' };
     });
 
     this.browserWindow.on('unresponsive', () => {
