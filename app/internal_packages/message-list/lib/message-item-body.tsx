@@ -124,7 +124,9 @@ export default class MessageItemBody extends React.Component<
       require('@electron/remote').app.getPath('temp'),
       `${message.id}.html`
     );
-    fs.writeFileSync(filepath, message.body);
+    // Prepend charset meta tag to ensure proper encoding (fixes garbled text for non-ASCII characters)
+    const htmlWithCharset = `<meta charset="UTF-8">\n${message.body}`;
+    fs.writeFileSync(filepath, htmlWithCharset);
     const win = new BrowserWindow({
       title: `${message.subject}`,
       width: 800,
