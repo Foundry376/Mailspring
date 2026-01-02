@@ -109,8 +109,8 @@ export class Notifier {
     });
   }
 
-  _notifyAll() {
-    NativeNotifications.displayNotification({
+  async _notifyAll() {
+    await NativeNotifications.displayNotification({
       title: `${this.unnotifiedQueue.length} ${localized('Unread Messages')}`,
       tag: 'unread-update',
       onActivate: () => {
@@ -120,7 +120,7 @@ export class Notifier {
     this.unnotifiedQueue = [];
   }
 
-  _notifyOne({ message, thread }) {
+  async _notifyOne({ message, thread }) {
     const from = message.from[0] ? message.from[0].displayName() : 'Unknown';
     const title = from;
     let subtitle = null;
@@ -133,7 +133,7 @@ export class Notifier {
       body = null;
     }
 
-    const notification = NativeNotifications.displayNotification({
+    const notification = await NativeNotifications.displayNotification({
       title: title,
       subtitle: subtitle,
       body: body,
@@ -164,11 +164,11 @@ export class Notifier {
     }
   }
 
-  _notifyMessages() {
+  async _notifyMessages() {
     if (this.unnotifiedQueue.length >= 5) {
-      this._notifyAll();
+      await this._notifyAll();
     } else if (this.unnotifiedQueue.length > 0) {
-      this._notifyOne(this.unnotifiedQueue.shift());
+      await this._notifyOne(this.unnotifiedQueue.shift());
     }
 
     this.hasScheduledNotify = false;
@@ -179,9 +179,9 @@ export class Notifier {
   }
 
   _playNewMailSound = _.debounce(
-    () => {
+    async () => {
       if (!AppEnv.config.get('core.notifications.sounds')) return;
-      if (NativeNotifications.doNotDisturb()) return;
+      if (await NativeNotifications.doNotDisturb()) return;
       SoundRegistry.playSound('new-mail');
     },
     5000,
