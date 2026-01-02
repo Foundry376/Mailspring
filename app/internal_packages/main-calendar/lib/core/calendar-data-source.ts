@@ -59,7 +59,8 @@ export function occurrencesForEvents(
     [...expanded.events, ...expanded.occurrences].forEach((e, idx) => {
       const start = e.startDate.toJSDate().getTime() / 1000;
       const end = e.endDate.toJSDate().getTime() / 1000;
-      const item = e.item || e;
+      // For occurrences, the actual event data is in e.item; for events, e is the event itself
+      const item = 'item' in e ? e.item : e;
       occurences.push({
         start,
         end,

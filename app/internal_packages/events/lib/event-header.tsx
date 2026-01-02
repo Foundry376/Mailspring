@@ -17,7 +17,7 @@ import {
   DatabaseStore,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
-import { findOneIana } from "windows-iana";
+import { findOneIana } from 'windows-iana';
 
 const moment = require('moment-timezone');
 
@@ -72,9 +72,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
       const { event, root } = CalendarUtils.parseICSString(data.toString());
 
+      const method = root.getFirstPropertyValue('method');
       this.setState({
         icsEvent: event,
-        icsMethod: (root.getFirstPropertyValue('method') || 'request').toLowerCase(),
+        icsMethod: (typeof method === 'string' ? method : 'request').toLowerCase() as
+          | 'reply'
+          | 'request',
         icsOriginalData: data.toString(),
       });
 
@@ -111,14 +114,16 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     // Workaround to convert calendar invites sent out from Google calendar with "Z" timezone
     // to IANA timezone that can be handled by moments-timezone.
-    if (startTimezone === "Z") {
-      startTimezone = "UTC";
+    if (startTimezone === 'Z') {
+      startTimezone = 'UTC';
     }
-    if (endTimezone === "Z") {
-      endTimezone = "UTC";
+    if (endTimezone === 'Z') {
+      endTimezone = 'UTC';
     }
 
-    const startMoment = moment.tz(icsEvent.startDate.toString(), startTimezone).tz(DateUtils.timeZone);
+    const startMoment = moment
+      .tz(icsEvent.startDate.toString(), startTimezone)
+      .tz(DateUtils.timeZone);
     const endMoment = moment.tz(icsEvent.endDate.toString(), endTimezone).tz(DateUtils.timeZone);
 
     const daySeconds = 24 * 60 * 60 * 1000;
@@ -216,12 +221,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             {actionStatus === status || actionStatus !== inflight ? (
               actionLabel
             ) : (
-                <RetinaImg
-                  width={18}
-                  name="sending-spinner.gif"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                />
-              )}
+              <RetinaImg
+                width={18}
+                name="sending-spinner.gif"
+                mode={RetinaImg.Mode.ContentPreserve}
+              />
+            )}
           </div>
         ))}
       </div>

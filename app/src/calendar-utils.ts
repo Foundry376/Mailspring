@@ -1,9 +1,10 @@
 import { AccountStore } from 'mailspring-exports';
 
-type ICALComponent = typeof import('ical.js').Component;
-type ICALEvent = typeof import('ical.js').Event;
+type ICAL = typeof import('ical.js').default;
+type ICALComponent = InstanceType<ICAL['Component']>;
+type ICALEvent = InstanceType<ICAL['Event']>;
 
-let ICAL: typeof import('ical.js') = null;
+let ICAL: ICAL = null;
 
 export type ICSParticipantStatus =
   | 'NEEDS-ACTION'
