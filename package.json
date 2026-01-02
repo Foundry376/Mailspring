@@ -77,7 +77,6 @@
     "meta-marked": "^0.4.2",
     "mkdirp": "^0.5.1",
     "node-gyp": "^12.1.0",
-    "npm": ">=7",
     "prettier": "^1.10.0",
     "request": "^2.88.0",
     "rimraf": "^2.6.1",
