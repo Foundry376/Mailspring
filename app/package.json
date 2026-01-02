@@ -37,7 +37,7 @@
     "jasmine-json": "~0.0",
     "jasmine-react-helpers": "^0.2",
     "jasmine-reporters": "1.x.x",
-    "juice": "^7.0.0",
+    "juice": "^11.0.3",
     "less-cache": "1.1.1",
     "lru-cache": "^4.0.1",
     "mammoth": "^1.11.0",
