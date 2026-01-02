@@ -1,5 +1,5 @@
 import * as React from 'react';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import { Message, ComponentRegistry } from 'mailspring-exports';
 import { UnsubscribeHeader } from './unsubscribe-header';
 
