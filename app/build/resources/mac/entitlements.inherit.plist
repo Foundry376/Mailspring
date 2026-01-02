@@ -20,5 +20,7 @@
 	<true/>
 	<key>com.apple.security.print</key>
 	<true/>
+	<key>com.apple.developer.usernotifications.communication</key>
+	<true/>
 </dict>
 </plist>

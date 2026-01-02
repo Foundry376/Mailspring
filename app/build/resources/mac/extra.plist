@@ -4,6 +4,8 @@
 <dict>
 	<key>NSPrincipalClass</key>
 	<string>AtomApplication</string>
+	<key>NSFocusStatusUsageDescription</key>
+	<string>Mailspring checks Focus mode status to silence new mail notifications when Do Not Disturb is enabled.</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
