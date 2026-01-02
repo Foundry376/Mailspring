@@ -314,6 +314,20 @@ body.platform-win32 {
       }
     }
 
+    // Ensure attach button is always visible and clickable
+    .btn-attach {
+      min-width: 28px;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      img.content-mask {
+        // Fallback color in case theme variables are undefined
+        background-color: @text-color-subtle;
+        background-color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
+      }
+    }
+
     .btn-send {
       margin-right: 10px;
       white-space: nowrap;

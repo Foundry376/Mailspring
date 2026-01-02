@@ -521,9 +521,14 @@ const AttachFileButton = (props: { onClick: () => void }) => (
     className="btn btn-toolbar btn-attach"
     style={{ order: 0 }}
     title={localized('Attach File')}
+    aria-label={localized('Attach File')}
     onClick={props.onClick}
   >
-    <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
+    <RetinaImg
+      name="icon-composer-attachment.png"
+      fallback="toolbar-attach.png"
+      mode={RetinaImg.Mode.ContentIsMask}
+    />
   </button>
 );
 
