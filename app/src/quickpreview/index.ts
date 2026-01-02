@@ -1,6 +1,29 @@
 import { execFile } from 'child_process';
 import path from 'path';
 import { File } from 'mailspring-exports';
+import { ipcRenderer } from 'electron';
+
+// Generate token via IPC to ensure it's stored in the main process
+async function generatePreviewToken(previewPath: string): Promise<string> {
+  return ipcRenderer.invoke('quickpreview:generateToken', previewPath);
+}
+
+// Cleanup token via IPC
+function cleanupPreviewToken(token: string): void {
+  ipcRenderer.invoke('quickpreview:cleanupToken', token);
+}
+
+// Content Security Policy for quickpreview windows
+// Restricts script execution while allowing external images
+const QuickPreviewCSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'", // unsafe-inline needed for inline script in renderer.html
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https: http:", // Allow external images
+  "object-src 'none'",
+  "frame-src 'none'",
+  "base-uri 'self'",
+].join('; ');
 
 let quickPreviewWindow = null;
 let captureWindow = null;
@@ -205,6 +228,17 @@ export function displayQuickPreviewWindow(filePath) {
         contextIsolation: true,
       },
     });
+
+    // Apply Content Security Policy
+    quickPreviewWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [QuickPreviewCSP],
+        },
+      });
+    });
+
     quickPreviewWindow.once('closed', () => {
       quickPreviewWindow = null;
     });
@@ -272,6 +306,17 @@ function _createCaptureWindow() {
       contextIsolation: true,
     },
   });
+
+  // Apply Content Security Policy
+  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [QuickPreviewCSP],
+      },
+    });
+  });
+
   win.webContents.on('crashed', () => {
     console.warn(`Thumbnail generation webcontents crashed.`);
     if (captureWindow === win) captureWindow = null;
@@ -283,7 +328,7 @@ function _createCaptureWindow() {
   return win;
 }
 
-function _generateNextCrossplatformPreview() {
+async function _generateNextCrossplatformPreview() {
   if (captureQueue.length === 0) {
     if (captureWindow && !captureWindow.isDestroyed()) {
       captureWindow.destroy();
@@ -296,9 +341,13 @@ function _generateNextCrossplatformPreview() {
 
   const { strategy, filePath, previewPath, resolve } = captureQueue.pop();
 
+  // Generate an opaque token for the preview path instead of passing the path directly
+  // Token is generated via IPC to ensure it's stored in the main process
+  const previewToken = await generatePreviewToken(previewPath);
+
   // Start the thumbnail generation
   captureWindow.loadFile(path.join(filesRoot, 'renderer.html'), {
-    search: JSON.stringify({ strategy, mode: 'capture', filePath, previewPath }),
+    search: JSON.stringify({ strategy, mode: 'capture', filePath, previewToken }),
   });
 
   // Race against a timer to complete the preview. We don't want this to hang
@@ -318,6 +367,10 @@ function _generateNextCrossplatformPreview() {
     clearTimeout(timer);
     if (captureWindow) {
       captureWindow.removeListener('page-title-updated', onRendererSuccess);
+    }
+    // Clean up the token if preview failed (on success, IPC handler deletes it)
+    if (!success) {
+      cleanupPreviewToken(previewToken);
     }
     process.nextTick(_generateNextCrossplatformPreview);
     resolve(success);
