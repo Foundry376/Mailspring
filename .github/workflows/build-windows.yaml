@@ -1,0 +1,82 @@
+name: Build for Windows
+
+on:
+  workflow_dispatch:
+    branches: master
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Fail if branch is not main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
+        run: |
+          echo "This workflow should not be triggered with workflow_dispatch on a branch other than main"
+          exit 1
+
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./node_modules
+            ./app/node_modules
+          key: windows-2022-deps-${{ hashFiles('package-lock.json') }}-${{ hashFiles('app/package-lock.json') }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Codesigning Certificate
+        shell: pwsh
+        run: |
+          $certBytes = [Convert]::FromBase64String($env:CERT_BASE64)
+          $certPath = "app\build\resources\certs\win\win-codesigning.p12"
+          New-Item -ItemType Directory -Force -Path "app\build\resources\certs\win"
+          [IO.File]::WriteAllBytes($certPath, $certBytes)
+        env:
+          CERT_BASE64: ${{ secrets.WINDOWS_CODESIGN_CERT_BASE64 }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          DEBUG: electron-packager
+          SIGN_BUILD: true
+          WINDOWS_CODESIGN_CERT: app\build\resources\certs\win\win-codesigning.p12
+          WINDOWS_CODESIGN_CERT_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_CERT_PASSWORD }}
+
+      - name: Create Signed Windows Installer
+        run: node app/build/create-signed-windows-installer.js
+        env:
+          SIGN_BUILD: true
+          WINDOWS_CODESIGN_CERT: app\build\resources\certs\win\win-codesigning.p12
+          WINDOWS_CODESIGN_CERT_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_CERT_PASSWORD }}
+
+      - name: Sync Artifacts to S3
+        shell: pwsh
+        run: |
+          $commit = git rev-parse --short HEAD
+          aws s3 sync app/dist/ "s3://mailspring-builds/client/$commit/win-x64" `
+            --acl public-read `
+            --exclude "*" `
+            --include "MailspringSetup.exe" `
+            --include "*.nupkg" `
+            --include "RELEASES"
