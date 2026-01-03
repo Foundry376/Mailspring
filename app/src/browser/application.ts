@@ -137,7 +137,6 @@ export default class Application extends EventEmitter {
       this.touchBar = new ApplicationTouchBar(resourcePath);
     }
 
-    this.setupJavaScriptArguments();
     this.handleEvents();
     this.handleLaunchOptions(options);
 
@@ -255,12 +254,6 @@ export default class Application extends EventEmitter {
     } else {
       fs.unlink(filePath, callback);
     }
-  }
-
-  // Configures required javascript environment flags.
-  setupJavaScriptArguments() {
-    app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
-    app.commandLine.appendSwitch('js-flags', '--harmony');
   }
 
   openWindowsForTokenState() {
