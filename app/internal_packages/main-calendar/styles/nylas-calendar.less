@@ -282,7 +282,179 @@ body.platform-win32 {
   }
 
   .month-view {
-    color: #000;
+    display: flex;
+    flex-direction: column;
+
+    .month-view-grid-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: @background-primary;
+    }
+
+    .month-view-weekday-headers {
+      display: flex;
+      border-bottom: 1px solid @border-color-divider;
+      background: @background-off-primary;
+      flex-shrink: 0;
+    }
+
+    .month-view-weekday-header {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      color: @text-color-subtle;
+      box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
+
+      &:first-child {
+        box-shadow: none;
+      }
+    }
+
+    .month-view-grid {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .month-view-week {
+      flex: 1;
+      display: flex;
+      min-height: 0; // Allow flex children to shrink
+      border-bottom: 1px solid @border-color-divider;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .month-view-day-cell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0; // Allow flex children to shrink
+      box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
+      overflow: hidden;
+
+      &:first-child {
+        box-shadow: none;
+      }
+
+      &.is-other-month {
+        background: rgba(0, 0, 0, 0.02);
+
+        .month-view-day-number {
+          color: @text-color-very-subtle;
+        }
+      }
+
+      &.is-today {
+        .month-view-day-number {
+          &.is-today {
+            background-color: @accent-primary;
+            color: @text-color-inverse;
+          }
+        }
+      }
+    }
+
+    .month-view-day-header {
+      padding: 4px 8px;
+      flex-shrink: 0;
+    }
+
+    .month-view-day-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      color: @text-color-subtle;
+      cursor: pointer;
+      border-radius: 50%;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+    }
+
+    .month-view-day-events {
+      flex: 1;
+      overflow: hidden;
+      padding: 0 4px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .month-view-event {
+      @event-height: 20px;
+
+      height: @event-height;
+      min-height: @event-height;
+      max-height: @event-height;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+      line-height: 16px;
+      cursor: default;
+      overflow: hidden;
+      flex-shrink: 0;
+
+      &:before {
+        content: '';
+        position: absolute;
+        width: 2px;
+        height: 100%;
+        left: 0;
+        top: 0;
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      .month-view-event-title {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        opacity: 0.85;
+      }
+
+      &:hover {
+        opacity: 0.9;
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+      }
+
+      &.selected {
+        background-color: @accent-primary !important;
+
+        .month-view-event-title {
+          opacity: 1;
+        }
+      }
+    }
+
+    .month-view-overflow {
+      padding: 2px 4px;
+      font-size: 11px;
+      color: @text-color-subtle;
+      cursor: pointer;
+      flex-shrink: 0;
+
+      &:hover {
+        color: @text-color;
+        text-decoration: underline;
+      }
+    }
   }
 
   .current-time-indicator {
