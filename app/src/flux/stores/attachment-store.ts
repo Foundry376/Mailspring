@@ -273,13 +273,15 @@ class AttachmentStore extends MailspringStore {
     const ext = path.extname(attemptedPath);
     const dir = path.dirname(attemptedPath);
     let name = path.basename(attemptedPath, ext);
-    const match = /-(\d+)$/.exec(name);
+    // Use " (N)" format for collision counters to avoid conflicts with filenames
+    // that end with hyphen-number patterns (like dates: "report-2023.pdf")
+    const match = / \((\d+)\)$/.exec(name);
     let counter = 0;
     if (match) {
       counter = Number(match[1]);
       name = name.substr(0, match.index);
     }
-    return `${dir}/${name}-${counter + 1}${ext}`;
+    return path.join(dir, `${name} (${counter + 1})${ext}`);
   }
 
   _defaultSaveDir() {
