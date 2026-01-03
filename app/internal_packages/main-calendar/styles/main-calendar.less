@@ -85,3 +85,162 @@
   white-space: nowrap;
   overflow: hidden;
 }
+
+// Event Search Bar
+.event-search-bar {
+  position: relative;
+  padding: @padding-base-vertical @padding-base-horizontal;
+  border-bottom: 1px solid @border-color-divider;
+
+  .event-search-input-container {
+    display: flex;
+    align-items: center;
+    background-color: @background-secondary;
+    border-radius: @border-radius-base;
+    padding: 4px 8px;
+    position: relative;
+
+    .event-search-icon {
+      opacity: 0.5;
+      margin-right: 6px;
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .event-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: @font-size-small;
+      color: @text-color;
+      outline: none;
+      padding: 4px 0;
+      min-width: 0;
+
+      &::placeholder {
+        color: @text-color-very-subtle;
+      }
+    }
+
+    .event-search-clear {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      opacity: 0.5;
+      flex-shrink: 0;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      img {
+        background-color: @text-color;
+      }
+    }
+
+    .event-search-loading {
+      width: 14px;
+      height: 14px;
+      border: 2px solid @text-color-very-subtle;
+      border-top-color: @accent-primary;
+      border-radius: 50%;
+      animation: event-search-spin 0.8s linear infinite;
+      flex-shrink: 0;
+      margin-left: 6px;
+    }
+  }
+
+  .event-search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: @padding-base-horizontal;
+    right: @padding-base-horizontal;
+    background-color: @background-primary;
+    border: 1px solid @border-color-divider;
+    border-radius: @border-radius-base;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    max-height: 320px;
+    overflow-y: auto;
+
+    .menu {
+      .item {
+        padding: 0;
+        border-bottom: 1px solid @border-color-divider;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &.selected {
+          background-color: @background-secondary;
+        }
+      }
+    }
+
+    .event-search-no-results {
+      padding: @padding-base-vertical @padding-base-horizontal;
+      color: @text-color-subtle;
+      font-size: @font-size-small;
+      text-align: center;
+    }
+  }
+
+  .event-search-item {
+    padding: 8px 10px;
+    cursor: pointer;
+
+    .event-search-item-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+
+    .event-search-calendar-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .event-search-item-title {
+      font-size: @font-size-small;
+      font-weight: 500;
+      color: @text-color;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-search-item-time {
+      font-size: @font-size-smaller;
+      color: @text-color-subtle;
+      margin-left: 16px;
+      margin-bottom: 1px;
+    }
+
+    .event-search-item-location {
+      font-size: @font-size-smaller;
+      color: @text-color-very-subtle;
+      margin-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+@keyframes event-search-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
