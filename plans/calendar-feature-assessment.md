@@ -122,60 +122,440 @@ OAuth and API integration for calendar providers beyond read-only access:
 
 ---
 
-## Architecture Overview
+## Architecture Overview for Implementers
 
-### Code Locations
+This section provides detailed guidance for agents and developers implementing new calendar features.
+
+### Directory Structure
 
 ```
-/app/internal_packages/main-calendar/
-├── lib/
-│   ├── main.tsx                    # Entry point & registration
-│   ├── quick-event-button.tsx      # "+" button component
-│   ├── quick-event-popover.tsx     # Natural language event creation (disabled)
-│   └── core/
-│       ├── mailspring-calendar.tsx # Main container component
-│       ├── week-view.tsx           # Week view (functional)
-│       ├── month-view.tsx          # Month view (stub)
-│       ├── calendar-event.tsx      # Event rendering
-│       ├── calendar-event-popover.tsx # Event details/edit form
-│       ├── calendar-data-source.ts # RxJS observable data source
-│       ├── event-search-bar.tsx    # Search (stubbed)
-│       └── ...
+app/
+├── src/                                    # Core application source
+│   ├── flux/
+│   │   ├── models/
+│   │   │   ├── calendar.ts                 # Calendar database model
+│   │   │   └── event.ts                    # Event database model
+│   │   ├── tasks/
+│   │   │   ├── event-rsvp-task.ts          # RSVP task (working example)
+│   │   │   └── syncback-event-task.ts      # Event sync task (UNIMPLEMENTED)
+│   │   ├── stores/
+│   │   │   └── database-store.ts           # Read-only database access
+│   │   └── actions.ts                      # Application-wide actions
+│   ├── calendar-utils.ts                   # ICS parsing utilities
+│   └── mailsync-bridge.ts                  # Sync engine communication
+│
+├── internal_packages/
+│   ├── main-calendar/                      # Main calendar UI package
+│   │   ├── package.json                    # Plugin manifest (windowTypes: calendar)
+│   │   ├── lib/
+│   │   │   ├── main.tsx                    # Plugin entry point
+│   │   │   ├── quick-event-button.tsx      # Toolbar "+" button
+│   │   │   ├── quick-event-popover.tsx     # Natural language event creation
+│   │   │   └── core/
+│   │   │       ├── mailspring-calendar.tsx # Root calendar component
+│   │   │       ├── calendar-data-source.ts # RxJS data observable
+│   │   │       ├── calendar-constants.ts   # Enums (CalendarView)
+│   │   │       ├── calendar-helpers.tsx    # Color calculation utilities
+│   │   │       │
+│   │   │       ├── week-view.tsx           # Week view (FUNCTIONAL)
+│   │   │       ├── week-view-helpers.ts    # Overlap calculation, time ticks
+│   │   │       ├── week-view-event-column.tsx  # Single day column
+│   │   │       ├── week-view-all-day-events.tsx # All-day events bar
+│   │   │       │
+│   │   │       ├── month-view.tsx          # Month view (STUB)
+│   │   │       │
+│   │   │       ├── calendar-event.tsx      # Event box component
+│   │   │       ├── calendar-event-container.tsx # Mouse event wrapper
+│   │   │       ├── calendar-event-popover.tsx   # Event details/edit popover
+│   │   │       │
+│   │   │       ├── header-controls.tsx     # Navigation & view buttons
+│   │   │       ├── calendar-source-list.tsx # Calendar visibility toggles
+│   │   │       ├── event-search-bar.tsx    # Search (STUBBED)
+│   │   │       ├── current-time-indicator.tsx # Red "now" line
+│   │   │       ├── event-grid-background.tsx  # Canvas grid lines
+│   │   │       ├── event-timerange-picker.tsx # Date/time input
+│   │   │       └── event-attendees-input.tsx  # Attendee management
+│   │   │
+│   │   └── styles/
+│   │       ├── main-calendar.less
+│   │       └── nylas-calendar.less
+│   │
+│   └── events/                             # Email RSVP integration
+│       ├── package.json
+│       └── lib/
+│           ├── main.tsx                    # Extension registration
+│           └── event-header.tsx            # RSVP buttons in email
+```
 
-/app/internal_packages/events/
-├── lib/
-│   ├── main.tsx                    # Email integration entry
-│   └── event-header.tsx            # RSVP UI for emails
+### Plugin Architecture
 
-/app/src/
-├── flux/
-│   ├── models/
-│   │   ├── calendar.ts             # Calendar model
-│   │   └── event.ts                # Event model
-│   └── tasks/
-│       ├── event-rsvp-task.ts      # RSVP handling (implemented)
-│       └── syncback-event-task.ts  # Event sync (NOT implemented)
-├── calendar-utils.ts               # ICS parsing utilities
+#### Entry Point Pattern (`main.tsx`)
+
+Every internal package follows this pattern:
+
+```typescript
+// app/internal_packages/main-calendar/lib/main.tsx
+import { WorkspaceStore, ComponentRegistry } from 'mailspring-exports';
+import { MailspringCalendar } from './core/mailspring-calendar';
+
+export function activate() {
+  // Register components at specific UI locations
+  ComponentRegistry.register(MailspringCalendar, {
+    location: WorkspaceStore.Location.Center,
+  });
+}
+
+export function deactivate() {
+  ComponentRegistry.unregister(MailspringCalendar);
+}
+```
+
+**Key registration locations:**
+- `WorkspaceStore.Location.Center` - Main content area
+- `WorkspaceStore.Location.Center.Toolbar` - Toolbar buttons
+- `WorkspaceStore.Sheet.Main.Header` - Header area
+- `{ role: 'message:BodyHeader' }` - Inside email message view
+- `{ role: 'Calendar:Event' }` - Injected into calendar events
+- `{ role: 'Calendar:Week:Banner' }` - Banner above week view
+
+#### Package Manifest (`package.json`)
+
+```json
+{
+  "name": "main-calendar",
+  "main": "./lib/main",
+  "windowTypes": {
+    "calendar": true    // Loads only in calendar window type
+  }
+}
+```
+
+### Data Flow Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         USER INTERACTION                            │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      React Components                                │
+│  (calendar-event-popover.tsx, quick-event-popover.tsx, etc.)        │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       Actions.queueTask()                            │
+│                    (app/src/flux/actions.ts)                        │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         MailsyncBridge                               │
+│                   (app/src/mailsync-bridge.ts)                       │
+│           Serializes task → JSON → stdin to sync engine              │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Mailspring-Sync (C++)                          │
+│              External process per account                            │
+│         Executes tasks, syncs with remote APIs                       │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    stdout (JSON deltas)                              │
+│               { type: 'persist', objectClass: 'Event', ... }        │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       DatabaseStore.trigger()                        │
+│                 Notifies all QuerySubscriptions                      │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Rx.Observable.fromQuery()                         │
+│              CalendarDataSource.buildObservable()                    │
+│                 Reactive UI updates                                  │
+└─────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      React Re-render                                 │
+│                  (WeekView, CalendarEvent, etc.)                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Data Models
 
-**Event Model** stores raw ICS data and parses on-demand:
-- `calendarId`: Reference to parent calendar
-- `ics`: Full ICS data as JSON string
-- `icsuid`: Unique ICS event identifier
-- `recurrenceStart/End`: Calculated timestamps
-- `title`, `participants`: Searchable fields
+#### Event Model (`app/src/flux/models/event.ts`)
 
-**Calendar Model**:
-- `name`, `description`, `readOnly`
+```typescript
+class Event extends Model {
+  static attributes = {
+    calendarId: Attributes.String({ queryable: true }),
+    ics: Attributes.String({}),           // Full ICS data stored as string
+    icsuid: Attributes.String({ queryable: true }),
+    recurrenceStart: Attributes.Number({ queryable: true }),  // Unix timestamp
+    recurrenceEnd: Attributes.Number({ queryable: true }),    // Unix timestamp
+  };
 
-### Dependencies
+  static searchable = true;
+  static searchFields = ['title', 'description', 'location', 'participants'];
+}
+```
 
-- `ical-expander` (^3.2.0) - Recurring event expansion
-- `ical.js` (^2.2.1) - ICS format parsing
-- `moment` / `moment-timezone` - Date/time handling
-- `chrono-node` (^2.9.0) - Natural language date parsing
+**Important:** The Event model stores raw ICS data in the `ics` field. Parsed event details are extracted at runtime using `ical-expander`.
+
+#### Calendar Model (`app/src/flux/models/calendar.ts`)
+
+```typescript
+class Calendar extends Model {
+  static attributes = {
+    name: Attributes.String({}),
+    description: Attributes.String({}),
+    readOnly: Attributes.Boolean({}),
+  };
+}
+```
+
+#### EventOccurrence Interface (`calendar-data-source.ts`)
+
+Runtime representation of a single event occurrence (handles recurring events):
+
+```typescript
+interface EventOccurrence {
+  start: number;         // Unix timestamp
+  end: number;           // Unix timestamp
+  id: string;            // "{eventId}-e{occurrenceIndex}"
+  accountId: string;
+  calendarId: string;
+  title: string;
+  location: string;
+  description: string;
+  isAllDay: boolean;
+  organizer: { email: string } | null;
+  attendees: { email: string; name: string }[];
+}
+```
+
+### Reactive Data Pattern
+
+#### CalendarDataSource (`calendar-data-source.ts`)
+
+```typescript
+class CalendarDataSource {
+  buildObservable({ startUnix, endUnix, disabledCalendars }) {
+    // Query database for events in time range
+    const query = DatabaseStore.findAll<Event>(Event).where(matcher);
+
+    // Create reactive observable
+    this.observable = Rx.Observable.fromQuery(query)
+      .flatMapLatest(results =>
+        Rx.Observable.from([{
+          events: occurrencesForEvents(results, { startUnix, endUnix })
+        }])
+      );
+    return this.observable;
+  }
+}
+```
+
+**Usage in components:**
+
+```typescript
+// In WeekView.tsx
+componentDidMount() {
+  this._sub = this.props.dataSource
+    .buildObservable({
+      disabledCalendars: this.props.disabledCalendars,
+      startUnix: bufferedStart.unix(),
+      endUnix: bufferedEnd.unix(),
+    })
+    .subscribe(state => this.setState(state));
+}
+```
+
+### Task System
+
+#### Working Example: EventRSVPTask (`app/src/flux/tasks/event-rsvp-task.ts`)
+
+```typescript
+export class EventRSVPTask extends Task {
+  static attributes = {
+    ...Task.attributes,
+    ics: Attributes.String({ modelKey: 'ics' }),
+    icsRSVPStatus: Attributes.String({ modelKey: 'icsRSVPStatus' }),
+    // ... other attributes
+  };
+
+  // Factory method for creating properly configured task
+  static forReplying({ accountId, to, messageId, icsOriginalData, icsRSVPStatus }) {
+    // Parse ICS, modify participant status, create reply
+    const { event, root } = CalendarUtils.parseICSString(icsOriginalData);
+    // ... modify ICS ...
+    return new EventRSVPTask({ ... });
+  }
+
+  label() {
+    return localized('Sending RSVP');
+  }
+
+  // Called when sync engine reports success
+  async onSuccess() {
+    // Update local metadata
+  }
+}
+```
+
+#### Unimplemented: SyncbackEventTask (`app/src/flux/tasks/syncback-event-task.ts`)
+
+```typescript
+// CURRENT STATE - needs implementation
+export class SyncbackEventTask {
+  constructor() {
+    throw new Error('Unimplemented!');
+  }
+}
+```
+
+**To implement, follow EventRSVPTask pattern:**
+1. Extend `Task` base class
+2. Define static `attributes` for serialization
+3. Implement `label()` for UI feedback
+4. Implement `onSuccess()` / `onError()` callbacks
+5. Sync engine must handle the task type
+
+### ICS Parsing Utilities (`app/src/calendar-utils.ts`)
+
+```typescript
+// Parse ICS string into ical.js objects
+parseICSString(ics: string): { root: ICALComponent, event: ICALEvent }
+
+// Extract email from mailto: URI
+emailFromParticipantURI(uri: string): string | null
+
+// Get attendee info from ICS event
+cleanParticipants(icsEvent: ICALEvent): ICSParticipant[]
+
+// Find current user in attendee list
+selfParticipant(icsEvent: ICALEvent, accountId: string): ICSParticipant | undefined
+```
+
+### Key Dependencies
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `ical.js` | ^2.2.1 | Parse ICS format (RFC 5545) |
+| `ical-expander` | ^3.2.0 | Expand recurring events |
+| `moment` | ^2.30.1 | Date/time manipulation |
+| `moment-timezone` | ^0.6.0 | Timezone handling |
+| `chrono-node` | ^2.9.0 | Natural language date parsing |
+| `windows-iana` | ^4.2.1 | Convert Windows timezone names |
+
+### Where to Add New Features
+
+| Feature | Location | Notes |
+|---------|----------|-------|
+| **New calendar view (e.g., day view)** | `app/internal_packages/main-calendar/lib/core/day-view.tsx` | Follow `week-view.tsx` pattern; register in `calendar-constants.ts` and `mailspring-calendar.tsx` |
+| **Event write operations** | `app/src/flux/tasks/syncback-event-task.ts` | Implement Task class; requires sync engine support |
+| **New event UI component** | `app/internal_packages/main-calendar/lib/core/` | Add to `core/` directory; import in parent component |
+| **Event search** | `app/internal_packages/main-calendar/lib/core/event-search-bar.tsx` | Currently stubbed; implement search logic |
+| **Calendar model changes** | `app/src/flux/models/calendar.ts` | Database schema changes require sync engine updates |
+| **ICS parsing enhancements** | `app/src/calendar-utils.ts` | Shared utility functions |
+| **New email integration** | `app/internal_packages/events/lib/` | Follow `event-header.tsx` pattern |
+| **Keyboard shortcuts** | Register in `KeyCommandsRegion` in `mailspring-calendar.tsx` | Define handlers in the component |
+| **Drag-and-drop** | `app/internal_packages/main-calendar/lib/core/calendar-event.tsx` | Add drag handlers to event component |
+| **New toolbar button** | `app/internal_packages/main-calendar/lib/` | Register at `WorkspaceStore.Location.Center.Toolbar` |
+| **Styles** | `app/internal_packages/main-calendar/styles/` | Use LESS; follows BEM-like naming |
+
+### Component Extension Points
+
+The calendar provides injection points for plugins:
+
+```typescript
+// In week-view.tsx - Banner above week view
+<InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} />
+
+// In calendar-event.tsx - Injected into event boxes
+<InjectedComponentSet
+  matching={{ role: 'Calendar:Event' }}
+  exposedProps={{ event: event }}
+/>
+```
+
+### Implementing a New View (Example: Day View)
+
+1. **Create the component:**
+   ```typescript
+   // app/internal_packages/main-calendar/lib/core/day-view.tsx
+   export class DayView extends React.Component<MailspringCalendarViewProps, State> {
+     // Follow week-view.tsx patterns for:
+     // - Subscribing to CalendarDataSource
+     // - Rendering events
+     // - Handling navigation
+   }
+   ```
+
+2. **Register the view:**
+   ```typescript
+   // In calendar-constants.ts
+   export enum CalendarView {
+     WEEK = 'week',
+     MONTH = 'month',
+     DAY = 'day',  // Add new view
+   }
+
+   // In mailspring-calendar.tsx
+   const VIEWS = {
+     [CalendarView.WEEK]: WeekView,
+     [CalendarView.MONTH]: MonthView,
+     [CalendarView.DAY]: DayView,  // Register component
+   };
+   ```
+
+3. **Add navigation button:**
+   ```typescript
+   // In header-controls.tsx
+   // Add button for switching to day view
+   ```
+
+### Implementing Event Write Operations
+
+1. **Implement SyncbackEventTask:**
+   ```typescript
+   // app/src/flux/tasks/syncback-event-task.ts
+   export class SyncbackEventTask extends Task {
+     static attributes = {
+       ...Task.attributes,
+       eventId: Attributes.String({ modelKey: 'eventId' }),
+       operation: Attributes.String({ modelKey: 'operation' }), // 'create'|'update'|'delete'
+       icsData: Attributes.String({ modelKey: 'icsData' }),
+     };
+
+     label() { return localized('Saving event...'); }
+
+     async onSuccess() {
+       // Handle successful sync
+     }
+   }
+   ```
+
+2. **Enable in quick-event-popover.tsx:**
+   ```typescript
+   // Uncomment the commented code:
+   return DatabaseStore.inTransaction((t) => {
+     return t.persistModel(event);
+   }).then(() => {
+     const task = new SyncbackEventTask({ eventId: event.id, operation: 'create' });
+     Actions.queueTask(task);
+   });
+   ```
+
+3. **Sync engine implementation required** - The C++ sync engine must handle the task message and execute the calendar API calls.
 
 ---
 
