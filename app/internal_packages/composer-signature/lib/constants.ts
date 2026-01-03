@@ -4,8 +4,6 @@ import { localized } from 'mailspring-exports';
 import ReactDOMServer from 'react-dom/server';
 import Templates from './templates';
 
-export const RAW_TEMPLATE_NAME = 'raw';
-
 export const DataShape = [
   {
     key: 'name',
