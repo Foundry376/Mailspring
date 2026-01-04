@@ -1,22 +1,54 @@
-import { Event } from 'mailspring-exports';
+import { Task } from './task';
+import * as Attributes from '../attributes';
+import { Event } from '../models/event';
+import { AttributeValues } from '../models/model';
+import { localized } from '../../intl';
 
-export class SyncbackEventTask {
-  constructor() {
-    // id
-    throw new Error('Unimplemented!');
-    // super({id, endpoint: EVENTS_ENDPOINT})
+export class SyncbackEventTask extends Task {
+  static attributes = {
+    ...Task.attributes,
+
+    event: Attributes.Obj({
+      modelKey: 'event',
+      itemClass: Event,
+    }),
+    calendarId: Attributes.String({
+      modelKey: 'calendarId',
+    }),
+  };
+
+  event: Event;
+  calendarId: string;
+
+  static forCreating({
+    event,
+    calendarId,
+    accountId,
+  }: {
+    event: Event;
+    calendarId: string;
+    accountId: string;
+  }) {
+    return new SyncbackEventTask({
+      event,
+      calendarId,
+      accountId,
+    });
   }
 
-  getModelConstructor() {
-    return Event;
+  static forUpdating({ event }: { event: Event }) {
+    return new SyncbackEventTask({
+      event,
+      calendarId: event.calendarId,
+      accountId: event.accountId,
+    });
   }
 
-  // Removes the 'object' field from the event's 'when' data. This is only
-  // necessary because the current events API doesn't accept requests
-  // when this field is defined.
-  getRequestData(model) {
-    // const data = super.getRequestData(model);
-    // delete data.body.when.object;
-    // return data;
+  constructor(data: AttributeValues<typeof SyncbackEventTask.attributes> = {}) {
+    super(data);
+  }
+
+  label() {
+    return localized('Saving event...');
   }
 }
