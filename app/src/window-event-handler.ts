@@ -178,6 +178,85 @@ export default class WindowEventHandler {
       }
     });
 
+    // Handle context menu for contenteditable areas with native spellcheck
+    webContents.on('context-menu', (event, params) => {
+      // Only handle if we're in an editable area
+      if (!params.isEditable) {
+        return;
+      }
+
+      // Check if the right-click target is a contenteditable (composer) vs input/textarea
+      // For INPUT/TEXTAREA, we use the document contextmenu handler above
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        (activeElement.nodeName === 'INPUT' || activeElement.nodeName === 'TEXTAREA')
+      ) {
+        return;
+      }
+
+      const { Menu, MenuItem } = require('@electron/remote');
+      const menu = new Menu();
+
+      // Add spelling suggestions if there's a misspelled word
+      if (params.misspelledWord) {
+        if (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
+          for (const suggestion of params.dictionarySuggestions) {
+            menu.append(
+              new MenuItem({
+                label: suggestion,
+                click: () => webContents.replaceMisspelling(suggestion),
+              })
+            );
+          }
+        } else {
+          menu.append(new MenuItem({ label: localized('No Guesses Found'), enabled: false }));
+        }
+        menu.append(new MenuItem({ type: 'separator' }));
+
+        menu.append(
+          new MenuItem({
+            label: localized('Learn Spelling'),
+            click: () => {
+              webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord);
+            },
+          })
+        );
+        menu.append(new MenuItem({ type: 'separator' }));
+      }
+
+      // Add standard edit menu items
+      const hasSelection = params.selectionText && params.selectionText.length > 0;
+      menu.append(
+        new MenuItem({
+          label: localized('Cut'),
+          enabled: hasSelection,
+          click: () => webContents.cut(),
+        })
+      );
+      menu.append(
+        new MenuItem({
+          label: localized('Copy'),
+          enabled: hasSelection,
+          click: () => webContents.copy(),
+        })
+      );
+      menu.append(
+        new MenuItem({
+          label: localized('Paste'),
+          click: () => webContents.paste(),
+        })
+      );
+      menu.append(
+        new MenuItem({
+          label: localized('Paste and Match Style'),
+          click: () => webContents.pasteAndMatchStyle(),
+        })
+      );
+
+      menu.popup({});
+    });
+
     // Prevent form submits from changing the current window's URL
     document.addEventListener('submit', event => {
       if ((event.target as HTMLElement).nodeName === 'FORM') {

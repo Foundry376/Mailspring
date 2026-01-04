@@ -220,61 +220,6 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     return next();
   };
 
-  onContextMenu = event => {
-    event.preventDefault();
-
-    const sel = this.props.value.selection;
-    const hasSelectedText = !sel.isCollapsed;
-
-    let word = '';
-    if (hasSelectedText) {
-      // Use the selected text
-      word = this.props.value.fragment.text;
-    } else {
-      // Extract the word at the cursor position
-      const focusText = this.props.value.focusText;
-      if (focusText && sel.focus) {
-        const text = focusText.text;
-        const offset = sel.focus.offset;
-
-        // Find word boundaries around cursor
-        let start = offset;
-        let end = offset;
-
-        // Move start backward to find word beginning
-        while (start > 0 && !/[\s.,¿?!:()[\]+><"""|*&^%$#@—-]/.test(text[start - 1])) {
-          start--;
-        }
-
-        // Move end forward to find word ending
-        while (end < text.length && !/[\s.,¿?!:()[\]+><"""|*&^%$#@—-]/.test(text[end])) {
-          end++;
-        }
-
-        word = text.substring(start, end);
-
-        // Select the word so the correction replaces it properly
-        if (word && start !== end) {
-          const key = focusText.key;
-          this.editor.select({
-            anchor: { key, offset: start },
-            focus: { key, offset: end },
-            isFocused: true,
-          });
-        }
-      }
-    }
-
-    AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText || !!word, {
-      onCorrect: correction => {
-        this.editor.insertText(correction);
-      },
-      onRestoreSelection: () => {
-        this.editor.select(sel);
-      },
-    });
-  };
-
   onChange = (change: { operations: Immutable.List<Operation>; value: Value }) => {
     // This needs to be here because some composer plugins defer their calls to onChange
     // (like spellcheck and the context menu).
@@ -296,11 +241,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
         {this.editor && (
           <ComposerEditorToolbar editor={this.editor} plugins={plugins} value={value} />
         )}
-        <div
-          className="RichEditor-content"
-          onClick={this.onFocusIfBlurred}
-          onContextMenu={this.onContextMenu}
-        >
+        <div className="RichEditor-content" onClick={this.onFocusIfBlurred}>
           {this.editor &&
             PluginTopComponents.map((p, idx) => (
               <p.topLevelComponent key={idx} value={value} editor={this.editor} />
