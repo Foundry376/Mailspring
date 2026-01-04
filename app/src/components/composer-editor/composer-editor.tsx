@@ -7,6 +7,7 @@ import { clipboard as ElectronClipboard } from 'electron';
 import { InlineStyleTransformer } from 'mailspring-exports';
 import path from 'path';
 import fs from 'fs';
+import { debounce } from 'underscore';
 
 import { KeyCommandsRegion } from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
@@ -29,12 +30,23 @@ interface ComposerEditorProps {
   onUpdatedSlateEditor?: (editor: Editor | null) => void;
 }
 
-export class ComposerEditor extends React.Component<ComposerEditorProps> {
+interface ComposerEditorState {
+  isTyping: boolean;
+}
+
+export class ComposerEditor extends React.Component<ComposerEditorProps, ComposerEditorState> {
   // Public API
 
   _pluginKeyHandlers = {};
   _mounted = false;
   editor: Editor | null = null;
+  state: ComposerEditorState = { isTyping: false };
+
+  _onDoneTyping = debounce(() => {
+    if (this._mounted) {
+      this.setState({ isTyping: false });
+    }
+  }, 800);
 
   constructor(props) {
     super(props);
@@ -119,6 +131,16 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
     if (!this.props.value.selection.isFocused) {
       this.focus();
     }
+  };
+
+  onKeyDown = (event, editor: Editor, next: () => void) => {
+    // When the user types, disable spellcheck to avoid performance issues.
+    // After they stop typing for 800ms, re-enable it.
+    if (!this.state.isTyping) {
+      this.setState({ isTyping: true });
+    }
+    this._onDoneTyping();
+    return next();
   };
 
   onCopy = (event, editor: Editor, next: () => void) => {
@@ -258,10 +280,11 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
               if (onDrop) onDrop(e as React.DragEvent<any>);
               if (!e.isPropagationStopped()) next();
             }}
+            onKeyDown={this.onKeyDown}
             onCut={this.onCut}
             onCopy={this.onCopy}
             onPaste={this.onPaste}
-            spellCheck={false}
+            spellCheck={!this.state.isTyping && AppEnv.config.get('core.composing.spellcheck')}
             plugins={(plugins as any) as Plugin[]}
             propsForPlugins={propsForPlugins}
           />
