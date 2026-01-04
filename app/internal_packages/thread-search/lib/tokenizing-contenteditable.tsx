@@ -120,6 +120,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
   };
 
   onContextMenu = event => {
+    event.preventDefault();
     const sel = document.getSelection();
     AppEnv.windowEventHandler.openSpellingMenuFor(sel.toString(), !sel.isCollapsed, {
       onCorrect: correction => {
