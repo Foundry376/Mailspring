@@ -28,6 +28,21 @@ export class Event extends Model {
       modelKey: 'icsuid',
     }),
 
+    // RECURRENCE-ID for exception instances (e.g., "20240115T100000Z")
+    // Empty string for master events, contains the original occurrence date for exceptions
+    recurrenceId: Attributes.String({
+      queryable: true,
+      jsonKey: 'rid',
+      modelKey: 'recurrenceId',
+    }),
+
+    // STATUS: TENTATIVE, CONFIRMED, or CANCELLED
+    status: Attributes.String({
+      queryable: true,
+      jsonKey: 'status',
+      modelKey: 'status',
+    }),
+
     // The calculated Unix start time. See the implementation for how we
     // treat each type of "when" attribute.
     recurrenceStart: Attributes.Number({
@@ -59,6 +74,9 @@ export class Event extends Model {
 
   calendarId: string;
   ics: string;
+  icsuid: string;
+  recurrenceId: string;
+  status: string;
   recurrenceEnd: number;
   recurrenceStart: number;
   title: string;
@@ -66,6 +84,29 @@ export class Event extends Model {
 
   constructor(data: AttributeValues<typeof Event.attributes>) {
     super(data);
+  }
+
+  /**
+   * Returns true if this event is a recurrence exception (modified or cancelled instance)
+   * Exceptions have a non-empty recurrenceId that identifies which occurrence was modified
+   */
+  isRecurrenceException(): boolean {
+    return !!this.recurrenceId;
+  }
+
+  /**
+   * Returns true if this event has been cancelled
+   * Cancelled events may still be stored to show "this occurrence was cancelled"
+   */
+  isCancelled(): boolean {
+    return this.status === 'CANCELLED';
+  }
+
+  /**
+   * Returns the UID shared by the master event and all its exceptions
+   */
+  masterEventUID(): string {
+    return this.icsuid;
   }
 
   displayTitle() {

@@ -96,7 +96,14 @@ export class CalendarEvent extends React.Component<CalendarEventProps> {
         top: d.left,
       };
     }
-    styles.backgroundColor = calcColor(this.props.event.calendarId);
+    const color = calcColor(this.props.event.calendarId);
+    if (this.props.event.isCancelled) {
+      // Cancelled events get a transparent background with colored border
+      styles.backgroundColor = 'transparent';
+      styles.borderColor = color;
+    } else {
+      styles.backgroundColor = color;
+    }
     return styles;
   }
 
@@ -107,18 +114,29 @@ export class CalendarEvent extends React.Component<CalendarEventProps> {
   render() {
     const { direction, event, onClick, onDoubleClick, selected } = this.props;
 
+    const classNames = [
+      'calendar-event',
+      direction,
+      selected && 'selected',
+      event.isCancelled && 'cancelled',
+      event.isException && 'exception',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
     return (
       <div
         id={event.id}
         tabIndex={0}
         style={this._getStyles()}
-        className={`calendar-event ${direction} ${selected ? 'selected' : null}`}
+        className={classNames}
         onClick={e => onClick(e, event)}
         onDoubleClick={() => onDoubleClick(event)}
       >
         <span className="default-header" style={{ order: 0 }}>
-          {event.title}
+          {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
+        {event.isException && <span className="exception-tag">Modified</span>}
         <InjectedComponentSet
           className="event-injected-components"
           style={{ position: 'absolute' }}

@@ -113,6 +113,47 @@ body.platform-win32 {
     &.selected {
       background-color: @accent-primary !important;
     }
+
+    // Cancelled events: dotted border, transparent background, strikethrough text
+    &.cancelled {
+      border: 2px dashed;
+      border-bottom: 2px dashed;
+      background-color: transparent !important;
+      .default-header {
+        opacity: 0.5;
+        s {
+          text-decoration: line-through;
+        }
+      }
+      &:before {
+        display: none; // Hide the left accent bar for cancelled events
+      }
+    }
+
+    // Exception events: small "Modified" tag in corner
+    &.exception {
+      .exception-tag {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        font-size: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        background: rgba(0, 0, 0, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+        padding: 1px 3px;
+        border-radius: 2px;
+        line-height: 1;
+        letter-spacing: 0.3px;
+      }
+    }
+
+    // Hide exception tag on cancelled events (the visual is clear enough)
+    &.cancelled.exception {
+      .exception-tag {
+        display: none;
+      }
+    }
   }
 
   .calendar-mouse-handler {
