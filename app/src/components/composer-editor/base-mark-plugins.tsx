@@ -104,7 +104,7 @@ export const MARK_CONFIG: {
   codeInline: {
     type: 'codeInline',
     tagNames: ['code'],
-    render: props => <code>{props.children}</code>,
+    render: props => <code spellCheck={false}>{props.children}</code>,
   },
 
   color: {
