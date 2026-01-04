@@ -22,6 +22,7 @@ import { EventSearchBar } from './event-search-bar';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
+import { setCalendarColors } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -110,6 +111,9 @@ export class MailspringCalendar extends React.Component<
 
     return Rx.Observable.combineLatest(calQueryObs, accQueryObs, configObs).subscribe(
       ([calendars, accountStore, disabledCalendars]) => {
+        // Update the color cache with synced calendar colors from CalDAV
+        setCalendarColors(calendars);
+
         this.setState({
           calendars: calendars,
           accounts: accountStore.accounts(),
