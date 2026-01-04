@@ -306,15 +306,6 @@ const start = () => {
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch('js-flags', '--harmony');
 
-  // Disable Windows native spellchecker to force Hunspell dictionary usage.
-  // On Windows 8+, Chromium uses the Windows Spell Check API for en-US which
-  // can fail silently if the language pack is incomplete. This forces the use
-  // of Hunspell dictionaries for reliable spellchecking across all languages.
-  // Reference: https://bitbucket.org/chromiumembedded/cef/issues/3055
-  if (process.platform === 'win32') {
-    app.commandLine.appendSwitch('disable-features', 'WinUseBrowserSpellChecker');
-  }
-
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);
   const configDirPath = setupConfigDir(options);
