@@ -223,11 +223,49 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
   onContextMenu = event => {
     event.preventDefault();
 
-    const word = this.props.value.fragment.text;
     const sel = this.props.value.selection;
     const hasSelectedText = !sel.isCollapsed;
 
-    AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText, {
+    let word = '';
+    if (hasSelectedText) {
+      // Use the selected text
+      word = this.props.value.fragment.text;
+    } else {
+      // Extract the word at the cursor position
+      const focusText = this.props.value.focusText;
+      if (focusText && sel.focus) {
+        const text = focusText.text;
+        const offset = sel.focus.offset;
+
+        // Find word boundaries around cursor
+        let start = offset;
+        let end = offset;
+
+        // Move start backward to find word beginning
+        while (start > 0 && !/[\s.,¿?!:()[\]+><"""|*&^%$#@—-]/.test(text[start - 1])) {
+          start--;
+        }
+
+        // Move end forward to find word ending
+        while (end < text.length && !/[\s.,¿?!:()[\]+><"""|*&^%$#@—-]/.test(text[end])) {
+          end++;
+        }
+
+        word = text.substring(start, end);
+
+        // Select the word so the correction replaces it properly
+        if (word && start !== end) {
+          const key = focusText.key;
+          this.editor.select({
+            anchor: { key, offset: start },
+            focus: { key, offset: end },
+            isFocused: true,
+          });
+        }
+      }
+    }
+
+    AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText || !!word, {
       onCorrect: correction => {
         this.editor.insertText(correction);
       },
