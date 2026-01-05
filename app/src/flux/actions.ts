@@ -545,6 +545,9 @@ export const searchQuerySubmitted = create('searchQuerySubmitted', ActionScopeWi
 export const searchQueryChanged = create('searchQueryChanged', ActionScopeWindow);
 export const searchCompleted = create('searchCompleted', ActionScopeWindow);
 
+// Calendar
+export const focusCalendarEvent = create('focusCalendarEvent', ActionScopeWindow);
+
 // Templates
 export const insertTemplateId = create('insertTemplateId', ActionScopeWindow);
 export const createTemplate = create('createTemplate', ActionScopeWindow);

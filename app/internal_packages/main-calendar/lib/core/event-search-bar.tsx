@@ -1,47 +1,57 @@
 import React, { Component } from 'react';
 import moment from 'moment-timezone';
-import { Event, DatabaseStore, localized, Calendar } from 'mailspring-exports';
-import { Menu, RetinaImg } from 'mailspring-component-kit';
+import { Rx, Event, DatabaseStore, localized, Calendar, Actions } from 'mailspring-exports';
+import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 import { EventOccurrence, occurrencesForEvents } from './calendar-data-source';
+import { Disposable } from 'rx-core';
 
-interface EventSearchBarProps {
-  disabledCalendars: string[];
-  onSelectEvent: (event: EventOccurrence) => void;
-}
+const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 interface EventSearchBarState {
   query: string;
   suggestions: EventOccurrence[];
   calendars: Map<string, Calendar>;
+  disabledCalendars: string[];
   focused: boolean;
+  selectedIdx: number;
   loading: boolean;
 }
 
-export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBarState> {
+export class EventSearchBar extends Component<Record<string, unknown>, EventSearchBarState> {
   static displayName = 'EventSearchBar';
 
   private _searchTimeout: ReturnType<typeof setTimeout> | null = null;
   private _inputRef = React.createRef<HTMLInputElement>();
-  private _menuRef = React.createRef<Menu>();
+  private _disposable?: Disposable;
 
-  constructor(props: EventSearchBarProps) {
+  constructor(props: Record<string, unknown>) {
     super(props);
     this.state = {
       query: '',
       suggestions: [],
       calendars: new Map(),
+      disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
       focused: false,
+      selectedIdx: -1,
       loading: false,
     };
   }
 
   componentDidMount() {
     this._loadCalendars();
+    this._disposable = Rx.Observable.fromConfig<string[] | undefined>(DISABLED_CALENDARS).subscribe(
+      disabledCalendars => {
+        this.setState({ disabledCalendars: disabledCalendars || [] });
+      }
+    );
   }
 
   componentWillUnmount() {
     if (this._searchTimeout) {
       clearTimeout(this._searchTimeout);
+    }
+    if (this._disposable) {
+      this._disposable.dispose();
     }
   }
 
@@ -54,7 +64,7 @@ export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBa
 
   _onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
-    this.setState({ query });
+    this.setState({ query, selectedIdx: -1 });
     this._debouncedSearch(query);
   };
 
@@ -76,7 +86,7 @@ export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBa
   };
 
   _performSearch = async (query: string) => {
-    const { disabledCalendars } = this.props;
+    const { disabledCalendars } = this.state;
 
     try {
       let dbQuery = DatabaseStore.findAll<Event>(Event).distinct();
@@ -105,6 +115,7 @@ export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBa
       this.setState({
         suggestions: suggestions.slice(0, 10),
         loading: false,
+        selectedIdx: suggestions.length > 0 ? 0 : -1,
       });
     } catch (error) {
       console.error('Event search error:', error);
@@ -113,30 +124,28 @@ export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBa
   };
 
   _onClearSearch = () => {
-    this.setState({ query: '', suggestions: [] });
+    this.setState({ query: '', suggestions: [], selectedIdx: -1 });
     this._inputRef.current?.focus();
   };
 
   _onSelectEvent = (event: EventOccurrence) => {
-    this.setState({ query: '', suggestions: [], focused: false });
-    setImmediate(() => {
-      this.props.onSelectEvent(event);
-    });
+    this.setState({ query: '', suggestions: [], focused: false, selectedIdx: -1 });
+    Actions.focusCalendarEvent(event);
   };
 
   _onFocus = () => {
     this.setState({ focused: true });
   };
 
-  _onBlur = (e: React.FocusEvent) => {
-    // Delay blur to allow menu item clicks to register
+  _onBlur = () => {
+    // Delay blur to allow suggestion clicks to register
     setTimeout(() => {
       this.setState({ focused: false });
     }, 150);
   };
 
   _onKeyDown = (e: React.KeyboardEvent) => {
-    const { suggestions } = this.state;
+    const { suggestions, selectedIdx } = this.state;
 
     if (suggestions.length === 0) {
       if (e.key === 'Escape') {
@@ -148,24 +157,20 @@ export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBa
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        this._menuRef.current?.setSelectedIndex(
-          Math.min(
-            (this._menuRef.current?.getSelectedIndex?.() ?? -1) + 1,
-            suggestions.length - 1
-          )
-        );
+        this.setState({
+          selectedIdx: Math.min(selectedIdx + 1, suggestions.length - 1),
+        });
         break;
       case 'ArrowUp':
         e.preventDefault();
-        this._menuRef.current?.setSelectedIndex(
-          Math.max((this._menuRef.current?.getSelectedIndex?.() ?? 0) - 1, 0)
-        );
+        this.setState({
+          selectedIdx: Math.max(selectedIdx - 1, 0),
+        });
         break;
       case 'Enter':
         e.preventDefault();
-        const selectedItem = this._menuRef.current?.getSelectedItem?.();
-        if (selectedItem) {
-          this._onSelectEvent(selectedItem);
+        if (selectedIdx >= 0 && selectedIdx < suggestions.length) {
+          this._onSelectEvent(suggestions[selectedIdx]);
         }
         break;
       case 'Escape':
@@ -187,7 +192,7 @@ export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBa
     }
 
     if (start.isSame(end, 'day')) {
-      return `${start.format('ddd, MMM D')} at ${start.format('h:mm A')} - ${end.format('h:mm A')}`;
+      return `${start.format('ddd, MMM D')} \u00B7 ${start.format('h:mm A')} - ${end.format('h:mm A')}`;
     }
 
     return `${start.format('MMM D, h:mm A')} - ${end.format('MMM D, h:mm A')}`;
@@ -217,83 +222,75 @@ export class EventSearchBar extends Component<EventSearchBarProps, EventSearchBa
     return colors[Math.abs(hash) % colors.length];
   };
 
-  _renderEventItem = (event: EventOccurrence) => {
-    const color = this._getCalendarColor(event.calendarId);
-
-    return (
-      <div className="event-search-item">
-        <div className="event-search-item-header">
-          <span className="event-search-calendar-dot" style={{ backgroundColor: color }} />
-          <span className="event-search-item-title">{event.title || localized('(No title)')}</span>
-        </div>
-        <div className="event-search-item-time">{this._formatEventTime(event)}</div>
-        {event.location && (
-          <div className="event-search-item-location">{event.location}</div>
-        )}
-      </div>
-    );
-  };
-
   render() {
-    const { query, suggestions, focused, loading } = this.state;
-    const showDropdown = focused && (suggestions.length > 0 || (query.length > 1 && !loading));
+    const { query, suggestions, focused, selectedIdx, loading } = this.state;
+    const showPlaceholder = !focused && query.length === 0;
+    const showX = query.length > 0 && focused;
 
     return (
-      <div className="event-search-bar">
-        <div className="event-search-input-container">
+      <KeyCommandsRegion className="event-search-bar" tabIndex={-1}>
+        {loading ? (
           <RetinaImg
-            className="event-search-icon"
+            className="search-accessory search loading"
+            name="inline-loading-spinner.gif"
+            mode={RetinaImg.Mode.ContentPreserve}
+          />
+        ) : (
+          <RetinaImg
+            className="search-accessory search"
             name="searchloupe.png"
             mode={RetinaImg.Mode.ContentDark}
+            onClick={() => this._inputRef.current?.focus()}
           />
-          <input
-            ref={this._inputRef}
-            type="text"
-            className="event-search-input"
-            placeholder={localized('Search events...')}
-            value={query}
-            onChange={this._onInputChange}
-            onFocus={this._onFocus}
-            onBlur={this._onBlur}
-            onKeyDown={this._onKeyDown}
+        )}
+        <input
+          ref={this._inputRef}
+          type="text"
+          className="event-search-input"
+          placeholder={showPlaceholder ? localized('Search events') : ''}
+          value={query}
+          onChange={this._onInputChange}
+          onFocus={this._onFocus}
+          onBlur={this._onBlur}
+          onKeyDown={this._onKeyDown}
+        />
+        {showX && (
+          <RetinaImg
+            name="searchclear.png"
+            className="search-accessory clear"
+            mode={RetinaImg.Mode.ContentDark}
+            onMouseDown={this._onClearSearch}
           />
-          {query && (
-            <button
-              className="event-search-clear"
-              onClick={this._onClearSearch}
-              tabIndex={-1}
-            >
-              <RetinaImg
-                name="clear-search.svg"
-                style={{ width: 16, height: 16 }}
-                mode={RetinaImg.Mode.ContentIsMask}
-              />
-            </button>
-          )}
-          {loading && <div className="event-search-loading" />}
-        </div>
-
-        {showDropdown && (
-          <div className="event-search-suggestions">
-            {suggestions.length > 0 ? (
-              <Menu
-                ref={this._menuRef as any}
-                items={suggestions}
-                itemKey={(event: EventOccurrence) => event.id}
-                itemContent={this._renderEventItem}
-                onSelect={this._onSelectEvent}
-                onEscape={this._onClearSearch}
-                onExpand={() => {}}
-                defaultSelectedIndex={0}
-              />
-            ) : (
-              <div className="event-search-no-results">
-                {localized('No events found for "%@"', query)}
-              </div>
-            )}
+        )}
+        {suggestions.length > 0 && focused && (
+          <div className="suggestions">
+            {suggestions.map((event, idx) => {
+              const color = this._getCalendarColor(event.calendarId);
+              return (
+                <div
+                  key={event.id}
+                  className={`suggestion ${selectedIdx === idx ? 'selected' : ''}`}
+                  onMouseDown={e => {
+                    this._onSelectEvent(event);
+                    e.preventDefault();
+                  }}
+                >
+                  <span className="suggestion-calendar-dot" style={{ backgroundColor: color }} />
+                  <span className="suggestion-content">
+                    <span className="suggestion-title">
+                      {event.title || localized('(No title)')}
+                    </span>
+                    <span className="suggestion-time">{this._formatEventTime(event)}</span>
+                    {event.location && (
+                      <span className="suggestion-location">{event.location}</span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
-      </div>
+      </KeyCommandsRegion>
     );
   }
 }
