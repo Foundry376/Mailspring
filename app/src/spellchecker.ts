@@ -1,9 +1,7 @@
-import { webFrame } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import { localized } from './intl';
 
-const { app, MenuItem } = require('@electron/remote');
+const { app } = require('@electron/remote');
 const customDictFilePath = path.join(AppEnv.getConfigDirPath(), 'custom-dict.json');
 
 class Spellchecker {
@@ -64,10 +62,6 @@ class Spellchecker {
     });
   };
 
-  isMisspelled = (word: string) => {
-    return webFrame.isWordMisspelled(word);
-  };
-
   learnWord = (word: string) => {
     // TODO: Ensure that this work. Somehow on my Ubuntu 20.12., this does not add words to the custom dict.
     this._session.addWordToSpellCheckerDictionary(word);
@@ -75,38 +69,6 @@ class Spellchecker {
 
   unlearnWord = (word: string) => {
     this._session.removeWordFromSpellCheckerDictionary(word);
-  };
-
-  appendSpellingItemsToMenu = async ({ menu, word, onCorrect, onDidLearn }) => {
-    if (this.isMisspelled(word)) {
-      const corrections = webFrame.getWordSuggestions(word);
-      if (corrections.length > 0) {
-        corrections.forEach(correction => {
-          menu.append(
-            new MenuItem({
-              label: correction,
-              click: () => onCorrect(correction),
-            })
-          );
-        });
-      } else {
-        menu.append(new MenuItem({ label: localized('No Guesses Found'), enabled: false }));
-      }
-      menu.append(new MenuItem({ type: 'separator' }));
-
-      menu.append(
-        new MenuItem({
-          label: localized('Learn Spelling'),
-          click: () => {
-            this.learnWord(word);
-            if (onDidLearn) {
-              onDidLearn(word);
-            }
-          },
-        })
-      );
-      menu.append(new MenuItem({ type: 'separator' }));
-    }
   };
 }
 

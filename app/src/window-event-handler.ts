@@ -4,7 +4,6 @@ import url from 'url';
 import { localized } from './intl';
 
 let ComponentRegistry = null;
-let Spellchecker = null;
 
 const isIFrame = (node: EventTarget) => {
   return node instanceof HTMLElement && node.tagName === 'IFRAME';
@@ -171,27 +170,10 @@ export default class WindowEventHandler {
       }
     });
 
-    document.addEventListener('contextmenu', event => {
-      const nodeName = (event.target as HTMLElement).nodeName;
-      if (nodeName === 'INPUT' || nodeName === 'TEXTAREA') {
-        this.openContextualMenuForInput(event);
-      }
-    });
-
-    // Handle context menu for contenteditable areas with native spellcheck
+    // Handle context menu for all editable areas with native spellcheck
     webContents.on('context-menu', (event, params) => {
       // Only handle if we're in an editable area
       if (!params.isEditable) {
-        return;
-      }
-
-      // Check if the right-click target is a contenteditable (composer) vs input/textarea
-      // For INPUT/TEXTAREA, we use the document contextmenu handler above
-      const activeElement = document.activeElement;
-      if (
-        activeElement &&
-        (activeElement.nodeName === 'INPUT' || activeElement.nodeName === 'TEXTAREA')
-      ) {
         return;
       }
 
@@ -388,99 +370,6 @@ export default class WindowEventHandler {
       shell.openExternal(resolved, { activate: !metaKey });
     }
     return;
-  }
-
-  openContextualMenuForInput(event) {
-    event.preventDefault();
-
-    const textualInputs = ['text', 'password', 'email', 'number', 'range', 'search', 'tel', 'url'];
-    if (event.target.nodeName === 'INPUT' && !textualInputs.includes(event.target.type)) {
-      return;
-    }
-
-    const supportsCutCopy = event.target.type !== 'password';
-    if (!supportsCutCopy) {
-      this.openSpellingMenuFor('', false, {});
-      return;
-    }
-
-    const hasSelectedText = event.target.selectionStart !== event.target.selectionEnd;
-    let wordStart = null;
-    let wordEnd = null;
-
-    if (hasSelectedText) {
-      wordStart = event.target.selectionStart;
-      wordEnd = event.target.selectionEnd;
-    } else {
-      wordStart = event.target.value.lastIndexOf(' ', event.target.selectionStart);
-      if (wordStart === -1) {
-        wordStart = 0;
-      }
-      wordEnd = event.target.value.indexOf(' ', event.target.selectionStart);
-      if (wordEnd === -1) {
-        wordEnd = event.target.value.length;
-      }
-    }
-    const word = event.target.value.substr(wordStart, wordEnd - wordStart);
-
-    this.openSpellingMenuFor(word, hasSelectedText, {
-      onCorrect: (correction: string) => {
-        const insertionPoint = wordStart + correction.length;
-        event.target.value = event.target.value.replace(word, correction);
-        event.target.setSelectionRange(insertionPoint, insertionPoint);
-      },
-    });
-  }
-
-  async openSpellingMenuFor(
-    word,
-    hasSelectedText,
-    {
-      onCorrect,
-      onRestoreSelection = () => {},
-    }: { onCorrect?: (correction: string) => void; onRestoreSelection?: () => void }
-  ) {
-    const { Menu, MenuItem } = require('@electron/remote');
-    const menu = new Menu();
-
-    if (word) {
-      Spellchecker = Spellchecker || require('./spellchecker').default;
-      await Spellchecker.appendSpellingItemsToMenu({ menu, word, onCorrect });
-    }
-
-    menu.append(
-      new MenuItem({
-        label: localized('Cut'),
-        enabled: hasSelectedText,
-        click: () => AppEnv.commands.dispatch('core:cut'),
-      })
-    );
-    menu.append(
-      new MenuItem({
-        label: localized('Copy'),
-        enabled: hasSelectedText,
-        click: () => AppEnv.commands.dispatch('core:copy'),
-      })
-    );
-    menu.append(
-      new MenuItem({
-        label: localized('Paste'),
-        click: () => {
-          onRestoreSelection();
-          AppEnv.commands.dispatch('core:paste');
-        },
-      })
-    );
-    menu.append(
-      new MenuItem({
-        label: localized('Paste and Match Style'),
-        click: () => {
-          onRestoreSelection();
-          AppEnv.commands.dispatch('core:paste-and-match-style');
-        },
-      })
-    );
-    menu.popup({});
   }
 
   showDevModeMessages() {
