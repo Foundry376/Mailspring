@@ -15,7 +15,6 @@ import React from 'react';
 
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins, { VARIABLE_TYPE } from './template-plugins';
-import SpellcheckPlugins from './spellcheck-plugins';
 import UneditablePlugins, { UNEDITABLE_TYPE } from './uneditable-plugins';
 import BaseBlockPlugins, { BLOCK_CONFIG, isQuoteNode } from './base-block-plugins';
 import InlineAttachmentPlugins, { IMAGE_TYPE } from './inline-attachment-plugins';
@@ -60,7 +59,6 @@ export const plugins: ComposerEditorPlugin[] = [
   ...LinkPlugins,
   ...BaseBlockPlugins,
   ...MarkdownPlugins,
-  ...SpellcheckPlugins,
 ];
 
 const cssValueIsZero = (val: string | number) => {

@@ -95,7 +95,11 @@ export const BLOCK_CONFIG: {
   blockquote: {
     type: BLOCKQUOTE_TYPE,
     tagNames: ['blockquote'],
-    render: props => <blockquote {...props.attributes}>{props.children}</blockquote>,
+    render: props => (
+      <blockquote {...props.attributes} spellCheck={false}>
+        {props.children}
+      </blockquote>
+    ),
     button: {
       iconClass: 'fa fa-quote-left',
       isActive: value => {
@@ -110,7 +114,7 @@ export const BLOCK_CONFIG: {
     type: 'code',
     tagNames: ['pre'],
     render: props => (
-      <code {...props.attributes}>
+      <code {...props.attributes} spellCheck={false}>
         <pre
           style={{
             backgroundColor: `rgba(0,0,0,0.05)`,

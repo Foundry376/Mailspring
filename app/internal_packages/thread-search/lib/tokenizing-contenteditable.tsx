@@ -119,21 +119,12 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
     this.props.onChange(value);
   };
 
-  onContextMenu = event => {
-    const sel = document.getSelection();
-    AppEnv.windowEventHandler.openSpellingMenuFor(sel.toString(), !sel.isCollapsed, {
-      onCorrect: correction => {
-        document.execCommand('insertText', false, correction);
-      },
-    });
-  };
-
   render() {
     return (
-      <div className="tokenizing-contenteditable" onContextMenu={this.onContextMenu}>
+      <div className="tokenizing-contenteditable">
         <div
           contentEditable
-          spellCheck={false}
+          spellCheck={true}
           className="layer layer-text"
           ref={el => (this._textEl = el)}
           dangerouslySetInnerHTML={{ __html: this.props.value.replace(/\s/g, '&nbsp;') }}

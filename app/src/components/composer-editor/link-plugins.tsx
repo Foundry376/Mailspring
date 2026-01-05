@@ -56,6 +56,7 @@ function renderMark({ mark, children, targetIsHTML }, editor: Editor = null, nex
       <span
         className="link"
         title={href}
+        spellCheck={false}
         onClick={e => {
           if (e.ctrlKey || e.metaKey || e.altKey) {
             AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });

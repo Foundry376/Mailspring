@@ -7,6 +7,7 @@ import { clipboard as ElectronClipboard } from 'electron';
 import { InlineStyleTransformer } from 'mailspring-exports';
 import path from 'path';
 import fs from 'fs';
+import { debounce } from 'underscore';
 
 import { KeyCommandsRegion } from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
@@ -29,12 +30,23 @@ interface ComposerEditorProps {
   onUpdatedSlateEditor?: (editor: Editor | null) => void;
 }
 
-export class ComposerEditor extends React.Component<ComposerEditorProps> {
+interface ComposerEditorState {
+  isTyping: boolean;
+}
+
+export class ComposerEditor extends React.Component<ComposerEditorProps, ComposerEditorState> {
   // Public API
 
   _pluginKeyHandlers = {};
   _mounted = false;
   editor: Editor | null = null;
+  state: ComposerEditorState = { isTyping: false };
+
+  _onDoneTyping = debounce(() => {
+    if (this._mounted) {
+      this.setState({ isTyping: false });
+    }
+  }, 800);
 
   constructor(props) {
     super(props);
@@ -121,6 +133,16 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
     }
   };
 
+  onKeyDown = (event, editor: Editor, next: () => void) => {
+    // When the user types, disable spellcheck to avoid performance issues.
+    // After they stop typing for 800ms, re-enable it.
+    if (!this.state.isTyping) {
+      this.setState({ isTyping: true });
+    }
+    this._onDoneTyping();
+    return next();
+  };
+
   onCopy = (event, editor: Editor, next: () => void) => {
     const sel = document.getSelection();
 
@@ -198,23 +220,6 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
     return next();
   };
 
-  onContextMenu = event => {
-    event.preventDefault();
-
-    const word = this.props.value.fragment.text;
-    const sel = this.props.value.selection;
-    const hasSelectedText = !sel.isCollapsed;
-
-    AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText, {
-      onCorrect: correction => {
-        this.editor.insertText(correction);
-      },
-      onRestoreSelection: () => {
-        this.editor.select(sel);
-      },
-    });
-  };
-
   onChange = (change: { operations: Immutable.List<Operation>; value: Value }) => {
     // This needs to be here because some composer plugins defer their calls to onChange
     // (like spellcheck and the context menu).
@@ -236,11 +241,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
         {this.editor && (
           <ComposerEditorToolbar editor={this.editor} plugins={plugins} value={value} />
         )}
-        <div
-          className="RichEditor-content"
-          onClick={this.onFocusIfBlurred}
-          onContextMenu={this.onContextMenu}
-        >
+        <div className="RichEditor-content" onClick={this.onFocusIfBlurred}>
           {this.editor &&
             PluginTopComponents.map((p, idx) => (
               <p.topLevelComponent key={idx} value={value} editor={this.editor} />
@@ -258,10 +259,11 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
               if (onDrop) onDrop(e as React.DragEvent<any>);
               if (!e.isPropagationStopped()) next();
             }}
+            onKeyDown={this.onKeyDown}
             onCut={this.onCut}
             onCopy={this.onCopy}
             onPaste={this.onPaste}
-            spellCheck={false}
+            spellCheck={!this.state.isTyping && AppEnv.config.get('core.composing.spellcheck')}
             plugins={(plugins as any) as Plugin[]}
             propsForPlugins={propsForPlugins}
           />
