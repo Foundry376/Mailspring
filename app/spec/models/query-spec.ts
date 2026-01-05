@@ -192,6 +192,31 @@ describe('ModelQuery', function ModelQuerySpecs() {
       });
     });
 
+    it('should correctly generate ORDER BY with single sort order', () => {
+      this.runScenario(Thread, {
+        builder: q => q.where({ accountId: 'abcd' }).order(Thread.attributes.unread.descending()),
+
+        sql:
+          'SELECT `Thread`.`data`  FROM `Thread`  ' +
+          "WHERE `Thread`.`accountId` = 'abcd'  " +
+          'ORDER BY `Thread`.`unread` DESC',
+      });
+    });
+
+    it('should correctly generate ORDER BY with multiple sort orders', () => {
+      this.runScenario(Thread, {
+        builder: q => q.where({ accountId: 'abcd' }).order([
+          Thread.attributes.lastMessageReceivedTimestamp.ascending(),
+          Thread.attributes.unread.descending(),
+        ]),
+
+        sql:
+          'SELECT `Thread`.`data`  FROM `Thread`  ' +
+          "WHERE `Thread`.`accountId` = 'abcd'  " +
+          'ORDER BY `Thread`.`lastMessageReceivedTimestamp` ASC, `Thread`.`unread` DESC',
+      });
+    });
+
     it('should correctly generate `contains` queries using JOINS', () => {
       this.runScenario(Thread, {
         builder: q =>
