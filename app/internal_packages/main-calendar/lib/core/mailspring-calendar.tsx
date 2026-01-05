@@ -26,6 +26,7 @@ import { setCalendarColors } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
+import { QuickEventPopover } from '../quick-event-popover';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -204,6 +205,12 @@ export class MailspringCalendar extends React.Component<
   _onCalendarMouseMove = () => {};
   _onCalendarMouseUp = () => {};
 
+  _onCreateEvent = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const buttonRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    Actions.openPopover(<QuickEventPopover />, { originRect: buttonRect, direction: 'down' });
+  };
+
   render() {
     const CurrentView = VIEWS[this.state.view];
 
@@ -234,7 +241,11 @@ export class MailspringCalendar extends React.Component<
             />
           </ScrollRegion>
           <div style={{ width: '100%' }}>
-            <MiniMonthView value={this.state.focusedMoment} onChange={this.onChangeFocusedMoment} />
+            <MiniMonthView
+              value={this.state.focusedMoment}
+              onChange={this.onChangeFocusedMoment}
+              onCreateEvent={this._onCreateEvent}
+            />
           </div>
         </ResizableRegion>
         <CurrentView
