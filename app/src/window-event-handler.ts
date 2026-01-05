@@ -208,18 +208,20 @@ export default class WindowEventHandler {
       }
 
       // Add standard edit menu items
+      // Disable cut/copy for password fields
       const hasSelection = params.selectionText && params.selectionText.length > 0;
+      const isPasswordField = params.inputFieldType === 'password';
       menu.append(
         new MenuItem({
           label: localized('Cut'),
-          enabled: hasSelection,
+          enabled: hasSelection && !isPasswordField,
           click: () => webContents.cut(),
         })
       );
       menu.append(
         new MenuItem({
           label: localized('Copy'),
-          enabled: hasSelection,
+          enabled: hasSelection && !isPasswordField,
           click: () => webContents.copy(),
         })
       );
