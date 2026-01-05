@@ -42,6 +42,7 @@
     padding: 3px 8px;
     border-radius: 4px;
     border: 1px solid fade(@background-primary, 20%);
+    cursor: pointer;
 
     img {
       background-color: @background-primary;
@@ -50,6 +51,11 @@
     &:hover {
       background: fade(@black, 30%);
       border: 1px solid fade(@background-primary, 30%);
+    }
+
+    &:active {
+      background: fade(@black, 45%);
+      border: 1px solid fade(@background-primary, 40%);
     }
 
     .send-action-text,
