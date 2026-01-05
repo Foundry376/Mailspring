@@ -207,33 +207,32 @@ export default class WindowEventHandler {
         menu.append(new MenuItem({ type: 'separator' }));
       }
 
-      // Add standard edit menu items
-      // Disable cut/copy for password fields
-      const hasSelection = params.selectionText && params.selectionText.length > 0;
-      const isPasswordField = params.inputFieldType === 'password';
+      // Add standard edit menu items using editFlags from Electron
       menu.append(
         new MenuItem({
           label: localized('Cut'),
-          enabled: hasSelection && !isPasswordField,
+          enabled: params.editFlags.canCut,
           click: () => webContents.cut(),
         })
       );
       menu.append(
         new MenuItem({
           label: localized('Copy'),
-          enabled: hasSelection && !isPasswordField,
+          enabled: params.editFlags.canCopy,
           click: () => webContents.copy(),
         })
       );
       menu.append(
         new MenuItem({
           label: localized('Paste'),
+          enabled: params.editFlags.canPaste,
           click: () => webContents.paste(),
         })
       );
       menu.append(
         new MenuItem({
           label: localized('Paste and Match Style'),
+          enabled: params.editFlags.canPaste,
           click: () => webContents.pasteAndMatchStyle(),
         })
       );
