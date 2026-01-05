@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
@@ -41,18 +40,14 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   _renderDays(month: Moment) {
     const curMonthNumber = month.month();
 
-    const dayIter = month.clone().date(1);
-    const startWeek = dayIter.week();
-    const endWeek = moment(dayIter)
-      .date(dayIter.daysInMonth())
-      .week();
+    // Start from the beginning of the week that contains the 1st of the month
+    const dayIter = month.clone().date(1).startOf('week');
 
+    // Always render 6 weeks for consistent height
     const weekEls = [];
-    for (let week = startWeek; week <= endWeek; week++) {
-      dayIter.week(week); // Locale aware!
+    for (let weekIndex = 0; weekIndex < 6; weekIndex++) {
       const dayEls = [];
       for (let weekday = 0; weekday < 7; weekday++) {
-        dayIter.weekday(weekday); // Locale aware!
         const dayStr = dayIter.format('D');
         const className = classnames({
           day: true,
@@ -61,13 +56,14 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
           'cur-month': dayIter.month() === curMonthNumber,
         });
         dayEls.push(
-          <div className={className} key={`${week}-${weekday}`} data-unix={dayIter.valueOf()}>
+          <div className={className} key={`${weekIndex}-${weekday}`} data-unix={dayIter.valueOf()}>
             {dayStr}
           </div>
         );
+        dayIter.add(1, 'day');
       }
       weekEls.push(
-        <div className="week" key={week}>
+        <div className="week" key={weekIndex}>
           {dayEls}
         </div>
       );
