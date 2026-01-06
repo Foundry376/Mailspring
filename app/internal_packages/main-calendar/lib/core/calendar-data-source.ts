@@ -1,5 +1,5 @@
 import Rx from 'rx-lite';
-import { Event, Matcher, DatabaseStore } from 'mailspring-exports';
+import { Event, Matcher, DatabaseStore, AndCompositeMatcher, OrCompositeMatcher } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
 
 export interface EventOccurrence {
@@ -36,7 +36,7 @@ export class CalendarDataSource {
       new Matcher.And([end.gte(endUnix), start.lte(startUnix)]),
     ]);
 
-    let matcher: Matcher.And | Matcher.Or = dateMatcher;
+    let matcher: AndCompositeMatcher | OrCompositeMatcher = dateMatcher;
 
     if (disabledCalendars && disabledCalendars.length) {
       matcher = new Matcher.And([matcher, Event.attributes.calendarId.notIn(disabledCalendars)]);
@@ -91,7 +91,8 @@ export function occurrencesForEvents(
           const end = e.endDate.toJSDate().getTime() / 1000;
           // For occurrences, the actual event data is in e.item; for events, e is the event itself
           const item = 'item' in e ? e.item : e;
-          const status = item.component?.getFirstPropertyValue('status') || '';
+          const statusValue = item.component?.getFirstPropertyValue('status');
+          const status = typeof statusValue === 'string' ? statusValue : '';
 
           expandedStartTimes.add(start);
 
@@ -109,8 +110,8 @@ export function occurrencesForEvents(
             isException: !!item.component?.getFirstPropertyValue('recurrence-id'),
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees: item.attendees.map(a => ({
-              ...a.jCal[1],
-              email: a.getFirstValue(),
+              email: String(a.getFirstValue() || ''),
+              name: a.getFirstParameter('cn') || '',
             })),
           });
         });
@@ -137,7 +138,8 @@ export function occurrencesForEvents(
           const occStart = e.startDate.toJSDate().getTime() / 1000;
           const occEnd = e.endDate.toJSDate().getTime() / 1000;
           const item = 'item' in e ? e.item : e;
-          const status = item.component?.getFirstPropertyValue('status') || '';
+          const statusValue = item.component?.getFirstPropertyValue('status');
+          const status = typeof statusValue === 'string' ? statusValue : '';
 
           occurrences.push({
             start: occStart,
@@ -153,8 +155,8 @@ export function occurrencesForEvents(
             isException: true,
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees: item.attendees.map(a => ({
-              ...a.jCal[1],
-              email: a.getFirstValue(),
+              email: String(a.getFirstValue() || ''),
+              name: a.getFirstParameter('cn') || '',
             })),
           });
         });

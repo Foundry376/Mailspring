@@ -2,7 +2,9 @@ import moment, { Moment } from 'moment';
 import React from 'react';
 import {
   Actions,
+  DatabaseStore,
   DateUtils,
+  Event,
   SyncbackEventTask,
   localized,
   RegExpUtils,
@@ -66,22 +68,27 @@ export class CalendarEventPopover extends React.Component<
   getStartMoment = () => moment(this.state.start * 1000);
   getEndMoment = () => moment(this.state.end * 1000);
 
-  saveEdits = () => {
-    const event = this.props.event.clone();
-    const keys = ['title', 'description', 'location', 'attendees'];
-    for (const key of keys) {
-      event[key] = this.state[key];
+  saveEdits = async () => {
+    // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
+    const occurrenceId = this.props.event.id;
+    const eventId = occurrenceId.replace(/-e\d+$/, '');
+
+    // Fetch the actual Event from the database
+    const event = await DatabaseStore.find<Event>(Event, eventId);
+    if (!event) {
+      console.error(`Could not find event with id ${eventId} to update`);
+      this.setState({ editing: false });
+      return;
     }
 
-    // TODO, this component shouldn't save the event here, we should expose an
-    // `onEditEvent` or similar callback
-    // TODO: How will this affect the event if the when object was originally
-    //   a datespan, with start_date and end_date attributes?
-    event.when.start_time = this.state.start;
-    event.when.end_time = this.state.end;
+    // TODO: This component shouldn't save the event here, we should expose an
+    // `onEditEvent` or similar callback that properly updates the ICS data.
+    // For now, we update the recurrence times and queue the syncback task.
+    event.recurrenceStart = this.state.start;
+    event.recurrenceEnd = this.state.end;
 
-    this.setState({ editing: false }); // TODO: where's the best place to put this?
-    const task = new SyncbackEventTask(event.id);
+    this.setState({ editing: false });
+    const task = SyncbackEventTask.forUpdating({ event });
     Actions.queueTask(task);
   };
 
@@ -238,7 +245,7 @@ class CalendarEventPopoverUnenditable extends React.Component<{
           <div className="label">{localized(`Invitees`)}: </div>
           <div>
             {attendees.map((a, idx) => (
-              <div key={idx}> {a.cn}</div>
+              <div key={idx}> {a.name || a.email}</div>
             ))}
           </div>
         </ScrollRegion>

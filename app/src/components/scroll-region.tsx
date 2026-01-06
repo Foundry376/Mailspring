@@ -419,7 +419,7 @@ export class ScrollRegion extends React.Component<
       );
     }
     window.requestAnimationFrame(() => {
-      this._scroll({ position, settle, done }, () => node.getBoundingClientRect());
+      this._scroll({ position, settle, done }, () => (node as Element).getBoundingClientRect());
     });
   };
 

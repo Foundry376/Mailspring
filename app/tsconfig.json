@@ -13,6 +13,7 @@
     "inlineSourceMap": true,
     "outDir": "lib",
     "baseUrl": ".",
+    "skipLibCheck": true,
     "paths": {
       "*": ["node_modules/*", "src/global/*"]
     }

@@ -170,7 +170,7 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
         label: 'Reload',
         accelerator: 'CmdOrCtrl+R',
         click: function(item, focusedWindow) {
-          if (focusedWindow) focusedWindow.reload();
+          if (focusedWindow) (focusedWindow as Electron.BrowserWindow).reload();
         },
       },
       {
@@ -190,7 +190,7 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
           else return 'Ctrl+Shift+I';
         })(),
         click: function(item, focusedWindow) {
-          if (focusedWindow) focusedWindow.webContents.toggleDevTools();
+          if (focusedWindow) (focusedWindow as Electron.BrowserWindow).webContents.toggleDevTools();
         },
       },
     ],

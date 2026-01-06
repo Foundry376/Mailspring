@@ -27,7 +27,7 @@ export interface MenuProps extends HTMLProps<any> {
   itemChecked?: (...args: any[]) => any;
   items: any[];
   onSelect: (item: any) => any;
-  onExpand: (item: any) => any;
+  onExpand?: (item: any) => any;
   onEscape?: (...args: any[]) => any;
   defaultSelectedIndex?: number;
 }

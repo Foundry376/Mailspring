@@ -21,7 +21,7 @@ class TimeInTimezone extends React.Component<{ timeZone: string }, { tick: numbe
     this.state = { tick: 0 };
   }
 
-  _timer: NodeJS.Timer;
+  _timer: ReturnType<typeof setTimeout>;
 
   componentDidMount() {
     this.scheduleTick();

@@ -316,7 +316,7 @@ export class QuerySubscription<T extends Model> {
       this._lastResult = this._set.immutableClone();
     } else {
       const models = this._set.models();
-      this._lastResult = this._query.formatResult(models);
+      this._lastResult = this._query.formatResult(models) as QuerySubscriptionResult<T>;
     }
 
     this._callbacks.forEach(callback => callback(this._lastResult));

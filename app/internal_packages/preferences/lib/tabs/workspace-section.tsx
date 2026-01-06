@@ -30,7 +30,7 @@ class DefaultMailClientItem extends React.Component<
       if (!this._mounted) return;
       helper.isRegisteredForURLScheme('mailto', registered => {
         if (!this._mounted) return;
-        this.setState({ defaultClient: registered });
+        this.setState({ defaultClient: registered instanceof Error ? 'unknown' : registered });
       });
     }
   }

@@ -2,7 +2,7 @@
 import fs from 'fs';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { shell, ipcRenderer, remote } from 'electron';
+import { shell, ipcRenderer } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
 import {
   localized,

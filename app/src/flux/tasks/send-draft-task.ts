@@ -101,26 +101,16 @@ export class SendDraftTask extends Task {
   draft: Message;
   perRecipientBodies: { [email: string]: string };
   silent: boolean;
+  // These are defined as accessors via Object.defineProperty after class declaration
+  declare headerMessageId: string;
 
   constructor(data: AttributeValues<typeof SendDraftTask.attributes> = {}) {
     super(data);
   }
 
-  get accountId() {
-    return this.draft.accountId;
-  }
-
-  set accountId(a) {
-    // no-op
-  }
-
-  get headerMessageId() {
-    return this.draft.headerMessageId;
-  }
-
-  set headerMessageId(h) {
-    // no-op
-  }
+  // Note: accountId and headerMessageId accessors are defined after class
+  // declaration using Object.defineProperty to work around TypeScript 5
+  // property/accessor override restrictions
 
   label() {
     return this.silent ? null : localized('Sending message');
@@ -213,3 +203,27 @@ export class SendDraftTask extends Task {
     });
   }
 }
+
+// Define accessors using Object.defineProperty to work around TypeScript 5
+// property/accessor override restrictions (TS2611)
+Object.defineProperty(SendDraftTask.prototype, 'accountId', {
+  get(this: SendDraftTask) {
+    return this.draft?.accountId;
+  },
+  set(_a: string) {
+    // no-op
+  },
+  enumerable: true,
+  configurable: true,
+});
+
+Object.defineProperty(SendDraftTask.prototype, 'headerMessageId', {
+  get(this: SendDraftTask) {
+    return this.draft?.headerMessageId;
+  },
+  set(_h: string) {
+    // no-op
+  },
+  enumerable: true,
+  configurable: true,
+});

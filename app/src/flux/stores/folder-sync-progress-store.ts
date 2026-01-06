@@ -155,11 +155,11 @@ class FolderSyncProgressStore extends MailspringStore {
     return Object.values(state).some(i => i.scanProgress > 0);
   }
 
-  whenCategoryListSynced(accountId: string) {
+  whenCategoryListSynced(accountId: string): Promise<void> {
     if (this.isCategoryListSynced(accountId)) {
       return Promise.resolve();
     }
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       const unsubscribe = this.listen(() => {
         if (this.isCategoryListSynced(accountId)) {
           unsubscribe();
@@ -188,11 +188,11 @@ class FolderSyncProgressStore extends MailspringStore {
     return Object.keys(this._statesByAccount).some(aid => this.isSyncingAccount(aid));
   }
 
-  whenSyncComplete() {
+  whenSyncComplete(): Promise<void> {
     if (!this.isSyncing()) {
       return Promise.resolve();
     }
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       const unsubscribe = this.listen(() => {
         if (!this.isSyncing()) {
           unsubscribe();

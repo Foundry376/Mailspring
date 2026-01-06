@@ -221,7 +221,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
   render() {
     return (
       <div className="webview-wrap">
-        <webview ref="webview" partition="in-memory-only" enableremotemodule="false" />
+        <webview ref="webview" partition="in-memory-only" />
         <div className={`webview-loading-spinner loading-${this.state.webviewLoading}`}>
           <RetinaImg
             style={{ width: 20, height: 20 }}

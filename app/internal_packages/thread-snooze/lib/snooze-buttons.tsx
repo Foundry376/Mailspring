@@ -5,12 +5,21 @@ import { Actions, FocusedPerspectiveStore, Thread } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 import SnoozePopover from './snooze-popover';
 
+interface BoundingRect {
+  height: number;
+  width: number;
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 interface SnoozeButtonProps {
   className: string;
   threads: Thread[];
   direction: string;
   shouldRenderIconImg: boolean;
-  getBoundingClientRect: (inst: any) => ClientRect;
+  getBoundingClientRect: (inst?: any) => BoundingRect;
 }
 
 class SnoozeButton extends Component<SnoozeButtonProps> {
