@@ -31,6 +31,8 @@ export interface MailspringWindowSettings {
   bootstrapScript?: string;
   appVersion?: string;
   shellLoadTime?: number;
+  // Allow additional properties for extensibility
+  [key: string]: unknown;
 }
 
 export default class MailspringWindow extends EventEmitter {
@@ -163,7 +165,7 @@ export default class MailspringWindow extends EventEmitter {
       loadSettings.initialPath = path.dirname(pathToOpen);
     }
 
-    (this.browserWindow as any).loadSettings = loadSettings;
+    this.browserWindow.loadSettings = loadSettings;
 
     (this.browserWindow.once as any)('window:loaded', () => {
       this.loaded = true;
@@ -197,7 +199,7 @@ export default class MailspringWindow extends EventEmitter {
   // The windowType will change which will cause a new set of plugins to
   // load.
   setLoadSettings(loadSettings) {
-    (this.browserWindow as any).loadSettings = loadSettings;
+    this.browserWindow.loadSettings = loadSettings;
     this.browserWindow.loadSettingsChangedSinceGetURL = true;
     this.browserWindow.webContents.send('load-settings-changed', loadSettings);
   }

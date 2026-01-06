@@ -16,13 +16,12 @@ export default class FocusContainer extends React.Component<FocusContainerProps>
   getStateFromStores = () => {
     const { collection } = this.props;
     return {
-      focused: (FocusedContentStore as any).focused(collection),
-      focusedId: (FocusedContentStore as any).focusedId(collection),
-      keyboardCursor: (FocusedContentStore as any).keyboardCursor(collection),
-      keyboardCursorId: (FocusedContentStore as any).keyboardCursorId(collection),
-      onFocusItem: item => Actions.setFocus({ collection: collection as any, item: item }),
-      onSetCursorPosition: item =>
-        Actions.setCursorPosition({ collection: collection as any, item: item }),
+      focused: FocusedContentStore.focused(collection),
+      focusedId: FocusedContentStore.focusedId(collection),
+      keyboardCursor: FocusedContentStore.keyboardCursor(collection),
+      keyboardCursorId: FocusedContentStore.keyboardCursorId(collection),
+      onFocusItem: item => Actions.setFocus({ collection, item }),
+      onSetCursorPosition: item => Actions.setCursorPosition({ collection, item }),
     };
   };
 

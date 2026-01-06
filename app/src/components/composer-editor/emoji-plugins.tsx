@@ -91,7 +91,7 @@ function FloatingEmojiPicker({ editor, value }: ComposerEditorPluginTopLevelComp
   const relativePositionedParent = target.closest('.RichEditor-content') as HTMLElement;
   const intrinsicPos = relativePositionedParent.getBoundingClientRect();
   const targetRect = target.getBoundingClientRect();
-  const relativeParentW = (relativePositionedParent as any).width;
+  const relativeParentW = relativePositionedParent.clientWidth;
 
   // Create mutable copy since DOMRect properties are read-only
   let targetLeft = targetRect.left;

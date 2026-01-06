@@ -214,8 +214,9 @@ class FocusedContentStore extends MailspringStore {
   - `collection` The {String} name of a collection. Standard collections are
     listed above.
   */
-  focused(colletion: 'thread'): Thread | null;
-  focused(colletion: 'message'): Message | null;
+  focused(collection: 'thread'): Thread | null;
+  focused(collection: 'message'): Message | null;
+  focused(collection: string): Model | null;
   focused(collection: string) {
     return this._focused[collection];
   }
