@@ -288,7 +288,7 @@ const DateUtils = {
     const results = { start: moment(now), end: moment(now), leftoverText: dateLikeString };
     for (const item of parsed) {
       for (const val of ['start', 'end']) {
-        if (!(val in item)) {
+        if (!item[val]) {
           continue;
         }
         const { day: knownDay, weekday: knownWeekday, hour: knownHour } = item[val].knownValues;
