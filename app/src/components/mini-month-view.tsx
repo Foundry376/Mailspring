@@ -1,13 +1,10 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import { localized } from '../flux/intl';
-import { RetinaImg } from './retina-img';
 
 interface MiniMonthViewProps {
   value: Moment;
   onChange: (moment: Moment) => void;
-  onCreateEvent?: (event: React.MouseEvent) => void;
 }
 
 interface MiniMonthViewState {
@@ -104,15 +101,6 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
           <div className="btn btn-icon" onClick={() => onChangeMonth(1)}>
             &rsaquo;
           </div>
-          {this.props.onCreateEvent && (
-            <button
-              className="btn btn-icon item-create-event"
-              title={localized('Create new event')}
-              onClick={this.props.onCreateEvent}
-            >
-              <RetinaImg name="toolbar-compose.png" mode={RetinaImg.Mode.ContentIsMask} />
-            </button>
-          )}
         </div>
         <div className="legend">
           {[0, 1, 2, 3, 4, 5, 6].map(i => (
