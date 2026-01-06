@@ -111,7 +111,7 @@ export function occurrencesForEvents(
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees: item.attendees.map(a => ({
               email: String(a.getFirstValue() || ''),
-              name: (a.jCal[1]?.cn as string) || '',
+              name: a.getFirstParameter('cn') || '',
             })),
           });
         });
@@ -156,7 +156,7 @@ export function occurrencesForEvents(
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees: item.attendees.map(a => ({
               email: String(a.getFirstValue() || ''),
-              name: (a.jCal[1]?.cn as string) || '',
+              name: a.getFirstParameter('cn') || '',
             })),
           });
         });
