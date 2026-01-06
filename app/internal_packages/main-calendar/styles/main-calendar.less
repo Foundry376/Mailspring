@@ -106,10 +106,8 @@
   display: flex;
   align-items: center;
 
-  &:focus {
-    border: 0;
-    border-radius: 0;
-    box-shadow: 0 0 0 2px darken(@input-border-color, 20%);
+  &.focused {
+    box-shadow: 0 0 0 2px @accent-primary;
   }
 
   .search-accessory {

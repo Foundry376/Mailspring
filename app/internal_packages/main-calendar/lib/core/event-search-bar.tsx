@@ -228,7 +228,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
     const showX = query.length > 0 && focused;
 
     return (
-      <KeyCommandsRegion className="event-search-bar" tabIndex={-1}>
+      <KeyCommandsRegion className={`event-search-bar ${focused ? 'focused' : ''}`} tabIndex={-1}>
         {loading ? (
           <RetinaImg
             className="search-accessory search loading"
