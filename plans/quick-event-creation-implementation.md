@@ -1,212 +1,67 @@
-# Quick Event Creation Implementation Plan
+# Quick Event Creation Implementation
 
-## Overview
+## Summary
 
-Implement the functionality in `quick-event-popover.tsx` to save new events using `SyncbackEventTask` and then select/focus the event on the calendar view after creation.
+Implemented the quick event creation functionality in `quick-event-popover.tsx` to save new events using `SyncbackEventTask` and focus the calendar on the newly created event.
 
-## Current State
+## Changes Made
 
-The `createEvent` method in `quick-event-popover.tsx:41-82` currently:
-1. Finds editable calendars
-2. Creates an `Event` model with the parsed date/time info
-3. Has a TODO comment with non-functional code that never saves the event
+### 1. Created `FocusedEventInfo` Type
 
-## Required Changes
+**File**: `app/internal_packages/main-calendar/lib/core/calendar-data-source.ts`
 
-### 1. Import Required Modules
-
-Add imports to `quick-event-popover.tsx`:
-- `SyncbackEventTask` - for creating the task to save the event
-- `TaskQueue` - for waiting on task completion
-
-**Location**: `quick-event-popover.tsx:2`
+Added a minimal type for focusing events that only requires the properties actually used:
 
 ```typescript
-import {
-  Actions,
-  Calendar,
-  DatabaseStore,
-  DateUtils,
-  Event,
-  localized,
-  SyncbackEventTask,
-  TaskQueue
-} from 'mailspring-exports';
+export type FocusedEventInfo = Pick<EventOccurrence, 'start' | 'id'>;
 ```
 
-### 2. Update createEvent Method
+This allows `focusCalendarEvent` to accept a simple `{ start, id }` object instead of a full `EventOccurrence`.
 
-Replace the TODO code block with working implementation:
+### 2. Updated Components to Use `FocusedEventInfo`
 
-**Location**: `quick-event-popover.tsx:73-82`
+Updated the following files to use the new minimal type for `focusedEvent`:
 
-**Implementation Steps**:
+- `mailspring-calendar.tsx` - State, props interfaces, and `_focusEvent` method
+- `week-view-event-column.tsx` - Props interface
+- `month-view-day-cell.tsx` - Props interface
 
-a. Create the `SyncbackEventTask` using the `forCreating` factory method:
+### 3. Implemented `createEvent` in Quick Event Popover
+
+**File**: `app/internal_packages/main-calendar/lib/quick-event-popover.tsx`
+
+Added imports:
 ```typescript
+import { ..., SyncbackEventTask, TaskQueue } from 'mailspring-exports';
+```
+
+Replaced TODO code with working implementation:
+```typescript
+// Create and queue the task to save the event
 const task = SyncbackEventTask.forCreating({
   event,
   calendarId: editableCals[0].id,
   accountId: editableCals[0].accountId,
 });
-```
-
-b. Queue the task:
-```typescript
 Actions.queueTask(task);
-```
 
-c. Wait for task completion using `TaskQueue.waitForPerformRemote(task)`:
-```typescript
+// Wait for the task to complete (synced to server)
 await TaskQueue.waitForPerformRemote(task);
+
+// Focus the calendar on the newly created event
+Actions.focusCalendarEvent({ id: event.id, start: event.start });
 ```
 
-d. After task completes, focus the calendar on the new event using `Actions.focusCalendarEvent`. This requires creating an `EventOccurrence` object from our Event:
+## Key Patterns Used
 
-```typescript
-const eventOccurrence = {
-  id: event.id,
-  start: event.start,
-  end: event.end,
-  accountId: event.accountId,
-  calendarId: event.calendarId,
-  title: event.title || '',
-  location: event.location || '',
-  description: event.description || '',
-  isAllDay: false,
-  isCancelled: false,
-  isException: false,
-  organizer: null,
-  attendees: event.attendees || [],
-};
-Actions.focusCalendarEvent(eventOccurrence);
-```
+1. **Task Queueing**: Uses `SyncbackEventTask.forCreating()` factory method
+2. **Task Completion**: Waits with `TaskQueue.waitForPerformRemote(task)`
+3. **Event Selection**: Uses `Actions.focusCalendarEvent()` with minimal properties
 
-### 3. Key Patterns Used
+## Files Modified
 
-**Task Queueing Pattern** (from `draft-store.ts:208-211`):
-```typescript
-const task = new SomeTask({ ... });
-Actions.queueTask(task);
-await TaskQueue.waitForPerformRemote(task);
-// Now safe to proceed with result
-```
-
-**Event Focus Pattern** (from `event-search-bar.tsx:131-134`):
-```typescript
-_onSelectEvent = (event: EventOccurrence) => {
-  this.setState({ query: '', suggestions: [], focused: false, selectedIdx: -1 });
-  Actions.focusCalendarEvent(event);
-};
-```
-
-**How focusCalendarEvent works** (from `mailspring-calendar.tsx:138-140`):
-```typescript
-_focusEvent = (event: EventOccurrence) => {
-  this.setState({ focusedMoment: moment(event.start * 1000), focusedEvent: event });
-};
-```
-This sets the calendar's focused moment to the event's start time and marks the event as focused.
-
-### 4. EventOccurrence Interface
-
-From `calendar-data-source.ts:5-19`:
-```typescript
-export interface EventOccurrence {
-  start: number; // unix
-  end: number; // unix
-  id: string;
-  accountId: string;
-  calendarId: string;
-  title: string;
-  location: string;
-  description: string;
-  isAllDay: boolean;
-  isCancelled: boolean;
-  isException: boolean;
-  organizer: { email: string } | null;
-  attendees: { email: string; name: string }[];
-}
-```
-
-## Final Implementation
-
-```typescript
-createEvent = async ({
-  leftoverText,
-  start,
-  end,
-}: {
-  leftoverText: string;
-  start: Moment;
-  end: Moment;
-}) => {
-  const allCalendars = await DatabaseStore.findAll<Calendar>(Calendar);
-  const editableCals = allCalendars.filter(c => !c.readOnly);
-  if (editableCals.length === 0) {
-    AppEnv.showErrorDialog(
-      localized(
-        "This account has no editable calendars. We can't create an event for you. Please make sure you have an editable calendar with your account provider."
-      )
-    );
-    return;
-  }
-
-  const event = new Event({
-    calendarId: editableCals[0].id,
-    accountId: editableCals[0].accountId,
-    start: start.unix(),
-    end: end.unix(),
-    when: {
-      start_time: start.unix(),
-      end_time: end.unix(),
-    },
-    title: leftoverText,
-  });
-
-  // Create and queue the task to save the event
-  const task = SyncbackEventTask.forCreating({
-    event,
-    calendarId: editableCals[0].id,
-    accountId: editableCals[0].accountId,
-  });
-  Actions.queueTask(task);
-
-  // Wait for the task to complete (synced to server)
-  await TaskQueue.waitForPerformRemote(task);
-
-  // Focus the calendar on the newly created event
-  const eventOccurrence = {
-    id: event.id,
-    start: event.start,
-    end: event.end,
-    accountId: event.accountId,
-    calendarId: event.calendarId,
-    title: event.title || '',
-    location: event.location || '',
-    description: event.description || '',
-    isAllDay: false,
-    isCancelled: false,
-    isException: false,
-    organizer: null,
-    attendees: event.attendees || [],
-  };
-  Actions.focusCalendarEvent(eventOccurrence);
-};
-```
-
-## Testing Considerations
-
-1. **Happy path**: Create event with valid date string, verify event appears in calendar
-2. **No editable calendars**: Should show error dialog
-3. **Task failure**: Should handle errors gracefully (currently no error handling - could add try/catch)
-4. **Calendar navigation**: After creation, calendar should navigate to the event's date
-
-## Related Files
-
-- `app/internal_packages/main-calendar/lib/quick-event-popover.tsx` - Main file to modify
-- `app/src/flux/tasks/syncback-event-task.ts` - Task class with `forCreating` factory
-- `app/src/flux/stores/task-queue.ts` - `waitForPerformRemote` method
-- `app/internal_packages/main-calendar/lib/core/event-search-bar.tsx` - Reference for `focusCalendarEvent`
-- `app/internal_packages/main-calendar/lib/core/mailspring-calendar.tsx` - Listener for `focusCalendarEvent`
-- `app/internal_packages/main-calendar/lib/core/calendar-data-source.ts` - `EventOccurrence` interface
+- `app/internal_packages/main-calendar/lib/core/calendar-data-source.ts`
+- `app/internal_packages/main-calendar/lib/core/mailspring-calendar.tsx`
+- `app/internal_packages/main-calendar/lib/core/week-view-event-column.tsx`
+- `app/internal_packages/main-calendar/lib/core/month-view-day-cell.tsx`
+- `app/internal_packages/main-calendar/lib/quick-event-popover.tsx`
