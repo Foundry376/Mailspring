@@ -110,11 +110,14 @@ export default class SwipeContainer extends React.Component<
     window.addEventListener('gesture-scroll-end', this._onScrollTouchEnd);
   }
 
-  componentWillReceiveProps() {
-    this.isEnabled = null;
-  }
+  componentDidUpdate(prevProps: SwipeContainerProps) {
+    // Reset cached isEnabled when props change
+    if (prevProps.onSwipeLeft !== this.props.onSwipeLeft ||
+        prevProps.onSwipeRight !== this.props.onSwipeRight ||
+        prevProps.shouldEnableSwipe !== this.props.shouldEnableSwipe) {
+      this.isEnabled = null;
+    }
 
-  componentDidUpdate() {
     if (this.phase === Phase.Settling) {
       window.requestAnimationFrame(() => {
         if (this.phase === Phase.Settling) {

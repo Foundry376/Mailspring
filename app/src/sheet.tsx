@@ -63,15 +63,14 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
     ];
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState(this._buildState(nextProps));
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqual(nextState, this.state);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: SheetProps) {
+    if (prevProps.data !== this.props.data || prevProps.depth !== this.props.depth) {
+      this.setState(this._buildState());
+    }
     this.props.onColumnSizeChanged(this);
     const minWidth = this.state.columns.reduce((sum, col) => sum + col.minWidth, 0);
     AppEnv.setMinimumWidth(minWidth);

@@ -41,8 +41,10 @@ class SourceSelect extends React.Component<SourceSelectProps, SourceSelectState>
     this._setupValuesSubscription();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this._setupValuesSubscription(nextProps);
+  componentDidUpdate(prevProps: SourceSelectProps) {
+    if (prevProps.options !== this.props.options) {
+      this._setupValuesSubscription();
+    }
   }
 
   componentWillUnmount() {

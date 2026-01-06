@@ -81,8 +81,10 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
     });
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState(this.getState(nextProps));
+  componentDidUpdate(prevProps: MailImportantIconProps) {
+    if (prevProps.thread !== this.props.thread || prevProps.showIfAvailableForAnyAccount !== this.props.showIfAvailableForAnyAccount) {
+      this.setState(this.getState());
+    }
   }
 
   componentWillUnmount() {

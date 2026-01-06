@@ -11,12 +11,16 @@ export class MessageListScrollTooltip extends React.Component<
     totalHeight: PropTypes.number.isRequired,
   };
 
-  componentWillMount() {
+  state = { idx: 0, count: 0 };
+
+  componentDidMount() {
     this.setupForProps(this.props);
   }
 
-  componentWillReceiveProps(newProps) {
-    this.setupForProps(newProps);
+  componentDidUpdate(prevProps: { viewportCenter: number; totalHeight: number }) {
+    if (prevProps.viewportCenter !== this.props.viewportCenter) {
+      this.setupForProps(this.props);
+    }
   }
 
   shouldComponentUpdate(newProps, newState) {

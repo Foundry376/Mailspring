@@ -48,10 +48,12 @@ export class SendActionButton extends React.Component<
     );
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      sendActions: SendActionsStore.orderedSendActionsForDraft(nextProps.draft),
-    });
+  componentDidUpdate(prevProps: SendActionButtonProps) {
+    if (prevProps.draft !== this.props.draft) {
+      this.setState({
+        sendActions: SendActionsStore.orderedSendActionsForDraft(this.props.draft),
+      });
+    }
   }
 
   componentWillUnmount() {

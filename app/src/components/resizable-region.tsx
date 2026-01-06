@@ -179,28 +179,28 @@ export class ResizableRegion extends React.Component<
     );
   }
 
-  componentDidUpdate(lastProps, lastState) {
-    if (lastState.dragging && !this.state.dragging) {
+  componentDidUpdate(prevProps: ResizableRegionProps, prevState: ResizableRegionState) {
+    // Handle mouse event listeners for dragging
+    if (prevState.dragging && !this.state.dragging) {
       document.removeEventListener('mousemove', this._mouseMove);
       document.removeEventListener('mouseup', this._mouseUp);
-    } else if (!lastState.dragging && this.state.dragging) {
+    } else if (!prevState.dragging && this.state.dragging) {
       document.addEventListener('mousemove', this._mouseMove);
       document.addEventListener('mouseup', this._mouseUp);
     }
-  }
 
-  componentWillReceiveProps(nextProps) {
+    // Handle initial size changes from props
     if (
-      nextProps.handle.axis === 'vertical' &&
-      nextProps.initialHeight !== this.props.initialHeight
+      this.props.handle.axis === 'vertical' &&
+      prevProps.initialHeight !== this.props.initialHeight
     ) {
-      this.setState({ height: nextProps.initialHeight });
+      this.setState({ height: this.props.initialHeight });
     }
     if (
-      nextProps.handle.axis === 'horizontal' &&
-      nextProps.initialWidth !== this.props.initialWidth
+      this.props.handle.axis === 'horizontal' &&
+      prevProps.initialWidth !== this.props.initialWidth
     ) {
-      this.setState({ width: nextProps.initialWidth });
+      this.setState({ width: this.props.initialWidth });
     }
   }
 

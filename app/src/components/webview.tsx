@@ -105,10 +105,10 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
     this._setupWebview(this.props);
   }
 
-  componentWillReceiveProps(nextProps: WebviewProps) {
-    if (this.props.src !== nextProps.src) {
+  componentDidUpdate(prevProps: WebviewProps) {
+    if (prevProps.src !== this.props.src) {
       this.setState({ error: null, webviewLoading: true, ready: false });
-      this._setupWebview(nextProps);
+      this._setupWebview(this.props);
     }
   }
 

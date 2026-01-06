@@ -68,8 +68,10 @@ class PreferencesAccountDetails extends Component<
     this.state = { account: props.account.clone() };
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({ account: nextProps.account.clone() });
+  componentDidUpdate(prevProps: PreferencesAccountDetailsProps) {
+    if (prevProps.account !== this.props.account) {
+      this.setState({ account: this.props.account.clone() });
+    }
   }
 
   componentWillUnmount() {

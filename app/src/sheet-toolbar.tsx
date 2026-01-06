@@ -251,17 +251,16 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     window.requestAnimationFrame(() => this.recomputeLayout());
   }
 
-  componentWillReceiveProps(props) {
-    this.setState(this._getStateFromStores(props));
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
     // This is very important. Because toolbar uses CSSTransitionGroup,
     // repetitive unnecessary updates can break animations and cause performance issues.
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: SheetToolbarProps) {
+    if (prevProps.data !== this.props.data || prevProps.depth !== this.props.depth) {
+      this.setState(this._getStateFromStores());
+    }
     // Wait for other components that are dirty (the actual columns in the sheet)
     window.requestAnimationFrame(() => this.recomputeLayout());
   }

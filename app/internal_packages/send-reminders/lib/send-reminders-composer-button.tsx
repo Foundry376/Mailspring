@@ -36,8 +36,8 @@ export default class SendRemindersComposerButton extends Component<
     };
   }
 
-  componentWillReceiveProps() {
-    if (this.state.saving) {
+  componentDidUpdate(prevProps: SendRemindersComposerButtonProps) {
+    if (prevProps.draft !== this.props.draft && this.state.saving) {
       this.setState({ saving: false });
     }
   }

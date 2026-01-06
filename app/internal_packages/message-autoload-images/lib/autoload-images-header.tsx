@@ -32,10 +32,12 @@ export default class AutoloadImagesHeader extends React.Component<
     });
   }
 
-  componentWillReceiveProps(nextProps) {
-    const blocking = AutoloadImagesStore.shouldBlockImagesIn(nextProps.message);
-    if (blocking !== this.state.blocking) {
-      this.setState({ blocking });
+  componentDidUpdate(prevProps: AutoloadImagesHeaderProps) {
+    if (prevProps.message !== this.props.message) {
+      const blocking = AutoloadImagesStore.shouldBlockImagesIn(this.props.message);
+      if (blocking !== this.state.blocking) {
+        this.setState({ blocking });
+      }
     }
   }
 

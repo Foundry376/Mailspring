@@ -54,9 +54,11 @@ export class CalendarEventPopover extends React.Component<
     };
   }
 
-  componentWillReceiveProps = nextProps => {
-    const { description, start, end, location, attendees, title } = nextProps.event;
-    this.setState({ description, start, end, location, attendees, title });
+  componentDidUpdate = (prevProps: CalendarEventPopoverProps) => {
+    if (prevProps.event !== this.props.event) {
+      const { description, start, end, location, attendees, title } = this.props.event;
+      this.setState({ description, start, end, location, attendees, title });
+    }
   };
 
   onEdit = () => {

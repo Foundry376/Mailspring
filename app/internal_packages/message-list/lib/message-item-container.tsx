@@ -38,8 +38,10 @@ export default class MessageItemContainer extends React.Component<
     }
   }
 
-  componentWillReceiveProps(newProps) {
-    this.setState(this._getStateFromStores(newProps));
+  componentDidUpdate(prevProps: MessageItemContainerProps) {
+    if (prevProps.message !== this.props.message || prevProps.thread !== this.props.thread) {
+      this.setState(this._getStateFromStores(this.props));
+    }
   }
 
   shouldComponentUpdate(nextProps, nextState) {

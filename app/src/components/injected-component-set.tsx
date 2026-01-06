@@ -116,9 +116,9 @@ export class InjectedComponentSet extends React.Component<
     );
   }
 
-  componentWillReceiveProps(newProps) {
-    if (!this.props || !Utils.isEqual(newProps.matching, this.props.matching)) {
-      this.setState(this._getStateFromStores(newProps));
+  componentDidUpdate(prevProps: InjectedComponentSetProps) {
+    if (!Utils.isEqual(this.props.matching, prevProps.matching)) {
+      this.setState(this._getStateFromStores());
     }
   }
 

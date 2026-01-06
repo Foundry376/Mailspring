@@ -9,8 +9,8 @@ export default class ThreadSharingButton extends React.Component<{ items: any[];
 
   static containerRequired = false;
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.thread.id !== this.props.thread.id) {
+  componentDidUpdate(prevProps: { items: any[]; thread: Thread }) {
+    if (prevProps.thread.id !== this.props.thread.id) {
       Actions.closePopover();
     }
   }

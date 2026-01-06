@@ -13,12 +13,16 @@ class ThreadListScrollTooltip extends React.Component<
     totalHeight: PropTypes.number.isRequired,
   };
 
-  componentWillMount() {
+  state = { idx: 0, item: undefined as Thread | undefined };
+
+  componentDidMount() {
     this.setupForProps(this.props);
   }
 
-  componentWillReceiveProps(newProps) {
-    this.setupForProps(newProps);
+  componentDidUpdate(prevProps: ScrollRegionTooltipComponentProps) {
+    if (prevProps.viewportCenter !== this.props.viewportCenter || prevProps.totalHeight !== this.props.totalHeight) {
+      this.setupForProps(this.props);
+    }
   }
 
   shouldComponentUpdate(newProps, newState) {
