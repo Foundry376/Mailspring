@@ -10,7 +10,7 @@ interface DropZoneProps {
   onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   shouldAcceptDrop: (e: React.DragEvent<HTMLDivElement>) => boolean;
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
-  onDragStateChange: ({ isDropping: boolean }) => void;
+  onDragStateChange: (state: { isDropping: boolean }) => void;
 }
 
 export class DropZone extends React.Component<DropZoneProps> {
@@ -77,8 +77,10 @@ export class DropZone extends React.Component<DropZoneProps> {
         onDragOver={event => {
           if (event.target instanceof HTMLElement && event.target.closest('[data-slate-editor]'))
             return;
-          if (event.dataTransfer.effectAllowed) {
-            event.dataTransfer.dropEffect = event.dataTransfer.effectAllowed;
+          const allowed = event.dataTransfer.effectAllowed;
+          if (allowed && allowed !== 'all' && allowed !== 'uninitialized') {
+            // Only set dropEffect if it's a valid value (not 'all' or 'uninitialized')
+            event.dataTransfer.dropEffect = allowed as 'copy' | 'move' | 'link' | 'none';
           } else {
             event.dataTransfer.dropEffect = 'copy';
           }

@@ -5,10 +5,10 @@ import { Utils, Contact, ContactStore, RegExpUtils, localized } from 'mailspring
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
 const TokenRenderer = (props: { token: Contact }) => {
-  const { email, cn } = props.token;
+  const { email, name } = props.token;
   let chipText = email;
-  if (cn && cn.length > 0 && cn !== email) {
-    chipText = cn;
+  if (name && name.length > 0 && name !== email) {
+    chipText = name;
   }
   return (
     <div className="participant">

@@ -11,7 +11,7 @@ function ListensToObservable<T, U, V>(
     getStateFromObservable,
   }: {
     getObservable: (props: T) => Rx.Observable<U>;
-    getStateFromObservable: (data: U, { props: T }) => V;
+    getStateFromObservable: (data: U, opts: { props: T }) => V;
   }
 ) {
   return class extends ComposedComponent {
@@ -50,7 +50,7 @@ function ListensToObservable<T, U, V>(
 
     onObservableChanged = data => {
       if (this.unmounted) return;
-      this.setState(getStateFromObservable(data, { props: this.props }));
+      this.setState(getStateFromObservable(data, { props: this.props as T }));
     };
 
     render() {

@@ -70,14 +70,10 @@ export class QuickEventPopover extends React.Component<
     const event = new Event({
       calendarId: editableCals[0].id,
       accountId: editableCals[0].accountId,
-      start: start.unix(),
-      end: end.unix(),
-      when: {
-        start_time: start.unix(),
-        end_time: end.unix(),
-      },
-      title: leftoverText,
+      recurrenceStart: start.unix(),
+      recurrenceEnd: end.unix(),
     });
+    event.title = leftoverText;
 
     // Create and queue the task to save the event
     const task = SyncbackEventTask.forCreating({
@@ -91,7 +87,7 @@ export class QuickEventPopover extends React.Component<
     await TaskQueue.waitForPerformRemote(task);
 
     // Focus the calendar on the newly created event
-    Actions.focusCalendarEvent({ id: event.id, start: event.start });
+    Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });
   };
 
   render() {

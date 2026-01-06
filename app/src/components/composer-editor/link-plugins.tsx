@@ -106,7 +106,7 @@ const BaseLinkPlugin: ComposerEditorPlugin = {
       placeholder: 'http://',
     }),
   ],
-  onPaste,
+  onPaste: onPaste as any,
   onKeyDown: function onKeyDown(event: React.KeyboardEvent, editor: Editor, next: () => void) {
     // ensure space and enter always terminate links
     if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {

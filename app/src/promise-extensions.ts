@@ -148,9 +148,9 @@ async function isRejected() {
   return (await this.getState()) === 'rejected';
 }
 
-global.Promise.prototype.getState = getState;
-global.Promise.prototype.isResolved = isResolved;
-global.Promise.prototype.isRejected = isRejected;
+(global.Promise.prototype as any).getState = getState;
+(global.Promise.prototype as any).isResolved = isResolved;
+(global.Promise.prototype as any).isRejected = isRejected;
 
 (global.Promise as any).each = each;
 (global.Promise as any).delay = delay;

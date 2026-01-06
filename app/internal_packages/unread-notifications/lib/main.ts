@@ -72,7 +72,7 @@ export class Notifier {
     }
 
     if (!AppEnv.inSpecMode()) {
-      await new Promise(resolve => {
+      await new Promise<void>(resolve => {
         // wait a couple hundred milliseconds and collect any updates to these
         // new messages. This gets us message bodies, messages impacted by mail rules, etc.
         // while ensuring notifications are never too delayed.

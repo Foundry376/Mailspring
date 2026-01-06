@@ -14,7 +14,7 @@ import DatabaseObjectRegistry from '../../registries/database-object-registry';
 export function waitFor(latch, options: { timeout?: number } = {}) {
   const timeout = options.timeout || 400;
   const expire = Date.now() + timeout;
-  return new Promise(function(resolve, reject) {
+  return new Promise<void>(function(resolve, reject) {
     const attempt = () => {
       if (Date.now() > expire) {
         return reject(new Error(`Utils.waitFor hit timeout (${timeout}ms) without firing.`));

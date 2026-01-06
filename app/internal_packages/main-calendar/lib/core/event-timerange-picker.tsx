@@ -43,7 +43,7 @@ export const EventTimerangePicker: React.FunctionComponent<{
     newEnd.year(newDay.year());
     newEnd.dayOfYear(newDay.dayOfYear());
 
-    this.setState({ start: newStart.unix(), end: newEnd.unix() });
+    onChange({ start: newStart.unix(), end: newEnd.unix() });
   };
 
   return (

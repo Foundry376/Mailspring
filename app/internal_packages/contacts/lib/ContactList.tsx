@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useRef } from 'react';
 import { Contact, localized, CanvasUtils, AccountStore } from 'mailspring-exports';
 import {
   FocusContainer,
@@ -108,17 +108,18 @@ interface ContactListSearchWithDataProps {
 }
 
 const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
+  const searchEl = useRef<HTMLInputElement>(null);
   return (
     <div className="contact-search">
       <RetinaImg
         className="search-accessory search"
         name="searchloupe.png"
         mode={RetinaImg.Mode.ContentDark}
-        onClick={() => this._searchEl.current.focus()}
+        onClick={() => searchEl.current?.focus()}
       />
       <input
         type="text"
-        ref={this._searchEl}
+        ref={searchEl}
         value={props.search}
         placeholder={`${localized('Search')} ${props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
           }`}

@@ -128,7 +128,6 @@ export class MailsyncProcess extends EventEmitter {
         nodeIntegration: false,
         javascript: false,
         contextIsolation: false,
-        enableRemoteModule: true,
       },
     });
     this._win.setContentSize(350, 90);

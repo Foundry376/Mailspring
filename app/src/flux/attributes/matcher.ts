@@ -206,7 +206,8 @@ export class Matcher {
   }
 }
 
-class OrCompositeMatcher extends Matcher {
+// Export the composite matchers for use as types
+export class OrCompositeMatcher extends Matcher {
   children: Matcher[];
 
   constructor(children: Matcher[]) {
@@ -243,7 +244,7 @@ class OrCompositeMatcher extends Matcher {
   }
 }
 
-class AndCompositeMatcher extends Matcher {
+export class AndCompositeMatcher extends Matcher {
   children: Matcher[];
 
   constructor(children: Matcher[]) {
