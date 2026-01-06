@@ -110,8 +110,8 @@ export function occurrencesForEvents(
             isException: !!item.component?.getFirstPropertyValue('recurrence-id'),
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees: item.attendees.map(a => ({
-              ...a.jCal[1],
-              email: a.getFirstValue(),
+              email: String(a.getFirstValue() || ''),
+              name: (a.jCal[1]?.cn as string) || '',
             })),
           });
         });
@@ -155,8 +155,8 @@ export function occurrencesForEvents(
             isException: true,
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees: item.attendees.map(a => ({
-              ...a.jCal[1],
-              email: a.getFirstValue(),
+              email: String(a.getFirstValue() || ''),
+              name: (a.jCal[1]?.cn as string) || '',
             })),
           });
         });
