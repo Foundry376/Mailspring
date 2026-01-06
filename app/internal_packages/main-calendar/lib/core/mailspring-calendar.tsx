@@ -163,6 +163,7 @@ export class MailspringCalendar extends React.Component<
 
     this.setState({
       selectedEvents: next,
+      focusedEvent: null,
     });
   };
 
