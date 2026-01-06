@@ -18,7 +18,6 @@ import {
 } from 'mailspring-component-kit';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
-import { EventSearchBar } from './event-search-bar';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
@@ -81,6 +80,7 @@ export class MailspringCalendar extends React.Component<
   };
 
   _disposable?: Disposable;
+  _unlisten?: () => void;
   _dataSource = new CalendarDataSource();
 
   constructor(props) {
@@ -97,10 +97,14 @@ export class MailspringCalendar extends React.Component<
 
   componentWillMount() {
     this._disposable = this._subscribeToCalendars();
+    this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
   }
 
   componentWillUnmount() {
     this._disposable.dispose();
+    if (this._unlisten) {
+      this._unlisten();
+    }
   }
 
   _subscribeToCalendars() {
@@ -163,6 +167,7 @@ export class MailspringCalendar extends React.Component<
 
     this.setState({
       selectedEvents: next,
+      focusedEvent: null,
     });
   };
 
@@ -223,10 +228,6 @@ export class MailspringCalendar extends React.Component<
           style={{ flexDirection: 'column' }}
         >
           <ScrollRegion style={{ flex: 1 }}>
-            <EventSearchBar
-              onSelectEvent={this._focusEvent}
-              disabledCalendars={this.state.disabledCalendars}
-            />
             <CalendarSourceList
               accounts={this.state.accounts}
               calendars={this.state.calendars}

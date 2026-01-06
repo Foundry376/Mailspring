@@ -85,3 +85,149 @@
   white-space: nowrap;
   overflow: hidden;
 }
+
+// Event Search Bar - matches ThreadSearchBar styling
+.event-search-bar {
+  position: relative;
+  order: -100;
+  overflow: visible;
+  z-index: 100;
+  width: 400px;
+  height: 23px;
+  font-weight: 400;
+  line-height: 23px;
+  background: @input-bg;
+  color: @text-color;
+  margin-top: 5px;
+  padding-left: @padding-xs-horizontal;
+  padding-right: @padding-xs-horizontal;
+  border-radius: @border-radius-base;
+  box-shadow: @shadow-border;
+  display: flex;
+  align-items: center;
+
+  &.focused {
+    box-shadow: 0 0 0 2px @accent-primary;
+  }
+
+  .search-accessory {
+    width: 15px;
+    height: 15px;
+    object-fit: contain;
+    zoom: 1 !important;
+    flex-shrink: 0;
+
+    &.clear {
+      color: @text-color-subtle;
+      width: 21px;
+      height: 21px;
+      cursor: pointer;
+    }
+
+    &.loading {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .event-search-input {
+    flex: 1;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: @text-color;
+    outline: none;
+    padding-left: @padding-xs-horizontal;
+    padding-right: @padding-xs-horizontal;
+    font-size: inherit;
+    line-height: inherit;
+    min-width: 0;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+      border: none;
+    }
+
+    &::placeholder {
+      color: @text-color-very-subtle;
+    }
+  }
+
+  .suggestions {
+    left: 0;
+    top: 23px;
+    width: 100%;
+    position: absolute;
+    background: @input-bg;
+    border-bottom-left-radius: @border-radius-base;
+    border-bottom-right-radius: @border-radius-base;
+    box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
+      0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 4px 7px rgba(0, 0, 0, 0.15);
+    padding-top: @padding-small-vertical;
+    max-height: 350px;
+    overflow-y: auto;
+
+    .suggestion {
+      display: flex;
+      align-items: flex-start;
+      padding: @padding-small-vertical @padding-small-horizontal;
+      cursor: pointer;
+
+      &.selected {
+        background-color: @accent-primary;
+        color: @text-color-inverse;
+
+        .suggestion-title {
+          color: @text-color-inverse;
+        }
+        .suggestion-time,
+        .suggestion-location {
+          color: fadeout(@text-color-inverse, 20%);
+        }
+      }
+
+      &:hover:not(.selected) {
+        background-color: fade(@black, 3%);
+      }
+
+      .suggestion-calendar-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+        margin-top: 4px;
+        flex-shrink: 0;
+      }
+
+      .suggestion-content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .suggestion-title {
+        color: @text-color;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .suggestion-time {
+        color: @text-color-subtle;
+        font-size: @font-size-small;
+        margin-top: 1px;
+      }
+
+      .suggestion-location {
+        color: @text-color-very-subtle;
+        font-size: @font-size-small;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}
