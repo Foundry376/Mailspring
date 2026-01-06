@@ -1,7 +1,7 @@
 /* eslint global-require:0 */
 import _ from 'underscore';
 import Enzyme from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
+import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 
 import ReactTestUtils from 'react-dom/test-utils';
 import Config from '../../src/config';

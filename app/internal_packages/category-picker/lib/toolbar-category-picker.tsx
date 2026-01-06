@@ -7,6 +7,7 @@ import {
   AccountStore,
   WorkspaceStore,
   Thread,
+  SheetDepthContext,
 } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
@@ -19,7 +20,8 @@ class MovePicker extends React.Component<{ items: Thread[] }> {
   static containerRequired = false;
 
   static propTypes = { items: PropTypes.array };
-  static contextTypes = { sheetDepth: PropTypes.number };
+  static contextType = SheetDepthContext;
+  declare context: number;
 
   _account: Account;
   _labelEl: HTMLElement;
@@ -44,7 +46,7 @@ class MovePicker extends React.Component<{ items: Thread[] }> {
     if (!(this.props.items.length > 0)) {
       return;
     }
-    if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
+    if (this.context !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
     Actions.openPopover(<LabelPickerPopover threads={this.props.items} account={this._account} />, {
@@ -57,7 +59,7 @@ class MovePicker extends React.Component<{ items: Thread[] }> {
     if (!(this.props.items.length > 0)) {
       return;
     }
-    if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
+    if (this.context !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
     Actions.openPopover(<MovePickerPopover threads={this.props.items} account={this._account} />, {

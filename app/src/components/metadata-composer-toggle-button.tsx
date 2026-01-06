@@ -54,7 +54,8 @@ export default class MetadataComposerToggleButton extends React.Component<
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
+    // Auto-enable plugin if it should be on by default and isn't already enabled
     if (this._isEnabledByDefault() && !this._isEnabled()) {
       if (FeatureUsageStore.isUsable(this.props.pluginId)) {
         this._setEnabled(true);

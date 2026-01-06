@@ -95,7 +95,7 @@ export class MailspringCalendar extends React.Component<
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
   }

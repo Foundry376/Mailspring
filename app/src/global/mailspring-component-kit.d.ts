@@ -29,6 +29,7 @@ export const MultiselectDropdown: typeof import('../components/multiselect-dropd
 export * from '../components/key-commands-region';
 export const BindGlobalCommands: typeof import('../components/bind-global-commands').default;
 export * from '../components/tab-group-region';
+export * from '../components/tab-group-context';
 export const InjectedComponent: typeof import('../components/injected-component').default;
 export * from '../components/tokenizing-text-field';
 export const ParticipantsTextField: typeof import('../components/participants-text-field').default;
