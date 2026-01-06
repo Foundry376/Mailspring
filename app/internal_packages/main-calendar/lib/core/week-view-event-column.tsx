@@ -3,7 +3,7 @@ import moment, { Moment } from 'moment';
 import classnames from 'classnames';
 import { Utils, Event } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { overlapForEvents } from './week-view-helpers';
 
 /*
@@ -16,7 +16,7 @@ interface WeekViewEventColumnProps {
   events: EventOccurrence[];
   day: Moment;
   dayEnd: number;
-  focusedEvent: EventOccurrence;
+  focusedEvent: FocusedEventInfo | null;
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;

@@ -1,5 +1,14 @@
 import React from 'react';
-import { Actions, Calendar, DatabaseStore, DateUtils, Event, localized } from 'mailspring-exports';
+import {
+  Actions,
+  Calendar,
+  DatabaseStore,
+  DateUtils,
+  Event,
+  localized,
+  SyncbackEventTask,
+  TaskQueue,
+} from 'mailspring-exports';
 import { Moment } from 'moment';
 
 interface QuickEventPopoverState {
@@ -70,15 +79,19 @@ export class QuickEventPopover extends React.Component<
       title: leftoverText,
     });
 
-    console.log(event);
+    // Create and queue the task to save the event
+    const task = SyncbackEventTask.forCreating({
+      event,
+      calendarId: editableCals[0].id,
+      accountId: editableCals[0].accountId,
+    });
+    Actions.queueTask(task);
 
-    // todo bg
-    // return DatabaseStore.inTransaction((t) => {
-    //   return t.persistModel(event)
-    // }).then(() => {
-    //   const task = new SyncbackEventTask(event.id);
-    //   Actions.queueTask(task);
-    // })
+    // Wait for the task to complete (synced to server)
+    await TaskQueue.waitForPerformRemote(task);
+
+    // Focus the calendar on the newly created event
+    Actions.focusCalendarEvent({ id: event.id, start: event.start });
   };
 
   render() {

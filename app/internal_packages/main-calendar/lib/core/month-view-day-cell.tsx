@@ -1,7 +1,7 @@
 import React from 'react';
 import { Moment } from 'moment-timezone';
 import classnames from 'classnames';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { MonthViewEvent } from './month-view-event';
 import { localized } from 'mailspring-exports';
 
@@ -11,7 +11,7 @@ interface MonthViewDayCellProps {
   isToday: boolean;
   isCurrentMonth: boolean;
   maxVisibleEvents: number;
-  focusedEvent: EventOccurrence | null;
+  focusedEvent: FocusedEventInfo | null;
   selectedEvents: EventOccurrence[];
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;

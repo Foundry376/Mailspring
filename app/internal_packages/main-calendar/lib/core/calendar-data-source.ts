@@ -18,6 +18,9 @@ export interface EventOccurrence {
   attendees: { email: string; name: string }[];
 }
 
+// Minimal type for focusing/highlighting an event on the calendar
+export type FocusedEventInfo = Pick<EventOccurrence, 'start' | 'id'>;
+
 export class CalendarDataSource {
   observable: Rx.Observable<{ events: EventOccurrence[] }>;
 

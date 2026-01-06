@@ -19,7 +19,7 @@ import {
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { CalendarSourceList } from './calendar-source-list';
-import { CalendarDataSource, EventOccurrence } from './calendar-data-source';
+import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
 import { setCalendarColors } from './calendar-helpers';
 import { Disposable } from 'rx-core';
@@ -34,7 +34,7 @@ const VIEWS = {
 };
 
 export interface EventRendererProps {
-  focusedEvent: EventOccurrence;
+  focusedEvent: FocusedEventInfo | null;
   selectedEvents: EventOccurrence[];
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
@@ -60,7 +60,7 @@ interface MailspringCalendarProps {}
 interface MailspringCalendarState {
   view: CalendarView;
   selectedEvents: EventOccurrence[];
-  focusedEvent: EventOccurrence | null;
+  focusedEvent: FocusedEventInfo | null;
   accounts?: Account[];
   calendars: Calendar[];
   focusedMoment: Moment;
@@ -135,7 +135,7 @@ export class MailspringCalendar extends React.Component<
     this.setState({ focusedMoment, focusedEvent: null });
   };
 
-  _focusEvent = (event: EventOccurrence) => {
+  _focusEvent = (event: FocusedEventInfo) => {
     this.setState({ focusedMoment: moment(event.start * 1000), focusedEvent: event });
   };
 
