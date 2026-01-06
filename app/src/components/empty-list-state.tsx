@@ -171,14 +171,10 @@ class EmptyListState extends React.Component<
     }
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: { visible: boolean }) {
     if (this.props.visible && !this.state.active) {
       this.setState({ active: true });
-    }
-  }
-
-  componentWillReceiveProps(newProps) {
-    if (newProps.visible === false) {
+    } else if (prevProps.visible && !this.props.visible) {
       this.setState({ active: false });
     }
   }

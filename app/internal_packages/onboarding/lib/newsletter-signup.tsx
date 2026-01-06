@@ -35,9 +35,9 @@ export default class NewsletterSignup extends React.Component<
     return this._onGetStatus();
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (!_.isEqual(this.props, nextProps)) {
-      this._onGetStatus(nextProps);
+  componentDidUpdate(prevProps: NewsletterSignupProps) {
+    if (!_.isEqual(prevProps, this.props)) {
+      this._onGetStatus();
     }
   }
 

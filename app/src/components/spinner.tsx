@@ -55,14 +55,22 @@ export class Spinner extends React.Component<SpinnerProps, SpinnerState> {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    // If we have a cover, show right away.
-    if (nextProps.withCover) {
-      this.setState({ hidden: !nextProps.visible });
+  componentDidUpdate(prevProps: SpinnerProps) {
+    // Skip if visible prop hasn't changed
+    if (prevProps.visible === this.props.visible && prevProps.withCover === this.props.withCover) {
       return;
     }
 
-    const hidden = nextProps.visible != null ? !nextProps.visible : false;
+    // If we have a cover, show right away.
+    if (this.props.withCover) {
+      const hidden = !this.props.visible;
+      if (this.state.hidden !== hidden) {
+        this.setState({ hidden });
+      }
+      return;
+    }
+
+    const hidden = this.props.visible != null ? !this.props.visible : false;
 
     if (this.state.hidden === false && hidden === true) {
       this.setState({ hidden: true });

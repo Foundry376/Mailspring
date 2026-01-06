@@ -34,8 +34,10 @@ class MovePicker extends React.Component<{ items: Thread[] }> {
   // If the threads we're picking categories for change, (like when they
   // get their categories updated), we expect our parents to pass us new
   // props. We don't listen to the DatabaseStore ourselves.
-  componentWillReceiveProps(nextProps) {
-    this._account = AccountStore.accountForItems(nextProps.items);
+  componentDidUpdate(prevProps: { items: Thread[] }) {
+    if (prevProps.items !== this.props.items) {
+      this._account = AccountStore.accountForItems(this.props.items);
+    }
   }
 
   _onOpenLabelsPopover = () => {

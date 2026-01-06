@@ -91,8 +91,10 @@ class RootWithTimespan extends React.Component<
     this.state = this.getLoadingState(props);
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState(this.getLoadingState(nextProps), () => this._onComputeMetrics());
+  componentDidUpdate(prevProps: { timespan: Timespan; accountIds: string[] }) {
+    if (prevProps.timespan !== this.props.timespan || prevProps.accountIds !== this.props.accountIds) {
+      this.setState(this.getLoadingState(this.props), () => this._onComputeMetrics());
+    }
   }
 
   getLoadingState({ timespan }) {

@@ -240,36 +240,38 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     this._mounted = false;
   }
 
-  componentWillReceiveProps(newProps) {
+  componentDidUpdate(prevProps: MenuProps) {
     // Attempt to preserve selection across props.items changes by
     // finding an item in the new list with a key matching the old
-    // selected item's key
-    let newSelectionIndex, selection;
-    if (this.state.selectedIndex >= 0) {
-      selection = this.props.items[this.state.selectedIndex];
-      newSelectionIndex = 0;
-    } else {
-      newSelectionIndex =
-        newProps.defaultSelectedIndex != null ? newProps.defaultSelectedIndex : -1;
-    }
-
-    if (selection != null) {
-      const selectionKey = this.props.itemKey(selection);
-      const newSelection = _.find(
-        newProps.items,
-        item => this.props.itemKey(item) === selectionKey
-      );
-      if (newSelection != null) {
-        newSelectionIndex = newProps.items.indexOf(newSelection);
+    // selected item's key (migrated from componentWillReceiveProps)
+    if (prevProps.items !== this.props.items || prevProps.defaultSelectedIndex !== this.props.defaultSelectedIndex) {
+      let newSelectionIndex: number;
+      let selection: any;
+      if (this.state.selectedIndex >= 0) {
+        selection = prevProps.items[this.state.selectedIndex];
+        newSelectionIndex = 0;
+      } else {
+        newSelectionIndex =
+          this.props.defaultSelectedIndex != null ? this.props.defaultSelectedIndex : -1;
       }
+
+      if (selection != null) {
+        const selectionKey = prevProps.itemKey(selection);
+        const newSelection = _.find(
+          this.props.items,
+          item => this.props.itemKey(item) === selectionKey
+        );
+        if (newSelection != null) {
+          newSelectionIndex = this.props.items.indexOf(newSelection);
+        }
+      }
+
+      this.setState({
+        selectedIndex: newSelectionIndex,
+      });
     }
 
-    this.setState({
-      selectedIndex: newSelectionIndex,
-    });
-  }
-
-  componentDidUpdate() {
+    // Existing componentDidUpdate logic
     if ((this.props.items || []).length === 0) {
       return;
     }

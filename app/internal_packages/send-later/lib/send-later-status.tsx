@@ -42,8 +42,10 @@ export default class SendLaterStatus extends Component<SendLaterStatusProps, Sen
     });
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState(this.getStateFromStores(nextProps));
+  componentDidUpdate(prevProps: SendLaterStatusProps) {
+    if (prevProps.draft !== this.props.draft) {
+      this.setState(this.getStateFromStores(this.props));
+    }
   }
 
   componentWillUnmount() {

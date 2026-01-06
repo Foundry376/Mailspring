@@ -22,8 +22,10 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     this.state = this._stateFromProps(props);
   }
 
-  componentWillReceiveProps(newProps) {
-    this.setState(this._stateFromProps(newProps));
+  componentDidUpdate(prevProps: MiniMonthViewProps) {
+    if (!prevProps.value.isSame(this.props.value)) {
+      this.setState(this._stateFromProps(this.props));
+    }
   }
 
   _stateFromProps(props: MiniMonthViewProps) {

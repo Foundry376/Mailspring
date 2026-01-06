@@ -101,13 +101,10 @@ export default class InjectedComponent extends React.Component<
     }
   }
 
-  componentWillReceiveProps(newProps) {
-    if (!Utils.isEqual(newProps.matching, this.props && this.props.matching)) {
-      this.setState(this._getStateFromStores(newProps));
+  componentDidUpdate(prevProps: InjectedComponentProps, prevState: InjectedComponentState) {
+    if (!Utils.isEqual(this.props.matching, prevProps.matching)) {
+      this.setState(this._getStateFromStores());
     }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
     this._setRequiredMethods(this.props.requiredMethods);
     if (this.state.component !== prevState.component) {
       this.props.onComponentDidChange();

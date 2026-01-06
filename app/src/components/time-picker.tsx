@@ -50,11 +50,10 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     this._fixTimeOptionScroll();
   }
 
-  componentWillReceiveProps(newProps) {
-    this.setState({ rawText: this._valToTimeString(newProps.value) });
-  }
-
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: TimePickerProps) {
+    if (prevProps.value !== this.props.value) {
+      this.setState({ rawText: this._valToTimeString(this.props.value) });
+    }
     if (this._gotoScrollStartOnUpdate) {
       this._fixTimeOptionScroll();
     }

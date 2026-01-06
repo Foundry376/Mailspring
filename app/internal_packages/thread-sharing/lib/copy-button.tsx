@@ -20,10 +20,12 @@ class CopyButton extends React.Component<
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-    clearTimeout(this._timeout);
-    this._timeout = null;
-    this.setState({ btnLabel: nextProps.btnLabel });
+  componentDidUpdate(prevProps: CopyButtonProps) {
+    if (prevProps.btnLabel !== this.props.btnLabel) {
+      clearTimeout(this._timeout);
+      this._timeout = null;
+      this.setState({ btnLabel: this.props.btnLabel });
+    }
   }
 
   componentWillUnmount() {

@@ -141,13 +141,13 @@ export class KeyCommandsRegion extends React.Component<
     }
   }
 
-  componentWillReceiveProps(newProps) {
+  componentDidUpdate(prevProps: KeyCommandsRegionProps) {
     if (
-      newProps.localHandlers !== this.props.localHandlers ||
-      newProps.globalHandlers !== this.props.globalHandlers
+      prevProps.localHandlers !== this.props.localHandlers ||
+      prevProps.globalHandlers !== this.props.globalHandlers
     ) {
       this._unmountListeners();
-      this._setupListeners(newProps);
+      this._setupListeners(this.props);
     }
   }
 

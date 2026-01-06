@@ -49,10 +49,10 @@ function InflatesDraftClientId(
       this._deleteDraftIfEmpty();
     }
 
-    componentWillReceiveProps(newProps) {
-      if (newProps.headerMessageId !== this.props.headerMessageId) {
+    componentDidUpdate(prevProps: { headerMessageId: string; onDraftReady: () => void }) {
+      if (prevProps.headerMessageId !== this.props.headerMessageId) {
         this._teardownForDraft();
-        this._prepareForDraft(newProps.headerMessageId);
+        this._prepareForDraft(this.props.headerMessageId);
       }
     }
 

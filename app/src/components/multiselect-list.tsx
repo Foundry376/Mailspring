@@ -72,16 +72,14 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
     this.setupForProps(this.props);
   }
 
-  componentWillReceiveProps(newProps) {
-    if (_.isEqual(this.props, newProps)) {
-      return;
+  componentDidUpdate(prevProps: MultiselectListProps, prevState: MultiselectListState) {
+    // Handle props changes (migrated from componentWillReceiveProps)
+    if (!_.isEqual(prevProps, this.props)) {
+      this.teardownForProps();
+      this.setupForProps(this.props);
+      this.setState(this._getStateFromStores(this.props));
     }
-    this.teardownForProps();
-    this.setupForProps(newProps);
-    this.setState(this._getStateFromStores(newProps));
-  }
 
-  componentDidUpdate(prevProps, prevState) {
     if (this.props.onComponentDidUpdate) {
       this.props.onComponentDidUpdate();
     }

@@ -46,8 +46,10 @@ export class LazyRenderedList extends React.Component<
     this.state = this.getRangeState(props);
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.updateRangeState(nextProps);
+  componentDidUpdate(prevProps: LazyRenderedListProps) {
+    if (prevProps.items !== this.props.items || prevProps.itemHeight !== this.props.itemHeight || prevProps.containerHeight !== this.props.containerHeight) {
+      this.updateRangeState(this.props);
+    }
   }
 
   onScroll = () => {

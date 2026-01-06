@@ -47,9 +47,11 @@ export default class LabelPickerPopover extends Component<
     this._registerObservables();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this._registerObservables(nextProps);
-    this.setState(this._recalculateState(nextProps));
+  componentDidUpdate(prevProps: LabelPickerPopoverProps) {
+    if (prevProps.account !== this.props.account || prevProps.threads !== this.props.threads) {
+      this._registerObservables();
+      this.setState(this._recalculateState(this.props));
+    }
   }
 
   componentWillUnmount() {

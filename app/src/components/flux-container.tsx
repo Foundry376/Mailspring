@@ -28,9 +28,14 @@ class FluxContainer<T> extends React.Component<
     return this.setupListeners();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState(nextProps.getStateFromStores());
-    return this.setupListeners(nextProps);
+  componentDidUpdate(prevProps: FluxContainerProps<T>) {
+    if (
+      prevProps.getStateFromStores !== this.props.getStateFromStores ||
+      prevProps.stores !== this.props.stores
+    ) {
+      this.setState(this.props.getStateFromStores());
+      this.setupListeners(this.props);
+    }
   }
 
   componentWillUnmount() {

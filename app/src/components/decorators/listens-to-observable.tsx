@@ -35,12 +35,14 @@ function ListensToObservable<T, U, V>(
       this.disposable = this.observable.subscribe(this.onObservableChanged);
     }
 
-    componentWillReceiveProps(nextProps) {
-      if (this.disposable) {
-        this.disposable.dispose();
+    componentDidUpdate(prevProps) {
+      if (prevProps !== this.props) {
+        if (this.disposable) {
+          this.disposable.dispose();
+        }
+        this.observable = getObservable(this.props);
+        this.disposable = this.observable.subscribe(this.onObservableChanged);
       }
-      this.observable = getObservable(nextProps);
-      this.disposable = this.observable.subscribe(this.onObservableChanged);
     }
 
     componentWillUnmount() {

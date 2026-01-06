@@ -27,8 +27,10 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
       });
     }
 
-    componentWillReceiveProps(nextProps) {
-      this.setState(getStateFromStores(nextProps));
+    componentDidUpdate(prevProps) {
+      if (prevProps !== this.props) {
+        this.setState(getStateFromStores(this.props));
+      }
     }
 
     componentWillUnmount() {

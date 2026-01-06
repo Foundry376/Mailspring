@@ -31,8 +31,10 @@ export default class DropdownMenu extends React.Component<DropdownMenuProps, Dro
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({ currentSelection: nextProps.intitialSelectionItem });
+  componentDidUpdate(prevProps: DropdownMenuProps) {
+    if (prevProps.intitialSelectionItem !== this.props.intitialSelectionItem) {
+      this.setState({ currentSelection: this.props.intitialSelectionItem });
+    }
   }
 
   _toggleExpanded = () => {

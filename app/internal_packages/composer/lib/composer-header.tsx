@@ -58,8 +58,10 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     this.state = this._initialStateForDraft(this.props.draft, props);
   }
 
-  componentWillReceiveProps(nextProps) {
-    this._ensureFilledFieldsEnabled(nextProps.draft);
+  componentDidUpdate(prevProps: ComposerHeaderProps) {
+    if (prevProps.draft !== this.props.draft) {
+      this._ensureFilledFieldsEnabled(this.props.draft);
+    }
   }
 
   focus() {

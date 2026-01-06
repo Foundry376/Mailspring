@@ -94,12 +94,12 @@ export default class MessageItemBody extends React.Component<
     this._mounted = true;
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.message.id !== this.props.message.id) {
+  componentDidUpdate(prevProps: MessageItemBodyProps) {
+    if (this.props.message.id !== prevProps.message.id) {
       if (this._unsub) {
         this._unsub();
       }
-      this._unsub = MessageBodyProcessor.subscribe(nextProps.message, true, this._onBodyProcessed);
+      this._unsub = MessageBodyProcessor.subscribe(this.props.message, true, this._onBodyProcessed);
     }
   }
 

@@ -443,12 +443,14 @@ export class TokenizingTextField<T> extends React.Component<
     }
   }
 
-  componentWillReceiveProps(newProps) {
-    if (this.props.tokens.length === 0 && this.state.inputValue.length === 0) {
-      const newDefaultValue = newProps.defaultValue || '';
-      this.setState({ inputValue: newDefaultValue });
-      if (newDefaultValue.length > 0) {
-        this._refreshCompletions(newDefaultValue);
+  componentDidUpdate(prevProps: TokenizingTextFieldProps) {
+    if (prevProps.tokens.length === 0 && this.props.tokens.length === 0 && this.state.inputValue.length === 0) {
+      if (prevProps.defaultValue !== this.props.defaultValue) {
+        const newDefaultValue = this.props.defaultValue || '';
+        this.setState({ inputValue: newDefaultValue });
+        if (newDefaultValue.length > 0) {
+          this._refreshCompletions(newDefaultValue);
+        }
       }
     }
   }

@@ -51,9 +51,11 @@ export default class MovePickerPopover extends Component<
     this._registerObservables();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this._registerObservables(nextProps);
-    this.setState(this._recalculateState(nextProps));
+  componentDidUpdate(prevProps: MovePickerPopoverProps) {
+    if (prevProps.account !== this.props.account || prevProps.threads !== this.props.threads) {
+      this._registerObservables();
+      this.setState(this._recalculateState(this.props));
+    }
   }
 
   componentWillUnmount() {
