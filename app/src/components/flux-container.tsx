@@ -18,10 +18,12 @@ class FluxContainer<T> extends React.Component<
   };
 
   _unlisteners = [];
+  _getStateFromStores: (...args: any[]) => T;
 
   constructor(props) {
     super(props);
-    this.state = this.props.getStateFromStores();
+    this._getStateFromStores = props.getStateFromStores;
+    this.state = this._getStateFromStores();
   }
 
   componentDidMount() {
@@ -33,8 +35,11 @@ class FluxContainer<T> extends React.Component<
       prevProps.getStateFromStores !== this.props.getStateFromStores ||
       prevProps.stores !== this.props.stores
     ) {
-      this.setState(this.props.getStateFromStores());
+      // Setup new listeners FIRST before setState to prevent race condition.
+      // This ensures that if a store fires during/after setState, the new
+      // listener (with new getStateFromStores) will be active, not the old one.
       this.setupListeners(this.props);
+      this.setState(this._getStateFromStores());
     }
   }
 
@@ -46,12 +51,18 @@ class FluxContainer<T> extends React.Component<
   }
 
   setupListeners(props = this.props) {
+    // Update instance property to always reference the current getStateFromStores.
+    // This prevents stale closures in listener callbacks.
+    this._getStateFromStores = props.getStateFromStores;
+
     for (const unlisten of this._unlisteners) {
       unlisten();
     }
 
+    // Listeners reference the instance property, not the captured props.
+    // This ensures they always use the most current getStateFromStores function.
     this._unlisteners = props.stores.map(store => {
-      return store.listen(() => this.setState(props.getStateFromStores()));
+      return store.listen(() => this.setState(this._getStateFromStores()));
     });
   }
 

@@ -73,10 +73,12 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
   }
 
   componentDidUpdate(prevProps: MultiselectListProps, prevState: MultiselectListState) {
-    // Handle props changes (migrated from componentWillReceiveProps)
-    if (!_.isEqual(prevProps, this.props)) {
-      this.teardownForProps();
-      this.setupForProps(this.props);
+    // Update state when key props change that affect computed state
+    // Note: No need to teardown/setup - the WorkspaceStore listener doesn't depend on props
+    if (
+      prevProps.dataSource !== this.props.dataSource ||
+      prevProps.columns !== this.props.columns
+    ) {
       this.setState(this._getStateFromStores(this.props));
     }
 

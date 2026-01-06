@@ -216,6 +216,31 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     };
   }
 
+  // Compute selectedIndex before render to prevent accessing items[selectedIndex]
+  // when the index is out of bounds (e.g., after items array shrinks)
+  static getDerivedStateFromProps(props: MenuProps, state: MenuState) {
+    // Clamp selectedIndex to valid range
+    const maxIndex = props.items.length - 1;
+    let newSelectedIndex = state.selectedIndex;
+
+    // If current selectedIndex is out of bounds, reset it
+    if (newSelectedIndex >= 0 && newSelectedIndex > maxIndex) {
+      newSelectedIndex = props.defaultSelectedIndex != null ? props.defaultSelectedIndex : 0;
+      newSelectedIndex = Math.min(newSelectedIndex, maxIndex);
+    }
+
+    // Ensure selectedIndex is never negative unless explicitly set to -1
+    if (newSelectedIndex < -1) {
+      newSelectedIndex = -1;
+    }
+
+    if (newSelectedIndex !== state.selectedIndex) {
+      return { selectedIndex: newSelectedIndex };
+    }
+
+    return null;
+  }
+
   // Public: Returns the currently selected item.
   //
   getSelectedItem = () => {
@@ -243,35 +268,31 @@ export class Menu extends React.Component<MenuProps, MenuState> {
   componentDidUpdate(prevProps: MenuProps) {
     // Attempt to preserve selection across props.items changes by
     // finding an item in the new list with a key matching the old
-    // selected item's key (migrated from componentWillReceiveProps)
-    if (prevProps.items !== this.props.items || prevProps.defaultSelectedIndex !== this.props.defaultSelectedIndex) {
-      let newSelectionIndex: number;
-      let selection: any;
-      if (this.state.selectedIndex >= 0) {
-        selection = prevProps.items[this.state.selectedIndex];
-        newSelectionIndex = 0;
-      } else {
-        newSelectionIndex =
-          this.props.defaultSelectedIndex != null ? this.props.defaultSelectedIndex : -1;
-      }
-
-      if (selection != null) {
-        const selectionKey = prevProps.itemKey(selection);
-        const newSelection = _.find(
-          this.props.items,
-          item => this.props.itemKey(item) === selectionKey
-        );
-        if (newSelection != null) {
-          newSelectionIndex = this.props.items.indexOf(newSelection);
+    // selected item's key
+    if (prevProps.items !== this.props.items) {
+      // Only try to preserve selection if we had a valid selection before
+      if (this.state.selectedIndex >= 0 && prevProps.items.length > 0) {
+        const oldSelectedIndex = this.state.selectedIndex;
+        // Ensure the old index was valid in the previous items array
+        if (oldSelectedIndex < prevProps.items.length) {
+          const selection = prevProps.items[oldSelectedIndex];
+          const selectionKey = prevProps.itemKey(selection);
+          const newSelection = _.find(
+            this.props.items,
+            item => this.props.itemKey(item) === selectionKey
+          );
+          if (newSelection != null) {
+            const newSelectionIndex = this.props.items.indexOf(newSelection);
+            if (newSelectionIndex !== this.state.selectedIndex) {
+              this.setState({ selectedIndex: newSelectionIndex });
+              return; // Skip scroll adjustment until next update
+            }
+          }
         }
       }
-
-      this.setState({
-        selectedIndex: newSelectionIndex,
-      });
     }
 
-    // Existing componentDidUpdate logic
+    // Scroll selected item into view
     if ((this.props.items || []).length === 0) {
       return;
     }

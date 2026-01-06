@@ -22,17 +22,23 @@ function ListensToObservable<T, U, V>(
     disposable: any;
     unmounted: boolean;
     observable: Rx.Observable<U>;
+    subscriptionId: number;
 
     constructor(props) {
       super(props);
       this.state = getStateFromObservable(null, { props });
       this.disposable = null;
       this.observable = getObservable(props);
+      this.subscriptionId = 0;
     }
 
     componentDidMount() {
       this.unmounted = false;
-      this.disposable = this.observable.subscribe(this.onObservableChanged);
+      this.subscriptionId++;
+      const currentSubscriptionId = this.subscriptionId;
+      this.disposable = this.observable.subscribe(data =>
+        this.onObservableChanged(data, currentSubscriptionId)
+      );
     }
 
     componentDidUpdate(prevProps) {
@@ -40,8 +46,12 @@ function ListensToObservable<T, U, V>(
         if (this.disposable) {
           this.disposable.dispose();
         }
+        this.subscriptionId++;
+        const currentSubscriptionId = this.subscriptionId;
         this.observable = getObservable(this.props);
-        this.disposable = this.observable.subscribe(this.onObservableChanged);
+        this.disposable = this.observable.subscribe(data =>
+          this.onObservableChanged(data, currentSubscriptionId)
+        );
       }
     }
 
@@ -50,8 +60,9 @@ function ListensToObservable<T, U, V>(
       this.disposable.dispose();
     }
 
-    onObservableChanged = data => {
+    onObservableChanged = (data, subscriptionId) => {
       if (this.unmounted) return;
+      if (subscriptionId !== this.subscriptionId) return;
       this.setState(getStateFromObservable(data, { props: this.props }));
     };
 

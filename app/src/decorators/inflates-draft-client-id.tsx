@@ -52,6 +52,9 @@ function InflatesDraftClientId(
     componentDidUpdate(prevProps: { headerMessageId: string; onDraftReady: () => void }) {
       if (prevProps.headerMessageId !== this.props.headerMessageId) {
         this._teardownForDraft();
+        // Clear state immediately to prevent rendering with mismatched draft
+        // while the new draft is being loaded asynchronously
+        this.setState({ draft: null, session: null });
         this._prepareForDraft(this.props.headerMessageId);
       }
     }
