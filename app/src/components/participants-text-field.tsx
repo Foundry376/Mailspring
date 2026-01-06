@@ -81,7 +81,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     session: PropTypes.object,
   };
 
-  _textfieldEl?: TokenizingTextField;
+  _textfieldEl?: TokenizingTextField<Contact>;
 
   static defaultProps = {
     visible: true,

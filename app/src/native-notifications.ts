@@ -128,7 +128,7 @@ class NativeNotifications {
       tag: tag,
       icon: this.resolvedIcon,
     });
-    notif.onclick = onActivate;
+    notif.onclick = onActivate as any;
     return notif;
   }
 }

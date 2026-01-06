@@ -7,7 +7,7 @@ type MultiselectToolbarProps = {
   toolbarElement: JSX.Element,
   collection: string,
   onClearSelection: (...args: any[]) => any,
-  selectionCount?: React.ReactNode
+  selectionCount: number
 };
 
 

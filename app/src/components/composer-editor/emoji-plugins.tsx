@@ -90,16 +90,18 @@ function FloatingEmojiPicker({ editor, value }: ComposerEditorPluginTopLevelComp
 
   const relativePositionedParent = target.closest('.RichEditor-content') as HTMLElement;
   const intrinsicPos = relativePositionedParent.getBoundingClientRect();
-  const targetPos = target.getBoundingClientRect() as ClientRect;
+  const targetRect = target.getBoundingClientRect();
   const relativeParentW = (relativePositionedParent as any).width;
 
-  if (targetPos.left + 150 > relativeParentW) {
-    targetPos.left = relativeParentW - 150;
+  // Create mutable copy since DOMRect properties are read-only
+  let targetLeft = targetRect.left;
+  if (targetLeft + 150 > relativeParentW) {
+    targetLeft = relativeParentW - 150;
   }
 
   const delta = {
-    top: targetPos.top + targetPos.height - intrinsicPos.top,
-    left: targetPos.left - intrinsicPos.left,
+    top: targetRect.top + targetRect.height - intrinsicPos.top,
+    left: targetLeft - intrinsicPos.left,
   };
 
   // Don't display all the selections - just display a few before/after the

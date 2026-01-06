@@ -47,8 +47,8 @@
     "@types/temp": "^0.8.33",
     "@types/underscore": "^1.8.9",
     "@types/underscore.string": "^0.0.33",
-    "@typescript-eslint/eslint-plugin": "^4.7.0",
-    "@typescript-eslint/parser": "^4.7.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
     "electron": "39.2.7",
@@ -75,7 +75,7 @@
     "rimraf": "^2.6.1",
     "targz": "^1.0.1",
     "temp": "0.8.x",
-    "typescript": "3.9.7",
+    "typescript": "5.7.3",
     "underscore": "^1.13.1"
   },
   "scripts": {

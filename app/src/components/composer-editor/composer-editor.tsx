@@ -259,10 +259,10 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
               if (onDrop) onDrop(e as React.DragEvent<any>);
               if (!e.isPropagationStopped()) next();
             }}
-            onKeyDown={this.onKeyDown}
-            onCut={this.onCut}
-            onCopy={this.onCopy}
-            onPaste={this.onPaste}
+            onKeyDown={this.onKeyDown as any}
+            onCut={this.onCut as any}
+            onCopy={this.onCopy as any}
+            onPaste={this.onPaste as any}
             spellCheck={!this.state.isTyping && AppEnv.config.get('core.composing.spellcheck')}
             plugins={(plugins as any) as Plugin[]}
             propsForPlugins={propsForPlugins}

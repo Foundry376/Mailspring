@@ -103,7 +103,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   };
 
   _clickingCreateButton: boolean;
-  _expandTimeout?: NodeJS.Timer;
+  _expandTimeout?: ReturnType<typeof setTimeout>;
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);

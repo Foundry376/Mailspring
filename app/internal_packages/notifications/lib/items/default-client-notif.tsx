@@ -28,7 +28,7 @@ export default class DefaultClientNotification extends React.Component<
       if (this.mounted) {
         this.setState({
           initializing: false,
-          registered: registered,
+          registered: registered instanceof Error ? false : registered,
         });
       }
     });

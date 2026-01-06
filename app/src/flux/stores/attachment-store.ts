@@ -167,7 +167,7 @@ class AttachmentStore extends MailspringStore {
   };
 
   _writeToExternalPath = (filePath, savePath) => {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const stream = fs.createReadStream(filePath);
       stream.pipe(fs.createWriteStream(savePath));
       stream.on('error', err => reject(err));
@@ -371,7 +371,7 @@ class AttachmentStore extends MailspringStore {
   }
 
   _copyToInternalPath(originPath: string, targetPath: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const readStream = fs.createReadStream(originPath);
       const writeStream = fs.createWriteStream(targetPath);
 
