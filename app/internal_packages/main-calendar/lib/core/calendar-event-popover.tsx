@@ -28,6 +28,7 @@ import { RepeatSelector, RepeatOption } from './repeat-selector';
 import { AlertSelector, AlertTiming } from './alert-selector';
 import { ShowAsSelector, ShowAsOption } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
+import { TimeZoneSelector } from './timezone-selector';
 
 interface CalendarEventPopoverProps {
   event: EventOccurrence;
@@ -47,6 +48,7 @@ interface CalendarEventPopoverState {
   alert: AlertTiming;
   showAs: ShowAsOption;
   calendarColor: string;
+  timezone: string;
   showInvitees: boolean;
   showNotes: boolean;
 }
@@ -73,6 +75,7 @@ export class CalendarEventPopover extends React.Component<
       alert: '10min',
       showAs: 'busy',
       calendarColor: '#419bf9',
+      timezone: DateUtils.timeZone,
       showInvitees: attendees && attendees.length > 0,
       showNotes: !!description,
     };
@@ -141,6 +144,7 @@ export class CalendarEventPopover extends React.Component<
       alert,
       showAs,
       calendarColor,
+      timezone,
       showInvitees,
       showNotes,
     } = this.state;
@@ -198,10 +202,11 @@ export class CalendarEventPopover extends React.Component<
             )}
           </EventPropertyRow>
 
-          {/* Time zone display */}
-          <EventPropertyRow label={localized('time zone:')}>
-            <span>{moment().tz(DateUtils.timeZone).format('z')} ({DateUtils.timeZone})</span>
-          </EventPropertyRow>
+          {/* Time zone selector */}
+          <TimeZoneSelector
+            value={timezone}
+            onChange={value => this.updateField('timezone', value)}
+          />
 
           {/* Repeat selector */}
           <RepeatSelector

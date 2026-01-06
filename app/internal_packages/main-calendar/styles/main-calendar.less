@@ -310,6 +310,11 @@
     padding: @padding-small-vertical @padding-base-horizontal;
     border-bottom: 1px solid @border-color-divider;
 
+    // Fix double border: remove bottom border when followed by actions
+    &:last-of-type {
+      border-bottom: none;
+    }
+
     .section-header {
       display: flex;
       align-items: center;
@@ -324,9 +329,14 @@
       .section-close {
         cursor: pointer;
         color: @text-color-very-subtle;
+        font-size: 16px;
+        line-height: 1;
+        padding: 2px 6px;
+        border-radius: @border-radius-small;
 
         &:hover {
           color: @text-color;
+          background-color: @background-secondary;
         }
       }
     }
@@ -352,6 +362,56 @@
     textarea {
       min-height: 60px;
     }
+
+    // Compact styling for tokenizing field in calendar popover
+    .tokenizing-field {
+      .tokenizing-field-label {
+        display: none; // Hide label, we have our own section header
+      }
+
+      .tokenizing-field-input {
+        margin-left: 0;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        min-height: 28px;
+
+        input {
+          font-size: @font-size-small;
+          padding: 2px 0;
+        }
+      }
+
+      .token {
+        font-size: @font-size-smaller;
+        line-height: 1.6em;
+        padding: 0 6px;
+        padding-right: 20px;
+        margin: 2px 4px 2px 0;
+
+        .participant {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .participant-primary {
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .action {
+          right: 4px;
+          font-size: 9px;
+        }
+      }
+    }
+  }
+
+  // Action links should not have border when last before actions
+  .action-link:last-of-type {
+    border-bottom: none;
   }
 }
 
