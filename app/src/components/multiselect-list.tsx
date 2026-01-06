@@ -33,6 +33,9 @@ type MultiselectListState = {
   columns: ListTabularColumn[];
   computedColumns: ListTabularColumn[];
   layoutMode: string;
+  _checkmarkColumn?: ListTabularColumn;
+  _prevDataSource?: ListDataSource;
+  _prevColumns?: ListTabularColumn[];
 };
 /*
 Public: MultiselectList wraps {ListTabular} and makes it easy to present a
@@ -65,7 +68,84 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
 
   constructor(props) {
     super(props);
-    this.state = this._getStateFromStores();
+    const checkmarkColumn = this._getCheckmarkColumn();
+    const layoutMode = WorkspaceStore.layoutMode();
+
+    // Compute initial columns
+    const computedColumns = [...props.columns];
+    if (layoutMode === 'list') {
+      computedColumns.splice(0, 0, checkmarkColumn);
+    }
+
+    // Create initial handler
+    let handler;
+    if (layoutMode === 'list') {
+      handler = new MultiselectListInteractionHandler(props);
+    } else {
+      handler = new MultiselectSplitInteractionHandler(props);
+    }
+
+    this.state = {
+      handler,
+      columns: props.columns,
+      computedColumns,
+      layoutMode,
+      _checkmarkColumn: checkmarkColumn,
+      _prevDataSource: props.dataSource,
+      _prevColumns: props.columns,
+    };
+  }
+
+  static getDerivedStateFromProps(
+    props: MultiselectListProps,
+    state: MultiselectListState
+  ): Partial<MultiselectListState> | null {
+    // Guard: only run after component is fully initialized
+    if (!state || !state._checkmarkColumn) {
+      return null;
+    }
+
+    const layoutMode = WorkspaceStore.layoutMode();
+
+    // Check what changed
+    const dataSourceChanged = props.dataSource !== state._prevDataSource;
+    const columnsChanged = props.columns !== state._prevColumns;
+    const layoutModeChanged = layoutMode !== state.layoutMode;
+
+    // Only update if something relevant changed
+    if (dataSourceChanged || columnsChanged || layoutModeChanged) {
+      // Optimization: only recompute columns if columns or layout mode changed
+      // This avoids unnecessary re-renders of ListTabular
+      let computedColumns;
+      if (columnsChanged || layoutModeChanged) {
+        computedColumns = [...props.columns];
+        if (layoutMode === 'list') {
+          computedColumns.splice(0, 0, state._checkmarkColumn);
+        }
+      } else {
+        computedColumns = state.computedColumns;
+      }
+
+      // Always create a new handler when dataSource or layout mode changes
+      // The handler stores references to props.dataSource, so it must be recreated
+      let handler;
+      if (layoutMode === 'list') {
+        handler = new MultiselectListInteractionHandler(props);
+      } else {
+        handler = new MultiselectSplitInteractionHandler(props);
+      }
+
+      return {
+        handler,
+        columns: props.columns,
+        computedColumns,
+        layoutMode,
+        _prevDataSource: props.dataSource,
+        _prevColumns: props.columns,
+      };
+    }
+
+    return null;
   }
 
   componentDidMount() {
@@ -73,18 +153,13 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
   }
 
   componentDidUpdate(prevProps: MultiselectListProps, prevState: MultiselectListState) {
-    // Update state when key props change that affect computed state
-    // Note: No need to teardown/setup - the WorkspaceStore listener doesn't depend on props
-    if (
-      prevProps.dataSource !== this.props.dataSource ||
-      prevProps.columns !== this.props.columns
-    ) {
-      this.setState(this._getStateFromStores(this.props));
-    }
+    // Note: dataSource/columns changes are now handled by getDerivedStateFromProps
+    // before render, so no state updates needed here
 
     if (this.props.onComponentDidUpdate) {
       this.props.onComponentDidUpdate();
     }
+
     if (
       prevProps.focusedId !== this.props.focusedId ||
       prevProps.keyboardCursorId !== this.props.keyboardCursorId
@@ -265,7 +340,9 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
   };
 
   _onChange = () => {
-    this.setState(this._getStateFromStores());
+    // Trigger a re-render, which will call getDerivedStateFromProps
+    // to check for layout mode changes from WorkspaceStore
+    this.setState({});
   };
 
   _visible = () => {
@@ -296,39 +373,6 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
       },
     });
   };
-
-  _getStateFromStores(props = this.props) {
-    let computedColumns, handler;
-    const state: Partial<MultiselectListState> = this.state || {};
-
-    const layoutMode = WorkspaceStore.layoutMode();
-
-    // Do we need to re-compute columns? Don't do this unless we really have to,
-    // it will cause a re-render of the entire ListTabular. To know whether our
-    // computed columns are still valid, we store the original columns in our state
-    // along with the computed ones.
-    if (props.columns !== state.columns || layoutMode !== state.layoutMode) {
-      computedColumns = [...props.columns];
-      if (layoutMode === 'list') {
-        computedColumns.splice(0, 0, this._getCheckmarkColumn());
-      }
-    } else {
-      ({ computedColumns } = state);
-    }
-
-    if (layoutMode === 'list') {
-      handler = new MultiselectListInteractionHandler(props);
-    } else {
-      handler = new MultiselectSplitInteractionHandler(props);
-    }
-
-    return {
-      handler,
-      columns: props.columns,
-      computedColumns,
-      layoutMode,
-    };
-  }
 
   // Public Methods
 

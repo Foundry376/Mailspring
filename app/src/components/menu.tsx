@@ -34,6 +34,8 @@ export interface MenuProps extends HTMLProps<any> {
 
 interface MenuState {
   selectedIndex: number;
+  selectedItemKey: string | null;
+  prevItems: any[] | null;
 }
 
 /*
@@ -211,22 +213,50 @@ export class Menu extends React.Component<MenuProps, MenuState> {
 
   constructor(props) {
     super(props);
+    const selectedIndex = this.props.defaultSelectedIndex || 0;
     this.state = {
-      selectedIndex: this.props.defaultSelectedIndex || 0,
+      selectedIndex,
+      selectedItemKey:
+        selectedIndex >= 0 && selectedIndex < props.items.length
+          ? props.itemKey(props.items[selectedIndex])
+          : null,
+      prevItems: props.items,
     };
   }
 
   // Compute selectedIndex before render to prevent accessing items[selectedIndex]
   // when the index is out of bounds (e.g., after items array shrinks)
+  // Also preserve selection by key when items change to avoid flash of wrong selection
   static getDerivedStateFromProps(props: MenuProps, state: MenuState) {
-    // Clamp selectedIndex to valid range
     const maxIndex = props.items.length - 1;
     let newSelectedIndex = state.selectedIndex;
+    let newSelectedItemKey = state.selectedItemKey;
 
-    // If current selectedIndex is out of bounds, reset it
-    if (newSelectedIndex >= 0 && newSelectedIndex > maxIndex) {
-      newSelectedIndex = props.defaultSelectedIndex != null ? props.defaultSelectedIndex : 0;
-      newSelectedIndex = Math.min(newSelectedIndex, maxIndex);
+    // Detect if items array has changed
+    const itemsChanged = state.prevItems !== props.items;
+
+    if (itemsChanged && state.selectedItemKey !== null && props.items.length > 0) {
+      // Try to find the previously selected item by key in the new items array
+      const newItemIndex = props.items.findIndex(
+        item => props.itemKey(item) === state.selectedItemKey
+      );
+
+      if (newItemIndex !== -1) {
+        // Found the item in new array, update index to point to it
+        newSelectedIndex = newItemIndex;
+      } else {
+        // Item not found in new array, fall back to bounds checking
+        if (newSelectedIndex > maxIndex) {
+          newSelectedIndex = props.defaultSelectedIndex != null ? props.defaultSelectedIndex : 0;
+          newSelectedIndex = Math.min(newSelectedIndex, maxIndex);
+        }
+      }
+    } else if (!itemsChanged) {
+      // Items didn't change, just do bounds checking
+      if (newSelectedIndex >= 0 && newSelectedIndex > maxIndex) {
+        newSelectedIndex = props.defaultSelectedIndex != null ? props.defaultSelectedIndex : 0;
+        newSelectedIndex = Math.min(newSelectedIndex, maxIndex);
+      }
     }
 
     // Ensure selectedIndex is never negative unless explicitly set to -1
@@ -234,8 +264,24 @@ export class Menu extends React.Component<MenuProps, MenuState> {
       newSelectedIndex = -1;
     }
 
-    if (newSelectedIndex !== state.selectedIndex) {
-      return { selectedIndex: newSelectedIndex };
+    // Update selectedItemKey to match current selection
+    if (newSelectedIndex >= 0 && newSelectedIndex < props.items.length) {
+      newSelectedItemKey = props.itemKey(props.items[newSelectedIndex]);
+    } else {
+      newSelectedItemKey = null;
+    }
+
+    // Return new state if anything changed
+    if (
+      newSelectedIndex !== state.selectedIndex ||
+      newSelectedItemKey !== state.selectedItemKey ||
+      itemsChanged
+    ) {
+      return {
+        selectedIndex: newSelectedIndex,
+        selectedItemKey: newSelectedItemKey,
+        prevItems: props.items,
+      };
     }
 
     return null;
@@ -253,7 +299,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
       if (this._mounted === false) {
         return;
       }
-      this.setState({ selectedIndex: -1 });
+      this.setState({ selectedIndex: -1, selectedItemKey: null });
     });
   };
 
@@ -265,33 +311,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     this._mounted = false;
   }
 
-  componentDidUpdate(prevProps: MenuProps) {
-    // Attempt to preserve selection across props.items changes by
-    // finding an item in the new list with a key matching the old
-    // selected item's key
-    if (prevProps.items !== this.props.items) {
-      // Only try to preserve selection if we had a valid selection before
-      if (this.state.selectedIndex >= 0 && prevProps.items.length > 0) {
-        const oldSelectedIndex = this.state.selectedIndex;
-        // Ensure the old index was valid in the previous items array
-        if (oldSelectedIndex < prevProps.items.length) {
-          const selection = prevProps.items[oldSelectedIndex];
-          const selectionKey = prevProps.itemKey(selection);
-          const newSelection = _.find(
-            this.props.items,
-            item => this.props.itemKey(item) === selectionKey
-          );
-          if (newSelection != null) {
-            const newSelectionIndex = this.props.items.indexOf(newSelection);
-            if (newSelectionIndex !== this.state.selectedIndex) {
-              this.setState({ selectedIndex: newSelectionIndex });
-              return; // Skip scroll adjustment until next update
-            }
-          }
-        }
-      }
-    }
-
+  componentDidUpdate() {
     // Scroll selected item into view
     if ((this.props.items || []).length === 0) {
       return;
@@ -364,7 +384,8 @@ export class Menu extends React.Component<MenuProps, MenuState> {
 
       const onMouseDown = event => {
         event.preventDefault();
-        this.setState({ selectedIndex: i });
+        const key = this.props.itemKey(item);
+        this.setState({ selectedIndex: i, selectedItemKey: key });
         if (this.props.onSelect) {
           return this.props.onSelect(item);
         }
@@ -427,8 +448,10 @@ export class Menu extends React.Component<MenuProps, MenuState> {
 
     index = Math.max(0, Math.min(this.props.items.length - 1, index));
 
-    // Update the selected index
-    this.setState({ selectedIndex: index });
+    // Update the selected index and key
+    const selectedItem = this.props.items[index];
+    const selectedItemKey = selectedItem ? this.props.itemKey(selectedItem) : null;
+    this.setState({ selectedIndex: index, selectedItemKey });
   };
 
   _onEnter = () => {

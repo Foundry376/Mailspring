@@ -12,7 +12,7 @@ function InflatesDraftClientId(
 > {
   return class extends React.Component<
     { headerMessageId: string; onDraftReady: () => void } & React.HTMLProps<HTMLElement>,
-    { draft: Message; session: DraftEditingSession }
+    { draft: Message; session: DraftEditingSession; _lastHeaderMessageId: string }
   > {
     static displayName = ComposedComponent.displayName;
 
@@ -27,6 +27,22 @@ function InflatesDraftClientId(
 
     static containerRequired = false;
 
+    static getDerivedStateFromProps(
+      props: { headerMessageId: string; onDraftReady: () => void },
+      state: { draft: Message; session: DraftEditingSession; _lastHeaderMessageId: string }
+    ) {
+      // If headerMessageId prop has changed, clear draft and session state
+      // to prevent rendering with mismatched data
+      if (props.headerMessageId !== state._lastHeaderMessageId) {
+        return {
+          draft: null,
+          session: null,
+          _lastHeaderMessageId: props.headerMessageId,
+        };
+      }
+      return null;
+    }
+
     _mounted = false;
     _sessionUnlisten?: () => void;
 
@@ -35,6 +51,7 @@ function InflatesDraftClientId(
       this.state = {
         session: null,
         draft: null,
+        _lastHeaderMessageId: props.headerMessageId,
       };
     }
 
@@ -51,10 +68,9 @@ function InflatesDraftClientId(
 
     componentDidUpdate(prevProps: { headerMessageId: string; onDraftReady: () => void }) {
       if (prevProps.headerMessageId !== this.props.headerMessageId) {
+        // getDerivedStateFromProps has already cleared draft/session state before render
+        // Now we just need to teardown the old draft and prepare for the new one
         this._teardownForDraft();
-        // Clear state immediately to prevent rendering with mismatched draft
-        // while the new draft is being loaded asynchronously
-        this.setState({ draft: null, session: null });
         this._prepareForDraft(this.props.headerMessageId);
       }
     }
