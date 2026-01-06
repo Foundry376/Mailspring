@@ -159,6 +159,9 @@ load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 
+// Context
+lazyLoadWithGetter('SheetDepthContext', () => require('../sheet-context').SheetDepthContext);
+
 // Decorators
 lazyLoad(`InflatesDraftClientId`, 'decorators/inflates-draft-client-id');
 
