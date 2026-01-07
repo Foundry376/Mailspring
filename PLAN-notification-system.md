@@ -21,206 +21,223 @@ PROPOSED:
 │  Renderer Process                                               │
 │  ┌─────────────────────┐    ┌─────────────────────────────────┐│
 │  │ unread-notifications│───▶│ native-notifications.ts         ││
-│  │ (Notifier class)    │    │ ipcRenderer.invoke('notify')    ││
+│  │ (Notifier class)    │    │ ipcRenderer.invoke(...)         ││
 │  └─────────────────────┘    └─────────────────────────────────┘│
 └───────────────────────────────────┬─────────────────────────────┘
                                     │ IPC
 ┌───────────────────────────────────▼─────────────────────────────┐
 │  Main Process                                                   │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │ notification-manager.ts                                     ││
-│  │ - Electron Notification module                              ││
+│  │ notification-ipc.ts (registerNotificationIPCHandlers)       ││
+│  │ - Uses Electron Notification module                         ││
 │  │ - Platform-specific features (hasReply, actions, toastXml)  ││
-│  │ - Event forwarding back to renderer                         ││
+│  │ - Events forwarded back via windowManager.sendToAllWindows()││
 │  └─────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## IPC Patterns (from codebase review)
+
+Based on review of existing IPC implementations:
+
+1. **quickpreview-ipc.ts pattern**: Export a `registerXxxIPCHandlers(ipcMain)` function, called from `application.ts`
+2. **badge-store.ts pattern**: Simple `ipcRenderer.send()` / `ipcMain.on()` for one-way communication
+3. **window-manager.ts**: Use `sendToAllWindows()` for broadcasting events to all renderer windows
+4. **No new dependencies**: Use existing `Utils.generateTempId()` or `crypto.randomUUID()` instead of adding uuid package
+
 ## Files to Create/Modify
 
 ### New Files
-1. `app/src/browser/notification-manager.ts` - Main process notification handler
+1. `app/src/browser/notification-ipc.ts` - IPC handlers and notification logic (main process)
 
 ### Modified Files
-1. `app/src/native-notifications.ts` - Convert to IPC bridge
+1. `app/src/native-notifications.ts` - Convert to IPC bridge (keep same export API)
 2. `app/src/browser/application.ts` - Register notification IPC handlers
-3. `app/internal_packages/unread-notifications/lib/main.ts` - Handle reply/action events
+3. `app/internal_packages/unread-notifications/lib/main.ts` - Use new features
 
 ---
 
-## Step 1: Create Main Process Notification Manager
+## Step 1: Create Notification IPC Handlers
 
-**File: `app/src/browser/notification-manager.ts`**
+**File: `app/src/browser/notification-ipc.ts`**
+
+Following the `quickpreview-ipc.ts` pattern:
 
 ```typescript
-import { Notification, ipcMain, BrowserWindow, nativeImage } from 'electron';
-import path from 'path';
+import { Notification, IpcMain, IpcMainInvokeEvent, nativeImage } from 'electron';
 
 interface NotificationOptions {
-  id: string;                    // Unique ID for tracking
+  id: string;
   title: string;
-  subtitle?: string;             // macOS only
+  subtitle?: string;
   body?: string;
   tag?: string;
   icon?: string;
-  threadId?: string;             // For action callbacks
-  messageId?: string;            // For action callbacks
-
-  // Platform-specific
-  hasReply?: boolean;            // macOS: enable inline reply
-  replyPlaceholder?: string;     // macOS: placeholder text
-  actions?: Array<{              // macOS: action buttons
-    type: 'button';
-    text: string;
-  }>;
-  urgency?: 'low' | 'normal' | 'critical';  // Linux
-  timeoutType?: 'default' | 'never';         // Linux, Windows
-  toastXml?: string;             // Windows: custom toast XML
+  threadId?: string;
+  messageId?: string;
+  hasReply?: boolean;
+  replyPlaceholder?: string;
+  actions?: Array<{ type: 'button'; text: string }>;
+  urgency?: 'low' | 'normal' | 'critical';
+  timeoutType?: 'default' | 'never';
+  toastXml?: string;
 }
 
-class NotificationManager {
-  private activeNotifications: Map<string, Notification> = new Map();
-  private mainWindow: BrowserWindow | null = null;
+// Track active notifications by ID, with metadata for thread-based dismissal
+const activeNotifications = new Map<string, { notification: Notification; threadId?: string }>();
 
-  initialize(mainWindow: BrowserWindow) {
-    this.mainWindow = mainWindow;
-    this.registerIPCHandlers();
+/**
+ * Send notification event back to all renderer windows.
+ * Uses global.application.windowManager which is available in main process.
+ */
+const sendToAllWindows = (channel: string, data: any) => {
+  if (global.application?.windowManager) {
+    global.application.windowManager.sendToAllWindows(channel, {}, data);
+  }
+};
+
+/**
+ * Display a notification using Electron's Notification API.
+ * Handles platform-specific options for macOS, Windows, and Linux.
+ */
+const displayNotification = (
+  event: IpcMainInvokeEvent,
+  options: NotificationOptions
+): string | null => {
+  const platform = process.platform;
+
+  // Check if notifications are supported
+  if (!Notification.isSupported()) {
+    console.warn('Notifications are not supported on this system');
+    return null;
   }
 
-  private registerIPCHandlers() {
-    // Handle notification display requests
-    ipcMain.handle('notification:display', async (event, options: NotificationOptions) => {
-      return this.displayNotification(options);
-    });
+  // Build platform-appropriate notification options
+  const notifOptions: Electron.NotificationConstructorOptions = {
+    title: options.title,
+    body: options.subtitle || options.body,
+    icon: options.icon ? nativeImage.createFromPath(options.icon) : undefined,
+    silent: true, // App handles sounds separately via SoundRegistry
+  };
 
-    // Handle notification close requests
-    ipcMain.handle('notification:close', async (event, id: string) => {
-      this.closeNotification(id);
-    });
-
-    // Handle close all for a thread
-    ipcMain.handle('notification:close-thread', async (event, threadId: string) => {
-      this.closeNotificationsForThread(threadId);
-    });
+  // macOS-specific options
+  if (platform === 'darwin') {
+    if (options.subtitle && options.body) {
+      notifOptions.subtitle = options.subtitle;
+      notifOptions.body = options.body;
+    }
+    if (options.hasReply) {
+      notifOptions.hasReply = true;
+      notifOptions.replyPlaceholder = options.replyPlaceholder || 'Reply...';
+    }
+    if (options.actions && options.actions.length > 0) {
+      notifOptions.actions = options.actions;
+    }
   }
 
-  private displayNotification(options: NotificationOptions): string | null {
-    const platform = process.platform;
-
-    // Build platform-appropriate notification options
-    const notifOptions: Electron.NotificationConstructorOptions = {
-      title: options.title,
-      body: options.body || options.subtitle,
-      icon: options.icon ? nativeImage.createFromPath(options.icon) : undefined,
-      silent: true, // We handle sounds separately
-    };
-
-    // macOS-specific options
-    if (platform === 'darwin') {
-      if (options.subtitle && options.body) {
-        notifOptions.subtitle = options.subtitle;
-        notifOptions.body = options.body;
-      }
-      if (options.hasReply) {
-        notifOptions.hasReply = true;
-        notifOptions.replyPlaceholder = options.replyPlaceholder || 'Reply...';
-      }
-      if (options.actions && options.actions.length > 0) {
-        notifOptions.actions = options.actions;
-      }
+  // Linux-specific options
+  if (platform === 'linux') {
+    if (options.urgency) {
+      notifOptions.urgency = options.urgency;
     }
-
-    // Linux-specific options
-    if (platform === 'linux') {
-      if (options.urgency) {
-        notifOptions.urgency = options.urgency;
-      }
-      if (options.timeoutType) {
-        notifOptions.timeoutType = options.timeoutType;
-      }
+    if (options.timeoutType) {
+      notifOptions.timeoutType = options.timeoutType;
     }
+  }
 
-    // Windows-specific options
-    if (platform === 'win32') {
-      if (options.toastXml) {
-        notifOptions.toastXml = options.toastXml;
-      } else if (options.timeoutType) {
-        notifOptions.timeoutType = options.timeoutType;
-      }
+  // Windows-specific options
+  if (platform === 'win32') {
+    if (options.toastXml) {
+      notifOptions.toastXml = options.toastXml;
+    } else if (options.timeoutType) {
+      notifOptions.timeoutType = options.timeoutType;
     }
+  }
 
-    const notification = new Notification(notifOptions);
+  const notification = new Notification(notifOptions);
 
-    // Store metadata for event handling
-    const metadata = {
+  // Handle click event
+  notification.on('click', () => {
+    sendToAllWindows('notification:clicked', {
+      id: options.id,
       threadId: options.threadId,
       messageId: options.messageId,
-    };
-
-    // Handle click event
-    notification.on('click', () => {
-      this.sendToRenderer('notification:clicked', {
-        id: options.id,
-        ...metadata,
-      });
     });
+  });
 
-    // Handle close event
-    notification.on('close', () => {
-      this.activeNotifications.delete(options.id);
-      this.sendToRenderer('notification:closed', { id: options.id });
+  // Handle close event
+  notification.on('close', () => {
+    activeNotifications.delete(options.id);
+    sendToAllWindows('notification:closed', { id: options.id });
+  });
+
+  // Handle reply event (macOS only)
+  notification.on('reply', (replyEvent, reply) => {
+    sendToAllWindows('notification:replied', {
+      id: options.id,
+      reply,
+      threadId: options.threadId,
+      messageId: options.messageId,
     });
+  });
 
-    // Handle reply event (macOS)
-    notification.on('reply', (event, reply) => {
-      this.sendToRenderer('notification:replied', {
-        id: options.id,
-        reply,
-        ...metadata,
-      });
+  // Handle action button event (macOS only)
+  notification.on('action', (actionEvent, index) => {
+    sendToAllWindows('notification:action', {
+      id: options.id,
+      actionIndex: index,
+      threadId: options.threadId,
+      messageId: options.messageId,
     });
+  });
 
-    // Handle action event (macOS)
-    notification.on('action', (event, index) => {
-      this.sendToRenderer('notification:action', {
-        id: options.id,
-        actionIndex: index,
-        ...metadata,
-      });
-    });
+  // Handle failed event (Windows only)
+  notification.on('failed', (failedEvent, error) => {
+    console.error('Notification failed:', error);
+  });
 
-    // Handle failed event (Windows)
-    notification.on('failed', (event, error) => {
-      console.error('Notification failed:', error);
-    });
+  notification.show();
+  activeNotifications.set(options.id, {
+    notification,
+    threadId: options.threadId,
+  });
 
-    notification.show();
-    this.activeNotifications.set(options.id, notification);
+  return options.id;
+};
 
-    return options.id;
+/**
+ * Close a specific notification by ID.
+ */
+const closeNotification = (event: IpcMainInvokeEvent, id: string): void => {
+  const entry = activeNotifications.get(id);
+  if (entry) {
+    entry.notification.close();
+    activeNotifications.delete(id);
   }
+};
 
-  private closeNotification(id: string) {
-    const notification = this.activeNotifications.get(id);
-    if (notification) {
-      notification.close();
-      this.activeNotifications.delete(id);
+/**
+ * Close all notifications for a specific thread.
+ * Called when user reads a thread to dismiss related notifications.
+ */
+const closeNotificationsForThread = (event: IpcMainInvokeEvent, threadId: string): void => {
+  for (const [id, entry] of activeNotifications.entries()) {
+    if (entry.threadId === threadId) {
+      entry.notification.close();
+      activeNotifications.delete(id);
     }
   }
+};
 
-  private closeNotificationsForThread(threadId: string) {
-    // This requires tracking threadId -> notification mapping
-    // Implementation depends on how we store this metadata
-  }
-
-  private sendToRenderer(channel: string, data: any) {
-    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send(channel, data);
-    }
-  }
+/**
+ * Register all notification-related IPC handlers.
+ * Called from application.ts during startup.
+ */
+export function registerNotificationIPCHandlers(ipcMain: IpcMain) {
+  ipcMain.handle('notification:display', displayNotification);
+  ipcMain.handle('notification:close', closeNotification);
+  ipcMain.handle('notification:close-for-thread', closeNotificationsForThread);
 }
-
-export default new NotificationManager();
 ```
 
 ---
@@ -229,11 +246,23 @@ export default new NotificationManager();
 
 **File: `app/src/native-notifications.ts`**
 
-Convert to use IPC bridge instead of Web Notification API:
+Convert to IPC bridge while maintaining the same export API:
 
 ```typescript
+/* eslint global-require: 0 */
 import { ipcRenderer } from 'electron';
-import { v4 as uuid } from 'uuid';
+import { convertToPNG, getIcon, Context } from './linux-theme-utils';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
+
+const platform = process.platform;
+const DEFAULT_ICON = path.resolve(
+  AppEnv.getLoadSettings().resourcePath,
+  'static',
+  'images',
+  'mailspring.png'
+);
 
 type INotificationCallback = (args: {
   response: string | null;
@@ -260,8 +289,9 @@ interface NotificationHandle {
 }
 
 class NativeNotifications {
-  private callbacks: Map<string, INotificationCallback> = new Map();
+  private _macNotificationsByTag = {};
   private resolvedIcon: string = null;
+  private callbacks: Map<string, INotificationCallback> = new Map();
 
   constructor() {
     this.resolvedIcon = this.getIcon();
@@ -290,7 +320,7 @@ class NativeNotifications {
         callback({
           response: null,
           activationType: 'action',
-          actionIndex: data.actionIndex
+          actionIndex: data.actionIndex,
         });
       }
     });
@@ -301,20 +331,99 @@ class NativeNotifications {
   }
 
   async doNotDisturb(): Promise<boolean> {
-    // Keep existing macOS DND check
-    if (process.platform === 'darwin') {
+    if (platform === 'darwin') {
       try {
         return await require('macos-notification-state').getDoNotDisturb();
       } catch (e) {
+        console.warn('Failed to check Do Not Disturb status:', e);
         return false;
       }
     }
     return false;
   }
 
-  private getIcon(): string {
-    // Keep existing icon resolution logic
-    // ... (unchanged from current implementation)
+  // Keep existing Linux icon resolution logic
+  private readIconFromDesktopFile(filePath) {
+    if (fs.existsSync(filePath)) {
+      const ini = require('ini');
+      const content = ini.parse(fs.readFileSync(filePath, 'utf-8'));
+      return content['Desktop Entry']['Icon'];
+    }
+    return null;
+  }
+
+  private getIcon() {
+    if (platform === 'linux') {
+      const desktopBaseDirs = [
+        os.homedir() + '/.local/share/applications/',
+        '/usr/share/applications/',
+      ];
+      const desktopFileNames = ['mailspring.desktop', 'Mailspring.desktop'];
+      for (const baseDir of desktopBaseDirs) {
+        for (const fileName of desktopFileNames) {
+          const filePath = path.join(baseDir, fileName);
+          const desktopIcon = this.readIconFromDesktopFile(filePath);
+          if (desktopIcon != null) {
+            if (fs.existsSync(desktopIcon)) {
+              return desktopIcon;
+            }
+            const iconPath = getIcon(desktopIcon, 64, Context.APPLICATIONS, 2);
+            if (iconPath != null) {
+              if (path.extname(iconPath) === '.png') {
+                return iconPath;
+              }
+              const converted = convertToPNG(desktopIcon, iconPath);
+              if (converted != null) {
+                return converted;
+              }
+            }
+          }
+        }
+      }
+    }
+    return DEFAULT_ICON;
+  }
+
+  private generateId(): string {
+    // Use crypto.randomUUID() which is available in modern Node/Electron
+    return crypto.randomUUID();
+  }
+
+  private escapeXml(str: string): string {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  private buildWindowsToastXml(options: {
+    title: string;
+    subtitle?: string;
+    body?: string;
+    actions?: Array<{ type: 'button'; text: string }>;
+    threadId?: string;
+  }): string {
+    const actionsXml =
+      options.actions
+        ?.map(
+          (action, i) =>
+            `<action content="${this.escapeXml(action.text)}" arguments="action:${i}:${options.threadId || ''}" />`
+        )
+        .join('\n') || '';
+
+    return `<toast launch="mailspring:thread/${options.threadId || ''}" activationType="protocol">
+  <visual>
+    <binding template="ToastGeneric">
+      <text>${this.escapeXml(options.title)}</text>
+      ${options.subtitle ? `<text>${this.escapeXml(options.subtitle)}</text>` : ''}
+      ${options.body ? `<text>${this.escapeXml(options.body)}</text>` : ''}
+    </binding>
+  </visual>
+  ${actionsXml ? `<actions>${actionsXml}</actions>` : ''}
+</toast>`;
   }
 
   async displayNotification({
@@ -333,12 +442,12 @@ class NativeNotifications {
       return null;
     }
 
-    const id = uuid();
+    const id = this.generateId();
 
-    // Store callback for later
+    // Store callback for later event handling
     this.callbacks.set(id, onActivate);
 
-    // Build platform-specific options
+    // Build options for main process
     const options: any = {
       id,
       title,
@@ -350,19 +459,19 @@ class NativeNotifications {
       messageId,
     };
 
-    // macOS features
-    if (process.platform === 'darwin') {
+    // macOS-specific features
+    if (platform === 'darwin') {
       if (canReply) {
         options.hasReply = true;
         options.replyPlaceholder = replyPlaceholder || 'Reply...';
       }
-      if (actions) {
+      if (actions && actions.length > 0) {
         options.actions = actions;
       }
     }
 
-    // Windows toast XML (when actions are requested)
-    if (process.platform === 'win32' && actions && actions.length > 0) {
+    // Windows toast XML for action buttons
+    if (platform === 'win32' && actions && actions.length > 0) {
       options.toastXml = this.buildWindowsToastXml({
         title,
         subtitle,
@@ -372,7 +481,13 @@ class NativeNotifications {
       });
     }
 
-    await ipcRenderer.invoke('notification:display', options);
+    try {
+      await ipcRenderer.invoke('notification:display', options);
+    } catch (err) {
+      console.error('Failed to display notification:', err);
+      this.callbacks.delete(id);
+      return null;
+    }
 
     return {
       id,
@@ -383,43 +498,8 @@ class NativeNotifications {
     };
   }
 
-  private buildWindowsToastXml(options: {
-    title: string;
-    subtitle?: string;
-    body?: string;
-    actions?: Array<{ type: 'button'; text: string }>;
-    threadId?: string;
-  }): string {
-    const actionsXml = options.actions
-      ?.map((action, i) =>
-        `<action content="${action.text}" arguments="action:${i}:${options.threadId}" />`
-      )
-      .join('\n') || '';
-
-    return `
-      <toast launch="mailspring:thread/${options.threadId}" activationType="protocol">
-        <visual>
-          <binding template="ToastGeneric">
-            <text>${this.escapeXml(options.title)}</text>
-            ${options.subtitle ? `<text>${this.escapeXml(options.subtitle)}</text>` : ''}
-            ${options.body ? `<text>${this.escapeXml(options.body)}</text>` : ''}
-          </binding>
-        </visual>
-        ${actionsXml ? `<actions>${actionsXml}</actions>` : ''}
-      </toast>
-    `;
-  }
-
-  private escapeXml(str: string): string {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
   closeNotificationsForThread(threadId: string) {
-    ipcRenderer.invoke('notification:close-thread', threadId);
+    ipcRenderer.invoke('notification:close-for-thread', threadId);
   }
 }
 
@@ -432,30 +512,14 @@ export default new NativeNotifications();
 
 **File: `app/src/browser/application.ts`**
 
-Add notification manager initialization:
+Add registration call in `handleEvents()`:
 
 ```typescript
-// Add import at top
-import notificationManager from './notification-manager';
+// Add import at top of file
+import { registerNotificationIPCHandlers } from './notification-ipc';
 
-// In handleEvents() method, add:
-ipcMain.handle('notification:display', async (event, options) => {
-  return notificationManager.displayNotification(options);
-});
-
-ipcMain.handle('notification:close', async (event, id) => {
-  notificationManager.closeNotification(id);
-});
-
-ipcMain.handle('notification:close-thread', async (event, threadId) => {
-  notificationManager.closeNotificationsForThread(threadId);
-});
-
-// In openWindowsForTokenState() or when main window is ready:
-const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
-if (mainWindow) {
-  notificationManager.initialize(mainWindow.browserWindow);
-}
+// In handleEvents() method, after other ipcMain registrations:
+registerNotificationIPCHandlers(ipcMain);
 ```
 
 ---
@@ -467,13 +531,28 @@ if (mainWindow) {
 Update to use new notification features:
 
 ```typescript
-// In _notifyOne method, update the notification call:
+// Add TaskFactory to imports
+import {
+  Thread,
+  Actions,
+  AccountStore,
+  Message,
+  SoundRegistry,
+  NativeNotifications,
+  DatabaseStore,
+  localized,
+  DatabaseChangeRecord,
+  TaskFactory,  // Add this import
+} from 'mailspring-exports';
+
+// ... existing code ...
+
+// Update _notifyOne method:
 async _notifyOne({ message, thread }) {
   const from = message.from[0] ? message.from[0].displayName() : 'Unknown';
   const title = from;
   let subtitle = null;
   let body = null;
-
   if (message.subject && message.subject.length > 0) {
     subtitle = message.subject;
     body = message.snippet;
@@ -483,16 +562,16 @@ async _notifyOne({ message, thread }) {
   }
 
   const notification = await NativeNotifications.displayNotification({
-    title,
-    subtitle,
-    body,
-    tag: `thread-${thread.id}`,  // Unique per thread
+    title: title,
+    subtitle: subtitle,
+    body: body,
+    tag: `thread-${thread.id}`,
     threadId: thread.id,
     messageId: message.id,
 
     // macOS inline reply
     canReply: true,
-    replyPlaceholder: `Reply to ${from}...`,
+    replyPlaceholder: localized('Reply to %@...', from),
 
     // macOS action buttons
     actions: [
@@ -501,29 +580,33 @@ async _notifyOne({ message, thread }) {
     ],
 
     onActivate: ({ response, activationType, actionIndex }) => {
-      if (activationType === 'replied' && response) {
+      if (activationType === 'replied' && response && typeof response === 'string') {
         Actions.sendQuickReply({ thread, message }, response);
       } else if (activationType === 'action') {
-        this._handleNotificationAction(actionIndex, thread, message);
+        this._handleNotificationAction(actionIndex, thread);
       } else if (activationType === 'clicked') {
         AppEnv.displayWindow();
+        if (!thread) {
+          AppEnv.showErrorDialog(`Can't find that thread`);
+          return;
+        }
         Actions.ensureCategoryIsFocused('inbox', thread.accountId);
         Actions.setFocus({ collection: 'thread', item: thread });
       }
     },
   });
 
-  // Track notification for dismissal when thread is read
   if (notification) {
     if (!this.activeNotifications[thread.id]) {
-      this.activeNotifications[thread.id] = [];
+      this.activeNotifications[thread.id] = [notification];
+    } else {
+      this.activeNotifications[thread.id].push(notification);
     }
-    this.activeNotifications[thread.id].push(notification);
   }
 }
 
-// New method to handle action button clicks
-_handleNotificationAction(actionIndex: number, thread: Thread, message: Message) {
+// Add new method to handle action button clicks
+_handleNotificationAction(actionIndex: number, thread: Thread) {
   AppEnv.displayWindow();
 
   switch (actionIndex) {
@@ -538,37 +621,12 @@ _handleNotificationAction(actionIndex: number, thread: Thread, message: Message)
       break;
     case 1: // Archive
       Actions.queueTask(
-        TaskFactory.taskForMovingToTrash({
+        TaskFactory.taskForArchiving({
           threads: [thread],
           source: 'Notification Action',
         })
       );
       break;
-  }
-}
-
-// Update _onThreadsChanged to use new close method
-_onThreadsChanged(threads) {
-  threads.forEach(({ id, unread }) => {
-    if (!unread && this.activeNotifications[id]) {
-      // Use the new close method on notification handles
-      this.activeNotifications[id].forEach(n => n.close());
-      delete this.activeNotifications[id];
-    }
-  });
-}
-```
-
----
-
-## Step 5: Add Required Dependencies
-
-**File: `app/package.json`**
-
-```json
-{
-  "dependencies": {
-    "uuid": "^9.0.0"  // For generating notification IDs
   }
 }
 ```
@@ -580,7 +638,7 @@ _onThreadsChanged(threads) {
 | Feature | macOS | Windows | Linux |
 |---------|-------|---------|-------|
 | Inline Reply | `hasReply: true` | Not supported | Not supported |
-| Action Buttons | `actions: [...]` | `toastXml` with `<actions>` | Limited via libnotify |
+| Action Buttons | `actions: [...]` | `toastXml` with `<actions>` | Limited (depends on DE) |
 | Urgency/Priority | Not supported | Not supported | `urgency: 'critical'` |
 | Persistent | Not supported | `timeoutType: 'never'` | `timeoutType: 'never'` |
 | Custom Sound | `sound: 'name'` | Via toast XML | Not supported |
@@ -591,40 +649,47 @@ _onThreadsChanged(threads) {
 
 1. **macOS Testing**
    - [ ] Notification displays with title, subtitle, body
-   - [ ] Inline reply field appears and sends quick reply
+   - [ ] Inline reply field appears when clicking reply
+   - [ ] Typing reply and pressing Enter sends quick reply
    - [ ] Action buttons appear and trigger correct actions
    - [ ] Notification dismissed when thread marked read
 
 2. **Windows Testing**
    - [ ] Toast notification displays correctly
    - [ ] Action buttons work via toast XML
-   - [ ] Protocol activation handles thread navigation
-   - [ ] Notifications persist in Action Center
+   - [ ] Click navigates to thread
+   - [ ] Notifications appear in Action Center
 
 3. **Linux Testing**
-   - [ ] Basic notification displays
-   - [ ] Urgency levels work (may depend on DE)
+   - [ ] Basic notification displays with correct icon
    - [ ] Click callback works
+   - [ ] Urgency levels work (may depend on DE)
 
 4. **Cross-Platform**
-   - [ ] Do Not Disturb respected
-   - [ ] Multiple notifications queue correctly
+   - [ ] Do Not Disturb respected on macOS
+   - [ ] Multiple notifications queue correctly (2-second delay)
    - [ ] Notification sound plays
    - [ ] Badge count updates correctly
+   - [ ] Notifications dismiss when thread read
 
 ---
 
 ## Migration Notes
 
-1. **Backward Compatibility**: The `displayNotification` API signature changes slightly but remains compatible
-2. **Fallback**: If main process notification fails, could fall back to Web API
-3. **Icon Resolution**: Keep existing Linux icon resolution logic
-4. **Thread Tracking**: `activeNotifications` now stores `NotificationHandle` objects instead of raw `Notification` objects
+1. **API Compatibility**: The `displayNotification` method now returns a `NotificationHandle` object instead of a raw `Notification`. The handle has `id` and `close()` properties.
+
+2. **Callback Signature**: The `onActivate` callback now receives an additional `actionIndex` property for action button clicks.
+
+3. **Icon Resolution**: Linux icon resolution logic is preserved unchanged.
+
+4. **Error Handling**: Failures in IPC communication are caught and logged; the method returns `null` on failure.
+
+5. **No New Dependencies**: Uses built-in `crypto.randomUUID()` instead of adding uuid package.
 
 ---
 
 ## Estimated Scope
 
-- **New code**: ~300 lines (notification-manager.ts)
-- **Modified code**: ~150 lines (native-notifications.ts) + ~50 lines (main.ts) + ~20 lines (application.ts)
+- **New code**: ~150 lines (notification-ipc.ts)
+- **Modified code**: ~100 lines (native-notifications.ts) + ~50 lines (main.ts) + ~3 lines (application.ts)
 - **Files touched**: 4 files

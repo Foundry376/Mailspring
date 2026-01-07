@@ -9,6 +9,7 @@ import {
   DatabaseStore,
   localized,
   DatabaseChangeRecord,
+  TaskFactory,
 } from 'mailspring-exports';
 
 const WAIT_FOR_CHANGES_DELAY = 400;
@@ -137,21 +138,34 @@ export class Notifier {
       title: title,
       subtitle: subtitle,
       body: body,
+      tag: `thread-${thread.id}`,
+      threadId: thread.id,
+      messageId: message.id,
+
+      // macOS inline reply
       canReply: true,
-      tag: 'unread-update',
-      onActivate: ({ response, activationType }) => {
+      replyPlaceholder: localized('Reply to %@...', from),
+
+      // macOS action buttons
+      actions: [
+        { type: 'button', text: localized('Mark as Read') },
+        { type: 'button', text: localized('Archive') },
+      ],
+
+      onActivate: ({ response, activationType, actionIndex }) => {
         if (activationType === 'replied' && response && typeof response === 'string') {
           Actions.sendQuickReply({ thread, message }, response);
-        } else {
+        } else if (activationType === 'action') {
+          this._handleNotificationAction(actionIndex, thread);
+        } else if (activationType === 'clicked') {
           AppEnv.displayWindow();
+          if (!thread) {
+            AppEnv.showErrorDialog(`Can't find that thread`);
+            return;
+          }
+          Actions.ensureCategoryIsFocused('inbox', thread.accountId);
+          Actions.setFocus({ collection: 'thread', item: thread });
         }
-
-        if (!thread) {
-          AppEnv.showErrorDialog(`Can't find that thread`);
-          return;
-        }
-        Actions.ensureCategoryIsFocused('inbox', thread.accountId);
-        Actions.setFocus({ collection: 'thread', item: thread });
       },
     });
 
@@ -161,6 +175,30 @@ export class Notifier {
       } else {
         this.activeNotifications[thread.id].push(notification);
       }
+    }
+  }
+
+  _handleNotificationAction(actionIndex: number, thread: Thread) {
+    AppEnv.displayWindow();
+
+    switch (actionIndex) {
+      case 0: // Mark as Read
+        Actions.queueTask(
+          TaskFactory.taskForSettingUnread({
+            threads: [thread],
+            unread: false,
+            source: 'Notification Action',
+          })
+        );
+        break;
+      case 1: // Archive
+        Actions.queueTasks(
+          TaskFactory.tasksForArchiving({
+            threads: [thread],
+            source: 'Notification Action',
+          })
+        );
+        break;
     }
   }
 

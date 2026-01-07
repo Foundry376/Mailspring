@@ -1,4 +1,5 @@
 /* eslint global-require: 0 */
+import { ipcRenderer } from 'electron';
 import { convertToPNG, getIcon, Context } from './linux-theme-utils';
 import path from 'path';
 import fs from 'fs';
@@ -14,7 +15,8 @@ const DEFAULT_ICON = path.resolve(
 
 type INotificationCallback = (args: {
   response: string | null;
-  activationType: 'replied' | 'clicked';
+  activationType: 'replied' | 'clicked' | 'action';
+  actionIndex?: number;
 }) => any;
 
 type INotificationOptions = {
@@ -23,15 +25,58 @@ type INotificationOptions = {
   body?: string;
   tag?: string;
   canReply?: boolean;
+  replyPlaceholder?: string;
+  actions?: Array<{ type: 'button'; text: string }>;
+  threadId?: string;
+  messageId?: string;
   onActivate?: INotificationCallback;
 };
+
+interface NotificationHandle {
+  id: string;
+  close: () => void;
+}
 
 class NativeNotifications {
   _macNotificationsByTag = {};
   private resolvedIcon: string = null;
+  private callbacks: Map<string, INotificationCallback> = new Map();
 
   constructor() {
     this.resolvedIcon = this.getIcon();
+    this.registerIPCListeners();
+  }
+
+  private registerIPCListeners() {
+    ipcRenderer.on('notification:clicked', (event, data) => {
+      const callback = this.callbacks.get(data.id);
+      if (callback) {
+        callback({ response: null, activationType: 'clicked' });
+      }
+    });
+
+    ipcRenderer.on('notification:replied', (event, data) => {
+      const callback = this.callbacks.get(data.id);
+      if (callback) {
+        callback({ response: data.reply, activationType: 'replied' });
+      }
+      this.callbacks.delete(data.id);
+    });
+
+    ipcRenderer.on('notification:action', (event, data) => {
+      const callback = this.callbacks.get(data.id);
+      if (callback) {
+        callback({
+          response: null,
+          activationType: 'action',
+          actionIndex: data.actionIndex,
+        });
+      }
+    });
+
+    ipcRenderer.on('notification:closed', (event, data) => {
+      this.callbacks.delete(data.id);
+    });
   }
 
   async doNotDisturb(): Promise<boolean> {
@@ -110,26 +155,122 @@ class NativeNotifications {
     return DEFAULT_ICON;
   }
 
+  private generateId(): string {
+    // Use crypto.randomUUID() which is available in modern Node/Electron
+    return crypto.randomUUID();
+  }
+
+  private escapeXml(str: string): string {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  private buildWindowsToastXml(options: {
+    title: string;
+    subtitle?: string;
+    body?: string;
+    actions?: Array<{ type: 'button'; text: string }>;
+    threadId?: string;
+  }): string {
+    const actionsXml =
+      options.actions
+        ?.map(
+          (action, i) =>
+            `<action content="${this.escapeXml(action.text)}" arguments="action:${i}:${options.threadId || ''}" />`
+        )
+        .join('\n') || '';
+
+    return `<toast launch="mailspring:thread/${options.threadId || ''}" activationType="protocol">
+  <visual>
+    <binding template="ToastGeneric">
+      <text>${this.escapeXml(options.title)}</text>
+      ${options.subtitle ? `<text>${this.escapeXml(options.subtitle)}</text>` : ''}
+      ${options.body ? `<text>${this.escapeXml(options.body)}</text>` : ''}
+    </binding>
+  </visual>
+  ${actionsXml ? `<actions>${actionsXml}</actions>` : ''}
+</toast>`;
+  }
+
   async displayNotification({
     title,
     subtitle,
     body,
     tag,
     canReply,
-    onActivate = args => {},
-  }: INotificationOptions = {}): Promise<Notification | null> {
+    replyPlaceholder,
+    actions,
+    threadId,
+    messageId,
+    onActivate = () => {},
+  }: INotificationOptions = {}): Promise<NotificationHandle | null> {
     if (await this.doNotDisturb()) {
       return null;
     }
 
-    const notif = new Notification(title, {
-      silent: true,
-      body: subtitle,
-      tag: tag,
+    const id = this.generateId();
+
+    // Store callback for later event handling
+    this.callbacks.set(id, onActivate);
+
+    // Build options for main process
+    const options: any = {
+      id,
+      title,
+      subtitle,
+      body,
+      tag,
       icon: this.resolvedIcon,
-    });
-    notif.onclick = () => onActivate({ response: null, activationType: 'clicked' });
-    return notif;
+      threadId,
+      messageId,
+    };
+
+    // macOS-specific features
+    if (platform === 'darwin') {
+      if (canReply) {
+        options.hasReply = true;
+        options.replyPlaceholder = replyPlaceholder || 'Reply...';
+      }
+      if (actions && actions.length > 0) {
+        options.actions = actions;
+      }
+    }
+
+    // Windows toast XML for action buttons
+    if (platform === 'win32' && actions && actions.length > 0) {
+      options.toastXml = this.buildWindowsToastXml({
+        title,
+        subtitle,
+        body,
+        actions,
+        threadId,
+      });
+    }
+
+    try {
+      await ipcRenderer.invoke('notification:display', options);
+    } catch (err) {
+      console.error('Failed to display notification:', err);
+      this.callbacks.delete(id);
+      return null;
+    }
+
+    return {
+      id,
+      close: () => {
+        ipcRenderer.invoke('notification:close', id);
+        this.callbacks.delete(id);
+      },
+    };
+  }
+
+  closeNotificationsForThread(threadId: string) {
+    ipcRenderer.invoke('notification:close-for-thread', threadId);
   }
 }
 
