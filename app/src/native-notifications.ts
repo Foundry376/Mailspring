@@ -59,7 +59,6 @@ interface IIPCNotificationOptions {
 }
 
 class NativeNotifications {
-  _macNotificationsByTag = {};
   private resolvedIcon: string = null;
   private callbacks: Map<string, INotificationCallback> = new Map();
 
@@ -366,10 +365,6 @@ ${actionsXml}
         this.callbacks.delete(id);
       },
     };
-  }
-
-  closeNotificationsForThread(threadId: string) {
-    ipcRenderer.invoke('notification:close-for-thread', threadId);
   }
 
   /**

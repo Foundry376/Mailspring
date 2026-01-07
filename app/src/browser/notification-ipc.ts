@@ -210,24 +210,10 @@ const closeNotification = (event: IpcMainInvokeEvent, id: string): void => {
 };
 
 /**
- * Close all notifications for a specific thread.
- * Called when user reads a thread to dismiss related notifications.
- */
-const closeNotificationsForThread = (event: IpcMainInvokeEvent, threadId: string): void => {
-  for (const [id, entry] of activeNotifications.entries()) {
-    if (entry.threadId === threadId) {
-      entry.notification.close();
-      activeNotifications.delete(id);
-    }
-  }
-};
-
-/**
  * Register all notification-related IPC handlers.
  * Called from application.ts during startup.
  */
 export function registerNotificationIPCHandlers(ipcMain: IpcMain) {
   ipcMain.handle('notification:display', displayNotification);
   ipcMain.handle('notification:close', closeNotification);
-  ipcMain.handle('notification:close-for-thread', closeNotificationsForThread);
 }
