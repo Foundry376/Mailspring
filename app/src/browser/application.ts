@@ -23,6 +23,7 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
+import { registerNotificationIPCHandlers } from './notification-ipc';
 
 let clipboard = null;
 
@@ -729,6 +730,7 @@ export default class Application extends EventEmitter {
     });
 
     registerQuickpreviewIPCHandlers(ipcMain);
+    registerNotificationIPCHandlers(ipcMain);
   }
 
   // Public: Executes the given command.
