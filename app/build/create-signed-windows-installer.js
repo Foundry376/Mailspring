@@ -2,6 +2,10 @@
 /**
  * NOTE: Due to path issues, this script must be run outside of grunt
  * directly from a powershell command.
+ *
+ * Code signing is handled separately by Azure Trusted Signing action in the
+ * GitHub workflow. This script creates an unsigned installer which is then
+ * signed by the workflow after creation.
  */
 const path = require('path');
 const { createWindowsInstaller } = require('electron-winstaller');
@@ -15,7 +19,6 @@ const config = {
   appDirectory: path.join(appDir, 'dist', 'mailspring-win32-x64'),
   loadingGif: path.join(appDir, 'build', 'resources', 'win', 'loading.gif'),
   iconUrl: 'http://mailspring-builds.s3.amazonaws.com/assets/mailspring.ico',
-  certificateFile: process.env.WINDOWS_CODESIGN_CERT,
   description: 'Mailspring',
   version: version,
   title: 'Mailspring',
@@ -28,9 +31,6 @@ const config = {
 
 console.log(config);
 console.log('---> Starting');
-
-// avoid logging the certificate password
-config.certificatePassword = process.env.WINDOWS_CODESIGN_CERT_PASSWORD;
 
 createWindowsInstaller(config)
   .then(() => {
