@@ -111,9 +111,18 @@ export class Notifier {
   }
 
   async _notifyAll() {
-    await NativeNotifications.displayNotification({
-      title: `${this.unnotifiedQueue.length} ${localized('Unread Messages')}`,
-      tag: 'unread-update',
+    // Extract unique sender names from the queue
+    const senders = [
+      ...new Set(
+        this.unnotifiedQueue
+          .map(({ message }) => (message.from[0] ? message.from[0].displayName() : null))
+          .filter(Boolean)
+      ),
+    ] as string[];
+
+    await NativeNotifications.displaySummaryNotification({
+      count: this.unnotifiedQueue.length,
+      senders,
       onActivate: () => {
         AppEnv.displayWindow();
       },

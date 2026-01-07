@@ -170,30 +170,93 @@ class NativeNotifications {
       .replace(/'/g, '&apos;');
   }
 
+  /**
+   * Build Windows toast XML following Microsoft's best practices for email notifications.
+   * See: https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts
+   *
+   * @param options Notification options
+   * @returns Toast XML string
+   */
   private buildWindowsToastXml(options: {
     title: string;
     subtitle?: string;
     body?: string;
     actions?: Array<{ type: 'button'; text: string }>;
     threadId?: string;
+    replyPlaceholder?: string;
+    canReply?: boolean;
   }): string {
-    const actionsXml =
-      options.actions
-        ?.map(
-          (action, i) =>
-            `<action content="${this.escapeXml(action.text)}" arguments="action:${i}:${options.threadId || ''}" />`
-        )
-        .join('\n') || '';
+    // Build action buttons XML
+    // Note: Windows supports up to 5 buttons total (including input actions)
+    const actionButtons = options.actions
+      ?.slice(0, options.canReply ? 4 : 5) // Leave room for Send button if reply enabled
+      .map(
+        (action, i) =>
+          `    <action content="${this.escapeXml(action.text)}" arguments="action:${i}:${options.threadId || ''}" activationType="background"/>`
+      )
+      .join('\n');
 
-    return `<toast launch="mailspring:thread/${options.threadId || ''}" activationType="protocol">
+    // Build reply input + send button if reply is enabled
+    const replyXml = options.canReply
+      ? `    <input id="replyText" type="text" placeHolderContent="${this.escapeXml(options.replyPlaceholder || 'Type a reply...')}"/>
+    <action content="Send" arguments="reply:${options.threadId || ''}" activationType="background" hint-inputId="replyText"/>`
+      : '';
+
+    // Combine actions - reply input first (if enabled), then action buttons
+    const actionsContent = [replyXml, actionButtons].filter(Boolean).join('\n');
+    const actionsXml = actionsContent ? `  <actions>\n${actionsContent}\n  </actions>` : '';
+
+    // Build the complete toast XML
+    // - hint-maxLines="1" prevents sender name from wrapping
+    // - group attribute enables notification stacking per thread
+    // - activationType="protocol" allows handling when app is closed
+    return `<toast launch="mailspring:thread/${options.threadId || ''}" activationType="protocol" group="thread-${options.threadId || 'default'}">
   <visual>
     <binding template="ToastGeneric">
-      <text>${this.escapeXml(options.title)}</text>
+      <text hint-maxLines="1">${this.escapeXml(options.title)}</text>
       ${options.subtitle ? `<text>${this.escapeXml(options.subtitle)}</text>` : ''}
-      ${options.body ? `<text>${this.escapeXml(options.body)}</text>` : ''}
+      ${options.body ? `<text hint-style="captionSubtle">${this.escapeXml(options.body)}</text>` : ''}
     </binding>
   </visual>
-  ${actionsXml ? `<actions>${actionsXml}</actions>` : ''}
+${actionsXml}
+</toast>`;
+  }
+
+  /**
+   * Build Windows toast XML for a summary notification (multiple unread messages).
+   * Used when there are 5+ unread messages to avoid notification spam.
+   *
+   * @param count Number of unread messages
+   * @param senders Array of sender names to display
+   * @returns Toast XML string
+   */
+  private buildWindowsSummaryToastXml(count: number, senders: string[]): string {
+    // Show up to 3 sender names, then "and X others"
+    let sendersText: string;
+    if (senders.length === 0) {
+      sendersText = '';
+    } else if (senders.length === 1) {
+      sendersText = senders[0];
+    } else if (senders.length === 2) {
+      sendersText = `${senders[0]} and ${senders[1]}`;
+    } else if (senders.length === 3) {
+      sendersText = `${senders[0]}, ${senders[1]}, and ${senders[2]}`;
+    } else {
+      sendersText = `${senders[0]}, ${senders[1]}, and ${senders.length - 2} others`;
+    }
+
+    return `<toast launch="mailspring:inbox" activationType="protocol">
+  <visual>
+    <binding template="ToastGeneric">
+      <text hint-maxLines="1">${count} new messages</text>
+      ${sendersText ? `<text>${this.escapeXml(sendersText)}</text>` : ''}
+      <text hint-style="captionSubtle">Click to view your inbox</text>
+    </binding>
+  </visual>
+  <actions>
+    <action content="View Inbox" arguments="mailspring:inbox" activationType="protocol"/>
+    <action content="Dismiss" arguments="dismiss" activationType="system"/>
+  </actions>
 </toast>`;
   }
 
@@ -241,14 +304,16 @@ class NativeNotifications {
       }
     }
 
-    // Windows toast XML for action buttons
-    if (platform === 'win32' && actions && actions.length > 0) {
+    // Windows toast XML for rich notifications with actions and/or reply
+    if (platform === 'win32' && (actions?.length > 0 || canReply)) {
       options.toastXml = this.buildWindowsToastXml({
         title,
         subtitle,
         body,
         actions,
         threadId,
+        canReply,
+        replyPlaceholder,
       });
     }
 
@@ -271,6 +336,71 @@ class NativeNotifications {
 
   closeNotificationsForThread(threadId: string) {
     ipcRenderer.invoke('notification:close-for-thread', threadId);
+  }
+
+  /**
+   * Display a summary notification for multiple unread messages.
+   * On Windows, this uses a special toast XML format optimized for summaries.
+   *
+   * @param count Number of unread messages
+   * @param senders Array of sender names (will show up to 3)
+   * @param onActivate Callback when notification is clicked
+   */
+  async displaySummaryNotification({
+    count,
+    senders = [],
+    onActivate = () => {},
+  }: {
+    count: number;
+    senders?: string[];
+    onActivate?: INotificationCallback;
+  }): Promise<NotificationHandle | null> {
+    if (await this.doNotDisturb()) {
+      return null;
+    }
+
+    const id = this.generateId();
+    this.callbacks.set(id, onActivate);
+
+    // Build sender text for non-Windows platforms
+    let sendersText: string;
+    if (senders.length === 0) {
+      sendersText = '';
+    } else if (senders.length <= 3) {
+      sendersText = senders.join(', ');
+    } else {
+      sendersText = `${senders.slice(0, 2).join(', ')}, and ${senders.length - 2} others`;
+    }
+
+    const options: any = {
+      id,
+      title: `${count} new messages`,
+      subtitle: sendersText || undefined,
+      body: 'Click to view your inbox',
+      tag: 'unread-summary',
+      icon: this.resolvedIcon,
+    };
+
+    // Use special summary toast XML on Windows
+    if (platform === 'win32') {
+      options.toastXml = this.buildWindowsSummaryToastXml(count, senders);
+    }
+
+    try {
+      await ipcRenderer.invoke('notification:display', options);
+    } catch (err) {
+      console.error('Failed to display summary notification:', err);
+      this.callbacks.delete(id);
+      return null;
+    }
+
+    return {
+      id,
+      close: () => {
+        ipcRenderer.invoke('notification:close', id);
+        this.callbacks.delete(id);
+      },
+    };
   }
 }
 
