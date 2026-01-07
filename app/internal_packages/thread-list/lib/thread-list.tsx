@@ -213,7 +213,7 @@ class ThreadList extends React.Component<
 
   _onShowContextMenu = event => {
     const items = this.refs.list.itemsForMouseEvent(event);
-    if (!items) {
+    if (!items || items.length === 0) {
       event.preventDefault();
       return;
     }
