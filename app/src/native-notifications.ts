@@ -37,6 +37,27 @@ interface NotificationHandle {
   close: () => void;
 }
 
+/**
+ * Options passed via IPC to the main process for displaying notifications.
+ * This matches the NotificationOptions interface in notification-ipc.ts.
+ */
+interface IIPCNotificationOptions {
+  id: string;
+  title: string;
+  subtitle?: string;
+  body?: string;
+  tag?: string;
+  icon?: string;
+  threadId?: string;
+  messageId?: string;
+  hasReply?: boolean;
+  replyPlaceholder?: string;
+  actions?: Array<{ type: 'button'; text: string }>;
+  urgency?: 'low' | 'normal' | 'critical';
+  timeoutType?: 'default' | 'never';
+  toastXml?: string;
+}
+
 class NativeNotifications {
   _macNotificationsByTag = {};
   private resolvedIcon: string = null;
@@ -160,14 +181,39 @@ class NativeNotifications {
     return crypto.randomUUID();
   }
 
+  /**
+   * Safely escape a string for use in XML content using browser DOM APIs.
+   * This handles the full UTF-8 range including Chinese characters and other
+   * international text, as well as any special characters in untrusted email input.
+   */
   private escapeXml(str: string): string {
     if (!str) return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+    // Use the DOM's XMLSerializer to properly escape text for XML.
+    // Creating a text node and serializing it handles all XML special characters.
+    const doc = document.implementation.createDocument(null, 'root', null);
+    const textNode = doc.createTextNode(str);
+    return new XMLSerializer().serializeToString(textNode);
+  }
+
+  /**
+   * Format an array of sender names into a human-readable string.
+   * Uses proper English formatting: "X", "X and Y", "X, Y, and Z", "X, Y, and N others"
+   *
+   * @param senders Array of sender display names
+   * @returns Formatted string or empty string if no senders
+   */
+  private formatSenderList(senders: string[]): string {
+    if (senders.length === 0) {
+      return '';
+    } else if (senders.length === 1) {
+      return senders[0];
+    } else if (senders.length === 2) {
+      return `${senders[0]} and ${senders[1]}`;
+    } else if (senders.length === 3) {
+      return `${senders[0]}, ${senders[1]}, and ${senders[2]}`;
+    } else {
+      return `${senders[0]}, ${senders[1]}, and ${senders.length - 2} others`;
+    }
   }
 
   /**
@@ -231,19 +277,7 @@ ${actionsXml}
    * @returns Toast XML string
    */
   private buildWindowsSummaryToastXml(count: number, senders: string[]): string {
-    // Show up to 3 sender names, then "and X others"
-    let sendersText: string;
-    if (senders.length === 0) {
-      sendersText = '';
-    } else if (senders.length === 1) {
-      sendersText = senders[0];
-    } else if (senders.length === 2) {
-      sendersText = `${senders[0]} and ${senders[1]}`;
-    } else if (senders.length === 3) {
-      sendersText = `${senders[0]}, ${senders[1]}, and ${senders[2]}`;
-    } else {
-      sendersText = `${senders[0]}, ${senders[1]}, and ${senders.length - 2} others`;
-    }
+    const sendersText = this.formatSenderList(senders);
 
     return `<toast launch="mailspring:inbox" activationType="protocol">
   <visual>
@@ -282,7 +316,7 @@ ${actionsXml}
     this.callbacks.set(id, onActivate);
 
     // Build options for main process
-    const options: any = {
+    const options: IIPCNotificationOptions = {
       id,
       title,
       subtitle,
@@ -362,17 +396,9 @@ ${actionsXml}
     const id = this.generateId();
     this.callbacks.set(id, onActivate);
 
-    // Build sender text for non-Windows platforms
-    let sendersText: string;
-    if (senders.length === 0) {
-      sendersText = '';
-    } else if (senders.length <= 3) {
-      sendersText = senders.join(', ');
-    } else {
-      sendersText = `${senders.slice(0, 2).join(', ')}, and ${senders.length - 2} others`;
-    }
+    const sendersText = this.formatSenderList(senders);
 
-    const options: any = {
+    const options: IIPCNotificationOptions = {
       id,
       title: `${count} new messages`,
       subtitle: sendersText || undefined,
