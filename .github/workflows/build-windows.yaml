@@ -32,16 +32,6 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Codesigning Certificate
-        shell: pwsh
-        run: |
-          $certBytes = [Convert]::FromBase64String($env:CERT_BASE64)
-          $certPath = "app\build\resources\certs\win\win-codesigning.p12"
-          New-Item -ItemType Directory -Force -Path "app\build\resources\certs\win"
-          [IO.File]::WriteAllBytes($certPath, $certBytes)
-        env:
-          CERT_BASE64: ${{ secrets.WINDOWS_CODESIGN_CERT_BASE64 }}
-
       - name: Install Dependencies
         run: npm ci
 
@@ -59,16 +49,41 @@ jobs:
         run: npm run build
         env:
           DEBUG: electron-packager
-          SIGN_BUILD: true
-          WINDOWS_CODESIGN_CERT: app\build\resources\certs\win\win-codesigning.p12
-          WINDOWS_CODESIGN_CERT_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_CERT_PASSWORD }}
 
-      - name: Create Signed Windows Installer
+      - name: Sign Application Files with Azure Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.AZURE_TRUSTED_SIGNING_CERT_PROFILE_NAME }}
+          files-folder: ${{ github.workspace }}\app\dist\mailspring-win32-x64
+          files-folder-filter: exe,dll
+          files-folder-recurse: true
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Create Windows Installer
         run: node app/build/create-signed-windows-installer.js
-        env:
-          SIGN_BUILD: true
-          WINDOWS_CODESIGN_CERT: app\build\resources\certs\win\win-codesigning.p12
-          WINDOWS_CODESIGN_CERT_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_CERT_PASSWORD }}
+
+      - name: Sign Windows Installer with Azure Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.AZURE_TRUSTED_SIGNING_CERT_PROFILE_NAME }}
+          files-folder: ${{ github.workspace }}\app\dist
+          files-folder-filter: exe
+          files-folder-recurse: false
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
 
       - name: Sync Artifacts to S3
         shell: pwsh
