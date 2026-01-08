@@ -33,15 +33,15 @@ export function snapAllDayTimes(start: number, end: number): { start: number; en
  * Parse an event occurrence ID to extract the underlying event ID
  * The occurrence ID format is `${eventId}-e${idx}`
  * @param occurrenceId The occurrence ID
- * @returns The extracted event ID, or null if parsing failed
+ * @returns The extracted event ID (or the original ID if not an occurrence format)
  */
-export function parseEventIdFromOccurrence(occurrenceId: string): string | null {
+export function parseEventIdFromOccurrence(occurrenceId: string): string {
   const match = occurrenceId.match(/^(.+)-e\d+$/);
   if (match) {
     return match[1];
   }
   // If the pattern doesn't match, return the original ID
-  // (it might be a non-occurrence event ID)
+  // (it might be a non-occurrence event ID that can be edited directly)
   return occurrenceId;
 }
 

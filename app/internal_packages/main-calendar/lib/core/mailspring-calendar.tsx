@@ -128,10 +128,7 @@ export class MailspringCalendar extends React.Component<
   }
 
   componentWillUnmount() {
-    // Clear any active drag state
-    if (this.state.dragState) {
-      this.setState({ dragState: null });
-    }
+    // The component is unmounting, dispose subscriptions
     this._disposable.dispose();
     if (this._unlisten) {
       this._unlisten();
@@ -349,10 +346,6 @@ export class MailspringCalendar extends React.Component<
     try {
       // Parse the event ID from the occurrence ID
       const eventId = parseEventIdFromOccurrence(dragState.event.id);
-      if (!eventId) {
-        console.error('Could not parse event ID from occurrence:', dragState.event.id);
-        return;
-      }
 
       const event = await DatabaseStore.find<Event>(Event, eventId);
       if (!event) {
