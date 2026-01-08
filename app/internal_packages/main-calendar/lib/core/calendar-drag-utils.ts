@@ -1,0 +1,298 @@
+import moment from 'moment';
+import { DragMode, DragState, DragConfig, HitZone, ViewDirection } from './calendar-drag-types';
+import { EventOccurrence } from './calendar-data-source';
+
+/**
+ * Snap a timestamp to the nearest interval
+ * @param timestamp Unix timestamp to snap
+ * @param intervalSeconds Interval size in seconds
+ * @returns Snapped timestamp
+ */
+export function snapToInterval(timestamp: number, intervalSeconds: number): number {
+  return Math.round(timestamp / intervalSeconds) * intervalSeconds;
+}
+
+/**
+ * Calculate new event times based on drag mode and time delta
+ * @param mode The drag operation type
+ * @param originalStart Original event start time
+ * @param originalEnd Original event end time
+ * @param timeDelta Time difference from drag start position
+ * @param minDuration Minimum allowed event duration
+ * @returns New start and end times
+ */
+export function calculateDragTimes(
+  mode: DragMode,
+  originalStart: number,
+  originalEnd: number,
+  timeDelta: number,
+  minDuration: number
+): { start: number; end: number } {
+  switch (mode) {
+    case 'move':
+      return {
+        start: originalStart + timeDelta,
+        end: originalEnd + timeDelta,
+      };
+    case 'resize-start': {
+      // Don't allow start to go past end - minDuration
+      const newStart = Math.min(originalStart + timeDelta, originalEnd - minDuration);
+      return {
+        start: newStart,
+        end: originalEnd,
+      };
+    }
+    case 'resize-end': {
+      // Don't allow end to go before start + minDuration
+      const newEnd = Math.max(originalEnd + timeDelta, originalStart + minDuration);
+      return {
+        start: originalStart,
+        end: newEnd,
+      };
+    }
+  }
+}
+
+/**
+ * Detect which hit zone the mouse is in within an event element
+ * @param mouseX Mouse X position (clientX)
+ * @param mouseY Mouse Y position (clientY)
+ * @param bounds Element bounding rect
+ * @param edgeZoneSize Size of the edge detection zone in pixels
+ * @param direction View direction (vertical or horizontal)
+ * @returns Hit zone with drag mode and cursor
+ */
+export function detectHitZone(
+  mouseX: number,
+  mouseY: number,
+  bounds: DOMRect,
+  edgeZoneSize: number,
+  direction: ViewDirection
+): HitZone {
+  if (direction === 'vertical') {
+    // Week view: top edge = resize-start, bottom edge = resize-end
+    if (mouseY - bounds.top < edgeZoneSize) {
+      return { mode: 'resize-start', cursor: 'ns-resize' };
+    }
+    if (bounds.bottom - mouseY < edgeZoneSize) {
+      return { mode: 'resize-end', cursor: 'ns-resize' };
+    }
+  } else {
+    // Month view: left edge = resize-start, right edge = resize-end
+    if (mouseX - bounds.left < edgeZoneSize) {
+      return { mode: 'resize-start', cursor: 'ew-resize' };
+    }
+    if (bounds.right - mouseX < edgeZoneSize) {
+      return { mode: 'resize-end', cursor: 'ew-resize' };
+    }
+  }
+
+  return { mode: 'move', cursor: 'grab' };
+}
+
+/**
+ * Check if a drag has exceeded the threshold to start
+ * @param initialX Initial mouse X
+ * @param initialY Initial mouse Y
+ * @param currentX Current mouse X
+ * @param currentY Current mouse Y
+ * @param threshold Pixel threshold
+ * @returns True if threshold exceeded
+ */
+export function isDragThresholdExceeded(
+  initialX: number,
+  initialY: number,
+  currentX: number,
+  currentY: number,
+  threshold: number
+): boolean {
+  const dx = currentX - initialX;
+  const dy = currentY - initialY;
+  return Math.sqrt(dx * dx + dy * dy) >= threshold;
+}
+
+/**
+ * Create initial drag state from mouse down event
+ * @param event The event occurrence being dragged
+ * @param hitZone The detected hit zone
+ * @param mouseTime Unix timestamp at mouse position
+ * @param mouseX Mouse X position
+ * @param mouseY Mouse Y position
+ * @param config Drag configuration
+ * @returns Initial drag state
+ */
+export function createDragState(
+  event: EventOccurrence,
+  hitZone: HitZone,
+  mouseTime: number,
+  mouseX: number,
+  mouseY: number,
+  config: DragConfig
+): DragState {
+  return {
+    mode: hitZone.mode,
+    event,
+    originalStart: event.start,
+    originalEnd: event.end,
+    initialMouseTime: mouseTime,
+    initialMouseX: mouseX,
+    initialMouseY: mouseY,
+    previewStart: event.start,
+    previewEnd: event.end,
+    snapIntervalSeconds: config.snapInterval,
+    isDragging: false,
+  };
+}
+
+/**
+ * Update drag state based on mouse movement
+ * @param state Current drag state
+ * @param mouseTime Current mouse time
+ * @param mouseX Current mouse X
+ * @param mouseY Current mouse Y
+ * @param config Drag configuration
+ * @returns Updated drag state (or same state if no change)
+ */
+export function updateDragState(
+  state: DragState,
+  mouseTime: number,
+  mouseX: number,
+  mouseY: number,
+  config: DragConfig
+): DragState {
+  // Check if we've exceeded the drag threshold
+  let isDragging = state.isDragging;
+  if (!isDragging) {
+    isDragging = isDragThresholdExceeded(
+      state.initialMouseX,
+      state.initialMouseY,
+      mouseX,
+      mouseY,
+      config.dragThreshold
+    );
+    if (!isDragging) {
+      return state; // Haven't started dragging yet
+    }
+  }
+
+  // Calculate time delta
+  const timeDelta = mouseTime - state.initialMouseTime;
+
+  // Calculate new times
+  const { start, end } = calculateDragTimes(
+    state.mode,
+    state.originalStart,
+    state.originalEnd,
+    timeDelta,
+    config.minDuration
+  );
+
+  // Snap to interval
+  const previewStart = snapToInterval(start, config.snapInterval);
+  const previewEnd = snapToInterval(end, config.snapInterval);
+
+  // Only create new state if values changed
+  if (
+    isDragging === state.isDragging &&
+    previewStart === state.previewStart &&
+    previewEnd === state.previewEnd
+  ) {
+    return state;
+  }
+
+  return {
+    ...state,
+    isDragging,
+    previewStart,
+    previewEnd,
+  };
+}
+
+/**
+ * Calculate time from Y position in week view
+ * @param y Y position within grid
+ * @param gridHeight Total grid height
+ * @param dayStart Start of day (unix timestamp)
+ * @param dayEnd End of day (unix timestamp)
+ * @returns Unix timestamp
+ */
+export function timeFromYPosition(
+  y: number,
+  gridHeight: number,
+  dayStart: number,
+  dayEnd: number
+): number {
+  const percentDay = y / gridHeight;
+  const dayDuration = dayEnd - dayStart;
+  return dayStart + dayDuration * percentDay;
+}
+
+/**
+ * Calculate Y position from time in week view
+ * @param time Unix timestamp
+ * @param gridHeight Total grid height
+ * @param dayStart Start of day (unix timestamp)
+ * @param dayEnd End of day (unix timestamp)
+ * @returns Y position in pixels
+ */
+export function yPositionFromTime(
+  time: number,
+  gridHeight: number,
+  dayStart: number,
+  dayEnd: number
+): number {
+  const dayDuration = dayEnd - dayStart;
+  const percentDay = (time - dayStart) / dayDuration;
+  return percentDay * gridHeight;
+}
+
+/**
+ * Calculate day index from X position in month view
+ * @param x X position within grid
+ * @param gridWidth Total grid width
+ * @param daysInWeek Number of days (usually 7)
+ * @returns Day index (0-6)
+ */
+export function dayIndexFromXPosition(
+  x: number,
+  gridWidth: number,
+  daysInWeek: number = 7
+): number {
+  const cellWidth = gridWidth / daysInWeek;
+  return Math.floor(x / cellWidth);
+}
+
+/**
+ * Check if an event can be dragged (not read-only, not cancelled, etc.)
+ * @param event The event occurrence
+ * @returns True if event can be dragged
+ */
+export function canDragEvent(event: EventOccurrence): boolean {
+  // Don't allow dragging cancelled events
+  if (event.isCancelled) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Format a time preview string for display during drag
+ * @param start Start timestamp
+ * @param end End timestamp
+ * @param isAllDay Whether this is an all-day event
+ * @returns Formatted time string
+ */
+export function formatDragPreviewTime(start: number, end: number, isAllDay: boolean): string {
+  if (isAllDay) {
+    const startDate = moment.unix(start).format('MMM D');
+    const endDate = moment.unix(end).format('MMM D');
+    if (startDate === endDate) {
+      return startDate;
+    }
+    return `${startDate} - ${endDate}`;
+  }
+
+  const startTime = moment.unix(start).format('h:mm A');
+  const endTime = moment.unix(end).format('h:mm A');
+  return `${startTime} - ${endTime}`;
+}
