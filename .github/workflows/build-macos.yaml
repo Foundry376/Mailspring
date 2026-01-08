@@ -7,8 +7,11 @@ jobs:
   build-macos:
     strategy:
       matrix:
-        # Confusingly, macos-13 is intel and macos-latest is ARM
-        os: [macos-13, macos-latest]
+        include:
+          - os: macos-latest
+            arch: arm64
+          - os: macos-15-intel
+            arch: x64
 
     runs-on: ${{ matrix.os }}
 
