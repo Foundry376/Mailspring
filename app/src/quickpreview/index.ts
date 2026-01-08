@@ -317,8 +317,8 @@ function _createCaptureWindow() {
     });
   });
 
-  win.webContents.on('crashed', () => {
-    console.warn(`Thumbnail generation webcontents crashed.`);
+  win.webContents.on('render-process-gone', (event, details) => {
+    console.warn(`Thumbnail generation webcontents crashed (reason: ${details.reason}).`);
     if (captureWindow === win) captureWindow = null;
     win.destroy();
   });

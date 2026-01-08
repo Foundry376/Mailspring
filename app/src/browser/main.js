@@ -3,7 +3,6 @@
 global.shellStartTime = Date.now();
 const util = require('util');
 
-// TODO: Remove when upgrading to Electron 4
 const fs = require('fs');
 fs.statSyncNoException = function(...args) {
   try {
@@ -350,7 +349,7 @@ const start = () => {
       urls: ['*://login.microsoftonline.com/*'],
     };
 
-    session.defaultSession
+    session.defaultSession.extensions
       .loadExtension(
         path
           .join(options.resourcePath, 'static', 'extensions', 'chrome-i18n')
