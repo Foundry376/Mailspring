@@ -23,6 +23,9 @@ interface CalendarEventProps {
   /** Size of the edge zone for resize detection (in pixels) */
   edgeZoneSize?: number;
 
+  /** Whether the calendar containing this event is read-only */
+  isCalendarReadOnly?: boolean;
+
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
@@ -45,6 +48,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     concurrentEvents: 1,
     isDragging: false,
     edgeZoneSize: 8,
+    isCalendarReadOnly: false,
     onClick: () => {},
     onDoubleClick: () => {},
     onFocused: () => {},
@@ -135,8 +139,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   /**
    * Check if this event can be dragged
    */
-  _canDrag() {
-    return canDragEvent(this.props.event) && !!this.props.onDragStart;
+  _canDrag(): boolean {
+    return (
+      canDragEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
+    );
   }
 
   /**

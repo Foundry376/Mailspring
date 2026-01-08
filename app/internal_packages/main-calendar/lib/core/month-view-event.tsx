@@ -12,6 +12,8 @@ interface MonthViewEventProps {
   focused: boolean;
   isDragging?: boolean;
   edgeZoneSize?: number;
+  /** Whether the calendar containing this event is read-only */
+  isCalendarReadOnly?: boolean;
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
@@ -28,6 +30,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   static defaultProps = {
     isDragging: false,
     edgeZoneSize: 8,
+    isCalendarReadOnly: false,
   };
 
   state: MonthViewEventState = {
@@ -68,8 +71,10 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   /**
    * Check if this event can be dragged
    */
-  _canDrag() {
-    return canDragEvent(this.props.event) && !!this.props.onDragStart;
+  _canDrag(): boolean {
+    return (
+      canDragEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
+    );
   }
 
   /**

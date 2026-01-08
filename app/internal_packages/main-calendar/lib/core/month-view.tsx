@@ -167,6 +167,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
               onDayClick={this._onDayClick}
               dragState={this.props.dragState}
               onEventDragStart={this.props.onEventDragStart}
+              readOnlyCalendarIds={this.props.readOnlyCalendarIds}
             />
           );
         })}

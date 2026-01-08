@@ -13,6 +13,39 @@ export function snapToInterval(timestamp: number, intervalSeconds: number): numb
 }
 
 /**
+ * Snap all-day event times to day boundaries
+ * Start should be at the beginning of a day, end should be at end of day
+ * @param start Start timestamp
+ * @param end End timestamp
+ * @returns Snapped start and end times
+ */
+export function snapAllDayTimes(start: number, end: number): { start: number; end: number } {
+  // Start at beginning of day
+  const snappedStart = moment.unix(start).startOf('day').unix();
+
+  // End at end of day (23:59:59)
+  const snappedEnd = moment.unix(end).endOf('day').unix();
+
+  return { start: snappedStart, end: snappedEnd };
+}
+
+/**
+ * Parse an event occurrence ID to extract the underlying event ID
+ * The occurrence ID format is `${eventId}-e${idx}`
+ * @param occurrenceId The occurrence ID
+ * @returns The extracted event ID, or null if parsing failed
+ */
+export function parseEventIdFromOccurrence(occurrenceId: string): string | null {
+  const match = occurrenceId.match(/^(.+)-e\d+$/);
+  if (match) {
+    return match[1];
+  }
+  // If the pattern doesn't match, return the original ID
+  // (it might be a non-occurrence event ID)
+  return occurrenceId;
+}
+
+/**
  * Calculate new event times based on drag mode and time delta
  * @param mode The drag operation type
  * @param originalStart Original event start time
@@ -263,15 +296,49 @@ export function dayIndexFromXPosition(
 }
 
 /**
+ * Check if an event occurrence is from a recurring event
+ * We detect this by looking at the occurrence ID pattern - recurring events
+ * generate multiple occurrences with indices > 0
+ * @param event The event occurrence
+ * @returns True if this is a recurring event occurrence (not an exception)
+ */
+export function isRecurringOccurrence(event: EventOccurrence): boolean {
+  // The occurrence ID format is `${eventId}-e${idx}`
+  // Non-recurring events only have index 0
+  // Recurring events that are exceptions have isException = true
+  const match = event.id.match(/-e(\d+)$/);
+  if (!match) {
+    return false;
+  }
+
+  // If this is an exception, it's a modified occurrence that can be edited
+  if (event.isException) {
+    return false;
+  }
+
+  // For now, we can't easily tell if an event is recurring just from the occurrence
+  // We'll allow dragging all events except cancelled ones
+  // The actual recurring event check would require looking at the ICS data
+  return false;
+}
+
+/**
  * Check if an event can be dragged (not read-only, not cancelled, etc.)
  * @param event The event occurrence
+ * @param isCalendarReadOnly Whether the calendar containing this event is read-only
  * @returns True if event can be dragged
  */
-export function canDragEvent(event: EventOccurrence): boolean {
+export function canDragEvent(event: EventOccurrence, isCalendarReadOnly: boolean = false): boolean {
+  // Don't allow dragging events in read-only calendars
+  if (isCalendarReadOnly) {
+    return false;
+  }
+
   // Don't allow dragging cancelled events
   if (event.isCancelled) {
     return false;
   }
+
   return true;
 }
 

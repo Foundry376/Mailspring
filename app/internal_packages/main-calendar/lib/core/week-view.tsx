@@ -329,6 +329,7 @@ export class WeekView extends React.Component<
                       onEventFocused={this.props.onEventFocused}
                       dragState={this.props.dragState}
                       onEventDragStart={this.props.onEventDragStart}
+                      readOnlyCalendarIds={this.props.readOnlyCalendarIds}
                     />
                   ))}
                   {this.props.dragState && this.props.dragState.isDragging && (

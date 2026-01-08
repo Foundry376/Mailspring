@@ -28,6 +28,8 @@ interface WeekViewEventColumnProps {
     mouseEvent: React.MouseEvent,
     hitZone: HitZone
   ) => void;
+  /** Set of calendar IDs that are read-only */
+  readOnlyCalendarIds: Set<string>;
 }
 
 export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {
@@ -49,6 +51,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       onEventFocused,
       dragState,
       onEventDragStart,
+      readOnlyCalendarIds,
     } = this.props;
 
     const className = classnames({
@@ -76,6 +79,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
             onFocused={onEventFocused}
             isDragging={dragState?.event.id === e.id}
             onDragStart={onEventDragStart}
+            isCalendarReadOnly={readOnlyCalendarIds.has(e.calendarId)}
           />
         ))}
       </div>

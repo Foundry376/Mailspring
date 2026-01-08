@@ -33,7 +33,12 @@ import {
   DEFAULT_DRAG_CONFIG,
   MONTH_VIEW_DRAG_CONFIG,
 } from './calendar-drag-types';
-import { createDragState, updateDragState } from './calendar-drag-utils';
+import {
+  createDragState,
+  updateDragState,
+  parseEventIdFromOccurrence,
+  snapAllDayTimes,
+} from './calendar-drag-utils';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -67,6 +72,9 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
     mouseEvent: React.MouseEvent,
     hitZone: HitZone
   ) => void;
+
+  /** Set of calendar IDs that are read-only (events in these calendars cannot be dragged) */
+  readOnlyCalendarIds: Set<string>;
 }
 
 /*
@@ -120,10 +128,27 @@ export class MailspringCalendar extends React.Component<
   }
 
   componentWillUnmount() {
+    // Clear any active drag state
+    if (this.state.dragState) {
+      this.setState({ dragState: null });
+    }
     this._disposable.dispose();
     if (this._unlisten) {
       this._unlisten();
     }
+  }
+
+  /**
+   * Get the set of read-only calendar IDs
+   */
+  _getReadOnlyCalendarIds(): Set<string> {
+    const readOnlyIds = new Set<string>();
+    for (const calendar of this.state.calendars) {
+      if (calendar.readOnly) {
+        readOnlyIds.add(calendar.id);
+      }
+    }
+    return readOnlyIds;
   }
 
   _subscribeToCalendars() {
@@ -147,7 +172,8 @@ export class MailspringCalendar extends React.Component<
   }
 
   onChangeView = (view: CalendarView) => {
-    this.setState({ view });
+    // Clear any active drag state when changing views
+    this.setState({ view, dragState: null });
   };
 
   onChangeFocusedMoment = (focusedMoment: Moment) => {
@@ -321,25 +347,46 @@ export class MailspringCalendar extends React.Component<
     this.setState({ dragState: null });
 
     try {
-      // Get the actual Event model from the database
-      // The occurrence ID format is `${eventId}-e${idx}`, so we need to extract the event ID
-      const eventId = dragState.event.id.replace(/-e\d+$/, '');
-      const event = await DatabaseStore.find<Event>(Event, eventId);
+      // Parse the event ID from the occurrence ID
+      const eventId = parseEventIdFromOccurrence(dragState.event.id);
+      if (!eventId) {
+        console.error('Could not parse event ID from occurrence:', dragState.event.id);
+        return;
+      }
 
+      const event = await DatabaseStore.find<Event>(Event, eventId);
       if (!event) {
         console.error('Could not find event to update:', eventId);
         return;
       }
 
+      // Check if calendar is read-only (safety check)
+      const calendar = this.state.calendars.find((c) => c.id === event.calendarId);
+      if (calendar?.readOnly) {
+        console.warn('Cannot modify event in read-only calendar');
+        return;
+      }
+
+      // Handle all-day events - snap times to day boundaries
+      let newStart = dragState.previewStart;
+      let newEnd = dragState.previewEnd;
+
+      if (dragState.event.isAllDay) {
+        const snapped = snapAllDayTimes(newStart, newEnd);
+        newStart = snapped.start;
+        newEnd = snapped.end;
+      }
+
       // Update the event times
-      event.recurrenceStart = dragState.previewStart;
-      event.recurrenceEnd = dragState.previewEnd;
+      event.recurrenceStart = newStart;
+      event.recurrenceEnd = newEnd;
 
       // Queue the syncback task
       const task = SyncbackEventTask.forUpdating({ event });
       Actions.queueTask(task);
     } catch (error) {
       console.error('Failed to persist drag change:', error);
+      // TODO: Show user-friendly error notification
     }
   }
 
@@ -388,6 +435,7 @@ export class MailspringCalendar extends React.Component<
           onEventFocused={this._onEventFocused}
           dragState={this.state.dragState}
           onEventDragStart={this._onEventDragStart}
+          readOnlyCalendarIds={this._getReadOnlyCalendarIds()}
         />
       </KeyCommandsRegion>
     );

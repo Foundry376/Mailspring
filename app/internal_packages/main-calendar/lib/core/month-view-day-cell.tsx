@@ -24,6 +24,8 @@ interface MonthViewDayCellProps {
     mouseEvent: React.MouseEvent,
     hitZone: HitZone
   ) => void;
+  /** Set of calendar IDs that are read-only */
+  readOnlyCalendarIds: Set<string>;
 }
 
 export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
@@ -60,6 +62,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       onEventFocused,
       dragState,
       onEventDragStart,
+      readOnlyCalendarIds,
     } = this.props;
 
     const sortedEvents = this._sortEvents(events);
@@ -93,6 +96,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
               onFocused={onEventFocused}
               isDragging={dragState?.event.id === event.id}
               onDragStart={onEventDragStart}
+              isCalendarReadOnly={readOnlyCalendarIds.has(event.calendarId)}
             />
           ))}
           {overflowCount > 0 && (
