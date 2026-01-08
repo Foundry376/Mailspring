@@ -27,6 +27,7 @@ export interface IOutlineViewItem {
   onSelect?: (...args: any[]) => any;
   onDelete?: (...args: any[]) => any;
   onEdited?: (...args: any[]) => any;
+  onExport?: (...args: any[]) => any;
 }
 
 interface OutlineViewProps {
@@ -184,7 +185,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
 
   _renderHeading(allowCreate, collapsed, collapsible) {
     const collapseLabel = collapsed ? localized('Show') : localized('Hide');
-    let style: CSSProperties = {}
+    let style: CSSProperties = {};
     if (this.props.titleColor) {
       style = {
         height: '50%',
@@ -192,7 +193,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
         borderLeftWidth: '4px',
         borderLeftColor: this.props.titleColor,
         borderLeftStyle: 'solid',
-      }
+      };
     }
     return (
       <DropZone
