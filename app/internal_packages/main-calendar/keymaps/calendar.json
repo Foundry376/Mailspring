@@ -1,0 +1,10 @@
+{
+  "calendar:move-event-up": "up",
+  "calendar:move-event-down": "down",
+  "calendar:move-event-left": "left",
+  "calendar:move-event-right": "right",
+  "calendar:resize-event-up": "shift+up",
+  "calendar:resize-event-down": "shift+down",
+  "calendar:resize-event-left": "shift+left",
+  "calendar:resize-event-right": "shift+right"
+}

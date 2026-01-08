@@ -11,6 +11,7 @@ import {
   DestroyModelTask,
   Event,
   SyncbackEventTask,
+  UndoRedoStore,
 } from 'mailspring-exports';
 import {
   ScrollRegion,
@@ -337,6 +338,143 @@ export class MailspringCalendar extends React.Component<
   };
 
   /**
+   * Handle keyboard shortcuts for moving/resizing events
+   */
+  _onMoveSelectedEvent = (direction: 'up' | 'down' | 'left' | 'right', isResize: boolean) => {
+    if (this.state.selectedEvents.length === 0) {
+      return;
+    }
+
+    const occurrence = this.state.selectedEvents[0];
+
+    // Check if event is in a read-only calendar
+    const readOnlyCalendarIds = this._getReadOnlyCalendarIds();
+    if (readOnlyCalendarIds.has(occurrence.calendarId)) {
+      return;
+    }
+
+    // Calculate time delta based on view and direction
+    // Week view: up/down changes time, left/right changes day
+    // Month view: left/right changes day
+    const isWeekView = this.state.view === CalendarView.WEEK;
+    let timeDelta = 0;
+
+    if (isWeekView) {
+      if (direction === 'up') {
+        timeDelta = -900; // 15 minutes earlier
+      } else if (direction === 'down') {
+        timeDelta = 900; // 15 minutes later
+      } else if (direction === 'left') {
+        timeDelta = -86400; // 1 day earlier
+      } else if (direction === 'right') {
+        timeDelta = 86400; // 1 day later
+      }
+    } else {
+      // Month view: left/right changes day
+      if (direction === 'left') {
+        timeDelta = -86400; // 1 day earlier
+      } else if (direction === 'right') {
+        timeDelta = 86400; // 1 day later
+      }
+    }
+
+    if (timeDelta === 0) {
+      return;
+    }
+
+    // Apply the change
+    this._applyKeyboardEventChange(occurrence, timeDelta, isResize);
+  };
+
+  /**
+   * Apply a keyboard-initiated event change
+   */
+  async _applyKeyboardEventChange(
+    occurrence: EventOccurrence,
+    timeDelta: number,
+    isResize: boolean
+  ) {
+    try {
+      const eventId = parseEventIdFromOccurrence(occurrence.id);
+      const event = await DatabaseStore.find<Event>(Event, eventId);
+
+      if (!event) {
+        console.error('Could not find event to update:', eventId);
+        return;
+      }
+
+      // Store original values for undo
+      const originalStart = event.recurrenceStart;
+      const originalEnd = event.recurrenceEnd;
+
+      // Calculate new times
+      let newStart: number;
+      let newEnd: number;
+
+      if (isResize) {
+        // Shift+Arrow: resize the event (change end time only)
+        newStart = originalStart;
+        newEnd = Math.max(originalEnd + timeDelta, originalStart + 900); // Min 15 min duration
+      } else {
+        // Arrow: move the event (change both start and end)
+        newStart = originalStart + timeDelta;
+        newEnd = originalEnd + timeDelta;
+      }
+
+      // Update and persist
+      event.recurrenceStart = newStart;
+      event.recurrenceEnd = newEnd;
+
+      const task = SyncbackEventTask.forUpdating({ event });
+      Actions.queueTask(task);
+
+      // Register undo action
+      this._registerUndoAction(event, originalStart, originalEnd, newStart, newEnd);
+    } catch (error) {
+      console.error('Failed to apply keyboard event change:', error);
+    }
+  }
+
+  /**
+   * Register an undo action for an event time change
+   */
+  _registerUndoAction(
+    event: Event,
+    originalStart: number,
+    originalEnd: number,
+    newStart: number,
+    newEnd: number
+  ) {
+    const undoBlock = {
+      description: localized('Move event'),
+      do: () => {
+        // No-op, already done
+      },
+      undo: async () => {
+        const ev = await DatabaseStore.find<Event>(Event, event.id);
+        if (ev) {
+          ev.recurrenceStart = originalStart;
+          ev.recurrenceEnd = originalEnd;
+          const task = SyncbackEventTask.forUpdating({ event: ev });
+          Actions.queueTask(task);
+        }
+      },
+      redo: async () => {
+        const ev = await DatabaseStore.find<Event>(Event, event.id);
+        if (ev) {
+          ev.recurrenceStart = newStart;
+          ev.recurrenceEnd = newEnd;
+          const task = SyncbackEventTask.forUpdating({ event: ev });
+          Actions.queueTask(task);
+        }
+      },
+    };
+
+    // Manually push to undo stack since SyncbackEventTask doesn't support undo natively
+    (UndoRedoStore as any)._onQueueBlock(undoBlock);
+  }
+
+  /**
    * Persist the drag change to the database
    */
   async _persistDragChange(dragState: DragState) {
@@ -360,6 +498,10 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
+      // Store original values for undo
+      const originalStart = event.recurrenceStart;
+      const originalEnd = event.recurrenceEnd;
+
       // Handle all-day events - snap times to day boundaries
       let newStart = dragState.previewStart;
       let newEnd = dragState.previewEnd;
@@ -377,9 +519,11 @@ export class MailspringCalendar extends React.Component<
       // Queue the syncback task
       const task = SyncbackEventTask.forUpdating({ event });
       Actions.queueTask(task);
+
+      // Register undo action
+      this._registerUndoAction(event, originalStart, originalEnd, newStart, newEnd);
     } catch (error) {
       console.error('Failed to persist drag change:', error);
-      // TODO: Show user-friendly error notification
     }
   }
 
@@ -391,6 +535,14 @@ export class MailspringCalendar extends React.Component<
         className="mailspring-calendar"
         localHandlers={{
           'core:remove-from-view': this._onDeleteSelectedEvents,
+          'calendar:move-event-up': () => this._onMoveSelectedEvent('up', false),
+          'calendar:move-event-down': () => this._onMoveSelectedEvent('down', false),
+          'calendar:move-event-left': () => this._onMoveSelectedEvent('left', false),
+          'calendar:move-event-right': () => this._onMoveSelectedEvent('right', false),
+          'calendar:resize-event-up': () => this._onMoveSelectedEvent('up', true),
+          'calendar:resize-event-down': () => this._onMoveSelectedEvent('down', true),
+          'calendar:resize-event-left': () => this._onMoveSelectedEvent('left', true),
+          'calendar:resize-event-right': () => this._onMoveSelectedEvent('right', true),
         }}
       >
         <ResizableRegion
