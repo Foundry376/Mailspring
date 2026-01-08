@@ -1,10 +1,11 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import { Utils, Event } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
 import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { overlapForEvents } from './week-view-helpers';
+import { DragState, HitZone } from './calendar-drag-types';
 
 /*
  * This display a single column of events in the Week View.
@@ -21,6 +22,12 @@ interface WeekViewEventColumnProps {
   onEventDoubleClick: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;
   selectedEvents: EventOccurrence[];
+  dragState: DragState | null;
+  onEventDragStart: (
+    event: EventOccurrence,
+    mouseEvent: React.MouseEvent,
+    hitZone: HitZone
+  ) => void;
 }
 
 export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {
@@ -40,6 +47,8 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       onEventClick,
       onEventDoubleClick,
       onEventFocused,
+      dragState,
+      onEventDragStart,
     } = this.props;
 
     const className = classnames({
@@ -47,14 +56,11 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       weekend: day.day() === 0 || day.day() === 6,
     });
     const overlap = overlapForEvents(events);
-    const end = moment(day)
-      .add(1, 'day')
-      .subtract(1, 'millisecond')
-      .valueOf();
+    const end = moment(day).add(1, 'day').subtract(1, 'millisecond').valueOf();
 
     return (
       <div className={className} key={day.valueOf()} data-start={day.valueOf()} data-end={end}>
-        {events.map(e => (
+        {events.map((e) => (
           <CalendarEvent
             ref={`event-${e.id}`}
             event={e}
@@ -68,6 +74,8 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
             onClick={onEventClick}
             onDoubleClick={onEventDoubleClick}
             onFocused={onEventFocused}
+            isDragging={dragState?.event.id === e.id}
+            onDragStart={onEventDragStart}
           />
         ))}
       </div>

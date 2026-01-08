@@ -9,6 +9,8 @@ import {
   Actions,
   localized,
   DestroyModelTask,
+  Event,
+  SyncbackEventTask,
 } from 'mailspring-exports';
 import {
   ScrollRegion,
@@ -25,6 +27,13 @@ import { setCalendarColors } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
+import {
+  DragState,
+  HitZone,
+  DEFAULT_DRAG_CONFIG,
+  MONTH_VIEW_DRAG_CONFIG,
+} from './calendar-drag-types';
+import { createDragState, updateDragState } from './calendar-drag-utils';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -50,6 +59,14 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
   onCalendarMouseDown: (args: CalendarEventArgs) => void;
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
+
+  // Drag-related props
+  dragState: DragState | null;
+  onEventDragStart: (
+    event: EventOccurrence,
+    mouseEvent: React.MouseEvent,
+    hitZone: HitZone
+  ) => void;
 }
 
 /*
@@ -65,6 +82,7 @@ interface MailspringCalendarState {
   calendars: Calendar[];
   focusedMoment: Moment;
   disabledCalendars: string[];
+  dragState: DragState | null;
 }
 
 export class MailspringCalendar extends React.Component<
@@ -92,6 +110,7 @@ export class MailspringCalendar extends React.Component<
       view: CalendarView.WEEK,
       focusedMoment: moment(),
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
+      dragState: null,
     };
   }
 
@@ -205,9 +224,124 @@ export class MailspringCalendar extends React.Component<
     }
   };
 
-  _onCalendarMouseDown = () => {};
-  _onCalendarMouseMove = () => {};
-  _onCalendarMouseUp = () => {};
+  /**
+   * Get the drag configuration based on the current view
+   */
+  _getDragConfig() {
+    return this.state.view === CalendarView.MONTH ? MONTH_VIEW_DRAG_CONFIG : DEFAULT_DRAG_CONFIG;
+  }
+
+  /**
+   * Handle drag start from an event
+   */
+  _onEventDragStart = (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => {
+    const config = this._getDragConfig();
+
+    // Get time from mouse position (approximation - views will provide accurate time)
+    const mouseTime = event.start;
+
+    const dragState = createDragState(
+      event,
+      hitZone,
+      mouseTime,
+      mouseEvent.clientX,
+      mouseEvent.clientY,
+      config
+    );
+
+    this.setState({ dragState });
+  };
+
+  /**
+   * Handle mouse move during drag
+   */
+  _onCalendarMouseMove = (args: CalendarEventArgs) => {
+    if (!this.state.dragState) {
+      return;
+    }
+
+    const config = this._getDragConfig();
+    const mouseTime = typeof args.time === 'number' ? args.time : args.time.unix();
+
+    const newDragState = updateDragState(this.state.dragState, mouseTime, args.x, args.y, config);
+
+    // Only update state if something changed
+    if (newDragState !== this.state.dragState) {
+      this.setState({ dragState: newDragState });
+    }
+  };
+
+  /**
+   * Handle mouse up to complete drag
+   */
+  _onCalendarMouseUp = (args: CalendarEventArgs) => {
+    if (!this.state.dragState) {
+      return;
+    }
+
+    const { dragState } = this.state;
+
+    // Check if we actually dragged (threshold exceeded)
+    if (!dragState.isDragging) {
+      // Didn't drag far enough, treat as a click
+      this.setState({ dragState: null });
+      return;
+    }
+
+    // Check if times actually changed
+    if (
+      dragState.previewStart === dragState.originalStart &&
+      dragState.previewEnd === dragState.originalEnd
+    ) {
+      // No change, just clear state
+      this.setState({ dragState: null });
+      return;
+    }
+
+    // Persist the change
+    this._persistDragChange(dragState);
+  };
+
+  /**
+   * Handle mouse down on calendar (for cancellation via escape or starting new drag)
+   */
+  _onCalendarMouseDown = (args: CalendarEventArgs) => {
+    // If there's an active drag, this shouldn't happen (mouseUp should have cleared it)
+    // But just in case, clear it
+    if (this.state.dragState && !args.mouseIsDown) {
+      this.setState({ dragState: null });
+    }
+  };
+
+  /**
+   * Persist the drag change to the database
+   */
+  async _persistDragChange(dragState: DragState) {
+    // Clear the drag state immediately for responsive UI
+    this.setState({ dragState: null });
+
+    try {
+      // Get the actual Event model from the database
+      // The occurrence ID format is `${eventId}-e${idx}`, so we need to extract the event ID
+      const eventId = dragState.event.id.replace(/-e\d+$/, '');
+      const event = await DatabaseStore.find<Event>(Event, eventId);
+
+      if (!event) {
+        console.error('Could not find event to update:', eventId);
+        return;
+      }
+
+      // Update the event times
+      event.recurrenceStart = dragState.previewStart;
+      event.recurrenceEnd = dragState.previewEnd;
+
+      // Queue the syncback task
+      const task = SyncbackEventTask.forUpdating({ event });
+      Actions.queueTask(task);
+    } catch (error) {
+      console.error('Failed to persist drag change:', error);
+    }
+  }
 
   render() {
     const CurrentView = VIEWS[this.state.view];
@@ -252,6 +386,8 @@ export class MailspringCalendar extends React.Component<
           onEventClick={this._onEventClick}
           onEventDoubleClick={this._onEventDoubleClick}
           onEventFocused={this._onEventFocused}
+          dragState={this.state.dragState}
+          onEventDragStart={this._onEventDragStart}
         />
       </KeyCommandsRegion>
     );

@@ -11,6 +11,7 @@ import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CurrentTimeIndicator } from './current-time-indicator';
+import { CalendarEventDragPreview } from './calendar-event-drag-preview';
 import { Disposable } from 'rx-core';
 import { CalendarView } from './calendar-constants';
 import {
@@ -96,7 +97,7 @@ export class WeekView extends React.Component<
         startUnix: bufferedStart.unix(),
         endUnix: bufferedEnd.unix(),
       })
-      .subscribe(state => {
+      .subscribe((state) => {
         this.setState(state);
       });
   }
@@ -114,19 +115,14 @@ export class WeekView extends React.Component<
       .weekday(0)
       .week(focusedMoment.week());
 
-    const end = start
-      .clone()
-      .add(DAYS_IN_VIEW, 'days')
-      .subtract(1, 'millisecond');
+    const end = start.clone().add(DAYS_IN_VIEW, 'days').subtract(1, 'millisecond');
 
     return {
       visibleStart: start,
       visibleEnd: end,
 
       bufferedStart: start.clone().subtract(BUFFER_DAYS, 'days'),
-      bufferedEnd: moment(end)
-        .add(BUFFER_DAYS, 'days')
-        .subtract(1, 'millisecond'),
+      bufferedEnd: moment(end).add(BUFFER_DAYS, 'days').subtract(1, 'millisecond'),
     };
   }
 
@@ -232,7 +228,7 @@ export class WeekView extends React.Component<
   render() {
     const days = this._daysInView();
     const eventsByDay = eventsGroupedByDay(this.state.events, days);
-    const todayColumnIdx = days.findIndex(d => this._isToday(d));
+    const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
     const range = this._calculateMomentRange();
@@ -313,12 +309,14 @@ export class WeekView extends React.Component<
                 className="event-grid-wrap"
                 ref={this._gridScrollRegion}
                 scrollbarRef={this._scrollbar}
-                onScroll={event => (this._legendWrapEl.current.scrollTop = event.target.scrollTop)}
+                onScroll={(event) =>
+                  (this._legendWrapEl.current.scrollTop = event.target.scrollTop)
+                }
                 onViewportResize={this._setIntervalHeight}
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >
                 <div className="event-grid" style={{ height: totalHeight }}>
-                  {days.map(day => (
+                  {days.map((day) => (
                     <WeekViewEventColumn
                       day={day}
                       dayEnd={day.unix() + 24 * 60 * 60 - 1}
@@ -329,8 +327,18 @@ export class WeekView extends React.Component<
                       onEventClick={this.props.onEventClick}
                       onEventDoubleClick={this.props.onEventDoubleClick}
                       onEventFocused={this.props.onEventFocused}
+                      dragState={this.props.dragState}
+                      onEventDragStart={this.props.onEventDragStart}
                     />
                   ))}
+                  {this.props.dragState && this.props.dragState.isDragging && (
+                    <CalendarEventDragPreview
+                      dragState={this.props.dragState}
+                      direction="vertical"
+                      scopeStart={range.bufferedStart.unix()}
+                      scopeEnd={range.bufferedEnd.unix()}
+                    />
+                  )}
                   <CurrentTimeIndicator
                     visible={
                       todayColumnIdx > BUFFER_DAYS && todayColumnIdx <= BUFFER_DAYS + DAYS_IN_VIEW
