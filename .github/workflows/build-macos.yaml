@@ -7,8 +7,13 @@ jobs:
   build-macos:
     strategy:
       matrix:
-        # Confusingly, macos-13 is intel and macos-latest is ARM
-        os: [macos-13, macos-latest]
+        include:
+          - os: macos-15
+            arch: arm64
+            artifact-suffix: AppleSilicon
+          - os: macos-15-intel
+            arch: x64
+            artifact-suffix: Intel
 
     runs-on: ${{ matrix.os }}
 
@@ -58,9 +63,8 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
 
       - name: Rename artifacts
-        if: matrix.os == 'macos-latest'
         run: |
-          mv app/dist/Mailspring.zip app/dist/Mailspring-AppleSilicon.zip
+          mv app/dist/Mailspring.zip app/dist/Mailspring-${{ matrix.artifact-suffix }}.zip
 
       - name: Sync artifacts to S3 bucket
         run: |
