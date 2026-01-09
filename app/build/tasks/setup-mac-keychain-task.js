@@ -8,7 +8,7 @@ const fs = require('fs-plus');
 // We can only codesign from keys in the keychain. At the end of the day
 // we need the certificate and private key to exist in the keychain
 //
-// In the case of Travis, we need to setup a temp keychain from encrypted
+// In CI environments, we need to setup a temp keychain from encrypted
 // files in the repository. We'll decrypt and import our certificates,
 // put them in a temporary keychain, and use that.
 //
