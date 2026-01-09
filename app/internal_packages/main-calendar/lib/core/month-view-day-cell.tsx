@@ -1,12 +1,10 @@
 import React from 'react';
-import moment, { Moment } from 'moment-timezone';
+import { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { MonthViewEvent } from './month-view-event';
 import { localized } from 'mailspring-exports';
 import { DragState, HitZone } from './calendar-drag-types';
-import { calcColor } from './calendar-helpers';
-import { formatDragPreviewTime } from './calendar-drag-utils';
 
 interface MonthViewDayCellProps {
   day: Moment;
@@ -44,55 +42,15 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
   }
 
   _sortEvents(events: EventOccurrence[]): EventOccurrence[] {
-    // Sort by: all-day events first, then by start time
+    // Sort by: all-day events first, then by start time, drag previews last
     return [...events].sort((a, b) => {
+      // Drag previews go last so they render on top
+      if (a.isDragPreview && !b.isDragPreview) return 1;
+      if (!a.isDragPreview && b.isDragPreview) return -1;
       if (a.isAllDay && !b.isAllDay) return -1;
       if (!a.isAllDay && b.isAllDay) return 1;
       return a.start - b.start;
     });
-  }
-
-  /**
-   * Check if this day cell should show the drag preview.
-   * Returns true if the preview start falls within this day.
-   */
-  _shouldRenderDragPreview(): boolean {
-    const { dragState, day } = this.props;
-    if (!dragState || !dragState.isDragging) {
-      return false;
-    }
-
-    // Check if the preview start falls within this day
-    const dayStart = day.clone().startOf('day').unix();
-    const dayEnd = day.clone().endOf('day').unix();
-    return dragState.previewStart >= dayStart && dragState.previewStart <= dayEnd;
-  }
-
-  _renderDragPreview() {
-    const { dragState } = this.props;
-    if (!dragState) return null;
-
-    const color = calcColor(dragState.event.calendarId);
-    const timeString = formatDragPreviewTime(
-      dragState.previewStart,
-      dragState.previewEnd,
-      dragState.event.isAllDay
-    );
-
-    return (
-      <div
-        className="month-view-event month-view-drag-preview"
-        style={{
-          backgroundColor: color,
-          borderColor: color,
-          opacity: 0.7,
-          border: `2px dashed ${color}`,
-        }}
-      >
-        <span className="month-view-event-title">{dragState.event.title}</span>
-        <span className="drag-preview-time-tooltip">{timeString}</span>
-      </div>
-    );
   }
 
   render() {
@@ -153,7 +111,6 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
               isCalendarReadOnly={readOnlyCalendarIds.has(event.calendarId)}
             />
           ))}
-          {this._shouldRenderDragPreview() && this._renderDragPreview()}
           {overflowCount > 0 && (
             <div className="month-view-overflow" onClick={this._onDayNumberClick}>
               {localized('+%@ more', overflowCount)}

@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 import { EventOccurrence } from './calendar-data-source';
 import { calcColor } from './calendar-helpers';
-import { HitZone, DragState } from './calendar-drag-types';
-import { detectHitZone, canDragEvent } from './calendar-drag-utils';
+import { HitZone } from './calendar-drag-types';
+import { detectHitZone, canDragEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
 interface MonthViewEventProps {
   event: EventOccurrence;
@@ -17,7 +17,12 @@ interface MonthViewEventProps {
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
-  onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
+  onDragStart?: (
+    event: EventOccurrence,
+    mouseEvent: React.MouseEvent,
+    hitZone: HitZone,
+    mouseTime: number
+  ) => void;
 }
 
 interface MonthViewEventState {
@@ -72,6 +77,10 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
    * Check if this event can be dragged
    */
   _canDrag(): boolean {
+    // Drag preview events are not interactive
+    if (this.props.event.isDragPreview) {
+      return false;
+    }
     return (
       canDragEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
     );
@@ -127,9 +136,13 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     // Note: Don't call stopPropagation() - the event needs to bubble to
     // CalendarEventContainer so it can track _mouseIsDown state
 
+    // For month view events, use the event's start time as the mouse time
+    // since day-level snapping doesn't require precise time positioning
+    const mouseTime = this.props.event.start;
+
     // Notify parent of drag start
     if (this.props.onDragStart) {
-      this.props.onDragStart(this.props.event, e, this.state.hitZone);
+      this.props.onDragStart(this.props.event, e, this.state.hitZone, mouseTime);
     }
   };
 
@@ -155,12 +168,24 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       'is-all-day': event.isAllDay,
       dragging: isDragging,
       draggable: this._canDrag(),
+      'drag-preview': event.isDragPreview,
     });
 
     const style: React.CSSProperties = {
       backgroundColor,
       cursor: this._getCursorStyle(),
     };
+
+    // Drag preview events render differently - non-interactive with time tooltip
+    if (event.isDragPreview) {
+      const timeString = formatDragPreviewTime(event.start, event.end, event.isAllDay);
+      return (
+        <div className={className} style={style}>
+          <span className="month-view-event-title">{event.title}</span>
+          <span className="drag-preview-time-tooltip">{timeString}</span>
+        </div>
+      );
+    }
 
     return (
       <div

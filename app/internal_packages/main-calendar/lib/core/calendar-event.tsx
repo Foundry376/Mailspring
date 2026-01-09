@@ -4,7 +4,7 @@ import { InjectedComponentSet } from 'mailspring-component-kit';
 import { EventOccurrence } from './calendar-data-source';
 import { calcColor } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
-import { detectHitZone, canDragEvent } from './calendar-drag-utils';
+import { detectHitZone, canDragEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -145,6 +145,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
    * Check if this event can be dragged
    */
   _canDrag(): boolean {
+    // Drag preview events are not interactive
+    if (this.props.event.isDragPreview) {
+      return false;
+    }
     return (
       canDragEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
     );
@@ -243,6 +247,15 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     return 'default';
   }
 
+  _renderTimeTooltip() {
+    const { event } = this.props;
+    if (!event.isDragPreview) {
+      return null;
+    }
+    const timeString = formatDragPreviewTime(event.start, event.end, event.isAllDay);
+    return <div className="drag-preview-time-tooltip">{timeString}</div>;
+  }
+
   render() {
     const { direction, event, onClick, onDoubleClick, selected, isDragging } = this.props;
 
@@ -254,6 +267,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       event.isException && 'exception',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
+      event.isDragPreview && 'drag-preview',
     ]
       .filter(Boolean)
       .join(' ');
@@ -262,6 +276,18 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       ...this._getStyles(),
       cursor: this._getCursorStyle(),
     };
+
+    // Drag preview events are not interactive
+    if (event.isDragPreview) {
+      return (
+        <div style={styles} className={classNames}>
+          <span className="default-header" style={{ order: 0 }}>
+            {event.title}
+          </span>
+          {this._renderTimeTooltip()}
+        </div>
+      );
+    }
 
     return (
       <div

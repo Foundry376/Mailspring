@@ -8,6 +8,7 @@ import { HeaderControls } from './header-controls';
 import { EventOccurrence } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { MonthViewDayCell } from './month-view-day-cell';
+import { createDragPreviewEvent } from './calendar-drag-utils';
 
 const DAYS_IN_WEEK = 7;
 const MAX_VISIBLE_EVENTS = 5;
@@ -93,11 +94,25 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     return weeks;
   }
 
+  /**
+   * Get the events array, including synthetic drag preview if dragging
+   */
+  _getEventsWithDragPreview(): EventOccurrence[] {
+    const { dragState } = this.props;
+    if (!dragState?.isDragging) {
+      return this.state.events;
+    }
+    // Filter out the original event being dragged and add synthetic preview
+    const filtered = this.state.events.filter(e => e.id !== dragState.event.id);
+    return [...filtered, createDragPreviewEvent(dragState)];
+  }
+
   _getEventsForDay(day: Moment): EventOccurrence[] {
     const dayStart = day.clone().startOf('day').unix();
     const dayEnd = day.clone().endOf('day').unix();
+    const events = this._getEventsWithDragPreview();
 
-    return this.state.events.filter((event) => {
+    return events.filter((event) => {
       // Event overlaps with this day
       return event.start < dayEnd && event.end > dayStart;
     });

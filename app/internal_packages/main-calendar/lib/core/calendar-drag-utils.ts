@@ -36,6 +36,25 @@ export function snapAllDayTimes(start: number, end: number): { start: number; en
 }
 
 /**
+ * Create a synthetic EventOccurrence from drag state for preview rendering.
+ * This allows the drag preview to be rendered using the same event rendering
+ * pipeline as regular events, including automatic multi-day spanning.
+ * @param dragState The current drag state
+ * @returns A synthetic EventOccurrence representing the drag preview
+ */
+export function createDragPreviewEvent(dragState: DragState): EventOccurrence {
+  const { event, previewStart, previewEnd } = dragState;
+  return {
+    ...event,
+    id: `${event.id}-drag-preview`,
+    start: previewStart,
+    end: previewEnd,
+    isDragPreview: true,
+    originalEventId: event.id,
+  };
+}
+
+/**
  * Parse an event occurrence ID to extract the underlying event ID
  * The occurrence ID format is `${eventId}-e${idx}`
  * @param occurrenceId The occurrence ID

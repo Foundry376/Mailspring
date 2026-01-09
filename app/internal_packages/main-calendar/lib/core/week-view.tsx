@@ -21,6 +21,7 @@ import {
   tickGenerator,
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
+import { createDragPreviewEvent } from './calendar-drag-utils';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -226,7 +227,17 @@ export class WeekView extends React.Component<
 
   render() {
     const days = this._daysInView();
-    const eventsByDay = eventsGroupedByDay(this.state.events, days);
+    const { dragState } = this.props;
+
+    // Build events array, potentially including synthetic drag preview
+    let events = this.state.events;
+    if (dragState?.isDragging) {
+      // Filter out the original event being dragged and add synthetic preview
+      events = events.filter(e => e.id !== dragState.event.id);
+      events = [...events, createDragPreviewEvent(dragState)];
+    }
+
+    const eventsByDay = eventsGroupedByDay(events, days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 

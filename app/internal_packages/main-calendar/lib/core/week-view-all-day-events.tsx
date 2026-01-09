@@ -1,7 +1,6 @@
 import React from 'react';
-import { Event, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
-import { CalendarEventDragPreview } from './calendar-event-drag-preview';
 import { EventOccurrence } from './calendar-data-source';
 import { OverlapByEventId } from './week-view-helpers';
 import { EventRendererProps } from './mailspring-calendar';
@@ -39,19 +38,6 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  /**
-   * Check if the drag preview should be rendered in this all-day section.
-   * Only show preview when dragging an all-day event.
-   */
-  _shouldRenderDragPreview(): boolean {
-    const { dragState } = this.props;
-    if (!dragState || !dragState.isDragging) {
-      return false;
-    }
-    // Show preview for all-day events being dragged
-    return dragState.event.isAllDay;
-  }
-
   render() {
     const {
       height,
@@ -75,7 +61,7 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
         {allDayEvents.map(e => (
           <CalendarEvent
             event={e}
-            order={allDayOverlap[e.id].order}
+            order={allDayOverlap[e.id]?.order || 1}
             key={e.id}
             selected={selectedEvents.includes(e)}
             focused={focusedEvent ? focusedEvent.id === e.id : false}
@@ -83,7 +69,7 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
             scopeEnd={this.props.end}
             direction="horizontal"
             fixedSize={this.props.minorDim}
-            concurrentEvents={allDayOverlap[e.id].concurrentEvents}
+            concurrentEvents={allDayOverlap[e.id]?.concurrentEvents || 1}
             onClick={this.props.onEventClick}
             onDoubleClick={this.props.onEventDoubleClick}
             onFocused={this.props.onEventFocused}
@@ -92,16 +78,6 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
             isCalendarReadOnly={readOnlyCalendarIds.has(e.calendarId)}
           />
         ))}
-        {this._shouldRenderDragPreview() && dragState && (
-          <CalendarEventDragPreview
-            dragState={dragState}
-            direction="horizontal"
-            scopeStart={this.props.start}
-            scopeEnd={this.props.end}
-            fixedSize={this.props.minorDim}
-            order={allDayOverlap[dragState.event.id]?.order || 1}
-          />
-        )}
       </div>
     );
   }

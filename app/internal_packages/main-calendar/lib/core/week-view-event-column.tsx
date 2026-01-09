@@ -1,9 +1,8 @@
 import React from 'react';
-import moment, { Moment } from 'moment';
+import { Moment } from 'moment';
 import classnames from 'classnames';
 import { Utils } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
-import { CalendarEventDragPreview } from './calendar-event-drag-preview';
 import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { overlapForEvents } from './week-view-helpers';
 import { DragState, HitZone } from './calendar-drag-types';
@@ -41,28 +40,6 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  /**
-   * Check if the drag preview should be rendered in this column.
-   * The preview is rendered in the column where the preview start time falls.
-   * All-day events are NOT rendered here - they're handled by WeekViewAllDayEvents.
-   */
-  _shouldRenderDragPreview(): boolean {
-    const { dragState, day } = this.props;
-    if (!dragState || !dragState.isDragging) {
-      return false;
-    }
-
-    // All-day events are rendered in the all-day section, not in the time columns
-    if (dragState.event.isAllDay) {
-      return false;
-    }
-
-    // Check if the preview start time falls within this day's range
-    const dayStart = day.unix();
-    const dayEnd = dayStart + 86400; // 24 hours in seconds
-    return dragState.previewStart >= dayStart && dragState.previewStart < dayEnd;
-  }
-
   render() {
     const {
       events,
@@ -96,15 +73,14 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       >
         {events.map(e => (
           <CalendarEvent
-            ref={`event-${e.id}`}
             event={e}
             selected={selectedEvents.includes(e)}
-            order={overlap[e.id].order}
+            order={overlap[e.id]?.order || 1}
             focused={focusedEvent ? focusedEvent.id === e.id : false}
             key={e.id}
             scopeEnd={dayEnd}
             scopeStart={dayStart}
-            concurrentEvents={overlap[e.id].concurrentEvents}
+            concurrentEvents={overlap[e.id]?.concurrentEvents || 1}
             onClick={onEventClick}
             onDoubleClick={onEventDoubleClick}
             onFocused={onEventFocused}
@@ -113,14 +89,6 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
             isCalendarReadOnly={readOnlyCalendarIds.has(e.calendarId)}
           />
         ))}
-        {this._shouldRenderDragPreview() && dragState && (
-          <CalendarEventDragPreview
-            dragState={dragState}
-            direction="vertical"
-            scopeStart={dayStart}
-            scopeEnd={dayEndUnix}
-          />
-        )}
       </div>
     );
   }
