@@ -91,6 +91,8 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
             direction="horizontal"
             scopeStart={this.props.start}
             scopeEnd={this.props.end}
+            fixedSize={this.props.minorDim}
+            order={allDayOverlap[dragState!.event.id]?.order || 1}
           />
         )}
       </div>

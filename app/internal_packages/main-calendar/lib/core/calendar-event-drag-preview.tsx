@@ -18,6 +18,12 @@ interface CalendarEventDragPreviewProps {
 
   /** Whether to show the time tooltip */
   showTimeTooltip?: boolean;
+
+  /** Fixed size for all-day events in horizontal mode (height in pixels) */
+  fixedSize?: number;
+
+  /** Order/row for all-day events (1-based) */
+  order?: number;
 }
 
 /**
@@ -29,6 +35,8 @@ export class CalendarEventDragPreview extends React.Component<CalendarEventDragP
 
   static defaultProps = {
     showTimeTooltip: true,
+    fixedSize: -1,
+    order: 1,
   };
 
   _getDimensions() {
@@ -53,7 +61,7 @@ export class CalendarEventDragPreview extends React.Component<CalendarEventDragP
   }
 
   _getStyles(): React.CSSProperties {
-    const { direction, dragState } = this.props;
+    const { direction, dragState, fixedSize, order } = this.props;
     const dims = this._getDimensions();
     const color = calcColor(dragState.event.calendarId);
 
@@ -74,11 +82,18 @@ export class CalendarEventDragPreview extends React.Component<CalendarEventDragP
       styles.left = 0;
       styles.right = 0;
     } else {
-      // Horizontal: swap dimensions
+      // Horizontal: swap dimensions (left = horizontal position, width = horizontal size)
       styles.left = dims.top;
       styles.width = dims.height;
-      styles.top = 0;
-      styles.bottom = 0;
+
+      // For all-day events with fixedSize, use fixed height and position based on order
+      if (fixedSize && fixedSize > 0) {
+        styles.height = fixedSize;
+        styles.top = fixedSize * ((order || 1) - 1);
+      } else {
+        styles.top = 0;
+        styles.bottom = 0;
+      }
     }
 
     return styles;
