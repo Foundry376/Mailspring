@@ -68,6 +68,320 @@
       }
     }
   }
+
+  .event-popover-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: @padding-base-vertical @padding-base-horizontal;
+    border-top: 1px solid @border-color-divider;
+    flex-shrink: 0;
+  }
+
+  // ============================================
+  // Event Property Row - Two-column grid layout
+  // ============================================
+  .event-property-row {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    padding: @padding-small-vertical @padding-base-horizontal;
+    border-bottom: 1px solid @border-color-divider;
+
+    &:hover {
+      background-color: fade(@background-secondary, 50%);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .row-label {
+      width: 80px;
+      text-align: right;
+      padding-right: @padding-base-horizontal;
+      color: @text-color-very-subtle;
+      font-size: @font-size-small;
+      flex-shrink: 0;
+    }
+
+    .row-value {
+      flex: 1;
+      font-size: @font-size-small;
+      color: @text-color;
+      display: flex;
+      align-items: center;
+      gap: @padding-base-vertical;
+
+      select {
+        background: transparent;
+        border: none;
+        color: @text-color;
+        font-size: @font-size-small;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: @border-radius-small;
+
+        &:hover {
+          background-color: @background-secondary;
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px fade(@accent-primary, 40%);
+        }
+      }
+
+      // Fix time picker dropdown z-index
+      .time-picker-wrap {
+        .time-options {
+          z-index: 200;
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // Calendar Color Picker
+  // ============================================
+  .calendar-color-picker {
+    position: relative;
+    margin-left: auto;
+
+    .color-picker-trigger {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: @border-radius-small;
+
+      &:hover {
+        background-color: fade(@text-color-inverse, 20%);
+      }
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: @border-radius-small;
+      border: 1px solid fade(@black, 20%);
+    }
+
+    .color-picker-chevron {
+      font-size: 10px;
+      color: @text-color-inverse;
+      opacity: 0.8;
+    }
+
+    .color-picker-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 4px;
+      background: @background-primary;
+      border-radius: @border-radius-base;
+      box-shadow: @standard-shadow, @shadow-border;
+      padding: 8px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      z-index: 100;
+    }
+
+    .color-option {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.1s ease;
+
+      &:hover {
+        transform: scale(1.15);
+      }
+
+      &.selected {
+        border-color: @text-color;
+        box-shadow: inset 0 0 0 2px @background-primary;
+      }
+    }
+  }
+
+  // ============================================
+  // Location Video Input
+  // ============================================
+  .location-video-input {
+    display: flex;
+    align-items: center;
+    padding: @padding-small-vertical @padding-base-horizontal;
+    border-bottom: 1px solid @border-color-divider;
+
+    .location-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: @text-color;
+      font-size: @font-size-small;
+      padding: 4px 0;
+
+      &:focus {
+        outline: none;
+      }
+
+      &::placeholder {
+        color: @text-color-very-subtle;
+      }
+    }
+
+    .video-toggle {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: @border-radius-small;
+      cursor: pointer;
+      color: @text-color-very-subtle;
+
+      &:hover {
+        background-color: @background-secondary;
+        color: @text-color;
+      }
+
+      &.active {
+        background-color: fade(@accent-primary, 15%);
+        color: @accent-primary;
+      }
+
+      img {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  // ============================================
+  // Edit Mode Title - cleaner styling
+  // ============================================
+  &.editing {
+    .title-wrapper {
+      background-color: transparent;
+      border-bottom: 1px solid @border-color-divider;
+
+      .title {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: @text-color;
+        font-size: @font-size-larger;
+        font-weight: @font-weight-medium;
+        padding: 4px 0;
+
+        &:focus {
+          outline: none;
+        }
+
+        &::placeholder {
+          color: @text-color-very-subtle;
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // Action Links (Add Invitees, Add Notes)
+  // ============================================
+  .action-link {
+    display: block;
+    padding: @padding-small-vertical @padding-base-horizontal;
+    color: @text-color-very-subtle;
+    font-size: @font-size-small;
+    cursor: pointer;
+    border-bottom: 1px solid @border-color-divider;
+
+    &:hover {
+      color: @text-color;
+      background-color: fade(@background-secondary, 50%);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  // ============================================
+  // Expanded sections (when action links clicked)
+  // ============================================
+  .expanded-section {
+    padding: @padding-small-vertical @padding-base-horizontal;
+    border-bottom: 1px solid @border-color-divider;
+
+    // Fix double border: remove bottom border when followed by actions
+    &:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: @padding-small-vertical;
+
+      .section-title {
+        color: @text-color-very-subtle;
+        font-size: @font-size-small;
+      }
+
+      .section-close {
+        cursor: pointer;
+        color: @text-color-very-subtle;
+        font-size: 16px;
+        line-height: 1;
+        padding: 2px 6px;
+        border-radius: @border-radius-small;
+
+        &:hover {
+          color: @text-color;
+          background-color: @background-secondary;
+        }
+      }
+    }
+
+    textarea,
+    input[type='text']:not(.tokenizing-field-input *) {
+      width: 100%;
+      border: 1px solid @border-color-divider;
+      border-radius: @border-radius-small;
+      background: @background-primary;
+      color: @text-color;
+      font-size: @font-size-small;
+      padding: @padding-small-vertical @padding-small-horizontal;
+      resize: vertical;
+
+      &:focus {
+        outline: none;
+        border-color: @accent-primary;
+        box-shadow: 0 0 0 2px fade(@accent-primary, 20%);
+      }
+    }
+
+    textarea {
+      min-height: 60px;
+    }
+
+    .tokenizing-field .tokenizing-field-input {
+        position: relative;
+        margin-left: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+  }
+
+  // Action links should not have border when last before actions
+  .action-link:last-of-type {
+    border-bottom: none;
+  }
 }
 
 .quick-event-popover {

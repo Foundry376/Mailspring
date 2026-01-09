@@ -148,6 +148,7 @@ export class MailspringCalendar extends React.Component<
       originRect: eventEl.getBoundingClientRect(),
       direction: 'right',
       fallbackDirection: 'left',
+      closeOnAppBlur: false,
     });
   }
 
