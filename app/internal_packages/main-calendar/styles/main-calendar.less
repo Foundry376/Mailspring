@@ -349,7 +349,7 @@
     }
 
     textarea,
-    input[type='text'] {
+    input[type='text']:not(.tokenizing-field-input *) {
       width: 100%;
       border: 1px solid @border-color-divider;
       border-radius: @border-radius-small;
@@ -370,75 +370,11 @@
       min-height: 60px;
     }
 
-    // Compact styling for tokenizing field in calendar popover
-    .tokenizing-field {
-      margin: 0;
-      padding: 0;
-
-      .tokenizing-field-label {
-        display: none; // Hide label, we have our own section header
-      }
-
-      .tokenizing-field-input {
+    .tokenizing-field .tokenizing-field-input {
+        position: relative;
         margin-left: 0;
         padding-top: 0;
         padding-bottom: 0;
-        min-height: 28px;
-        min-width: 100%;
-
-        input {
-          font-size: @font-size-small;
-          padding: 4px 0;
-          min-width: 100px;
-
-          &:focus {
-            box-shadow: none;
-            outline: none;
-          }
-        }
-      }
-
-      // Remove any header/footer padding
-      .header-container,
-      .footer-container {
-        display: none;
-      }
-
-      // Fix autocomplete dropdown z-index and transparency
-      .content-container {
-        z-index: 200;
-        background-color: @background-primary;
-        border: 1px solid @border-color-divider;
-        box-shadow: @standard-shadow;
-        min-width: 250px;
-      }
-
-      .token {
-        font-size: @font-size-smaller;
-        line-height: 1.6em;
-        padding: 0 6px;
-        padding-right: 20px;
-        margin: 2px 4px 2px 0;
-        box-shadow: @shadow-border; // Lighter shadow for compact look
-
-        .participant {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .participant-primary {
-          max-width: 150px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .action {
-          right: 4px;
-          font-size: 9px;
-        }
-      }
     }
   }
 
