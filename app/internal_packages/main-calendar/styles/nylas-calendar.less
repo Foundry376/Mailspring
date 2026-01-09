@@ -109,6 +109,18 @@ body.platform-win32 {
 
     &.horizontal {
       white-space: nowrap;
+
+      // For horizontal events (all-day), remove vertical borders
+      // since drag handles are on left/right edges
+      border-top: 0;
+      border-bottom: 0;
+      border-left: 2px solid @background-primary;
+      border-right: 2px solid @background-primary;
+
+      // Remove the left accent bar for horizontal events
+      &:before {
+        display: none;
+      }
     }
     &.selected {
       background-color: @accent-primary !important;
@@ -152,6 +164,54 @@ body.platform-win32 {
     &.cancelled.exception {
       .exception-tag {
         display: none;
+      }
+    }
+
+    // Draggable events - cursor changes handled in JS
+    // Note: We can't use ::before/::after for resize handles because
+    // ::before is already used for the left accent bar
+    &.draggable {
+      // Slight highlight on hover to indicate draggability
+      &:hover {
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    // Dragging state - reduce opacity to show original position
+    &.dragging {
+      opacity: 0.4;
+    }
+
+    // Drag preview - synthetic event styling
+    &.drag-preview {
+      opacity: 0.7;
+      border: 2px dashed;
+      border-color: inherit;
+      pointer-events: none;
+      z-index: 1000;
+
+      .drag-preview-time-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: @background-primary;
+        color: @text-color;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        margin-bottom: 4px;
+      }
+
+      // For horizontal (all-day) events, position tooltip differently
+      &.horizontal .drag-preview-time-tooltip {
+        bottom: auto;
+        top: 100%;
+        margin-bottom: 0;
+        margin-top: 4px;
       }
     }
   }
@@ -480,6 +540,35 @@ body.platform-win32 {
         .month-view-event-title {
           opacity: 1;
         }
+      }
+
+      &.drag-preview {
+        opacity: 0.7;
+        border: 2px dashed;
+        border-color: inherit;
+        pointer-events: none;
+        position: relative;
+
+        .drag-preview-time-tooltip {
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          background: @background-primary;
+          color: @text-color;
+          padding: 4px 8px;
+          border-radius: 3px;
+          font-size: 11px;
+          font-weight: 500;
+          white-space: nowrap;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          margin-top: 4px;
+          z-index: 100;
+        }
+      }
+
+      &.dragging {
+        opacity: 0.4;
       }
     }
 

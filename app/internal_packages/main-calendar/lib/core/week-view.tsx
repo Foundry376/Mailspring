@@ -1,5 +1,4 @@
 /* eslint react/jsx-no-bind: 0 */
-import _ from 'underscore';
 import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import React from 'react';
@@ -21,6 +20,7 @@ import {
   tickGenerator,
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
+import { getEventsWithDragPreview } from './calendar-drag-utils';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -96,7 +96,7 @@ export class WeekView extends React.Component<
         startUnix: bufferedStart.unix(),
         endUnix: bufferedEnd.unix(),
       })
-      .subscribe(state => {
+      .subscribe((state) => {
         this.setState(state);
       });
   }
@@ -114,19 +114,14 @@ export class WeekView extends React.Component<
       .weekday(0)
       .week(focusedMoment.week());
 
-    const end = start
-      .clone()
-      .add(DAYS_IN_VIEW, 'days')
-      .subtract(1, 'millisecond');
+    const end = start.clone().add(DAYS_IN_VIEW, 'days').subtract(1, 'millisecond');
 
     return {
       visibleStart: start,
       visibleEnd: end,
 
       bufferedStart: start.clone().subtract(BUFFER_DAYS, 'days'),
-      bufferedEnd: moment(end)
-        .add(BUFFER_DAYS, 'days')
-        .subtract(1, 'millisecond'),
+      bufferedEnd: moment(end).add(BUFFER_DAYS, 'days').subtract(1, 'millisecond'),
     };
   }
 
@@ -196,21 +191,8 @@ export class WeekView extends React.Component<
     });
   };
 
-  _onScrollCalendarArea = (event: React.UIEvent) => {
-    // if (!event.currentTarget.scrollLeft || this._waitingForShift) {
-    //   return;
-    // }
-    // const edgeWidth = (event.currentTarget.clientWidth / DAYS_IN_VIEW) * 2;
-    // if (event.currentTarget.scrollLeft < edgeWidth) {
-    //   this._waitingForShift = event.currentTarget.clientWidth;
-    //   this._onClickPrevWeek();
-    // } else if (
-    //   event.currentTarget.scrollLeft >
-    //   event.currentTarget.scrollWidth - event.currentTarget.clientWidth - edgeWidth
-    // ) {
-    //   this._waitingForShift = -event.currentTarget.clientWidth;
-    //   this._onClickNextWeek();
-    // }
+  _onScrollCalendarArea = (_event: React.UIEvent) => {
+    // Placeholder for scroll handling - infinite scroll disabled for now
   };
 
   _renderEventGridLabels() {
@@ -231,8 +213,9 @@ export class WeekView extends React.Component<
 
   render() {
     const days = this._daysInView();
-    const eventsByDay = eventsGroupedByDay(this.state.events, days);
-    const todayColumnIdx = days.findIndex(d => this._isToday(d));
+    const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
+    const eventsByDay = eventsGroupedByDay(events, days);
+    const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
     const range = this._calculateMomentRange();
@@ -307,18 +290,23 @@ export class WeekView extends React.Component<
                   onEventClick={this.props.onEventClick}
                   onEventDoubleClick={this.props.onEventDoubleClick}
                   onEventFocused={this.props.onEventFocused}
+                  dragState={this.props.dragState}
+                  onEventDragStart={this.props.onEventDragStart}
+                  readOnlyCalendarIds={this.props.readOnlyCalendarIds}
                 />
               </div>
               <ScrollRegion
                 className="event-grid-wrap"
                 ref={this._gridScrollRegion}
                 scrollbarRef={this._scrollbar}
-                onScroll={event => (this._legendWrapEl.current.scrollTop = event.target.scrollTop)}
+                onScroll={(event) =>
+                  (this._legendWrapEl.current.scrollTop = event.target.scrollTop)
+                }
                 onViewportResize={this._setIntervalHeight}
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >
                 <div className="event-grid" style={{ height: totalHeight }}>
-                  {days.map(day => (
+                  {days.map((day) => (
                     <WeekViewEventColumn
                       day={day}
                       dayEnd={day.unix() + 24 * 60 * 60 - 1}
@@ -329,6 +317,9 @@ export class WeekView extends React.Component<
                       onEventClick={this.props.onEventClick}
                       onEventDoubleClick={this.props.onEventDoubleClick}
                       onEventFocused={this.props.onEventFocused}
+                      dragState={this.props.dragState}
+                      onEventDragStart={this.props.onEventDragStart}
+                      readOnlyCalendarIds={this.props.readOnlyCalendarIds}
                     />
                   ))}
                   <CurrentTimeIndicator

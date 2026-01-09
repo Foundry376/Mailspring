@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { MonthViewEvent } from './month-view-event';
 import { localized } from 'mailspring-exports';
+import { DragState, HitZone } from './calendar-drag-types';
 
 interface MonthViewDayCellProps {
   day: Moment;
@@ -17,6 +18,15 @@ interface MonthViewDayCellProps {
   onEventDoubleClick: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;
   onDayClick: (day: Moment) => void;
+  dragState: DragState | null;
+  onEventDragStart: (
+    event: EventOccurrence,
+    mouseEvent: React.MouseEvent,
+    hitZone: HitZone,
+    mouseTime: number
+  ) => void;
+  /** Set of calendar IDs that are read-only */
+  readOnlyCalendarIds: Set<string>;
 }
 
 export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
@@ -28,12 +38,15 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
   };
 
   _isEventSelected(event: EventOccurrence): boolean {
-    return this.props.selectedEvents.some(e => e.id === event.id);
+    return this.props.selectedEvents.some((e) => e.id === event.id);
   }
 
   _sortEvents(events: EventOccurrence[]): EventOccurrence[] {
-    // Sort by: all-day events first, then by start time
+    // Sort by: all-day events first, then by start time, drag previews last
     return [...events].sort((a, b) => {
+      // Drag previews go last so they render on top
+      if (a.isDragPreview && !b.isDragPreview) return 1;
+      if (!a.isDragPreview && b.isDragPreview) return -1;
       if (a.isAllDay && !b.isAllDay) return -1;
       if (!a.isAllDay && b.isAllDay) return 1;
       return a.start - b.start;
@@ -51,6 +64,9 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       onEventClick,
       onEventDoubleClick,
       onEventFocused,
+      dragState,
+      onEventDragStart,
+      readOnlyCalendarIds,
     } = this.props;
 
     const sortedEvents = this._sortEvents(events);
@@ -62,8 +78,16 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       'is-other-month': !isCurrentMonth,
     });
 
+    const dayStartUnix = day.clone().startOf('day').unix();
+    const dayEndUnix = day.clone().endOf('day').unix();
+
     return (
-      <div className={cellClassName}>
+      <div
+        className={cellClassName}
+        data-calendar-start={dayStartUnix}
+        data-calendar-end={dayEndUnix}
+        data-calendar-type="month-cell"
+      >
         <div className="month-view-day-header">
           <span
             className={classnames('month-view-day-number', { 'is-today': isToday })}
@@ -73,7 +97,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
           </span>
         </div>
         <div className="month-view-day-events">
-          {visibleEvents.map(event => (
+          {visibleEvents.map((event) => (
             <MonthViewEvent
               key={event.id}
               event={event}
@@ -82,6 +106,9 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
               onClick={onEventClick}
               onDoubleClick={onEventDoubleClick}
               onFocused={onEventFocused}
+              isDragging={dragState?.event.id === event.id}
+              onDragStart={onEventDragStart}
+              isCalendarReadOnly={readOnlyCalendarIds.has(event.calendarId)}
             />
           ))}
           {overflowCount > 0 && (

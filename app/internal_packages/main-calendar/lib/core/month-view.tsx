@@ -8,6 +8,7 @@ import { HeaderControls } from './header-controls';
 import { EventOccurrence } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { MonthViewDayCell } from './month-view-day-cell';
+import { getEventsWithDragPreview } from './calendar-drag-utils';
 
 const DAYS_IN_WEEK = 7;
 const MAX_VISIBLE_EVENTS = 5;
@@ -58,7 +59,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
         startUnix: monthStart.unix(),
         endUnix: monthEnd.unix(),
       })
-      .subscribe(state => {
+      .subscribe((state) => {
         if (this._mounted) {
           this.setState(state);
         }
@@ -96,8 +97,9 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   _getEventsForDay(day: Moment): EventOccurrence[] {
     const dayStart = day.clone().startOf('day').unix();
     const dayEnd = day.clone().endOf('day').unix();
+    const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
 
-    return this.state.events.filter(event => {
+    return events.filter((event) => {
       // Event overlaps with this day
       return event.start < dayEnd && event.end > dayStart;
     });
@@ -164,6 +166,9 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
               onEventDoubleClick={this.props.onEventDoubleClick}
               onEventFocused={this.props.onEventFocused}
               onDayClick={this._onDayClick}
+              dragState={this.props.dragState}
+              onEventDragStart={this.props.onEventDragStart}
+              readOnlyCalendarIds={this.props.readOnlyCalendarIds}
             />
           );
         })}

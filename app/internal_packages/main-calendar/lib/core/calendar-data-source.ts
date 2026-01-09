@@ -16,6 +16,11 @@ export interface EventOccurrence {
   isException: boolean;
   organizer: { email: string } | null;
   attendees: { email: string; name: string }[];
+
+  /** True if this is a synthetic drag preview event (not a real event) */
+  isDragPreview?: boolean;
+  /** If this is a preview, the ID of the original event being dragged */
+  originalEventId?: string;
 }
 
 // Minimal type for focusing/highlighting an event on the calendar
