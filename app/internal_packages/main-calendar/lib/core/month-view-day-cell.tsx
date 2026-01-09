@@ -120,7 +120,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
     });
 
     return (
-      <div className={cellClassName}>
+      <div className={cellClassName} data-day-start={day.clone().startOf('day').unix()}>
         <div className="month-view-day-header">
           <span
             className={classnames('month-view-day-number', { 'is-today': isToday })}

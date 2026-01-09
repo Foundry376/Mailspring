@@ -83,46 +83,91 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       return { x, y, width, height, time };
     }
 
-    // Cache gridWrap and calWrap, but NOT eventColumn - we need to recalculate
-    // eventColumn on each mouse move to support horizontal dragging between days
-    const gridWrap =
+    // Try week view first
+    const weekGridWrap =
       this._DOMCache.gridWrap ||
       event.target.closest('.event-grid-wrap .scroll-region-content-inner');
     const calWrap = this._DOMCache.calWrap || event.target.closest('.calendar-area-wrap');
 
-    if (!gridWrap || !calWrap) {
+    // Try month view if week view elements not found
+    const monthGrid =
+      this._DOMCache.monthGrid || event.target.closest('.month-view-grid');
+
+    if (weekGridWrap && calWrap) {
+      // Week view mode
+      const rect = this._DOMCache.rect || weekGridWrap.getBoundingClientRect();
+      const calWrapRect = this._DOMCache.calWrapRect || calWrap.getBoundingClientRect();
+
+      this._DOMCache = { rect, gridWrap: weekGridWrap, calWrap, calWrapRect };
+
+      y = weekGridWrap.scrollTop + event.clientY - rect.top;
+      x = calWrap.scrollLeft + event.clientX - calWrapRect.left;
+      width = weekGridWrap.scrollWidth;
+      height = weekGridWrap.scrollHeight;
+
+      // Find the event column at the current mouse X position
+      let eventColumn = this._findEventColumnAtX(weekGridWrap, event.clientX, calWrapRect);
+
+      if (!eventColumn) {
+        eventColumn = event.target.closest('.event-column');
+      }
+
+      if (!eventColumn) {
+        return { x, y, width, height, time };
+      }
+
+      const percentDay = y / height;
+      const diff = +eventColumn.dataset.end - +eventColumn.dataset.start;
+      time = moment(diff * percentDay + +eventColumn.dataset.start);
+      return { x, y, width, height, time };
+    } else if (monthGrid) {
+      // Month view mode
+      const rect = this._DOMCache.rect || monthGrid.getBoundingClientRect();
+      this._DOMCache = { rect, monthGrid };
+
+      x = event.clientX - rect.left;
+      y = event.clientY - rect.top;
+      width = rect.width;
+      height = rect.height;
+
+      // Find the day cell at the current mouse position
+      const dayCell = this._findMonthDayCellAtPosition(monthGrid, event.clientX, event.clientY);
+
+      if (dayCell) {
+        // Get the day from the cell's data or compute from position
+        const dayStart = parseInt(dayCell.dataset.dayStart, 10);
+        if (dayStart) {
+          time = moment.unix(dayStart).startOf('day');
+        }
+      }
+
       return { x, y, width, height, time };
     }
 
-    const rect = this._DOMCache.rect || gridWrap.getBoundingClientRect();
-    const calWrapRect = this._DOMCache.calWrapRect || calWrap.getBoundingClientRect();
-
-    // Cache only the non-changing elements
-    this._DOMCache = { rect, gridWrap, calWrap, calWrapRect };
-
-    y = gridWrap.scrollTop + event.clientY - rect.top;
-    x = calWrap.scrollLeft + event.clientX - calWrapRect.left;
-    width = gridWrap.scrollWidth;
-    height = gridWrap.scrollHeight;
-
-    // Find the event column at the current mouse X position
-    // We can't just use event.target.closest because during dragging the target
-    // might be the drag preview or the event being dragged, not the column
-    let eventColumn = this._findEventColumnAtX(gridWrap, event.clientX, calWrapRect);
-
-    if (!eventColumn) {
-      // Fallback: try to find via event.target
-      eventColumn = event.target.closest('.event-column');
-    }
-
-    if (!eventColumn) {
-      return { x, y, width, height, time };
-    }
-
-    const percentDay = y / height;
-    const diff = +eventColumn.dataset.end - +eventColumn.dataset.start;
-    time = moment(diff * percentDay + +eventColumn.dataset.start);
     return { x, y, width, height, time };
+  }
+
+  /**
+   * Find the month view day cell at the given position.
+   */
+  _findMonthDayCellAtPosition(
+    monthGrid: Element,
+    clientX: number,
+    clientY: number
+  ): HTMLElement | null {
+    const cells = monthGrid.querySelectorAll('.month-view-day-cell');
+    for (const cell of cells) {
+      const cellRect = cell.getBoundingClientRect();
+      if (
+        clientX >= cellRect.left &&
+        clientX < cellRect.right &&
+        clientY >= cellRect.top &&
+        clientY < cellRect.bottom
+      ) {
+        return cell as HTMLElement;
+      }
+    }
+    return null;
   }
 
   /**
