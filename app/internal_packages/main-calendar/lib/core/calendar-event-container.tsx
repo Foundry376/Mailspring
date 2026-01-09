@@ -98,14 +98,26 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     const endTime = parseInt(timeContainer.dataset.calendarEnd, 10);
     const rect = timeContainer.getBoundingClientRect();
 
+    // Validate parsed time values - if invalid, return early with position data only
+    if (isNaN(startTime) || isNaN(endTime)) {
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+        width: rect.width,
+        height: rect.height,
+        time,
+      };
+    }
+
     // Get scroll container for offset calculations (week view needs this)
     const scrollContainer =
       this._DOMCache.scrollContainer ||
       (event.target.closest('.calendar-area-wrap') as HTMLElement);
     const scrollContainerRect =
-      this._DOMCache.scrollContainerRect || scrollContainer?.getBoundingClientRect();
+      this._DOMCache.scrollContainerRect ||
+      (scrollContainer ? scrollContainer.getBoundingClientRect() : null);
 
-    if (scrollContainer) {
+    if (scrollContainer && scrollContainerRect) {
       this._DOMCache = { scrollContainer, scrollContainerRect };
     }
 
@@ -120,9 +132,10 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
           y = event.clientY - rect.top;
           height = rect.height;
         }
-        x = scrollContainer
-          ? scrollContainer.scrollLeft + event.clientX - scrollContainerRect.left
-          : event.clientX - rect.left;
+        x =
+          scrollContainer && scrollContainerRect
+            ? scrollContainer.scrollLeft + event.clientX - scrollContainerRect.left
+            : event.clientX - rect.left;
         width = rect.width;
 
         // Calculate time as percentage through the day
@@ -134,17 +147,18 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
 
       case 'all-day-area': {
         // Week view all-day events: calculate day from X position
-        x = scrollContainer
-          ? scrollContainer.scrollLeft + event.clientX - scrollContainerRect.left
-          : event.clientX - rect.left;
+        x =
+          scrollContainer && scrollContainerRect
+            ? scrollContainer.scrollLeft + event.clientX - scrollContainerRect.left
+            : event.clientX - rect.left;
         y = event.clientY - rect.top;
         width = rect.width;
         height = rect.height;
 
         // Calculate which day based on X position as percentage of the week
         const percentWeek = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-        const numDays = Math.round((endTime - startTime) / 86400); // seconds per day
-        const dayIndex = Math.floor(percentWeek * numDays);
+        const numDays = Math.ceil((endTime - startTime) / 86400); // seconds per day
+        const dayIndex = Math.min(Math.floor(percentWeek * numDays), numDays - 1);
         const dayStartTime = startTime + dayIndex * 86400;
         time = moment.unix(dayStartTime);
         break;

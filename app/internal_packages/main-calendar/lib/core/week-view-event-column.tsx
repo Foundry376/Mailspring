@@ -82,7 +82,6 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       weekend: day.day() === 0 || day.day() === 6,
     });
     const overlap = overlapForEvents(events);
-    const end = moment(day).add(1, 'day').subtract(1, 'millisecond').valueOf();
     const dayStart = day.unix();
     const dayEndUnix = dayStart + 86400; // 24 hours in seconds
 
@@ -90,8 +89,6 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       <div
         className={className}
         key={day.valueOf()}
-        data-start={day.valueOf()}
-        data-end={end}
         data-calendar-start={dayStart}
         data-calendar-end={dayEndUnix}
         data-calendar-type="day-column"

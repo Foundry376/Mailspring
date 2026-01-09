@@ -125,7 +125,6 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
     return (
       <div
         className={cellClassName}
-        data-day-start={dayStartUnix}
         data-calendar-start={dayStartUnix}
         data-calendar-end={dayEndUnix}
         data-calendar-type="month-cell"
