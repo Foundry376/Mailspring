@@ -223,16 +223,32 @@ export function updateDragState(
     case 'move': {
       // For move, calculate new start by subtracting the click offset from current mouse position
       // This keeps the event at the same position relative to the mouse cursor
-      const newStart = mouseTime - state.clickOffset;
-      previewStart = snapToInterval(newStart, snapInterval);
-      previewEnd = previewStart + eventDuration;
+      // For day-based snapping, ignore click offset since we snap to day boundaries
+      const newStart = usesDaySnap ? mouseTime : mouseTime - state.clickOffset;
+      if (usesDaySnap) {
+        // For day-based moves, snap start to beginning of day and end to end of day
+        // Calculate how many days the event spans (minimum 1)
+        const numDays = Math.max(1, Math.round(eventDuration / 86400));
+        previewStart = moment.unix(newStart).startOf('day').unix();
+        previewEnd = moment.unix(previewStart).add(numDays - 1, 'days').endOf('day').unix();
+      } else {
+        previewStart = snapToInterval(newStart, snapInterval);
+        previewEnd = previewStart + eventDuration;
+      }
       break;
     }
     case 'resize-start': {
       // For resize-start, new start is at mouse position
+      // For day-based snapping, snap to start of the day the cursor is in
       const newStart = Math.min(mouseTime, state.originalEnd - minDuration);
-      previewStart = snapToInterval(newStart, snapInterval);
-      previewEnd = state.originalEnd;
+      if (usesDaySnap) {
+        previewStart = moment.unix(newStart).startOf('day').unix();
+        // Ensure end is at end of day (in case original wasn't properly aligned)
+        previewEnd = moment.unix(state.originalEnd).endOf('day').unix();
+      } else {
+        previewStart = snapToInterval(newStart, snapInterval);
+        previewEnd = state.originalEnd;
+      }
       // Ensure minimum duration after snapping
       if (previewEnd - previewStart < minDuration) {
         previewStart = previewEnd - minDuration;
@@ -240,10 +256,20 @@ export function updateDragState(
       break;
     }
     case 'resize-end': {
-      // For resize-end, new end is at mouse position (adjusted by offset)
-      const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
-      previewStart = state.originalStart;
-      previewEnd = snapToInterval(newEnd, snapInterval);
+      // For resize-end, new end is at mouse position
+      // For day-based snapping, snap to END of the day the cursor is in (not start)
+      // Don't use click offset for day-based operations
+      const newEnd = usesDaySnap
+        ? mouseTime
+        : Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
+      if (usesDaySnap) {
+        // Ensure start is at start of day (in case original wasn't properly aligned)
+        previewStart = moment.unix(state.originalStart).startOf('day').unix();
+        previewEnd = moment.unix(newEnd).endOf('day').unix();
+      } else {
+        previewStart = state.originalStart;
+        previewEnd = snapToInterval(newEnd, snapInterval);
+      }
       // Ensure minimum duration after snapping
       if (previewEnd - previewStart < minDuration) {
         previewEnd = previewStart + minDuration;
