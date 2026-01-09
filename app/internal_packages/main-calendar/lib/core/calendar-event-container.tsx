@@ -134,10 +134,12 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       const dayCell = this._findMonthDayCellAtPosition(monthGrid, event.clientX, event.clientY);
 
       if (dayCell) {
-        // Get the day from the cell's data or compute from position
+        // Get the day from the cell's data - already a unix timestamp of start of day
         const dayStart = parseInt(dayCell.dataset.dayStart, 10);
         if (dayStart) {
-          time = moment.unix(dayStart).startOf('day');
+          // Use the timestamp directly - don't call startOf('day') again as it can
+          // cause timezone issues that shift the date by one day
+          time = moment.unix(dayStart);
         }
       }
 
