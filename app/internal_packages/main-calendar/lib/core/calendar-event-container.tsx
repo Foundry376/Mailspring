@@ -1,4 +1,3 @@
-import moment from 'moment';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -7,11 +6,12 @@ import { CalendarContainerType } from './calendar-drag-types';
 
 export interface CalendarEventArgs {
   event?: EventOccurrence;
-  time: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  /** Unix timestamp at mouse position, or null if not over a valid time container */
+  time: number | null;
+  x: number | null;
+  y: number | null;
+  width: number | null;
+  height: number | null;
   mouseIsDown: boolean;
   /** The type of calendar container the mouse is over (determines snap resolution) */
   containerType: CalendarContainerType | null;
@@ -146,7 +146,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         // Calculate time as percentage through the day
         const percentDay = Math.max(0, Math.min(1, y / height));
         const timeOffset = (endTime - startTime) * percentDay;
-        time = moment.unix(startTime + timeOffset);
+        time = startTime + timeOffset;
         break;
       }
 
@@ -164,8 +164,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         const percentWeek = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
         const numDays = Math.ceil((endTime - startTime) / 86400); // seconds per day
         const dayIndex = Math.min(Math.floor(percentWeek * numDays), numDays - 1);
-        const dayStartTime = startTime + dayIndex * 86400;
-        time = moment.unix(dayStartTime);
+        time = startTime + dayIndex * 86400;
         break;
       }
 
@@ -175,9 +174,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         y = event.clientY - rect.top;
         width = rect.width;
         height = rect.height;
-        // Use the timestamp directly - don't call startOf('day') again as it can
-        // cause timezone issues that shift the date by one day
-        time = moment.unix(startTime);
+        time = startTime;
         break;
       }
 

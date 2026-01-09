@@ -288,18 +288,17 @@ export class MailspringCalendar extends React.Component<
     }
 
     // args.time can be null if mouse is not over a valid calendar area
-    if (!args.time) {
+    if (args.time === null) {
       return;
     }
 
     const config = this._getDragConfig();
-    const mouseTime = typeof args.time === 'number' ? args.time : args.time.unix();
 
     const newDragState = updateDragState(
       this.state.dragState,
-      mouseTime,
-      args.x,
-      args.y,
+      args.time,
+      args.x!,
+      args.y!,
       args.containerType,
       config
     );

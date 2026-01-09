@@ -2,7 +2,6 @@ import moment from 'moment';
 import {
   CalendarContainerType,
   DragConfig,
-  DragMode,
   DragState,
   HitZone,
   ViewDirection,
@@ -50,47 +49,6 @@ export function parseEventIdFromOccurrence(occurrenceId: string): string {
   // If the pattern doesn't match, return the original ID
   // (it might be a non-occurrence event ID that can be edited directly)
   return occurrenceId;
-}
-
-/**
- * Calculate new event times based on drag mode and time delta
- * @param mode The drag operation type
- * @param originalStart Original event start time
- * @param originalEnd Original event end time
- * @param timeDelta Time difference from drag start position
- * @param minDuration Minimum allowed event duration
- * @returns New start and end times
- */
-export function calculateDragTimes(
-  mode: DragMode,
-  originalStart: number,
-  originalEnd: number,
-  timeDelta: number,
-  minDuration: number
-): { start: number; end: number } {
-  switch (mode) {
-    case 'move':
-      return {
-        start: originalStart + timeDelta,
-        end: originalEnd + timeDelta,
-      };
-    case 'resize-start': {
-      // Don't allow start to go past end - minDuration
-      const newStart = Math.min(originalStart + timeDelta, originalEnd - minDuration);
-      return {
-        start: newStart,
-        end: originalEnd,
-      };
-    }
-    case 'resize-end': {
-      // Don't allow end to go before start + minDuration
-      const newEnd = Math.max(originalEnd + timeDelta, originalStart + minDuration);
-      return {
-        start: originalStart,
-        end: newEnd,
-      };
-    }
-  }
 }
 
 /**
@@ -290,87 +248,6 @@ export function updateDragState(
     previewStart,
     previewEnd,
   };
-}
-
-/**
- * Calculate time from Y position in week view
- * @param y Y position within grid
- * @param gridHeight Total grid height
- * @param dayStart Start of day (unix timestamp)
- * @param dayEnd End of day (unix timestamp)
- * @returns Unix timestamp
- */
-export function timeFromYPosition(
-  y: number,
-  gridHeight: number,
-  dayStart: number,
-  dayEnd: number
-): number {
-  const percentDay = y / gridHeight;
-  const dayDuration = dayEnd - dayStart;
-  return dayStart + dayDuration * percentDay;
-}
-
-/**
- * Calculate Y position from time in week view
- * @param time Unix timestamp
- * @param gridHeight Total grid height
- * @param dayStart Start of day (unix timestamp)
- * @param dayEnd End of day (unix timestamp)
- * @returns Y position in pixels
- */
-export function yPositionFromTime(
-  time: number,
-  gridHeight: number,
-  dayStart: number,
-  dayEnd: number
-): number {
-  const dayDuration = dayEnd - dayStart;
-  const percentDay = (time - dayStart) / dayDuration;
-  return percentDay * gridHeight;
-}
-
-/**
- * Calculate day index from X position in month view
- * @param x X position within grid
- * @param gridWidth Total grid width
- * @param daysInWeek Number of days (usually 7)
- * @returns Day index (0-6)
- */
-export function dayIndexFromXPosition(
-  x: number,
-  gridWidth: number,
-  daysInWeek: number = 7
-): number {
-  const cellWidth = gridWidth / daysInWeek;
-  return Math.floor(x / cellWidth);
-}
-
-/**
- * Check if an event occurrence is from a recurring event
- * We detect this by looking at the occurrence ID pattern - recurring events
- * generate multiple occurrences with indices > 0
- * @param event The event occurrence
- * @returns True if this is a recurring event occurrence (not an exception)
- */
-export function isRecurringOccurrence(event: EventOccurrence): boolean {
-  // The occurrence ID format is `${eventId}-e${idx}`
-  // Non-recurring events only have index 0
-  // Recurring events that are exceptions have isException = true
-  const match = event.id.match(/-e(\d+)$/);
-  if (!match) {
-    return false;
-  }
-
-  // If this is an exception, it's a modified occurrence that can be edited
-  if (event.isException) {
-    return false;
-  }
-
-  // For now, we can't easily tell if an event is recurring just from the occurrence
-  // We'll allow dragging all events except cancelled ones
-  // The actual recurring event check would require looking at the ICS data
-  return false;
 }
 
 /**
