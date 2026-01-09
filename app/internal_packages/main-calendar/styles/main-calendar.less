@@ -131,6 +131,13 @@
           box-shadow: 0 0 0 2px fade(@accent-primary, 40%);
         }
       }
+
+      // Fix time picker dropdown z-index
+      .time-picker-wrap {
+        .time-options {
+          z-index: 200;
+        }
+      }
     }
   }
 
@@ -374,11 +381,22 @@
         padding-top: 4px;
         padding-bottom: 4px;
         min-height: 28px;
+        min-width: 100%;
 
         input {
           font-size: @font-size-small;
           padding: 2px 0;
+          min-width: 100px;
         }
+      }
+
+      // Fix autocomplete dropdown z-index and transparency
+      .content-container {
+        z-index: 200;
+        background-color: @background-primary;
+        border: 1px solid @border-color-divider;
+        box-shadow: @standard-shadow;
+        min-width: 250px;
       }
 
       .token {

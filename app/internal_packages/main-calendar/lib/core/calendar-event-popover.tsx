@@ -57,6 +57,9 @@ export class CalendarEventPopover extends React.Component<
   CalendarEventPopoverProps,
   CalendarEventPopoverState
 > {
+  private attendeesInputRef = React.createRef<EventAttendeesInput>();
+  private notesTextareaRef = React.createRef<HTMLTextAreaElement>();
+
   constructor(props) {
     super(props);
     const { description, start, end, location, attendees, title } = this.props.event;
@@ -87,6 +90,17 @@ export class CalendarEventPopover extends React.Component<
       this.setState({ description, start, end, location, attendees, title });
     }
   };
+
+  componentDidUpdate(prevProps, prevState) {
+    // Autofocus invitees input when section is expanded
+    if (this.state.showInvitees && !prevState.showInvitees && this.attendeesInputRef.current) {
+      this.attendeesInputRef.current.focus();
+    }
+    // Autofocus notes textarea when section is expanded
+    if (this.state.showNotes && !prevState.showNotes && this.notesTextareaRef.current) {
+      this.notesTextareaRef.current.focus();
+    }
+  }
 
   onEdit = () => {
     this.setState({ editing: true });
@@ -233,6 +247,7 @@ export class CalendarEventPopover extends React.Component<
                 </span>
               </div>
               <EventAttendeesInput
+                ref={this.attendeesInputRef}
                 className="event-participant-field"
                 attendees={attendees}
                 change={val => this.updateField('attendees', val)}
@@ -254,6 +269,7 @@ export class CalendarEventPopover extends React.Component<
                 </span>
               </div>
               <textarea
+                ref={this.notesTextareaRef}
                 value={notes}
                 placeholder={localized('Add notes or URL...')}
                 onChange={e => this.updateField('description', e.target.value)}
