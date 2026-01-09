@@ -295,7 +295,14 @@ export class MailspringCalendar extends React.Component<
     const config = this._getDragConfig();
     const mouseTime = typeof args.time === 'number' ? args.time : args.time.unix();
 
-    const newDragState = updateDragState(this.state.dragState, mouseTime, args.x, args.y, config);
+    const newDragState = updateDragState(
+      this.state.dragState,
+      mouseTime,
+      args.x,
+      args.y,
+      args.containerType,
+      config
+    );
 
     // Only update state if something changed
     if (newDragState !== this.state.dragState) {

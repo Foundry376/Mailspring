@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { EventOccurrence } from './calendar-data-source';
+import { CalendarContainerType } from './calendar-drag-types';
 
 export interface CalendarEventArgs {
   event?: EventOccurrence;
@@ -12,6 +13,8 @@ export interface CalendarEventArgs {
   width: number;
   height: number;
   mouseIsDown: boolean;
+  /** The type of calendar container the mouse is over (determines snap resolution) */
+  containerType: CalendarContainerType | null;
 }
 
 interface CalendarEventContainerProps {
@@ -63,9 +66,9 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     if (!propsFn) {
       return;
     }
-    const { time, x, y, width, height } = this._dataFromMouseEvent(event);
+    const { time, x, y, width, height, containerType } = this._dataFromMouseEvent(event);
     try {
-      propsFn({ event, time, x, y, width, height, mouseIsDown: this._mouseIsDown });
+      propsFn({ event, time, x, y, width, height, mouseIsDown: this._mouseIsDown, containerType });
     } catch (error) {
       AppEnv.reportError(error);
     }
@@ -82,18 +85,19 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     let width = null;
     let height = null;
     let time = null;
+    let containerType: CalendarContainerType | null = null;
 
     if (!event.target || !event.target.closest) {
-      return { x, y, width, height, time };
+      return { x, y, width, height, time, containerType };
     }
 
     // Find the nearest time container using the unified data attribute
     const timeContainer = event.target.closest('[data-calendar-start]') as HTMLElement;
     if (!timeContainer) {
-      return { x, y, width, height, time };
+      return { x, y, width, height, time, containerType };
     }
 
-    const containerType = timeContainer.dataset.calendarType;
+    containerType = timeContainer.dataset.calendarType as CalendarContainerType;
     const startTime = parseInt(timeContainer.dataset.calendarStart, 10);
     const endTime = parseInt(timeContainer.dataset.calendarEnd, 10);
     const rect = timeContainer.getBoundingClientRect();
@@ -106,6 +110,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         width: rect.width,
         height: rect.height,
         time,
+        containerType,
       };
     }
 
@@ -186,7 +191,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       }
     }
 
-    return { x, y, width, height, time };
+    return { x, y, width, height, time, containerType };
   }
 
   _onWindowMouseUp = event => {

@@ -16,6 +16,14 @@ export type DragMode = 'move' | 'resize-start' | 'resize-end';
 export type ViewDirection = 'vertical' | 'horizontal';
 
 /**
+ * Type of calendar container, determines snap resolution
+ * - 'day-column': Week view timed events (15-minute snap)
+ * - 'all-day-area': Week view all-day events (day snap)
+ * - 'month-cell': Month view (day snap)
+ */
+export type CalendarContainerType = 'day-column' | 'all-day-area' | 'month-cell';
+
+/**
  * Result of hit zone detection - determines drag mode and cursor
  */
 export interface HitZone {

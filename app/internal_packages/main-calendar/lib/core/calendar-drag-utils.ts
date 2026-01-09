@@ -1,5 +1,12 @@
 import moment from 'moment';
-import { DragMode, DragState, DragConfig, HitZone, ViewDirection } from './calendar-drag-types';
+import {
+  CalendarContainerType,
+  DragConfig,
+  DragMode,
+  DragState,
+  HitZone,
+  ViewDirection,
+} from './calendar-drag-types';
 import { EventOccurrence } from './calendar-data-source';
 
 /**
@@ -196,6 +203,7 @@ export function createDragState(
  * @param mouseTime Current mouse time
  * @param mouseX Current mouse X
  * @param mouseY Current mouse Y
+ * @param containerType The container type the mouse is currently over
  * @param config Drag configuration
  * @returns Updated drag state (or same state if no change)
  */
@@ -204,6 +212,7 @@ export function updateDragState(
   mouseTime: number,
   mouseX: number,
   mouseY: number,
+  containerType: CalendarContainerType | null,
   config: DragConfig
 ): DragState {
   // Check if we've exceeded the drag threshold
@@ -226,10 +235,12 @@ export function updateDragState(
   let previewEnd: number;
   const eventDuration = state.originalEnd - state.originalStart;
 
-  // All-day events should snap to day boundaries regardless of config
-  const isAllDay = state.event.isAllDay;
-  const snapInterval = isAllDay ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
-  const minDuration = isAllDay ? 86400 : config.minDuration;
+  // Snap resolution depends on container type:
+  // - day-column (week view timed): 15-minute intervals
+  // - all-day-area, month-cell: full day intervals
+  const usesDaySnap = containerType !== 'day-column';
+  const snapInterval = usesDaySnap ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
+  const minDuration = usesDaySnap ? 86400 : config.minDuration;
 
   switch (state.mode) {
     case 'move': {
