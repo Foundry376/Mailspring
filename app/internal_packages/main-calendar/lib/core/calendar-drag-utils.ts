@@ -226,34 +226,39 @@ export function updateDragState(
   let previewEnd: number;
   const eventDuration = state.originalEnd - state.originalStart;
 
+  // All-day events should snap to day boundaries regardless of config
+  const isAllDay = state.event.isAllDay;
+  const snapInterval = isAllDay ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
+  const minDuration = isAllDay ? 86400 : config.minDuration;
+
   switch (state.mode) {
     case 'move': {
       // For move, calculate new start by subtracting the click offset from current mouse position
       // This keeps the event at the same position relative to the mouse cursor
       const newStart = mouseTime - state.clickOffset;
-      previewStart = snapToInterval(newStart, config.snapInterval);
+      previewStart = snapToInterval(newStart, snapInterval);
       previewEnd = previewStart + eventDuration;
       break;
     }
     case 'resize-start': {
       // For resize-start, new start is at mouse position
-      const newStart = Math.min(mouseTime, state.originalEnd - config.minDuration);
-      previewStart = snapToInterval(newStart, config.snapInterval);
+      const newStart = Math.min(mouseTime, state.originalEnd - minDuration);
+      previewStart = snapToInterval(newStart, snapInterval);
       previewEnd = state.originalEnd;
       // Ensure minimum duration after snapping
-      if (previewEnd - previewStart < config.minDuration) {
-        previewStart = previewEnd - config.minDuration;
+      if (previewEnd - previewStart < minDuration) {
+        previewStart = previewEnd - minDuration;
       }
       break;
     }
     case 'resize-end': {
       // For resize-end, new end is at mouse position (adjusted by offset)
-      const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + config.minDuration);
+      const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
       previewStart = state.originalStart;
-      previewEnd = snapToInterval(newEnd, config.snapInterval);
+      previewEnd = snapToInterval(newEnd, snapInterval);
       // Ensure minimum duration after snapping
-      if (previewEnd - previewStart < config.minDuration) {
-        previewEnd = previewStart + config.minDuration;
+      if (previewEnd - previewStart < minDuration) {
+        previewEnd = previewStart + minDuration;
       }
       break;
     }
