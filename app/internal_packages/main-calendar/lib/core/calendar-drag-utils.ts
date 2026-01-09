@@ -55,6 +55,25 @@ export function createDragPreviewEvent(dragState: DragState): EventOccurrence {
 }
 
 /**
+ * Get events array with drag preview injected (if currently dragging).
+ * Filters out the original event being dragged and adds the synthetic preview.
+ * @param events The original events array
+ * @param dragState Current drag state (or null if not dragging)
+ * @returns Events array with drag preview if dragging, otherwise original array
+ */
+export function getEventsWithDragPreview(
+  events: EventOccurrence[],
+  dragState: DragState | null
+): EventOccurrence[] {
+  if (!dragState?.isDragging) {
+    return events;
+  }
+  // Filter out the original event being dragged and add synthetic preview
+  const filtered = events.filter(e => e.id !== dragState.event.id);
+  return [...filtered, createDragPreviewEvent(dragState)];
+}
+
+/**
  * Parse an event occurrence ID to extract the underlying event ID
  * The occurrence ID format is `${eventId}-e${idx}`
  * @param occurrenceId The occurrence ID

@@ -1,5 +1,4 @@
 /* eslint react/jsx-no-bind: 0 */
-import _ from 'underscore';
 import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import React from 'react';
@@ -21,7 +20,7 @@ import {
   tickGenerator,
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
-import { createDragPreviewEvent } from './calendar-drag-utils';
+import { getEventsWithDragPreview } from './calendar-drag-utils';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -192,21 +191,8 @@ export class WeekView extends React.Component<
     });
   };
 
-  _onScrollCalendarArea = (event: React.UIEvent) => {
-    // if (!event.currentTarget.scrollLeft || this._waitingForShift) {
-    //   return;
-    // }
-    // const edgeWidth = (event.currentTarget.clientWidth / DAYS_IN_VIEW) * 2;
-    // if (event.currentTarget.scrollLeft < edgeWidth) {
-    //   this._waitingForShift = event.currentTarget.clientWidth;
-    //   this._onClickPrevWeek();
-    // } else if (
-    //   event.currentTarget.scrollLeft >
-    //   event.currentTarget.scrollWidth - event.currentTarget.clientWidth - edgeWidth
-    // ) {
-    //   this._waitingForShift = -event.currentTarget.clientWidth;
-    //   this._onClickNextWeek();
-    // }
+  _onScrollCalendarArea = (_event: React.UIEvent) => {
+    // Placeholder for scroll handling - infinite scroll disabled for now
   };
 
   _renderEventGridLabels() {
@@ -227,16 +213,7 @@ export class WeekView extends React.Component<
 
   render() {
     const days = this._daysInView();
-    const { dragState } = this.props;
-
-    // Build events array, potentially including synthetic drag preview
-    let events = this.state.events;
-    if (dragState?.isDragging) {
-      // Filter out the original event being dragged and add synthetic preview
-      events = events.filter(e => e.id !== dragState.event.id);
-      events = [...events, createDragPreviewEvent(dragState)];
-    }
-
+    const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
     const eventsByDay = eventsGroupedByDay(events, days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
