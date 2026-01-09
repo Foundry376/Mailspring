@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
 import WindowLauncher from './window-launcher';
 import { localized } from '../intl';
 import MailspringWindow from './mailspring-window';
@@ -260,12 +260,15 @@ export default class WindowManager {
       height: 600,
     };
 
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+
     coreWinOpts[WindowManager.CALENDAR_WINDOW] = {
       windowKey: WindowManager.CALENDAR_WINDOW,
       windowType: WindowManager.CALENDAR_WINDOW,
       title: localized('Calendar Preview'),
-      width: 900,
-      height: 600,
+      width: Math.round(screenWidth * 0.75),
+      height: Math.round(screenHeight * 0.75),
       toolbar: false,
       hidden: false,
     };
