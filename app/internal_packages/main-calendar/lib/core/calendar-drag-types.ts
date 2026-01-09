@@ -87,7 +87,7 @@ export interface DragConfig {
 export const DEFAULT_DRAG_CONFIG: DragConfig = {
   dragThreshold: 5,
   snapInterval: 900, // 15 minutes
-  edgeZoneSize: 8,
+  edgeZoneSize: 12, // Larger zone for easier grab
   minDuration: 900, // 15 minutes
   direction: 'vertical',
 };
@@ -98,7 +98,7 @@ export const DEFAULT_DRAG_CONFIG: DragConfig = {
 export const MONTH_VIEW_DRAG_CONFIG: DragConfig = {
   dragThreshold: 5,
   snapInterval: 86400, // 1 day
-  edgeZoneSize: 8,
+  edgeZoneSize: 12, // Larger zone for easier grab
   minDuration: 86400, // 1 day
   direction: 'horizontal',
 };

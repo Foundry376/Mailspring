@@ -284,6 +284,11 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
+    // args.time can be null if mouse is not over a valid calendar area
+    if (!args.time) {
+      return;
+    }
+
     const config = this._getDragConfig();
     const mouseTime = typeof args.time === 'number' ? args.time : args.time.unix();
 

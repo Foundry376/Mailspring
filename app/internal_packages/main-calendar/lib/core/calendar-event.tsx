@@ -47,7 +47,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     fixedSize: -1,
     concurrentEvents: 1,
     isDragging: false,
-    edgeZoneSize: 8,
+    edgeZoneSize: 12,
     isCalendarReadOnly: false,
     onClick: () => {},
     onDoubleClick: () => {},

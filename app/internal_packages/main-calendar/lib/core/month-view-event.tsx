@@ -29,7 +29,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
   static defaultProps = {
     isDragging: false,
-    edgeZoneSize: 8,
+    edgeZoneSize: 12,
     isCalendarReadOnly: false,
   };
 

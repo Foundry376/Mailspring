@@ -11,7 +11,6 @@ import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CurrentTimeIndicator } from './current-time-indicator';
-import { CalendarEventDragPreview } from './calendar-event-drag-preview';
 import { Disposable } from 'rx-core';
 import { CalendarView } from './calendar-constants';
 import {
@@ -303,6 +302,9 @@ export class WeekView extends React.Component<
                   onEventClick={this.props.onEventClick}
                   onEventDoubleClick={this.props.onEventDoubleClick}
                   onEventFocused={this.props.onEventFocused}
+                  dragState={this.props.dragState}
+                  onEventDragStart={this.props.onEventDragStart}
+                  readOnlyCalendarIds={this.props.readOnlyCalendarIds}
                 />
               </div>
               <ScrollRegion
@@ -332,14 +334,6 @@ export class WeekView extends React.Component<
                       readOnlyCalendarIds={this.props.readOnlyCalendarIds}
                     />
                   ))}
-                  {this.props.dragState && this.props.dragState.isDragging && (
-                    <CalendarEventDragPreview
-                      dragState={this.props.dragState}
-                      direction="vertical"
-                      scopeStart={range.bufferedStart.unix()}
-                      scopeEnd={range.bufferedEnd.unix()}
-                    />
-                  )}
                   <CurrentTimeIndicator
                     visible={
                       todayColumnIdx > BUFFER_DAYS && todayColumnIdx <= BUFFER_DAYS + DAYS_IN_VIEW
