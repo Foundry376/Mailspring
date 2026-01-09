@@ -29,6 +29,10 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     calWrap?: any;
     calWrapRect?: any;
     rect?: any;
+    allDayArea?: any;
+    allDayRect?: any;
+    monthGrid?: any;
+    weekHeader?: any;
   } = {};
 
   _mouseIsDown: boolean;
@@ -89,6 +93,12 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       event.target.closest('.event-grid-wrap .scroll-region-content-inner');
     const calWrap = this._DOMCache.calWrap || event.target.closest('.calendar-area-wrap');
 
+    // Try all-day events area (part of week view but separate from event-grid-wrap)
+    const allDayArea =
+      this._DOMCache.allDayArea || event.target.closest('.all-day-events');
+    const weekHeader =
+      this._DOMCache.weekHeader || event.target.closest('.week-header');
+
     // Try month view if week view elements not found
     const monthGrid =
       this._DOMCache.monthGrid || event.target.closest('.month-view-grid');
@@ -119,6 +129,30 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       const percentDay = y / height;
       const diff = +eventColumn.dataset.end - +eventColumn.dataset.start;
       time = moment(diff * percentDay + +eventColumn.dataset.start);
+      return { x, y, width, height, time };
+    } else if (allDayArea && calWrap) {
+      // All-day events area (part of week view but above event-grid-wrap)
+      const calWrapRect = this._DOMCache.calWrapRect || calWrap.getBoundingClientRect();
+      const allDayRect = this._DOMCache.allDayRect || allDayArea.getBoundingClientRect();
+
+      this._DOMCache = { allDayArea, calWrap, calWrapRect, allDayRect };
+
+      x = calWrap.scrollLeft + event.clientX - calWrapRect.left;
+      y = event.clientY - allDayRect.top;
+      width = allDayRect.width;
+      height = allDayRect.height;
+
+      // Find the event column at the current mouse X position
+      // We need to look in the event-grid-wrap to find the columns
+      const eventGridWrap = calWrap.querySelector('.event-grid-wrap .scroll-region-content-inner');
+      if (eventGridWrap) {
+        const eventColumn = this._findEventColumnAtX(eventGridWrap, event.clientX, calWrapRect);
+        if (eventColumn) {
+          // For all-day events, we just need the day (start of the column)
+          time = moment(+eventColumn.dataset.start);
+        }
+      }
+
       return { x, y, width, height, time };
     } else if (monthGrid) {
       // Month view mode
