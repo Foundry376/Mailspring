@@ -162,12 +162,25 @@ export function createDragState(
   mouseY: number,
   config: DragConfig
 ): DragState {
+  // Calculate click offset for 'move' mode - this is the time difference between
+  // where the user clicked and the event's start time. We'll preserve this offset
+  // so the event doesn't jump when dragging starts.
+  let clickOffset = 0;
+  if (hitZone.mode === 'move') {
+    clickOffset = mouseTime - event.start;
+  } else if (hitZone.mode === 'resize-end') {
+    // For resize-end, offset is from the end of the event
+    clickOffset = mouseTime - event.end;
+  }
+  // For resize-start, no offset needed (we resize from start time)
+
   return {
     mode: hitZone.mode,
     event,
     originalStart: event.start,
     originalEnd: event.end,
     initialMouseTime: mouseTime,
+    clickOffset,
     initialMouseX: mouseX,
     initialMouseY: mouseY,
     previewStart: event.start,
@@ -208,21 +221,43 @@ export function updateDragState(
     }
   }
 
-  // Calculate time delta
-  const timeDelta = mouseTime - state.initialMouseTime;
+  // Calculate new times based on mode and click offset
+  let previewStart: number;
+  let previewEnd: number;
+  const eventDuration = state.originalEnd - state.originalStart;
 
-  // Calculate new times
-  const { start, end } = calculateDragTimes(
-    state.mode,
-    state.originalStart,
-    state.originalEnd,
-    timeDelta,
-    config.minDuration
-  );
-
-  // Snap to interval
-  const previewStart = snapToInterval(start, config.snapInterval);
-  const previewEnd = snapToInterval(end, config.snapInterval);
+  switch (state.mode) {
+    case 'move': {
+      // For move, calculate new start by subtracting the click offset from current mouse position
+      // This keeps the event at the same position relative to the mouse cursor
+      const newStart = mouseTime - state.clickOffset;
+      previewStart = snapToInterval(newStart, config.snapInterval);
+      previewEnd = previewStart + eventDuration;
+      break;
+    }
+    case 'resize-start': {
+      // For resize-start, new start is at mouse position
+      const newStart = Math.min(mouseTime, state.originalEnd - config.minDuration);
+      previewStart = snapToInterval(newStart, config.snapInterval);
+      previewEnd = state.originalEnd;
+      // Ensure minimum duration after snapping
+      if (previewEnd - previewStart < config.minDuration) {
+        previewStart = previewEnd - config.minDuration;
+      }
+      break;
+    }
+    case 'resize-end': {
+      // For resize-end, new end is at mouse position (adjusted by offset)
+      const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + config.minDuration);
+      previewStart = state.originalStart;
+      previewEnd = snapToInterval(newEnd, config.snapInterval);
+      // Ensure minimum duration after snapping
+      if (previewEnd - previewStart < config.minDuration) {
+        previewEnd = previewStart + config.minDuration;
+      }
+      break;
+    }
+  }
 
   // Only create new state if values changed
   if (

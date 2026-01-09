@@ -42,6 +42,9 @@ export interface DragState {
   /** Unix timestamp at the initial mouse position when drag started */
   initialMouseTime: number;
 
+  /** Offset between click position and event start (for 'move' mode) - preserves grab point */
+  clickOffset: number;
+
   /** Initial mouse X position */
   initialMouseX: number;
 

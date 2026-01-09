@@ -82,28 +82,62 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     if (!event.target || !event.target.closest) {
       return { x, y, width, height, time };
     }
-    const eventColumn = this._DOMCache.eventColumn || event.target.closest('.event-column');
+
+    // Cache gridWrap and calWrap, but NOT eventColumn - we need to recalculate
+    // eventColumn on each mouse move to support horizontal dragging between days
     const gridWrap =
       this._DOMCache.gridWrap ||
       event.target.closest('.event-grid-wrap .scroll-region-content-inner');
     const calWrap = this._DOMCache.calWrap || event.target.closest('.calendar-area-wrap');
-    if (!gridWrap || !eventColumn) {
+
+    if (!gridWrap || !calWrap) {
       return { x, y, width, height, time };
     }
 
     const rect = this._DOMCache.rect || gridWrap.getBoundingClientRect();
     const calWrapRect = this._DOMCache.calWrapRect || calWrap.getBoundingClientRect();
 
-    this._DOMCache = { rect, eventColumn, gridWrap, calWrap };
+    // Cache only the non-changing elements
+    this._DOMCache = { rect, gridWrap, calWrap, calWrapRect };
 
     y = gridWrap.scrollTop + event.clientY - rect.top;
     x = calWrap.scrollLeft + event.clientX - calWrapRect.left;
     width = gridWrap.scrollWidth;
     height = gridWrap.scrollHeight;
+
+    // Find the event column at the current mouse X position
+    // We can't just use event.target.closest because during dragging the target
+    // might be the drag preview or the event being dragged, not the column
+    let eventColumn = this._findEventColumnAtX(gridWrap, event.clientX, calWrapRect);
+
+    if (!eventColumn) {
+      // Fallback: try to find via event.target
+      eventColumn = event.target.closest('.event-column');
+    }
+
+    if (!eventColumn) {
+      return { x, y, width, height, time };
+    }
+
     const percentDay = y / height;
     const diff = +eventColumn.dataset.end - +eventColumn.dataset.start;
     time = moment(diff * percentDay + +eventColumn.dataset.start);
     return { x, y, width, height, time };
+  }
+
+  /**
+   * Find the event column element that contains the given X position.
+   * This enables horizontal dragging between day columns.
+   */
+  _findEventColumnAtX(gridWrap: Element, clientX: number, calWrapRect: DOMRect): Element | null {
+    const columns = gridWrap.querySelectorAll('.event-column');
+    for (const column of columns) {
+      const colRect = column.getBoundingClientRect();
+      if (clientX >= colRect.left && clientX < colRect.right) {
+        return column;
+      }
+    }
+    return null;
   }
 
   _onWindowMouseUp = event => {

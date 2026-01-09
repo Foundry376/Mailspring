@@ -43,10 +43,16 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
   /**
    * Check if the drag preview should be rendered in this column.
    * The preview is rendered in the column where the preview start time falls.
+   * All-day events are NOT rendered here - they're handled by WeekViewAllDayEvents.
    */
   _shouldRenderDragPreview(): boolean {
     const { dragState, day } = this.props;
     if (!dragState || !dragState.isDragging) {
+      return false;
+    }
+
+    // All-day events are rendered in the all-day section, not in the time columns
+    if (dragState.event.isAllDay) {
       return false;
     }
 

@@ -8,7 +8,6 @@ import { HeaderControls } from './header-controls';
 import { EventOccurrence } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { MonthViewDayCell } from './month-view-day-cell';
-import { CalendarEventDragPreview } from './calendar-event-drag-preview';
 
 const DAYS_IN_WEEK = 7;
 const MAX_VISIBLE_EVENTS = 5;
@@ -211,14 +210,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
             {this._renderWeekdayHeaders()}
             <div className="month-view-grid">
               {weeks.map((week, idx) => this._renderWeek(week, idx))}
-              {this.props.dragState && this.props.dragState.isDragging && (
-                <CalendarEventDragPreview
-                  dragState={this.props.dragState}
-                  direction="horizontal"
-                  scopeStart={this._calculateMonthRange().monthStart.unix()}
-                  scopeEnd={this._calculateMonthRange().monthEnd.unix()}
-                />
-              )}
             </div>
           </div>
         </CalendarEventContainer>
