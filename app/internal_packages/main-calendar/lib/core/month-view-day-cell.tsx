@@ -119,8 +119,17 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       'is-other-month': !isCurrentMonth,
     });
 
+    const dayStartUnix = day.clone().startOf('day').unix();
+    const dayEndUnix = day.clone().endOf('day').unix();
+
     return (
-      <div className={cellClassName} data-day-start={day.clone().startOf('day').unix()}>
+      <div
+        className={cellClassName}
+        data-day-start={dayStartUnix}
+        data-calendar-start={dayStartUnix}
+        data-calendar-end={dayEndUnix}
+        data-calendar-type="month-cell"
+      >
         <div className="month-view-day-header">
           <span
             className={classnames('month-view-day-number', { 'is-today': isToday })}

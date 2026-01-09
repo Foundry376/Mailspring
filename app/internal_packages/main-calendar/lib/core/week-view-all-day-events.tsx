@@ -64,7 +64,13 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
     } = this.props;
 
     return (
-      <div className="all-day-events" style={{ height: height }}>
+      <div
+        className="all-day-events"
+        style={{ height: height }}
+        data-calendar-start={this.props.start}
+        data-calendar-end={this.props.end}
+        data-calendar-type="all-day-area"
+      >
         {allDayEvents.map(e => (
           <CalendarEvent
             event={e}

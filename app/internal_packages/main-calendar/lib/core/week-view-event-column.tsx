@@ -87,7 +87,15 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
     const dayEndUnix = dayStart + 86400; // 24 hours in seconds
 
     return (
-      <div className={className} key={day.valueOf()} data-start={day.valueOf()} data-end={end}>
+      <div
+        className={className}
+        key={day.valueOf()}
+        data-start={day.valueOf()}
+        data-end={end}
+        data-calendar-start={dayStart}
+        data-calendar-end={dayEndUnix}
+        data-calendar-type="day-column"
+      >
         {events.map((e) => (
           <CalendarEvent
             ref={`event-${e.id}`}

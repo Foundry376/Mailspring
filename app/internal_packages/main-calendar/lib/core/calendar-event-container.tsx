@@ -23,16 +23,10 @@ interface CalendarEventContainerProps {
 export class CalendarEventContainer extends React.Component<CalendarEventContainerProps> {
   static displayName = 'CalendarEventContainer';
 
+  // Simplified cache: just the scroll container and its rect for offset calculations
   _DOMCache: {
-    eventColumn?: any;
-    gridWrap?: any;
-    calWrap?: any;
-    calWrapRect?: any;
-    rect?: any;
-    allDayArea?: any;
-    allDayRect?: any;
-    monthGrid?: any;
-    weekHeader?: any;
+    scrollContainer?: HTMLElement;
+    scrollContainerRect?: DOMRect;
   } = {};
 
   _mouseIsDown: boolean;
@@ -77,148 +71,108 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     }
   }
 
+  /**
+   * Extract time and position data from a mouse event using unified data attributes.
+   * Uses [data-calendar-start], [data-calendar-end], and [data-calendar-type] to
+   * identify time containers across all calendar views.
+   */
   _dataFromMouseEvent(event) {
     let x = null;
     let y = null;
     let width = null;
     let height = null;
     let time = null;
+
     if (!event.target || !event.target.closest) {
       return { x, y, width, height, time };
     }
 
-    // Try week view first
-    const weekGridWrap =
-      this._DOMCache.gridWrap ||
-      event.target.closest('.event-grid-wrap .scroll-region-content-inner');
-    const calWrap = this._DOMCache.calWrap || event.target.closest('.calendar-area-wrap');
-
-    // Try all-day events area (part of week view but separate from event-grid-wrap)
-    const allDayArea =
-      this._DOMCache.allDayArea || event.target.closest('.all-day-events');
-    const weekHeader =
-      this._DOMCache.weekHeader || event.target.closest('.week-header');
-
-    // Try month view if week view elements not found
-    const monthGrid =
-      this._DOMCache.monthGrid || event.target.closest('.month-view-grid');
-
-    if (weekGridWrap && calWrap) {
-      // Week view mode
-      const rect = this._DOMCache.rect || weekGridWrap.getBoundingClientRect();
-      const calWrapRect = this._DOMCache.calWrapRect || calWrap.getBoundingClientRect();
-
-      this._DOMCache = { rect, gridWrap: weekGridWrap, calWrap, calWrapRect };
-
-      y = weekGridWrap.scrollTop + event.clientY - rect.top;
-      x = calWrap.scrollLeft + event.clientX - calWrapRect.left;
-      width = weekGridWrap.scrollWidth;
-      height = weekGridWrap.scrollHeight;
-
-      // Find the event column at the current mouse X position
-      let eventColumn = this._findEventColumnAtX(weekGridWrap, event.clientX, calWrapRect);
-
-      if (!eventColumn) {
-        eventColumn = event.target.closest('.event-column');
-      }
-
-      if (!eventColumn) {
-        return { x, y, width, height, time };
-      }
-
-      const percentDay = y / height;
-      const diff = +eventColumn.dataset.end - +eventColumn.dataset.start;
-      time = moment(diff * percentDay + +eventColumn.dataset.start);
+    // Find the nearest time container using the unified data attribute
+    const timeContainer = event.target.closest('[data-calendar-start]') as HTMLElement;
+    if (!timeContainer) {
       return { x, y, width, height, time };
-    } else if (allDayArea && calWrap) {
-      // All-day events area (part of week view but above event-grid-wrap)
-      const calWrapRect = this._DOMCache.calWrapRect || calWrap.getBoundingClientRect();
-      const allDayRect = this._DOMCache.allDayRect || allDayArea.getBoundingClientRect();
+    }
 
-      this._DOMCache = { allDayArea, calWrap, calWrapRect, allDayRect };
+    const containerType = timeContainer.dataset.calendarType;
+    const startTime = parseInt(timeContainer.dataset.calendarStart, 10);
+    const endTime = parseInt(timeContainer.dataset.calendarEnd, 10);
+    const rect = timeContainer.getBoundingClientRect();
 
-      x = calWrap.scrollLeft + event.clientX - calWrapRect.left;
-      y = event.clientY - allDayRect.top;
-      width = allDayRect.width;
-      height = allDayRect.height;
+    // Get scroll container for offset calculations (week view needs this)
+    const scrollContainer =
+      this._DOMCache.scrollContainer ||
+      (event.target.closest('.calendar-area-wrap') as HTMLElement);
+    const scrollContainerRect =
+      this._DOMCache.scrollContainerRect || scrollContainer?.getBoundingClientRect();
 
-      // Find the event column at the current mouse X position
-      // We need to look in the event-grid-wrap to find the columns
-      const eventGridWrap = calWrap.querySelector('.event-grid-wrap .scroll-region-content-inner');
-      if (eventGridWrap) {
-        const eventColumn = this._findEventColumnAtX(eventGridWrap, event.clientX, calWrapRect);
-        if (eventColumn) {
-          // For all-day events, we just need the day (start of the column)
-          time = moment(+eventColumn.dataset.start);
+    if (scrollContainer) {
+      this._DOMCache = { scrollContainer, scrollContainerRect };
+    }
+
+    switch (containerType) {
+      case 'day-column': {
+        // Week view timed events: calculate time from Y position within the column
+        const gridWrap = timeContainer.parentElement;
+        if (gridWrap) {
+          y = gridWrap.scrollTop + event.clientY - rect.top;
+          height = gridWrap.scrollHeight;
+        } else {
+          y = event.clientY - rect.top;
+          height = rect.height;
         }
+        x = scrollContainer
+          ? scrollContainer.scrollLeft + event.clientX - scrollContainerRect.left
+          : event.clientX - rect.left;
+        width = rect.width;
+
+        // Calculate time as percentage through the day
+        const percentDay = Math.max(0, Math.min(1, y / height));
+        const timeOffset = (endTime - startTime) * percentDay;
+        time = moment.unix(startTime + timeOffset);
+        break;
       }
 
-      return { x, y, width, height, time };
-    } else if (monthGrid) {
-      // Month view mode
-      const rect = this._DOMCache.rect || monthGrid.getBoundingClientRect();
-      this._DOMCache = { rect, monthGrid };
+      case 'all-day-area': {
+        // Week view all-day events: calculate day from X position
+        x = scrollContainer
+          ? scrollContainer.scrollLeft + event.clientX - scrollContainerRect.left
+          : event.clientX - rect.left;
+        y = event.clientY - rect.top;
+        width = rect.width;
+        height = rect.height;
 
-      x = event.clientX - rect.left;
-      y = event.clientY - rect.top;
-      width = rect.width;
-      height = rect.height;
-
-      // Find the day cell at the current mouse position
-      const dayCell = this._findMonthDayCellAtPosition(monthGrid, event.clientX, event.clientY);
-
-      if (dayCell) {
-        // Get the day from the cell's data - already a unix timestamp of start of day
-        const dayStart = parseInt(dayCell.dataset.dayStart, 10);
-        if (dayStart) {
-          // Use the timestamp directly - don't call startOf('day') again as it can
-          // cause timezone issues that shift the date by one day
-          time = moment.unix(dayStart);
-        }
+        // Calculate which day based on X position as percentage of the week
+        const percentWeek = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        const numDays = Math.round((endTime - startTime) / 86400); // seconds per day
+        const dayIndex = Math.floor(percentWeek * numDays);
+        const dayStartTime = startTime + dayIndex * 86400;
+        time = moment.unix(dayStartTime);
+        break;
       }
 
-      return { x, y, width, height, time };
+      case 'month-cell': {
+        // Month view: the container IS the day, just use its start time
+        x = event.clientX - rect.left;
+        y = event.clientY - rect.top;
+        width = rect.width;
+        height = rect.height;
+        // Use the timestamp directly - don't call startOf('day') again as it can
+        // cause timezone issues that shift the date by one day
+        time = moment.unix(startTime);
+        break;
+      }
+
+      default: {
+        // Unknown container type, return what we have
+        x = event.clientX - rect.left;
+        y = event.clientY - rect.top;
+        width = rect.width;
+        height = rect.height;
+        break;
+      }
     }
 
     return { x, y, width, height, time };
-  }
-
-  /**
-   * Find the month view day cell at the given position.
-   */
-  _findMonthDayCellAtPosition(
-    monthGrid: Element,
-    clientX: number,
-    clientY: number
-  ): HTMLElement | null {
-    const cells = monthGrid.querySelectorAll('.month-view-day-cell');
-    for (const cell of cells) {
-      const cellRect = cell.getBoundingClientRect();
-      if (
-        clientX >= cellRect.left &&
-        clientX < cellRect.right &&
-        clientY >= cellRect.top &&
-        clientY < cellRect.bottom
-      ) {
-        return cell as HTMLElement;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Find the event column element that contains the given X position.
-   * This enables horizontal dragging between day columns.
-   */
-  _findEventColumnAtX(gridWrap: Element, clientX: number, calWrapRect: DOMRect): Element | null {
-    const columns = gridWrap.querySelectorAll('.event-column');
-    for (const column of columns) {
-      const colRect = column.getBoundingClientRect();
-      if (clientX >= colRect.left && clientX < colRect.right) {
-        return column;
-      }
-    }
-    return null;
   }
 
   _onWindowMouseUp = event => {
