@@ -93,12 +93,21 @@ export class CalendarEventPopover extends React.Component<
 
   componentDidUpdate(prevProps, prevState) {
     // Autofocus invitees input when section is expanded
-    if (this.state.showInvitees && !prevState.showInvitees && this.attendeesInputRef.current) {
-      this.attendeesInputRef.current.focus();
+    // Use requestAnimationFrame to ensure DOM is ready
+    if (this.state.showInvitees && !prevState.showInvitees) {
+      requestAnimationFrame(() => {
+        if (this.attendeesInputRef.current) {
+          this.attendeesInputRef.current.focus();
+        }
+      });
     }
     // Autofocus notes textarea when section is expanded
-    if (this.state.showNotes && !prevState.showNotes && this.notesTextareaRef.current) {
-      this.notesTextareaRef.current.focus();
+    if (this.state.showNotes && !prevState.showNotes) {
+      requestAnimationFrame(() => {
+        if (this.notesTextareaRef.current) {
+          this.notesTextareaRef.current.focus();
+        }
+      });
     }
   }
 
