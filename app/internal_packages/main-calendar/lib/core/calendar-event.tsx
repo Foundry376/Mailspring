@@ -31,7 +31,12 @@ interface CalendarEventProps {
   onFocused: (event: EventOccurrence) => void;
 
   /** Called when a drag operation starts on this event */
-  onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
+  onDragStart?: (
+    event: EventOccurrence,
+    mouseEvent: React.MouseEvent,
+    hitZone: HitZone,
+    mouseTime: number
+  ) => void;
 }
 
 interface CalendarEventState {
@@ -178,6 +183,29 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   };
 
   /**
+   * Calculate the time at the mouse position within this event's scope
+   */
+  _getMouseTime(e: React.MouseEvent<HTMLDivElement>): number {
+    const bounds = e.currentTarget.getBoundingClientRect();
+    const { scopeStart, scopeEnd, direction } = this.props;
+    const scopeLen = scopeEnd - scopeStart;
+
+    let percent: number;
+    if (direction === 'vertical') {
+      // Vertical layout: Y position determines time
+      percent = (e.clientY - bounds.top) / bounds.height;
+    } else {
+      // Horizontal layout: X position determines time
+      percent = (e.clientX - bounds.left) / bounds.width;
+    }
+
+    // Clamp to [0, 1] and calculate time
+    percent = Math.max(0, Math.min(1, percent));
+    const eventDuration = this.props.event.end - this.props.event.start;
+    return this.props.event.start + percent * eventDuration;
+  }
+
+  /**
    * Initiate drag on mouse down
    */
   _onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -193,9 +221,12 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Prevent text selection during drag
     e.preventDefault();
 
+    // Calculate the time at the click position within this event
+    const mouseTime = this._getMouseTime(e);
+
     // Notify parent of drag start
     if (this.props.onDragStart) {
-      this.props.onDragStart(this.props.event, e, this.state.hitZone);
+      this.props.onDragStart(this.props.event, e, this.state.hitZone, mouseTime);
     }
   };
 

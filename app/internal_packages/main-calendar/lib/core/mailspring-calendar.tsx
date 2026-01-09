@@ -71,7 +71,8 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone
+    hitZone: HitZone,
+    mouseTime: number
   ) => void;
 
   /** Set of calendar IDs that are read-only (events in these calendars cannot be dragged) */
@@ -258,11 +259,13 @@ export class MailspringCalendar extends React.Component<
   /**
    * Handle drag start from an event
    */
-  _onEventDragStart = (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => {
+  _onEventDragStart = (
+    event: EventOccurrence,
+    mouseEvent: React.MouseEvent,
+    hitZone: HitZone,
+    mouseTime: number
+  ) => {
     const config = this._getDragConfig();
-
-    // Get time from mouse position (approximation - views will provide accurate time)
-    const mouseTime = event.start;
 
     const dragState = createDragState(
       event,

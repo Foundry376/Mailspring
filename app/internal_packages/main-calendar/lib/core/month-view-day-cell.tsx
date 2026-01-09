@@ -24,7 +24,8 @@ interface MonthViewDayCellProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone
+    hitZone: HitZone,
+    mouseTime: number
   ) => void;
   /** Set of calendar IDs that are read-only */
   readOnlyCalendarIds: Set<string>;
