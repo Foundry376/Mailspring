@@ -269,7 +269,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         tabIndex={0}
         style={styles}
         className={classNames}
-        onClick={(e) => onClick(e, event)}
+        onClick={e => onClick(e, event)}
         onDoubleClick={() => onDoubleClick(event)}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}

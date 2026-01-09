@@ -94,7 +94,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
         data-calendar-end={dayEndUnix}
         data-calendar-type="day-column"
       >
-        {events.map((e) => (
+        {events.map(e => (
           <CalendarEvent
             ref={`event-${e.id}`}
             event={e}
@@ -113,9 +113,9 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
             isCalendarReadOnly={readOnlyCalendarIds.has(e.calendarId)}
           />
         ))}
-        {this._shouldRenderDragPreview() && (
+        {this._shouldRenderDragPreview() && dragState && (
           <CalendarEventDragPreview
-            dragState={dragState!}
+            dragState={dragState}
             direction="vertical"
             scopeStart={dayStart}
             scopeEnd={dayEndUnix}

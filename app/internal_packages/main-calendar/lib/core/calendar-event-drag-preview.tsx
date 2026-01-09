@@ -65,7 +65,7 @@ export class CalendarEventDragPreview extends React.Component<CalendarEventDragP
     const dims = this._getDimensions();
     const color = calcColor(dragState.event.calendarId);
 
-    let styles: React.CSSProperties = {
+    const styles: React.CSSProperties = {
       position: 'absolute',
       pointerEvents: 'none',
       zIndex: 1000,
