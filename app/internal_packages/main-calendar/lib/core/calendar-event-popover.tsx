@@ -84,14 +84,16 @@ export class CalendarEventPopover extends React.Component<
     };
   }
 
-  componentDidUpdate = (prevProps: CalendarEventPopoverProps) => {
+  componentDidUpdate(
+    prevProps: CalendarEventPopoverProps,
+    prevState: CalendarEventPopoverState
+  ) {
+    // Update state when event prop changes
     if (prevProps.event !== this.props.event) {
       const { description, start, end, location, attendees, title } = this.props.event;
       this.setState({ description, start, end, location, attendees, title });
     }
-  };
 
-  componentDidUpdate(prevProps, prevState) {
     // Autofocus invitees input when section is expanded
     // Use requestAnimationFrame to ensure DOM is ready
     if (this.state.showInvitees && !prevState.showInvitees) {
