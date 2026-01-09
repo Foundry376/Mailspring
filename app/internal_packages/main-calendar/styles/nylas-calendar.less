@@ -109,6 +109,18 @@ body.platform-win32 {
 
     &.horizontal {
       white-space: nowrap;
+
+      // For horizontal events (all-day), remove vertical borders
+      // since drag handles are on left/right edges
+      border-top: 0;
+      border-bottom: 0;
+      border-left: 2px solid @background-primary;
+      border-right: 2px solid @background-primary;
+
+      // Remove the left accent bar for horizontal events
+      &:before {
+        display: none;
+      }
     }
     &.selected {
       background-color: @accent-primary !important;
