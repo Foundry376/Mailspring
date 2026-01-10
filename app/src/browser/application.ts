@@ -850,14 +850,25 @@ export default class Application extends EventEmitter {
           messageId: parts.query.messageId as string,
         });
       } else if (parts.host === 'notification-reply') {
-        // Reply button was clicked - open thread for composing
-        // Since Windows toast inline reply doesn't work with Electron, we treat this
-        // as a click that should open the thread for the user to compose a reply
-        this.windowManager.sendToAllWindows('notification:clicked', {}, {
-          id: parts.query.id as string,
-          threadId: parts.query.threadId as string,
-          messageId: parts.query.messageId as string,
-        });
+        // Inline reply from Windows toast notification
+        // The response text is appended to the URL by Windows when using hint-inputId
+        const response = parts.query.response as string;
+        if (response && response.trim()) {
+          // User typed a reply - send it
+          this.windowManager.sendToAllWindows('notification:replied', {}, {
+            id: parts.query.id as string,
+            reply: response,
+            threadId: parts.query.threadId as string,
+            messageId: parts.query.messageId as string,
+          });
+        } else {
+          // No reply text - just open the thread for composing
+          this.windowManager.sendToAllWindows('notification:clicked', {}, {
+            id: parts.query.id as string,
+            threadId: parts.query.threadId as string,
+            messageId: parts.query.messageId as string,
+          });
+        }
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else {

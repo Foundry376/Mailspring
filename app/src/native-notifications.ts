@@ -247,14 +247,15 @@ class NativeNotifications {
       )
       .join('\n');
 
-    // Build reply button if reply is enabled
-    // Note: Windows toast inline reply with background activation doesn't work reliably with Electron,
-    // so we use a Reply button that opens the thread for composing instead
+    // Build reply input + send button if reply is enabled
+    // Windows toast supports inline reply with protocol activation by using hint-inputId
+    // The input value is appended to the protocol URL when the user clicks Send
     const replyXml = options.canReply
-      ? `    <action content="Reply" arguments="mailspring://notification-reply?${baseParams}" activationType="protocol"/>`
+      ? `    <input id="replyText" type="text" placeHolderContent="${this.escapeXml(options.replyPlaceholder || 'Type a reply...')}"/>
+    <action content="Send" arguments="mailspring://notification-reply?${baseParams}&amp;response=" activationType="protocol" hint-inputId="replyText"/>`
       : '';
 
-    // Combine actions - reply button first (if enabled), then action buttons
+    // Combine actions - reply input first (if enabled), then action buttons
     const actionsContent = [replyXml, actionButtons].filter(Boolean).join('\n');
     const actionsXml = actionsContent ? `  <actions>\n${actionsContent}\n  </actions>` : '';
 
