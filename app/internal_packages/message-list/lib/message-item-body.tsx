@@ -81,17 +81,14 @@ export default class MessageItemBody extends React.Component<
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
+    this._mounted = true;
     const needInitialCallback = this.state.processedBody === null;
     this._unsub = MessageBodyProcessor.subscribe(
       this.props.message,
       needInitialCallback,
       this._onBodyProcessed
     );
-  }
-
-  componentDidMount() {
-    this._mounted = true;
   }
 
   componentDidUpdate(prevProps: MessageItemBodyProps) {
