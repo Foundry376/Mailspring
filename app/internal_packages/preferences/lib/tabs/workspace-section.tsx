@@ -57,11 +57,15 @@ class DefaultMailClientItem extends React.Component<
           <div
             style={{ marginBottom: 12 }}
             className="btn btn-small"
-            onClick={() =>
-              shell.openExternal(
-                'https://community.getmailspring.com/t/choose-mailspring-as-the-default-mail-client-on-linux/191'
-              )
-            }
+            onClick={() => {
+              if (process.platform === 'win32') {
+                helper.registerForURLScheme('mailto');
+              } else {
+                shell.openExternal(
+                  'https://community.getmailspring.com/t/choose-mailspring-as-the-default-mail-client-on-linux/191'
+                );
+              }
+            }}
           >
             {localized('Use Mailspring as default mail client')}
           </div>
