@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import { exec } from 'child_process';
-import ws from 'windows-shortcuts';
+import { shell } from 'electron';
 import { localized } from './intl';
 
 class SystemStartServiceBase {
@@ -126,18 +126,21 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
   }
 
   configureToLaunchOnSystemStart() {
-    ws.create(
-      this._shortcutPath(),
-      {
+    // Use Electron's shell.writeShortcutLink API instead of deprecated windows-shortcuts package
+    // See: https://www.electronjs.org/docs/latest/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
+    try {
+      const success = shell.writeShortcutLink(this._shortcutPath(), 'create', {
         target: this._launcherPath(),
-        args: '--processStart=mailspring.exe --process-start-args=--background',
-        runStyle: ws.MIN,
-        desc: 'An extensible, open-source mail client built on the modern web.',
-      },
-      err => {
-        if (err) AppEnv.reportError(err);
+        args: '--processStart mailspring.exe --process-start-args --background',
+        description: 'An extensible, open-source mail client built on the modern web.',
+        appUserModelId: 'com.squirrel.mailspring.mailspring',
+      });
+      if (!success) {
+        AppEnv.reportError(new Error('Failed to create startup shortcut'));
       }
-    );
+    } catch (err) {
+      AppEnv.reportError(err);
+    }
   }
 
   dontLaunchOnSystemStart() {

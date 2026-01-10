@@ -25,6 +25,7 @@ const ChildProcess = require('child_process');
 const fs = require('fs-plus');
 const path = require('path');
 const os = require('os');
+const { shell } = require('electron');
 
 // C:\Users\<USERNAME>\AppData\Local\Mailspring\app-x.x.x
 const appFolder = path.resolve(process.execPath, '..');
@@ -96,19 +97,11 @@ function createShortcuts(callback) {
   });
 }
 
-// Fallback shortcut creation using windows-shortcuts package.
+// Fallback shortcut creation using Electron's shell.writeShortcutLink API.
 // This ensures shortcuts are created even if Squirrel's method fails,
 // which is a known issue on Windows 10/11.
+// See: https://www.electronjs.org/docs/latest/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
 function createShortcutsFallback(callback) {
-  let ws;
-  try {
-    ws = require('windows-shortcuts');
-  } catch (err) {
-    console.warn('windows-shortcuts module not available:', err);
-    callback();
-    return;
-  }
-
   const startMenuPath = path.join(
     process.env.APPDATA,
     'Microsoft',
@@ -126,50 +119,44 @@ function createShortcutsFallback(callback) {
 
   const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
 
+  // ShortcutDetails object for Electron's shell.writeShortcutLink
+  // See: https://www.electronjs.org/docs/latest/api/structures/shortcut-details
   const shortcutOptions = {
     target: updateDotExe,
     args: '--processStart mailspring.exe',
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
-    desc: 'The best email app for people and teams at work',
-  };
-
-  let pending = 2;
-  const done = () => {
-    pending--;
-    if (pending === 0 && callback) {
-      callback();
-    }
+    iconIndex: 0,
+    description: 'The best email app for people and teams at work',
+    appUserModelId: 'com.squirrel.mailspring.mailspring',
   };
 
   // Create Start Menu shortcut if it doesn't exist
-  fs.access(startMenuPath, fs.constants.F_OK, err => {
-    if (err) {
-      // File doesn't exist, create it
-      ws.create(startMenuPath, shortcutOptions, createErr => {
-        if (createErr) {
-          console.warn('Failed to create Start Menu shortcut:', createErr);
-        }
-        done();
-      });
-    } else {
-      done();
+  if (!fs.existsSync(startMenuPath)) {
+    try {
+      const success = shell.writeShortcutLink(startMenuPath, 'create', shortcutOptions);
+      if (!success) {
+        console.warn('Failed to create Start Menu shortcut');
+      }
+    } catch (err) {
+      console.warn('Failed to create Start Menu shortcut:', err);
     }
-  });
+  }
 
   // Create Desktop shortcut if it doesn't exist
-  fs.access(desktopPath, fs.constants.F_OK, err => {
-    if (err) {
-      // File doesn't exist, create it
-      ws.create(desktopPath, shortcutOptions, createErr => {
-        if (createErr) {
-          console.warn('Failed to create Desktop shortcut:', createErr);
-        }
-        done();
-      });
-    } else {
-      done();
+  if (!fs.existsSync(desktopPath)) {
+    try {
+      const success = shell.writeShortcutLink(desktopPath, 'create', shortcutOptions);
+      if (!success) {
+        console.warn('Failed to create Desktop shortcut');
+      }
+    } catch (err) {
+      console.warn('Failed to create Desktop shortcut:', err);
     }
-  });
+  }
+
+  if (callback) {
+    callback();
+  }
 }
 
 function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, callback) {

@@ -79,7 +79,6 @@
     "uuid": "^13.0.0",
     "vcf": "^2.0.5",
     "windows-iana": "^4.2.1",
-    "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
     "xml2js": "^0.6.2"
   },
   "resolutions": {
