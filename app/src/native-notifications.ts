@@ -235,7 +235,8 @@ class NativeNotifications {
   }): string {
     // Build URL parameters for protocol activation
     // These are used to route actions back through the app's URL handler
-    const baseParams = `id=${encodeURIComponent(options.id)}&threadId=${encodeURIComponent(options.threadId || '')}&messageId=${encodeURIComponent(options.messageId || '')}`;
+    // Note: We use &amp; for XML escaping since these go into XML attributes
+    const baseParams = `id=${encodeURIComponent(options.id)}&amp;threadId=${encodeURIComponent(options.threadId || '')}&amp;messageId=${encodeURIComponent(options.messageId || '')}`;
 
     // Build action buttons XML using protocol activation
     // Note: Windows supports up to 5 buttons total (including reply button)
@@ -243,7 +244,7 @@ class NativeNotifications {
       ?.slice(0, options.canReply ? 4 : 5) // Leave room for Reply button if reply enabled
       .map(
         (action, i) =>
-          `    <action content="${this.escapeXml(action.text)}" arguments="mailspring://notification-action?${baseParams}&actionIndex=${i}" activationType="protocol"/>`
+          `    <action content="${this.escapeXml(action.text)}" arguments="mailspring://notification-action?${baseParams}&amp;actionIndex=${i}" activationType="protocol"/>`
       )
       .join('\n');
 
