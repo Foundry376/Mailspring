@@ -843,9 +843,11 @@ export default class Application extends EventEmitter {
         });
       } else if (parts.host === 'notification-action') {
         // Action button was clicked (Mark as Read, Archive, etc.)
+        const actionIndex = parseInt(parts.query.actionIndex as string, 10);
+        console.log('[openUrl] notification-action - raw actionIndex:', parts.query.actionIndex, 'parsed:', actionIndex, 'type:', typeof actionIndex);
         this.windowManager.sendToAllWindows('notification:action', {}, {
           id: parts.query.id as string,
-          actionIndex: parseInt(parts.query.actionIndex as string, 10),
+          actionIndex: actionIndex,
           threadId: parts.query.threadId as string,
           messageId: parts.query.messageId as string,
         });
