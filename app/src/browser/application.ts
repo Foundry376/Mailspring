@@ -820,7 +820,9 @@ export default class Application extends EventEmitter {
   // Open a mailto:// url.
   //
   openUrl(urlToOpen) {
+    console.log('[openUrl] Received URL:', urlToOpen);
     const parts = url.parse(urlToOpen, true);
+    console.log('[openUrl] Parsed - protocol:', parts.protocol, 'host:', parts.host, 'query:', JSON.stringify(parts.query));
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
     if (!main) {
