@@ -84,7 +84,92 @@ function spawnUpdate(args, callback, options = {}) {
 // Create a desktop and start menu shortcut by using the command line API
 // provided by Squirrel's Update.exe
 function createShortcuts(callback) {
-  spawnUpdate(['--createShortcut', exeName], callback);
+  // Explicitly specify both Desktop and StartMenu locations to work around
+  // Squirrel.Windows issues where Start Menu shortcuts are sometimes not created.
+  // See: https://github.com/Squirrel/Squirrel.Windows/issues/411
+  spawnUpdate(['--createShortcut', exeName, '--shortcut-locations', 'Desktop,StartMenu'], err => {
+    if (err) {
+      console.warn('Squirrel createShortcut failed:', err);
+    }
+    // Always attempt fallback shortcut creation to ensure shortcuts exist
+    createShortcutsFallback(callback);
+  });
+}
+
+// Fallback shortcut creation using windows-shortcuts package.
+// This ensures shortcuts are created even if Squirrel's method fails,
+// which is a known issue on Windows 10/11.
+function createShortcutsFallback(callback) {
+  let ws;
+  try {
+    ws = require('windows-shortcuts');
+  } catch (err) {
+    console.warn('windows-shortcuts module not available:', err);
+    callback();
+    return;
+  }
+
+  const startMenuPath = path.join(
+    process.env.APPDATA,
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Mailspring.lnk'
+  );
+
+  const desktopPath = path.join(
+    process.env.USERPROFILE || process.env.HOME,
+    'Desktop',
+    'Mailspring.lnk'
+  );
+
+  const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
+
+  const shortcutOptions = {
+    target: updateDotExe,
+    args: '--processStart mailspring.exe',
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
+    desc: 'The best email app for people and teams at work',
+  };
+
+  let pending = 2;
+  const done = () => {
+    pending--;
+    if (pending === 0 && callback) {
+      callback();
+    }
+  };
+
+  // Create Start Menu shortcut if it doesn't exist
+  fs.access(startMenuPath, fs.constants.F_OK, err => {
+    if (err) {
+      // File doesn't exist, create it
+      ws.create(startMenuPath, shortcutOptions, createErr => {
+        if (createErr) {
+          console.warn('Failed to create Start Menu shortcut:', createErr);
+        }
+        done();
+      });
+    } else {
+      done();
+    }
+  });
+
+  // Create Desktop shortcut if it doesn't exist
+  fs.access(desktopPath, fs.constants.F_OK, err => {
+    if (err) {
+      // File doesn't exist, create it
+      ws.create(desktopPath, shortcutOptions, createErr => {
+        if (createErr) {
+          console.warn('Failed to create Desktop shortcut:', createErr);
+        }
+        done();
+      });
+    } else {
+      done();
+    }
+  });
 }
 
 function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, callback) {
@@ -189,7 +274,42 @@ function installVisualElementsXML(callback) {
 // Remove the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
 function removeShortcuts(callback) {
-  spawnUpdate(['--removeShortcut', exeName], callback);
+  spawnUpdate(['--removeShortcut', exeName], err => {
+    if (err) {
+      console.warn('Squirrel removeShortcut failed:', err);
+    }
+    // Also remove fallback shortcuts if they exist
+    removeShortcutsFallback(callback);
+  });
+}
+
+// Remove fallback shortcuts created by createShortcutsFallback
+function removeShortcutsFallback(callback) {
+  const startMenuPath = path.join(
+    process.env.APPDATA,
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Mailspring.lnk'
+  );
+
+  const desktopPath = path.join(
+    process.env.USERPROFILE || process.env.HOME,
+    'Desktop',
+    'Mailspring.lnk'
+  );
+
+  let pending = 2;
+  const done = () => {
+    pending--;
+    if (pending === 0 && callback) {
+      callback();
+    }
+  };
+
+  fs.unlink(startMenuPath, () => done());
+  fs.unlink(desktopPath, () => done());
 }
 
 exports.spawn = spawnUpdate;
