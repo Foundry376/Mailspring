@@ -820,8 +820,14 @@ export default class Application extends EventEmitter {
   // Open a mailto:// url.
   //
   openUrl(urlToOpen) {
+    // Log to file for debugging on Windows where console isn't visible
+    const logPath = path.join(app.getPath('temp'), 'mailspring-url-debug.log');
+    const timestamp = new Date().toISOString();
+    fs.appendFileSync(logPath, `\n[${timestamp}] openUrl called with: ${urlToOpen}\n`);
+
     console.log('[openUrl] Received URL:', urlToOpen);
     const parts = url.parse(urlToOpen, true);
+    fs.appendFileSync(logPath, `[${timestamp}] Parsed - host: ${parts.host}, query: ${JSON.stringify(parts.query)}\n`);
     console.log('[openUrl] Parsed - host:', parts.host, 'query:', JSON.stringify(parts.query));
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
