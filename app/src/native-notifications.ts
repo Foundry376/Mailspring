@@ -233,27 +233,32 @@ class NativeNotifications {
     replyPlaceholder?: string;
     canReply?: boolean;
   }): string {
-    // Build URL parameters for protocol activation
+    // Build URL query parameters for protocol activation
     // These are used to route actions back through the app's URL handler
-    // Note: We use &amp; for XML escaping since these go into XML attributes
-    const baseParams = `id=${encodeURIComponent(options.id)}&amp;threadId=${encodeURIComponent(options.threadId || '')}&amp;messageId=${encodeURIComponent(options.messageId || '')}`;
+    // We use URLSearchParams for proper URL encoding, then XML-escape the full URL
+    const baseParams = new URLSearchParams({
+      id: options.id,
+      threadId: options.threadId || '',
+      messageId: options.messageId || '',
+    }).toString();
 
     // Build action buttons XML using protocol activation
     // Note: Windows supports up to 5 buttons total (including reply button)
     const actionButtons = options.actions
       ?.slice(0, options.canReply ? 4 : 5) // Leave room for Reply button if reply enabled
-      .map(
-        (action, i) =>
-          `    <action content="${this.escapeXml(action.text)}" arguments="mailspring://notification-action?${baseParams}&amp;actionIndex=${i}" activationType="protocol"/>`
-      )
+      .map((action, i) => {
+        const actionUrl = `mailspring://notification-action?${baseParams}&actionIndex=${i}`;
+        return `    <action content="${this.escapeXml(action.text)}" arguments="${this.escapeXml(actionUrl)}" activationType="protocol"/>`;
+      })
       .join('\n');
 
     // Build reply input + send button if reply is enabled
     // Windows toast supports inline reply with protocol activation by using hint-inputId
     // The input value is appended to the protocol URL when the user clicks Send
+    const replyUrl = `mailspring://notification-reply?${baseParams}&response=`;
     const replyXml = options.canReply
       ? `    <input id="replyText" type="text" placeHolderContent="${this.escapeXml(options.replyPlaceholder || 'Type a reply...')}"/>
-    <action content="Send" arguments="mailspring://notification-reply?${baseParams}&amp;response=" activationType="protocol" hint-inputId="replyText"/>`
+    <action content="Send" arguments="${this.escapeXml(replyUrl)}" activationType="protocol" hint-inputId="replyText"/>`
       : '';
 
     // Combine actions - reply input first (if enabled), then action buttons
@@ -264,7 +269,8 @@ class NativeNotifications {
     // - hint-maxLines="1" prevents sender name from wrapping
     // - group attribute enables notification stacking per thread
     // - activationType="protocol" allows handling when app is closed
-    return `<toast launch="mailspring://notification-click?${baseParams}" activationType="protocol" group="thread-${options.threadId || 'default'}">
+    const clickUrl = `mailspring://notification-click?${baseParams}`;
+    return `<toast launch="${this.escapeXml(clickUrl)}" activationType="protocol" group="thread-${options.threadId || 'default'}">
   <visual>
     <binding template="ToastGeneric">
       <text hint-maxLines="1">${this.escapeXml(options.title)}</text>
