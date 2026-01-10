@@ -158,7 +158,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
    * Handle mouse move to detect hit zones for resize handles
    */
   _onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!this._canDrag()) {
+    if (!this._canDrag() || !this.props.edgeZoneSize) {
       return;
     }
 
@@ -167,7 +167,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       e.clientX,
       e.clientY,
       bounds,
-      this.props.edgeZoneSize!,
+      this.props.edgeZoneSize,
       this.props.direction as ViewDirection
     );
 

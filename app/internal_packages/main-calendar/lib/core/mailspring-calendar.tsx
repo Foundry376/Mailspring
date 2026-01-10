@@ -289,7 +289,7 @@ export class MailspringCalendar extends React.Component<
     }
 
     // args.time can be null if mouse is not over a valid calendar area
-    if (args.time === null) {
+    if (args.time === null || args.x === null || args.y === null) {
       return;
     }
 
@@ -298,8 +298,8 @@ export class MailspringCalendar extends React.Component<
     const newDragState = updateDragState(
       this.state.dragState,
       args.time,
-      args.x!,
-      args.y!,
+      args.x,
+      args.y,
       args.containerType,
       config
     );
@@ -507,7 +507,7 @@ export class MailspringCalendar extends React.Component<
       }
 
       // Check if calendar is read-only (safety check)
-      const calendar = this.state.calendars.find((c) => c.id === event.calendarId);
+      const calendar = this.state.calendars.find(c => c.id === event.calendarId);
       if (calendar?.readOnly) {
         console.warn('Cannot modify event in read-only calendar');
         return;

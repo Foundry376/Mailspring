@@ -90,7 +90,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
    * Handle mouse move to detect hit zones for resize handles
    */
   _onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!this._canDrag()) {
+    if (!this._canDrag() || !this.props.edgeZoneSize) {
       return;
     }
 
@@ -99,7 +99,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       e.clientX,
       e.clientY,
       bounds,
-      this.props.edgeZoneSize!,
+      this.props.edgeZoneSize,
       'horizontal'
     );
 

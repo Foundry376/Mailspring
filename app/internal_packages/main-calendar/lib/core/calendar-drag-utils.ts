@@ -27,10 +27,16 @@ export function snapToInterval(timestamp: number, intervalSeconds: number): numb
  */
 export function snapAllDayTimes(start: number, end: number): { start: number; end: number } {
   // Start at beginning of day
-  const snappedStart = moment.unix(start).startOf('day').unix();
+  const snappedStart = moment
+    .unix(start)
+    .startOf('day')
+    .unix();
 
   // End at end of day (23:59:59)
-  const snappedEnd = moment.unix(end).endOf('day').unix();
+  const snappedEnd = moment
+    .unix(end)
+    .endOf('day')
+    .unix();
 
   return { start: snappedStart, end: snappedEnd };
 }
@@ -248,8 +254,15 @@ export function updateDragState(
         // For day-based moves, snap start to beginning of day and end to end of day
         // Calculate how many days the event spans (minimum 1)
         const numDays = Math.max(1, Math.round(eventDuration / 86400));
-        previewStart = moment.unix(newStart).startOf('day').unix();
-        previewEnd = moment.unix(previewStart).add(numDays - 1, 'days').endOf('day').unix();
+        previewStart = moment
+          .unix(newStart)
+          .startOf('day')
+          .unix();
+        previewEnd = moment
+          .unix(previewStart)
+          .add(numDays - 1, 'days')
+          .endOf('day')
+          .unix();
       } else {
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = previewStart + eventDuration;
@@ -261,9 +274,15 @@ export function updateDragState(
       // For day-based snapping, snap to start of the day the cursor is in
       const newStart = Math.min(mouseTime, state.originalEnd - minDuration);
       if (usesDaySnap) {
-        previewStart = moment.unix(newStart).startOf('day').unix();
+        previewStart = moment
+          .unix(newStart)
+          .startOf('day')
+          .unix();
         // Ensure end is at end of day (in case original wasn't properly aligned)
-        previewEnd = moment.unix(state.originalEnd).endOf('day').unix();
+        previewEnd = moment
+          .unix(state.originalEnd)
+          .endOf('day')
+          .unix();
       } else {
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = state.originalEnd;
@@ -283,8 +302,14 @@ export function updateDragState(
         : Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
       if (usesDaySnap) {
         // Ensure start is at start of day (in case original wasn't properly aligned)
-        previewStart = moment.unix(state.originalStart).startOf('day').unix();
-        previewEnd = moment.unix(newEnd).endOf('day').unix();
+        previewStart = moment
+          .unix(state.originalStart)
+          .startOf('day')
+          .unix();
+        previewEnd = moment
+          .unix(newEnd)
+          .endOf('day')
+          .unix();
       } else {
         previewStart = state.originalStart;
         previewEnd = snapToInterval(newEnd, snapInterval);
@@ -320,7 +345,7 @@ export function updateDragState(
  * @param isCalendarReadOnly Whether the calendar containing this event is read-only
  * @returns True if event can be dragged
  */
-export function canDragEvent(event: EventOccurrence, isCalendarReadOnly: boolean = false): boolean {
+export function canDragEvent(event: EventOccurrence, isCalendarReadOnly = false): boolean {
   // Don't allow dragging events in read-only calendars
   if (isCalendarReadOnly) {
     return false;
