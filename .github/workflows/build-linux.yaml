@@ -2,13 +2,18 @@ name: Build for Linux
 
 on:
   workflow_dispatch:
-    branches: master
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Fail if branch is not master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "This workflow can only be run on master branch to ensure code-signed builds come from merged PRs"
+          exit 1
+
       - uses: actions/checkout@v4
 
       - name: Install system deps
@@ -62,6 +67,6 @@ jobs:
 
       - name: Sync Artifacts to S3
         run: |
-          aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short HEAD)/linux" \
+          aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short=8 HEAD)/linux" \
             --acl public-read \
             --exclude "*" --include *.deb --include *.rpm

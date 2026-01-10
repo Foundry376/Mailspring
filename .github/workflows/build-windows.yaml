@@ -2,7 +2,6 @@ name: Build for Windows
 
 on:
   workflow_dispatch:
-    branches: master
 
 jobs:
   build:
@@ -88,7 +87,7 @@ jobs:
       - name: Sync Artifacts to S3
         shell: pwsh
         run: |
-          $commit = git rev-parse --short HEAD
+          $commit = git rev-parse --short=8 HEAD
           aws s3 sync app/dist/ "s3://mailspring-builds/client/$commit/win-x64" `
             --acl public-read `
             --exclude "*" `
