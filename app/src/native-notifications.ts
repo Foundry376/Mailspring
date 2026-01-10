@@ -223,31 +223,38 @@ class NativeNotifications {
    * @returns Toast XML string
    */
   private buildWindowsToastXml(options: {
+    id: string;
     title: string;
     subtitle?: string;
     body?: string;
     actions?: Array<{ type: 'button'; text: string }>;
     threadId?: string;
+    messageId?: string;
     replyPlaceholder?: string;
     canReply?: boolean;
   }): string {
-    // Build action buttons XML
-    // Note: Windows supports up to 5 buttons total (including input actions)
+    // Build URL parameters for protocol activation
+    // These are used to route actions back through the app's URL handler
+    const baseParams = `id=${encodeURIComponent(options.id)}&threadId=${encodeURIComponent(options.threadId || '')}&messageId=${encodeURIComponent(options.messageId || '')}`;
+
+    // Build action buttons XML using protocol activation
+    // Note: Windows supports up to 5 buttons total (including reply button)
     const actionButtons = options.actions
-      ?.slice(0, options.canReply ? 4 : 5) // Leave room for Send button if reply enabled
+      ?.slice(0, options.canReply ? 4 : 5) // Leave room for Reply button if reply enabled
       .map(
         (action, i) =>
-          `    <action content="${this.escapeXml(action.text)}" arguments="action:${i}:${options.threadId || ''}" activationType="background"/>`
+          `    <action content="${this.escapeXml(action.text)}" arguments="mailspring://notification-action?${baseParams}&actionIndex=${i}" activationType="protocol"/>`
       )
       .join('\n');
 
-    // Build reply input + send button if reply is enabled
+    // Build reply button if reply is enabled
+    // Note: Windows toast inline reply with background activation doesn't work reliably with Electron,
+    // so we use a Reply button that opens the thread for composing instead
     const replyXml = options.canReply
-      ? `    <input id="replyText" type="text" placeHolderContent="${this.escapeXml(options.replyPlaceholder || 'Type a reply...')}"/>
-    <action content="Send" arguments="reply:${options.threadId || ''}" activationType="background" hint-inputId="replyText"/>`
+      ? `    <action content="Reply" arguments="mailspring://notification-reply?${baseParams}" activationType="protocol"/>`
       : '';
 
-    // Combine actions - reply input first (if enabled), then action buttons
+    // Combine actions - reply button first (if enabled), then action buttons
     const actionsContent = [replyXml, actionButtons].filter(Boolean).join('\n');
     const actionsXml = actionsContent ? `  <actions>\n${actionsContent}\n  </actions>` : '';
 
@@ -255,7 +262,7 @@ class NativeNotifications {
     // - hint-maxLines="1" prevents sender name from wrapping
     // - group attribute enables notification stacking per thread
     // - activationType="protocol" allows handling when app is closed
-    return `<toast launch="mailspring:thread/${options.threadId || ''}" activationType="protocol" group="thread-${options.threadId || 'default'}">
+    return `<toast launch="mailspring://notification-click?${baseParams}" activationType="protocol" group="thread-${options.threadId || 'default'}">
   <visual>
     <binding template="ToastGeneric">
       <text hint-maxLines="1">${this.escapeXml(options.title)}</text>
@@ -340,11 +347,13 @@ ${actionsXml}
     // Windows toast XML for rich notifications with actions and/or reply
     if (platform === 'win32' && (actions?.length > 0 || canReply)) {
       options.toastXml = this.buildWindowsToastXml({
+        id,
         title,
         subtitle,
         body,
         actions,
         threadId,
+        messageId,
         canReply,
         replyPlaceholder,
       });

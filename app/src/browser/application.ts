@@ -820,7 +820,7 @@ export default class Application extends EventEmitter {
   // Open a mailto:// url.
   //
   openUrl(urlToOpen) {
-    const parts = url.parse(urlToOpen);
+    const parts = url.parse(urlToOpen, true);
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
     if (!main) {
@@ -831,7 +831,34 @@ export default class Application extends EventEmitter {
     if (parts.protocol === 'mailto:') {
       main.sendMessage('mailto', urlToOpen);
     } else if (parts.protocol === 'mailspring:') {
-      if (parts.host === 'plugins') {
+      // Handle notification action URLs from Windows toast notifications
+      // These URLs are triggered when users click buttons on Windows toast notifications
+      // since Windows toast XML with activationType="background" doesn't work reliably with Electron
+      if (parts.host === 'notification-click') {
+        // Main notification body was clicked - show window and focus thread
+        this.windowManager.sendToAllWindows('notification:clicked', {}, {
+          id: parts.query.id as string,
+          threadId: parts.query.threadId as string,
+          messageId: parts.query.messageId as string,
+        });
+      } else if (parts.host === 'notification-action') {
+        // Action button was clicked (Mark as Read, Archive, etc.)
+        this.windowManager.sendToAllWindows('notification:action', {}, {
+          id: parts.query.id as string,
+          actionIndex: parseInt(parts.query.actionIndex as string, 10),
+          threadId: parts.query.threadId as string,
+          messageId: parts.query.messageId as string,
+        });
+      } else if (parts.host === 'notification-reply') {
+        // Reply button was clicked - open thread for composing
+        // Since Windows toast inline reply doesn't work with Electron, we treat this
+        // as a click that should open the thread for the user to compose a reply
+        this.windowManager.sendToAllWindows('notification:clicked', {}, {
+          id: parts.query.id as string,
+          threadId: parts.query.threadId as string,
+          messageId: parts.query.messageId as string,
+        });
+      } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else {
         main.sendMessage('openThreadFromWeb', urlToOpen);
