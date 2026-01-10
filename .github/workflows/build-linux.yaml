@@ -67,6 +67,6 @@ jobs:
 
       - name: Sync Artifacts to S3
         run: |
-          aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short HEAD)/linux" \
+          aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short=8 HEAD)/linux" \
             --acl public-read \
             --exclude "*" --include *.deb --include *.rpm
