@@ -264,7 +264,9 @@ const handleStartupEventWithSquirrel = () => {
     case '--squirrel-install':
       WindowsUpdater.createRegistryEntries(options, () =>
         WindowsUpdater.createShortcuts(() =>
-          WindowsUpdater.installVisualElementsXML(() => app.quit())
+          WindowsUpdater.installVisualElementsXML(() =>
+            WindowsUpdater.registerAppUserModelId(() => app.quit())
+          )
         )
       );
       return true;
@@ -295,6 +297,16 @@ const start = () => {
 
   if (handleStartupEventWithSquirrel()) {
     return;
+  }
+
+  // On Windows, register the AppUserModelId with a display name so notifications
+  // show "Mailspring" instead of "com.squirrel.mailspring.mailspring".
+  // This handles existing installations that were created before this fix.
+  if (process.platform === 'win32') {
+    const WindowsUpdater = require('./windows-updater');
+    if (WindowsUpdater.existsSync()) {
+      WindowsUpdater.registerAppUserModelId();
+    }
   }
 
   require('@electron/remote/main').initialize();

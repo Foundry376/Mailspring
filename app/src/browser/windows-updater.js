@@ -201,6 +201,50 @@ exports.createRegistryEntries = createRegistryEntries;
 // Is the Update.exe installed with Mailspring?
 exports.existsSync = () => fs.existsSync(updateDotExe);
 
+// Register the AppUserModelId with a display name so Windows notifications
+// show "Mailspring" instead of "com.squirrel.mailspring.mailspring"
+// Registry path: HKEY_CURRENT_USER\SOFTWARE\Classes\AppUserModelId\{AUMID}
+function registerAppUserModelId(callback) {
+  const aumid = 'com.squirrel.mailspring.mailspring';
+  const displayName = 'Mailspring';
+  const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
+
+  let regPath = 'reg.exe';
+  if (process.env.SystemRoot) {
+    regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe');
+  }
+
+  const regKey = `HKEY_CURRENT_USER\\SOFTWARE\\Classes\\AppUserModelId\\${aumid}`;
+
+  // Add the DisplayName value
+  spawn(
+    regPath,
+    ['add', regKey, '/v', 'DisplayName', '/t', 'REG_SZ', '/d', displayName, '/f'],
+    err => {
+      if (err) {
+        console.warn('Failed to register AUMID DisplayName:', err);
+      }
+      // Also add IconUri if the icon exists
+      if (fs.existsSync(iconPath)) {
+        spawn(
+          regPath,
+          ['add', regKey, '/v', 'IconUri', '/t', 'REG_SZ', '/d', iconPath, '/f'],
+          iconErr => {
+            if (iconErr) {
+              console.warn('Failed to register AUMID IconUri:', iconErr);
+            }
+            if (callback) callback(err || iconErr);
+          }
+        );
+      } else {
+        if (callback) callback(err);
+      }
+    }
+  );
+}
+
+exports.registerAppUserModelId = registerAppUserModelId;
+
 // Restart Mailspring using the version pointed to by the Mailspring.cmd shim
 exports.restartMailspring = app => {
   app.once('will-quit', () => {
