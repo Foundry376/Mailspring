@@ -25,6 +25,7 @@ const ChildProcess = require('child_process');
 const fs = require('fs-plus');
 const path = require('path');
 const os = require('os');
+const { shell } = require('electron');
 
 // C:\Users\<USERNAME>\AppData\Local\Mailspring\app-x.x.x
 const appFolder = path.resolve(process.execPath, '..');
@@ -84,7 +85,78 @@ function spawnUpdate(args, callback, options = {}) {
 // Create a desktop and start menu shortcut by using the command line API
 // provided by Squirrel's Update.exe
 function createShortcuts(callback) {
-  spawnUpdate(['--createShortcut', exeName], callback);
+  // Explicitly specify both Desktop and StartMenu locations to work around
+  // Squirrel.Windows issues where Start Menu shortcuts are sometimes not created.
+  // See: https://github.com/Squirrel/Squirrel.Windows/issues/411
+  spawnUpdate(['--createShortcut', exeName, '--shortcut-locations', 'Desktop,StartMenu'], err => {
+    if (err) {
+      console.warn('Squirrel createShortcut failed:', err);
+    }
+    // Always attempt fallback shortcut creation to ensure shortcuts exist
+    createShortcutsFallback(callback);
+  });
+}
+
+// Fallback shortcut creation using Electron's shell.writeShortcutLink API.
+// This ensures shortcuts are created even if Squirrel's method fails,
+// which is a known issue on Windows 10/11.
+// See: https://www.electronjs.org/docs/latest/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
+function createShortcutsFallback(callback) {
+  const startMenuPath = path.join(
+    process.env.APPDATA,
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Mailspring.lnk'
+  );
+
+  const desktopPath = path.join(
+    process.env.USERPROFILE || process.env.HOME,
+    'Desktop',
+    'Mailspring.lnk'
+  );
+
+  const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
+
+  // ShortcutDetails object for Electron's shell.writeShortcutLink
+  // See: https://www.electronjs.org/docs/latest/api/structures/shortcut-details
+  const shortcutOptions = {
+    target: updateDotExe,
+    args: '--processStart mailspring.exe',
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
+    iconIndex: 0,
+    description: 'The best email app for people and teams at work',
+    appUserModelId: 'com.squirrel.mailspring.mailspring',
+  };
+
+  // Create Start Menu shortcut if it doesn't exist
+  if (!fs.existsSync(startMenuPath)) {
+    try {
+      const success = shell.writeShortcutLink(startMenuPath, 'create', shortcutOptions);
+      if (!success) {
+        console.warn('Failed to create Start Menu shortcut');
+      }
+    } catch (err) {
+      console.warn('Failed to create Start Menu shortcut:', err);
+    }
+  }
+
+  // Create Desktop shortcut if it doesn't exist
+  if (!fs.existsSync(desktopPath)) {
+    try {
+      const success = shell.writeShortcutLink(desktopPath, 'create', shortcutOptions);
+      if (!success) {
+        console.warn('Failed to create Desktop shortcut');
+      }
+    } catch (err) {
+      console.warn('Failed to create Desktop shortcut:', err);
+    }
+  }
+
+  if (callback) {
+    callback();
+  }
 }
 
 function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, callback) {
@@ -189,7 +261,42 @@ function installVisualElementsXML(callback) {
 // Remove the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
 function removeShortcuts(callback) {
-  spawnUpdate(['--removeShortcut', exeName], callback);
+  spawnUpdate(['--removeShortcut', exeName], err => {
+    if (err) {
+      console.warn('Squirrel removeShortcut failed:', err);
+    }
+    // Also remove fallback shortcuts if they exist
+    removeShortcutsFallback(callback);
+  });
+}
+
+// Remove fallback shortcuts created by createShortcutsFallback
+function removeShortcutsFallback(callback) {
+  const startMenuPath = path.join(
+    process.env.APPDATA,
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Mailspring.lnk'
+  );
+
+  const desktopPath = path.join(
+    process.env.USERPROFILE || process.env.HOME,
+    'Desktop',
+    'Mailspring.lnk'
+  );
+
+  let pending = 2;
+  const done = () => {
+    pending--;
+    if (pending === 0 && callback) {
+      callback();
+    }
+  };
+
+  fs.unlink(startMenuPath, () => done());
+  fs.unlink(desktopPath, () => done());
 }
 
 exports.spawn = spawnUpdate;

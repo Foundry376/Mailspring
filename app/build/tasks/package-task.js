@@ -172,7 +172,6 @@ module.exports = grunt => {
             '**/static/all_licenses.html',
             '**/static/extensions/**',
             '**/node_modules/spellchecker/**',
-            '**/node_modules/windows-shortcuts/**',
           ].join(',') +
           '}',
       },
