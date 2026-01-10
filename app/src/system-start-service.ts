@@ -131,7 +131,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
     try {
       const success = shell.writeShortcutLink(this._shortcutPath(), 'create', {
         target: this._launcherPath(),
-        args: '--processStart mailspring.exe --process-start-args --background',
+        args: '--processStart mailspring.exe --process-start-args "--background"',
         description: 'An extensible, open-source mail client built on the modern web.',
         appUserModelId: 'com.squirrel.mailspring.mailspring',
       });
