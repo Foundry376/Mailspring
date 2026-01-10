@@ -76,87 +76,26 @@ function spawn(command, args, callback, options = {}) {
   });
 }
 
+// Spawn a command in detached mode without waiting for completion.
+// This is used for Squirrel hooks where we need to exit quickly to avoid
+// hitting Squirrel's 15-second timeout.
+// See: https://github.com/Squirrel/Squirrel.Windows/issues/501
+function spawnDetached(command, args) {
+  try {
+    const child = ChildProcess.spawn(command, args, {
+      detached: true,
+      stdio: 'ignore',
+    });
+    child.unref();
+  } catch (error) {
+    // Ignore spawn errors - we're exiting anyway
+  }
+}
+
 // Spawn the Update.exe with the given arguments and invoke the callback when
 // the command completes.
 function spawnUpdate(args, callback, options = {}) {
   spawn(updateDotExe, args, callback, options);
-}
-
-// Create a desktop and start menu shortcut by using the command line API
-// provided by Squirrel's Update.exe
-function createShortcuts(callback) {
-  // Explicitly specify both Desktop and StartMenu locations to work around
-  // Squirrel.Windows issues where Start Menu shortcuts are sometimes not created.
-  // See: https://github.com/Squirrel/Squirrel.Windows/issues/411
-  spawnUpdate(['--createShortcut', exeName, '--shortcut-locations', 'Desktop,StartMenu'], err => {
-    if (err) {
-      console.warn('Squirrel createShortcut failed:', err);
-    }
-    // Always attempt fallback shortcut creation to ensure shortcuts exist
-    createShortcutsFallback(callback);
-  });
-}
-
-// Fallback shortcut creation using Electron's shell.writeShortcutLink API.
-// This ensures shortcuts are created even if Squirrel's method fails,
-// which is a known issue on Windows 10/11.
-// See: https://www.electronjs.org/docs/latest/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
-function createShortcutsFallback(callback) {
-  const startMenuPath = path.join(
-    process.env.APPDATA,
-    'Microsoft',
-    'Windows',
-    'Start Menu',
-    'Programs',
-    'Mailspring.lnk'
-  );
-
-  const desktopPath = path.join(
-    process.env.USERPROFILE || process.env.HOME,
-    'Desktop',
-    'Mailspring.lnk'
-  );
-
-  const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
-
-  // ShortcutDetails object for Electron's shell.writeShortcutLink
-  // See: https://www.electronjs.org/docs/latest/api/structures/shortcut-details
-  const shortcutOptions = {
-    target: updateDotExe,
-    args: '--processStart mailspring.exe',
-    icon: fs.existsSync(iconPath) ? iconPath : undefined,
-    iconIndex: 0,
-    description: 'The best email app for people and teams at work',
-    appUserModelId: 'com.squirrel.mailspring.mailspring',
-  };
-
-  // Create Start Menu shortcut if it doesn't exist
-  if (!fs.existsSync(startMenuPath)) {
-    try {
-      const success = shell.writeShortcutLink(startMenuPath, 'create', shortcutOptions);
-      if (!success) {
-        console.warn('Failed to create Start Menu shortcut');
-      }
-    } catch (err) {
-      console.warn('Failed to create Start Menu shortcut:', err);
-    }
-  }
-
-  // Create Desktop shortcut if it doesn't exist
-  if (!fs.existsSync(desktopPath)) {
-    try {
-      const success = shell.writeShortcutLink(desktopPath, 'create', shortcutOptions);
-      if (!success) {
-        console.warn('Failed to create Desktop shortcut');
-      }
-    } catch (err) {
-      console.warn('Failed to create Desktop shortcut:', err);
-    }
-  }
-
-  if (callback) {
-    callback();
-  }
 }
 
 function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, callback) {
@@ -237,72 +176,7 @@ function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, c
   );
 }
 
-function installVisualElementsXML(callback) {
-  try {
-    fs.copyFileSync(
-      path.join(appFolder, 'resources', 'mailspring-75px.png'),
-      path.join(rootAppDataFolder, 'mailspring-75px.png')
-    );
-    fs.copyFileSync(
-      path.join(appFolder, 'resources', 'mailspring-150px.png'),
-      path.join(rootAppDataFolder, 'mailspring-150px.png')
-    );
-    fs.copyFileSync(
-      path.join(appFolder, 'resources', 'mailspring.VisualElementsManifest.xml'),
-      path.join(rootAppDataFolder, 'mailspring.VisualElementsManifest.xml')
-    );
-  } catch (err) {
-    console.warn(err);
-    // no-op
-  }
-  callback();
-}
-
-// Remove the desktop and start menu shortcuts by using the command line API
-// provided by Squirrel's Update.exe
-function removeShortcuts(callback) {
-  spawnUpdate(['--removeShortcut', exeName], err => {
-    if (err) {
-      console.warn('Squirrel removeShortcut failed:', err);
-    }
-    // Also remove fallback shortcuts if they exist
-    removeShortcutsFallback(callback);
-  });
-}
-
-// Remove fallback shortcuts created by createShortcutsFallback
-function removeShortcutsFallback(callback) {
-  const startMenuPath = path.join(
-    process.env.APPDATA,
-    'Microsoft',
-    'Windows',
-    'Start Menu',
-    'Programs',
-    'Mailspring.lnk'
-  );
-
-  const desktopPath = path.join(
-    process.env.USERPROFILE || process.env.HOME,
-    'Desktop',
-    'Mailspring.lnk'
-  );
-
-  let pending = 2;
-  const done = () => {
-    pending--;
-    if (pending === 0 && callback) {
-      callback();
-    }
-  };
-
-  fs.unlink(startMenuPath, () => done());
-  fs.unlink(desktopPath, () => done());
-}
-
 exports.spawn = spawnUpdate;
-exports.createShortcuts = createShortcuts;
-exports.removeShortcuts = removeShortcuts;
-exports.installVisualElementsXML = installVisualElementsXML;
 exports.createRegistryEntries = createRegistryEntries;
 
 // Is the Update.exe installed with Mailspring?
@@ -357,5 +231,138 @@ exports.restartMailspring = app => {
   app.once('will-quit', () => {
     spawnUpdate(['--processStart', exeName], () => {}, { detached: true });
   });
+  app.quit();
+};
+
+// Handle --squirrel-install event with fast exit.
+// Squirrel.Windows has a 15-second timeout for hooks. We spawn all necessary
+// processes in detached mode and exit immediately to avoid timeout.
+// See: https://github.com/Squirrel/Squirrel.Windows/issues/501
+// See: https://github.com/Squirrel/Squirrel.Windows/issues/1145
+exports.handleSquirrelInstall = app => {
+  // Spawn Update.exe to create shortcuts (detached - won't block exit)
+  spawnDetached(updateDotExe, [
+    '--createShortcut',
+    exeName,
+    '--shortcut-locations',
+    'Desktop,StartMenu',
+  ]);
+
+  // Copy visual elements files synchronously (fast)
+  try {
+    fs.copyFileSync(
+      path.join(appFolder, 'resources', 'mailspring-75px.png'),
+      path.join(rootAppDataFolder, 'mailspring-75px.png')
+    );
+    fs.copyFileSync(
+      path.join(appFolder, 'resources', 'mailspring-150px.png'),
+      path.join(rootAppDataFolder, 'mailspring-150px.png')
+    );
+    fs.copyFileSync(
+      path.join(appFolder, 'resources', 'mailspring.VisualElementsManifest.xml'),
+      path.join(rootAppDataFolder, 'mailspring.VisualElementsManifest.xml')
+    );
+  } catch (err) {
+    // Ignore errors - visual elements are optional
+  }
+
+  // Create fallback shortcuts synchronously (fast)
+  const startMenuPath = path.join(
+    process.env.APPDATA,
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Mailspring.lnk'
+  );
+  const desktopPath = path.join(
+    process.env.USERPROFILE || process.env.HOME,
+    'Desktop',
+    'Mailspring.lnk'
+  );
+  const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
+
+  const shortcutOptions = {
+    target: updateDotExe,
+    args: '--processStart mailspring.exe',
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
+    iconIndex: 0,
+    description: 'The best email app for people and teams at work',
+    appUserModelId: 'com.squirrel.mailspring.mailspring',
+  };
+
+  try {
+    if (!fs.existsSync(startMenuPath)) {
+      shell.writeShortcutLink(startMenuPath, 'create', shortcutOptions);
+    }
+  } catch (err) {
+    // Ignore - Squirrel's method might succeed
+  }
+
+  try {
+    if (!fs.existsSync(desktopPath)) {
+      shell.writeShortcutLink(desktopPath, 'create', shortcutOptions);
+    }
+  } catch (err) {
+    // Ignore - Squirrel's method might succeed
+  }
+
+  // Spawn reg.exe to register AUMID (detached - won't block exit)
+  const aumid = 'com.squirrel.mailspring.mailspring';
+  const regKey = `HKEY_CURRENT_USER\\SOFTWARE\\Classes\\AppUserModelId\\${aumid}`;
+  let regPath = 'reg.exe';
+  if (process.env.SystemRoot) {
+    regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe');
+  }
+  spawnDetached(regPath, ['add', regKey, '/v', 'DisplayName', '/t', 'REG_SZ', '/d', 'Mailspring', '/f']);
+  if (fs.existsSync(iconPath)) {
+    spawnDetached(regPath, ['add', regKey, '/v', 'IconUri', '/t', 'REG_SZ', '/d', iconPath, '/f']);
+  }
+
+  // Registry entries for mailto: protocol are registered on first normal app launch
+  // (via createRegistryEntries call in main.js startup). This ensures registration
+  // completes even if the detached processes here don't finish before Squirrel's timeout.
+
+  // Exit immediately - don't wait for spawned processes
+  app.quit();
+};
+
+// Handle --squirrel-uninstall event with fast exit.
+exports.handleSquirrelUninstall = app => {
+  // Spawn Update.exe to remove shortcuts (detached - won't block exit)
+  spawnDetached(updateDotExe, ['--removeShortcut', exeName]);
+
+  // Try to remove fallback shortcuts synchronously
+  const startMenuPath = path.join(
+    process.env.APPDATA,
+    'Microsoft',
+    'Windows',
+    'Start Menu',
+    'Programs',
+    'Mailspring.lnk'
+  );
+  const desktopPath = path.join(
+    process.env.USERPROFILE || process.env.HOME,
+    'Desktop',
+    'Mailspring.lnk'
+  );
+
+  try {
+    if (fs.existsSync(startMenuPath)) {
+      fs.unlinkSync(startMenuPath);
+    }
+  } catch (err) {
+    // Ignore
+  }
+
+  try {
+    if (fs.existsSync(desktopPath)) {
+      fs.unlinkSync(desktopPath);
+    }
+  } catch (err) {
+    // Ignore
+  }
+
+  // Exit immediately
   app.quit();
 };

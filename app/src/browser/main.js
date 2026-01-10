@@ -242,39 +242,40 @@ const extractMailtoLink = mailtoLink => {
 };
 
 /*
- * "Squirrel will spawn your app with command line flags on first run, updates,]
+ * "Squirrel will spawn your app with command line flags on first run, updates,
  * and uninstalls."
  *
  * Read: https://github.com/electron-archive/grunt-electron-installer#handling-squirrel-events
  * Read: https://github.com/electron/electron/blob/master/docs/api/auto-updater.md#windows
+ *
+ * IMPORTANT: Squirrel.Windows has a 15-second timeout for hooks (10 seconds for uninstall).
+ * If the app doesn't exit within that time, Squirrel cancels with OperationCanceledException.
+ * We must handle events quickly and exit immediately - spawning any long-running processes
+ * in detached mode so they continue after the main process exits.
+ *
+ * See: https://github.com/Squirrel/Squirrel.Windows/issues/501
+ * See: https://github.com/Squirrel/Squirrel.Windows/issues/1145
  */
 const handleStartupEventWithSquirrel = () => {
   if (process.platform !== 'win32') {
     return false;
   }
-  const options = {
-    allowEscalation: false,
-    registerDefaultIfPossible: false,
-  };
 
   const WindowsUpdater = require('./windows-updater');
   const squirrelCommand = process.argv[1];
 
   switch (squirrelCommand) {
     case '--squirrel-install':
-      WindowsUpdater.createRegistryEntries(options, () =>
-        WindowsUpdater.createShortcuts(() =>
-          WindowsUpdater.installVisualElementsXML(() =>
-            WindowsUpdater.registerAppUserModelId(() => app.quit())
-          )
-        )
-      );
+      // Handle install with fast exit - spawns detached processes and quits immediately
+      WindowsUpdater.handleSquirrelInstall(app);
       return true;
     case '--squirrel-updated':
+      // Restart the app after update
       WindowsUpdater.restartMailspring(app);
       return true;
     case '--squirrel-uninstall':
-      WindowsUpdater.removeShortcuts(() => app.quit());
+      // Handle uninstall with fast exit - spawns detached processes and quits immediately
+      WindowsUpdater.handleSquirrelUninstall(app);
       return true;
     case '--squirrel-obsolete':
       app.quit();
@@ -301,11 +302,19 @@ const start = () => {
 
   // On Windows, register the AppUserModelId with a display name so notifications
   // show "Mailspring" instead of "com.squirrel.mailspring.mailspring".
-  // This handles existing installations that were created before this fix.
+  // Also register mailto: protocol handler so Windows knows Mailspring can handle
+  // mailto: links (this doesn't make it the default, just registers it as an option).
+  // This handles existing installations and ensures registration completes even if
+  // the Squirrel install hook's detached processes didn't finish in time.
   if (process.platform === 'win32') {
     const WindowsUpdater = require('./windows-updater');
     if (WindowsUpdater.existsSync()) {
       WindowsUpdater.registerAppUserModelId();
+      // Register mailto: protocol without elevation or setting as default
+      WindowsUpdater.createRegistryEntries(
+        { allowEscalation: false, registerDefaultIfPossible: false },
+        () => {}
+      );
     }
   }
 
