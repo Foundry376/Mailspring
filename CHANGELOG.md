@@ -1,5 +1,87 @@
 # Mailspring Changelog
 
+## 1.17.0 (1/12/2025)
+
+This is Mailspring's biggest update in a while!
+
+The "infinite sync bug" that impacted iCloud accounts has been fixed, and we reviewed and applied patches to Mailcore and libetpan to fix several other mailsync issues as well.
+
+This release includes significant security updates for Linux users - Mailspring now uses the system-bundled sasl2, ssl, crypto and curl libraries on all Linux platforms, and the UI has moved to the latest version of Electron which supports Wayland. We've moved to the latest stable version of Electron and updated many front-end dependencies as well.
+
+This release resolves issues with spellcheck on Windows, and also adds support for Windows toast notifications with inline actions.
+
+Bug Fixes:
+
+- On Windows, the Start Menu integration has been updated for Windows 11 and the "default mail client" option now links directly to Mailspring's page in Windows Settings.
+
+- On Windows, `mailto:` link handling no longer breaks due to a launch argument parsing issue.
+
+- On Windows, spellcheck now works correctly by using the DOM spellcheck attribute with typing debounce. (#2535)
+
+- On macOS, notifications now correctly respect Do Not Disturb settings. (#2525)
+
+- On macOS, Mailspring can now correctly create and delete the LaunchAgent file for launch on startup. (#2509)
+
+- On Linux, the tray icon no longer shares an ID with other Electron apps. (#2529)
+
+- On Linux, native Wayland support is now enabled in the Snap package. (#2527)
+
+- The "Message Clipped - Show All" window no longer has encoding issues. (#2526)
+
+- "Download All Attachments" no longer incorrectly renames files with hyphen-number patterns. (#2531)
+
+- Additional safeguards have been added to attachment preview generation. (#2523)
+
+Localization:
+
+- Hungarian is now a manually verified language!
+
+- Brazilian Portuguese (pt-BR) translation has been updated. (#2504, #2506)
+
+Developer:
+
+- Mailspring now uses Electron 39, Chromium 140, and Node.js 22 for improved performance and security.
+
+- TypeScript has been upgraded from version 3 to version 5. (#2547)
+
+- React has been upgraded from 16.6.0 to 16.9.0. (#2545)
+
+- Windows builds now use GitHub Actions instead of AppVeyor. (#2524)
+
+- Many dependencies have been upgraded to address npm audit issues, including uuid, ical.js, juice, lru-cache, snarkdown, and node-emoji.
+
+- The deprecated `componentWillReceiveProps` lifecycle method has been replaced throughout the codebase. (#2546)
+
+- Travis CI and AppVeyor configuration files have been removed, and the sync engine builds have been moved to Github Actions as well. (#2555)
+
+Sync Improvements:
+
+- Fixed multiple memory leaks, race conditions, and potential deadlocks following an in-depth automated code review.
+
+- Fixed CardDAV to avoid re-discovering address books on every sync.
+
+- Fixed SMTP EHLO/HELO with IPv6 addresses on Linux.
+
+- Fixed handling of empty IMAP parts from Outlook.com servers.
+
+- SQLite has been upgraded to the latest version.
+
+- Fixed Windows build compatibility with strptime and timegm functions.
+
+Calendar Preview:
+
+- The Calendar preview now includes a full month view with day, week, and month navigation.
+
+- You can now search for events in the calendar.
+
+- Dragging calendar events will soon update their time, making it easier to reschedule items.
+
+- CalDAV sync now supports calendar colors, recurring events with exceptions, and smart rate limiting for 429 responses.
+
+- CalDAV now uses ctags to skip unnecessary syncs when calendars haven't changed.
+
+- Fixed CalDAV crashes on Gmail accounts when parsing privilege-set.
+
 ## 1.16.0
 
 - Thunderbird-style Autoconfiguration (#2493)
