@@ -4,9 +4,9 @@
 
 This is Mailspring's biggest update in a while!
 
-The "infinite sync bug" that impacted iCloud accounts has been fixed, and we reviewed and applied patches to Mailcore and libetpan to fix several other mailsync issues as well.
+The "infinite sync bug" that impacted iCloud accounts has been fixed, and we reviewed and applied many other patches to Mailcore and libetpan to improve mail sync.
 
-This release includes significant security updates for Linux users - Mailspring now uses the system-bundled sasl2, ssl, crypto and curl libraries on all Linux platforms, and the UI has moved to the latest version of Electron which supports Wayland. We've moved to the latest stable version of Electron and updated many front-end dependencies as well.
+This release includes significant security updates - Mailspring now uses the system-bundled sasl2, ssl, crypto and curl libraries on all Linux platforms, and the UI has moved to the latest version of Electron. (On Linux, Electron 39 also brings native support for Wayland!)
 
 This release resolves issues with spellcheck on Windows, and also adds support for Windows toast notifications with inline actions.
 
@@ -42,17 +42,15 @@ Developer:
 
 - Mailspring now uses Electron 39, Chromium 140, and Node.js 22 for improved performance and security.
 
+- Mac, Windows, and Linux builds are now managed entirely with Github Actions, and new Github Actions for mailsync verify that the Linux binary is portable and runs on Ubuntu, Fedora, and Arch Linux.
+
 - TypeScript has been upgraded from version 3 to version 5. (#2547)
 
 - React has been upgraded from 16.6.0 to 16.9.0. (#2545)
 
 - Windows builds now use GitHub Actions instead of AppVeyor. (#2524)
 
-- Many dependencies have been upgraded to address npm audit issues, including uuid, ical.js, juice, lru-cache, snarkdown, and node-emoji.
-
-- The deprecated `componentWillReceiveProps` lifecycle method has been replaced throughout the codebase. (#2546)
-
-- Travis CI and AppVeyor configuration files have been removed, and the sync engine builds have been moved to Github Actions as well. (#2555)
+- Many dependencies have been upgraded to address npm audit issues, including better-sqlite, uuid, ical.js, juice, lru-cache, snarkdown, and node-emoji.
 
 Sync Improvements:
 

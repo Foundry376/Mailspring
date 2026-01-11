@@ -67,3 +67,4 @@ apps:
       - pulseaudio
       - unity7
       - x11
+      - wayland
