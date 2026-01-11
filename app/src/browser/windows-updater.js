@@ -314,7 +314,17 @@ exports.handleSquirrelInstall = app => {
   if (process.env.SystemRoot) {
     regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe');
   }
-  spawnDetached(regPath, ['add', regKey, '/v', 'DisplayName', '/t', 'REG_SZ', '/d', 'Mailspring', '/f']);
+  spawnDetached(regPath, [
+    'add',
+    regKey,
+    '/v',
+    'DisplayName',
+    '/t',
+    'REG_SZ',
+    '/d',
+    'Mailspring',
+    '/f',
+  ]);
   if (fs.existsSync(iconPath)) {
     spawnDetached(regPath, ['add', regKey, '/v', 'IconUri', '/t', 'REG_SZ', '/d', iconPath, '/f']);
   }

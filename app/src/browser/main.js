@@ -90,6 +90,7 @@ const declareOptions = argv => {
   // if mailspring is already running.
   options.boolean('enable-crashpad');
   options.boolean('allow-file-access-from-files');
+  options.boolean('source-app-id');
   options
     .alias('h', 'help')
     .boolean('h')

@@ -450,7 +450,11 @@ export default class Application extends EventEmitter {
     this.on('application:view-license', () => {
       // Workaround to correctly get the unpacked path of the licenses file.
       // For more information, see: https://github.com/electron/electron/issues/6262
-      shell.openPath(path.join(this.resourcePath, 'static', 'all_licenses.html').replace("app.asar", "app.asar.unpacked"));
+      shell.openPath(
+        path
+          .join(this.resourcePath, 'static', 'all_licenses.html')
+          .replace('app.asar', 'app.asar.unpacked')
+      );
     });
 
     if (process.platform === 'darwin') {
@@ -546,9 +550,9 @@ export default class Application extends EventEmitter {
 
     app.whenReady().then(() => {
       if (process.platform === 'darwin') {
-        app.dock.setMenu(dockMenu)
+        app.dock.setMenu(dockMenu);
       }
-    })
+    });
 
     ipcMain.on('new-window', (event, options) => {
       const win = options.windowKey ? this.windowManager.get(options.windowKey) : null;
@@ -834,40 +838,36 @@ export default class Application extends EventEmitter {
       // Handle notification action URLs from Windows toast notifications
       // These URLs are triggered when users click buttons on Windows toast notifications
       // since Windows toast XML with activationType="background" doesn't work reliably with Electron
+      const windowsNotifEventArgs = {
+        id: parts.query.id as string,
+        threadId: parts.query.threadId as string,
+        messageId: parts.query.messageId as string,
+      };
+
       if (parts.host === 'notification-click') {
         // Main notification body was clicked - show window and focus thread
-        this.windowManager.sendToAllWindows('notification:clicked', {}, {
-          id: parts.query.id as string,
-          threadId: parts.query.threadId as string,
-          messageId: parts.query.messageId as string,
-        });
+        this.windowManager.sendToAllWindows('notification:clicked', {}, windowsNotifEventArgs);
       } else if (parts.host === 'notification-action') {
         // Action button was clicked (Mark as Read, Archive, etc.)
-        this.windowManager.sendToAllWindows('notification:action', {}, {
-          id: parts.query.id as string,
-          actionIndex: parseInt(parts.query.actionIndex as string, 10),
-          threadId: parts.query.threadId as string,
-          messageId: parts.query.messageId as string,
-        });
+        const actionIndex = parseInt(parts.query.actionIndex as string, 10);
+        this.windowManager.sendToAllWindows(
+          'notification:action',
+          {},
+          { ...windowsNotifEventArgs, actionIndex }
+        );
       } else if (parts.host === 'notification-reply') {
         // Inline reply from Windows toast notification
         // The response text is appended to the URL by Windows when using hint-inputId
-        const response = parts.query.response as string;
-        if (response && response.trim()) {
-          // User typed a reply - send it
-          this.windowManager.sendToAllWindows('notification:replied', {}, {
-            id: parts.query.id as string,
-            reply: response,
-            threadId: parts.query.threadId as string,
-            messageId: parts.query.messageId as string,
-          });
+        const reply = parts.query.response as string;
+        if (reply && reply.trim()) {
+          this.windowManager.sendToAllWindows(
+            'notification:replied',
+            {},
+            { ...windowsNotifEventArgs, reply }
+          );
         } else {
           // No reply text - just open the thread for composing
-          this.windowManager.sendToAllWindows('notification:clicked', {}, {
-            id: parts.query.id as string,
-            threadId: parts.query.threadId as string,
-            messageId: parts.query.messageId as string,
-          });
+          this.windowManager.sendToAllWindows('notification:clicked', {}, windowsNotifEventArgs);
         }
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
