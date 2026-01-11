@@ -1,6 +1,7 @@
 import { Notification, IpcMain, IpcMainInvokeEvent, nativeImage } from 'electron';
 import path from 'path';
 import os from 'os';
+import { UrlWithParsedQuery } from 'url';
 
 interface NotificationOptions {
   id: string;
@@ -70,9 +71,7 @@ const validateIconPath = (iconPath: string): string | null => {
     }
   }
 
-  console.warn(
-    `Notification icon path rejected - not within allowed directories: ${iconPath}`
-  );
+  console.warn(`Notification icon path rejected - not within allowed directories: ${iconPath}`);
   return null;
 };
 
@@ -151,6 +150,10 @@ const displayNotification = (
 
   // Handle click event
   notification.on('click', () => {
+    if (process.platform === 'win32') {
+      // We use protocol handlers (in handleWindowsToastXMLProtocolAction)
+      return;
+    }
     sendToAllWindows('notification:clicked', {
       id: options.id,
       threadId: options.threadId,
@@ -216,4 +219,19 @@ const closeNotification = (event: IpcMainInvokeEvent, id: string): void => {
 export function registerNotificationIPCHandlers(ipcMain: IpcMain) {
   ipcMain.handle('notification:display', displayNotification);
   ipcMain.handle('notification:close', closeNotification);
+}
+
+export function handleWindowsToastXMLProtocolAction(parts: UrlWithParsedQuery) {
+  const windowsNotifEventArgs = {
+    id: parts.query.id as string,
+    threadId: parts.query.threadId as string,
+    messageId: parts.query.messageId as string,
+  };
+
+  if (parts.host === 'notification-click') {
+    sendToAllWindows('notification:clicked', windowsNotifEventArgs);
+  } else if (parts.host === 'notification-action') {
+    const actionIndex = parseInt(parts.query.actionIndex as string, 10);
+    sendToAllWindows('notification:action', { ...windowsNotifEventArgs, actionIndex });
+  }
 }

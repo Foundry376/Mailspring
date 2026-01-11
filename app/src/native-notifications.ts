@@ -244,25 +244,15 @@ class NativeNotifications {
 
     // Build action buttons XML using protocol activation
     // Note: Windows supports up to 5 buttons total (including reply button)
-    const actionButtons = options.actions
-      ?.slice(0, options.canReply ? 4 : 5) // Leave room for Reply button if reply enabled
+    const actionsContent = (options.actions || [])
       .map((action, i) => {
         const actionUrl = `mailspring://notification-action?${baseParams}&actionIndex=${i}`;
-        return `    <action content="${this.escapeXml(action.text)}" arguments="${this.escapeXml(actionUrl)}" activationType="protocol"/>`;
+        return `    <action content="${this.escapeXml(action.text)}" arguments="${this.escapeXml(
+          actionUrl
+        )}" activationType="protocol"/>`;
       })
       .join('\n');
 
-    // Build reply input + send button if reply is enabled
-    // Windows toast supports inline reply with protocol activation by using hint-inputId
-    // The input value is appended to the protocol URL when the user clicks Send
-    const replyUrl = `mailspring://notification-reply?${baseParams}&response=`;
-    const replyXml = options.canReply
-      ? `    <input id="replyText" type="text" placeHolderContent="${this.escapeXml(options.replyPlaceholder || 'Type a reply...')}"/>
-    <action content="Send" arguments="${this.escapeXml(replyUrl)}" activationType="protocol" hint-inputId="replyText"/>`
-      : '';
-
-    // Combine actions - reply input first (if enabled), then action buttons
-    const actionsContent = [replyXml, actionButtons].filter(Boolean).join('\n');
     const actionsXml = actionsContent ? `  <actions>\n${actionsContent}\n  </actions>` : '';
 
     // Build the complete toast XML
@@ -270,12 +260,18 @@ class NativeNotifications {
     // - group attribute enables notification stacking per thread
     // - activationType="protocol" allows handling when app is closed
     const clickUrl = `mailspring://notification-click?${baseParams}`;
-    return `<toast launch="${this.escapeXml(clickUrl)}" activationType="protocol" group="thread-${options.threadId || 'default'}">
+    return `<toast launch="${this.escapeXml(
+      clickUrl
+    )}" activationType="protocol" group="thread-${options.threadId || 'default'}">
   <visual>
     <binding template="ToastGeneric">
       <text hint-maxLines="1">${this.escapeXml(options.title)}</text>
       ${options.subtitle ? `<text>${this.escapeXml(options.subtitle)}</text>` : ''}
-      ${options.body ? `<text hint-style="captionSubtle">${this.escapeXml(options.body)}</text>` : ''}
+      ${
+        options.body
+          ? `<text hint-style="captionSubtle">${this.escapeXml(options.body)}</text>`
+          : ''
+      }
     </binding>
   </visual>
 ${actionsXml}

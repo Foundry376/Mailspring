@@ -23,7 +23,10 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
-import { registerNotificationIPCHandlers } from './notification-ipc';
+import {
+  handleWindowsToastXMLProtocolAction,
+  registerNotificationIPCHandlers,
+} from './notification-ipc';
 
 let clipboard = null;
 
@@ -838,37 +841,8 @@ export default class Application extends EventEmitter {
       // Handle notification action URLs from Windows toast notifications
       // These URLs are triggered when users click buttons on Windows toast notifications
       // since Windows toast XML with activationType="background" doesn't work reliably with Electron
-      const windowsNotifEventArgs = {
-        id: parts.query.id as string,
-        threadId: parts.query.threadId as string,
-        messageId: parts.query.messageId as string,
-      };
-
-      if (parts.host === 'notification-click') {
-        // Main notification body was clicked - show window and focus thread
-        this.windowManager.sendToAllWindows('notification:clicked', {}, windowsNotifEventArgs);
-      } else if (parts.host === 'notification-action') {
-        // Action button was clicked (Mark as Read, Archive, etc.)
-        const actionIndex = parseInt(parts.query.actionIndex as string, 10);
-        this.windowManager.sendToAllWindows(
-          'notification:action',
-          {},
-          { ...windowsNotifEventArgs, actionIndex }
-        );
-      } else if (parts.host === 'notification-reply') {
-        // Inline reply from Windows toast notification
-        // The response text is appended to the URL by Windows when using hint-inputId
-        const reply = parts.query.response as string;
-        if (reply && reply.trim()) {
-          this.windowManager.sendToAllWindows(
-            'notification:replied',
-            {},
-            { ...windowsNotifEventArgs, reply }
-          );
-        } else {
-          // No reply text - just open the thread for composing
-          this.windowManager.sendToAllWindows('notification:clicked', {}, windowsNotifEventArgs);
-        }
+      if (parts.host.startsWith('notification-')) {
+        handleWindowsToastXMLProtocolAction(parts);
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else {
