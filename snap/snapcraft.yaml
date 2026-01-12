@@ -26,6 +26,10 @@ parts:
     parse-info: [usr/share/appdata/mailspring.appdata.xml]
     stage-packages:
       - libxkbfile1
+      - libsasl2-2
+      - libssl3
+      - libcurl4
+      - libtidy5deb1
     stage:
       - -usr/lib/*/libsecret-*
 
