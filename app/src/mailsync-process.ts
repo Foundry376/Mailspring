@@ -152,6 +152,7 @@ export class MailsyncProcess extends EventEmitter {
 
   _spawnProcess(mode) {
     const env = {
+      ...process.env,
       CONFIG_DIR_PATH: this.configDirPath,
       GMAIL_CLIENT_ID: GMAIL_CLIENT_ID,
       GMAIL_CLIENT_SECRET: GMAIL_CLIENT_SECRET,
