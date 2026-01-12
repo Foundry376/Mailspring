@@ -224,20 +224,20 @@ module.exports = grunt => {
             platform: 'darwin',
             version: '4.2.2',
             hardenedRuntime: true,
-            entitlements: path.resolve(
-              grunt.config('appDir'),
-              'build',
-              'resources',
-              'mac',
-              'entitlements.plist'
-            ),
-            'entitlements-inherit': path.resolve(
-              grunt.config('appDir'),
-              'build',
-              'resources',
-              'mac',
-              'entitlements.inherit.plist'
-            ),
+            optionsForFile: filePath => {
+              // Here, we keep it simple and return a single entitlements.plist file.
+              // You can use this callback to map different sets of entitlements
+              // to specific files in your packaged app.
+              return {
+                entitlements: path.resolve(
+                  grunt.config('appDir'),
+                  'build',
+                  'resources',
+                  'mac',
+                  'entitlements.plist'
+                ),
+              };
+            },
           }
         : undefined,
       osxNotarize: process.env.APPLE_ID
