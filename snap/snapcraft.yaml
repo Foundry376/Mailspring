@@ -30,6 +30,7 @@ parts:
       - libssl3
       - libcurl4
       - libtidy5deb1
+      - ca-certificates
     stage:
       - -usr/lib/*/libsecret-*
 
@@ -57,6 +58,9 @@ apps:
       # Correct the TMPDIR path for Chromium Framework/Electron to
       # ensure libappindicator has readable resources.
       TMPDIR: $XDG_RUNTIME_DIR
+      # Point OpenSSL/libcurl to the bundled CA certificates for SSL verification
+      SSL_CERT_FILE: $SNAP/etc/ssl/certs/ca-certificates.crt
+      SSL_CERT_DIR: $SNAP/etc/ssl/certs
     plugs:
       - avahi-observe
       - browser-support
