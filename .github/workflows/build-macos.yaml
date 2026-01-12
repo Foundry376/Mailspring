@@ -42,6 +42,13 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_CODESIGN_P12 }}
           p12-password: ${{ secrets.APPLE_CODESIGN_KEY_PASSWORD }}
 
+      - name: Setup Provisioning Profile
+        run: |
+          echo "APPLE_PROVISIONING_PROFILE_PATH=${{ runner.temp }}/Mailspring.provisionprofile" >> $GITHUB_ENV
+          echo $APPLE_PROVISIONING_PROFILE_B64 | base64 --decode > "${{ runner.temp }}/Mailspring.provisionprofile"
+        env:
+          APPLE_PROVISIONING_PROFILE_B64: ${{ secrets.APPLE_PROVISIONING_PROFILE_B64 }}
+
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -57,6 +64,7 @@ jobs:
         env:
           APPLE_ID_ASC_PROVIDER: ${{ secrets.APPLE_ID_ASC_PROVIDER }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_PATH: ${{ env.APPLE_PROVISIONING_PROFILE_PATH }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
 
