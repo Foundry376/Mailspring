@@ -7,7 +7,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
+import { TabGroupContext, TabGroupContextType } from './tab-group-context';
 
 let compositionActive = false;
 document.addEventListener('compositionstart', () => {
@@ -18,7 +18,10 @@ document.addEventListener('compositionend', () => {
 });
 
 export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivElement>> {
-  static childContextTypes = { parentTabGroup: PropTypes.object };
+  // Stable context value object to avoid unnecessary re-renders of consumers
+  private _contextValue: TabGroupContextType = {
+    shiftFocus: this.shiftFocus,
+  };
 
   _onKeyDown = event => {
     if (event.key !== 'Tab' || event.defaultPrevented) return;
@@ -67,15 +70,13 @@ export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivEleme
     );
   };
 
-  getChildContext() {
-    return { parentTabGroup: this };
-  }
-
   render() {
     return (
-      <div {...this.props} onKeyDown={this._onKeyDown}>
-        {this.props.children}
-      </div>
+      <TabGroupContext.Provider value={this._contextValue}>
+        <div {...this.props} onKeyDown={this._onKeyDown}>
+          {this.props.children}
+        </div>
+      </TabGroupContext.Provider>
     );
   }
 }
