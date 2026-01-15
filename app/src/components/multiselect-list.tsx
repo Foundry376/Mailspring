@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import classNames from 'classnames';
 import { ListTabular, ListTabularProps, ListTabularColumn } from './list-tabular';
 import { Spinner } from './spinner';
@@ -13,6 +12,7 @@ import { ListDataSource } from './list-data-source';
 import { CommandCallback } from '../registries/command-registry';
 
 export interface MultiselectListProps extends ListTabularProps {
+  focused?: any;
   focusedId?: string;
   keyboardCursorId?: string;
   dataSource?: ListDataSource;
@@ -29,14 +29,13 @@ export interface MultiselectListProps extends ListTabularProps {
 }
 
 type MultiselectListState = {
-  handler: any;
-  columns: ListTabularColumn[];
   computedColumns: ListTabularColumn[];
   layoutMode: string;
-  _checkmarkColumn?: ListTabularColumn;
-  _prevDataSource?: ListDataSource;
-  _prevColumns?: ListTabularColumn[];
+  // Private state for memoization
+  _checkmarkColumn: ListTabularColumn;
+  _lastColumns: ListTabularColumn[];
 };
+
 /*
 Public: MultiselectList wraps {ListTabular} and makes it easy to present a
 {ListDataSource} with selection support. It adds a checkbox column to the columns
@@ -60,39 +59,22 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
     onComponentDidUpdate: PropTypes.func,
   };
 
-  unsubscribers: (() => void)[];
-  itemPropsProvider: (item: any, idx: number) => { [key: string]: any };
-  refs: {
-    list: ListTabular;
-  };
+  private listRef = React.createRef<ListTabular>();
+  private unsubscribers: (() => void)[] = [];
 
   constructor(props) {
     super(props);
-    const checkmarkColumn = this._getCheckmarkColumn();
+    const checkmarkColumn = this._createCheckmarkColumn();
     const layoutMode = WorkspaceStore.layoutMode();
 
     // Compute initial columns
-    const computedColumns = [...props.columns];
-    if (layoutMode === 'list') {
-      computedColumns.splice(0, 0, checkmarkColumn);
-    }
-
-    // Create initial handler
-    let handler;
-    if (layoutMode === 'list') {
-      handler = new MultiselectListInteractionHandler(props);
-    } else {
-      handler = new MultiselectSplitInteractionHandler(props);
-    }
+    const computedColumns = this._computeColumns(props.columns, layoutMode, checkmarkColumn);
 
     this.state = {
-      handler,
-      columns: props.columns,
       computedColumns,
       layoutMode,
       _checkmarkColumn: checkmarkColumn,
-      _prevDataSource: props.dataSource,
-      _prevColumns: props.columns,
+      _lastColumns: props.columns,
     };
   }
 
@@ -100,97 +82,91 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
     props: MultiselectListProps,
     state: MultiselectListState
   ): Partial<MultiselectListState> | null {
-    // Guard: only run after component is fully initialized
-    if (!state || !state._checkmarkColumn) {
+    if (!state?._checkmarkColumn) {
       return null;
     }
 
     const layoutMode = WorkspaceStore.layoutMode();
-
-    // Check what changed
-    const dataSourceChanged = props.dataSource !== state._prevDataSource;
-    const columnsChanged = props.columns !== state._prevColumns;
+    const columnsChanged = props.columns !== state._lastColumns;
     const layoutModeChanged = layoutMode !== state.layoutMode;
 
-    // Only update if something relevant changed
-    if (dataSourceChanged || columnsChanged || layoutModeChanged) {
-      // Optimization: only recompute columns if columns or layout mode changed
-      // This avoids unnecessary re-renders of ListTabular
-      let computedColumns;
-      if (columnsChanged || layoutModeChanged) {
-        computedColumns = [...props.columns];
-        if (layoutMode === 'list') {
-          computedColumns.splice(0, 0, state._checkmarkColumn);
-        }
-      } else {
-        computedColumns = state.computedColumns;
-      }
-
-      // Always create a new handler when dataSource or layout mode changes
-      // The handler stores references to props.dataSource, so it must be recreated
-      let handler;
+    // Only recompute columns if columns or layout mode actually changed
+    if (columnsChanged || layoutModeChanged) {
+      const computedColumns = [...props.columns];
       if (layoutMode === 'list') {
-        handler = new MultiselectListInteractionHandler(props);
-      } else {
-        handler = new MultiselectSplitInteractionHandler(props);
+        computedColumns.splice(0, 0, state._checkmarkColumn);
       }
-
       return {
-        handler,
-        columns: props.columns,
         computedColumns,
         layoutMode,
-        _prevDataSource: props.dataSource,
-        _prevColumns: props.columns,
+        _lastColumns: props.columns,
       };
+    }
+
+    // Update layoutMode even if columns didn't change
+    if (layoutModeChanged) {
+      return { layoutMode };
     }
 
     return null;
   }
 
   componentDidMount() {
-    this.setupForProps(this.props);
+    this.unsubscribers = [WorkspaceStore.listen(this._onWorkspaceChange)];
   }
 
-  componentDidUpdate(prevProps: MultiselectListProps, prevState: MultiselectListState) {
-    // Note: dataSource/columns changes are now handled by getDerivedStateFromProps
-    // before render, so no state updates needed here
-
+  componentDidUpdate(prevProps: MultiselectListProps) {
     if (this.props.onComponentDidUpdate) {
       this.props.onComponentDidUpdate();
     }
 
+    // Scroll to focused/cursor item when it changes
     if (
       prevProps.focusedId !== this.props.focusedId ||
       prevProps.keyboardCursorId !== this.props.keyboardCursorId
     ) {
-      const el = ReactDOM.findDOMNode(this) as HTMLElement;
-      const item = el.querySelector('.focused') || el.querySelector('.keyboard-cursor');
-      if (!(item instanceof Node)) {
-        return;
+      const list = this.listRef.current;
+      if (list) {
+        const el = ReactDOM.findDOMNode(list) as HTMLElement;
+        const item = el?.querySelector('.focused') || el?.querySelector('.keyboard-cursor');
+        if (item instanceof HTMLElement) {
+          list.scrollTo(item);
+        }
       }
-      this.refs.list.scrollTo(item);
     }
   }
 
   componentWillUnmount() {
-    this.teardownForProps();
+    this.unsubscribers.forEach(unsub => unsub());
   }
 
-  teardownForProps() {
-    if (!this.unsubscribers) {
-      return;
+  /**
+   * Creates the appropriate interaction handler for the current layout mode.
+   * Called fresh each time to ensure handler always has current props.
+   */
+  private _getHandler() {
+    if (this.state.layoutMode === 'list') {
+      return new MultiselectListInteractionHandler(this.props);
+    } else {
+      return new MultiselectSplitInteractionHandler(this.props);
     }
-    this.unsubscribers.map(unsubscribe => unsubscribe());
   }
 
-  setupForProps(props) {
-    this.unsubscribers = [];
-    this.unsubscribers.push(WorkspaceStore.listen(this._onChange));
+  private _computeColumns(
+    columns: ListTabularColumn[],
+    layoutMode: string,
+    checkmarkColumn: ListTabularColumn
+  ): ListTabularColumn[] {
+    const computed = [...columns];
+    if (layoutMode === 'list') {
+      computed.splice(0, 0, checkmarkColumn);
+    }
+    return computed;
   }
 
-  _globalKeymapHandlers() {
-    return Object.assign({}, this.props.keymapHandlers, {
+  private _globalKeymapHandlers() {
+    return {
+      ...this.props.keymapHandlers,
       'core:focus-item': () => this._onEnter(),
       'core:select-item': () => this._onSelectKeyboardItem(),
       'core:next-item': () => this._onShift(1),
@@ -202,60 +178,52 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
       'core:pop-sheet': () => this._onDeselect(),
       'multiselect-list:select-all': () => this._onSelectAll(),
       'multiselect-list:deselect-all': () => this._onDeselect(),
-    });
+    };
+  }
+
+  private _getItemPropsProvider() {
+    return (item: any, idx: number) => {
+      const handler = this._getHandler();
+      const selectedIds = this.props.dataSource.selection.ids();
+      const selected = selectedIds.includes(item.id);
+
+      let nextSelected = false;
+      if (!selected) {
+        const next = this.props.dataSource.get(idx + 1);
+        nextSelected = next ? selectedIds.includes(next.id) : false;
+      }
+
+      const props = this.props.itemPropsProvider(item, idx);
+      props.className =
+        (props.className || '') +
+        ' ' +
+        classNames({
+          selected,
+          'next-is-selected': !selected && nextSelected,
+          focused: handler.shouldShowFocus() && item.id === this.props.focusedId,
+          'keyboard-cursor':
+            handler.shouldShowKeyboardCursor() && item.id === this.props.keyboardCursorId,
+        });
+      props['data-item-id'] = item.id;
+      return props;
+    };
   }
 
   render() {
-    // IMPORTANT: DO NOT pass inline functions as props. _.isEqual thinks these
-    // are "different", and will re-render everything. Instead, declare them with ?=,
-    // pass a reference. (Alternatively, ignore these in children's shouldComponentUpdate.)
-    //
-    // BAD:   onSelect={ (item) -> Actions.focusThread(item) }
-    // GOOD:  onSelect={this._onSelectItem}
-    //
     const otherProps = Utils.fastOmit(this.props, Object.keys(MultiselectList.propTypes));
-
     let { className } = this.props;
-    if (this.props.dataSource && this.state.handler) {
-      className += ` ${this.state.handler.cssClass()}`;
 
-      if (this.itemPropsProvider == null) {
-        this.itemPropsProvider = (item, idx) => {
-          let nextSelected;
-          const selectedIds = this.props.dataSource.selection.ids();
-          const selected = selectedIds.includes(item.id);
-          if (!selected) {
-            const next = this.props.dataSource.get(idx + 1);
-            const nextId = next && next.id;
-            nextSelected = selectedIds.includes(nextId);
-          }
-
-          const props = this.props.itemPropsProvider(item, idx);
-          if (props.className == null) {
-            props.className = '';
-          }
-          props.className +=
-            ' ' +
-            classNames({
-              selected: selected,
-              'next-is-selected': !selected && nextSelected,
-              focused: this.state.handler.shouldShowFocus() && item.id === this.props.focusedId,
-              'keyboard-cursor':
-                this.state.handler.shouldShowKeyboardCursor() &&
-                item.id === this.props.keyboardCursorId,
-            });
-          props['data-item-id'] = item.id;
-          return props;
-        };
-      }
+    if (this.props.dataSource) {
+      const handler = this._getHandler();
+      className += ` ${handler.cssClass()}`;
 
       return (
         <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()} className={className}>
           <ListTabular
-            ref="list"
+            ref={this.listRef}
             columns={this.state.computedColumns}
             dataSource={this.props.dataSource}
-            itemPropsProvider={this.itemPropsProvider}
+            itemPropsProvider={this._getItemPropsProvider()}
             onSelect={this._onClickItem}
             onComponentDidUpdate={this.props.onComponentDidUpdate}
             {...otherProps}
@@ -272,96 +240,83 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
     }
   }
 
-  _onDragStart = event => {
+  // Event Handlers
+
+  private _onDragStart = (event: React.DragEvent) => {
     if (!this.props.onDragItems) {
       event.preventDefault();
-      return null;
+      return;
     }
 
     const items = this.itemsForMouseEvent(event);
-    if (!items) {
+    if (!items || items.length === 0) {
       event.preventDefault();
-      return null;
+      return;
     }
     this.props.onDragItems(event, items);
   };
 
-  _onClickItem = (item, event) => {
-    if (!this.state.handler) {
-      return;
-    }
+  private _onClickItem = (item: any, event: React.MouseEvent) => {
+    const handler = this._getHandler();
     if (event.metaKey || event.ctrlKey) {
-      this.state.handler.onMetaClick(item);
+      handler.onMetaClick(item);
     } else if (event.shiftKey) {
-      this.state.handler.onShiftClick(item);
+      handler.onShiftClick(item);
     } else {
-      this.state.handler.onClick(item);
+      handler.onClick(item);
     }
   };
 
-  _onEnter = () => {
-    if (!this.state.handler) {
-      return;
-    }
-    this.state.handler.onEnter();
+  private _onEnter = () => {
+    this._getHandler().onEnter();
   };
 
-  _onSelectKeyboardItem = () => {
-    if (!this.state.handler) {
-      return;
-    }
-    this.state.handler.onSelectKeyboardItem();
+  private _onSelectKeyboardItem = () => {
+    this._getHandler().onSelectKeyboardItem();
   };
 
-  _onSelectAll = () => {
-    if (!this.state.handler) {
-      return;
-    }
+  private _onSelectAll = () => {
     const items = this.props.dataSource.itemsCurrentlyInViewMatching(() => true);
-    this.state.handler.onSelect(items);
+    this._getHandler().onSelect(items);
   };
 
-  _onDeselect = () => {
-    if (!this._visible() || !this.state.handler) {
+  private _onDeselect = () => {
+    if (!this._isVisible()) {
       return;
     }
-    this.state.handler.onDeselect();
+    this._getHandler().onDeselect();
   };
 
-  _onShift = (delta, options = {}) => {
-    if (!this.state.handler) {
-      return;
-    }
-    this.state.handler.onShift(delta, options);
+  private _onShift = (delta: number, options: { select?: boolean } = {}) => {
+    this._getHandler().onShift(delta, options);
   };
 
-  _onScrollByPage = delta => {
-    this.refs.list.scrollByPage(delta);
+  private _onScrollByPage = (delta: number) => {
+    this.listRef.current?.scrollByPage(delta);
   };
 
-  _onChange = () => {
-    // Trigger a re-render, which will call getDerivedStateFromProps
-    // to check for layout mode changes from WorkspaceStore
-    this.setState({});
+  private _onWorkspaceChange = () => {
+    // Trigger re-render to check for layout mode changes
+    this.forceUpdate();
   };
 
-  _visible = () => {
+  private _isVisible = () => {
     if (this.state.layoutMode) {
       return WorkspaceStore.topSheet().root;
-    } else {
-      return true;
     }
+    return true;
   };
 
-  _getCheckmarkColumn = () => {
+  private _createCheckmarkColumn(): ListTabularColumn {
     return new ListTabularColumn({
       name: 'Check',
-      resolver: item => {
-        const toggle = event => {
+      resolver: (item: any) => {
+        const toggle = (event: React.MouseEvent) => {
+          const handler = this._getHandler();
           if (event.shiftKey) {
-            this.state.handler.onShiftClick(item);
+            handler.onShiftClick(item);
           } else {
-            this.state.handler.onMetaClick(item);
+            handler.onMetaClick(item);
           }
           event.stopPropagation();
         };
@@ -372,34 +327,32 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
         );
       },
     });
-  };
+  }
 
   // Public Methods
 
   handler() {
-    return this.state.handler;
+    return this._getHandler();
   }
 
-  itemIdAtPoint(x, y) {
-    const item = document.elementFromPoint(x, y).closest('[data-item-id]') as HTMLElement;
-    if (!item) {
-      return null;
-    }
-    return item.dataset.itemId;
+  itemIdAtPoint(x: number, y: number): string | null {
+    const item = document.elementFromPoint(x, y)?.closest('[data-item-id]') as HTMLElement;
+    return item?.dataset.itemId || null;
   }
 
-  itemsForMouseEvent(event) {
-    const { dataSource, onDragItems } = this.props;
-
+  itemsForMouseEvent(event: { clientX: number; clientY: number }) {
+    const { dataSource } = this.props;
     const itemId = this.itemIdAtPoint(event.clientX, event.clientY);
-    if (!itemId) return [];
 
-    if (itemId && dataSource.selection.ids().includes(itemId)) {
-      return dataSource.selection.items();
-    } else {
-      const item = dataSource.getById(itemId);
-      if (!item) return [];
-      return [item];
+    if (!itemId) {
+      return [];
     }
+
+    if (dataSource.selection.ids().includes(itemId)) {
+      return dataSource.selection.items();
+    }
+
+    const item = dataSource.getById(itemId);
+    return item ? [item] : [];
   }
 }
