@@ -23,7 +23,6 @@ module.exports = grunt => {
     rootDir: path.resolve('./'),
     buildDir: buildDir,
     appDir: appDir,
-    classDocsOutputDir: path.join(buildDir, 'docs_src', 'classes'),
     outputDir: path.join(appDir, 'dist'),
     appJSON: grunt.file.readJSON(path.join(appDir, 'package.json')),
     'source:es6': [
@@ -45,8 +44,6 @@ module.exports = grunt => {
 
   grunt.loadTasks(tasksDir);
   grunt.file.setBase(appDir);
-
-  grunt.registerTask('docs', ['docs-build', 'docs-render']);
 
   grunt.registerTask('lint', ['eslint']);
 
