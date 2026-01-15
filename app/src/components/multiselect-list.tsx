@@ -153,8 +153,14 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
   }
 
   componentDidUpdate(prevProps: MultiselectListProps, prevState: MultiselectListState) {
-    // Note: dataSource/columns changes are now handled by getDerivedStateFromProps
-    // before render, so no state updates needed here
+    // Keep handler.props in sync with current props.
+    // Critical: The handler stores a reference to props in its constructor, but
+    // getDerivedStateFromProps only recreates the handler when dataSource/columns/layoutMode
+    // change. When keyboardCursorId or focusedId change (every keyboard navigation),
+    // the handler must have the updated props to navigate correctly.
+    if (this.state.handler && this.state.handler.props !== this.props) {
+      this.state.handler.props = this.props;
+    }
 
     if (this.props.onComponentDidUpdate) {
       this.props.onComponentDidUpdate();
