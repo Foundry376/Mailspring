@@ -327,6 +327,42 @@ const start = () => {
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch('js-flags', '--harmony');
 
+  // Linux Wayland support configuration
+  // Electron 39+ supports Wayland via the Ozone platform layer. We configure it here
+  // to provide proper Wayland support on modern Linux distributions (Ubuntu 24.04+).
+  // See: https://www.electronjs.org/docs/latest/api/command-line-switches#--ozone-platform-hintplatform
+  if (process.platform === 'linux') {
+    const isWayland =
+      process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === 'wayland';
+
+    // Use ozone-platform-hint=auto to let Electron/Chromium auto-detect the best platform
+    // This allows proper Wayland support while falling back to X11 when needed
+    if (!process.argv.some(arg => arg.includes('ozone-platform'))) {
+      // Only set if user hasn't explicitly specified a platform via command line
+      app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
+    }
+
+    if (isWayland) {
+      // Enable Wayland-specific features for better rendering and window decorations
+      // WaylandWindowDecorations: Use server-side decorations when available
+      // UseOzonePlatform: Ensure Ozone is used (default in Electron 39+)
+      app.commandLine.appendSwitch(
+        'enable-features',
+        'UseOzonePlatform,WaylandWindowDecorations'
+      );
+
+      // Use EGL for OpenGL rendering on Wayland for better GPU acceleration
+      // This helps prevent the blank window and high CPU issues
+      app.commandLine.appendSwitch('use-gl', 'egl');
+
+      // Enable GPU rasterization for better performance on Wayland
+      app.commandLine.appendSwitch('enable-gpu-rasterization');
+
+      // Enable native Wayland IME support for better input method handling
+      app.commandLine.appendSwitch('enable-wayland-ime');
+    }
+  }
+
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);
   const configDirPath = setupConfigDir(options);

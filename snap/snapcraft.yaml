@@ -58,6 +58,9 @@ apps:
       # Correct the TMPDIR path for Chromium Framework/Electron to
       # ensure libappindicator has readable resources.
       TMPDIR: $XDG_RUNTIME_DIR
+      # Enable Wayland support via Ozone platform layer
+      # This allows Electron to auto-detect Wayland vs X11 at runtime
+      ELECTRON_OZONE_PLATFORM_HINT: auto
     plugs:
       - avahi-observe
       - browser-support
