@@ -106,6 +106,54 @@ When `--ozone-platform=x11` is used:
 - Check if it's related to rendering loops or event handling
 - May be XWayland compatibility layer overhead
 
+**Research from VSCode/Electron community suggests these potential causes and fixes:**
+
+#### Cause A: Transparent BrowserWindows
+According to [Electron issue #11908](https://github.com/electron/electron/issues/11908), transparent BrowserWindows cause high CPU usage on Linux. One user confirmed: "It is definitely related to browser window Transparency. With transparency off, it idles down to 0% cpu, otherwise it is always 8-15%."
+
+**Fix**: Check if any BrowserWindows in Mailspring have `transparent: true` and consider disabling it on Linux/X11:
+```javascript
+new BrowserWindow({
+  transparent: process.platform !== 'linux', // Disable on Linux
+  // ...
+});
+```
+
+#### Cause B: GPU Acceleration Issues
+Per [Arch Linux forums](https://bbs.archlinux.org/viewtopic.php?id=281207), GPU acceleration can cause CPU spikes on Linux, especially with NVIDIA drivers or when running under XWayland.
+
+**Fix**: Try disabling hardware acceleration when running in X11/XWayland mode:
+```javascript
+// In main process, before app.ready
+if (process.platform === 'linux') {
+  app.disableHardwareAcceleration();
+  // Or use command line switch:
+  app.commandLine.appendSwitch('disable-gpu');
+}
+```
+
+#### Cause C: XWayland Performance Regression (Kernel 6.10+)
+Per [Arch Linux forums](https://bbs.archlinux.org/viewtopic.php?id=298188), there's a known XWayland performance regression in kernel 6.10+ where X11 apps under Wayland cause XWayland to spike to 100% CPU on mouse-over events. This is a system-level issue, not an app issue.
+
+**User workaround**: Update XWayland or use native Wayland mode if possible.
+
+#### Recommended Approach for Mailspring
+Instead of forcing `--ozone-platform=x11`, try enabling native Wayland with proper flags:
+```bash
+mailspring --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform-hint=auto
+```
+
+Or set these flags programmatically in the app:
+```javascript
+// Before app.ready
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform,WaylandWindowDecorations');
+  app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
+}
+```
+
+**Note**: As of Electron 38, the `ELECTRON_OZONE_PLATFORM_HINT` environment variable no longer works - flags must be passed via command line.
+
 ### 4. Test on various Wayland compositors
 - GNOME (Mutter)
 - KDE Plasma (KWin)
