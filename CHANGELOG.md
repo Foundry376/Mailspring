@@ -1,6 +1,16 @@
 # Mailspring Changelog
 
-## 1.17.0 (1/12/2025)
+## 1.17.1 (1/15/2025)
+
+Bug Fixes:
+
+- Keyboard navigation in Mailspring's thread list has been fixed!
+
+- On Fedora, the libtidy dependency is more broadly specified to support both soname versions (libtidy.so.5 or libtidy.so.58)
+
+We're aware of issues with Wayland support for some Linux users and are investigating how to handle these scenarios better, since Wayland became the default for Electron apps in September.
+
+## 1.17.0 (1/14/2025)
 
 This is Mailspring's biggest update in a while!
 
