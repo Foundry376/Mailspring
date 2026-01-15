@@ -8,7 +8,7 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 
 %ifarch i386 i486 i586 i686
 Recommends: lsb-core-noarch
-Requires: libXss.so.1, libsecret-1.so.0, libtidy.so.5, ca-certificates
+Requires: libXss.so.1, libsecret-1.so.0, (libtidy.so.5 or libtidy.so.58), ca-certificates
 %if 0%{?rhel} >= 8
 Requires: libappindicator-gtk3
 %else
@@ -16,7 +16,7 @@ Requires: libappindicator
 %endif
 %else
 Recommends: lsb-core-noarch
-Requires: libXss.so.1()(64bit), libsecret-1.so.0()(64bit), libtidy.so.5()(64bit), ca-certificates
+Requires: libXss.so.1()(64bit), libsecret-1.so.0()(64bit), (libtidy.so.5()(64bit) or libtidy.so.58()(64bit)), ca-certificates
 %if 0%{?rhel} >= 8
 Requires: libappindicator-gtk3
 %else
