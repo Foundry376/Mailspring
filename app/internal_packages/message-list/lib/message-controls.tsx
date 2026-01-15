@@ -9,8 +9,10 @@ import {
   GetMessageRFC2822Task,
   Thread,
   Message,
+  RegExpUtils,
 } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
+import { dialog } from '@electron/remote';
 
 interface MessageControlsProps {
   thread: Thread;
@@ -47,13 +49,24 @@ export default class MessageControls extends React.Component<MessageControlsProp
       select: this._onShowOriginal,
     };
 
+    const downloadEmail = {
+      name: localized('Download email'),
+      image: 'ic-dropdown-whitespace.png',
+      // TODO: Image isn't working - in this folders assets folder though
+      // image: 'mail-download-icon@2x.png',
+      select: this._onDownloadEmail,
+    };
+
     if (!this.props.message.canReplyAll()) {
-      return [reply, forward, showOriginal];
+      return [reply, forward, showOriginal, downloadEmail];
     }
     const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
-    return defaultReplyType === 'reply-all'
-      ? [replyAll, reply, forward, showOriginal]
-      : [reply, replyAll, forward, showOriginal];
+
+    return (defaultReplyType === 'reply-all' ? [replyAll, reply] : [reply, replyAll]).concat(
+      forward,
+      showOriginal,
+      downloadEmail
+    );
   }
 
   _dropdownMenu(items) {
@@ -121,7 +134,10 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
   _onShowOriginal = async () => {
     const { message } = this.props;
-    const filepath = require('path').join(require('@electron/remote').app.getPath('temp'), message.id);
+    const filepath = require('path').join(
+      require('@electron/remote').app.getPath('temp'),
+      message.id
+    );
     const task = new GetMessageRFC2822Task({
       messageId: message.id,
       accountId: message.accountId,
@@ -140,6 +156,30 @@ export default class MessageControls extends React.Component<MessageControlsProp
       },
     });
     win.loadURL(`file://${filepath}`);
+  };
+
+  _onDownloadEmail = async () => {
+    const { message } = this.props;
+
+    const filepath = await dialog.showSaveDialog({
+      filters: [{ name: 'Email', extensions: ['eml'] }],
+      defaultPath: `${message.subject} - ${message.date.toLocaleString(
+        'sv-SE'
+      )} - ${message.id.substring(0, 10)}.eml`
+        .replace(/:/g, ';')
+        .replace(RegExpUtils.illegalPathCharacters(), '-')
+        .replace(RegExpUtils.unicodeControlCharacters(), '-'),
+    });
+
+    if (!filepath.canceled && filepath.filePath) {
+      Actions.queueTask(
+        new GetMessageRFC2822Task({
+          messageId: message.id,
+          accountId: message.accountId,
+          filepath: filepath.filePath,
+        })
+      );
+    }
   };
 
   _onLogData = () => {

@@ -191,7 +191,11 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
   };
 
   _shouldShowContextMenu = () => {
-    return this.props.item.onDelete != null || this.props.item.onEdited != null;
+    return (
+      this.props.item.onDelete != null ||
+      this.props.item.onEdited != null ||
+      this.props.item.onExport != null
+    );
   };
 
   _shouldAcceptDrop = event => {
@@ -244,6 +248,10 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     }
   };
 
+  _onExport = () => {
+    this._runCallback('onExport');
+  };
+
   _onInputFocus = event => {
     const input = event.target;
     input.selectionStart = input.selectionEnd = input.value.length;
@@ -273,7 +281,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     if (this.props.item.onEdited) {
       menu.append(
         new MenuItem({
-          label: `${localized(`Rename`)} ${contextMenuLabel}`,
+          label: `${localized('Rename')} ${contextMenuLabel}`,
           click: this._onEdit,
         })
       );
@@ -282,11 +290,19 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     if (this.props.item.onDelete) {
       menu.append(
         new MenuItem({
-          label: `${localized(`Delete`)} ${contextMenuLabel}`,
+          label: `${localized('Delete')} ${contextMenuLabel}`,
           click: this._onDelete,
         })
       );
     }
+
+    menu.append(
+      new MenuItem({
+        label: localized('Export the %@ folder', item.name ?? ''),
+        click: this._onExport,
+      })
+    );
+
     menu.popup({});
   };
 
