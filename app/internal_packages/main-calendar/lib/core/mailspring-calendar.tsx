@@ -19,6 +19,7 @@ import {
   KeyCommandsRegion,
   MiniMonthView,
 } from 'mailspring-component-kit';
+import { DayView } from './day-view';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { CalendarSourceList } from './calendar-source-list';
@@ -44,6 +45,7 @@ import {
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 const VIEWS = {
+  [CalendarView.DAY]: DayView,
   [CalendarView.WEEK]: WeekView,
   [CalendarView.MONTH]: MonthView,
 };
@@ -101,6 +103,7 @@ export class MailspringCalendar extends React.Component<
 > {
   static displayName = 'MailspringCalendar';
 
+  static DayView = DayView;
   static WeekView = WeekView;
 
   static containerStyles = {
@@ -369,12 +372,13 @@ export class MailspringCalendar extends React.Component<
     }
 
     // Calculate time delta based on view and direction
-    // Week view: up/down changes time, left/right changes day
+    // Day/Week view: up/down changes time, left/right changes day
     // Month view: left/right changes day
-    const isWeekView = this.state.view === CalendarView.WEEK;
+    const isDayOrWeekView =
+      this.state.view === CalendarView.DAY || this.state.view === CalendarView.WEEK;
     let timeDelta = 0;
 
-    if (isWeekView) {
+    if (isDayOrWeekView) {
       if (direction === 'up') {
         timeDelta = -900; // 15 minutes earlier
       } else if (direction === 'down') {
