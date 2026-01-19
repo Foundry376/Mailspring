@@ -3,6 +3,7 @@ import { parseICSString } from './calendar-utils';
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
 type ICALTime = InstanceType<ICAL['Time']>;
+type ICALTimezone = InstanceType<ICAL['Timezone']>;
 
 let ICAL: ICAL = null;
 
@@ -24,6 +25,7 @@ export interface CreateEventOptions {
   start: Date;
   end: Date;
   isAllDay?: boolean;
+  timezone?: string; // IANA timezone identifier (e.g., 'America/New_York')
   organizer?: { email: string; name?: string };
   attendees?: Array<{ email: string; name?: string; role?: string }>;
   recurrenceRule?: string;
@@ -70,18 +72,19 @@ export function generateUID(): string {
 
 /**
  * Formats a Date as an ICS date-only string (YYYYMMDD)
+ * Uses LOCAL date components since all-day events represent a day in the user's timezone
  */
 function formatDateOnly(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${year}${month}${day}`;
 }
 
 /**
- * Formats a Date as an ICS datetime string (YYYYMMDDTHHMMSSZ)
+ * Formats a Date as an ICS datetime string in UTC (YYYYMMDDTHHMMSSZ)
  */
-function formatDateTime(date: Date): string {
+function formatDateTimeUTC(date: Date): string {
   const year = date.getUTCFullYear();
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const day = String(date.getUTCDate()).padStart(2, '0');
@@ -92,21 +95,83 @@ function formatDateTime(date: Date): string {
 }
 
 /**
- * Creates an ICAL.Time from a Date, handling all-day vs timed events
+ * Creates an ICAL.Time for an all-day event (DATE type, no time component)
+ * Uses local date since all-day events represent a calendar day in user's timezone
  */
-function createICALTime(date: Date, isAllDay: boolean, ical: ICAL): ICALTime {
-  const time = ical.Time.fromJSDate(date, !isAllDay);
-  if (isAllDay) {
-    time.isDate = true;
-  }
+function createAllDayTime(date: Date, ical: ICAL): ICALTime {
+  const time = new ical.Time({
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    isDate: true,
+  });
   return time;
 }
 
 /**
+ * Creates an ICAL.Time from a Date, optionally preserving a specific timezone.
+ * For timed events, this properly handles timezone conversion.
+ *
+ * @param date - JavaScript Date (represents a moment in time)
+ * @param isAllDay - Whether this is an all-day event
+ * @param ical - The ICAL library reference
+ * @param preserveZone - Optional timezone to use (from original event)
+ */
+function createICALTime(
+  date: Date,
+  isAllDay: boolean,
+  ical: ICAL,
+  preserveZone?: ICALTimezone | null
+): ICALTime {
+  if (isAllDay) {
+    return createAllDayTime(date, ical);
+  }
+
+  // For timed events with a timezone to preserve
+  if (
+    preserveZone &&
+    preserveZone.tzid &&
+    preserveZone.tzid !== 'UTC' &&
+    preserveZone.tzid !== 'floating'
+  ) {
+    // Create the time in UTC first, then convert to the target timezone
+    // This ensures the moment in time is preserved correctly
+    const utcTime = ical.Time.fromJSDate(date, true); // true = use UTC
+
+    // Convert to target timezone
+    // Note: This adjusts the wall-clock time to show the same moment in the target zone
+    const zonedTime = utcTime.convertToZone(preserveZone);
+    return zonedTime;
+  }
+
+  // Default: create time in UTC (floating time)
+  return ical.Time.fromJSDate(date, true);
+}
+
+/**
+ * Validates timestamp options and throws if invalid
+ */
+function validateTimestamps(start: number, end: number): void {
+  if (typeof start !== 'number' || typeof end !== 'number') {
+    throw new Error('Invalid timestamps: start and end must be numbers');
+  }
+  if (start < 0 || end < 0) {
+    throw new Error('Invalid timestamps: must be positive');
+  }
+  if (end < start) {
+    throw new Error('Invalid timestamps: end time must be after or equal to start time');
+  }
+}
+
+/**
  * Creates a new ICS string for an event
+ *
+ * @param options - Event creation options including title, times, and optional timezone
+ * @returns A valid ICS string representing the event
  */
 export function createICSString(options: CreateEventOptions): string {
   const ical = getICAL();
+  const isAllDay = options.isAllDay ?? false;
 
   // Create VCALENDAR component
   const calendar = new ical.Component(['vcalendar', [], []]);
@@ -124,10 +189,21 @@ export function createICSString(options: CreateEventOptions): string {
   // Set summary (title)
   event.summary = options.summary;
 
-  // Set times
-  const isAllDay = options.isAllDay ?? false;
-  event.startDate = createICALTime(options.start, isAllDay, ical);
-  event.endDate = createICALTime(options.end, isAllDay, ical);
+  // Resolve timezone if specified (for timed events only)
+  let eventTimezone: ICALTimezone | null = null;
+  if (!isAllDay && options.timezone) {
+    try {
+      // Try to get the timezone from ICAL's built-in timezone service
+      eventTimezone = ical.TimezoneService.get(options.timezone);
+    } catch {
+      // If timezone lookup fails, we'll use UTC
+      console.warn(`Could not resolve timezone: ${options.timezone}, using UTC`);
+    }
+  }
+
+  // Set times with timezone support
+  event.startDate = createICALTime(options.start, isAllDay, ical, eventTimezone);
+  event.endDate = createICALTime(options.end, isAllDay, ical, eventTimezone);
 
   // Set optional properties
   if (options.description) {
@@ -173,13 +249,16 @@ export function createICSString(options: CreateEventOptions): string {
 
 /**
  * Updates the start/end times in an event's ICS data.
- * Preserves all other event properties.
+ * Preserves all other event properties and properly handles timezone conversion.
  *
  * @param ics - The original ICS string
  * @param options - New start/end times and whether it's an all-day event
  * @returns The modified ICS string
  */
 export function updateEventTimes(ics: string, options: UpdateTimesOptions): string {
+  // Validate inputs
+  validateTimestamps(options.start, options.end);
+
   const ical = getICAL();
   const { root, event } = parseICSString(ics);
 
@@ -187,34 +266,19 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
   const endDate = new Date(options.end * 1000);
   const isAllDay = options.isAllDay ?? false;
 
-  if (isAllDay) {
-    // For all-day events, use DATE type (no time component)
-    const newStart = ical.Time.fromJSDate(startDate, true);
-    newStart.isDate = true;
-    event.startDate = newStart;
+  // Get the original timezone to preserve it for timed events
+  const originalStartZone = event.startDate?.zone;
+  const originalEndZone = event.endDate?.zone;
 
-    const newEnd = ical.Time.fromJSDate(endDate, true);
-    newEnd.isDate = true;
-    event.endDate = newEnd;
-  } else {
-    // For timed events, try to preserve original timezone
-    const originalTz = event.startDate?.zone;
-
-    const newStart = ical.Time.fromJSDate(startDate, false);
-    if (originalTz && originalTz.tzid && originalTz.tzid !== 'UTC') {
-      newStart.zone = originalTz;
-    }
-    event.startDate = newStart;
-
-    const newEnd = ical.Time.fromJSDate(endDate, false);
-    if (originalTz && originalTz.tzid && originalTz.tzid !== 'UTC') {
-      newEnd.zone = originalTz;
-    }
-    event.endDate = newEnd;
-  }
+  // Create new times, preserving timezone for timed events
+  event.startDate = createICALTime(startDate, isAllDay, ical, originalStartZone);
+  event.endDate = createICALTime(endDate, isAllDay, ical, originalEndZone);
 
   // Update DTSTAMP to indicate modification
   const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
+  if (!vevent) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
   vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
 
   // Increment SEQUENCE if present (for proper sync)
@@ -244,19 +308,29 @@ export function createRecurrenceException(
   newEnd: number,
   isAllDay: boolean
 ): RecurrenceExceptionResult {
+  // Validate inputs
+  validateTimestamps(newStart, newEnd);
+
   const ical = getICAL();
   const { root: masterRoot, event: masterEvent } = parseICSString(masterIcs);
 
+  // Get the original timezone from the master event to preserve it
+  const originalStartZone = masterEvent.startDate?.zone;
+
   // Create RECURRENCE-ID value from original occurrence start
   const originalDate = new Date(originalOccurrenceStart * 1000);
-  const recurrenceId = isAllDay ? formatDateOnly(originalDate) : formatDateTime(originalDate);
+  const recurrenceId = isAllDay ? formatDateOnly(originalDate) : formatDateTimeUTC(originalDate);
 
   // Get the master VEVENT component
   const masterVevent =
     masterRoot.name === 'vevent' ? masterRoot : masterRoot.getFirstSubcomponent('vevent');
 
-  // Add EXDATE to master to exclude this occurrence
-  const exdateTime = createICALTime(originalDate, isAllDay, ical);
+  if (!masterVevent) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+
+  // Add EXDATE to master to exclude this occurrence (preserve timezone)
+  const exdateTime = createICALTime(originalDate, isAllDay, ical, originalStartZone);
   masterVevent.addPropertyWithValue('exdate', exdateTime);
 
   // Create exception VCALENDAR
@@ -272,17 +346,17 @@ export function createRecurrenceException(
   exceptionVevent.removeProperty('rdate');
   exceptionVevent.removeProperty('exdate');
 
-  // Set RECURRENCE-ID to link this exception to the master
-  const recIdTime = createICALTime(originalDate, isAllDay, ical);
+  // Set RECURRENCE-ID to link this exception to the master (preserve timezone)
+  const recIdTime = createICALTime(originalDate, isAllDay, ical, originalStartZone);
   exceptionVevent.updatePropertyWithValue('recurrence-id', recIdTime);
 
-  // Set new times on the exception
+  // Set new times on the exception (preserve timezone)
   const newStartDate = new Date(newStart * 1000);
   const newEndDate = new Date(newEnd * 1000);
 
   const exceptionEvent = new ical.Event(exceptionVevent);
-  exceptionEvent.startDate = createICALTime(newStartDate, isAllDay, ical);
-  exceptionEvent.endDate = createICALTime(newEndDate, isAllDay, ical);
+  exceptionEvent.startDate = createICALTime(newStartDate, isAllDay, ical, originalStartZone);
+  exceptionEvent.endDate = createICALTime(newEndDate, isAllDay, ical, originalStartZone);
 
   // Update DTSTAMP on both
   const now = ical.Time.now();
@@ -346,6 +420,10 @@ export function isRecurringEvent(ics: string): boolean {
   const { root } = parseICSString(ics);
   const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
 
+  if (!vevent) {
+    return false;
+  }
+
   return !!(vevent.getFirstPropertyValue('rrule') || vevent.getFirstPropertyValue('rdate'));
 }
 
@@ -355,6 +433,10 @@ export function isRecurringEvent(ics: string): boolean {
 export function getRecurrenceInfo(ics: string): RecurrenceInfo {
   const { root } = parseICSString(ics);
   const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
+
+  if (!vevent) {
+    return { isRecurring: false };
+  }
 
   const rrule = vevent.getFirstPropertyValue('rrule');
   if (!rrule) {
@@ -371,6 +453,7 @@ export function getRecurrenceInfo(ics: string): RecurrenceInfo {
 /**
  * Adds an EXDATE to a recurring event to exclude a specific occurrence.
  * Used when deleting a single occurrence of a recurring event.
+ * Preserves the original event's timezone.
  *
  * @param ics - The master event's ICS data
  * @param occurrenceStart - The start time of the occurrence to exclude (unix seconds)
@@ -379,14 +462,21 @@ export function getRecurrenceInfo(ics: string): RecurrenceInfo {
  */
 export function addExclusionDate(ics: string, occurrenceStart: number, isAllDay: boolean): string {
   const ical = getICAL();
-  const { root } = parseICSString(ics);
+  const { root, event } = parseICSString(ics);
 
   // Get the VEVENT component
   const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
 
-  // Create EXDATE time from occurrence start
+  if (!vevent) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+
+  // Get the original timezone from the event to preserve it
+  const originalZone = event.startDate?.zone;
+
+  // Create EXDATE time from occurrence start (preserve timezone)
   const occurrenceDate = new Date(occurrenceStart * 1000);
-  const exdateTime = createICALTime(occurrenceDate, isAllDay, ical);
+  const exdateTime = createICALTime(occurrenceDate, isAllDay, ical, originalZone);
   vevent.addPropertyWithValue('exdate', exdateTime);
 
   // Update DTSTAMP to indicate modification
@@ -426,6 +516,9 @@ export function updateEventProperty(
 
   // Update DTSTAMP
   const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
+  if (!vevent) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
   vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
 
   return root.toString();
