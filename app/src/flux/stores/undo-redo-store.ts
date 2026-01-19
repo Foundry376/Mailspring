@@ -1,10 +1,28 @@
 import MailspringStore from 'mailspring-store';
 import * as Actions from '../actions';
+import { Task } from '../tasks/task';
+
+/**
+ * Represents an undo/redo block that can be queued to the UndoRedoStore.
+ * This interface allows external components to register custom undo actions.
+ */
+export interface UndoBlock {
+  /** Human-readable description of the action (shown in undo toast) */
+  description: string;
+  /** The tasks associated with this block (optional for custom undo blocks) */
+  tasks?: Task[];
+  /** Called when the action is first performed (often a no-op if action already happened) */
+  do: () => void | Promise<void>;
+  /** Called when the user triggers undo */
+  undo: () => void | Promise<void>;
+  /** Called when the user triggers redo (falls back to `do` if not provided) */
+  redo?: () => void | Promise<void>;
+}
 
 class UndoRedoStore extends MailspringStore {
-  _undo = [];
-  _redo = [];
-  _mostRecentBlock = null;
+  _undo: UndoBlock[] = [];
+  _redo: UndoBlock[] = [];
+  _mostRecentBlock: UndoBlock | null = null;
   _queueingTasks = false;
 
   constructor() {
@@ -15,7 +33,7 @@ class UndoRedoStore extends MailspringStore {
     this.listenTo(Actions.queueUndoOnlyTask, this._onQueue);
   }
 
-  _onQueue = taskOrTasks => {
+  _onQueue = (taskOrTasks: Task | Task[]): void => {
     if (this._queueingTasks) {
       return;
     }
@@ -47,14 +65,23 @@ class UndoRedoStore extends MailspringStore {
     }
   };
 
-  _onQueueBlock = block => {
+  /**
+   * Queue a custom undo block. This allows external components to register
+   * undo/redo actions that aren't tied to Task objects.
+   */
+  queueUndoBlock = (block: UndoBlock): void => {
     this._redo = [];
     this._mostRecentBlock = block;
     this._undo.push(block);
     this.trigger();
   };
 
-  undo = () => {
+  // Alias for backwards compatibility (internal use)
+  _onQueueBlock = (block: UndoBlock): void => {
+    this.queueUndoBlock(block);
+  };
+
+  undo = (): void => {
     const block = this._undo.pop();
     if (!block) {
       return;
@@ -66,7 +93,7 @@ class UndoRedoStore extends MailspringStore {
     this.trigger();
   };
 
-  redo = () => {
+  redo = (): void => {
     const block = this._redo.pop();
     if (!block) {
       return;
@@ -77,11 +104,11 @@ class UndoRedoStore extends MailspringStore {
     this.trigger();
   };
 
-  getMostRecent = () => {
+  getMostRecent = (): UndoBlock | null => {
     return this._mostRecentBlock;
   };
 
-  print() {
+  print(): void {
     console.log('Undo Stack');
     console.log(this._undo);
     console.log('Redo Stack');

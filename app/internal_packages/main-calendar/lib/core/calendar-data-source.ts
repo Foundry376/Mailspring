@@ -2,6 +2,15 @@ import Rx from 'rx-lite';
 import { Event, Matcher, DatabaseStore, AndCompositeMatcher, OrCompositeMatcher } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
 
+/**
+ * Represents an attendee of a calendar event with basic contact info.
+ * Compatible with Contact model for use with EventAttendeesInput.
+ */
+export interface EventAttendee {
+  email: string;
+  name?: string | null;
+}
+
 export interface EventOccurrence {
   start: number; // unix
   end: number; // unix
@@ -15,7 +24,7 @@ export interface EventOccurrence {
   isCancelled: boolean;
   isException: boolean;
   organizer: { email: string } | null;
-  attendees: { email: string; name: string }[];
+  attendees: EventAttendee[];
 
   /** True if this is a synthetic drag preview event (not a real event) */
   isDragPreview?: boolean;

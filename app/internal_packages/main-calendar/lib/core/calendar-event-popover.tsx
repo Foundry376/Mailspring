@@ -5,11 +5,8 @@ import {
   DatabaseStore,
   DateUtils,
   Event,
-  SyncbackEventTask,
   localized,
-  RegExpUtils,
   Autolink,
-  ICSEventHelpers,
 } from 'mailspring-exports';
 import {
   DatePicker,
@@ -19,8 +16,7 @@ import {
   TimePicker,
 } from 'mailspring-component-kit';
 import { EventAttendeesInput } from './event-attendees-input';
-import { EventOccurrence } from './calendar-data-source';
-import { EventTimerangePicker } from './event-timerange-picker';
+import { EventOccurrence, EventAttendee } from './calendar-data-source';
 import { EventPropertyRow } from './event-property-row';
 import { CalendarColorPicker } from './calendar-color-picker';
 import { LocationVideoInput } from './location-video-input';
@@ -30,7 +26,8 @@ import { AlertSelector, AlertTiming } from './alert-selector';
 import { ShowAsSelector, ShowAsOption } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
-import { showRecurringEventDialog } from './recurring-event-dialog';
+import { parseEventIdFromOccurrence } from './calendar-drag-utils';
+import { modifyEventWithRecurringSupport } from './recurring-event-actions';
 
 interface CalendarEventPopoverProps {
   event: EventOccurrence;
@@ -41,7 +38,7 @@ interface CalendarEventPopoverState {
   start: number;
   end: number;
   location: string;
-  attendees: any[];
+  attendees: EventAttendee[];
   editing: boolean;
   title: string;
   // New fields for enhanced editing
@@ -119,10 +116,9 @@ export class CalendarEventPopover extends React.Component<
   getStartMoment = () => moment(this.state.start * 1000);
   getEndMoment = () => moment(this.state.end * 1000);
 
-  saveEdits = async () => {
+  saveEdits = async (): Promise<void> => {
     // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
-    const occurrenceId = this.props.event.id;
-    const eventId = occurrenceId.replace(/-e\d+$/, '');
+    const eventId = parseEventIdFromOccurrence(this.props.event.id);
 
     // Fetch the actual Event from the database
     const event = await DatabaseStore.find<Event>(Event, eventId);
@@ -132,88 +128,21 @@ export class CalendarEventPopover extends React.Component<
       return;
     }
 
-    const newStart = this.state.start;
-    const newEnd = this.state.end;
-    const isAllDay = this.state.allDay;
+    // Use the shared utility for event modification
+    const result = await modifyEventWithRecurringSupport(
+      {
+        event,
+        originalOccurrenceStart: this.props.event.start,
+        newStart: this.state.start,
+        newEnd: this.state.end,
+        isAllDay: this.state.allDay,
+      },
+      'edit',
+      this.state.title
+    );
 
-    // Check if this is a recurring event (and not already an exception)
-    const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
-
-    if (isRecurring && !event.isRecurrenceException()) {
-      // Show dialog for recurring events
-      const choice = await showRecurringEventDialog('edit', this.state.title);
-
-      if (choice === 'cancel') {
-        return; // User cancelled, don't close the popover
-      }
-
-      if (choice === 'this-occurrence') {
-        // Create exception for this occurrence only
-        const { masterIcs, exceptionIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
-          event.ics,
-          this.props.event.start, // Original occurrence start
-          newStart,
-          newEnd,
-          isAllDay
-        );
-
-        // Update master event with EXDATE
-        event.ics = masterIcs;
-
-        // Create new exception event
-        const exceptionEvent = new Event({
-          accountId: event.accountId,
-          calendarId: event.calendarId,
-          ics: exceptionIcs,
-          icsuid: event.icsuid,
-          recurrenceId: recurrenceId,
-          recurrenceStart: newStart,
-          recurrenceEnd: newEnd,
-          status: event.status,
-        });
-
-        // Queue tasks to save both events
-        Actions.queueTask(SyncbackEventTask.forUpdating({ event }));
-        Actions.queueTask(
-          SyncbackEventTask.forCreating({
-            event: exceptionEvent,
-            calendarId: event.calendarId,
-            accountId: event.accountId,
-          })
-        );
-      } else {
-        // Modify all occurrences
-        event.ics = ICSEventHelpers.updateRecurringEventTimes(
-          event.ics,
-          this.props.event.start, // Original occurrence start
-          newStart,
-          newEnd,
-          isAllDay
-        );
-
-        // Re-parse to get the new master times
-        const { parseICSString } = require('mailspring-exports').CalendarUtils;
-        const { event: icsEvent } = parseICSString(event.ics);
-        event.recurrenceStart = icsEvent.startDate.toJSDate().getTime() / 1000;
-        event.recurrenceEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
-
-        const task = SyncbackEventTask.forUpdating({ event });
-        Actions.queueTask(task);
-      }
-    } else {
-      // Non-recurring event or already an exception - simple update
-      event.ics = ICSEventHelpers.updateEventTimes(event.ics, {
-        start: newStart,
-        end: newEnd,
-        isAllDay,
-      });
-
-      // Update cached fields
-      event.recurrenceStart = newStart;
-      event.recurrenceEnd = newEnd;
-
-      const task = SyncbackEventTask.forUpdating({ event });
-      Actions.queueTask(task);
+    if (result.cancelled) {
+      return; // User cancelled, don't close the popover
     }
 
     this.setState({ editing: false });
@@ -222,14 +151,15 @@ export class CalendarEventPopover extends React.Component<
 
   // If on the hour, formats as "3 PM", else formats as "3:15 PM"
 
-  updateAttendees = (attendees) => {
+  updateAttendees = (attendees: EventAttendee[]): void => {
     this.setState({ attendees });
   };
 
-  updateField = (key, value) => {
-    const updates = {};
-    updates[key] = value;
-    this.setState(updates);
+  updateField = <K extends keyof CalendarEventPopoverState>(
+    key: K,
+    value: CalendarEventPopoverState[K]
+  ): void => {
+    this.setState({ [key]: value } as Pick<CalendarEventPopoverState, K>);
   };
 
   renderEditable = () => {
@@ -484,7 +414,7 @@ function extractNotesFromDescription(description: string) {
   let notes: string = null;
   if (els.length) {
     notes = Array.from(els)
-      .map((el: any) => el.content)
+      .map((el) => (el as HTMLMetaElement).content)
       .join('\n');
   } else {
     notes = descriptionRoot.innerText;

@@ -12,6 +12,7 @@ import {
   Event,
   SyncbackEventTask,
   UndoRedoStore,
+  UndoBlock,
   ICSEventHelpers,
   CalendarUtils,
 } from 'mailspring-exports';
@@ -43,6 +44,11 @@ import {
   snapAllDayTimes,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
+import {
+  modifyEventWithRecurringSupport,
+  modifySimpleEvent,
+  EventTimeChangeOptions,
+} from './recurring-event-actions';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -541,8 +547,8 @@ export class MailspringCalendar extends React.Component<
     originalIcs: string,
     newStart: number,
     newEnd: number
-  ) {
-    const undoBlock = {
+  ): void {
+    const undoBlock: UndoBlock = {
       description: localized('Move event'),
       do: () => {
         // No-op, already done
@@ -573,14 +579,14 @@ export class MailspringCalendar extends React.Component<
       },
     };
 
-    // Manually push to undo stack since SyncbackEventTask doesn't support undo natively
-    (UndoRedoStore as any)._onQueueBlock(undoBlock);
+    // Queue the undo block via the public API
+    UndoRedoStore.queueUndoBlock(undoBlock);
   }
 
   /**
    * Persist the drag change to the database
    */
-  async _persistDragChange(dragState: DragState) {
+  async _persistDragChange(dragState: DragState): Promise<void> {
     // Clear the drag state immediately for responsive UI
     this.setState({ dragState: null });
 
@@ -616,183 +622,32 @@ export class MailspringCalendar extends React.Component<
         newEnd = snapped.end;
       }
 
-      // Check if this is a recurring event (and not already an exception)
-      const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
+      // Use shared utility for the modification logic
+      const options: EventTimeChangeOptions = {
+        event,
+        originalOccurrenceStart: dragState.event.start,
+        newStart,
+        newEnd,
+        isAllDay: dragState.event.isAllDay,
+      };
 
-      if (isRecurring && !event.isRecurrenceException()) {
-        // Show dialog for recurring events
-        const choice = await showRecurringEventDialog(
-          dragState.mode === 'move' ? 'move' : 'resize',
-          dragState.event.title
-        );
+      const result = await modifyEventWithRecurringSupport(
+        options,
+        dragState.mode === 'move' ? 'move' : 'resize',
+        dragState.event.title
+      );
 
-        if (choice === 'cancel') {
-          return; // User cancelled
-        }
+      if (result.cancelled) {
+        return; // User cancelled
+      }
 
-        if (choice === 'this-occurrence') {
-          // Create exception for this occurrence only
-          await this._persistSingleOccurrenceChange(
-            event,
-            dragState.event.start, // Original occurrence start
-            newStart,
-            newEnd,
-            dragState.event.isAllDay,
-            originalStart,
-            originalEnd,
-            originalIcs
-          );
-        } else {
-          // Modify all occurrences
-          await this._persistAllOccurrencesChange(
-            event,
-            dragState.event.start,
-            newStart,
-            newEnd,
-            dragState.event.isAllDay,
-            originalStart,
-            originalEnd,
-            originalIcs
-          );
-        }
-      } else {
-        // Non-recurring event or already an exception - simple update
-        await this._persistSimpleEventChange(
-          event,
-          newStart,
-          newEnd,
-          dragState.event.isAllDay,
-          originalStart,
-          originalEnd,
-          originalIcs
-        );
+      // Register undo action for successful modifications
+      if (result.success) {
+        this._registerUndoAction(event, originalStart, originalEnd, originalIcs, newStart, newEnd);
       }
     } catch (error) {
       console.error('Failed to persist drag change:', error);
     }
-  }
-
-  /**
-   * Persist a simple (non-recurring) event change
-   */
-  async _persistSimpleEventChange(
-    event: Event,
-    newStart: number,
-    newEnd: number,
-    isAllDay: boolean,
-    originalStart: number,
-    originalEnd: number,
-    originalIcs: string
-  ) {
-    // Update ICS data
-    event.ics = ICSEventHelpers.updateEventTimes(event.ics, {
-      start: newStart,
-      end: newEnd,
-      isAllDay,
-    });
-
-    // Update cached fields
-    event.recurrenceStart = newStart;
-    event.recurrenceEnd = newEnd;
-
-    // Queue syncback
-    const task = SyncbackEventTask.forUpdating({ event });
-    Actions.queueTask(task);
-
-    // Register undo
-    this._registerUndoAction(event, originalStart, originalEnd, originalIcs, newStart, newEnd);
-  }
-
-  /**
-   * Persist a change to a single occurrence (creates exception)
-   */
-  async _persistSingleOccurrenceChange(
-    masterEvent: Event,
-    originalOccurrenceStart: number,
-    newStart: number,
-    newEnd: number,
-    isAllDay: boolean,
-    originalStart: number,
-    originalEnd: number,
-    originalIcs: string
-  ) {
-    const { masterIcs, exceptionIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
-      masterEvent.ics,
-      originalOccurrenceStart,
-      newStart,
-      newEnd,
-      isAllDay
-    );
-
-    // Update master event with EXDATE
-    masterEvent.ics = masterIcs;
-
-    // Create new exception event
-    const exceptionEvent = new Event({
-      accountId: masterEvent.accountId,
-      calendarId: masterEvent.calendarId,
-      ics: exceptionIcs,
-      icsuid: masterEvent.icsuid,
-      recurrenceId: recurrenceId,
-      recurrenceStart: newStart,
-      recurrenceEnd: newEnd,
-      status: masterEvent.status,
-    });
-
-    // Queue tasks to save both events
-    Actions.queueTask(SyncbackEventTask.forUpdating({ event: masterEvent }));
-    Actions.queueTask(
-      SyncbackEventTask.forCreating({
-        event: exceptionEvent,
-        calendarId: masterEvent.calendarId,
-        accountId: masterEvent.accountId,
-      })
-    );
-
-    // Register undo (note: undoing exception creation is complex, we just restore master)
-    this._registerUndoAction(
-      masterEvent,
-      originalStart,
-      originalEnd,
-      originalIcs,
-      newStart,
-      newEnd
-    );
-  }
-
-  /**
-   * Persist a change to all occurrences of a recurring event
-   */
-  async _persistAllOccurrencesChange(
-    event: Event,
-    originalOccurrenceStart: number,
-    newStart: number,
-    newEnd: number,
-    isAllDay: boolean,
-    originalStart: number,
-    originalEnd: number,
-    originalIcs: string
-  ) {
-    // Update the master event's times (shifts entire series)
-    event.ics = ICSEventHelpers.updateRecurringEventTimes(
-      event.ics,
-      originalOccurrenceStart,
-      newStart,
-      newEnd,
-      isAllDay
-    );
-
-    // Re-parse to get the new master times
-    const { event: icsEvent } = CalendarUtils.parseICSString(event.ics);
-    event.recurrenceStart = icsEvent.startDate.toJSDate().getTime() / 1000;
-    event.recurrenceEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
-
-    // Queue syncback
-    const task = SyncbackEventTask.forUpdating({ event });
-    Actions.queueTask(task);
-
-    // Register undo
-    this._registerUndoAction(event, originalStart, originalEnd, originalIcs, newStart, newEnd);
   }
 
   render() {
