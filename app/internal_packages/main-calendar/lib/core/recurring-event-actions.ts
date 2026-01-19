@@ -4,8 +4,29 @@ import {
   SyncbackEventTask,
   ICSEventHelpers,
   CalendarUtils,
+  localized,
 } from 'mailspring-exports';
 import { showRecurringEventDialog, RecurringEventOperation } from './recurring-event-dialog';
+
+/**
+ * Snapshot of event data for undo support.
+ */
+interface EventSnapshot {
+  ics: string;
+  recurrenceStart: number;
+  recurrenceEnd: number;
+}
+
+/**
+ * Captures the current event state for undo support.
+ */
+function captureEventSnapshot(event: Event): EventSnapshot {
+  return {
+    ics: event.ics,
+    recurrenceStart: event.recurrenceStart,
+    recurrenceEnd: event.recurrenceEnd,
+  };
+}
 
 /**
  * Options for modifying an event's times
@@ -21,6 +42,8 @@ export interface EventTimeChangeOptions {
   newEnd: number;
   /** Whether this is an all-day event */
   isAllDay: boolean;
+  /** Description for the undo toast (e.g., "Move event") */
+  description?: string;
 }
 
 /**
@@ -39,9 +62,13 @@ export interface EventModificationResult {
 
 /**
  * Modifies a simple (non-recurring) event's times and queues the syncback task.
+ * The task is automatically undoable via UndoRedoStore.
  */
 export function modifySimpleEvent(options: EventTimeChangeOptions): void {
-  const { event, newStart, newEnd, isAllDay } = options;
+  const { event, newStart, newEnd, isAllDay, description } = options;
+
+  // Capture original state for undo BEFORE modifying
+  const undoData = captureEventSnapshot(event);
 
   // Update ICS data
   event.ics = ICSEventHelpers.updateEventTimes(event.ics, {
@@ -54,17 +81,28 @@ export function modifySimpleEvent(options: EventTimeChangeOptions): void {
   event.recurrenceStart = newStart;
   event.recurrenceEnd = newEnd;
 
-  // Queue syncback
-  const task = SyncbackEventTask.forUpdating({ event });
+  // Queue syncback with undo support
+  const task = SyncbackEventTask.forUpdating({
+    event,
+    undoData,
+    description: description || localized('Edit event'),
+  });
   Actions.queueTask(task);
 }
 
 /**
  * Creates an exception for a single occurrence of a recurring event.
  * Updates the master event with an EXDATE and creates a new exception event.
+ *
+ * Note: Undo for exception creation is complex (requires removing EXDATE and
+ * deleting the exception). Currently only the master event update supports undo.
  */
 export function createOccurrenceException(options: EventTimeChangeOptions): Event {
-  const { event: masterEvent, originalOccurrenceStart, newStart, newEnd, isAllDay } = options;
+  const { event: masterEvent, originalOccurrenceStart, newStart, newEnd, isAllDay, description } =
+    options;
+
+  // Capture master event state for undo BEFORE modifying
+  const masterUndoData = captureEventSnapshot(masterEvent);
 
   // Create the exception ICS data
   const { masterIcs, exceptionIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
@@ -90,8 +128,16 @@ export function createOccurrenceException(options: EventTimeChangeOptions): Even
     status: masterEvent.status,
   });
 
-  // Queue tasks to save both events
-  Actions.queueTask(SyncbackEventTask.forUpdating({ event: masterEvent }));
+  // Queue task for master event with undo support
+  Actions.queueTask(
+    SyncbackEventTask.forUpdating({
+      event: masterEvent,
+      undoData: masterUndoData,
+      description: description || localized('Edit occurrence'),
+    })
+  );
+
+  // Queue task for exception event (no undo - creating new event)
   Actions.queueTask(
     SyncbackEventTask.forCreating({
       event: exceptionEvent,
@@ -105,9 +151,13 @@ export function createOccurrenceException(options: EventTimeChangeOptions): Even
 
 /**
  * Modifies all occurrences of a recurring event by shifting the master times.
+ * The task is automatically undoable via UndoRedoStore.
  */
 export function modifyAllOccurrences(options: EventTimeChangeOptions): void {
-  const { event, originalOccurrenceStart, newStart, newEnd, isAllDay } = options;
+  const { event, originalOccurrenceStart, newStart, newEnd, isAllDay, description } = options;
+
+  // Capture original state for undo BEFORE modifying
+  const undoData = captureEventSnapshot(event);
 
   // Update the master event's times (shifts entire series)
   event.ics = ICSEventHelpers.updateRecurringEventTimes(
@@ -123,8 +173,12 @@ export function modifyAllOccurrences(options: EventTimeChangeOptions): void {
   event.recurrenceStart = icsEvent.startDate.toJSDate().getTime() / 1000;
   event.recurrenceEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
 
-  // Queue syncback
-  const task = SyncbackEventTask.forUpdating({ event });
+  // Queue syncback with undo support
+  const task = SyncbackEventTask.forUpdating({
+    event,
+    undoData,
+    description: description || localized('Edit recurring event'),
+  });
   Actions.queueTask(task);
 }
 

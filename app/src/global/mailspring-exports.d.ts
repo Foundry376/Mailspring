@@ -115,7 +115,6 @@ export type CategoryStore = typeof import('../flux/stores/category-store').defau
 export const CategoryStore: CategoryStore;
 export type UndoRedoStore = typeof import('../flux/stores/undo-redo-store').default;
 export const UndoRedoStore: UndoRedoStore;
-export { UndoBlock } from '../flux/stores/undo-redo-store';
 export type WorkspaceStore = typeof import('../flux/stores/workspace-store').default;
 export const WorkspaceStore: WorkspaceStore;
 export type MailRulesStore = typeof import('../flux/stores/mail-rules-store').default;

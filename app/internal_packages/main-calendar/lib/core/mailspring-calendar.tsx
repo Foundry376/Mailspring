@@ -11,10 +11,7 @@ import {
   DestroyModelTask,
   Event,
   SyncbackEventTask,
-  UndoRedoStore,
-  UndoBlock,
   ICSEventHelpers,
-  CalendarUtils,
 } from 'mailspring-exports';
 import {
   ScrollRegion,
@@ -46,7 +43,6 @@ import {
 import { showRecurringEventDialog } from './recurring-event-dialog';
 import {
   modifyEventWithRecurringSupport,
-  modifySimpleEvent,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
 
@@ -497,10 +493,12 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Store original values for undo
-      const originalStart = event.recurrenceStart;
-      const originalEnd = event.recurrenceEnd;
-      const originalIcs = event.ics;
+      // Capture original state for undo BEFORE modifying
+      const undoData = {
+        ics: event.ics,
+        recurrenceStart: event.recurrenceStart,
+        recurrenceEnd: event.recurrenceEnd,
+      };
 
       // Calculate new times
       let newStart: number;
@@ -508,12 +506,12 @@ export class MailspringCalendar extends React.Component<
 
       if (isResize) {
         // Shift+Arrow: resize the event (change end time only)
-        newStart = originalStart;
-        newEnd = Math.max(originalEnd + timeDelta, originalStart + 900); // Min 15 min duration
+        newStart = event.recurrenceStart;
+        newEnd = Math.max(event.recurrenceEnd + timeDelta, event.recurrenceStart + 900); // Min 15 min
       } else {
         // Arrow: move the event (change both start and end)
-        newStart = originalStart + timeDelta;
-        newEnd = originalEnd + timeDelta;
+        newStart = event.recurrenceStart + timeDelta;
+        newEnd = event.recurrenceEnd + timeDelta;
       }
 
       // Update ICS data
@@ -527,64 +525,21 @@ export class MailspringCalendar extends React.Component<
       event.recurrenceStart = newStart;
       event.recurrenceEnd = newEnd;
 
-      const task = SyncbackEventTask.forUpdating({ event });
+      // Queue task with undo support
+      const task = SyncbackEventTask.forUpdating({
+        event,
+        undoData,
+        description: isResize ? localized('Resize event') : localized('Move event'),
+      });
       Actions.queueTask(task);
-
-      // Register undo action
-      this._registerUndoAction(event, originalStart, originalEnd, originalIcs, newStart, newEnd);
     } catch (error) {
       console.error('Failed to apply keyboard event change:', error);
     }
   }
 
   /**
-   * Register an undo action for an event time change
-   */
-  _registerUndoAction(
-    event: Event,
-    originalStart: number,
-    originalEnd: number,
-    originalIcs: string,
-    newStart: number,
-    newEnd: number
-  ): void {
-    const undoBlock: UndoBlock = {
-      description: localized('Move event'),
-      do: () => {
-        // No-op, already done
-      },
-      undo: async () => {
-        const ev = await DatabaseStore.find<Event>(Event, event.id);
-        if (ev) {
-          ev.ics = originalIcs;
-          ev.recurrenceStart = originalStart;
-          ev.recurrenceEnd = originalEnd;
-          const task = SyncbackEventTask.forUpdating({ event: ev });
-          Actions.queueTask(task);
-        }
-      },
-      redo: async () => {
-        const ev = await DatabaseStore.find<Event>(Event, event.id);
-        if (ev) {
-          // Re-apply the ICS update for redo
-          ev.ics = ICSEventHelpers.updateEventTimes(originalIcs, {
-            start: newStart,
-            end: newEnd,
-          });
-          ev.recurrenceStart = newStart;
-          ev.recurrenceEnd = newEnd;
-          const task = SyncbackEventTask.forUpdating({ event: ev });
-          Actions.queueTask(task);
-        }
-      },
-    };
-
-    // Queue the undo block via the public API
-    UndoRedoStore.queueUndoBlock(undoBlock);
-  }
-
-  /**
-   * Persist the drag change to the database
+   * Persist the drag change to the database.
+   * Undo support is automatically provided by SyncbackEventTask.
    */
   async _persistDragChange(dragState: DragState): Promise<void> {
     // Clear the drag state immediately for responsive UI
@@ -607,11 +562,6 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Store original values for undo
-      const originalStart = event.recurrenceStart;
-      const originalEnd = event.recurrenceEnd;
-      const originalIcs = event.ics;
-
       // Handle all-day events - snap times to day boundaries
       let newStart = dragState.previewStart;
       let newEnd = dragState.previewEnd;
@@ -622,29 +572,22 @@ export class MailspringCalendar extends React.Component<
         newEnd = snapped.end;
       }
 
-      // Use shared utility for the modification logic
+      // Use shared utility for the modification logic (includes undo support)
       const options: EventTimeChangeOptions = {
         event,
         originalOccurrenceStart: dragState.event.start,
         newStart,
         newEnd,
         isAllDay: dragState.event.isAllDay,
+        description:
+          dragState.mode === 'move' ? localized('Move event') : localized('Resize event'),
       };
 
-      const result = await modifyEventWithRecurringSupport(
+      await modifyEventWithRecurringSupport(
         options,
         dragState.mode === 'move' ? 'move' : 'resize',
         dragState.event.title
       );
-
-      if (result.cancelled) {
-        return; // User cancelled
-      }
-
-      // Register undo action for successful modifications
-      if (result.success) {
-        this._registerUndoAction(event, originalStart, originalEnd, originalIcs, newStart, newEnd);
-      }
     } catch (error) {
       console.error('Failed to persist drag change:', error);
     }
