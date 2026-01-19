@@ -181,6 +181,7 @@ lazyLoad(`Utils`, 'flux/models/utils');
 lazyLoad(`DOMUtils`, 'dom-utils');
 lazyLoad(`DateUtils`, 'date-utils');
 lazyLoad(`CalendarUtils`, 'calendar-utils');
+lazyLoad(`ICSEventHelpers`, 'ics-event-helpers');
 lazyLoad(`FsUtils`, 'fs-utils');
 lazyLoad(`CanvasUtils`, 'canvas-utils');
 lazyLoad(`RegExpUtils`, 'regexp-utils');

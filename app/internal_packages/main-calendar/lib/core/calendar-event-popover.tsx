@@ -9,6 +9,7 @@ import {
   localized,
   RegExpUtils,
   Autolink,
+  ICSEventHelpers,
 } from 'mailspring-exports';
 import {
   DatePicker,
@@ -29,6 +30,7 @@ import { AlertSelector, AlertTiming } from './alert-selector';
 import { ShowAsSelector, ShowAsOption } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
+import { showRecurringEventDialog } from './recurring-event-dialog';
 
 interface CalendarEventPopoverProps {
   event: EventOccurrence;
@@ -84,10 +86,7 @@ export class CalendarEventPopover extends React.Component<
     };
   }
 
-  componentDidUpdate(
-    prevProps: CalendarEventPopoverProps,
-    prevState: CalendarEventPopoverState
-  ) {
+  componentDidUpdate(prevProps: CalendarEventPopoverProps, prevState: CalendarEventPopoverState) {
     // Update state when event prop changes
     if (prevProps.event !== this.props.event) {
       const { description, start, end, location, attendees, title } = this.props.event;
@@ -133,20 +132,97 @@ export class CalendarEventPopover extends React.Component<
       return;
     }
 
-    // TODO: This component shouldn't save the event here, we should expose an
-    // `onEditEvent` or similar callback that properly updates the ICS data.
-    // For now, we update the recurrence times and queue the syncback task.
-    event.recurrenceStart = this.state.start;
-    event.recurrenceEnd = this.state.end;
+    const newStart = this.state.start;
+    const newEnd = this.state.end;
+    const isAllDay = this.state.allDay;
+
+    // Check if this is a recurring event (and not already an exception)
+    const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
+
+    if (isRecurring && !event.isRecurrenceException()) {
+      // Show dialog for recurring events
+      const choice = await showRecurringEventDialog('edit', this.state.title);
+
+      if (choice === 'cancel') {
+        return; // User cancelled, don't close the popover
+      }
+
+      if (choice === 'this-occurrence') {
+        // Create exception for this occurrence only
+        const { masterIcs, exceptionIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+          event.ics,
+          this.props.event.start, // Original occurrence start
+          newStart,
+          newEnd,
+          isAllDay
+        );
+
+        // Update master event with EXDATE
+        event.ics = masterIcs;
+
+        // Create new exception event
+        const exceptionEvent = new Event({
+          accountId: event.accountId,
+          calendarId: event.calendarId,
+          ics: exceptionIcs,
+          icsuid: event.icsuid,
+          recurrenceId: recurrenceId,
+          recurrenceStart: newStart,
+          recurrenceEnd: newEnd,
+          status: event.status,
+        });
+
+        // Queue tasks to save both events
+        Actions.queueTask(SyncbackEventTask.forUpdating({ event }));
+        Actions.queueTask(
+          SyncbackEventTask.forCreating({
+            event: exceptionEvent,
+            calendarId: event.calendarId,
+            accountId: event.accountId,
+          })
+        );
+      } else {
+        // Modify all occurrences
+        event.ics = ICSEventHelpers.updateRecurringEventTimes(
+          event.ics,
+          this.props.event.start, // Original occurrence start
+          newStart,
+          newEnd,
+          isAllDay
+        );
+
+        // Re-parse to get the new master times
+        const { parseICSString } = require('mailspring-exports').CalendarUtils;
+        const { event: icsEvent } = parseICSString(event.ics);
+        event.recurrenceStart = icsEvent.startDate.toJSDate().getTime() / 1000;
+        event.recurrenceEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
+
+        const task = SyncbackEventTask.forUpdating({ event });
+        Actions.queueTask(task);
+      }
+    } else {
+      // Non-recurring event or already an exception - simple update
+      event.ics = ICSEventHelpers.updateEventTimes(event.ics, {
+        start: newStart,
+        end: newEnd,
+        isAllDay,
+      });
+
+      // Update cached fields
+      event.recurrenceStart = newStart;
+      event.recurrenceEnd = newEnd;
+
+      const task = SyncbackEventTask.forUpdating({ event });
+      Actions.queueTask(task);
+    }
 
     this.setState({ editing: false });
-    const task = SyncbackEventTask.forUpdating({ event });
-    Actions.queueTask(task);
+    Actions.closePopover();
   };
 
   // If on the hour, formats as "3 PM", else formats as "3:15 PM"
 
-  updateAttendees = attendees => {
+  updateAttendees = (attendees) => {
     this.setState({ attendees });
   };
 
@@ -186,18 +262,18 @@ export class CalendarEventPopover extends React.Component<
               type="text"
               placeholder={localized('New Event')}
               value={title}
-              onChange={e => this.updateField('title', e.target.value)}
+              onChange={(e) => this.updateField('title', e.target.value)}
             />
             <CalendarColorPicker
               color={calendarColor}
-              onChange={color => this.updateField('calendarColor', color)}
+              onChange={(color) => this.updateField('calendarColor', color)}
             />
           </div>
 
           {/* Location with video call toggle */}
           <LocationVideoInput
             value={location}
-            onChange={value => this.updateField('location', value)}
+            onChange={(value) => this.updateField('location', value)}
             onVideoToggle={() => {
               // Placeholder: could add video call link
             }}
@@ -206,44 +282,47 @@ export class CalendarEventPopover extends React.Component<
           {/* All-day toggle */}
           <AllDayToggle
             checked={allDay}
-            onChange={checked => this.updateField('allDay', checked)}
+            onChange={(checked) => this.updateField('allDay', checked)}
           />
 
           {/* Start/End times using property rows */}
           <EventPropertyRow label={localized('starts:')}>
-            <DatePicker value={start * 1000} onChange={ts => this.updateField('start', ts / 1000)} />
+            <DatePicker
+              value={start * 1000}
+              onChange={(ts) => this.updateField('start', ts / 1000)}
+            />
             {!allDay && (
               <TimePicker
                 value={start * 1000}
-                onChange={ts => this.updateField('start', ts / 1000)}
+                onChange={(ts) => this.updateField('start', ts / 1000)}
               />
             )}
           </EventPropertyRow>
 
           <EventPropertyRow label={localized('ends:')}>
-            <DatePicker value={end * 1000} onChange={ts => this.updateField('end', ts / 1000)} />
+            <DatePicker value={end * 1000} onChange={(ts) => this.updateField('end', ts / 1000)} />
             {!allDay && (
-              <TimePicker value={end * 1000} onChange={ts => this.updateField('end', ts / 1000)} />
+              <TimePicker
+                value={end * 1000}
+                onChange={(ts) => this.updateField('end', ts / 1000)}
+              />
             )}
           </EventPropertyRow>
 
           {/* Time zone selector */}
           <TimeZoneSelector
             value={timezone}
-            onChange={value => this.updateField('timezone', value)}
+            onChange={(value) => this.updateField('timezone', value)}
           />
 
           {/* Repeat selector */}
-          <RepeatSelector
-            value={repeat}
-            onChange={value => this.updateField('repeat', value)}
-          />
+          <RepeatSelector value={repeat} onChange={(value) => this.updateField('repeat', value)} />
 
           {/* Alert selector */}
-          <AlertSelector value={alert} onChange={value => this.updateField('alert', value)} />
+          <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
 
           {/* Show as selector */}
-          <ShowAsSelector value={showAs} onChange={value => this.updateField('showAs', value)} />
+          <ShowAsSelector value={showAs} onChange={(value) => this.updateField('showAs', value)} />
 
           {/* Invitees section - collapsible */}
           {showInvitees ? (
@@ -261,7 +340,7 @@ export class CalendarEventPopover extends React.Component<
                 ref={this.attendeesInputRef}
                 className="event-participant-field"
                 attendees={attendees}
-                change={val => this.updateField('attendees', val)}
+                change={(val) => this.updateField('attendees', val)}
               />
             </div>
           ) : (
@@ -283,7 +362,7 @@ export class CalendarEventPopover extends React.Component<
                 ref={this.notesTextareaRef}
                 value={notes}
                 placeholder={localized('Add notes or URL...')}
-                onChange={e => this.updateField('description', e.target.value)}
+                onChange={(e) => this.updateField('description', e.target.value)}
               />
             </div>
           ) : (
