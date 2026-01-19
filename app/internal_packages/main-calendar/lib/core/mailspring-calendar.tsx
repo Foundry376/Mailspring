@@ -127,7 +127,7 @@ export class MailspringCalendar extends React.Component<
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
   }
@@ -227,10 +227,12 @@ export class MailspringCalendar extends React.Component<
     this._openEventPopover(occurrence);
   };
 
-  _onDeleteSelectedEvents = () => {
+  _onDeleteSelectedEvents = async () => {
     if (this.state.selectedEvents.length === 0) {
       return;
     }
+
+    // Show initial confirmation dialog
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
@@ -239,19 +241,87 @@ export class MailspringCalendar extends React.Component<
         `Are you sure you want to delete or decline invitations for the selected event(s)?`
       ),
     });
-    if (response === 0) {
-      // response is button array index
-      for (const event of this.state.selectedEvents) {
-        const task = new DestroyModelTask({
-          modelId: event.id,
-          modelName: event.constructor.name,
-          endpoint: '/events',
-          accountId: event.accountId,
-        });
-        Actions.queueTask(task);
-      }
+
+    if (response !== 0) {
+      return; // User cancelled
+    }
+
+    // Process each selected event
+    for (const occurrence of this.state.selectedEvents) {
+      await this._deleteEvent(occurrence);
     }
   };
+
+  /**
+   * Delete a single event occurrence, handling recurring events appropriately
+   */
+  async _deleteEvent(occurrence: EventOccurrence) {
+    try {
+      // Parse the event ID from the occurrence ID (handles recurring instance IDs)
+      const eventId = parseEventIdFromOccurrence(occurrence.id);
+
+      // Fetch the full event from database to get ICS data
+      const event = await DatabaseStore.find<Event>(Event, eventId);
+      if (!event) {
+        console.error('Could not find event to delete:', eventId);
+        return;
+      }
+
+      // Check if this is a recurring event (and not already an exception)
+      const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
+
+      if (isRecurring && !event.isRecurrenceException()) {
+        // Show recurring event dialog
+        const choice = await showRecurringEventDialog('delete', occurrence.title);
+
+        if (choice === 'cancel') {
+          return; // User cancelled this deletion
+        }
+
+        if (choice === 'this-occurrence') {
+          // Delete only this occurrence by adding EXDATE to master
+          await this._deleteOccurrence(event, occurrence);
+        } else {
+          // Delete entire series
+          await this._deleteEntireEvent(event);
+        }
+      } else {
+        // Non-recurring event or already an exception - delete normally
+        await this._deleteEntireEvent(event);
+      }
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+    }
+  }
+
+  /**
+   * Delete a single occurrence of a recurring event by adding EXDATE to master
+   */
+  async _deleteOccurrence(masterEvent: Event, occurrence: EventOccurrence) {
+    // Add EXDATE to exclude this occurrence
+    masterEvent.ics = ICSEventHelpers.addExclusionDate(
+      masterEvent.ics,
+      occurrence.start,
+      occurrence.isAllDay
+    );
+
+    // Queue syncback to update the master event
+    const task = SyncbackEventTask.forUpdating({ event: masterEvent });
+    Actions.queueTask(task);
+  }
+
+  /**
+   * Delete an entire event (or series)
+   */
+  async _deleteEntireEvent(event: Event) {
+    const task = new DestroyModelTask({
+      modelId: event.id,
+      modelName: event.constructor.name,
+      endpoint: '/events',
+      accountId: event.accountId,
+    });
+    Actions.queueTask(task);
+  }
 
   /**
    * Get the drag configuration based on the current view

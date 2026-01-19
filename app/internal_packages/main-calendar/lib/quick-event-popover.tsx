@@ -5,6 +5,7 @@ import {
   DatabaseStore,
   DateUtils,
   Event,
+  ICSEventHelpers,
   localized,
   SyncbackEventTask,
   TaskQueue,
@@ -30,7 +31,7 @@ export class QuickEventPopover extends React.Component<
     };
   }
 
-  onInputKeyDown = event => {
+  onInputKeyDown = (event) => {
     const {
       key,
       target: { value },
@@ -43,7 +44,7 @@ export class QuickEventPopover extends React.Component<
     }
   };
 
-  onInputChange = event => {
+  onInputChange = (event) => {
     this.setState(DateUtils.parseDateString(event.target.value));
   };
 
@@ -58,7 +59,9 @@ export class QuickEventPopover extends React.Component<
   }) => {
     const allCalendars = await DatabaseStore.findAll<Calendar>(Calendar);
     const disabledCalendars: string[] = AppEnv.config.get('mailspring.disabledCalendars') || [];
-    const editableCals = allCalendars.filter(c => !c.readOnly && !disabledCalendars.includes(c.id));
+    const editableCals = allCalendars.filter(
+      (c) => !c.readOnly && !disabledCalendars.includes(c.id)
+    );
     if (editableCals.length === 0) {
       AppEnv.showErrorDialog(
         localized(
@@ -68,9 +71,21 @@ export class QuickEventPopover extends React.Component<
       return;
     }
 
+    // Generate ICS data for the new event
+    const icsuid = ICSEventHelpers.generateUID();
+    const ics = ICSEventHelpers.createICSString({
+      uid: icsuid,
+      summary: leftoverText,
+      start: start.toDate(),
+      end: end.toDate(),
+      isAllDay: false,
+    });
+
     const event = new Event({
       calendarId: editableCals[0].id,
       accountId: editableCals[0].accountId,
+      ics: ics,
+      icsuid: icsuid,
       recurrenceStart: start.unix(),
       recurrenceEnd: end.unix(),
     });

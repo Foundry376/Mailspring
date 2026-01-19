@@ -62,7 +62,7 @@ export interface RecurrenceInfo {
 /**
  * Generates a unique ID for calendar events
  */
-function generateUID(): string {
+export function generateUID(): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 15);
   return `${timestamp}-${random}@mailspring`;
@@ -366,6 +366,39 @@ export function getRecurrenceInfo(ics: string): RecurrenceInfo {
     rule: rrule.toString(),
     frequency: rrule.freq,
   };
+}
+
+/**
+ * Adds an EXDATE to a recurring event to exclude a specific occurrence.
+ * Used when deleting a single occurrence of a recurring event.
+ *
+ * @param ics - The master event's ICS data
+ * @param occurrenceStart - The start time of the occurrence to exclude (unix seconds)
+ * @param isAllDay - Whether this is an all-day event
+ * @returns The modified ICS string with the EXDATE added
+ */
+export function addExclusionDate(ics: string, occurrenceStart: number, isAllDay: boolean): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+
+  // Get the VEVENT component
+  const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
+
+  // Create EXDATE time from occurrence start
+  const occurrenceDate = new Date(occurrenceStart * 1000);
+  const exdateTime = createICALTime(occurrenceDate, isAllDay, ical);
+  vevent.addPropertyWithValue('exdate', exdateTime);
+
+  // Update DTSTAMP to indicate modification
+  vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+
+  // Increment SEQUENCE if present (for proper sync)
+  const sequence = vevent.getFirstPropertyValue('sequence');
+  if (sequence !== null) {
+    vevent.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
+  }
+
+  return root.toString();
 }
 
 /**
