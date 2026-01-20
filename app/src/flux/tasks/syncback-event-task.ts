@@ -5,7 +5,7 @@ import { AttributeValues } from '../models/model';
 import { localized } from '../../intl';
 
 /**
- * Snapshot of event data for undo support.
+ * Snapshot of event data for undo/redo support.
  * Contains only the fields needed to restore the event state.
  */
 interface EventSnapshot {
@@ -29,6 +29,10 @@ export class SyncbackEventTask extends Task {
     undoData: Attributes.Obj({
       modelKey: 'undoData',
     }),
+    /** New event data captured at task creation - used for redo */
+    newData: Attributes.Obj({
+      modelKey: 'newData',
+    }),
     taskDescription: Attributes.String({
       modelKey: 'taskDescription',
     }),
@@ -37,6 +41,7 @@ export class SyncbackEventTask extends Task {
   event: Event;
   calendarId: string;
   undoData?: EventSnapshot;
+  newData?: EventSnapshot;
   taskDescription?: string;
 
   static forCreating({
@@ -68,11 +73,19 @@ export class SyncbackEventTask extends Task {
     /** Description for the undo toast (e.g., "Move event") */
     description?: string;
   }) {
+    // Capture the new state at task creation time for reliable redo
+    const newData: EventSnapshot = {
+      ics: event.ics,
+      recurrenceStart: event.recurrenceStart,
+      recurrenceEnd: event.recurrenceEnd,
+    };
+
     return new SyncbackEventTask({
       event,
       calendarId: event.calendarId,
       accountId: event.accountId,
       undoData,
+      newData,
       taskDescription: description,
     });
   }
@@ -100,19 +113,42 @@ export class SyncbackEventTask extends Task {
     restoredEvent.recurrenceStart = this.undoData.recurrenceStart;
     restoredEvent.recurrenceEnd = this.undoData.recurrenceEnd;
 
-    // The undo task's undoData is the current state (for redo)
-    const undoTaskUndoData: EventSnapshot = {
-      ics: this.event.ics,
-      recurrenceStart: this.event.recurrenceStart,
-      recurrenceEnd: this.event.recurrenceEnd,
-    };
-
+    // The undo task's undoData is the new state (from our snapshot),
+    // and its newData is the old state (what we're restoring to)
     return new SyncbackEventTask({
       event: restoredEvent,
       calendarId: this.calendarId,
       accountId: this.accountId,
-      undoData: undoTaskUndoData,
+      undoData: this.newData, // New state becomes undo data for redo-of-undo
+      newData: this.undoData, // Old state becomes new data (what we're applying)
       taskDescription: localized('Undo %@', this.taskDescription || localized('event change')),
+    });
+  }
+
+  /**
+   * Creates an identical task for redo.
+   * Uses the captured newData snapshot to ensure reliable redo even if
+   * the event object has been mutated since task creation.
+   */
+  createIdenticalTask(): SyncbackEventTask {
+    if (!this.newData) {
+      // Fall back to default behavior for tasks without newData (e.g., forCreating)
+      return super.createIdenticalTask() as SyncbackEventTask;
+    }
+
+    // Create a fresh event with the new state from our snapshot
+    const redoEvent = this.event.clone();
+    redoEvent.ics = this.newData.ics;
+    redoEvent.recurrenceStart = this.newData.recurrenceStart;
+    redoEvent.recurrenceEnd = this.newData.recurrenceEnd;
+
+    return new SyncbackEventTask({
+      event: redoEvent,
+      calendarId: this.calendarId,
+      accountId: this.accountId,
+      undoData: this.undoData,
+      newData: this.newData,
+      taskDescription: this.taskDescription,
     });
   }
 

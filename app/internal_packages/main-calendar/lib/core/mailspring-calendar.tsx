@@ -297,9 +297,17 @@ export class MailspringCalendar extends React.Component<
   }
 
   /**
-   * Delete a single occurrence of a recurring event by adding EXDATE to master
+   * Delete a single occurrence of a recurring event by adding EXDATE to master.
+   * Supports undo - restores the original ICS without the EXDATE.
    */
   async _deleteOccurrence(masterEvent: Event, occurrence: EventOccurrence) {
+    // Capture original state for undo BEFORE modifying
+    const undoData = {
+      ics: masterEvent.ics,
+      recurrenceStart: masterEvent.recurrenceStart,
+      recurrenceEnd: masterEvent.recurrenceEnd,
+    };
+
     // Add EXDATE to exclude this occurrence
     masterEvent.ics = ICSEventHelpers.addExclusionDate(
       masterEvent.ics,
@@ -307,8 +315,12 @@ export class MailspringCalendar extends React.Component<
       occurrence.isAllDay
     );
 
-    // Queue syncback to update the master event
-    const task = SyncbackEventTask.forUpdating({ event: masterEvent });
+    // Queue syncback with undo support
+    const task = SyncbackEventTask.forUpdating({
+      event: masterEvent,
+      undoData,
+      description: localized('Delete occurrence'),
+    });
     Actions.queueTask(task);
   }
 
@@ -477,7 +489,9 @@ export class MailspringCalendar extends React.Component<
   };
 
   /**
-   * Apply a keyboard-initiated event change
+   * Apply a keyboard-initiated event change.
+   * Handles recurring events by showing the dialog to choose between
+   * modifying this occurrence or all occurrences.
    */
   async _applyKeyboardEventChange(
     occurrence: EventOccurrence,
@@ -493,45 +507,35 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Capture original state for undo BEFORE modifying
-      const undoData = {
-        ics: event.ics,
-        recurrenceStart: event.recurrenceStart,
-        recurrenceEnd: event.recurrenceEnd,
-      };
-
       // Calculate new times
       let newStart: number;
       let newEnd: number;
 
       if (isResize) {
         // Shift+Arrow: resize the event (change end time only)
-        newStart = event.recurrenceStart;
-        newEnd = Math.max(event.recurrenceEnd + timeDelta, event.recurrenceStart + 900); // Min 15 min
+        newStart = occurrence.start;
+        newEnd = Math.max(occurrence.end + timeDelta, occurrence.start + 900); // Min 15 min
       } else {
         // Arrow: move the event (change both start and end)
-        newStart = event.recurrenceStart + timeDelta;
-        newEnd = event.recurrenceEnd + timeDelta;
+        newStart = occurrence.start + timeDelta;
+        newEnd = occurrence.end + timeDelta;
       }
 
-      // Update ICS data
-      event.ics = ICSEventHelpers.updateEventTimes(event.ics, {
-        start: newStart,
-        end: newEnd,
-        isAllDay: occurrence.isAllDay,
-      });
-
-      // Update cached fields
-      event.recurrenceStart = newStart;
-      event.recurrenceEnd = newEnd;
-
-      // Queue task with undo support
-      const task = SyncbackEventTask.forUpdating({
+      // Use shared utility for recurring event support (shows dialog if needed)
+      const options: EventTimeChangeOptions = {
         event,
-        undoData,
+        originalOccurrenceStart: occurrence.start,
+        newStart,
+        newEnd,
+        isAllDay: occurrence.isAllDay,
         description: isResize ? localized('Resize event') : localized('Move event'),
-      });
-      Actions.queueTask(task);
+      };
+
+      await modifyEventWithRecurringSupport(
+        options,
+        isResize ? 'resize' : 'move',
+        occurrence.title
+      );
     } catch (error) {
       console.error('Failed to apply keyboard event change:', error);
     }
