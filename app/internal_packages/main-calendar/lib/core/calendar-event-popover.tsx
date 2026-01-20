@@ -5,9 +5,7 @@ import {
   DatabaseStore,
   DateUtils,
   Event,
-  SyncbackEventTask,
   localized,
-  RegExpUtils,
   Autolink,
 } from 'mailspring-exports';
 import {
@@ -18,8 +16,7 @@ import {
   TimePicker,
 } from 'mailspring-component-kit';
 import { EventAttendeesInput } from './event-attendees-input';
-import { EventOccurrence } from './calendar-data-source';
-import { EventTimerangePicker } from './event-timerange-picker';
+import { EventOccurrence, EventAttendee } from './calendar-data-source';
 import { EventPropertyRow } from './event-property-row';
 import { CalendarColorPicker } from './calendar-color-picker';
 import { LocationVideoInput } from './location-video-input';
@@ -29,6 +26,8 @@ import { AlertSelector, AlertTiming } from './alert-selector';
 import { ShowAsSelector, ShowAsOption } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
+import { parseEventIdFromOccurrence } from './calendar-drag-utils';
+import { modifyEventWithRecurringSupport } from './recurring-event-actions';
 
 interface CalendarEventPopoverProps {
   event: EventOccurrence;
@@ -39,7 +38,7 @@ interface CalendarEventPopoverState {
   start: number;
   end: number;
   location: string;
-  attendees: any[];
+  attendees: EventAttendee[];
   editing: boolean;
   title: string;
   // New fields for enhanced editing
@@ -84,10 +83,7 @@ export class CalendarEventPopover extends React.Component<
     };
   }
 
-  componentDidUpdate(
-    prevProps: CalendarEventPopoverProps,
-    prevState: CalendarEventPopoverState
-  ) {
+  componentDidUpdate(prevProps: CalendarEventPopoverProps, prevState: CalendarEventPopoverState) {
     // Update state when event prop changes
     if (prevProps.event !== this.props.event) {
       const { description, start, end, location, attendees, title } = this.props.event;
@@ -120,10 +116,9 @@ export class CalendarEventPopover extends React.Component<
   getStartMoment = () => moment(this.state.start * 1000);
   getEndMoment = () => moment(this.state.end * 1000);
 
-  saveEdits = async () => {
+  saveEdits = async (): Promise<void> => {
     // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
-    const occurrenceId = this.props.event.id;
-    const eventId = occurrenceId.replace(/-e\d+$/, '');
+    const eventId = parseEventIdFromOccurrence(this.props.event.id);
 
     // Fetch the actual Event from the database
     const event = await DatabaseStore.find<Event>(Event, eventId);
@@ -133,27 +128,38 @@ export class CalendarEventPopover extends React.Component<
       return;
     }
 
-    // TODO: This component shouldn't save the event here, we should expose an
-    // `onEditEvent` or similar callback that properly updates the ICS data.
-    // For now, we update the recurrence times and queue the syncback task.
-    event.recurrenceStart = this.state.start;
-    event.recurrenceEnd = this.state.end;
+    // Use the shared utility for event modification
+    const result = await modifyEventWithRecurringSupport(
+      {
+        event,
+        originalOccurrenceStart: this.props.event.start,
+        newStart: this.state.start,
+        newEnd: this.state.end,
+        isAllDay: this.state.allDay,
+      },
+      'edit',
+      this.state.title
+    );
+
+    if (result.cancelled) {
+      return; // User cancelled, don't close the popover
+    }
 
     this.setState({ editing: false });
-    const task = SyncbackEventTask.forUpdating({ event });
-    Actions.queueTask(task);
+    Actions.closePopover();
   };
 
   // If on the hour, formats as "3 PM", else formats as "3:15 PM"
 
-  updateAttendees = attendees => {
+  updateAttendees = (attendees: EventAttendee[]): void => {
     this.setState({ attendees });
   };
 
-  updateField = (key, value) => {
-    const updates = {};
-    updates[key] = value;
-    this.setState(updates);
+  updateField = <K extends keyof CalendarEventPopoverState>(
+    key: K,
+    value: CalendarEventPopoverState[K]
+  ): void => {
+    this.setState({ [key]: value } as Pick<CalendarEventPopoverState, K>);
   };
 
   renderEditable = () => {
@@ -186,18 +192,18 @@ export class CalendarEventPopover extends React.Component<
               type="text"
               placeholder={localized('New Event')}
               value={title}
-              onChange={e => this.updateField('title', e.target.value)}
+              onChange={(e) => this.updateField('title', e.target.value)}
             />
             <CalendarColorPicker
               color={calendarColor}
-              onChange={color => this.updateField('calendarColor', color)}
+              onChange={(color) => this.updateField('calendarColor', color)}
             />
           </div>
 
           {/* Location with video call toggle */}
           <LocationVideoInput
             value={location}
-            onChange={value => this.updateField('location', value)}
+            onChange={(value) => this.updateField('location', value)}
             onVideoToggle={() => {
               // Placeholder: could add video call link
             }}
@@ -206,44 +212,47 @@ export class CalendarEventPopover extends React.Component<
           {/* All-day toggle */}
           <AllDayToggle
             checked={allDay}
-            onChange={checked => this.updateField('allDay', checked)}
+            onChange={(checked) => this.updateField('allDay', checked)}
           />
 
           {/* Start/End times using property rows */}
           <EventPropertyRow label={localized('starts:')}>
-            <DatePicker value={start * 1000} onChange={ts => this.updateField('start', ts / 1000)} />
+            <DatePicker
+              value={start * 1000}
+              onChange={(ts) => this.updateField('start', ts / 1000)}
+            />
             {!allDay && (
               <TimePicker
                 value={start * 1000}
-                onChange={ts => this.updateField('start', ts / 1000)}
+                onChange={(ts) => this.updateField('start', ts / 1000)}
               />
             )}
           </EventPropertyRow>
 
           <EventPropertyRow label={localized('ends:')}>
-            <DatePicker value={end * 1000} onChange={ts => this.updateField('end', ts / 1000)} />
+            <DatePicker value={end * 1000} onChange={(ts) => this.updateField('end', ts / 1000)} />
             {!allDay && (
-              <TimePicker value={end * 1000} onChange={ts => this.updateField('end', ts / 1000)} />
+              <TimePicker
+                value={end * 1000}
+                onChange={(ts) => this.updateField('end', ts / 1000)}
+              />
             )}
           </EventPropertyRow>
 
           {/* Time zone selector */}
           <TimeZoneSelector
             value={timezone}
-            onChange={value => this.updateField('timezone', value)}
+            onChange={(value) => this.updateField('timezone', value)}
           />
 
           {/* Repeat selector */}
-          <RepeatSelector
-            value={repeat}
-            onChange={value => this.updateField('repeat', value)}
-          />
+          <RepeatSelector value={repeat} onChange={(value) => this.updateField('repeat', value)} />
 
           {/* Alert selector */}
-          <AlertSelector value={alert} onChange={value => this.updateField('alert', value)} />
+          <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
 
           {/* Show as selector */}
-          <ShowAsSelector value={showAs} onChange={value => this.updateField('showAs', value)} />
+          <ShowAsSelector value={showAs} onChange={(value) => this.updateField('showAs', value)} />
 
           {/* Invitees section - collapsible */}
           {showInvitees ? (
@@ -261,7 +270,7 @@ export class CalendarEventPopover extends React.Component<
                 ref={this.attendeesInputRef}
                 className="event-participant-field"
                 attendees={attendees}
-                change={val => this.updateField('attendees', val)}
+                change={(val) => this.updateField('attendees', val)}
               />
             </div>
           ) : (
@@ -283,7 +292,7 @@ export class CalendarEventPopover extends React.Component<
                 ref={this.notesTextareaRef}
                 value={notes}
                 placeholder={localized('Add notes or URL...')}
-                onChange={e => this.updateField('description', e.target.value)}
+                onChange={(e) => this.updateField('description', e.target.value)}
               />
             </div>
           ) : (
@@ -405,7 +414,7 @@ function extractNotesFromDescription(description: string) {
   let notes: string = null;
   if (els.length) {
     notes = Array.from(els)
-      .map((el: any) => el.content)
+      .map((el) => (el as HTMLMetaElement).content)
       .join('\n');
   } else {
     notes = descriptionRoot.innerText;

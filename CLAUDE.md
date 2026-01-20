@@ -112,6 +112,24 @@ Tasks represent operations the user wants to perform (send email, star thread, m
 - `ChangeLabelsTask`, `ChangeFolderTask` - Organization
 - `ChangeStarredTask`, `ChangeUnreadTask` - Status flags
 - `SyncbackMetadataTask` - Plugin metadata sync
+- `SyncbackEventTask` - Calendar event sync
+
+**Undoable Tasks:**
+
+Tasks can support undo/redo by implementing `canBeUndone` and `createUndoTask()`. The `UndoRedoStore` automatically registers tasks with `canBeUndone = true` for undo.
+
+Two patterns exist:
+1. **Toggle pattern** (`ChangeStarredTask`): Undo simply flips a boolean flag
+2. **Snapshot pattern** (`SyncbackMetadataTask`, `SyncbackEventTask`): Store original state in `undoData`, swap on undo
+
+```typescript
+// Snapshot pattern example
+const undoData = { ics: event.ics, recurrenceStart: event.recurrenceStart };
+event.ics = newIcs;  // Modify after capturing
+Actions.queueTask(SyncbackEventTask.forUpdating({ event, undoData, description: 'Edit event' }));
+```
+
+See `docs/undo-redo-task-pattern.md` for detailed implementation guide.
 
 ### Task Queue (`flux/stores/task-queue.ts`)
 

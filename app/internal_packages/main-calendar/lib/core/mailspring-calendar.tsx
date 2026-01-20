@@ -11,7 +11,7 @@ import {
   DestroyModelTask,
   Event,
   SyncbackEventTask,
-  UndoRedoStore,
+  ICSEventHelpers,
 } from 'mailspring-exports';
 import {
   ScrollRegion,
@@ -41,6 +41,11 @@ import {
   parseEventIdFromOccurrence,
   snapAllDayTimes,
 } from './calendar-drag-utils';
+import { showRecurringEventDialog } from './recurring-event-dialog';
+import {
+  modifyEventWithRecurringSupport,
+  EventTimeChangeOptions,
+} from './recurring-event-actions';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -114,7 +119,7 @@ export class MailspringCalendar extends React.Component<
   _unlisten?: () => void;
   _dataSource = new CalendarDataSource();
 
-  constructor(props) {
+  constructor(props: MailspringCalendarProps) {
     super(props);
     this.state = {
       calendars: [],
@@ -127,7 +132,7 @@ export class MailspringCalendar extends React.Component<
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
   }
@@ -235,10 +240,12 @@ export class MailspringCalendar extends React.Component<
     this._openEventPopover(occurrence);
   };
 
-  _onDeleteSelectedEvents = () => {
+  _onDeleteSelectedEvents = async () => {
     if (this.state.selectedEvents.length === 0) {
       return;
     }
+
+    // Show initial confirmation dialog
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
@@ -247,19 +254,103 @@ export class MailspringCalendar extends React.Component<
         `Are you sure you want to delete or decline invitations for the selected event(s)?`
       ),
     });
-    if (response === 0) {
-      // response is button array index
-      for (const event of this.state.selectedEvents) {
-        const task = new DestroyModelTask({
-          modelId: event.id,
-          modelName: event.constructor.name,
-          endpoint: '/events',
-          accountId: event.accountId,
-        });
-        Actions.queueTask(task);
-      }
+
+    if (response !== 0) {
+      return; // User cancelled
+    }
+
+    // Process each selected event
+    for (const occurrence of this.state.selectedEvents) {
+      await this._deleteEvent(occurrence);
     }
   };
+
+  /**
+   * Delete a single event occurrence, handling recurring events appropriately
+   */
+  async _deleteEvent(occurrence: EventOccurrence) {
+    try {
+      // Parse the event ID from the occurrence ID (handles recurring instance IDs)
+      const eventId = parseEventIdFromOccurrence(occurrence.id);
+
+      // Fetch the full event from database to get ICS data
+      const event = await DatabaseStore.find<Event>(Event, eventId);
+      if (!event) {
+        console.error('Could not find event to delete:', eventId);
+        return;
+      }
+
+      // Check if this is a recurring event (and not already an exception)
+      const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
+
+      if (isRecurring && !event.isRecurrenceException()) {
+        // Show recurring event dialog
+        const choice = await showRecurringEventDialog('delete', occurrence.title);
+
+        if (choice === 'cancel') {
+          return; // User cancelled this deletion
+        }
+
+        if (choice === 'this-occurrence') {
+          // Delete only this occurrence by adding EXDATE to master
+          await this._deleteOccurrence(event, occurrence);
+        } else {
+          // Delete entire series
+          await this._deleteEntireEvent(event);
+        }
+      } else {
+        // Non-recurring event or already an exception - delete normally
+        await this._deleteEntireEvent(event);
+      }
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Delete Failed'),
+        message: localized('Failed to delete the event. Please try again.'),
+      });
+    }
+  }
+
+  /**
+   * Delete a single occurrence of a recurring event by adding EXDATE to master.
+   * Supports undo - restores the original ICS without the EXDATE.
+   */
+  async _deleteOccurrence(masterEvent: Event, occurrence: EventOccurrence) {
+    // Capture original state for undo BEFORE modifying
+    const undoData = {
+      ics: masterEvent.ics,
+      recurrenceStart: masterEvent.recurrenceStart,
+      recurrenceEnd: masterEvent.recurrenceEnd,
+    };
+
+    // Add EXDATE to exclude this occurrence
+    masterEvent.ics = ICSEventHelpers.addExclusionDate(
+      masterEvent.ics,
+      occurrence.start,
+      occurrence.isAllDay
+    );
+
+    // Queue syncback with undo support
+    const task = SyncbackEventTask.forUpdating({
+      event: masterEvent,
+      undoData,
+      description: localized('Delete occurrence'),
+    });
+    Actions.queueTask(task);
+  }
+
+  /**
+   * Delete an entire event (or series)
+   */
+  async _deleteEntireEvent(event: Event) {
+    const task = new DestroyModelTask({
+      modelId: event.id,
+      modelName: event.constructor.name,
+      endpoint: '/events',
+      accountId: event.accountId,
+    });
+    Actions.queueTask(task);
+  }
 
   /**
    * Get the drag configuration based on the current view
@@ -414,7 +505,9 @@ export class MailspringCalendar extends React.Component<
   };
 
   /**
-   * Apply a keyboard-initiated event change
+   * Apply a keyboard-initiated event change.
+   * Handles recurring events by showing the dialog to choose between
+   * modifying this occurrence or all occurrences.
    */
   async _applyKeyboardEventChange(
     occurrence: EventOccurrence,
@@ -430,81 +523,49 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Store original values for undo
-      const originalStart = event.recurrenceStart;
-      const originalEnd = event.recurrenceEnd;
-
       // Calculate new times
       let newStart: number;
       let newEnd: number;
 
       if (isResize) {
         // Shift+Arrow: resize the event (change end time only)
-        newStart = originalStart;
-        newEnd = Math.max(originalEnd + timeDelta, originalStart + 900); // Min 15 min duration
+        newStart = occurrence.start;
+        newEnd = Math.max(occurrence.end + timeDelta, occurrence.start + 900); // Min 15 min
       } else {
         // Arrow: move the event (change both start and end)
-        newStart = originalStart + timeDelta;
-        newEnd = originalEnd + timeDelta;
+        newStart = occurrence.start + timeDelta;
+        newEnd = occurrence.end + timeDelta;
       }
 
-      // Update and persist
-      event.recurrenceStart = newStart;
-      event.recurrenceEnd = newEnd;
+      // Use shared utility for recurring event support (shows dialog if needed)
+      const options: EventTimeChangeOptions = {
+        event,
+        originalOccurrenceStart: occurrence.start,
+        newStart,
+        newEnd,
+        isAllDay: occurrence.isAllDay,
+        description: isResize ? localized('Resize event') : localized('Move event'),
+      };
 
-      const task = SyncbackEventTask.forUpdating({ event });
-      Actions.queueTask(task);
-
-      // Register undo action
-      this._registerUndoAction(event, originalStart, originalEnd, newStart, newEnd);
+      await modifyEventWithRecurringSupport(
+        options,
+        isResize ? 'resize' : 'move',
+        occurrence.title
+      );
     } catch (error) {
       console.error('Failed to apply keyboard event change:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Update Failed'),
+        message: localized('Failed to update the event. Please try again.'),
+      });
     }
   }
 
   /**
-   * Register an undo action for an event time change
+   * Persist the drag change to the database.
+   * Undo support is automatically provided by SyncbackEventTask.
    */
-  _registerUndoAction(
-    event: Event,
-    originalStart: number,
-    originalEnd: number,
-    newStart: number,
-    newEnd: number
-  ) {
-    const undoBlock = {
-      description: localized('Move event'),
-      do: () => {
-        // No-op, already done
-      },
-      undo: async () => {
-        const ev = await DatabaseStore.find<Event>(Event, event.id);
-        if (ev) {
-          ev.recurrenceStart = originalStart;
-          ev.recurrenceEnd = originalEnd;
-          const task = SyncbackEventTask.forUpdating({ event: ev });
-          Actions.queueTask(task);
-        }
-      },
-      redo: async () => {
-        const ev = await DatabaseStore.find<Event>(Event, event.id);
-        if (ev) {
-          ev.recurrenceStart = newStart;
-          ev.recurrenceEnd = newEnd;
-          const task = SyncbackEventTask.forUpdating({ event: ev });
-          Actions.queueTask(task);
-        }
-      },
-    };
-
-    // Manually push to undo stack since SyncbackEventTask doesn't support undo natively
-    (UndoRedoStore as any)._onQueueBlock(undoBlock);
-  }
-
-  /**
-   * Persist the drag change to the database
-   */
-  async _persistDragChange(dragState: DragState) {
+  async _persistDragChange(dragState: DragState): Promise<void> {
     // Clear the drag state immediately for responsive UI
     this.setState({ dragState: null });
 
@@ -519,15 +580,11 @@ export class MailspringCalendar extends React.Component<
       }
 
       // Check if calendar is read-only (safety check)
-      const calendar = this.state.calendars.find(c => c.id === event.calendarId);
+      const calendar = this.state.calendars.find((c) => c.id === event.calendarId);
       if (calendar?.readOnly) {
         console.warn('Cannot modify event in read-only calendar');
         return;
       }
-
-      // Store original values for undo
-      const originalStart = event.recurrenceStart;
-      const originalEnd = event.recurrenceEnd;
 
       // Handle all-day events - snap times to day boundaries
       let newStart = dragState.previewStart;
@@ -539,18 +596,28 @@ export class MailspringCalendar extends React.Component<
         newEnd = snapped.end;
       }
 
-      // Update the event times
-      event.recurrenceStart = newStart;
-      event.recurrenceEnd = newEnd;
+      // Use shared utility for the modification logic (includes undo support)
+      const options: EventTimeChangeOptions = {
+        event,
+        originalOccurrenceStart: dragState.event.start,
+        newStart,
+        newEnd,
+        isAllDay: dragState.event.isAllDay,
+        description:
+          dragState.mode === 'move' ? localized('Move event') : localized('Resize event'),
+      };
 
-      // Queue the syncback task
-      const task = SyncbackEventTask.forUpdating({ event });
-      Actions.queueTask(task);
-
-      // Register undo action
-      this._registerUndoAction(event, originalStart, originalEnd, newStart, newEnd);
+      await modifyEventWithRecurringSupport(
+        options,
+        dragState.mode === 'move' ? 'move' : 'resize',
+        dragState.event.title
+      );
     } catch (error) {
       console.error('Failed to persist drag change:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Update Failed'),
+        message: localized('Failed to update the event. Please try again.'),
+      });
     }
   }
 

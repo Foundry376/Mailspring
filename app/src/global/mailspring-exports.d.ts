@@ -182,6 +182,15 @@ export type CalendarUtils = typeof import('../calendar-utils');
 export const CalendarUtils: CalendarUtils;
 export { ICSParticipantStatus, ICSParticipant } from '../calendar-utils';
 
+export type ICSEventHelpers = typeof import('../ics-event-helpers');
+export const ICSEventHelpers: ICSEventHelpers;
+export {
+  CreateEventOptions,
+  UpdateTimesOptions,
+  RecurrenceExceptionResult,
+  RecurrenceInfo,
+} from '../ics-event-helpers';
+
 export type FsUtils = typeof import('../fs-utils');
 export const FsUtils: FsUtils;
 export type CanvasUtils = typeof import('../canvas-utils');
