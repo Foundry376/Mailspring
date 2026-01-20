@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as cheerio from 'cheerio';
+import { LRUCache } from 'lru-cache';
 import { Message, ComponentRegistry } from 'mailspring-exports';
 import { UnsubscribeHeader } from './unsubscribe-header';
 import {
@@ -64,9 +65,7 @@ const regexps = [
 ];
 
 /** Cache for body-parsed unsubscribe links (limited to prevent memory growth) */
-const _bodyLinkCache: Record<string, string | null> = {};
-const _bodyLinkCacheKeys: string[] = [];
-const BODY_LINK_CACHE_SIZE = 150;
+const bodyLinkCache = new LRUCache<string, string | null>({ max: 150 });
 
 interface UnsubscribeAction {
   href: string;
@@ -78,8 +77,8 @@ interface UnsubscribeAction {
  * Used as fallback when List-Unsubscribe header is not available.
  */
 function findBodyUnsubscribeLink(message: Message): string | null {
-  if (_bodyLinkCache[message.id] !== undefined) {
-    return _bodyLinkCache[message.id];
+  if (bodyLinkCache.has(message.id)) {
+    return bodyLinkCache.get(message.id);
   }
 
   let result: string | null = null;
@@ -94,7 +93,7 @@ function findBodyUnsubscribeLink(message: Message): string | null {
         if (re.test(link.href)) {
           // If the URL contains e.g. "unsubscribe" we assume that we have correctly
           // detected the unsubscribe link.
-          _cacheBodyLink(message.id, link.href);
+          bodyLinkCache.set(message.id, link.href);
           return link.href;
         }
         if (re.test(link.innerText)) {
@@ -105,26 +104,10 @@ function findBodyUnsubscribeLink(message: Message): string | null {
       }
     }
 
-    _cacheBodyLink(message.id, result);
+    bodyLinkCache.set(message.id, result);
   }
 
   return result;
-}
-
-/**
- * Adds a body link to the cache, evicting oldest entries if cache is full.
- */
-function _cacheBodyLink(messageId: string, link: string | null): void {
-  // Evict oldest entries if cache is full
-  while (_bodyLinkCacheKeys.length >= BODY_LINK_CACHE_SIZE) {
-    const oldestKey = _bodyLinkCacheKeys.shift();
-    if (oldestKey) {
-      delete _bodyLinkCache[oldestKey];
-    }
-  }
-
-  _bodyLinkCache[messageId] = link;
-  _bodyLinkCacheKeys.push(messageId);
 }
 
 type UnsubscribeMethod = 'one-click' | 'mailto' | 'web' | 'body-link';
