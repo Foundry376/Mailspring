@@ -62,6 +62,11 @@ export class UnsubscribeHeader extends React.Component<
   }
 
   private _handleClick = async () => {
+    // Prevent multiple clicks while an operation is in progress
+    if (this.state.state !== 'idle') {
+      return;
+    }
+
     const { option, method } = this.props;
 
     switch (method) {
