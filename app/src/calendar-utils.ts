@@ -54,13 +54,47 @@ export function parseICSString(ics: string) {
   return { root, event };
 }
 
-export function emailFromParticipantURI(uri: string) {
+export function emailFromParticipantURI(uri: string): string | null {
   if (!uri) {
     return null;
   }
-  if (uri.toLowerCase().startsWith('mailto:')) {
-    return uri.toLowerCase().replace('mailto:', '');
+
+  // Normalize to lowercase for comparison
+  const uriLower = uri.toLowerCase();
+
+  // Handle mailto: URI format (most common)
+  // e.g., "mailto:user@example.com" or "MAILTO:user@example.com"
+  if (uriLower.startsWith('mailto:')) {
+    const email = uri.slice(7).toLowerCase(); // preserve original then lowercase
+    if (email.includes('@')) {
+      return email;
+    }
+    return null;
   }
+
+  // Handle bare email addresses (no mailto: prefix)
+  // Some calendar systems just use "user@example.com" directly
+  if (uri.includes('@') && !uri.includes(':')) {
+    return uri.toLowerCase();
+  }
+
+  // Handle URIs with email embedded after a colon (rare formats)
+  // e.g., "invalid:user@example.com"
+  const colonIndex = uri.indexOf(':');
+  if (colonIndex !== -1) {
+    const afterColon = uri.slice(colonIndex + 1);
+    if (afterColon.includes('@') && !afterColon.includes('/')) {
+      return afterColon.toLowerCase();
+    }
+  }
+
+  // Try to extract email pattern from the string as a last resort
+  // This handles edge cases where email is embedded in other formats
+  const emailMatch = uri.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  if (emailMatch) {
+    return emailMatch[1].toLowerCase();
+  }
+
   return null;
 }
 

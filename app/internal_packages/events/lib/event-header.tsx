@@ -28,7 +28,7 @@ interface EventHeaderProps {
 
 interface EventHeaderState {
   icsOriginalData?: string;
-  icsMethod?: 'reply' | 'request';
+  icsMethod?: 'reply' | 'request' | 'cancel';
   icsEvent?: ICAL.Event;
   inflight?: ICSParticipantStatus;
 }
@@ -73,11 +73,13 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       const { event, root } = CalendarUtils.parseICSString(data.toString());
 
       const method = root.getFirstPropertyValue('method');
+      const methodLower = (typeof method === 'string' ? method : 'request').toLowerCase();
+      // Normalize to known methods: request, reply, cancel. Default unknown methods to request.
+      const normalizedMethod =
+        methodLower === 'reply' || methodLower === 'cancel' ? methodLower : 'request';
       this.setState({
         icsEvent: event,
-        icsMethod: (typeof method === 'string' ? method : 'request').toLowerCase() as
-          | 'reply'
-          | 'request',
+        icsMethod: normalizedMethod as 'reply' | 'request' | 'cancel',
         icsOriginalData: data.toString(),
       });
 
@@ -161,7 +163,11 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
               <div className="event-time">{time}</div>
             </div>
             <div className="event-location">{icsEvent.location}</div>
-            {icsMethod === 'request' ? this._renderRSVP() : this._renderSenderResponse()}
+            {icsMethod === 'cancel'
+              ? this._renderCancellation()
+              : icsMethod === 'request'
+                ? this._renderRSVP()
+                : this._renderSenderResponse()}
           </div>
         </div>
       </div>
@@ -186,6 +192,21 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     return (
       <div className="event-actions">{localized(`%1$@ has %2$@ this event`, from.email, verb)}</div>
+    );
+  }
+
+  _renderCancellation() {
+    const { icsEvent } = this.state;
+    const organizerEmail = CalendarUtils.emailFromParticipantURI(icsEvent.organizer);
+
+    return (
+      <div className="event-actions event-cancelled">
+        <span className="cancelled-notice">
+          {organizerEmail
+            ? localized('This event has been cancelled by %@', organizerEmail)
+            : localized('This event has been cancelled')}
+        </span>
+      </div>
     );
   }
 
@@ -241,10 +262,11 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     if (!organizerEmail) {
       AppEnv.showErrorDialog(
         localized(
-          "Sorry, this event does not have an organizer or the organizer's address is not a valid email address: {}",
-          icsEvent.organizer
+          "Sorry, this event does not have an organizer or the organizer's address is not a valid email address: %@",
+          icsEvent.organizer || '(none)'
         )
       );
+      return;
     }
 
     this.setState({ inflight: status });
