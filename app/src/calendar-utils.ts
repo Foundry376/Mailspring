@@ -1,4 +1,4 @@
-import { AccountStore } from 'mailspring-exports';
+import { AccountStore, RegExpUtils } from 'mailspring-exports';
 
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
@@ -74,25 +74,21 @@ export function emailFromParticipantURI(uri: string): string | null {
 
   // Handle bare email addresses (no mailto: prefix)
   // Some calendar systems just use "user@example.com" directly
-  if (uri.includes('@') && !uri.includes(':')) {
+  // Use RegExpUtils.emailRegex which supports international characters,
+  // and verify the match covers the entire string to reject malformed inputs
+  const emailRegex = RegExpUtils.emailRegex();
+  const bareMatch = emailRegex.exec(uri);
+  if (bareMatch && bareMatch.index === 0 && bareMatch[0].length === uri.length) {
     return uri.toLowerCase();
   }
 
-  // Handle URIs with email embedded after a colon (rare formats)
-  // e.g., "invalid:user@example.com"
-  const colonIndex = uri.indexOf(':');
-  if (colonIndex !== -1) {
-    const afterColon = uri.slice(colonIndex + 1);
-    if (afterColon.includes('@') && !afterColon.includes('/')) {
-      return afterColon.toLowerCase();
-    }
-  }
-
-  // Try to extract email pattern from the string as a last resort
-  // This handles edge cases where email is embedded in other formats
-  const emailMatch = uri.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-  if (emailMatch) {
-    return emailMatch[1].toLowerCase();
+  // Try to extract an email pattern from the string as a last resort.
+  // This handles edge cases like "invalid:user@example.com" or other
+  // non-standard formats where the email is embedded in the string.
+  emailRegex.lastIndex = 0; // Reset regex state since it has the 'g' flag
+  const embeddedMatch = emailRegex.exec(uri);
+  if (embeddedMatch) {
+    return embeddedMatch[0].toLowerCase();
   }
 
   return null;
