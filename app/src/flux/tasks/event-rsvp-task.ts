@@ -57,8 +57,22 @@ export class EventRSVPTask extends Task {
   }) {
     const { event, root } = CalendarUtils.parseICSString(icsOriginalData);
     const me = CalendarUtils.selfParticipant(event, accountId);
+
+    // Update the replying attendee's participation status
     me.component.setParameter('partstat', icsRSVPStatus);
+
+    // Set METHOD to REPLY at the calendar level
     root.updatePropertyWithValue('method', 'REPLY');
+
+    // Per RFC 5546, a REPLY must have exactly one ATTENDEE - the replying user.
+    // Remove all other attendees from the VEVENT, keeping only the self-participant.
+    const vevent = root.getFirstSubcomponent('vevent');
+    const allAttendees = vevent.getAllProperties('attendee');
+    for (const attendee of allAttendees) {
+      if (attendee !== me.component) {
+        vevent.removeProperty(attendee);
+      }
+    }
 
     const icsReplyData = root.toString();
 
