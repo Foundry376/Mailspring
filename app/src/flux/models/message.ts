@@ -177,6 +177,16 @@ export class Message extends ModelWithMetadata {
       modelKey: 'folder',
       itemClass: Folder,
     }),
+
+    listUnsubscribe: Attributes.String({
+      modelKey: 'listUnsubscribe',
+      jsonKey: 'hListUnsub',
+    }),
+
+    listUnsubscribePost: Attributes.String({
+      modelKey: 'listUnsubscribePost',
+      jsonKey: 'hListUnsubPost',
+    }),
   };
 
   public subject: string;
@@ -198,6 +208,8 @@ export class Message extends ModelWithMetadata {
   public replyToHeaderMessageId: string;
   public forwardedHeaderMessageId: string;
   public folder: Folder;
+  public listUnsubscribe: string;
+  public listUnsubscribePost: string;
 
   /** indicates that "body" is plain text, not HTML */
   public plaintext: boolean;

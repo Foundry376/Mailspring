@@ -1,7 +1,14 @@
 import * as React from 'react';
 import * as cheerio from 'cheerio';
+import { LRUCache } from 'lru-cache';
 import { Message, ComponentRegistry } from 'mailspring-exports';
 import { UnsubscribeHeader } from './unsubscribe-header';
+import {
+  UnsubscribeOption,
+  parseListUnsubscribeHeader,
+  supportsOneClick,
+  getBestUnsubscribeOption,
+} from './unsubscribe-service';
 
 const regexps = [
   // English
@@ -57,19 +64,24 @@ const regexps = [
   /notisinställningar/gi,
 ];
 
-const _throwawayCache: Record<string, string> = {};
+/** Cache for body-parsed unsubscribe links (limited to prevent memory growth) */
+const bodyLinkCache = new LRUCache<string, string | null>({ max: 150 });
 
 interface UnsubscribeAction {
   href: string;
   innerText: string;
 }
 
-function bestUnsubscribeLink(message: Message): string {
-  if (_throwawayCache[message.id] !== undefined) {
-    return _throwawayCache[message.id];
+/**
+ * Parses the email body to find unsubscribe links.
+ * Used as fallback when List-Unsubscribe header is not available.
+ */
+function findBodyUnsubscribeLink(message: Message): string | null {
+  if (bodyLinkCache.has(message.id)) {
+    return bodyLinkCache.get(message.id);
   }
 
-  let result = null;
+  let result: string | null = null;
 
   // Only check the body if it has been downloaded already
   if (message.body) {
@@ -81,29 +93,78 @@ function bestUnsubscribeLink(message: Message): string {
         if (re.test(link.href)) {
           // If the URL contains e.g. "unsubscribe" we assume that we have correctly
           // detected the unsubscribe link.
-
-          _throwawayCache[message.id] = link.href;
-
+          bodyLinkCache.set(message.id, link.href);
           return link.href;
         }
         if (re.test(link.innerText)) {
           // If the URL does not contain "unsubscribe", but the text around the link contains
-          // it, it is a possible candidate, we we still check all other links for a better match
+          // it, it is a possible candidate, we still check all other links for a better match
           result = link.href;
         }
       }
     }
 
-    _throwawayCache[message.id] = result;
+    bodyLinkCache.set(message.id, result);
   }
 
   return result;
 }
 
-const UnsubscribeHeaderContainer: React.FunctionComponent<{ message: Message }> = ({ message }) => {
-  const unsubscribeAction = bestUnsubscribeLink(message);
+type UnsubscribeMethod = 'one-click' | 'mailto' | 'web' | 'body-link';
 
-  return unsubscribeAction ? <UnsubscribeHeader unsubscribeAction={unsubscribeAction} /> : null;
+interface UnsubscribeInfo {
+  option: UnsubscribeOption;
+  method: UnsubscribeMethod;
+}
+
+/**
+ * Determines the best unsubscribe method for a message.
+ *
+ * Priority order:
+ * 1. Header-based one-click (RFC 8058) - HTTPS with List-Unsubscribe-Post
+ * 2. Header-based mailto - opens composer
+ * 3. Header-based web - opens browser
+ * 4. Body-parsed link - fallback, opens browser
+ */
+function getUnsubscribeInfo(message: Message): UnsubscribeInfo | null {
+  // 1. Try header-based unsubscribe (RFC 2369 / RFC 8058)
+  if (message.listUnsubscribe) {
+    const headerOptions = parseListUnsubscribeHeader(message.listUnsubscribe);
+    const hasOneClickSupport = supportsOneClick(message.listUnsubscribePost);
+
+    const best = getBestUnsubscribeOption(headerOptions, hasOneClickSupport);
+    if (best) {
+      return {
+        option: best.option,
+        method: best.method,
+      };
+    }
+  }
+
+  // 2. Fall back to body-parsed link
+  const bodyLink = findBodyUnsubscribeLink(message);
+  if (bodyLink) {
+    return {
+      option: { type: 'https', uri: bodyLink },
+      method: 'body-link',
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Container component that determines the best unsubscribe method
+ * and renders the UnsubscribeHeader component.
+ */
+const UnsubscribeHeaderContainer: React.FunctionComponent<{ message: Message }> = ({ message }) => {
+  const info = getUnsubscribeInfo(message);
+
+  if (!info) {
+    return null;
+  }
+
+  return <UnsubscribeHeader option={info.option} method={info.method} />;
 };
 
 UnsubscribeHeaderContainer.displayName = 'UnsubscribeContainer';

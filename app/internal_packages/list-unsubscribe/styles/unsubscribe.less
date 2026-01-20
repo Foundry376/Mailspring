@@ -3,8 +3,59 @@
 .unsubscribe-action {
   color: @text-color-very-subtle;
   text-decoration: underline;
+  cursor: pointer;
 
   &:hover {
     color: @text-color-subtle;
+  }
+
+  // Loading state
+  &.unsubscribe-loading {
+    cursor: wait;
+    text-decoration: none;
+    color: @text-color-subtle;
+
+    .unsubscribe-spinner {
+      width: 14px;
+      height: 14px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  }
+
+  // Success state
+  &.unsubscribe-success {
+    cursor: default;
+    text-decoration: none;
+    color: @color-success;
+
+    .unsubscribe-success-icon {
+      width: 12px;
+      height: 12px;
+      margin-right: 4px;
+      vertical-align: middle;
+      background-color: @color-success;
+    }
+  }
+
+  // Error state
+  &.unsubscribe-error {
+    cursor: default;
+    text-decoration: none;
+
+    .unsubscribe-error-message {
+      color: @color-danger;
+      margin-right: 8px;
+    }
+
+    .unsubscribe-retry {
+      color: @text-color-link;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover {
+        color: @text-color-link-hover;
+      }
+    }
   }
 }
