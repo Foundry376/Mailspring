@@ -180,12 +180,12 @@ export class Message extends ModelWithMetadata {
 
     listUnsubscribe: Attributes.String({
       modelKey: 'listUnsubscribe',
-      jsonKey: 'hlistunsub',
+      jsonKey: 'hListUnsub',
     }),
 
     listUnsubscribePost: Attributes.String({
       modelKey: 'listUnsubscribePost',
-      jsonKey: 'hlistunsubpost',
+      jsonKey: 'hListUnsubPost',
     }),
   };
 
