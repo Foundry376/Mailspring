@@ -8,7 +8,7 @@ export function activate() {
     if (!style) {
       style = document.createElement('style');
       style.innerText = fs
-        .readFileSync(path.join(__dirname, '..', 'assets', 'font-override.css'))
+        .readFileSync(path.join(__dirname, '..', 'assets', 'screenshot-mode.css'))
         .toString();
     }
 

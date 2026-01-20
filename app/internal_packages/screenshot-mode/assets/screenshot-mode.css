@@ -1,0 +1,3 @@
+body * {
+  -webkit-text-security: square !important;
+}
