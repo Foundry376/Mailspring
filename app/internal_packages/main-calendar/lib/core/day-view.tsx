@@ -126,6 +126,7 @@ export class DayView extends React.Component<
     const className = classnames({
       'day-label-wrap': true,
       'is-today': this._isToday(day),
+      'is-hard-stop': day.weekday() === 1, // Monday - consistent with WeekView styling
     });
     return (
       <div className={className} key={idx}>
@@ -146,6 +147,9 @@ export class DayView extends React.Component<
     const { bufferedStart } = this._calculateMomentRange();
     const days: Moment[] = [];
     for (let i = 0; i < DAYS_IN_VIEW + BUFFER_DAYS * 2; i++) {
+      // NOTE: Unlike WeekView which uses moment::weekday(i) for locale-aware week
+      // alignment, DayView simply adds consecutive days since we're not aligning
+      // to week boundaries. This is intentional for day-by-day navigation.
       days.push(moment(bufferedStart).add(i, 'days'));
     }
     return days;
@@ -230,6 +234,7 @@ export class DayView extends React.Component<
           onCalendarMouseMove={this.props.onCalendarMouseMove}
         >
           <div className="top-banner">
+            {/* Role follows pattern: Calendar:{ViewName}:Banner (cf. WeekView's Calendar:Week:Banner) */}
             <InjectedComponentSet matching={{ role: 'Calendar:Day:Banner' }} direction="row" />
           </div>
 
@@ -314,7 +319,7 @@ export class DayView extends React.Component<
                   ))}
                   <CurrentTimeIndicator
                     visible={
-                      todayColumnIdx >= 0 && todayColumnIdx < BUFFER_DAYS * 2 + DAYS_IN_VIEW
+                      todayColumnIdx >= BUFFER_DAYS && todayColumnIdx < BUFFER_DAYS + DAYS_IN_VIEW
                     }
                     gridHeight={totalHeight}
                     numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
