@@ -52,7 +52,10 @@ export class HeaderControls extends React.Component<{
         </div>
         <div className="view-controls">
           {[
-            //{view: CalendarView.DAY, isDisabled: CalendarView.DAY === this.props.disabledViewButton,},
+            {
+              view: CalendarView.DAY,
+              isDisabled: CalendarView.DAY === this.props.disabledViewButton,
+            },
             {
               view: CalendarView.WEEK,
               isDisabled: CalendarView.WEEK === this.props.disabledViewButton,
