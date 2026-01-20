@@ -54,9 +54,11 @@ export class DayView extends React.Component<
     this._mounted = true;
     this._centerScrollRegion();
 
-    // Shift ourselves right by a day because we preload 1 day on either side
+    // Shift ourselves right by BUFFER_DAYS to show the focused day (not the buffer).
+    // clientWidth equals the visible viewport (1 day), so scrolling by clientWidth
+    // skips past the 1 buffer day on the left, matching WeekView's approach.
     const wrap = this._calendarWrapEl.current;
-    wrap.scrollLeft += wrap.clientWidth / this._bufferRatio();
+    wrap.scrollLeft += wrap.clientWidth;
 
     this.updateSubscription();
     this._setIntervalHeight();

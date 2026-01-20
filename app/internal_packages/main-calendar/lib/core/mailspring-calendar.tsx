@@ -191,10 +191,18 @@ export class MailspringCalendar extends React.Component<
     if (!eventEl) {
       return;
     }
+
+    // In day view, events span most of the horizontal width, so opening
+    // the popover to the right/left causes horizontal scrolling. Use
+    // down/up positioning instead for day view.
+    const isDayView = this.state.view === CalendarView.DAY;
+    const direction = isDayView ? 'down' : 'right';
+    const fallbackDirection = isDayView ? 'up' : 'left';
+
     Actions.openPopover(<CalendarEventPopover event={eventModel} />, {
       originRect: eventEl.getBoundingClientRect(),
-      direction: 'right',
-      fallbackDirection: 'left',
+      direction,
+      fallbackDirection,
       closeOnAppBlur: false,
     });
   }
