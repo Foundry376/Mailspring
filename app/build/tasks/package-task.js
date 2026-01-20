@@ -214,11 +214,8 @@ module.exports = grunt => {
       out: grunt.config('outputDir'),
       overwrite: true,
       prune: true,
-      /**
-       * This will automatically look for the identity in the keychain. It
-       * runs the `security find-identity` command. Note that
-       * setup-mac-keychain-task needs to be run first
-       */
+      // This will automatically look for the identity in the keychain
+      // using the `security find-identity` command.
       osxSign: process.env.SIGN_BUILD
         ? {
             platform: 'darwin',
