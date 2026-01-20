@@ -116,7 +116,7 @@ export class MailspringCalendar extends React.Component<
   _unlisten?: () => void;
   _dataSource = new CalendarDataSource();
 
-  constructor(props) {
+  constructor(props: MailspringCalendarProps) {
     super(props);
     this.state = {
       calendars: [],
@@ -293,6 +293,10 @@ export class MailspringCalendar extends React.Component<
       }
     } catch (error) {
       console.error('Failed to delete event:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Delete Failed'),
+        message: localized('Failed to delete the event. Please try again.'),
+      });
     }
   }
 
@@ -538,6 +542,10 @@ export class MailspringCalendar extends React.Component<
       );
     } catch (error) {
       console.error('Failed to apply keyboard event change:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Update Failed'),
+        message: localized('Failed to update the event. Please try again.'),
+      });
     }
   }
 
@@ -594,6 +602,10 @@ export class MailspringCalendar extends React.Component<
       );
     } catch (error) {
       console.error('Failed to persist drag change:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Update Failed'),
+        message: localized('Failed to update the event. Please try again.'),
+      });
     }
   }
 

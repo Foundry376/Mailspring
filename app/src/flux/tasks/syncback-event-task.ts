@@ -102,12 +102,19 @@ export class SyncbackEventTask extends Task {
     return this.taskDescription || null;
   }
 
+  /**
+   * Creates an undo task that restores the event to its previous state.
+   *
+   * Note: This relies on Event.clone() creating a deep clone. If Event.clone()
+   * were shallow, modifications to restoredEvent would leak to this.event,
+   * breaking undo/redo. The Model base class provides deep cloning via toJSON/fromJSON.
+   */
   createUndoTask(): SyncbackEventTask {
     if (!this.undoData) {
       throw new Error('SyncbackEventTask: Cannot create undo task without undoData');
     }
 
-    // Create a new event with the original state restored
+    // Create a new event with the original state restored (deep clone)
     const restoredEvent = this.event.clone();
     restoredEvent.ics = this.undoData.ics;
     restoredEvent.recurrenceStart = this.undoData.recurrenceStart;
