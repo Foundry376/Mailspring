@@ -53,8 +53,10 @@ export default class MovePickerPopover extends Component<
 
   componentDidUpdate(prevProps: MovePickerPopoverProps) {
     if (prevProps.account !== this.props.account || prevProps.threads !== this.props.threads) {
+      // Re-register observables when account/threads change.
+      // The subscription callback (_onCategoriesChanged) will trigger setState
+      // with the new categories, so we don't need an explicit setState here.
       this._registerObservables();
-      this.setState(this._recalculateState(this.props));
     }
   }
 
@@ -128,7 +130,10 @@ export default class MovePickerPopover extends Component<
   _onCategoriesChanged = categories => {
     this._standardFolders = categories.filter(c => c.role && c instanceof Folder);
     this._userCategories = categories.filter(c => !c.role || !(c instanceof Folder));
-    this.setState(this._recalculateState());
+    // Use functional setState to preserve any pending searchValue updates from user typing
+    this.setState(prevState =>
+      this._recalculateState(this.props, { searchValue: prevState.searchValue })
+    );
   };
 
   _onEscape = () => {
