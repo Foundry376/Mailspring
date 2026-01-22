@@ -366,7 +366,7 @@ const start = () => {
     app.removeListener('open-url', onOpenUrlBeforeReady);
 
     // Remove the Origin header for Microsoft OAuth requests. Native fetch in Electron
-    // adds an Origin header which causes AADSTS9002326 errors because Microsoft treats
+    // adds an Origin header which causes AADSTS90023 errors because Microsoft treats
     // it as a cross-origin request requiring SPA client-type registration. Desktop apps
     // should not send Origin headers for OAuth token exchange.
     const o365Filter = {
