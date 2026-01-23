@@ -55,18 +55,279 @@ jobs:
       - name: Build
         run: DEBUG=electron-packager npm run build
 
-      - uses: snapcore/action-build@v1
-        id: build
-
-      - uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.build.outputs.snap }}
-          release: edge
-
       - name: Sync Artifacts to S3
         run: |
           aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short=8 HEAD)/linux" \
             --acl public-read \
             --exclude "*" --include *.deb --include *.rpm
+
+      - name: Upload DEB artifact for testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: mailspring-deb
+          path: app/dist/*.deb
+          retention-days: 1
+
+      - name: Upload RPM artifact for testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: mailspring-rpm
+          path: app/dist/*.rpm
+          retention-days: 1
+
+  build-snap:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fail if branch is not master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "This workflow can only be run on master branch to ensure code-signed builds come from merged PRs"
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Download DEB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-deb
+          path: app/dist/
+
+      - uses: snapcore/action-build@v1
+        id: build-snap
+
+      - uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build-snap.outputs.snap }}
+          release: edge
+
+  test-ubuntu:
+    needs: build
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        ubuntu_version: ['22.04', '24.04']
+    steps:
+      - name: Download DEB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-deb
+
+      - name: Test installation on Ubuntu ${{ matrix.ubuntu_version }}
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace ubuntu:${{ matrix.ubuntu_version }} bash -c "
+            set -e
+            echo '=== Testing Mailspring installation on Ubuntu ${{ matrix.ubuntu_version }} ==='
+
+            # Install the DEB package (this will auto-install dependencies)
+            cd /workspace
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+
+            # First try to install the .deb which will fail with dependency errors
+            dpkg -i *.deb || true
+
+            # Install the missing dependencies
+            apt-get install -f -y
+
+            # Install xvfb and additional runtime libraries for Electron
+            apt-get install -y xvfb libatk-bridge2.0-0
+
+            # Verify installation succeeded
+            dpkg -l | grep mailspring || (echo '✗ Mailspring package not installed' && exit 1)
+
+            # Verify the binary exists and is executable
+            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+
+            # List installed files
+            echo 'Installed files:'
+            dpkg -L mailspring | head -20
+
+            # Run mailspring --version with virtual display
+            echo 'Running mailspring --version...'
+            xvfb-run -a mailspring --version > /tmp/version.txt 2>&1 || true
+            cat /tmp/version.txt
+
+            # Verify version command succeeded (output should contain a version number)
+            if grep -qE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/version.txt; then
+              echo '✓ mailspring --version passed on Ubuntu ${{ matrix.ubuntu_version }}'
+            else
+              echo '✗ mailspring --version failed on Ubuntu ${{ matrix.ubuntu_version }}'
+              exit 1
+            fi
+
+            # Verify mailsync binary exists
+            if [ -f /usr/share/mailspring/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+            else
+              echo '✗ mailsync binary not found at /usr/share/mailspring/mailsync'
+              exit 1
+            fi
+
+            # Run mailsync --help (no X11 required for mailsync)
+            echo 'Running mailsync --help...'
+            /usr/share/mailspring/mailsync --help > /tmp/mailsync-help.txt 2>&1 || true
+            cat /tmp/mailsync-help.txt
+
+            # Verify mailsync help output (should contain usage info)
+            if grep -qiE 'usage|help|mailsync|options|--mode' /tmp/mailsync-help.txt; then
+              echo '✓ mailsync --help passed on Ubuntu ${{ matrix.ubuntu_version }}'
+            else
+              echo '✗ mailsync --help failed on Ubuntu ${{ matrix.ubuntu_version }}'
+              exit 1
+            fi
+
+            echo '✓ Mailspring installation test passed on Ubuntu ${{ matrix.ubuntu_version }}'
+          "
+
+  test-fedora:
+    needs: build
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        fedora_version: ['40', '41']
+    steps:
+      - name: Download RPM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-rpm
+
+      - name: Test installation on Fedora ${{ matrix.fedora_version }}
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace fedora:${{ matrix.fedora_version }} bash -c "
+            set -e
+            echo '=== Testing Mailspring installation on Fedora ${{ matrix.fedora_version }} ==='
+
+            # Install dependencies first
+            cd /workspace
+            dnf install -y xorg-x11-server-Xvfb which
+
+            # Install the RPM package (dnf will auto-resolve dependencies)
+            dnf install -y *.rpm
+
+            # Verify installation succeeded
+            rpm -q mailspring || (echo '✗ Mailspring package not installed' && exit 1)
+
+            # Verify the binary exists and is executable
+            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+
+            # List installed files
+            echo 'Installed files:'
+            rpm -ql mailspring | head -20
+
+            # Run mailspring --version with virtual display
+            echo 'Running mailspring --version...'
+            xvfb-run -a mailspring --version > /tmp/version.txt 2>&1 || true
+            cat /tmp/version.txt
+
+            # Verify version command succeeded (output should contain a version number)
+            if grep -qE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/version.txt; then
+              echo '✓ mailspring --version passed on Fedora ${{ matrix.fedora_version }}'
+            else
+              echo '✗ mailspring --version failed on Fedora ${{ matrix.fedora_version }}'
+              exit 1
+            fi
+
+            # Verify mailsync binary exists
+            if [ -f /usr/share/mailspring/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+            else
+              echo '✗ mailsync binary not found at /usr/share/mailspring/mailsync'
+              exit 1
+            fi
+
+            # Run mailsync --help (no X11 required for mailsync)
+            echo 'Running mailsync --help...'
+            /usr/share/mailspring/mailsync --help > /tmp/mailsync-help.txt 2>&1 || true
+            cat /tmp/mailsync-help.txt
+
+            # Verify mailsync help output (should contain usage info)
+            if grep -qiE 'usage|help|mailsync|options|--mode' /tmp/mailsync-help.txt; then
+              echo '✓ mailsync --help passed on Fedora ${{ matrix.fedora_version }}'
+            else
+              echo '✗ mailsync --help failed on Fedora ${{ matrix.fedora_version }}'
+              exit 1
+            fi
+
+            echo '✓ Mailspring installation test passed on Fedora ${{ matrix.fedora_version }}'
+          "
+
+  test-arch:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download DEB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-deb
+
+      - name: Test installation on Arch Linux
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace archlinux:latest bash -c "
+            set -e
+            echo '=== Testing Mailspring installation on Arch Linux ==='
+
+            # Update package database
+            pacman -Syu --noconfirm
+
+            # Install debtap to convert .deb to Arch package, and xorg-server-xvfb for virtual display
+            pacman -S --noconfirm debtap binutils fakeroot xorg-server-xvfb which
+            debtap -u
+
+            # Convert and install the DEB package
+            cd /workspace
+            DEB_FILE=\$(ls *.deb)
+
+            # Use debtap to convert (skip all prompts with -q)
+            echo 'Converting .deb package to Arch format...'
+            debtap -q \"\$DEB_FILE\"
+
+            # Install the converted package
+            PKG_FILE=\$(ls *.pkg.tar.zst)
+            pacman -U --noconfirm \"\$PKG_FILE\"
+
+            # Verify the binary exists and is executable
+            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+
+            # List installed files
+            echo 'Installed files:'
+            pacman -Ql mailspring | head -20
+
+            # Run mailspring --version with virtual display
+            echo 'Running mailspring --version...'
+            xvfb-run -a mailspring --version > /tmp/version.txt 2>&1 || true
+            cat /tmp/version.txt
+
+            # Verify version command succeeded (output should contain a version number)
+            if grep -qE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/version.txt; then
+              echo '✓ mailspring --version passed on Arch Linux'
+            else
+              echo '✗ mailspring --version failed on Arch Linux'
+              exit 1
+            fi
+
+            # Verify mailsync binary exists
+            if [ -f /usr/share/mailspring/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+            else
+              echo '✗ mailsync binary not found at /usr/share/mailspring/mailsync'
+              exit 1
+            fi
+
+            # Run mailsync --help (no X11 required for mailsync)
+            echo 'Running mailsync --help...'
+            /usr/share/mailspring/mailsync --help > /tmp/mailsync-help.txt 2>&1 || true
+            cat /tmp/mailsync-help.txt
+
+            # Verify mailsync help output (should contain usage info)
+            if grep -qiE 'usage|help|mailsync|options|--mode' /tmp/mailsync-help.txt; then
+              echo '✓ mailsync --help passed on Arch Linux'
+            else
+              echo '✗ mailsync --help failed on Arch Linux'
+              exit 1
+            fi
+
+            echo '✓ Mailspring installation test passed on Arch Linux'
+          "
