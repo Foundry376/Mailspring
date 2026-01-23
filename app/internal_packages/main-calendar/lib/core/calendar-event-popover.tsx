@@ -387,10 +387,28 @@ class CalendarEventPopoverUnenditable extends React.Component<{
         <div className="section">{this.renderTime()}</div>
         <ScrollRegion className="section invitees">
           <div className="label">{localized(`Invitees`)}: </div>
-          <div>
-            {attendees.map((a, idx) => (
-              <div key={idx}> {a.name || a.email}</div>
-            ))}
+          <div className="invitees-list">
+            {sortAttendeesByStatus(attendees).map((a, idx) => {
+                const partstat = a.partstat || 'NEEDS-ACTION';
+                let statusIcon = '?';
+                let statusClass = 'needs-action';
+                if (partstat === 'ACCEPTED') {
+                  statusIcon = '✓';
+                  statusClass = 'accepted';
+                } else if (partstat === 'DECLINED') {
+                  statusIcon = '✗';
+                  statusClass = 'declined';
+                } else if (partstat === 'TENTATIVE') {
+                  statusIcon = '?';
+                  statusClass = 'tentative';
+                }
+                return (
+                  <div key={idx} className={`attendee-chip ${statusClass}`}>
+                    <span className="attendee-status">{statusIcon}</span>
+                    <span className="attendee-name">{a.name || a.email}</span>
+                  </div>
+                );
+              })}
           </div>
         </ScrollRegion>
         <ScrollRegion className="section description">
@@ -402,6 +420,18 @@ class CalendarEventPopoverUnenditable extends React.Component<{
       </div>
     );
   }
+}
+
+function sortAttendeesByStatus(attendees: EventAttendee[]): EventAttendee[] {
+  const statusOrder = { ACCEPTED: 0, TENTATIVE: 1, 'NEEDS-ACTION': 1, DECLINED: 2 };
+  return [...attendees].sort((a, b) => {
+    const aOrder = statusOrder[a.partstat] ?? 1;
+    const bOrder = statusOrder[b.partstat] ?? 1;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    const aName = (a.name || a.email).toLowerCase();
+    const bName = (b.name || b.email).toLowerCase();
+    return aName.localeCompare(bName);
+  });
 }
 
 function extractNotesFromDescription(description: string) {

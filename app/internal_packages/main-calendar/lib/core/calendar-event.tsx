@@ -2,7 +2,7 @@ import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 import { EventOccurrence } from './calendar-data-source';
-import { calcColor } from './calendar-helpers';
+import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canDragEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -114,7 +114,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   }
 
   _getStyles() {
-    let styles: CSSProperties = {};
+    let styles: CSSProperties & { '--event-band-color'?: string; '--event-text-color'?: string } =
+      {};
     if (this.props.direction === 'vertical') {
       styles = this._getDimensions();
     } else if (this.props.direction === 'horizontal') {
@@ -126,13 +127,21 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         top: d.left,
       };
     }
-    const color = calcColor(this.props.event.calendarId);
+    const colors = calcEventColors(this.props.event.calendarId);
+    // Set CSS custom property for the left band color
+    styles['--event-band-color'] = colors.band;
+    styles['--event-text-color'] = colors.text;
+
     if (this.props.event.isCancelled) {
       // Cancelled events get a transparent background with colored border
       styles.backgroundColor = 'transparent';
-      styles.borderColor = color;
+      styles.borderColor = colors.band;
+    } else if (this.props.event.isPending) {
+      // Pending events get a gray background with theme-colored left band
+      styles.backgroundColor = 'rgba(128, 128, 128, 0.15)';
     } else {
-      styles.backgroundColor = color;
+      // Apple Calendar-style: light pastel background
+      styles.backgroundColor = colors.background;
     }
     return styles;
   }
@@ -256,6 +265,42 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     return <div className="drag-preview-time-tooltip">{timeString}</div>;
   }
 
+  /**
+   * Render additional event details for vertical (week view) events:
+   * - Meeting URL domain (e.g., "zoom.us")
+   * - Time range for events >= 1 hour (e.g., "12 – 1PM")
+   */
+  _renderEventDetails() {
+    const { event, direction } = this.props;
+
+    // Only show details for vertical (week view) events
+    if (direction !== 'vertical') {
+      return null;
+    }
+
+    const meetingDomain = extractMeetingDomain(event.location, event.description);
+    const timeRange = formatEventTimeRange(event.start, event.end, event.isAllDay);
+
+    if (!meetingDomain && !timeRange) {
+      return null;
+    }
+
+    return (
+      <div className="event-details">
+        {meetingDomain && (
+          <span className="event-meeting-link">
+            <span className="meeting-icon">▢</span> {meetingDomain}
+          </span>
+        )}
+        {timeRange && (
+          <span className="event-time-range">
+            <span className="time-icon">◷</span> {timeRange}
+          </span>
+        )}
+      </div>
+    );
+  }
+
   render() {
     const { direction, event, onClick, onDoubleClick, selected, isDragging } = this.props;
 
@@ -264,6 +309,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       direction,
       selected && 'selected',
       event.isCancelled && 'cancelled',
+      event.isPending && 'pending',
       event.isException && 'exception',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
@@ -304,6 +350,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         <span className="default-header" style={{ order: 0 }}>
           {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
+        {this._renderEventDetails()}
         {event.isException && <span className="exception-tag">Modified</span>}
         <InjectedComponentSet
           className="event-injected-components"

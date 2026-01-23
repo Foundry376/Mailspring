@@ -36,10 +36,75 @@
     cursor: pointer;
   }
 
+  .invitees.section {
+    padding: 0;
+
+    > .label {
+      padding-top: @padding-base-vertical;
+      padding-left: @padding-base-horizontal;
+      padding-right: @padding-base-horizontal;
+    }
+  }
+
   .invitees .scroll-region-content {
     max-height: 160px;
     word-wrap: break-word;
     position: relative;
+    padding-left: @padding-base-horizontal;
+    padding-right: @padding-base-horizontal;
+    padding-bottom: 4px;
+  }
+
+  .invitees-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .attendee-chip {
+    display: inline-flex;
+    align-items: center;
+    background-color: @background-secondary;
+    border-radius: 12px;
+    padding: 2px 8px 2px 4px;
+    font-size: @font-size-small;
+    border: 1px solid @border-color-divider;
+
+    .attendee-status {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    .attendee-name {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &.accepted .attendee-status {
+      background-color: #34c759;
+      color: white;
+    }
+
+    &.declined .attendee-status {
+      background-color: #ff3b30;
+      color: white;
+    }
+
+    &.tentative .attendee-status,
+    &.needs-action .attendee-status {
+      background-color: #8e8e93;
+      color: white;
+    }
   }
   .description {
     white-space: pre-line;

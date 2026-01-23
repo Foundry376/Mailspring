@@ -1,6 +1,16 @@
 import Rx from 'rx-lite';
-import { Event, Matcher, DatabaseStore, AndCompositeMatcher, OrCompositeMatcher } from 'mailspring-exports';
+import {
+  Event,
+  Matcher,
+  DatabaseStore,
+  AndCompositeMatcher,
+  OrCompositeMatcher,
+  Contact,
+} from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
+
+/** Participation status values from iCalendar spec */
+export type ParticipationStatus = 'NEEDS-ACTION' | 'ACCEPTED' | 'DECLINED' | 'TENTATIVE' | string;
 
 /**
  * Represents an attendee of a calendar event with basic contact info.
@@ -9,6 +19,7 @@ import IcalExpander from 'ical-expander';
 export interface EventAttendee {
   email: string;
   name?: string | null;
+  partstat?: ParticipationStatus;
 }
 
 export interface EventOccurrence {
@@ -22,6 +33,13 @@ export interface EventOccurrence {
   description: string;
   isAllDay: boolean;
   isCancelled: boolean;
+  /**
+   * True if this event should display with "pending" styling (hatched pattern).
+   * This includes:
+   * - Events with STATUS=TENTATIVE
+   * - Events where the current user is an attendee but hasn't accepted (NEEDS-ACTION or TENTATIVE)
+   */
+  isPending: boolean;
   isException: boolean;
   organizer: { email: string } | null;
   attendees: EventAttendee[];
@@ -34,6 +52,11 @@ export interface EventOccurrence {
 
 // Minimal type for focusing/highlighting an event on the calendar
 export type FocusedEventInfo = Pick<EventOccurrence, 'start' | 'id'>;
+
+/** Strip mailto: prefix from email addresses (common in iCalendar data) */
+function normalizeEmail(email: string): string {
+  return email.replace(/^mailto:/i, '');
+}
 
 export class CalendarDataSource {
   observable: Rx.Observable<{ events: EventOccurrence[] }>;
@@ -110,6 +133,22 @@ export function occurrencesForEvents(
 
           expandedStartTimes.add(start);
 
+          // Parse attendees with their participation status
+          const attendees: EventAttendee[] = item.attendees.map(a => ({
+            email: normalizeEmail(String(a.getFirstValue() || '')),
+            name: a.getFirstParameter('cn') || '',
+            partstat: (a.getFirstParameter('partstat') || 'NEEDS-ACTION') as ParticipationStatus,
+          }));
+
+          // Determine if event should show "pending" styling:
+          // 1. Event status is TENTATIVE, or
+          // 2. Current user is an attendee who hasn't accepted
+          const isTentativeStatus = status.toUpperCase() === 'TENTATIVE';
+          const myAttendee = attendees.find(a => a.email && new Contact({ email: a.email }).isMe());
+          const myPartstat = myAttendee?.partstat?.toUpperCase();
+          const isAwaitingMyResponse =
+            myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
+
           occurrences.push({
             start,
             end,
@@ -121,12 +160,10 @@ export function occurrencesForEvents(
             description: item.description || '',
             isAllDay: end - start >= 86400 - 1,
             isCancelled: status.toUpperCase() === 'CANCELLED',
+            isPending: isTentativeStatus || isAwaitingMyResponse,
             isException: !!item.component?.getFirstPropertyValue('recurrence-id'),
             organizer: item.organizer ? { email: item.organizer } : null,
-            attendees: item.attendees.map(a => ({
-              email: String(a.getFirstValue() || ''),
-              name: a.getFirstParameter('cn') || '',
-            })),
+            attendees,
           });
         });
       } catch (err) {
@@ -155,6 +192,20 @@ export function occurrencesForEvents(
           const statusValue = item.component?.getFirstPropertyValue('status');
           const status = typeof statusValue === 'string' ? statusValue : '';
 
+          // Parse attendees with their participation status
+          const attendees: EventAttendee[] = item.attendees.map(a => ({
+            email: normalizeEmail(String(a.getFirstValue() || '')),
+            name: a.getFirstParameter('cn') || '',
+            partstat: (a.getFirstParameter('partstat') || 'NEEDS-ACTION') as ParticipationStatus,
+          }));
+
+          // Determine if event should show "pending" styling
+          const isTentativeStatus = status.toUpperCase() === 'TENTATIVE';
+          const myAttendee = attendees.find(a => a.email && new Contact({ email: a.email }).isMe());
+          const myPartstat = myAttendee?.partstat?.toUpperCase();
+          const isAwaitingMyResponse =
+            myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
+
           occurrences.push({
             start: occStart,
             end: occEnd,
@@ -166,12 +217,10 @@ export function occurrencesForEvents(
             description: item.description || '',
             isAllDay: occEnd - occStart >= 86400 - 1,
             isCancelled: status.toUpperCase() === 'CANCELLED',
+            isPending: isTentativeStatus || isAwaitingMyResponse,
             isException: true,
             organizer: item.organizer ? { email: item.organizer } : null,
-            attendees: item.attendees.map(a => ({
-              email: String(a.getFirstValue() || ''),
-              name: a.getFirstParameter('cn') || '',
-            })),
+            attendees,
           });
         });
       } catch (err) {

@@ -87,28 +87,64 @@ body.platform-win32 {
     border-left: 0;
 
     display: flex;
+    flex-direction: column;
     cursor: default;
+
+    // Apple Calendar-style text uses the theme color
     .default-header {
       overflow: hidden;
       text-overflow: ellipsis;
-      margin: 4px 1px 3px 4px;
+      white-space: nowrap;
+      margin: 4px 4px 0 6px; // Extra left margin for the colored band
       cursor: default;
-      opacity: 0.7;
-      flex: 1;
+      color: var(--event-text-color, inherit);
+      opacity: 1;
+      flex-shrink: 0;
     }
 
+    // Event details (meeting link, time range) - Apple Calendar style
+    .event-details {
+      display: flex;
+      flex-direction: column;
+      margin: 2px 4px 3px 6px;
+      font-size: 10px;
+      line-height: 12px;
+      font-weight: 400;
+      color: var(--event-text-color, inherit);
+      opacity: 0.85;
+      overflow: hidden;
+
+      .event-meeting-link,
+      .event-time-range {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        .meeting-icon,
+        .time-icon {
+          font-size: 9px;
+          margin-right: 2px;
+          opacity: 0.7;
+        }
+      }
+    }
+
+    // Solid colored left band (Apple Calendar-style)
     &:before {
       content: '';
       position: absolute;
-      width: 2px;
+      width: 3px;
       height: 100%;
       left: 0;
       top: 0;
-      background: rgba(0, 0, 0, 0.1);
+      background: var(--event-band-color, rgba(0, 0, 0, 0.3));
+      border-radius: 2px 0 0 2px;
     }
 
     &.horizontal {
       white-space: nowrap;
+      flex-direction: row;
 
       // For horizontal events (all-day), remove vertical borders
       // since drag handles are on left/right edges
@@ -121,9 +157,53 @@ body.platform-win32 {
       &:before {
         display: none;
       }
+
+      // Hide event details in horizontal (all-day) view
+      .event-details {
+        display: none;
+      }
+
+      .default-header {
+        margin: 4px 1px 3px 4px;
+        flex: 1;
+      }
     }
     &.selected {
       background-color: @accent-primary !important;
+      .default-header,
+      .event-details {
+        color: @text-color-inverse;
+      }
+      &:before {
+        background: darken(@accent-primary, 15%);
+      }
+    }
+
+    // Tentative/pending events: gray background with theme-colored left band
+    &.pending {
+      background-color: rgba(128, 128, 128, 0.15);
+
+      .default-header,
+      .event-details {
+        color: @text-color;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        background-image: repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 7px,
+          rgba(128, 128, 128, 0.12) 7px,
+          rgba(128, 128, 128, 0.12) 8.5px
+        );
+      }
     }
 
     // Cancelled events: dotted border, transparent background, strikethrough text
@@ -131,6 +211,7 @@ body.platform-win32 {
       border: 2px dashed;
       border-bottom: 2px dashed;
       background-color: transparent !important;
+      background-image: none;
       .default-header {
         opacity: 0.5;
         s {
@@ -151,7 +232,7 @@ body.platform-win32 {
         font-size: 8px;
         font-weight: 600;
         text-transform: uppercase;
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--event-band-color, rgba(0, 0, 0, 0.2));
         color: rgba(255, 255, 255, 0.9);
         padding: 1px 3px;
         border-radius: 2px;
@@ -186,7 +267,7 @@ body.platform-win32 {
     &.drag-preview {
       opacity: 0.7;
       border: 2px dashed;
-      border-color: inherit;
+      border-color: var(--event-band-color, inherit);
       pointer-events: none;
       z-index: 1000;
 
@@ -509,24 +590,38 @@ body.platform-win32 {
       height: @event-height;
       min-height: @event-height;
       max-height: @event-height;
-      padding: 2px 4px;
+      padding: 2px 4px 2px 8px; // Extra left padding for colored band
       border-radius: 3px;
       font-size: 11px;
       line-height: 16px;
       cursor: default;
       overflow: hidden;
       flex-shrink: 0;
+      position: relative;
+
+      // Solid colored left band (Apple Calendar-style)
+      &:before {
+        content: '';
+        position: absolute;
+        width: 3px;
+        height: 100%;
+        left: 0;
+        top: 0;
+        background: var(--event-band-color, rgba(0, 0, 0, 0.3));
+        border-radius: 3px 0 0 3px;
+      }
 
       .month-view-event-title {
         display: block;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        opacity: 0.85;
+        color: var(--event-text-color, inherit);
+        opacity: 1;
       }
 
       &:hover {
-        opacity: 0.9;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
       }
 
       &:focus {
@@ -538,14 +633,31 @@ body.platform-win32 {
         background-color: @accent-primary !important;
 
         .month-view-event-title {
+          color: @text-color-inverse;
           opacity: 1;
         }
+
+        &:before {
+          background: darken(@accent-primary, 15%);
+        }
+      }
+
+      // Tentative/pending events: hatched diagonal stripes pattern
+      &.pending {
+        background-image: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 3px,
+          var(--event-band-color, rgba(0, 0, 0, 0.1)) 3px,
+          var(--event-band-color, rgba(0, 0, 0, 0.1)) 4px
+        );
+        background-size: auto;
       }
 
       &.drag-preview {
         opacity: 0.7;
         border: 2px dashed;
-        border-color: inherit;
+        border-color: var(--event-band-color, inherit);
         pointer-events: none;
         position: relative;
 

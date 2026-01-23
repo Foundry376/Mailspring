@@ -71,9 +71,10 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
   };
 
   _remove = (values: EventAttendee[]): void => {
+    const emailsToRemove = values.map(o => o.email);
     const updates = _.reject(
       this.props.attendees,
-      p => values.includes(p.email) || values.map(o => o.email).includes(p.email)
+      p => emailsToRemove.includes(p.email)
     );
     this.props.change(updates);
   };
@@ -153,7 +154,7 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
   };
 
   _shouldBreakOnKeydown = (event: React.KeyboardEvent<HTMLInputElement>): boolean => {
-    const val = event.target.value.trim();
+    const val = (event.target as HTMLInputElement).value.trim();
     if (RegExpUtils.emailRegex().test(val) && event.key === ' ') {
       return true;
     }

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 import { EventOccurrence } from './calendar-data-source';
-import { calcColor } from './calendar-helpers';
+import { calcEventColors } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canDragEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -161,18 +161,24 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
   render() {
     const { event, selected, isDragging } = this.props;
-    const backgroundColor = calcColor(event.calendarId);
+    const colors = calcEventColors(event.calendarId);
 
     const className = classnames('month-view-event', {
       selected: selected,
       'is-all-day': event.isAllDay,
+      pending: event.isPending,
       dragging: isDragging,
       draggable: this._canDrag(),
       'drag-preview': event.isDragPreview,
     });
 
-    const style: React.CSSProperties = {
-      backgroundColor,
+    const style: React.CSSProperties & {
+      '--event-band-color'?: string;
+      '--event-text-color'?: string;
+    } = {
+      backgroundColor: event.isPending ? 'rgba(128, 128, 128, 0.15)' : colors.background,
+      '--event-band-color': colors.band,
+      '--event-text-color': colors.text,
       cursor: this._getCursorStyle(),
     };
 

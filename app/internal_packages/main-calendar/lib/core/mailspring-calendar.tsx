@@ -25,7 +25,7 @@ import { MonthView } from './month-view';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
-import { setCalendarColors } from './calendar-helpers';
+import { setCalendarColors, getColorCacheVersion } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -659,6 +659,7 @@ export class MailspringCalendar extends React.Component<
           </div>
         </ResizableRegion>
         <CurrentView
+          key={`view-colors-${getColorCacheVersion()}`}
           dataSource={this._dataSource}
           focusedMoment={this.state.focusedMoment}
           focusedEvent={this.state.focusedEvent}
