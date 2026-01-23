@@ -129,11 +129,11 @@ jobs:
             # First try to install the .deb which will fail with dependency errors
             dpkg -i *.deb || true
 
-            # Install the missing dependencies
+            # Install the missing dependencies (automatically resolves from package metadata)
             apt-get install -f -y
 
-            # Install xvfb and additional runtime libraries for Electron
-            apt-get install -y xvfb libatk-bridge2.0-0 libgbm1
+            # Install xvfb for virtual display (needed for tests, not a package dependency)
+            apt-get install -y xvfb
 
             # Verify installation succeeded
             dpkg -l | grep mailspring || (echo '✗ Mailspring package not installed' && exit 1)
@@ -158,17 +158,29 @@ jobs:
               exit 1
             fi
 
-            # Verify mailsync binary exists
+            # Verify mailsync binary exists (check multiple locations)
             if [ -f /usr/share/mailspring/mailsync ]; then
               echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync
+            elif [ -f /usr/share/mailspring/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync.bin
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin
             else
-              echo '✗ mailsync binary not found at /usr/share/mailspring/mailsync'
+              echo '✗ mailsync binary not found'
+              echo 'Files in /usr/share/mailspring/:'
+              ls -la /usr/share/mailspring/ | head -30
               exit 1
             fi
 
             # Run mailsync --help (no X11 required for mailsync)
             echo 'Running mailsync --help...'
-            /usr/share/mailspring/mailsync --help > /tmp/mailsync-help.txt 2>&1 || true
+            \$MAILSYNC_PATH --help > /tmp/mailsync-help.txt 2>&1 || true
             cat /tmp/mailsync-help.txt
 
             # Verify mailsync help output (should contain usage info)
@@ -202,7 +214,7 @@ jobs:
 
             # Install dependencies first
             cd /workspace
-            dnf install -y xorg-x11-server-Xvfb which
+            dnf install -y xorg-x11-server-Xvfb which alsa-lib
 
             # Install the RPM package (dnf will auto-resolve dependencies)
             dnf install -y *.rpm
@@ -230,17 +242,37 @@ jobs:
               exit 1
             fi
 
-            # Verify mailsync binary exists
+            # Verify mailsync binary exists (check multiple possible locations and names)
             if [ -f /usr/share/mailspring/mailsync ]; then
               echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync
+            elif [ -f /usr/share/mailspring/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync.bin
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin
+            elif [ -f /usr/local/share/mailspring/mailsync ]; then
+              echo 'Found mailsync binary at /usr/local/share/mailspring/mailsync'
+              MAILSYNC_PATH=/usr/local/share/mailspring/mailsync
+            elif [ -f /usr/local/share/mailspring/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/local/share/mailspring/mailsync.bin'
+              MAILSYNC_PATH=/usr/local/share/mailspring/mailsync.bin
             else
-              echo '✗ mailsync binary not found at /usr/share/mailspring/mailsync'
+              echo '✗ mailsync binary not found'
+              echo 'Searching for mailsync in RPM files:'
+              rpm -ql mailspring | grep -i mailsync || echo 'No mailsync found in package'
+              echo 'Files in /usr/share/mailspring/:'
+              ls -la /usr/share/mailspring/ | head -30
               exit 1
             fi
 
             # Run mailsync --help (no X11 required for mailsync)
             echo 'Running mailsync --help...'
-            /usr/share/mailspring/mailsync --help > /tmp/mailsync-help.txt 2>&1 || true
+            \$MAILSYNC_PATH --help > /tmp/mailsync-help.txt 2>&1 || true
             cat /tmp/mailsync-help.txt
 
             # Verify mailsync help output (should contain usage info)
@@ -269,9 +301,9 @@ jobs:
             set -e
             echo '=== Testing Mailspring installation on Arch Linux ==='
 
-            # Update package database and install required tools
+            # Update package database and install required tools and libraries
             pacman -Syu --noconfirm
-            pacman -S --noconfirm xorg-server-xvfb binutils
+            pacman -S --noconfirm xorg-server-xvfb binutils nspr nss gtk3 alsa-lib
 
             # Extract the DEB package manually (ar + tar)
             cd /workspace
@@ -305,17 +337,29 @@ jobs:
               exit 1
             fi
 
-            # Verify mailsync binary exists
+            # Verify mailsync binary exists (check multiple locations)
             if [ -f /usr/share/mailspring/mailsync ]; then
               echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync
+            elif [ -f /usr/share/mailspring/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync.bin
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin
             else
-              echo '✗ mailsync binary not found at /usr/share/mailspring/mailsync'
+              echo '✗ mailsync binary not found'
+              echo 'Files in /usr/share/mailspring/:'
+              ls -la /usr/share/mailspring/ | head -30
               exit 1
             fi
 
             # Run mailsync --help (no X11 required for mailsync)
             echo 'Running mailsync --help...'
-            /usr/share/mailspring/mailsync --help > /tmp/mailsync-help.txt 2>&1 || true
+            \$MAILSYNC_PATH --help > /tmp/mailsync-help.txt 2>&1 || true
             cat /tmp/mailsync-help.txt
 
             # Verify mailsync help output (should contain usage info)
