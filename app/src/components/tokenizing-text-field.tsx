@@ -443,7 +443,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   }
 
-  componentDidUpdate(prevProps: TokenizingTextFieldProps) {
+  componentDidUpdate(prevProps: TokenizingTextFieldProps<T>) {
     if (prevProps.tokens.length === 0 && this.props.tokens.length === 0 && this.state.inputValue.length === 0) {
       if (prevProps.defaultValue !== this.props.defaultValue) {
         const newDefaultValue = this.props.defaultValue || '';

@@ -54,7 +54,7 @@ class Countdown extends React.Component<{ expiration: number }, { x: number }> {
     this.state = { x: 0 };
   }
 
-  componentDidUpdate(prevProps: UndoRedoToastProps) {
+  componentDidUpdate(prevProps: { expiration: number }) {
     if (prevProps.expiration !== this.props.expiration) {
       this.animationDuration = `${this.props.expiration - Date.now()}ms`;
     }

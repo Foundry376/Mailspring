@@ -257,7 +257,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  componentDidUpdate(prevProps: SheetToolbarProps) {
+  componentDidUpdate(prevProps: ToolbarProps) {
     if (prevProps.data !== this.props.data || prevProps.depth !== this.props.depth) {
       this.setState(this._getStateFromStores());
     }

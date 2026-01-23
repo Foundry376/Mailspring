@@ -23,7 +23,7 @@ class AppearanceScaleSlider extends React.Component<
     this.state = { value: props.config.get(this.kp) };
   }
 
-  componentDidUpdate(prevProps: AppearanceScaleSliderProps) {
+  componentDidUpdate(prevProps: { id: string; config: ConfigLike }) {
     if (prevProps.config !== this.props.config) {
       this.setState({ value: this.props.config.get(this.kp) });
     }
@@ -131,7 +131,7 @@ class AppearanceModeSwitch extends React.Component<
     };
   }
 
-  componentDidUpdate(prevProps: AppearanceModeSwitchProps) {
+  componentDidUpdate(prevProps: { id: string; config: ConfigLike }) {
     if (prevProps.config !== this.props.config) {
       this.setState({
         value: this.props.config.get('core.workspace.mode'),

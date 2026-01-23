@@ -68,7 +68,7 @@ class PreferencesAccountDetails extends Component<
     this.state = { account: props.account.clone() };
   }
 
-  componentDidUpdate(prevProps: PreferencesAccountDetailsProps) {
+  componentDidUpdate(prevProps: { account: Account; onAccountUpdated: (account: Account, newAccount: Account) => void }) {
     if (prevProps.account !== this.props.account) {
       this.setState({ account: this.props.account.clone() });
     }

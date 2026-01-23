@@ -164,8 +164,8 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
   }
 
   componentDidUpdate(prevProps: OutlineViewItemProps) {
-    if (this.props.editing && !prevProps.editing) {
-      this.setState({ editing: this.props.editing });
+    if (this.props.item.editing && !prevProps.item.editing) {
+      this.setState({ editing: this.props.item.editing });
     }
   }
 

@@ -34,6 +34,9 @@ export class Task extends Model {
   source: string;
   error: string;
 
+  /** Override in subclasses to enable undo support */
+  canBeUndone = false;
+
   // Public: Override the constructor to pass initial args to your Task and
   // initialize instance variables.
   //
@@ -85,6 +88,12 @@ export class Task extends Model {
   // of the form "label (numberOfImpactedItems)". if (this does not a return)
   // a string, no notification is displayed
   label() {}
+
+  // Public: (optional) A description of the task for undo notifications.
+  // Override in subclasses to provide a meaningful description.
+  description(): string | null {
+    return null;
+  }
 
   // Public: A string displayed to users indicating how many items your
   // task affected.

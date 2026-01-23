@@ -14,7 +14,7 @@ function ListensToObservable<T, U, V>(
     getStateFromObservable: (data: U, opts: { props: T }) => V;
   }
 ) {
-  return class extends ComposedComponent {
+  return class extends React.Component<T, V> {
     static displayName = ComposedComponent.displayName;
     static containerRequired = ComposedComponent.containerRequired;
     static containerStyles = ComposedComponent.containerStyles;
@@ -24,7 +24,7 @@ function ListensToObservable<T, U, V>(
     observable: Rx.Observable<U>;
     subscriptionId: number;
 
-    constructor(props) {
+    constructor(props: T) {
       super(props);
       this.state = getStateFromObservable(null, { props });
       this.disposable = null;
@@ -41,7 +41,7 @@ function ListensToObservable<T, U, V>(
       );
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps: T) {
       if (prevProps !== this.props) {
         if (this.disposable) {
           this.disposable.dispose();
@@ -60,13 +60,13 @@ function ListensToObservable<T, U, V>(
       this.disposable.dispose();
     }
 
-    onObservableChanged = (data, subscriptionId) => {
+    onObservableChanged = (data: U, subscriptionId: number) => {
       if (this.unmounted) return;
-      this.setState(getStateFromObservable(data, { props: this.props as T }));
+      this.setState(getStateFromObservable(data, { props: this.props }));
     };
 
     render() {
-      return <ComposedComponent {...this.state} {...this.props} />;
+      return <ComposedComponent {...(this.state as any)} {...this.props} />;
     }
   };
 }

@@ -99,12 +99,15 @@ function formatDateTimeUTC(date: Date): string {
  * Uses local date since all-day events represent a calendar day in user's timezone
  */
 function createAllDayTime(date: Date, ical: ICAL): ICALTime {
-  const time = new ical.Time({
-    year: date.getFullYear(),
-    month: date.getMonth() + 1,
-    day: date.getDate(),
-    isDate: true,
-  });
+  const time = new ical.Time(
+    {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      isDate: true,
+    },
+    null // timezone parameter (null for floating/all-day)
+  );
   return time;
 }
 
@@ -215,7 +218,7 @@ export function createICSString(options: CreateEventOptions): string {
 
   // Set organizer
   if (options.organizer) {
-    const organizer = vevent.addProperty('organizer');
+    const organizer = vevent.addProperty('organizer' as any);
     organizer.setValue(`mailto:${options.organizer.email}`);
     if (options.organizer.name) {
       organizer.setParameter('cn', options.organizer.name);
@@ -225,7 +228,7 @@ export function createICSString(options: CreateEventOptions): string {
   // Set attendees
   if (options.attendees) {
     for (const attendee of options.attendees) {
-      const prop = vevent.addProperty('attendee');
+      const prop = vevent.addProperty('attendee' as any);
       prop.setValue(`mailto:${attendee.email}`);
       if (attendee.name) {
         prop.setParameter('cn', attendee.name);
@@ -443,10 +446,12 @@ export function getRecurrenceInfo(ics: string): RecurrenceInfo {
     return { isRecurring: false };
   }
 
+  // rrule is an ICAL.Recur object when present
+  const recur = rrule as InstanceType<ICAL['Recur']>;
   return {
     isRecurring: true,
-    rule: rrule.toString(),
-    frequency: rrule.freq,
+    rule: recur.toString(),
+    frequency: recur.freq,
   };
 }
 

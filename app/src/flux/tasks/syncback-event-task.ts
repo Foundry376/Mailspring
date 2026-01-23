@@ -92,10 +92,8 @@ export class SyncbackEventTask extends Task {
 
   constructor(data: AttributeValues<typeof SyncbackEventTask.attributes> = {}) {
     super(data);
-  }
-
-  get canBeUndone(): boolean {
-    return !!this.undoData;
+    // canBeUndone is computed from undoData presence
+    this.canBeUndone = !!this.undoData;
   }
 
   description(): string | null {
@@ -137,10 +135,10 @@ export class SyncbackEventTask extends Task {
    * Uses the captured newData snapshot to ensure reliable redo even if
    * the event object has been mutated since task creation.
    */
-  createIdenticalTask(): SyncbackEventTask {
+  createIdenticalTask(): this {
     if (!this.newData) {
       // Fall back to default behavior for tasks without newData (e.g., forCreating)
-      return super.createIdenticalTask() as SyncbackEventTask;
+      return super.createIdenticalTask();
     }
 
     // Create a fresh event with the new state from our snapshot
@@ -156,7 +154,7 @@ export class SyncbackEventTask extends Task {
       undoData: this.undoData,
       newData: this.newData,
       taskDescription: this.taskDescription,
-    });
+    }) as this;
   }
 
   label() {

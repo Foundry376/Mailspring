@@ -20,7 +20,7 @@ class CopyButton extends React.Component<
     };
   }
 
-  componentDidUpdate(prevProps: CopyButtonProps) {
+  componentDidUpdate(prevProps: { copyValue: string; btnLabel: string }) {
     if (prevProps.btnLabel !== this.props.btnLabel) {
       clearTimeout(this._timeout);
       this._timeout = null;

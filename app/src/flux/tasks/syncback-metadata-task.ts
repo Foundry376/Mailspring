@@ -71,10 +71,8 @@ export class SyncbackMetadataTask extends Task {
 
   constructor(data: AttributeValues<typeof SyncbackMetadataTask.attributes> = {}) {
     super(data);
-  }
-
-  get canBeUndone() {
-    return !!this.undoValue;
+    // canBeUndone is computed from undoValue presence
+    this.canBeUndone = !!this.undoValue;
   }
 
   description() {
