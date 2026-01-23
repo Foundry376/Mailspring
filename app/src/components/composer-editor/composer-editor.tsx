@@ -136,8 +136,19 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
   onKeyDown = (event, editor: Editor, next: () => void) => {
     // When the user types, disable spellcheck to avoid performance issues.
     // After they stop typing for 800ms, re-enable it.
+    //
+    // IMPORTANT: We use requestAnimationFrame to defer the setState call because
+    // changing the spellCheck attribute on a contenteditable element synchronously
+    // during a key event can cause Chromium to lose focus or interfere with event
+    // processing, resulting in "swallowed" keystrokes (especially Enter and Backspace).
+    // By deferring to the next frame, we ensure the key event is fully processed
+    // before React re-renders and changes the spellCheck attribute.
     if (!this.state.isTyping) {
-      this.setState({ isTyping: true });
+      requestAnimationFrame(() => {
+        if (this._mounted && !this.state.isTyping) {
+          this.setState({ isTyping: true });
+        }
+      });
     }
     this._onDoneTyping();
     return next();
