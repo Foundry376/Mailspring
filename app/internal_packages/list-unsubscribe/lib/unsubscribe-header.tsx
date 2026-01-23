@@ -142,24 +142,13 @@ export class UnsubscribeHeader extends React.Component<
     }
 
     if (state === 'success') {
-      return (
-        <span className={className}>
-          <RetinaImg
-            name="icon-check.png"
-            mode={RetinaImg.Mode.ContentIsMask}
-            className="unsubscribe-success-icon"
-          />
-          {localized('Unsubscribed')}
-        </span>
-      );
+      return <span className={className}>{localized('Unsubscribed')}</span>;
     }
 
     if (state === 'error') {
       return (
         <span className={className}>
-          <span className="unsubscribe-error-message">
-            {localized('Unsubscribe failed')}
-          </span>
+          <span className="unsubscribe-error-message">{localized('Unsubscribe failed')}</span>
           <a className="unsubscribe-retry" onClick={this._handleRetry}>
             {localized('Try again')}
           </a>

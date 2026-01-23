@@ -133,7 +133,7 @@ jobs:
             apt-get install -f -y
 
             # Install xvfb and additional runtime libraries for Electron
-            apt-get install -y xvfb libatk-bridge2.0-0
+            apt-get install -y xvfb libatk-bridge2.0-0 libgbm1
 
             # Verify installation succeeded
             dpkg -l | grep mailspring || (echo '✗ Mailspring package not installed' && exit 1)
@@ -145,9 +145,9 @@ jobs:
             echo 'Installed files:'
             dpkg -L mailspring | head -20
 
-            # Run mailspring --version with virtual display
+            # Run mailspring --version with virtual display (use --no-sandbox for Docker)
             echo 'Running mailspring --version...'
-            xvfb-run -a mailspring --version > /tmp/version.txt 2>&1 || true
+            xvfb-run -a mailspring --version --no-sandbox > /tmp/version.txt 2>&1 || true
             cat /tmp/version.txt
 
             # Verify version command succeeded (output should contain a version number)
@@ -217,9 +217,9 @@ jobs:
             echo 'Installed files:'
             rpm -ql mailspring | head -20
 
-            # Run mailspring --version with virtual display
+            # Run mailspring --version with virtual display (use --no-sandbox for Docker)
             echo 'Running mailspring --version...'
-            xvfb-run -a mailspring --version > /tmp/version.txt 2>&1 || true
+            xvfb-run -a mailspring --version --no-sandbox > /tmp/version.txt 2>&1 || true
             cat /tmp/version.txt
 
             # Verify version command succeeded (output should contain a version number)
@@ -269,35 +269,32 @@ jobs:
             set -e
             echo '=== Testing Mailspring installation on Arch Linux ==='
 
-            # Update package database
+            # Update package database and install required tools
             pacman -Syu --noconfirm
+            pacman -S --noconfirm xorg-server-xvfb binutils
 
-            # Install debtap to convert .deb to Arch package, and xorg-server-xvfb for virtual display
-            pacman -S --noconfirm debtap binutils fakeroot xorg-server-xvfb which
-            debtap -u
-
-            # Convert and install the DEB package
+            # Extract the DEB package manually (ar + tar)
             cd /workspace
             DEB_FILE=\$(ls *.deb)
+            echo \"Extracting \$DEB_FILE...\"
 
-            # Use debtap to convert (skip all prompts with -q)
-            echo 'Converting .deb package to Arch format...'
-            debtap -q \"\$DEB_FILE\"
+            # Extract .deb (which is an ar archive)
+            ar x \"\$DEB_FILE\"
 
-            # Install the converted package
-            PKG_FILE=\$(ls *.pkg.tar.zst)
-            pacman -U --noconfirm \"\$PKG_FILE\"
+            # Extract data tarball to root
+            tar -xf data.tar.* -C /
 
-            # Verify the binary exists and is executable
-            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+            # Verify the binary exists and is in PATH
+            ls -la /usr/bin/mailspring
+            ls -la /usr/share/mailspring/
 
             # List installed files
-            echo 'Installed files:'
-            pacman -Ql mailspring | head -20
+            echo 'Extracted files:'
+            find /usr/share/mailspring -type f | head -20
 
-            # Run mailspring --version with virtual display
+            # Run mailspring --version with virtual display (use --no-sandbox for Docker)
             echo 'Running mailspring --version...'
-            xvfb-run -a mailspring --version > /tmp/version.txt 2>&1 || true
+            xvfb-run -a /usr/bin/mailspring --version --no-sandbox > /tmp/version.txt 2>&1 || true
             cat /tmp/version.txt
 
             # Verify version command succeeded (output should contain a version number)

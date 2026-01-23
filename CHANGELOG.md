@@ -1,5 +1,51 @@
 # Mailspring Changelog
 
+## 1.17.2 (1/22/2025)
+
+Features:
+
+- Calendar now includes a Day View for more detailed scheduling. (#2573)
+
+- Calendar events can now be edited and synced back to the server. Drag events to reschedule them, or double-click to edit details. (#2574)
+
+- Mailspring now supports one-click unsubscribe using email headers (RFC 2369/8058). When an email includes unsubscribe headers, a link appears to quickly unsubscribe. (#2576)
+
+Bug Fixes:
+
+- Fixed a race condition in category pickers (folder/label selectors) that caused the search input to lock up. (#2580)
+
+- Fixed composer input lag where Enter and Backspace keys sometimes required multiple presses. (#2578)
+
+- Fixed Office365 OAuth authentication issues caused by an origin header. (#2579)
+
+- Fixed RSVP calendar event handling bugs and improved RFC 5546/6047 compliance. (#2575)
+
+- Fixed missing mailsync dependencies in Linux packages.
+
+- Fixed disappearing emails on iCloud accounts by disabling QRESYNC.
+
+- Fixed network error handling during CardDAV/CalDAV discovery.
+
+- Fixed HTTP 406 errors during CardDAV/CalDAV discovery on Yahoo accounts.
+
+- Fixed in-reply-to header parsing on iCloud accounts where spam messages contain garbage values.
+
+- Fixed Yandex account sync error handling.
+
+Improvements:
+
+- Screenshot Mode now supports non-Latin characters. (#2577) Thanks @cheack!
+
+Developer:
+
+- Added GitHub Actions checks that verify Linux artifacts install and run correctly on Ubuntu, Fedora, and Arch Linux.
+
+- Removed unused Grunt tasks and cleaned up the eslint task. (#2569)
+
+- Windows mailsync dependencies moved to vcpkg for OpenSSL 3.6, latest libcurl, iconv, libtidy, libxml2, and sasl2.
+
+- Added openSUSE Tumbleweed to mailsync CI tests.
+
 ## 1.17.1 (1/15/2025)
 
 Bug Fixes:
