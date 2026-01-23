@@ -1,0 +1,6 @@
+body * {
+  -webkit-text-security: disc !important;
+  word-break: break-word !important;
+  color: transparent !important;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8) !important;
+}
