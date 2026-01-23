@@ -49,8 +49,10 @@ export default class LabelPickerPopover extends Component<
 
   componentDidUpdate(prevProps: LabelPickerPopoverProps) {
     if (prevProps.account !== this.props.account || prevProps.threads !== this.props.threads) {
+      // Re-register observables when account/threads change.
+      // The subscription callback (_onLabelsChanged) will trigger setState
+      // with the new labels, so we don't need an explicit setState here.
       this._registerObservables();
-      this.setState(this._recalculateState(this.props));
     }
   }
 
@@ -107,7 +109,10 @@ export default class LabelPickerPopover extends Component<
     this._labels = categories.filter(c => {
       return c instanceof Label && !c.role;
     });
-    this.setState(this._recalculateState());
+    // Use functional setState to preserve any pending searchValue updates from user typing
+    this.setState(prevState =>
+      this._recalculateState(this.props, { searchValue: prevState.searchValue })
+    );
   };
 
   _onEscape = () => {
