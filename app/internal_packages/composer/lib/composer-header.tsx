@@ -12,6 +12,8 @@ import {
   KeyCommandsRegion,
   ParticipantsTextField,
   ListensToFluxStore,
+  TabGroupContext,
+  TabGroupContextType,
 } from 'mailspring-component-kit';
 import AccountContactField from './account-contact-field';
 import ComposerHeaderActions from './composer-header-actions';
@@ -44,9 +46,8 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     session: PropTypes.object.isRequired,
   };
 
-  static contextTypes = {
-    parentTabGroup: PropTypes.object,
-  };
+  static contextType = TabGroupContext;
+  declare context: TabGroupContextType | null;
 
   private _els: {
     participantsContainer?: KeyCommandsRegion;
@@ -85,7 +86,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
 
   hideField = fieldName => {
     if (ReactDOM.findDOMNode(this._els[fieldName]).contains(document.activeElement)) {
-      this.context.parentTabGroup.shiftFocus(-1);
+      this.context?.shiftFocus(-1);
     }
 
     const enabledFields = this.state.enabledFields.filter(n => n !== fieldName);

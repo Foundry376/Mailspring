@@ -144,6 +144,9 @@ export const SearchableComponentStore: SearchableComponentStore;
 export type ServiceRegistry = typeof import('../registries/service-registry').default;
 export const ServiceRegistry: ServiceRegistry;
 
+// Context
+export * from '../sheet-context';
+
 // Decorators
 export type InflatesDraftClientId = typeof import('../decorators/inflates-draft-client-id').default;
 export const InflatesDraftClientId: InflatesDraftClientId;

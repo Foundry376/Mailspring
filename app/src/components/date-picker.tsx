@@ -1,8 +1,9 @@
 import moment from 'moment';
 import classnames from 'classnames';
 import React from 'react';
-import { PropTypes, DateUtils } from 'mailspring-exports';
+import { DateUtils } from 'mailspring-exports';
 import { MiniMonthView } from 'mailspring-component-kit';
+import { TabGroupContext, TabGroupContextType } from './tab-group-context';
 
 type DatePickerProps = {
   value?: number;
@@ -16,9 +17,8 @@ type DatePickerState = {
 export class DatePicker extends React.Component<DatePickerProps, DatePickerState> {
   static displayName = 'DatePicker';
 
-  static contextTypes = {
-    parentTabGroup: PropTypes.object,
-  };
+  static contextType = TabGroupContext;
+  declare context: TabGroupContextType | null;
 
   static defaultProps = {
     dateFormat: null, // Default to valueOf
@@ -57,7 +57,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     } else if (event.key === 'ArrowDown') {
       this._moveDay(7);
     } else if (event.key === 'Enter') {
-      this.context.parentTabGroup.shiftFocus(1);
+      this.context?.shiftFocus(1);
     }
   };
 
@@ -71,7 +71,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
 
   _onSelectDay = newTimestamp => {
     this._onChange(moment(newTimestamp));
-    this.context.parentTabGroup.shiftFocus(1);
+    this.context?.shiftFocus(1);
   };
 
   _renderMiniMonthView() {
