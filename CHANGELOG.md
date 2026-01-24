@@ -1,6 +1,6 @@
 # Mailspring Changelog
 
-## 1.17.2 (1/22/2025)
+## 1.17.2 (1/24/2025)
 
 Features:
 
