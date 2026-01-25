@@ -327,35 +327,13 @@ const start = () => {
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch('js-flags', '--harmony');
 
-  // Linux Wayland GPU rendering configuration
-  // Electron 39+ automatically detects Wayland via ozone-platform-hint=auto (upstream default).
-  // We don't set ozone-platform-hint here because:
-  // 1. It's already the default in Electron 38+ (inherited from Chromium 140)
-  // 2. Platform detection happens before JS runs, so app.commandLine calls are too late
+  // Note: Wayland support on Linux is handled automatically by Electron 39+.
+  // We intentionally don't set any Wayland-specific flags here because:
+  // 1. ozone-platform-hint=auto is already the default (Chromium 140+)
+  // 2. Platform detection happens before JS runs, so commandLine calls are too late
+  // 3. GPU/rendering flags like use-gl, WaylandWindowDecorations cause various bugs
+  // Users who need specific flags can pass them via command line (e.g., --ozone-platform=x11)
   // See: https://github.com/electron/electron/issues/48001
-  //
-  // However, GPU rendering flags CAN be set here and may help prevent blank window issues
-  // that some users experience on Wayland. These flags configure the rendering pipeline,
-  // not the display platform selection.
-  if (process.platform === 'linux') {
-    const isWayland =
-      process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === 'wayland';
-
-    if (isWayland) {
-      // Enable Wayland window decorations feature for proper title bars
-      app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations');
-
-      // Use EGL for OpenGL rendering on Wayland - helps prevent blank window issues
-      // by using the native Wayland rendering path instead of GLX
-      app.commandLine.appendSwitch('use-gl', 'egl');
-
-      // Enable GPU rasterization for better rendering performance
-      app.commandLine.appendSwitch('enable-gpu-rasterization');
-
-      // Enable native Wayland IME support for input method handling (CJK languages, etc.)
-      app.commandLine.appendSwitch('enable-wayland-ime');
-    }
-  }
 
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);
