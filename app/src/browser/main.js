@@ -4,7 +4,7 @@ global.shellStartTime = Date.now();
 const util = require('util');
 
 const fs = require('fs');
-fs.statSyncNoException = function(...args) {
+fs.statSyncNoException = function (...args) {
   try {
     return fs.statSync.apply(fs, args);
   } catch (e) {
@@ -25,7 +25,7 @@ if (typeof process.setFdLimit === 'function') {
   process.setFdLimit(1024);
 }
 
-const setupConfigDir = args => {
+const setupConfigDir = (args) => {
   let dirname = 'Mailspring';
   if (args.devMode) {
     dirname = 'Mailspring-dev';
@@ -48,7 +48,7 @@ const setupConfigDir = args => {
   return configDirPath;
 };
 
-const setupCompileCache = configDirPath => {
+const setupCompileCache = (configDirPath) => {
   const compileCache = require('../compile-cache');
   return compileCache.setHomeDirectory(configDirPath);
 };
@@ -65,16 +65,13 @@ const setupErrorLogger = (args = {}) => {
   return errorLogger;
 };
 
-const declareOptions = argv => {
+const declareOptions = (argv) => {
   const optimist = require('optimist');
   const options = optimist(argv);
   options.usage(
     `Mailspring\n\nUsage: mailspring [options] [recipient] [attachment]\n\nRun Mailspring: The open source extensible email client\n\n\`mailspring mailto:johndoe@example.com\` to compose an e-mail to johndoe@example.com.\n\`mailspring ./attachment.txt\` to compose an e-mail with a text file attached.\n\`mailspring --dev\` to start the client in dev mode.\n\`mailspring --test\` to run unit tests.`
   );
-  options
-    .alias('d', 'dev')
-    .boolean('d')
-    .describe('d', 'Run in development mode.');
+  options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.');
   options
     .alias('t', 'test')
     .boolean('t')
@@ -91,14 +88,8 @@ const declareOptions = argv => {
   options.boolean('enable-crashpad');
   options.boolean('allow-file-access-from-files');
   options.boolean('source-app-id');
-  options
-    .alias('h', 'help')
-    .boolean('h')
-    .describe('h', 'Print this usage message.');
-  options
-    .alias('l', 'log-file')
-    .string('l')
-    .describe('l', 'Log all test output to file.');
+  options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.');
+  options.alias('l', 'log-file').string('l').describe('l', 'Log all test output to file.');
   options
     .alias('c', 'config-dir-path')
     .string('c')
@@ -114,18 +105,12 @@ const declareOptions = argv => {
       'f',
       'Override the default file regex to determine which tests should run (defaults to "-spec.(js|jsx|es6|es)$" )'
     );
-  options
-    .alias('v', 'version')
-    .boolean('v')
-    .describe('v', 'Print the version.');
-  options
-    .alias('b', 'background')
-    .boolean('b')
-    .describe('b', 'Start Mailspring in the background');
+  options.alias('v', 'version').boolean('v').describe('v', 'Print the version.');
+  options.alias('b', 'background').boolean('b').describe('b', 'Start Mailspring in the background');
   return options;
 };
 
-const parseCommandLine = argv => {
+const parseCommandLine = (argv) => {
   const pkg = require('../../package.json');
   const version = `${pkg.version}-${pkg.commitHash}`;
 
@@ -212,7 +197,7 @@ const parseCommandLine = argv => {
   };
 };
 
-const extractMailtoLink = mailtoLink => {
+const extractMailtoLink = (mailtoLink) => {
   console.log(mailtoLink);
 
   // Handle links in the form mailto:test@example.com?attach=file:///path/to/file.txt
@@ -286,6 +271,69 @@ const handleStartupEventWithSquirrel = () => {
   }
 };
 
+/**
+ * Detects if we're running in a virtual machine by checking systemd-detect-virt.
+ * Returns the VM type (e.g., 'vmware', 'oracle', 'kvm', 'qemu') or null if bare metal.
+ */
+const detectVirtualMachine = () => {
+  if (process.platform !== 'linux') {
+    return null;
+  }
+  try {
+    const { execSync } = require('child_process');
+    const result = execSync('systemd-detect-virt', { encoding: 'utf8', timeout: 1000 }).trim();
+    // systemd-detect-virt returns 'none' for bare metal
+    if (result && result !== 'none') {
+      return result;
+    }
+  } catch (e) {
+    // Command failed or not available - assume bare metal
+  }
+  return null;
+};
+
+/**
+ * Determines if we should use X11 instead of native Wayland for Electron's Ozone backend.
+ * This works around GPU buffer allocation issues in:
+ * - Snap strict confinement environments
+ * - Virtual machines (VMware, VirtualBox, QEMU, etc.)
+ *
+ * The issue manifests as "cannot create bo with format RGBA_8888" errors and
+ * the app window never appearing when Electron tries to use native Wayland.
+ *
+ * See: https://github.com/electron/electron/issues/45862
+ * See: https://forum.snapcraft.io/t/electron-snap-gpu-hardware-acceleration-disabled/38902
+ */
+const shouldForceX11 = () => {
+  if (process.platform !== 'linux') {
+    return false;
+  }
+
+  // Check if we're in a Wayland session
+  const isWayland = process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === 'wayland';
+
+  if (!isWayland) {
+    return false; // Not on Wayland, no need to force X11
+  }
+
+  // Check if running in a snap with strict confinement
+  if (process.env.SNAP) {
+    console.log('Mailspring: Running in snap environment on Wayland, using X11/XWayland backend');
+    return true;
+  }
+
+  // Check if running in a virtual machine
+  const vmType = detectVirtualMachine();
+  if (vmType) {
+    console.log(
+      `Mailspring: Running in virtual machine (${vmType}) on Wayland, using X11/XWayland backend`
+    );
+    return true;
+  }
+
+  return false;
+};
+
 const start = () => {
   app.setAppUserModelId('com.squirrel.mailspring.mailspring');
 
@@ -326,6 +374,12 @@ const start = () => {
   // Reference: https://www.electronjs.org/docs/latest/api/command-line-switches
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch('js-flags', '--harmony');
+
+  // On Linux, force X11/XWayland backend in problematic environments to avoid
+  // GPU buffer allocation failures with Electron's native Wayland (Ozone) backend.
+  if (shouldForceX11()) {
+    app.commandLine.appendSwitch('ozone-platform', 'x11');
+  }
 
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);
@@ -378,7 +432,7 @@ const start = () => {
           .replace('app.asar', 'app.asar.unpacked'),
         { allowFileAccess: true }
       )
-      .catch(err => console.error(`Error loading language detection extension: ${err}`));
+      .catch((err) => console.error(`Error loading language detection extension: ${err}`));
 
     session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
       console.log(details);
@@ -404,8 +458,9 @@ const start = () => {
     });
 
     // eslint-disable-next-line
-    const Application = require(path.join(options.resourcePath, 'src', 'browser', 'application'))
-      .default;
+    const Application = require(
+      path.join(options.resourcePath, 'src', 'browser', 'application')
+    ).default;
     global.application = new Application();
     global.application.start(options);
 
