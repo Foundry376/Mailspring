@@ -5,11 +5,14 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import _ from 'underscore';
+import React from 'react';
 import {
   Actions,
   Account,
   SyncbackCategoryTask,
   CategoryStore,
+  AccountGroupStore,
+  AccountGroup,
   Label,
   ExtensionRegistry,
   RegExpUtils,
@@ -83,6 +86,120 @@ class SidebarSection {
     };
   }
 
+  static _nameStyleForGroup(group: AccountGroup): React.CSSProperties | undefined {
+    const style: React.CSSProperties = {};
+    if (group.color) {
+      style.color = group.color;
+    }
+    const ds = group.displayStyle || 'normal';
+    if (ds === 'bold' || ds === 'bold-italic') {
+      style.fontWeight = 700;
+    }
+    if (ds === 'italic' || ds === 'bold-italic') {
+      style.fontStyle = 'italic';
+    }
+    if (Object.keys(style).length === 0) return undefined;
+    return style;
+  }
+
+  static _buildGroupedCategoryChildren(
+    accounts: Account[],
+    names: string[],
+    groups: AccountGroup[]
+  ): ISidebarItem[] {
+    const children: ISidebarItem[] = [];
+    const groupedAccountIds = new Set<string>();
+
+    for (const group of groups) {
+      const groupAccounts = accounts.filter(acc => group.accountIds.includes(acc.id));
+      if (groupAccounts.length === 0) continue;
+
+      groupAccounts.forEach(acc => groupedAccountIds.add(acc.id));
+
+      const groupCats = _.compact(
+        groupAccounts.map(acc =>
+          _.first(_.compact(names.map(name => CategoryStore.getCategoryByRole(acc, name))))
+        )
+      );
+      if (groupCats.length === 0) continue;
+
+      const groupChildren = groupAccounts
+        .map(acc => {
+          const cat = _.first(
+            _.compact(names.map(name => CategoryStore.getCategoryByRole(acc, name)))
+          );
+          if (!cat) return null;
+          return SidebarItem.forCategories([cat], {
+            name: acc.label,
+            editable: false,
+            deletable: false,
+          });
+        })
+        .filter(Boolean);
+
+      children.push(
+        SidebarItem.forCategories(groupCats, {
+          name: group.name,
+          children: groupChildren,
+          editable: false,
+          deletable: false,
+          nameStyle: this._nameStyleForGroup(group),
+        })
+      );
+    }
+
+    // Add ungrouped accounts as individual children
+    accounts.forEach(acc => {
+      if (groupedAccountIds.has(acc.id)) return;
+      const cat = _.first(
+        _.compact(names.map(name => CategoryStore.getCategoryByRole(acc, name)))
+      );
+      if (!cat) return;
+      children.push(
+        SidebarItem.forCategories([cat], { name: acc.label, editable: false, deletable: false })
+      );
+    });
+
+    return children;
+  }
+
+  static _buildGroupedPseudoChildren(
+    accounts: Account[],
+    groups: AccountGroup[],
+    itemFactory: (accountIds: string[], opts?: Partial<ISidebarItem>) => ISidebarItem
+  ): ISidebarItem[] {
+    const children: ISidebarItem[] = [];
+    const groupedAccountIds = new Set<string>();
+
+    for (const group of groups) {
+      const groupAccounts = accounts.filter(acc => group.accountIds.includes(acc.id));
+      if (groupAccounts.length === 0) continue;
+
+      groupAccounts.forEach(acc => groupedAccountIds.add(acc.id));
+
+      const groupIds = groupAccounts.map(acc => acc.id);
+      const groupChildren = groupAccounts.map(acc =>
+        itemFactory([acc.id], { name: acc.label })
+      );
+
+      children.push(
+        itemFactory(groupIds, {
+          name: group.name,
+          children: groupChildren,
+          nameStyle: this._nameStyleForGroup(group),
+        })
+      );
+    }
+
+    // Add ungrouped accounts as individual children
+    accounts.forEach(acc => {
+      if (groupedAccountIds.has(acc.id)) return;
+      children.push(itemFactory([acc.id], { name: acc.label }));
+    });
+
+    return children;
+  }
+
   static standardSectionForAccounts(accounts?: Account[]): ISidebarSection {
     let children;
     if (!accounts || accounts.length === 0) {
@@ -95,6 +212,9 @@ class SidebarSection {
       return this.standardSectionForAccount(accounts[0]);
     }
 
+    const groups = AccountGroupStore.groups();
+    const hasGroups = groups.length > 0;
+
     const standardNames = ['inbox', 'important', 'sent', ['archive', 'all'], 'spam', 'trash'];
     const items = [];
 
@@ -105,19 +225,23 @@ class SidebarSection {
         continue;
       }
 
-      children = [];
-      // eslint-disable-next-line
-      accounts.forEach(acc => {
-        const cat = _.first(
-          _.compact((names as string[]).map(name => CategoryStore.getCategoryByRole(acc, name)))
-        );
-        if (!cat) {
-          return;
-        }
-        children.push(
-          SidebarItem.forCategories([cat], { name: acc.label, editable: false, deletable: false })
-        );
-      });
+      if (hasGroups) {
+        children = this._buildGroupedCategoryChildren(accounts, names, groups);
+      } else {
+        children = [];
+        // eslint-disable-next-line
+        accounts.forEach(acc => {
+          const cat = _.first(
+            _.compact((names as string[]).map(name => CategoryStore.getCategoryByRole(acc, name)))
+          );
+          if (!cat) {
+            return;
+          }
+          children.push(
+            SidebarItem.forCategories([cat], { name: acc.label, editable: false, deletable: false })
+          );
+        });
+      }
 
       items.push(
         SidebarItem.forCategories(categories, { children, editable: false, deletable: false })
@@ -126,15 +250,38 @@ class SidebarSection {
 
     const accountIds = _.pluck(accounts, 'id');
 
-    const starredItem = SidebarItem.forStarred(accountIds, {
-      children: accounts.map(acc => SidebarItem.forStarred([acc.id], { name: acc.label })),
-    });
-    const unreadItem = SidebarItem.forUnread(accountIds, {
-      children: accounts.map(acc => SidebarItem.forUnread([acc.id], { name: acc.label })),
-    });
-    const draftsItem = SidebarItem.forDrafts(accountIds, {
-      children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
-    });
+    let starredChildren, unreadChildren, draftsChildren;
+    if (hasGroups) {
+      starredChildren = this._buildGroupedPseudoChildren(
+        accounts,
+        groups,
+        SidebarItem.forStarred.bind(SidebarItem)
+      );
+      unreadChildren = this._buildGroupedPseudoChildren(
+        accounts,
+        groups,
+        SidebarItem.forUnread.bind(SidebarItem)
+      );
+      draftsChildren = this._buildGroupedPseudoChildren(
+        accounts,
+        groups,
+        SidebarItem.forDrafts.bind(SidebarItem)
+      );
+    } else {
+      starredChildren = accounts.map(acc =>
+        SidebarItem.forStarred([acc.id], { name: acc.label })
+      );
+      unreadChildren = accounts.map(acc =>
+        SidebarItem.forUnread([acc.id], { name: acc.label })
+      );
+      draftsChildren = accounts.map(acc =>
+        SidebarItem.forDrafts([acc.id], { name: acc.label })
+      );
+    }
+
+    const starredItem = SidebarItem.forStarred(accountIds, { children: starredChildren });
+    const unreadItem = SidebarItem.forUnread(accountIds, { children: unreadChildren });
+    const draftsItem = SidebarItem.forDrafts(accountIds, { children: draftsChildren });
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.splice(1, 0, unreadItem, starredItem);

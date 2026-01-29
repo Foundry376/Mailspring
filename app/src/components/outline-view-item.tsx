@@ -339,7 +339,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
             onKeyDown={this._onInputKeyDown}
           />
         ) : (
-          <div className="name" title={item.name}>
+          <div className="name" title={item.name} style={item.nameStyle}>
             {item.name}
           </div>
         )}

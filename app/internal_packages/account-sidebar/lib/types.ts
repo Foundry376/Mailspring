@@ -1,3 +1,4 @@
+import React from 'react';
 import { MailboxPerspective } from 'mailspring-exports';
 
 export interface ISidebarItem {
@@ -11,6 +12,7 @@ export interface ISidebarItem {
   selected: boolean;
   collapsed: boolean;
   counterStyle: string;
+  nameStyle?: React.CSSProperties;
   onDelete?: () => void;
   onEdited?: (item, name: string) => void;
   onCollapseToggled: () => void;

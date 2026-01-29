@@ -4,6 +4,7 @@ import {
   Actions,
   Account,
   AccountStore,
+  AccountGroupStore,
   ThreadCountsStore,
   WorkspaceStore,
   OutboxStore,
@@ -64,6 +65,7 @@ class SidebarStore extends MailspringStore {
     this.listenTo(Actions.setCollapsedSidebarItem, this._onSetCollapsedByName);
     this.listenTo(SidebarActions.setKeyCollapsed, this._onSetCollapsedByKey);
     this.listenTo(AccountStore, this._onAccountsChanged);
+    this.listenTo(AccountGroupStore, this._updateSections);
     this.listenTo(FocusedPerspectiveStore, this._onFocusedPerspectiveChanged);
     this.listenTo(WorkspaceStore, this._updateSections);
     this.listenTo(OutboxStore, this._updateSections);

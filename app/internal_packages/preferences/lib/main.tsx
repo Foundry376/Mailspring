@@ -27,6 +27,14 @@ export function activate() {
   );
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
+      tabId: 'Account Groups',
+      displayName: localized('Account Groups'),
+      componentClassFn: () => require('./tabs/preferences-account-groups').default,
+      order: 2.5,
+    })
+  );
+  PreferencesUIStore.registerPreferencesTab(
+    new PreferencesUIStore.TabItem({
       tabId: 'Subscription',
       displayName: localized('Subscription'),
       componentClassFn: () => require('./tabs/preferences-identity').default,
