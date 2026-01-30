@@ -1,6 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import * as Actions from '../actions';
 import * as Utils from '../models/utils';
+import AccountStore from './account-store';
 
 const configKey = 'accountGroups';
 
@@ -24,6 +25,7 @@ class _AccountGroupStore extends MailspringStore {
     this.listenTo(Actions.updateAccountGroup, this._onUpdate);
     this.listenTo(Actions.deleteAccountGroup, this._onDelete);
     this.listenTo(Actions.reorderAccountGroup, this._onReorder);
+    this.listenTo(AccountStore, this._onAccountsChanged);
   }
 
   groups(): AccountGroup[] {
@@ -75,6 +77,24 @@ class _AccountGroupStore extends MailspringStore {
     this._groups = this._groups.filter(g => g.id !== id);
     this._saveGroups();
     this.trigger();
+  };
+
+  private _onAccountsChanged = () => {
+    const validIds = new Set(AccountStore.accounts().map(a => a.id));
+    let changed = false;
+    const cleaned = this._groups.map(g => {
+      const filtered = g.accountIds.filter(id => validIds.has(id));
+      if (filtered.length !== g.accountIds.length) {
+        changed = true;
+        return { ...g, accountIds: filtered };
+      }
+      return g;
+    });
+    if (changed) {
+      this._groups = cleaned;
+      this._saveGroups();
+      this.trigger();
+    }
   };
 
   private _onReorder = ({ id, newIdx }: { id: string; newIdx: number }) => {

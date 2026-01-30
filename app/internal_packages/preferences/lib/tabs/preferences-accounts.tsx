@@ -65,18 +65,16 @@ class PreferencesAccounts extends React.Component<
 
   _onAccountsChanged = () => {
     const prev = this.state.accounts;
+    const selectedGroupId = this.state.selectedGroupId;
     const storeState = this.getStateFromStores(this.state);
     this.setState(storeState as any);
 
     // If a new account was added and we had a group selected, assign it
-    if (
-      this.state.selectedGroupId &&
-      storeState.accounts.length > prev.length
-    ) {
+    if (selectedGroupId && storeState.accounts.length > prev.length) {
       const prevIds = new Set(prev.map(a => a.id));
       const newAccounts = storeState.accounts.filter(a => !prevIds.has(a.id));
       if (newAccounts.length > 0) {
-        const group = AccountGroupStore.groupForId(this.state.selectedGroupId);
+        const group = AccountGroupStore.groupForId(selectedGroupId);
         if (group) {
           const newIds = [...group.accountIds, ...newAccounts.map(a => a.id)];
           Actions.updateAccountGroup({ id: group.id, accountIds: newIds });

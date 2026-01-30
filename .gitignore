@@ -76,3 +76,9 @@ client_secret.json
 /app/mailsync.exe
 /app/mailsync.dSYM
 .idea
+
+# Debug symbol files
+**/*.pdb
+
+# Claude Code local settings
+.claude/settings.local.json

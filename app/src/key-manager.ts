@@ -9,6 +9,7 @@ const { safeStorage } = require('@electron/remote');
 
 const configCredentialsKey = 'credentials';
 
+
 /**
  * A basic wrap around electron's secure key management. Consolidates all of
  * our keys under a single namespaced keymap and provides migration
