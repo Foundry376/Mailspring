@@ -31,6 +31,7 @@ const VERIFIED_LANGS = [
   'en',
   'de',
   'es',
+  'es_419',
   'fr',
   'ko',
   'pl',
