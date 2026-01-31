@@ -6,6 +6,10 @@
 
 - Fix issues sending email on Windows caused by missing SASL libraries in some scenarios.
 
+- Screenshot mode now blurs the content of your emails as well (Thanks @cheack!)
+
+- The `Spanish - Latin America` (es_419) translations have been verified (Thanks @MiguVT!) and we've used the latest LLMs to update machine translations in other language files that were many years old.
+
 ### Developer:
 
 - We added Ubuntu 25 and Linux Mint to the automated installation checks in Github Actions to ensure the .deb file installs correctly on these distributions.
