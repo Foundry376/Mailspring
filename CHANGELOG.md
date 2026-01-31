@@ -1,5 +1,17 @@
 # Mailspring Changelog
 
+## 1.17.3 (1/31/2025)
+
+- Updates the .deb package dependencies to address Ubuntu 25 (libtidy58 replaces libtidy5deb1) and Linux Mint 22 (libcurl4t64, libgtk-3-0t64 instead of libgtk-3-0) installation issues.
+
+- Fix issues sending email on Windows caused by missing SASL libraries in some scenarios.
+
+### Developer:
+
+- We added Ubuntu 25 and Linux Mint to the automated installation checks in Github Actions to ensure the .deb file installs correctly on these distributions.
+
+- The Mailsync post-build checks in Github Actions (on Mac, Windows, Linux) now authenticate against smtp.gmail.com in addition to establishing an SMTP SSL connection to verify that the SASL libraries are present in the distribution. (To prevent the Windows SMTP issue from ever happening again...)
+
 ## 1.17.2 (1/24/2025)
 
 Features:
