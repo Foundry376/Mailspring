@@ -15,14 +15,20 @@ function getCorrectTitle() {
   return 'Mailspring' + (thread ? ' · ' + thread.subject : '');
 }
 
+let styleText: string | null = null;
 function getStyleText() {
-  return fs.readFileSync(path.join(__dirname, '..', 'assets', 'screenshot-mode.css')).toString();
+  if (!styleText) {
+    styleText = fs
+      .readFileSync(path.join(__dirname, '..', 'assets', 'screenshot-mode.css'))
+      .toString();
+  }
+  return styleText;
 }
 
 export function applyToDocument(doc: Document) {
   let el = doc.getElementById('screenshot-mode-styles');
   if (enabled) {
-    if (!el) {
+    if (!el && doc.head) {
       el = doc.createElement('style');
       el.id = 'screenshot-mode-styles';
       el.innerText = getStyleText();
