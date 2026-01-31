@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        ubuntu_version: ['22.04', '24.04']
+        ubuntu_version: ['22.04', '24.04', '25.04']
     steps:
       - name: Download DEB artifact
         uses: actions/download-artifact@v4
