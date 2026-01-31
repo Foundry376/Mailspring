@@ -385,3 +385,98 @@ jobs:
 
             echo '✓ Mailspring installation test passed on Arch Linux'
           "
+
+  test-linuxmint:
+    needs: build
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        mint_version: ['22']
+    steps:
+      - name: Download DEB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-deb
+
+      - name: Test installation on Linux Mint ${{ matrix.mint_version }}
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace linuxmintd/mint${{ matrix.mint_version }}-amd64 bash -c "
+            set -e
+            echo '=== Testing Mailspring installation on Linux Mint ${{ matrix.mint_version }} ==='
+
+            # Install the DEB package (this will auto-install dependencies)
+            cd /workspace
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+
+            # First try to install the .deb which will fail with dependency errors
+            dpkg -i *.deb || true
+
+            # Install the missing dependencies (automatically resolves from package metadata)
+            apt-get install -f -y
+
+            # Install xvfb for virtual display (needed for tests, not a package dependency)
+            apt-get install -y xvfb
+
+            # Verify installation succeeded
+            dpkg -l | grep mailspring || (echo '✗ Mailspring package not installed' && exit 1)
+
+            # Verify the binary exists and is executable
+            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+
+            # List installed files
+            echo 'Installed files:'
+            dpkg -L mailspring | head -20
+
+            # Run mailspring --version with virtual display (use --no-sandbox for Docker)
+            echo 'Running mailspring --version...'
+            xvfb-run -a mailspring --version --no-sandbox > /tmp/version.txt 2>&1 || true
+            cat /tmp/version.txt
+
+            # Verify version command succeeded (output should contain a version number)
+            if grep -qE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/version.txt; then
+              echo '✓ mailspring --version passed on Linux Mint ${{ matrix.mint_version }}'
+            else
+              echo '✗ mailspring --version failed on Linux Mint ${{ matrix.mint_version }}'
+              exit 1
+            fi
+
+            # Verify mailsync binary exists (check multiple locations)
+            if [ -f /usr/share/mailspring/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync
+            elif [ -f /usr/share/mailspring/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync.bin
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin
+            else
+              echo '✗ mailsync binary not found'
+              echo 'Files in /usr/share/mailspring/:'
+              ls -la /usr/share/mailspring/ | head -30
+              exit 1
+            fi
+
+            # Run mailsync --help (no X11 required for mailsync)
+            echo 'Running mailsync --help...'
+            \$MAILSYNC_PATH --help > /tmp/mailsync-help.txt 2>&1 || true
+            cat /tmp/mailsync-help.txt
+
+            # Verify mailsync help output (should contain usage info and no errors)
+            if grep -qiE 'usage|help|mailsync|options|--mode' /tmp/mailsync-help.txt; then
+              if grep -qi 'error' /tmp/mailsync-help.txt; then
+                echo '✗ mailsync --help contains errors on Linux Mint ${{ matrix.mint_version }}'
+                exit 1
+              fi
+              echo '✓ mailsync --help passed on Linux Mint ${{ matrix.mint_version }}'
+            else
+              echo '✗ mailsync --help failed on Linux Mint ${{ matrix.mint_version }}'
+              exit 1
+            fi
+
+            echo '✓ Mailspring installation test passed on Linux Mint ${{ matrix.mint_version }}'
+          "
