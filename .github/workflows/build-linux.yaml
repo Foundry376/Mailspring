@@ -404,19 +404,20 @@ jobs:
             set -e
             echo '=== Testing Mailspring installation on Linux Mint ${{ matrix.mint_version }} ==='
 
-            # Install the DEB package (this will auto-install dependencies)
+            # Install the DEB package using gdebi (what most users use)
+            # gdebi has stricter dependency checking than apt-get install -f
+            # and will fail if dependencies reference old package names that
+            # don't resolve properly (e.g., libgtk-3-0 vs libgtk-3-0t64)
             cd /workspace
             export DEBIAN_FRONTEND=noninteractive
             apt-get update
 
-            # First try to install the .deb which will fail with dependency errors
-            dpkg -i *.deb || true
+            # Install gdebi and xvfb
+            apt-get install -y gdebi-core xvfb
 
-            # Install the missing dependencies (automatically resolves from package metadata)
-            apt-get install -f -y
-
-            # Install xvfb for virtual display (needed for tests, not a package dependency)
-            apt-get install -y xvfb
+            # Use gdebi to install - this will fail if dependencies can't be resolved
+            # gdebi is what users get when they double-click a .deb file
+            gdebi --non-interactive *.deb
 
             # Verify installation succeeded
             dpkg -l | grep mailspring || (echo '✗ Mailspring package not installed' && exit 1)
