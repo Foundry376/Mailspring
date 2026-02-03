@@ -63,7 +63,7 @@ This folder contains the Mailspring brownfield documentation deliverables organi
 ## Folder Structure
 
 ```
-review-submission/
+BMAD/
 ├── README.md          (this file)
 ├── PLAN.md
 ├── CLAUDE.md
