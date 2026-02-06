@@ -59,7 +59,7 @@ jobs:
           trusted-signing-account-name: ${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.AZURE_TRUSTED_SIGNING_CERT_PROFILE_NAME }}
           files-folder: ${{ github.workspace }}\app\dist\mailspring-win32-x64
-          files-folder-filter: exe,dll
+          files-folder-filter: exe,dll,node
           files-folder-recurse: true
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
