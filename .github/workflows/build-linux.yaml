@@ -312,10 +312,22 @@ jobs:
 
             # Install dependencies first
             cd /workspace
-            zypper --non-interactive install xorg-x11-server-Xvfb which alsa-lib
+
+            # Note: zypper exit code 107 (ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED) means
+            # the package installed but an RPM scriptlet failed. This is expected in
+            # Docker containers where PAM/systemd scriptlets cannot run properly.
+            zypper --non-interactive install xorg-x11-server-Xvfb which alsa-lib; ZYPPER_EXIT=\$?
+            if [ \$ZYPPER_EXIT -ne 0 ] && [ \$ZYPPER_EXIT -ne 107 ]; then
+              echo \"zypper install dependencies failed with exit code \$ZYPPER_EXIT\"
+              exit 1
+            fi
 
             # Install the RPM package (zypper will auto-resolve dependencies)
-            zypper --non-interactive --no-gpg-checks install *.rpm
+            zypper --non-interactive --no-gpg-checks install *.rpm; ZYPPER_EXIT=\$?
+            if [ \$ZYPPER_EXIT -ne 0 ] && [ \$ZYPPER_EXIT -ne 107 ]; then
+              echo \"zypper install mailspring failed with exit code \$ZYPPER_EXIT\"
+              exit 1
+            fi
 
             # Verify installation succeeded
             rpm -q mailspring || (echo '✗ Mailspring package not installed' && exit 1)
