@@ -312,7 +312,7 @@ jobs:
 
             # Install dependencies first
             cd /workspace
-            zypper --non-interactive install xorg-x11-server-Xvfb which alsa
+            zypper --non-interactive install xorg-x11-server-Xvfb which alsa-lib
 
             # Install the RPM package (zypper will auto-resolve dependencies)
             zypper --non-interactive --no-gpg-checks install *.rpm
