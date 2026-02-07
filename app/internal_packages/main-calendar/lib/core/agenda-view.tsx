@@ -187,7 +187,10 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
         <div className="agenda-event-color-bar" style={{ backgroundColor: colors.band }} />
         <div className="agenda-event-time">{this._formatEventTime(event)}</div>
         <div className="agenda-event-details">
-          <div className="agenda-event-title" style={{ color: colors.text }}>
+          <div
+            className="agenda-event-title"
+            style={isSelected ? undefined : { color: colors.text }}
+          >
             {event.isCancelled ? (
               <s>{event.title || localized('(No title)')}</s>
             ) : (

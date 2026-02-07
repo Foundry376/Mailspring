@@ -888,6 +888,8 @@ body.platform-win32 {
 
       &.selected {
         background: @accent-primary;
+        // Match thread-list .inverseContent() for legibility on dark backgrounds
+        -webkit-font-smoothing: antialiased;
 
         .agenda-event-time,
         .agenda-event-title,
