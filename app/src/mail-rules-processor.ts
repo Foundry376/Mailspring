@@ -160,12 +160,19 @@ class MailRulesProcessor {
     // rule at a time. This is important, because users can order rules which
     // may do and undo a change. Ie: "Star if from Ben, Unstar if subject is "Bla"
     for (const rule of enabledRules) {
-      let matching = messages.filter(message => this._checkRuleForMessage(rule, message));
+      const allMatching = messages.filter(message => this._checkRuleForMessage(rule, message));
 
       // Rules are declared at the message level, but actions are applied to
       // threads. To ensure we don't apply the same action 50x on the same thread,
       // just process one match per thread.
-      matching = _.uniq(matching, false, message => message.threadId);
+      const seenThreadIds = new Set<string>();
+      const matching = [];
+      for (const message of allMatching) {
+        if (!seenThreadIds.has(message.threadId)) {
+          seenThreadIds.add(message.threadId);
+          matching.push(message);
+        }
+      }
       for (const message of matching) {
         // We always pull the thread from the database, even though it may be in
         // `incoming.thread`, because rules may be modifying it as they run!
@@ -179,6 +186,18 @@ class MailRulesProcessor {
     }
   }
 
+  _conditionTemplateMap: Map<string, (typeof ConditionTemplates)[number]> | null = null;
+
+  _getConditionTemplateMap() {
+    if (!this._conditionTemplateMap) {
+      this._conditionTemplateMap = new Map();
+      for (const t of ConditionTemplates) {
+        this._conditionTemplateMap.set(t.key, t);
+      }
+    }
+    return this._conditionTemplateMap;
+  }
+
   _checkRuleForMessage(rule: MailRule, message: Message) {
     const fn =
       rule.conditionMode === ConditionMode.All ? Array.prototype.every : Array.prototype.some;
@@ -186,8 +205,9 @@ class MailRulesProcessor {
       return false;
     }
 
+    const templateMap = this._getConditionTemplateMap();
     return fn.call(rule.conditions, condition => {
-      const template = ConditionTemplates.find(t => t.key === condition.templateKey);
+      const template = templateMap.get(condition.templateKey);
       const value = template.valueForMessage(message);
       return template.evaluate(condition, value);
     });

@@ -31,10 +31,11 @@ export function overlapForEvents(events: EventOccurrence[]) {
   }
   const sortedTimes = Object.keys(eventsByTime)
     .map(Number)
-    .sort();
+    .sort((a, b) => a - b);
 
   const overlapById: OverlapByEventId = {};
-  let ongoingEvents: EventOccurrence[] = [];
+  const ongoingEvents: EventOccurrence[] = [];
+  const ongoingIds = new Set<string>();
 
   for (const t of sortedTimes) {
     // Process all event start/ends during this time to keep our
@@ -43,16 +44,30 @@ export function overlapForEvents(events: EventOccurrence[]) {
       if (e.start === t) {
         overlapById[e.id] = { concurrentEvents: 1, order: null };
         ongoingEvents.push(e);
+        ongoingIds.add(e.id);
       }
       if (e.end === t) {
-        ongoingEvents = ongoingEvents.filter(o => o.id !== e.id);
+        ongoingIds.delete(e.id);
       }
     }
+
+    // Remove ended events from the array (batch removal instead of per-event .filter())
+    if (ongoingEvents.length !== ongoingIds.size) {
+      let write = 0;
+      for (let read = 0; read < ongoingEvents.length; read++) {
+        if (ongoingIds.has(ongoingEvents[read].id)) {
+          ongoingEvents[write++] = ongoingEvents[read];
+        }
+      }
+      ongoingEvents.length = write;
+    }
+
+    // Compute concurrency once for the current set of ongoing events
+    const numEvents = findMaxConcurrent(ongoingEvents, overlapById);
 
     // Write concurrency for all the events currently ongoing if they haven't
     // been assigned values already
     for (const e of ongoingEvents) {
-      const numEvents = findMaxConcurrent(ongoingEvents, overlapById);
       overlapById[e.id].concurrentEvents = numEvents;
       if (overlapById[e.id].order === null) {
         // Don't re-assign the order.
@@ -65,19 +80,25 @@ export function overlapForEvents(events: EventOccurrence[]) {
 }
 
 export function findMaxConcurrent(ongoing: EventOccurrence[], overlapById: OverlapByEventId) {
-  return Math.max(1, ongoing.length, ...ongoing.map(e => overlapById[e.id].concurrentEvents));
+  let max = Math.max(1, ongoing.length);
+  for (const e of ongoing) {
+    const c = overlapById[e.id].concurrentEvents;
+    if (c > max) max = c;
+  }
+  return max;
 }
 
 export function findAvailableOrder(ongoing: EventOccurrence[], overlapById: OverlapByEventId) {
-  const orders = ongoing.map(e => overlapById[e.id].order);
+  const usedOrders = new Set<number>();
+  for (const e of ongoing) {
+    const o = overlapById[e.id].order;
+    if (o !== null) usedOrders.add(o);
+  }
   let order = 1;
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    if (!orders.includes(order)) {
-      return order;
-    }
+  while (usedOrders.has(order)) {
     order += 1;
   }
+  return order;
 }
 
 export function maxConcurrentEvents(eventOverlap: OverlapByEventId) {
