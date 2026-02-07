@@ -848,6 +848,13 @@ export default class Application extends EventEmitter {
       // since Windows toast XML with activationType="background" doesn't work reliably with Electron
       if (parts.host.startsWith('notification-')) {
         handleWindowsToastXMLProtocolAction(parts);
+      } else if (parts.host === 'open-inbox') {
+        main.show();
+        main.focus();
+      } else if (parts.host === 'open-preferences') {
+        main.show();
+        main.focus();
+        main.sendMessage('open-preferences');
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else {

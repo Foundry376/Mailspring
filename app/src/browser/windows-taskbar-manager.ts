@@ -2,6 +2,8 @@ import { app, ipcMain, nativeImage, NativeImage } from 'electron';
 import { localized } from '../intl';
 import Application from './application';
 
+const MAX_THUMBNAIL_SETUP_RETRIES = 5;
+
 /**
  * Manages Windows-specific taskbar integration features:
  * - Jump Lists (right-click taskbar menu with quick actions)
@@ -24,6 +26,10 @@ class WindowsTaskbarManager {
   /**
    * Set up the Windows Jump List with quick actions.
    * Jump Lists appear when users right-click the app's taskbar icon.
+   *
+   * Uses mailto: and mailspring: protocol URLs so that clicks are routed
+   * through the existing protocol handler in application.ts, which works
+   * for both first launch and second-instance scenarios.
    */
   private _setupJumpList() {
     try {
@@ -36,7 +42,7 @@ class WindowsTaskbarManager {
               title: localized('Compose New Message'),
               description: localized('Open a new email composer window'),
               program: process.execPath,
-              args: '--mailto mailto:',
+              args: 'mailto:',
               iconPath: process.execPath,
               iconIndex: 0,
             },
@@ -45,7 +51,7 @@ class WindowsTaskbarManager {
               title: localized('Inbox'),
               description: localized('Open your inbox'),
               program: process.execPath,
-              args: '--open-inbox',
+              args: 'mailspring://open-inbox',
               iconPath: process.execPath,
               iconIndex: 0,
             },
@@ -57,7 +63,7 @@ class WindowsTaskbarManager {
               title: localized('Preferences'),
               description: localized('Open Mailspring preferences'),
               program: process.execPath,
-              args: '--preferences',
+              args: 'mailspring://open-preferences',
               iconPath: process.execPath,
               iconIndex: 0,
             },
@@ -92,14 +98,19 @@ class WindowsTaskbarManager {
   /**
    * Set up thumbnail toolbar buttons on the main window's taskbar preview.
    * These buttons appear when users hover over the app in the taskbar.
+   * Retries up to MAX_THUMBNAIL_SETUP_RETRIES times if the main window
+   * is not yet available.
    */
   private _setupThumbnailToolbar() {
-    // Wait for the main window to be created and shown
+    let retries = 0;
+
     const setupButtons = () => {
       const mainWin = this._application.getMainWindow();
       if (!mainWin) {
-        // Retry after a delay if main window isn't ready yet
-        setTimeout(setupButtons, 3000);
+        retries++;
+        if (retries <= MAX_THUMBNAIL_SETUP_RETRIES) {
+          setTimeout(setupButtons, 3000);
+        }
         return;
       }
 
@@ -164,7 +175,7 @@ class WindowsTaskbarManager {
 
   /**
    * Update the taskbar progress bar based on sync progress.
-   * @param progress - A number between 0 and 1, or -1 to clear, or -2 for indeterminate
+   * @param progress - A number between 0 and 1, or -1 to clear
    */
   private _updateProgressBar(progress: number) {
     const mainWin = this._application.getMainWindow();
@@ -222,46 +233,164 @@ class WindowsTaskbarManager {
   }
 
   /**
-   * Create a small badge icon with text for the overlay.
-   * Draws a colored circle with the unread count text.
+   * Create a small 16x16 badge icon with text for the overlay.
+   * Uses raw RGBA pixel buffer since nativeImage only supports PNG/JPEG,
+   * not SVG data URLs.
    */
   private _createBadgeIcon(text: string): NativeImage {
-    // Create a 16x16 data URL with a simple colored badge
     const size = 16;
-    const canvas = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
-      <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="#2979ff"/>
-      <text x="${size / 2}" y="${size / 2 + 1}" text-anchor="middle" dominant-baseline="central"
-        fill="white" font-family="Segoe UI, Arial, sans-serif" font-size="${
-          text.length > 2 ? 7 : 9
-        }" font-weight="bold">${text}</text>
-    </svg>`;
+    const buf = Buffer.alloc(size * size * 4, 0);
 
-    const dataUrl = `data:image/svg+xml;base64,${Buffer.from(canvas).toString('base64')}`;
-    return nativeImage.createFromDataURL(dataUrl);
+    // Draw a filled blue circle (r=8, center=8,8)
+    const cx = 8,
+      cy = 8,
+      r = 8;
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const dist = Math.sqrt((x - cx + 0.5) ** 2 + (y - cy + 0.5) ** 2);
+        if (dist <= r) {
+          // Anti-alias the edge
+          const alpha = Math.min(1, r - dist + 0.5);
+          const i = (y * size + x) * 4;
+          // Blue badge: #2979FF
+          buf[i] = 0x29; // R
+          buf[i + 1] = 0x79; // G
+          buf[i + 2] = 0xff; // B
+          buf[i + 3] = Math.round(alpha * 255); // A
+        }
+      }
+    }
+
+    // Draw white text digits using simple 3x5 pixel font bitmaps
+    const glyphs = this._getDigitGlyphs();
+    const chars = text.split('');
+    const charWidth = 4; // 3px glyph + 1px spacing
+    const totalWidth = chars.length * charWidth - 1;
+    const startX = Math.round((size - totalWidth) / 2);
+    const startY = Math.round((size - 5) / 2);
+
+    for (let c = 0; c < chars.length; c++) {
+      const glyph = glyphs[chars[c]];
+      if (!glyph) continue;
+      for (let gy = 0; gy < 5; gy++) {
+        for (let gx = 0; gx < 3; gx++) {
+          if (glyph[gy] & (1 << (2 - gx))) {
+            const px = startX + c * charWidth + gx;
+            const py = startY + gy;
+            if (px >= 0 && px < size && py >= 0 && py < size) {
+              const i = (py * size + px) * 4;
+              buf[i] = 0xff;
+              buf[i + 1] = 0xff;
+              buf[i + 2] = 0xff;
+              buf[i + 3] = 0xff;
+            }
+          }
+        }
+      }
+    }
+
+    return nativeImage.createFromBuffer(buf, { width: size, height: size });
   }
 
   /**
-   * Create a compose icon for the thumbnail toolbar.
+   * 3x5 pixel font bitmaps for digits 0-9 and '+'.
+   * Each row is a 3-bit value (MSB = leftmost pixel).
+   */
+  private _getDigitGlyphs(): { [ch: string]: number[] } {
+    return {
+      '0': [0b111, 0b101, 0b101, 0b101, 0b111],
+      '1': [0b010, 0b110, 0b010, 0b010, 0b111],
+      '2': [0b111, 0b001, 0b111, 0b100, 0b111],
+      '3': [0b111, 0b001, 0b111, 0b001, 0b111],
+      '4': [0b101, 0b101, 0b111, 0b001, 0b001],
+      '5': [0b111, 0b100, 0b111, 0b001, 0b111],
+      '6': [0b111, 0b100, 0b111, 0b101, 0b111],
+      '7': [0b111, 0b001, 0b001, 0b001, 0b001],
+      '8': [0b111, 0b101, 0b111, 0b101, 0b111],
+      '9': [0b111, 0b101, 0b111, 0b001, 0b111],
+      '+': [0b000, 0b010, 0b111, 0b010, 0b000],
+    };
+  }
+
+  /**
+   * Create a 16x16 compose (pencil) icon for the thumbnail toolbar.
+   * Drawn as raw RGBA pixels since nativeImage doesn't support SVG.
    */
   private _createComposeIcon(): NativeImage {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-      <path fill="#ffffff" d="M13.5 2.5l-1-1L5 9v2h2l7.5-7.5zM2 13h12v1H2v-1zM3 4v7h2.5L14 2.5 13.5 2 5 10.5H4V4H3z"/>
-    </svg>`;
-    return nativeImage.createFromDataURL(
-      `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
-    );
+    const size = 16;
+    const buf = Buffer.alloc(size * size * 4, 0);
+
+    const setPixel = (x: number, y: number) => {
+      if (x >= 0 && x < size && y >= 0 && y < size) {
+        const i = (y * size + x) * 4;
+        buf[i] = 0xff;
+        buf[i + 1] = 0xff;
+        buf[i + 2] = 0xff;
+        buf[i + 3] = 0xff;
+      }
+    };
+
+    // Draw a pencil/compose icon:
+    // Diagonal line from (4,11) to (11,4) for the pencil body
+    for (let d = 0; d <= 7; d++) {
+      setPixel(4 + d, 11 - d);
+      setPixel(5 + d, 11 - d);
+    }
+    // Pencil tip at bottom-left
+    setPixel(3, 12);
+    // Horizontal line at bottom for the paper
+    for (let x = 2; x <= 13; x++) {
+      setPixel(x, 14);
+    }
+
+    return nativeImage.createFromBuffer(buf, { width: size, height: size });
   }
 
   /**
-   * Create a calendar icon for the thumbnail toolbar.
+   * Create a 16x16 calendar icon for the thumbnail toolbar.
+   * Drawn as raw RGBA pixels since nativeImage doesn't support SVG.
    */
   private _createCalendarIcon(): NativeImage {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-      <path fill="#ffffff" d="M4 0v2H2C.9 2 0 2.9 0 4v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2h-2V0h-2v2H6V0H4zM2 6h12v8H2V6zm2 2v2h2V8H4zm4 0v2h2V8H8zm4 0v2h2V8h-2z"/>
-    </svg>`;
-    return nativeImage.createFromDataURL(
-      `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
-    );
+    const size = 16;
+    const buf = Buffer.alloc(size * size * 4, 0);
+
+    const setPixel = (x: number, y: number) => {
+      if (x >= 0 && x < size && y >= 0 && y < size) {
+        const i = (y * size + x) * 4;
+        buf[i] = 0xff;
+        buf[i + 1] = 0xff;
+        buf[i + 2] = 0xff;
+        buf[i + 3] = 0xff;
+      }
+    };
+
+    // Calendar outline: rect from (2,3) to (13,14)
+    for (let x = 2; x <= 13; x++) {
+      setPixel(x, 3); // top
+      setPixel(x, 14); // bottom
+    }
+    for (let y = 3; y <= 14; y++) {
+      setPixel(2, y); // left
+      setPixel(13, y); // right
+    }
+    // Header divider line at y=6
+    for (let x = 2; x <= 13; x++) {
+      setPixel(x, 6);
+    }
+    // Two binding rings at top
+    for (let y = 1; y <= 4; y++) {
+      setPixel(5, y);
+      setPixel(10, y);
+    }
+    // Grid dots in the body (3x3 grid of small marks)
+    for (const gx of [4, 7, 10]) {
+      for (const gy of [8, 10, 12]) {
+        setPixel(gx, gy);
+        setPixel(gx + 1, gy);
+      }
+    }
+
+    return nativeImage.createFromBuffer(buf, { width: size, height: size });
   }
 }
 
