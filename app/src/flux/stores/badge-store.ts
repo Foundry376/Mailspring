@@ -72,8 +72,14 @@ class BadgeStore extends MailspringStore {
     }
   };
 
-  _setBadge = val => {
-    require('electron').ipcRenderer.send('set-badge-value', val);
+  _setBadge = (val) => {
+    const { ipcRenderer } = require('electron');
+    ipcRenderer.send('set-badge-value', val);
+
+    // On Windows, also update the taskbar overlay icon with unread count
+    if (process.platform === 'win32') {
+      ipcRenderer.send('set-overlay-icon', this._unread || 0);
+    }
   };
 }
 

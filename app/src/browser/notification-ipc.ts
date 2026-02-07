@@ -198,6 +198,11 @@ const displayNotification = (
     threadId: options.threadId,
   });
 
+  // On Windows, flash the taskbar to attract attention for new mail
+  if (platform === 'win32' && global.application?.windowsTaskbarManager) {
+    global.application.windowsTaskbarManager.flashFrame();
+  }
+
   return options.id;
 };
 

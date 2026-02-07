@@ -1,11 +1,11 @@
 import path from 'path';
 import { ipcRenderer } from 'electron';
-import { BadgeStore } from 'mailspring-exports';
+import { BadgeStore, FolderSyncProgressStore } from 'mailspring-exports';
 
 // Must be absolute real system path
 // https://github.com/atom/electron/issues/1299
 const { platform } = process;
-const { nativeTheme } = require("@electron/remote");
+const { nativeTheme } = require('@electron/remote');
 
 /*
 Current / Intended Behavior:
@@ -23,7 +23,6 @@ Current / Intended Behavior:
   it will switch to blue.)
 */
 class SystemTrayIconStore {
-
   _windowBackgrounded = false;
   _unsubscribers: (() => void)[];
 
@@ -33,6 +32,11 @@ class SystemTrayIconStore {
     }, 2000);
     this._unsubscribers = [];
     this._unsubscribers.push(BadgeStore.listen(this._updateIcon));
+
+    // On Windows, send sync progress to main process for taskbar progress bar
+    if (process.platform === 'win32') {
+      this._unsubscribers.push(FolderSyncProgressStore.listen(this._updateSyncProgress));
+    }
 
     window.addEventListener('browser-window-show', this._onWindowFocus);
     window.addEventListener('browser-window-focus', this._onWindowFocus);
@@ -48,11 +52,11 @@ class SystemTrayIconStore {
     // If the theme changes from bright to dark mode or vice versa, we need to update the tray icon
     nativeTheme.on('updated', () => {
       this._updateIcon();
-    })
+    });
   }
 
   deactivate() {
-    this._unsubscribers.forEach(unsub => unsub());
+    this._unsubscribers.forEach((unsub) => unsub());
   }
 
   _onWindowBackgrounded = () => {
@@ -72,18 +76,18 @@ class SystemTrayIconStore {
   // Linux ships with the icons used for a dark tray only
   _dark = () => {
     if (nativeTheme.shouldUseDarkColors && process.platform === 'win32') {
-      return "-dark";
+      return '-dark';
     }
-    return "";
-  }
+    return '';
+  };
 
   inboxZeroIcon = () => {
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Zero${this._dark()}.png`);
-  }
+  };
 
   inboxFullIcon = () => {
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Full${this._dark()}.png`);
-  }
+  };
 
   inboxFullNewIcon = () => {
     return path.join(
@@ -93,7 +97,7 @@ class SystemTrayIconStore {
       platform,
       `MenuItem-Inbox-Full-NewItems${this._dark()}.png`
     );
-  }
+  };
 
   inboxFullUnreadIcon = () => {
     return path.join(
@@ -103,7 +107,16 @@ class SystemTrayIconStore {
       platform,
       `MenuItem-Inbox-Full-UnreadItems${this._dark()}.png`
     );
-  }
+  };
+
+  _updateSyncProgress = () => {
+    const summary = FolderSyncProgressStore.getSummary();
+    if (summary.phrase && summary.progress < 1) {
+      ipcRenderer.send('set-taskbar-progress', summary.progress);
+    } else {
+      ipcRenderer.send('set-taskbar-progress', -1);
+    }
+  };
 
   _updateIcon = () => {
     const unread = BadgeStore.unread();
