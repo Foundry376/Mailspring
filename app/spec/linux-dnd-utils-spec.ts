@@ -95,6 +95,18 @@ describe('Linux Do Not Disturb Detection', () => {
       expect(await getDoNotDisturb()).toBe(false);
     });
 
+    it('falls through to DE-specific fallback on unexpected output', async () => {
+      process.env.XDG_CURRENT_DESKTOP = 'GNOME';
+      // dbus-send succeeds but returns a non-boolean type (non-conforming daemon)
+      mockExecFileByCommand({
+        'dbus-send': { stdout: '   variant       uint32 1' },
+        gsettings: { stdout: 'false' },
+      });
+      // Should not treat unexpected output as "not inhibited" — should fall
+      // through to the GNOME gsettings check which reports DND is active
+      expect(await getDoNotDisturb()).toBe(true);
+    });
+
     it('calls dbus-send with correct arguments', async () => {
       mockExecFileSuccess('   variant       boolean false');
       await getDoNotDisturb();

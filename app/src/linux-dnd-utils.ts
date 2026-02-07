@@ -43,7 +43,12 @@ async function queryFreedesktopInhibited(): Promise<boolean | null> {
       'string:Inhibited',
     ]);
     // dbus-send output format: "   variant       boolean true"
-    return output.includes('boolean true');
+    // Explicitly check for both boolean values so that unexpected output
+    // (e.g., a non-conforming daemon exposing a non-boolean type) falls
+    // through to null, allowing DE-specific fallbacks to run.
+    if (output.includes('boolean true')) return true;
+    if (output.includes('boolean false')) return false;
+    return null;
   } catch {
     return null;
   }
