@@ -199,8 +199,8 @@ class WindowsTaskbarManager {
 
   /**
    * Create a small 16x16 badge icon with text for the overlay.
-   * Uses raw RGBA pixel buffer since nativeImage only supports PNG/JPEG,
-   * not SVG data URLs.
+   * Uses createFromBitmap with BGRA pixel order, which is the native
+   * bitmap format on Windows.
    */
   private _createBadgeIcon(text: string): NativeImage {
     const size = 16;
@@ -217,10 +217,10 @@ class WindowsTaskbarManager {
           // Anti-alias the edge
           const alpha = Math.min(1, r - dist + 0.5);
           const i = (y * size + x) * 4;
-          // Blue badge: #2979FF
-          buf[i] = 0x29; // R
+          // Blue badge: #2979FF in BGRA order
+          buf[i] = 0xff; // B
           buf[i + 1] = 0x79; // G
-          buf[i + 2] = 0xff; // B
+          buf[i + 2] = 0x29; // R
           buf[i + 3] = Math.round(alpha * 255); // A
         }
       }
@@ -244,17 +244,17 @@ class WindowsTaskbarManager {
             const py = startY + gy;
             if (px >= 0 && px < size && py >= 0 && py < size) {
               const i = (py * size + px) * 4;
-              buf[i] = 0xff;
-              buf[i + 1] = 0xff;
-              buf[i + 2] = 0xff;
-              buf[i + 3] = 0xff;
+              buf[i] = 0xff; // B
+              buf[i + 1] = 0xff; // G
+              buf[i + 2] = 0xff; // R
+              buf[i + 3] = 0xff; // A
             }
           }
         }
       }
     }
 
-    return nativeImage.createFromBuffer(buf, { width: size, height: size });
+    return nativeImage.createFromBitmap(buf, { width: size, height: size });
   }
 
   /**
@@ -279,7 +279,8 @@ class WindowsTaskbarManager {
 
   /**
    * Create a 16x16 compose (pencil) icon for the thumbnail toolbar.
-   * Drawn as raw RGBA pixels since nativeImage doesn't support SVG.
+   * Uses createFromBitmap with BGRA pixel order (white pixels are
+   * channel-order-independent).
    */
   private _createComposeIcon(): NativeImage {
     const size = 16;
@@ -288,10 +289,10 @@ class WindowsTaskbarManager {
     const setPixel = (x: number, y: number) => {
       if (x >= 0 && x < size && y >= 0 && y < size) {
         const i = (y * size + x) * 4;
-        buf[i] = 0xff;
-        buf[i + 1] = 0xff;
-        buf[i + 2] = 0xff;
-        buf[i + 3] = 0xff;
+        buf[i] = 0xff; // B
+        buf[i + 1] = 0xff; // G
+        buf[i + 2] = 0xff; // R
+        buf[i + 3] = 0xff; // A
       }
     };
 
@@ -308,12 +309,13 @@ class WindowsTaskbarManager {
       setPixel(x, 14);
     }
 
-    return nativeImage.createFromBuffer(buf, { width: size, height: size });
+    return nativeImage.createFromBitmap(buf, { width: size, height: size });
   }
 
   /**
    * Create a 16x16 calendar icon for the thumbnail toolbar.
-   * Drawn as raw RGBA pixels since nativeImage doesn't support SVG.
+   * Uses createFromBitmap with BGRA pixel order (white pixels are
+   * channel-order-independent).
    */
   private _createCalendarIcon(): NativeImage {
     const size = 16;
@@ -322,10 +324,10 @@ class WindowsTaskbarManager {
     const setPixel = (x: number, y: number) => {
       if (x >= 0 && x < size && y >= 0 && y < size) {
         const i = (y * size + x) * 4;
-        buf[i] = 0xff;
-        buf[i + 1] = 0xff;
-        buf[i + 2] = 0xff;
-        buf[i + 3] = 0xff;
+        buf[i] = 0xff; // B
+        buf[i + 1] = 0xff; // G
+        buf[i + 2] = 0xff; // R
+        buf[i + 3] = 0xff; // A
       }
     };
 
@@ -355,7 +357,7 @@ class WindowsTaskbarManager {
       }
     }
 
-    return nativeImage.createFromBuffer(buf, { width: size, height: size });
+    return nativeImage.createFromBitmap(buf, { width: size, height: size });
   }
 }
 
