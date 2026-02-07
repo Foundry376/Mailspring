@@ -177,6 +177,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
 
     this.notification = jasmine.createSpyObj('notification', ['close']);
     spyOn(NativeNotifications, 'displayNotification').andReturn(this.notification);
+    spyOn(NativeNotifications, 'displaySummaryNotification').andReturn(Promise.resolve(null));
 
     spyOn(Promise, 'props').andCallFake(dict => {
       const dictOut = {};
@@ -256,7 +257,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
     });
   });
 
-  it('should create a Notification if there are five or more unread messages', () => {
+  it('should create a summary Notification if there are five or more unread messages', () => {
     waitsForPromise(async () => {
       await this.notifier._onDatabaseChanged({
         objectClass: Message.name,
@@ -264,12 +265,12 @@ describe('UnreadNotifications', function UnreadNotifications() {
         objectsRawJSON: getObjectsRawJson(['1', '2', '3', '4', '5'])
       });
       advanceClock(2000);
-      expect(NativeNotifications.displayNotification).toHaveBeenCalled();
-      const [{ title, tag }] = NativeNotifications.displayNotification.mostRecentCall.args;
-      expect({ title, tag }).toEqual({
-        title: '5 Unread Messages',
-        tag: 'unread-update',
-      });
+      expect(NativeNotifications.displaySummaryNotification).toHaveBeenCalled();
+      expect(NativeNotifications.displayNotification).not.toHaveBeenCalled();
+      const options = NativeNotifications.displaySummaryNotification.mostRecentCall.args[0];
+      expect(options.count).toEqual(5);
+      expect(options.senders).toContain('Ben');
+      expect(options.senders).toContain('Mark');
     });
   });
 
