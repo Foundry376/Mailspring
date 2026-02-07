@@ -33,10 +33,13 @@ const setupConfigDir = args => {
   if (args.specMode) {
     dirname = 'Mailspring-spec';
   }
-  let configDirPath = path.join(app.getPath('appData'), dirname);
+  
+  // Check if a custom config dir was provided via --config-dir-path
+  let configDirPath = args.configDirPath || path.join(app.getPath('appData'), dirname);
+  
   if (process.platform === 'linux' && process.env.SNAP) {
     // for linux snap, use the sandbox directory that is persisted between snap revisions
-    configDirPath = process.env.SNAP_USER_COMMON;
+    configDirPath = args.configDirPath || process.env.SNAP_USER_COMMON;
   }
 
   // crete the directory
