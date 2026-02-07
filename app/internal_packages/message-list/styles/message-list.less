@@ -282,7 +282,9 @@ body.platform-win32 {
     .message-item-white-wrap {
       background: @background-primary;
       border: 0;
-      box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 0 0.5px rgba(0, 0, 0, 0.28),
+        0 1px 1.5px rgba(0, 0, 0, 0.08);
       border-radius: 4px;
     }
 
@@ -390,8 +392,11 @@ body.platform-win32 {
       position: relative;
       border-top: 1px solid @border-color-divider;
       background-color: darken(@background-primary, 2%);
-      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.1), 0 -0.5px 0 rgba(0, 0, 0, 0.1),
-        0.5px 0 0 rgba(0, 0, 0, 0.1), -0.5px 0 0 rgba(0, 0, 0, 0.1);
+      box-shadow:
+        0 0.5px 0 rgba(0, 0, 0, 0.1),
+        0 -0.5px 0 rgba(0, 0, 0, 0.1),
+        0.5px 0 0 rgba(0, 0, 0, 0.1),
+        -0.5px 0 0 rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -433,7 +438,9 @@ body.platform-win32 {
     }
 
     .message-actions-wrap {
-      transition: opacity 100ms, width 150ms;
+      transition:
+        opacity 100ms,
+        width 150ms;
       transition-delay: 50ms, 0ms;
       transition-timing-function: ease-in-out;
       opacity: 1;
@@ -554,7 +561,9 @@ body.platform-win32 {
     z-index: 2;
 
     border: 0;
-    box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08);
+    box-shadow:
+      0 0 0.5px rgba(0, 0, 0, 0.28),
+      0 1px 1.5px rgba(0, 0, 0, 0.08);
     border-top: 1px dashed @border-color-divider;
     border-radius: 0 0 4px 4px;
     background: @background-primary;
@@ -840,7 +849,9 @@ body.platform-win32 {
     background: transparent;
     color: @text-color-subtle;
     cursor: pointer;
-    transition: background 0.1s ease, color 0.1s ease;
+    transition:
+      background 0.1s ease,
+      color 0.1s ease;
 
     &:first-child {
       border-radius: @border-radius-base 0 0 @border-radius-base;
@@ -889,41 +900,46 @@ body.platform-win32 {
       display: none;
     }
 
-    // Compact the header controls for narrow width
-    .calendar-header-controls {
-      padding: 4px 6px;
-
-      .title {
-        font-size: 11px;
-      }
-    }
-
-    // Make the scroll region fill available space
-    .agenda-scroll-region {
-      flex: 1;
-    }
-
-    // Tighten the day headers for sidebar
-    .agenda-day-header {
+    // Adapt the header controls for the narrow sidebar
+    .header-controls {
       padding: 6px 8px;
-      font-size: 11px;
+      position: relative;
+
+      // Hide the Day/Week/Month/Agenda view picker — not useful in the sidebar
+      .view-controls {
+        display: none;
+      }
+
+      // Hide the absolutely-positioned "Today" button to avoid overlap
+      > .btn {
+        display: none;
+      }
+
+      .center-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+
+        .title {
+          width: auto;
+          font-size: 13px;
+          text-align: center;
+        }
+      }
     }
 
-    // Compact event cards for narrow width
-    .agenda-event {
-      padding: 4px 6px;
+    // Constrain the event list for narrow width
+    .agenda-event-list {
+      padding: 0 8px 12px;
+    }
 
-      .agenda-event-time {
-        font-size: 10px;
-      }
-
-      .agenda-event-title {
-        font-size: 11px;
-      }
-
-      .agenda-event-location {
-        font-size: 10px;
-      }
+    // Let the time column wrap instead of using a fixed 130px width
+    .agenda-event-time {
+      width: auto;
+      min-width: 0;
+      flex-shrink: 1;
+      white-space: nowrap;
     }
   }
 }
