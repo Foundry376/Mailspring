@@ -62,7 +62,9 @@ class FocusedContactsStore extends MailspringStore {
   // For now we take the last message
   _populateCurrentParticipants() {
     this._scoreAllParticipants();
-    const sorted = Object.values(this._contactScores).sort((a, b) => b.score - a.score);
+    // Sort ascending then reverse to match the tie-breaking behavior of
+    // _.sortBy().reverse() — ties appear in reverse insertion order.
+    const sorted = Object.values(this._contactScores).sort((a, b) => a.score - b.score).reverse();
     this._currentContacts = sorted.map(obj => obj.contact);
     return this._onFocusContact(this._currentContacts[0]);
   }
