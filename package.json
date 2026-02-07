@@ -84,5 +84,8 @@
     "tsc-watch": "tsc -w -p ./app --noEmit",
     "build": "grunt build-client --gruntfile=app/build/Gruntfile.js --base=./",
     "build-licenses-file": "cat ./app/static/all_licenses_preamble.html | ./node_modules/.bin/marked > ./app/static/all_licenses.html && licext --source ./app --mode output | ./node_modules/.bin/marked >> ./app/static/all_licenses.html"
+  },
+  "devDependencies": {
+    "node-abi": "^3.87.0"
   }
 }

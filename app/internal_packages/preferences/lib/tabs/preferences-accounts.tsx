@@ -1,12 +1,23 @@
 import React from 'react';
 import { ipcRenderer } from 'electron';
-import { AccountStore, Actions, Account } from 'mailspring-exports';
+import {
+  AccountStore,
+  AccountGroupStore,
+  AccountGroup,
+  Actions,
+  Account,
+  localized,
+} from 'mailspring-exports';
 import PreferencesAccountList from './preferences-account-list';
 import PreferencesAccountDetails from './preferences-account-details';
 
 interface PreferencesAccountsState {
   accounts: Account[];
   selected: Account;
+  groups: AccountGroup[];
+  showGroupPicker: boolean;
+  selectedGroupId: string;
+  previousAccountIds: string[];
 }
 
 class PreferencesAccounts extends React.Component<
@@ -15,21 +26,26 @@ class PreferencesAccounts extends React.Component<
 > {
   static displayName = 'PreferencesAccounts';
 
-  unsubscribe: () => void;
+  _unsubscribers: Array<() => void> = [];
 
   constructor(props) {
     super(props);
-    this.state = this.getStateFromStores();
+    this.state = {
+      ...this.getStateFromStores(),
+      groups: AccountGroupStore.groups(),
+      showGroupPicker: false,
+      selectedGroupId: '',
+      previousAccountIds: [],
+    };
   }
 
   componentDidMount() {
-    this.unsubscribe = AccountStore.listen(this._onAccountsChanged);
+    this._unsubscribers.push(AccountStore.listen(this._onAccountsChanged));
+    this._unsubscribers.push(AccountGroupStore.listen(this._onGroupsChanged));
   }
 
   componentWillUnmount() {
-    if (this.unsubscribe) {
-      this.unsubscribe();
-    }
+    this._unsubscribers.forEach(unsub => unsub());
   }
 
   getStateFromStores({ selected }: { selected?: Account } = {}) {
@@ -38,8 +54,6 @@ class PreferencesAccounts extends React.Component<
     if (selected) {
       selectedAccount = accounts.find(a => a.id === selected.id);
     }
-    // If selected was null or no longer exists in the AccountStore,
-    // just use the first account.
     if (!selectedAccount) {
       selectedAccount = accounts[0];
     }
@@ -50,13 +64,56 @@ class PreferencesAccounts extends React.Component<
   }
 
   _onAccountsChanged = () => {
-    this.setState(this.getStateFromStores(this.state));
+    const prev = this.state.accounts;
+    const selectedGroupId = this.state.selectedGroupId;
+    const storeState = this.getStateFromStores(this.state);
+    this.setState(storeState as any);
+
+    // If a new account was added and we had a group selected, assign it
+    if (selectedGroupId && storeState.accounts.length > prev.length) {
+      const prevIds = new Set(prev.map(a => a.id));
+      const newAccounts = storeState.accounts.filter(a => !prevIds.has(a.id));
+      if (newAccounts.length > 0) {
+        const group = AccountGroupStore.groupForId(selectedGroupId);
+        if (group) {
+          const newIds = [...group.accountIds, ...newAccounts.map(a => a.id)];
+          Actions.updateAccountGroup({ id: group.id, accountIds: newIds });
+        }
+        this.setState({ selectedGroupId: '' });
+      }
+    }
   };
 
-  // Update account list actions
-  _onAddAccount() {
+  _onGroupsChanged = () => {
+    this.setState({ groups: AccountGroupStore.groups() });
+  };
+
+  _onAddAccount = () => {
+    const groups = AccountGroupStore.groups();
+    if (groups.length > 0) {
+      this.setState({
+        showGroupPicker: true,
+        selectedGroupId: groups[0].id,
+        previousAccountIds: this.state.accounts.map(a => a.id),
+      });
+    } else {
+      ipcRenderer.send('command', 'application:add-account');
+    }
+  };
+
+  _onConfirmGroupAndAdd = () => {
+    this.setState({ showGroupPicker: false });
     ipcRenderer.send('command', 'application:add-account');
-  }
+  };
+
+  _onSkipGroupAndAdd = () => {
+    this.setState({ showGroupPicker: false, selectedGroupId: '' });
+    ipcRenderer.send('command', 'application:add-account');
+  };
+
+  _onCancelGroupPicker = () => {
+    this.setState({ showGroupPicker: false, selectedGroupId: '' });
+  };
 
   _onReorderAccount(account: Account, oldIdx: number, newIdx: number) {
     Actions.reorderAccount(account.id, newIdx);
@@ -70,9 +127,43 @@ class PreferencesAccounts extends React.Component<
     Actions.removeAccount(account.id);
   }
 
-  // Update account actions
   _onAccountUpdated(account: Account, updates: Partial<Account>) {
     Actions.updateAccount(account.id, updates);
+  }
+
+  _renderGroupPicker() {
+    if (!this.state.showGroupPicker) return null;
+
+    return (
+      <div className="group-picker-overlay">
+        <div className="group-picker-modal">
+          <h3>{localized('Add Account to Group')}</h3>
+          <p>{localized('Select a group for the new account, or skip to add without a group.')}</p>
+          <select
+            className="group-picker-select"
+            value={this.state.selectedGroupId}
+            onChange={e => this.setState({ selectedGroupId: e.target.value })}
+          >
+            {this.state.groups.map(g => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+          <div className="group-picker-actions">
+            <button className="btn btn-emphasis" onClick={this._onConfirmGroupAndAdd}>
+              {localized('Add to Group')}
+            </button>
+            <button className="btn" onClick={this._onSkipGroupAndAdd}>
+              {localized('Skip (No Group)')}
+            </button>
+            <button className="btn" onClick={this._onCancelGroupPicker}>
+              {localized('Cancel')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   render() {
@@ -92,6 +183,7 @@ class PreferencesAccounts extends React.Component<
             onAccountUpdated={this._onAccountUpdated}
           />
         </div>
+        {this._renderGroupPicker()}
       </div>
     );
   }

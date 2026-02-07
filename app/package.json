@@ -81,6 +81,9 @@
     "windows-iana": "^4.2.1",
     "xml2js": "^0.6.2"
   },
+  "overrides": {
+    "node-abi": "^3.87.0"
+  },
   "resolutions": {
     "electron": "39.2.7"
   },

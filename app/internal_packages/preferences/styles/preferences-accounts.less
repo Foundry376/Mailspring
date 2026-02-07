@@ -5,6 +5,8 @@
   .container-accounts {
     min-width: 420px;
     margin: 0 auto;
+    position: relative;
+
     .accounts-content {
       display: flex;
       justify-content: center;
@@ -125,6 +127,534 @@
             margin-left: 0;
             width: 100%;
           }
+        }
+      }
+    }
+
+    // Group picker modal overlay
+    .group-picker-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .group-picker-modal {
+      background: @background-primary;
+      border-radius: @border-radius-large;
+      padding: @spacing-standard * 2;
+      width: 380px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+      h3 {
+        margin-top: 0;
+        margin-bottom: @spacing-standard * 0.5;
+      }
+
+      p {
+        font-size: @font-size-small;
+        color: @text-color-subtle;
+        margin-bottom: @spacing-standard;
+      }
+
+      .group-picker-select {
+        width: 100%;
+        padding: 8px;
+        font-size: @font-size;
+        margin-bottom: @spacing-standard;
+        border: 1px solid @border-color-divider;
+        border-radius: @border-radius-base;
+      }
+
+      .group-picker-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+
+        .btn {
+          padding: 6px 14px;
+        }
+      }
+    }
+  }
+
+  // Account Groups Tab - Split Panel Layout
+  .container-account-groups {
+    max-width: 800px;
+    min-width: 500px;
+    margin: 0 auto;
+
+    .groups-split-layout {
+      display: flex;
+      background: @background-primary;
+      border: 1px solid darken(@border-color-divider, 8%);
+      border-radius: @border-radius-base;
+      box-shadow: @standard-shadow;
+      overflow: hidden;
+      // Use a fixed height so both panels scroll independently
+      height: 520px;
+    }
+
+    // Left panel - Group list
+    .groups-left-panel {
+      width: 220px;
+      min-width: 180px;
+      flex-shrink: 0;
+      border-right: 1px solid darken(@border-color-divider, 8%);
+      background: @background-secondary;
+      display: flex;
+      flex-direction: column;
+
+      .groups-left-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid darken(@border-color-divider, 8%);
+        background: darken(@background-secondary, 3%);
+
+        h3 {
+          margin: 0;
+          font-size: @font-size;
+          font-weight: @headings-font-weight;
+          color: @text-color-heading;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .btn-add-group {
+          font-size: @font-size-small;
+          font-weight: @font-weight-semi-bold;
+          padding: 4px 10px;
+          white-space: nowrap;
+        }
+      }
+
+      .groups-list {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .group-list-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        border-bottom: 1px solid darken(@border-color-divider, 4%);
+        border-left: 3px solid transparent;
+
+        &:hover {
+          background: darken(@background-secondary, 5%);
+        }
+
+        &.selected {
+          background: @background-primary;
+          border-left-color: @component-active-color;
+          box-shadow: inset -1px 0 0 darken(@border-color-divider, 4%);
+        }
+
+        &.new-group-input {
+          background: @background-primary;
+          border-left-color: @component-active-color;
+        }
+
+        .group-list-item-content {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .group-name {
+          font-weight: @font-weight-semi-bold;
+          font-size: @font-size;
+          color: @text-color;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .group-account-count {
+          font-size: @font-size-smaller;
+          color: @text-color-very-subtle;
+        }
+
+        .group-name-input {
+          width: 100%;
+          font-size: @font-size;
+          font-weight: @font-weight-semi-bold;
+          padding: 4px 6px;
+          border: 1px solid @component-active-color;
+          border-radius: @border-radius-base;
+          outline: none;
+          box-sizing: border-box;
+        }
+      }
+
+      .groups-empty-hint {
+        padding: 24px 14px;
+        text-align: center;
+        color: @text-color-very-subtle;
+        font-size: @font-size-smaller;
+
+        p {
+          margin: 4px 0;
+          color: @text-color-very-subtle;
+        }
+      }
+    }
+
+    // Right panel - Group details & accounts
+    .groups-right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: @background-primary;
+      min-width: 0;
+
+      .right-panel-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 40px 20px;
+        text-align: center;
+
+        h3 {
+          margin: 0 0 8px 0;
+          font-size: @font-size-large;
+          font-weight: @headings-font-weight;
+          color: @text-color-heading;
+        }
+
+        p {
+          max-width: 280px;
+          line-height: 1.5;
+          color: @text-color-very-subtle;
+          font-size: @font-size-small;
+        }
+      }
+
+      .right-panel-header {
+        border-bottom: 1px solid darken(@border-color-divider, 4%);
+        background: @background-secondary;
+
+        .right-panel-title-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 16px;
+
+          h3 {
+            margin: 0;
+            font-size: @font-size-large;
+            font-weight: @headings-font-weight;
+            color: @text-color;
+          }
+
+          .right-panel-actions {
+            display: flex;
+            gap: 6px;
+
+            .btn-danger {
+              color: @color-danger;
+              border-color: fade(@color-danger, 30%);
+              &:hover {
+                background: @color-danger;
+                color: @text-color-inverse;
+                border-color: @color-danger;
+              }
+            }
+          }
+        }
+      }
+
+      .group-customization {
+        padding: 10px 16px;
+        border-top: 1px solid darken(@border-color-divider, 4%);
+        background: @background-secondary;
+
+        .customization-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 8px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+
+        .customization-label {
+          font-size: @font-size-small;
+          font-weight: @font-weight-medium;
+          color: @text-color-very-subtle;
+          width: 50px;
+          flex-shrink: 0;
+        }
+
+        .customization-control {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+        }
+
+        .color-control {
+          input[type='color'] {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: 1px solid darken(@border-color-divider, 10%);
+            border-radius: @border-radius-base;
+            cursor: pointer;
+            background: none;
+          }
+
+          .color-preview {
+            font-size: @font-size;
+            margin-left: 4px;
+            color: @text-color;
+          }
+
+          .btn-reset {
+            margin-left: auto;
+            font-size: @font-size-small;
+          }
+        }
+
+        .style-control {
+          .btn-style {
+            min-width: 36px;
+            padding: 4px 8px;
+            font-size: @font-size-small;
+            border: 1px solid darken(@border-color-divider, 10%);
+            background: @background-primary;
+            color: @text-color;
+            cursor: pointer;
+            border-radius: @border-radius-base;
+
+            &.active {
+              background: @component-active-color;
+              color: @text-color-inverse;
+              border-color: @component-active-color;
+            }
+
+            &:hover:not(.active) {
+              background: darken(@background-primary, 5%);
+            }
+          }
+        }
+      }
+
+      .right-panel-accounts {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .accounts-toolbar {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 16px;
+          border-bottom: 1px solid darken(@border-color-divider, 4%);
+          background: @background-off-primary;
+
+          .search-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+
+            .search-icon {
+              position: absolute;
+              left: 10px;
+              width: 16px;
+              height: 16px;
+              opacity: 0.5;
+            }
+
+            .search-input {
+              width: 100%;
+              padding: 6px 28px 6px 32px;
+              font-size: @font-size;
+              border: 1px solid darken(@border-color-divider, 8%);
+              border-radius: @border-radius-base;
+              background: @background-primary;
+              color: @text-color;
+              outline: none;
+              &:focus {
+                border-color: @component-active-color;
+              }
+            }
+
+            .search-clear {
+              position: absolute;
+              right: 6px;
+              background: none;
+              border: none;
+              font-size: @font-size;
+              cursor: pointer;
+              color: @text-color-very-subtle;
+              padding: 2px 6px;
+              &:hover {
+                color: @text-color;
+              }
+            }
+          }
+
+          .select-all-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: @font-size-small;
+            font-weight: @font-weight-medium;
+            cursor: pointer;
+            color: @text-color-subtle;
+            white-space: nowrap;
+
+            input[type='checkbox'] {
+              margin: 0;
+            }
+
+            &:hover {
+              color: @text-color;
+            }
+          }
+        }
+
+        .accounts-list {
+          flex: 1;
+          overflow-y: auto;
+          padding: 2px 0;
+        }
+
+        .account-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 16px;
+          cursor: pointer;
+          transition: background 0.1s ease;
+
+          &:hover {
+            background: darken(@background-primary, 3%);
+          }
+
+          &.checked {
+            background: fade(@component-active-color, 8%);
+            &:hover {
+              background: fade(@component-active-color, 14%);
+            }
+          }
+
+          input[type='checkbox'] {
+            margin: 0;
+            flex-shrink: 0;
+          }
+
+          .account-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+
+            .account-label {
+              font-size: @font-size;
+              font-weight: @font-weight-medium;
+              color: @text-color;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+
+            .account-email {
+              font-size: @font-size-smaller;
+              color: @text-color-very-subtle;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+          }
+        }
+
+        .no-results {
+          padding: 24px 16px;
+          text-align: center;
+          color: @text-color-very-subtle;
+          font-size: @font-size-small;
+        }
+      }
+    }
+
+    // Create group dialog overlay
+    .create-group-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .create-group-dialog {
+      background: @background-primary;
+      border-radius: @border-radius-large;
+      padding: 24px;
+      width: 380px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+
+      h3 {
+        margin: 0 0 6px 0;
+        font-size: @font-size-large;
+        font-weight: @headings-font-weight;
+        color: @text-color;
+      }
+
+      p {
+        margin: 0 0 16px 0;
+        font-size: @font-size-small;
+        color: @text-color-very-subtle;
+      }
+
+      .create-group-input {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: @font-size;
+        color: @text-color;
+        border: 1px solid darken(@border-color-divider, 10%);
+        border-radius: @border-radius-base;
+        outline: none;
+        box-sizing: border-box;
+        margin-bottom: 16px;
+
+        &:focus {
+          border-color: @component-active-color;
+        }
+      }
+
+      .create-group-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+
+        .btn {
+          padding: 6px 16px;
+          font-size: @font-size-small;
+        }
+
+        .btn[disabled] {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
       }
     }

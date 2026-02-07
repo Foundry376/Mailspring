@@ -545,6 +545,12 @@ export const searchQuerySubmitted = create('searchQuerySubmitted', ActionScopeWi
 export const searchQueryChanged = create('searchQueryChanged', ActionScopeWindow);
 export const searchCompleted = create('searchCompleted', ActionScopeWindow);
 
+// Account Groups
+export const createAccountGroup = create('createAccountGroup', ActionScopeWindow);
+export const updateAccountGroup = create('updateAccountGroup', ActionScopeWindow);
+export const deleteAccountGroup = create('deleteAccountGroup', ActionScopeWindow);
+export const reorderAccountGroup = create('reorderAccountGroup', ActionScopeWindow);
+
 // Calendar
 export const focusCalendarEvent = create('focusCalendarEvent', ActionScopeWindow);
 
