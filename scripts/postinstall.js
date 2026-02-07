@@ -20,7 +20,6 @@ const npmEnvs = {
     npm_config_target_arch: process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch,
     npm_config_disturl: 'https://electronjs.org/headers',
     npm_config_runtime: 'electron',
-    npm_config_build_from_source: true,
   }),
 };
 
@@ -128,8 +127,13 @@ if (cacheElectronTarget !== npmElectronTarget) {
 async function sqliteMissingNanosleep() {
   return new Promise(resolve => {
     const sqliteLibDir = path.join(appModulesPath, 'better-sqlite3', 'build', 'Release');
+    const staticLib = path.join(sqliteLibDir, 'sqlite3.a');
+    const sharedLib = path.join(sqliteLibDir, 'better_sqlite3.node');
+
+    // Check the static lib first (build-from-source), then the prebuilt .node binary
+    const target = fs.existsSync(staticLib) ? staticLib : sharedLib;
     safeExec(
-      `nm '${sqliteLibDir}/sqlite3.a' | grep nanosleep`,
+      `nm '${target}' | grep nanosleep`,
       { ignoreStderr: true },
       (err, resp) => {
         resolve(resp === '');
