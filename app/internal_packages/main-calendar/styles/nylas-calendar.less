@@ -32,7 +32,9 @@ body.platform-win32 {
       border-radius: 3px;
       width: 12px;
       height: 12px;
-      box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(0, 0, 0, 0.13);
+      box-shadow:
+        0 0 0.5px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(0, 0, 0, 0.13);
       background: white;
       .bg-color {
         width: 100%;
@@ -760,8 +762,11 @@ body.platform-win32 {
       position: absolute;
       right: 10px;
       border-radius: @border-radius-base;
-      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
-        0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15),
+      box-shadow:
+        0 0.5px 0 rgba(0, 0, 0, 0.15),
+        0 -0.5px 0 rgba(0, 0, 0, 0.15),
+        0.5px 0 0 rgba(0, 0, 0, 0.15),
+        -0.5px 0 0 rgba(0, 0, 0, 0.15),
         0 0.5px 1px rgba(0, 0, 0, 0.15);
       overflow: hidden;
 
@@ -793,5 +798,167 @@ body.platform-win32 {
     text-align: center;
     flex: 1;
     order: 0;
+  }
+
+  .agenda-view {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .agenda-scroll-region {
+      flex: 1;
+      background: @background-primary;
+    }
+
+    .agenda-event-list {
+      padding: 0 20px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .agenda-day {
+      &:first-child {
+        .agenda-day-header {
+          border-top: none;
+        }
+      }
+    }
+
+    .agenda-day-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 16px 0 8px;
+      border-top: 1px solid @border-color-divider;
+      position: sticky;
+      top: 0;
+      background: @background-primary;
+      z-index: 1;
+
+      .agenda-day-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: @text-color;
+      }
+
+      .agenda-day-date {
+        font-size: 13px;
+        color: @text-color-subtle;
+      }
+
+      .agenda-today-badge {
+        font-size: 11px;
+        font-weight: 600;
+        color: @accent-primary;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      &.is-today {
+        .agenda-day-name,
+        .agenda-day-date {
+          color: @accent-primary;
+        }
+      }
+    }
+
+    .agenda-day-events {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .agenda-event {
+      display: flex;
+      align-items: flex-start;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: default;
+      position: relative;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+      }
+
+      &.selected {
+        background: @accent-primary;
+
+        .agenda-event-time,
+        .agenda-event-title,
+        .agenda-event-location {
+          color: @text-color-inverse;
+        }
+
+        .agenda-event-color-bar {
+          background-color: @text-color-inverse !important;
+        }
+      }
+
+      &.cancelled {
+        opacity: 0.6;
+
+        .agenda-event-title s {
+          text-decoration: line-through;
+        }
+      }
+
+      &.pending {
+        .agenda-event-color-bar {
+          opacity: 0.5;
+        }
+      }
+    }
+
+    .agenda-event-color-bar {
+      width: 4px;
+      min-height: 32px;
+      align-self: stretch;
+      border-radius: 2px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .agenda-event-time {
+      width: 130px;
+      flex-shrink: 0;
+      font-size: 12px;
+      color: @text-color-subtle;
+      padding-top: 2px;
+    }
+
+    .agenda-event-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .agenda-event-title {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .agenda-event-location {
+      font-size: 12px;
+      color: @text-color-subtle;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .agenda-no-events {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: @text-color-very-subtle;
+      font-style: italic;
+    }
   }
 }

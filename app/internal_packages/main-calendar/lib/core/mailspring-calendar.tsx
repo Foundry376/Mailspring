@@ -22,6 +22,7 @@ import {
 import { DayView } from './day-view';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
+import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
@@ -42,10 +43,7 @@ import {
   snapAllDayTimes,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
-import {
-  modifyEventWithRecurringSupport,
-  EventTimeChangeOptions,
-} from './recurring-event-actions';
+import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recurring-event-actions';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -53,6 +51,7 @@ const VIEWS = {
   [CalendarView.DAY]: DayView,
   [CalendarView.WEEK]: WeekView,
   [CalendarView.MONTH]: MonthView,
+  [CalendarView.AGENDA]: AgendaView,
 };
 
 export interface EventRendererProps {
