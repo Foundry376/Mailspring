@@ -863,111 +863,67 @@ body.platform-win32 {
   }
 }
 
-.sidebar-contacts-view {
+.sidebar-participants-view {
   flex: 1;
   overflow: auto;
 }
 
-///////////////////////////////
-// sidebar-calendar-day-view //
-///////////////////////////////
-.sidebar-calendar-day-view {
+///////////////////////////
+// sidebar-agenda-view   //
+///////////////////////////
+.sidebar-agenda-view {
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow: hidden;
-}
 
-.sidebar-calendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px;
-  flex-shrink: 0;
-
-  .btn-nav {
-    padding: 2px 6px;
-    background: transparent;
-    border: 1px solid @border-color-primary;
-    border-radius: @border-radius-base;
-    cursor: pointer;
+  // The AgendaView is designed for full-width calendar window — adapt it for
+  // the narrow sidebar panel (150-300px).
+  .calendar-view.agenda-view {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    height: 100%;
 
-    img {
-      width: 10px;
-      height: 10px;
+    // Hide the top-banner (injected component area) in the sidebar
+    .top-banner {
+      display: none;
     }
 
-    &:hover {
-      background: fade(@background-primary, 50%);
+    // Compact the header controls for narrow width
+    .calendar-header-controls {
+      padding: 4px 6px;
+
+      .title {
+        font-size: 11px;
+      }
     }
-  }
 
-  .sidebar-calendar-date {
-    font-size: 12px;
-    font-weight: @font-weight-semi-bold;
-    color: @text-color;
-    cursor: pointer;
-
-    &:hover {
-      text-decoration: underline;
+    // Make the scroll region fill available space
+    .agenda-scroll-region {
+      flex: 1;
     }
-  }
-}
 
-.sidebar-calendar-events {
-  flex: 1;
-  overflow: auto;
-}
+    // Tighten the day headers for sidebar
+    .agenda-day-header {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
 
-.sidebar-calendar-empty {
-  padding: 20px 15px;
-  text-align: center;
-  color: @text-color-very-subtle;
-  font-size: 12px;
-}
+    // Compact event cards for narrow width
+    .agenda-event {
+      padding: 4px 6px;
 
-.sidebar-calendar-event {
-  padding: 8px 10px;
-  margin: 0 5px 4px 5px;
-  border-radius: @border-radius-base;
-  border: 1px solid @border-color-primary;
-  background: @background-primary;
-  cursor: pointer;
-  transition: background 0.1s ease;
+      .agenda-event-time {
+        font-size: 10px;
+      }
 
-  &:hover {
-    background: darken(@background-primary, 3%);
-  }
+      .agenda-event-title {
+        font-size: 11px;
+      }
 
-  &.pending {
-    opacity: 0.7;
-    border-style: dashed;
-  }
-
-  .event-time {
-    font-size: 10px;
-    font-weight: @font-weight-semi-bold;
-    color: @text-color-subtle;
-    margin-bottom: 2px;
-  }
-
-  .event-title {
-    font-size: 12px;
-    color: @text-color;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .event-location {
-    font-size: 10px;
-    color: @text-color-very-subtle;
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+      .agenda-event-location {
+        font-size: 10px;
+      }
+    }
   }
 }

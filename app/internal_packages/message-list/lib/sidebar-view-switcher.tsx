@@ -3,7 +3,7 @@ import { PropTypes, FocusedContactsStore, Contact } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 import { SidebarViewToggle, SidebarView } from './sidebar-view-toggle';
 import { SidebarParticipantPicker } from './sidebar-participant-picker';
-import { SidebarCalendarDayView } from './sidebar-calendar-day-view';
+import { SidebarAgendaView } from './sidebar-agenda-view';
 
 class FocusedContactStorePropsContainer extends React.Component<
   { children: React.ReactElement<any> },
@@ -79,7 +79,7 @@ export class SidebarViewSwitcher extends React.Component<{}, { selectedView: Sid
   constructor(props: {}) {
     super(props);
     this.state = {
-      selectedView: 'contacts',
+      selectedView: 'participants',
     };
   }
 
@@ -93,15 +93,15 @@ export class SidebarViewSwitcher extends React.Component<{}, { selectedView: Sid
     return (
       <div className="sidebar-view-switcher">
         <SidebarViewToggle selectedView={selectedView} onSelectView={this._onSelectView} />
-        {selectedView === 'contacts' ? (
-          <div className="sidebar-contacts-view">
+        {selectedView === 'participants' ? (
+          <div className="sidebar-participants-view">
             <SidebarParticipantPicker />
             <FocusedContactStorePropsContainer>
               <SidebarPluginContainerInner />
             </FocusedContactStorePropsContainer>
           </div>
         ) : (
-          <SidebarCalendarDayView />
+          <SidebarAgendaView />
         )}
       </div>
     );

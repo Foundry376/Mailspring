@@ -1,7 +1,7 @@
 import React from 'react';
 import { localized } from 'mailspring-exports';
 
-export type SidebarView = 'contacts' | 'calendar';
+export type SidebarView = 'participants' | 'calendar';
 
 interface SidebarViewToggleProps {
   selectedView: SidebarView;
@@ -16,10 +16,10 @@ export class SidebarViewToggle extends React.Component<SidebarViewToggleProps> {
     return (
       <div className="sidebar-view-toggle">
         <button
-          className={`toggle-btn ${selectedView === 'contacts' ? 'active' : ''}`}
-          onClick={() => onSelectView('contacts')}
+          className={`toggle-btn ${selectedView === 'participants' ? 'active' : ''}`}
+          onClick={() => onSelectView('participants')}
         >
-          {localized('Contacts')}
+          {localized('Participants')}
         </button>
         <button
           className={`toggle-btn ${selectedView === 'calendar' ? 'active' : ''}`}
