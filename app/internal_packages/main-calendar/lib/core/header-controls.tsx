@@ -38,7 +38,7 @@ export class HeaderControls extends React.Component<{
     );
   }
 
-  _changeView = newView => {
+  _changeView = (newView) => {
     this.props.onChangeView(newView);
   };
 
@@ -64,7 +64,11 @@ export class HeaderControls extends React.Component<{
               view: CalendarView.MONTH,
               isDisabled: CalendarView.MONTH === this.props.disabledViewButton,
             },
-          ].map(buttonOptions => (
+            {
+              view: CalendarView.AGENDA,
+              isDisabled: CalendarView.AGENDA === this.props.disabledViewButton,
+            },
+          ].map((buttonOptions) => (
             <button
               key={buttonOptions.view}
               className={buttonOptions.isDisabled ? 'cur-view-btn' : 'view-btn'}
