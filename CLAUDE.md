@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build and Development Commands
 
 ```bash
-# Install dependencies
+# Install dependencies (see "Dependency Installation" below for details)
 npm install
 
 # Run the app in development mode (uses --dev flag, data stored in Mailspring-dev folder)
@@ -26,9 +26,34 @@ npm test-window
 # TypeScript type checking in watch mode
 npm run tsc-watch
 
+# TypeScript type checking (single run, no watch)
+npx tsc -p ./app --noEmit
+
 # Build for production
 npm run build
 ```
+
+## Dependency Installation
+
+This project has **two separate `node_modules` directories**:
+
+- **Root `node_modules/`** — Build tools, Electron, TypeScript, ESLint, Grunt, etc.
+- **`app/node_modules/`** — Runtime application dependencies (React, better-sqlite3, etc.)
+
+Running `npm install` at the root triggers a `postinstall` script (`scripts/postinstall.js`) that automatically installs `app/` dependencies with Electron-specific native module compilation settings and downloads the Mailsync binary.
+
+### Cloud / CI Environment Setup
+
+In cloud environments (including Claude Code on the web), the full `npm install` will fail because `better-sqlite3` requires compiling against Electron headers that are not available. Use `--ignore-scripts` to skip native module compilation:
+
+```bash
+npm install --ignore-scripts && cd app && npm install --ignore-scripts && cd ..
+```
+
+This installs all JavaScript dependencies at both levels. After this setup:
+
+- **Works:** `npm run lint`, `npx tsc -p ./app --noEmit` (linting and type checking)
+- **Does not work:** `npm start`, `npm test`, `npm run build` (these require Electron and compiled native modules)
 
 ## Architecture Overview
 
@@ -203,6 +228,10 @@ UI Updates ← QuerySubscription ← DatabaseStore.trigger() ← stdout deltas
 - Dev mode data is stored separately (e.g., `~/.config/Mailspring-dev/` on Linux)
 
 ## Claude Hooks
+
+### SessionStart
+
+A SessionStart hook (`.claude/settings.json`) automatically installs dependencies with `--ignore-scripts` if `node_modules` directories are missing. This ensures agents in cloud environments have a working setup for linting and type checking without manual intervention.
 
 ### after_edit
 

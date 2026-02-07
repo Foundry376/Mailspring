@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "always",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ ! -d node_modules ] || [ ! -d app/node_modules ]; then npm install --ignore-scripts && cd app && npm install --ignore-scripts; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
