@@ -1,10 +1,11 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
-import { localized } from 'mailspring-exports';
+import { localized, Actions } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
+import { CalendarEventPopover } from './calendar-event-popover';
 import { EventOccurrence } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { calcEventColors, extractMeetingDomain } from './calendar-helpers';
@@ -142,10 +143,28 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
     );
   }
 
-  _renderEvent = (event: EventOccurrence) => {
+  /**
+   * Open the event popover anchored to the actual clicked element, rather than
+   * relying on the parent's getElementById lookup which would fail for
+   * multi-day events rendered with day-unique DOM ids.
+   */
+  _onAgendaEventDoubleClick = (e: React.MouseEvent, event: EventOccurrence) => {
+    const eventEl = e.currentTarget as HTMLElement;
+    Actions.openPopover(<CalendarEventPopover event={event} />, {
+      originRect: eventEl.getBoundingClientRect(),
+      direction: 'right',
+      fallbackDirection: 'left',
+      closeOnAppBlur: false,
+    });
+  };
+
+  _renderEvent(event: EventOccurrence, dayKey: string) {
     const colors = calcEventColors(event.calendarId);
     const meetingDomain = extractMeetingDomain(event.location, event.description);
     const isSelected = this.props.selectedEvents.some((e) => e.id === event.id);
+
+    // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
+    const uniqueId = `${event.id}-${dayKey}`;
 
     const className = [
       'agenda-event',
@@ -158,11 +177,11 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
 
     return (
       <div
-        id={event.id}
-        key={event.id}
+        id={uniqueId}
+        key={uniqueId}
         className={className}
         onClick={(e) => this.props.onEventClick(e, event)}
-        onDoubleClick={() => this.props.onEventDoubleClick(event)}
+        onDoubleClick={(e) => this._onAgendaEventDoubleClick(e, event)}
         tabIndex={0}
       >
         <div className="agenda-event-color-bar" style={{ backgroundColor: colors.band }} />
@@ -183,16 +202,17 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
         </div>
       </div>
     );
-  };
+  }
 
   _renderDay = (dayEvents: DayEvents) => {
     const { day, events } = dayEvents;
+    const dayKey = day.format('YYYY-MM-DD');
     return (
       <div className="agenda-day" key={day.valueOf()}>
         {this._renderDayHeader(day)}
         <div className="agenda-day-events">
           {events.length > 0 ? (
-            events.map(this._renderEvent)
+            events.map((event) => this._renderEvent(event, dayKey))
           ) : (
             <div className="agenda-no-events">{localized('No events')}</div>
           )}
