@@ -9,7 +9,6 @@ const MAX_THUMBNAIL_SETUP_RETRIES = 5;
  * - Jump Lists (right-click taskbar menu with quick actions)
  * - Overlay Icons (unread mail indicator on taskbar icon)
  * - Thumbnail Toolbar Buttons (compose/inbox buttons on taskbar preview)
- * - Progress Bar (sync progress on taskbar icon)
  * - Flash Frame (flash taskbar on new mail)
  */
 class WindowsTaskbarManager {
@@ -82,11 +81,6 @@ class WindowsTaskbarManager {
     // Overlay icon: updated when badge/unread count changes
     ipcMain.on('set-overlay-icon', (_event, unreadCount: number) => {
       this._updateOverlayIcon(unreadCount);
-    });
-
-    // Progress bar: updated when sync progress changes
-    ipcMain.on('set-taskbar-progress', (_event, progress: number) => {
-      this._updateProgressBar(progress);
     });
 
     // Flash frame: triggered when new mail arrives
@@ -170,35 +164,6 @@ class WindowsTaskbarManager {
       );
     } catch (e) {
       console.warn('Failed to set overlay icon:', e);
-    }
-  }
-
-  /**
-   * Update the taskbar progress bar based on sync progress.
-   * @param progress - A number between 0 and 1, or -1 to clear
-   */
-  private _updateProgressBar(progress: number) {
-    const mainWin = this._application.getMainWindow();
-    if (!mainWin) return;
-
-    try {
-      if (progress < 0) {
-        mainWin.setProgressBar(-1); // Clear progress bar
-      } else if (progress >= 1) {
-        // Briefly show complete, then clear
-        mainWin.setProgressBar(1, { mode: 'normal' });
-        setTimeout(() => {
-          try {
-            mainWin.setProgressBar(-1);
-          } catch (_) {
-            // Window may have been destroyed
-          }
-        }, 2000);
-      } else {
-        mainWin.setProgressBar(progress, { mode: 'normal' });
-      }
-    } catch (e) {
-      console.warn('Failed to set taskbar progress:', e);
     }
   }
 
