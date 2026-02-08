@@ -939,12 +939,23 @@ body.platform-win32 {
       padding: 0 8px 12px;
     }
 
-    // Let the time column wrap instead of using a fixed 130px width
-    .agenda-event-time {
-      width: auto;
-      min-width: 0;
-      flex-shrink: 1;
-      white-space: nowrap;
+    // Stack event content vertically: color-bar on the left, then
+    // time / title / location stacked top-to-bottom instead of the
+    // two-column (time | details) layout used in the full calendar.
+    .agenda-event {
+      flex-wrap: wrap;
+
+      .agenda-event-time {
+        width: auto;
+        flex-basis: auto;
+        flex-shrink: 1;
+      }
+
+      .agenda-event-details {
+        flex-basis: 100%;
+        // Indent to align with the time text (past the color-bar + its margin)
+        padding-left: 16px;
+      }
     }
   }
 }
