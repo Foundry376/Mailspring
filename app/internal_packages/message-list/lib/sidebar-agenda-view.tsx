@@ -100,7 +100,7 @@ export class SidebarAgendaView extends React.Component<{}, SidebarAgendaViewStat
 
   render() {
     return (
-      <div className="sidebar-agenda-view">
+      <div className="sidebar-agenda-view mailspring-calendar">
         <AgendaView
           dataSource={this._dataSource}
           disabledCalendars={this.state.disabledCalendars}
