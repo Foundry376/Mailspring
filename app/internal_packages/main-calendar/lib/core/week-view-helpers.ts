@@ -102,7 +102,11 @@ export function findAvailableOrder(ongoing: EventOccurrence[], overlapById: Over
 }
 
 export function maxConcurrentEvents(eventOverlap: OverlapByEventId) {
-  return Math.max(-1, ...Object.values(eventOverlap).map(o => o.concurrentEvents));
+  let max = -1;
+  for (const o of Object.values(eventOverlap)) {
+    if (o.concurrentEvents > max) max = o.concurrentEvents;
+  }
+  return max;
 }
 
 export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
