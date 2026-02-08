@@ -316,7 +316,7 @@ jobs:
             # Note: zypper exit code 107 (ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED) means
             # the package installed but an RPM scriptlet failed. This is expected in
             # Docker containers where PAM/systemd scriptlets cannot run properly.
-            zypper --non-interactive install xorg-x11-server-Xvfb xvfb-run which alsa-lib; ZYPPER_EXIT=\$?
+            zypper --non-interactive install xorg-x11-server-Xvfb xvfb-run which alsa-lib gawk; ZYPPER_EXIT=\$?
             if [ \$ZYPPER_EXIT -ne 0 ] && [ \$ZYPPER_EXIT -ne 107 ]; then
               echo \"zypper install dependencies failed with exit code \$ZYPPER_EXIT\"
               exit 1
