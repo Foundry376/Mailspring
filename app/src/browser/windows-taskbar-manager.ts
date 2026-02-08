@@ -13,7 +13,7 @@ const MAX_THUMBNAIL_SETUP_RETRIES = 5;
  */
 class WindowsTaskbarManager {
   private _application: Application;
-  private _overlayIcon: NativeImage | null = null;
+  private _flashTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(application: Application) {
     this._application = application;
@@ -82,11 +82,6 @@ class WindowsTaskbarManager {
     ipcMain.on('set-overlay-icon', (_event, unreadCount: number) => {
       this._updateOverlayIcon(unreadCount);
     });
-
-    // Flash frame: triggered when new mail arrives
-    ipcMain.on('flash-taskbar', () => {
-      this._flashFrame();
-    });
   }
 
   /**
@@ -118,7 +113,8 @@ class WindowsTaskbarManager {
             icon: composeIcon,
             click: () => {
               this._application.emit('application:new-message');
-              mainWin.show();
+              const win = this._application.getMainWindow();
+              if (win) win.show();
             },
           },
           {
@@ -151,17 +147,16 @@ class WindowsTaskbarManager {
     try {
       if (unreadCount <= 0) {
         mainWin.setOverlayIcon(null, '');
-        this._overlayIcon = null;
         return;
       }
 
       const text = unreadCount > 99 ? '99+' : String(unreadCount);
       const icon = this._createBadgeIcon(text);
-      this._overlayIcon = icon;
-      mainWin.setOverlayIcon(
-        icon,
-        `${unreadCount} ${unreadCount === 1 ? 'unread message' : 'unread messages'}`
-      );
+      const description =
+        unreadCount === 1
+          ? localized('1 unread message')
+          : localized('%1$@ unread messages').replace('%1$@', String(unreadCount));
+      mainWin.setOverlayIcon(icon, description);
     } catch (e) {
       console.warn('Failed to set overlay icon:', e);
     }
@@ -183,8 +178,10 @@ class WindowsTaskbarManager {
       // Only flash if the window is not currently focused
       if (!mainWin.isFocused()) {
         mainWin.flashFrame(true);
-        // Stop flashing after a few seconds to avoid being annoying
-        setTimeout(() => {
+        // Clear any previous timer so rapid notifications don't cut each other short
+        if (this._flashTimer) clearTimeout(this._flashTimer);
+        this._flashTimer = setTimeout(() => {
+          this._flashTimer = null;
           try {
             mainWin.flashFrame(false);
           } catch (_) {

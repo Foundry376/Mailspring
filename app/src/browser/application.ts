@@ -52,7 +52,7 @@ export default class Application extends EventEmitter {
   windowManager: WindowManager;
   autoUpdateManager: AutoUpdateManager;
   systemTrayManager: SystemTrayManager;
-  windowsTaskbarManager: WindowsTaskbarManager;
+  windowsTaskbarManager?: WindowsTaskbarManager;
 
   _sourceWindows: { [taskId: string]: BrowserWindow } = {};
   _resettingAndRelaunching: boolean;
