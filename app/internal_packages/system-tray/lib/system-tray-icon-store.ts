@@ -5,7 +5,7 @@ import { BadgeStore } from 'mailspring-exports';
 // Must be absolute real system path
 // https://github.com/atom/electron/issues/1299
 const { platform } = process;
-const { nativeTheme } = require("@electron/remote");
+const { nativeTheme } = require('@electron/remote');
 
 /*
 Current / Intended Behavior:
@@ -23,7 +23,6 @@ Current / Intended Behavior:
   it will switch to blue.)
 */
 class SystemTrayIconStore {
-
   _windowBackgrounded = false;
   _unsubscribers: (() => void)[];
 
@@ -48,11 +47,11 @@ class SystemTrayIconStore {
     // If the theme changes from bright to dark mode or vice versa, we need to update the tray icon
     nativeTheme.on('updated', () => {
       this._updateIcon();
-    })
+    });
   }
 
   deactivate() {
-    this._unsubscribers.forEach(unsub => unsub());
+    this._unsubscribers.forEach((unsub) => unsub());
   }
 
   _onWindowBackgrounded = () => {
@@ -72,18 +71,18 @@ class SystemTrayIconStore {
   // Linux ships with the icons used for a dark tray only
   _dark = () => {
     if (nativeTheme.shouldUseDarkColors && process.platform === 'win32') {
-      return "-dark";
+      return '-dark';
     }
-    return "";
-  }
+    return '';
+  };
 
   inboxZeroIcon = () => {
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Zero${this._dark()}.png`);
-  }
+  };
 
   inboxFullIcon = () => {
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Full${this._dark()}.png`);
-  }
+  };
 
   inboxFullNewIcon = () => {
     return path.join(
@@ -93,7 +92,7 @@ class SystemTrayIconStore {
       platform,
       `MenuItem-Inbox-Full-NewItems${this._dark()}.png`
     );
-  }
+  };
 
   inboxFullUnreadIcon = () => {
     return path.join(
@@ -103,7 +102,7 @@ class SystemTrayIconStore {
       platform,
       `MenuItem-Inbox-Full-UnreadItems${this._dark()}.png`
     );
-  }
+  };
 
   _updateIcon = () => {
     const unread = BadgeStore.unread();
