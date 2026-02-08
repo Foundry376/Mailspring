@@ -116,7 +116,11 @@ export function wordSearchRegExp(str = '') {
 // Takes an optional customizer. The customizer is passed the key and the
 // new cloned value for that key. The customizer is expected to either
 // modify the value and return it or simply be the identity function.
-export function deepClone<T>(object: T, customizer?, stackSeen = [], stackRefs = []): T {
+export function deepClone<T>(
+  object: T,
+  customizer?,
+  _circularRefs: Map<any, any> = new Map()
+): T {
   let newObject;
   if (!_.isObject(object)) {
     return object;
@@ -136,18 +140,16 @@ export function deepClone<T>(object: T, customizer?, stackSeen = [], stackRefs =
     newObject = Object.create(Object.getPrototypeOf(object));
   }
 
-  // Circular reference check
-  const seenIndex = stackSeen.indexOf(object);
-  if (seenIndex >= 0) {
-    return stackRefs[seenIndex];
+  // Circular reference check using Map for O(1) lookup instead of O(n) indexOf
+  if (_circularRefs.has(object)) {
+    return _circularRefs.get(object);
   }
-  stackSeen.push(object);
-  stackRefs.push(newObject);
+  _circularRefs.set(object, newObject);
 
   // It's important to use getOwnPropertyNames instead of Object.keys to
   // get the non-enumerable items as well.
   for (const key of Object.getOwnPropertyNames(object)) {
-    const newVal = deepClone(object[key], customizer, stackSeen, stackRefs);
+    const newVal = deepClone(object[key], customizer, _circularRefs);
     if (_.isFunction(customizer)) {
       newObject[key] = customizer(key, newVal);
     } else {
@@ -825,14 +827,5 @@ export function likelyNonHumanEmail(email) {
 // a bounds. Expects both objects to have `start` and `end` keys.
 // Compares any values with <= and >=.
 export function overlapsBounds(bounds, test) {
-  // Fully enclosed
-  return (
-    (test.start <= bounds.end && test.end >= bounds.start) ||
-    // Starts in bounds. Ends out of bounds
-    (test.start <= bounds.end && test.start >= bounds.start) ||
-    // Ends in bounds. Starts out of bounds
-    (test.end >= bounds.start && test.end <= bounds.end) ||
-    // Spans entire boundary
-    (test.end >= bounds.end && test.start <= bounds.start)
-  );
+  return test.start <= bounds.end && test.end >= bounds.start;
 }

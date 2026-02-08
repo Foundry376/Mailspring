@@ -42,14 +42,17 @@ export class ChangeFolderTask extends ChangeMailTask {
   ) {
     if (!data.previousFolder) {
       const folders = [];
+      const seenFolderIds = new Set<string>();
       for (const t of data.threads || []) {
         const f = t.folders.find(f => f.id !== data.folder.id) || t.folders[0];
-        if (!folders.find(other => other.id === f.id)) {
+        if (!seenFolderIds.has(f.id)) {
+          seenFolderIds.add(f.id);
           folders.push(f);
         }
       }
       for (const m of data.messages || []) {
-        if (!folders.find(other => other.id === m.folder.id)) {
+        if (!seenFolderIds.has(m.folder.id)) {
+          seenFolderIds.add(m.folder.id);
           folders.push(m.folder);
         }
       }

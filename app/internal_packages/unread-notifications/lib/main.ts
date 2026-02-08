@@ -42,16 +42,17 @@ export class Notifier {
     }
 
     if (objectClass === Message.name) {
-      const newIds = objectsRawJSON
-        .filter((json) => json.headersSyncComplete)
-        .map((json) => json.id);
-      if (!newIds.length) return;
+      const newIds = new Set<string>();
+      for (const json of objectsRawJSON) {
+        if (json.headersSyncComplete) newIds.add(json.id);
+      }
+      if (!newIds.size) return;
       this._onMessagesChanged(objects, newIds);
     }
   }
 
   // async for testing
-  async _onMessagesChanged(msgs, newIds: string[]) {
+  async _onMessagesChanged(msgs, newIds: Set<string>) {
     const notifworthy = {};
 
     for (const msg of msgs) {
@@ -60,7 +61,7 @@ export class Notifier {
       // ensure the message was just created (eg: this is not a modification).
       // The sync engine attaches a JSON key to let us know that this is the first
       // message emitted about this Message. (Hooray hacks around reactive patterns)
-      if (!newIds.includes(msg.id)) continue;
+      if (!newIds.has(msg.id)) continue;
       // ensure the message was received after the app launched (eg: not syncing an old email)
       if (!msg.date || msg.date.valueOf() < this.activationTime) continue;
       // ensure the message is not a loopback

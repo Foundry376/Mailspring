@@ -40,8 +40,10 @@ class ActivityListItemContainer extends React.Component<{ group: any }, { collap
       text.recipient = lastAction.recipient.displayName();
     } else if (this.props.group.length > 1 && lastAction.recipient) {
       const people = [];
+      const seen = new Set();
       for (const action of this.props.group) {
-        if (!people.includes(action.recipient)) {
+        if (!seen.has(action.recipient)) {
+          seen.add(action.recipient);
           people.push(action.recipient);
         }
       }
