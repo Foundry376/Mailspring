@@ -10,12 +10,12 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Recommends: lsb-core-noarch
 Requires: (libtidy.so.5 or libtidy.so.58)
 Recommends: (libappindicator-gtk3 or libayatana-appindicator-gtk3)
-Requires: libasound.so.2, libXss.so.1, libsecret-1.so.0, ca-certificates, libcurl.so.4, libssl.so.3, libcrypto.so.3, libsasl2.so.3, libgbm.so.1, libgtk-3.so.0, at-spi2-core, xdg-utils, libnotify.so.4
+Requires: libasound.so.2, libXss.so.1, libsecret-1.so.0, ca-certificates, libcurl.so.4, libssl.so.3, libcrypto.so.3, libsasl2.so.3, libgbm.so.1, libgtk-3.so.0, libnss3.so, libnspr4.so, at-spi2-core, xdg-utils, libnotify.so.4
 %else
 Recommends: lsb-core-noarch
 Requires: (libtidy.so.5()(64bit) or libtidy.so.58()(64bit))
 Recommends: (libappindicator-gtk3 or libayatana-appindicator-gtk3)
-Requires: libasound.so.2()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bit), ca-certificates, libcurl.so.4()(64bit), libssl.so.3()(64bit), libcrypto.so.3()(64bit), libsasl2.so.3()(64bit), libgbm.so.1()(64bit), libgtk-3.so.0()(64bit), at-spi2-core, xdg-utils, libnotify.so.4()(64bit)
+Requires: libasound.so.2()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bit), ca-certificates, libcurl.so.4()(64bit), libssl.so.3()(64bit), libcrypto.so.3()(64bit), libsasl2.so.3()(64bit), libgbm.so.1()(64bit), libgtk-3.so.0()(64bit), libnss3.so()(64bit), libnspr4.so()(64bit), at-spi2-core, xdg-utils, libnotify.so.4()(64bit)
 %endif
 
 %description
