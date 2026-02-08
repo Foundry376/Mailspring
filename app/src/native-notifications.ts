@@ -1,6 +1,7 @@
 /* eslint global-require: 0 */
 import { ipcRenderer } from 'electron';
 import { convertToPNG, getIcon, Context } from './linux-theme-utils';
+import { getDoNotDisturb as getLinuxDoNotDisturb } from './linux-dnd-utils';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
@@ -105,6 +106,14 @@ class NativeNotifications {
         return await require('macos-notification-state').getDoNotDisturb();
       } catch (e) {
         console.warn('Failed to check Do Not Disturb status:', e);
+        return false;
+      }
+    }
+    if (platform === 'linux') {
+      try {
+        return await getLinuxDoNotDisturb();
+      } catch (e) {
+        console.warn('Failed to check Linux Do Not Disturb status:', e);
         return false;
       }
     }
