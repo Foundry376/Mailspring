@@ -941,21 +941,30 @@ body.platform-win32 {
     }
 
     // Stack event content vertically: color-bar on the left, then
-    // time / title / location stacked top-to-bottom instead of the
-    // two-column (time | details) layout used in the full calendar.
+    // time above title/location on the right, with no gap.
     .agenda-event {
-      flex-wrap: wrap;
-
+      // Keep the default row flex — color-bar and content side by side.
+      // The content after the bar becomes a vertical column.
       .agenda-event-time {
         width: auto;
-        flex-basis: auto;
-        flex-shrink: 1;
+        flex: none;
       }
 
       .agenda-event-details {
         flex-basis: 100%;
-        // Indent to align with the time text (past the color-bar + its margin)
-        padding-left: 16px;
+      }
+
+      // Wrap time + details in a column so they stack tightly
+      // after the color-bar. We achieve this by making the event
+      // itself a CSS grid: [bar] [stacked-content].
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
+      column-gap: 0;
+
+      .agenda-event-color-bar {
+        grid-row: 1 / -1;
+        margin-right: 8px;
       }
     }
   }
