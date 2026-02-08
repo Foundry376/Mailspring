@@ -3,6 +3,7 @@ import { QuerySubscription } from './query-subscription';
 import { DatabaseChangeRecord } from '../stores/database-change-record';
 import ModelQuery from './query';
 import { Model } from './model';
+import * as Actions from '../actions';
 let DatabaseStore = null;
 
 /*
@@ -105,6 +106,8 @@ class QuerySubscriptionPool {
   _setup() {
     DatabaseStore = DatabaseStore || require('../stores/database-store').default;
     DatabaseStore.listen(this._onChange);
+    Actions.queueTask.listen(this._onQueueTask);
+    Actions.queueTasks.listen(this._onQueueTasks);
   }
 
   _onChange = (record: DatabaseChangeRecord<Model>) => {
@@ -113,6 +116,56 @@ class QuerySubscriptionPool {
       subscription.applyChangeRecord(record);
     }
   };
+
+  _onQueueTask = (task) => {
+    const threadIds = this._threadIdsForRemovalTask(task);
+    if (threadIds && threadIds.length > 0) {
+      this._optimisticallyRemoveThreads(threadIds);
+    }
+  };
+
+  _onQueueTasks = (tasks) => {
+    if (!tasks || !tasks.length) return;
+    const allIds: string[] = [];
+    for (const task of tasks) {
+      const ids = this._threadIdsForRemovalTask(task);
+      if (ids) {
+        allIds.push(...ids);
+      }
+    }
+    if (allIds.length > 0) {
+      this._optimisticallyRemoveThreads(allIds);
+    }
+  };
+
+  _threadIdsForRemovalTask(task): string[] | null {
+    const ChangeFolderTask = require('../tasks/change-folder-task').ChangeFolderTask;
+    const ChangeLabelsTask = require('../tasks/change-labels-task').ChangeLabelsTask;
+
+    if (task instanceof ChangeFolderTask && task.threadIds && task.threadIds.length > 0) {
+      return task.threadIds;
+    }
+    if (
+      task instanceof ChangeLabelsTask &&
+      task.threadIds &&
+      task.threadIds.length > 0 &&
+      task.labelsToRemove &&
+      task.labelsToRemove.length > 0 &&
+      (!task.labelsToAdd || task.labelsToAdd.length === 0)
+    ) {
+      return task.threadIds;
+    }
+    return null;
+  }
+
+  _optimisticallyRemoveThreads(threadIds: string[]) {
+    for (const key of Object.keys(this._subscriptions)) {
+      const subscription = this._subscriptions[key];
+      if (subscription._query && subscription._query.objectClass() === 'Thread') {
+        subscription.optimisticallyRemoveItemsById(threadIds);
+      }
+    }
+  }
 }
 
 const pool = new QuerySubscriptionPool();

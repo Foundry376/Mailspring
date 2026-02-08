@@ -35,7 +35,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       describe('when initialModels are provided', () =>
         it('should apply the models and trigger', () => {
           const query = DatabaseStore.findAll<Thread>(Thread);
-          const threads = [1, 2, 3, 4, 5].map(i => new Thread({ id: i }));
+          const threads = [1, 2, 3, 4, 5].map((i) => new Thread({ id: i }));
           const subscription = new QuerySubscription(query, { initialModels: threads });
           expect(subscription._set).not.toBe(null);
         }));
@@ -222,8 +222,8 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
     jasmine.unspy(Utils, 'generateTempId');
 
     describe('scenarios', () =>
-      scenarios.forEach(scenario => {
-        scenario.tests.forEach(test => {
+      scenarios.forEach((scenario) => {
+        scenario.tests.forEach((test) => {
           it(`with ${scenario.name}, should correctly apply ${test.name}`, () => {
             const subscription = new QuerySubscription(scenario.query);
             subscription._set = new MutableQueryResultSet();
@@ -346,6 +346,45 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
           ]);
         });
       });
+    });
+  });
+
+  describe('optimisticallyRemoveItemsById', () => {
+    it('should remove items from the set and trigger callbacks', () => {
+      const query = DatabaseStore.findAll<Thread>(Thread);
+      const threads = [1, 2, 3, 4, 5].map((i) => new Thread({ id: `${i}` }));
+      const subscription = new QuerySubscription(query, { initialModels: threads });
+
+      spyOn(subscription, '_createResultAndTrigger');
+      subscription.optimisticallyRemoveItemsById(['2', '4']);
+
+      expect(subscription._set.offsetOfId('2')).toBe(-1);
+      expect(subscription._set.offsetOfId('4')).toBe(-1);
+      expect(subscription._set.ids().length).toBe(3);
+      expect(subscription._createResultAndTrigger).toHaveBeenCalled();
+    });
+
+    it('should not trigger if no items were in the set', () => {
+      const query = DatabaseStore.findAll<Thread>(Thread);
+      const threads = [1, 2, 3].map((i) => new Thread({ id: `${i}` }));
+      const subscription = new QuerySubscription(query, { initialModels: threads });
+
+      spyOn(subscription, '_createResultAndTrigger');
+      subscription.optimisticallyRemoveItemsById(['99', '100']);
+
+      expect(subscription._set.ids().length).toBe(3);
+      expect(subscription._createResultAndTrigger).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if _set is null', () => {
+      spyOn(QuerySubscription.prototype, 'update').andReturn();
+      const query = DatabaseStore.findAll<Thread>(Thread);
+      const subscription = new QuerySubscription(query);
+      subscription._set = null;
+
+      expect(() => {
+        subscription.optimisticallyRemoveItemsById(['1', '2']);
+      }).not.toThrow();
     });
   });
 });
