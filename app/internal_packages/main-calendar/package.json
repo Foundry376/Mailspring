@@ -11,6 +11,7 @@
     "mailspring": "*"
   },
   "windowTypes": {
+    "default": true,
     "calendar": true
   }
 }
