@@ -107,12 +107,6 @@ export default class WindowLauncher {
       }, 0);
     }
 
-    console.log(
-      `[WindowLauncher] newWindow: windowType=${opts.windowType}, ` +
-        `hidden=${opts.hidden}, initializeInBackground=${opts.initializeInBackground}, ` +
-        `isWayland=${isWaylandSession()}, coldWindow=${this._mustUseColdWindow(opts)}`
-    );
-
     if (isWaylandSession()) {
       // On Linux/Wayland, show all windows immediately regardless of the hidden flag.
       // The hidden flag delays showing until the renderer calls displayWindow() after
