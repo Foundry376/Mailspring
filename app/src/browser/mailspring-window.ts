@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import url from 'url';
 import { EventEmitter } from 'events';
+import { isWaylandSession } from './is-wayland';
 
 let WindowIconPath = null;
 let idNum = 0;
@@ -94,8 +95,11 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     type GetConstructorArgs<T> = T extends new (options: infer U) => any ? U : never;
+    // [DEBUG] On Wayland, create with show:true to test if the issue is
+    // show() failing on a previously-hidden window vs the window not rendering at all.
+    const showOnCreate = isWaylandSession();
     const browserWindowOptions: GetConstructorArgs<typeof BrowserWindow> = {
-      show: false,
+      show: showOnCreate,
       title: title || 'Mailspring',
       frame,
       width,
@@ -167,7 +171,10 @@ export default class MailspringWindow extends EventEmitter {
 
     this.browserWindow.loadSettings = loadSettings;
 
+    console.log(`[Window:${this.windowKey}] Creating BrowserWindow (type=${this.windowType})`);
+
     (this.browserWindow.once as any)('window:loaded', () => {
+      console.log(`[Window:${this.windowKey}] Received 'window:loaded' from renderer`);
       this.loaded = true;
       if (this.browserWindow.loadSettingsChangedSinceGetURL) {
         this.browserWindow.webContents.send(
@@ -178,7 +185,19 @@ export default class MailspringWindow extends EventEmitter {
       this.emit('window:loaded');
     });
 
-    this.browserWindow.loadURL(this.getURL(loadSettings));
+    this.browserWindow.webContents.on('did-finish-load', () => {
+      console.log(`[Window:${this.windowKey}] did-finish-load (HTML loaded, renderer starting)`);
+    });
+
+    this.browserWindow.webContents.on('render-process-gone', (event, details) => {
+      console.error(
+        `[Window:${this.windowKey}] render-process-gone: reason=${details.reason}, exitCode=${details.exitCode}`
+      );
+    });
+
+    const loadURL = this.getURL(loadSettings);
+    console.log(`[Window:${this.windowKey}] Loading URL...`);
+    this.browserWindow.loadURL(loadURL);
     if (this.isSpec) {
       this.browserWindow.focusOnWebView();
     }
@@ -400,11 +419,23 @@ export default class MailspringWindow extends EventEmitter {
   }
 
   show() {
+    console.log(
+      `[Window:${
+        this.windowKey
+      }] show() called - isVisible before: ${this.browserWindow.isVisible()}`
+    );
     this.browserWindow.show();
+    console.log(
+      `[Window:${this.windowKey}] show() done - isVisible after: ${this.browserWindow.isVisible()}`
+    );
   }
 
   showWhenLoaded() {
+    console.log(`[Window:${this.windowKey}] showWhenLoaded() called - loaded=${this.loaded}`);
     this.waitForLoad(() => {
+      console.log(
+        `[Window:${this.windowKey}] showWhenLoaded callback firing - calling show()+focus()`
+      );
       this.show();
       this.focus();
     });
