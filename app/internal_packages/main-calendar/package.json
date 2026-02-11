@@ -10,6 +10,7 @@
   "engines": {
     "mailspring": "*"
   },
+  "syncInit": true,
   "windowTypes": {
     "calendar": true
   }
