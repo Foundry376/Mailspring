@@ -35,7 +35,6 @@ export default class WindowLauncher {
   }) {
     this._defaultWindowOpts = {
       frame: process.platform !== 'darwin',
-      titleBarStyle: process.platform !== 'darwin' ? 'default' : 'hidden',
       toolbar: process.platform !== 'linux',
       hidden: false,
       devMode,
@@ -63,8 +62,7 @@ export default class WindowLauncher {
       }
       if (style === 'hamburger') {
         opts.toolbar = true;
-        opts.frame = true;
-        opts.titleBarStyle = 'hidden';
+        opts.frame = false;
       }
     }
     return opts;
