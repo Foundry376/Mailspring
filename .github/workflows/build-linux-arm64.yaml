@@ -126,7 +126,7 @@ jobs:
 
             dpkg -i *.deb || true
             apt-get install -f -y
-            apt-get install -y xvfb
+            apt-get install -y xvfb file
 
             dpkg -l | grep mailspring || (echo '✗ Mailspring package not installed' && exit 1)
             which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
@@ -135,7 +135,7 @@ jobs:
             dpkg -L mailspring | head -20
 
             echo 'Verifying ARM64 binary...'
-            file /usr/share/mailspring/mailspring | grep -i aarch64 || file /usr/share/mailspring/mailspring | grep -i arm
+            file /usr/share/mailspring/mailspring | grep -iE 'aarch64|arm'
             echo '✓ ARM64 binary confirmed'
 
             echo 'Running mailspring --version...'
