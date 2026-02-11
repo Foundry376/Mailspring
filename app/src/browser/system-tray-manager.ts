@@ -1,4 +1,5 @@
-import { Tray, Menu, nativeImage } from 'electron';
+import path from 'path';
+import { Tray, Menu, nativeImage, nativeTheme } from 'electron';
 import { localized } from '../intl';
 import Application from './application';
 
@@ -67,12 +68,25 @@ class SystemTrayManager {
     });
   }
 
+  _defaultIconPath() {
+    if (this._platform !== 'linux') return null;
+    const dark = nativeTheme.shouldUseDarkColors ? '-dark' : '';
+    return path.join(
+      this._application.resourcePath,
+      'internal_packages',
+      'system-tray',
+      'assets',
+      'linux',
+      `MenuItem-Inbox-Full${dark}.png`
+    );
+  }
+
   initTray() {
     const enabled = this._application.config.get('core.workspace.systemTray') !== false;
     const created = this._tray !== null;
 
     if (enabled && !created) {
-      this._tray = new Tray(_getIcon(this._iconPath));
+      this._tray = new Tray(_getIcon(this._iconPath || this._defaultIconPath()));
       this._tray.setToolTip(_getTooltip(this._unreadString));
       this._tray.addListener('click', this._onClick);
       this._tray.setContextMenu(

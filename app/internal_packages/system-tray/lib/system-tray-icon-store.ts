@@ -27,9 +27,7 @@ class SystemTrayIconStore {
   _unsubscribers: (() => void)[];
 
   activate() {
-    setTimeout(() => {
-      this._updateIcon();
-    }, 2000);
+    this._updateIcon();
     this._unsubscribers = [];
     this._unsubscribers.push(BadgeStore.listen(this._updateIcon));
 
@@ -51,7 +49,7 @@ class SystemTrayIconStore {
   }
 
   deactivate() {
-    this._unsubscribers.forEach((unsub) => unsub());
+    this._unsubscribers.forEach(unsub => unsub());
   }
 
   _onWindowBackgrounded = () => {
