@@ -20,7 +20,7 @@ export default class WindowLauncher {
 
   public hotWindow?: MailspringWindow;
 
-  private defaultWindowOpts: MailspringWindowSettings;
+  private _defaultWindowOpts: MailspringWindowSettings;
   private config: import('../config').default;
   private onCreatedHotWindow: (win: MailspringWindow) => void;
 
@@ -33,8 +33,8 @@ export default class WindowLauncher {
     onCreatedHotWindow,
     config,
   }) {
-    this.defaultWindowOpts = {
-      frame: process.platform !== 'darwin',
+    this._defaultWindowOpts = {
+      titleBarStyle: process.platform !== 'darwin' ? 'default' : 'hidden',
       toolbar: process.platform !== 'linux',
       hidden: false,
       devMode,
@@ -51,8 +51,8 @@ export default class WindowLauncher {
     this.createHotWindow();
   }
 
-  newWindow(options) {
-    const opts = Object.assign({}, this.defaultWindowOpts, options);
+  createDefaultWindowOpts() {
+    const opts = Object.assign({}, this._defaultWindowOpts);
 
     // apply optional Linux properties
     if (process.platform === 'linux') {
@@ -60,11 +60,16 @@ export default class WindowLauncher {
       if (style === 'autohide') {
         opts.autoHideMenuBar = true;
       }
-      if (style === 'hamburger' && opts.frame) {
+      if (style === 'hamburger') {
         opts.toolbar = true;
-        opts.frame = false;
+        opts.titleBarStyle = 'hidden';
       }
     }
+    return opts;
+  }
+
+  newWindow(options) {
+    const opts = Object.assign(this.createDefaultWindowOpts(), options);
 
     let win;
 
@@ -152,17 +157,17 @@ export default class WindowLauncher {
   // a window has been setup. If we detect this case we have to bootup a
   // plain MailspringWindow instead of using a hot window.
   _mustUseColdWindow(opts) {
-    const { bootstrapScript, frame } = this.defaultWindowOpts;
+    const { bootstrapScript, titleBarStyle } = this.createDefaultWindowOpts();
 
     const usesOtherBootstrap = opts.bootstrapScript !== bootstrapScript;
-    const usesOtherFrame = !!opts.frame !== frame;
+    const usesOtherFrame = opts.titleBarStyle !== titleBarStyle;
     const requestsColdStart = opts.coldStartOnly;
 
     return usesOtherBootstrap || usesOtherFrame || requestsColdStart;
   }
 
   _hotWindowOpts() {
-    const hotWindowOpts = Object.assign({}, this.defaultWindowOpts);
+    const hotWindowOpts = this.createDefaultWindowOpts();
     hotWindowOpts.hidden = DEBUG_SHOW_HOT_WINDOW;
     return hotWindowOpts;
   }

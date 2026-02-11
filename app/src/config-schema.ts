@@ -55,6 +55,11 @@ export default {
             default: false,
             title: localized('Use 24-hour clock'),
           },
+          menubarStyle: {
+            type: 'string',
+            default: 'hamburger',
+            enum: ['default', 'autohide', 'hamburger'],
+          },
           interfaceZoom: {
             title: localized('Override standard interface scaling'),
             type: 'number',

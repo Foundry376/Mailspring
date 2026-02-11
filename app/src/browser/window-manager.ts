@@ -266,8 +266,8 @@ export default class WindowManager {
       windowKey: WindowManager.ONBOARDING_WINDOW,
       windowType: WindowManager.ONBOARDING_WINDOW,
       title: localized('Set up Account'),
+      titleBarStyle: 'hidden',
       hidden: true, // Displayed by PageRouter::_initializeWindowSize
-      frame: false, // Always false on Mac, explicitly set for Win & Linux
       toolbar: false,
       resizable: false,
       width: 900,
@@ -302,7 +302,6 @@ export default class WindowManager {
       windowKey: WindowManager.SPEC_WINDOW,
       windowType: WindowManager.SPEC_WINDOW,
       title: 'Specs',
-      frame: true,
       hidden: true,
       isSpec: true,
       devMode: true,
