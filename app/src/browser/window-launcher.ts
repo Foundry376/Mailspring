@@ -1,3 +1,4 @@
+import { isWaylandSession } from './is-wayland';
 import MailspringWindow from './mailspring-window';
 import { MailspringWindowSettings } from './mailspring-window';
 
@@ -66,7 +67,9 @@ export default class WindowLauncher {
     }
 
     let win;
-    if (this._mustUseColdWindow(opts)) {
+
+    // On Wayland, always use cold windows - see createHotWindow comment above
+    if (this._mustUseColdWindow(opts) || isWaylandSession()) {
       win = new MailspringWindow(opts);
     } else {
       // Check if the hot window has been deleted. This may happen when we are
@@ -104,7 +107,13 @@ export default class WindowLauncher {
       }, 0);
     }
 
-    if (!opts.hidden && !opts.initializeInBackground) {
+    if (isWaylandSession()) {
+      // On Linux/Wayland, show all windows immediately regardless of the hidden flag.
+      // The hidden flag delays showing until the renderer calls displayWindow() after
+      // React renders, but by then the Wayland activation token from the user's click
+      // is lost and show() fails silently. On other platforms, respect the hidden flag.
+      win.showWhenLoaded();
+    } else if (!opts.initializeInBackground && !opts.hidden) {
       // NOTE: In the case of a cold window, this will show it once
       // loaded. If it's a hotWindow, since hotWindows have a
       // `hidden:true` flag, nothing will show. When `setLoadSettings`
@@ -116,6 +125,11 @@ export default class WindowLauncher {
   }
 
   createHotWindow() {
+    // On Linux/Wayland, don't create hot windows. BrowserWindow.show() fails silently
+    // for hidden windows when the Wayland activation context is missing, so we use cold
+    // windows instead and show them immediately when loaded.
+    if (isWaylandSession()) return;
+
     this.hotWindow = new MailspringWindow(this._hotWindowOpts());
     this.onCreatedHotWindow(this.hotWindow);
     if (DEBUG_SHOW_HOT_WINDOW) {

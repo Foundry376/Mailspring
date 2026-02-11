@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import url from 'url';
 import { EventEmitter } from 'events';
+import { isWaylandSession } from './is-wayland';
 
 let WindowIconPath = null;
 let idNum = 0;
@@ -177,6 +178,21 @@ export default class MailspringWindow extends EventEmitter {
       }
       this.emit('window:loaded');
     });
+
+    // On Wayland, Electron's ready-to-show event is broken (DidMeaningfulLayout never
+    // fires - see https://github.com/electron/electron/issues/48859). Calling show()
+    // much later (at window:loaded time) also fails silently because the Wayland surface
+    // was never committed. However, show() works reliably at did-finish-load time, when
+    // the HTML is loaded, themes/styles are applied, and React root is mounted - the UI
+    // is nearly complete. This is the same workaround used by FreeTube and Signal Desktop.
+    if (isWaylandSession()) {
+      this.browserWindow.webContents.once('did-finish-load', () => {
+        if (!this.browserWindow.isDestroyed() && !this.browserWindow.isVisible()) {
+          this.browserWindow.show();
+          this.browserWindow.focus();
+        }
+      });
+    }
 
     this.browserWindow.loadURL(this.getURL(loadSettings));
     if (this.isSpec) {
