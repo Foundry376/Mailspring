@@ -52,6 +52,7 @@ function getMailsyncURL(callback) {
     'win32-x64': 'win-ia32', // At this time, Mailsync is still 32-bit
     'win32-ia32': 'win-ia32',
     'linux-x64': 'linux',
+    'linux-arm64': 'linux-arm64',
     'linux-ia32': null,
   }[distKey];
 

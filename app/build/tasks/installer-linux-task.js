@@ -12,6 +12,7 @@ module.exports = grunt => {
   const arch = {
     ia32: 'i386',
     x64: 'amd64',
+    arm64: 'arm64',
   }[process.arch];
 
   // a few helpers
