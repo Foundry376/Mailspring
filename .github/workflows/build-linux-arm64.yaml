@@ -58,7 +58,7 @@ jobs:
         run: |
           aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short=8 HEAD)/linux-arm64" \
             --acl public-read \
-            --exclude "*" --include *.deb --include *.rpm
+            --exclude "*" --include "*.deb" --include "*.rpm"
 
       - name: Upload DEB artifact for testing
         uses: actions/upload-artifact@v4
