@@ -31,7 +31,7 @@ export default class WindowManager {
     initializeInBackground,
     config,
   }) {
-    if (isWaylandSession()) {
+    if (isWaylandSession() && initializeInBackground) {
       console.warn(
         `The --background flag has no effect under Wayland, where an activation context` +
           ` is required and windows must be shown immediately.`
