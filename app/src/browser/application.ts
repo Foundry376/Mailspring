@@ -687,9 +687,20 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('account-setup-successful', () => {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
       if (onboarding) {
-        onboarding.close();
+        if (mainWindow) {
+          // Wait for the main window to finish loading before closing onboarding.
+          // On Wayland, closing the onboarding window (which holds the activation
+          // context) before the main window is visible causes show() to fail
+          // silently because the activation context is lost.
+          mainWindow.waitForLoad(() => {
+            onboarding.close();
+          });
+        } else {
+          onboarding.close();
+        }
       }
     });
 

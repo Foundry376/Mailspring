@@ -3,6 +3,7 @@ import { app, BrowserWindow, screen } from 'electron';
 import WindowLauncher from './window-launcher';
 import { localized } from '../intl';
 import MailspringWindow from './mailspring-window';
+import { isWaylandSession } from './is-wayland';
 
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
@@ -159,6 +160,11 @@ export default class WindowManager {
 
     if (!win) {
       this.newWindow(this._coreWindowOpts(windowKey, extraOpts));
+      // After creating the main window, clear the background flag so any
+      // future recreations (crash recovery, database reset) show normally.
+      if (windowKey === WindowManager.MAIN_WINDOW) {
+        this.initializeInBackground = false;
+      }
       return;
     }
 
@@ -171,6 +177,20 @@ export default class WindowManager {
       win.focus();
     } else if (!win.isVisible()) {
       win.showWhenLoaded();
+      // On Wayland, show() can fail silently if the window surface was never
+      // committed or the activation context is missing. Retry after a delay.
+      if (isWaylandSession()) {
+        setTimeout(() => {
+          const currentWin = this._windows[windowKey];
+          if (currentWin && !currentWin.isVisible() && currentWin.isLoaded()) {
+            console.warn(
+              `WindowManager: Window '${windowKey}' failed to show on Wayland, retrying...`
+            );
+            currentWin.browserWindow.show();
+            currentWin.browserWindow.focus();
+          }
+        }, 3000);
+      }
     } else {
       win.focus();
     }
