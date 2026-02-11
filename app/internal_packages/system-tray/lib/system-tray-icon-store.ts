@@ -66,11 +66,13 @@ class SystemTrayIconStore {
     this._updateIcon();
   };
 
-  // This implementation is windows only.
-  // On Mac the icon color is automatically inverted
-  // Linux ships with the icons used for a dark tray only
+  // On Mac the icon color is automatically inverted via isTemplateImg
+  // On Windows and Linux we ship separate dark/light icon variants
   _dark = () => {
-    if (nativeTheme.shouldUseDarkColors && process.platform === 'win32') {
+    if (
+      nativeTheme.shouldUseDarkColors &&
+      (process.platform === 'win32' || process.platform === 'linux')
+    ) {
       return '-dark';
     }
     return '';
