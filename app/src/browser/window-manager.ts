@@ -177,20 +177,6 @@ export default class WindowManager {
       win.focus();
     } else if (!win.isVisible()) {
       win.showWhenLoaded();
-      // On Wayland, show() can fail silently if the window surface was never
-      // committed or the activation context is missing. Retry after a delay.
-      if (isWaylandSession()) {
-        setTimeout(() => {
-          const currentWin = this._windows[windowKey];
-          if (currentWin && !currentWin.isVisible() && currentWin.isLoaded()) {
-            console.warn(
-              `WindowManager: Window '${windowKey}' failed to show on Wayland, retrying...`
-            );
-            currentWin.browserWindow.show();
-            currentWin.browserWindow.focus();
-          }
-        }, 3000);
-      }
     } else {
       win.focus();
     }
