@@ -63,6 +63,7 @@ export default class WindowLauncher {
       }
       if (style === 'hamburger') {
         opts.toolbar = true;
+        opts.frame = true;
         opts.titleBarStyle = 'hidden';
       }
     }
