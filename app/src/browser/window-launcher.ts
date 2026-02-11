@@ -34,6 +34,7 @@ export default class WindowLauncher {
     config,
   }) {
     this._defaultWindowOpts = {
+      frame: process.platform !== 'darwin',
       titleBarStyle: process.platform !== 'darwin' ? 'default' : 'hidden',
       toolbar: process.platform !== 'linux',
       hidden: false,
