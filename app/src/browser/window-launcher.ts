@@ -60,7 +60,7 @@ export default class WindowLauncher {
       if (style === 'autohide') {
         opts.autoHideMenuBar = true;
       }
-      if (style === 'hamburger') {
+      if (style === 'hamburger' && opts.frame) {
         opts.toolbar = true;
         opts.frame = false;
       }
@@ -157,10 +157,10 @@ export default class WindowLauncher {
   // a window has been setup. If we detect this case we have to bootup a
   // plain MailspringWindow instead of using a hot window.
   _mustUseColdWindow(opts) {
-    const { bootstrapScript, titleBarStyle } = this.createDefaultWindowOpts();
+    const { bootstrapScript, frame } = this.createDefaultWindowOpts();
 
     const usesOtherBootstrap = opts.bootstrapScript !== bootstrapScript;
-    const usesOtherFrame = opts.titleBarStyle !== titleBarStyle;
+    const usesOtherFrame = !!opts.frame !== frame;
     const requestsColdStart = opts.coldStartOnly;
 
     return usesOtherBootstrap || usesOtherFrame || requestsColdStart;
