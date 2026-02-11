@@ -800,6 +800,44 @@ body.platform-win32 {
     order: 0;
   }
 
+  .calendar-empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: @background-primary;
+  }
+
+  .calendar-empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 400px;
+    padding: 40px;
+  }
+
+  .calendar-empty-state-icon {
+    width: 64px;
+    height: 64px;
+    background-color: @text-color-very-subtle;
+    margin-bottom: 16px;
+  }
+
+  .calendar-empty-state-title {
+    font-size: 1.5em;
+    font-weight: @font-weight-thin;
+    color: @text-color;
+    margin: 0 0 8px;
+  }
+
+  .calendar-empty-state-message {
+    font-size: @font-size-small;
+    color: @text-color-very-subtle;
+    line-height: 1.5;
+    margin: 0 0 24px;
+  }
+
   .agenda-view {
     display: flex;
     flex-direction: column;

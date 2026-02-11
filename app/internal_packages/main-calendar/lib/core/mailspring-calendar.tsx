@@ -26,6 +26,7 @@ import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
+import { CalendarEmptyState } from './calendar-empty-state';
 import { setCalendarColors, getColorCacheVersion } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -622,8 +623,13 @@ export class MailspringCalendar extends React.Component<
     }
   }
 
+  _hasCalendars() {
+    return this.state.calendars.length > 0;
+  }
+
   render() {
     const CurrentView = VIEWS[this.state.view];
+    const hasCalendars = this._hasCalendars();
 
     return (
       <KeyCommandsRegion
@@ -659,25 +665,29 @@ export class MailspringCalendar extends React.Component<
             <MiniMonthView value={this.state.focusedMoment} onChange={this.onChangeFocusedMoment} />
           </div>
         </ResizableRegion>
-        <CurrentView
-          key={`view-colors-${getColorCacheVersion()}`}
-          dataSource={this._dataSource}
-          focusedMoment={this.state.focusedMoment}
-          focusedEvent={this.state.focusedEvent}
-          selectedEvents={this.state.selectedEvents}
-          disabledCalendars={this.state.disabledCalendars}
-          onChangeView={this.onChangeView}
-          onChangeFocusedMoment={this.onChangeFocusedMoment}
-          onCalendarMouseUp={this._onCalendarMouseUp}
-          onCalendarMouseDown={this._onCalendarMouseDown}
-          onCalendarMouseMove={this._onCalendarMouseMove}
-          onEventClick={this._onEventClick}
-          onEventDoubleClick={this._onEventDoubleClick}
-          onEventFocused={this._onEventFocused}
-          dragState={this.state.dragState}
-          onEventDragStart={this._onEventDragStart}
-          readOnlyCalendarIds={this._getReadOnlyCalendarIds()}
-        />
+        {hasCalendars ? (
+          <CurrentView
+            key={`view-colors-${getColorCacheVersion()}`}
+            dataSource={this._dataSource}
+            focusedMoment={this.state.focusedMoment}
+            focusedEvent={this.state.focusedEvent}
+            selectedEvents={this.state.selectedEvents}
+            disabledCalendars={this.state.disabledCalendars}
+            onChangeView={this.onChangeView}
+            onChangeFocusedMoment={this.onChangeFocusedMoment}
+            onCalendarMouseUp={this._onCalendarMouseUp}
+            onCalendarMouseDown={this._onCalendarMouseDown}
+            onCalendarMouseMove={this._onCalendarMouseMove}
+            onEventClick={this._onEventClick}
+            onEventDoubleClick={this._onEventDoubleClick}
+            onEventFocused={this._onEventFocused}
+            dragState={this.state.dragState}
+            onEventDragStart={this._onEventDragStart}
+            readOnlyCalendarIds={this._getReadOnlyCalendarIds()}
+          />
+        ) : (
+          <CalendarEmptyState />
+        )}
       </KeyCommandsRegion>
     );
   }
