@@ -61,7 +61,7 @@ export default class MailspringWindow extends EventEmitter {
   constructor(settings: MailspringWindowSettings = {}) {
     super();
 
-    let frame, height, pathToOpen, resizable, title, width, autoHideMenuBar;
+    let frame, height, pathToOpen, resizable, title, width, autoHideMenuBar, titleBarStyle;
 
     ({
       frame,
@@ -71,6 +71,7 @@ export default class MailspringWindow extends EventEmitter {
       // toolbar, present but passed through to client-side
       resizable,
       pathToOpen,
+      titleBarStyle,
       isSpec: this.isSpec,
       devMode: this.devMode,
       windowKey: this.windowKey,
@@ -102,6 +103,7 @@ export default class MailspringWindow extends EventEmitter {
       width,
       height,
       resizable,
+      titleBarStyle,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,

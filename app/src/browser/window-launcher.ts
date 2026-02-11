@@ -20,7 +20,7 @@ export default class WindowLauncher {
 
   public hotWindow?: MailspringWindow;
 
-  private defaultWindowOpts: MailspringWindowSettings;
+  private _defaultWindowOpts: MailspringWindowSettings;
   private config: import('../config').default;
   private onCreatedHotWindow: (win: MailspringWindow) => void;
 
@@ -33,7 +33,7 @@ export default class WindowLauncher {
     onCreatedHotWindow,
     config,
   }) {
-    this.defaultWindowOpts = {
+    this._defaultWindowOpts = {
       frame: process.platform !== 'darwin',
       toolbar: process.platform !== 'linux',
       hidden: false,
@@ -51,8 +51,8 @@ export default class WindowLauncher {
     this.createHotWindow();
   }
 
-  newWindow(options) {
-    const opts = Object.assign({}, this.defaultWindowOpts, options);
+  createDefaultWindowOpts() {
+    const opts = Object.assign({}, this._defaultWindowOpts);
 
     // apply optional Linux properties
     if (process.platform === 'linux') {
@@ -65,6 +65,11 @@ export default class WindowLauncher {
         opts.frame = false;
       }
     }
+    return opts;
+  }
+
+  newWindow(options) {
+    const opts = Object.assign(this.createDefaultWindowOpts(), options);
 
     let win;
 
@@ -152,7 +157,7 @@ export default class WindowLauncher {
   // a window has been setup. If we detect this case we have to bootup a
   // plain MailspringWindow instead of using a hot window.
   _mustUseColdWindow(opts) {
-    const { bootstrapScript, frame } = this.defaultWindowOpts;
+    const { bootstrapScript, frame } = this.createDefaultWindowOpts();
 
     const usesOtherBootstrap = opts.bootstrapScript !== bootstrapScript;
     const usesOtherFrame = !!opts.frame !== frame;
@@ -162,7 +167,7 @@ export default class WindowLauncher {
   }
 
   _hotWindowOpts() {
-    const hotWindowOpts = Object.assign({}, this.defaultWindowOpts);
+    const hotWindowOpts = this.createDefaultWindowOpts();
     hotWindowOpts.hidden = DEBUG_SHOW_HOT_WINDOW;
     return hotWindowOpts;
   }
