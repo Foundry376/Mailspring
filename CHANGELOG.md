@@ -1,5 +1,55 @@
 # Mailspring Changelog
 
+## 1.17.4 (2/11/2026)
+
+Features:
+
+- Added Agenda view to the calendar for chronological event browsing. (#2592)
+
+- Added Linux Do Not Disturb detection for notification suppression. (#2595)
+
+- Added Windows jump list and badge icon desktop integration. (#2594)
+
+- Added ARM64 (aarch64) Linux build support. (#2601)
+
+- The selected calendar view now persists across sessions. (#2600)
+
+Bug Fixes:
+
+- Fixed support for Wayland - window activation context is now handled gracefully. (#2599)
+
+- Fixed the app's system tray icon appearing as three dots (•••) at launch on Ubuntu 25.
+
+- Fixed summary notifications: broken Windows toast URLs and race condition. (#2597)
+
+- Improve Yandex account sync by ignoring their XLIST implementation, which is known to be buggy.
+
+- Fixed mutex re-entry locks during exception handling in mailsync that could be hit if a network disconnect caused both sync workers to throw at the same time.
+
+- Reverted IDLE error suppression that caused sync issues.
+
+Improvements:
+
+- On Linux, default to thin window framing with hamburger-style right menu. (#2604)
+
+- On Linux, added dark/light system tray icon support. (#2602)
+
+- Improved JS algorithm performance using Map/Set for better collection handling. (#2596)
+
+- Enabled support for custom config directory path. (#2587) Thanks @DerDemystifier!
+
+- Added missing release info in appdata. (#2586) Thanks @ychavoya!
+
+Developer:
+
+- Updated node-abi to 3.87.0 and added support for prebuilt better-sqlite3 binaries. (#2598)
+
+- Signed native .node addon files for Smart App Control compliance. (#2589)
+
+- Fixed RPM packaging dependencies for Fedora 43 and openSUSE compatibility. (#2590)
+
+- Fixed openSUSE CI test and RPM post-install scriptlet issues. (#2591)
+
 ## 1.17.3 (1/31/2025)
 
 - Updates the .deb package dependencies to address Ubuntu 25 (libtidy58 replaces libtidy5deb1) and Linux Mint 22 (libcurl4t64, libgtk-3-0t64 instead of libgtk-3-0) installation issues.
