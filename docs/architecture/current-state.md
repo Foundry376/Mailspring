@@ -1,6 +1,6 @@
 # Mailspring: Current State Architecture Narrative
 
-This document summarizes the **Dual-Core** architecture of Mailspring: the separation between the Electron frontend and the C++ Mailsync backend, their responsibilities, and the rationale for this design. For detailed data flow and task lifecycle, see [CLAUDE.md](../../CLAUDE.md) and [data-flow.md](data-flow.md).
+This document summarizes the **Dual-Core** architecture of Mailspring: the separation between the Electron frontend and the C++ Mailsync backend, their responsibilities, and the rationale for this design. For detailed data flow and task lifecycle, see [data-flow.md](data-flow.md).
 
 ## Dual-Core Design
 
@@ -42,4 +42,4 @@ This split keeps protocol logic, parsing, and heavy I/O in native code while the
 - **System context and containers**: [diagrams/system-context.md](diagrams/system-context.md), [diagrams/containers.md](diagrams/containers.md)
 - **Integration points**: [integration-points.md](integration-points.md)
 - **Data flow**: [data-flow.md](data-flow.md)
-- **Task and sync details**: [CLAUDE.md](../../CLAUDE.md) (Core Data Flow, Task System, Observable Database Pattern)
+- **Task and sync details**: [data-flow.md](data-flow.md) (critical path and task completion)

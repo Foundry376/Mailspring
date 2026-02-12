@@ -18,4 +18,3 @@ This folder contains the architecture documentation for Mailspring (high-level d
 | [deployment.md](deployment.md) | Build, sign, and distribute (Grunt, packager, CI) |
 
 
-

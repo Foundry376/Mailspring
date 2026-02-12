@@ -104,4 +104,3 @@ Critical fields on the Message model (from `app/src/flux/models/message.ts`) tha
 
 - [Current state architecture](current-state.md) – Dual-core design and single-writer SQLite.
 - [Data flow](data-flow.md) – How deltas from the C++ engine update the UI.
-- [CLAUDE.md](../../CLAUDE.md) – Observable database pattern and querying.

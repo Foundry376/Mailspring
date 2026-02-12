@@ -35,7 +35,7 @@ This document traces the **critical data path** from the internet to the React v
 
 8. **Stores and React views**  
    Any store or component that has subscribed to `DatabaseStore.listen(...)` receives the change record. They may filter by `objectClass` and refresh their state. React components that depend on those stores re-render.  
-   **Pattern**: QuerySubscription, ObservableListDataSource, or direct `DatabaseStore.listen`; see [CLAUDE.md](../../CLAUDE.md) (Observable Database Pattern).
+   **Pattern**: QuerySubscription, ObservableListDataSource, or direct `DatabaseStore.listen`.
 
 ### Diagram (Inbound)
 
@@ -136,4 +136,4 @@ sequenceDiagram
 | Trigger and listeners | `app/src/flux/stores/database-store.ts` |
 | Task lifecycle (queueTask, onSuccess) | `app/src/flux/actions.ts`, `app/src/flux/mailsync-bridge.ts` |
 
-For task lifecycle and observable patterns, see [CLAUDE.md](../../CLAUDE.md).
+For task lifecycle and store listeners, see [module-dependencies.md](module-dependencies.md).
