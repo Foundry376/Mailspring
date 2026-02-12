@@ -59,7 +59,7 @@ Many other stores and components subscribe to DatabaseStore or to specific store
 
 ## Store → Model Dependencies
 
-Stores typically depend on **models** for the shape of data; they do not “listen” to models directly. Data flows as:
+Stores typically depend on **models** for the shape of data; they do not "listen" to models directly. Data flows as:
 
 1. **DatabaseStore** receives a change record (from MailsyncBridge).
 2. **DatabaseStore.trigger(record)** notifies listeners with `{ objectClass, objects, type }`.
@@ -76,7 +76,7 @@ MailsyncBridge sits between the UI and the sync engine:
 - **Inbound**: Listens to **stdout** of MailsyncProcess (via `client.on('deltas', this._onIncomingMessages)`); then calls DatabaseStore.trigger and optionally task onSuccess/onError.
 - **Outbound**: Listens to **Actions** (queueTask, etc.) and **AccountStore**; sends JSON to Mailsync process stdin and manages process lifecycle.
 
-So for “who triggers whom”: **Actions + AccountStore → MailsyncBridge → Mailsync process**; **Mailsync process → MailsyncBridge → DatabaseStore → other stores and UI**.
+So for "who triggers whom": **Actions + AccountStore → MailsyncBridge → Mailsync process**; **Mailsync process → MailsyncBridge → DatabaseStore → other stores and UI**.
 
 ---
 

@@ -116,7 +116,7 @@ The Mailsync C++ binary is **not** built in this repo. It is either:
 - **Prebuilt**: Downloaded during `npm install` (or postinstall) from S3, keyed by the `mailsync` submodule commit (see `scripts/postinstall.js`), and unpacked into the app (e.g. `app/mailsync` or platform-specific name), or
 - **Present** in the tree (e.g. from a prior download or manual copy).
 
-The packager’s ASAR unpack list ensures `mailsync`, `mailsync.exe`, `mailsync.bin`, and `*.so` are left outside the ASAR so the binary can be executed at runtime.
+The packager's ASAR unpack list ensures `mailsync`, `mailsync.exe`, `mailsync.bin`, and `*.so` are left outside the ASAR so the binary can be executed at runtime.
 
 ---
 

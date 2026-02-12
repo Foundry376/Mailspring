@@ -103,7 +103,7 @@ flowchart LR
 ## Relationship to Containers
 
 - **Main Process** = Application + WindowManager + … (one process).
-- **Renderer Process** = One per window; the main window’s renderer hosts MailsyncBridge and the Flux stores that drive the UI.
+- **Renderer Process** = One per window; the main window's renderer hosts MailsyncBridge and the Flux stores that drive the UI.
 - **Mailsync Engine** = Separate C++ process(es), one per account; see [components-mailsync.md](components-mailsync.md).
 
 For data flow from user action to UI update, see [../data-flow.md](../data-flow.md). For store-to-store dependencies, see [../module-dependencies.md](../module-dependencies.md).

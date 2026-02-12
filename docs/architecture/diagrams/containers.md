@@ -35,7 +35,7 @@ C4Container
 
 - **Main Process**  
   - Technology: JavaScript/TypeScript (Node/Electron).  
-  - Responsibility: Application lifecycle, window manager, auto-updates. In the **main window** only: runs MailsyncBridge, which spawns and manages Mailsync processes, forwards tasks to them via stdin, and receives JSON deltas on stdout. Main process rebroadcasts those deltas to other windows via IPC (`mailsync-bridge-message`) so every window’s DatabaseStore can trigger and update the UI.
+  - Responsibility: Application lifecycle, window manager, auto-updates. In the **main window** only: runs MailsyncBridge, which spawns and manages Mailsync processes, forwards tasks to them via stdin, and receives JSON deltas on stdout. Main process rebroadcasts those deltas to other windows via IPC (`mailsync-bridge-message`) so every window's DatabaseStore can trigger and update the UI.
 
 - **Mailsync Engine (C++)**  
   - Technology: C++ (Mailspring-Sync, one process per account).  
@@ -50,7 +50,7 @@ C4Container
 
 ## Data Flow Summary
 
-- **User action (e.g. “Send”, “Move to folder”)**  
+- **User action (e.g. "Send", "Move to folder")**  
   Renderer → Actions.queueTask → (IPC to main) → MailsyncBridge → stdin to Mailsync.
 
 - **Sync / task completion**  

@@ -61,7 +61,7 @@ erDiagram
 ```
 
 - **Thread → Message:** One thread has many messages. Each message has a `threadId` pointing to its thread. Messages are immutable (except drafts); move/delete apply at the thread level.
-- **Thread → Contact:** A thread has a `participants` collection (Contacts). These contacts do not have persistent IDs; they are derived from the thread’s messages.
+- **Thread → Contact:** A thread has a `participants` collection (Contacts). These contacts do not have persistent IDs; they are derived from the thread's messages.
 - **Message → Contact:** A message has `from`, `to`, `cc`, `bcc`, and `replyTo` collections of Contact objects. These represent the message envelope and are stored with the message.
 
 ---

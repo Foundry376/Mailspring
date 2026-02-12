@@ -1,6 +1,6 @@
 # Mailspring Architecture Documentation
 
-This folder contains the BMAD-structured architecture documentation for Mailspring (Big picture, Mechanics, Analysis & logic).
+This folder contains the architecture documentation for Mailspring (high-level design, data flow, deployment, and diagrams).
 
 ## Quick Links
 

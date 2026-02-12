@@ -27,7 +27,7 @@ This document traces the **critical data path** from the internet to the React v
    **File**: `app/src/flux/mailsync-bridge.ts` (lines 389–435).
 
 6. **Rebroadcast to other windows**  
-   Before applying the change, the main window sends the raw message to the main process so it can rebroadcast to **other** windows: `ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg)`. The main process sends it to all windows except the source (see `application.ts` and window event handler). Other windows receive it via `ipcRenderer.on('mailsync-bridge-message', ...)` and run the same `_onIncomingChangeRecord` path so every window’s DatabaseStore sees the same change.
+   Before applying the change, the main window sends the raw message to the main process so it can rebroadcast to **other** windows: `ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg)`. The main process sends it to all windows except the source (see `application.ts` and window event handler). Other windows receive it via `ipcRenderer.on('mailsync-bridge-message', ...)` and run the same `_onIncomingChangeRecord` path so every window's DatabaseStore sees the same change.
 
 7. **DatabaseStore.trigger(record)**  
    `MailsyncBridge._onIncomingChangeRecord` calls `DatabaseStore.trigger(record)`. The DatabaseStore does **not** write to SQLite here; it notifies all listeners (stores and components) that the given models changed.  
@@ -66,14 +66,14 @@ sequenceDiagram
 ### Step-by-Step
 
 1. **User action**  
-   User clicks “Send”, “Move to folder”, “Mark read”, etc. The React component (or store) calls e.g. `Actions.queueTask(new SendDraftTask({ ... }))`.
+   User clicks "Send", "Move to folder", "Mark read", etc. The React component (or store) calls e.g. `Actions.queueTask(new SendDraftTask({ ... }))`.
 
 2. **Actions → MailsyncBridge**  
-   `MailsyncBridge` listens to `Actions.queueTask` (and `queueTasks`, `cancelTask`, `fetchBodies`). In `_onQueueTask`, it validates the task, resolves the account, and sends a JSON message to the appropriate account’s Mailsync process via `client.sendMessage(json)`.  
+   `MailsyncBridge` listens to `Actions.queueTask` (and `queueTasks`, `cancelTask`, `fetchBodies`). In `_onQueueTask`, it validates the task, resolves the account, and sends a JSON message to the appropriate account's Mailsync process via `client.sendMessage(json)`.  
    **File**: `app/src/flux/mailsync-bridge.ts` (`_onQueueTask`, `sendMessageToAccount`).
 
 3. **sendMessage → stdin**  
-   `MailsyncProcess.sendMessage` writes the JSON message (plus newline) to the child process’s stdin. The C++ process reads stdin and executes the task (e.g. send draft, change folder).
+   `MailsyncProcess.sendMessage` writes the JSON message (plus newline) to the child process's stdin. The C++ process reads stdin and executes the task (e.g. send draft, change folder).
 
 4. **C++ executes task**  
    The sync engine updates local state (and may write to SQLite) and talks to the provider (e.g. SMTP send, IMAP STORE). When done, it persists task status and emits a delta for the Task model (and any other changed models) on stdout.
