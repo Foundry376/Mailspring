@@ -76,7 +76,3 @@ client_secret.json
 /app/mailsync.exe
 /app/mailsync.dSYM
 .idea
-
-# BMAD
-_bmad/
-_bmad-output/
