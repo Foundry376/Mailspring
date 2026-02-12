@@ -9,7 +9,7 @@ This folder contains project documentation for [Mailspring](https://github.com/F
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute to Mailspring |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community guidelines and code of conduct |
 | [SECURITY.md](SECURITY.md) | Security policy and reporting |
-| [CHANGELOG.md](CHANGELOG.md) | Release history and changes |
+| [CHANGELOG.md](../CHANGELOG.md) | Release history and changes (at repo root) |
 | [LICENSE.md](LICENSE.md) | Project license |
 | [LOCALIZATION.md](LOCALIZATION.md) | Translation and localization |
 
