@@ -17,14 +17,5 @@ This folder contains the architecture documentation for Mailspring (high-level d
 | [module-dependencies.md](module-dependencies.md) | Flux store and action listen relationships |
 | [deployment.md](deployment.md) | Build, sign, and distribute (Grunt, packager, CI) |
 
-## ADRs and Debt
 
-| Document | Description |
-|----------|-------------|
-| [../adr/0001-split-engine-architecture.md](../adr/0001-split-engine-architecture.md) | ADR: Electron + C++ split-engine rationale |
-| [../adr/0002-local-first-strategy.md](../adr/0002-local-first-strategy.md) | ADR: Local-first, single-writer, task queue |
-| [../technical-debt.md](../technical-debt.md) | TODO/FIXME register and legacy patterns |
 
-## See Also
-
-- [CLAUDE.md](../../CLAUDE.md) – Core data flow, task system, observable database (canonical reference for implementation details).
