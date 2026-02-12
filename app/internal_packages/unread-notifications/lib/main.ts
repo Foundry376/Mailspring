@@ -42,14 +42,17 @@ export class Notifier {
     }
 
     if (objectClass === Message.name) {
-      const newIds = objectsRawJSON.filter(json => json.headersSyncComplete).map(json => json.id);
-      if (!newIds.length) return;
+      const newIds = new Set<string>();
+      for (const json of objectsRawJSON) {
+        if (json.headersSyncComplete) newIds.add(json.id);
+      }
+      if (!newIds.size) return;
       this._onMessagesChanged(objects, newIds);
     }
   }
 
   // async for testing
-  async _onMessagesChanged(msgs, newIds: string[]) {
+  async _onMessagesChanged(msgs, newIds: Set<string>) {
     const notifworthy = {};
 
     for (const msg of msgs) {
@@ -58,7 +61,7 @@ export class Notifier {
       // ensure the message was just created (eg: this is not a modification).
       // The sync engine attaches a JSON key to let us know that this is the first
       // message emitted about this Message. (Hooray hacks around reactive patterns)
-      if (!newIds.includes(msg.id)) continue;
+      if (!newIds.has(msg.id)) continue;
       // ensure the message was received after the app launched (eg: not syncing an old email)
       if (!msg.date || msg.date.valueOf() < this.activationTime) continue;
       // ensure the message is not a loopback
@@ -73,7 +76,7 @@ export class Notifier {
     }
 
     if (!AppEnv.inSpecMode()) {
-      await new Promise<void>(resolve => {
+      await new Promise<void>((resolve) => {
         // wait a couple hundred milliseconds and collect any updates to these
         // new messages. This gets us message bodies, messages impacted by mail rules, etc.
         // while ensuring notifications are never too delayed.
@@ -104,7 +107,7 @@ export class Notifier {
     // Ensure notifications are dismissed when the user reads a thread
     threads.forEach(({ id, unread }) => {
       if (!unread && this.activeNotifications[id]) {
-        this.activeNotifications[id].forEach(n => n.close());
+        this.activeNotifications[id].forEach((n) => n.close());
         delete this.activeNotifications[id];
       }
     });
@@ -112,6 +115,7 @@ export class Notifier {
 
   async _notifyAll() {
     // Extract unique sender names from the queue
+    const count = this.unnotifiedQueue.length;
     const senders = [
       ...new Set(
         this.unnotifiedQueue
@@ -121,13 +125,14 @@ export class Notifier {
     ] as string[];
 
     await NativeNotifications.displaySummaryNotification({
-      count: this.unnotifiedQueue.length,
+      count,
       senders,
       onActivate: () => {
         AppEnv.displayWindow();
       },
     });
-    this.unnotifiedQueue = [];
+    // Only remove the items we counted — new items may have been queued during the await
+    this.unnotifiedQueue.splice(0, count);
   }
 
   async _notifyOne({ message, thread }) {
@@ -212,16 +217,21 @@ export class Notifier {
   }
 
   async _notifyMessages() {
+    // Set the guard immediately to prevent concurrent re-entry during async operations.
+    // Without this, a second _onNewMessagesReceived call during the await below would
+    // start a concurrent _notifyMessages, causing duplicate or conflicting notifications.
+    this.hasScheduledNotify = true;
+
     if (this.unnotifiedQueue.length >= 5) {
       await this._notifyAll();
     } else if (this.unnotifiedQueue.length > 0) {
       await this._notifyOne(this.unnotifiedQueue.shift());
     }
 
-    this.hasScheduledNotify = false;
     if (this.unnotifiedQueue.length > 0) {
       setTimeout(() => this._notifyMessages(), 2000);
-      this.hasScheduledNotify = true;
+    } else {
+      this.hasScheduledNotify = false;
     }
   }
 
@@ -254,7 +264,7 @@ export class Notifier {
     return DatabaseStore.findAll<Thread>(
       Thread,
       Thread.attributes.id.in(Object.keys(threadIds))
-    ).then(threadsArray => {
+    ).then((threadsArray) => {
       const threads = {};
       for (const t of threadsArray) {
         threads[t.id] = t;
@@ -262,7 +272,7 @@ export class Notifier {
 
       // Filter new messages to just the ones in the inbox
       const newMessagesInInbox = newMessages.filter(({ threadId }) => {
-        return threads[threadId] && threads[threadId].categories.find(c => c.role === 'inbox');
+        return threads[threadId] && threads[threadId].categories.find((c) => c.role === 'inbox');
       });
 
       if (newMessagesInInbox.length === 0) {

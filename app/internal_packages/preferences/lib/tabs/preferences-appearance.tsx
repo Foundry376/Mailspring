@@ -62,7 +62,7 @@ class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
   };
 
   render() {
-    const val = this.props.config.get(this.kp) || 'default';
+    const val = this.props.config.get(this.kp);
 
     const options = [
       ['default', localized('Default Window Controls and Menubar'), ''],

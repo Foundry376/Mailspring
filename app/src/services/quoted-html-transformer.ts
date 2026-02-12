@@ -220,15 +220,16 @@ class QuotedHTMLTransformer {
     quoteElements = quoteElements.concat(unwrappedSignatureNodes);
 
     // Keep quotes that are followed by non-quote blocks (eg: inline reply text)
+    const quoteElementSet = new Set(quoteElements);
     quoteElements = quoteElements.filter(
-      el => !this._isElementFollowedByUnquotedElement(el, quoteElements)
+      el => !this._isElementFollowedByUnquotedElement(el, quoteElementSet)
     );
 
     return quoteElements;
   }
 
-  _isElementFollowedByUnquotedElement(el, quoteElements) {
-    const seen = [];
+  _isElementFollowedByUnquotedElement(el, quoteElementSet: Set<any>) {
+    const seen = new Set();
     let head = el;
 
     while (head) {
@@ -249,10 +250,10 @@ class QuotedHTMLTransformer {
       let node = null;
 
       while ((node = pile.pop())) {
-        if (seen.includes(node)) {
+        if (seen.has(node)) {
           continue;
         }
-        if (quoteElements.includes(node)) {
+        if (quoteElementSet.has(node)) {
           continue;
         }
         if (node.childNodes) {
@@ -265,7 +266,7 @@ class QuotedHTMLTransformer {
           return true;
         }
       }
-      seen.push(head);
+      seen.add(head);
     }
 
     return false;

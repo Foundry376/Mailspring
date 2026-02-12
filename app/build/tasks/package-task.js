@@ -134,6 +134,7 @@ module.exports = grunt => {
       arch: {
         win32: 'x64',
         darwin: process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch,
+        linux: process.arch,
       }[platform],
       icon: {
         darwin: path.resolve(

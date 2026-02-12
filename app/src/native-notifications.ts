@@ -1,6 +1,7 @@
 /* eslint global-require: 0 */
 import { ipcRenderer } from 'electron';
 import { convertToPNG, getIcon, Context } from './linux-theme-utils';
+import { getDoNotDisturb as getLinuxDoNotDisturb } from './linux-dnd-utils';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
@@ -105,6 +106,14 @@ class NativeNotifications {
         return await require('macos-notification-state').getDoNotDisturb();
       } catch (e) {
         console.warn('Failed to check Do Not Disturb status:', e);
+        return false;
+      }
+    }
+    if (platform === 'linux') {
+      try {
+        return await getLinuxDoNotDisturb();
+      } catch (e) {
+        console.warn('Failed to check Linux Do Not Disturb status:', e);
         return false;
       }
     }
@@ -286,10 +295,18 @@ ${actionsXml}
    * @param senders Array of sender names to display
    * @returns Toast XML string
    */
-  private buildWindowsSummaryToastXml(count: number, senders: string[]): string {
+  private buildWindowsSummaryToastXml(id: string, count: number, senders: string[]): string {
     const sendersText = this.formatSenderList(senders);
 
-    return `<toast launch="mailspring:inbox" activationType="protocol">
+    const baseParams = new URLSearchParams({
+      id: id,
+      threadId: '',
+      messageId: '',
+    }).toString();
+
+    const clickUrl = `mailspring://notification-click?${baseParams}`;
+
+    return `<toast launch="${this.escapeXml(clickUrl)}" activationType="protocol">
   <visual>
     <binding template="ToastGeneric">
       <text hint-maxLines="1">${count} new messages</text>
@@ -298,7 +315,7 @@ ${actionsXml}
     </binding>
   </visual>
   <actions>
-    <action content="View Inbox" arguments="mailspring:inbox" activationType="protocol"/>
+    <action content="View Inbox" arguments="${this.escapeXml(clickUrl)}" activationType="protocol"/>
     <action content="Dismiss" arguments="dismiss" activationType="system"/>
   </actions>
 </toast>`;
@@ -417,7 +434,7 @@ ${actionsXml}
 
     // Use special summary toast XML on Windows
     if (platform === 'win32') {
-      options.toastXml = this.buildWindowsSummaryToastXml(count, senders);
+      options.toastXml = this.buildWindowsSummaryToastXml(id, count, senders);
     }
 
     try {

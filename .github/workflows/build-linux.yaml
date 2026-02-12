@@ -295,6 +295,111 @@ jobs:
             echo '✓ Mailspring installation test passed on Fedora ${{ matrix.fedora_version }}'
           "
 
+  test-opensuse:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download RPM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-rpm
+
+      - name: Test installation on openSUSE Tumbleweed
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace opensuse/tumbleweed bash -c "
+            set -e
+            echo '=== Testing Mailspring installation on openSUSE Tumbleweed ==='
+
+            # Install dependencies first
+            cd /workspace
+
+            # Note: zypper exit code 107 (ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED) means
+            # the package installed but an RPM scriptlet failed. This is expected in
+            # Docker containers where PAM/systemd scriptlets cannot run properly.
+            zypper --non-interactive install xorg-x11-server-Xvfb xvfb-run which alsa-lib gawk; ZYPPER_EXIT=\$?
+            if [ \$ZYPPER_EXIT -ne 0 ] && [ \$ZYPPER_EXIT -ne 107 ]; then
+              echo \"zypper install dependencies failed with exit code \$ZYPPER_EXIT\"
+              exit 1
+            fi
+
+            # Install the RPM package (zypper will auto-resolve dependencies)
+            zypper --non-interactive --no-gpg-checks install *.rpm; ZYPPER_EXIT=\$?
+            if [ \$ZYPPER_EXIT -ne 0 ] && [ \$ZYPPER_EXIT -ne 107 ]; then
+              echo \"zypper install mailspring failed with exit code \$ZYPPER_EXIT\"
+              exit 1
+            fi
+
+            # Verify installation succeeded
+            rpm -q mailspring || (echo '✗ Mailspring package not installed' && exit 1)
+
+            # Verify the binary exists and is executable
+            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+
+            # List installed files
+            echo 'Installed files:'
+            rpm -ql mailspring | head -20
+
+            # Run mailspring --version with virtual display (use --no-sandbox for Docker)
+            echo 'Running mailspring --version...'
+            xvfb-run -a mailspring --version --no-sandbox > /tmp/version.txt 2>&1 || true
+            cat /tmp/version.txt
+
+            # Verify version command succeeded (output should contain a version number)
+            if grep -qE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/version.txt; then
+              echo '✓ mailspring --version passed on openSUSE Tumbleweed'
+            else
+              echo '✗ mailspring --version failed on openSUSE Tumbleweed'
+              exit 1
+            fi
+
+            # Verify mailsync binary exists (check multiple possible locations and names)
+            if [ -f /usr/share/mailspring/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync
+            elif [ -f /usr/share/mailspring/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync.bin
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin'
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin
+            elif [ -f /usr/local/share/mailspring/mailsync ]; then
+              echo 'Found mailsync binary at /usr/local/share/mailspring/mailsync'
+              MAILSYNC_PATH=/usr/local/share/mailspring/mailsync
+            elif [ -f /usr/local/share/mailspring/mailsync.bin ]; then
+              echo 'Found mailsync binary at /usr/local/share/mailspring/mailsync.bin'
+              MAILSYNC_PATH=/usr/local/share/mailspring/mailsync.bin
+            else
+              echo '✗ mailsync binary not found'
+              echo 'Searching for mailsync in RPM files:'
+              rpm -ql mailspring | grep -i mailsync || echo 'No mailsync found in package'
+              echo 'Files in /usr/share/mailspring/:'
+              ls -la /usr/share/mailspring/ | head -30
+              exit 1
+            fi
+
+            # Run mailsync --help (no X11 required for mailsync)
+            echo 'Running mailsync --help...'
+            \$MAILSYNC_PATH --help > /tmp/mailsync-help.txt 2>&1 || true
+            cat /tmp/mailsync-help.txt
+
+            # Verify mailsync help output (should contain usage info and no errors)
+            if grep -qiE 'usage|help|mailsync|options|--mode' /tmp/mailsync-help.txt; then
+              if grep -qi 'error' /tmp/mailsync-help.txt; then
+                echo '✗ mailsync --help contains errors on openSUSE Tumbleweed'
+                exit 1
+              fi
+              echo '✓ mailsync --help passed on openSUSE Tumbleweed'
+            else
+              echo '✗ mailsync --help failed on openSUSE Tumbleweed'
+              exit 1
+            fi
+
+            echo '✓ Mailspring installation test passed on openSUSE Tumbleweed'
+          "
+
   test-arch:
     needs: build
     runs-on: ubuntu-22.04

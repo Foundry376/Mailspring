@@ -1,0 +1,261 @@
+name: Build for Linux ARM64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Fail if branch is not master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "This workflow can only be run on master branch to ensure code-signed builds come from merged PRs"
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Install system deps
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            software-properties-common \
+            autoconf automake build-essential clang cmake fakeroot git \
+            libc-ares-dev libctemplate-dev libcurl4-openssl-dev libglib2.0-dev \
+            libicu-dev libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit \
+            libsecret-1-dev libssl-dev libnss3 libnss3-dev libtidy-dev libtool \
+            libxext-dev libxkbfile-dev libxml2-dev libxtst-dev pkg-config rpm \
+            uuid-dev xvfb
+          # Note: execstack is not available on ARM64 and not needed for aarch64 binaries.
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: DEBUG=electron-packager npm run build
+
+      - name: Sync Artifacts to S3
+        run: |
+          aws s3 sync app/dist/ "s3://mailspring-builds/client/$(git rev-parse --short=8 HEAD)/linux-arm64" \
+            --acl public-read \
+            --exclude "*" --include "*.deb" --include "*.rpm"
+
+      - name: Upload DEB artifact for testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: mailspring-arm64-deb
+          path: app/dist/*.deb
+          retention-days: 1
+
+      - name: Upload RPM artifact for testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: mailspring-arm64-rpm
+          path: app/dist/*.rpm
+          retention-days: 1
+
+  build-snap:
+    needs: build
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Fail if branch is not master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "This workflow can only be run on master branch to ensure code-signed builds come from merged PRs"
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Download DEB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-arm64-deb
+          path: app/dist/
+
+      - uses: snapcore/action-build@v1
+        id: build-snap
+
+      - uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build-snap.outputs.snap }}
+          release: edge
+
+  test-ubuntu:
+    needs: build
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        ubuntu_version: ['22.04', '24.04', '25.04']
+    steps:
+      - name: Download DEB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-arm64-deb
+
+      - name: Test installation on Ubuntu ${{ matrix.ubuntu_version }} (arm64)
+        run: |
+          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace ubuntu:${{ matrix.ubuntu_version }} bash -c "
+            set -e
+            echo '=== Testing Mailspring ARM64 installation on Ubuntu ${{ matrix.ubuntu_version }} ==='
+
+            cd /workspace
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+
+            dpkg -i *.deb || true
+            apt-get install -f -y
+            apt-get install -y xvfb file
+
+            dpkg -l | grep mailspring || (echo '✗ Mailspring package not installed' && exit 1)
+            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+
+            echo 'Installed files:'
+            dpkg -L mailspring | head -20
+
+            echo 'Verifying ARM64 binary...'
+            file /usr/share/mailspring/mailspring | grep -iE 'aarch64|arm'
+            echo '✓ ARM64 binary confirmed'
+
+            echo 'Running mailspring --version...'
+            xvfb-run -a mailspring --version --no-sandbox > /tmp/version.txt 2>&1 || true
+            cat /tmp/version.txt
+
+            if grep -qE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/version.txt; then
+              echo '✓ mailspring --version passed on Ubuntu ${{ matrix.ubuntu_version }} arm64'
+            else
+              echo '✗ mailspring --version failed on Ubuntu ${{ matrix.ubuntu_version }} arm64'
+              exit 1
+            fi
+
+            # Verify mailsync binary exists
+            if [ -f /usr/share/mailspring/mailsync ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync
+            elif [ -f /usr/share/mailspring/mailsync.bin ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync.bin
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin
+            else
+              echo '✗ mailsync binary not found'
+              ls -la /usr/share/mailspring/ | head -30
+              exit 1
+            fi
+
+            echo 'Running mailsync --help...'
+            \$MAILSYNC_PATH --help > /tmp/mailsync-help.txt 2>&1 || true
+            cat /tmp/mailsync-help.txt
+
+            if grep -qiE 'usage|help|mailsync|options|--mode' /tmp/mailsync-help.txt; then
+              if grep -qi 'error' /tmp/mailsync-help.txt; then
+                echo '✗ mailsync --help contains errors on Ubuntu ${{ matrix.ubuntu_version }} arm64'
+                exit 1
+              fi
+              echo '✓ mailsync --help passed on Ubuntu ${{ matrix.ubuntu_version }} arm64'
+            else
+              echo '✗ mailsync --help failed on Ubuntu ${{ matrix.ubuntu_version }} arm64'
+              exit 1
+            fi
+
+            echo '✓ Mailspring ARM64 installation test passed on Ubuntu ${{ matrix.ubuntu_version }}'
+          "
+
+  test-fedora:
+    needs: build
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        fedora_version: ['40', '41', '43']
+    steps:
+      - name: Download RPM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mailspring-arm64-rpm
+
+      - name: Test installation on Fedora ${{ matrix.fedora_version }} (arm64)
+        run: |
+          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace fedora:${{ matrix.fedora_version }} bash -c "
+            set -e
+            echo '=== Testing Mailspring ARM64 installation on Fedora ${{ matrix.fedora_version }} ==='
+
+            cd /workspace
+            dnf install -y xorg-x11-server-Xvfb which alsa-lib
+
+            dnf install -y *.rpm
+
+            rpm -q mailspring || (echo '✗ Mailspring package not installed' && exit 1)
+            which mailspring || (echo '✗ mailspring binary not found in PATH' && exit 1)
+
+            echo 'Installed files:'
+            rpm -ql mailspring | head -20
+
+            echo 'Running mailspring --version...'
+            xvfb-run -a mailspring --version --no-sandbox > /tmp/version.txt 2>&1 || true
+            cat /tmp/version.txt
+
+            if grep -qE '[0-9]+\.[0-9]+\.[0-9]+' /tmp/version.txt; then
+              echo '✓ mailspring --version passed on Fedora ${{ matrix.fedora_version }} arm64'
+            else
+              echo '✗ mailspring --version failed on Fedora ${{ matrix.fedora_version }} arm64'
+              exit 1
+            fi
+
+            # Verify mailsync binary exists
+            if [ -f /usr/share/mailspring/mailsync ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync
+            elif [ -f /usr/share/mailspring/mailsync.bin ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/mailsync.bin
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync
+            elif [ -f /usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin ]; then
+              MAILSYNC_PATH=/usr/share/mailspring/resources/app.asar.unpacked/mailsync.bin
+            elif [ -f /usr/local/share/mailspring/mailsync ]; then
+              MAILSYNC_PATH=/usr/local/share/mailspring/mailsync
+            elif [ -f /usr/local/share/mailspring/mailsync.bin ]; then
+              MAILSYNC_PATH=/usr/local/share/mailspring/mailsync.bin
+            else
+              echo '✗ mailsync binary not found'
+              rpm -ql mailspring | grep -i mailsync || echo 'No mailsync found in package'
+              ls -la /usr/share/mailspring/ | head -30
+              exit 1
+            fi
+
+            echo 'Running mailsync --help...'
+            \$MAILSYNC_PATH --help > /tmp/mailsync-help.txt 2>&1 || true
+            cat /tmp/mailsync-help.txt
+
+            if grep -qiE 'usage|help|mailsync|options|--mode' /tmp/mailsync-help.txt; then
+              if grep -qi 'error' /tmp/mailsync-help.txt; then
+                echo '✗ mailsync --help contains errors on Fedora ${{ matrix.fedora_version }} arm64'
+                exit 1
+              fi
+              echo '✓ mailsync --help passed on Fedora ${{ matrix.fedora_version }} arm64'
+            else
+              echo '✗ mailsync --help failed on Fedora ${{ matrix.fedora_version }} arm64'
+              exit 1
+            fi
+
+            echo '✓ Mailspring ARM64 installation test passed on Fedora ${{ matrix.fedora_version }}'
+          "

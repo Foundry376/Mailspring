@@ -1,3 +1,4 @@
+import { isWaylandSession } from './is-wayland';
 import MailspringWindow from './mailspring-window';
 import { MailspringWindowSettings } from './mailspring-window';
 
@@ -19,7 +20,7 @@ export default class WindowLauncher {
 
   public hotWindow?: MailspringWindow;
 
-  private defaultWindowOpts: MailspringWindowSettings;
+  private _defaultWindowOpts: MailspringWindowSettings;
   private config: import('../config').default;
   private onCreatedHotWindow: (win: MailspringWindow) => void;
 
@@ -32,7 +33,7 @@ export default class WindowLauncher {
     onCreatedHotWindow,
     config,
   }) {
-    this.defaultWindowOpts = {
+    this._defaultWindowOpts = {
       frame: process.platform !== 'darwin',
       toolbar: process.platform !== 'linux',
       hidden: false,
@@ -50,8 +51,8 @@ export default class WindowLauncher {
     this.createHotWindow();
   }
 
-  newWindow(options) {
-    const opts = Object.assign({}, this.defaultWindowOpts, options);
+  createDefaultWindowOpts() {
+    const opts = Object.assign({}, this._defaultWindowOpts);
 
     // apply optional Linux properties
     if (process.platform === 'linux') {
@@ -64,9 +65,16 @@ export default class WindowLauncher {
         opts.frame = false;
       }
     }
+    return opts;
+  }
+
+  newWindow(options) {
+    const opts = Object.assign(this.createDefaultWindowOpts(), options);
 
     let win;
-    if (this._mustUseColdWindow(opts)) {
+
+    // On Wayland, always use cold windows - see createHotWindow comment above
+    if (this._mustUseColdWindow(opts) || isWaylandSession()) {
       win = new MailspringWindow(opts);
     } else {
       // Check if the hot window has been deleted. This may happen when we are
@@ -104,7 +112,13 @@ export default class WindowLauncher {
       }, 0);
     }
 
-    if (!opts.hidden && !opts.initializeInBackground) {
+    if (isWaylandSession()) {
+      // On Linux/Wayland, show all windows immediately regardless of the hidden flag.
+      // The hidden flag delays showing until the renderer calls displayWindow() after
+      // React renders, but by then the Wayland activation token from the user's click
+      // is lost and show() fails silently. On other platforms, respect the hidden flag.
+      win.showWhenLoaded();
+    } else if (!opts.initializeInBackground && !opts.hidden) {
       // NOTE: In the case of a cold window, this will show it once
       // loaded. If it's a hotWindow, since hotWindows have a
       // `hidden:true` flag, nothing will show. When `setLoadSettings`
@@ -116,6 +130,11 @@ export default class WindowLauncher {
   }
 
   createHotWindow() {
+    // On Linux/Wayland, don't create hot windows. BrowserWindow.show() fails silently
+    // for hidden windows when the Wayland activation context is missing, so we use cold
+    // windows instead and show them immediately when loaded.
+    if (isWaylandSession()) return;
+
     this.hotWindow = new MailspringWindow(this._hotWindowOpts());
     this.onCreatedHotWindow(this.hotWindow);
     if (DEBUG_SHOW_HOT_WINDOW) {
@@ -138,7 +157,7 @@ export default class WindowLauncher {
   // a window has been setup. If we detect this case we have to bootup a
   // plain MailspringWindow instead of using a hot window.
   _mustUseColdWindow(opts) {
-    const { bootstrapScript, frame } = this.defaultWindowOpts;
+    const { bootstrapScript, frame } = this.createDefaultWindowOpts();
 
     const usesOtherBootstrap = opts.bootstrapScript !== bootstrapScript;
     const usesOtherFrame = !!opts.frame !== frame;
@@ -148,7 +167,7 @@ export default class WindowLauncher {
   }
 
   _hotWindowOpts() {
-    const hotWindowOpts = Object.assign({}, this.defaultWindowOpts);
+    const hotWindowOpts = this.createDefaultWindowOpts();
     hotWindowOpts.hidden = DEBUG_SHOW_HOT_WINDOW;
     return hotWindowOpts;
   }

@@ -5,7 +5,7 @@ import { BadgeStore } from 'mailspring-exports';
 // Must be absolute real system path
 // https://github.com/atom/electron/issues/1299
 const { platform } = process;
-const { nativeTheme } = require("@electron/remote");
+const { nativeTheme } = require('@electron/remote');
 
 /*
 Current / Intended Behavior:
@@ -23,14 +23,11 @@ Current / Intended Behavior:
   it will switch to blue.)
 */
 class SystemTrayIconStore {
-
   _windowBackgrounded = false;
   _unsubscribers: (() => void)[];
 
   activate() {
-    setTimeout(() => {
-      this._updateIcon();
-    }, 2000);
+    this._updateIcon();
     this._unsubscribers = [];
     this._unsubscribers.push(BadgeStore.listen(this._updateIcon));
 
@@ -48,7 +45,7 @@ class SystemTrayIconStore {
     // If the theme changes from bright to dark mode or vice versa, we need to update the tray icon
     nativeTheme.on('updated', () => {
       this._updateIcon();
-    })
+    });
   }
 
   deactivate() {
@@ -67,23 +64,25 @@ class SystemTrayIconStore {
     this._updateIcon();
   };
 
-  // This implementation is windows only.
-  // On Mac the icon color is automatically inverted
-  // Linux ships with the icons used for a dark tray only
+  // On Mac the icon color is automatically inverted via isTemplateImg
+  // On Windows and Linux we ship separate dark/light icon variants
   _dark = () => {
-    if (nativeTheme.shouldUseDarkColors && process.platform === 'win32') {
-      return "-dark";
+    if (
+      nativeTheme.shouldUseDarkColors &&
+      (process.platform === 'win32' || process.platform === 'linux')
+    ) {
+      return '-dark';
     }
-    return "";
-  }
+    return '';
+  };
 
   inboxZeroIcon = () => {
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Zero${this._dark()}.png`);
-  }
+  };
 
   inboxFullIcon = () => {
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Full${this._dark()}.png`);
-  }
+  };
 
   inboxFullNewIcon = () => {
     return path.join(
@@ -93,7 +92,7 @@ class SystemTrayIconStore {
       platform,
       `MenuItem-Inbox-Full-NewItems${this._dark()}.png`
     );
-  }
+  };
 
   inboxFullUnreadIcon = () => {
     return path.join(
@@ -103,7 +102,7 @@ class SystemTrayIconStore {
       platform,
       `MenuItem-Inbox-Full-UnreadItems${this._dark()}.png`
     );
-  }
+  };
 
   _updateIcon = () => {
     const unread = BadgeStore.unread();
