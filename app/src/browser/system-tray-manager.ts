@@ -1,4 +1,5 @@
-import { Tray, Menu, nativeImage } from 'electron';
+import path from 'path';
+import { Tray, Menu, nativeImage, nativeTheme } from 'electron';
 import { localized } from '../intl';
 import Application from './application';
 
@@ -67,12 +68,36 @@ class SystemTrayManager {
     });
   }
 
+  _defaultIconPath() {
+    if (this._platform !== 'linux') return null;
+
+    // On GNOME/Unity the top bar panel is always dark regardless of the
+    // application theme, so nativeTheme.shouldUseDarkColors is unreliable
+    // for choosing the tray icon variant. Default to the light-on-dark icon.
+    const desktop = (process.env.XDG_CURRENT_DESKTOP || '').toUpperCase();
+    let dark: string;
+    if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
+      dark = '-dark';
+    } else {
+      dark = nativeTheme.shouldUseDarkColors ? '-dark' : '';
+    }
+
+    return path.join(
+      this._application.resourcePath,
+      'internal_packages',
+      'system-tray',
+      'assets',
+      'linux',
+      `MenuItem-Inbox-Full${dark}.png`
+    );
+  }
+
   initTray() {
     const enabled = this._application.config.get('core.workspace.systemTray') !== false;
     const created = this._tray !== null;
 
     if (enabled && !created) {
-      this._tray = new Tray(_getIcon(this._iconPath));
+      this._tray = new Tray(_getIcon(this._iconPath || this._defaultIconPath()));
       this._tray.setToolTip(_getTooltip(this._unreadString));
       this._tray.addListener('click', this._onClick);
       this._tray.setContextMenu(

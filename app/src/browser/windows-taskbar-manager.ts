@@ -2,13 +2,10 @@ import { app, ipcMain, nativeImage, NativeImage } from 'electron';
 import { localized } from '../intl';
 import Application from './application';
 
-const MAX_THUMBNAIL_SETUP_RETRIES = 5;
-
 /**
  * Manages Windows-specific taskbar integration features:
  * - Jump Lists (right-click taskbar menu with quick actions)
  * - Overlay Icons (unread mail indicator on taskbar icon)
- * - Thumbnail Toolbar Buttons (compose/inbox buttons on taskbar preview)
  * - Flash Frame (flash taskbar on new mail)
  */
 class WindowsTaskbarManager {
@@ -19,7 +16,6 @@ class WindowsTaskbarManager {
     this._application = application;
     this._setupJumpList();
     this._registerIpcHandlers();
-    this._setupThumbnailToolbar();
   }
 
   /**
@@ -81,58 +77,6 @@ class WindowsTaskbarManager {
     // Overlay icon: updated when badge/unread count changes
     ipcMain.on('set-overlay-icon', (_event, unreadCount: number) => {
       this._updateOverlayIcon(unreadCount);
-    });
-  }
-
-  /**
-   * Set up thumbnail toolbar buttons on the main window's taskbar preview.
-   * These buttons appear when users hover over the app in the taskbar.
-   * Retries up to MAX_THUMBNAIL_SETUP_RETRIES times if the main window
-   * is not yet available.
-   */
-  private _setupThumbnailToolbar() {
-    let retries = 0;
-
-    const setupButtons = () => {
-      const mainWin = this._application.getMainWindow();
-      if (!mainWin) {
-        retries++;
-        if (retries <= MAX_THUMBNAIL_SETUP_RETRIES) {
-          setTimeout(setupButtons, 3000);
-        }
-        return;
-      }
-
-      try {
-        const composeIcon = this._createComposeIcon();
-        const calendarIcon = this._createCalendarIcon();
-
-        mainWin.setThumbarButtons([
-          {
-            tooltip: localized('Compose New Message'),
-            icon: composeIcon,
-            click: () => {
-              this._application.emit('application:new-message');
-              const win = this._application.getMainWindow();
-              if (win) win.show();
-            },
-          },
-          {
-            tooltip: localized('Calendar'),
-            icon: calendarIcon,
-            click: () => {
-              this._application.emit('application:show-calendar');
-            },
-          },
-        ]);
-      } catch (e) {
-        console.warn('Failed to set thumbnail toolbar buttons:', e);
-      }
-    };
-
-    // Delay to ensure main window is available
-    app.whenReady().then(() => {
-      setTimeout(setupButtons, 5000);
     });
   }
 
@@ -272,89 +216,6 @@ class WindowsTaskbarManager {
       '9': [0b111, 0b101, 0b111, 0b001, 0b111],
       '+': [0b000, 0b010, 0b111, 0b010, 0b000],
     };
-  }
-
-  /**
-   * Create a 16x16 compose (pencil) icon for the thumbnail toolbar.
-   * Uses createFromBitmap with BGRA pixel order (white pixels are
-   * channel-order-independent).
-   */
-  private _createComposeIcon(): NativeImage {
-    const size = 16;
-    const buf = Buffer.alloc(size * size * 4, 0);
-
-    const setPixel = (x: number, y: number) => {
-      if (x >= 0 && x < size && y >= 0 && y < size) {
-        const i = (y * size + x) * 4;
-        buf[i] = 0xff; // B
-        buf[i + 1] = 0xff; // G
-        buf[i + 2] = 0xff; // R
-        buf[i + 3] = 0xff; // A
-      }
-    };
-
-    // Draw a pencil/compose icon:
-    // Diagonal line from (4,11) to (11,4) for the pencil body
-    for (let d = 0; d <= 7; d++) {
-      setPixel(4 + d, 11 - d);
-      setPixel(5 + d, 11 - d);
-    }
-    // Pencil tip at bottom-left
-    setPixel(3, 12);
-    // Horizontal line at bottom for the paper
-    for (let x = 2; x <= 13; x++) {
-      setPixel(x, 14);
-    }
-
-    return nativeImage.createFromBitmap(buf, { width: size, height: size });
-  }
-
-  /**
-   * Create a 16x16 calendar icon for the thumbnail toolbar.
-   * Uses createFromBitmap with BGRA pixel order (white pixels are
-   * channel-order-independent).
-   */
-  private _createCalendarIcon(): NativeImage {
-    const size = 16;
-    const buf = Buffer.alloc(size * size * 4, 0);
-
-    const setPixel = (x: number, y: number) => {
-      if (x >= 0 && x < size && y >= 0 && y < size) {
-        const i = (y * size + x) * 4;
-        buf[i] = 0xff; // B
-        buf[i + 1] = 0xff; // G
-        buf[i + 2] = 0xff; // R
-        buf[i + 3] = 0xff; // A
-      }
-    };
-
-    // Calendar outline: rect from (2,3) to (13,14)
-    for (let x = 2; x <= 13; x++) {
-      setPixel(x, 3); // top
-      setPixel(x, 14); // bottom
-    }
-    for (let y = 3; y <= 14; y++) {
-      setPixel(2, y); // left
-      setPixel(13, y); // right
-    }
-    // Header divider line at y=6
-    for (let x = 2; x <= 13; x++) {
-      setPixel(x, 6);
-    }
-    // Two binding rings at top
-    for (let y = 1; y <= 4; y++) {
-      setPixel(5, y);
-      setPixel(10, y);
-    }
-    // Grid dots in the body (3x3 grid of small marks)
-    for (const gx of [4, 7, 10]) {
-      for (const gy of [8, 10, 12]) {
-        setPixel(gx, gy);
-        setPixel(gx + 1, gy);
-      }
-    }
-
-    return nativeImage.createFromBitmap(buf, { width: size, height: size });
   }
 }
 

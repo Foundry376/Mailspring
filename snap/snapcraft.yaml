@@ -8,6 +8,7 @@ compression: lzo
 
 platforms:
   amd64:
+  arm64:
 
 parts:
   mailspring:

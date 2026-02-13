@@ -27,9 +27,7 @@ class SystemTrayIconStore {
   _unsubscribers: (() => void)[];
 
   activate() {
-    setTimeout(() => {
-      this._updateIcon();
-    }, 2000);
+    this._updateIcon();
     this._unsubscribers = [];
     this._unsubscribers.push(BadgeStore.listen(this._updateIcon));
 
@@ -51,7 +49,7 @@ class SystemTrayIconStore {
   }
 
   deactivate() {
-    this._unsubscribers.forEach((unsub) => unsub());
+    this._unsubscribers.forEach(unsub => unsub());
   }
 
   _onWindowBackgrounded = () => {
@@ -66,12 +64,22 @@ class SystemTrayIconStore {
     this._updateIcon();
   };
 
-  // This implementation is windows only.
-  // On Mac the icon color is automatically inverted
-  // Linux ships with the icons used for a dark tray only
+  // On Mac the icon color is automatically inverted via isTemplateImg.
+  // On Windows and Linux we ship separate dark/light icon variants.
+  // Returns '-dark' when we need a light icon (for dark backgrounds).
   _dark = () => {
-    if (nativeTheme.shouldUseDarkColors && process.platform === 'win32') {
-      return '-dark';
+    if (process.platform === 'win32') {
+      return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+    }
+    if (process.platform === 'linux') {
+      // On GNOME/Unity the top bar panel is always dark regardless of the
+      // application theme, so nativeTheme.shouldUseDarkColors is unreliable
+      // for choosing the tray icon variant. Default to the light-on-dark icon.
+      const desktop = (process.env.XDG_CURRENT_DESKTOP || '').toUpperCase();
+      if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
+        return '-dark';
+      }
+      return nativeTheme.shouldUseDarkColors ? '-dark' : '';
     }
     return '';
   };
