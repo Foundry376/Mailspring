@@ -70,7 +70,18 @@ class SystemTrayManager {
 
   _defaultIconPath() {
     if (this._platform !== 'linux') return null;
-    const dark = nativeTheme.shouldUseDarkColors ? '-dark' : '';
+
+    // On GNOME/Unity the top bar panel is always dark regardless of the
+    // application theme, so nativeTheme.shouldUseDarkColors is unreliable
+    // for choosing the tray icon variant. Default to the light-on-dark icon.
+    const desktop = (process.env.XDG_CURRENT_DESKTOP || '').toUpperCase();
+    let dark: string;
+    if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
+      dark = '-dark';
+    } else {
+      dark = nativeTheme.shouldUseDarkColors ? '-dark' : '';
+    }
+
     return path.join(
       this._application.resourcePath,
       'internal_packages',

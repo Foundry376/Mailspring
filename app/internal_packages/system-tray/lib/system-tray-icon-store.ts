@@ -64,14 +64,22 @@ class SystemTrayIconStore {
     this._updateIcon();
   };
 
-  // On Mac the icon color is automatically inverted via isTemplateImg
-  // On Windows and Linux we ship separate dark/light icon variants
+  // On Mac the icon color is automatically inverted via isTemplateImg.
+  // On Windows and Linux we ship separate dark/light icon variants.
+  // Returns '-dark' when we need a light icon (for dark backgrounds).
   _dark = () => {
-    if (
-      nativeTheme.shouldUseDarkColors &&
-      (process.platform === 'win32' || process.platform === 'linux')
-    ) {
-      return '-dark';
+    if (process.platform === 'win32') {
+      return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+    }
+    if (process.platform === 'linux') {
+      // On GNOME/Unity the top bar panel is always dark regardless of the
+      // application theme, so nativeTheme.shouldUseDarkColors is unreliable
+      // for choosing the tray icon variant. Default to the light-on-dark icon.
+      const desktop = (process.env.XDG_CURRENT_DESKTOP || '').toUpperCase();
+      if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
+        return '-dark';
+      }
+      return nativeTheme.shouldUseDarkColors ? '-dark' : '';
     }
     return '';
   };
