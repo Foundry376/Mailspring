@@ -118,33 +118,50 @@ class QuerySubscriptionPool {
   };
 
   _onQueueTask = (task) => {
-    const threadIds = this._threadIdsForRemovalTask(task);
-    if (threadIds && threadIds.length > 0) {
-      this._optimisticallyRemoveThreads(threadIds);
+    try {
+      this._optimisticallyRemoveThreads(task);
+    } catch (error) {
+      console.warn('QuerySubscriptionPool: optimistic removal failed for queueTask', error);
     }
   };
 
   _onQueueTasks = (tasks) => {
     if (!tasks || !tasks.length) return;
-    const allIds: string[] = [];
-    for (const task of tasks) {
-      const ids = this._threadIdsForRemovalTask(task);
-      if (ids) {
-        allIds.push(...ids);
+    try {
+      for (const task of tasks) {
+        this._optimisticallyRemoveThreads(task);
       }
-    }
-    if (allIds.length > 0) {
-      this._optimisticallyRemoveThreads(allIds);
+    } catch (error) {
+      console.warn('QuerySubscriptionPool: optimistic removal failed for queueTasks', error);
     }
   };
 
-  _threadIdsForRemovalTask(task): string[] | null {
+  _threadIdsForRemovalTask(task, subscription?: QuerySubscription<any>): string[] | null {
     const ChangeFolderTask = require('../tasks/change-folder-task').ChangeFolderTask;
     const ChangeLabelsTask = require('../tasks/change-labels-task').ChangeLabelsTask;
 
-    if (task instanceof ChangeFolderTask && task.threadIds && task.threadIds.length > 0) {
+    if (task && task.isUndo) {
+      return null;
+    }
+
+    if (
+      !subscription ||
+      !subscription._query ||
+      subscription._query.objectClass() !== 'Thread'
+    ) {
+      return null;
+    }
+
+    if (
+      task instanceof ChangeFolderTask &&
+      task.threadIds &&
+      task.threadIds.length > 0 &&
+      this._subscriptionMatchesCategory(subscription, task.previousFolder && task.previousFolder.id) &&
+      !this._subscriptionMatchesCategory(subscription, task.folder && task.folder.id)
+    ) {
       return task.threadIds;
     }
+
     if (
       task instanceof ChangeLabelsTask &&
       task.threadIds &&
@@ -153,16 +170,58 @@ class QuerySubscriptionPool {
       task.labelsToRemove.length > 0 &&
       (!task.labelsToAdd || task.labelsToAdd.length === 0)
     ) {
-      return task.threadIds;
+      const labelsToRemove = task.labelsToRemove.map(label => label && label.id).filter(id => !!id);
+      if (labelsToRemove.some(labelId => this._subscriptionMatchesCategory(subscription, labelId))) {
+        return task.threadIds;
+      }
     }
     return null;
   }
 
-  _optimisticallyRemoveThreads(threadIds: string[]) {
+  _subscriptionMatchesCategory(subscription: QuerySubscription<any>, categoryId: string) {
+    if (!categoryId || !subscription || !subscription._query) {
+      return false;
+    }
+
+    const query = subscription._query;
+    const matchers = query.matchersFlattened ? query.matchersFlattened() : query.matchers();
+    if (!matchers || !(matchers instanceof Array)) {
+      return false;
+    }
+
+    const asId = value => (value && value.id ? value.id : value);
+    return matchers.some(matcher => {
+      if (!matcher || !matcher.attr) {
+        return false;
+      }
+
+      const modelKey = matcher.attr.modelKey;
+      if (!['categories', 'folders', 'labels'].includes(modelKey)) {
+        return false;
+      }
+
+      const matcherValue = matcher.value instanceof Function ? matcher.value() : matcher.val;
+
+      if (matcher.comparator === 'contains') {
+        return asId(matcherValue) === categoryId;
+      }
+
+      if (matcher.comparator === 'containsAny' && matcherValue instanceof Array) {
+        return matcherValue.map(asId).includes(categoryId);
+      }
+
+      return false;
+    });
+  }
+
+  _optimisticallyRemoveThreads(task) {
     for (const key of Object.keys(this._subscriptions)) {
       const subscription = this._subscriptions[key];
       if (subscription._query && subscription._query.objectClass() === 'Thread') {
-        subscription.optimisticallyRemoveItemsById(threadIds);
+        const threadIds = this._threadIdsForRemovalTask(task, subscription);
+        if (threadIds && threadIds.length > 0) {
+          subscription.optimisticallyRemoveItemsById(threadIds);
+        }
       }
     }
   }

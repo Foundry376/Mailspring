@@ -83,7 +83,7 @@ export class QuerySubscription<T extends Model> {
     }
   }
 
-  onLastCallbackRemoved() {}
+  onLastCallbackRemoved() { }
 
   callbackCount = () => {
     return this._callbacks.length;
@@ -120,6 +120,9 @@ export class QuerySubscription<T extends Model> {
 
     let knownImpacts = 0;
     let unknownImpacts = 0;
+    const hasNonEvaluableMatchers = this._query
+      .matchersFlattened()
+      .some(matcher => !matcher || !matcher.attr);
 
     this._queuedChangeRecords.forEach((record) => {
       if (record.type === 'unpersist') {
@@ -134,6 +137,15 @@ export class QuerySubscription<T extends Model> {
         for (const item of record.objects) {
           const offset = this._set.offsetOfId(item.id);
           const itemIsInSet = offset !== -1;
+
+          if (hasNonEvaluableMatchers) {
+            if (itemIsInSet) {
+              this._set.updateModel(item);
+            }
+            unknownImpacts += 1;
+            continue;
+          }
+
           const itemShouldBeInSet = item.matches(this._query.matchers());
 
           if (itemIsInSet && !itemShouldBeInSet) {

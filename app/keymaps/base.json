@@ -24,7 +24,7 @@
   "core:print-thread": "mod+p",
   "core:copy-mailbox-link": "ctrl+l",
   "core:focus-item": "enter",
-  "core:remove-from-view": ["backspace", "del"],
+  "core:remove-from-view": ["backspace", "del", "delete"],
   "core:pop-sheet": "escape",
   "core:show-keybindings": "?",
 

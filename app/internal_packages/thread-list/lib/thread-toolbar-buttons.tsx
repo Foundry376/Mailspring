@@ -102,6 +102,28 @@ export class TrashButton extends React.Component<{ items: Thread[] }> {
 class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'HiddenGenericRemoveButton';
 
+  _itemsForRemove = () => {
+    if (this.props.items && this.props.items.length > 0) {
+      return this.props.items;
+    }
+
+    const dataSource = ThreadListStore.dataSource();
+    if (!dataSource) {
+      return [];
+    }
+
+    const focused = FocusedContentStore.focused('thread') as Thread;
+    if (focused) {
+      return [focused];
+    }
+
+    if (dataSource.selection && dataSource.selection.count() > 0) {
+      return dataSource.selection.items() as Thread[];
+    }
+
+    return [];
+  };
+
   _onRemoveAndShift = ({ offset }) => {
     const dataSource = ThreadListStore.dataSource();
     const focusedId = FocusedContentStore.focusedId('thread');
@@ -117,8 +139,13 @@ class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
   };
 
   _onRemoveFromView = () => {
+    const items = this._itemsForRemove();
+    if (items.length === 0) {
+      return;
+    }
+
     const current = FocusedPerspectiveStore.current();
-    const tasks = current.tasksForRemovingItems(this.props.items, 'Keyboard Shortcut');
+    const tasks = current.tasksForRemovingItems(items, 'Keyboard Shortcut');
     Actions.queueTasks(tasks);
     Actions.popSheet();
   };
