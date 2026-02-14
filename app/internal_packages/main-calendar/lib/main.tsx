@@ -17,18 +17,20 @@ const Notice = () =>
 Notice.displayName = 'Notice';
 
 export function activate() {
-  ComponentRegistry.register(MailspringCalendar, {
-    location: WorkspaceStore.Location.Center,
-  });
-  ComponentRegistry.register(Notice, {
-    location: WorkspaceStore.Sheet.Main.Header,
-  });
-  ComponentRegistry.register(QuickEventButton, {
-    location: WorkspaceStore.Location.Center.Toolbar,
-  });
-  ComponentRegistry.register(EventSearchBar, {
-    location: WorkspaceStore.Location.Center.Toolbar,
-  });
+  if (AppEnv.getWindowType() === 'calendar') {
+    ComponentRegistry.register(MailspringCalendar, {
+      location: WorkspaceStore.Location.Center,
+    });
+    ComponentRegistry.register(Notice, {
+      location: WorkspaceStore.Sheet.Main.Header,
+    });
+    ComponentRegistry.register(QuickEventButton, {
+      location: WorkspaceStore.Location.Center.Toolbar,
+    });
+    ComponentRegistry.register(EventSearchBar, {
+      location: WorkspaceStore.Location.Center.Toolbar,
+    });
+  }
 }
 
 export function deactivate() {
