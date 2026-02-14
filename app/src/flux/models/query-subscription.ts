@@ -77,13 +77,13 @@ export class QuerySubscription<T extends Model> {
         `QuerySubscription:removeCallback - expects a function, received ${callback}`
       );
     }
-    this._callbacks = this._callbacks.filter(c => c !== callback);
+    this._callbacks = this._callbacks.filter((c) => c !== callback);
     if (this.callbackCount() === 0) {
       this.onLastCallbackRemoved();
     }
   }
 
-  onLastCallbackRemoved() {}
+  onLastCallbackRemoved() { }
 
   callbackCount = () => {
     return this._callbacks.length;
@@ -120,8 +120,11 @@ export class QuerySubscription<T extends Model> {
 
     let knownImpacts = 0;
     let unknownImpacts = 0;
+    const hasNonEvaluableMatchers = this._query
+      .matchersFlattened()
+      .some(matcher => !matcher || !matcher.attr);
 
-    this._queuedChangeRecords.forEach(record => {
+    this._queuedChangeRecords.forEach((record) => {
       if (record.type === 'unpersist') {
         for (const item of record.objects) {
           const offset = this._set.offsetOfId(item.id);
@@ -134,6 +137,15 @@ export class QuerySubscription<T extends Model> {
         for (const item of record.objects) {
           const offset = this._set.offsetOfId(item.id);
           const itemIsInSet = offset !== -1;
+
+          if (hasNonEvaluableMatchers) {
+            if (itemIsInSet) {
+              this._set.updateModel(item);
+            }
+            unknownImpacts += 1;
+            continue;
+          }
+
           const itemShouldBeInSet = item.matches(this._query.matchers());
 
           if (itemIsInSet && !itemShouldBeInSet) {
@@ -248,7 +260,7 @@ export class QuerySubscription<T extends Model> {
       rangeQuery.background();
     }
 
-    DatabaseStore.run<T[] | string[]>(rangeQuery, { format: false }).then(async results => {
+    DatabaseStore.run<T[] | string[]>(rangeQuery, { format: false }).then(async (results) => {
       if (this._queryVersion !== version) {
         return;
       }
@@ -279,12 +291,29 @@ export class QuerySubscription<T extends Model> {
   }
 
   async _fetchMissingModels() {
-    const missingIds = this._set.ids().filter(id => !this._set.modelWithId(id));
+    const missingIds = this._set.ids().filter((id) => !this._set.modelWithId(id));
     if (missingIds.length === 0) {
       return [];
     }
     return DatabaseStore.findAll<T>(this._query._klass, { id: missingIds });
   }
+
+  optimisticallyRemoveItemsById = (ids: string[]) => {
+    if (!this._set) {
+      return;
+    }
+    let removed = 0;
+    for (const id of ids) {
+      const offset = this._set.offsetOfId(id);
+      if (offset !== -1) {
+        this._set.removeModelAtOffset({ id } as T, offset);
+        removed += 1;
+      }
+    }
+    if (removed > 0) {
+      this._createResultAndTrigger();
+    }
+  };
 
   _createResultAndTrigger() {
     const allCompleteModels = this._set.isComplete();
@@ -319,7 +348,7 @@ export class QuerySubscription<T extends Model> {
       this._lastResult = this._query.formatResult(models) as QuerySubscriptionResult<T>;
     }
 
-    this._callbacks.forEach(callback => callback(this._lastResult));
+    this._callbacks.forEach((callback) => callback(this._lastResult));
 
     // process any additional change records that have arrived
     if (this._updateInFlight) {

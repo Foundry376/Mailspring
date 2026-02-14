@@ -3,6 +3,7 @@ import { QuerySubscription } from './query-subscription';
 import { DatabaseChangeRecord } from '../stores/database-change-record';
 import ModelQuery from './query';
 import { Model } from './model';
+import * as Actions from '../actions';
 let DatabaseStore = null;
 
 /*
@@ -105,6 +106,8 @@ class QuerySubscriptionPool {
   _setup() {
     DatabaseStore = DatabaseStore || require('../stores/database-store').default;
     DatabaseStore.listen(this._onChange);
+    Actions.queueTask.listen(this._onQueueTask);
+    Actions.queueTasks.listen(this._onQueueTasks);
   }
 
   _onChange = (record: DatabaseChangeRecord<Model>) => {
@@ -113,6 +116,115 @@ class QuerySubscriptionPool {
       subscription.applyChangeRecord(record);
     }
   };
+
+  _onQueueTask = (task) => {
+    try {
+      this._optimisticallyRemoveThreads(task);
+    } catch (error) {
+      console.warn('QuerySubscriptionPool: optimistic removal failed for queueTask', error);
+    }
+  };
+
+  _onQueueTasks = (tasks) => {
+    if (!tasks || !tasks.length) return;
+    try {
+      for (const task of tasks) {
+        this._optimisticallyRemoveThreads(task);
+      }
+    } catch (error) {
+      console.warn('QuerySubscriptionPool: optimistic removal failed for queueTasks', error);
+    }
+  };
+
+  _threadIdsForRemovalTask(task, subscription?: QuerySubscription<any>): string[] | null {
+    const ChangeFolderTask = require('../tasks/change-folder-task').ChangeFolderTask;
+    const ChangeLabelsTask = require('../tasks/change-labels-task').ChangeLabelsTask;
+
+    if (task && task.isUndo) {
+      return null;
+    }
+
+    if (
+      !subscription ||
+      !subscription._query ||
+      subscription._query.objectClass() !== 'Thread'
+    ) {
+      return null;
+    }
+
+    if (
+      task instanceof ChangeFolderTask &&
+      task.threadIds &&
+      task.threadIds.length > 0 &&
+      this._subscriptionMatchesCategory(subscription, task.previousFolder && task.previousFolder.id) &&
+      !this._subscriptionMatchesCategory(subscription, task.folder && task.folder.id)
+    ) {
+      return task.threadIds;
+    }
+
+    if (
+      task instanceof ChangeLabelsTask &&
+      task.threadIds &&
+      task.threadIds.length > 0 &&
+      task.labelsToRemove &&
+      task.labelsToRemove.length > 0 &&
+      (!task.labelsToAdd || task.labelsToAdd.length === 0)
+    ) {
+      const labelsToRemove = task.labelsToRemove.map(label => label && label.id).filter(id => !!id);
+      if (labelsToRemove.some(labelId => this._subscriptionMatchesCategory(subscription, labelId))) {
+        return task.threadIds;
+      }
+    }
+    return null;
+  }
+
+  _subscriptionMatchesCategory(subscription: QuerySubscription<any>, categoryId: string) {
+    if (!categoryId || !subscription || !subscription._query) {
+      return false;
+    }
+
+    const query = subscription._query;
+    const matchers = query.matchersFlattened ? query.matchersFlattened() : query.matchers();
+    if (!matchers || !(matchers instanceof Array)) {
+      return false;
+    }
+
+    const asId = value => (value && value.id ? value.id : value);
+    return matchers.some(matcher => {
+      if (!matcher || !matcher.attr) {
+        return false;
+      }
+
+      const modelKey = matcher.attr.modelKey;
+      if (!['categories', 'folders', 'labels'].includes(modelKey)) {
+        return false;
+      }
+
+      const matcherValue = matcher.value instanceof Function ? matcher.value() : matcher.val;
+
+      if (matcher.comparator === 'contains') {
+        return asId(matcherValue) === categoryId;
+      }
+
+      if (matcher.comparator === 'containsAny' && matcherValue instanceof Array) {
+        return matcherValue.map(asId).includes(categoryId);
+      }
+
+      return false;
+    });
+  }
+
+  _optimisticallyRemoveThreads(task) {
+    for (const key of Object.keys(this._subscriptions)) {
+      const subscription = this._subscriptions[key];
+      if (subscription._query && subscription._query.objectClass() === 'Thread') {
+        const threadIds = this._threadIdsForRemovalTask(task, subscription);
+        if (threadIds && threadIds.length > 0) {
+          subscription.optimisticallyRemoveItemsById(threadIds);
+        }
+      }
+    }
+  }
 }
 
 const pool = new QuerySubscriptionPool();
