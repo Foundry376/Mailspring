@@ -64,7 +64,6 @@ class ThreadList extends React.Component<
       })
     );
     window.addEventListener('resize', this._onResize, true);
-    window.addEventListener('keydown', this._onGlobalDeleteKeyDown, true);
     ReactDOM.findDOMNode(this).addEventListener('contextmenu', this._onShowContextMenu);
     this._onResize();
   }
@@ -76,7 +75,6 @@ class ThreadList extends React.Component<
   componentWillUnmount() {
     this.unsub();
     window.removeEventListener('resize', this._onResize, true);
-    window.removeEventListener('keydown', this._onGlobalDeleteKeyDown, true);
     ReactDOM.findDOMNode(this).removeEventListener('contextmenu', this._onShowContextMenu);
   }
 
@@ -240,26 +238,6 @@ class ThreadList extends React.Component<
   };
 
   _onDragEnd = event => { };
-
-  _onGlobalDeleteKeyDown = (event: KeyboardEvent) => {
-    const key = (event.key || '').toLowerCase();
-    const isDelete = key === 'delete' || key === 'del';
-    if (!isDelete) {
-      return;
-    }
-    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
-      return;
-    }
-
-    const items = this._threadsForKeyboardAction();
-    if (!items || items.length === 0) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    AppEnv.commands.dispatch('core:remove-from-view');
-  };
 
   _onResize = (event?: any) => {
     const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty(
