@@ -95,7 +95,7 @@ interface MailspringCalendarState {
   view: CalendarView;
   selectedEvents: EventOccurrence[];
   focusedEvent: FocusedEventInfo | null;
-  accounts?: Account[];
+  accounts: Account[];
   calendars: Calendar[];
   focusedMoment: Moment;
   disabledCalendars: string[];
@@ -123,6 +123,7 @@ export class MailspringCalendar extends React.Component<
     super(props);
     this.state = {
       calendars: [],
+      accounts: [],
       focusedEvent: null,
       selectedEvents: [],
       view: AppEnv.config.get(CALENDAR_VIEW) || CalendarView.WEEK,
