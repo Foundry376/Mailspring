@@ -11,6 +11,7 @@ interface MessageAttachmentsProps {
     [fileId: string]: string;
   };
   canRemoveAttachments: boolean;
+  onOpenPDFPreview?: (fileId: string, filePath: string, displayName: string) => void;
 }
 
 class MessageAttachments extends Component<MessageAttachmentsProps> {
@@ -24,6 +25,7 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
     headerMessageId: PropTypes.string,
     filePreviewPaths: PropTypes.object,
     canRemoveAttachments: PropTypes.bool,
+    onOpenPDFPreview: PropTypes.func,
   };
 
   static defaultProps = {
@@ -32,7 +34,7 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
   };
 
   renderAttachment(AttachmentRenderer, file) {
-    const { canRemoveAttachments, downloads, filePreviewPaths } = this.props;
+    const { canRemoveAttachments, downloads, filePreviewPaths, onOpenPDFPreview } = this.props;
     const download = downloads[file.id];
     const filePath = AttachmentStore.pathForFile(file);
     const fileIconName = `file-${file.displayExtension()}.png`;
@@ -41,6 +43,24 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
     const contentType = file.contentType;
     const displayFilePreview = AppEnv.config.get('core.attachments.displayFilePreview');
     const filePreviewPath = displayFilePreview ? filePreviewPaths[file.id] : null;
+
+    // Check if this is a PDF file
+    const isPDF = file.displayExtension().toLowerCase() === 'pdf';
+    console.log('MessageAttachments renderAttachment:', {
+      fileName: displayName,
+      extension: file.displayExtension(),
+      isPDF,
+      hasPDFHandler: !!onOpenPDFPreview
+    });
+
+    const onOpenAttachment = isPDF && onOpenPDFPreview
+      ? () => {
+        console.log('PDF attachment clicked, opening preview');
+        onOpenPDFPreview(file.id, filePath, displayName);
+      }
+      : () => Actions.fetchAndOpenFile(file);
+
+    const onClickAttachment = isPDF && onOpenPDFPreview ? onOpenAttachment : undefined;
 
     return (
       <AttachmentRenderer
@@ -53,7 +73,8 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
         displaySize={displaySize}
         fileIconName={fileIconName}
         filePreviewPath={filePreviewPath}
-        onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
+        onClick={onClickAttachment}
+        onOpenAttachment={onOpenAttachment}
         onSaveAttachment={() => Actions.fetchAndSaveFile(file)}
         onRemoveAttachment={
           canRemoveAttachments

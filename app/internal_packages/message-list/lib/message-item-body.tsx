@@ -14,6 +14,7 @@ import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
 import EmailFrame from './email-frame';
 import { BrowserWindow } from '@electron/remote';
+import PDFViewer from '../../../src/components/pdf-viewer';
 
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
@@ -54,6 +55,7 @@ interface MessageItemBodyState {
   processedBody: string;
   clipped: boolean;
   showQuotedText: boolean;
+  openPDFPreviews: Array<{ fileId: string; filePath: string; displayName: string }>;
 }
 
 export default class MessageItemBody extends React.Component<
@@ -78,6 +80,7 @@ export default class MessageItemBody extends React.Component<
       showQuotedText: props.message.isForwarded(),
       processedBody: cached ? cached.body : null,
       clipped: cached ? cached.clipped : false,
+      openPDFPreviews: [],
     };
   }
 
@@ -115,6 +118,32 @@ export default class MessageItemBody extends React.Component<
   _onToggleQuotedText = () => {
     this.setState({
       showQuotedText: !this.state.showQuotedText,
+    });
+  };
+
+  _onOpenPDFPreview = (fileId: string, filePath: string, displayName: string) => {
+    console.log('MessageItemBody _onOpenPDFPreview:', { fileId, filePath, displayName });
+
+    // Check if PDF preview is already open
+    const existingIndex = this.state.openPDFPreviews.findIndex(preview => preview.fileId === fileId);
+
+    if (existingIndex >= 0) {
+      console.log('Closing existing PDF preview');
+      this.setState({
+        openPDFPreviews: this.state.openPDFPreviews.filter((_, index) => index !== existingIndex),
+      });
+    } else {
+      console.log('Opening new PDF preview');
+      this.setState({
+        openPDFPreviews: [...this.state.openPDFPreviews, { fileId, filePath, displayName }],
+      });
+    }
+  };
+
+  _onClosePDFPreview = (fileId: string) => {
+    console.log('MessageItemBody _onClosePDFPreview:', { fileId });
+    this.setState({
+      openPDFPreviews: this.state.openPDFPreviews.filter(preview => preview.fileId !== fileId),
     });
   };
 
@@ -199,6 +228,23 @@ export default class MessageItemBody extends React.Component<
     );
   }
 
+  _renderPDFPreviews() {
+    const { openPDFPreviews } = this.state;
+
+    if (openPDFPreviews.length === 0) {
+      return null;
+    }
+
+    return openPDFPreviews.map(preview => (
+      <PDFViewer
+        key={preview.fileId}
+        filePath={preview.filePath}
+        displayName={preview.displayName}
+        onClose={() => this._onClosePDFPreview(preview.fileId)}
+      />
+    ));
+  }
+
   render() {
     return (
       <span>
@@ -209,6 +255,7 @@ export default class MessageItemBody extends React.Component<
           style={{ width: '100%' }}
         />
         {this._renderBody()}
+        {this._renderPDFPreviews()}
         <ConditionalQuotedTextControl
           body={this.props.message.body || ''}
           onClick={this._onToggleQuotedText}

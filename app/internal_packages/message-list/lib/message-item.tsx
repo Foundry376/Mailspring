@@ -15,6 +15,7 @@ import MessageParticipants from './message-participants';
 import MessageItemBody from './message-item-body';
 import MessageTimestamp from './message-timestamp';
 import MessageControls from './message-controls';
+import PDFViewer from '../../../src/components/pdf-viewer';
 
 interface MessageItemProps {
   thread: Thread;
@@ -32,6 +33,7 @@ interface MessageItemState {
     [fileId: string]: null;
   };
   detailedHeaders: boolean;
+  openPDFPreviews: Array<{ fileId: string; filePath: string; displayName: string }>;
 }
 
 export default class MessageItem extends React.Component<MessageItemProps, MessageItemState> {
@@ -59,6 +61,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       downloads: AttachmentStore.getDownloadDataForFiles(fileIds),
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: AppEnv.config.get('core.reading.detailedHeaders'),
+      openPDFPreviews: [],
     };
   }
 
@@ -114,6 +117,50 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     });
   };
 
+  _onOpenPDFPreview = (fileId: string, filePath: string, displayName: string) => {
+    // Check if PDF preview is already open
+    const existingIndex = this.state.openPDFPreviews.findIndex(preview => preview.fileId === fileId);
+
+    if (existingIndex >= 0) {
+      // Remove existing preview
+      this.setState({
+        openPDFPreviews: this.state.openPDFPreviews.filter((_, index) => index !== existingIndex),
+      });
+    } else {
+      // Add new preview
+      this.setState({
+        openPDFPreviews: [...this.state.openPDFPreviews, { fileId, filePath, displayName }],
+      });
+    }
+  };
+
+  _onClosePDFPreview = (fileId: string) => {
+    this.setState({
+      openPDFPreviews: this.state.openPDFPreviews.filter(preview => preview.fileId !== fileId),
+    });
+  };
+
+  _renderPDFPreviews() {
+    const { openPDFPreviews } = this.state;
+
+    if (openPDFPreviews.length === 0) {
+      return null;
+    }
+
+    return (
+      <div style={{ width: '100%' }}>
+        {openPDFPreviews.map(preview => (
+          <PDFViewer
+            key={preview.fileId}
+            filePath={preview.filePath}
+            displayName={preview.displayName}
+            onClose={() => this._onClosePDFPreview(preview.fileId)}
+          />
+        ))}
+      </div>
+    );
+  }
+
   _renderDownloadAllButton() {
     return (
       <div className="download-all">
@@ -132,7 +179,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
 
   _renderAttachments() {
     const { files = [], body, id } = this.props.message;
-    const { filePreviewPaths, downloads } = this.state;
+    const { filePreviewPaths, downloads, openPDFPreviews } = this.state;
     let attachedFiles = files.filter(
       f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`)
     );
@@ -145,21 +192,29 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       });
     }
 
+    const openPDFPreviewFileIds = new Set(openPDFPreviews.map(preview => preview.fileId));
+    const visibleAttachedFiles = attachedFiles.filter(file => {
+      const isPDF = file.displayExtension().toLowerCase() === 'pdf';
+      return !(isPDF && openPDFPreviewFileIds.has(file.id));
+    });
+
     return (
       <div>
         {files.length > 1 ? this._renderDownloadAllButton() : null}
-        {attachedFiles.length > 0 && (
+        {(visibleAttachedFiles.length > 0 || openPDFPreviews.length > 0) && (
           <div className="attachments-area">
             <InjectedComponent
               matching={{ role: 'MessageAttachments' }}
               exposedProps={{
-                files: attachedFiles,
+                files: visibleAttachedFiles,
                 messageId: id,
                 downloads,
                 filePreviewPaths,
                 canRemoveAttachments: false,
+                onOpenPDFPreview: this._onOpenPDFPreview,
               }}
             />
+            {this._renderPDFPreviews()}
           </div>
         )}
       </div>
