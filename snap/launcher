@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ "${DISABLE_WAYLAND:-0}" = 0 ] && \
+   [ "${GDK_BACKEND:-wayland}" = "wayland" ] && \
+   [ "$(snapctl get wayland-native)" = "true" ]; then
+  args="--enable-features=WaylandWindowDecorations --ozone-platform=wayland"
+fi
+
+exec "$SNAP/usr/bin/mailspring" $args "${@}"
