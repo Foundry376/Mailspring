@@ -164,39 +164,346 @@ An abstraction layer over the grammar-checking backend.
 
 ```typescript
 interface GrammarError {
-  offset: number;       // Character offset within the paragraph
-  length: number;       // Length of the error span
-  message: string;      // Full description (e.g., "Use 'an' instead of 'a'")
-  shortMessage: string; // Brief label (e.g., "Wrong article")
-  replacements: string[]; // Suggested fixes
-  ruleId: string;       // e.g., "EN_A_VS_AN"
-  category: string;     // e.g., "Grammar", "Typos", "Style"
+  // --- From LanguageTool match ---
+  offset: number;          // Character offset within the paragraph text (0-based)
+  length: number;          // Number of characters in the error span
+  message: string;         // Full human-readable description
+                           //   e.g., "The verb 'do' does not agree with the subject 'He'."
+  shortMessage: string;    // Brief label for popover header
+                           //   e.g., "Subject-verb agreement" (may be empty)
+  replacements: string[];  // Suggested fix strings (extracted from match.replacements[].value)
+  ruleId: string;          // Rule identifier, e.g., "HE_VERB_AGR"
+                           //   Used for dismissing rules (→ disabledRules API param)
+  ruleDescription: string; // Rule description, e.g., "'He/she' + verb agreement"
+  category: string;        // Category ID: "GRAMMAR", "TYPOS", "STYLE", "PUNCTUATION",
+                           //   "REDUNDANCY", "CASING", etc. → determines underline color
+  categoryName: string;    // Human-readable: "Grammar", "Possible Typo", etc.
+  issueType: string;       // "grammar", "misspelling", "typographical", "style", etc.
+  sentence: string;        // The full sentence containing the error
+  contextText: string;     // Surrounding text snippet (from match.context.text)
+  contextOffset: number;   // Error offset within contextText (from match.context.offset)
+  contextLength: number;   // Error length within contextText (from match.context.length)
 }
 
 interface GrammarCheckResult {
-  paragraphKey: string;  // Slate block key for cache association
-  paragraphText: string; // The text that was checked (for staleness detection)
+  paragraphKey: string;    // Slate block key for cache association
+  paragraphText: string;   // The text that was checked (for staleness detection)
   errors: GrammarError[];
 }
 
 interface GrammarCheckBackend {
-  check(text: string, language: string): Promise<GrammarError[]>;
+  check(text: string, language?: string, signal?: AbortSignal): Promise<GrammarError[]>;
   isAvailable(): boolean;
   name: string;
 }
 ```
 
-**LanguageTool HTTP backend**:
-- POST to `{serverUrl}/v2/check` with `text` and `language` parameters
-- Parse the `matches` array from the JSON response
-- Map each match to a `GrammarError` using `offset`, `length`, `message`, `replacements[].value`, `rule.id`, `rule.category.id`
-- Use `fetch()` (available in Electron renderer) or `node-fetch`
-- Handle network errors gracefully — don't block the user, just skip the check
+**LanguageTool HTTP backend** — see [LanguageTool API Reference](#languagetool-api-reference) below for the full schema. The service implementation:
 
-**Harper WASM backend** (future/optional):
-- Load the Harper WASM module
-- Call the check function synchronously or via a Web Worker
-- Map results to the same `GrammarError` interface
+```typescript
+class LanguageToolBackend implements GrammarCheckBackend {
+  name = 'LanguageTool';
+  private serverUrl: string;
+  private language: string;
+  private apiKey?: string;
+  private disabledRules: string[] = [];
+
+  constructor(config: {
+    serverUrl: string;
+    language: string;
+    apiKey?: string;
+    disabledRules?: string[];
+  }) {
+    this.serverUrl = config.serverUrl;
+    this.language = config.language || 'auto';
+    this.apiKey = config.apiKey;
+    this.disabledRules = config.disabledRules || [];
+  }
+
+  isAvailable(): boolean {
+    return !!this.serverUrl;
+  }
+
+  async check(text: string, language?: string, signal?: AbortSignal): Promise<GrammarError[]> {
+    const params = new URLSearchParams();
+    params.append('text', text);
+    params.append('language', language || this.language);
+
+    if (this.apiKey) {
+      params.append('apiKey', this.apiKey);
+    }
+    if (this.disabledRules.length > 0) {
+      params.append('disabledRules', this.disabledRules.join(','));
+    }
+
+    const response = await fetch(`${this.serverUrl}/v2/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+      signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`LanguageTool API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data: LanguageToolResponse = await response.json();
+    return data.matches.map(match => ({
+      offset: match.offset,
+      length: match.length,
+      message: match.message,
+      shortMessage: match.shortMessage || '',
+      replacements: match.replacements.map(r => r.value),
+      ruleId: match.rule.id,
+      ruleDescription: match.rule.description,
+      category: match.rule.category.id,
+      categoryName: match.rule.category.name,
+      issueType: match.rule.issueType,
+      sentence: match.sentence,
+      contextText: match.context.text,
+      contextOffset: match.context.offset,
+      contextLength: match.context.length,
+    }));
+  }
+}
+```
+
+---
+
+## LanguageTool API Reference
+
+Our backend is LanguageTool running in a Docker container (`docker run -p 8010:8010 erikvl87/languagetool`). The API follows the standard LanguageTool HTTP API (Swagger spec at `/http-api/languagetool-swagger.json`).
+
+### Docker Setup
+
+```bash
+# Standard self-hosted deployment
+docker run -d \
+  --name languagetool \
+  -p 8010:8010 \
+  erikvl87/languagetool
+
+# With n-gram data for better detection (recommended, needs ~8GB disk + ~4GB RAM)
+docker run -d \
+  --name languagetool \
+  -p 8010:8010 \
+  -v /path/to/ngrams:/ngrams \
+  -e langtool_languageModel=/ngrams \
+  erikvl87/languagetool
+```
+
+The server will be available at `http://localhost:8010`.
+
+### POST /v2/check — Primary Endpoint
+
+This is the only endpoint we call during grammar checking.
+
+**Request** (`Content-Type: application/x-www-form-urlencoded`):
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `text` | string | Yes* | The text to check. *Either `text` or `data` is required. |
+| `data` | string | No | Alternative: JSON document with text and markup annotations (markup is ignored by the checker). |
+| `language` | string | **Yes** | Language code: `en-US`, `de-DE`, `fr`, or `auto` for auto-detection. |
+| `motherTongue` | string | No | User's native language code. Enables false-friends detection (e.g., German user writing English). |
+| `preferredVariants` | string | No | Comma-separated preferred variants when `language=auto`. E.g., `en-US,de-DE` to prefer US English over British. |
+| `enabledRules` | string | No | Comma-separated rule IDs to enable. |
+| `disabledRules` | string | No | Comma-separated rule IDs to disable. Used for dismissed rules. |
+| `enabledCategories` | string | No | Comma-separated category IDs to enable. |
+| `disabledCategories` | string | No | Comma-separated category IDs to disable. |
+| `enabledOnly` | boolean | No | Default `false`. If `true`, only rules/categories explicitly enabled are checked. |
+| `level` | string | No | `"default"` or `"picky"`. Picky mode enables additional rules for formal writing. |
+| `username` | string | No | For premium API access. |
+| `apiKey` | string | No | For premium API access. |
+| `dicts` | string | No | Comma-separated list of user dictionary IDs. |
+
+**Typical request from our plugin**:
+
+```
+POST http://localhost:8010/v2/check
+Content-Type: application/x-www-form-urlencoded
+
+text=He+do+not+like+bananas.&language=auto&disabledRules=WHITESPACE_RULE,EN_QUOTES
+```
+
+**Response** (`200 OK`, `application/json`):
+
+```typescript
+interface LanguageToolResponse {
+  software: {
+    name: string;           // "LanguageTool"
+    version: string;        // "6.4"
+    buildDate: string;      // "2024-06-25 10:45:00 +0000"
+    apiVersion: number;     // 1
+    status: string;         // ""
+    premium: boolean;       // false (for self-hosted)
+  };
+
+  language: {
+    name: string;           // "English (US)"
+    code: string;           // "en-US"
+    detectedLanguage: {
+      name: string;         // "English (US)"
+      code: string;         // "en-US"
+      confidence: number;   // 0.99 (not in spec but often present)
+    };
+  };
+
+  matches: LanguageToolMatch[];
+}
+
+interface LanguageToolMatch {
+  message: string;          // Full human-readable description
+                            // e.g., "The verb 'do' does not agree with the subject 'He'."
+  shortMessage: string;     // Brief label, e.g., "Subject-verb agreement"
+                            // May be empty string for some rules.
+  offset: number;           // Character offset in the submitted `text` (0-based)
+  length: number;           // Number of characters in the error span
+  replacements: Array<{
+    value: string;          // Suggested replacement text
+                            // e.g., "does", "did"
+  }>;
+  context: {
+    text: string;           // A snippet of surrounding text for display
+    offset: number;         // Offset of the error within `context.text`
+    length: number;         // Length of the error within `context.text`
+  };
+  sentence: string;         // The full sentence containing the error
+  rule: {
+    id: string;             // Rule identifier, e.g., "HE_VERB_AGR"
+    subId?: string;         // Sub-rule ID (optional)
+    description: string;    // Rule description, e.g., "'He/she' + verb agreement"
+    issueType: string;      // "grammar", "typographical", "misspelling", "style", etc.
+    category: {
+      id: string;           // Category ID, e.g., "GRAMMAR", "TYPOS", "STYLE",
+                            // "PUNCTUATION", "REDUNDANCY", "CASING"
+      name: string;         // Human-readable: "Grammar", "Possible Typo", etc.
+    };
+    urls?: Array<{
+      value: string;        // URL to rule documentation
+    }>;
+  };
+}
+```
+
+**Example response**:
+
+```json
+{
+  "software": {
+    "name": "LanguageTool",
+    "version": "6.4",
+    "buildDate": "2024-06-25 10:45:00 +0000",
+    "apiVersion": 1,
+    "status": "",
+    "premium": false
+  },
+  "language": {
+    "name": "English (US)",
+    "code": "en-US",
+    "detectedLanguage": {
+      "name": "English (US)",
+      "code": "en-US"
+    }
+  },
+  "matches": [
+    {
+      "message": "The verb 'do' does not agree with the subject 'He'. Consider using: \"does\"",
+      "shortMessage": "Subject-verb agreement",
+      "offset": 3,
+      "length": 2,
+      "replacements": [
+        { "value": "does" },
+        { "value": "did" }
+      ],
+      "context": {
+        "text": "He do not like bananas.",
+        "offset": 3,
+        "length": 2
+      },
+      "sentence": "He do not like bananas.",
+      "rule": {
+        "id": "HE_VERB_AGR",
+        "description": "'He/she' + verb agreement",
+        "issueType": "grammar",
+        "category": {
+          "id": "GRAMMAR",
+          "name": "Grammar"
+        }
+      }
+    }
+  ]
+}
+```
+
+### Mapping LanguageTool Response → GrammarError
+
+The critical fields for our plugin and how they map:
+
+| LanguageTool Field | GrammarError Field | Used For |
+|---|---|---|
+| `match.offset` | `error.offset` | Slate decoration anchor position |
+| `match.length` | `error.length` | Slate decoration focus position |
+| `match.message` | `error.message` | Popover full description |
+| `match.shortMessage` | `error.shortMessage` | Popover header / tooltip |
+| `match.replacements[].value` | `error.replacements` | Popover suggestion buttons |
+| `match.rule.id` | `error.ruleId` | Dismiss rule, `disabledRules` param |
+| `match.rule.category.id` | `error.category` | Underline color selection |
+| `match.rule.issueType` | `error.issueType` | (reserved for future filtering UI) |
+| `match.sentence` | (not stored) | Could be used for context display |
+| `match.context.*` | (not stored) | Redundant — we have the paragraph text |
+
+**Category → underline color mapping**:
+
+| `rule.category.id` | `rule.issueType` | Underline Color | Hex |
+|---|---|---|---|
+| `GRAMMAR` | `grammar` | Blue (wavy) | `#3498db` |
+| `TYPOS` | `misspelling` | Red (wavy) | `#e74c3c` |
+| `STYLE`, `REDUNDANCY` | `style` | Amber (wavy) | `#f39c12` |
+| `PUNCTUATION` | `typographical` | Blue (wavy) | `#3498db` |
+| `CASING` | `typographical` | Blue (wavy) | `#3498db` |
+| Everything else | * | Blue (wavy) | `#3498db` |
+
+### GET /v2/languages — Language List
+
+Used to populate the language dropdown in preferences.
+
+**Request**: No parameters.
+
+**Response** (`200 OK`):
+
+```typescript
+type LanguageToolLanguagesResponse = Array<{
+  name: string;     // "English (US)"
+  code: string;     // "en"
+  longCode: string; // "en-US"
+}>;
+```
+
+Fetch once on preferences panel open, cache indefinitely.
+
+### Dismissed Rules → disabledRules Parameter
+
+When a user clicks "Dismiss" on a grammar error, we store its `rule.id` (e.g., `"HE_VERB_AGR"`) in the `GrammarCheckStore.dismissedRules` set (persisted to `AppEnv.config`). On subsequent API calls, we pass all dismissed rule IDs as the `disabledRules` parameter:
+
+```
+disabledRules=HE_VERB_AGR,EN_QUOTES,COMMA_PARENTHESIS_WHITESPACE
+```
+
+This makes the server skip those rules entirely, avoiding unnecessary matches that the user has already seen and dismissed.
+
+### Error Handling
+
+| HTTP Status | Meaning | Our Response |
+|---|---|---|
+| `200` | Success | Parse matches normally |
+| `400` | Bad request (invalid language, etc.) | Log warning, skip this check cycle |
+| `413` | Text too long | Split paragraph and retry, or skip |
+| `429` | Rate limited | Back off exponentially, retry after delay |
+| `500+` | Server error | Log warning, skip, retry on next debounce |
+| Network error | Server unreachable | Show subtle "offline" indicator on toggle button, skip check |
+
+---
 
 ### 1.2 Grammar Check Store (`lib/grammar-check-store.ts`)
 
@@ -695,23 +1002,35 @@ Add to `core.composing` config namespace:
 
 ```json
 {
-  "core.composing.grammarCheck": true,
-  "core.composing.grammarCheckBackend": "languagetool-cloud",
-  "core.composing.grammarCheckServerUrl": "https://api.languagetoolplus.com",
+  "core.composing.grammarCheck": false,
+  "core.composing.grammarCheckServerUrl": "http://localhost:8010",
   "core.composing.grammarCheckLanguage": "auto",
+  "core.composing.grammarCheckPreferredVariants": "",
+  "core.composing.grammarCheckMotherTongue": "",
+  "core.composing.grammarCheckLevel": "default",
   "core.composing.grammarCheckApiKey": "",
+  "core.composing.grammarCheckDisabledRules": "",
+  "core.composing.grammarCheckDisabledCategories": "",
   "core.composing.grammarCheckWarnOnSend": true
 }
 ```
 
-### 4.2 Backend Options
+Default is **disabled** — user must opt in. Default server URL points to a local Docker instance.
 
-| Backend | Config Value | Description |
-|---------|-------------|-------------|
-| LanguageTool Cloud (free) | `languagetool-cloud` | Public API, 20 req/min, 20KB/request |
-| LanguageTool Premium | `languagetool-premium` | Premium API with API key, higher limits |
-| Self-hosted LanguageTool | `languagetool-selfhosted` | User-provided URL (e.g., `http://localhost:8081`) |
-| Harper WASM (future) | `harper-wasm` | Local-only, no network, English only |
+### 4.2 Backend Configuration
+
+The primary backend is a self-hosted LanguageTool Docker container. The user configures the server URL and optional parameters:
+
+| Setting | Config Key | Default | Maps to API param |
+|---------|-----------|---------|-------------------|
+| Server URL | `grammarCheckServerUrl` | `http://localhost:8010` | Base URL for `POST /v2/check` |
+| Language | `grammarCheckLanguage` | `auto` | `language` |
+| Preferred variants | `grammarCheckPreferredVariants` | `""` | `preferredVariants` |
+| Mother tongue | `grammarCheckMotherTongue` | `""` | `motherTongue` |
+| Strictness level | `grammarCheckLevel` | `default` | `level` (`default` or `picky`) |
+| API key | `grammarCheckApiKey` | `""` | `apiKey` (for premium/cloud) |
+| Disabled rules | `grammarCheckDisabledRules` | `""` | `disabledRules` (also appended by dismiss action) |
+| Disabled categories | `grammarCheckDisabledCategories` | `""` | `disabledCategories` |
 
 ### 4.3 Preferences UI
 
