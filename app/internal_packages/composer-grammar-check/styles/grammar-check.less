@@ -1,0 +1,153 @@
+.grammar-error {
+  cursor: pointer;
+  position: relative;
+}
+
+.grammar-correction-popover {
+  background: @background-primary;
+  border: 1px solid @border-color-divider;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px 12px;
+  max-width: 320px;
+  min-width: 200px;
+  z-index: 10;
+
+  .grammar-message {
+    margin-bottom: 8px;
+    font-size: 12px;
+
+    strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    p {
+      color: @text-color-subtle;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+
+  .grammar-replacements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+
+    button {
+      background: @background-color-info;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 12px;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.85;
+      }
+    }
+  }
+
+  .grammar-actions {
+    border-top: 1px solid @border-color-divider;
+    padding-top: 6px;
+
+    .btn-dismiss {
+      font-size: 11px;
+      color: @text-color-subtle;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+
+      &:hover {
+        color: @text-color;
+      }
+    }
+  }
+}
+
+.btn-grammar-check {
+  position: relative;
+
+  &.enabled {
+    color: @component-active-color;
+  }
+
+  .grammar-check-spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 4px;
+    border: 2px solid @text-color-subtle;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: grammar-spin 0.8s linear infinite;
+  }
+
+  .grammar-error-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: @background-color-error;
+    color: white;
+    border-radius: 8px;
+    font-size: 9px;
+    padding: 1px 4px;
+    min-width: 14px;
+    text-align: center;
+    line-height: 14px;
+    font-weight: 600;
+  }
+}
+
+@keyframes grammar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.container-grammar-check {
+  section {
+    padding: 20px;
+  }
+
+  .item {
+    margin-bottom: 12px;
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+
+      input[type='checkbox'] {
+        margin-right: 8px;
+      }
+    }
+
+    input[type='text'],
+    input[type='password'] {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    select {
+      width: 100%;
+      max-width: 400px;
+    }
+  }
+
+  .grammar-privacy-notice {
+    margin-top: 16px;
+    padding: 8px 12px;
+    background: @background-secondary;
+    border-radius: 4px;
+    font-size: 12px;
+
+    p {
+      margin: 0;
+      color: @text-color-subtle;
+    }
+  }
+}
