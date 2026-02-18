@@ -1,17 +1,37 @@
 import React from 'react';
 import { Editor, Decoration, Text } from 'slate';
+import { localized } from 'mailspring-exports';
 import { ComposerEditorPlugin, ComposerEditorPluginTopLevelComponentProps } from './types';
-import { GrammarCheckStore } from '../../../internal_packages/composer-grammar-check/lib/grammar-check-store';
 
 export const GRAMMAR_ERROR_MARK = 'grammar-error';
+
+// --- Store injection (set by the plugin's activate(), avoids cross-boundary static import) ---
+let grammarCheckStore: any = null;
+
+export function setGrammarCheckStore(store: any) {
+  grammarCheckStore = store;
+}
+
+export function clearGrammarCheckStore() {
+  grammarCheckStore = null;
+}
+
+// --- Draft cleanup (called by main.ts on send/destroy) ---
+export function cleanupDraft(draftId: string) {
+  previousDocumentByDraft.delete(draftId);
+  const entry = debounceTimers.get(draftId);
+  if (entry) {
+    clearTimeout(entry.timer);
+    debounceTimers.delete(draftId);
+  }
+}
 
 // --- IME composition tracking ---
 const composingWeakmap = new WeakMap<Editor, number>();
 
-// --- Dirty paragraph tracking state ---
+// --- Per-draft dirty paragraph tracking state ---
 const previousDocumentByDraft = new Map<string, any>();
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-let debounceTimerStart = 0;
+const debounceTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; start: number }>();
 
 // --- Category to underline color mapping ---
 function underlineColorForCategory(category: string): string {
@@ -59,10 +79,52 @@ function offsetToSlateRange(
   return null;
 }
 
+// --- Check if a cursor point falls within a decoration range (handles cross-node spans) ---
+function isPointInDecoration(
+  doc: any,
+  point: { key: string; offset: number },
+  decoration: any
+): boolean {
+  const { anchor, focus } = decoration;
+
+  // Same node for both anchor and focus (common case)
+  if (anchor.key === focus.key) {
+    return (
+      point.key === anchor.key &&
+      point.offset >= anchor.offset &&
+      point.offset <= focus.offset
+    );
+  }
+
+  // Cross-node: cursor is in the anchor's text node
+  if (point.key === anchor.key) {
+    return point.offset >= anchor.offset;
+  }
+  // Cross-node: cursor is in the focus's text node
+  if (point.key === focus.key) {
+    return point.offset <= focus.offset;
+  }
+
+  // Cursor is in a different text node — check if it sits between anchor and focus
+  const block = doc.getClosestBlock(point.key);
+  if (!block) return false;
+
+  const texts = block.getTexts().toArray();
+  let seenAnchor = false;
+  for (const text of texts) {
+    if (text.key === anchor.key) seenAnchor = true;
+    if (text.key === point.key) return seenAnchor;
+    if (text.key === focus.key) return false;
+  }
+  return false;
+}
+
 // --- Apply grammar decorations from store to editor ---
 function applyGrammarDecorations(editor: Editor, draftId: string) {
+  if (!grammarCheckStore) return;
+
   const { value } = editor;
-  const allErrors = GrammarCheckStore.allErrorsForDraft(draftId);
+  const allErrors = grammarCheckStore.allErrorsForDraft(draftId);
   const decorations: Decoration[] = [];
 
   value.document.nodes.forEach((block) => {
@@ -122,32 +184,23 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
   });
 }
 
-// --- Apply replacement ---
+// --- Apply replacement (handles cross-node decorations) ---
 function applyReplacement(editor: Editor, replacement: string) {
   const { value } = editor;
   const { document, selection } = value;
   if (!selection.anchor) return;
 
   const anchorKey = selection.anchor.key;
-  const node = document.getNode(anchorKey);
-  if (!node || node.object !== 'text') return;
 
-  // Find the extent of the grammar-error decoration at the cursor
-  // We need to look at the decorations on the value to find the range
+  // Find the grammar-error decoration that contains the cursor
   const decorations = value.get('decorations') as any;
   if (!decorations) return;
 
   let targetDecoration: any = null;
+  const cursorPoint = { key: anchorKey, offset: selection.anchor.offset };
   decorations.forEach((d: any) => {
     if (d.mark.type !== GRAMMAR_ERROR_MARK) return;
-    // Check if cursor is within this decoration
-    const anchorOffset = selection.anchor.offset;
-    if (
-      d.anchor.key === anchorKey &&
-      d.focus.key === anchorKey &&
-      anchorOffset >= d.anchor.offset &&
-      anchorOffset <= d.focus.offset
-    ) {
+    if (isPointInDecoration(document, cursorPoint, d)) {
       targetDecoration = d;
     }
   });
@@ -209,6 +262,7 @@ function renderMark(
 
 // --- Floating Correction Popover ---
 function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLevelComponentProps) {
+  if (!grammarCheckStore) return null;
   if (!value.selection || !value.selection.isFocused || !value.selection.isCollapsed) {
     return null;
   }
@@ -248,7 +302,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
       }}
     >
       <div className="grammar-message">
-        <strong>{shortMessage || 'Grammar'}</strong>
+        <strong>{shortMessage || localized('Grammar')}</strong>
         <p>{message}</p>
       </div>
       {replacements.length > 0 && (
@@ -272,30 +326,25 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
           className="btn btn-small btn-dismiss"
           onMouseDown={(e) => {
             e.preventDefault();
-            GrammarCheckStore.dismissRule(ruleId);
+            grammarCheckStore.dismissRule(ruleId);
           }}
         >
-          Dismiss rule
+          {localized('Dismiss rule')}
         </button>
       </div>
     </div>
   );
 }
 
-// --- onChange handler ---
+// --- onChange handler (per-draft debounce) ---
 function onChange(editor: Editor, next: () => void) {
-  if (!AppEnv.config.get('core.composing.grammarCheck')) {
+  // Immediate bail when grammar check package is not active or feature is disabled
+  if (!grammarCheckStore || !grammarCheckStore.isEnabled()) {
     return next();
   }
 
   // Don't check during IME composition
   if (composingWeakmap.get(editor)) {
-    return next();
-  }
-
-  // Throttle: don't diff on every keystroke if changes are very rapid
-  const now = Date.now();
-  if (debounceTimer && now - debounceTimerStart < 200) {
     return next();
   }
 
@@ -305,6 +354,14 @@ function onChange(editor: Editor, next: () => void) {
   if (!draft) return next();
 
   const draftId = draft.headerMessageId;
+
+  // Per-draft throttle: don't diff on every keystroke if changes are very rapid
+  const now = Date.now();
+  const existing = debounceTimers.get(draftId);
+  if (existing && now - existing.start < 200) {
+    return next();
+  }
+
   const currDoc = editor.value.document;
   const prevDoc = previousDocumentByDraft.get(draftId);
 
@@ -314,7 +371,7 @@ function onChange(editor: Editor, next: () => void) {
       if (block.object !== 'block') return;
       const prevBlock = prevDoc.getNode(block.key);
       if (!prevBlock || prevBlock.text !== block.text) {
-        GrammarCheckStore.markDirty(draftId, block.key, block.text);
+        grammarCheckStore.markDirty(draftId, block.key, block.text);
       }
     });
 
@@ -322,26 +379,28 @@ function onChange(editor: Editor, next: () => void) {
     prevDoc.nodes.forEach((block) => {
       if (block.object !== 'block') return;
       if (!currDoc.getNode(block.key)) {
-        GrammarCheckStore.clearBlock(draftId, block.key);
+        grammarCheckStore.clearBlock(draftId, block.key);
       }
     });
   } else {
     // First onChange for this draft - mark all blocks dirty for initial check
     currDoc.nodes.forEach((block) => {
       if (block.object === 'block') {
-        GrammarCheckStore.markDirty(draftId, block.key, block.text);
+        grammarCheckStore.markDirty(draftId, block.key, block.text);
       }
     });
   }
 
   previousDocumentByDraft.set(draftId, currDoc);
 
-  // Debounce the actual API check
-  debounceTimerStart = now;
-  if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    GrammarCheckStore.checkDirtyBlocks(draftId).then(() => {
-      // Apply new decorations once results arrive
+  // Per-draft debounce: cancel only this draft's pending timer
+  if (existing) {
+    clearTimeout(existing.timer);
+  }
+  const timer = setTimeout(() => {
+    debounceTimers.delete(draftId);
+    if (!grammarCheckStore) return;
+    grammarCheckStore.checkDirtyBlocks(draftId).then(() => {
       try {
         applyGrammarDecorations(editor, draftId);
       } catch (err) {
@@ -349,6 +408,7 @@ function onChange(editor: Editor, next: () => void) {
       }
     });
   }, 800);
+  debounceTimers.set(draftId, { timer, start: now });
 
   return next();
 }

@@ -8,7 +8,6 @@ interface BlockCheckResult {
 
 class _GrammarCheckStore extends MailspringStore {
   private _enabled: boolean = false;
-  private _warnOnSend: boolean = true;
   private _checking: Map<string, boolean> = new Map();
   private _errorsByDraft: Map<string, Map<string, BlockCheckResult>> = new Map();
   private _dismissedRules: Set<string> = new Set();
@@ -51,7 +50,6 @@ class _GrammarCheckStore extends MailspringStore {
 
   private _readConfig() {
     this._enabled = !!AppEnv.config.get('core.composing.grammarCheck');
-    this._warnOnSend = AppEnv.config.get('core.composing.grammarCheckWarnOnSend') !== false;
 
     const disabledRulesStr =
       (AppEnv.config.get('core.composing.grammarCheckDisabledRules') as string) || '';
@@ -68,7 +66,7 @@ class _GrammarCheckStore extends MailspringStore {
   }
 
   warnOnSend(): boolean {
-    return this._warnOnSend;
+    return AppEnv.config.get('core.composing.grammarCheckWarnOnSend') !== false;
   }
 
   isChecking(draftId?: string): boolean {
