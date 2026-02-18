@@ -6,7 +6,6 @@ import {
   ExtensionRegistry,
 } from 'mailspring-exports';
 import { GrammarCheckToggle } from './grammar-check-toggle';
-import { GrammarCheckUsageBanner } from './grammar-check-usage-banner';
 import GrammarCheckComposerExtension from './grammar-check-extension';
 import { GrammarCheckStore } from './grammar-check-store';
 import {
@@ -41,7 +40,6 @@ export function activate(state = {}) {
   ];
 
   ComponentRegistry.register(GrammarCheckToggle, { role: 'Composer:ActionButton' });
-  ComponentRegistry.register(GrammarCheckUsageBanner, { role: 'Composer:Footer' });
   PreferencesUIStore.registerPreferencesTab(this.preferencesTab);
   ExtensionRegistry.Composer.register(GrammarCheckComposerExtension);
 }
@@ -56,7 +54,6 @@ export function deactivate() {
 
   GrammarCheckStore.deactivate();
   ComponentRegistry.unregister(GrammarCheckToggle);
-  ComponentRegistry.unregister(GrammarCheckUsageBanner);
   PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.tabId);
   ExtensionRegistry.Composer.unregister(GrammarCheckComposerExtension);
 }

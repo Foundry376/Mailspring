@@ -30,6 +30,10 @@ export class GrammarCheckToggle extends React.Component<{
   }
 
   _onClick = () => {
+    if (GrammarCheckStore.isUsageExceeded()) {
+      GrammarCheckStore.showUsageExceededModal();
+      return;
+    }
     const current = !!AppEnv.config.get('core.composing.grammarCheck');
     AppEnv.config.set('core.composing.grammarCheck', !current);
   };

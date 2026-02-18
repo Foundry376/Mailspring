@@ -1,4 +1,7 @@
+import React from 'react';
 import MailspringStore from 'mailspring-store';
+import { localized, Actions } from 'mailspring-exports';
+import { FeatureUsedUpModal } from 'mailspring-component-kit';
 import { GrammarError, LanguageToolBackend, UsageExceededError } from './grammar-check-service';
 
 interface BlockCheckResult {
@@ -134,6 +137,21 @@ class _GrammarCheckStore extends MailspringStore {
     this.trigger();
   }
 
+  showUsageExceededModal() {
+    Actions.openModal({
+      height: 575,
+      width: 412,
+      component: React.createElement(FeatureUsedUpModal, {
+        modalClass: 'grammar-check',
+        headerText: localized("You've reached your grammar check limit"),
+        rechargeText: localized(
+          'Grammar checks are limited to %1$@ per %2$@. Upgrade to Pro for unlimited grammar checking.'
+        ),
+        iconUrl: 'mailspring://composer-grammar-check/assets/ic-grammar-check-modal@2x.png',
+      }),
+    });
+  }
+
   dismissRule(ruleId: string) {
     this._dismissedRules.add(ruleId);
     this._backend.addDisabledRule(ruleId);
@@ -214,6 +232,7 @@ class _GrammarCheckStore extends MailspringStore {
           if (err instanceof UsageExceededError) {
             this._usageExceeded = true;
             this._dirtyBlocks.clear();
+            this.showUsageExceededModal();
             break;
           }
           console.warn(`Grammar check failed for block ${blockKey}:`, err);

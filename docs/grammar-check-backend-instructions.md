@@ -278,8 +278,8 @@ Access-Control-Allow-Origin: *
 **The client handles this by:**
 - Setting a `usageExceeded` flag in the grammar check store
 - Stopping all further grammar check API calls for the session
-- Displaying a small warning banner in the composer: "Grammar check is disabled — usage limit reached for this billing period."
-- Switching the toolbar icon to a warning state
+- Showing a `FeatureUsedUpModal` upgrade dialog (consistent with other Mailspring Pro features)
+- Switching the toolbar icon to a dimmed/disabled state (clicking it re-shows the modal)
 
 **`draftId` characteristics:**
 - Format: opaque string (Mailspring uses a UUID-based `headerMessageId` like `<draft-abc123@mailspring.com>`)
