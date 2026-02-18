@@ -358,42 +358,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
   }
 
   _renderCollapsed() {
-    const {
-      message: { snippet, from, files, date, draft },
-      className,
-    } = this.props;
-
-    const attachmentIcon = Utils.showIconForAttachments(files) ? (
-      <div className="collapsed-attachment" />
-    ) : null;
-
-    return (
-      <div className={className} onClick={this._onToggleCollapsed}>
-        <div className="message-item-white-wrap">
-          <div className="message-item-area">
-            <div className="collapsed-from">
-              {from &&
-                from[0] &&
-                from[0].displayName({ compact: !AppEnv.config.get('core.reading.detailedNames') })}
-            </div>
-            <div className="collapsed-snippet">{snippet}</div>
-            {draft && (
-              <div className="Collapsed-draft">
-                <RetinaImg
-                  name="icon-draft-pencil.png"
-                  className="draft-icon"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                />
-              </div>
-            )}
-            <div className="collapsed-timestamp">
-              <MessageTimestamp date={date} />
-            </div>
-            {attachmentIcon}
-          </div>
-        </div>
-      </div>
-    );
+    return this._renderFull();
   }
 
   _renderFull() {

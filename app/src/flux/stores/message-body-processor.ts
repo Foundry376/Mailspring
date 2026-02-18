@@ -151,9 +151,8 @@ class MessageBodyProcessor {
 
     let body = message.body;
     let clipped = false;
+
     if (body.length > this.MAX_DISPLAY_LENGTH) {
-      // We clip messages at 300,000 characters to avoid bringing Chromium to
-      // a crawl. We will display a "message clipped notice" later.
       body = body.substr(0, this.MAX_DISPLAY_LENGTH);
       clipped = true;
     }

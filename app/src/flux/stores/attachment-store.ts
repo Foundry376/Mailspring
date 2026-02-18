@@ -51,7 +51,7 @@ class AttachmentStore extends MailspringStore {
     this.listenTo(Actions.selectAttachment, this._onSelectAttachment);
     this.listenTo(Actions.removeAttachment, this._onRemoveAttachment);
 
-    mkdirp(this._filesDirectory, () => {});
+    mkdirp(this._filesDirectory, () => { });
   }
 
   // Returns a path on disk for saving the file. Note that we must account
@@ -153,7 +153,7 @@ class AttachmentStore extends MailspringStore {
       this._prepareAndResolveFilePath(file)
         .catch(this._catchFSErrors)
         // Passively ignore
-        .catch(() => {})
+        .catch(() => { })
     );
   };
 
@@ -384,6 +384,14 @@ class AttachmentStore extends MailspringStore {
     });
   }
 
+  _addRecentDocument(filePath: string) {
+    try {
+      require('@electron/remote').app.addRecentDocument(filePath);
+    } catch (err) {
+      // Some Linux desktop environments don't support recent documents.
+    }
+  }
+
   async _deleteFile(file: File) {
     // Delete the file, it's preview if present and it's containing folder. We don't
     // delete other arbitrary files in case for some reason other files are saved here.
@@ -428,7 +436,7 @@ class AttachmentStore extends MailspringStore {
     headerMessageId,
     filePath,
     inline = false,
-    onCreated = (file: File) => {},
+    onCreated = (file: File) => { },
   }) => {
     this._assertIdPresent(headerMessageId);
 
@@ -464,6 +472,7 @@ class AttachmentStore extends MailspringStore {
         return files.concat([file]);
       });
       onCreated(file);
+      this._addRecentDocument(filePath);
     } catch (err) {
       AppEnv.showErrorDialog(err.message);
     }

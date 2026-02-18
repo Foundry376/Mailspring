@@ -242,11 +242,11 @@ class DraftStore extends MailspringStore {
       threadId: threadId,
       message: message,
       messageId: messageId,
-      popout: popout 
+      popout: popout
     });
   };
 
-  _onComposeAndSendForward = async({
+  _onComposeAndSendForward = async ({
     thread,
     threadId,
     message,
@@ -262,7 +262,7 @@ class DraftStore extends MailspringStore {
     Actions.sendDraft(headerMessageId);
   }
 
-  _composeForward = async ({ 
+  _composeForward = async ({
     thread,
     threadId,
     message,
@@ -277,7 +277,7 @@ class DraftStore extends MailspringStore {
     }
     return this._finalizeAndPersistNewMessage(draft, { popout });
   };
-  
+
 
   _modelifyContext({
     thread,
@@ -309,7 +309,9 @@ class DraftStore extends MailspringStore {
           'newMessageWithContext: `message` present, expected a Model. Maybe you wanted to pass `messageId`?'
         );
       }
-      queries.message = message;
+      queries.message = message.id
+        ? DatabaseStore.find<Message>(Message, message.id).include(Message.attributes.body)
+        : message;
     } else if (messageId && messageId.length) {
       queries.message = DatabaseStore.find<Message>(Message, messageId).include(
         Message.attributes.body

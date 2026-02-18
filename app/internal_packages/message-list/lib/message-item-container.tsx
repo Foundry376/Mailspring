@@ -59,13 +59,20 @@ export default class MessageItemContainer extends React.Component<
   };
 
   _classNames() {
-    return classNames({
+    const classes = classNames({
       draft: this.props.message.draft,
       unread: this.props.message.unread,
       collapsed: this.props.collapsed,
       'message-item-wrap': true,
       'before-reply-area': this.props.isBeforeReplyArea,
     });
+
+    // Add classes to distinguish sent vs received messages
+    if (this.props.message.isFromMe()) {
+      return `${classes} sent-by-me`;
+    } else {
+      return `${classes} received-from-others`;
+    }
   }
 
   _onSendingStateChanged = ({ headerMessageId }) => {

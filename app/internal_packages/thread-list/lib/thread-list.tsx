@@ -161,15 +161,15 @@ class ThreadList extends React.Component<
         task instanceof ChangeStarredTask
           ? 'unstar'
           : task instanceof ChangeFolderTask
-          ? task.folder.name
-          : task instanceof ChangeLabelsTask
-          ? 'archive'
-          : 'remove';
+            ? task.folder.name
+            : task instanceof ChangeLabelsTask
+              ? 'archive'
+              : 'remove';
 
       return `swipe-${name}`;
     };
 
-    props.onSwipeRight = function(callback) {
+    props.onSwipeRight = function (callback) {
       const perspective = FocusedPerspectiveStore.current();
       const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
       if (tasks.length === 0) {
@@ -237,7 +237,7 @@ class ThreadList extends React.Component<
     event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');
   };
 
-  _onDragEnd = event => {};
+  _onDragEnd = event => { };
 
   _onResize = (event?: any) => {
     const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty(

@@ -47,7 +47,7 @@ class QuotedHTMLTransformer {
     this._removeImagesStrippedByAnotherClient(doc);
     this._removeTrailingFootersAndWhitespace(doc);
     for (const el of this._findQuoteElements(doc)) {
-      if (el) {
+      if (el && el !== doc.body) {
         el.remove();
       }
     }
@@ -204,6 +204,8 @@ class QuotedHTMLTransformer {
       this._findGmailQuotes,
       this._findYahooQuotes,
       this._findBlockquoteQuotes,
+      this._findOutlookReplyForwardBlocks,
+      this._findQuotesAfterDashedSeparator,
       this._findQuotesAfterMessageHeaderBlock,
       this._findQuotesAfter__OriginalMessage__,
     ];
@@ -278,7 +280,7 @@ class QuotedHTMLTransformer {
     // considered quoted text.
     return Array.from(doc.querySelectorAll('.gmail_quote'));
   }
-  
+
   _findYahooQuotes(doc) {
     // Both Yahoo and AOL wrap their quotes in divs with classes that contain
     // the text yahoo_quoted
@@ -287,6 +289,75 @@ class QuotedHTMLTransformer {
 
   _findBlockquoteQuotes(doc) {
     return Array.from(doc.querySelectorAll('blockquote'));
+  }
+
+  _findOutlookReplyForwardBlocks(doc) {
+    if (!doc.body) {
+      return [];
+    }
+
+    const markers = Array.from(doc.querySelectorAll("[id='divRplyFwdMsg'], [id^='divRplyFwdMsg']"));
+    if (markers.length === 0) {
+      return [];
+    }
+
+    const headerRegex = /\b(?:From|Sent|Date|To|Cc|Subject)\s*:/gi;
+    for (const marker of markers) {
+      const quoteStart = this._findSeparatorBefore(marker) || marker;
+      const quotedTextNodes = this._collectAllNodesBelow(quoteStart);
+      const sample = quotedTextNodes
+        .map(n => (n.textContent || '').trim())
+        .join(' ')
+        .slice(0, 1500);
+      const headerMatches = sample.match(headerRegex);
+      if (headerMatches && headerMatches.length >= 3) {
+        return quotedTextNodes;
+      }
+    }
+
+    return [];
+  }
+
+  _findQuotesAfterDashedSeparator(doc) {
+    if (!doc.body) {
+      return [];
+    }
+
+    const headerRegex = /\b(?:From|Sent|Date|To|Cc|Subject)\s*:/gi;
+    const separatorRegex = /(?:-{20,}|_{10,})/;
+    const walker = doc.createTreeWalker(
+      doc.body,
+      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+      null,
+      false
+    );
+
+    let node = walker.currentNode;
+    while (node) {
+      const text = (node.textContent || '').trim();
+      const isHr = node.nodeType === Node.ELEMENT_NODE && (node as Element).nodeName === 'HR';
+      if (isHr || separatorRegex.test(text)) {
+        // If the separator appears in a plaintext text-node, starting from the
+        // parent can incorrectly mark <body> itself as quoted. Start from the
+        // text node so only content at / below that point is clipped.
+        const container = node;
+        if (container) {
+          const quotedTextNodes = this._collectAllNodesBelow(container);
+          const sample = quotedTextNodes
+            .map(n => (n.textContent || '').trim())
+            .join(' ')
+            .slice(0, 1500);
+
+          const headerMatches = sample.match(headerRegex);
+          if (headerMatches && headerMatches.length >= 2) {
+            return quotedTextNodes;
+          }
+        }
+      }
+      node = walker.nextNode();
+    }
+
+    return [];
   }
 
   _removeTrailingFootersAndWhitespace(doc) {
@@ -383,10 +454,18 @@ class QuotedHTMLTransformer {
       //b[. = 'Date:'] |
       //b[. = 'Sent: '] |
       //b[. = 'Date: '] |
+      //b[. = 'Sent'] |
+      //b[. = 'Date'] |
       //span[. = 'Sent: '] |
       //span[. = 'Date: '] |
       //span[. = 'Sent:'] |
-      //span[. = 'Date:']`;
+      //span[. = 'Date:'] |
+      //span[. = 'Sent'] |
+      //span[. = 'Date'] |
+      //strong[. = 'Sent:'] |
+      //strong[. = 'Date:'] |
+      //strong[. = 'Sent'] |
+      //strong[. = 'Date']`;
     const dateMarker = doc.evaluate(dateXPath, doc.body, null, FIRST_ORDERED_NODE_TYPE, null)
       .singleNodeValue;
 
@@ -395,24 +474,32 @@ class QuotedHTMLTransformer {
     }
 
     // check to see if the parent container also contains the other two
-    const headerContainer = dateMarker.parentElement;
-    let matches = 0;
-    for (const node of Array.from(headerContainer.children)) {
-      const tc = (node as any).textContent.trim();
-      if (tc === 'To:' || tc === 'Subject:') {
-        matches++;
-      }
+    let headerContainer = dateMarker.parentElement;
+    while (headerContainer && headerContainer.parentElement && headerContainer.children.length < 3) {
+      headerContainer = headerContainer.parentElement;
     }
-    if (matches !== 2) {
+
+    if (!headerContainer) {
+      return [];
+    }
+
+    const headerText = (headerContainer.textContent || '').replace(/\s+/g, ' ');
+    const hasTo = /\bTo\s*:/i.test(headerText);
+    const hasSubject = /\bSubject\s*:/i.test(headerText);
+    if (!hasTo || !hasSubject) {
       return [];
     }
 
     // got a hit! let's cut some text.
-    const quotedTextNodes = this._collectAllNodesBelow(headerContainer);
+    // If a dashed separator / hr appears immediately before the header block,
+    // treat that as the quote boundary so the separator line is hidden too.
+    const quoteStart = this._findSeparatorBefore(headerContainer) || headerContainer;
+    const quotedTextNodes = this._collectAllNodesBelow(quoteStart);
 
     // Special case to add "From:" because it's often detatched from the rest of the
     // header fields. We just add it where ever it's located.
-    const fromXPath = "//b[. = 'From:'] | //span[. = 'From:']| //span[. = 'From: ']";
+    const fromXPath =
+      "//b[. = 'From:'] | //b[. = 'From'] | //span[. = 'From:'] | //span[. = 'From: '] | //span[. = 'From'] | //strong[. = 'From:'] | //strong[. = 'From']";
     let from = doc.evaluate(fromXPath, doc.body, null, FIRST_ORDERED_NODE_TYPE, null)
       .singleNodeValue;
 
@@ -424,6 +511,65 @@ class QuotedHTMLTransformer {
     }
 
     return quotedTextNodes;
+  }
+
+  _findSeparatorBefore(node) {
+    if (!node) {
+      return null;
+    }
+
+    const isSeparatorNode = el => {
+      if (!el) {
+        return false;
+      }
+
+      if (el.nodeName === 'HR') {
+        return true;
+      }
+
+      const text = (el.textContent || '').trim();
+      if (/^-{10,}$/.test(text)) {
+        return true;
+      }
+
+      if (/^_{10,}$/.test(text)) {
+        return true;
+      }
+
+      if (/(^|\n)\s*-{10,}\s*($|\n)/m.test(text)) {
+        return true;
+      }
+
+      if (/(^|\n)\s*_{10,}\s*($|\n)/m.test(text)) {
+        return true;
+      }
+
+      return !!(el.querySelector && el.querySelector('hr'));
+    };
+
+    let cursor = node;
+    while (cursor && cursor.parentElement) {
+      let prev = cursor.previousElementSibling;
+      let checks = 0;
+
+      while (prev && checks < 12) {
+        if (isSeparatorNode(prev)) {
+          return prev;
+        }
+
+        const text = (prev.textContent || '').trim();
+        if (text.length > 0) {
+          break;
+        }
+
+        prev = prev.previousElementSibling;
+        checks++;
+      }
+
+      cursor = cursor.parentElement;
+    }
+
+    return null;
   }
 
   _collectAllNodesBelow = headerContainer => {

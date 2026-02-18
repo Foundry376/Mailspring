@@ -28,6 +28,16 @@ export type ReplyType = 'reply' | 'reply-all';
 export type ReplyBehavior = 'prefer-existing' | 'prefer-existing-if-pristine';
 
 class DraftFactory {
+  normalizeContentId(contentId = '') {
+    let normalized = (contentId || '').trim().replace(/^</, '').replace(/>$/, '');
+    try {
+      normalized = decodeURIComponent(normalized);
+    } catch (err) {
+      // no-op
+    }
+    return normalized;
+  }
+
   useHTML() {
     const forcePlaintext = AppEnv.keymaps.getIsAltKeyDown();
     return AppEnv.config.get('core.composing.html') && !forcePlaintext;
@@ -43,16 +53,28 @@ class DraftFactory {
 
     const content = message.plaintext ? convertPlaintextToHTML(message.body) : message.body;
 
-    // TODO: Fix inline images
-    const cidRE = MessageUtils.cidRegexString;
-    const cidRegexp = new RegExp(`<img.*${cidRE}[\\s\\S]*?>`, 'igm');
-
-    // Be sure to match over multiple lines with [\s\S]*
-    // Regex explanation here: https://regex101.com/r/vO6eN2/1
-    let transformed = (content || '').replace(cidRegexp, '');
+    let transformed = content || '';
     transformed = await SanitizeTransformer.run(transformed);
     transformed = await InlineStyleTransformer.run(transformed);
     return transformed;
+  }
+
+  inlineFilesForQuotedBody(message: Message) {
+    if (!this.useHTML() || !message.body || !message.files || message.files.length === 0) {
+      return [];
+    }
+
+    const cidRegexp = new RegExp(MessageUtils.cidRegexString, 'gi');
+    const referencedContentIds = new Set<string>();
+    let match = cidRegexp.exec(message.body);
+    while (match !== null) {
+      referencedContentIds.add(this.normalizeContentId(match[1]));
+      match = cidRegexp.exec(message.body);
+    }
+
+    return message.files.filter(
+      file => file.contentId && referencedContentIds.has(this.normalizeContentId(file.contentId))
+    );
   }
 
   async createDraft(fields = {}) {
@@ -188,6 +210,8 @@ class DraftFactory {
 
   async createDraftForReply({ message, thread, type }) {
     const prevBody = await this.prepareBodyForQuoting(message);
+    const quotedInlineFiles = this.inlineFilesForQuotedBody(message);
+    quotedInlineFiles.forEach(file => Actions.fetchFile(file));
     let participants = { to: [], cc: [] };
     if (type === 'reply') {
       participants = message.participantsForReply();
@@ -202,6 +226,7 @@ class DraftFactory {
       from: [this._fromContactForReply(message)],
       threadId: thread.id,
       accountId: message.accountId,
+      files: quotedInlineFiles,
       replyToHeaderMessageId: message.headerMessageId,
       body: this.useHTML()
         ? `
@@ -259,8 +284,8 @@ class DraftFactory {
         </div>
         `
         : `\n\n---------- ${localized('Forwarded Message')} ---------\n\n${fields.join(
-            '\n'
-          )}\n\n${body}`,
+          '\n'
+        )}\n\n${body}`,
     });
   }
 

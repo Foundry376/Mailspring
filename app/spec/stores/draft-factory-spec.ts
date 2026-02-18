@@ -158,6 +158,38 @@ describe('DraftFactory', function draftFactory() {
         });
       });
 
+      it('should preserve cid images and include referenced inline files', () => {
+        waitsForPromise(() => {
+          const inlineFile = new File({
+            id: 'inline-file-id',
+            filename: 'Pasted File.png',
+            accountId: account.id,
+            contentId: '<inline-content-id>',
+          });
+          const unreferencedInlineFile = new File({
+            id: 'unreferenced-inline-file-id',
+            filename: 'Unused.png',
+            accountId: account.id,
+            contentId: 'other-inline-content-id',
+          });
+          fakeMessage1.body = '<div>hello<img src="cid:inline-content-id" /></div>';
+          fakeMessage1.files = [inlineFile, unreferencedInlineFile];
+
+          spyOn(Actions, 'fetchFile');
+
+          return DraftFactory.createDraftForReply({
+            thread: fakeThread,
+            message: fakeMessage1,
+            type: 'reply',
+          }).then(draft => {
+            expect(draft.body.includes('cid:inline-content-id')).toBe(true);
+            expect(draft.files.map(file => file.id)).toEqual(['inline-file-id']);
+            expect(Actions.fetchFile).toHaveBeenCalledWith(inlineFile);
+            expect(Actions.fetchFile).not.toHaveBeenCalledWith(unreferencedInlineFile);
+          });
+        });
+      });
+
       it("should address the message to the previous message's sender", () => {
         waitsForPromise(() => {
           return DraftFactory.createDraftForReply({
@@ -749,7 +781,7 @@ describe('DraftFactory', function draftFactory() {
               .then(() => {
                 expect('resolved').toBe(false);
               })
-              .catch(() => {});
+              .catch(() => { });
           });
         });
       });

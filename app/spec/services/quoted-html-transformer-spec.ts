@@ -2,18 +2,18 @@ import fs from 'fs';
 import path from 'path';
 import QuotedHTMLTransformer from '../../src/services/quoted-html-transformer';
 
-describe('QuotedHTMLTransformer', function() {
-  const readFile = function(fname) {
+describe('QuotedHTMLTransformer', function () {
+  const readFile = function (fname) {
     const emailPath = path.resolve(__dirname, '..', 'fixtures', 'emails', fname);
     return fs.readFileSync(emailPath, 'utf8');
   };
 
-  const removeQuotedHTML = function(fname, opts = {}) {
+  const removeQuotedHTML = function (fname, opts: { keepIfWholeBodyIsQuote: boolean } = { keepIfWholeBodyIsQuote: true }) {
     return QuotedHTMLTransformer.removeQuotedHTML(readFile(fname), opts);
   };
 
   for (let n = 1; n <= 28; n++) {
-    it(`properly parses email_${n}`, function() {
+    it(`properly parses email_${n}`, function () {
       const opts = { keepIfWholeBodyIsQuote: true };
       const actual = removeQuotedHTML(`email_${n}.html`, opts).trim();
       const expected = readFile(`email_${n}_stripped.html`).trim();
@@ -27,7 +27,7 @@ describe('QuotedHTMLTransformer', function() {
     });
   }
 
-  describe('manual quote detection tests', function() {
+  describe('manual quote detection tests', function () {
     const clean = str => str.replace(/[\n\r]/g, '').replace(/\s{2,}/g, ' ');
 
     // The key is the inHTML. The value is the outHTML
@@ -342,6 +342,59 @@ On Thu, Mar 3, 2016 I went to my writing club and wrote:
 `,
     });
 
+    // Test 15: Outlook reply block after signature should clip from separator/hr.
+    tests.push({
+      before: `\
+<div>Great, thank you for the email. I'll wait to hear from you!</div>
+<div id="Signature">
+  <div>Rendell Good</div>
+  <div>272.231.9282</div>
+</div>
+<hr style="display:inline-block;width:98%" tabindex="-1">
+<div id="divRplyFwdMsg" dir="ltr">
+  <font face="Calibri, sans-serif" style="font-size:11pt" color="#000000">
+    <b>From:</b> Sanford Yoder &lt;sanford.y@msseggs.com&gt;<br>
+    <b>Sent:</b> Tuesday, February 17, 2026 10:46 AM<br>
+    <b>To:</b> Rendell Good &lt;rendell@tectoniccodeworks.com&gt;<br>
+    <b>Cc:</b> Emory Kempf &lt;emo.k@msseggs.com&gt;<br>
+    <b>Subject:</b> RE: Reports Progress Demo
+  </font>
+</div>
+<div>Older quoted content here</div>\
+`,
+      after: `\
+<div>Great, thank you for the email. I'll wait to hear from you!</div>
+<div id="Signature">
+  <div>Rendell Good</div>
+  <div>272.231.9282</div>
+</div>\
+`,
+    });
+
+    // Test 16: Plaintext-style Outlook underscore separator should clip quoted headers.
+    tests.push({
+      before: `\
+Great, thank you for the email. I'll wait to hear from you!
+
+Rendell Good
+272.231.9282
+________________________________
+From: Sanford Yoder <sanford.y@msseggs.com>
+Sent: Tuesday, February 17, 2026 10:46 AM
+To: Rendell Good <rendell@tectoniccodeworks.com>
+Cc: Emory Kempf <emo.k@msseggs.com>
+Subject: RE: Reports Progress Demo
+
+Good Morning!\
+`,
+      after: `\
+Great, thank you for the email. I'll wait to hear from you!
+
+Rendell Good
+272.231.9282\
+`,
+    });
+
     it('works with these manual test cases', () =>
       (() => {
         const result = [];
@@ -355,19 +408,19 @@ On Thu, Mar 3, 2016 I went to my writing club and wrote:
         return result;
       })());
 
-    it('removes all trailing <br> tags', function() {
+    it('removes all trailing <br> tags', function () {
       const input0 = 'hello world<br><br><blockquote>foolololol</blockquote>';
       const expect0 = 'hello world';
       expect(QuotedHTMLTransformer.removeQuotedHTML(input0)).toEqual(expect0);
     });
 
-    it('preserves <br> tags in the middle and only chops off tail', function() {
+    it('preserves <br> tags in the middle and only chops off tail', function () {
       const input0 = 'hello<br><br>world<br><br><blockquote>foolololol</blockquote>';
       const expect0 = 'hello<br><br>world';
       expect(QuotedHTMLTransformer.removeQuotedHTML(input0)).toEqual(expect0);
     });
 
-    it('works as expected when body tag inside the html', function() {
+    it('works as expected when body tag inside the html', function () {
       const input0 = `\
 <br><br><blockquote class="gmail_quote"
   style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
@@ -401,7 +454,7 @@ On Thu, Mar 3, 2016 I went to my writing club and wrote:
   // `QuotedHTMLTransformer` needs Electron booted up in order to work because
   // of the DOMParser.
   xit('Run this simple function to generate output files', () =>
-    [18, 20].forEach(function(n) {
+    [18, 20].forEach(function (n) {
       const newHTML = QuotedHTMLTransformer.removeQuotedHTML(readFile(`email_${n}.html`));
       const outPath = path.resolve(
         __dirname,

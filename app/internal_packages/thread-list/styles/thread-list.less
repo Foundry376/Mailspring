@@ -17,6 +17,7 @@
       font-weight: @font-weight-normal;
     }
   }
+
   .subject {
     font-weight: @font-weight-normal;
   }
@@ -45,6 +46,7 @@ input:focus {
 
 .thread-list,
 .draft-list {
+
   .list-container,
   .scroll-region {
     width: 100%;
@@ -54,6 +56,7 @@ input:focus {
 
   .swipe-backing {
     background-color: darken(@background-primary, 10%);
+
     &::after {
       color: fade(white, 90%);
       padding-top: 45px;
@@ -75,14 +78,17 @@ input:focus {
     &.swipe-trash {
       transition: background-color linear 150ms;
       background-color: mix(#ed304b, @background-primary, 75%);
+
       &::after {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Trash';
         left: 0;
         background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
       }
+
       &.confirmed {
         background-color: #ed304b;
+
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -90,18 +96,22 @@ input:focus {
         }
       }
     }
+
     &.swipe-archive,
     &.swipe-all {
       transition: background-color linear 150ms;
       background-color: mix(#6cd420, @background-primary, 75%);
+
       &::after {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Archive';
         left: 0;
         background-image: url(../static/images/swipe/icon-swipe-archive@2x.png);
       }
+
       &.confirmed {
         background-color: #6cd420;
+
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -109,17 +119,21 @@ input:focus {
         }
       }
     }
+
     &.swipe-snooze {
       transition: background-color linear 150ms;
       background-color: mix(#8d6be3, @background-primary, 75%);
+
       &::after {
         transition: right linear 150ms, transform linear 150ms;
         content: 'Snooze';
         right: 0;
         background-image: url(../static/images/swipe/icon-swipe-snooze@2x.png);
       }
+
       &.confirmed {
         background-color: #8d6be3;
+
         &::after {
           right: 100%;
           transform: translateX(100%);
@@ -139,6 +153,7 @@ input:focus {
     margin-left: 6px;
     padding: 12px;
     vertical-align: initial;
+
     &:not(.active) {
       visibility: hidden;
     }
@@ -162,9 +177,46 @@ input:focus {
     text-overflow: ellipsis;
     text-align: left;
     overflow: hidden;
+    display: flex;
+    align-items: center;
 
     &.no-recipients {
       color: @text-color-very-subtle;
+    }
+
+    .participants-content {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .participant-avatar-small {
+      margin-right: 6px;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      transition: all 0.15s ease;
+
+      &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 1;
+        position: relative;
+      }
+    }
+
+    .avatar-spacer {
+      width: 24px;
+      height: 24px;
+      margin-right: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: fade(@background-secondary, 30%);
+      border-radius: 50%;
+      font-size: 10px;
+      color: @text-color-subtle;
+      border: 1px solid fade(@border-color-divider, 50%);
     }
   }
 
@@ -183,6 +235,7 @@ input:focus {
       // Shrink, but only after snippet has shrunk
       flex-shrink: 0.1;
     }
+
     .snippet {
       font-size: @font-size-small;
       font-weight: @font-weight-normal;
@@ -191,6 +244,7 @@ input:focus {
       opacity: 0.62;
       flex: 1;
     }
+
     .thread-icon {
       margin-right: @padding-base-horizontal;
       margin-left: @padding-base-horizontal;
@@ -201,6 +255,7 @@ input:focus {
     display: flex;
     align-items: center;
   }
+
   .list-column-Date {
     text-align: right;
   }
@@ -215,9 +270,11 @@ input:focus {
 
   .unread:not(.focused):not(.selected) {
     background-color: @background-primary;
+
     &:hover {
       background: darken(@background-primary, 2%);
     }
+
     .snippet {
       color: @text-color-subtle;
     }
@@ -228,15 +285,18 @@ input:focus {
   }
 
   .unread:not(.focused) {
+
     // Never show any unread styles when the thread is focused.
     // It will be marked as read and the delay from focus=>read
     // is noticeable.
     .subject {
       font-weight: @font-weight-semi-bold;
+
       .emoji {
         font-weight: @font-weight-normal;
       }
     }
+
     .participants {
       .unread-true {
         font-weight: @font-weight-semi-bold;
@@ -251,9 +311,11 @@ input:focus {
   .thread-injected-icons {
     vertical-align: top;
   }
+
   .thread-injected-mail-labels {
     margin-right: 6px;
   }
+
   .thread-icon {
     width: 25px;
     height: 24px;
@@ -268,31 +330,40 @@ input:focus {
       margin-right: 0;
       margin-left: 0;
     }
+
     &.thread-icon-unread {
       background-image: url(../static/images/thread-list/icon-unread-@2x.png);
     }
+
     &.thread-icon-replied {
       background-image: url(../static/images/thread-list/icon-replied-@2x.png);
     }
+
     &.thread-icon-forwarded {
       background-image: url(../static/images/thread-list/icon-forwarded-@2x.png);
     }
+
     &.thread-icon-star {
       background-size: 16px;
       background-image: url(../static/images/thread-list/icon-star-@2x.png);
     }
   }
+
   .star-button {
     font-size: 16px;
+
     .fa-star {
       color: rgb(239, 209, 0);
+
       &:hover {
         cursor: pointer;
         color: rgb(220, 220, 220);
       }
     }
+
     .fa-star-o {
       color: rgb(220, 220, 220);
+
       &:hover {
         cursor: pointer;
         color: rgb(239, 209, 0);
@@ -305,8 +376,7 @@ input:focus {
   color: mix(@color-warning, @text-color, 30%);
   background-color: mix(@color-warning, @background-primary, 20%);
   border-bottom: 1px solid mix(@color-warning, @border-color-divider, 30%);
-  padding: @padding-base-vertical @padding-base-vertical @padding-base-vertical
-    @padding-base-horizontal * 1.5;
+  padding: @padding-base-vertical @padding-base-vertical @padding-base-vertical @padding-base-horizontal * 1.5;
   align-items: center;
   display: flex;
   font-size: 0.9em;
@@ -316,6 +386,7 @@ input:focus {
     flex: 1;
     padding-right: @padding-base-horizontal;
   }
+
   .btn {
     flex-shrink: 0;
   }
@@ -328,6 +399,7 @@ input:focus {
 
 .thread-list .list-item .list-column-HoverActions {
   display: none;
+
   .action {
     display: inline-block;
     background-size: 100%;
@@ -336,16 +408,20 @@ input:focus {
     height: 51px;
     margin: 9px 16px 0 16px;
   }
+
   .action.action-archive {
     background: url(@archive-img) center no-repeat, @background-gradient;
   }
+
   .action.action-trash {
     background: url(@trash-img) center no-repeat, @background-gradient;
   }
+
   .action.action-snooze {
     background: url(@snooze-img) center no-repeat, @background-gradient;
   }
 }
+
 body.platform-win32 {
   .thread-list .list-item .list-column-HoverActions {
     .action {
@@ -354,6 +430,7 @@ body.platform-win32 {
     }
   }
 }
+
 .thread-list .list-item:hover .list-column-HoverActions {
   width: 0;
   padding: 0;
@@ -366,6 +443,7 @@ body.platform-win32 {
     width: 300px;
     height: 100%;
     left: -300px;
+
     .thread-injected-quick-actions {
       margin-right: 10px;
     }
@@ -373,39 +451,37 @@ body.platform-win32 {
 }
 
 .thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: linear-gradient(
-    to right,
-    fade(darken(@list-bg, 5%), 0%) 0%,
-    darken(@list-bg, 5%) 50%,
-    darken(@list-bg, 5%) 100%
-  );
+  background-image: linear-gradient(to right,
+      fade(darken(@list-bg, 5%), 0%) 0%,
+      darken(@list-bg, 5%) 50%,
+      darken(@list-bg, 5%) 100%);
 }
 
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
-  background-image: linear-gradient(
-    to right,
-    fade(@list-selected-bg, 0%) 0%,
-    @list-selected-bg 50%,
-    @list-selected-bg 100%
-  );
+  background-image: linear-gradient(to right,
+      fade(@list-selected-bg, 0%) 0%,
+      @list-selected-bg 50%,
+      @list-selected-bg 100%);
 }
 
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner {
-  background-image: linear-gradient(
-    to right,
-    fade(@list-focused-bg, 0%) 0%,
-    @list-focused-bg 50%,
-    @list-focused-bg 100%
-  );
+  background-image: linear-gradient(to right,
+      fade(@list-focused-bg, 0%) 0%,
+      @list-focused-bg 50%,
+      @list-focused-bg 100%);
+
   .action {
     filter: invert(100%) brightness(300%);
   }
+
   .action.action-archive {
     background: url(@archive-img) center no-repeat;
   }
+
   .action.action-trash {
     background: url(@trash-img) center no-repeat;
   }
+
   .action.action-snooze {
     background: url(@snooze-img) center no-repeat;
   }
@@ -418,17 +494,21 @@ body.platform-win32 {
   background-size: 16px;
   filter: brightness(90%);
 }
+
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: url(../static/images/thread-list/icon-star-action-hover-@2x.png);
   background-size: 16px;
 }
+
 .thread-list .list-item:hover .thread-icon-none {
   background-image: url(../static/images/thread-list/icon-star-hover-@2x.png);
   background-size: 16px;
 }
+
 .thread-list .list-item:hover .mail-important-icon.enabled {
   visibility: inherit;
 }
+
 .thread-list .thread-icon-star-on-hover:hover {
   background-image: url(../static/images/thread-list/icon-star-hover-@2x.png);
   background-size: 16px;
@@ -446,6 +526,7 @@ body.platform-win32 {
       align-items: center;
     }
   }
+
   .thread-info-column {
     flex: 1;
     align-self: center;
@@ -457,18 +538,59 @@ body.platform-win32 {
       min-height: 24px;
     }
   }
+
   .list-column {
     display: block;
   }
+
   .list-tabular-item {
     line-height: 21px;
   }
+
   .timestamp {
     order: 100;
     min-width: 0;
   }
+
   .participants {
     font-size: @font-size-base;
+    display: flex;
+    align-items: center;
+
+    .participants-content {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .participant-avatar-small {
+      margin-right: 8px;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      transition: all 0.15s ease;
+
+      &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 1;
+        position: relative;
+      }
+    }
+
+    .avatar-spacer {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: fade(@background-secondary, 30%);
+      border-radius: 50%;
+      font-size: 10px;
+      color: @text-color-subtle;
+      border: 1px solid fade(@border-color-divider, 50%);
+    }
   }
 
   .mail-important-icon {
@@ -485,6 +607,7 @@ body.platform-win32 {
     text-align: left;
     margin-right: @scrollbar-margin;
   }
+
   .snippet-and-labels {
     margin-right: @scrollbar-margin;
     display: flex;
@@ -518,27 +641,31 @@ body.platform-win32 {
       .inverseContent;
     }
   }
+
   .list-item.selected:hover .list-column-HoverActions .inner {
-    background-image: linear-gradient(
-      to right,
-      fade(@list-focused-bg, 0%) 0%,
-      @list-focused-bg 50%,
-      @list-focused-bg 100%
-    );
+    background-image: linear-gradient(to right,
+        fade(@list-focused-bg, 0%) 0%,
+        @list-focused-bg 50%,
+        @list-focused-bg 100%);
+
     .action {
       filter: invert(100%) brightness(300%);
     }
+
     .action.action-archive {
       background: url(@archive-img) center no-repeat;
     }
+
     .action.action-trash {
       background: url(@trash-img) center no-repeat;
     }
+
     .action.action-snooze {
       background: url(@snooze-img) center no-repeat;
     }
   }
 }
+
 body.is-blurred {
   .thread-list.handler-split {
     .list-item {
@@ -557,7 +684,8 @@ body.is-blurred {
   height: 100%;
   width: 100%;
   border-top: 1px solid @border-color-divider;
-  .sheet-toolbar { 
+
+  .sheet-toolbar {
     -webkit-app-region: none;
   }
 }

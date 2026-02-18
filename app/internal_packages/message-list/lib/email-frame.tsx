@@ -34,6 +34,56 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
   _iframeDocObserver: ResizeObserver;
   _lastFitSize = '';
 
+  _stripQuotedPlaintext = (content: string) => {
+    if (!content) {
+      return content;
+    }
+
+    const lines = content.split(/\r?\n/);
+    const headerLineRegex = /^\s*(?:From|Sent|Date|To|Cc|Subject)\s*:/i;
+    const separatorLineRegex = /^\s*(?:-{10,}|_{10,})\s*$/;
+
+    const hasHeaderBlockNear = (start: number) => {
+      let hits = 0;
+      const end = Math.min(lines.length, start + 12);
+      for (let i = start; i < end; i++) {
+        if (headerLineRegex.test(lines[i])) {
+          hits += 1;
+          if (hits >= 2) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      if (separatorLineRegex.test(lines[i]) && hasHeaderBlockNear(i + 1)) {
+        return lines.slice(0, i).join('\n').replace(/\s+$/, '');
+      }
+    }
+
+    // Fallback for clients that omit separators and only include header block.
+    let headerStart = -1;
+    let headerHits = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (headerLineRegex.test(lines[i])) {
+        if (headerStart === -1) {
+          headerStart = i;
+        }
+        headerHits += 1;
+        if (headerHits >= 3) {
+          return lines.slice(0, headerStart).join('\n').replace(/\s+$/, '');
+        }
+      } else if (headerStart !== -1 && lines[i].trim() !== '') {
+        headerStart = -1;
+        headerHits = 0;
+      }
+    }
+
+    return content;
+  };
+
   componentDidMount() {
     this._mounted = true;
     this._iframeDocObserver = new window.ResizeObserver(entries =>
@@ -88,10 +138,21 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
 
     let content = this.props.content;
-    if (!showQuotedText && !message.plaintext) {
-      content = QuotedHTMLTransformer.removeQuotedHTML(content, {
-        keepIfWholeBodyIsQuote: true,
-      });
+    if (!showQuotedText) {
+      console.log('[EmailFrame] Incoming body preview:', JSON.stringify(content.slice(0, 300)));
+      console.log('[EmailFrame] message.plaintext:', message.plaintext);
+      const plaintextStripped = this._stripQuotedPlaintext(content);
+      const clippedByPlaintext = plaintextStripped !== content;
+      console.log('[EmailFrame] clippedByPlaintext:', clippedByPlaintext);
+      if (plaintextStripped !== content) {
+        content = plaintextStripped;
+        console.log('[EmailFrame] Using plaintext-stripped content');
+      } else if (!message.plaintext) {
+        content = QuotedHTMLTransformer.removeQuotedHTML(content, {
+          keepIfWholeBodyIsQuote: true,
+        });
+        console.log('[EmailFrame] Using HTML QuotedHTMLTransformer result');
+      }
     }
 
     doc.open();
@@ -99,16 +160,16 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     if (message.plaintext) {
       doc.write(
         `<!DOCTYPE html>` +
-          (styles ? `<style>${styles}</style>` : '') +
-          `<div id='inbox-plain-wrapper' class="${process.platform}"></div>`
+        (styles ? `<style>${styles}</style>` : '') +
+        `<div id='inbox-plain-wrapper' class="${process.platform}"></div>`
       );
       doc.close();
       doc.getElementById('inbox-plain-wrapper').innerText = content;
     } else {
       doc.write(
         `<!DOCTYPE html>` +
-          (styles ? `<style>${styles}</style>` : '') +
-          `<div id='inbox-html-wrapper' class="${process.platform}">${content}</div>`
+        (styles ? `<style>${styles}</style>` : '') +
+        `<div id='inbox-html-wrapper' class="${process.platform}">${content}</div>`
       );
       doc.close();
     }

@@ -124,6 +124,7 @@
   border: none;
   height: 0;
   min-height: 0;
+
   .selection-bar .absolute {
     position: absolute;
     left: 0;
@@ -170,11 +171,13 @@
 
 // Account sidebar selected label overrides
 .account-sidebar {
+
   // Fix padding jump
   .item .name {
     padding-left: 0;
     margin-left: -10px;
   }
+
   // Change label color and font weight
   .item.selected {
     background: transparent;
@@ -186,6 +189,7 @@
 // Account sidebar label triangle bullet overrides
 .disclosure-triangle {
   padding-top: 7px;
+
   & div {
     border-left-color: @sidebar-text;
     border-top-width: 3px;
@@ -274,12 +278,10 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 // Remove gradient on thread list during quick action hover
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: linear-gradient(
-    to right,
-    fade(@less-highlight, 0%) 0%,
-    @less-highlight 40%,
-    @less-highlight 100%
-  );
+  background-image: linear-gradient(to right,
+      fade(@less-highlight, 0%) 0%,
+      @less-highlight 40%,
+      @less-highlight 100%);
 }
 
 // Remove box-shadow on thread list quick action buttons
@@ -289,22 +291,19 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Remove gradients quick action buttons
 .thread-list .list-item .list-column-HoverActions .action.action-trash {
-  background: url('../static/images/thread-list-quick-actions/ic-quick-button-trash@2x.png') center
-      no-repeat,
+  background: url('../static/images/thread-list-quick-actions/ic-quick-button-trash@2x.png') center no-repeat,
     @less-highlight;
 }
 
 // Remove gradients quick action buttons
 .thread-list .list-item .list-column-HoverActions .action.action-archive {
-  background: url('../static/images/thread-list-quick-actions/ic-quick-button-archive@2x.png')
-      center no-repeat,
+  background: url('../static/images/thread-list-quick-actions/ic-quick-button-archive@2x.png') center no-repeat,
     @less-highlight;
 }
 
 // Remove gradients quick action buttons
 .thread-list .list-item .list-column-HoverActions .action.action-snooze {
-  background: url('../static/images/thread-list-quick-actions/ic-quickaction-snooze@2x.png') center
-      no-repeat,
+  background: url('../static/images/thread-list-quick-actions/ic-quickaction-snooze@2x.png') center no-repeat,
     @less-highlight;
 }
 
@@ -339,10 +338,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Draft message background color
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap,
-#message-list
-  .message-item-wrap
-  .message-item-white-wrap.composer-outer-wrap
-  .composer-action-bar-wrap {
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap .composer-action-bar-wrap {
   background-color: @less-highlight;
   box-shadow: none;
   border-radius: 0;
@@ -352,11 +348,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
   border: 1px solid transparent;
 }
 
-#message-list
-  .message-item-wrap
-  .message-item-white-wrap.composer-outer-wrap
-  .RichEditor-toolbar
-  .inner {
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap .RichEditor-toolbar .inner {
   background-color: @less-highlight;
 }
 
@@ -364,22 +356,16 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused {
   background-color: @less-background;
   box-shadow: none;
-  border: 1px solid @less-divider;
+  border: 1px solid transparent;
   border-radius: 0;
 }
-#message-list
-  .message-item-wrap
-  .message-item-white-wrap.composer-outer-wrap.focused
-  .RichEditor-toolbar
-  .inner {
+
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused .RichEditor-toolbar .inner {
   background: @less-background;
 }
 
 // Draft message background action bar theme on focus
-#message-list
-  .message-item-wrap
-  .message-item-white-wrap.composer-outer-wrap.focused
-  .composer-action-bar-wrap {
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap.focused .composer-action-bar-wrap {
   background-color: @less-background;
 }
 
@@ -444,6 +430,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 .draft-list .swipe-backing.swipe-all,
 .draft-list .swipe-backing.swipe-archive {
   background: @swipe-archive;
+
   &.confirmed {
     background: saturate(@swipe-archive, 10%);
   }
@@ -453,6 +440,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 .thread-list .swipe-backing.swipe-snooze,
 .draft-list .swipe-backing.swipe-snooze {
   background: @swipe-snooze;
+
   &.confirmed {
     background: saturate(@swipe-snooze, 10%);
   }
@@ -462,6 +450,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 .thread-list .swipe-backing.swipe-trash,
 .draft-list .swipe-backing.swipe-trash {
   background: @swipe-trash;
+
   &.confirmed {
     background: saturate(@swipe-trash, 10%);
   }
@@ -478,7 +467,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 }
 
 // Padding for bottom of preferences panel
-.preferences-wrap .preferences-content > .scroll-region-content {
+.preferences-wrap .preferences-content>.scroll-region-content {
   padding-bottom: 100px;
 }
 
@@ -554,6 +543,7 @@ body.is-blurred .sheet-toolbar-container {
 .composer-full-window {
   padding-top: 15px;
 }
+
 // make bottom of composer window uniform in color
 .composer-full-window .composer-inner-wrap .composer-action-bar-wrap {
   background: @less-background;
@@ -611,6 +601,6 @@ body.is-blurred .sheet-toolbar-container {
   background-color: @less-background;
 }
 
-.thread-list-vertical #message-list  {
+.thread-list-vertical #message-list {
   padding-top: 30px;
 }

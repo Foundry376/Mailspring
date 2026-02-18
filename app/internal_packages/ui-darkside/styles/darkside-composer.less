@@ -23,16 +23,13 @@
 // Replacing focused state with theme accent
 #message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap {
   background: white;
+
   &.focused {
-    box-shadow: 0 0 0 1px @accent;
+    box-shadow: none;
   }
 }
 
-.message-item-white-wrap.composer-outer-wrap
-  .composer-participant-field
-  .dropdown-component
-  .signature-button-dropdown
-  .only-item {
+.message-item-white-wrap.composer-outer-wrap .composer-participant-field .dropdown-component .signature-button-dropdown .only-item {
   background: white;
 }
 
@@ -41,6 +38,7 @@
   & .composer-action-bar-wrap {
     background: transparent;
   }
+
   &.focused .composer-action-bar-wrap {
     background: darken(@messagelist-bg, 1%);
   }
@@ -58,6 +56,7 @@
 .file-wrap.file-image-wrap .file-preview .file-name-container {
   background: fade(@sidebar, 20%);
   min-height: 0;
+
   & .file-name {
     left: 0;
     right: 0;

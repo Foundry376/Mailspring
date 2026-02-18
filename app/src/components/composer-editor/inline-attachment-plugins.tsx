@@ -8,6 +8,16 @@ import { schema } from './conversion';
 
 export const IMAGE_TYPE = 'image';
 
+function normalizeContentId(contentId = '') {
+  let normalized = (contentId || '').trim().replace(/^</, '').replace(/>$/, '');
+  try {
+    normalized = decodeURIComponent(normalized);
+  } catch (err) {
+    // no-op
+  }
+  return normalized;
+}
+
 function ImageNode(props) {
   const { attributes, node, editor, targetIsHTML, isFocused } = props;
   const contentId = node.data.get ? node.data.get('contentId') : node.data.contentId,
@@ -18,7 +28,8 @@ function ImageNode(props) {
   }
 
   const { draft } = editor.props.propsForPlugins;
-  const file = draft.files.find(f => contentId === f.contentId);
+  const normalizedContentId = normalizeContentId(contentId);
+  const file = draft.files.find(f => normalizeContentId(f.contentId) === normalizedContentId);
   if (!file) {
     return <span />;
   }
@@ -50,7 +61,7 @@ function ImageNode(props) {
   );
 }
 
-function renderNode(props, editor: Editor = null, next = () => {}) {
+function renderNode(props, editor: Editor = null, next = () => { }) {
   if (props.node.type === IMAGE_TYPE) {
     return ImageNode(props);
   }

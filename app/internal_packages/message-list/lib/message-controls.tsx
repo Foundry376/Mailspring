@@ -7,6 +7,8 @@ import {
   Actions,
   TaskQueue,
   GetMessageRFC2822Task,
+  CategoryStore,
+  ChangeFolderTask,
   Thread,
   Message,
 } from 'mailspring-exports';
@@ -142,6 +144,44 @@ export default class MessageControls extends React.Component<MessageControlsProp
     win.loadURL(`file://${filepath}`);
   };
 
+  _onMoveMessageToTrash = () => {
+    const { message } = this.props;
+    const trash = CategoryStore.getTrashCategory(message.accountId);
+    if (!trash || message.folder?.id === trash.id) {
+      return;
+    }
+
+    Actions.queueTask(
+      new ChangeFolderTask({
+        folder: trash,
+        messages: [message],
+        source: 'Message Header: Conversation View',
+      })
+    );
+  };
+
+  _renderTrashAction() {
+    const { message } = this.props;
+    const trash = CategoryStore.getTrashCategory(message.accountId);
+    if (!trash || message.folder?.id === trash.id) {
+      return null;
+    }
+
+    return (
+      <div
+        title={localized('Move to Trash')}
+        onClick={this._onMoveMessageToTrash}
+        style={{ float: 'left', marginLeft: 6, cursor: 'pointer', lineHeight: 1, opacity: 0.85 }}
+      >
+        <RetinaImg
+          name="toolbar-trash.png"
+          mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 14, height: 14, backgroundColor: '#666' }}
+        />
+      </div>
+    );
+  }
+
   _onLogData = () => {
     console.log(this.props.message);
     (window as any).__message = this.props.message;
@@ -173,6 +213,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
           closeOnMenuClick
           menu={this._dropdownMenu(items.slice(1))}
         />
+        {this._renderTrashAction()}
         <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
           <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask} />
         </div>

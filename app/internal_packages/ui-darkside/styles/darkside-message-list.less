@@ -73,8 +73,8 @@
   border: none;
 }
 
-#message-list .minified-bundle + .message-item-wrap,
-#message-list .message-item-wrap.collapsed + .minified-bundle,
+#message-list .minified-bundle+.message-item-wrap,
+#message-list .message-item-wrap.collapsed+.minified-bundle,
 #message-list .minified-bundle .num-messages,
 #message-list .minified-bundle .msg-lines {
   margin-top: 0;
@@ -82,7 +82,20 @@
 
 // Collapsed Messages Pill Label
 #message-list .minified-bundle .num-messages {
-  padding: 3px;
+  width: 128px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: @font-weight-medium;
+  letter-spacing: 0.01em;
+}
+
+#message-list .minified-bundle .msg-lines {
+  width: calc(~'100% - 180px');
+  max-width: 560px;
+}
+
+#message-list .minified-bundle .msg-line {
+  border-radius: 999px;
 }
 
 // remove margin for last message before reply

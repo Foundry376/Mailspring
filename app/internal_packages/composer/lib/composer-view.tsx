@@ -72,7 +72,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     'composer:show-and-focus-bcc': () => this.header.current.showAndFocusField(Fields.Bcc),
     'composer:show-and-focus-cc': () => this.header.current.showAndFocusField(Fields.Cc),
     'composer:focus-to': () => this.header.current.showAndFocusField(Fields.To),
-    'composer:show-and-focus-from': () => {},
+    'composer:show-and-focus-from': () => { },
     'composer:select-attachment': () => this._onSelectAttachment(),
     'composer:delete-empty-draft': (e: Event) => {
       this.props.draft.pristine && this._onDestroyDraft();
@@ -434,6 +434,75 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     Actions.selectAttachment({ headerMessageId: this.props.draft.headerMessageId });
   };
 
+  _onSelectRecentAttachment = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { Menu, MenuItem, app } = require('@electron/remote');
+    const fs = require('fs');
+    const path = require('path');
+
+    const uniqueRecentPaths = [];
+    const seen = new Set();
+    const recentPaths = app.getRecentDocuments ? app.getRecentDocuments() : [];
+
+    for (const recentPath of recentPaths) {
+      if (!recentPath || seen.has(recentPath)) {
+        continue;
+      }
+
+      try {
+        const stats = fs.statSync(recentPath);
+        if (!stats.isFile()) {
+          continue;
+        }
+      } catch (err) {
+        continue;
+      }
+
+      seen.add(recentPath);
+      uniqueRecentPaths.push(recentPath);
+
+      if (uniqueRecentPaths.length >= 10) {
+        break;
+      }
+    }
+
+    const menu = new Menu();
+    if (uniqueRecentPaths.length === 0) {
+      menu.append(
+        new MenuItem({
+          label: localized('No recent files available'),
+          enabled: false,
+        })
+      );
+    } else {
+      uniqueRecentPaths.forEach(filePath => {
+        menu.append(
+          new MenuItem({
+            label: path.basename(filePath),
+            click: () =>
+              Actions.addAttachment({
+                headerMessageId: this.props.draft.headerMessageId,
+                filePath,
+              }),
+          })
+        );
+      });
+    }
+
+    menu.append(new MenuItem({ type: 'separator' }));
+    menu.append(
+      new MenuItem({
+        label: localized('Browse for File...'),
+        click: this._onSelectAttachment,
+      })
+    );
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    menu.popup({ x: Math.round(bounds.left), y: Math.round(bounds.bottom) });
+  };
+
   render() {
     return (
       <div className={this.props.className}>
@@ -486,6 +555,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                   />
                   <DeleteButton onClick={this._onDestroyDraft} />
                   <AttachFileButton onClick={this._onSelectAttachment} />
+                  <AttachRecentButton onClick={this._onSelectRecentAttachment} />
 
                   <div style={{ order: 0, flex: 1 }} />
 
@@ -524,6 +594,22 @@ const AttachFileButton = (props: { onClick: () => void }) => (
     onClick={props.onClick}
   >
     <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
+  </button>
+);
+
+const AttachRecentButton = (props: { onClick: (event: React.MouseEvent<HTMLButtonElement>) => void }) => (
+  <button
+    tabIndex={-1}
+    className="btn btn-toolbar btn-attach-recent"
+    style={{ order: 0 }}
+    title={localized('Attach Recent Files')}
+    onClick={props.onClick}
+  >
+    <RetinaImg
+      name="recentfiles.png"
+      fallback="icon-composer-attachment.png"
+      mode={RetinaImg.Mode.ContentPreserve}
+    />
   </button>
 );
 

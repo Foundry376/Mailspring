@@ -2,6 +2,7 @@ import React from 'react';
 import { PropTypes, Utils } from 'mailspring-exports';
 import { AccountColorBar } from 'mailspring-component-kit';
 import { ThreadWithMessagesMetadata } from './types';
+import ParticipantAvatar from './participant-avatar';
 
 class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
   static displayName = 'ThreadListParticipants';
@@ -20,7 +21,10 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     return (
       <div className="participants" dir="auto">
         <AccountColorBar accountId={this.props.thread.accountId} />
-        {this.renderSpans(items)}
+        <div className="participants-content">
+          {this.renderAvatars(items)}
+          {this.renderSpans(items)}
+        </div>
       </div>
     );
   }
@@ -30,7 +34,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     let accumulated = null;
     let accumulatedUnread = false;
 
-    const flush = function() {
+    const flush = function () {
       if (accumulated) {
         spans.push(
           <span key={spans.length} className={`unread-${accumulatedUnread}`}>
@@ -42,7 +46,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       accumulatedUnread = false;
     };
 
-    const accumulate = function(text, unread?: boolean) {
+    const accumulate = function (text, unread?: boolean) {
       if (accumulated && unread && accumulatedUnread !== unread) {
         flush();
       }
@@ -89,6 +93,43 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     flush();
 
     return spans;
+  }
+
+  renderAvatars(items) {
+    const avatars = [];
+    const displayedContacts = new Set();
+
+    for (let idx = 0; idx < items.length; idx++) {
+      const { spacer, contact } = items[idx];
+
+      if (spacer) {
+        // Add a spacer indicator if needed
+        if (avatars.length > 0) {
+          avatars.push(
+            <div key="spacer" className="avatar-spacer">
+              <span>...</span>
+            </div>
+          );
+        }
+        continue;
+      }
+
+      // Only show avatar for unique contacts to avoid duplicates
+      const contactKey = `${contact.email}-${contact.name}`;
+      if (!displayedContacts.has(contactKey) && avatars.length < 3) {
+        displayedContacts.add(contactKey);
+        avatars.push(
+          <ParticipantAvatar
+            key={contactKey}
+            contact={contact}
+            size={24}
+            className="participant-avatar-small"
+          />
+        );
+      }
+    }
+
+    return avatars;
   }
 
   getTokensFromMessages = () => {
@@ -147,7 +188,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     if (
       list.length === 0 &&
       (this.props.thread.participants != null ? this.props.thread.participants.length : undefined) >
-        0
+      0
     ) {
       list.push({ contact: this.props.thread.participants[0], unread: false });
     }

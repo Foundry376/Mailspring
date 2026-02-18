@@ -13,7 +13,6 @@
     "npm": ">=8"
   },
   "dependencies": {
-    "@electron/packager": "18.3.6",
     "@types/better-sqlite3": "^7.6.3",
     "@types/debug": "^4.1.2",
     "@types/deep-extend": "^0.4.31",
@@ -51,8 +50,7 @@
     "@typescript-eslint/parser": "^5.62.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "39.2.7",
-    "electron-winstaller": "5.4.0",
+    "electron-squirrel-startup": "^1.0.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "7.2.0",
     "eslint-plugin-import": "^2.22.1",
@@ -70,6 +68,7 @@
     "node-gyp": "^12.1.0",
     "prettier": "^1.10.0",
     "rimraf": "^2.6.1",
+    "save-dev": "^0.0.1-security",
     "targz": "^1.0.1",
     "temp": "0.8.x",
     "typescript": "5.7.3",
@@ -77,12 +76,17 @@
   },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
-    "start": "electron ./app --enable-logging --dev",
+    "start": "electron-forge start",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",
     "test": "electron ./app --enable-logging --test",
     "test-window": "electron ./app --enable-logging --test=window",
     "tsc-watch": "tsc -w -p ./app --noEmit",
     "build": "grunt build-client --gruntfile=app/build/Gruntfile.js --base=./",
-    "build-licenses-file": "cat ./app/static/all_licenses_preamble.html | ./node_modules/.bin/marked > ./app/static/all_licenses.html && licext --source ./app --mode output | ./node_modules/.bin/marked >> ./app/static/all_licenses.html"
+    "build-licenses-file": "cat ./app/static/all_licenses_preamble.html | ./node_modules/.bin/marked > ./app/static/all_licenses.html && licext --source ./app --mode output | ./node_modules/.bin/marked >> ./app/static/all_licenses.html",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "devDependencies": {
+    "electron": "40.4.1"
   }
 }

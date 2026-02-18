@@ -219,11 +219,17 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
       );
 
       if (isBeforeReplyArea) {
+        const replyAlignmentClass = message.isFromMe() ? 'sent-by-me' : 'received-from-others';
+        const replyAlignmentStyle = message.isFromMe()
+          ? { marginLeft: '40px', marginRight: '10px', maxWidth: 'calc(100% - 50px)' }
+          : { marginLeft: '10px', marginRight: '40px', maxWidth: 'calc(100% - 50px)' };
         elements.push(
           <MessageListReplyArea
             key="reply-area"
             onClick={this._onClickReplyArea}
             replyType={this._replyType()}
+            alignmentClass={replyAlignmentClass}
+            alignmentStyle={replyAlignmentStyle}
           />
         );
       }
@@ -456,7 +462,12 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
   }
 }
 
-class MessageListReplyArea extends React.Component<{ onClick: () => void; replyType: string }> {
+class MessageListReplyArea extends React.Component<{
+  onClick: () => void;
+  replyType: string;
+  alignmentClass: 'sent-by-me' | 'received-from-others';
+  alignmentStyle: React.CSSProperties;
+}> {
   state = {
     forcePlaintext: AppEnv.keymaps.getIsAltKeyDown(),
   };
@@ -474,7 +485,11 @@ class MessageListReplyArea extends React.Component<{ onClick: () => void; replyT
 
   render() {
     return (
-      <div className="footer-reply-area-wrap" onClick={this.props.onClick}>
+      <div
+        className={`footer-reply-area-wrap ${this.props.alignmentClass}`}
+        style={this.props.alignmentStyle}
+        onClick={this.props.onClick}
+      >
         <div className="footer-reply-area">
           <RetinaImg
             name={`${this.props.replyType}-footer.png`}
