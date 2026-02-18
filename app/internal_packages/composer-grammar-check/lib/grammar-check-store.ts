@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { GrammarError, LanguageToolBackend } from './grammar-check-service';
+import { GrammarError, LanguageToolBackend, UsageExceededError } from './grammar-check-service';
 
 interface BlockCheckResult {
   text: string;
@@ -8,6 +8,7 @@ interface BlockCheckResult {
 
 class _GrammarCheckStore extends MailspringStore {
   private _enabled: boolean = false;
+  private _usageExceeded: boolean = false;
   private _checking: Map<string, boolean> = new Map();
   private _errorsByDraft: Map<string, Map<string, BlockCheckResult>> = new Map();
   private _dismissedRules: Set<string> = new Set();
@@ -18,6 +19,7 @@ class _GrammarCheckStore extends MailspringStore {
 
   activate() {
     this._backend = new LanguageToolBackend();
+    this._usageExceeded = false;
     this._readConfig();
 
     this._configDisposable = AppEnv.config.onDidChange(
@@ -42,6 +44,7 @@ class _GrammarCheckStore extends MailspringStore {
     this._errorsByDraft.clear();
     this._dirtyBlocks.clear();
     this._checking.clear();
+    this._usageExceeded = false;
     for (const controller of this._abortControllers.values()) {
       controller.abort();
     }
@@ -63,6 +66,10 @@ class _GrammarCheckStore extends MailspringStore {
 
   isEnabled(): boolean {
     return this._enabled;
+  }
+
+  isUsageExceeded(): boolean {
+    return this._usageExceeded;
   }
 
   warnOnSend(): boolean {
@@ -94,7 +101,7 @@ class _GrammarCheckStore extends MailspringStore {
   }
 
   markDirty(draftId: string, blockKey: string, blockText: string) {
-    if (!this._enabled) return;
+    if (!this._enabled || this._usageExceeded) return;
     let draftDirty = this._dirtyBlocks.get(draftId);
     if (!draftDirty) {
       draftDirty = new Map();
@@ -144,7 +151,7 @@ class _GrammarCheckStore extends MailspringStore {
   }
 
   async checkDirtyBlocks(draftId: string): Promise<void> {
-    if (!this._enabled) return;
+    if (!this._enabled || this._usageExceeded) return;
 
     const draftDirty = this._dirtyBlocks.get(draftId);
     if (!draftDirty || draftDirty.size === 0) return;
@@ -184,7 +191,12 @@ class _GrammarCheckStore extends MailspringStore {
         }
 
         try {
-          const errors = await this._backend.check(blockText, undefined, controller.signal);
+          const errors = await this._backend.check(
+            blockText,
+            draftId,
+            undefined,
+            controller.signal
+          );
 
           // Staleness check: verify the block is still the same text
           const currentDirty = this._dirtyBlocks.get(draftId);
@@ -199,6 +211,11 @@ class _GrammarCheckStore extends MailspringStore {
           draftErrors.set(blockKey, { text: blockText, errors: filteredErrors });
         } catch (err) {
           if (err.name === 'AbortError') break;
+          if (err instanceof UsageExceededError) {
+            this._usageExceeded = true;
+            this._dirtyBlocks.clear();
+            break;
+          }
           console.warn(`Grammar check failed for block ${blockKey}:`, err);
         }
       }

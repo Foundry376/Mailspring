@@ -160,10 +160,12 @@ The proxy must:
 2. **Forward** authenticated requests to the internal LanguageTool instance
 3. **Reject** unauthenticated requests with `401 Unauthorized`
 4. **Proxy only the endpoints the client needs** — allowlist, not blocklist
-5. **Enforce rate limiting** per API key to prevent abuse
-6. **Add CORS headers** for Electron (the Mailspring client makes fetch requests from a `file://` or `mailspring://` origin)
-7. **Strip the auth header** before forwarding to LanguageTool (LanguageTool doesn't understand it and would pass it to its own `apiKey` logic)
-8. **Log** request metadata (timestamp, endpoint, response time, text length) but **never log the request body text** (privacy)
+5. **Track usage per API key** using the `draftId` parameter (see [Usage Tracking](#usage-tracking) below)
+6. **Return `402 Payment Required`** when usage quota is exceeded
+7. **Enforce rate limiting** per API key to prevent abuse
+8. **Add CORS headers** for Electron (the Mailspring client makes fetch requests from a `file://` or `mailspring://` origin)
+9. **Strip the auth header and `draftId` param** before forwarding to LanguageTool (LanguageTool doesn't understand them)
+10. **Log** request metadata (timestamp, endpoint, response time, text length) but **never log the request body text** (privacy)
 
 ### Endpoints to Proxy
 
@@ -199,17 +201,24 @@ The proxy validates the key against the `API_KEY` environment variable (or a lis
 
 ### Proxy Implementation Notes
 
-The proxy is intentionally simple — it does not transform the request or response payloads. It is a passthrough with auth and rate limiting. The request body (`application/x-www-form-urlencoded`) is forwarded byte-for-byte to LanguageTool, and the JSON response is returned byte-for-byte to the client.
+The proxy is intentionally simple. It performs two transformations on `POST /v2/check` requests:
+1. **Strips the `draftId` parameter** from the form body (LanguageTool doesn't understand it)
+2. **Strips `Authorization` / `X-Api-Key` headers**
+
+Otherwise, the request body is forwarded as-is to LanguageTool, and the JSON response is returned as-is to the client.
 
 **Request flow for `POST /v2/check`:**
 
 ```
-1. Client sends POST /v2/check with Authorization header + form body
+1. Client sends POST /v2/check with Authorization header + form body (includes draftId)
 2. Proxy validates Authorization header
-3. Proxy strips Authorization / X-Api-Key headers
-4. Proxy forwards POST to http://languagetool:8010/v2/check with original body
-5. LanguageTool returns JSON response
-6. Proxy adds CORS headers and returns JSON response to client
+3. Proxy extracts draftId from form body for usage tracking
+4. Proxy checks usage quota — if exceeded, return 402 immediately
+5. If new draftId, increment usage counter and record draftId
+6. Proxy strips Authorization / X-Api-Key headers and draftId param from form body
+7. Proxy forwards POST to http://languagetool:8010/v2/check with cleaned body
+8. LanguageTool returns JSON response
+9. Proxy adds CORS headers and returns JSON response to client
 ```
 
 **CORS headers to add:**
@@ -238,6 +247,74 @@ Implement token-bucket or sliding-window rate limiting keyed on the API key valu
 
 Return `429 Too Many Requests` with a `Retry-After` header (in seconds) when the limit is exceeded.
 
+### Usage Tracking
+
+The proxy tracks grammar check usage **per API key, per billing period** to enforce subscription quotas. Usage is counted once per unique `draftId` — multiple check requests for the same draft (as the user edits different paragraphs) count as a single usage.
+
+**How it works:**
+
+1. The client sends a `draftId` parameter in every `POST /v2/check` request body. This is the Mailspring draft's `headerMessageId`, a stable identifier for the lifetime of a draft.
+2. On each `POST /v2/check` request, the proxy:
+   - Extracts the `draftId` from the form body
+   - Checks if this `draftId` has been seen before for this API key in the current billing period
+   - If **new `draftId`**: increments the usage counter, records the `draftId`, and forwards the request
+   - If **seen `draftId`**: forwards the request without incrementing (already counted)
+   - If **usage quota exceeded**: returns `402 Payment Required` immediately without forwarding
+3. The proxy strips the `draftId` parameter from the form body before forwarding to LanguageTool (LanguageTool does not understand this parameter).
+
+**Usage exceeded response:**
+
+```
+HTTP/1.1 402 Payment Required
+Content-Type: application/json
+Access-Control-Allow-Origin: *
+
+{
+  "error": "usage_exceeded",
+  "message": "Grammar check usage limit reached for this billing period"
+}
+```
+
+**The client handles this by:**
+- Setting a `usageExceeded` flag in the grammar check store
+- Stopping all further grammar check API calls for the session
+- Displaying a small warning banner in the composer: "Grammar check is disabled — usage limit reached for this billing period."
+- Switching the toolbar icon to a warning state
+
+**`draftId` characteristics:**
+- Format: opaque string (Mailspring uses a UUID-based `headerMessageId` like `<draft-abc123@mailspring.com>`)
+- Lifetime: exists from when the user starts composing until they send or discard the draft
+- Uniqueness: each new compose/reply/forward creates a new `draftId`
+- A typical email session might produce 1–10 unique draft IDs
+
+**Storage requirements:**
+- The proxy needs to store `(api_key, draftId)` pairs for the current billing period
+- At the end of each billing period, the set of seen draft IDs can be cleared
+- Typical storage: a few hundred entries per API key per month
+
+**Implementation example (pseudocode):**
+
+```
+function handleCheck(req):
+  apiKey = extractApiKey(req)
+  if not isValidApiKey(apiKey):
+    return 401
+
+  formBody = parseFormBody(req.body)
+  draftId = formBody.get("draftId")
+
+  # Check and update usage
+  if draftId and not hasSeenDraft(apiKey, draftId):
+    if getUsageCount(apiKey) >= getQuota(apiKey):
+      return 402, {"error": "usage_exceeded", ...}
+    incrementUsage(apiKey)
+    recordDraftId(apiKey, draftId)
+
+  # Strip proxy-specific params before forwarding
+  formBody.delete("draftId")
+  return forwardToLanguageTool(formBody)
+```
+
 ### Health Check Endpoint
 
 Expose an unauthenticated `GET /health` endpoint that checks the proxy can reach LanguageTool:
@@ -264,6 +341,7 @@ Implementation: proxy makes a `GET /v2/languages` call to LanguageTool internall
 | Scenario | Proxy Response |
 |---|---|
 | Missing or invalid API key | `401 Unauthorized` with `{"error": "Invalid or missing API key"}` |
+| Usage quota exceeded | `402 Payment Required` with `{"error": "usage_exceeded", "message": "Grammar check usage limit reached for this billing period"}` |
 | Rate limit exceeded | `429 Too Many Requests` with `Retry-After` header |
 | LanguageTool unreachable | `502 Bad Gateway` with `{"error": "Grammar check service unavailable"}` |
 | LanguageTool returns 4xx | Forward the status code and body as-is |
@@ -300,6 +378,7 @@ The primary endpoint. The client calls this for every paragraph the user edits (
 | `username` | string | No | For premium API access. Not used by our client. |
 | `apiKey` | string | No | LanguageTool's own API key for premium. **Not to be confused with our proxy's auth key.** Not used by our client. |
 | `dicts` | string | No | Comma-separated list of user dictionary IDs. Not used by our client. |
+| `draftId` | string | **Yes**\*\* | **Proxy-only parameter.** The Mailspring draft ID (`headerMessageId`). Used by the proxy for per-draft usage tracking. \*\*Required by the proxy, not part of the LanguageTool API. The proxy must strip this before forwarding to LanguageTool. |
 
 **Typical request from our Mailspring client:**
 
@@ -308,10 +387,10 @@ POST /v2/check
 Content-Type: application/x-www-form-urlencoded
 Authorization: Bearer <proxy-api-key>
 
-text=He+do+not+like+bananas.&language=auto&disabledRules=WHITESPACE_RULE%2CEN_QUOTES
+text=He+do+not+like+bananas.&language=auto&draftId=%3Cdraft-abc123%40mailspring.com%3E&disabledRules=WHITESPACE_RULE%2CEN_QUOTES
 ```
 
-Note: The `Authorization` header is for the proxy only. The proxy strips it before forwarding. If the client also sends LanguageTool's own `apiKey` parameter in the form body, it passes through to LanguageTool (this would only happen if the user configured a premium LanguageTool account in their settings, which is a separate concern).
+Note: The `Authorization` header and `draftId` parameter are for the proxy only. The proxy strips both before forwarding to LanguageTool. The `apiKey` form body param is LanguageTool's own premium key field and is not used by our client.
 
 **Response** (`200 OK`, `Content-Type: application/json`):
 
@@ -473,12 +552,10 @@ The Mailspring client (`grammar-check-service.ts`) is already implemented. Here 
 const params = new URLSearchParams();
 params.append('text', text);
 params.append('language', language || this.language);  // default: 'auto'
+params.append('draftId', draftId);  // Mailspring draft headerMessageId
 
 if (this.level && this.level !== 'default') {
   params.append('level', this.level);
-}
-if (this.apiKey) {
-  params.append('apiKey', this.apiKey);
 }
 if (this.preferredVariants) {
   params.append('preferredVariants', this.preferredVariants);
@@ -493,45 +570,35 @@ if (this.disabledCategories.length > 0) {
   params.append('disabledCategories', this.disabledCategories.join(','));
 }
 
-const response = await fetch(`${this.serverUrl}/v2/check`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  body: params.toString(),
-  signal,  // AbortSignal for cancellation
-});
-```
-
-### What the Client Needs Changed for Proxy Auth
-
-The client currently sends requests to a configurable `serverUrl` (default `http://localhost:8010`). To use the authenticated proxy, the user configures:
-
-- `serverUrl` → the proxy URL (e.g., `https://grammar.example.com`)
-- `apiKey` → the proxy's secret API key
-
-**Important:** The client currently sends `apiKey` as a form body parameter (which is LanguageTool's own premium API key field). For proxy authentication, the client needs to send the key in the `Authorization` header instead. This requires a small change to the client code.
-
-The required client-side change:
-
-```typescript
-// Current (sends apiKey as form param for LanguageTool premium):
-if (this.apiKey) {
-  params.append('apiKey', this.apiKey);
-}
-
-// Updated (sends apiKey as Authorization header for proxy auth):
 const headers: Record<string, string> = {
   'Content-Type': 'application/x-www-form-urlencoded',
 };
 if (this.apiKey) {
   headers['Authorization'] = `Bearer ${this.apiKey}`;
 }
+
+const response = await fetch(`${this.serverUrl}/v2/check`, {
+  method: 'POST',
+  headers,
+  body: params.toString(),
+  signal,  // AbortSignal for cancellation
+});
+
+// Client checks for 402 before parsing response
+if (response.status === 402) {
+  throw new UsageExceededError();  // Store catches this and stops checking
+}
 ```
 
-This way the same `apiKey` config field serves double duty:
-- If pointing at a direct LanguageTool instance → no `apiKey` needed, no auth header sent
-- If pointing at the proxy → `apiKey` = proxy secret, sent as `Authorization: Bearer <key>`
+### Authentication and draftId
 
-The proxy should also accept the key via `X-Api-Key` header as a fallback.
+The `apiKey` config field is sent as an `Authorization: Bearer <key>` header (not as a form body parameter). The proxy should also accept the key via `X-Api-Key` header as a fallback.
+
+The `draftId` is always sent as a form body parameter. When no `apiKey` is configured (direct LanguageTool connection), no `Authorization` header is sent, and the `draftId` is harmlessly ignored by LanguageTool (unknown form params are silently discarded).
+
+This way the same client code works for both:
+- **Direct LanguageTool** → no `apiKey`, no auth header, `draftId` ignored
+- **Authenticated proxy** → `apiKey` = proxy secret as Bearer token, `draftId` used for usage tracking
 
 ### Request Characteristics
 
@@ -643,6 +710,32 @@ curl -s -D - \
 # Expected: Access-Control-Allow-Origin: *
 ```
 
+**Usage tracking tests:**
+
+```bash
+# First request with a new draftId should succeed and count as 1 usage
+curl -s -o /dev/null -w "%{http_code}" \
+  -X POST https://grammar.example.com/v2/check \
+  -H "Authorization: Bearer ${API_KEY}" \
+  -d "text=He+do+not+like+bananas.&language=en-US&draftId=draft-test-001"
+# Expected: 200
+
+# Second request with the SAME draftId should succeed without incrementing usage
+curl -s -o /dev/null -w "%{http_code}" \
+  -X POST https://grammar.example.com/v2/check \
+  -H "Authorization: Bearer ${API_KEY}" \
+  -d "text=Another+paragraph+in+same+draft.&language=en-US&draftId=draft-test-001"
+# Expected: 200 (usage count still 1)
+
+# Request after quota is exhausted should return 402
+# (set up a test API key with quota=1 to verify)
+curl -s \
+  -X POST https://grammar.example.com/v2/check \
+  -H "Authorization: Bearer ${LIMITED_API_KEY}" \
+  -d "text=Test.&language=en-US&draftId=draft-over-quota"
+# Expected: 402 with {"error": "usage_exceeded", ...}
+```
+
 **Error handling tests:**
 
 ```bash
@@ -695,6 +788,9 @@ The proxy needs these environment variables:
 | `MAX_BODY_SIZE` | No | Maximum request body size in bytes (default: `102400` = 100KB) |
 | `RATE_LIMIT_CHECK` | No | Rate limit for POST /v2/check in requests/minute (default: `30`) |
 | `RATE_LIMIT_LANGUAGES` | No | Rate limit for GET /v2/languages in requests/minute (default: `10`) |
+| `USAGE_QUOTA` | No | Maximum unique draft IDs per API key per billing period (default: `50`) |
+| `BILLING_PERIOD` | No | Billing period for usage tracking: `monthly` or `weekly` (default: `monthly`) |
+| `USAGE_STORE_URL` | No | URL for external usage store (Redis, database). If not set, usage is tracked in-memory (lost on restart). |
 | `LOG_LEVEL` | No | Logging verbosity: `debug`, `info`, `warn`, `error` (default: `info`) |
 
 ### Security Checklist

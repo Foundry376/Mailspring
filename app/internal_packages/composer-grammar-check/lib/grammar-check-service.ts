@@ -61,8 +61,15 @@ export interface LanguageToolResponse {
   matches: LanguageToolMatch[];
 }
 
+export class UsageExceededError extends Error {
+  constructor(message?: string) {
+    super(message || 'Grammar check usage limit exceeded');
+    this.name = 'UsageExceededError';
+  }
+}
+
 export interface GrammarCheckBackend {
-  check(text: string, language?: string, signal?: AbortSignal): Promise<GrammarError[]>;
+  check(text: string, draftId: string, language?: string, signal?: AbortSignal): Promise<GrammarError[]>;
   isAvailable(): boolean;
   name: string;
 }
@@ -128,7 +135,12 @@ export class LanguageToolBackend implements GrammarCheckBackend {
     return !!this.serverUrl;
   }
 
-  async check(text: string, language?: string, signal?: AbortSignal): Promise<GrammarError[]> {
+  async check(
+    text: string,
+    draftId: string,
+    language?: string,
+    signal?: AbortSignal
+  ): Promise<GrammarError[]> {
     this._readConfig();
 
     if (!this.isAvailable()) {
@@ -138,12 +150,10 @@ export class LanguageToolBackend implements GrammarCheckBackend {
     const params = new URLSearchParams();
     params.append('text', text);
     params.append('language', language || this.language);
+    params.append('draftId', draftId);
 
     if (this.level && this.level !== 'default') {
       params.append('level', this.level);
-    }
-    if (this.apiKey) {
-      params.append('apiKey', this.apiKey);
     }
     if (this.preferredVariants) {
       params.append('preferredVariants', this.preferredVariants);
@@ -158,12 +168,23 @@ export class LanguageToolBackend implements GrammarCheckBackend {
       params.append('disabledCategories', this.disabledCategories.join(','));
     }
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
+
     const response = await fetch(`${this.serverUrl}/v2/check`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers,
       body: params.toString(),
       signal,
     });
+
+    if (response.status === 402) {
+      throw new UsageExceededError();
+    }
 
     if (!response.ok) {
       throw new Error(`LanguageTool API error: ${response.status} ${response.statusText}`);

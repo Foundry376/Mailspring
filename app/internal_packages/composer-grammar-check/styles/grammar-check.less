@@ -76,6 +76,11 @@
     color: @component-active-color;
   }
 
+  &.usage-exceeded {
+    color: @text-color-subtle;
+    opacity: 0.6;
+  }
+
   .grammar-check-spinner {
     display: inline-block;
     width: 10px;
@@ -106,6 +111,21 @@
 @keyframes grammar-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+.grammar-usage-banner {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: @background-color-warning;
+  color: @text-color-inverse;
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: 0;
+
+  span {
+    flex: 1;
   }
 }
 

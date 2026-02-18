@@ -36,25 +36,33 @@ export class GrammarCheckToggle extends React.Component<{
 
   render() {
     const enabled = GrammarCheckStore.isEnabled();
+    const usageExceeded = GrammarCheckStore.isUsageExceeded();
     const checking = GrammarCheckStore.isChecking(this.props.draft.headerMessageId);
     const errorCount = GrammarCheckStore.errorCount(this.props.draft.headerMessageId);
 
-    const title = enabled
-      ? errorCount > 0
-        ? localized(`Grammar check: %@ issues`, errorCount)
-        : localized('Grammar check: no issues')
-      : localized('Enable grammar check');
+    let title: string;
+    let className = 'btn btn-toolbar btn-grammar-check';
+
+    if (usageExceeded) {
+      title = localized('Grammar check: usage limit reached');
+      className += ' usage-exceeded';
+    } else if (enabled) {
+      className += ' enabled';
+      title =
+        errorCount > 0
+          ? localized(`Grammar check: %@ issues`, errorCount)
+          : localized('Grammar check: no issues');
+    } else {
+      title = localized('Enable grammar check');
+    }
 
     return (
-      <button
-        tabIndex={-1}
-        className={`btn btn-toolbar btn-grammar-check ${enabled ? 'enabled' : ''}`}
-        onClick={this._onClick}
-        title={title}
-      >
-        <i className="fa fa-check-circle" />
+      <button tabIndex={-1} className={className} onClick={this._onClick} title={title}>
+        <i className={`fa ${usageExceeded ? 'fa-exclamation-circle' : 'fa-check-circle'}`} />
         {checking && <span className="grammar-check-spinner" />}
-        {enabled && errorCount > 0 && <span className="grammar-error-count">{errorCount}</span>}
+        {enabled && !usageExceeded && errorCount > 0 && (
+          <span className="grammar-error-count">{errorCount}</span>
+        )}
       </button>
     );
   }
