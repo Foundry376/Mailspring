@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import classnames from 'classnames';
+import { TabGroupContext, TabGroupContextType } from './tab-group-context';
 
 require('moment-round'); // overrides moment
 
@@ -27,9 +28,8 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     relativeTo: PropTypes.number, // TODO For `renderTimeOptions`
   };
 
-  static contextTypes = {
-    parentTabGroup: PropTypes.object,
-  };
+  static contextType = TabGroupContext;
+  declare context: TabGroupContextType | null;
 
   static defaultProps = {
     value: moment().valueOf(),
@@ -71,7 +71,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       event.preventDefault();
       this._onArrow(event.key);
     } else if (event.key === 'Enter') {
-      this.context.parentTabGroup.shiftFocus(1);
+      this.context?.shiftFocus(1);
     }
   };
 

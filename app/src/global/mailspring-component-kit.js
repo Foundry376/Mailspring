@@ -88,6 +88,8 @@ lazyLoad('MultiselectDropdown', 'multiselect-dropdown');
 lazyLoad('KeyCommandsRegion', 'key-commands-region');
 lazyLoad('BindGlobalCommands', 'bind-global-commands');
 lazyLoad('TabGroupRegion', 'tab-group-region');
+lazyLoadFrom('TabGroupContext', 'tab-group-context');
+lazyLoadFrom('TabGroupContextType', 'tab-group-context');
 lazyLoad('InjectedComponent', 'injected-component');
 lazyLoad('TokenizingTextField', 'tokenizing-text-field');
 lazyLoad('ParticipantsTextField', 'participants-text-field');

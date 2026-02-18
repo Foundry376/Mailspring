@@ -26,16 +26,9 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
     };
   }
 
-  componentWillMount() {
-    if (!this.state.src) {
-      IdentityStore.fetchSingleSignOnURL('/payment?embedded=true').then(url => {
-        if (!this._mounted) return;
-        this.setState({ src: url });
-      });
-    }
-  }
-
   componentDidMount() {
+    this._mounted = true;
+
     // Due to a bug in Electron, opening a webview with a non 100% size when
     // the app has a custom zoomLevel scales it's contents incorrectly and no
     // CSS will fix it. Fix this by just temporarily reverting zoom to 1.0
@@ -44,7 +37,14 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
     if (this._initialZoom !== 1) {
       webFrame.setZoomFactor(1);
     }
-    this._mounted = true;
+
+    // Fetch URL if not provided via props
+    if (!this.state.src) {
+      IdentityStore.fetchSingleSignOnURL('/payment?embedded=true').then(url => {
+        if (!this._mounted) return;
+        this.setState({ src: url });
+      });
+    }
   }
 
   /**
