@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"စနစ်အားစတင်ပေါ် Launch\" သာ XDG-compliant desktop ပေါ်မှာ enviroments မှာအလုပ်လုပ်ပါတယ်။ စနစ်ဗန်းထဲမှာ Mailspring အိုင်ကွန်ကို enable လုပ်ဖို့, သင် libappindicator တပ်ဆင်ရန်လိုအပ်နိုင်ပါသည်။",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"စနစ်အားစတင်ပေါ် Launch\" သာ XDG-compliant desktop ပေါ်မှာ enviroments မှာအလုပ်လုပ်ပါတယ်။ စနစ်ဗန်းထဲမှာ Mailspring အိုင်ကွန်ကို enable လုပ်ဖို့, သင် libappindicator or libayatana-appindicator တပ်ဆင်ရန်လိုအပ်နိုင်ပါသည်။",
   "%1$@ of %2$@": "၏%1$@%2$@",
   "%@ cannot be attached because it is larger than 25MB.": "က 25MB ထက်ပိုကြီးတဲ့သောကွောငျ့%@ပူးတွဲမရနိုင်ပါ။",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ installed နှင့် enabled ခဲ့တာဖြစ်ပါတယ်။ ပြန်လည်စတင်ရန်အဘယ်သူမျှမလိုအပ်ပါ! သင် plugin ကို loaded ကိုတွေ့မြင်ဘူးဆိုရငျ, အမှားအယွင်းများများအတွက် console ကိုစစ်ဆေးပါ။",

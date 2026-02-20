@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"ආරම්භක ආරම්භය\" ක්රියාත්මක වන්නේ XDG-ගැලපෙන ඩෙස්ක්ටොප් පරිසරයන් තුළ පමණි. Mailspring නිරූපකය පද්ධතියේ තැටිය සක්රිය කිරීම සඳහා, ඔබට libappindicator ස්ථාපනය කිරීමට අවශ්ය විය හැකිය.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"ආරම්භක ආරම්භය\" ක්රියාත්මක වන්නේ XDG-ගැලපෙන ඩෙස්ක්ටොප් පරිසරයන් තුළ පමණි. Mailspring නිරූපකය පද්ධතියේ තැටිය සක්රිය කිරීම සඳහා, ඔබට libappindicator or libayatana-appindicator ස්ථාපනය කිරීමට අවශ්ය විය හැකිය.",
   "%1$@ of %2$@": "%1$@ ♥ %1$@ %1$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ එය 25MB ට වඩා විශාල වන බැවින් එයට ඇමිණිය නොහැකිය.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ස්ථාපනය කර සක්රීය කර ඇත. නැවත ආරම්භ කිරීම අවශ්ය නොවේ! ඔබ ප්ලගිනය නැරඹීම නොලැබුණහොත්, දෝශයන් සඳහා කොන්සෝලය පරීක්ෂා කරන්න.",

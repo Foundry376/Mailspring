@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Mwepụta na usoro amalite\" naanị na-arụ ọrụ na desktọọpụ XDG. Iji mee ka akara ngosi Mailspring na tray system, ịnwere ike ịwụnye libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Mwepụta na usoro amalite\" naanị na-arụ ọrụ na desktọọpụ XDG. Iji mee ka akara ngosi Mailspring na tray system, ịnwere ike ịwụnye libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ nke %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ enweghị ike ịtinye n'ihi na ọ ka ibu 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ arụnyere na enyere. Enweghị mkpa ịmalitegharịa! Ọ bụrụ na ịnweghị ịhụ ngwa mgbakwunye ahụ, lelee njikwa maka njehie.",

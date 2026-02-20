@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Ræsa við kerfisræsingu\" virkar aðeins í XDG-samhæfðu skrifborðsumhverfi. Til að virkja Mailspring táknið í kerfisbakkanum gætirðu þurft að setja upp libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Ræsa við kerfisræsingu\" virkar aðeins í XDG-samhæfðu skrifborðsumhverfi. Til að virkja Mailspring táknið í kerfisbakkanum gætirðu þurft að setja upp libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ af %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "Ekki er hægt að hengja %@ við vegna þess að það er stærra en 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ hefur verið sett upp og virkjað. Engin þörf á að endurræsa! Ef þú sérð ekki viðbótina hlaðna skaltu athuga stjórnborðið fyrir villur.",

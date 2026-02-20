@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Manomboka amin'ny fanombohana ny rafitra\" dia miasa fotsiny ao anatin'ny sehatr'asa eo amin'ny sehatry ny desktop XDG. Mba hampidirana ny kisary Mailspring ao amin'ny fitoeran'entana, azonao atao ny mametraka ny libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Manomboka amin'ny fanombohana ny rafitra\" dia miasa fotsiny ao anatin'ny sehatr'asa eo amin'ny sehatry ny desktop XDG. Mba hampidirana ny kisary Mailspring ao amin'ny fitoeran'entana, azonao atao ny mametraka ny libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ amin'ny %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ tsy azo ampifandraisana satria lehibe noho 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ dia napetraka ary navela. Tsy mila fanavaozana intsony! Raha tsy hitanao ilay plugin load, dia jereo ny konsole amin'ny diso.",

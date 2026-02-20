@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Pradėti sistemos paleidimą\" veikia tik \"XDG\" suderinamosiose darbastalio aplinkose. Norėdami įjungti sistemos piktogramą \"Mailspring\" piktogramą, gali prireikti įdiegti libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Pradėti sistemos paleidimą\" veikia tik \"XDG\" suderinamosiose darbastalio aplinkose. Norėdami įjungti sistemos piktogramą \"Mailspring\" piktogramą, gali prireikti įdiegti libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ iš %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ negalima pridėti, nes jis didesnis nei 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ buvo įdiegtas ir įjungtas. Nereikia iš naujo paleisti! Jei nematote įkėto įskiepio, patikrinkite, ar konsolėje nėra klaidų.",

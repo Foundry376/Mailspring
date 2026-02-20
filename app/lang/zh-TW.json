@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "「開機時啟動」僅適用於符合 XDG 標準的桌面環境。若要在系統工具列顯示 Mailspring 圖示，您可能需要安裝 libappindicator。",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "「開機時啟動」僅適用於符合 XDG 標準的桌面環境。若要在系統工具列顯示 Mailspring 圖示，您可能需要安裝 libappindicator or libayatana-appindicator。",
   "%1$@ has %2$@ this event": "%1$@ 已%2$@此活動",
   "%1$@ of %2$@": "%2$@ 中的 %1$@",
   "%@ cannot be attached because it is larger than 25MB.": "無法附加 %@，因為檔案大小超過 25MB。",

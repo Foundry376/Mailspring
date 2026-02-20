@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Pib tua pib\" tsuas yog ua haujlwm hauv XDG-raws li cov duab ua haujlwm. Yuav kom cov Mailspring cov cim nyob rau hauv qhov system tais, koj yuav tsum tau mus nruab libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Pib tua pib\" tsuas yog ua haujlwm hauv XDG-raws li cov duab ua haujlwm. Yuav kom cov Mailspring cov cim nyob rau hauv qhov system tais, koj yuav tsum tau mus nruab libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ ntawm %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ tsis tuaj yeem raug txuas vim nws loj dua 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ tau raug ntsia thiab muaj peev xwm. Tsis tas yuav pib dua! Yog tias koj tsis pom cov plugin loaded, xyuas cov console kom raug.",

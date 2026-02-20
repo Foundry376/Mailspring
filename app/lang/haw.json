@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Ke hoʻolale nei i ka hoʻomakaʻana o ka pūnaewele\" wale nō e hana i nā mea hoʻolālā papahana XDG. No ka ho'āʻana i ka icon Mailspring ma ke kiko pūnaewele, ponoʻoe e hoʻokomo i ka libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Ke hoʻolale nei i ka hoʻomakaʻana o ka pūnaewele\" wale nō e hana i nā mea hoʻolālā papahana XDG. No ka ho'āʻana i ka icon Mailspring ma ke kiko pūnaewele, ponoʻoe e hoʻokomo i ka libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ o %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "ʻAʻole hiki ke hoʻokomoʻia no ka meaʻoi aku ka nui ma mua o 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "Ua hoʻoukaʻia a hoʻohanaʻia. ʻAʻohe pono e hoʻomaka hou! Ināʻaʻoleʻoe eʻike i ka loiloiʻia o ka plugin, e nānā i ka palewele no nā hewa.",

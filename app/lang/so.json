@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Bilaabista nidaamka bilowga\" kaliya wuxuu ka shaqeeyaa goobaha shaqada ee XDG. Si aad u awooddo icon Mailspring ee nidaamka saxda ah, waxaad u baahan kartaa inaad ku rakibo libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Bilaabista nidaamka bilowga\" kaliya wuxuu ka shaqeeyaa goobaha shaqada ee XDG. Si aad u awooddo icon Mailspring ee nidaamka saxda ah, waxaad u baahan kartaa inaad ku rakibo libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ ee %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ aan lagu lifaaqi karin sababtoo ah waxay ka weyn tahay 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ayaa la rakibay lana awooday. Looma baahna inaad dib u bilowdo! Haddii aadan arkaynin fiilada lagu rakibay, hubi qalab loogu talagalay qaladaad.",

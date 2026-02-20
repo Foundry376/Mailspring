@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "Ang \"paglansad sa pagsugod sa sistema\" magamit lamang sa XDG nga nagsunod sa desktop environment. Aron makahimo sa icon sa Mailspring sa system tray, kinahanglan nimo nga i-install ang libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "Ang \"paglansad sa pagsugod sa sistema\" magamit lamang sa XDG nga nagsunod sa desktop environment. Aron makahimo sa icon sa Mailspring sa system tray, kinahanglan nimo nga i-install ang libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ sa %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ dili mahimong ikabit tungod kay kini mas dako pa kay sa 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ gi-install ug na-enable. Dili kinahanglan nga mag-restart! Kon wala nimo makita ang plugin nga na-load, susiha ang console alang sa mga sayop.",

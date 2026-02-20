@@ -1,5 +1,5 @@
 {
-    "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "Az \"Indítás a rendszer indításakor\" csak XDG-kompatibilis asztali környezetben működik. A Mailspring ikon engedélyezéséhez a tálcán, telepítenie kell a libappindicatort.",
+    "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "Az \"Indítás a rendszer indításakor\" csak XDG-kompatibilis asztali környezetben működik. A Mailspring ikon engedélyezéséhez a tálcán, telepítenie kell a libappindicator or libayatana-appindicatort.",
     "%1$@ has %2$@ this event": "%1$@ rendelkezik %2$@ eseménnyel",
     "%1$@ of %2$@": "%1$@ a %2$@-ból",
     "%@ cannot be attached because it is larger than 25MB.": "%@ nem csatolható, mert 25 MB-nál nagyobb.",

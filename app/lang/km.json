@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"ចាប់ផ្ដើមដំណើរការប្រព័ន្ធ\" ដំណើរការតែក្នុងបរិស្ថានផ្ទៃតុដែលមានគុណភាព XDG ប៉ុណ្ណោះ។ ដើម្បីបើករូបតំណាង Mailspring នៅក្នុងថាសប្រព័ន្ធអ្នកត្រូវដំឡើង libappindicator ។",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"ចាប់ផ្ដើមដំណើរការប្រព័ន្ធ\" ដំណើរការតែក្នុងបរិស្ថានផ្ទៃតុដែលមានគុណភាព XDG ប៉ុណ្ណោះ។ ដើម្បីបើករូបតំណាង Mailspring នៅក្នុងថាសប្រព័ន្ធអ្នកត្រូវដំឡើង libappindicator or libayatana-appindicator ។",
   "%1$@ of %2$@": "%1$@នៃ%2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@មិនអាចភ្ជាប់បានទេព្រោះវាធំជាង 25MB ។",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ត្រូវបានតំឡើងនិងបើកដំណើរការ។ មិនចាំបាច់ចាប់ផ្ដើមឡើងវិញទេ! ប្រសិនបើអ្នកមិនឃើញកម្មវិធីជំនួយដែលបានផ្ទុកសូមពិនិត្យកុងសូលដើម្បីរកកំហុស។",

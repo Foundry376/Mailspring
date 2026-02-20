@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "XDG- இணக்கமான டெஸ்க்டாப் சூழல்களில் மட்டுமே \"கணினி தொடக்கம் துவங்குகிறது\". கணினி தட்டில் Mailspring ஐகானை இயக்குவதற்கு, நீங்கள் லிப்பிண்டினிகேட்டர் நிறுவ வேண்டும்.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "XDG- இணக்கமான டெஸ்க்டாப் சூழல்களில் மட்டுமே \"கணினி தொடக்கம் துவங்குகிறது\". கணினி தட்டில் Mailspring ஐகானை இயக்குவதற்கு, நீங்கள் லிப்பிண்டினிகேட்டர் நிறுவ வேண்டும்.",
   "%1$@ of %2$@": "%1$@ இல் %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "25MB ஐ விட பெரியதாக இருப்பதால் %@ இணைக்க முடியாது.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ நிறுவப்பட்டு செயல்படுத்தப்பட்டது. மறுதொடக்கம் தேவையில்லை! சொருகி ஏற்றப்பட்டதை நீங்கள் காணவில்லை என்றால், பிழைகள் கன்சோலை சரிபார்க்கவும்.",

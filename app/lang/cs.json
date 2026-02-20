@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Spuštění při startu systému\" funguje pouze v prostředí desktopů kompatibilních s XDG. Chcete-li povolit ikonu Mailspring v systémové liště, budete možná muset nainstalovat libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Spuštění při startu systému\" funguje pouze v prostředí desktopů kompatibilních s XDG. Chcete-li povolit ikonu Mailspring v systémové liště, budete možná muset nainstalovat libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ z %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ nelze připojit, protože je větší než 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ byl nainstalován a povolen. Není třeba restartovat! Pokud nevidíte načtený plugin, zkontrolujte chyby v konzoli.",

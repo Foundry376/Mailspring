@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Launch on start system\" ใช้งานได้เฉพาะในสภาพแวดล้อมเดสก์ท็อปที่รองรับ XDG เท่านั้น หากต้องการเปิดใช้ไอคอน Mailspring ในถาดระบบคุณอาจต้องติดตั้ง libappindator",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Launch on start system\" ใช้งานได้เฉพาะในสภาพแวดล้อมเดสก์ท็อปที่รองรับ XDG เท่านั้น หากต้องการเปิดใช้ไอคอน Mailspring ในถาดระบบคุณอาจต้องติดตั้ง libappindator",
   "%1$@ of %2$@": "%1$@ของ%2$@",
   "%@ cannot be attached because it is larger than 25MB.": "ไม่สามารถแนบ %@ ได้เนื่องจากมีขนาดใหญ่กว่า 25MB",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ได้รับการติดตั้งและเปิดใช้งานแล้ว ไม่ต้องรีสตาร์ท! หากคุณไม่เห็นปลั๊กอินโหลดให้ตรวจสอบคอนโซลเพื่อดูข้อผิดพลาด",

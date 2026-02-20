@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"प्रणाली सुरूमा सुरूवात गर्नुहोस्\" केवल XDG-compliant डेस्कटप वातावरणमा काम गर्दछ। प्रणाली ट्रेमा Mailspring आइकन सक्षम गर्न, तपाईंलाई libappindicator स्थापना गर्न आवश्यक पर्दछ।",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"प्रणाली सुरूमा सुरूवात गर्नुहोस्\" केवल XDG-compliant डेस्कटप वातावरणमा काम गर्दछ। प्रणाली ट्रेमा Mailspring आइकन सक्षम गर्न, तपाईंलाई libappindicator or libayatana-appindicator स्थापना गर्न आवश्यक पर्दछ।",
   "%1$@ of %2$@": "%1$@ को %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ संलग्न गर्न सकिँदैन किनभने यो 25 मेगाबाइट भन्दा ठूलो छ।",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ स्थापित र सक्षम गरिएको छ। पुनः सुरु गर्न आवश्यक छैन! यदि तपाईंले लोड भइरहेको प्लगइन देख्नुहुन्न भने कन्सोल त्रुटिहरूको जाँच गर्नुहोस्।",

@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "“在系统启动时启动”仅适用于符合XDG标准的桌面环境。要在系统托盘中启用Mailspring图标，您可能需要安装libappindicator。",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "“在系统启动时启动”仅适用于符合XDG标准的桌面环境。要在系统托盘中启用Mailspring图标，您可能需要安装libappindicator or libayatana-appindicator。",
   "%1$@ of %2$@": "%2$@的%1$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@因为大于25MB所以无法附加。",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@已安装并启用。无需重启！如果您没有看到加载的插件，请检查控制台是否有错误。",

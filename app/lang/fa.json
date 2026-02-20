@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"راه اندازی سیستم شروع\" تنها در محیط دسکتاپ سازگار با XDG کار می کند. برای فعال کردن آیکون Mailspring در سینی سیستم، ممکن است نیاز به نصب libappindicator داشته باشید.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"راه اندازی سیستم شروع\" تنها در محیط دسکتاپ سازگار با XDG کار می کند. برای فعال کردن آیکون Mailspring در سینی سیستم، ممکن است نیاز به نصب libappindicator or libayatana-appindicator داشته باشید.",
   "%1$@ of %2$@": "%1$@ از %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ نمی‌تواند پیوست شود زیرا بزرگتر از 25MB است.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ نصب و فعال شده است. بدون نیاز به راه اندازی مجدد! اگر پلاگین را بارگیری نکنید، کنسول را برای خطاها بررسی کنید.",

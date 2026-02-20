@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Sistem başlanğıcında başla\" yalnız XDG uyğun masa üstü mühitlərdə işləyir. Sistem tepsisindəki Mailspring simgesini aktivləşdirmək üçün, libappindicator qurmaq lazımdır.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Sistem başlanğıcında başla\" yalnız XDG uyğun masa üstü mühitlərdə işləyir. Sistem tepsisindəki Mailspring simgesini aktivləşdirmək üçün, libappindicator or libayatana-appindicator qurmaq lazımdır.",
   "%1$@ of %2$@": "%1$@ / %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25MB-dan böyük olduğundan əlavə oluna bilməz.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ quraşdırılmış və effektivdir. Yenidən başlamağa ehtiyac yoxdur! Yüklənmiş eklentiyi görmürsənsə, konsolun səhvləri yoxlayın.",

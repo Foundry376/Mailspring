@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Faʻalauiloa i le amataina o le polokalama\" naʻo galuega i XDG-faʻapipiusaga o le komepiuta. Ina ia mafai ai e le Mailspring i luga o le siata o le polokalama, atonu e te manaʻomia e faʻapipiʻi le libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Faʻalauiloa i le amataina o le polokalama\" naʻo galuega i XDG-faʻapipiusaga o le komepiuta. Ina ia mafai ai e le Mailspring i luga o le siata o le polokalama, atonu e te manaʻomia e faʻapipiʻi le libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ o %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ e le mafai ona faʻapipiʻi ona e tele atu i le 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ua faapipii ma mafai. Leai se mea e toe amataina! Afai e te le vaʻaia le utaina o le mama, siaki le faʻamafanafanaga mo mea sese.",

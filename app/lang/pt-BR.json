@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Carregar no início do sistema\" só funciona em ambientes de desktop compatíveis com XDG. Para ativar o ícone do Mailspring na bandeja do sistema, talvez seja necessário instalar o libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Carregar no início do sistema\" só funciona em ambientes de desktop compatíveis com XDG. Para ativar o ícone do Mailspring na bandeja do sistema, talvez seja necessário instalar o libappindicator or libayatana-appindicator.",
   "%1$@ has %2$@ this event": "%1$@ tem %2$@ este evento",
   "%1$@ of %2$@": "%1$@ de %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ não pode ser anexado porque é maior que 25MB.",

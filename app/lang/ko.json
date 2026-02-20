@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"시스템z 시작 시 자동실행\"은 XDG 호환 데스크톱 환경에서만 작동합니다. 시스템 트레이에서 Mailspring 아이콘을 사용하려면 libappindicator 패키지를 설치해야합니다.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"시스템z 시작 시 자동실행\"은 XDG 호환 데스크톱 환경에서만 작동합니다. 시스템 트레이에서 Mailspring 아이콘을 사용하려면 libappindicator or libayatana-appindicator 패키지를 설치해야합니다.",
   "%1$@ of %2$@": "%1$@의 ❤ %1$@",
   "%@ cannot be attached because it is larger than 25MB.": "파일 %@의 크기가 25MB를 넘어가서 첨부할 수 없습니다.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "플러그인 %@이(가) 설치 및 활성화되었습니다. 다시 시작할 필요가 없습니다! 로드된 플러그인이 표시되지 않으면 콘솔에서 오류를 확인하십시오.",

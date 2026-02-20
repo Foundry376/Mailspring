@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Khởi động khi khởi động hệ thống\" chỉ hoạt động trong môi trường máy tính để bàn tương thích với XDG. Để kích hoạt biểu tượng Mailspring trong khay hệ thống, bạn có thể cần phải cài đặt libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Khởi động khi khởi động hệ thống\" chỉ hoạt động trong môi trường máy tính để bàn tương thích với XDG. Để kích hoạt biểu tượng Mailspring trong khay hệ thống, bạn có thể cần phải cài đặt libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ trong tổng số %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ không thể được gắn bởi vì nó lớn hơn 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ đã được cài đặt và kích hoạt. Không cần phải khởi động lại! Nếu bạn không thấy plugin được tải, hãy kiểm tra lỗi giao diện điều khiển.",

@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Kaddamarwa akan tsarin farawa\" kawai yana aiki ne a cikin abubuwan da ke dacewa da kayan ado na XDG. Don taimakawa icon ɗin Mailspring a cikin tsarin tsarin, zaka iya buƙatar shigar da rubutun.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Kaddamarwa akan tsarin farawa\" kawai yana aiki ne a cikin abubuwan da ke dacewa da kayan ado na XDG. Don taimakawa icon ɗin Mailspring a cikin tsarin tsarin, zaka iya buƙatar shigar da rubutun.",
   "%1$@ of %2$@": "%1$@ na %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ ba za a iya haɗe shi ba saboda yana da girma fiye da 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ an shigar da kuma kunna. Babu buƙatar sake farawa! Idan ba ku ga kayan aiki da aka ɗora ba, bincika na'ura mai kwakwalwa don kurakurai.",

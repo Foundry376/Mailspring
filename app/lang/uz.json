@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Tizim boshlanishida ishga tushirish\" faqat XDG-mos ish stoli muhitida ishlaydi. Tizim tepsidagi Mailspring-ni yoqish uchun libappindikatorni o'rnatishingiz kerak bo'ladi.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Tizim boshlanishida ishga tushirish\" faqat XDG-mos ish stoli muhitida ishlaydi. Tizim tepsidagi Mailspring-ni yoqish uchun libappindikatorni o'rnatishingiz kerak bo'ladi.",
   "%1$@ of %2$@": "%1$@ %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25MB dan katta bo'lgani uchun unga ulanib bo'lmaydi.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ o'rnatilgan va yoqilgan. Qayta ishga tushirishning hojati yo'q! O'rnatilgan plaginni ko'rmasangiz, konsolda xatolarni tekshirib ko'ring.",

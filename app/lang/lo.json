@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"ການເປີດຕົວໃນລະບົບເລີ່ມຕົ້ນ\" ເຮັດວຽກຢູ່ໃນສະພາບແວດລ້ອມ desktop ທີ່ສອດຄ້ອງກັບ XDG ເທົ່ານັ້ນ. ເພື່ອເປີດໃຊ້ icon ຂອງ Mailspring ໃນຖາດລະບົບ, ທ່ານອາດຕ້ອງຕິດຕັ້ງ libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"ການເປີດຕົວໃນລະບົບເລີ່ມຕົ້ນ\" ເຮັດວຽກຢູ່ໃນສະພາບແວດລ້ອມ desktop ທີ່ສອດຄ້ອງກັບ XDG ເທົ່ານັ້ນ. ເພື່ອເປີດໃຊ້ icon ຂອງ Mailspring ໃນຖາດລະບົບ, ທ່ານອາດຕ້ອງຕິດຕັ້ງ libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ ຂອງ %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ ບໍ່ສາມາດຄັດຕິດໄດ້ເພາະມັນມີຂະຫນາດໃຫຍ່ກວ່າ 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ໄດ້ຖືກຕິດຕັ້ງແລະເປີດໃຊ້ງານ. ບໍ່ຈໍາເປັນຕ້ອງເລີ່ມຕົ້ນໃຫມ່! ຖ້າທ່ານບໍ່ເຫັນ plugin loaded, ກວດເບິ່ງ console ສໍາລັບຂໍ້ຜິດພາດ.",

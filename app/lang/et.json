@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Käivitamine süsteemi käivitamisel\" töötab ainult XDG-ühilduvates töölauakeskkondades. Mailspringi ikooni kuvamiseks süsteemisalves peate võib-olla installima libappindicator teegi.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Käivitamine süsteemi käivitamisel\" töötab ainult XDG-ühilduvates töölauakeskkondades. Mailspringi ikooni kuvamiseks süsteemisalves peate võib-olla installima libappindicator or libayatana-appindicator teegi.",
   "%1$@ of %2$@": "%1$@ %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ ei saa lisada, kuna see on suurem kui 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ on installitud ja lubatud. Pole vaja taaskäivitada! Kui te ei näe laaditud pistikprogrammi, kontrollige konsoolist vigu.",

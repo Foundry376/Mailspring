@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Luaiteáil ar thosú an chórais\" ní oibríonn sé ach i dtimpeallachtaí deisce XDG-chomhlíontacha. Chun an deilbhín Mailspring a chumasú sa tráidire chórais, b'fhéidir go gcaithfidh tú libappindicator a shuiteáil.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Luaiteáil ar thosú an chórais\" ní oibríonn sé ach i dtimpeallachtaí deisce XDG-chomhlíontacha. Chun an deilbhín Mailspring a chumasú sa tráidire chórais, b'fhéidir go gcaithfidh tú libappindicator or libayatana-appindicator a shuiteáil.",
   "%1$@ of %2$@": "%1$@ de %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "Ní féidir %@ a cheangal toisc go bhfuil sé níos mó ná 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "Tá suiteáilte agus cumasaithe %@. Ní gá a atosú! Mura bhfeiceann tú an breiseán atá luchtaithe, seiceáil an consól le haghaidh earráidí.",

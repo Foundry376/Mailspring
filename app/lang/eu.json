@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Sistema abiaraztean abiaraztea\" XDG betetzen duen mahaigaineko inguruneetan bakarrik funtzionatzen du. Mailspring ikonoa sistemaren erretiluan gaitzeko, libindikulatzailea instalatu behar duzu.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Sistema abiaraztean abiaraztea\" XDG betetzen duen mahaigaineko inguruneetan bakarrik funtzionatzen du. Mailspring ikonoa sistemaren erretiluan gaitzeko, libindikulatzailea instalatu behar duzu.",
   "%1$@ of %2$@": "%1$@ / %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ ezin da erantsi 25MB baino handiagoa delako.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ instalatu eta gaitu da. Ez da berrabiarazi beharrik! Ez baduzu plugina kargatzen ikusi, kontsultatu erroreak lortzeko kontsola.",
