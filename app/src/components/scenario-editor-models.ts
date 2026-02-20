@@ -117,11 +117,7 @@ export const Comparators = {
         if (!actual || !desired) {
           return false;
         }
-        try {
-          return new RegExp(desired, 'gi').test(actual);
-        } catch (err) {
-          return false;
-        }
+        return new RegExp(desired, 'gi').test(actual);
       }
     ),
   },

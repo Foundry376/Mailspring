@@ -45,6 +45,18 @@ export const ConditionTemplates = [
     valueForMessage: message => message.files.map(f => f.filename),
   }),
 
+  new Template('hasAttachment', Template.Type.Enum, {
+    name: localized('Has attachment'),
+    values: [
+      { name: localized('True'), value: 'true' },
+      { name: localized('False'), value: 'false' },
+    ],
+    valueLabel: 'is:',
+    valueForMessage: message => {
+      return message.files && message.files.length > 0 ? 'true' : 'false';
+    },
+  }),
+
   new Template('starred', Template.Type.Enum, {
     name: localized('Starred'),
     values: [
