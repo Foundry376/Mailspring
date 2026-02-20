@@ -225,11 +225,13 @@ module.exports = grunt => {
             // top level — it is not a per-file option.
             provisioningProfile: process.env.APPLE_PROVISIONING_PROFILE_PATH,
             optionsForFile: filePath => {
-              // The mailsync binary is a nested helper executable. It must be
+              // The mailsync binary (shipped as either "mailsync" or
+              // "mailsync.bin") is a nested helper executable. It must be
               // signed with minimal entitlements that are compatible with (i.e.
               // a subset of) the provisioning profile's allowed entitlements.
               // The main app gets the full entitlements plist.
-              const isMailsync = path.basename(filePath) === 'mailsync';
+              const basename = path.basename(filePath);
+              const isMailsync = basename === 'mailsync' || basename === 'mailsync.bin';
 
               return {
                 hardenedRuntime: true,
