@@ -1,3 +1,5 @@
+@import 'ui-variables';
+
 .grammar-error {
   cursor: pointer;
   position: relative;
@@ -71,6 +73,8 @@
 
 .btn-grammar-check {
   position: relative;
+  // Allow the badge to render outside the button's own box without being clipped
+  overflow: visible;
 
   &.enabled {
     color: @component-active-color;
@@ -81,31 +85,32 @@
     opacity: 0.6;
   }
 
+  // Fixed-size wrapper so the spinner can overlay the icon without changing
+  // the button's width when it appears or disappears.
+  .grammar-check-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+  }
+
+  // Spinner sits on top of the icon — same 16×16 footprint as the SVG.
   .grammar-check-spinner {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-left: 4px;
-    border: 2px solid @text-color-subtle;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
     border-top-color: transparent;
     border-radius: 50%;
+    opacity: 0.5;
     animation: grammar-spin 0.8s linear infinite;
   }
 
-  .grammar-error-count {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    background: @background-color-error;
-    color: white;
-    border-radius: 8px;
-    font-size: 9px;
-    padding: 1px 4px;
-    min-width: 14px;
-    text-align: center;
-    line-height: 14px;
-    font-weight: 600;
-  }
 }
 
 @keyframes grammar-spin {

@@ -10,8 +10,8 @@ interface BlockCheckResult {
 }
 
 class _GrammarCheckStore extends MailspringStore {
-  private _enabled: boolean = false;
-  private _usageExceeded: boolean = false;
+  private _enabled = false;
+  private _usageExceeded = false;
   private _checking: Map<string, boolean> = new Map();
   private _errorsByDraft: Map<string, Map<string, BlockCheckResult>> = new Map();
   private _dismissedRules: Set<string> = new Set();
@@ -161,7 +161,7 @@ class _GrammarCheckStore extends MailspringStore {
     // Remove errors with this ruleId from all drafts
     for (const [, blockErrors] of this._errorsByDraft) {
       for (const [blockKey, result] of blockErrors) {
-        const filtered = result.errors.filter((e) => e.ruleId !== ruleId);
+        const filtered = result.errors.filter(e => e.ruleId !== ruleId);
         if (filtered.length !== result.errors.length) {
           blockErrors.set(blockKey, { text: result.text, errors: filtered });
         }
@@ -170,11 +170,14 @@ class _GrammarCheckStore extends MailspringStore {
     this.trigger();
   }
 
-  async checkDirtyBlocks(draftId: string): Promise<void> {
-    if (!this._enabled || this._usageExceeded) return;
+  // Returns true if the check ran to completion and was not superseded by a
+  // newer check. Callers should skip applying decorations when false is returned,
+  // because a newer check is already in-flight and will apply its own results.
+  async checkDirtyBlocks(draftId: string): Promise<boolean> {
+    if (!this._enabled || this._usageExceeded) return false;
 
     const draftDirty = this._dirtyBlocks.get(draftId);
-    if (!draftDirty || draftDirty.size === 0) return;
+    if (!draftDirty || draftDirty.size === 0) return false;
 
     // Take a snapshot of dirty blocks and clear
     const blocksToCheck = new Map(draftDirty);
@@ -198,6 +201,8 @@ class _GrammarCheckStore extends MailspringStore {
       this._errorsByDraft.set(draftId, draftErrors);
     }
 
+    let superseded = false;
+
     try {
       this._backend.refreshConfig();
 
@@ -211,12 +216,7 @@ class _GrammarCheckStore extends MailspringStore {
         }
 
         try {
-          const errors = await this._backend.check(
-            blockText,
-            draftId,
-            undefined,
-            controller.signal
-          );
+          const errors = await this._backend.check(blockText, draftId);
 
           // Staleness check: verify the block is still the same text
           const currentDirty = this._dirtyBlocks.get(draftId);
@@ -226,11 +226,10 @@ class _GrammarCheckStore extends MailspringStore {
           }
 
           // Filter out dismissed rules
-          const filteredErrors = errors.filter((e) => !this._dismissedRules.has(e.ruleId));
+          const filteredErrors = errors.filter(e => !this._dismissedRules.has(e.ruleId));
 
           draftErrors.set(blockKey, { text: blockText, errors: filteredErrors });
         } catch (err) {
-          if (err.name === 'AbortError') break;
           if (err instanceof UsageExceededError) {
             this._usageExceeded = true;
             this._dirtyBlocks.clear();
@@ -242,11 +241,16 @@ class _GrammarCheckStore extends MailspringStore {
       }
     } finally {
       this._checking.set(draftId, false);
-      if (this._abortControllers.get(draftId) === controller) {
+      // If a newer check has started it will have replaced our controller entry.
+      // In that case we're superseded and the caller should NOT apply decorations.
+      superseded = this._abortControllers.get(draftId) !== controller;
+      if (!superseded) {
         this._abortControllers.delete(draftId);
       }
       this.trigger();
     }
+
+    return !superseded;
   }
 }
 

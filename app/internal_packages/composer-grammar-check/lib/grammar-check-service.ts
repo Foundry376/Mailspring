@@ -1,3 +1,5 @@
+import { MailspringAPIRequest } from 'mailspring-exports';
+
 export interface GrammarError {
   offset: number;
   length: number;
@@ -69,51 +71,27 @@ export class UsageExceededError extends Error {
 }
 
 export interface GrammarCheckBackend {
-  check(text: string, draftId: string, language?: string, signal?: AbortSignal): Promise<GrammarError[]>;
+  check(text: string, messageId: string, language?: string): Promise<GrammarError[]>;
   isAvailable(): boolean;
   name: string;
 }
 
 export class LanguageToolBackend implements GrammarCheckBackend {
   name = 'LanguageTool';
-  private serverUrl: string;
   private language: string;
-  private level: string;
-  private apiKey?: string;
   private disabledRules: string[] = [];
-  private disabledCategories: string[] = [];
-  private preferredVariants: string;
-  private motherTongue: string;
 
   constructor() {
     this._readConfig();
   }
 
   private _readConfig() {
-    this.serverUrl =
-      (AppEnv.config.get('core.composing.grammarCheckServerUrl') as string) ||
-      'http://localhost:8010';
     this.language = (AppEnv.config.get('core.composing.grammarCheckLanguage') as string) || 'auto';
-    this.level = (AppEnv.config.get('core.composing.grammarCheckLevel') as string) || 'default';
-    this.apiKey = (AppEnv.config.get('core.composing.grammarCheckApiKey') as string) || '';
-    this.preferredVariants =
-      (AppEnv.config.get('core.composing.grammarCheckPreferredVariants') as string) || '';
-    this.motherTongue =
-      (AppEnv.config.get('core.composing.grammarCheckMotherTongue') as string) || '';
 
     const disabledRulesStr =
       (AppEnv.config.get('core.composing.grammarCheckDisabledRules') as string) || '';
     this.disabledRules = disabledRulesStr
       ? disabledRulesStr
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [];
-
-    const disabledCatsStr =
-      (AppEnv.config.get('core.composing.grammarCheckDisabledCategories') as string) || '';
-    this.disabledCategories = disabledCatsStr
-      ? disabledCatsStr
           .split(',')
           .map((s) => s.trim())
           .filter(Boolean)
@@ -132,80 +110,61 @@ export class LanguageToolBackend implements GrammarCheckBackend {
   }
 
   isAvailable(): boolean {
-    return !!this.serverUrl;
+    return true;
   }
 
-  async check(
-    text: string,
-    draftId: string,
-    language?: string,
-    signal?: AbortSignal
-  ): Promise<GrammarError[]> {
+  async check(text: string, messageId: string, language?: string): Promise<GrammarError[]> {
     this._readConfig();
 
-    if (!this.isAvailable()) {
-      return [];
+    let data: LanguageToolResponse;
+    try {
+      data = await MailspringAPIRequest.makeRequest({
+        server: 'identity',
+        method: 'POST',
+        path: '/api/grammar/check',
+        json: true,
+        body: {
+          messageId,
+          text,
+          language: language || this.language,
+        },
+      });
+    } catch (err) {
+      // 400 = quota reached ("Quota Reached")
+      if (err.statusCode === 400) {
+        throw new UsageExceededError();
+      }
+      // 429 = rate limited — surface as a transient error, caller will retry on next dirty check
+      if (err.statusCode === 429) {
+        throw new Error('Grammar check rate limit reached, please try again shortly.');
+      }
+      // 502 = LanguageTool backend unavailable
+      if (err.statusCode === 502) {
+        throw new Error('Grammar check service is temporarily unavailable.');
+      }
+      throw err;
     }
 
-    const params = new URLSearchParams();
-    params.append('text', text);
-    params.append('language', language || this.language);
-    params.append('draftId', draftId);
-
-    if (this.level && this.level !== 'default') {
-      params.append('level', this.level);
-    }
-    if (this.preferredVariants) {
-      params.append('preferredVariants', this.preferredVariants);
-    }
-    if (this.motherTongue) {
-      params.append('motherTongue', this.motherTongue);
-    }
-    if (this.disabledRules.length > 0) {
-      params.append('disabledRules', this.disabledRules.join(','));
-    }
-    if (this.disabledCategories.length > 0) {
-      params.append('disabledCategories', this.disabledCategories.join(','));
-    }
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    };
-    if (this.apiKey) {
-      headers['Authorization'] = `Bearer ${this.apiKey}`;
-    }
-
-    const response = await fetch(`${this.serverUrl}/v2/check`, {
-      method: 'POST',
-      headers,
-      body: params.toString(),
-      signal,
-    });
-
-    if (response.status === 402) {
-      throw new UsageExceededError();
-    }
-
-    if (!response.ok) {
-      throw new Error(`LanguageTool API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data: LanguageToolResponse = await response.json();
-    return data.matches.map((match) => ({
-      offset: match.offset,
-      length: match.length,
-      message: match.message,
-      shortMessage: match.shortMessage || '',
-      replacements: match.replacements.map((r) => r.value),
-      ruleId: match.rule.id,
-      ruleDescription: match.rule.description,
-      category: match.rule.category.id,
-      categoryName: match.rule.category.name,
-      issueType: match.rule.issueType,
-      sentence: match.sentence,
-      contextText: match.context.text,
-      contextOffset: match.context.offset,
-      contextLength: match.context.length,
-    }));
+    const filtered = data.matches.filter((match) => match.rule.issueType !== 'misspelling');
+    console.log(
+      `[grammar] ${data.matches.length} matches from API, ${filtered.length} after misspelling filter:`,
+      filtered.map(m => `${m.rule.id}(offset=${m.offset},len=${m.length})`)
+    );
+    return filtered.map((match) => ({
+        offset: match.offset,
+        length: match.length,
+        message: match.message,
+        shortMessage: match.shortMessage || '',
+        replacements: match.replacements.map((r) => r.value),
+        ruleId: match.rule.id,
+        ruleDescription: match.rule.description,
+        category: match.rule.category.id,
+        categoryName: match.rule.category.name,
+        issueType: match.rule.issueType,
+        sentence: match.sentence,
+        contextText: match.context.text,
+        contextOffset: match.context.offset,
+        contextLength: match.context.length,
+      }));
   }
 }

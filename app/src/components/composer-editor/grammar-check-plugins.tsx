@@ -19,11 +19,45 @@ export function clearGrammarCheckStore() {
 // --- Draft cleanup (called by main.ts on send/destroy) ---
 export function cleanupDraft(draftId: string) {
   previousDocumentByDraft.delete(draftId);
+  latestEditorByDraft.delete(draftId);
   const entry = debounceTimers.get(draftId);
   if (entry) {
     clearTimeout(entry.timer);
     debounceTimers.delete(draftId);
   }
+}
+
+// --- Trigger an immediate check on a draft's current content ---
+// Called when grammar check is toggled ON so existing text is checked right away
+// without waiting for the next keystroke.
+export function requestInitialCheckForDraft(draftId: string) {
+  if (!grammarCheckStore) return;
+  const editor = latestEditorByDraft.get(draftId);
+  if (!editor) return;
+
+  editor.value.document.nodes.forEach((block) => {
+    if (block.object === 'block') {
+      grammarCheckStore.markDirty(draftId, block.key, block.text);
+    }
+  });
+
+  const existing = debounceTimers.get(draftId);
+  if (existing) {
+    clearTimeout(existing.timer);
+  }
+  const timer = setTimeout(() => {
+    debounceTimers.delete(draftId);
+    if (!grammarCheckStore) return;
+    grammarCheckStore.checkDirtyBlocks(draftId).then((completed) => {
+      if (!completed) return; // superseded by a newer check — it will apply its own decorations
+      try {
+        applyGrammarDecorations(editor, draftId);
+      } catch (err) {
+        console.warn('Grammar check: failed to apply decorations', err);
+      }
+    });
+  }, 300);
+  debounceTimers.set(draftId, { timer, start: Date.now() });
 }
 
 // --- IME composition tracking ---
@@ -32,6 +66,7 @@ const composingWeakmap = new WeakMap<Editor, number>();
 // --- Per-draft dirty paragraph tracking state ---
 const previousDocumentByDraft = new Map<string, any>();
 const debounceTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; start: number }>();
+const latestEditorByDraft = new Map<string, Editor>();
 
 // --- Category to underline color mapping ---
 function underlineColorForCategory(category: string): string {
@@ -134,13 +169,27 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
     if (!blockErrors || !blockErrors.errors.length) return;
 
     // Staleness check: verify the text hasn't changed since we checked
-    if (block.text !== blockErrors.text) return;
+    if (block.text !== blockErrors.text) {
+      console.warn(
+        `[grammar] staleness check failed for block ${block.key}:\n` +
+          `  current:  ${JSON.stringify(block.text)}\n` +
+          `  stored:   ${JSON.stringify(blockErrors.text)}`
+      );
+      return;
+    }
 
     const texts = block.getTexts().toArray();
 
     for (const error of blockErrors.errors) {
       const range = offsetToSlateRange(texts, error.offset, error.length);
-      if (!range) continue;
+      if (!range) {
+        console.warn(
+          `[grammar] offsetToSlateRange returned null for error "${error.ruleId}" ` +
+            `offset=${error.offset} length=${error.length} in text: ${JSON.stringify(blockErrors.text)}\n` +
+            `  text nodes: ${JSON.stringify(texts.map(t => ({ key: t.key, len: t.text.length, text: t.text })))}`
+        );
+        continue;
+      }
 
       decorations.push(
         Decoration.create({
@@ -217,6 +266,54 @@ function applyReplacement(editor: Editor, replacement: string) {
   }
 }
 
+// --- Helper: extract mark data from Immutable.js Map or plain object ---
+function getMarkData(mark: any) {
+  const g = (k: string) => (mark.data.get ? mark.data.get(k) : mark.data[k]);
+  const repsRaw = g('replacements');
+  return {
+    message: g('message') as string,
+    shortMessage: g('shortMessage') as string,
+    ruleId: g('ruleId') as string,
+    // Slate may store the array as an Immutable List; normalise to plain array
+    replacements: (repsRaw && repsRaw.toArray ? repsRaw.toArray() : repsRaw || []) as string[],
+  };
+}
+
+// --- Right-click context menu for a grammar error span ---
+function showGrammarContextMenu(mark: any, editor: Editor) {
+  const { Menu, MenuItem } = require('@electron/remote');
+  const { message, shortMessage, ruleId, replacements } = getMarkData(mark);
+
+  const menu = new Menu();
+
+  menu.append(
+    new MenuItem({ label: shortMessage || message || localized('Grammar issue'), enabled: false })
+  );
+
+  if (replacements.length > 0) {
+    menu.append(new MenuItem({ type: 'separator' }));
+    replacements.slice(0, 5).forEach((r: string) => {
+      menu.append(
+        new MenuItem({
+          label: r,
+          click: () => applyReplacement(editor, r),
+        })
+      );
+    });
+  }
+
+  menu.append(new MenuItem({ type: 'separator' }));
+  menu.append(
+    new MenuItem({
+      label: localized('Dismiss rule'),
+      enabled: !!(grammarCheckStore && ruleId),
+      click: () => grammarCheckStore && grammarCheckStore.dismissRule(ruleId),
+    })
+  );
+
+  menu.popup({ window: require('@electron/remote').getCurrentWindow() });
+}
+
 // --- renderMark ---
 function renderMark(
   {
@@ -243,6 +340,11 @@ function renderMark(
     <span
       className="grammar-error"
       data-grammar-error={true}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (editor) showGrammarContextMenu(mark, editor);
+      }}
       style={{
         backgroundImage:
           `linear-gradient(45deg, transparent 65%, ${color} 80%, transparent 90%), ` +
@@ -260,14 +362,27 @@ function renderMark(
   );
 }
 
-// --- Floating Correction Popover ---
+// --- Floating Correction Popover (shown when cursor is placed inside an error) ---
 function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLevelComponentProps) {
   if (!grammarCheckStore) return null;
   if (!value.selection || !value.selection.isFocused || !value.selection.isCollapsed) {
     return null;
   }
 
-  const grammarMark = value.activeMarks.find((m) => m.type === GRAMMAR_ERROR_MARK);
+  // Grammar errors are stored as decorations, NOT as document marks.
+  // value.activeMarks only returns marks on text nodes in the document model
+  // and will never contain decoration marks — we must check value.decorations.
+  const decorations = value.get('decorations') as any;
+  if (!decorations || !decorations.size) return null;
+
+  const cursorPoint = { key: value.selection.anchor.key, offset: value.selection.anchor.offset };
+  let grammarMark: any = null;
+  decorations.forEach((d: any) => {
+    if (d.mark.type !== GRAMMAR_ERROR_MARK) return;
+    if (isPointInDecoration(value.document, cursorPoint, d)) {
+      grammarMark = d.mark;
+    }
+  });
   if (!grammarMark) return null;
 
   const sel = document.getSelection();
@@ -286,10 +401,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
   const parentRect = parent.getBoundingClientRect();
   const targetRect = target.getBoundingClientRect();
 
-  const message = grammarMark.data.get('message') as string;
-  const shortMessage = grammarMark.data.get('shortMessage') as string;
-  const replacements = (grammarMark.data.get('replacements') as string[]) || [];
-  const ruleId = grammarMark.data.get('ruleId') as string;
+  const { message, shortMessage, replacements, ruleId } = getMarkData(grammarMark);
 
   return (
     <div
@@ -338,7 +450,16 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
 
 // --- onChange handler (per-draft debounce) ---
 function onChange(editor: Editor, next: () => void) {
-  // Immediate bail when grammar check package is not active or feature is disabled
+  // Always track the latest editor instance per draft so requestInitialCheckForDraft
+  // can find it when grammar check is toggled on.
+  const draft = (editor.props as any).propsForPlugins
+    ? (editor.props as any).propsForPlugins.draft
+    : null;
+  if (draft) {
+    latestEditorByDraft.set(draft.headerMessageId, editor);
+  }
+
+  // Bail when grammar check package is not active or feature is disabled
   if (!grammarCheckStore || !grammarCheckStore.isEnabled()) {
     return next();
   }
@@ -348,9 +469,6 @@ function onChange(editor: Editor, next: () => void) {
     return next();
   }
 
-  const draft = (editor.props as any).propsForPlugins
-    ? (editor.props as any).propsForPlugins.draft
-    : null;
   if (!draft) return next();
 
   const draftId = draft.headerMessageId;
@@ -400,7 +518,8 @@ function onChange(editor: Editor, next: () => void) {
   const timer = setTimeout(() => {
     debounceTimers.delete(draftId);
     if (!grammarCheckStore) return;
-    grammarCheckStore.checkDirtyBlocks(draftId).then(() => {
+    grammarCheckStore.checkDirtyBlocks(draftId).then((completed) => {
+      if (!completed) return; // superseded by a newer check — it will apply its own decorations
       try {
         applyGrammarDecorations(editor, draftId);
       } catch (err) {
