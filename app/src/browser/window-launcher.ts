@@ -129,6 +129,9 @@ export default class WindowLauncher {
     // triggers a blur/refocus cycle in the Wayland compositor that causes
     // IBus to lose and fail to re-establish its connection, freezing all
     // keyboard input in the compose window.
+    //
+    // When --background is requested on Wayland, the did-finish-load handler
+    // shows briefly to commit the Wayland surface, then hides at window:loaded.
     return win;
   }
 

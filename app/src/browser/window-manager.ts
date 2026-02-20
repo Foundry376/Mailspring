@@ -3,7 +3,6 @@ import { app, BrowserWindow, screen } from 'electron';
 import WindowLauncher from './window-launcher';
 import { localized } from '../intl';
 import MailspringWindow from './mailspring-window';
-import { isWaylandSession } from './is-wayland';
 
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
@@ -31,15 +30,7 @@ export default class WindowManager {
     initializeInBackground,
     config,
   }) {
-    if (isWaylandSession() && initializeInBackground) {
-      console.warn(
-        `The --background flag has no effect under Wayland, where an activation context` +
-          ` is required and windows must be shown immediately.`
-      );
-      this.initializeInBackground = false;
-    } else {
-      this.initializeInBackground = initializeInBackground;
-    }
+    this.initializeInBackground = initializeInBackground;
 
     const onCreatedHotWindow = win => {
       this._registerWindow(win);

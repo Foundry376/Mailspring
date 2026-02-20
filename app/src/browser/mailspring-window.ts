@@ -187,11 +187,26 @@ export default class MailspringWindow extends EventEmitter {
     // was never committed. However, show() works reliably at did-finish-load time, when
     // the HTML is loaded, themes/styles are applied, and React root is mounted - the UI
     // is nearly complete. This is the same workaround used by FreeTube and Signal Desktop.
+    //
+    // When --background is requested on Wayland we must still show briefly to commit the
+    // Wayland surface (otherwise show() silently fails). Once the window finishes
+    // initializing (window:loaded) we hide it again so the net effect matches what the
+    // user asked for: Mailspring running silently in the background.
     if (isWaylandSession()) {
       this.browserWindow.webContents.once('did-finish-load', () => {
         if (!this.browserWindow.isDestroyed() && !this.browserWindow.isVisible()) {
+          const initInBackground = this.browserWindow.loadSettings?.initializeInBackground;
           this.browserWindow.show();
-          this.browserWindow.focus();
+          if (!initInBackground) {
+            this.browserWindow.focus();
+          }
+          if (initInBackground) {
+            this.once('window:loaded', () => {
+              if (!this.browserWindow.isDestroyed()) {
+                this.browserWindow.hide();
+              }
+            });
+          }
         }
       });
     }
