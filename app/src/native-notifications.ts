@@ -283,6 +283,7 @@ class NativeNotifications {
       }
     </binding>
   </visual>
+  <audio silent="true"/>
 ${actionsXml}
 </toast>`;
   }
@@ -314,6 +315,7 @@ ${actionsXml}
       <text hint-style="captionSubtle">Click to view your inbox</text>
     </binding>
   </visual>
+  <audio silent="true"/>
   <actions>
     <action content="View Inbox" arguments="${this.escapeXml(clickUrl)}" activationType="protocol"/>
     <action content="Dismiss" arguments="dismiss" activationType="system"/>
