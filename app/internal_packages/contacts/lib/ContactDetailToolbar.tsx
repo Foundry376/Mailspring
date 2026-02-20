@@ -15,6 +15,7 @@ import {
   ChangeContactGroupMembershipTask,
 } from 'mailspring-exports';
 import { showGPeopleReadonlyNotice } from './GoogleSupport';
+import { exportContactsToFile } from './VCFImportExport';
 
 interface ContactDetailToolbarProps {
   editing: string | 'new' | false;
@@ -125,6 +126,14 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
             onClick={editable ? this._onEdit : undefined}
           >
             {localized('Edit')}
+          </button>
+          <button
+            tabIndex={-1}
+            title={localized('Export VCard')}
+            className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
+            onClick={actionSet.length > 0 ? () => exportContactsToFile(actionSet) : undefined}
+          >
+            {localized('Export')}
           </button>
         </div>
       </BindGlobalCommands>
