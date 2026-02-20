@@ -220,27 +220,16 @@ module.exports = grunt => {
       osxSign: process.env.SIGN_BUILD
         ? {
             platform: 'darwin',
+            // The provisioning profile is embedded once into the app bundle at
+            // Contents/embedded.provisionprofile. It must be set here at the
+            // top level — it is not a per-file option.
+            provisioningProfile: process.env.APPLE_PROVISIONING_PROFILE_PATH,
             optionsForFile: filePath => {
-              // The mailsync binary is a nested executable that must NOT receive
-              // the app's provisioning profile — macOS validates the profile against
-              // the bundle ID and will refuse to launch mailsync if there is a
-              // mismatch. We sign it with minimal (child) entitlements and no
-              // provisioning profile. All other binaries get the full entitlements
-              // and the provisioning profile (if one is configured).
+              // The mailsync binary is a nested helper executable. It must be
+              // signed with minimal entitlements that are compatible with (i.e.
+              // a subset of) the provisioning profile's allowed entitlements.
+              // The main app gets the full entitlements plist.
               const isMailsync = path.basename(filePath) === 'mailsync';
-
-              if (isMailsync) {
-                return {
-                  hardenedRuntime: true,
-                  entitlements: path.resolve(
-                    grunt.config('appDir'),
-                    'build',
-                    'resources',
-                    'mac',
-                    'entitlements.child.plist'
-                  ),
-                };
-              }
 
               return {
                 hardenedRuntime: true,
@@ -249,9 +238,8 @@ module.exports = grunt => {
                   'build',
                   'resources',
                   'mac',
-                  'entitlements.plist'
+                  isMailsync ? 'entitlements.child.plist' : 'entitlements.plist'
                 ),
-                provisioningProfile: process.env.APPLE_PROVISIONING_PROFILE_PATH || undefined,
               };
             },
           }
