@@ -181,7 +181,7 @@ describe('MailRulesProcessor', function() {
   describe('_applyRuleToMessage', () =>
     it('should queue tasks for messages', function() {
       spyOn(TaskQueue, 'waitForPerformLocal');
-      spyOn(Actions, 'queueTask');
+      spyOn(Actions, 'queueTasks');
       spyOn(DatabaseStore, 'findBy').andReturn(Promise.resolve({}));
       Tests.forEach(({ rule }) => {
         TaskQueue.waitForPerformLocal.reset();
