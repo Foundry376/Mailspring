@@ -42,16 +42,12 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_CODESIGN_P12 }}
           p12-password: ${{ secrets.APPLE_CODESIGN_KEY_PASSWORD }}
 
-      # This is disabled because we need to codesign Mailspring with this profile, but it's
-      # presence makes Apple use it for the mailsync executable too. We need more nuanced
-      # provisioning profile configuration.
-      #
-      # - name: Setup Provisioning Profile
-      #   run: |
-      #     echo "APPLE_PROVISIONING_PROFILE_PATH=${{ runner.temp }}/Mailspring.provisionprofile" >> $GITHUB_ENV
-      #     echo $APPLE_PROVISIONING_PROFILE_B64 | base64 --decode > "${{ runner.temp }}/Mailspring.provisionprofile"
-      #   env:
-      #     APPLE_PROVISIONING_PROFILE_B64: ${{ secrets.APPLE_PROVISIONING_PROFILE_B64 }}
+      - name: Setup Provisioning Profile
+        run: |
+          echo "APPLE_PROVISIONING_PROFILE_PATH=${{ runner.temp }}/Mailspring.provisionprofile" >> $GITHUB_ENV
+          echo $APPLE_PROVISIONING_PROFILE_B64 | base64 --decode > "${{ runner.temp }}/Mailspring.provisionprofile"
+        env:
+          APPLE_PROVISIONING_PROFILE_B64: ${{ secrets.APPLE_PROVISIONING_PROFILE_B64 }}
 
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
