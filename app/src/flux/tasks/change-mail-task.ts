@@ -77,4 +77,15 @@ export class ChangeMailTask extends Task {
   numberOfImpactedItems() {
     return this.threadIds.length || this.messageIds.length;
   }
+
+  toJSON() {
+    const json = super.toJSON();
+    if (Array.isArray(json.threadIds) && json.threadIds.length === 0) {
+      delete json.threadIds;
+    }
+    if (Array.isArray(json.messageIds) && json.messageIds.length === 0) {
+      delete json.messageIds;
+    }
+    return json;
+  }
 }

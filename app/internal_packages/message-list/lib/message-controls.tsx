@@ -144,25 +144,33 @@ export default class MessageControls extends React.Component<MessageControlsProp
     win.loadURL(`file://${filepath}`);
   };
 
-  _onMoveMessageToTrash = () => {
+  _onMoveMessageToTrash = async () => {
     const { message } = this.props;
     const trash = CategoryStore.getTrashCategory(message.accountId);
-    if (!trash || message.folder?.id === trash.id) {
+
+    if (!trash) {
       return;
     }
 
-    Actions.queueTask(
-      new ChangeFolderTask({
-        folder: trash,
-        messages: [message],
-        source: 'Message Header: Conversation View',
-      })
-    );
+    if (message.folder?.id === trash.id) {
+      return;
+    }
+
+    const task = new ChangeFolderTask({
+      folder: trash,
+      messages: [message],
+      source: 'Message Header: Conversation View',
+    });
+
+    Actions.queueTask(task);
+    await TaskQueue.waitForPerformLocal(task);
+    AppEnv.mailsyncBridge.sendSyncMailNow();
   };
 
   _renderTrashAction() {
     const { message } = this.props;
     const trash = CategoryStore.getTrashCategory(message.accountId);
+
     if (!trash || message.folder?.id === trash.id) {
       return null;
     }
@@ -170,7 +178,10 @@ export default class MessageControls extends React.Component<MessageControlsProp
     return (
       <div
         title={localized('Move to Trash')}
-        onClick={this._onMoveMessageToTrash}
+        onClick={(e) => {
+          e.stopPropagation();
+          this._onMoveMessageToTrash();
+        }}
         style={{ float: 'left', marginLeft: 6, cursor: 'pointer', lineHeight: 1, opacity: 0.85 }}
       >
         <RetinaImg
