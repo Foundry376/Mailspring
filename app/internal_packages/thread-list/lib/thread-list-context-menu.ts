@@ -41,22 +41,22 @@ export default class ThreadListContextMenu {
           this.forwardItem(),
           { type: 'separator' },
           this.archiveItem(),
-          this.trashItem(),
           this.markAsReadItem(),
-          this.markAsSpamItem(),
           this.starItem(),
+          { type: 'separator' },
+          this.trashItem(),
+          this.markAsSpamItem(),
           { type: 'separator' },
           this.createMailboxLinkItem(),
         ]);
       })
       .then(menuItems => {
-        return _.filter(_.compact(menuItems), (item, index) => {
-          if (
-            (index === 0 || index === menuItems.length - 1) &&
-            (item as any).type === 'separator'
-          ) {
-            return false;
-          }
+        const compacted = _.compact(menuItems);
+        return compacted.filter((item, index) => {
+          if ((item as any).type !== 'separator') return true;
+          // Remove leading, trailing, and consecutive separators
+          if (index === 0 || index === compacted.length - 1) return false;
+          if ((compacted[index - 1] as any).type === 'separator') return false;
           return true;
         });
       });
