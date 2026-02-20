@@ -116,9 +116,13 @@ const MailRulesActions: {
   },
 
   archive: (message, thread) => {
+    const inbox = CategoryStore.getInboxCategory(thread.accountId);
+    if (!inbox) {
+      throw new Error('Could not find `inbox` label');
+    }
     return new ChangeLabelsTask({
       labelsToAdd: [],
-      labelsToRemove: [CategoryStore.getInboxCategory(thread.accountId)],
+      labelsToRemove: [inbox],
       threads: [thread],
       source: 'Mail Rules',
     });
@@ -208,6 +212,10 @@ class MailRulesProcessor {
     const templateMap = this._getConditionTemplateMap();
     return fn.call(rule.conditions, condition => {
       const template = templateMap.get(condition.templateKey);
+      if (!template) {
+        console.warn(`Unknown mail rule condition template: ${condition.templateKey}`);
+        return false;
+      }
       const value = template.valueForMessage(message);
       return template.evaluate(condition, value);
     });

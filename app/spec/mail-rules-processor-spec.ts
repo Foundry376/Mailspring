@@ -143,7 +143,7 @@ const Tests = [
   },
 ];
 
-xdescribe('MailRulesProcessor', function() {
+describe('MailRulesProcessor', function() {
   describe('_checkRuleForMessage', function() {
     it('should correctly filter sample messages', () =>
       Tests.forEach(({ rule, good, bad }) => {
