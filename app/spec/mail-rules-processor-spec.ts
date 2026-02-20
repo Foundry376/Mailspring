@@ -8,7 +8,7 @@ import {
   Actions,
 } from 'mailspring-exports';
 
-const MailRulesProcessor = require('../src/mail-rules-processor');
+const MailRulesProcessor = require('../src/mail-rules-processor').default;
 
 const Tests = [
   {
@@ -185,7 +185,7 @@ describe('MailRulesProcessor', function() {
       spyOn(DatabaseStore, 'findBy').andReturn(Promise.resolve({}));
       Tests.forEach(({ rule }) => {
         TaskQueue.waitForPerformLocal.reset();
-        Actions.queueTask.reset();
+        Actions.queueTasks.reset();
 
         const message = new Message({ accountId: rule.accountId });
         const thread = new Thread({ accountId: rule.accountId });
@@ -195,7 +195,7 @@ describe('MailRulesProcessor', function() {
         waitsForPromise(() => {
           return response.then(() => {
             expect(TaskQueue.waitForPerformLocal).toHaveBeenCalled();
-            expect(Actions.queueTask).toHaveBeenCalled();
+            expect(Actions.queueTasks).toHaveBeenCalled();
           });
         });
       });
