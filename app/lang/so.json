@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Bilaabista nidaamka bilowga\" kaliya wuxuu ka shaqeeyaa goobaha shaqada ee XDG. Si aad u awooddo icon Mailspring ee nidaamka saxda ah, waxaad u baahan kartaa inaad ku rakibo libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Bilaabista nidaamka bilowga\" kaliya wuxuu ka shaqeeyaa goobaha shaqada ee XDG. Si aad u awooddo icon Mailspring ee nidaamka saxda ah, waxaad u baahan kartaa inaad ku rakibo libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ ee %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ aan lagu lifaaqi karin sababtoo ah waxay ka weyn tahay 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ayaa la rakibay lana awooday. Looma baahna inaad dib u bilowdo! Haddii aadan arkaynin fiilada lagu rakibay, hubi qalab loogu talagalay qaladaad.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Codsiyada ma badbaadin karaan lifaaq. Hubi in ogolaanshaha si sax ah loo dhigay isla markaana iskuday inaad dib u bilawdo Mailspring haddii arintu sii socoto.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring ma kicin karin nidaamka mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Codsigeyga ma keydsan karin ereygaaga si ammaan ah. Wixii macluumaad dheeraad ah, booqo %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Ogaysiisyo shaqo oo ku saabsan Linux ayaa u baahan Zenity. Waxaa laga yaabaa inaad u baahato inaad ku rakibto maamulaha baakadkaaga.",
   "Mailspring does not support stylesheets with the extension: %@": "Codsiyada ma taageerto naqshad ayadoo la dheereynayo: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ayaa la kulmay khaladaad isku-dhafan xisaabtan. Warbixinnada gawaarida ayaa loo diray kooxda Mailspring waxaanan ku shaqeyn doonnaa si aan u xalino khaladaadahan soo socda ee soo socda.",
   "Mailspring has translated this message into %@.": "Cilmiga fariinta ayaa tarjumay fariintan [[].",

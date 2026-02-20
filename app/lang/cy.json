@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "Mae \"Lansio ar ddechrau'r system\" yn gweithio yn unig mewn amgylcheddau bwrdd gwaith cydymffurfio XDG. Er mwyn galluogi eicon Mailspring yn hambwrdd y system, efallai y bydd angen i chi osod libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "Mae \"Lansio ar ddechrau'r system\" yn gweithio yn unig mewn amgylcheddau bwrdd gwaith cydymffurfio XDG. Er mwyn galluogi eicon Mailspring yn hambwrdd y system, efallai y bydd angen i chi osod libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ o %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "Ni ellir atodi %@ oherwydd ei fod yn fwy na 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ wedi ei osod a'i alluogi. Does dim angen ailgychwyn! Os nad ydych yn gweld yr ategyn wedi'i lwytho, edrychwch ar y consol am wallau.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Ni allai Mailspring achub atodiad. Gwiriwch fod y caniatâd yn cael ei osod yn gywir a cheisiwch ailgychwyn Mailspring os yw'r mater yn parhau.",
   "Mailspring could not spawn the mailsync process. %@": "Ni allai Mailspring silio'r broses mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Ni all Mailspring storio'ch cyfrinair yn ddiogel. Am ragor o wybodaeth, ewch i %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mae hysbysiadau bwrdd gwaith Mailspring ar Linux yn gofyn am Zenity. Efallai y bydd angen i chi ei osod gyda'ch rheolwr pecyn.",
   "Mailspring does not support stylesheets with the extension: %@": "Nid yw Mailspring yn cefnogi arddulliau arddull gyda'r estyniad: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Gwelodd Mailspring wallau sy'n synci'r cyfrif hwn. Anfonwyd adroddiadau cras i dîm Mailspring a byddwn yn gweithio i osod y gwallau hyn yn y datganiad nesaf.",
   "Mailspring has translated this message into %@.": "Mae Mailspring wedi cyfieithu'r neges hon i %@.",

@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"ចាប់ផ្ដើមដំណើរការប្រព័ន្ធ\" ដំណើរការតែក្នុងបរិស្ថានផ្ទៃតុដែលមានគុណភាព XDG ប៉ុណ្ណោះ។ ដើម្បីបើករូបតំណាង Mailspring នៅក្នុងថាសប្រព័ន្ធអ្នកត្រូវដំឡើង libappindicator ។",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"ចាប់ផ្ដើមដំណើរការប្រព័ន្ធ\" ដំណើរការតែក្នុងបរិស្ថានផ្ទៃតុដែលមានគុណភាព XDG ប៉ុណ្ណោះ។ ដើម្បីបើករូបតំណាង Mailspring នៅក្នុងថាសប្រព័ន្ធអ្នកត្រូវដំឡើង libappindicator or libayatana-appindicator ។",
   "%1$@ of %2$@": "%1$@នៃ%2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@មិនអាចភ្ជាប់បានទេព្រោះវាធំជាង 25MB ។",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ត្រូវបានតំឡើងនិងបើកដំណើរការ។ មិនចាំបាច់ចាប់ផ្ដើមឡើងវិញទេ! ប្រសិនបើអ្នកមិនឃើញកម្មវិធីជំនួយដែលបានផ្ទុកសូមពិនិត្យកុងសូលដើម្បីរកកំហុស។",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring មិនអាចរក្សាទុកឯកសារភ្ជាប់បានទេ។ ពិនិត្យមើលថាសិទ្ធិត្រូវបានកំណត់យ៉ាងត្រឹមត្រូវហើយព្យាយាមចាប់ផ្តើម Mailspring ឡើងវិញប្រសិនបើបញ្ហានៅតែបន្ត។",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring មិនអាចបង្កើតដំណើរការ mailsync បានទេ។ %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring មិនអាចរក្សាទុកពាក្យសម្ងាត់របស់អ្នកឱ្យមានសុវត្ថិភាព។ សម្រាប់ព័ត៌មានបន្ថែមសូមទស្សនា %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring ការជូនដំណឹងផ្ទៃតុនៅលើលីនុចត្រូវការ Zenity ។ អ្នកប្រហែលជាត្រូវដំឡើងវាជាមួយកម្មវិធីគ្រប់គ្រងកញ្ចប់របស់អ្នក។",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring មិនគាំទ្រសន្លឹករចនាប័ទ្មដែលមានផ្នែកបន្ថែម: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring មានកំហុសដែលធ្វើសមកាលកម្មគណនីនេះ។ របាយការណ៍គាំងត្រូវបានបញ្ជូនទៅក្រុម Mailspring ហើយយើងនឹងធ្វើការដោះស្រាយកំហុសទាំងនេះនៅក្នុងការចេញផ្សាយបន្ទាប់។",
   "Mailspring has translated this message into %@.": "Mailspring បានបកប្រែសារនេះទៅជា %@ ។",

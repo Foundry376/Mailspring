@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"ການເປີດຕົວໃນລະບົບເລີ່ມຕົ້ນ\" ເຮັດວຽກຢູ່ໃນສະພາບແວດລ້ອມ desktop ທີ່ສອດຄ້ອງກັບ XDG ເທົ່ານັ້ນ. ເພື່ອເປີດໃຊ້ icon ຂອງ Mailspring ໃນຖາດລະບົບ, ທ່ານອາດຕ້ອງຕິດຕັ້ງ libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"ການເປີດຕົວໃນລະບົບເລີ່ມຕົ້ນ\" ເຮັດວຽກຢູ່ໃນສະພາບແວດລ້ອມ desktop ທີ່ສອດຄ້ອງກັບ XDG ເທົ່ານັ້ນ. ເພື່ອເປີດໃຊ້ icon ຂອງ Mailspring ໃນຖາດລະບົບ, ທ່ານອາດຕ້ອງຕິດຕັ້ງ libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ ຂອງ %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ ບໍ່ສາມາດຄັດຕິດໄດ້ເພາະມັນມີຂະຫນາດໃຫຍ່ກວ່າ 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ໄດ້ຖືກຕິດຕັ້ງແລະເປີດໃຊ້ງານ. ບໍ່ຈໍາເປັນຕ້ອງເລີ່ມຕົ້ນໃຫມ່! ຖ້າທ່ານບໍ່ເຫັນ plugin loaded, ກວດເບິ່ງ console ສໍາລັບຂໍ້ຜິດພາດ.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring ບໍ່ສາມາດບັນທຶກການແນບໄດ້. ກວດເບິ່ງວ່າການອະນຸຍາດຖືກກໍານົດຢ່າງຖືກຕ້ອງແລະລອງ restarting Mailspring ຖ້າບັນຫາຍັງຄົງຢູ່.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring ບໍ່ສາມາດສ້າງຂະບວນການ mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring ບໍ່ສາມາດເກັບຮັກສາລະຫັດຜ່ານຂອງທ່ານຢ່າງປອດໄພ. ສໍາລັບຂໍ້ມູນເພີ່ມເຕີມ, ໄປຢ້ຽມຢາມ %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring ການແຈ້ງເຕືອນເດດທັອບໃນ Linux ຕ້ອງການ Zenity. ທ່ານອາດຕ້ອງຕິດຕັ້ງມັນກັບຜູ້ຈັດການຊຸດຂອງທ່ານ.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring ບໍ່ສະຫນັບສະຫນູນຄໍເຕົ້າໄຂ່ທີ່ມີການຂະຫຍາຍ: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ພົບຂໍ້ຜິດພາດທີ່ຊິງຕໍ່ບັນຊີນີ້. ບົດລາຍງານ Crash ໄດ້ຖືກສົ່ງໄປຫາທີມງານ Mailspring ແລະພວກເຮົາຈະເຮັດວຽກເພື່ອແກ້ໄຂຂໍ້ຜິດພາດເຫຼົ່ານີ້ໃນການປ່ອຍຕໍ່ໄປ.",
   "Mailspring has translated this message into %@.": "Mailspring ໄດ້ແປຂໍ້ຄວາມນີ້ເປັນ %@.",

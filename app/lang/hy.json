@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Սկսել համակարգի սկիզբը\" միայն աշխատում է XDG- ի հետ աշխատող աշխատասեղանի միջավայրում: Թղթապանակում փոստաղբի պատկերակն ակտիվացնելու համար անհրաժեշտ է տեղադրել libappindicator:",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Սկսել համակարգի սկիզբը\" միայն աշխատում է XDG- ի հետ աշխատող աշխատասեղանի միջավայրում: Թղթապանակում փոստաղբի պատկերակն ակտիվացնելու համար անհրաժեշտ է տեղադրել libappindicator or libayatana-appindicator:",
   "%1$@ of %2$@": "%1$@ %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ չի կարող կցվել, քանի որ այն մեծ է, քան 25MB:",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ տեղադրվել եւ միացված է: Կարիք չկա վերսկսել: Եթե ​​դուք չեք տեսնում բեռնված պլատինը, ստուգեք մխիթարել սխալները:",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring- ը չի կարող պահել հավելվածը: Ստուգեք, որ թույլտվությունները ճիշտ են եւ փորձեք վերսկսել Mailspring, եթե խնդիրը չկատարվի:",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring- ը չի կարող ծածկել mailsync գործընթացը: %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring- ը չի կարող պահել ձեր գաղտնաբառը անվտանգ: Լրացուցիչ տեղեկությունների համար այցելեք %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linux- ի փոստարկղային աշխատասեղանները պահանջում են Zenity- ը: Ձեզ հարկավոր է տեղադրել այն փաթեթային կառավարչի հետ:",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring- ը չի աջակցում ոճաթերթերի ընդլայնման հետ, %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring- ը հանդիպեց այս հաշվի համաժամացման սխալների հետ: Crash Reports- ը ուղարկվել է Mailspring թիմին եւ մենք կփորձենք ամրագրել այս սխալները հաջորդ թողարկումում:",
   "Mailspring has translated this message into %@.": "Mailspring- ը թարգմանեց այս հաղորդագրությունը %@:",

@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "«Запуск при запуске системы» работает только в средах, совместимых с XDG. Чтобы включить значок Mailspring в системном трее, вам может потребоваться установить libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "«Запуск при запуске системы» работает только в средах, совместимых с XDG. Чтобы включить значок Mailspring в системном трее, вам может потребоваться установить libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ из %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ не может быть прикреплен, потому что он больше 25 МБ.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ был установлен и включен. Не нужно перезапускать! Если вы не видите загруженный плагин, проверьте консоль на наличие ошибок.",
@@ -348,7 +348,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring не смог сохранить вложение. Убедитесь, что разрешения установлены правильно и попробуйте перезапустить Mailspring, если проблема не устранена.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring не мог вызвать процесс mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring не смог безопасно хранить ваш пароль. Для получения дополнительной информации посетите %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Уведомления для настольных компьютеров Mailspring на Linux требуют Zenity. Возможно, вам потребуется установить его с помощью менеджера пакетов.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring не поддерживает таблицы стилей с расширением: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring обнаружил ошибки во время синхронизации учетной запись. Отчеты о сбоях были отправлены команде Mailspring, и мы исправим эти ошибки в следующей версии.",
   "Mailspring has translated this message into %@.": "Mailspring перевел это сообщение на %@.",

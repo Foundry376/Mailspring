@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "لا يعمل \"التشغيل عند بدء تشغيل النظام\" إلا في بيئات سطح المكتب المتوافقة مع XDG. لتمكين رمز Mailspring في علبة النظام ، قد تحتاج إلى تثبيت libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "لا يعمل \"التشغيل عند بدء تشغيل النظام\" إلا في بيئات سطح المكتب المتوافقة مع XDG. لتمكين رمز Mailspring في علبة النظام ، قد تحتاج إلى تثبيت libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ من %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ لا يمكن إرفاقه لأنه أكبر من 25 ميغابايت.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ تم تثبيتها وتمكينها. لا حاجة لإعادة! إذا لم تشاهد المكوّن الإضافي الذي تم تحميله ، فتحقق من وحدة التحكم بحثًا عن الأخطاء.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "تعذر على Mailspring حفظ المرفق. تحقق من تعيين الأذونات بشكل صحيح وحاول إعادة تشغيل Mailspring إذا استمرت المشكلة.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring لا يمكن أن تفرز عملية mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "تعذر على Mailspring تخزين كلمة مرورك بشكل آمن. لمزيد من المعلومات ، يرجى زيارة %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "تتطلب إخطارات سطح المكتب Mailspring على Linux أن تكون Zenity. قد تحتاج إلى تثبيته مع مدير الحزم الخاص بك.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring لا يدعم أوراق الأنماط بالامتداد: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "واجهت Mailspring أخطاء في مزامنة هذا الحساب. تم إرسال تقارير الأعطال إلى فريق Mailspring وسنعمل على إصلاح هذه الأخطاء في الإصدار التالي.",
   "Mailspring has translated this message into %@.": "Mailspring ترجم هذه الرسالة إلى %@.",

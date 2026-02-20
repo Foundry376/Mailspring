@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Begin met die stelsel begin\" werk slegs in XDG-compatible lessenaaromgewings. Om die Mailspring-ikoon in die stelselvenster te aktiveer, moet u dalk 'n libappindicator installeer.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Begin met die stelsel begin\" werk slegs in XDG-compatible lessenaaromgewings. Om die Mailspring-ikoon in die stelselvenster te aktiveer, moet u dalk 'n libappindicator or libayatana-appindicator installeer.",
   "%1$@ of %2$@": "%1$@ van %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ kan nie aangeheg word nie, want dit is groter as 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ is geïnstalleer en aangeskakel. Nie nodig om weer te begin nie! As jy nie die prop gelaai het nie, gaan die konsole na foute.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring kon nie 'n aanhangsel stoor nie. Maak seker dat toestemmings korrek ingestel is en probeer Mailspring herbegin as die probleem voortduur.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring kon nie die mailsync-proses kweek nie. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring kon jou wagwoord nie stoor nie. Vir meer inligting, besoek %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring lessenaar kennisgewings op Linux vereis Zenity. U moet dit dalk met u pakketbestuurder installeer.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring ondersteun nie styleheets met die uitbreiding nie: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring het foute ondervind met die sinkronisering van hierdie rekening. Crash verslae is gestuur na die Mailspring span en ons sal werk om hierdie foute op te los in die volgende uitgawe.",
   "Mailspring has translated this message into %@.": "Mailspring het hierdie boodskap in %@ vertaal.",

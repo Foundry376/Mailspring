@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Iniciar al començament del sistema\" només funciona en entorns d'escriptori compatibles amb XDG. Per habilitar la icona de Mailspring a la safata del sistema, és possible que necessiteu instal·lar libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Iniciar al començament del sistema\" només funciona en entorns d'escriptori compatibles amb XDG. Per habilitar la icona de Mailspring a la safata del sistema, és possible que necessiteu instal·lar libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ de %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ no es pot adjuntar perquè és més gran que 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ s'ha instal·lat i habilitat. No cal reiniciar! Si no veieu el connector carregat, consulteu la consola per obtenir errors.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring no ha pogut desar un fitxer adjunt. Comproveu que els permisos estiguin configurats correctament i proveu de reiniciar Mailspring si el problema persisteix.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring no ha pogut generar el procés de mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring no ha pogut desar la contrasenya de manera segura. Per obtenir més informació, visiteu %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Les notificacions de correu de Mailspring a Linux requereixen Zenity. És possible que hàgiu d'instal·lar-lo amb el vostre gestor de paquets.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring no admet fulles d'estil amb l'extensió: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ha detectat errors en sincronitzar aquest compte. S'han enviat informes d'error a l'equip de Mailspring i treballarem per corregir aquests errors en el pròxim llançament.",
   "Mailspring has translated this message into %@.": "Mailspring ha traduït aquest missatge a %@.",

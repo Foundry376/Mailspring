@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Tnedija fuq il-bidu tas-sistema\" jaħdem biss f'ambjenti ta 'desktop XDG konformi. Biex tħalli l-ikona Mailspring fit-trej tas-sistema, jista 'jkollok bżonn tinstalla libindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Tnedija fuq il-bidu tas-sistema\" jaħdem biss f'ambjenti ta 'desktop XDG konformi. Biex tħalli l-ikona Mailspring fit-trej tas-sistema, jista 'jkollok bżonn tinstalla libindicator.",
   "%1$@ of %2$@": "%1$@ ta '%2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ ma tistax tiġi mehmuża minħabba li hija ikbar minn 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ġie installat u attivat. M'hemmx għalfejn terġa 'tibda! Jekk ma tarax il-plugin mgħobbi, iċċekkja l-console għal żbalji.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring ma setax isalva sekwestru. Iċċekkja li l-permessi huma stabbiliti b'mod korrett u pprova jerġa 'jibda Mailspring jekk il-kwistjoni tippersisti.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring ma setax imexxi l-proċess ta 'mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring ma setax jaħżen il-password tiegħek b'mod sigur. Għal aktar informazzjoni, żur %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Notifiki ta 'desktop Mailspring fuq Linux jeħtieġu Zenity. Jista 'jkollok bżonn tinstallah mal-maniġer tal-pakkett tiegħek.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring ma jappoġġjax stylesheets bl-estensjoni: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ltaqa 'ma' żbalji li jissinkronizzaw dan il-kont. Ir-rapporti tal-ħbit ġew mibgħuta lit-tim ta 'Mailspring u aħna ser naħdmu biex niffissaw dawn l-iżbalji fir-rilaxx li jmiss.",
   "Mailspring has translated this message into %@.": "Mailspring tradotta dan il-messaġġ fi %@.",
