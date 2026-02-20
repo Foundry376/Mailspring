@@ -220,11 +220,19 @@ module.exports = grunt => {
       osxSign: process.env.SIGN_BUILD
         ? {
             platform: 'darwin',
+            // The provisioning profile is embedded once into the app bundle at
+            // Contents/embedded.provisionprofile. It must be set here at the
+            // top level — it is not a per-file option.
             provisioningProfile: process.env.APPLE_PROVISIONING_PROFILE_PATH,
             optionsForFile: filePath => {
-              // Here, we keep it simple and return a single entitlements.plist file.
-              // You can use this callback to map different sets of entitlements
-              // to specific files in your packaged app.
+              // The mailsync binary (shipped as either "mailsync" or
+              // "mailsync.bin") is a nested helper executable. It must be
+              // signed with minimal entitlements that are compatible with (i.e.
+              // a subset of) the provisioning profile's allowed entitlements.
+              // The main app gets the full entitlements plist.
+              const basename = path.basename(filePath);
+              const isMailsync = basename === 'mailsync' || basename === 'mailsync.bin';
+
               return {
                 hardenedRuntime: true,
                 entitlements: path.resolve(
@@ -232,7 +240,7 @@ module.exports = grunt => {
                   'build',
                   'resources',
                   'mac',
-                  'entitlements.plist'
+                  isMailsync ? 'entitlements.child.plist' : 'entitlements.plist'
                 ),
               };
             },
