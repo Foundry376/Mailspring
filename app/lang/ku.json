@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring nikare peywendîdar nabe. Pêwîstin ku destûra rast hatine xistin û hewl bikin ku ger pirsgirêk bimîne.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring nikare pêvajoyê mailsync nedikirin. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring nikare şîfreya we ewlehî tomar bike. Ji bo bêtir agahdarî, serdana %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Agahdariyên diyarkirî yên Linux li Zenity hewce ne. Hûn hewce ne ku hûn bi rêveberê pakêmana xwe saz bikin.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring piştgiriya stylesheets û bi dirêjkirina pelan piştgirî nakin: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring di vê hesabê de çewtî çewtiyên xist. Raportên krîza hatine tîpa Mailspring şandin û em ê xebitin ku di van serbestberdana paşê de paşê çareser bikin.",
   "Mailspring has translated this message into %@.": "Mailspring ev peyam wergerand [[[].",

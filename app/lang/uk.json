@@ -345,7 +345,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring не вдалося зберегти вкладення. Перевірте, чи правильно встановлено дозволи, і спробуйте перезапустити Mailspring, якщо проблема не зникає.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring не може викликати процес mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring не може зберігати ваш пароль надійно. Для отримання додаткової інформації відвідайте %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Повідомлення Mailspring на робочому столі на Linux вимагають Zenity. Можливо, вам доведеться встановити його за допомогою менеджера пакетів.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring не підтримує таблиці стилів з розширенням: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring виникла помилка синхронізації цього облікового запису. Звіти про аварійне завершення роботи були надіслані команді Mailspring, і ми будемо працювати над виправленням цих помилок у наступному випуску.",
   "Mailspring has translated this message into %@.": "Mailspring перевів це повідомлення у %@.",

@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "\"Mailspring\" nepavyko išsaugoti priedo. Patikrinkite, ar leidimai teisingai nustatyti, ir bandykite iš naujo paleisti \"Mailspring\", jei problema išlieka.",
   "Mailspring could not spawn the mailsync process. %@": "\"Mailspring\" negalėjo sukelti \"mailsync\" proceso. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "\"Mailspring\" negalėjo saugiai saugoti savo slaptažodžio. Norėdami gauti daugiau informacijos, apsilankykite %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "\"Linux\" darbalaukio pranešimai reikalauja \"Zenity\". Jums gali prireikti jį įdiegti paketo tvarkytuve.",
   "Mailspring does not support stylesheets with the extension: %@": "\"Mailspring\" nepalaiko stilių su plėtiniu: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "\"Mailspring\" susidūrė su šios sąskaitos sinchronizavimu. Bandymų ataskaitos buvo išsiųstos \"Mailspring\" komandai, o mes atliksime darbą, kad ištaisytume šias klaidas kitame leidime.",
   "Mailspring has translated this message into %@.": "„Mailspring“ išvertė šią žinią į %@.",

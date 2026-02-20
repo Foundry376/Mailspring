@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring gat ekki vistað viðhengi. Athugaðu að heimildir séu stilltar á réttan hátt og reyndu að endurræsa Mailspring ef vandamálið er viðvarandi.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring gat ekki hrognt mailsync ferlið. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring gat ekki vistað lykilorðið þitt á öruggan hátt. Nánari upplýsingar er að finna á %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring skrifborð tilkynningar á Linux krefjast Zenity. Þú gætir þurft að setja það upp með pakka framkvæmdastjóra þínum.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring styður ekki stílblöð með viðbótinni: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring lenti í villum sem samstilltu þennan reikning. Hrunskýrslur hafa verið sendar til Mailspring liðsins og við munum vinna að því að laga þessar villur í næstu útgáfu.",
   "Mailspring has translated this message into %@.": "Mailspring hefur þýtt þessi skilaboð yfir á %@.",

@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring ไม่สามารถบันทึกไฟล์แนบได้ ตรวจสอบว่ามีการตั้งค่าสิทธิ์อย่างถูกต้องและลองเริ่ม Mailspring ใหม่หากปัญหายังคงอยู่",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring ไม่สามารถคลอดกระบวนการ mailsync ได้ %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring ไม่สามารถเก็บรหัสผ่านของคุณได้อย่างปลอดภัย ดูข้อมูลเพิ่มเติมได้ที่ %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "การแจ้งเตือน Mailspring บนเดสก์ท็อปบน Linux จำเป็นต้องใช้ Zenity คุณอาจต้องติดตั้งกับผู้จัดการแพคเกจของคุณ",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring ไม่สนับสนุน stylesheets ที่มีนามสกุล: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring พบข้อผิดพลาดในการซิงค์บัญชีนี้ รายงานข้อขัดข้องถูกส่งไปยังทีม Mailspring และเราจะดำเนินการแก้ไขข้อผิดพลาดเหล่านี้ในรุ่นถัดไป",
   "Mailspring has translated this message into %@.": "Mailspring แปลข้อความนี้เป็น %@",

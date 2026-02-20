@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Маилспринг није могао сачувати прилог. Проверите да ли су исправке постављене исправно и покушајте поново покренути Маилспринг ако се проблем и даље јавља.",
   "Mailspring could not spawn the mailsync process. %@": "Маилспринг није могао покренути процес маилсинц-а. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Маилспринг није могао чувати вашу шифру сигурно. За више информација посетите %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Маилспринг радна обавештења на Линуку захтевају Зенити. Можда ћете морати да је инсталирате са менаџером пакета.",
   "Mailspring does not support stylesheets with the extension: %@": "Маилспринг не подржава стилове са екстензијом: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Маилспринг је наишао на грешке у синхронизацији овог налога. Извештаји о оштећењима су послати тиму Маилспринг и радићемо да исправимо ове грешке у следећем издању.",
   "Mailspring has translated this message into %@.": "Маилспринг је ову поруку превео у %@.",

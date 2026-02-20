@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "I-Mailspring ayikwazanga ukulondoloza okunamathiselwe. Hlola ukuthi izimvume zihlelwe kahle bese uzama ukuqala kabusha i-Mailspring uma inkinga iqhubeka.",
   "Mailspring could not spawn the mailsync process. %@": "I-Mailspring ayikwazanga ukufaka inqubo ye-mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "I-Mailspring ayikwazanga ukulondoloza iphasiwedi yakho ngokuphepha. Ukuze uthole olunye ulwazi, vakashela i- %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "I-Mailspring izaziso zedeskithophu ku-Linux zidinga i-Zenity. Kungase kudingeke ukuyifaka nomphathi wephakheji yakho.",
   "Mailspring does not support stylesheets with the extension: %@": "I-Mailspring ayisekeli ama-style wesitayela nesandiso: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Amaphutha we-Mailspring ahlangabezane nawo avumelanisa le akhawunti. Imibiko yokuphahlazeka ithunyelwe eqenjini le-Mailspring futhi sizosebenza ukulungisa la maphutha ekukhululweni okulandelayo.",
   "Mailspring has translated this message into %@.": "UMailspring uhumushele lo mlayezo ku- %@.",

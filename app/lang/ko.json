@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring이 첨부 파일을 저장할 수 없습니다. 사용 권한이 올바르게 설정되어 있는지 확인하고 문제가 지속되면 Mailspring을 다시 시작하십시오.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring은 mailsync 프로세스를 생성할 수 없습니다. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring은 비밀번호를 안전하게 저장할 수 없습니다. 자세한 내용은 %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linux에서 Mailspring의 바탕 화면 알림을 활성화하려면 Zenity가 필요합니다. 패키지 관리자와 함께 설치해야 할 수도 있습니다.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring은 확장자가 있는 스타일 시트를 지원하지 않습니다 : %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring에서 이 계정을 동기화하는 동안 오류가 발생했습니다. 충돌 보고서는 Mailspring 팀에 보내졌으며 우리는 다음 릴리스에서 이러한 오류를 수정하기 위해 노력할 것입니다.",
   "Mailspring has translated this message into %@.": "Mailspring이 이 메시지를 %@로 번역했습니다.",

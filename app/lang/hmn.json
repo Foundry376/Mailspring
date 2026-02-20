@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring yuav cawm tsis tau ib qho txuas. Kuaj xyuas tias cov kev tso cai raug teeb tsa thiab hloov dua siab tshiab dua yog tias qhov teeb meem no tseem ua tsis tiav.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring yuav tsis ntses txoj kev mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring yuav tsis khaws koj tus password kom ruaj khov. Yog xav paub ntxiv, mus xyuas %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring desktop cov ntawv qhia txog Linux yuav tsum tau Zenity. Koj yuav tsum nruab nrog nws nrog koj tus neeg saib xyuas lub pob.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring tsis txhawb stylesheets nrog tus extension: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ntsib yuam kev syncing cov nyiaj no. Cov ntaub ntawv sib tsoo tau raug xa mus rau Mailspring pab neeg thiab peb yuav ua haujlwm los txhim kho cov teeb meem no tom ntej tso.",
   "Mailspring has translated this message into %@.": "Mailspring tau txhais cov lus no rau hauv %@.",

@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring không thể lưu tệp đính kèm. Kiểm tra xem các quyền đó có được đặt đúng hay không và thử khởi động lại Mailspring nếu vấn đề vẫn tồn tại.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring không thể sinh ra quá trình mail. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring không thể lưu trữ mật khẩu của bạn một cách an toàn. Để biết thêm thông tin, hãy truy cập %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Các thông báo trên máy tính để bàn của Mailspring trên Linux yêu cầu Zenity. Bạn có thể cần phải cài đặt nó với trình quản lý gói của bạn.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring không hỗ trợ bảng định kiểu với phần mở rộng: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring gặp lỗi khi đồng bộ hóa tài khoản này. Báo cáo sự cố đã được gửi đến nhóm Mailspring và chúng tôi sẽ cố gắng khắc phục các lỗi này trong bản phát hành tiếp theo.",
   "Mailspring has translated this message into %@.": "Mailspring đã dịch thông điệp này thành %@.",

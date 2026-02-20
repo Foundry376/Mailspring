@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "E le mafai e le mailspring ona faʻasaoina se mea faʻapipiʻi. Siaki o nei faʻatagaga ua faʻasaga lelei ma taumafai e toe faʻafouina Mailspring pe a fai e faʻaauau le mataupu.",
   "Mailspring could not spawn the mailsync process. %@": "E le mafai e le mailspring ona faʻasaʻo le mailsync process. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "E le mafai ona teuina faʻamaonia lau upega tafailagi i le mailspring. Mo nisi faʻamatalaga, asiasi i %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "O faʻamatalaga i luga ole laulau i luga o Linux e manaomia ai le Sini. Atonu e manaʻomia lou faʻapipiʻiina i lau pulelaʻau.",
   "Mailspring does not support stylesheets with the extension: %@": "E le lagolagoina e le mellowpring ia sitaili ma le faʻaopoopoga: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Na maua e le mailspring mea sese na faʻaogaina ai lenei tala. Ua tuʻuina atu ripoti faʻafuaseʻi i le Mailspring ma o le a matou galulue e faʻafetaui nei mea sese i le isi faʻasalaga.",
   "Mailspring has translated this message into %@.": "O le mailspring ua ia faaliliuina lenei savali i %@.",

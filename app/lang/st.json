@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring e ne e sitoa ho boloka selekane. Sheba hore litumello li behiloe ka nepo 'me u leke ho qala hape Mailspring haeba taba e ntse e tsoela pele.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring e sitoa ho hlahisa mokhoa oa mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring e sitoa ho boloka phasewete ea hau ka mokhoa o sireletsehileng. Ho fumana lintlha tse ling, etela %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Litlhaloso tsa mailspring tsa desktop ho Linux li hloka Zenity. U ka 'na ua hloka ho e kenya le mookameli oa hau ea phapaka.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring ha e tšehetse li-stylesheet ka ho eketsa: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring liphoso tse kopaneng le tsona li lumellana le akhaonto ena. Litlaleho tsa ho senya li rometsoe sehlopheng sa Mailspring 'me re tla sebetsa ho lokisa liphoso tsena ho lokolloa ho latelang.",
   "Mailspring has translated this message into %@.": "Mailspring o fetoletse molaetsa ona ho %@.",

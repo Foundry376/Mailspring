@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring pa t 'kapab sove yon atachman. Tcheke ke otorizasyon yo mete kòrèkteman epi eseye rekomanse Mailspring si pwoblèm lan toujou.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring pa t 'kapab anjandre pwosesis la mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring pa t 'kapab estoke modpas ou byen. Pou plis enfòmasyon, vizite %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring notifikasyon Desktop sou Linux mande pou Zenity. Ou ka bezwen enstale li avèk manadjè pake ou.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring pa sipòte stile yo ak ekstansyon an: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring rankontre erè senkronize kont sa a. Rapò aksidan yo te voye nan ekip la Mailspring epi nou pral travay ranje erè sa yo nan lage nan pwochen an.",
   "Mailspring has translated this message into %@.": "Mailspring te tradui mesaj sa a nan %@.",

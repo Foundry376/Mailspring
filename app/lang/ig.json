@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring enweghị ike ịchekwa mgbakwunye. Lelee na a na-edozi ikikere ahụ ma gbalịa ịmalitegharịa Mailspring ma ọ bụrụ na nsogbu ahụ ka dị.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring enweghị ike ịmepụta ozi mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring enweghị ike ichekwa paswọọdụ gị n'enweghị nsogbu. Maka ama ndị ọzọ, gaa na %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Nkọwapụta desktọọpụ mailsp na Linux chọrọ Zenity. Ị nwere ike iji wụnye njikwa ngwugwu gị.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring adịghị akwado ụdị ejiji na ndọtị: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring zutere njehie na-ejikọta akaụntụ a. E zigara ndị ọrụ Mailspring ozi akụkọ mberede na anyị ga-arụ ọrụ iji dozie njehie ndị a na ntọhapụ ọzọ.",
   "Mailspring has translated this message into %@.": "Ndị ụlọ ọrụ tụgharịala ozi a gaa %@.",

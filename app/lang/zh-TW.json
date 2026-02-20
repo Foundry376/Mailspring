@@ -381,7 +381,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring 無法儲存附件。請檢查權限設定是否正確，如果問題持續發生請重新啟動 Mailspring。",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring 無法啟動 mailsync 程式。%@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring 無法安全地儲存您的密碼。如需更多資訊，請造訪 %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring 在 Linux 上的桌面通知需要 Zenity。您可能需要使用套件管理員安裝它。",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring 不支援副檔名為 %@ 的樣式表",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring 同步此帳號時遇到錯誤。當機報告已傳送給 Mailspring 團隊，我們會在下一個版本修復這些錯誤。",
   "Mailspring has translated this message into %@.": "Mailspring 已將此訊息翻譯成 %@。",

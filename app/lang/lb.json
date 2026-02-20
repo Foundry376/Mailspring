@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "E Mailspring konnt keen Uschloss späicheren. Kontrolléiert datt d'Permissiounen korrekt festgeluede ginn an probéiert Mailspring ze starten wann de Problem weider geet.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring konnt den Mailsync-Prozess net spawelen. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring konnt Äre Passwuert net sécher speichern. Näischt fir méi Informatiounen, besicht %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring Desktop Notifikatiounen op Linux erforderen Zenit. Dir musst mat dësem Package Manager installéieren.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring ënnerstëtzt Stylesheets ouni Extrait: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring hu Problemer mat der Synchronisatioun vun dësem Kont behandelen. Crashreporten ginn un de Mailspring-Team geschéckt a mir schaffen fir dës Fehler an der nächster Verëffentlechung ze fixéieren.",
   "Mailspring has translated this message into %@.": "Mailspring huet dëse Message op %@ iwwersat.",

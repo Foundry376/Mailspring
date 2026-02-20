@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Cha b 'urrainn dha Mailspring ceangal a shàbhaladh. Dèan cinnteach gu bheil na ceadan air an suidheachadh ceart agus feuch ri ath-thòiseachadh Mailspring ma tha an cùis a 'leantainn.",
   "Mailspring could not spawn the mailsync process. %@": "Cha b 'urrainn dha Mailspring sìol a chur air pròiseas mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Cha b 'urrainn do Mhailspring do fhacal-faire a stòradh gu tèarainte. Airson tuilleadh fiosrachaidh, tadhail air %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Feumaidh notaichean deasg mailspring air Linux Zenity. Dh'fhaoidte gum feum thu a stàladh leis a 'mhanaidsear pacaid agad.",
   "Mailspring does not support stylesheets with the extension: %@": "Chan eil Mailspring a 'toirt taic do dhuilleagan stoidhle leis an leudachadh: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Choinnich Mailspring ri mearachdan a bha a 'freagairt air a' chunntas seo. Chaidh aithisgean crash a chur gu sgioba Mailspring agus obraichidh sinn gus na mearachdan sin a rèiteachadh san ath fhoillseachadh.",
   "Mailspring has translated this message into %@.": "Tha Mailspring air an teachdaireachd seo eadar-theangachadh gu %@.",
