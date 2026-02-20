@@ -35,6 +35,7 @@ export interface ContactBase {
     extendedAddress: string;
   }[];
   birthdays?: { date: { year: number; month: number; day: number } }[];
+  notes?: string;
 }
 
 export interface ContactInteractorMetadata {
@@ -100,6 +101,7 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
   const emails = VCFHelpers.asArray(card.get('email'));
   const urls = VCFHelpers.asArray(card.get('url'));
   const bday = VCFHelpers.asSingle(card.get('bday'));
+  const note = VCFHelpers.asSingle(card.get('note'));
 
   let photoURL = photo ? photo._data : undefined;
   if (photoURL && new URL(photoURL).host.endsWith('contacts.icloud.com')) {
@@ -126,6 +128,7 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
         bday && (!bday.value || bday.value === 'date')
           ? [{ date: VCFHelpers.parseBirthday(bday._data) }]
           : undefined,
+      notes: note ? note._data.replace(/\\n/g, '\n') : undefined,
     },
   };
 }
@@ -169,6 +172,10 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
       VCFHelpers.setArray('bday', card, changes.birthdays.map(VCFHelpers.serializeBirthday));
     } else if (key === 'addresses') {
       VCFHelpers.setArray('adr', card, changes[key].map(VCFHelpers.serializeAddress));
+    } else if (key === 'notes') {
+      // VCard NOTE: encode literal newlines as \n per the spec
+      const encoded = (changes.notes || '').replace(/\n/g, '\\n');
+      card.set('note', encoded);
     } else {
       console.log(`Unsure of how to apply changes to ${key}`);
     }
@@ -195,6 +202,7 @@ export function fromGoogle(info: ContactInfoGoogle): ContactParseResult {
       },
       title: ((info.organizations || [])[0] || {}).title || '',
       company: ((info.organizations || [])[0] || {}).name || '',
+      notes: ((info.biographies || [])[0] || {}).value || undefined,
       ...info,
     }),
   };
@@ -245,6 +253,12 @@ export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
         ...address,
         formattedValue: VCFHelpers.formatAddress(address),
       }));
+    } else if (key === 'notes') {
+      if (!info.biographies || info.biographies.length === 0) {
+        info.biographies = [{ value: val, contentType: 'TEXT_PLAIN', metadata: { primary: true } }];
+      } else {
+        info.biographies[0].value = val;
+      }
     } else {
       info[key] = val;
     }
