@@ -225,13 +225,15 @@ module.exports = grunt => {
             // top level — it is not a per-file option.
             provisioningProfile: process.env.APPLE_PROVISIONING_PROFILE_PATH,
             optionsForFile: filePath => {
-              // The mailsync binary (shipped as either "mailsync" or
-              // "mailsync.bin") is a nested helper executable. It must be
-              // signed with minimal entitlements that are compatible with (i.e.
-              // a subset of) the provisioning profile's allowed entitlements.
-              // The main app gets the full entitlements plist.
-              const basename = path.basename(filePath);
-              const isMailsync = basename === 'mailsync' || basename === 'mailsync.bin';
+              // Only the main app executable gets the full entitlements plist,
+              // which includes restricted entitlements (keychain-access-groups,
+              // com.apple.developer.*) that are validated against the embedded
+              // provisioning profile. All helper binaries (Electron helpers,
+              // mailsync, chrome_crashpad_handler, ShipIt, etc.) must be signed
+              // with only the basic com.apple.security.* entitlements — amfid
+              // will reject any helper that carries restricted entitlements it
+              // cannot match to a profile scoped to that binary.
+              const isMainExecutable = filePath.endsWith('/Contents/MacOS/Mailspring');
 
               return {
                 hardenedRuntime: true,
@@ -240,7 +242,7 @@ module.exports = grunt => {
                   'build',
                   'resources',
                   'mac',
-                  isMailsync ? 'entitlements.child.plist' : 'entitlements.plist'
+                  isMainExecutable ? 'entitlements.plist' : 'entitlements.child.plist'
                 ),
               };
             },
