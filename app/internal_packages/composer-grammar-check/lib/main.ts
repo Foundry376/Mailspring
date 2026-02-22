@@ -5,6 +5,7 @@ import {
   ComponentRegistry,
   ExtensionRegistry,
 } from 'mailspring-exports';
+import { HasTutorialTip } from 'mailspring-component-kit';
 import { GrammarCheckToggle } from './grammar-check-toggle';
 import GrammarCheckComposerExtension from './grammar-check-extension';
 import { GrammarCheckStore } from './grammar-check-store';
@@ -13,6 +14,13 @@ import {
   clearGrammarCheckStore,
   cleanupDraft,
 } from '../../../src/components/composer-editor/grammar-check-plugins';
+
+const GrammarCheckToggleWithTip = HasTutorialTip(GrammarCheckToggle, {
+  title: localized('Check your grammar'),
+  instructions: localized(
+    'Enable grammar checking to find writing issues as you compose. Text is sent to a cloud service for analysis but is not stored.'
+  ),
+});
 
 function _onDraftClosed(headerMessageId: string) {
   GrammarCheckStore.clearDraft(headerMessageId);
@@ -39,7 +47,7 @@ export function activate(state = {}) {
     }),
   ];
 
-  ComponentRegistry.register(GrammarCheckToggle, { role: 'Composer:ActionButton' });
+  ComponentRegistry.register(GrammarCheckToggleWithTip, { role: 'Composer:ActionButton' });
   PreferencesUIStore.registerPreferencesTab(this.preferencesTab);
   ExtensionRegistry.Composer.register(GrammarCheckComposerExtension);
 }
@@ -53,7 +61,7 @@ export function deactivate() {
   }
 
   GrammarCheckStore.deactivate();
-  ComponentRegistry.unregister(GrammarCheckToggle);
+  ComponentRegistry.unregister(GrammarCheckToggleWithTip);
   PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.tabId);
   ExtensionRegistry.Composer.unregister(GrammarCheckComposerExtension);
 }
