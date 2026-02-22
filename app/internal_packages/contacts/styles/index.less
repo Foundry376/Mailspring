@@ -176,6 +176,14 @@
     min-height: 80px;
     font-family: inherit;
     font-size: inherit;
+    border: 1px solid @input-border-color;
+    border-radius: @border-radius-base;
+    padding: @padding-xs-vertical @padding-xs-horizontal;
+    &:focus {
+      border: 1px solid @accent-primary;
+      box-shadow: 0 0 1.5px @accent-primary;
+      outline: none;
+    }
   }
   .list-editor-item {
     display: flex;
