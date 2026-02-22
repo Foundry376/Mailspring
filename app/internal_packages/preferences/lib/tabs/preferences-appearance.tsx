@@ -74,8 +74,10 @@ class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
       ['hamburger', localized('Custom Window Frame and Right-hand Menu'), ''],
     ];
 
+    if (process.platform !== 'linux') return null;
+
     return (
-      <section className="platform-linux-only">
+      <section>
         <h6>{localized('Window Controls and Menus')}</h6>
         {options.map(([enumValue, description, comment], idx) => (
           <div key={enumValue} style={{ marginBottom: 10 }}>

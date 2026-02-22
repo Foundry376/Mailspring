@@ -144,7 +144,7 @@ module.exports = grunt => {
           'mac',
           'mailspring.icns'
         ),
-        win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'mailspring.ico'),
+        win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'mailspring-square.ico'),
         linux: undefined,
       }[platform],
       name: {
@@ -220,11 +220,23 @@ module.exports = grunt => {
       osxSign: process.env.SIGN_BUILD
         ? {
             platform: 'darwin',
+            // The provisioning profile is embedded once into the app bundle at
+            // Contents/embedded.provisionprofile. It must be set here at the
+            // top level — it is not a per-file option.
             provisioningProfile: process.env.APPLE_PROVISIONING_PROFILE_PATH,
             optionsForFile: filePath => {
-              // Here, we keep it simple and return a single entitlements.plist file.
-              // You can use this callback to map different sets of entitlements
-              // to specific files in your packaged app.
+              // Only the main app bundle gets the full entitlements plist,
+              // which includes restricted entitlements (keychain-access-groups,
+              // com.apple.developer.*) that are validated against the embedded
+              // provisioning profile. All helper binaries (Electron helpers,
+              // mailsync, chrome_crashpad_handler, ShipIt, etc.) must be signed
+              // with only the basic com.apple.security.* entitlements — amfid
+              // will reject any helper that carries restricted entitlements it
+              // cannot match to a profile scoped to that binary.
+              // Note: electron-osx-sign passes the .app bundle path (not the
+              // inner executable path) when signing the top-level app bundle.
+              const isMainExecutable = filePath.endsWith('/Mailspring.app');
+
               return {
                 hardenedRuntime: true,
                 entitlements: path.resolve(
@@ -232,7 +244,7 @@ module.exports = grunt => {
                   'build',
                   'resources',
                   'mac',
-                  'entitlements.plist'
+                  isMainExecutable ? 'entitlements.plist' : 'entitlements.child.plist'
                 ),
               };
             },

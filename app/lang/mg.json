@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Manomboka amin'ny fanombohana ny rafitra\" dia miasa fotsiny ao anatin'ny sehatr'asa eo amin'ny sehatry ny desktop XDG. Mba hampidirana ny kisary Mailspring ao amin'ny fitoeran'entana, azonao atao ny mametraka ny libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Manomboka amin'ny fanombohana ny rafitra\" dia miasa fotsiny ao anatin'ny sehatr'asa eo amin'ny sehatry ny desktop XDG. Mba hampidirana ny kisary Mailspring ao amin'ny fitoeran'entana, azonao atao ny mametraka ny libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ amin'ny %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ tsy azo ampifandraisana satria lehibe noho 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ dia napetraka ary navela. Tsy mila fanavaozana intsony! Raha tsy hitanao ilay plugin load, dia jereo ny konsole amin'ny diso.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring dia tsy afaka nanavotra ny fifandraisana. Hamarino fa ny fahazoan-dàlana dia napetraka araka ny tokony ho izy ary manandrana manomboka Mailspring raha mbola mitohy ny olana.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring dia tsy afaka mamoaka ny paik'ady mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring dia tsy afaka mitahiry tsara ny tenimiafinao. Raha mila fanazavana bebe kokoa, tsidiho %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Ny mailspring fampahafantarana ny bootera amin'ny Linux dia mila Zenity. Azonao atao ny mametraka azy amin'ny manager manager.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring dia tsy manohana stages miaraka amin'ny fanitarana: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring dia nahita fahadisoana nanitsy ity kaonty ity. Tatitra an-dalambe no nalefa tany amin'ny ekipan'ny Mailspring ary hiasa hamaha ireo fahadisoana amin'ny famoahana manaraka isika.",
   "Mailspring has translated this message into %@.": "Mailspring no nandika an'io hafatra io tamin'ny %@.",

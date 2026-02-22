@@ -191,6 +191,16 @@ const ContactAttributes = ({
         ))}
       </div>
     )}
+    {data.notes && (
+      <div className="contact-attributes-section">
+        <div className="contact-attribute">
+          <label>
+            <Icons.Note />
+          </label>
+          <div style={{ whiteSpace: 'pre-wrap' }}>{data.notes}</div>
+        </div>
+      </div>
+    )}
     <div className="contact-origin">
       <div>{`${origin} (${account ? account.label : 'Unknown Account'})`}</div>
     </div>

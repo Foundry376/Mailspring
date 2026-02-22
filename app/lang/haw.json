@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Ke hoʻolale nei i ka hoʻomakaʻana o ka pūnaewele\" wale nō e hana i nā mea hoʻolālā papahana XDG. No ka ho'āʻana i ka icon Mailspring ma ke kiko pūnaewele, ponoʻoe e hoʻokomo i ka libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Ke hoʻolale nei i ka hoʻomakaʻana o ka pūnaewele\" wale nō e hana i nā mea hoʻolālā papahana XDG. No ka ho'āʻana i ka icon Mailspring ma ke kiko pūnaewele, ponoʻoe e hoʻokomo i ka libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ o %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "ʻAʻole hiki ke hoʻokomoʻia no ka meaʻoi aku ka nui ma mua o 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "Ua hoʻoukaʻia a hoʻohanaʻia. ʻAʻohe pono e hoʻomaka hou! Ināʻaʻoleʻoe eʻike i ka loiloiʻia o ka plugin, e nānā i ka palewele no nā hewa.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "ʻAʻole i hiki i Mailspring ke mālama i kahi pilina. E hōʻoia i ka hoʻonohonoho ponoʻiaʻana o nāʻaeʻana a ho'āʻo hou e hoʻonohonoho hou i ka Mailspring inā pili ka hihia.",
   "Mailspring could not spawn the mailsync process. %@": "ʻAʻole i hiki i Mailspring ke hoʻopili i ka hana mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "ʻAʻole hiki i ka Mailspring ke mālama i kāu'ōlelo malū. No kaʻike hou aku, e kipa i %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Nāʻike leka uila Mailspring i Linux e pono ai i ka Zenity. Ponoʻoe e hoʻokomo iā ia me kāu pūnaewele pūnaewele.",
   "Mailspring does not support stylesheets with the extension: %@": "ʻAʻole i kākoʻoʻo Mailspring i nāʻano style with extension: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Hoʻomaopopoʻo Mailspring i nā hewa e hana ana i kēia pūʻulu. Ua hoʻounaʻia nā leka uila i ka hui Mailspring a e hana mākou e hoʻoponopono i kēia mau hewa i ka hoʻopuka hou.",
   "Mailspring has translated this message into %@.": "Ua unuhi kēia Mailspring i kēia leka uila i [ithik].",

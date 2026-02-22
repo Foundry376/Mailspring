@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "Η \"εκκίνηση στην εκκίνηση του συστήματος\" λειτουργεί μόνο σε περιβάλλοντα επιφάνειας εργασίας συμβατά με το XDG. Για να ενεργοποιήσετε το εικονίδιο Mailspring στο δίσκο συστήματος, ίσως χρειαστεί να εγκαταστήσετε το libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "Η \"εκκίνηση στην εκκίνηση του συστήματος\" λειτουργεί μόνο σε περιβάλλοντα επιφάνειας εργασίας συμβατά με το XDG. Για να ενεργοποιήσετε το εικονίδιο Mailspring στο δίσκο συστήματος, ίσως χρειαστεί να εγκαταστήσετε το libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ του %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ δεν μπορεί να επισυναφθεί επειδή είναι μεγαλύτερο από 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ έχει εγκατασταθεί και ενεργοποιηθεί. Δεν χρειάζεται να ξεκινήσετε ξανά! Εάν δεν βλέπετε το plugin που έχει φορτωθεί, ελέγξτε την κονσόλα για σφάλματα.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Το Mailspring δεν μπόρεσε να σώσει ένα συνημμένο. Βεβαιωθείτε ότι τα δικαιώματα έχουν ρυθμιστεί σωστά και δοκιμάστε να κάνετε επανεκκίνηση του Mailspring εάν το πρόβλημα παραμένει.",
   "Mailspring could not spawn the mailsync process. %@": "Το Mailspring δεν θα μπορούσε να δημιουργήσει τη διαδικασία mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Το Mailspring δεν μπόρεσε να αποθηκεύσει τον κωδικό σας με ασφάλεια. Για περισσότερες πληροφορίες, επισκεφτείτε %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Οι ειδοποιήσεις Mailspring στην επιφάνεια εργασίας του Linux απαιτούν Zenity. Μπορεί να χρειαστεί να το εγκαταστήσετε με το διαχειριστή πακέτων.",
   "Mailspring does not support stylesheets with the extension: %@": "Το Mailspring δεν υποστηρίζει φύλλα στυλ με την επέκταση: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Το Mailspring αντιμετώπισε σφάλματα κατά τη συγχρονισμό αυτού του λογαριασμού. Οι αναφορές σφαλμάτων έχουν σταλεί στην ομάδα Mailspring και θα προσπαθήσουμε να διορθώσουμε αυτά τα σφάλματα στην επόμενη έκδοση.",
   "Mailspring has translated this message into %@.": "Το Mailspring έχει μεταφράσει αυτό το μήνυμα σε %@.",

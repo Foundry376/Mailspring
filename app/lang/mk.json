@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Стартување на системот за стартување\" работи само во десктоп средини што се компатибилни со XDG. За да ја овозможите иконата Mailspring во системската лента, можеби ќе треба да инсталирате libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Стартување на системот за стартување\" работи само во десктоп средини што се компатибилни со XDG. За да ја овозможите иконата Mailspring во системската лента, можеби ќе треба да инсталирате libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ на %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ не може да се прикачи бидејќи е поголем од 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ е инсталиран и овозможен. Нема потреба да се рестартира! Ако не го видите вчитаниот приклучок, проверете ја конзолата за грешки.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring не можеше да зачува прилог. Проверете дали дозволите се поставени правилно и обидете се да го рестартирате Mailspring ако проблемот продолжи.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring не може да го подигне процесот за испраќање пораки. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring не можеше безбедно да ја зачува вашата лозинка. За повеќе информации, посетете %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring работните известувања на Линукс бараат Зенит. Можеби ќе треба да го инсталирате со вашиот менаџер на пакети.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring не поддржува стилови со продолжување: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring наиде на грешки во синхронизирањето на оваа сметка. Извештаите за падови беа испратени до тимот на Mailspring и ние ќе работиме да ги исправиме овие грешки во следното издание.",
   "Mailspring has translated this message into %@.": "Mailspring ја преведе оваа порака во %@.",

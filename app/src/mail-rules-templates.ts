@@ -30,19 +30,31 @@ export const ConditionTemplates = [
   new Template('anyRecipient', Template.Type.String, {
     name: localized('Recipient'),
     valueForMessage: message => {
-      const recipients = [].concat(message.to, message.cc, message.bcc, message.from);
+      const recipients = [].concat(message.to, message.cc, message.bcc);
       return [].concat(recipients.map(c => c.email), recipients.map(c => c.name));
     },
   }),
 
   new Template('replyTo', Template.Type.String, {
     name: localized('Reply to'),
-    valueForMessage: message => [].concat(message.replyTo.map(c => c.email), message.to.map(c => c.name)),
+    valueForMessage: message => [].concat(message.replyTo.map(c => c.email), message.replyTo.map(c => c.name)),
   }),
 
   new Template('anyAttachmentName', Template.Type.String, {
     name: localized('Attachment name'),
     valueForMessage: message => message.files.map(f => f.filename),
+  }),
+
+  new Template('hasAttachment', Template.Type.Enum, {
+    name: localized('Has attachment'),
+    values: [
+      { name: localized('True'), value: 'true' },
+      { name: localized('False'), value: 'false' },
+    ],
+    valueLabel: 'is:',
+    valueForMessage: message => {
+      return message.files && message.files.length > 0 ? 'true' : 'false';
+    },
   }),
 
   new Template('starred', Template.Type.Enum, {

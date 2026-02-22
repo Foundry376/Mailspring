@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Faʻalauiloa i le amataina o le polokalama\" naʻo galuega i XDG-faʻapipiusaga o le komepiuta. Ina ia mafai ai e le Mailspring i luga o le siata o le polokalama, atonu e te manaʻomia e faʻapipiʻi le libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Faʻalauiloa i le amataina o le polokalama\" naʻo galuega i XDG-faʻapipiusaga o le komepiuta. Ina ia mafai ai e le Mailspring i luga o le siata o le polokalama, atonu e te manaʻomia e faʻapipiʻi le libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ o %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ e le mafai ona faʻapipiʻi ona e tele atu i le 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ua faapipii ma mafai. Leai se mea e toe amataina! Afai e te le vaʻaia le utaina o le mama, siaki le faʻamafanafanaga mo mea sese.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "E le mafai e le mailspring ona faʻasaoina se mea faʻapipiʻi. Siaki o nei faʻatagaga ua faʻasaga lelei ma taumafai e toe faʻafouina Mailspring pe a fai e faʻaauau le mataupu.",
   "Mailspring could not spawn the mailsync process. %@": "E le mafai e le mailspring ona faʻasaʻo le mailsync process. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "E le mafai ona teuina faʻamaonia lau upega tafailagi i le mailspring. Mo nisi faʻamatalaga, asiasi i %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "O faʻamatalaga i luga ole laulau i luga o Linux e manaomia ai le Sini. Atonu e manaʻomia lou faʻapipiʻiina i lau pulelaʻau.",
   "Mailspring does not support stylesheets with the extension: %@": "E le lagolagoina e le mellowpring ia sitaili ma le faʻaopoopoga: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Na maua e le mailspring mea sese na faʻaogaina ai lenei tala. Ua tuʻuina atu ripoti faʻafuaseʻi i le Mailspring ma o le a matou galulue e faʻafetaui nei mea sese i le isi faʻasalaga.",
   "Mailspring has translated this message into %@.": "O le mailspring ua ia faaliliuina lenei savali i %@.",

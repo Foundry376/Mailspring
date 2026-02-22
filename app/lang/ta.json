@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "XDG- இணக்கமான டெஸ்க்டாப் சூழல்களில் மட்டுமே \"கணினி தொடக்கம் துவங்குகிறது\". கணினி தட்டில் Mailspring ஐகானை இயக்குவதற்கு, நீங்கள் லிப்பிண்டினிகேட்டர் நிறுவ வேண்டும்.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "XDG- இணக்கமான டெஸ்க்டாப் சூழல்களில் மட்டுமே \"கணினி தொடக்கம் துவங்குகிறது\". கணினி தட்டில் Mailspring ஐகானை இயக்குவதற்கு, நீங்கள் லிப்பிண்டினிகேட்டர் நிறுவ வேண்டும்.",
   "%1$@ of %2$@": "%1$@ இல் %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "25MB ஐ விட பெரியதாக இருப்பதால் %@ இணைக்க முடியாது.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ நிறுவப்பட்டு செயல்படுத்தப்பட்டது. மறுதொடக்கம் தேவையில்லை! சொருகி ஏற்றப்பட்டதை நீங்கள் காணவில்லை என்றால், பிழைகள் கன்சோலை சரிபார்க்கவும்.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "இணைப்பு சேமிக்க முடியவில்லை. சிக்கல்கள் சரியாக அமைக்கப்பட்டு, சிக்கல் தொடர்ந்தால், Mailspring ஐ மறுதொடக்கம் செய்ய முயற்சிக்கவும்.",
   "Mailspring could not spawn the mailsync process. %@": "Mailsync செயல்முறைக்கு அஞ்சல் அனுப்ப முடியவில்லை. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "உங்கள் கடவுச்சொல்லை பாதுகாப்பாக சேமிக்க முடியவில்லை. மேலும் தகவலுக்கு, வருகை %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linux இல் Mailspring டெஸ்க்டாப் அறிவிப்புகளுக்கு Zenity தேவைப்படுகிறது. உங்கள் தொகுப்பு நிர்வாகியுடன் அதை நிறுவ வேண்டும்.",
   "Mailspring does not support stylesheets with the extension: %@": "நீட்டிப்புடன் அஞ்சல் அச்சுப்பொறி எழுத்துக்களுக்கு ஆதரவளிக்கவில்லை: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "இந்த கணக்கை ஒத்திசைக்கும் மின்னஞ்சல்கள் பிழைகள் எதிர்கொண்டன. விபத்து அறிக்கைகள் Mailspring குழுவிற்கு அனுப்பப்பட்டுள்ளன, அடுத்த வெளியீட்டில் இந்த பிழைகளை சரிசெய்ய நாங்கள் வேலை செய்கிறோம்.",
   "Mailspring has translated this message into %@.": "மெயில்ஸ்ப்ரிங் இந்த செய்தியை %@ க்கு மொழிபெயர்த்துள்ளது.",

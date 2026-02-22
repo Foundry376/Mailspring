@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Tizim boshlanishida ishga tushirish\" faqat XDG-mos ish stoli muhitida ishlaydi. Tizim tepsidagi Mailspring-ni yoqish uchun libappindikatorni o'rnatishingiz kerak bo'ladi.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Tizim boshlanishida ishga tushirish\" faqat XDG-mos ish stoli muhitida ishlaydi. Tizim tepsidagi Mailspring-ni yoqish uchun libappindikatorni o'rnatishingiz kerak bo'ladi.",
   "%1$@ of %2$@": "%1$@ %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25MB dan katta bo'lgani uchun unga ulanib bo'lmaydi.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ o'rnatilgan va yoqilgan. Qayta ishga tushirishning hojati yo'q! O'rnatilgan plaginni ko'rmasangiz, konsolda xatolarni tekshirib ko'ring.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring ilovani saqlab bo'lmadi. Ruxsatlar to'g'ri o'rnatilganligini tekshiring va muammo davom etsa Mailspring-ni qayta ishga tushiring.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring pochta xabarlari jarayonini uzata olmaydi. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring sizning parolingizni xavfsiz saqlab bo'lmadi. Qo'shimcha ma'lumot uchun %@ ga tashrif buyuring.",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linuxdagi pochta xabarlari stoli bildirishnomalari Zenity-ni talab qiladi. Siz uni paket menejeringiz bilan o'rnatishingiz kerak bo'lishi mumkin.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring kengaytmali uslub sahifalarini qo'llab-quvvatlamaydi: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Pochta xatida ushbu hisobni sinxronlashda xatolik yuz berdi. Crash hisobotlari Mailspring guruhiga yuborildi va biz ushbu xatlarni keyingi versiyada tuzatishga harakat qilamiz.",
   "Mailspring has translated this message into %@.": "Mailspring ushbu xabarni %@ ga tarjima qildi.",

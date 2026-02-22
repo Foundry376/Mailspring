@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "Chan eil \"tòiseachadh air tùs siostam\" ag obair ach ann an àrainneachdan deasg co-chòrdail XDG. Gus an ìomhaigheag icon Mailspring a cheadachadh anns an t-siostam-siostaim, is dòcha gum feum thu libappindicator a stàladh.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "Chan eil \"tòiseachadh air tùs siostam\" ag obair ach ann an àrainneachdan deasg co-chòrdail XDG. Gus an ìomhaigheag icon Mailspring a cheadachadh anns an t-siostam-siostaim, is dòcha gum feum thu libappindicator or libayatana-appindicator a stàladh.",
   "%1$@ of %2$@": "%1$@ de %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "Cha ghabh %@ a cheangal oir tha e nas motha na 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "Chaidh %@ a stàladh agus a chomasachadh. Chan fheum thu ath-thòiseachadh! Mura faic thu am plugan air a luchdachadh, thoir sùil air a' chonsol airson mhearachdan.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Cha b 'urrainn dha Mailspring ceangal a shàbhaladh. Dèan cinnteach gu bheil na ceadan air an suidheachadh ceart agus feuch ri ath-thòiseachadh Mailspring ma tha an cùis a 'leantainn.",
   "Mailspring could not spawn the mailsync process. %@": "Cha b 'urrainn dha Mailspring sìol a chur air pròiseas mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Cha b 'urrainn do Mhailspring do fhacal-faire a stòradh gu tèarainte. Airson tuilleadh fiosrachaidh, tadhail air %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Feumaidh notaichean deasg mailspring air Linux Zenity. Dh'fhaoidte gum feum thu a stàladh leis a 'mhanaidsear pacaid agad.",
   "Mailspring does not support stylesheets with the extension: %@": "Chan eil Mailspring a 'toirt taic do dhuilleagan stoidhle leis an leudachadh: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Choinnich Mailspring ri mearachdan a bha a 'freagairt air a' chunntas seo. Chaidh aithisgean crash a chur gu sgioba Mailspring agus obraichidh sinn gus na mearachdan sin a rèiteachadh san ath fhoillseachadh.",
   "Mailspring has translated this message into %@.": "Tha Mailspring air an teachdaireachd seo eadar-theangachadh gu %@.",

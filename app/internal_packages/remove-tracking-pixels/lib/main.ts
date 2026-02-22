@@ -157,7 +157,7 @@ export function rejectImagesInBody(body: string, callback: (url: string) => bool
 export function removeTrackingPixels(message: Message) {
   const isFromMe = message.isFromMe();
 
-  message.body = rejectImagesInBody(message.body, imageURL => {
+  message.body = rejectImagesInBody(message.body, (imageURL) => {
     if (isFromMe) {
       // If the image is sent by the user, remove all forms of tracking pixels.
       // They could be viewing an email they sent with Salesloft, etc.
@@ -177,6 +177,24 @@ export function removeTrackingPixels(message: Message) {
     ) {
       return true;
     }
+
+    // Also detect the new opaque-token format: /o/<base64url-token>.png
+    // The token is a Base64url-encoded JSON object containing the accountId.
+    if (imageURL.includes('getmailspring.com/o/')) {
+      try {
+        const match = imageURL.match(/\/o\/([A-Za-z0-9_-]+)\.png/);
+        if (match) {
+          const padded = match[1].replace(/-/g, '+').replace(/_/g, '/');
+          const decoded = JSON.parse(atob(padded));
+          if (decoded && decoded.accountId === message.accountId) {
+            return true;
+          }
+        }
+      } catch {
+        // If decoding fails this is not our pixel — leave it alone.
+      }
+    }
+
     return false;
   });
 }

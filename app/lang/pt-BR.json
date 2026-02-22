@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Carregar no início do sistema\" só funciona em ambientes de desktop compatíveis com XDG. Para ativar o ícone do Mailspring na bandeja do sistema, talvez seja necessário instalar o libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Carregar no início do sistema\" só funciona em ambientes de desktop compatíveis com XDG. Para ativar o ícone do Mailspring na bandeja do sistema, talvez seja necessário instalar o libappindicator or libayatana-appindicator.",
   "%1$@ has %2$@ this event": "%1$@ tem %2$@ este evento",
   "%1$@ of %2$@": "%1$@ de %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ não pode ser anexado porque é maior que 25MB.",
@@ -381,7 +381,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "O Mailspring não pôde salvar um anexo. Verifique se as permissões estão definidas corretamente e tente reiniciar o Mailspring se o problema persistir.",
   "Mailspring could not spawn the mailsync process. %@": "O Mailspring não consegue gerar o processo mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "O Mailspring não pôde armazenar sua senha com segurança. Para mais informações, visite %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "As notificações de desktop do Mailspring no Linux exigem o Zenity. Você pode precisar instalá-lo com o seu gerenciador de pacotes.",
   "Mailspring does not support stylesheets with the extension: %@": "O Mailspring não suporta folhas de estilo com a extensão: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "O Mailspring encontrou erros ao sincronizar essa conta. Os relatórios de falhas foram enviados para a equipe do Mailspring e trabalharemos para corrigir esses erros na próxima versão.",
   "Mailspring has translated this message into %@.": "O Mailspring traduziu esta mensagem para %@.",
