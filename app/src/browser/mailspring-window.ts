@@ -197,15 +197,14 @@ export default class MailspringWindow extends EventEmitter {
         if (!this.browserWindow.isDestroyed() && !this.browserWindow.isVisible()) {
           const initInBackground = this.browserWindow.loadSettings?.initializeInBackground;
           this.browserWindow.show();
-          if (!initInBackground) {
-            this.browserWindow.focus();
-          }
           if (initInBackground) {
             this.once('window:loaded', () => {
               if (!this.browserWindow.isDestroyed()) {
                 this.browserWindow.hide();
               }
             });
+          } else {
+            this.browserWindow.focus();
           }
         }
       });
