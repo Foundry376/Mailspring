@@ -10,6 +10,7 @@ interface AccountSidebarState {
   sidebarAccountIds: string[];
   userSections: ISidebarSection[];
   standardSection: ISidebarSection;
+  savedSearchesSection: ISidebarSection | null;
 }
 
 export default class AccountSidebar extends React.Component<
@@ -42,7 +43,7 @@ export default class AccountSidebar extends React.Component<
   }
 
   componentWillUnmount() {
-    return this.unsubscribers.map(unsubscribe => unsubscribe());
+    return this.unsubscribers.map((unsubscribe) => unsubscribe());
   }
 
   _onStoreChange = () => {
@@ -55,15 +56,17 @@ export default class AccountSidebar extends React.Component<
       sidebarAccountIds: SidebarStore.sidebarAccountIds(),
       userSections: SidebarStore.userSections(),
       standardSection: SidebarStore.standardSection(),
+      savedSearchesSection: SidebarStore.savedSearchesSection(),
     };
   };
 
   _renderUserSections(sections) {
-    return sections.map(section => <OutlineView key={section.title} {...section} />);
+    return sections.map((section) => <OutlineView key={section.title} {...section} />);
   }
 
   render() {
-    const { accounts, sidebarAccountIds, userSections, standardSection } = this.state;
+    const { accounts, sidebarAccountIds, userSections, standardSection, savedSearchesSection } =
+      this.state;
 
     return (
       <Flexbox direction="column" style={{ order: 0, flexShrink: 1, flex: 1 }}>
@@ -71,6 +74,7 @@ export default class AccountSidebar extends React.Component<
           <AccountSwitcher accounts={accounts} sidebarAccountIds={sidebarAccountIds} />
           <div className="account-sidebar-sections">
             <OutlineView {...standardSection} />
+            {savedSearchesSection && <OutlineView {...savedSearchesSection} />}
             {this._renderUserSections(userSections)}
           </div>
         </ScrollRegion>

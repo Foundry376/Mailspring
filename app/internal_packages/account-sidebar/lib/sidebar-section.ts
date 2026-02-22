@@ -19,6 +19,7 @@ import {
 import SidebarItem from './sidebar-item';
 import * as SidebarActions from './sidebar-actions';
 import { ISidebarSection, ISidebarItem } from './types';
+import SavedSearchStore, { SavedSearch } from '../../thread-search/lib/saved-search-store';
 
 function isSectionCollapsed(title) {
   if (AppEnv.savedState.sidebarKeysCollapsed[title] !== undefined) {
@@ -53,7 +54,7 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => ['drafts', 'snoozed'].includes(cat.role)).map(cat =>
+    const items = _.reject(cats, (cat) => ['drafts', 'snoozed'].includes(cat.role)).map((cat) =>
       SidebarItem.forCategories([cat], { editable: false, deletable: false })
     );
 
@@ -66,8 +67,8 @@ class SidebarSection {
     items.push(draftsItem);
 
     ExtensionRegistry.AccountSidebar.extensions()
-      .filter(ext => ext.sidebarItem != null)
-      .forEach(ext => {
+      .filter((ext) => ext.sidebarItem != null)
+      .forEach((ext) => {
         const { id, name, iconName, perspective, insertAtTop } = ext.sidebarItem([account.id]);
         const item = SidebarItem.forPerspective(id, perspective, { name, iconName });
         if (insertAtTop) {
@@ -107,9 +108,9 @@ class SidebarSection {
 
       children = [];
       // eslint-disable-next-line
-      accounts.forEach(acc => {
+      accounts.forEach((acc) => {
         const cat = _.first(
-          _.compact((names as string[]).map(name => CategoryStore.getCategoryByRole(acc, name)))
+          _.compact((names as string[]).map((name) => CategoryStore.getCategoryByRole(acc, name)))
         );
         if (!cat) {
           return;
@@ -127,13 +128,13 @@ class SidebarSection {
     const accountIds = _.pluck(accounts, 'id');
 
     const starredItem = SidebarItem.forStarred(accountIds, {
-      children: accounts.map(acc => SidebarItem.forStarred([acc.id], { name: acc.label })),
+      children: accounts.map((acc) => SidebarItem.forStarred([acc.id], { name: acc.label })),
     });
     const unreadItem = SidebarItem.forUnread(accountIds, {
-      children: accounts.map(acc => SidebarItem.forUnread([acc.id], { name: acc.label })),
+      children: accounts.map((acc) => SidebarItem.forUnread([acc.id], { name: acc.label })),
     });
     const draftsItem = SidebarItem.forDrafts(accountIds, {
-      children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
+      children: accounts.map((acc) => SidebarItem.forDrafts([acc.id], { name: acc.label })),
     });
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
@@ -141,13 +142,13 @@ class SidebarSection {
     items.push(draftsItem);
 
     ExtensionRegistry.AccountSidebar.extensions()
-      .filter(ext => ext.sidebarItem != null)
-      .forEach(ext => {
+      .filter((ext) => ext.sidebarItem != null)
+      .forEach((ext) => {
         const { id, name, iconName, perspective, insertAtTop } = ext.sidebarItem(accountIds);
         const item = SidebarItem.forPerspective(id, perspective, {
           name,
           iconName,
-          children: accounts.map(acc => {
+          children: accounts.map((acc) => {
             const subItem = ext.sidebarItem([acc.id]);
             return SidebarItem.forPerspective(subItem.id + `-${acc.id}`, subItem.perspective, {
               name: acc.label,
@@ -252,6 +253,51 @@ class SidebarSection {
           })
         );
       },
+    };
+  }
+
+  static forSavedSearches(accountIds: string[]): ISidebarSection | null {
+    const savedSearches = SavedSearchStore.savedSearchesForAccountIds(accountIds);
+    if (savedSearches.length === 0) {
+      return null;
+    }
+
+    const items: ISidebarItem[] = savedSearches
+      .map((search: SavedSearch) => {
+        const perspective = SavedSearchStore.perspectiveForSearch(search);
+        if (!perspective) {
+          return null;
+        }
+        return SidebarItem.forPerspective(`saved-search-${search.id}`, perspective, {
+          name: search.name,
+          iconName: 'searchloupe.png',
+          deletable: false,
+          editable: false,
+          onDelete: () => {
+            SavedSearchStore.removeSavedSearch(search.id);
+          },
+          onEdited: (_item, newName: string) => {
+            if (newName) {
+              SavedSearchStore.renameSavedSearch(search.id, newName);
+            }
+          },
+        } as Partial<ISidebarItem>);
+      })
+      .filter(Boolean);
+
+    if (items.length === 0) {
+      return null;
+    }
+
+    const title = localized('Saved Searches');
+    const collapsed = isSectionCollapsed(title);
+
+    return {
+      title,
+      iconName: 'searchloupe.png',
+      items,
+      collapsed,
+      onCollapseToggled: toggleSectionCollapsed,
     };
   }
 }

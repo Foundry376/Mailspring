@@ -14,6 +14,7 @@ import {
 import SidebarSection from './sidebar-section';
 import * as SidebarActions from './sidebar-actions';
 import * as AccountCommands from './account-commands';
+import SavedSearchStore from '../../thread-search/lib/saved-search-store';
 import { Disposable } from 'event-kit';
 import { ISidebarSection } from './types';
 
@@ -26,9 +27,11 @@ class SidebarStore extends MailspringStore {
   _sections: {
     Standard: ISidebarSection;
     User: ISidebarSection[];
+    SavedSearches: ISidebarSection | null;
   } = {
     Standard: { title: '', items: [] },
     User: [],
+    SavedSearches: null,
   };
   configSubscription: Disposable;
 
@@ -60,6 +63,10 @@ class SidebarStore extends MailspringStore {
     return this._sections.User;
   }
 
+  savedSearchesSection() {
+    return this._sections.SavedSearches;
+  }
+
   _registerListeners() {
     this.listenTo(Actions.setCollapsedSidebarItem, this._onSetCollapsedByName);
     this.listenTo(SidebarActions.setKeyCollapsed, this._onSetCollapsedByKey);
@@ -69,6 +76,7 @@ class SidebarStore extends MailspringStore {
     this.listenTo(OutboxStore, this._updateSections);
     this.listenTo(ThreadCountsStore, this._updateSections);
     this.listenTo(CategoryStore, this._updateSections);
+    this.listenTo(SavedSearchStore, this._updateSections);
 
     this.configSubscription = AppEnv.config.onDidChange(
       'core.workspace.showUnreadForAllCategories',
@@ -85,7 +93,7 @@ class SidebarStore extends MailspringStore {
   };
 
   _onSetCollapsedByName = (itemName: string, collapsed: boolean) => {
-    let item = this.standardSection().items.find(i => i.name === itemName);
+    let item = this.standardSection().items.find((i) => i.name === itemName);
     if (!item) {
       for (const section of this.userSections()) {
         item = _.findWhere(section.items, { name: itemName });
@@ -142,8 +150,8 @@ class SidebarStore extends MailspringStore {
 
   _updateSections = () => {
     const accounts = FocusedPerspectiveStore.sidebarAccountIds()
-      .map(id => AccountStore.accountForId(id))
-      .filter(a => !!a);
+      .map((id) => AccountStore.accountForId(id))
+      .filter((a) => !!a);
 
     if (accounts.length === 0) {
       return;
@@ -151,7 +159,8 @@ class SidebarStore extends MailspringStore {
     const multiAccount = accounts.length > 1;
 
     this._sections[Sections.Standard] = SidebarSection.standardSectionForAccounts(accounts);
-    this._sections[Sections.User] = accounts.map(function(acc) {
+    this._sections.SavedSearches = SidebarSection.forSavedSearches(accounts.map((a) => a.id));
+    this._sections[Sections.User] = accounts.map(function (acc) {
       const opts: { title?: string; collapsible?: boolean } = {};
       if (multiAccount) {
         opts.title = acc.label;

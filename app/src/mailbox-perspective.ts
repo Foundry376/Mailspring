@@ -27,6 +27,7 @@ let ChangeLabelsTask = null;
 let ChangeFolderTask = null;
 let ChangeUnreadTask = null;
 let FocusedPerspectiveStore = null;
+let SavedSearchMailboxPerspective = null;
 
 // This is a class cluster. Subclasses are not for external use!
 // https://developer.apple.com/library/ios/documentation/General/Conceptual/CocoaEncyclopedia/ClassClusters/ClassClusters.html
@@ -83,6 +84,18 @@ export class MailboxPerspective {
       if (json.type === DraftsMailboxPerspective.name) {
         return this.forDrafts(json.accountIds);
       }
+      if (json.type === 'SavedSearchMailboxPerspective') {
+        SavedSearchMailboxPerspective =
+          SavedSearchMailboxPerspective ||
+          require('../internal_packages/thread-search/lib/saved-search-mailbox-perspective')
+            .default;
+        return new SavedSearchMailboxPerspective(
+          json.accountIds,
+          json.searchQuery,
+          json.savedSearchName,
+          json.savedSearchId
+        );
+      }
       return this.forInbox(json.accountIds);
     } catch (error) {
       AppEnv.reportError(new Error(`Could not restore mailbox perspective: ${error}`));
@@ -101,7 +114,7 @@ export class MailboxPerspective {
     this.accountIds = accountIds;
     if (
       !(accountIds instanceof Array) ||
-      !accountIds.every(aid => typeof aid === 'string' || typeof aid === 'number')
+      !accountIds.every((aid) => typeof aid === 'string' || typeof aid === 'number')
     ) {
       throw new Error(`${this.constructor.name}: You must provide an array of string "accountIds"`);
     }
@@ -202,7 +215,7 @@ export class MailboxPerspective {
   }
 
   receiveThreadIds(threadIds: Array<Thread | string>) {
-    DatabaseStore.modelify<Thread>(Thread, threadIds).then(threads => {
+    DatabaseStore.modelify<Thread>(Thread, threadIds).then((threads) => {
       const tasks = TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
         return this.actionsForReceivingThreads(accountThreads, accountId);
       });
@@ -222,7 +235,7 @@ export class MailboxPerspective {
       return false;
     }
     const accounts = AccountStore.accountsForItems(threads);
-    return accounts.every(acc => acc.canArchiveThreads());
+    return accounts.every((acc) => acc.canArchiveThreads());
   }
 
   canTrashThreads(threads: Thread[]) {
@@ -234,7 +247,7 @@ export class MailboxPerspective {
       return false;
     }
     return AccountStore.accountsForItems(threads).every(
-      acc => CategoryStore.getCategoryByRole(acc, standardCategoryName) !== null
+      (acc) => CategoryStore.getCategoryByRole(acc, standardCategoryName) !== null
     );
   }
 
@@ -349,7 +362,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   _categories: Category[];
 
   constructor(_categories) {
-    super(_.uniq(_categories.map(c => c.accountId)));
+    super(_.uniq(_categories.map((c) => c.accountId)));
     this._categories = _categories;
 
     if (this._categories.length === 0) {
@@ -375,13 +388,16 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   isEqual(other) {
     return (
       super.isEqual(other) &&
-      _.isEqual(this.categories().map(c => c.id), other.categories().map(c => c.id))
+      _.isEqual(
+        this.categories().map((c) => c.id),
+        other.categories().map((c) => c.id)
+      )
     );
   }
 
   threads(): QuerySubscription<Thread> {
     const query = DatabaseStore.findAll<Thread>(Thread)
-      .where([Thread.attributes.categories.containsAny(this.categories().map(c => c.id))])
+      .where([Thread.attributes.categories.containsAny(this.categories().map((c) => c.id))])
       .limit(0);
 
     if (this.isSent()) {
@@ -419,7 +435,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   }
 
   hasSyncingCategories() {
-    return this._categories.some(cat => {
+    return this._categories.some((cat) => {
       const representedFolder =
         cat instanceof Folder ? cat : CategoryStore.getAllMailCategory(cat.accountId);
       return (
@@ -430,13 +446,13 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   }
 
   isArchive() {
-    return this._categories.every(cat => cat.isArchive());
+    return this._categories.every((cat) => cat.isArchive());
   }
 
   canReceiveThreadsFromAccountIds(threads) {
     return (
       super.canReceiveThreadsFromAccountIds(threads) &&
-      !this._categories.some(c => c.isLockedCategory())
+      !this._categories.some((c) => c.isLockedCategory())
     );
   }
 
@@ -456,8 +472,8 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       return [];
     }
 
-    const myCat = this.categories().find(c => c.accountId === accountId);
-    const currentCat = current.categories().find(c => c.accountId === accountId);
+    const myCat = this.categories().find((c) => c.accountId === accountId);
+    const currentCat = current.categories().find((c) => c.accountId === accountId);
 
     // Don't drag and drop on ourselves
     // NOTE: currentCat can be nil in case of SearchPerspective
@@ -550,7 +566,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const acct = AccountStore.accountForId(accountId);
       const preferred = acct.preferredRemovalDestination();
-      const cat = this.categories().find(c => c.accountId === accountId);
+      const cat = this.categories().find((c) => c.accountId === accountId);
       if (cat instanceof Label && preferred.role !== 'trash') {
         const inboxCat = CategoryStore.getInboxCategory(accountId);
         return new ChangeLabelsTask({
@@ -575,7 +591,7 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
   iconName = 'unread.png';
 
   threads(): QuerySubscription<Thread> {
-    return new UnreadQuerySubscription(this.categories().map(c => c.id));
+    return new UnreadQuerySubscription(this.categories().map((c) => c.id));
   }
 
   unreadCount() {

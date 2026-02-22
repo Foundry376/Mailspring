@@ -42,6 +42,19 @@
       width: 21px;
       height: 21px;
     }
+    &.save {
+      color: @text-color-subtle;
+      margin-right: 4px;
+      cursor: pointer;
+      opacity: 0.6;
+      &:hover {
+        opacity: 1;
+      }
+      &.active {
+        color: @accent-primary;
+        opacity: 1;
+      }
+    }
   }
 
   .suggestions {
