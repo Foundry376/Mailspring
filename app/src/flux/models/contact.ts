@@ -99,6 +99,13 @@ export interface ContactInfoGoogle {
     type: string;
     value: string;
   }[];
+  biographies?: {
+    contentType: string;
+    metadata: {
+      primary: boolean;
+    };
+    value: string;
+  }[];
 }
 
 const namePrefixes = {};

@@ -173,9 +173,12 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
     } else if (key === 'addresses') {
       VCFHelpers.setArray('adr', card, changes[key].map(VCFHelpers.serializeAddress));
     } else if (key === 'notes') {
-      // VCard NOTE: encode literal newlines as \n per the spec
-      const encoded = (changes.notes || '').replace(/\n/g, '\\n');
-      card.set('note', encoded);
+      if (changes.notes) {
+        // VCard NOTE: encode literal newlines as \n per the spec
+        card.set('note', changes.notes.replace(/\n/g, '\\n'));
+      } else {
+        card.remove('note');
+      }
     } else {
       console.log(`Unsure of how to apply changes to ${key}`);
     }
