@@ -13,6 +13,7 @@ import {
   setGrammarCheckStore,
   clearGrammarCheckStore,
   cleanupDraft,
+  clearAllGrammarDecorations,
 } from '../../../src/components/composer-editor/grammar-check-plugins';
 
 const GrammarCheckToggleWithTip = HasTutorialTip(GrammarCheckToggle, {
@@ -47,6 +48,15 @@ export function activate(state = {}) {
     }),
   ];
 
+  this._configDisposable = AppEnv.config.onDidChange(
+    'core.composing.grammarCheck',
+    ({ newValue }) => {
+      if (!newValue) {
+        clearAllGrammarDecorations();
+      }
+    }
+  );
+
   ComponentRegistry.register(GrammarCheckToggleWithTip, { role: 'Composer:ActionButton' });
   PreferencesUIStore.registerPreferencesTab(this.preferencesTab);
   ExtensionRegistry.Composer.register(GrammarCheckComposerExtension);
@@ -60,6 +70,11 @@ export function deactivate() {
     this._actionDisposables = null;
   }
 
+  if (this._configDisposable) {
+    this._configDisposable.dispose();
+    this._configDisposable = null;
+  }
+  clearAllGrammarDecorations();
   GrammarCheckStore.deactivate();
   ComponentRegistry.unregister(GrammarCheckToggleWithTip);
   PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.tabId);

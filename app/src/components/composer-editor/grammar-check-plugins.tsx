@@ -27,6 +27,25 @@ export function cleanupDraft(draftId: string) {
   }
 }
 
+// --- Clear grammar decorations from all tracked editors ---
+// Called when grammar check is toggled off so underlines disappear immediately.
+export function clearAllGrammarDecorations() {
+  latestEditorByDraft.forEach(editor => {
+    try {
+      const decorations = editor.value.get('decorations') as any;
+      if (!decorations || !decorations.size) return;
+      const remaining = decorations.filter((d: any) => d.mark.type !== GRAMMAR_ERROR_MARK);
+      if (remaining.size !== decorations.size) {
+        editor.withoutSaving(() => {
+          (editor as any).setDecorations(remaining.toArray());
+        });
+      }
+    } catch (err) {
+      // Editor may no longer be mounted — ignore
+    }
+  });
+}
+
 // --- Trigger an immediate check on a draft's current content ---
 // Called when grammar check is toggled ON so existing text is checked right away
 // without waiting for the next keystroke.
