@@ -1,0 +1,141 @@
+app-id: io.github.Foundry376.Mailspring
+
+# Electron2 BaseApp bundles Electron, zypak (the Chromium sandbox bridge), and
+# related shared libraries so we do not need to ship Electron ourselves.
+base: org.electronjs.Electron2.BaseApp
+base-version: '24.08'
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+
+command: mailspring
+separate-locales: false
+
+finish-args:
+  # Network access required for email sync
+  - --share=network
+  # IPC shared memory — required for X11 MIT-SHM (avoids slow fallback path)
+  - --share=ipc
+  # Display server: prefer native Wayland, fall back to X11
+  - --socket=wayland
+  - --socket=fallback-x11
+  # Audio for notification sounds
+  - --socket=pulseaudio
+  # GPU rendering
+  - --device=dri
+  # File access: downloads folder for attachment saving
+  - --filesystem=xdg-download
+  # Cursor themes from the host icon theme
+  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+  # Secret storage (GNOME Keyring / KWallet)
+  - --talk-name=org.freedesktop.secrets
+  - --talk-name=org.kde.kwalletd5
+  - --talk-name=org.kde.kwalletd6
+  # Desktop notifications
+  - --talk-name=org.freedesktop.Notifications
+  # Inhibit screen-saver while reading long threads
+  - --talk-name=org.freedesktop.ScreenSaver
+  # System tray / status notifier icon
+  - --talk-name=org.kde.StatusNotifierWatcher
+  # App menu integration (Unity HUD / GNOME GlobalMenu)
+  - --talk-name=com.canonical.AppMenu.Registrar
+  # Power management (battery / suspend awareness)
+  - --system-talk-name=org.freedesktop.UPower
+  # Login / session management
+  - --system-talk-name=org.freedesktop.login1
+
+modules:
+  - name: mailspring
+    buildsystem: simple
+    build-commands:
+      # apply_extra runs at install time to extract the .deb inside /app/extra/
+      - install -Dm755 apply_extra /app/bin/apply_extra
+      # ar is needed by apply_extra to unpack the .deb (ar archive format)
+      - install -Dm755 /usr/bin/ar /app/bin/ar
+      # Launch wrapper — handles Wayland/X11 selection and invokes zypak
+      - install -Dm755 mailspring.sh /app/bin/mailspring
+      # AppStream metadata
+      - install -Dm644 io.github.Foundry376.Mailspring.metainfo.xml
+          /app/share/metainfo/io.github.Foundry376.Mailspring.metainfo.xml
+      # Desktop entry
+      - install -Dm644 io.github.Foundry376.Mailspring.desktop
+          /app/share/applications/io.github.Foundry376.Mailspring.desktop
+      # Icons (hicolor theme, all standard sizes)
+      - install -Dm644 16.png
+          /app/share/icons/hicolor/16x16/apps/io.github.Foundry376.Mailspring.png
+      - install -Dm644 32.png
+          /app/share/icons/hicolor/32x32/apps/io.github.Foundry376.Mailspring.png
+      - install -Dm644 64.png
+          /app/share/icons/hicolor/64x64/apps/io.github.Foundry376.Mailspring.png
+      - install -Dm644 128.png
+          /app/share/icons/hicolor/128x128/apps/io.github.Foundry376.Mailspring.png
+      - install -Dm644 256.png
+          /app/share/icons/hicolor/256x256/apps/io.github.Foundry376.Mailspring.png
+      - install -Dm644 512.png
+          /app/share/icons/hicolor/512x512/apps/io.github.Foundry376.Mailspring.png
+
+    sources:
+      - type: file
+        path: apply_extra
+
+      - type: file
+        path: mailspring.sh
+
+      - type: file
+        path: io.github.Foundry376.Mailspring.metainfo.xml
+
+      - type: file
+        path: io.github.Foundry376.Mailspring.desktop
+
+      # Icons referenced relative to this manifest file (flatpak/)
+      - type: file
+        path: ../app/build/resources/linux/icons/16.png
+        dest-filename: 16.png
+      - type: file
+        path: ../app/build/resources/linux/icons/32.png
+        dest-filename: 32.png
+      - type: file
+        path: ../app/build/resources/linux/icons/64.png
+        dest-filename: 64.png
+      - type: file
+        path: ../app/build/resources/linux/icons/128.png
+        dest-filename: 128.png
+      - type: file
+        path: ../app/build/resources/linux/icons/256.png
+        dest-filename: 256.png
+      - type: file
+        path: ../app/build/resources/linux/icons/512.png
+        dest-filename: 512.png
+
+      # -----------------------------------------------------------------------
+      # Extra data: the .deb is downloaded at install time and extracted by
+      # apply_extra. Two entries cover x86_64 and aarch64 respectively.
+      #
+      # flatpak-external-data-checker keeps these up to date automatically by
+      # querying the GitHub Releases API and updating url/sha256/size whenever
+      # a new release is published.
+      # -----------------------------------------------------------------------
+
+      - type: extra-data
+        filename: mailspring.deb
+        only-arches: [x86_64]
+        url: https://github.com/Foundry376/Mailspring/releases/download/1.17.4/mailspring-1.17.4-amd64.deb
+        sha256: 3c7c5ee38cb35fd673f9f42edf4917f5ea4b11e1b7c2aa952f7a79f991cc9a8b
+        size: 127085040
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/Foundry376/Mailspring/releases/latest
+          version-query: .tag_name | ltrimstr("v")
+          url-query: .assets[] | select(.name | endswith("amd64.deb")) | .browser_download_url
+
+      - type: extra-data
+        filename: mailspring.deb
+        only-arches: [aarch64]
+        url: https://github.com/Foundry376/Mailspring/releases/download/1.17.4/mailspring-1.17.4-arm64.deb
+        sha256: b9929bf0d3642f322aa610ad185ae74309568f07f2ca64b20f764e034ed4cde3
+        size: 125695090
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/Foundry376/Mailspring/releases/latest
+          version-query: .tag_name | ltrimstr("v")
+          url-query: .assets[] | select(.name | endswith("arm64.deb")) | .browser_download_url
