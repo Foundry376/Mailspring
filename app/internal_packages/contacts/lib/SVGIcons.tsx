@@ -373,14 +373,11 @@ export const Note = () => (
     viewBox="0 0 20 20"
     enableBackground="new 0 0 20 20"
   >
-    <g>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M2,2h11l5,5v11H2V2z M13,1H1C0.45,1,0,1.45,0,2v16c0,0.55,0.45,1,1,1h18
-        c0.55,0,1-0.45,1-1V7l-6-6H13z M13,2v5h5v-0.17L13.17,2H13z M4,9h12v1H4V9z M4,12h12v1H4V12z M4,15h8v1H4V15z"
-      />
-    </g>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2,0H13L19,6V20H2V0z M13,0L19,6H13V0z M4,9H16V11H4V9z M4,13H16V15H4V13z M4,17H12V19H4V17z"
+    />
   </svg>
 );
 
