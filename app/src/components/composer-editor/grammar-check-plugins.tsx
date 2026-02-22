@@ -407,7 +407,6 @@ function renderMark(
         backgroundSize: '8px 2px',
         backgroundPosition: 'bottom left',
         backgroundRepeat: 'repeat-x',
-        paddingBottom: '2px',
       }}
     >
       {children}

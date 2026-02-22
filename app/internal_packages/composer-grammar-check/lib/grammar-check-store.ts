@@ -1,8 +1,16 @@
-import React from 'react';
 import MailspringStore from 'mailspring-store';
-import { localized, Actions } from 'mailspring-exports';
-import { FeatureUsedUpModal } from 'mailspring-component-kit';
+import { localized, FeatureUsageStore, IdentityStore } from 'mailspring-exports';
 import { GrammarError, LanguageToolBackend, UsageExceededError } from './grammar-check-service';
+
+export const GRAMMAR_CHECK_FEATURE_ID = 'grammar-check';
+
+export const GRAMMAR_CHECK_UPGRADE_LEXICON = {
+  headerText: localized('All used up!'),
+  rechargeText: localized(
+    'You can grammar check %1$@ drafts each %2$@ with Mailspring Basic. Upgrade to Pro for unlimited grammar checking.'
+  ),
+  iconUrl: 'mailspring://composer-grammar-check/assets/ic-modal-image@2x.png',
+};
 
 interface BlockCheckResult {
   text: string;
@@ -11,7 +19,6 @@ interface BlockCheckResult {
 
 class _GrammarCheckStore extends MailspringStore {
   private _enabled = false;
-  private _usageExceeded = false;
   private _checking: Map<string, boolean> = new Map();
   private _errorsByDraft: Map<string, Map<string, BlockCheckResult>> = new Map();
   private _dismissedRules: Set<string> = new Set();
@@ -22,16 +29,13 @@ class _GrammarCheckStore extends MailspringStore {
 
   activate() {
     this._backend = new LanguageToolBackend();
-    this._usageExceeded = false;
     this._readConfig();
 
     this._configDisposable = AppEnv.config.onDidChange(
       'core.composing.grammarCheck',
       ({ newValue }) => {
         this._enabled = !!newValue;
-        if (this._enabled) {
-          this._usageExceeded = false;
-        } else {
+        if (!this._enabled) {
           this._errorsByDraft.clear();
           this._dirtyBlocks.clear();
           this._checking.clear();
@@ -49,7 +53,6 @@ class _GrammarCheckStore extends MailspringStore {
     this._errorsByDraft.clear();
     this._dirtyBlocks.clear();
     this._checking.clear();
-    this._usageExceeded = false;
     for (const controller of this._abortControllers.values()) {
       controller.abort();
     }
@@ -71,10 +74,6 @@ class _GrammarCheckStore extends MailspringStore {
 
   isEnabled(): boolean {
     return this._enabled;
-  }
-
-  isUsageExceeded(): boolean {
-    return this._usageExceeded;
   }
 
   warnOnSend(): boolean {
@@ -106,7 +105,9 @@ class _GrammarCheckStore extends MailspringStore {
   }
 
   markDirty(draftId: string, blockKey: string, blockText: string) {
-    if (!this._enabled || this._usageExceeded) return;
+    if (!this._enabled || !FeatureUsageStore.isUsable(GRAMMAR_CHECK_FEATURE_ID)) {
+      return;
+    }
     let draftDirty = this._dirtyBlocks.get(draftId);
     if (!draftDirty) {
       draftDirty = new Map();
@@ -139,21 +140,6 @@ class _GrammarCheckStore extends MailspringStore {
     this.trigger();
   }
 
-  showUsageExceededModal() {
-    Actions.openModal({
-      height: 575,
-      width: 412,
-      component: React.createElement(FeatureUsedUpModal, {
-        modalClass: 'grammar-check',
-        headerText: localized("You've reached your grammar check limit"),
-        rechargeText: localized(
-          'Grammar checks are limited to %1$@ per %2$@. Upgrade to Pro for unlimited grammar checking.'
-        ),
-        iconUrl: 'mailspring://composer-grammar-check/assets/ic-grammar-check-modal@2x.png',
-      }),
-    });
-  }
-
   dismissRule(ruleId: string) {
     this._dismissedRules.add(ruleId);
     this._backend.addDisabledRule(ruleId);
@@ -174,10 +160,14 @@ class _GrammarCheckStore extends MailspringStore {
   // newer check. Callers should skip applying decorations when false is returned,
   // because a newer check is already in-flight and will apply its own results.
   async checkDirtyBlocks(draftId: string): Promise<boolean> {
-    if (!this._enabled || this._usageExceeded) return false;
+    if (!this._enabled || !FeatureUsageStore.isUsable(GRAMMAR_CHECK_FEATURE_ID)) {
+      return false;
+    }
 
     const draftDirty = this._dirtyBlocks.get(draftId);
-    if (!draftDirty || draftDirty.size === 0) return false;
+    if (!draftDirty || draftDirty.size === 0) {
+      return false;
+    }
 
     // Take a snapshot of dirty blocks and clear
     const blocksToCheck = new Map(draftDirty);
@@ -231,9 +221,8 @@ class _GrammarCheckStore extends MailspringStore {
           draftErrors.set(blockKey, { text: blockText, errors: filteredErrors });
         } catch (err) {
           if (err instanceof UsageExceededError) {
-            this._usageExceeded = true;
+            void IdentityStore.fetchIdentity();
             this._dirtyBlocks.clear();
-            this.showUsageExceededModal();
             break;
           }
           console.warn(`Grammar check failed for block ${blockKey}:`, err);

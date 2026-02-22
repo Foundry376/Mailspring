@@ -93,7 +93,7 @@ export class LanguageToolBackend implements GrammarCheckBackend {
     this.disabledRules = disabledRulesStr
       ? disabledRulesStr
           .split(',')
-          .map((s) => s.trim())
+          .map(s => s.trim())
           .filter(Boolean)
       : [];
   }
@@ -145,26 +145,23 @@ export class LanguageToolBackend implements GrammarCheckBackend {
       throw err;
     }
 
-    const filtered = data.matches.filter((match) => match.rule.issueType !== 'misspelling');
-    console.log(
-      `[grammar] ${data.matches.length} matches from API, ${filtered.length} after misspelling filter:`,
-      filtered.map(m => `${m.rule.id}(offset=${m.offset},len=${m.length})`)
-    );
-    return filtered.map((match) => ({
-        offset: match.offset,
-        length: match.length,
-        message: match.message,
-        shortMessage: match.shortMessage || '',
-        replacements: match.replacements.map((r) => r.value),
-        ruleId: match.rule.id,
-        ruleDescription: match.rule.description,
-        category: match.rule.category.id,
-        categoryName: match.rule.category.name,
-        issueType: match.rule.issueType,
-        sentence: match.sentence,
-        contextText: match.context.text,
-        contextOffset: match.context.offset,
-        contextLength: match.context.length,
-      }));
+    const filtered = data.matches.filter(match => match.rule.issueType !== 'misspelling');
+
+    return filtered.map(match => ({
+      offset: match.offset,
+      length: match.length,
+      message: match.message,
+      shortMessage: match.shortMessage || '',
+      replacements: match.replacements.map(r => r.value),
+      ruleId: match.rule.id,
+      ruleDescription: match.rule.description,
+      category: match.rule.category.id,
+      categoryName: match.rule.category.name,
+      issueType: match.rule.issueType,
+      sentence: match.sentence,
+      contextText: match.context.text,
+      contextOffset: match.context.offset,
+      contextLength: match.context.length,
+    }));
   }
 }
