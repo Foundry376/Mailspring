@@ -35,7 +35,7 @@ export function requestInitialCheckForDraft(draftId: string) {
   const editor = latestEditorByDraft.get(draftId);
   if (!editor) return;
 
-  editor.value.document.nodes.forEach((block) => {
+  editor.value.document.nodes.forEach(block => {
     if (block.object === 'block') {
       grammarCheckStore.markDirty(draftId, block.key, block.text);
     }
@@ -48,7 +48,7 @@ export function requestInitialCheckForDraft(draftId: string) {
   const timer = setTimeout(() => {
     debounceTimers.delete(draftId);
     if (!grammarCheckStore) return;
-    grammarCheckStore.checkDirtyBlocks(draftId).then((completed) => {
+    grammarCheckStore.checkDirtyBlocks(draftId).then(completed => {
       if (!completed) return; // superseded by a newer check — it will apply its own decorations
       try {
         applyGrammarDecorations(editor, draftId);
@@ -125,9 +125,7 @@ function isPointInDecoration(
   // Same node for both anchor and focus (common case)
   if (anchor.key === focus.key) {
     return (
-      point.key === anchor.key &&
-      point.offset >= anchor.offset &&
-      point.offset <= focus.offset
+      point.key === anchor.key && point.offset >= anchor.offset && point.offset <= focus.offset
     );
   }
 
@@ -162,7 +160,7 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
   const allErrors = grammarCheckStore.allErrorsForDraft(draftId);
   const decorations: Decoration[] = [];
 
-  value.document.nodes.forEach((block) => {
+  value.document.nodes.forEach(block => {
     if (block.object !== 'block') return;
 
     const blockErrors = allErrors.get(block.key);
@@ -185,8 +183,12 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
       if (!range) {
         console.warn(
           `[grammar] offsetToSlateRange returned null for error "${error.ruleId}" ` +
-            `offset=${error.offset} length=${error.length} in text: ${JSON.stringify(blockErrors.text)}\n` +
-            `  text nodes: ${JSON.stringify(texts.map(t => ({ key: t.key, len: t.text.length, text: t.text })))}`
+            `offset=${error.offset} length=${error.length} in text: ${JSON.stringify(
+              blockErrors.text
+            )}\n` +
+            `  text nodes: ${JSON.stringify(
+              texts.map(t => ({ key: t.key, len: t.text.length, text: t.text }))
+            )}`
         );
         continue;
       }
@@ -305,7 +307,7 @@ function showGrammarContextMenu(mark: any, editor: Editor) {
   menu.append(new MenuItem({ type: 'separator' }));
   menu.append(
     new MenuItem({
-      label: localized('Dismiss rule'),
+      label: localized('Ignore rule'),
       enabled: !!(grammarCheckStore && ruleId),
       click: () => grammarCheckStore && grammarCheckStore.dismissRule(ruleId),
     })
@@ -340,7 +342,7 @@ function renderMark(
     <span
       className="grammar-error"
       data-grammar-error={true}
-      onContextMenu={(e) => {
+      onContextMenu={e => {
         e.preventDefault();
         e.stopPropagation();
         if (editor) showGrammarContextMenu(mark, editor);
@@ -423,7 +425,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
             <button
               key={i}
               className="btn btn-small"
-              onMouseDown={(e) => {
+              onMouseDown={e => {
                 e.preventDefault();
                 applyReplacement(editor, replacement);
               }}
@@ -436,12 +438,12 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
       <div className="grammar-actions">
         <button
           className="btn btn-small btn-dismiss"
-          onMouseDown={(e) => {
+          onMouseDown={e => {
             e.preventDefault();
             grammarCheckStore.dismissRule(ruleId);
           }}
         >
-          {localized('Dismiss rule')}
+          {localized('Ignore rule')}
         </button>
       </div>
     </div>
@@ -485,7 +487,7 @@ function onChange(editor: Editor, next: () => void) {
 
   if (prevDoc) {
     // Diff blocks to find which paragraphs changed
-    currDoc.nodes.forEach((block) => {
+    currDoc.nodes.forEach(block => {
       if (block.object !== 'block') return;
       const prevBlock = prevDoc.getNode(block.key);
       if (!prevBlock || prevBlock.text !== block.text) {
@@ -494,7 +496,7 @@ function onChange(editor: Editor, next: () => void) {
     });
 
     // Clear errors for deleted blocks
-    prevDoc.nodes.forEach((block) => {
+    prevDoc.nodes.forEach(block => {
       if (block.object !== 'block') return;
       if (!currDoc.getNode(block.key)) {
         grammarCheckStore.clearBlock(draftId, block.key);
@@ -502,7 +504,7 @@ function onChange(editor: Editor, next: () => void) {
     });
   } else {
     // First onChange for this draft - mark all blocks dirty for initial check
-    currDoc.nodes.forEach((block) => {
+    currDoc.nodes.forEach(block => {
       if (block.object === 'block') {
         grammarCheckStore.markDirty(draftId, block.key, block.text);
       }
@@ -518,7 +520,7 @@ function onChange(editor: Editor, next: () => void) {
   const timer = setTimeout(() => {
     debounceTimers.delete(draftId);
     if (!grammarCheckStore) return;
-    grammarCheckStore.checkDirtyBlocks(draftId).then((completed) => {
+    grammarCheckStore.checkDirtyBlocks(draftId).then(completed => {
       if (!completed) return; // superseded by a newer check — it will apply its own decorations
       try {
         applyGrammarDecorations(editor, draftId);

@@ -58,13 +58,17 @@ export class GrammarCheckToggle extends React.Component<{
       title = localized('Grammar check: usage limit reached');
       className += ' usage-exceeded';
     } else if (enabled) {
-      className += ' enabled';
+      className += ' btn-enabled';
       title =
         errorCount > 0
           ? localized(`Grammar check: %@ issue(s)`, errorCount)
           : localized('Grammar check: no issues');
     } else {
       title = localized('Enable grammar check');
+    }
+
+    if (checking) {
+      className += ' checking';
     }
 
     return (
