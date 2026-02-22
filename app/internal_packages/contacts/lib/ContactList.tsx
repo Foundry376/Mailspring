@@ -9,6 +9,7 @@ import {
   ListDataSource,
 } from 'mailspring-component-kit';
 import { ContactsPerspective, Store } from './Store';
+import { writeContactsToTempVCF } from './VCFImportExport';
 import _ from 'underscore';
 
 const ContactColumn = new ListTabular.Column({
@@ -64,6 +65,16 @@ class ContactListWithData extends React.Component<ContactListProps> {
     event.dataTransfer.setDragImage(canvas, 10, 10);
     event.dataTransfer.setData('mailspring-contacts-data', JSON.stringify(data));
     event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');
+
+    // Allow the contacts to be dragged to the desktop as a .vcf file.
+    try {
+      const filePath = writeContactsToTempVCF(items as Contact[]);
+      const filename = require('path').basename(filePath);
+      // The DownloadURL second segment MUST match the last path component of the URL.
+      event.dataTransfer.setData('DownloadURL', `text/vcard:${filename}:file://${filePath}`);
+    } catch (err) {
+      console.warn('Could not write temp VCF for drag export:', err);
+    }
   };
 
   render() {
