@@ -1,8 +1,7 @@
 import React from 'react';
-import { PropTypes, localized, Message, DraftEditingSession } from 'mailspring-exports';
+import { PropTypes, localized, Message, DraftEditingSession, GrammarCheckPluginAPI } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { GrammarCheckStore } from './grammar-check-store';
-import { requestInitialCheckForDraft } from '../../../src/components/composer-editor/grammar-check-plugins';
 
 export class GrammarCheckToggle extends React.Component<{
   draft: Message;
@@ -41,7 +40,7 @@ export class GrammarCheckToggle extends React.Component<{
     if (!current) {
       // Grammar check was just enabled — check existing content immediately
       // rather than waiting for the next keystroke to trigger onChange.
-      requestInitialCheckForDraft(this.props.draft.headerMessageId);
+      GrammarCheckPluginAPI.requestInitialCheckForDraft(this.props.draft.headerMessageId);
     }
   };
 

@@ -4,17 +4,15 @@ import {
   PreferencesUIStore,
   ComponentRegistry,
   ExtensionRegistry,
+  GrammarCheckPluginAPI,
 } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 import { GrammarCheckToggle } from './grammar-check-toggle';
 import GrammarCheckComposerExtension from './grammar-check-extension';
 import { GrammarCheckStore } from './grammar-check-store';
-import {
-  setGrammarCheckStore,
-  clearGrammarCheckStore,
-  cleanupDraft,
-  clearAllGrammarDecorations,
-} from '../../../src/components/composer-editor/grammar-check-plugins';
+
+const { setGrammarCheckStore, clearGrammarCheckStore, cleanupDraft, clearAllGrammarDecorations } =
+  GrammarCheckPluginAPI;
 
 const GrammarCheckToggleWithTip = HasTutorialTip(GrammarCheckToggle, {
   title: localized('Check your grammar'),
@@ -63,6 +61,13 @@ export function activate(state = {}) {
 }
 
 export function deactivate() {
+  // Remove any visible grammar underlines first, while the editor instances are
+  // still reachable. The config-change listener handles the "feature toggled off"
+  // path; this call covers the case where the package itself is deactivated while
+  // the feature was still enabled.
+  clearAllGrammarDecorations();
+
+  // Disconnect the Slate plugin so no new decorations can be applied after this point.
   clearGrammarCheckStore();
 
   if (this._actionDisposables) {
@@ -74,7 +79,7 @@ export function deactivate() {
     this._configDisposable.dispose();
     this._configDisposable = null;
   }
-  clearAllGrammarDecorations();
+
   GrammarCheckStore.deactivate();
   ComponentRegistry.unregister(GrammarCheckToggleWithTip);
   PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.tabId);

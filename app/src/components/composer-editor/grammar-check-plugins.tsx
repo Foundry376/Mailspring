@@ -1,14 +1,41 @@
 import React from 'react';
-import { Editor, Decoration, Text } from 'slate';
+import { Editor, Decoration, Mark, Point, Text } from 'slate';
 import { localized } from 'mailspring-exports';
 import { ComposerEditorPlugin, ComposerEditorPluginTopLevelComponentProps } from './types';
 
 export const GRAMMAR_ERROR_MARK = 'grammar-error';
 
-// --- Store injection (set by the plugin's activate(), avoids cross-boundary static import) ---
-let grammarCheckStore: any = null;
+// Minimal shape of a grammar error as returned by the check API.
+// Mirrors the fields accessed in this file without importing from the plugin package.
+interface GrammarErrorInfo {
+  offset: number;
+  length: number;
+  message: string;
+  shortMessage: string;
+  replacements: string[];
+  ruleId: string;
+  category: string;
+}
 
-export function setGrammarCheckStore(store: any) {
+interface BlockCheckResult {
+  text: string;
+  errors: GrammarErrorInfo[];
+}
+
+// The subset of GrammarCheckStore's public API consumed by this Slate plugin.
+export interface GrammarCheckStoreAPI {
+  isEnabled(): boolean;
+  allErrorsForDraft(draftId: string): Map<string, BlockCheckResult>;
+  markDirty(draftId: string, blockKey: string, blockText: string): void;
+  clearBlock(draftId: string, blockKey: string): void;
+  checkDirtyBlocks(draftId: string): Promise<boolean>;
+  dismissRule(ruleId: string): void;
+}
+
+// --- Store injection (set by the plugin's activate(), avoids cross-boundary static import) ---
+let grammarCheckStore: GrammarCheckStoreAPI | null = null;
+
+export function setGrammarCheckStore(store: GrammarCheckStoreAPI) {
   grammarCheckStore = store;
 }
 
@@ -46,6 +73,27 @@ export function clearAllGrammarDecorations() {
   });
 }
 
+// --- Schedule a deferred grammar check for a draft ---
+// Cancels any pending timer for the draft, then fires checkDirtyBlocks + applyGrammarDecorations
+// after delayMs. `start` defaults to now and is stored so onChange can throttle rapid keystrokes.
+function _scheduleCheck(draftId: string, editor: Editor, delayMs: number, start = Date.now()) {
+  const existing = debounceTimers.get(draftId);
+  if (existing) clearTimeout(existing.timer);
+  const timer = setTimeout(() => {
+    debounceTimers.delete(draftId);
+    if (!grammarCheckStore) return;
+    grammarCheckStore.checkDirtyBlocks(draftId).then(completed => {
+      if (!completed) return; // superseded by a newer check — it will apply its own decorations
+      try {
+        applyGrammarDecorations(editor, draftId);
+      } catch (err) {
+        console.warn('Grammar check: failed to apply decorations', err);
+      }
+    });
+  }, delayMs);
+  debounceTimers.set(draftId, { timer, start });
+}
+
 // --- Trigger an immediate check on a draft's current content ---
 // Called when grammar check is toggled ON so existing text is checked right away
 // without waiting for the next keystroke.
@@ -60,27 +108,11 @@ export function requestInitialCheckForDraft(draftId: string) {
     }
   });
 
-  const existing = debounceTimers.get(draftId);
-  if (existing) {
-    clearTimeout(existing.timer);
-  }
-  const timer = setTimeout(() => {
-    debounceTimers.delete(draftId);
-    if (!grammarCheckStore) return;
-    grammarCheckStore.checkDirtyBlocks(draftId).then(completed => {
-      if (!completed) return; // superseded by a newer check — it will apply its own decorations
-      try {
-        applyGrammarDecorations(editor, draftId);
-      } catch (err) {
-        console.warn('Grammar check: failed to apply decorations', err);
-      }
-    });
-  }, 300);
-  debounceTimers.set(draftId, { timer, start: Date.now() });
+  _scheduleCheck(draftId, editor, 300);
 }
 
 // --- IME composition tracking ---
-const composingWeakmap = new WeakMap<Editor, number>();
+const composingWeakmap = new WeakMap<object, number>();
 
 // --- Per-draft dirty paragraph tracking state ---
 const previousDocumentByDraft = new Map<string, any>();
@@ -214,9 +246,9 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
 
       decorations.push(
         Decoration.create({
-          anchor: { key: range.startKey, offset: range.startOffset },
-          focus: { key: range.endKey, offset: range.endOffset },
-          mark: {
+          anchor: Point.create({ key: range.startKey, offset: range.startOffset }),
+          focus: Point.create({ key: range.endKey, offset: range.endOffset }),
+          mark: Mark.create({
             type: GRAMMAR_ERROR_MARK,
             data: {
               message: error.message,
@@ -225,7 +257,7 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
               ruleId: error.ruleId,
               category: error.category,
             },
-          },
+          }),
         })
       );
     }
@@ -442,7 +474,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
         <div className="grammar-replacements">
           {replacements.slice(0, 5).map((replacement, i) => (
             <button
-              key={i}
+              key={replacement}
               className="btn btn-small"
               onMouseDown={e => {
                 e.preventDefault();
@@ -473,9 +505,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
 function onChange(editor: Editor, next: () => void) {
   // Always track the latest editor instance per draft so requestInitialCheckForDraft
   // can find it when grammar check is toggled on.
-  const draft = (editor.props as any).propsForPlugins
-    ? (editor.props as any).propsForPlugins.draft
-    : null;
+  const draft = (editor as any).props?.propsForPlugins?.draft ?? null;
   if (draft) {
     latestEditorByDraft.set(draft.headerMessageId, editor);
   }
@@ -497,7 +527,7 @@ function onChange(editor: Editor, next: () => void) {
   // Per-draft throttle: don't diff on every keystroke if changes are very rapid
   const now = Date.now();
   const existing = debounceTimers.get(draftId);
-  if (existing && now - existing.start < 200) {
+  if (existing && now - existing.start < 300) {
     return next();
   }
 
@@ -532,26 +562,24 @@ function onChange(editor: Editor, next: () => void) {
 
   previousDocumentByDraft.set(draftId, currDoc);
 
-  // Per-draft debounce: cancel only this draft's pending timer
-  if (existing) {
-    clearTimeout(existing.timer);
-  }
-  const timer = setTimeout(() => {
-    debounceTimers.delete(draftId);
-    if (!grammarCheckStore) return;
-    grammarCheckStore.checkDirtyBlocks(draftId).then(completed => {
-      if (!completed) return; // superseded by a newer check — it will apply its own decorations
-      try {
-        applyGrammarDecorations(editor, draftId);
-      } catch (err) {
-        console.warn('Grammar check: failed to apply decorations', err);
-      }
-    });
-  }, 800);
-  debounceTimers.set(draftId, { timer, start: now });
+  // Per-draft debounce: cancel only this draft's pending timer.
+  // Pass `now` (captured at the top of onChange) as the start time so the next
+  // onChange call can throttle itself via the 200ms guard above.
+  _scheduleCheck(draftId, editor, 800, now);
 
   return next();
 }
+
+// --- Public API consumed by the composer-grammar-check internal package ---
+// Exported here and re-exported via mailspring-exports so the package can import
+// without a fragile relative path back into app/src/.
+export const GrammarCheckPluginAPI = {
+  setGrammarCheckStore,
+  clearGrammarCheckStore,
+  cleanupDraft,
+  clearAllGrammarDecorations,
+  requestInitialCheckForDraft,
+};
 
 // --- Export Slate plugin array ---
 const plugins: ComposerEditorPlugin[] = [
