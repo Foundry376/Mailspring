@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+# Extract the Mailspring .deb package.
+# This script runs in /app/extra/ after the extra-data .deb has been downloaded.
+# The result is /app/extra/mailspring/ containing the application.
+
+ar x mailspring.deb
+# Use a glob so tar auto-detects the compression format (xz for ≤1.16, zstd for ≥1.17)
+tar xf data.tar.*
+
+mv usr/share/mailspring ./mailspring
+
+# zypak (provided by the Electron2 BaseApp) handles Chromium sandboxing inside
+# the Flatpak container; the setuid chrome-sandbox binary is not needed.
+rm -f ./mailspring/chrome-sandbox
+
+rm -rf mailspring.deb control.tar.* data.tar.* debian-binary usr

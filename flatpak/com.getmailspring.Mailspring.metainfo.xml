@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.getmailspring.Mailspring</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>Mailspring</name>
+  <summary>The best email app for people and teams at work</summary>
+  <description>
+    <p>
+      Mailspring is a new version of Nylas Mail maintained by one of the original authors. It's
+      faster, leaner, and shipping today! It replaces the JavaScript sync code in Nylas Mail with
+      a new C++ sync engine based on Mailcore2. It uses roughly half the RAM and CPU of Nylas Mail
+      and idles with almost zero "CPU Wakes", which translates to great battery life. It also has
+      an entirely revamped composer and other great new features.
+    </p>
+    <p>
+      Mailspring comes packed with powerful features like Unified Inbox, Snooze, Send Later, Mail
+      Rules, Templates and more. Mailspring Pro, which you can unlock with a monthly subscription,
+      adds even more features for people who send a ton of email: link tracking, read receipts,
+      mailbox analytics, contact and company profiles. All of these features run in the client -
+      Mailspring does not send your email credentials to the cloud.
+    </p>
+  </description>
+
+  <url type="homepage">https://getmailspring.com/</url>
+  <url type="bugtracker">https://github.com/Foundry376/Mailspring/issues</url>
+  <url type="help">https://support.getmailspring.com/</url>
+
+  <launchable type="desktop-id">com.getmailspring.Mailspring.desktop</launchable>
+
+  <developer_name>Mailspring</developer_name>
+  <project_license>GPL-3.0+</project_license>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Mailspring Hero</caption>
+      <image type="source">https://getmailspring.com/static/img/hero_graphic_linux@2x.png</image>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.17.4" date="2026-02-11" />
+    <release version="1.17.3" date="2026-01-31" />
+    <release version="1.17.2" date="2026-01-24" />
+    <release version="1.17.1" date="2026-01-15" />
+    <release version="1.17.0" date="2026-01-14" />
+    <release version="1.16.0" date="2025-07-16" />
+    <release version="1.15.1" date="2025-01-27" />
+    <release version="1.15.0" date="2025-01-02" />
+    <release version="1.14.0" date="2024-09-13" />
+    <release version="1.13.3" date="2024-01-08" />
+    <release version="1.13.2" date="2023-12-10" />
+    <release version="1.13.1" date="2023-11-21" />
+    <release version="1.13.0" date="2023-11-20" />
+    <release version="1.12.0" date="2023-11-14" />
+    <release version="1.11.0" date="2023-07-28" />
+    <release version="1.10.8" date="2022-12-29" />
+    <release version="1.10.7" date="2022-11-21" />
+    <release version="1.10.6" date="2022-08-10" />
+    <release version="1.10.5" date="2022-08-10" />
+    <release version="1.10.4" date="2022-08-09" />
+    <release version="1.10.3" date="2022-04-18" />
+    <release version="1.10.2" date="2022-03-29" />
+    <release version="1.10.1" date="2022-03-12" />
+    <release version="1.10.0" date="2022-02-28" />
+    <release version="1.9.2" date="2021-09-06" />
+    <release version="1.9.1" date="2021-04-16" />
+    <release version="1.9.0" date="2021-04-14" />
+    <release version="1.8.0" date="2021-01-20" />
+  </releases>
+
+  <content_rating type="oars-1.0" />
+</component>
