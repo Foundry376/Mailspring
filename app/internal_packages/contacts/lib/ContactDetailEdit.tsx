@@ -362,6 +362,22 @@ export class ContactDetailEdit extends React.Component<{
             </ListEditor>
           </div>
         </div>
+        <div className="contact-edit-section">
+          <div className="contact-edit-section-icon">
+            <Icons.Note />
+          </div>
+          <div className="contact-edit-section-content">
+            <div className="contact-edit-field">
+              <label>Notes</label>
+              <textarea
+                className="contact-notes-textarea"
+                value={data.notes || ''}
+                onChange={e => onChange({ notes: e.currentTarget.value })}
+                rows={4}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
