@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.Foundry376.Mailspring</id>
+  <id>com.getmailspring.Mailspring</id>
   <metadata_license>CC0-1.0</metadata_license>
   <name>Mailspring</name>
   <summary>The best email app for people and teams at work</summary>
@@ -25,7 +25,7 @@
   <url type="bugtracker">https://github.com/Foundry376/Mailspring/issues</url>
   <url type="help">https://support.getmailspring.com/</url>
 
-  <launchable type="desktop-id">io.github.Foundry376.Mailspring.desktop</launchable>
+  <launchable type="desktop-id">com.getmailspring.Mailspring.desktop</launchable>
 
   <developer_name>Mailspring</developer_name>
   <project_license>GPL-3.0+</project_license>

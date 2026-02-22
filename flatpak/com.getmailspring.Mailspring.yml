@@ -1,4 +1,4 @@
-app-id: io.github.Foundry376.Mailspring
+app-id: com.getmailspring.Mailspring
 
 # Electron2 BaseApp bundles Electron, zypak (the Chromium sandbox bridge), and
 # related shared libraries so we do not need to ship Electron ourselves.
@@ -64,24 +64,24 @@ modules:
       # Launch wrapper — handles Wayland/X11 selection and invokes zypak
       - install -Dm755 mailspring.sh /app/bin/mailspring
       # AppStream metadata
-      - install -Dm644 io.github.Foundry376.Mailspring.metainfo.xml
-          /app/share/metainfo/io.github.Foundry376.Mailspring.metainfo.xml
+      - install -Dm644 com.getmailspring.Mailspring.metainfo.xml
+          /app/share/metainfo/com.getmailspring.Mailspring.metainfo.xml
       # Desktop entry
-      - install -Dm644 io.github.Foundry376.Mailspring.desktop
-          /app/share/applications/io.github.Foundry376.Mailspring.desktop
+      - install -Dm644 com.getmailspring.Mailspring.desktop
+          /app/share/applications/com.getmailspring.Mailspring.desktop
       # Icons (hicolor theme, all standard sizes)
       - install -Dm644 16.png
-          /app/share/icons/hicolor/16x16/apps/io.github.Foundry376.Mailspring.png
+          /app/share/icons/hicolor/16x16/apps/com.getmailspring.Mailspring.png
       - install -Dm644 32.png
-          /app/share/icons/hicolor/32x32/apps/io.github.Foundry376.Mailspring.png
+          /app/share/icons/hicolor/32x32/apps/com.getmailspring.Mailspring.png
       - install -Dm644 64.png
-          /app/share/icons/hicolor/64x64/apps/io.github.Foundry376.Mailspring.png
+          /app/share/icons/hicolor/64x64/apps/com.getmailspring.Mailspring.png
       - install -Dm644 128.png
-          /app/share/icons/hicolor/128x128/apps/io.github.Foundry376.Mailspring.png
+          /app/share/icons/hicolor/128x128/apps/com.getmailspring.Mailspring.png
       - install -Dm644 256.png
-          /app/share/icons/hicolor/256x256/apps/io.github.Foundry376.Mailspring.png
+          /app/share/icons/hicolor/256x256/apps/com.getmailspring.Mailspring.png
       - install -Dm644 512.png
-          /app/share/icons/hicolor/512x512/apps/io.github.Foundry376.Mailspring.png
+          /app/share/icons/hicolor/512x512/apps/com.getmailspring.Mailspring.png
 
     sources:
       - type: file
@@ -91,10 +91,10 @@ modules:
         path: mailspring.sh
 
       - type: file
-        path: io.github.Foundry376.Mailspring.metainfo.xml
+        path: com.getmailspring.Mailspring.metainfo.xml
 
       - type: file
-        path: io.github.Foundry376.Mailspring.desktop
+        path: com.getmailspring.Mailspring.desktop
 
       # Icons referenced relative to this manifest file (flatpak/)
       - type: file
