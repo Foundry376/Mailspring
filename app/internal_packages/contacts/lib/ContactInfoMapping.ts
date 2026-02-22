@@ -54,9 +54,11 @@ function safeParseVCard(vcard: string) {
 
   // ensure the VERSION line is the first line after BEGIN.
   // FastMail (and maybe others) do not honor the spec's order.
-  const version = vcard.match(/\r\nVERSION:[ \d.]+\r\n/)[0];
-  vcard = vcard.replace(/\r\nVERSION:[ \d.]+\r\n/, '\r\n');
-  vcard = vcard.replace(`BEGIN:VCARD\r\n`, `BEGIN:VCARD${version}`);
+  const versionMatch = vcard.match(/\r\nVERSION:[ \d.]+\r\n/);
+  if (versionMatch) {
+    vcard = vcard.replace(/\r\nVERSION:[ \d.]+\r\n/, '\r\n');
+    vcard = vcard.replace(`BEGIN:VCARD\r\n`, `BEGIN:VCARD${versionMatch[0]}`);
+  }
   return new vCard().parse(vcard);
 }
 
