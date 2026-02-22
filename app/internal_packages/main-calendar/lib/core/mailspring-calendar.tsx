@@ -26,6 +26,7 @@ import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
+import { CalendarEmptyState } from './calendar-empty-state';
 import { setCalendarColors, getColorCacheVersion } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -97,6 +98,7 @@ interface MailspringCalendarState {
   focusedEvent: FocusedEventInfo | null;
   accounts?: Account[];
   calendars: Calendar[];
+  calendarsLoaded: boolean;
   focusedMoment: Moment;
   disabledCalendars: string[];
   dragState: DragState | null;
@@ -123,6 +125,7 @@ export class MailspringCalendar extends React.Component<
     super(props);
     this.state = {
       calendars: [],
+      calendarsLoaded: false,
       focusedEvent: null,
       selectedEvents: [],
       view: AppEnv.config.get(CALENDAR_VIEW) || CalendarView.WEEK,
@@ -171,6 +174,7 @@ export class MailspringCalendar extends React.Component<
 
         this.setState({
           calendars: calendars,
+          calendarsLoaded: true,
           accounts: accountStore.accounts(),
           disabledCalendars: disabledCalendars || [],
         });
@@ -622,9 +626,40 @@ export class MailspringCalendar extends React.Component<
     }
   }
 
-  render() {
-    const CurrentView = VIEWS[this.state.view];
+  _shouldShowEmptyState() {
+    return this.state.calendarsLoaded && this.state.calendars.length === 0;
+  }
 
+  _renderMainContent() {
+    if (this._shouldShowEmptyState()) {
+      return <CalendarEmptyState />;
+    }
+
+    const CurrentView = VIEWS[this.state.view];
+    return (
+      <CurrentView
+        key={`view-colors-${getColorCacheVersion()}`}
+        dataSource={this._dataSource}
+        focusedMoment={this.state.focusedMoment}
+        focusedEvent={this.state.focusedEvent}
+        selectedEvents={this.state.selectedEvents}
+        disabledCalendars={this.state.disabledCalendars}
+        onChangeView={this.onChangeView}
+        onChangeFocusedMoment={this.onChangeFocusedMoment}
+        onCalendarMouseUp={this._onCalendarMouseUp}
+        onCalendarMouseDown={this._onCalendarMouseDown}
+        onCalendarMouseMove={this._onCalendarMouseMove}
+        onEventClick={this._onEventClick}
+        onEventDoubleClick={this._onEventDoubleClick}
+        onEventFocused={this._onEventFocused}
+        dragState={this.state.dragState}
+        onEventDragStart={this._onEventDragStart}
+        readOnlyCalendarIds={this._getReadOnlyCalendarIds()}
+      />
+    );
+  }
+
+  render() {
     return (
       <KeyCommandsRegion
         className="mailspring-calendar"
@@ -659,25 +694,7 @@ export class MailspringCalendar extends React.Component<
             <MiniMonthView value={this.state.focusedMoment} onChange={this.onChangeFocusedMoment} />
           </div>
         </ResizableRegion>
-        <CurrentView
-          key={`view-colors-${getColorCacheVersion()}`}
-          dataSource={this._dataSource}
-          focusedMoment={this.state.focusedMoment}
-          focusedEvent={this.state.focusedEvent}
-          selectedEvents={this.state.selectedEvents}
-          disabledCalendars={this.state.disabledCalendars}
-          onChangeView={this.onChangeView}
-          onChangeFocusedMoment={this.onChangeFocusedMoment}
-          onCalendarMouseUp={this._onCalendarMouseUp}
-          onCalendarMouseDown={this._onCalendarMouseDown}
-          onCalendarMouseMove={this._onCalendarMouseMove}
-          onEventClick={this._onEventClick}
-          onEventDoubleClick={this._onEventDoubleClick}
-          onEventFocused={this._onEventFocused}
-          dragState={this.state.dragState}
-          onEventDragStart={this._onEventDragStart}
-          readOnlyCalendarIds={this._getReadOnlyCalendarIds()}
-        />
+        {this._renderMainContent()}
       </KeyCommandsRegion>
     );
   }
