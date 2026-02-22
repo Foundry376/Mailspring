@@ -144,7 +144,7 @@ module.exports = grunt => {
           'mac',
           'mailspring.icns'
         ),
-        win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'mailspring.ico'),
+        win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'mailspring-square.ico'),
         linux: undefined,
       }[platform],
       name: {
