@@ -112,13 +112,7 @@ export default class WindowLauncher {
       }, 0);
     }
 
-    if (isWaylandSession()) {
-      // On Linux/Wayland, show all windows immediately regardless of the hidden flag.
-      // The hidden flag delays showing until the renderer calls displayWindow() after
-      // React renders, but by then the Wayland activation token from the user's click
-      // is lost and show() fails silently. On other platforms, respect the hidden flag.
-      win.showWhenLoaded();
-    } else if (!opts.initializeInBackground && !opts.hidden) {
+    if (!isWaylandSession() && !opts.initializeInBackground && !opts.hidden) {
       // NOTE: In the case of a cold window, this will show it once
       // loaded. If it's a hotWindow, since hotWindows have a
       // `hidden:true` flag, nothing will show. When `setLoadSettings`
@@ -126,6 +120,15 @@ export default class WindowLauncher {
       // hide based on the windowOpts
       win.showWhenLoaded();
     }
+    // On Wayland, windows are shown via the did-finish-load handler in
+    // mailspring-window.ts (at the point where the Wayland activation token
+    // is still valid). We intentionally skip showWhenLoaded() here to avoid
+    // a second browserWindow.focus() call at window:loaded time. By that
+    // point React has rendered the composer's contenteditable with
+    // spellCheck=true and Chromium has connected to IBus. The second focus()
+    // triggers a blur/refocus cycle in the Wayland compositor that causes
+    // IBus to lose and fail to re-establish its connection, freezing all
+    // keyboard input in the compose window.
     return win;
   }
 
