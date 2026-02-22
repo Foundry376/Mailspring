@@ -6,7 +6,8 @@ set -e
 # The result is /app/extra/mailspring/ containing the application.
 
 ar x mailspring.deb
-tar xf data.tar.xz
+# Use a glob so tar auto-detects the compression format (xz for ≤1.16, zstd for ≥1.17)
+tar xf data.tar.*
 
 mv usr/share/mailspring ./mailspring
 
@@ -14,4 +15,4 @@ mv usr/share/mailspring ./mailspring
 # the Flatpak container; the setuid chrome-sandbox binary is not needed.
 rm -f ./mailspring/chrome-sandbox
 
-rm -rf mailspring.deb control.tar.* data.tar.xz debian-binary usr
+rm -rf mailspring.deb control.tar.* data.tar.* debian-binary usr
