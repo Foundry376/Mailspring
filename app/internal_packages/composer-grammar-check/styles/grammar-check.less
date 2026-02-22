@@ -1,0 +1,158 @@
+@import 'ui-variables';
+
+.grammar-error {
+  cursor: pointer;
+  position: relative;
+}
+
+.grammar-correction-popover {
+  background: @background-primary;
+  border: 1px solid @border-color-divider;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px 12px;
+  max-width: 320px;
+  min-width: 200px;
+  z-index: 10;
+
+  .grammar-message {
+    margin-bottom: 8px;
+    font-size: 12px;
+
+    strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    p {
+      color: @text-color-subtle;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+
+  .grammar-replacements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+
+    button {
+      background: @background-color-info;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 12px;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.85;
+      }
+    }
+  }
+
+  .grammar-actions {
+    border-top: 1px solid @border-color-divider;
+    padding-top: 6px;
+
+    .btn-dismiss {
+      font-size: 11px;
+      color: @text-color-subtle;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+
+      &:hover {
+        color: @text-color;
+      }
+    }
+  }
+}
+
+.btn-grammar-check {
+  position: relative;
+  // Allow the badge to render outside the button's own box without being clipped
+  overflow: visible;
+
+  // Fixed-size wrapper so the spinner can overlay the icon without changing
+  // the button's width when it appears or disappears.
+  .grammar-check-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+  }
+
+  // Spinner sits on top of the icon — same 16×16 footprint as the SVG.
+  .grammar-check-spinner {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: grammar-spin 0.8s linear infinite;
+  }
+  &.checking {
+    img {
+      opacity: 0.3;
+    }
+  }
+}
+
+@keyframes grammar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.container-grammar-check {
+  section {
+    padding: 20px;
+  }
+
+  .item {
+    margin-bottom: 12px;
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+
+      input[type='checkbox'] {
+        margin-right: 8px;
+      }
+    }
+
+    input[type='text'],
+    input[type='password'] {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    select {
+      width: 100%;
+      max-width: 400px;
+    }
+  }
+
+  .grammar-privacy-notice {
+    margin-top: 16px;
+    padding: 8px 12px;
+    background: @background-secondary;
+    border-radius: 4px;
+    font-size: 12px;
+
+    p {
+      margin: 0;
+      color: @text-color-subtle;
+    }
+  }
+}

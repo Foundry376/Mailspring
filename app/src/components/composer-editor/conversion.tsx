@@ -21,6 +21,7 @@ import InlineAttachmentPlugins, { IMAGE_TYPE } from './inline-attachment-plugins
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
 import EmojiPlugins, { EMOJI_TYPE } from './emoji-plugins';
+import GrammarCheckPlugins from './grammar-check-plugins';
 import { Rule, ComposerEditorPlugin } from './types';
 
 import './patch-chrome-ime';
@@ -56,6 +57,7 @@ export const plugins: ComposerEditorPlugin[] = [
   ...BaseMarkPlugins,
   ...TemplatePlugins,
   ...EmojiPlugins,
+  ...GrammarCheckPlugins,
   ...LinkPlugins,
   ...BaseBlockPlugins,
   ...MarkdownPlugins,
@@ -89,13 +91,13 @@ function parseHtml(html: string) {
   collapse(tree);
 
   // get rid of <meta> and <style> tags since styles have been inlined
-  Array.from(tree.querySelectorAll('meta')).forEach(m => m.remove());
-  Array.from(tree.querySelectorAll('style')).forEach(m => m.remove());
-  Array.from(tree.querySelectorAll('title')).forEach(m => m.remove());
+  Array.from(tree.querySelectorAll('meta')).forEach((m) => m.remove());
+  Array.from(tree.querySelectorAll('style')).forEach((m) => m.remove());
+  Array.from(tree.querySelectorAll('title')).forEach((m) => m.remove());
 
   // remove any display:none nodes. This is commonly used in HTML email to
   // send a plaintext "summary" sentence
-  Array.from(tree.querySelectorAll('[style]')).forEach(m => {
+  Array.from(tree.querySelectorAll('[style]')).forEach((m) => {
     if ((m as HTMLElement).style.display === 'none') {
       m.remove();
     }
@@ -104,7 +106,7 @@ function parseHtml(html: string) {
   // remove any images with an explicit 1px by 1px size - they're often the
   // last node and tail void nodes break Slate's select-all. Also we
   // don't want to forward / reply with other people's tracking pixels
-  Array.from(tree.querySelectorAll('img')).forEach(m => {
+  Array.from(tree.querySelectorAll('img')).forEach((m) => {
     const w = m.getAttribute('width') || m.style.width || '';
     const h = m.getAttribute('height') || m.style.height || '';
     if (w.replace('px', '') === '1' && h.replace('px', '') === '1') {
@@ -115,7 +117,7 @@ function parseHtml(html: string) {
   // We coerce <p> tags to <div> tags and don't apply any padding. Any incoming <p>
   // tags should be followed by <br> tags to maintain the intended spacing.
   const pWalker = document.createTreeWalker(tree, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: node => {
+    acceptNode: (node) => {
       return node.nodeName === 'P' ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
     },
   });
@@ -154,7 +156,7 @@ function parseHtml(html: string) {
 // This is copied from slate-html-serializer/index.js and improved to preserve
 // sequential space characters that would be compacted during the HTML display.
 const TEXT_RULE_IMPROVED: Rule = {
-  deserialize: el => {
+  deserialize: (el) => {
     if (el.tagName && el.tagName.toLowerCase() === 'br') {
       return {
         object: 'text',
@@ -221,14 +223,16 @@ const TEXT_RULE_IMPROVED: Rule = {
 
 const HtmlSerializer = new Html({
   defaultBlock: { type: BLOCK_CONFIG.div.type },
-  rules: [].concat(...plugins.filter(p => p.rules).map(p => p.rules)).concat([TEXT_RULE_IMPROVED]),
+  rules: []
+    .concat(...plugins.filter((p) => p.rules).map((p) => p.rules))
+    .concat([TEXT_RULE_IMPROVED]),
   parseHtml: parseHtml,
 });
 
 /* Patch: The HTML Serializer doesn't properly handle nested marks
 because when it discovers another mark it fails to call applyMark
 on the result. */
-(HtmlSerializer as any).deserializeMark = function(mark: Mark) {
+(HtmlSerializer as any).deserializeMark = function (mark: Mark) {
   const type = mark.type;
   const data = mark.data;
 
@@ -244,7 +248,7 @@ on the result. */
       }
       return result;
     } else if (node.object === 'text') {
-      node.leaves = node.leaves.map(function(leaf) {
+      node.leaves = node.leaves.map(function (leaf) {
         leaf.marks = leaf.marks || [];
         leaf.marks.push({ object: 'mark', type: type, data: data });
         return leaf;
@@ -257,7 +261,7 @@ on the result. */
 
     return node;
   };
-  return (mark as any).nodes.reduce(function(nodes, node) {
+  return (mark as any).nodes.reduce(function (nodes, node) {
     const ret = applyMark(node);
     if (Array.isArray(ret)) return nodes.concat(ret);
     nodes.push(ret);
@@ -281,7 +285,7 @@ export function convertFromHTML(html: string) {
     // visit all our children
     node.nodes.forEach(wrapMixedChildren);
 
-    const blockChildren = node.nodes.filter(n => n.object === 'block');
+    const blockChildren = node.nodes.filter((n) => n.object === 'block');
     const mixed = blockChildren.length > 0 && blockChildren.length !== node.nodes.length;
     if (!mixed) {
       return;
