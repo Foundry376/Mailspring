@@ -179,7 +179,7 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
         // VCard NOTE: encode literal newlines as \n per the spec
         card.set('note', changes.notes.replace(/\n/g, '\\n'));
       } else {
-        card.remove('note');
+        delete card.data['note'];
       }
     } else {
       console.log(`Unsure of how to apply changes to ${key}`);
