@@ -43,6 +43,15 @@ finish-args:
   - --system-talk-name=org.freedesktop.UPower
   # Login / session management
   - --system-talk-name=org.freedesktop.login1
+  # DND fallback for pre-GNOME-42 desktops: gsettings reads the host dconf
+  # database via the ca.desrt.dconf session-bus service.  Without this the
+  # D-Bus proxy blocks the call and gsettings silently returns default values,
+  # making DND detection a no-op on older GNOME/Cinnamon systems.
+  # (Modern GNOME 42+, KDE Plasma 5.24+ and XFCE with xfce4-notifyd ≥ 0.6.3
+  # are covered by the primary Notifications.Inhibited D-Bus property and do
+  # not require dconf access.)
+  - --talk-name=ca.desrt.dconf
+  - --filesystem=xdg-run/dconf
 
 modules:
   - name: mailspring
