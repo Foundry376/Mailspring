@@ -29,7 +29,9 @@ class _GrammarCheckStore extends MailspringStore {
       'core.composing.grammarCheck',
       ({ newValue }) => {
         this._enabled = !!newValue;
-        if (!this._enabled) {
+        if (this._enabled) {
+          this._usageExceeded = false;
+        } else {
           this._errorsByDraft.clear();
           this._dirtyBlocks.clear();
           this._checking.clear();
