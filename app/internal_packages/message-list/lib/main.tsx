@@ -9,8 +9,7 @@ import {
 
 import { MessageListHiddenMessagesToggle } from './message-list-hidden-messages-toggle';
 import MessageList from './message-list';
-import { SidebarPluginContainer } from './sidebar-plugin-container';
-import { SidebarParticipantPicker } from './sidebar-participant-picker';
+import { SidebarViewSwitcher } from './sidebar-view-switcher';
 
 export function activate() {
   if (AppEnv.isMainWindow()) {
@@ -18,10 +17,7 @@ export function activate() {
     ComponentRegistry.register(MessageList, {
       location: WorkspaceStore.Location.MessageList,
     });
-    ComponentRegistry.register(SidebarParticipantPicker, {
-      location: WorkspaceStore.Location.MessageListSidebar,
-    });
-    ComponentRegistry.register(SidebarPluginContainer, {
+    ComponentRegistry.register(SidebarViewSwitcher, {
       location: WorkspaceStore.Location.MessageListSidebar,
     });
     ComponentRegistry.register(MessageListHiddenMessagesToggle, {
@@ -33,7 +29,7 @@ export function activate() {
     ComponentRegistry.register(MessageList, { location: WorkspaceStore.Location.Center });
 
     // We need to locate the thread and focus it so that the MessageList displays it
-    DatabaseStore.find<Thread>(Thread, threadId).then(thread =>
+    DatabaseStore.find<Thread>(Thread, threadId).then((thread) =>
       Actions.setFocus({ collection: 'thread', item: thread })
     );
 
@@ -48,6 +44,5 @@ export function activate() {
 
 export function deactivate() {
   ComponentRegistry.unregister(MessageList);
-  ComponentRegistry.unregister(SidebarPluginContainer);
-  ComponentRegistry.unregister(SidebarParticipantPicker);
+  ComponentRegistry.unregister(SidebarViewSwitcher);
 }

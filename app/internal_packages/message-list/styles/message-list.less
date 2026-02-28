@@ -282,7 +282,9 @@ body.platform-win32 {
     .message-item-white-wrap {
       background: @background-primary;
       border: 0;
-      box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 0 0.5px rgba(0, 0, 0, 0.28),
+        0 1px 1.5px rgba(0, 0, 0, 0.08);
       border-radius: 4px;
     }
 
@@ -390,8 +392,11 @@ body.platform-win32 {
       position: relative;
       border-top: 1px solid @border-color-divider;
       background-color: darken(@background-primary, 2%);
-      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.1), 0 -0.5px 0 rgba(0, 0, 0, 0.1),
-        0.5px 0 0 rgba(0, 0, 0, 0.1), -0.5px 0 0 rgba(0, 0, 0, 0.1);
+      box-shadow:
+        0 0.5px 0 rgba(0, 0, 0, 0.1),
+        0 -0.5px 0 rgba(0, 0, 0, 0.1),
+        0.5px 0 0 rgba(0, 0, 0, 0.1),
+        -0.5px 0 0 rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -433,7 +438,9 @@ body.platform-win32 {
     }
 
     .message-actions-wrap {
-      transition: opacity 100ms, width 150ms;
+      transition:
+        opacity 100ms,
+        width 150ms;
       transition-delay: 50ms, 0ms;
       transition-timing-function: ease-in-out;
       opacity: 1;
@@ -554,7 +561,9 @@ body.platform-win32 {
     z-index: 2;
 
     border: 0;
-    box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08);
+    box-shadow:
+      0 0 0.5px rgba(0, 0, 0, 0.28),
+      0 1px 1.5px rgba(0, 0, 0, 0.08);
     border-top: 1px dashed @border-color-divider;
     border-radius: 0 0 4px 4px;
     background: @background-primary;
@@ -812,5 +821,151 @@ body.platform-win32 {
   .flexbox-handle-horizontal div {
     border-right: 0;
     width: 1px;
+  }
+}
+
+///////////////////////////
+// sidebar-view-switcher //
+///////////////////////////
+.sidebar-view-switcher {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar-view-toggle {
+  display: flex;
+  padding: 8px 8px 4px 8px;
+  gap: 0;
+  flex-shrink: 0;
+
+  .toggle-btn {
+    flex: 1;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: @font-weight-semi-bold;
+    text-align: center;
+    border: 1px solid @border-color-primary;
+    background: transparent;
+    color: @text-color-subtle;
+    cursor: pointer;
+    transition:
+      background 0.1s ease,
+      color 0.1s ease;
+
+    &:first-child {
+      border-radius: @border-radius-base 0 0 @border-radius-base;
+      border-right: none;
+    }
+    &:last-child {
+      border-radius: 0 @border-radius-base @border-radius-base 0;
+    }
+    &.active {
+      background: @background-primary;
+      color: @text-color;
+      border-color: @border-color-primary;
+    }
+    &:hover:not(.active) {
+      background: fade(@background-primary, 50%);
+    }
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.sidebar-participants-view {
+  flex: 1;
+  overflow: auto;
+}
+
+///////////////////////////
+// sidebar-agenda-view   //
+///////////////////////////
+.sidebar-agenda-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+
+  // The AgendaView is designed for full-width calendar window — adapt it for
+  // the narrow sidebar panel (150-300px).
+  .calendar-view.agenda-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    // Hide the top-banner (injected component area) in the sidebar
+    .top-banner {
+      display: none;
+    }
+
+    // Adapt the header controls for the narrow sidebar
+    .header-controls {
+      padding: 6px 8px;
+      position: relative;
+
+      // Hide the Day/Week/Month/Agenda view picker — not useful in the sidebar
+      .view-controls {
+        display: none;
+      }
+
+      // Hide the absolutely-positioned "Today" button to avoid overlap
+      > .btn {
+        display: none;
+      }
+
+      .center-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+
+        .title {
+          width: auto;
+          flex: 1;
+          font-size: 13px;
+          text-align: center;
+        }
+      }
+    }
+
+    // Ensure the scroll region fills available space
+    .agenda-scroll-region {
+      flex: 1;
+    }
+
+    // Constrain the event list for narrow width
+    .agenda-event-list {
+      padding: 0 8px 12px;
+    }
+
+    // Stack event content vertically: color-bar on the left, then
+    // time above title/location on the right, with no gap.
+    .agenda-event {
+      // Keep the default row flex — color-bar and content side by side.
+      // The content after the bar becomes a vertical column.
+      .agenda-event-time {
+        width: auto;
+        flex: none;
+      }
+
+      .agenda-event-details {
+        flex-basis: 100%;
+      }
+
+      // Wrap time + details in a column so they stack tightly
+      // after the color-bar. We achieve this by making the event
+      // itself a CSS grid: [bar] [stacked-content].
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
+      column-gap: 0;
+
+      .agenda-event-color-bar {
+        grid-row: 1 / -1;
+        margin-right: 8px;
+      }
+    }
   }
 }
