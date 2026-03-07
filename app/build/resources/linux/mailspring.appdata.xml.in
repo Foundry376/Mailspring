@@ -21,11 +21,15 @@
     </p>
   </description>
   <url type="homepage">https://getmailspring.com/</url>
-  <url type="bugtracker">https://github.com/Foundry376/Mailspring/issues</url>
+  <url type="bugtracker">https://community.getmailspring.com/c/bugs</url>
   <url type="help">http://support.getmailspring.com/</url>
+  <url type="vcs-browser">https://github.com/Foundry376/Mailspring</url>
   <launchable type="desktop-id"><%= productName %>.desktop</launchable>
 
-  <developer_name>Mailspring</developer_name>
+  <developer id="com.getmailspring">
+    <name>Mailspring</name>
+  </developer>
+  
   <project_license>GPL-3.0+</project_license>
 
   <screenshots>
