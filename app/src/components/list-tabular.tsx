@@ -43,6 +43,9 @@ type ListTabularRowsProps = {
   draggable?: boolean;
   itemHeight?: number;
   innerStyles?: CSSProperties;
+  role?: string;
+  ariaLabel?: string;
+  ariaMultiselectable?: boolean;
   onSelect?: (...args: any[]) => any;
   onClick?: (...args: any[]) => any;
   onDoubleClick?: (...args: any[]) => any;
@@ -98,7 +101,7 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
   }
 
   render() {
-    const { rows, innerStyles, draggable, onDragStart, onDragEnd } = this.props;
+    const { rows, innerStyles, draggable, role, ariaLabel, ariaMultiselectable, onDragStart, onDragEnd } = this.props;
     return (
       <div
         className="list-rows"
@@ -106,6 +109,9 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         draggable={draggable}
+        role={role}
+        aria-label={ariaLabel}
+        aria-multiselectable={ariaMultiselectable}
       >
         {rows.map(r => this.renderRow(r))}
       </div>
@@ -122,6 +128,9 @@ export interface ListTabularProps extends ScrollRegionProps {
   itemPropsProvider?: (...args: any[]) => any;
   itemHeight?: number;
   EmptyComponent?: React.ComponentType<{ visible: boolean }>;
+  role?: string;
+  ariaLabel?: string;
+  ariaMultiselectable?: boolean;
   onClick?: (...args: any[]) => any;
   onSelect?: (...args: any[]) => any;
   onDoubleClick?: (...args: any[]) => any;
@@ -414,6 +423,9 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
       itemHeight,
       EmptyComponent,
       scrollTooltipComponent,
+      role,
+      ariaLabel,
+      ariaMultiselectable,
       onClick,
       onSelect,
       onDragEnd,
@@ -438,6 +450,9 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
             columns={columns}
             draggable={draggable}
             itemHeight={itemHeight}
+            role={role}
+            ariaLabel={ariaLabel}
+            ariaMultiselectable={ariaMultiselectable}
             innerStyles={{
               height: count * itemHeight,
               backgroundSize: `100% ${this.props.itemHeight}px`,

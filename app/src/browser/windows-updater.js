@@ -88,7 +88,7 @@ function spawnDetached(command, args) {
     });
     child.unref();
   } catch (error) {
-    // Ignore spawn errors - we're exiting anyway
+    console.error(`Failed to spawn detached process: ${command} ${args.join(' ')}`, error.message);
   }
 }
 
@@ -188,7 +188,7 @@ exports.existsSync = () => fs.existsSync(updateDotExe);
 function registerAppUserModelId(callback) {
   const aumid = 'com.squirrel.mailspring.mailspring';
   const displayName = 'Mailspring';
-  const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
+  const iconPath = path.join(appFolder, 'resources', 'mailspring-square.ico');
 
   let regPath = 'reg.exe';
   if (process.env.SystemRoot) {
@@ -226,10 +226,37 @@ function registerAppUserModelId(callback) {
 
 exports.registerAppUserModelId = registerAppUserModelId;
 
-// Restart Mailspring using the version pointed to by the Mailspring.cmd shim
+// Copy Start Menu tile visual elements (icon PNGs + manifest XML) from the
+// current app-x.x.x/resources directory to the root install directory so
+// Windows can display a branded tile. Errors are ignored — these are optional.
+function copyVisualElements() {
+  try {
+    const files = ['mailspring-75px.png', 'mailspring-150px.png', 'mailspring.VisualElementsManifest.xml'];
+    for (const file of files) {
+      fs.copyFileSync(
+        path.join(appFolder, 'resources', file),
+        path.join(rootAppDataFolder, file)
+      );
+    }
+  } catch (err) {
+    // Ignore errors - visual elements are optional
+  }
+}
+
+// Restart Mailspring using the version pointed to by the Mailspring.cmd shim.
+// Uses spawnDetached to ensure the child process survives the parent's exit —
+// the piped-stdio `spawn` function can fail when called during `will-quit`
+// because the Node.js event loop tears down the pipe before Update.exe launches
+// the new app instance.
+//
+// Uses --processStartAndWait (not --processStart) so that Update.exe waits for
+// the current instance to fully release requestSingleInstanceLock() before
+// launching the new one. Without the Wait variant, the new instance can start
+// before the old one exits, hit the single-instance lock, and immediately quit
+// — leaving no running instance. See: https://github.com/electron/electron/pull/6037
 exports.restartMailspring = app => {
   app.once('will-quit', () => {
-    spawnUpdate(['--processStart', exeName], () => {}, { detached: true });
+    spawnDetached(updateDotExe, ['--processStartAndWait', exeName]);
   });
   app.quit();
 };
@@ -248,23 +275,7 @@ exports.handleSquirrelInstall = app => {
     'Desktop,StartMenu',
   ]);
 
-  // Copy visual elements files synchronously (fast)
-  try {
-    fs.copyFileSync(
-      path.join(appFolder, 'resources', 'mailspring-75px.png'),
-      path.join(rootAppDataFolder, 'mailspring-75px.png')
-    );
-    fs.copyFileSync(
-      path.join(appFolder, 'resources', 'mailspring-150px.png'),
-      path.join(rootAppDataFolder, 'mailspring-150px.png')
-    );
-    fs.copyFileSync(
-      path.join(appFolder, 'resources', 'mailspring.VisualElementsManifest.xml'),
-      path.join(rootAppDataFolder, 'mailspring.VisualElementsManifest.xml')
-    );
-  } catch (err) {
-    // Ignore errors - visual elements are optional
-  }
+  copyVisualElements();
 
   // Create fallback shortcuts synchronously (fast)
   const startMenuPath = path.join(
@@ -280,7 +291,7 @@ exports.handleSquirrelInstall = app => {
     'Desktop',
     'Mailspring.lnk'
   );
-  const iconPath = path.join(appFolder, 'resources', 'mailspring.ico');
+  const iconPath = path.join(appFolder, 'resources', 'mailspring-square.ico');
 
   const shortcutOptions = {
     target: updateDotExe,
@@ -332,6 +343,25 @@ exports.handleSquirrelInstall = app => {
   // Registry entries for mailto: protocol are registered on first normal app launch
   // (via createRegistryEntries call in main.js startup). This ensures registration
   // completes even if the detached processes here don't finish before Squirrel's timeout.
+
+  // Exit immediately - don't wait for spawned processes
+  app.quit();
+};
+
+// Handle --squirrel-updated event with fast exit.
+// Squirrel runs the NEW app version with this flag after extracting an update.
+// We update shortcuts to point to the new version and exit immediately.
+// The actual app restart happens later when the user clicks "Install Update".
+exports.handleSquirrelUpdated = app => {
+  // Update shortcuts to point to the new app version (detached - won't block exit)
+  spawnDetached(updateDotExe, [
+    '--createShortcut',
+    exeName,
+    '--shortcut-locations',
+    'Desktop,StartMenu',
+  ]);
+
+  copyVisualElements();
 
   // Exit immediately - don't wait for spawned processes
   app.quit();

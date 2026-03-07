@@ -5,7 +5,8 @@ import { EventOccurrence } from './calendar-data-source';
 import { CalendarContainerType } from './calendar-drag-types';
 
 export interface CalendarEventArgs {
-  event?: EventOccurrence;
+  /** The underlying DOM mouse event */
+  mouseEvent: MouseEvent;
   /** Unix timestamp at mouse position, or null if not over a valid time container */
   time: number | null;
   x: number | null;
@@ -21,6 +22,7 @@ interface CalendarEventContainerProps {
   onCalendarMouseDown: (args: CalendarEventArgs) => void;
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
+  onCalendarDoubleClick?: (args: CalendarEventArgs) => void;
 }
 
 export class CalendarEventContainer extends React.Component<CalendarEventContainerProps> {
@@ -42,7 +44,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     window.removeEventListener('mouseup', this._onWindowMouseUp);
   }
 
-  _onCalendarMouseUp = event => {
+  _onCalendarMouseUp = (event) => {
     this._DOMCache = {};
     if (!this._mouseIsDown) {
       return;
@@ -51,24 +53,39 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     this._runPropsHandler('onCalendarMouseUp', event);
   };
 
-  _onCalendarMouseDown = event => {
+  _onCalendarMouseDown = (event) => {
     this._DOMCache = {};
     this._mouseIsDown = true;
     this._runPropsHandler('onCalendarMouseDown', event);
   };
 
-  _onCalendarMouseMove = event => {
+  _onCalendarMouseMove = (event) => {
     this._runPropsHandler('onCalendarMouseMove', event);
   };
 
-  _runPropsHandler(name, event) {
+  _onCalendarDoubleClick = (event) => {
+    // Only fire for background double-clicks (not on events).
+    // CalendarEvent components stop propagation of their own double-clicks.
+    this._runPropsHandler('onCalendarDoubleClick', event);
+  };
+
+  _runPropsHandler(name: keyof CalendarEventContainerProps, event: MouseEvent) {
     const propsFn = this.props[name];
     if (!propsFn) {
       return;
     }
     const { time, x, y, width, height, containerType } = this._dataFromMouseEvent(event);
     try {
-      propsFn({ event, time, x, y, width, height, mouseIsDown: this._mouseIsDown, containerType });
+      propsFn({
+        mouseEvent: event,
+        time,
+        x,
+        y,
+        width,
+        height,
+        mouseIsDown: this._mouseIsDown,
+        containerType,
+      });
     } catch (error) {
       AppEnv.reportError(error);
     }
@@ -191,7 +208,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     return { x, y, width, height, time, containerType };
   }
 
-  _onWindowMouseUp = event => {
+  _onWindowMouseUp = (event) => {
     if (ReactDOM.findDOMNode(this).contains(event.target)) {
       return;
     }
@@ -205,6 +222,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         onMouseUp={this._onCalendarMouseUp}
         onMouseDown={this._onCalendarMouseDown}
         onMouseMove={this._onCalendarMouseMove}
+        onDoubleClick={this._onCalendarDoubleClick}
       >
         {this.props.children}
       </div>

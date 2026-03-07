@@ -41,6 +41,8 @@ export interface EventOccurrence {
    */
   isPending: boolean;
   isException: boolean;
+  /** True if this event is part of a recurring series (has RRULE/RDATE) */
+  isRecurring: boolean;
   organizer: { email: string } | null;
   attendees: EventAttendee[];
 
@@ -123,6 +125,10 @@ export function occurrencesForEvents(
         const icalExpander = new IcalExpander({ ics: master.ics, maxIterations: 100 });
         const expanded = icalExpander.between(new Date(startUnix * 1000), new Date(endUnix * 1000));
 
+        // Check if the master event is recurring using the already-parsed ICAL data
+        // (avoids re-parsing the ICS string via ICSEventHelpers.isRecurringEvent)
+        const masterIsRecurring = icalExpander.events.some(e => e.isRecurring());
+
         [...expanded.events, ...expanded.occurrences].forEach((e, idx) => {
           const start = e.startDate.toJSDate().getTime() / 1000;
           const end = e.endDate.toJSDate().getTime() / 1000;
@@ -162,6 +168,7 @@ export function occurrencesForEvents(
             isCancelled: status.toUpperCase() === 'CANCELLED',
             isPending: isTentativeStatus || isAwaitingMyResponse,
             isException: !!item.component?.getFirstPropertyValue('recurrence-id'),
+            isRecurring: masterIsRecurring,
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees,
           });
@@ -219,6 +226,7 @@ export function occurrencesForEvents(
             isCancelled: status.toUpperCase() === 'CANCELLED',
             isPending: isTentativeStatus || isAwaitingMyResponse,
             isException: true,
+            isRecurring: true, // Exceptions are always from recurring series
             organizer: item.organizer ? { email: item.organizer } : null,
             attendees,
           });

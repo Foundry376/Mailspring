@@ -62,14 +62,28 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
   }
 
   render() {
+    const starred = this.props.thread && this.props.thread.starred;
+    const ariaLabel = starred ? localized('Unstar') : localized('Star');
     return (
       <div
         className={`thread-icon ${this._iconClassNames()}`}
-        title={localized('Star')}
+        role="button"
+        tabIndex={-1}
+        aria-label={ariaLabel}
+        aria-pressed={starred || false}
+        title={ariaLabel}
         onClick={this._onToggleStar}
+        onKeyDown={this._onKeyDown}
       />
     );
   }
+
+  _onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this._onToggleStar(event as any);
+    }
+  };
 
   _onToggleStar = event => {
     Actions.queueTask(

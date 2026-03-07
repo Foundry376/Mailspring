@@ -186,6 +186,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}
           onCalendarMouseMove={this.props.onCalendarMouseMove}
+          onCalendarDoubleClick={this.props.onCalendarDoubleClick}
         >
           <div className="top-banner">
             <InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} direction="row" />

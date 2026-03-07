@@ -364,6 +364,23 @@ export const People = () => (
   </svg>
 );
 
+export const Note = () => (
+  <svg
+    version="1.1"
+    id="Layer_1"
+    x="0px"
+    y="0px"
+    viewBox="0 0 20 20"
+    enableBackground="new 0 0 20 20"
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2,0H13L19,6V20H2V0z M13,0L19,6H13V0z M4,9H16V11H4V9z M4,13H16V15H4V13z M4,17H12V19H4V17z"
+    />
+  </svg>
+);
+
 export const Person = () => (
   <svg
     version="1.1"

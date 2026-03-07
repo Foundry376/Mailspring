@@ -103,6 +103,7 @@ class PreferencesMailRules extends React.Component<
           "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox."
         )
       );
+      return;
     }
 
     if (this.state.rules.length === 0) {
@@ -111,6 +112,7 @@ class PreferencesMailRules extends React.Component<
           "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox."
         )
       );
+      return;
     }
     Actions.startReprocessingMailRules(this.state.currentAccount.id);
   };
@@ -164,13 +166,19 @@ class PreferencesMailRules extends React.Component<
     ));
 
     return (
-      <select
-        value={this.state.currentAccount.id}
-        onChange={this._onSelectAccount}
-        style={{ margin: 0, minWidth: 200 }}
-      >
-        {options}
-      </select>
+      <>
+        <label htmlFor="mail-rules-account" className="sr-only">
+          {localized('Account')}
+        </label>
+        <select
+          id="mail-rules-account"
+          value={this.state.currentAccount.id}
+          onChange={this._onSelectAccount}
+          style={{ margin: 0, minWidth: 200 }}
+        >
+          {options}
+        </select>
+      </>
     );
   }
 

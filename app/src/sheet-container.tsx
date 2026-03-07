@@ -1,6 +1,6 @@
 import React from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
-import { WorkspaceStore } from 'mailspring-exports';
+import { localized, WorkspaceStore } from 'mailspring-exports';
 
 import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
@@ -52,7 +52,7 @@ export default class SheetContainer extends React.Component<
     };
   }
 
-  _onColumnSizeChanged = sheet => {
+  _onColumnSizeChanged = (sheet) => {
     const toolbar = this._toolbarComponents[sheet.props.depth];
     if (toolbar) {
       toolbar.recomputeLayout();
@@ -66,7 +66,7 @@ export default class SheetContainer extends React.Component<
 
   _lastToolbarClickTime = 0;
 
-  _onToolbarDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  _onToolbarDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (process.platform !== 'darwin') return;
     if (e.target instanceof HTMLElement) {
       if (['INPUT', 'A', 'BUTTON'].includes(e.target.tagName)) return;
@@ -93,7 +93,7 @@ export default class SheetContainer extends React.Component<
     const components = this.state.stack.map((sheet, index) => (
       <Toolbar
         data={sheet}
-        ref={cm => {
+        ref={(cm) => {
           this._toolbarComponents[index] = cm;
         }}
         key={`${index}:${sheet.id}:toolbar`}
@@ -102,8 +102,10 @@ export default class SheetContainer extends React.Component<
     ));
 
     return (
-      <div
+      <header
         className="sheet-toolbar"
+        role="banner"
+        aria-label={localized('Application toolbar')}
         style={{ order: 0, zIndex: 3 }}
         onClick={this._onToolbarDoubleClick}
       >
@@ -115,7 +117,7 @@ export default class SheetContainer extends React.Component<
         >
           {components.slice(1)}
         </CSSTransitionGroup>
-      </div>
+      </header>
     );
   }
 
@@ -152,7 +154,10 @@ export default class SheetContainer extends React.Component<
           />
         </div>
 
-        <div style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+        <main
+          style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}
+          aria-label={localized('Email workspace')}
+        >
           {sheetComponents[0]}
           <CSSTransitionGroup
             transitionLeaveTimeout={125}
@@ -161,15 +166,15 @@ export default class SheetContainer extends React.Component<
           >
             {sheetComponents.slice(1)}
           </CSSTransitionGroup>
-        </div>
+        </main>
 
-        <div style={{ order: 3, zIndex: 4 }}>
+        <footer style={{ order: 3, zIndex: 4 }}>
           <InjectedComponentSet
             matching={{ locations: [topSheet.Footer, WorkspaceStore.Sheet.Global.Footer] }}
             direction="column"
             id={topSheet.id}
           />
-        </div>
+        </footer>
       </Flexbox>
     );
   }

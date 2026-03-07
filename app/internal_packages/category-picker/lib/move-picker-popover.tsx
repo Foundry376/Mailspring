@@ -1,4 +1,3 @@
-/* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
@@ -254,7 +253,7 @@ export default class MovePickerPopover extends Component<
     const headerComponents = [
       <input
         type="text"
-        tabIndex={1}
+        autoFocus
         key="textfield"
         className="search"
         placeholder={localized('Move to...')}

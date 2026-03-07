@@ -66,7 +66,9 @@ export interface RecurrenceInfo {
  */
 export function generateUID(): string {
   const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 15);
+  const random = Math.random()
+    .toString(36)
+    .substring(2, 15);
   return `${timestamp}-${random}@mailspring`;
 }
 
@@ -167,6 +169,39 @@ function validateTimestamps(start: number, end: number): void {
 }
 
 /**
+ * Creates a minimal VTIMEZONE ICS string for the given IANA timezone.
+ *
+ * RFC 5545 requires a VTIMEZONE block whenever TZID is referenced. Most modern
+ * CalDAV servers use the TZID name to look up their own DST rules, so the content
+ * just needs to be present and well-formed. We derive the UTC offset from
+ * moment-timezone for the given reference date (so the abbreviation and sign are
+ * accurate for that point in time).
+ *
+ * @param tzId - IANA timezone identifier (e.g. 'America/Chicago')
+ * @param referenceDate - Date used to determine the current UTC offset / abbreviation
+ * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper)
+ */
+export function createVTIMEZONEString(tzId: string, referenceDate: Date): string {
+  const momentTz = require('moment-timezone');
+  const m = momentTz(referenceDate).tz(tzId);
+  const utcOffsetMin = m.utcOffset(); // e.g. -360 for CST (UTC-6)
+  const absMin = Math.abs(utcOffsetMin);
+  const sign = utcOffsetMin >= 0 ? '+' : '-';
+  const offsetStr = `${sign}${String(Math.floor(absMin / 60)).padStart(2, '0')}${String(absMin % 60).padStart(2, '0')}`;
+  return [
+    'BEGIN:VTIMEZONE',
+    `TZID:${tzId}`,
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000Z',
+    `TZOFFSETFROM:${offsetStr}`,
+    `TZOFFSETTO:${offsetStr}`,
+    `TZNAME:${m.zoneAbbr()}`,
+    'END:STANDARD',
+    'END:VTIMEZONE',
+  ].join('\r\n');
+}
+
+/**
  * Creates a new ICS string for an event
  *
  * @param options - Event creation options including title, times, and optional timezone
@@ -192,21 +227,62 @@ export function createICSString(options: CreateEventOptions): string {
   // Set summary (title)
   event.summary = options.summary;
 
-  // Resolve timezone if specified (for timed events only)
-  let eventTimezone: ICALTimezone | null = null;
   if (!isAllDay && options.timezone) {
-    try {
-      // Try to get the timezone from ICAL's built-in timezone service
-      eventTimezone = ical.TimezoneService.get(options.timezone);
-    } catch {
-      // If timezone lookup fails, we'll use UTC
-      console.warn(`Could not resolve timezone: ${options.timezone}, using UTC`);
-    }
-  }
+    // ical.js TimezoneService only knows UTC/GMT/Z by default — IANA timezone names
+    // like "America/Chicago" are never registered, so we can't use it for conversion.
+    // Instead, use moment-timezone to extract the correct local time components and
+    // create a floating ICAL.Time, then manually stamp the TZID onto the property.
+    // This produces: DTSTART;TZID=America/Chicago:20240115T140000
+    //
+    // RFC 5545 requires a VTIMEZONE component to be present whenever TZID is used.
+    // Without it, some servers (Yahoo, etc.) ignore the TZID and treat the wall-clock
+    // time as UTC. We generate a minimal VTIMEZONE using the current UTC offset from
+    // moment-timezone — the TZID name is what most modern servers actually use to look
+    // up DST rules; the VTIMEZONE content just needs to be present and well-formed.
+    const momentTz = require('moment-timezone');
+    const startM = momentTz(options.start).tz(options.timezone);
+    const endM = momentTz(options.end).tz(options.timezone);
 
-  // Set times with timezone support
-  event.startDate = createICALTime(options.start, isAllDay, ical, eventTimezone);
-  event.endDate = createICALTime(options.end, isAllDay, ical, eventTimezone);
+    const vtimezoneComp = new ical.Component(
+      ical.parse(
+        `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${createVTIMEZONEString(options.timezone, options.start)}\r\nEND:VCALENDAR`
+      )
+    ).getFirstSubcomponent('vtimezone');
+    calendar.addSubcomponent(vtimezoneComp);
+
+    event.startDate = new ical.Time(
+      {
+        year: startM.year(),
+        month: startM.month() + 1, // moment months are 0-indexed
+        day: startM.date(),
+        hour: startM.hour(),
+        minute: startM.minute(),
+        second: startM.second(),
+        isDate: false,
+      },
+      ical.Timezone.localTimezone
+    );
+    event.endDate = new ical.Time(
+      {
+        year: endM.year(),
+        month: endM.month() + 1,
+        day: endM.date(),
+        hour: endM.hour(),
+        minute: endM.minute(),
+        second: endM.second(),
+        isDate: false,
+      },
+      ical.Timezone.localTimezone
+    );
+
+    vevent.getFirstProperty('dtstart')?.setParameter('tzid', options.timezone);
+    vevent.getFirstProperty('dtend')?.setParameter('tzid', options.timezone);
+  } else {
+    // All-day or no-timezone: use existing path
+    const eventTimezone: ICALTimezone | null = null;
+    event.startDate = createICALTime(options.start, isAllDay, ical, eventTimezone);
+    event.endDate = createICALTime(options.end, isAllDay, ical, eventTimezone);
+  }
 
   // Set optional properties
   if (options.description) {

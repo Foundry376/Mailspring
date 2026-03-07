@@ -43,6 +43,7 @@ export class ChangeMailTask extends Task {
   constructor({
     threads = [],
     messages = [],
+    canBeUndone,
     ...rest
   }: AttributeValues<typeof ChangeMailTask.attributes> & {
     threads?: Thread[];
@@ -50,14 +51,14 @@ export class ChangeMailTask extends Task {
   } = {}) {
     super(rest);
 
-    this.threadIds = this.threadIds || threads.map(i => i.id);
-    this.messageIds = this.messageIds || messages.map(i => i.id);
+    this.threadIds = this.threadIds || threads.map((i) => i.id);
+    this.messageIds = this.messageIds || messages.map((i) => i.id);
     this.accountId =
       this.accountId || (threads[0] || messages[0] || { accountId: undefined }).accountId;
 
-    if (this.canBeUndone === undefined) {
-      this.canBeUndone = true;
-    }
+    // Set canBeUndone after super() — defaults to true for mail tasks
+    // unless explicitly overridden by subclasses (e.g. ChangeFolderTask).
+    this.canBeUndone = canBeUndone !== undefined ? canBeUndone : true;
   }
 
   // Task lifecycle

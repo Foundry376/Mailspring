@@ -1,10 +1,18 @@
-import { WorkspaceStore, ComponentRegistry, Actions, localized } from 'mailspring-exports';
+import {
+  WorkspaceStore,
+  ComponentRegistry,
+  Actions,
+  AccountStore,
+  localized,
+} from 'mailspring-exports';
 import { ContactPerspectivesList } from './ContactPerspectivesList';
 import { ContactDetailToolbar } from './ContactDetailToolbar';
 import { AddContactToolbar } from './AddContactToolbar';
 import { ContactList, ContactListSearch } from './ContactList';
 import { ContactDetail } from './ContactDetail';
 import { FoundInMailEnabledBar } from './FoundInMailEnabledBar';
+import { Store } from './Store';
+import { exportContactsToFile, importContactsFromFile } from './VCFImportExport';
 
 function adjustMenus() {
   const contactMenu: typeof AppEnv.menu.template[0] = {
@@ -14,6 +22,19 @@ function adjustMenus() {
       {
         label: localized('New Contact'),
         command: 'core:add-item',
+      },
+      { type: 'separator' },
+      {
+        label: localized('Import vCards...'),
+        command: 'contacts:import-vcf',
+      },
+      {
+        label: localized('Export All vCards...'),
+        command: 'contacts:export-vcf-all',
+      },
+      {
+        label: localized('Export Selected...'),
+        command: 'contacts:export-vcf-selected',
       },
       { type: 'separator' },
       {
@@ -40,6 +61,18 @@ function adjustMenus() {
   AppEnv.menu.update();
 }
 
+let _commandDisposable: { dispose: () => void } | null = null;
+
+function resolveImportAccountId(): string | null {
+  const perspective = Store.perspective();
+  if ('accountId' in perspective) {
+    return perspective.accountId;
+  }
+  // Unified view — fall back to the first CardDAV-capable account.
+  const account = AccountStore.accounts().find(a => a.provider !== 'gmail');
+  return account ? account.id : null;
+}
+
 export function activate() {
   WorkspaceStore.defineSheet(
     'Contacts',
@@ -49,6 +82,28 @@ export function activate() {
 
   adjustMenus();
   Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
+
+  _commandDisposable = AppEnv.commands.add(document.body, {
+    'contacts:import-vcf': () => {
+      const accountId = resolveImportAccountId();
+      if (accountId) {
+        importContactsFromFile(accountId);
+      } else {
+        require('@electron/remote').dialog.showMessageBox({
+          type: 'info',
+          title: localized('No Compatible Account'),
+          message: localized(
+            'VCard import requires at least one CardDAV account. Google accounts must be managed via contacts.google.com.'
+          ),
+          buttons: [localized('OK')],
+        });
+      }
+    },
+    'contacts:export-vcf-all': () => {
+      const contacts = Store.filteredContacts() || [];
+      exportContactsToFile(contacts);
+    },
+  });
 
   ComponentRegistry.register(ContactPerspectivesList, {
     location: WorkspaceStore.Location.ContactsSidebar,
@@ -82,4 +137,6 @@ export function deactivate() {
   ComponentRegistry.unregister(ContactDetail);
   ComponentRegistry.unregister(ContactDetailToolbar);
   ComponentRegistry.unregister(AddContactToolbar);
+  _commandDisposable?.dispose();
+  _commandDisposable = null;
 }

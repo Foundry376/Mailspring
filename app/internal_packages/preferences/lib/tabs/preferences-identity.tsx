@@ -209,12 +209,14 @@ class PreferencesIdentity extends React.Component<
               `You are using %@, which is free! You can try pro features like snooze, send later, read receipts and reminders a few times a week.`,
               <strong>{localized('Mailspring Basic')}</strong>
             )}
-            <span className="platform-linux-only">
-              {localizedReactFragment(
-                `Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.`,
-                <a href="https://github.com/Foundry376/Mailspring/">{localized('open source')}</a>
-              )}
-            </span>
+            {process.platform === 'linux' && (
+              <span>
+                {localizedReactFragment(
+                  `Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.`,
+                  <a href="https://github.com/Foundry376/Mailspring/">{localized('open source')}</a>
+                )}
+              </span>
+            )}
             <br />
             <br />
             {localizedReactFragment(

@@ -78,3 +78,4 @@ client_secret.json
 .idea
 
 BMAD/
+.claude/worktrees/

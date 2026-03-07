@@ -34,8 +34,8 @@ export class Task extends Model {
   source: string;
   error: string;
 
-  /** Override in subclasses to enable undo support */
-  canBeUndone = false;
+  /** Set in subclasses to enable undo support. Defaults to falsy (undefined). */
+  canBeUndone: boolean;
 
   // Public: Override the constructor to pass initial args to your Task and
   // initialize instance variables.

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 import { EventOccurrence } from './calendar-data-source';
 import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
+import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canDragEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -280,8 +281,9 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
 
     const meetingDomain = extractMeetingDomain(event.location, event.description);
     const timeRange = formatEventTimeRange(event.start, event.end, event.isAllDay);
+    const hasPhysicalLocation = !meetingDomain && !!event.location;
 
-    if (!meetingDomain && !timeRange) {
+    if (!meetingDomain && !hasPhysicalLocation && !timeRange) {
       return null;
     }
 
@@ -289,12 +291,47 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       <div className="event-details">
         {meetingDomain && (
           <span className="event-meeting-link">
-            <span className="meeting-icon">▢</span> {meetingDomain}
+            <svg className="detail-icon" viewBox="0 0 12 12" width="10" height="10">
+              <rect x="1" y="3" width="7" height="6" rx="1" fill="none" stroke="currentColor" strokeWidth="1.3" />
+              <path
+                d="M8 4.5 L11 3 V9 L8 7.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {meetingDomain}
+          </span>
+        )}
+        {hasPhysicalLocation && (
+          <span className="event-location">
+            <svg className="detail-icon" viewBox="0 0 12 12" width="10" height="10">
+              <path
+                d="M6 11 C6 11 2.5 7 2.5 5 A3.5 3.5 0 1 1 9.5 5 C9.5 7 6 11 6 11Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+              />
+              <circle cx="6" cy="5" r="1.3" fill="currentColor" />
+            </svg>
+            {event.location}
           </span>
         )}
         {timeRange && (
           <span className="event-time-range">
-            <span className="time-icon">◷</span> {timeRange}
+            <svg className="detail-icon" viewBox="0 0 12 12" width="10" height="10">
+              <circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
+              <polyline
+                points="6,3 6,6 8.5,7.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {timeRange}
           </span>
         )}
       </div>
@@ -341,8 +378,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         tabIndex={0}
         style={styles}
         className={classNames}
-        onClick={e => onClick(e, event)}
-        onDoubleClick={() => onDoubleClick(event)}
+        onClick={(e) => onClick(e, event)}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          onDoubleClick(event);
+        }}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}
@@ -351,6 +391,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
           {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
         {this._renderEventDetails()}
+        {event.isRecurring && !event.isCancelled && !event.isException && <RecurringIcon />}
         {event.isException && <span className="exception-tag">Modified</span>}
         <InjectedComponentSet
           className="event-injected-components"

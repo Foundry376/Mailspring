@@ -56,24 +56,28 @@ export class ContactDetailEdit extends React.Component<{
           </div>
           <div className="contact-edit-section-content">
             <div className="contact-edit-field">
-              <label>First Name</label>
-              <input
-                type="text"
-                value={data.name.givenName}
-                onChange={e =>
-                  onChange({ name: { ...data.name, givenName: e.currentTarget.value } })
-                }
-              />
+              <label>
+                First Name
+                <input
+                  type="text"
+                  value={data.name.givenName}
+                  onChange={e =>
+                    onChange({ name: { ...data.name, givenName: e.currentTarget.value } })
+                  }
+                />
+              </label>
             </div>
             <div className="contact-edit-field">
-              <label>Last Name</label>
-              <input
-                type="text"
-                value={data.name.familyName}
-                onChange={e =>
-                  onChange({ name: { ...data.name, familyName: e.currentTarget.value } })
-                }
-              />
+              <label>
+                Last Name
+                <input
+                  type="text"
+                  value={data.name.familyName}
+                  onChange={e =>
+                    onChange({ name: { ...data.name, familyName: e.currentTarget.value } })
+                  }
+                />
+              </label>
             </div>
 
             <ListEditor<ContactBase['nicknames'][0]>
@@ -83,12 +87,14 @@ export class ContactDetailEdit extends React.Component<{
             >
               {(item, onChange) => (
                 <div className="contact-edit-field">
-                  <label>Nickname</label>
-                  <input
-                    type="text"
-                    value={item.value}
-                    onChange={e => onChange({ value: e.currentTarget.value })}
-                  />
+                  <label>
+                    Nickname
+                    <input
+                      type="text"
+                      value={item.value}
+                      onChange={e => onChange({ value: e.currentTarget.value })}
+                    />
+                  </label>
                 </div>
               )}
             </ListEditor>
@@ -102,20 +108,24 @@ export class ContactDetailEdit extends React.Component<{
           <div className="contact-edit-section-content">
             <div className="contact-edit-twoup">
               <div className="contact-edit-field">
-                <label>Title</label>
-                <input
-                  type="text"
-                  value={data.title}
-                  onChange={e => onChange({ title: e.currentTarget.value })}
-                />
+                <label>
+                  Title
+                  <input
+                    type="text"
+                    value={data.title}
+                    onChange={e => onChange({ title: e.currentTarget.value })}
+                  />
+                </label>
               </div>
               <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                <label>Company</label>
-                <input
-                  type="text"
-                  value={data.company}
-                  onChange={e => onChange({ company: e.currentTarget.value })}
-                />
+                <label>
+                  Company
+                  <input
+                    type="text"
+                    value={data.company}
+                    onChange={e => onChange({ company: e.currentTarget.value })}
+                  />
+                </label>
               </div>
             </div>
           </div>
@@ -134,15 +144,17 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
                   <div className="contact-edit-field">
-                    <label>Email</label>
-                    <input
-                      type="text"
-                      value={item.value}
-                      onChange={e => onChange({ value: e.currentTarget.value })}
-                    />
+                    <label>
+                      Email
+                      <input
+                        type="text"
+                        value={item.value}
+                        onChange={e => onChange({ value: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                   <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <label></label>
+                    <span aria-hidden="true" className="form-spacer" />
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={BaseTypes}
@@ -169,15 +181,17 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
                   <div className="contact-edit-field">
-                    <label>Phone</label>
-                    <input
-                      type="text"
-                      value={item.value}
-                      onChange={e => onChange({ value: e.currentTarget.value })}
-                    />
+                    <label>
+                      Phone
+                      <input
+                        type="text"
+                        value={item.value}
+                        onChange={e => onChange({ value: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                   <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <label></label>
+                    <span aria-hidden="true" className="form-spacer" />
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={PhoneTypes}
@@ -212,64 +226,78 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                   <div className="contact-edit-field">
-                    <label>Street Address</label>
-                    <input
-                      type="text"
-                      value={item.streetAddress}
-                      onChange={e => onChange({ streetAddress: e.currentTarget.value })}
-                    />
+                    <label>
+                      Street Address
+                      <input
+                        type="text"
+                        value={item.streetAddress}
+                        onChange={e => onChange({ streetAddress: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                   <div className="contact-edit-field">
-                    <label>Street Address line 2</label>
-                    <input
-                      type="text"
-                      value={item.extendedAddress}
-                      onChange={e => onChange({ extendedAddress: e.currentTarget.value })}
-                    />
+                    <label>
+                      Street Address line 2
+                      <input
+                        type="text"
+                        value={item.extendedAddress}
+                        onChange={e => onChange({ extendedAddress: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                   <div className="contact-edit-field">
-                    <label>City</label>
-                    <input
-                      type="text"
-                      value={item.city}
-                      onChange={e => onChange({ city: e.currentTarget.value })}
-                    />
+                    <label>
+                      City
+                      <input
+                        type="text"
+                        value={item.city}
+                        onChange={e => onChange({ city: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                   <div className="contact-edit-twoup">
                     <div className="contact-edit-field">
-                      <label>Region</label>
-                      <input
-                        type="text"
-                        value={item.region}
-                        onChange={e => onChange({ region: e.currentTarget.value })}
-                      />
+                      <label>
+                        Region
+                        <input
+                          type="text"
+                          value={item.region}
+                          onChange={e => onChange({ region: e.currentTarget.value })}
+                        />
+                      </label>
                     </div>
                     <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                      <label>Postal Code</label>
-                      <input
-                        type="text"
-                        value={item.postalCode}
-                        onChange={e => onChange({ postalCode: e.currentTarget.value })}
-                      />
+                      <label>
+                        Postal Code
+                        <input
+                          type="text"
+                          value={item.postalCode}
+                          onChange={e => onChange({ postalCode: e.currentTarget.value })}
+                        />
+                      </label>
                     </div>
                   </div>
 
                   <div className="contact-edit-field">
-                    <label>Country</label>
-                    <input
-                      type="text"
-                      value={item.country}
-                      onChange={e => onChange({ country: e.currentTarget.value })}
-                    />
+                    <label>
+                      Country
+                      <input
+                        type="text"
+                        value={item.country}
+                        onChange={e => onChange({ country: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                   <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <label>Type</label>
-                    <TypeaheadFreeInput
-                      placeholder="Label"
-                      suggestions={BaseTypes}
-                      value={item.type || ''}
-                      onChange={e => onChange({ type: e.currentTarget.value })}
-                    />
+                    <label>
+                      Type
+                      <TypeaheadFreeInput
+                        placeholder="Label"
+                        suggestions={BaseTypes}
+                        value={item.type || ''}
+                        onChange={e => onChange({ type: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                 </div>
               )}
@@ -306,15 +334,17 @@ export class ContactDetailEdit extends React.Component<{
                 {(item, onChange) => (
                   <div className="contact-edit-twoup">
                     <div className="contact-edit-field">
-                      <label>Relation</label>
-                      <input
-                        type="text"
-                        value={item.person}
-                        onChange={e => onChange({ person: e.currentTarget.value })}
-                      />
+                      <label>
+                        Relation
+                        <input
+                          type="text"
+                          value={item.person}
+                          onChange={e => onChange({ person: e.currentTarget.value })}
+                        />
+                      </label>
                     </div>
                     <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                      <label></label>
+                      <span aria-hidden="true" className="form-spacer" />
                       <TypeaheadFreeInput
                         placeholder="Label"
                         suggestions={RelationTypes}
@@ -341,15 +371,17 @@ export class ContactDetailEdit extends React.Component<{
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
                   <div className="contact-edit-field">
-                    <label>Link</label>
-                    <input
-                      type="text"
-                      value={item.value}
-                      onChange={e => onChange({ value: e.currentTarget.value })}
-                    />
+                    <label>
+                      Link
+                      <input
+                        type="text"
+                        value={item.value}
+                        onChange={e => onChange({ value: e.currentTarget.value })}
+                      />
+                    </label>
                   </div>
                   <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <label></label>
+                    <span aria-hidden="true" className="form-spacer" />
                     <TypeaheadFreeInput
                       placeholder="Label"
                       suggestions={WebTypes}
@@ -360,6 +392,24 @@ export class ContactDetailEdit extends React.Component<{
                 </div>
               )}
             </ListEditor>
+          </div>
+        </div>
+        <div className="contact-edit-section">
+          <div className="contact-edit-section-icon">
+            <Icons.Note />
+          </div>
+          <div className="contact-edit-section-content">
+            <div className="contact-edit-field">
+              <label>
+                Notes
+                <textarea
+                  className="contact-notes-textarea"
+                  value={data.notes || ''}
+                  onChange={e => onChange({ notes: e.currentTarget.value })}
+                  rows={4}
+                />
+              </label>
+            </div>
           </div>
         </div>
       </div>

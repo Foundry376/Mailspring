@@ -8,7 +8,7 @@ import {
   Actions,
 } from 'mailspring-exports';
 
-const MailRulesProcessor = require('../src/mail-rules-processor');
+const MailRulesProcessor = require('../src/mail-rules-processor').default;
 
 const Tests = [
   {
@@ -143,7 +143,7 @@ const Tests = [
   },
 ];
 
-xdescribe('MailRulesProcessor', function() {
+describe('MailRulesProcessor', function() {
   describe('_checkRuleForMessage', function() {
     it('should correctly filter sample messages', () =>
       Tests.forEach(({ rule, good, bad }) => {
@@ -181,11 +181,11 @@ xdescribe('MailRulesProcessor', function() {
   describe('_applyRuleToMessage', () =>
     it('should queue tasks for messages', function() {
       spyOn(TaskQueue, 'waitForPerformLocal');
-      spyOn(Actions, 'queueTask');
+      spyOn(Actions, 'queueTasks');
       spyOn(DatabaseStore, 'findBy').andReturn(Promise.resolve({}));
       Tests.forEach(({ rule }) => {
         TaskQueue.waitForPerformLocal.reset();
-        Actions.queueTask.reset();
+        Actions.queueTasks.reset();
 
         const message = new Message({ accountId: rule.accountId });
         const thread = new Thread({ accountId: rule.accountId });
@@ -195,7 +195,7 @@ xdescribe('MailRulesProcessor', function() {
         waitsForPromise(() => {
           return response.then(() => {
             expect(TaskQueue.waitForPerformLocal).toHaveBeenCalled();
-            expect(Actions.queueTask).toHaveBeenCalled();
+            expect(Actions.queueTasks).toHaveBeenCalled();
           });
         });
       });

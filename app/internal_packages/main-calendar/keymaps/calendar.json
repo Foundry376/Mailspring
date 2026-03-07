@@ -6,5 +6,13 @@
   "calendar:resize-event-up": "shift+up",
   "calendar:resize-event-down": "shift+down",
   "calendar:resize-event-left": "shift+left",
-  "calendar:resize-event-right": "shift+right"
+  "calendar:resize-event-right": "shift+right",
+  "calendar:view-day": "mod+1",
+  "calendar:view-week": "mod+2",
+  "calendar:view-month": "mod+3",
+  "calendar:view-agenda": "mod+4",
+  "calendar:go-to-today": "mod+t",
+  "calendar:navigate-next": "mod+right",
+  "calendar:navigate-previous": "mod+left",
+  "calendar:refresh-calendars": "mod+shift+r"
 }

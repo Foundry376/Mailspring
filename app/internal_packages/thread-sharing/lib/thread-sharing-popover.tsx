@@ -1,4 +1,3 @@
-/* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
@@ -111,7 +110,7 @@ export default class ThreadSharingPopover extends React.Component<
 
     // tabIndex is necessary for the popover's onBlur events to work properly
     return (
-      <div tabIndex={1} className={`thread-sharing-popover ${!url && 'disabled'}`}>
+      <div tabIndex={-1} className={`thread-sharing-popover ${!url && 'disabled'}`}>
         <div className="share-toggle">
           {saving ? (
             <label htmlFor="shareCheckbox">

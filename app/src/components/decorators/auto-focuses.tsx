@@ -3,6 +3,7 @@ import React from 'react';
 import { findDOMNode } from 'react-dom';
 
 const FOCUSABLE_SELECTOR = 'input, textarea, [contenteditable], [tabIndex]';
+const AUTO_FOCUS_SELECTOR = '[autofocus], input[autofocus]';
 
 function AutoFocuses(
   ComposedComponent: React.ComponentClass<{ focusElementWithTabIndex }> & {
@@ -51,6 +52,13 @@ function AutoFocuses(
 
       if (this.isFocusable(currentNode)) {
         currentNode.focus();
+        return;
+      }
+
+      // Check for autoFocus elements first (highest priority)
+      const autoFocusEl = currentNode.querySelector(AUTO_FOCUS_SELECTOR) as HTMLElement;
+      if (autoFocusEl) {
+        autoFocusEl.focus();
         return;
       }
 

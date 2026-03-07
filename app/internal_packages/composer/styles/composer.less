@@ -436,6 +436,13 @@ body.platform-win32 {
     border: none;
   }
 
+  // Suppress the keyboard-navigation focus ring on composer header fields (To, From,
+  // Subject, etc.) — they have their own focused styling via the parent container.
+  input:focus-visible,
+  select:focus-visible {
+    outline: none;
+  }
+
   .composer-field-label {
     color: @text-color-very-subtle;
     float: left;

@@ -1,16 +1,11 @@
 import React from 'react';
-import {
-  Actions,
-  Calendar,
-  DatabaseStore,
-  DateUtils,
-  Event,
-  ICSEventHelpers,
-  localized,
-  SyncbackEventTask,
-  TaskQueue,
-} from 'mailspring-exports';
+import { Actions, Calendar, DatabaseStore, DateUtils, localized } from 'mailspring-exports';
 import { Moment } from 'moment';
+import {
+  getEditableCalendars,
+  showNoEditableCalendarsError,
+  createCalendarEvent,
+} from './core/calendar-helpers';
 
 interface QuickEventPopoverState {
   start: Moment | null;
@@ -31,7 +26,7 @@ export class QuickEventPopover extends React.Component<
     };
   }
 
-  onInputKeyDown = (event) => {
+  onInputKeyDown = event => {
     const {
       key,
       target: { value },
@@ -44,7 +39,7 @@ export class QuickEventPopover extends React.Component<
     }
   };
 
-  onInputChange = (event) => {
+  onInputChange = event => {
     this.setState(DateUtils.parseDateString(event.target.value));
   };
 
@@ -59,51 +54,20 @@ export class QuickEventPopover extends React.Component<
   }) => {
     const allCalendars = await DatabaseStore.findAll<Calendar>(Calendar);
     const disabledCalendars: string[] = AppEnv.config.get('mailspring.disabledCalendars') || [];
-    const editableCals = allCalendars.filter(
-      (c) => !c.readOnly && !disabledCalendars.includes(c.id)
-    );
+    const editableCals = getEditableCalendars(allCalendars, disabledCalendars);
     if (editableCals.length === 0) {
-      AppEnv.showErrorDialog(
-        localized(
-          "This account has no editable calendars. We can't create an event for you. Please make sure you have an editable calendar with your account provider."
-        )
-      );
+      showNoEditableCalendarsError();
       return;
     }
 
-    // Generate ICS data for the new event
-    const icsuid = ICSEventHelpers.generateUID();
-    const ics = ICSEventHelpers.createICSString({
-      uid: icsuid,
+    await createCalendarEvent({
       summary: leftoverText,
       start: start.toDate(),
       end: end.toDate(),
       isAllDay: false,
-    });
-
-    const event = new Event({
-      calendarId: editableCals[0].id,
-      accountId: editableCals[0].accountId,
-      ics: ics,
-      icsuid: icsuid,
-      recurrenceStart: start.unix(),
-      recurrenceEnd: end.unix(),
-    });
-    event.title = leftoverText;
-
-    // Create and queue the task to save the event
-    const task = SyncbackEventTask.forCreating({
-      event,
       calendarId: editableCals[0].id,
       accountId: editableCals[0].accountId,
     });
-    Actions.queueTask(task);
-
-    // Wait for the task to complete (synced to server)
-    await TaskQueue.waitForPerformRemote(task);
-
-    // Focus the calendar on the newly created event
-    Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });
   };
 
   render() {

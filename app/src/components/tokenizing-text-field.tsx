@@ -423,6 +423,7 @@ export class TokenizingTextField<T> extends React.Component<
   };
 
   _mounted = false;
+  private _inputId = `tokenizing-field-${Utils.generateTempId()}`;
 
   constructor(props) {
     super(props);
@@ -921,7 +922,7 @@ export class TokenizingTextField<T> extends React.Component<
       props.onChange = () => 'noop';
       props.value = '';
     }
-    return <SizeToFitInput ref="input" spellCheck={false} {...props} />;
+    return <SizeToFitInput ref="input" id={this._inputId} spellCheck={false} {...props} />;
   }
 
   _atMaxTokens() {
@@ -983,7 +984,11 @@ export class TokenizingTextField<T> extends React.Component<
         onClick={this._onClick}
         onDrop={this._onDrop}
       >
-        {this.props.label && <div className="tokenizing-field-label">{`${this.props.label}:`}</div>}
+        {this.props.label && (
+          <label htmlFor={this._inputId} className="tokenizing-field-label">
+            {`${this.props.label}:`}
+          </label>
+        )}
         <div className={fieldClasses}>
           {this.state.inputValue.length > 0 ||
             this.props.placeholder === undefined ||

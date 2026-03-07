@@ -121,7 +121,10 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
   _onShowOriginal = async () => {
     const { message } = this.props;
-    const filepath = require('path').join(require('@electron/remote').app.getPath('temp'), message.id);
+    const filepath = require('path').join(
+      require('@electron/remote').app.getPath('temp'),
+      message.id
+    );
     const task = new GetMessageRFC2822Task({
       messageId: message.id,
       accountId: message.accountId,
@@ -173,8 +176,24 @@ export default class MessageControls extends React.Component<MessageControlsProp
           closeOnMenuClick
           menu={this._dropdownMenu(items.slice(1))}
         />
-        <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
-          <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask} />
+        <div
+          className="message-actions-ellipsis"
+          role="button"
+          tabIndex={-1}
+          aria-label={localized('More message actions')}
+          onClick={this._onShowActionsMenu}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              this._onShowActionsMenu();
+            }
+          }}
+        >
+          <RetinaImg
+            name={'message-actions-ellipsis.png'}
+            mode={RetinaImg.Mode.ContentIsMask}
+            aria-hidden="true"
+          />
         </div>
       </div>
     );

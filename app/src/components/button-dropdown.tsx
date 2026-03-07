@@ -1,7 +1,7 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { RetinaImg } from './retina-img';
-import { PropTypes } from 'mailspring-exports';
+import { PropTypes, localized } from 'mailspring-exports';
 import classnames from 'classnames';
 
 type ButtonDropdownState = {
@@ -62,16 +62,33 @@ export class ButtonDropdown extends React.Component<ButtonDropdownProps, ButtonD
           style={this.props.style}
         >
           <div
+            role="button"
+            tabIndex={0}
             className="primary-item"
             title={this.props.primaryTitle || ''}
+            aria-label={this.props.primaryTitle}
             onClick={this.props.primaryClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.primaryClick(); }
+            }}
           >
             {this.props.primaryItem}
           </div>
-          <div className="secondary-picker" onClick={this.toggleDropdown}>
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={localized('More options')}
+            aria-haspopup="menu"
+            aria-expanded={this.state.open !== false}
+            className="secondary-picker"
+            onClick={this.toggleDropdown}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggleDropdown(); }
+            }}
+          >
             <RetinaImg name={'icon-thread-disclosure.png'} mode={RetinaImg.Mode.ContentIsMask} />
           </div>
-          <div className="secondary-items" onMouseDown={this._onMenuClick}>
+          <div role="menu" className="secondary-items" onMouseDown={this._onMenuClick}>
             {menu}
           </div>
         </div>

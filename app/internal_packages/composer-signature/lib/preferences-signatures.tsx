@@ -105,9 +105,12 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     return (
       <div className={`signature-wrap ${empty && 'empty'}`}>
         <div className="section basic-info">
+          <label htmlFor="signature-title" className="sr-only">
+            {localized('Signature Name')}
+          </label>
           <input
             type="text"
-            id="title"
+            id="signature-title"
             placeholder={localized('Name')}
             value={signature.title || ''}
             onChange={this._onTitleChange}
@@ -134,8 +137,11 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
             <div key="header" className="section-header">
               {localized('Raw Source')}
             </div>,
+            <label key="body-label" htmlFor="signature-body" className="sr-only">
+              {localized('Signature HTML')}
+            </label>,
             <textarea
-              id="body"
+              id="signature-body"
               key={`textarea ${signature.id}`}
               className="section raw-html"
               spellCheck={false}
@@ -150,7 +156,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
             <div key="section" className="section information">
               {DataShape.map(item => (
                 <div className="field" key={item.key}>
-                  <label>{item.label}</label>
+                  <label htmlFor={item.key}>{item.label}</label>
                   <input
                     type="text"
                     onChange={this._onDataFieldChange}

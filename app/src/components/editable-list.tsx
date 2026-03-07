@@ -1,4 +1,3 @@
-/* eslint jsx-a11y/tabindex-no-positive: 0 */
 import _ from 'underscore';
 import classNames from 'classnames';
 import React, { Component } from 'react';
@@ -473,7 +472,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
 
     return (
       <KeyCommandsRegion
-        tabIndex={1}
+        tabIndex={0}
         localHandlers={this._listKeymapHandlers()}
         className={`nylas-editable-list ${this.props.className}`}
       >

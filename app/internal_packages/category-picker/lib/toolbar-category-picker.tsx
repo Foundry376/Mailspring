@@ -8,7 +8,7 @@ import {
   WorkspaceStore,
   Thread,
 } from 'mailspring-exports';
-import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
+import { RetinaImg, KeyCommandsRegion, RovingTabIndexToolbar } from 'mailspring-component-kit';
 
 import MovePickerPopover from './move-picker-popover';
 import LabelPickerPopover from './label-picker-popover';
@@ -81,30 +81,36 @@ class MovePicker extends React.Component<{ items: Thread[] }> {
     }
 
     return (
-      <div className="button-group" style={{ order: -103 }}>
+      <RovingTabIndexToolbar
+        label={localized('Category Actions')}
+        className="button-group"
+        style={{ order: -103 }}
+      >
         <KeyCommandsRegion globalHandlers={handlers}>
           <button
             tabIndex={-1}
             ref={el => (this._moveEl = el)}
             title={localized('Move to Folder')}
+            aria-label={localized('Move to Folder')}
             onClick={this._onOpenMovePopover}
             className={'btn btn-toolbar btn-category-picker'}
           >
-            <RetinaImg name={'toolbar-movetofolder.png'} mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg name={'toolbar-movetofolder.png'} mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
           </button>
           {this._account.usesLabels() && (
             <button
               tabIndex={-1}
               ref={el => (this._labelEl = el)}
               title={localized('Apply Label')}
+              aria-label={localized('Apply Label')}
               onClick={this._onOpenLabelsPopover}
               className={'btn btn-toolbar btn-category-picker'}
             >
-              <RetinaImg name={'toolbar-tag.png'} mode={RetinaImg.Mode.ContentIsMask} />
+              <RetinaImg name={'toolbar-tag.png'} mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
             </button>
           )}
         </KeyCommandsRegion>
-      </div>
+      </RovingTabIndexToolbar>
     );
   }
 }

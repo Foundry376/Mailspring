@@ -35,8 +35,13 @@ export default class MailspringProtocolHandler {
       let filePath = null;
       for (const loadPath of this.loadPaths) {
         filePath = path.join(loadPath, relativePath);
-        const fileStats = fs.statSyncNoException(filePath);
-        if (fileStats.isFile && fileStats.isFile()) {
+        let fileStats: fs.Stats | false = false;
+        try {
+          fileStats = fs.statSync(filePath);
+        } catch (e) {
+          // path doesn't exist
+        }
+        if (fileStats && fileStats.isFile && fileStats.isFile()) {
           break;
         }
       }

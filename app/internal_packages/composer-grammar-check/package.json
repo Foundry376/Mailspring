@@ -1,0 +1,22 @@
+{
+  "name": "composer-grammar-check",
+  "version": "0.1.0",
+  "main": "./lib/main",
+
+  "isOptional": true,
+
+  "title": "Grammar Check",
+  "description": "Check grammar in the composer using a LanguageTool-compatible backend.",
+  "icon": "./icon.png",
+
+  "license": "GPL-3.0",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "default": true,
+    "composer": true,
+    "thread-popout": true
+  }
+}

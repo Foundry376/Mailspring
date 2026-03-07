@@ -33,8 +33,14 @@
     "import/first": 0,
     "import/no-dynamic-require": 0,
     "import/no-mutable-exports": 0,
-    "jsx-a11y/tabindex-no-positive": 0,
-    "jsx-a11y/label-has-for": 0,
+    "jsx-a11y/tabindex-no-positive": "error",
+    "jsx-a11y/label-has-associated-control": ["error", {
+      "labelComponents": [],
+      "labelAttributes": [],
+      "controlComponents": [],
+      "assert": "either",
+      "depth": 3
+    }],
     "@typescript-eslint/explicit-member-accessibility": 0,
     "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/explicit-function-return-type": 0,

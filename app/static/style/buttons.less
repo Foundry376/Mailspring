@@ -79,8 +79,9 @@ body.platform-win32 {
     cursor: default;
     background: darken(@btn-default-bg-color, 9%);
   }
-  &:focus {
-    outline: none;
+  &:focus-visible {
+    outline: 2px solid @accent-primary;
+    outline-offset: 1px;
   }
 
   font-size: @font-size-small;

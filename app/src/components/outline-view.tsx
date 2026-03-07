@@ -170,13 +170,23 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     return (
       <span
         className="add-item-button"
+        role="button"
+        tabIndex={0}
+        aria-label={localized('Add item to %@', this.props.title)}
         onMouseDown={this._onCreateButtonMouseDown}
         onMouseUp={this._onCreateButtonClicked}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this._onCreateButtonClicked();
+          }
+        }}
       >
         <RetinaImg
           url="mailspring://account-sidebar/assets/icon-sidebar-addcategory@2x.png"
           style={{ height: 15, width: 14 }}
           mode={RetinaImg.Mode.ContentIsMask}
+          alt=""
         />
       </span>
     );
@@ -184,7 +194,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
 
   _renderHeading(allowCreate, collapsed, collapsible) {
     const collapseLabel = collapsed ? localized('Show') : localized('Hide');
-    let style: CSSProperties = {}
+    let style: CSSProperties = {};
     if (this.props.titleColor) {
       style = {
         height: '50%',
@@ -192,7 +202,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
         borderLeftWidth: '4px',
         borderLeftColor: this.props.titleColor,
         borderLeftStyle: 'solid',
-      }
+      };
     }
     return (
       <DropZone
@@ -206,7 +216,24 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
         </span>
         {allowCreate ? this._renderCreateButton() : null}
         {collapsible ? (
-          <span className="collapse-button" onClick={this._onCollapseToggled}>
+          <span
+            className="collapse-button"
+            role="button"
+            tabIndex={0}
+            aria-expanded={!collapsed}
+            aria-label={
+              collapsed
+                ? localized('Expand %@', this.props.title)
+                : localized('Collapse %@', this.props.title)
+            }
+            onClick={this._onCollapseToggled}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this._onCollapseToggled();
+              }
+            }}
+          >
             {collapseLabel}
           </span>
         ) : null}
@@ -215,7 +242,10 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   }
 
   _renderItems() {
-    return this.props.items.map(item => <OutlineViewItem key={item.id} item={item} />);
+    const noneSelected = !this.props.items.some(item => item.selected);
+    return this.props.items.map((item, idx) => (
+      <OutlineViewItem key={item.id} item={item} isFirst={noneSelected && idx === 0} />
+    ));
   }
 
   _renderOutline(allowCreate, collapsed) {
@@ -225,7 +255,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
 
     const showInput = allowCreate && this.state.showCreateInput;
     return (
-      <div>
+      <div role="tree" aria-label={this.props.title}>
         {showInput ? this._renderCreateInput() : null}
         {this._renderItems()}
       </div>
@@ -238,7 +268,7 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     const allowCreate = this.props.onItemCreated != null && !collapsed;
 
     return (
-      <section className="outline-view nylas-outline-view">
+      <section className="outline-view nylas-outline-view" aria-label={this.props.title}>
         {this._renderHeading(allowCreate, collapsed, collapsible)}
         {this._renderOutline(allowCreate, collapsed)}
       </section>

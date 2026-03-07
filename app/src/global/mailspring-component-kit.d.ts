@@ -78,3 +78,4 @@ export const ListensToFluxStore: typeof import('../components/decorators/listens
 export const ListensToMovementKeys: typeof import('../components/decorators/listens-to-movement-keys').default;
 export const HasTutorialTip: typeof import('../components/decorators/has-tutorial-tip').default;
 export const CreateButtonGroup: typeof import('../components/decorators/create-button-group').default;
+export * from '../components/roving-tab-index-toolbar';

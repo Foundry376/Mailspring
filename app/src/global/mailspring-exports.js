@@ -203,6 +203,14 @@ lazyLoad(`QuotedHTMLTransformer`, 'services/quoted-html-transformer');
 lazyLoad(`InlineStyleTransformer`, 'services/inline-style-transformer');
 lazyLoad(`SearchableComponentMaker`, 'searchable-components/searchable-component-maker');
 
+// Composer Editor Plugin APIs
+// Used by internal packages that need to interact with editor plugins registered in core
+// (e.g. composer-grammar-check activates/deactivates the grammar Slate plugin via this API).
+lazyLoadWithGetter(
+  `GrammarCheckPluginAPI`,
+  () => require('../components/composer-editor/grammar-check-plugins').GrammarCheckPluginAPI
+);
+
 // Errors
 lazyLoadWithGetter(`APIError`, () => require('../flux/errors').APIError);
 

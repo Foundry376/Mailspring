@@ -188,8 +188,13 @@ export class Matcher {
         }
         return `\`${klass.name}\`.\`${this.attr.tableColumn}\` != ${escaped}`;
       }
-      case 'startsWith':
-        return ' RAISE `TODO`; ';
+      case 'startsWith': {
+        const escapedVal =
+          typeof val === 'string'
+            ? val.replace(/'/g, singleQuoteEscapeSequence).replace(/[\\%_]/g, c => `\\${c}`)
+            : val;
+        return `\`${klass.name}\`.\`${this.attr.tableColumn}\` LIKE '${escapedVal}%' ESCAPE '\\'`;
+      }
       case 'contains':
         return `\`${this.joinTableRef()}\`.\`value\` = ${escaped}`;
       case 'containsAny':

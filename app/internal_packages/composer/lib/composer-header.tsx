@@ -19,7 +19,7 @@ import Fields from './fields';
 
 const ScopedFromField = ListensToFluxStore(AccountContactField, {
   stores: [AccountStore],
-  getStateFromStores: props => {
+  getStateFromStores: (props) => {
     const savedOrReplyToThread = !!props.draft.threadId;
     if (savedOrReplyToThread) {
       return { accounts: [AccountStore.accountForId(props.draft.accountId)] };
@@ -72,10 +72,10 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     }
   }
 
-  showAndFocusField = fieldName => {
+  showAndFocusField = (fieldName) => {
     this.setState(
       {
-        enabledFields: this.state.enabledFields.filter(f => f !== fieldName).concat([fieldName]),
+        enabledFields: this.state.enabledFields.filter((f) => f !== fieldName).concat([fieldName]),
       },
       () => {
         this._els[fieldName].focus();
@@ -83,21 +83,21 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     );
   };
 
-  hideField = fieldName => {
+  hideField = (fieldName) => {
     if (ReactDOM.findDOMNode(this._els[fieldName]).contains(document.activeElement)) {
       this.context.parentTabGroup.shiftFocus(-1);
     }
 
-    const enabledFields = this.state.enabledFields.filter(n => n !== fieldName);
+    const enabledFields = this.state.enabledFields.filter((n) => n !== fieldName);
     this.setState({ enabledFields });
   };
 
   _ensureFilledFieldsEnabled(draft) {
     let enabledFields = this.state.enabledFields;
-    if (draft.cc.length && !enabledFields.find(f => f === Fields.Cc)) {
+    if (draft.cc.length && !enabledFields.find((f) => f === Fields.Cc)) {
       enabledFields = [Fields.Cc].concat(enabledFields);
     }
-    if (draft.bcc.length && !enabledFields.find(f => f === Fields.Bcc)) {
+    if (draft.bcc.length && !enabledFields.find((f) => f === Fields.Bcc)) {
       enabledFields = [Fields.Bcc].concat(enabledFields);
     }
     if (enabledFields !== this.state.enabledFields) {
@@ -131,12 +131,12 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     return true;
   };
 
-  _onChangeParticipants = changes => {
+  _onChangeParticipants = (changes) => {
     this.props.session.changes.add(changes);
     Actions.draftParticipantsChanged(this.props.draft.id, changes);
   };
 
-  _onSubjectChange = event => {
+  _onSubjectChange = (event) => {
     this.props.session.changes.add({ subject: event.target.value });
   };
 
@@ -146,8 +146,12 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     }
     return (
       <KeyCommandsRegion tabIndex={-1} className="composer-subject subject-field">
+        <label htmlFor="composer-subject" className="sr-only">
+          {localized('Subject')}
+        </label>
         <input
-          ref={el => {
+          id="composer-subject"
+          ref={(el) => {
             if (el) {
               this._els[Fields.Subject] = el;
             }
@@ -171,7 +175,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
 
     fields.push(
       <ParticipantsTextField
-        ref={el => {
+        ref={(el) => {
           if (el) {
             this._els[Fields.To] = el;
           }
@@ -190,7 +194,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     if (this.state.enabledFields.includes(Fields.Cc)) {
       fields.push(
         <ParticipantsTextField
-          ref={el => {
+          ref={(el) => {
             if (el) {
               this._els[Fields.Cc] = el;
             }
@@ -211,7 +215,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     if (this.state.enabledFields.includes(Fields.Bcc)) {
       fields.push(
         <ParticipantsTextField
-          ref={el => {
+          ref={(el) => {
             if (el) {
               this._els[Fields.Bcc] = el;
             }
@@ -233,7 +237,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
       fields.push(
         <ScopedFromField
           key="from"
-          ref={el => {
+          ref={(el) => {
             if (el) {
               this._els[Fields.From] = el;
             }
@@ -251,7 +255,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
 
   render() {
     return (
-      <div className="composer-header">
+      <header className="composer-header" aria-label={localized('Message addressing')}>
         <ComposerHeaderActions
           headerMessageId={this.props.draft.headerMessageId}
           enabledFields={this.state.enabledFields}
@@ -259,7 +263,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
         />
         <KeyCommandsRegion
           tabIndex={-1}
-          ref={el => {
+          ref={(el) => {
             if (el) {
               this._els.participantsContainer = el;
             }
@@ -269,7 +273,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           {this._renderFields()}
         </KeyCommandsRegion>
         {this._renderSubject()}
-      </div>
+      </header>
     );
   }
 }

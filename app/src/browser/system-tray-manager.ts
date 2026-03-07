@@ -70,7 +70,26 @@ class SystemTrayManager {
 
   _defaultIconPath() {
     if (this._platform !== 'linux') return null;
-    const dark = nativeTheme.shouldUseDarkColors ? '-dark' : '';
+
+    const traySystemTheme =
+      this._application.config.get('core.workspace.traySystemTheme') || 'automatic';
+    let dark: string;
+    if (traySystemTheme === 'dark') {
+      dark = '-dark';
+    } else if (traySystemTheme === 'light') {
+      dark = '';
+    } else {
+      // Automatic: On GNOME/Unity the top bar panel is always dark regardless of the
+      // application theme, so nativeTheme.shouldUseDarkColors is unreliable
+      // for choosing the tray icon variant. Default to the light-on-dark icon.
+      const desktop = (process.env.XDG_CURRENT_DESKTOP || '').toUpperCase();
+      if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
+        dark = '-dark';
+      } else {
+        dark = nativeTheme.shouldUseDarkColors ? '-dark' : '';
+      }
+    }
+
     return path.join(
       this._application.resourcePath,
       'internal_packages',
@@ -101,7 +120,7 @@ class SystemTrayManager {
         this._application.emit('application:show-main-window');
       } else {
         const visibleWindows = this._application.windowManager.getVisibleWindows();
-        visibleWindows.forEach(window => window.hide());
+        visibleWindows.forEach((window) => window.hide());
       }
     }
   };

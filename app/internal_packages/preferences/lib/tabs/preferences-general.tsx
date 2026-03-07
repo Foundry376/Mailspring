@@ -104,11 +104,6 @@ class PreferencesGeneral extends React.Component<{
               keyPath="core.notifications"
               config={this.props.config}
             />
-            <div className="platform-note platform-linux-only">
-              {localized(
-                'Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.'
-              )}
-            </div>
           </div>
           <div style={{ width: 30 }} />
           <div style={{ flex: 1 }}>

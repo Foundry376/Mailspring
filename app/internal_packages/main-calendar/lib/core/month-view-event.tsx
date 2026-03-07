@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 import { EventOccurrence } from './calendar-data-source';
 import { calcEventColors } from './calendar-helpers';
+import { RecurringIcon } from './calendar-icons';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canDragEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -206,6 +207,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         tabIndex={0}
       >
         <span className="month-view-event-title">{event.title}</span>
+        {event.isRecurring && !event.isCancelled && !event.isException && <RecurringIcon size={9} />}
       </div>
     );
   }

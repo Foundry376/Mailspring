@@ -1,13 +1,20 @@
 import React, { CSSProperties } from 'react';
 import PropTypes from 'prop-types';
 
-import { Utils, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
+import { localized, Utils, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import { InjectedComponentSet } from './components/injected-component-set';
 import { ResizableRegion } from './components/resizable-region';
 import { Flexbox } from './components/flexbox';
 import { SheetDeclaration } from './flux/stores/workspace-store';
 
 const FLEX = 10000;
+
+const COLUMN_META: Record<string, { role: string; label: () => string }> = {
+  RootSidebar: { role: 'complementary', label: () => localized('Account sidebar') },
+  ThreadList: { role: 'region', label: () => localized('Thread list') },
+  MessageList: { role: 'region', label: () => localized('Messages') },
+  MessageListSidebar: { role: 'complementary', label: () => localized('Contact panel') },
+};
 
 interface SheetLocation {
   id: string;
@@ -77,13 +84,16 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach(u => u());
+    this.unlisteners.forEach((u) => u());
     this.unlisteners = [];
   }
 
   _columnFlexboxElements() {
     return this.state.columns.map((column, idx) => {
       const { maxWidth, minWidth, handle, location, width } = column;
+      const meta = COLUMN_META[location.id];
+      const ariaRole = meta ? meta.role : undefined;
+      const ariaLabel = meta ? meta.label() : undefined;
 
       if (minWidth !== maxWidth && maxWidth < FLEX) {
         return (
@@ -93,7 +103,9 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
             className={`column-${location.id}`}
             style={{ height: '100%' }}
             data-column={idx}
-            onResize={w => this._onColumnResize(column, w)}
+            role={ariaRole}
+            aria-label={ariaLabel}
+            onResize={(w) => this._onColumnResize(column, w)}
             initialWidth={width}
             minWidth={minWidth}
             maxWidth={maxWidth}
@@ -125,6 +137,8 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
           className={`column-${location.id}`}
           data-column={idx}
           style={style}
+          role={ariaRole}
+          aria-label={ariaLabel}
           matching={{ location: location, mode: this.state.mode }}
         />
       );

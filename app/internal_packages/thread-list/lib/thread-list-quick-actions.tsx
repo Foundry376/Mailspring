@@ -21,10 +21,19 @@ export class ThreadArchiveQuickAction extends React.Component<{ thread: Thread }
     return (
       <div
         key="archive"
+        role="button"
+        tabIndex={0}
         title={localized('Archive')}
+        aria-label={localized('Archive')}
         style={{ order: 100 }}
         className="btn action action-archive"
         onClick={this._onArchive}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this._onArchive(e as any);
+          }
+        }}
       />
     );
   }
@@ -61,10 +70,19 @@ export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> 
     return (
       <div
         key="remove"
+        role="button"
+        tabIndex={0}
         title={localized('Trash')}
+        aria-label={localized('Trash')}
         style={{ order: 110 }}
         className="btn action action-trash"
         onClick={this._onRemove}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this._onRemove(e as any);
+          }
+        }}
       />
     );
   }

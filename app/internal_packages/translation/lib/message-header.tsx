@@ -301,9 +301,9 @@ export class TranslateMessageHeader extends React.Component<
             </div>
           </div>
           <div className="actions">
-            <div className="action" tabIndex={-1} onClick={this._onToggleTranslate}>
+            <button className="action" tabIndex={0} onClick={this._onToggleTranslate}>
               <span>{localized('Show Original')}</span>
-            </div>
+            </button>
           </div>
         </div>
       );
@@ -353,9 +353,9 @@ export class TranslateMessageHeader extends React.Component<
           </div>
         </div>
         <div className="actions">
-          <div className="action" tabIndex={-1} onClick={() => this._onTranslate('manual')}>
+          <button className="action" tabIndex={0} onClick={() => this._onTranslate('manual')}>
             {this.state.translating === 'manual' ? spinner : <span>{localized('Translate')}</span>}
-          </div>
+          </button>
           <ButtonDropdown
             bordered={false}
             attachment="right"

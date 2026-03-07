@@ -48,18 +48,30 @@ class ActivityListButton extends React.Component<
       unreadCountClass += ' active';
       iconClass += ' unread';
     }
+    const ariaLabel = this.state.unreadCount
+      ? localized('View activity (%@)', this.state.unreadCount)
+      : localized('View activity');
     return (
       <div
-        tabIndex={-1}
+        role="button"
+        tabIndex={0}
         className="toolbar-activity"
         title={localized('View activity')}
+        aria-label={ariaLabel}
         onClick={this.onClick}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.onClick();
+          }
+        }}
       >
         <div className={unreadCountClass}>{this.state.unreadCount}</div>
         <RetinaImg
           name="icon-toolbar-activity.png"
           className={iconClass}
           mode={RetinaImg.Mode.ContentIsMask}
+          aria-hidden="true"
         />
       </div>
     );

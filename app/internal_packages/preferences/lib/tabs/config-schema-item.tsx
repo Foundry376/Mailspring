@@ -79,7 +79,7 @@ class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
           <label htmlFor={this.props.keyPath} style={{ paddingRight: 8 }}>
             {this.props.configSchema.title}:
           </label>
-          <select onChange={this._onChangeValue} value={this.props.config.get(this.props.keyPath)}>
+          <select id={this.props.keyPath} onChange={this._onChangeValue} value={this.props.config.get(this.props.keyPath)}>
             {_.zip(this.props.configSchema.enum, this.props.configSchema.enumLabels).map(
               ([value, label]) => (
                 <option key={value} value={value}>

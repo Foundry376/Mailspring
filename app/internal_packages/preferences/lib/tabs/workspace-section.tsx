@@ -182,11 +182,13 @@ const WorkspaceSection = props => {
         config={props.config}
       />
 
-      <div className="platform-note platform-linux-only">
-        {localized(
-          `"Launch on system start" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.`
-        )}
-      </div>
+      {process.platform === 'linux' && (
+        <div className="platform-note">
+          {localized(
+            `"Launch on system start" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.`
+          )}
+        </div>
+      )}
     </section>
   );
 };

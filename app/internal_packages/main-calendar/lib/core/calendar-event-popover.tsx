@@ -2,6 +2,8 @@ import moment, { Moment } from 'moment';
 import React from 'react';
 import {
   Actions,
+  Calendar,
+  Account,
   DatabaseStore,
   DateUtils,
   Event,
@@ -18,7 +20,9 @@ import {
 import { EventAttendeesInput } from './event-attendees-input';
 import { EventOccurrence, EventAttendee } from './calendar-data-source';
 import { EventPropertyRow } from './event-property-row';
-import { CalendarColorPicker } from './calendar-color-picker';
+import { createCalendarEvent } from './calendar-helpers';
+// CalendarColorPicker import removed - disabled until custom event colors are fully supported
+import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
 import { AllDayToggle } from './all-day-toggle';
 import { RepeatSelector, RepeatOption } from './repeat-selector';
@@ -31,6 +35,14 @@ import { modifyEventWithRecurringSupport } from './recurring-event-actions';
 
 interface CalendarEventPopoverProps {
   event: EventOccurrence;
+  /** When true, the popover opens in edit mode to create a new event */
+  isNewEvent?: boolean;
+  /** Available calendars (required when isNewEvent is true) */
+  calendars?: Calendar[];
+  /** Available accounts (required when isNewEvent is true) */
+  accounts?: Account[];
+  /** Disabled calendar IDs (required when isNewEvent is true) */
+  disabledCalendars?: string[];
 }
 
 interface CalendarEventPopoverState {
@@ -50,6 +62,9 @@ interface CalendarEventPopoverState {
   timezone: string;
   showInvitees: boolean;
   showNotes: boolean;
+  // Calendar selection for new events
+  selectedCalendarId: string;
+  selectedAccountId: string;
 }
 
 export class CalendarEventPopover extends React.Component<
@@ -59,9 +74,9 @@ export class CalendarEventPopover extends React.Component<
   private attendeesInputRef = React.createRef<EventAttendeesInput>();
   private notesTextareaRef = React.createRef<HTMLTextAreaElement>();
 
-  constructor(props) {
+  constructor(props: CalendarEventPopoverProps) {
     super(props);
-    const { description, start, end, location, attendees, title } = this.props.event;
+    const { description, start, end, location, attendees, title, isAllDay } = this.props.event;
 
     this.state = {
       description,
@@ -69,10 +84,10 @@ export class CalendarEventPopover extends React.Component<
       end,
       location,
       title,
-      editing: false,
+      editing: !!this.props.isNewEvent,
       attendees,
       // Initialize new fields with defaults
-      allDay: false,
+      allDay: isAllDay || false,
       repeat: 'none',
       alert: '10min',
       showAs: 'busy',
@@ -80,6 +95,8 @@ export class CalendarEventPopover extends React.Component<
       timezone: DateUtils.timeZone,
       showInvitees: attendees && attendees.length > 0,
       showNotes: !!description,
+      selectedCalendarId: this.props.event.calendarId,
+      selectedAccountId: this.props.event.accountId,
     };
   }
 
@@ -117,6 +134,11 @@ export class CalendarEventPopover extends React.Component<
   getEndMoment = () => moment(this.state.end * 1000);
 
   saveEdits = async (): Promise<void> => {
+    if (this.props.isNewEvent) {
+      await this._createNewEvent();
+      return;
+    }
+
     // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
     const eventId = parseEventIdFromOccurrence(this.props.event.id);
 
@@ -149,6 +171,37 @@ export class CalendarEventPopover extends React.Component<
     Actions.closePopover();
   };
 
+  _createNewEvent = async (): Promise<void> => {
+    const {
+      title,
+      start,
+      end,
+      allDay,
+      location,
+      description,
+      attendees,
+      selectedCalendarId,
+      selectedAccountId,
+    } = this.state;
+
+    Actions.closePopover();
+
+    await createCalendarEvent({
+      summary: title || localized('New Event'),
+      start: new Date(start * 1000),
+      end: new Date(end * 1000),
+      isAllDay: allDay,
+      calendarId: selectedCalendarId,
+      accountId: selectedAccountId,
+      description: description || undefined,
+      location: location || undefined,
+      attendees:
+        attendees && attendees.length > 0
+          ? attendees.map((a) => ({ email: a.email, name: a.name }))
+          : undefined,
+    });
+  };
+
   // If on the hour, formats as "3 PM", else formats as "3:15 PM"
 
   updateAttendees = (attendees: EventAttendee[]): void => {
@@ -174,7 +227,6 @@ export class CalendarEventPopover extends React.Component<
       repeat,
       alert,
       showAs,
-      calendarColor,
       timezone,
       showInvitees,
       showNotes,
@@ -185,20 +237,31 @@ export class CalendarEventPopover extends React.Component<
     return (
       <div className="calendar-event-popover editing" tabIndex={0}>
         <TabGroupRegion>
-          {/* Title row with color picker */}
+          {/* Title row */}
           <div className="title-wrapper">
             <input
               className="title"
               type="text"
+              aria-label={localized('Event title')}
               placeholder={localized('New Event')}
               value={title}
               onChange={(e) => this.updateField('title', e.target.value)}
             />
-            <CalendarColorPicker
-              color={calendarColor}
-              onChange={(color) => this.updateField('calendarColor', color)}
-            />
+            {/* CalendarColorPicker disabled until custom event colors are fully supported */}
           </div>
+
+          {/* Calendar selector - only shown for new events */}
+          {this.props.isNewEvent && this.props.calendars && this.props.accounts && (
+            <CalendarSelector
+              calendars={this.props.calendars}
+              accounts={this.props.accounts}
+              disabledCalendars={this.props.disabledCalendars || []}
+              selectedCalendarId={this.state.selectedCalendarId}
+              onChange={(calendarId, accountId) => {
+                this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
+              }}
+            />
+          )}
 
           {/* Location with video call toggle */}
           <LocationVideoInput
@@ -291,6 +354,7 @@ export class CalendarEventPopover extends React.Component<
               <textarea
                 ref={this.notesTextareaRef}
                 value={notes}
+                aria-label={localized('Notes')}
                 placeholder={localized('Add notes or URL...')}
                 onChange={(e) => this.updateField('description', e.target.value)}
               />
@@ -309,7 +373,7 @@ export class CalendarEventPopover extends React.Component<
   };
 
   render() {
-    if (this.state.editing) {
+    if (this.state.editing || this.props.isNewEvent) {
       return this.renderEditable();
     }
     return (
@@ -389,26 +453,26 @@ class CalendarEventPopoverUnenditable extends React.Component<{
           <div className="label">{localized(`Invitees`)}: </div>
           <div className="invitees-list">
             {sortAttendeesByStatus(attendees).map((a, idx) => {
-                const partstat = a.partstat || 'NEEDS-ACTION';
-                let statusIcon = '?';
-                let statusClass = 'needs-action';
-                if (partstat === 'ACCEPTED') {
-                  statusIcon = '✓';
-                  statusClass = 'accepted';
-                } else if (partstat === 'DECLINED') {
-                  statusIcon = '✗';
-                  statusClass = 'declined';
-                } else if (partstat === 'TENTATIVE') {
-                  statusIcon = '?';
-                  statusClass = 'tentative';
-                }
-                return (
-                  <div key={idx} className={`attendee-chip ${statusClass}`}>
-                    <span className="attendee-status">{statusIcon}</span>
-                    <span className="attendee-name">{a.name || a.email}</span>
-                  </div>
-                );
-              })}
+              const partstat = a.partstat || 'NEEDS-ACTION';
+              let statusIcon = '?';
+              let statusClass = 'needs-action';
+              if (partstat === 'ACCEPTED') {
+                statusIcon = '✓';
+                statusClass = 'accepted';
+              } else if (partstat === 'DECLINED') {
+                statusIcon = '✗';
+                statusClass = 'declined';
+              } else if (partstat === 'TENTATIVE') {
+                statusIcon = '?';
+                statusClass = 'tentative';
+              }
+              return (
+                <div key={idx} className={`attendee-chip ${statusClass}`}>
+                  <span className="attendee-status">{statusIcon}</span>
+                  <span className="attendee-name">{a.name || a.email}</span>
+                </div>
+              );
+            })}
           </div>
         </ScrollRegion>
         <ScrollRegion className="section description">

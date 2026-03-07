@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utils } from 'mailspring-exports';
+import { Utils, localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CalendarView } from './calendar-constants';
 
@@ -21,8 +21,8 @@ export class HeaderControls extends React.Component<{
       return false;
     }
     return (
-      <button className="btn btn-icon next" ref="onNextAction" onClick={this.props.nextAction}>
-        <RetinaImg name="ic-calendar-right-arrow.png" mode={RetinaImg.Mode.ContentIsMask} />
+      <button className="btn btn-icon next" ref="onNextAction" aria-label={localized('Next')} onClick={this.props.nextAction}>
+        <RetinaImg name="ic-calendar-right-arrow.png" mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
       </button>
     );
   }
@@ -32,8 +32,8 @@ export class HeaderControls extends React.Component<{
       return false;
     }
     return (
-      <button className="btn btn-icon prev" ref="onPreviousAction" onClick={this.props.prevAction}>
-        <RetinaImg name="ic-calendar-left-arrow.png" mode={RetinaImg.Mode.ContentIsMask} />
+      <button className="btn btn-icon prev" ref="onPreviousAction" aria-label={localized('Previous')} onClick={this.props.prevAction}>
+        <RetinaImg name="ic-calendar-left-arrow.png" mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
       </button>
     );
   }

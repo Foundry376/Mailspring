@@ -87,7 +87,7 @@ class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormP
         <FormField field="emailAddress" title={localized('Email')} {...this.props} />
         <FormField
           field="settings.imap_password"
-          title="Password"
+          title={localized('Password')}
           type="password"
           {...this.props}
         />

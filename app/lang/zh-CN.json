@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "“在系统启动时启动”仅适用于符合XDG标准的桌面环境。要在系统托盘中启用Mailspring图标，您可能需要安装libappindicator。",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "“在系统启动时启动”仅适用于符合XDG标准的桌面环境。要在系统托盘中启用Mailspring图标，您可能需要安装libappindicator or libayatana-appindicator。",
   "%1$@ of %2$@": "%2$@的%1$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@因为大于25MB所以无法附加。",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@已安装并启用。无需重启！如果您没有看到加载的插件，请检查控制台是否有错误。",
@@ -380,7 +380,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring无法保存附件。检查权限是否设置正确，如果问题仍然存在，请尝试重新启动Mailspring。",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring无法生成mailsync进程。 %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring无法安全地存储您的密码。欲了解更多信息，请访问%@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linux上的Mailspring桌面通知需要Zenity。您可能需要通过软件包管理器安装。",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring不支持扩展名为的样式表：%@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring在同步此帐户时遇到错误。崩溃报告已发送给Mailspring团队，我们将努力在下一版本中修复这些错误。",
   "Mailspring has translated this message into %@.": "Mailspring已翻译此消息到%@。",

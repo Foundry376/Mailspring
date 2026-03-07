@@ -1,4 +1,14 @@
-import { Utils, Calendar } from 'mailspring-exports';
+import {
+  Utils,
+  Calendar,
+  Actions,
+  DateUtils,
+  Event,
+  ICSEventHelpers,
+  SyncbackEventTask,
+  TaskQueue,
+  localized,
+} from 'mailspring-exports';
 
 // Cache of calendar colors synced from CalDAV servers
 const calendarColorCache: Map<string, string> = new Map();
@@ -69,7 +79,9 @@ function parseColor(color: string): { r: number; g: number; b: number; a: number
   }
 
   // Try rgb/rgba format
-  const rgbMatch = color.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/i);
+  const rgbMatch = color.match(
+    /rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/i
+  );
   if (rgbMatch) {
     return {
       r: parseInt(rgbMatch[1], 10),
@@ -267,4 +279,83 @@ export function formatEventTimeRange(
   const includeStartAmPm = startAmPm !== endAmPm;
 
   return `${formatTime(startDate, includeStartAmPm)} – ${formatTime(endDate, true)}`;
+}
+
+/**
+ * Filter calendars to only those that are writable and not disabled by the user.
+ */
+export function getEditableCalendars(
+  calendars: Calendar[],
+  disabledCalendars: string[]
+): Calendar[] {
+  return calendars.filter((c) => !c.readOnly && !disabledCalendars.includes(c.id));
+}
+
+/**
+ * Show an error dialog when no editable calendars are available.
+ */
+export function showNoEditableCalendarsError(): void {
+  AppEnv.showErrorDialog(
+    localized(
+      "This account has no editable calendars. We can't create an event for you. Please make sure you have an editable calendar with your account provider."
+    )
+  );
+}
+
+/**
+ * Options for creating a new calendar event.
+ */
+export interface CreateCalendarEventOptions {
+  summary: string;
+  start: Date;
+  end: Date;
+  isAllDay: boolean;
+  calendarId: string;
+  accountId: string;
+  description?: string;
+  location?: string;
+  attendees?: Array<{ email: string; name?: string }>;
+}
+
+/**
+ * Create a new calendar event, queue the syncback task, and focus the event.
+ * Shared by CalendarEventPopover and QuickEventPopover.
+ */
+export async function createCalendarEvent(options: CreateCalendarEventOptions): Promise<void> {
+  const icsuid = ICSEventHelpers.generateUID();
+  const ics = ICSEventHelpers.createICSString({
+    uid: icsuid,
+    summary: options.summary,
+    start: options.start,
+    end: options.end,
+    isAllDay: options.isAllDay,
+    timezone: DateUtils.timeZone,
+    description: options.description,
+    location: options.location,
+    attendees: options.attendees,
+  });
+
+  const event = new Event({
+    calendarId: options.calendarId,
+    accountId: options.accountId,
+    ics,
+    icsuid,
+    recurrenceStart: Math.floor(options.start.getTime() / 1000),
+    recurrenceEnd: Math.floor(options.end.getTime() / 1000),
+  });
+  event.title = options.summary;
+
+  const task = SyncbackEventTask.forCreating({
+    event,
+    calendarId: options.calendarId,
+    accountId: options.accountId,
+  });
+  Actions.queueTask(task);
+
+  try {
+    await TaskQueue.waitForPerformRemote(task);
+    Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });
+  } catch (error) {
+    console.error('Failed to sync new event to server:', error);
+  }
 }

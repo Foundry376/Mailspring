@@ -42,7 +42,6 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
           commands={enabled ? { 'core:add-item': this.onAdd } : {}}
         >
           <button
-            tabIndex={-1}
             disabled={!enabled}
             className={`btn btn-toolbar btn-new-contact ${!enabled && 'btn-disabled'}`}
             title={

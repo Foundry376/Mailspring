@@ -91,7 +91,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     return;
   };
 
-  _onClickHeader = e => {
+  _onClickHeader = (e) => {
     this._onToggleCollapsed();
   };
 
@@ -134,7 +134,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     const { files = [], body, id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
     let attachedFiles = files.filter(
-      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`)
+      (f) => !f.contentId || !(body || '').includes(`cid:${f.contentId}`)
     );
 
     for (const extension of MessageStore.extensions()) {
@@ -185,7 +185,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
 
     return (
       <header
-        ref={el => (this._headerEl = el)}
+        ref={(el) => (this._headerEl = el)}
         className={`message-header ${pending && 'pending'}`}
         onClick={this._onClickHeader}
       >
@@ -222,7 +222,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
           to={message.to}
           cc={message.cc}
           bcc={message.bcc}
-          replyTo={message.replyTo.filter(c => !message.from.find(fc => fc.email === c.email))}
+          replyTo={message.replyTo.filter((c) => !message.from.find((fc) => fc.email === c.email))}
           onClick={this._onClickParticipants}
           isDetailed={this.state.detailedHeaders}
         />
@@ -242,7 +242,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
         <div
           className="header-toggle-control"
           style={{ top: 18, left: -14 }}
-          onClick={e => {
+          onClick={(e) => {
             this.setState({ detailedHeaders: false });
             e.stopPropagation();
           }}
@@ -259,7 +259,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       <div
         className="header-toggle-control inactive"
         style={{ top: 18 }}
-        onClick={e => {
+        onClick={(e) => {
           this.setState({ detailedHeaders: true });
           e.stopPropagation();
         }}
@@ -342,8 +342,15 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
   }
 
   _renderFull() {
+    const senderName =
+      this.props.message.from && this.props.message.from[0]
+        ? this.props.message.from[0].displayName()
+        : localized('Unknown');
     return (
-      <div className={this.props.className}>
+      <article
+        className={this.props.className}
+        aria-label={localized('Message from %@', senderName)}
+      >
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
@@ -352,7 +359,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
             {this._renderFooterStatus()}
           </div>
         </div>
-      </div>
+      </article>
     );
   }
 

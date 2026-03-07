@@ -98,7 +98,7 @@ export class DayView extends React.Component<
         startUnix: bufferedStart.unix(),
         endUnix: bufferedEnd.unix(),
       })
-      .subscribe(state => {
+      .subscribe((state) => {
         this.setState(state);
       });
   }
@@ -215,7 +215,7 @@ export class DayView extends React.Component<
     const days = this._daysInView();
     const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
     const eventsByDay = eventsGroupedByDay(events, days);
-    const todayColumnIdx = days.findIndex(d => this._isToday(d));
+    const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
     const range = this._calculateMomentRange();
@@ -234,6 +234,7 @@ export class DayView extends React.Component<
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}
           onCalendarMouseMove={this.props.onCalendarMouseMove}
+          onCalendarDoubleClick={this.props.onCalendarDoubleClick}
         >
           <div className="top-banner">
             {/* Role follows pattern: Calendar:{ViewName}:Banner (cf. WeekView's Calendar:Week:Banner) */}
@@ -298,12 +299,14 @@ export class DayView extends React.Component<
                 className="event-grid-wrap"
                 ref={this._gridScrollRegion}
                 scrollbarRef={this._scrollbar}
-                onScroll={event => (this._legendWrapEl.current.scrollTop = event.target.scrollTop)}
+                onScroll={(event) =>
+                  (this._legendWrapEl.current.scrollTop = event.target.scrollTop)
+                }
                 onViewportResize={this._setIntervalHeight}
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >
                 <div className="event-grid" style={{ height: totalHeight }}>
-                  {days.map(day => (
+                  {days.map((day) => (
                     <WeekViewEventColumn
                       day={day}
                       dayEnd={day.unix() + 24 * 60 * 60 - 1}

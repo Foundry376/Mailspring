@@ -38,8 +38,8 @@
 
 // STYLES
 
-*:focus,
-input:focus {
+// Suppress focus outlines for mouse/pointer navigation; show only for keyboard navigation
+*:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -49,7 +49,6 @@ input:focus {
   .scroll-region {
     width: 100%;
     height: 100%;
-    -webkit-font-smoothing: subpixel-antialiased;
   }
 
   .swipe-backing {

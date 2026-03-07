@@ -62,9 +62,12 @@ class TemplateEditor extends React.Component<
     return (
       <div className={`template-wrap ${readOnly && 'empty'}`}>
         <div className="section">
+          <label htmlFor="template-title" className="sr-only">
+            {localized('Template Name')}
+          </label>
           <input
             type="text"
-            id="title"
+            id="template-title"
             placeholder={localized('Name')}
             style={{ maxWidth: 400 }}
             defaultValue={template ? template.name : ''}

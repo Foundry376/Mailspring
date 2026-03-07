@@ -58,10 +58,7 @@ class _AccountStore extends MailspringStore {
         Actions.focusDefaultMailboxPerspectiveForAccounts([newId], {
           sidebarAccountIds: accountIds,
         });
-        // TODO:
-        // This Action is a hack, get rid of it in sidebar refactor
-        // Wait until the FocusedPerspectiveStore triggers and the sidebar is
-        // updated to uncollapse the inbox for the new account
+        // Uncollapse the inbox for the new account after the sidebar updates
         Actions.setCollapsedSidebarItem('Inbox', false);
       }
     });

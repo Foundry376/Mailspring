@@ -24,7 +24,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   static propTypes = {
     value: PropTypes.number,
     onChange: PropTypes.func,
-    relativeTo: PropTypes.number, // TODO For `renderTimeOptions`
+    relativeTo: PropTypes.number,
   };
 
   static contextTypes = {

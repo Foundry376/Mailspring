@@ -59,8 +59,11 @@ export const Comparators = {
         arrayMatchFn: Array.prototype.every,
       },
       ({ actual, desired }) => {
-        if (!actual || !desired) {
+        if (!desired) {
           return false;
+        }
+        if (!actual) {
+          return true;
         }
         return !actual.toLowerCase().includes(desired.toLowerCase());
       }

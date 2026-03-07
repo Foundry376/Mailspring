@@ -40,6 +40,16 @@ export default {
               'On Linux you need to restart Mailspring for the tray icon to disappear.'
             ),
           },
+          trayIconStyle: {
+            type: 'string',
+            default: 'blue',
+            enum: ['blue', 'red', 'none'],
+          },
+          traySystemTheme: {
+            type: 'string',
+            default: 'automatic',
+            enum: ['automatic', 'light', 'dark'],
+          },
           showImportant: {
             type: 'boolean',
             default: true,
@@ -141,6 +151,11 @@ export default {
             default: false,
             title: localized('Move to trash (not archive) on swipe / backspace'),
           },
+          swipeDisabled: {
+            type: 'boolean',
+            default: false,
+            title: localized('Disable swipe gestures on the thread list'),
+          },
           descendingOrderMessageList: {
             type: 'boolean',
             default: false,
@@ -157,13 +172,18 @@ export default {
             title: localized('Enable rich text and advanced editor features'),
             note: localized(
               'Many features are unavailable in plain-text mode. To create a single ' +
-              'plain-text draft, hold Alt or Option while clicking Compose or Reply.'
+                'plain-text draft, hold Alt or Option while clicking Compose or Reply.'
             ),
           },
           spellcheck: {
             type: 'boolean',
             default: true,
             title: localized('Check messages for spelling'),
+          },
+          grammarCheck: {
+            type: 'boolean',
+            default: false,
+            title: localized('Check messages for grammar'),
           },
           spellcheckDefaultLanguage: {
             type: 'string',

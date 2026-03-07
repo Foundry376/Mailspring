@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "「システム起動時に起動する」は、XDG準拠のデスクトップ環境でのみ機能します。システムトレイでMailspringアイコンを有効にするには、libappindicatorをインストールする必要があります。",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "「システム起動時に起動する」は、XDG準拠のデスクトップ環境でのみ機能します。システムトレイでMailspringアイコンを有効にするには、libappindicator or libayatana-appindicatorをインストールする必要があります。",
   "%1$@ of %2$@": "%1$@の❤%1$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@25MBを超えるため添付できません。",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@がインストールされ、有効になっています。再起動する必要はありません！プラグインが読み込まれていない場合は、コンソールでエラーを確認してください。",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspringは添付ファイルを保存できませんでした。権限が正しく設定されていることを確認し、問題が解決しない場合はMailspringを再起動してみてください。",
   "Mailspring could not spawn the mailsync process. %@": "Mailspringはmailsyncプロセスを起動できませんでした。 %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspringはあなたのパスワードを安全に保存できませんでした。詳細については、%@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Linux上のMailspringデスクトップ通知にはZenityが必要です。パッケージマネージャーにインストールする必要があるかもしれません。",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspringは、拡張子が付いたスタイルシートをサポートしていません：%@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspringがこのアカウントを同期する際にエラーが発生しました。クラッシュレポートはMailspringチームに送信されており、次のリリースでこれらのエラーを修正するよう努めます。",
   "Mailspring has translated this message into %@.": "Mailspringはこのメッセージを%@に翻訳しました。",

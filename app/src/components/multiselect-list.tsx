@@ -3,7 +3,7 @@ import { ListTabular, ListTabularProps, ListTabularColumn } from './list-tabular
 import { Spinner } from './spinner';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils, WorkspaceStore } from 'mailspring-exports';
+import { PropTypes, Utils, WorkspaceStore, localized } from 'mailspring-exports';
 import { KeyCommandsRegion } from 'mailspring-component-kit';
 
 import MultiselectListInteractionHandler from './multiselect-list-interaction-handler';
@@ -22,6 +22,8 @@ export interface MultiselectListProps extends ListTabularProps {
   keymapHandlers?: {
     [command: string]: CommandCallback;
   };
+  ariaLabel?: string;
+  ariaLabelForItem?: (item: any) => string;
   onFocusItem?: (item: any) => void;
   onDragItems?: (event: React.DragEvent, items: any) => void;
   onSetCursorPosition?: (item: any) => void;
@@ -137,7 +139,7 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
   }
 
   componentWillUnmount() {
-    this.unsubscribers.forEach(unsub => unsub());
+    this.unsubscribers.forEach((unsub) => unsub());
   }
 
   /**
@@ -205,6 +207,11 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
             handler.shouldShowKeyboardCursor() && item.id === this.props.keyboardCursorId,
         });
       props['data-item-id'] = item.id;
+      props['role'] = 'option';
+      props['ariaSelected'] = selected;
+      if (this.props.ariaLabelForItem) {
+        props['ariaLabel'] = this.props.ariaLabelForItem(item);
+      }
       return props;
     };
   }
@@ -218,7 +225,10 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
       className += ` ${handler.cssClass()}`;
 
       return (
-        <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()} className={className}>
+        <KeyCommandsRegion
+          globalHandlers={this._globalKeymapHandlers()}
+          className={className}
+        >
           <ListTabular
             ref={this.listRef}
             columns={this.state.computedColumns}
@@ -226,6 +236,9 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
             itemPropsProvider={this._getItemPropsProvider()}
             onSelect={this._onClickItem}
             onComponentDidUpdate={this.props.onComponentDidUpdate}
+            role="listbox"
+            ariaLabel={this.props.ariaLabel}
+            ariaMultiselectable={this.state.layoutMode === 'list'}
             {...otherProps}
             onDragStart={this._onDragStart}
           />

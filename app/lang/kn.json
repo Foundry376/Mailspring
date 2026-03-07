@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "XDG- ಕಂಪ್ಲೈಂಟ್ ಡೆಸ್ಕ್ಟಾಪ್ ಪರಿಸರದಲ್ಲಿ ಮಾತ್ರ \"ಸಿಸ್ಟಮ್ ಸ್ಟಾರ್ಟ್ನಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ\". ಸಿಸ್ಟಂ ಟ್ರೇನಲ್ಲಿ ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಐಕಾನ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು, ನೀವು ಲಿಬ್ಯಾಪಿಂಡಿಕೇಟರ್ ಅನ್ನು ಸ್ಥಾಪಿಸಬೇಕಾಗಬಹುದು.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "XDG- ಕಂಪ್ಲೈಂಟ್ ಡೆಸ್ಕ್ಟಾಪ್ ಪರಿಸರದಲ್ಲಿ ಮಾತ್ರ \"ಸಿಸ್ಟಮ್ ಸ್ಟಾರ್ಟ್ನಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ\". ಸಿಸ್ಟಂ ಟ್ರೇನಲ್ಲಿ ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಐಕಾನ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು, ನೀವು ಲಿಬ್ಯಾಪಿಂಡಿಕೇಟರ್ ಅನ್ನು ಸ್ಥಾಪಿಸಬೇಕಾಗಬಹುದು.",
   "%1$@ of %2$@": "%2$@ ನ %1$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ 25MB ಗಿಂತ ದೊಡ್ಡದಾಗಿದೆ ಏಕೆಂದರೆ ಅದನ್ನು ಲಗತ್ತಿಸಲಾಗುವುದಿಲ್ಲ.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ ಅನ್ನು ಸ್ಥಾಪಿಸಲಾಗಿದೆ ಮತ್ತು ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಮರುಪ್ರಾರಂಭಿಸಬೇಕಾಗಿಲ್ಲ! ನೀವು ಪ್ಲಗ್ಇನ್ ಲೋಡ್ ಮಾಡದಿದ್ದರೆ, ದೋಷಗಳಿಗಾಗಿ ಕನ್ಸೊಲ್ ಅನ್ನು ಪರೀಕ್ಷಿಸಿ.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ಗೆ ಲಗತ್ತನ್ನು ಉಳಿಸಲಾಗಲಿಲ್ಲ. ಆ ಅನುಮತಿಗಳನ್ನು ಸರಿಯಾಗಿ ಹೊಂದಿಸಿವೆ ಮತ್ತು ಸಮಸ್ಯೆಯು ಮುಂದುವರಿದರೆ MailSpring ಅನ್ನು ಮರುಪ್ರಾರಂಭಿಸಲು ಪ್ರಯತ್ನಿಸಿ.",
   "Mailspring could not spawn the mailsync process. %@": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ಗೆ ಮೇಲ್ಸಿಂಕ್ ಪ್ರಕ್ರಿಯೆಯನ್ನು ನೀಡಲಾಗಲಿಲ್ಲ. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ನಿಮ್ಮ ಪಾಸ್ವರ್ಡ್ ಅನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಸಂಗ್ರಹಿಸಲಾಗಲಿಲ್ಲ. ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗಾಗಿ, ಭೇಟಿ ನೀಡಿ %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "ಲಿನಕ್ಸ್ನಲ್ಲಿನ ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಡೆಸ್ಕ್ಟಾಪ್ ಅಧಿಸೂಚನೆಗಳು ಜೆನಿಟಿಗೆ ಅಗತ್ಯವಿರುತ್ತದೆ. ನಿಮ್ಮ ಪ್ಯಾಕೇಜ್ ಮ್ಯಾನೇಜರ್ನೊಂದಿಗೆ ನೀವು ಇದನ್ನು ಸ್ಥಾಪಿಸಬೇಕಾಗಬಹುದು.",
   "Mailspring does not support stylesheets with the extension: %@": "ವಿಸ್ತರಣೆಯೊಂದಿಗೆ ಸ್ಟೈಲ್ಶೀಟ್ಗಳನ್ನು ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "ಈ ಖಾತೆಯನ್ನು ಸಿಂಕ್ ಮಾಡುವಲ್ಲಿ ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ದೋಷಗಳನ್ನು ಎದುರಿಸಿದೆ. ಕ್ರ್ಯಾಶ್ ವರದಿಗಳನ್ನು ಮೇಲ್ಸ್ಪ್ರಿಂಗ್ ತಂಡಕ್ಕೆ ಕಳುಹಿಸಲಾಗಿದೆ ಮತ್ತು ಮುಂದಿನ ಬಿಡುಗಡೆಗಳಲ್ಲಿ ಈ ದೋಷಗಳನ್ನು ಸರಿಪಡಿಸಲು ನಾವು ಕೆಲಸ ಮಾಡುತ್ತೇವೆ.",
   "Mailspring has translated this message into %@.": "ಮೇಲ್‌ಸ್ಪ್ರಿಂಗ್ ಈ ಸಂದೇಶವನ್ನು %@ ಗೆ ಅನುವಾದಿಸಿದ್ದಾರೆ.",

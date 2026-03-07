@@ -12,6 +12,9 @@ type ListTabularItemProps = {
   item: any; // template type soon?
   itemProps?: {
     className?: string;
+    role?: string;
+    ariaSelected?: boolean;
+    ariaLabel?: string;
   };
   onSelect?: (...args: any[]) => any;
   onClick?: (...args: any[]) => any;
@@ -55,7 +58,8 @@ export class ListTabularItem extends React.Component<ListTabularItemProps> {
   render() {
     const itemProps = this.props.itemProps || {};
     const className = `list-item list-tabular-item ${itemProps.className}`;
-    const props = Utils.fastOmit(itemProps, ['className']);
+    const { role, ariaSelected, ariaLabel } = itemProps;
+    const props = Utils.fastOmit(itemProps, ['className', 'role', 'ariaSelected', 'ariaLabel']);
 
     // It's expensive to compute the contents of columns (format timestamps, etc.)
     // We only do it if the item prop has changed.
@@ -66,6 +70,7 @@ export class ListTabularItem extends React.Component<ListTabularItemProps> {
     return (
       <SwipeContainer
         {...props}
+        role="presentation"
         onClick={this._onClick}
         style={{
           position: 'absolute',
@@ -74,7 +79,13 @@ export class ListTabularItem extends React.Component<ListTabularItemProps> {
           height: this.props.metrics.height,
         }}
       >
-        <div className={className} style={{ height: this.props.metrics.height }}>
+        <div
+          className={className}
+          style={{ height: this.props.metrics.height }}
+          role={role}
+          aria-selected={ariaSelected}
+          aria-label={ariaLabel}
+        >
           {this._columnCache}
         </div>
       </SwipeContainer>

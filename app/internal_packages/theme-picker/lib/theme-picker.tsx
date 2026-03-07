@@ -1,4 +1,3 @@
-/* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React from 'react';
 
 import { Flexbox, ScrollRegion } from 'mailspring-component-kit';
@@ -87,7 +86,7 @@ class ThemePicker extends React.Component<
 
   render() {
     return (
-      <div className="theme-picker" tabIndex={1}>
+      <div className="theme-picker" tabIndex={0}>
         <Flexbox direction="column">
           <h4 style={{ color: '#434648' }}>{localized('Themes')}</h4>
           <div style={{ color: 'rgba(35, 31, 32, 0.5)', fontSize: '12px' }}>

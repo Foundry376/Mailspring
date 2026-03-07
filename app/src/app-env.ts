@@ -9,6 +9,7 @@ import { localized, isRTL, initializeLocalization } from './intl';
 
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
+import { isWaylandSession } from './browser/is-wayland';
 
 function ensureInteger(f, fallback) {
   let int = f;
@@ -152,12 +153,10 @@ export default class AppEnvConstructor {
       resourcePath: this.getLoadSettings().resourcePath,
     });
 
-
     // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
     window.onerror = (message, url, line, column, originalError) => {
       if (!originalError && !message) return;
       if (!originalError) originalError = new Error(`${message}`);
-
 
       if (!this.inDevMode()) {
         return this.reportError(originalError, { url, line, column });
@@ -203,17 +202,17 @@ export default class AppEnvConstructor {
   reportError(error, extra: any = {}) {
     // Check if this error should be ignored and not reported to Sentry
     const errorMessage = `${error}`.toLowerCase();
-    
+
     // ResizeObserver errors happen infrequently but spam Sentry with thousands of reports
     if (errorMessage.includes('resizeobserver') || errorMessage.includes('resize observer')) {
       return;
     }
-    
+
     // File system errors that are commonly "file not found" or similar
     if (errorMessage.includes('enoent')) {
       return;
     }
-    
+
     // Authentication errors - these are user configuration issues, not bugs
     if (
       errorMessage.includes('authentication error') ||
@@ -584,11 +583,19 @@ export default class AppEnvConstructor {
 
   restoreWindowDimensions() {
     const settings = this.getLoadSettings();
+
     let dimensions = this.savedState.windowDimensions;
     if (!this.isValidDimensions(dimensions)) {
       dimensions = this.getDefaultWindowDimensions();
     }
-    this.setWindowDimensions(dimensions);
+
+    // Amazingly, Wayland doesn't let apps adjust the positions of their windows, only their size.
+    // This is wild and users seem to dislike it, but we'll let the app use it's default position,
+    // and avoid interfering with any userland scripts / extensions users have to save their settings.
+    if (!isWaylandSession()) {
+      this.setWindowDimensions(dimensions);
+    }
+
     if (dimensions.maximized && !settings.initializeInBackground) {
       this.maximize();
     }

@@ -116,9 +116,13 @@ const MailRulesActions: {
   },
 
   archive: (message, thread) => {
+    const inbox = CategoryStore.getInboxCategory(thread.accountId);
+    if (!inbox) {
+      throw new Error('Could not find `inbox` label');
+    }
     return new ChangeLabelsTask({
       labelsToAdd: [],
-      labelsToRemove: [CategoryStore.getInboxCategory(thread.accountId)],
+      labelsToRemove: [inbox],
       threads: [thread],
       source: 'Mail Rules',
     });
@@ -160,28 +164,34 @@ class MailRulesProcessor {
     // rule at a time. This is important, because users can order rules which
     // may do and undo a change. Ie: "Star if from Ben, Unstar if subject is "Bla"
     for (const rule of enabledRules) {
-      const allMatching = messages.filter(message => this._checkRuleForMessage(rule, message));
+      try {
+        const allMatching = messages.filter(message => this._checkRuleForMessage(rule, message));
 
-      // Rules are declared at the message level, but actions are applied to
-      // threads. To ensure we don't apply the same action 50x on the same thread,
-      // just process one match per thread.
-      const seenThreadIds = new Set<string>();
-      const matching = [];
-      for (const message of allMatching) {
-        if (!seenThreadIds.has(message.threadId)) {
-          seenThreadIds.add(message.threadId);
-          matching.push(message);
+        // Rules are declared at the message level, but actions are applied to
+        // threads. To ensure we don't apply the same action 50x on the same thread,
+        // just process one match per thread.
+        const seenThreadIds = new Set<string>();
+        const matching = [];
+        for (const message of allMatching) {
+          if (!seenThreadIds.has(message.threadId)) {
+            seenThreadIds.add(message.threadId);
+            matching.push(message);
+          }
         }
-      }
-      for (const message of matching) {
-        // We always pull the thread from the database, even though it may be in
-        // `incoming.thread`, because rules may be modifying it as they run!
-        const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
-        if (!thread) {
-          console.warn(`Cannot find thread ${message.threadId} to process mail rules.`);
-          continue;
+        for (const message of matching) {
+          // We always pull the thread from the database, even though it may be in
+          // `incoming.thread`, because rules may be modifying it as they run!
+          const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
+          if (!thread) {
+            console.warn(`Cannot find thread ${message.threadId} to process mail rules.`);
+            continue;
+          }
+          await this._applyRuleToMessage(rule, message, thread);
         }
-        await this._applyRuleToMessage(rule, message, thread);
+      } catch (err) {
+        // Errors during condition evaluation (e.g. invalid regex) should disable
+        // the rule rather than crash the entire processor and block other rules.
+        Actions.disableMailRule(rule.id, err.toString());
       }
     }
   }
@@ -208,6 +218,10 @@ class MailRulesProcessor {
     const templateMap = this._getConditionTemplateMap();
     return fn.call(rule.conditions, condition => {
       const template = templateMap.get(condition.templateKey);
+      if (!template) {
+        console.warn(`Unknown mail rule condition template: ${condition.templateKey}`);
+        return false;
+      }
       const value = template.valueForMessage(message);
       return template.evaluate(condition, value);
     });

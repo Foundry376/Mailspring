@@ -170,6 +170,21 @@
       top: 100%;
     }
   }
+  .contact-notes-textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+    font-size: inherit;
+    border: 1px solid @input-border-color;
+    border-radius: @border-radius-base;
+    padding: @padding-xs-vertical @padding-xs-horizontal;
+    &:focus {
+      border: 1px solid @accent-primary;
+      box-shadow: 0 0 1.5px @accent-primary;
+      outline: none;
+    }
+  }
   .list-editor-item {
     display: flex;
     .remove,
@@ -255,7 +270,32 @@
   .scroll-region {
     width: 100%;
     height: 100%;
-    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}
+
+// Drop overlay shown when a .vcf file is dragged over the contact list
+.contact-list-drop-target {
+  .vcf-drop-overlay {
+    display: none;
+  }
+  &.dragging-files {
+    .vcf-drop-overlay {
+      display: flex;
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      align-items: center;
+      justify-content: center;
+      background-color: mix(@color-info, @background-primary, 15%);
+      border: 2px dashed mix(@color-info, @border-color-divider, 60%);
+      pointer-events: none;
+
+      .vcf-drop-overlay-label {
+        font-size: 1.1em;
+        color: mix(@color-info, @text-color, 30%);
+        font-weight: @font-weight-medium;
+      }
+    }
   }
 }
 

@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Pelancaran sistem bermula\" hanya berfungsi dalam persekitaran desktop yang mematuhi XDG. Untuk mendayakan ikon Mailspring dalam dulang sistem, anda mungkin perlu memasang libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Pelancaran sistem bermula\" hanya berfungsi dalam persekitaran desktop yang mematuhi XDG. Untuk mendayakan ikon Mailspring dalam dulang sistem, anda mungkin perlu memasang libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ daripada %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ tidak boleh dilampirkan kerana ia lebih besar daripada 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ telah dipasang dan didayakan. Tidak perlu memulakan semula! Jika anda tidak melihat plugin dimuat, semak konsol untuk ralat.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring tidak dapat menyimpan lampiran. Semak kebenaran yang ditetapkan dengan betul dan cuba mulakan semula Mailspring jika isu itu berterusan.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring tidak dapat menanam proses mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring tidak dapat menyimpan kata laluan anda dengan selamat. Untuk maklumat lanjut, lawati %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Pemberitahuan desktop Mailspring di Linux memerlukan Zenity. Anda mungkin perlu memasangnya dengan pengurus pakej anda.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring tidak menyokong stylesheets dengan pelanjutan: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring menemui ralat menyegerakkan akaun ini. Laporan kemalangan telah dihantar ke pasukan Mailspring dan kami akan berusaha untuk membetulkan kesilapan ini dalam pembebasan seterusnya.",
   "Mailspring has translated this message into %@.": "Mailspring telah menerjemahkan mesej ini ke dalam [∇].",

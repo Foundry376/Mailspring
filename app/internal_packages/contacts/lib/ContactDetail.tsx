@@ -136,11 +136,11 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
         </ScrollRegion>
         {editing && (
           <div className="contact-edit-footer">
-            <button tabIndex={-1} className={`btn`} onClick={this.onCancel}>
+            <button className={`btn`} onClick={this.onCancel}>
               {localized('Cancel')}
             </button>
             <div style={{ flex: 1 }} />
-            <button tabIndex={-1} className={`btn btn-emphasis`} onClick={this.onSaveChanges}>
+            <button className={`btn btn-emphasis`} onClick={this.onSaveChanges}>
               {localized('Save Changes')}
             </button>
           </div>

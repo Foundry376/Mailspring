@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Avvia all'avvio del sistema\" funziona solo in ambienti desktop compatibili con XDG. Per abilitare l'icona Mailspring nella barra delle applicazioni, potrebbe essere necessario installare libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Avvia all'avvio del sistema\" funziona solo in ambienti desktop compatibili con XDG. Per abilitare l'icona Mailspring nella barra delle applicazioni, potrebbe essere necessario installare libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ di %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ non può essere allegato perché è più grande di 25 MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ è stato installato e abilitato. Non c'è bisogno di riavviare! Se non vedi caricato il plugin, controlla la console per eventuali errori.",
@@ -345,7 +345,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring non è riuscito a salvare un allegato. Verifica che le autorizzazioni siano impostate correttamente e prova a riavviare Mailspring se il problema persiste.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring non è stato in grado di generare il processo mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring non ha potuto memorizzare la tua password in modo sicuro. Per ulteriori informazioni, visita %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Le notifiche desktop di Mailspring su Linux richiedono Zenity. Potrebbe essere necessario installarlo con il tuo gestore di pacchetti.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring non supporta i fogli di stile con l'estensione: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring ha riscontrato errori nella sincronizzazione di questo account. I rapporti sugli arresti anomali sono stati inviati al team di Mailspring e lavoreremo per correggere questi errori nella prossima versione.",
   "Mailspring has translated this message into %@.": "Mailspring ha tradotto questo messaggio in %@.",

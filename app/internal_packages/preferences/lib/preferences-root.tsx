@@ -1,4 +1,3 @@
-/* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
@@ -62,7 +61,9 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
   // inside the content area. This makes it way easier to interact with prefs.
   _focusContent() {
     const contentEl = ReactDOM.findDOMNode(this._contentComponent) as HTMLElement;
-    const node = contentEl.querySelector('[tabindex]') as HTMLElement;
+    const node = contentEl.querySelector(
+      'input, select, textarea, [tabindex="0"], button'
+    ) as HTMLElement;
     if (node) {
       node.focus();
     }
@@ -75,7 +76,7 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
     return (
       <KeyCommandsRegion
         className="preferences-wrap"
-        tabIndex={1}
+        tabIndex={0}
         localHandlers={this._localHandlers}
       >
         <Flexbox direction="column">

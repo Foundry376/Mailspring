@@ -1,5 +1,62 @@
 # Mailspring Changelog
 
+## 1.18.0 (2/22/2026)
+
+Features:
+
+- Grammar check is now available in the composer! (#2612)
+
+  - This feature relies on a deployment of LanguageTool at id.getmailspring.com - when you use Grammar Check, small snippets of your draft are sent to this server, but the requests are not logged and no message data is stored.
+  - This feature is disabled by default. To turn it on, click the new icon in the composer toolbar.
+
+- Mailspring now properly detects "Do Not Disturb" status on MacOS Sequoia and on Windows.
+
+Bug Fixes:
+
+- On Wayland, the `--background` flag now shows the main window briefly then hides it, which is the best we can do under Wayland's rules. (#2623)
+
+- On Wayland, fixed a keyboard freeze in the composer caused by a double `focus()` call. (#2622)
+
+- Fixed sound notifications playing on Windows regardless of the notification preference. (#2619)
+
+- Fixed the tray icon theme detection on GNOME/Unity Linux desktops. (#2610)
+
+- Fixed a crash in vCard parsing when the `VERSION` line is not found.
+
+- Fixed an issue with the first CardDAV sync incorrectly seeing existing ETags in mailsync.
+
+- Fixed IMAP IDLE to process `VANISHED` notifications sent by FastMail (and possibly other providers).
+
+- Fixed folder priority logic that was incorrectly applied to non-iCloud accounts in mailsync.
+
+Improvements:
+
+- Added support for the stnadard biographies / notes field on contacts. (#2621)
+
+- Rearranged the thread context menu to reduce accidental destructive actions. (#2620)
+
+- Added an empty state to the calendar when no CalDAV accounts are connected. (#2625)
+
+- The draft window now uses the message subject as the window title.
+
+- Improved read receipt tracking pixel reliability. (#2613)
+
+- Improved mail rules robustness and fixed condition evaluation bugs. (#2616)
+
+- Added VTIMEZONE to created calendar events so they are created on Yahoo in the correct timezone.
+
+- Enabled CalDAV discovery to support Fastmail, Yahoo, and other providers in the upcoming calendar.
+
+- On Windows, the app icon is now a rounded square to better fit with Windows 11 design guidelines.
+
+Developer:
+
+- Replaced CSS-based platform hiding with React conditionals in preferences. (#2614)
+
+- Removed subpixel-antialiased font smoothing overrides. (#2618)
+
+- Added `syncInit` to main-calendar to eliminate a 2.5s startup delay. (#2606)
+
 ## 1.17.4 (2/11/2026)
 
 Features:

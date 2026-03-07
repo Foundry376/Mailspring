@@ -50,7 +50,6 @@ export class MailboxPerspective {
   }
 
   static forStandardCategories(accountsOrIds, ...names) {
-    // TODO this method is broken
     const categories = CategoryStore.getCategoriesWithRoles(accountsOrIds, ...names);
     return this.forCategories(categories);
   }

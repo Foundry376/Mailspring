@@ -52,6 +52,29 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
     });
   });
 
+  describe('when trayIconStyle is none', () => {
+    beforeEach(() => {
+      spyOn(AppEnv.config, 'get').andCallFake((key) => {
+        if (key === 'core.workspace.trayIconStyle') return 'none';
+        return undefined;
+      });
+    });
+
+    it('shows inbox full icon even when there are unread messages', () => {
+      spyOn(BadgeStore, 'unread').andReturn(5);
+      spyOn(BadgeStore, 'total').andReturn(10);
+      this.iconStore._updateIcon();
+      expect(getCallData()).toEqual({ path: this.iconStore.inboxFullIcon(), isTemplateImg: true });
+    });
+
+    it('shows inbox zero icon when inbox is empty', () => {
+      spyOn(BadgeStore, 'unread').andReturn(0);
+      spyOn(BadgeStore, 'total').andReturn(0);
+      this.iconStore._updateIcon();
+      expect(getCallData()).toEqual({ path: this.iconStore.inboxZeroIcon(), isTemplateImg: true });
+    });
+  });
+
   describe('updating the icon based on focus and blur', () => {
     it('always shows inbox full icon when the window gets focused', () => {
       spyOn(BadgeStore, 'total').andReturn(1);

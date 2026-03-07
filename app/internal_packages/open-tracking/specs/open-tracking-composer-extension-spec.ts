@@ -1,13 +1,20 @@
 import { Message } from 'mailspring-exports';
-import OpenTrackingComposerExtension from '../lib/open-tracking-composer-extension';
+import OpenTrackingComposerExtension, {
+  encodeOpenTrackingToken,
+} from '../lib/open-tracking-composer-extension';
 import { PLUGIN_ID, PLUGIN_URL } from '../lib/open-tracking-constants';
 
 const accountId = 'fake-accountId';
 const clientId = 'local-31d8df57-1442';
 const beforeBody = `TEST_BODY <blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"> On Feb 25 2016, at 3:38 pm, Drew &lt;drew@mailspring.com&gt; wrote: <br> twst </blockquote>`;
-const afterBody = `TEST_BODY <img class="mailspring-open" width="0" height="0" style="border:0; width:0; height:0;" src="${PLUGIN_URL}/open/${accountId}/${clientId}"><blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"> On Feb 25 2016, at 3:38 pm, Drew &lt;drew@mailspring.com&gt; wrote: <br> twst </blockquote>`;
 
-const nodeForHTML = html => {
+// Build the expected pixel URL using the same token-encoding logic the
+// extension uses at send time. The img tag intentionally has no class,
+// dimensions, or branded alt text to avoid tracking-pixel blockers.
+const expectedToken = encodeOpenTrackingToken({ messageId: clientId, accountId });
+const afterBody = `TEST_BODY <img alt="" src="${PLUGIN_URL}/o/${expectedToken}.png"><blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"> On Feb 25 2016, at 3:38 pm, Drew &lt;drew@mailspring.com&gt; wrote: <br> twst </blockquote>`;
+
+const nodeForHTML = (html) => {
   const fragment = document.createDocumentFragment();
   const node = document.createElement('root');
   fragment.appendChild(node);

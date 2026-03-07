@@ -112,9 +112,11 @@ export default class SwipeContainer extends React.Component<
 
   componentDidUpdate(prevProps: SwipeContainerProps) {
     // Reset cached isEnabled when props change
-    if (prevProps.onSwipeLeft !== this.props.onSwipeLeft ||
-        prevProps.onSwipeRight !== this.props.onSwipeRight ||
-        prevProps.shouldEnableSwipe !== this.props.shouldEnableSwipe) {
+    if (
+      prevProps.onSwipeLeft !== this.props.onSwipeLeft ||
+      prevProps.onSwipeRight !== this.props.onSwipeRight ||
+      prevProps.shouldEnableSwipe !== this.props.shouldEnableSwipe
+    ) {
       this.isEnabled = null;
     }
 
@@ -168,12 +170,11 @@ export default class SwipeContainer extends React.Component<
       return;
     }
 
-    const velocityConfirmsGesture = Math.abs(velocityX) > 3;
-
     if (this.phase === Phase.None) {
       this.phase = Phase.GestureStarting;
     }
 
+    const velocityConfirmsGesture = Math.abs(velocityX) > 3;
     if (velocityConfirmsGesture || this.phase === Phase.Settling) {
       this.phase = Phase.GestureConfirmed;
     }
@@ -191,7 +192,7 @@ export default class SwipeContainer extends React.Component<
 
     const clipToMax = v => Math.max(-fullDist, Math.min(fullDist, v));
     const currentX = clipToMax(this.state.currentX + velocityX);
-    const estimatedSettleX = clipToMax(currentX + velocityX * 8);
+    const estimatedSettleX = clipToMax(currentX + velocityX * 5);
     const lastDragX = currentX;
     let targetX = 0;
 
@@ -215,7 +216,14 @@ export default class SwipeContainer extends React.Component<
         targetX = fullDist;
       }
     }
-    this.setState({ thresholdDistance: threshDist, fullDistance: fullDist, currentX, targetX, lastDragX });
+
+    this.setState({
+      thresholdDistance: threshDist,
+      fullDistance: fullDist,
+      currentX,
+      targetX,
+      lastDragX,
+    });
   };
 
   _onScrollTouchBegin = () => {

@@ -38,7 +38,7 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
     element.isContentEditable;
   if (withinTextInput) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
-    const isReservedTextEditingShortcut = /(mod|command|ctrl)\+(a|x|c|v)/.test(combo);
+    const isReservedTextEditingShortcut = /(mod|command|ctrl)\+(a|x|c|v|left|right)/.test(combo);
     return isPlainKey || isReservedTextEditingShortcut;
   }
   return false;

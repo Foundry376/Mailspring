@@ -156,7 +156,7 @@ export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<
 
     const otherProps = Utils.fastOmit(this.props, Object.keys(RetinaImg.propTypes));
     return (
-      <img alt={this.props.name} className={className} src={path} style={style} {...otherProps} />
+      <img alt={''} className={className} src={path} style={style} {...otherProps} />
     );
   }
 }

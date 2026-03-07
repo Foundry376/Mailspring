@@ -1,4 +1,3 @@
-/* eslint jsx-a11y/tabindex-no-positive: 0 */
 import classnames from 'classnames';
 import React, { Component } from 'react';
 import { localized, DateUtils } from 'mailspring-exports';
@@ -96,7 +95,7 @@ class DateInput extends Component<DateInputProps, DateInputState> {
     return (
       <div className={classes}>
         <input
-          tabIndex={1}
+          tabIndex={0}
           type="text"
           value={inputValue}
           placeholder={localized("Or, 'next Monday at 2PM'")}

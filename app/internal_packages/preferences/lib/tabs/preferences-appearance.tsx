@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { RetinaImg, Flexbox } from 'mailspring-component-kit';
+import { RetinaImg, Flexbox, RovingTabIndexToolbar } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 import { ConfigLike } from '../types';
 import SystemTrayIconStore from '../../../system-tray/lib/system-tray-icon-store';
@@ -41,13 +41,18 @@ class AppearanceScaleSlider extends React.Component<
             <RetinaImg name="appearance-scale-big.png" mode={RetinaImg.Mode.ContentDark} />
           </div>
         </div>
+        <label htmlFor="interface-zoom-slider" className="sr-only">
+          {localized('Interface Scale')}
+        </label>
         <input
+          id="interface-zoom-slider"
           type="range"
           min={0.8}
           max={1.4}
           step={0.05}
           value={this.state.value}
-          onChange={e => this.props.config.set(this.kp, e.target.value)}
+          aria-label={localized('Interface Scale')}
+          onChange={(e) => this.props.config.set(this.kp, e.target.value)}
         />
       </div>
     );
@@ -57,7 +62,7 @@ class AppearanceScaleSlider extends React.Component<
 class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.menubarStyle';
 
-  onChangeMenubarStyle = e => {
+  onChangeMenubarStyle = (e) => {
     this.props.config.set(this.kp, e.target.value);
   };
 
@@ -74,8 +79,10 @@ class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
       ['hamburger', localized('Custom Window Frame and Right-hand Menu'), ''],
     ];
 
+    if (process.platform !== 'linux') return null;
+
     return (
-      <section className="platform-linux-only">
+      <section>
         <h6>{localized('Window Controls and Menus')}</h6>
         {options.map(([enumValue, description, comment], idx) => (
           <div key={enumValue} style={{ marginBottom: 10 }}>
@@ -146,7 +153,7 @@ class AppearanceModeSwitch extends React.Component<
   };
 
   _renderModeOptions() {
-    return ['list', 'split', 'splitVertical'].map(mode => (
+    return ['list', 'split', 'splitVertical'].map((mode) => (
       <AppearanceModeOption
         mode={mode}
         key={mode}
@@ -163,9 +170,13 @@ class AppearanceModeSwitch extends React.Component<
 
     return (
       <div id={this.props.id} className="appearance-mode-switch">
-        <Flexbox direction="row" style={{ alignItems: 'center' }} className="item">
+        <RovingTabIndexToolbar
+          label={localized('Layout')}
+          className="item"
+          style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
+        >
           {this._renderModeOptions()}
-        </Flexbox>
+        </RovingTabIndexToolbar>
         <div className={applyChangesClass} onClick={this._onApplyChanges}>
           {localized('Apply Layout')}
         </div>
@@ -177,7 +188,7 @@ class AppearanceModeSwitch extends React.Component<
 class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.trayIconStyle';
 
-  onChangeTrayIconStyle = e => {
+  onChangeTrayIconStyle = (e) => {
     this.props.config.set(this.kp, e.target.value);
   };
 
@@ -199,6 +210,14 @@ class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
           '(A red tray icon is displayed for new messages and a blue icon for older unread messages.)'
         ),
         systemTrayIconScore.inboxFullNewIcon(),
+      ],
+      [
+        'none',
+        localized('No unread status indication'),
+        localized(
+          '(The tray icon always shows the default appearance regardless of unread messages.)'
+        ),
+        systemTrayIconScore.inboxFullIcon(),
       ],
     ];
 
@@ -229,6 +248,58 @@ class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
   }
 }
 
+class TrayIconThemePicker extends React.Component<{ config: ConfigLike }> {
+  kp = 'core.workspace.traySystemTheme';
+
+  onChangeTrayIconTheme = (e) => {
+    this.props.config.set(this.kp, e.target.value);
+  };
+
+  render() {
+    if (process.platform !== 'linux') return null;
+
+    const val = this.props.config.get(this.kp) || 'automatic';
+
+    const options = [
+      [
+        'automatic',
+        localized('Automatic'),
+        localized('(Detect from system theme. On GNOME/Unity, assumes a dark tray background.)'),
+      ],
+      [
+        'light',
+        localized('Light tray background'),
+        localized('(Use dark icons for a light tray.)'),
+      ],
+      ['dark', localized('Dark tray background'), localized('(Use light icons for a dark tray.)')],
+    ];
+
+    return (
+      <section>
+        <h6>{localized('Tray icon theme')}</h6>
+        {options.map(([enumValue, description, comment], idx) => (
+          <div key={enumValue} style={{ marginBottom: 10 }}>
+            <label htmlFor={`tray-theme-radio${idx}`}>
+              <input
+                id={`tray-theme-radio${idx}`}
+                type="radio"
+                value={enumValue}
+                name="traySystemTheme"
+                checked={val === enumValue}
+                onChange={this.onChangeTrayIconTheme}
+              />
+              {` ${description} `}
+              {comment && (
+                <div style={{ paddingLeft: 24, fontSize: '0.9em', opacity: 0.7 }}>{comment}</div>
+              )}
+            </label>
+          </div>
+        ))}
+      </section>
+    );
+  }
+}
+
 const AppearanceModeOption = function AppearanceModeOption(props) {
   let classname = 'appearance-mode';
   if (props.active) classname += ' active';
@@ -239,8 +310,23 @@ const AppearanceModeOption = function AppearanceModeOption(props) {
     splitVertical: localized('Two Panel Vertical'),
   }[props.mode];
 
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      props.onClick();
+    }
+  };
+
   return (
-    <div className={classname} onClick={props.onClick}>
+    <div
+      className={classname}
+      role="button"
+      tabIndex={-1}
+      aria-pressed={props.active}
+      aria-label={label}
+      onClick={props.onClick}
+      onKeyDown={onKeyDown}
+    >
       <RetinaImg name={`appearance-mode-${props.mode}.png`} mode={RetinaImg.Mode.ContentIsMask} />
       <div>{label}</div>
     </div>
@@ -290,6 +376,7 @@ class PreferencesAppearance extends React.Component<{ config: ConfigLike; config
           </div>
         </section>
         <TrayIconStylePicker config={this.props.config} />
+        <TrayIconThemePicker config={this.props.config} />
       </div>
     );
   }

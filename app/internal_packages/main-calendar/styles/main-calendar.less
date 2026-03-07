@@ -274,6 +274,46 @@
   }
 
   // ============================================
+  // Calendar Selector (for new events)
+  // ============================================
+  .calendar-selector {
+    display: flex;
+    align-items: center;
+    padding: @padding-small-vertical @padding-base-horizontal;
+    border-bottom: 1px solid @border-color-divider;
+
+    .calendar-selector-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+      border: 1px solid fade(@black, 15%);
+    }
+
+    select {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: @text-color;
+      font-size: @font-size-small;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: @border-radius-small;
+      min-width: 0;
+
+      &:hover {
+        background-color: @background-secondary;
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px fade(@accent-primary, 40%);
+      }
+    }
+  }
+
+  // ============================================
   // Location Video Input
   // ============================================
   .location-video-input {
@@ -290,7 +330,7 @@
       font-size: @font-size-small;
       padding: 4px 0;
 
-      &:focus {
+      &:focus:not(:focus-visible) {
         outline: none;
       }
 
@@ -343,7 +383,7 @@
         font-weight: @font-weight-medium;
         padding: 4px 0;
 
-        &:focus {
+        &:focus:not(:focus-visible) {
           outline: none;
         }
 

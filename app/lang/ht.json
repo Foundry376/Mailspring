@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Lanse sou sistèm kòmanse\" sèlman ap travay nan XDG-konfòme anviwònman Desktop. Pou pèmèt icon nan Mailspring nan plato a sistèm, ou ka bezwen enstale libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Lanse sou sistèm kòmanse\" sèlman ap travay nan XDG-konfòme anviwònman Desktop. Pou pèmèt icon nan Mailspring nan plato a sistèm, ou ka bezwen enstale libappindicator or libayatana-appindicator.",
   "%1$@ of %2$@": "%1$@ nan %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ pa ka tache paske li pi gwo pase 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ te enstale ak pèmèt. Pa bezwen rekòmanse! Si ou pa wè Plugin la chaje, tcheke konsole a pou erè.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring pa t 'kapab sove yon atachman. Tcheke ke otorizasyon yo mete kòrèkteman epi eseye rekomanse Mailspring si pwoblèm lan toujou.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring pa t 'kapab anjandre pwosesis la mailsync. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring pa t 'kapab estoke modpas ou byen. Pou plis enfòmasyon, vizite %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring notifikasyon Desktop sou Linux mande pou Zenity. Ou ka bezwen enstale li avèk manadjè pake ou.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring pa sipòte stile yo ak ekstansyon an: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring rankontre erè senkronize kont sa a. Rapò aksidan yo te voye nan ekip la Mailspring epi nou pral travay ranje erè sa yo nan lage nan pwochen an.",
   "Mailspring has translated this message into %@.": "Mailspring te tradui mesaj sa a nan %@.",

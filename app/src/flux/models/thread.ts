@@ -40,7 +40,6 @@ export class Thread extends ModelWithMetadata {
     ...ModelWithMetadata.attributes,
 
     snippet: Attributes.String({
-      // TODO NONFUNCTIONAL
       modelKey: 'snippet',
     }),
 

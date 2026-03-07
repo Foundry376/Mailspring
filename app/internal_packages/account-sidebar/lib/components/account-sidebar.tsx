@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utils, DOMUtils, Account, AccountStore } from 'mailspring-exports';
+import { localized, Utils, DOMUtils, Account, AccountStore } from 'mailspring-exports';
 import { OutlineView, ScrollRegion, Flexbox } from 'mailspring-component-kit';
 import AccountSwitcher from './account-switcher';
 import SidebarStore from '../sidebar-store';
@@ -42,7 +42,7 @@ export default class AccountSidebar extends React.Component<
   }
 
   componentWillUnmount() {
-    return this.unsubscribers.map(unsubscribe => unsubscribe());
+    return this.unsubscribers.map((unsubscribe) => unsubscribe());
   }
 
   _onStoreChange = () => {
@@ -59,7 +59,7 @@ export default class AccountSidebar extends React.Component<
   };
 
   _renderUserSections(sections) {
-    return sections.map(section => <OutlineView key={section.title} {...section} />);
+    return sections.map((section) => <OutlineView key={section.title} {...section} />);
   }
 
   render() {
@@ -69,10 +69,10 @@ export default class AccountSidebar extends React.Component<
       <Flexbox direction="column" style={{ order: 0, flexShrink: 1, flex: 1 }}>
         <ScrollRegion className="account-sidebar" style={{ order: 2 }}>
           <AccountSwitcher accounts={accounts} sidebarAccountIds={sidebarAccountIds} />
-          <div className="account-sidebar-sections">
+          <nav className="account-sidebar-sections" aria-label={localized('Mailboxes')}>
             <OutlineView {...standardSection} />
             {this._renderUserSections(userSections)}
-          </div>
+          </nav>
         </ScrollRegion>
       </Flexbox>
     );

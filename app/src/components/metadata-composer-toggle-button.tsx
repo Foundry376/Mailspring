@@ -160,14 +160,15 @@ export default class MetadataComposerToggleButton extends React.Component<
         className={className}
         onClick={this._onClick}
         title={`${enabled ? localized('Disable') : localized('Enable')} ${this.props.pluginName}`}
+        aria-label={`${enabled ? localized('Disable') : localized('Enable')} ${this.props.pluginName}`}
         tabIndex={-1}
       >
         {this.state.onByDefaultButUsedUp ? (
           <div style={{ position: 'absolute', zIndex: 2, transform: 'translate(14px, -4px)' }}>
-            <RetinaImg name="tiny-warning-sign.png" mode={RetinaImg.Mode.ContentPreserve} />
+            <RetinaImg name="tiny-warning-sign.png" mode={RetinaImg.Mode.ContentPreserve} aria-hidden="true" />
           </div>
         ) : null}
-        <RetinaImg {...attrs} mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg {...attrs} mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
       </button>
     );
   }

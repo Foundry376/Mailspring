@@ -19,6 +19,7 @@ import {
   KeyCommandsRegion,
   MiniMonthView,
 } from 'mailspring-component-kit';
+import { CalendarMenuCommands } from '../calendar-menu-commands';
 import { DayView } from './day-view';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
@@ -26,7 +27,13 @@ import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
-import { setCalendarColors, getColorCacheVersion } from './calendar-helpers';
+import { CalendarEmptyState } from './calendar-empty-state';
+import {
+  setCalendarColors,
+  getColorCacheVersion,
+  getEditableCalendars,
+  showNoEditableCalendarsError,
+} from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -47,6 +54,7 @@ import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recur
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
+const CALENDAR_LIST_VISIBLE = 'mailspring.calendarListVisible';
 
 const VIEWS = {
   [CalendarView.DAY]: DayView,
@@ -72,6 +80,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
   onCalendarMouseDown: (args: CalendarEventArgs) => void;
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
+  onCalendarDoubleClick: (args: CalendarEventArgs) => void;
 
   // Drag-related props
   dragState: DragState | null;
@@ -97,9 +106,11 @@ interface MailspringCalendarState {
   focusedEvent: FocusedEventInfo | null;
   accounts?: Account[];
   calendars: Calendar[];
+  calendarsLoaded: boolean;
   focusedMoment: Moment;
   disabledCalendars: string[];
   dragState: DragState | null;
+  calendarListVisible: boolean;
 }
 
 export class MailspringCalendar extends React.Component<
@@ -123,12 +134,14 @@ export class MailspringCalendar extends React.Component<
     super(props);
     this.state = {
       calendars: [],
+      calendarsLoaded: false,
       focusedEvent: null,
       selectedEvents: [],
       view: AppEnv.config.get(CALENDAR_VIEW) || CalendarView.WEEK,
       focusedMoment: moment(),
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
       dragState: null,
+      calendarListVisible: AppEnv.config.get(CALENDAR_LIST_VISIBLE) !== false,
     };
   }
 
@@ -171,6 +184,7 @@ export class MailspringCalendar extends React.Component<
 
         this.setState({
           calendars: calendars,
+          calendarsLoaded: true,
           accounts: accountStore.accounts(),
           disabledCalendars: disabledCalendars || [],
         });
@@ -235,6 +249,82 @@ export class MailspringCalendar extends React.Component<
 
   _onEventDoubleClick = (occurrence: EventOccurrence) => {
     this._openEventPopover(occurrence);
+  };
+
+  /**
+   * Handle double-click on the calendar background to create a new event.
+   * The CalendarEventArgs contains the time at the click position.
+   */
+  _onCalendarDoubleClick = (args: CalendarEventArgs) => {
+    if (args.time === null) {
+      return;
+    }
+
+    // Find writable calendars
+    const editableCalendars = getEditableCalendars(
+      this.state.calendars,
+      this.state.disabledCalendars || []
+    );
+    if (editableCalendars.length === 0) {
+      showNoEditableCalendarsError();
+      return;
+    }
+
+    // Snap start time to 30-minute intervals for day/week view,
+    // or use 9 AM for month view / all-day area
+    let startUnix: number;
+    const isAllDay = args.containerType === 'all-day-area' || args.containerType === 'month-cell';
+
+    if (isAllDay) {
+      // For month/all-day, start at beginning of the day
+      const dayStart = moment(args.time * 1000)
+        .startOf('day')
+        .unix();
+      startUnix = dayStart;
+    } else {
+      // Snap to nearest 30-minute interval
+      const thirtyMinutes = 30 * 60;
+      startUnix = Math.round(args.time / thirtyMinutes) * thirtyMinutes;
+    }
+
+    const endUnix = isAllDay ? startUnix + 86400 : startUnix + 3600; // 1 day or 1 hour
+
+    // Build a temporary EventOccurrence to open the popover in "new event" mode
+    const newEventOccurrence: EventOccurrence = {
+      id: `__new_event_${Date.now()}`,
+      start: startUnix,
+      end: endUnix,
+      title: '',
+      description: '',
+      location: '',
+      isAllDay,
+      isCancelled: false,
+      isPending: false,
+      isException: false,
+      organizer: null,
+      attendees: [],
+      accountId: editableCalendars[0].accountId,
+      calendarId: editableCalendars[0].id,
+    };
+
+    // Open the popover anchored near the mouse position
+    const originRect = new DOMRect(args.mouseEvent.clientX - 1, args.mouseEvent.clientY - 1, 2, 2);
+
+    Actions.openPopover(
+      <CalendarEventPopover
+        event={newEventOccurrence}
+        isNewEvent
+        calendars={this.state.calendars}
+        accounts={this.state.accounts}
+        disabledCalendars={this.state.disabledCalendars}
+      />,
+      {
+        originRect,
+        direction: 'right',
+        fallbackDirection: 'left',
+        closeOnAppBlur: false,
+      }
+    );
   };
 
   _onEventFocused = (occurrence: EventOccurrence) => {
@@ -622,63 +712,158 @@ export class MailspringCalendar extends React.Component<
     }
   }
 
-  render() {
-    const CurrentView = VIEWS[this.state.view];
+  /**
+   * Navigate to the next period based on the current view.
+   */
+  _onNavigateNext = () => {
+    const { view, focusedMoment } = this.state;
+    let newMoment: Moment;
+    switch (view) {
+      case CalendarView.DAY:
+        newMoment = moment(focusedMoment).add(1, 'day');
+        break;
+      case CalendarView.WEEK:
+        newMoment = moment(focusedMoment).add(1, 'week');
+        break;
+      case CalendarView.MONTH:
+        newMoment = moment(focusedMoment).add(1, 'month');
+        break;
+      case CalendarView.AGENDA:
+        newMoment = moment(focusedMoment).add(14, 'days');
+        break;
+      default:
+        return;
+    }
+    this.onChangeFocusedMoment(newMoment);
+  };
 
+  /**
+   * Navigate to the previous period based on the current view.
+   */
+  _onNavigatePrevious = () => {
+    const { view, focusedMoment } = this.state;
+    let newMoment: Moment;
+    switch (view) {
+      case CalendarView.DAY:
+        newMoment = moment(focusedMoment).subtract(1, 'day');
+        break;
+      case CalendarView.WEEK:
+        newMoment = moment(focusedMoment).subtract(1, 'week');
+        break;
+      case CalendarView.MONTH:
+        newMoment = moment(focusedMoment).subtract(1, 'month');
+        break;
+      case CalendarView.AGENDA:
+        newMoment = moment(focusedMoment).subtract(14, 'days');
+        break;
+      default:
+        return;
+    }
+    this.onChangeFocusedMoment(newMoment);
+  };
+
+  /**
+   * Toggle calendar list sidebar visibility.
+   */
+  _onToggleCalendarList = () => {
+    const visible = !this.state.calendarListVisible;
+    this.setState({ calendarListVisible: visible });
+    AppEnv.config.set(CALENDAR_LIST_VISIBLE, visible);
+  };
+
+  /**
+   * Refresh calendars by triggering a sync.
+   */
+  _onRefreshCalendars = () => {
+    AppEnv.mailsyncBridge.sendSyncMailNow();
+  };
+
+  _shouldShowEmptyState() {
+    return this.state.calendarsLoaded && this.state.calendars.length === 0;
+  }
+
+  _renderMainContent() {
+    if (this._shouldShowEmptyState()) {
+      return <CalendarEmptyState />;
+    }
+
+    const CurrentView = VIEWS[this.state.view];
     return (
-      <KeyCommandsRegion
-        className="mailspring-calendar"
-        localHandlers={{
-          'core:remove-from-view': this._onDeleteSelectedEvents,
-          'calendar:move-event-up': () => this._onMoveSelectedEvent('up', false),
-          'calendar:move-event-down': () => this._onMoveSelectedEvent('down', false),
-          'calendar:move-event-left': () => this._onMoveSelectedEvent('left', false),
-          'calendar:move-event-right': () => this._onMoveSelectedEvent('right', false),
-          'calendar:resize-event-up': () => this._onMoveSelectedEvent('up', true),
-          'calendar:resize-event-down': () => this._onMoveSelectedEvent('down', true),
-          'calendar:resize-event-left': () => this._onMoveSelectedEvent('left', true),
-          'calendar:resize-event-right': () => this._onMoveSelectedEvent('right', true),
-        }}
+      <CurrentView
+        key={`view-colors-${getColorCacheVersion()}`}
+        dataSource={this._dataSource}
+        focusedMoment={this.state.focusedMoment}
+        focusedEvent={this.state.focusedEvent}
+        selectedEvents={this.state.selectedEvents}
+        disabledCalendars={this.state.disabledCalendars}
+        onChangeView={this.onChangeView}
+        onChangeFocusedMoment={this.onChangeFocusedMoment}
+        onCalendarMouseUp={this._onCalendarMouseUp}
+        onCalendarMouseDown={this._onCalendarMouseDown}
+        onCalendarMouseMove={this._onCalendarMouseMove}
+        onCalendarDoubleClick={this._onCalendarDoubleClick}
+        onEventClick={this._onEventClick}
+        onEventDoubleClick={this._onEventDoubleClick}
+        onEventFocused={this._onEventFocused}
+        dragState={this.state.dragState}
+        onEventDragStart={this._onEventDragStart}
+        readOnlyCalendarIds={this._getReadOnlyCalendarIds()}
+      />
+    );
+  }
+
+  render() {
+    return (
+      <CalendarMenuCommands
+        onChangeView={this.onChangeView}
+        onChangeFocusedMoment={this.onChangeFocusedMoment}
+        onNavigateNext={this._onNavigateNext}
+        onNavigatePrevious={this._onNavigatePrevious}
+        onDeleteEvent={this._onDeleteSelectedEvents}
+        onRefreshCalendars={this._onRefreshCalendars}
+        hasSelectedEvents={this.state.selectedEvents.length > 0}
       >
-        <ResizableRegion
-          className="calendar-source-list"
-          initialWidth={200}
-          minWidth={200}
-          maxWidth={300}
-          handle={ResizableRegion.Handle.Right}
-          style={{ flexDirection: 'column' }}
+        <KeyCommandsRegion
+          className="mailspring-calendar"
+          localHandlers={{
+            'core:remove-from-view': this._onDeleteSelectedEvents,
+            'calendar:move-event-up': () => this._onMoveSelectedEvent('up', false),
+            'calendar:move-event-down': () => this._onMoveSelectedEvent('down', false),
+            'calendar:move-event-left': () => this._onMoveSelectedEvent('left', false),
+            'calendar:move-event-right': () => this._onMoveSelectedEvent('right', false),
+            'calendar:resize-event-up': () => this._onMoveSelectedEvent('up', true),
+            'calendar:resize-event-down': () => this._onMoveSelectedEvent('down', true),
+            'calendar:resize-event-left': () => this._onMoveSelectedEvent('left', true),
+            'calendar:resize-event-right': () => this._onMoveSelectedEvent('right', true),
+          }}
         >
-          <ScrollRegion style={{ flex: 1 }}>
-            <CalendarSourceList
-              accounts={this.state.accounts}
-              calendars={this.state.calendars}
-              disabledCalendars={this.state.disabledCalendars}
-            />
-          </ScrollRegion>
-          <div style={{ width: '100%' }}>
-            <MiniMonthView value={this.state.focusedMoment} onChange={this.onChangeFocusedMoment} />
-          </div>
-        </ResizableRegion>
-        <CurrentView
-          key={`view-colors-${getColorCacheVersion()}`}
-          dataSource={this._dataSource}
-          focusedMoment={this.state.focusedMoment}
-          focusedEvent={this.state.focusedEvent}
-          selectedEvents={this.state.selectedEvents}
-          disabledCalendars={this.state.disabledCalendars}
-          onChangeView={this.onChangeView}
-          onChangeFocusedMoment={this.onChangeFocusedMoment}
-          onCalendarMouseUp={this._onCalendarMouseUp}
-          onCalendarMouseDown={this._onCalendarMouseDown}
-          onCalendarMouseMove={this._onCalendarMouseMove}
-          onEventClick={this._onEventClick}
-          onEventDoubleClick={this._onEventDoubleClick}
-          onEventFocused={this._onEventFocused}
-          dragState={this.state.dragState}
-          onEventDragStart={this._onEventDragStart}
-          readOnlyCalendarIds={this._getReadOnlyCalendarIds()}
-        />
-      </KeyCommandsRegion>
+          {this.state.calendarListVisible && (
+            <ResizableRegion
+              className="calendar-source-list"
+              initialWidth={200}
+              minWidth={200}
+              maxWidth={300}
+              handle={ResizableRegion.Handle.Right}
+              style={{ flexDirection: 'column' }}
+            >
+              <ScrollRegion style={{ flex: 1 }}>
+                <CalendarSourceList
+                  accounts={this.state.accounts}
+                  calendars={this.state.calendars}
+                  disabledCalendars={this.state.disabledCalendars}
+                />
+              </ScrollRegion>
+              <div style={{ width: '100%' }}>
+                <MiniMonthView
+                  value={this.state.focusedMoment}
+                  onChange={this.onChangeFocusedMoment}
+                />
+              </div>
+            </ResizableRegion>
+          )}
+          {this._renderMainContent()}
+        </KeyCommandsRegion>
+      </CalendarMenuCommands>
     );
   }
 }

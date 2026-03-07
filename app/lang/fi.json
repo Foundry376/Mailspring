@@ -1,5 +1,5 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Käynnistäminen järjestelmän käynnistyessä\" toimii vain XDG-yhteensopivissa työpöytäympäristöissä. Jos haluat ottaa Mailspring-kuvakkeen käyttöön tehtäväpalkissa, saatat joutua asentamaan libappindicatorin.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Käynnistäminen järjestelmän käynnistyessä\" toimii vain XDG-yhteensopivissa työpöytäympäristöissä. Jos haluat ottaa Mailspring-kuvakkeen käyttöön tehtäväpalkissa, saatat joutua asentamaan libappindicator or libayatana-appindicatorin.",
   "%1$@ of %2$@": "%1$@ %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ ei voida liittää, koska se on suurempi kuin 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ on asennettu ja käytössä. Ei tarvitse käynnistää uudelleen! Jos et näe lisäosaa ladattuna, tarkista konsoli virheistä.",
@@ -344,7 +344,6 @@
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring ei voinut tallentaa liitetiedostoa. Tarkista, että käyttöoikeudet on määritetty oikein ja yritä käynnistää Mailspring uudelleen, jos ongelma jatkuu.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring ei voinut kutua postisync-prosessia. %@",
   "Mailspring could not store your password securely. For more information, visit %@": "Mailspring ei voinut tallentaa salasanaasi turvallisesti. Lisätietoja on osoitteessa %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Mailspring-työpöytäilmoitukset Linuxissa vaativat Zenityn. Saatat joutua asentamaan sen paketinhallinnassa.",
   "Mailspring does not support stylesheets with the extension: %@": "Mailspring ei tue laajennussarjoja: %@",
   "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring kohdisti virheitä tämän tilin synkronointiin. Crash-raportit on lähetetty Mailspring-tiimiin ja pyrimme korjaamaan nämä virheet seuraavassa julkaisussa.",
   "Mailspring has translated this message into %@.": "Mailspring on kääntänyt tämän viestin muotoon %@.",

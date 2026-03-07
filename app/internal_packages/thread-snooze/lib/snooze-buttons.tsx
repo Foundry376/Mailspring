@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { Actions, FocusedPerspectiveStore, Thread } from 'mailspring-exports';
-import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
+import { RetinaImg, BindGlobalCommands, RovingTabIndexToolbar } from 'mailspring-component-kit';
 import SnoozePopover from './snooze-popover';
 
 interface BoundingRect {
@@ -118,9 +118,11 @@ export class ToolbarSnooze extends Component<{ items: Thread[] }> {
       return <span />;
     }
     return (
-      <BindGlobalCommands commands={{ 'core:snooze-item': () => this._btn.onClick() }}>
-        <SnoozeButton threads={this.props.items} ref={b => (this._btn = b)} />
-      </BindGlobalCommands>
+      <RovingTabIndexToolbar label="Snooze" className="button-group">
+        <BindGlobalCommands commands={{ 'core:snooze-item': () => this._btn.onClick() }}>
+          <SnoozeButton threads={this.props.items} ref={b => (this._btn = b)} />
+        </BindGlobalCommands>
+      </RovingTabIndexToolbar>
     );
   }
 }
