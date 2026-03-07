@@ -11,6 +11,7 @@ Categories=GNOME;GTK;Network;Email;
 Keywords=email;internet;
 MimeType=x-scheme-handler/mailto;x-scheme-handler/mailspring;
 Actions=NewMessage
+X-GNOME-UsesNotifications=true
 
 [Desktop Action NewMessage]
 Name=New Message
