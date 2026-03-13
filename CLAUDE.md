@@ -26,8 +26,16 @@ npm test-window
 # TypeScript type checking in watch mode
 npm run tsc-watch
 
-# Build for production
+# Build for production (all platforms)
 npm run build
+
+# Build for specific platform
+npm run build:mac
+npm run build:win
+npm run build:linux
+
+# Build unpacked directory only (for testing)
+npm run build:dir
 ```
 
 ## Architecture Overview
