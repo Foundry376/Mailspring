@@ -165,14 +165,26 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     // processing, resulting in "swallowed" keystrokes (especially Enter and Backspace).
     // By deferring to the next frame, we ensure the key event is fully processed
     // before React re-renders and changes the spellCheck attribute.
-    if (!this.state.isTyping) {
+    //
+    // Navigation keys (Home, End, arrow keys, etc.) do not produce text and do not
+    // benefit from disabling spellcheck. More importantly, toggling spellCheck on a
+    // contenteditable causes Chromium to reset the cursor/selection, which means the
+    // first Home/End press after 800ms of inactivity would be "eaten" by the spellCheck
+    // re-render. We skip the isTyping transition for these keys to avoid that.
+    const isNavigationKey = [
+      'Home', 'End', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+      'PageUp', 'PageDown',
+    ].includes(event.key);
+    if (!isNavigationKey && !this.state.isTyping) {
       requestAnimationFrame(() => {
         if (this._mounted && !this.state.isTyping) {
           this.setState({ isTyping: true });
         }
       });
     }
-    this._onDoneTyping();
+    if (!isNavigationKey) {
+      this._onDoneTyping();
+    }
     return next();
   };
 
