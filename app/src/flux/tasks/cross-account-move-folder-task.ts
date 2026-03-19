@@ -44,10 +44,9 @@ export class CrossAccountMoveFolderTask extends Task {
     } = {}
   ) {
     super(data);
-  }
-
-  get accountId() {
-    return this.targetAccountId;
+    if (data.targetAccountId) {
+      this.accountId = data.targetAccountId;
+    }
   }
 
   label() {

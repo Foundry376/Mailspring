@@ -109,6 +109,7 @@ export default class SheetContainer extends React.Component<
         style={{ order: 0, zIndex: 3 }}
         onClick={this._onToolbarDoubleClick}
       >
+        {/* @ts-ignore: 'inert' is a valid HTML attribute not yet in React's typedefs */}
         <div inert={this.state.stack.length > 1 ? '' : undefined}>{components[0]}</div>
         <CSSTransitionGroup
           transitionLeaveTimeout={125}
@@ -158,6 +159,7 @@ export default class SheetContainer extends React.Component<
           style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}
           aria-label={localized('Email workspace')}
         >
+          {/* @ts-ignore: 'inert' is a valid HTML attribute not yet in React's typedefs */}
           <div inert={totalSheets > 1 ? '' : undefined}>{sheetComponents[0]}</div>
           <CSSTransitionGroup
             transitionLeaveTimeout={125}
