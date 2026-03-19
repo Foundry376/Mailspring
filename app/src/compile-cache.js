@@ -1,6 +1,5 @@
 const path = require('path');
 const fs = require('fs');
-const mkdirp = require('mkdirp');
 
 const typescriptCompiler = require('./compile-support/typescript');
 
@@ -27,7 +26,7 @@ function readCachedJavascript(relativeCachePath) {
 function writeCachedJavascript(relativeCachePath, code) {
   const cacheTmpPath = path.join(cacheDirectory, `${relativeCachePath}.${process.pid}`);
   const cachePath = path.join(cacheDirectory, relativeCachePath);
-  mkdirp.sync(path.dirname(cacheTmpPath));
+  fs.mkdirSync(path.dirname(cacheTmpPath), { recursive: true });
   fs.writeFileSync(cacheTmpPath, code, 'utf8');
   fs.renameSync(cacheTmpPath, cachePath);
 }

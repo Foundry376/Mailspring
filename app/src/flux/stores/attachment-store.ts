@@ -2,7 +2,6 @@ import os from 'os';
 import _fs from 'fs';
 import path from 'path';
 import { shell } from 'electron';
-import mkdirp from 'mkdirp';
 import MailspringStore from 'mailspring-store';
 import DraftStore from './draft-store';
 import * as Actions from '../actions';
@@ -18,7 +17,6 @@ import {
 Promise.promisifyAll(_fs);
 const fs = _fs as any;
 
-const mkdirpAsync = Promise.promisify(mkdirp);
 
 const fileAccessibleAtPath = async filePath => {
   try {
@@ -51,7 +49,7 @@ class AttachmentStore extends MailspringStore {
     this.listenTo(Actions.selectAttachment, this._onSelectAttachment);
     this.listenTo(Actions.removeAttachment, this._onRemoveAttachment);
 
-    mkdirp(this._filesDirectory, () => {});
+    fs.mkdirSync(this._filesDirectory, { recursive: true });
   }
 
   // Returns a path on disk for saving the file. Note that we must account
@@ -454,7 +452,7 @@ class AttachmentStore extends MailspringStore {
         contentId: inline ? Utils.generateContentId() : null,
       });
 
-      await mkdirpAsync(path.dirname(this.pathForFile(file)));
+      await _fs.promises.mkdir(path.dirname(this.pathForFile(file)), { recursive: true });
       await this._copyToInternalPath(filePath, this.pathForFile(file));
 
       await this._applySessionChanges(headerMessageId, files => {

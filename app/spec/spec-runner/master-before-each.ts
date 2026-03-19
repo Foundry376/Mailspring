@@ -7,8 +7,6 @@ import {
   MailboxPerspective,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
-import { clipboard } from 'electron';
-
 import Config from '../../src/config';
 import * as configUtils from '../../src/config-utils';
 import TimeOverride from './time-override';
@@ -129,10 +127,13 @@ class MasterBeforeEach {
 
   _resetClipboard() {
     let clipboardContent = 'initial clipboard content';
-    spyOn(clipboard, 'writeText').andCallFake(text => {
+    spyOn(navigator.clipboard, 'writeText').andCallFake(text => {
       clipboardContent = text;
+      return Promise.resolve();
     });
-    spyOn(clipboard, 'readText').andCallFake(() => clipboardContent);
+    spyOn(navigator.clipboard, 'readText').andCallFake(() =>
+      Promise.resolve(clipboardContent)
+    );
   }
 }
 export default new MasterBeforeEach();

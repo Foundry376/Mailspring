@@ -1,4 +1,3 @@
-import temp from 'temp';
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
@@ -318,9 +317,9 @@ function convertToPNG(iconName: string, iconPath: string) {
       console.warn('Cannot find ImageMagick');
       return null;
     }
-    const tmpFile = temp.openSync({ prefix: iconName, suffix: '.png' });
-    execSync(`convert ${iconPath} -transparent white ${tmpFile.path}`);
-    return tmpFile.path;
+    const tmpPath = path.join(os.tmpdir(), `${iconName}-${crypto.randomUUID()}.png`);
+    execSync(`convert ${iconPath} -transparent white ${tmpPath}`);
+    return tmpPath;
   } catch (error) {
     console.warn(error);
   }

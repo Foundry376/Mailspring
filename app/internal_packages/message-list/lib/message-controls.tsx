@@ -154,7 +154,6 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
   _onCopyToClipboard = () => {
     const { message, thread } = this.props;
-    const clipboard = require('electron').clipboard;
     const data = `
       AccountID: ${message.accountId}
       Message ID: ${message.id}
@@ -162,7 +161,9 @@ export default class MessageControls extends React.Component<MessageControlsProp
       Thread ID: ${thread.id}
       Thread Metadata: ${JSON.stringify(thread.pluginMetadata, null, '  ')}
     `;
-    clipboard.writeText(data);
+    navigator.clipboard
+      .writeText(data)
+      .catch(err => console.error('Failed to copy to clipboard:', err));
   };
 
   render() {
@@ -178,9 +179,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
         />
         <div
           className="message-actions-ellipsis"
-          role="button"
           tabIndex={-1}
-          aria-label={localized('More message actions')}
           onClick={this._onShowActionsMenu}
           onKeyDown={e => {
             if (e.key === 'Enter' || e.key === ' ') {

@@ -86,13 +86,13 @@ class ThemePicker extends React.Component<
 
   render() {
     return (
-      <div className="theme-picker" tabIndex={0}>
+      <div className="theme-picker">
         <Flexbox direction="column">
           <h4 style={{ color: '#434648' }}>{localized('Themes')}</h4>
           <div style={{ color: 'rgba(35, 31, 32, 0.5)', fontSize: '12px' }}>
             {localized('Click any theme to apply:')}
           </div>
-          <ScrollRegion style={{ margin: '10px 5px 0 5px', height: '290px' }}>
+          <ScrollRegion style={{ margin: '10px 5px 0 5px', height: '300px' }}>
             <Flexbox
               direction="row"
               height="auto"

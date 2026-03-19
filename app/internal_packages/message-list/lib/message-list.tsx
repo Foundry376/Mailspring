@@ -38,6 +38,7 @@ interface MessageListState {
   currentThread: Thread | null;
   loading: boolean;
   minified: boolean;
+  focusedMessageIndex: number;
 }
 
 const { Menu, MenuItem } = require('@electron/remote');
@@ -57,9 +58,14 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
   _draftScrollInProgress = false;
   MINIFY_THRESHOLD = 3;
 
+  _messageListEl: HTMLElement;
+
   constructor(props) {
     super(props);
-    this.state = Object.assign(this._getStateFromStores(), { minified: true });
+    this.state = Object.assign(this._getStateFromStores(), {
+      minified: true,
+      focusedMessageIndex: 0,
+    });
   }
 
   componentDidMount() {
@@ -181,6 +187,56 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     });
   };
 
+  _onMessageListKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!this._messageListEl) return;
+
+    const listItems = Array.from(
+      this._messageListEl.querySelectorAll<HTMLElement>('[role="listitem"]')
+    );
+    const focused = document.activeElement as HTMLElement;
+    const isNavigating = listItems.includes(focused);
+
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      if (!isNavigating) return;
+
+      const allItems = this._messagesWithMinification(this.state.messages);
+      if (!allItems.length) return;
+
+      event.preventDefault();
+
+      const delta = event.key === 'ArrowDown' ? 1 : -1;
+      const nextIndex = Math.max(
+        0,
+        Math.min(allItems.length - 1, this.state.focusedMessageIndex + delta)
+      );
+
+      if (nextIndex !== this.state.focusedMessageIndex) {
+        this.setState({ focusedMessageIndex: nextIndex }, () => {
+          const items = this._messageListEl.querySelectorAll<HTMLElement>('[role="listitem"]');
+          if (items[nextIndex]) {
+            items[nextIndex].focus();
+          }
+        });
+      }
+    } else if (event.key === ' ' || event.key === 'Enter') {
+      if (!isNavigating) return;
+
+      event.preventDefault();
+
+      const allItems = this._messagesWithMinification(this.state.messages);
+      const item = allItems[this.state.focusedMessageIndex];
+      if (!item) return;
+
+      if (item.type === 'minifiedBundle') {
+        this.setState({ minified: false });
+      } else {
+        // Click the MessageItem root to toggle collapsed state
+        const firstChild = focused.firstElementChild as HTMLElement;
+        if (firstChild) firstChild.click();
+      }
+    }
+  };
+
   _messageElements() {
     const { messagesExpandedState, currentThread } = this.state;
     const elements = [];
@@ -194,28 +250,54 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
       messages = [...messages].reverse();
     }
 
+    // Index across all rendered items (messages + minified bundles) for roving tabindex
+    let itemIndex = 0;
+
     messages.forEach(message => {
       if (message.type === 'minifiedBundle') {
-        elements.push(this._renderMinifiedBundle(message));
+        elements.push(this._renderMinifiedBundle(message, itemIndex++));
         return;
       }
 
       const collapsed = !messagesExpandedState[message.id];
       const isMostRecent = message === mostRecentMessage;
       const isBeforeReplyArea = isMostRecent && hasReplyArea;
+      const idx = itemIndex++;
+      const isFocused = idx === this.state.focusedMessageIndex;
+
+      // Build accessible label: sender + date
+      const senderName =
+        message.from && message.from[0]
+          ? message.from[0].displayName({ compact: true })
+          : localized('Unknown');
+      const dateStr = message.date ? message.date.toLocaleDateString() : '';
+      const ariaLabel = collapsed
+        ? localized('%@ on %@: %@', senderName, dateStr, message.snippet || '')
+        : localized('Message from %@ on %@', senderName, dateStr);
 
       elements.push(
-        <MessageItemContainer
+        <div
           key={message.id}
-          ref={`message-container-${message.headerMessageId}`}
-          thread={currentThread}
-          message={message}
-          messages={messages}
-          collapsed={collapsed}
-          isMostRecent={isMostRecent}
-          isBeforeReplyArea={isBeforeReplyArea}
-          scrollTo={this._scrollTo}
-        />
+          role="listitem"
+          tabIndex={isFocused ? 0 : -1}
+          aria-label={ariaLabel}
+          onFocus={() => {
+            if (idx !== this.state.focusedMessageIndex) {
+              this.setState({ focusedMessageIndex: idx });
+            }
+          }}
+        >
+          <MessageItemContainer
+            ref={`message-container-${message.headerMessageId}`}
+            thread={currentThread}
+            message={message}
+            messages={messages}
+            collapsed={collapsed}
+            isMostRecent={isMostRecent}
+            isBeforeReplyArea={isBeforeReplyArea}
+            scrollTo={this._scrollTo}
+          />
+        </div>
       );
 
       if (isBeforeReplyArea) {
@@ -327,6 +409,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     const nextThreadId = newState.currentThread && newState.currentThread.id;
     if (threadId !== nextThreadId) {
       newState.minified = true;
+      newState.focusedMessageIndex = 0;
     }
     this.setState(newState);
   };
@@ -382,7 +465,8 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     }
   }
 
-  _renderMinifiedBundle(bundle) {
+  _renderMinifiedBundle(bundle, bundleIndex: number) {
+    const isFocused = bundleIndex === this.state.focusedMessageIndex;
     const BUNDLE_HEIGHT = 36;
     const lines = bundle.messages.slice(0, 10);
     const h = Math.round(BUNDLE_HEIGHT / lines.length);
@@ -390,7 +474,15 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     return (
       <div
         className="minified-bundle"
+        role="listitem"
+        tabIndex={isFocused ? 0 : -1}
+        aria-label={localized('%@ older messages', bundle.messages.length)}
         onClick={() => this.setState({ minified: false })}
+        onFocus={() => {
+          if (bundleIndex !== this.state.focusedMessageIndex) {
+            this.setState({ focusedMessageIndex: bundleIndex });
+          }
+        }}
         key={Utils.generateTempId()}
       >
         <div className="num-messages">{`${bundle.messages.length} ${localized(
@@ -448,7 +540,17 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
                 direction="column"
               />
             </div>
-            {this._messageElements()}
+            <div
+              role="list"
+              data-usesarrowkeys={true}
+              aria-label={localized('Messages')}
+              onKeyDown={this._onMessageListKeyDown}
+              ref={el => {
+                this._messageListEl = el;
+              }}
+            >
+              {this._messageElements()}
+            </div>
           </ScrollRegion>
           <Spinner visible={this.state.loading} />
         </section>

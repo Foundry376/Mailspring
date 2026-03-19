@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import fs from 'fs-plus';
+import fs from 'fs';
 import path from 'path';
 
 import { EventedIFrame } from 'mailspring-component-kit';

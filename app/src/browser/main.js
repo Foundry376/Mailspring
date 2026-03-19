@@ -11,7 +11,6 @@ console.inspect = function consoleInspect(val) {
 
 const { app, session } = require('electron');
 const path = require('path');
-const mkdirp = require('mkdirp');
 
 if (typeof process.setFdLimit === 'function') {
   process.setFdLimit(1024);
@@ -35,7 +34,7 @@ const setupConfigDir = args => {
   }
 
   // crete the directory
-  mkdirp.sync(configDirPath);
+  fs.mkdirSync(configDirPath, { recursive: true });
 
   // tell Electron to use this folder for local storage, etc. as well
   app.setPath('userData', configDirPath);

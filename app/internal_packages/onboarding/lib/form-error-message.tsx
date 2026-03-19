@@ -1,5 +1,6 @@
+import os from 'os';
+import path from 'path';
 import fs from 'fs';
-import temp from 'temp';
 import { shell } from 'electron';
 import React from 'react';
 import { PropTypes, RegExpUtils } from 'mailspring-exports';
@@ -19,7 +20,7 @@ const FormErrorMessage = (props: FormErrorProps) => {
   let rawLogLink: React.ReactChild = null;
   if (log && log.length > 0) {
     const onViewLog = () => {
-      const logPath = temp.path({ suffix: '.log' });
+      const logPath = path.join(os.tmpdir(), `${crypto.randomUUID()}.log`);
       fs.writeFileSync(logPath, log);
       shell.openPath(logPath);
     };

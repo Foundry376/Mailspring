@@ -46,6 +46,8 @@ Mailspring is an Electron-based email client written in TypeScript with React. I
 
 - **`app/internal_packages/`** - Built-in plugins implementing features (composer, message-list, thread-list, preferences, themes, etc.)
 
+> **IMPORTANT:** Application source code lives in **both** `app/src/` and `app/internal_packages/`. When searching for usages of a module, symbol, or pattern, always search both directories. Searching only `app/src/` will miss a large portion of the codebase and lead to incomplete changes.
+
 - **`app/spec/`** - Jasmine test specs
 
 ### Core Modules

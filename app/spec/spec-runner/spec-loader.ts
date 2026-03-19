@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 /* eslint import/no-dynamic-require: 0 */
 import _ from 'underscore';
-import fs from 'fs-plus';
+import fs from 'fs';
 import path from 'path';
 
 class N1SpecLoader {
@@ -30,10 +30,11 @@ class N1SpecLoader {
 
     // EDGEHILL_CORE: Look in internal_packages instead of node_modules
     let packagePathsList: string[] = [];
-    const iterable = fs.listSync(path.join(resourcePath, 'internal_packages'));
+    const pkgsDir = path.join(resourcePath, 'internal_packages');
+    const iterable = fs.readdirSync(pkgsDir).map(f => path.join(pkgsDir, f));
     for (let i = 0; i < iterable.length; i++) {
       const packagePath = iterable[i];
-      if (fs.isDirectorySync(packagePath)) {
+      if (fs.statSync(packagePath).isDirectory()) {
         packagePathsList.push(packagePath);
       }
     }
@@ -75,7 +76,8 @@ class N1SpecLoader {
       regex = new RegExp(specFilePattern);
     }
 
-    for (const specFilePath of fs.listTreeSync(specDirectory)) {
+    if (!fs.existsSync(specDirectory)) return;
+    for (const specFilePath of (fs.readdirSync(specDirectory, { recursive: true }) as string[]).map(f => path.join(specDirectory, f))) {
       if (regex.test(specFilePath)) {
         try {
           require(specFilePath);

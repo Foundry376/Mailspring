@@ -1,4 +1,4 @@
-import fs from 'fs-plus';
+import fs from 'fs';
 import path from 'path';
 import mousetrap from 'mousetrap';
 import { ipcRenderer } from 'electron';
@@ -36,10 +36,15 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
   }
   // Stop mousetrap from firing global commands when focus is within a tree widget
   // (e.g. the mailbox outline view), so the tree's own arrow-key navigation works.
-  const withinTree = !!element.closest('[role="tree"]');
+  const withinTree =
+    !!element.closest('[role="tree"]') ||
+    !!element.closest('[data-usesarrowkeys]:has(:focus-visible)');
   if (withinTree) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
-    return isPlainKey;
+    const isArrowKey = /(left|right|up|down)/.test(combo);
+    if (isPlainKey && isArrowKey) {
+      return true;
+    }
   }
 
   const withinTextInput =
@@ -50,7 +55,9 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
   if (withinTextInput) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
     const isReservedTextEditingShortcut = /(mod|command|ctrl)\+(a|x|c|v|left|right)/.test(combo);
-    return isPlainKey || isReservedTextEditingShortcut;
+    if (isPlainKey || isReservedTextEditingShortcut) {
+      return true;
+    }
   }
   return false;
 };

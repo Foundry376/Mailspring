@@ -5,6 +5,7 @@ import { Editor, Value, Operation, Range, Block, Text } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps, Plugin } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 import { InlineStyleTransformer } from 'mailspring-exports';
+import os from 'os';
 import path from 'path';
 import fs from 'fs';
 import { debounce } from 'underscore';
@@ -354,7 +355,6 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
     // If the pasteboard has a file on it, stream it to a temporary
     // file and fire our `onFilePaste` event.
     if (item.kind === 'file') {
-      const temp = require('temp');
       const blob = item.getAsFile();
       const ext =
         {
@@ -366,7 +366,7 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
       const reader = new FileReader();
       reader.addEventListener('loadend', () => {
         const buffer = Buffer.from(new Uint8Array(reader.result as any));
-        const tmpFolder = temp.path('-mailspring-attachment');
+        const tmpFolder = path.join(os.tmpdir(), `-mailspring-attachment-${crypto.randomUUID()}`);
         const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
         fs.mkdir(tmpFolder, () => {
           fs.writeFile(tmpPath, buffer, () => {

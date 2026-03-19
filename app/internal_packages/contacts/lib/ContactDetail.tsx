@@ -1,5 +1,4 @@
 import React from 'react';
-import { v4 } from 'uuid';
 import {
   Contact,
   localized,
@@ -41,7 +40,7 @@ function emptyContactForAccountId(accountId: string) {
           addresses: [],
         }
       : {
-          vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${v4()}\r\nEND:VCARD\r\n`,
+          vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${crypto.randomUUID()}\r\nEND:VCARD\r\n`,
           href: '',
         };
 

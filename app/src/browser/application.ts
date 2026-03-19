@@ -2,7 +2,7 @@
 
 import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell } from 'electron';
 
-import fs from 'fs-plus';
+import fs from 'fs';
 import url from 'url';
 import path from 'path';
 import proc from 'child_process';

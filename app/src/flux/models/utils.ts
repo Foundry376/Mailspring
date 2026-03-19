@@ -5,7 +5,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import _ from 'underscore';
-import fs from 'fs-plus';
+import fs from 'fs';
 import path from 'path';
 
 let ResourcePath = null;
@@ -256,7 +256,9 @@ function ensureImageCacheReady() {
     }
 
     const imagesPath = path.join(ResourcePath, 'static', 'images');
-    const files = fs.listTreeSync(imagesPath);
+    const files = (fs.readdirSync(imagesPath, { recursive: true }) as string[]).map(f =>
+      path.join(imagesPath, f)
+    );
     for (let file of files) {
       // On Windows, we get paths like C:\images\compose.png, but
       // Chromium doesn't accept the backward slashes. Convert to

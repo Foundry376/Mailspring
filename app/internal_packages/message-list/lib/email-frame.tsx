@@ -106,8 +106,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       doc.close();
       const plainWrapper = doc.getElementById('inbox-plain-wrapper');
       plainWrapper.innerText = content;
-      plainWrapper.setAttribute('tabindex', '0');
-      plainWrapper.setAttribute('aria-label', localized('Email message body'));
+      plainWrapper.setAttribute('role', 'document');
     } else {
       doc.write(
         `<!DOCTYPE html>` +
@@ -117,8 +116,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       doc.close();
       const htmlWrapper = doc.getElementById('inbox-html-wrapper');
       if (htmlWrapper) {
-        htmlWrapper.setAttribute('tabindex', '0');
-        htmlWrapper.setAttribute('aria-label', localized('Email message body'));
+        htmlWrapper.setAttribute('role', 'document');
       }
     }
 

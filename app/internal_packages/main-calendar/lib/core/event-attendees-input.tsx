@@ -1,6 +1,5 @@
 import React from 'react';
 import _ from 'underscore';
-import { clipboard } from 'electron';
 import { Utils, Contact, ContactStore, RegExpUtils, localized } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 import { EventAttendee } from './calendar-data-source';
@@ -125,7 +124,10 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
     menu.append(
       new MenuItem({
         label: `${localized(`Copy`)} ${participant.email}`,
-        click: () => clipboard.writeText(participant.email),
+        click: () =>
+          navigator.clipboard
+            .writeText(participant.email)
+            .catch(err => console.error('Failed to copy to clipboard:', err)),
       })
     );
     menu.append(

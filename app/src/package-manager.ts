@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs-plus';
+import fs from 'fs';
 import { shell } from 'electron';
 import { localized } from './intl';
 import Package from './package';
@@ -207,7 +207,7 @@ export default class PackageManager {
 
     // copy the package into a new directory based on it's name
     const packageFinalDir = path.join(this.configDirPath, 'packages', json.name);
-    fs.copySync(packagePath, packageFinalDir);
+    fs.cpSync(packagePath, packageFinalDir, { recursive: true });
 
     // activate the package
     const pkg = new Package(packageFinalDir);

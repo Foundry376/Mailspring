@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import { v4 as uuidv4 } from 'uuid';
 import * as Actions from '../actions';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
@@ -64,7 +63,7 @@ class DraftFactory {
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: `${uuidv4().toUpperCase()}@getmailspring.com`,
+      headerMessageId: `${crypto.randomUUID().toUpperCase()}@getmailspring.com`,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,

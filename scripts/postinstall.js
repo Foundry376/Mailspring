@@ -133,13 +133,9 @@ async function sqliteMissingNanosleep() {
 
     // Check the static lib first (build-from-source), then the prebuilt .node binary
     const target = fs.existsSync(staticLib) ? staticLib : sharedLib;
-    safeExec(
-      `nm '${target}' | grep nanosleep`,
-      { ignoreStderr: true },
-      (err, resp) => {
-        resolve(resp === '');
-      }
-    );
+    safeExec(`nm '${target}' | grep nanosleep`, { ignoreStderr: true }, (err, resp) => {
+      resolve(resp === '');
+    });
   });
 }
 

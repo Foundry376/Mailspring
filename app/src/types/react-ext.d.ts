@@ -1,4 +1,9 @@
 import React from 'react';
+declare module 'react' {
+  interface HTMLAttributes<T> {
+    inert?: '' | undefined;
+  }
+}
 declare global {
   namespace JSX {
     interface IntrinsicElements {

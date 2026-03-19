@@ -299,7 +299,7 @@ export class EventedIFrame extends React.Component<
     // "Copy Image" and "Search Google for 'Bla'"
     event.preventDefault();
 
-    const { clipboard, shell, ipcRenderer } = require('electron');
+    const { shell, ipcRenderer } = require('electron');
     const { Menu, MenuItem } = require('@electron/remote');
     const menu = new Menu();
 
@@ -320,7 +320,9 @@ export class EventedIFrame extends React.Component<
           new MenuItem({
             label: localized('Copy Email Address'),
             click() {
-              clipboard.writeText(href.split('mailto:').pop());
+              navigator.clipboard
+                .writeText(href.split('mailto:').pop())
+                .catch(err => console.error('Failed to copy to clipboard:', err));
             },
           })
         );
@@ -337,7 +339,9 @@ export class EventedIFrame extends React.Component<
           new MenuItem({
             label: localized('Copy Link Address'),
             click() {
-              clipboard.writeText(href);
+              navigator.clipboard
+                .writeText(href)
+                .catch(err => console.error('Failed to copy to clipboard:', err));
             },
           })
         );
@@ -421,7 +425,9 @@ export class EventedIFrame extends React.Component<
         new MenuItem({
           label: localized('Copy'),
           click() {
-            clipboard.writeText(text);
+            navigator.clipboard
+              .writeText(text)
+              .catch(err => console.error('Failed to copy to clipboard:', err));
           },
         })
       );

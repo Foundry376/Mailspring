@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 /* eslint import/no-dynamic-require: 0 */
 import path from 'path';
-import fs from 'fs-plus';
+import fs from 'fs';
 import { ipcRenderer } from 'electron';
 import { Disposable } from 'event-kit';
 import * as Utils from './flux/models/utils';
@@ -86,7 +86,7 @@ export default class MenuManager {
 
   loadBaseItems() {
     const dir = path.join(this.resourcePath, 'menus');
-    const platformMenuPath = fs.resolve(dir, process.platform, ['js', 'json']);
+    const platformMenuPath = path.join(dir, `${process.platform}.js`);
     const { menu } = require(platformMenuPath);
     this.template = [];
     this.add(menu);
