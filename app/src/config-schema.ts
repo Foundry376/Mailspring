@@ -161,6 +161,16 @@ export default {
             default: false,
             title: localized('Display conversations in descending chronological order'),
           },
+          crossAccountDragBehavior: {
+            type: 'string',
+            default: 'move',
+            enum: ['move', 'copy'],
+            enumLabels: [
+              localized('Move (copy to destination, remove from source)'),
+              localized('Copy (copy to destination, keep in source)'),
+            ],
+            title: localized('When dragging emails between accounts'),
+          },
         },
       },
       composing: {

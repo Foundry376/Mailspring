@@ -81,8 +81,11 @@ describe('MailboxPerspective', function mailboxPerspective() {
       expect(this.perspective.canReceiveThreadsFromAccountIds(['a1'])).toBe(true);
     });
 
-    it('returns false otherwise', () => {
-      expect(this.perspective.canReceiveThreadsFromAccountIds(['a4'])).toBe(false);
+    it('returns true for cross-account drops when the perspective has valid account ids', () => {
+      expect(this.perspective.canReceiveThreadsFromAccountIds(['a4'])).toBe(true);
+    });
+
+    it('returns false for empty or missing account ids', () => {
       expect(this.perspective.canReceiveThreadsFromAccountIds([])).toBe(false);
       expect(this.perspective.canReceiveThreadsFromAccountIds()).toBe(false);
     });
@@ -103,8 +106,11 @@ describe('MailboxPerspective', function mailboxPerspective() {
         expect(this.perspective.canReceiveThreadsFromAccountIds(['a1'])).toBe(true);
       });
 
-      it('returns false otherwise', () => {
-        expect(this.perspective.canReceiveThreadsFromAccountIds(['a4'])).toBe(false);
+      it('returns true for cross-account drops (thread from a different account)', () => {
+        expect(this.perspective.canReceiveThreadsFromAccountIds(['a4'])).toBe(true);
+      });
+
+      it('returns false for empty or missing account ids', () => {
         expect(this.perspective.canReceiveThreadsFromAccountIds([])).toBe(false);
         expect(this.perspective.canReceiveThreadsFromAccountIds()).toBe(false);
       });
