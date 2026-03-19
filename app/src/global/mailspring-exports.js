@@ -121,6 +121,7 @@ lazyLoadAndRegisterTask(`SyncbackContactTask`, 'syncback-contact-task');
 lazyLoadAndRegisterTask(`DestroyContactGroupTask`, 'destroy-contactgroup-task');
 lazyLoadAndRegisterTask(`SyncbackContactGroupTask`, 'syncback-contactgroup-task');
 lazyLoadAndRegisterTask(`ChangeContactGroupMembershipTask`, 'change-contactgroup-membership-task');
+lazyLoadAndRegisterTask(`CrossAccountMoveFolderTask`, 'cross-account-move-folder-task');
 
 // Stores
 // These need to be required immediately since some Stores are

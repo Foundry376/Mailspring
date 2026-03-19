@@ -27,6 +27,7 @@ let ChangeLabelsTask = null;
 let ChangeFolderTask = null;
 let ChangeUnreadTask = null;
 let FocusedPerspectiveStore = null;
+let CrossAccountMoveFolderTask = null;
 
 // This is a class cluster. Subclasses are not for external use!
 // https://developer.apple.com/library/ios/documentation/General/Conceptual/CocoaEncyclopedia/ClassClusters/ClassClusters.html
@@ -181,23 +182,28 @@ export class MailboxPerspective {
   // - accountIds {Array} Array of unique account ids associated with the threads
   // that want to be included in this perspective
   //
-  // Returns true if the accountIds are part of the current ids, or false
-  // otherwise. This means that it checks if I am attempting to move threads
-  // between the same set of accounts:
+  // Returns true if the accountIds are part of the current ids (same-account drop),
+  // OR if this perspective has valid accounts (cross-account drop), or false
+  // otherwise. This means that drops are accepted for:
+  //
+  // 1. Same-account: all dragged thread account IDs are in this perspective.
+  // 2. Cross-account: thread account IDs differ from the perspective's accounts —
+  //    actionsForReceivingThreads will handle this via CrossAccountMoveFolderTask.
   //
   // E.g.:
   // perpective = Starred for accountIds: a1, a2
   // thread1 has accountId a3
   // thread2 has accountId a2
   //
-  // perspective.canReceiveThreadsFromAccountIds([a2, a3]) -> false -> I cant move those threads to Starred
+  // perspective.canReceiveThreadsFromAccountIds([a2, a3]) -> true -> cross-account drop allowed
   // perspective.canReceiveThreadsFromAccountIds([a2]) -> true -> I can move that thread to Starred
   canReceiveThreadsFromAccountIds(accountIds): boolean {
     if (!accountIds || accountIds.length === 0) {
       return false;
     }
     const areIncomingIdsInCurrent = _.difference(accountIds, this.accountIds).length === 0;
-    return areIncomingIdsInCurrent;
+    // Also allow cross-account drops as long as this perspective has valid accounts
+    return areIncomingIdsInCurrent || this.accountIds.length > 0;
   }
 
   receiveThreadIds(threadIds: Array<Thread | string>) {
@@ -459,6 +465,27 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     }
 
     const myCat = this.categories().find(c => c.accountId === accountId);
+
+    // CROSS-ACCOUNT: the thread's accountId doesn't match any category in this
+    // perspective, so the user is dragging across accounts.
+    if (!myCat) {
+      CrossAccountMoveFolderTask =
+        CrossAccountMoveFolderTask ||
+        require('./flux/tasks/cross-account-move-folder-task').CrossAccountMoveFolderTask;
+      const targetCat = this._categories[0];
+      if (!targetCat) return [];
+      const behavior = AppEnv.config.get('core.reading.crossAccountDragBehavior') || 'move';
+      return [
+        new CrossAccountMoveFolderTask({
+          threads,
+          targetFolder: targetCat,
+          targetAccountId: targetCat.accountId,
+          deleteFromSource: behavior === 'move',
+          source: 'Dragged into list',
+        }),
+      ];
+    }
+
     const currentCat = current.categories().find(c => c.accountId === accountId);
 
     // Don't drag and drop on ourselves
