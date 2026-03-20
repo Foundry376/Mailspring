@@ -5,21 +5,21 @@ import * as Attributes from '../attributes';
 import { AttributeValues } from '../models/model';
 
 // Public: A task that moves or copies threads from one account to another.
-// This task is dispatched to the TARGET account's sync process, which is
-// responsible for appending the messages to the target folder via IMAP.
-// If `deleteFromSource` is true, the source threads will be moved to trash
-// on the source account after the copy completes.
-//
-// NOTE: Sync engine support for this task type must be added separately.
-// Until then, the task will be queued and the sync engine will handle it
-// once the corresponding C++ implementation is available.
+// The task is intercepted by CrossAccountMailStore (JS-side) before being
+// forwarded to the sync engine. CrossAccountMailStore fetches the RFC2822
+// source messages via GetMessageRFC2822Task, then performs an IMAP APPEND
+// to the target folder on the target account.
+// If `deleteFromSource` is true, the source threads are trashed on the
+// source account after the copy completes.
 export class CrossAccountMoveFolderTask extends Task {
   static attributes = {
     ...Task.attributes,
 
-    threads: Attributes.Collection({
-      modelKey: 'threads',
-      itemClass: Thread,
+    threadIds: Attributes.Collection({
+      modelKey: 'threadIds',
+    }),
+    sourceAccountId: Attributes.String({
+      modelKey: 'sourceAccountId',
     }),
     targetFolder: Attributes.Obj({
       modelKey: 'targetFolder',
@@ -33,7 +33,8 @@ export class CrossAccountMoveFolderTask extends Task {
     }),
   };
 
-  threads: Thread[];
+  threadIds: string[];
+  sourceAccountId: string;
   targetFolder: Folder;
   targetAccountId: string;
   deleteFromSource: boolean;
@@ -44,13 +45,39 @@ export class CrossAccountMoveFolderTask extends Task {
     } = {}
   ) {
     super(data);
+    if (data.threads && data.threads.length > 0 && !data.threadIds) {
+      this.threadIds = data.threads.map(t => t.id);
+      if (!data.sourceAccountId) {
+        this.sourceAccountId = data.threads[0].accountId;
+      }
+    }
     if (data.targetAccountId) {
       this.accountId = data.targetAccountId;
     }
   }
 
+  willBeQueued() {
+    if (!this.threadIds || this.threadIds.length === 0) {
+      throw new Error('CrossAccountMoveFolderTask: requires at least one thread ID.');
+    }
+    if (!this.sourceAccountId) {
+      throw new Error('CrossAccountMoveFolderTask: requires sourceAccountId.');
+    }
+    if (!this.targetFolder) {
+      throw new Error('CrossAccountMoveFolderTask: requires a targetFolder.');
+    }
+    if (!this.targetAccountId) {
+      throw new Error('CrossAccountMoveFolderTask: requires targetAccountId.');
+    }
+    if (this.sourceAccountId === this.targetAccountId) {
+      throw new Error(
+        'CrossAccountMoveFolderTask: sourceAccountId and targetAccountId must differ.'
+      );
+    }
+  }
+
   label() {
-    const count = this.threads ? this.threads.length : 0;
+    const count = this.threadIds ? this.threadIds.length : 0;
     const dest = this.targetFolder ? this.targetFolder.displayName : 'folder';
     if (this.deleteFromSource) {
       return `Moving ${count} thread(s) to ${dest} in another account`;

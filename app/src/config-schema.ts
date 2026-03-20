@@ -161,6 +161,11 @@ export default {
             default: false,
             title: localized('Display conversations in descending chronological order'),
           },
+          crossAccountDragEnabled: {
+            type: 'boolean',
+            default: false,
+            title: localized('Allow dragging emails between accounts'),
+          },
           crossAccountDragBehavior: {
             type: 'string',
             default: 'move',
@@ -170,6 +175,7 @@ export default {
               localized('Copy (copy to destination, keep in source)'),
             ],
             title: localized('When dragging emails between accounts'),
+            showWhen: 'core.reading.crossAccountDragEnabled',
           },
         },
       },
@@ -182,7 +188,7 @@ export default {
             title: localized('Enable rich text and advanced editor features'),
             note: localized(
               'Many features are unavailable in plain-text mode. To create a single ' +
-                'plain-text draft, hold Alt or Option while clicking Compose or Reply.'
+              'plain-text draft, hold Alt or Option while clicking Compose or Reply.'
             ),
           },
           spellcheck: {

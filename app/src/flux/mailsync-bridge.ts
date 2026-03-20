@@ -5,6 +5,7 @@ import { localized } from '../intl';
 import _ from 'underscore';
 
 import { Task } from './tasks/task';
+import { CrossAccountMoveFolderTask } from './tasks/cross-account-move-folder-task';
 import TaskQueue from './stores/task-queue';
 import { IdentityStore } from './stores/identity-store';
 
@@ -224,7 +225,7 @@ export default class MailsyncBridge {
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
-    resetClient.kill = () => {};
+    resetClient.kill = () => { };
 
     this._clients[account.id] = resetClient;
 
@@ -363,6 +364,12 @@ export default class MailsyncBridge {
       .split('\n')
       .slice(2)
       .join('\n');
+
+    // CrossAccountMoveFolderTask is handled entirely by CrossAccountMailStore in JS.
+    // Do not forward it to the C++ sync engine, which does not know this task type.
+    if (task instanceof CrossAccountMoveFolderTask) {
+      return;
+    }
 
     this.sendMessageToAccount(task.accountId, { type: 'queue-task', task: task });
   }

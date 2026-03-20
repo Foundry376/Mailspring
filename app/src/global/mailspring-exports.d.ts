@@ -85,6 +85,7 @@ export * from '../flux/tasks/destroy-contact-task';
 export * from '../flux/tasks/destroy-contactgroup-task';
 export * from '../flux/tasks/syncback-contactgroup-task';
 export * from '../flux/tasks/change-contactgroup-membership-task';
+export * from '../flux/tasks/cross-account-move-folder-task';
 
 // Stores
 // These need to be required immediately since some Stores are
@@ -140,6 +141,8 @@ export type FocusedPerspectiveStore = typeof import('../flux/stores/focused-pers
 export const FocusedPerspectiveStore: FocusedPerspectiveStore;
 export type SearchableComponentStore = typeof import('../flux/stores/searchable-component-store').default;
 export const SearchableComponentStore: SearchableComponentStore;
+export type CrossAccountMailStore = typeof import('../flux/stores/cross-account-mail-store').default;
+export const CrossAccountMailStore: CrossAccountMailStore;
 
 export type ServiceRegistry = typeof import('../registries/service-registry').default;
 export const ServiceRegistry: ServiceRegistry;

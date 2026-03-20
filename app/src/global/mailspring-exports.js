@@ -156,6 +156,7 @@ load(`FocusedContactsStore`, 'flux/stores/focused-contacts-store');
 load(`FolderSyncProgressStore`, 'flux/stores/folder-sync-progress-store');
 load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
+load(`CrossAccountMailStore`, 'flux/stores/cross-account-mail-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 

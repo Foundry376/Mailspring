@@ -202,8 +202,10 @@ export class MailboxPerspective {
       return false;
     }
     const areIncomingIdsInCurrent = _.difference(accountIds, this.accountIds).length === 0;
-    // Also allow cross-account drops as long as this perspective has valid accounts
-    return areIncomingIdsInCurrent || this.accountIds.length > 0;
+    if (areIncomingIdsInCurrent) return true;
+    // Cross-account drop: only allow when the feature is enabled
+    const crossAccountEnabled = AppEnv.config.get('core.reading.crossAccountDragEnabled');
+    return crossAccountEnabled && this.accountIds.length > 0;
   }
 
   receiveThreadIds(threadIds: Array<Thread | string>) {
@@ -469,6 +471,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     // CROSS-ACCOUNT: the thread's accountId doesn't match any category in this
     // perspective, so the user is dragging across accounts.
     if (!myCat) {
+      if (!AppEnv.config.get('core.reading.crossAccountDragEnabled')) return [];
       CrossAccountMoveFolderTask =
         CrossAccountMoveFolderTask ||
         require('./flux/tasks/cross-account-move-folder-task').CrossAccountMoveFolderTask;
@@ -478,6 +481,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       return [
         new CrossAccountMoveFolderTask({
           threads,
+          sourceAccountId: accountId,
           targetFolder: targetCat,
           targetAccountId: targetCat.accountId,
           deleteFromSource: behavior === 'move',
@@ -615,6 +619,12 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
     ChangeUnreadTask =
       ChangeUnreadTask || require('./flux/tasks/change-unread-task').ChangeUnreadTask;
     const tasks = super.actionsForReceivingThreads(threads, accountId);
+    // In the cross-account case, super returns a CrossAccountMoveFolderTask.
+    // We must not push a ChangeUnreadTask targeting the source account's threads.
+    const isCrossAccount = tasks.length > 0 && tasks[0].constructor.name === 'CrossAccountMoveFolderTask';
+    if (isCrossAccount) {
+      return tasks;
+    }
     tasks.push(
       new ChangeUnreadTask({
         threads: threads,

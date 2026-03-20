@@ -13,7 +13,8 @@ export interface ConfigSchemaLike {
   note?: string;
   title?: string;
   enum?: string;
-  enumLabels: string;
-  platforms: string[];
-  platform: string;
+  enumLabels?: string;
+  platforms?: string[];
+  platform?: string;
+  showWhen?: string;
 }
