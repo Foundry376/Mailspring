@@ -143,7 +143,11 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
               value={settings[field]}
               disabled={submitting}
               onKeyPress={onFieldKeyPress}
-              onChange={onFieldChange}
+              onChange={e =>
+                onPortChange({
+                  target: { value: e.target.value, id: `settings.${field}` },
+                })
+              }
             />
           </>
         )}
