@@ -193,8 +193,6 @@ export class Notifier {
   }
 
   _handleNotificationAction(actionIndex: number, thread: Thread) {
-    AppEnv.displayWindow();
-
     switch (actionIndex) {
       case 0: // Mark as Read
         Actions.queueTask(

@@ -149,11 +149,11 @@ const displayNotification = (
   const notification = new Notification(notifOptions);
 
   // Handle click event
+  // On Windows with toastXml + activationType="protocol", clicks are routed through
+  // the OS protocol handler (mailspring:// URLs) rather than Electron's Activated callback,
+  // so this event won't fire. We register it anyway as a fallback for non-toastXml
+  // notifications or if protocol activation fails.
   notification.on('click', () => {
-    if (process.platform === 'win32') {
-      // We use protocol handlers (in handleWindowsToastXMLProtocolAction)
-      return;
-    }
     sendToAllWindows('notification:clicked', {
       id: options.id,
       threadId: options.threadId,
