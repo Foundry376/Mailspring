@@ -11,6 +11,7 @@ import { RetinaImg } from './components/retina-img';
 import { RovingTabIndexToolbar } from './components/roving-tab-index-toolbar';
 import * as Utils from './flux/models/utils';
 import { Disposable } from 'rx-core';
+import { isWaylandSession } from './browser/is-wayland';
 
 let Category = null;
 let FocusedPerspectiveStore = null;
@@ -186,10 +187,14 @@ class ToolbarMenuControl extends React.Component {
   };
 
   render() {
+    // On Wayland, the native menu bar does not render (Electron's ozone-wayland
+    // backend bypasses GTK, and KDE Plasma's Global Menu may not be configured).
+    // Show the hamburger menu button as a fallback so menus are always accessible.
     const enabled =
       process.platform === 'win32' ||
       (process.platform === 'linux' &&
-        AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger');
+        (AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger' ||
+          isWaylandSession()));
 
     if (!enabled) {
       return <span />;
