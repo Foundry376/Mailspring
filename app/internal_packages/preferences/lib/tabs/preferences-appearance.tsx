@@ -68,6 +68,8 @@ class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
   };
 
   render() {
+    if (process.platform !== 'linux') return null;
+
     const val = this.props.config.get(this.kp);
 
     const waylandNote = isWaylandSession()
@@ -85,8 +87,6 @@ class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
       ],
       ['hamburger', localized('Custom Window Frame and Right-hand Menu'), ''],
     ];
-
-    if (process.platform !== 'linux') return null;
 
     return (
       <section>
