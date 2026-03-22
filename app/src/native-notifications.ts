@@ -74,6 +74,7 @@ class NativeNotifications {
     ipcRenderer.on('notification:clicked', (event, data) => {
       const callback = this.callbacks.get(data.id);
       if (callback) {
+        this.callbacks.delete(data.id);
         callback({ response: null, activationType: 'clicked' });
       }
     });
@@ -89,6 +90,7 @@ class NativeNotifications {
     ipcRenderer.on('notification:action', (event, data) => {
       const callback = this.callbacks.get(data.id);
       if (callback) {
+        this.callbacks.delete(data.id);
         callback({
           response: null,
           activationType: 'action',
