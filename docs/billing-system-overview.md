@@ -134,7 +134,7 @@ All of these trigger `FeatureUsedUpModal` which leads to `BillingModal`:
 |---|---|---|
 | Snooze | `internal_packages/thread-snooze/lib/snooze-store.ts` | `snooze` |
 | Send Later | `internal_packages/send-later/lib/send-later-button.tsx` | `send-later` |
-| Send Reminders | `internal_packages/send-reminders/lib/send-reminders-utils.ts` | `reminders` |
+| Send Reminders | `internal_packages/send-reminders/lib/send-reminders-utils.ts` | `send-reminders` |
 | Thread Sharing | `internal_packages/thread-sharing/lib/thread-sharing-popover.tsx` | `thread-sharing` |
 | Contact Profiles | `internal_packages/participant-profile/lib/sidebar-participant-profile.tsx` | `contact-profiles` |
 | Grammar Check | `internal_packages/composer-grammar-check/lib/grammar-check-store.ts` | `grammar-check` |
