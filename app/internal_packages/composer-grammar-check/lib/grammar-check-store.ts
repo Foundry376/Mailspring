@@ -7,7 +7,7 @@ export const GRAMMAR_CHECK_FEATURE_ID = 'grammar-check';
 export const GRAMMAR_CHECK_UPGRADE_LEXICON = {
   headerText: localized('All used up!'),
   rechargeText: localized(
-    'You can grammar check %1$@ drafts each %2$@ with Mailspring Basic. Upgrade to Pro for unlimited grammar checking.'
+    'You can grammar check %1$@ drafts each %2$@ with Postra Basic. Upgrade to Pro for unlimited grammar checking.'
   ),
   iconUrl: 'mailspring://composer-grammar-check/assets/ic-modal-image@2x.png',
 };

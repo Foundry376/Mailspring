@@ -24,7 +24,7 @@ const SETTINGS_KEY = 'mailto.prompted-about-default';
 describe('DefaultClientNotif', function DefaultClientNotifTests() {
   afterEach(cleanup);
 
-  describe("when Mailspring isn't the default mail client", () => {
+  describe("when Postra isn't the default mail client", () => {
     beforeEach(() => {
       stubIsRegistered = false;
     });
@@ -52,7 +52,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
         expect(container.querySelector('.notification') !== null).toEqual(true);
       });
 
-      it('allows the user to set Mailspring as the default client', () => {
+      it('allows the user to set Postra as the default client', () => {
         let scheme = null;
         stubRegister = urlScheme => {
           scheme = urlScheme;
@@ -69,7 +69,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
     });
   });
 
-  describe('when Mailspring is the default mail client', () => {
+  describe('when Postra is the default mail client', () => {
     let container;
     beforeEach(() => {
       stubIsRegistered = true;

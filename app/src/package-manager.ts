@@ -117,7 +117,7 @@ export default class PackageManager {
       // don't use AppEnv.reportError, I don't want to know about these.
       console.error(
         localized(
-          `This plugin or theme %@ does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@`,
+          `This plugin or theme %@ does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Postra and add it, or follow the instructions here: %@`,
           pkg.name,
           `http://support.getmailspring.com/hc/en-us/articles/115001918391`
         )
@@ -198,7 +198,7 @@ export default class PackageManager {
       return callback(
         new Error(
           localized(
-            `The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include "mailspring".\n\nFor more information, see this migration guide: %@`,
+            `The plugin or theme you selected has not been upgraded to support Postra. If you're the developer, update the package.json's engines field to include "mailspring".\n\nFor more information, see this migration guide: %@`,
             `http://support.getmailspring.com/hc/en-us/articles/115001918391`
           )
         )

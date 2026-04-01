@@ -22,7 +22,7 @@ async function incrementMetadataUse(model, expiration) {
     await FeatureUsageStore.markUsedOrUpgrade(PLUGIN_ID, {
       headerText: localized('All Reminders Used'),
       rechargeText: `${localized(
-        `You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.`
+        `You can add reminders to %1$@ emails each %2$@ with Postra Basic.`
       )} ${localized('Upgrade to Pro today!')}`,
       iconUrl: 'mailspring://send-reminders/assets/ic-send-reminders-modal@2x.png',
     });

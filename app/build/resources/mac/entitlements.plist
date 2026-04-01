@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>com.apple.application-identifier</key>
-	<string>X9RJ36K9D4.com.mailspring.mailspring</string>
+	<string>X9RJ36K9D4.com.postra.postra</string>
 	<key>com.apple.developer.team-identifier</key>
 	<string>X9RJ36K9D4</string>
 	<key>keychain-access-groups</key>

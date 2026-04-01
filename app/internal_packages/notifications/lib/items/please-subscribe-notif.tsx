@@ -34,10 +34,10 @@ export default class PleaseSubscribeNotification extends React.Component<
 
     let msg = null;
     if (stripePlan === 'Basic' && accountCount > 4) {
-      msg = localized(`Please consider paying for Mailspring Pro!`);
+      msg = localized(`Please consider paying for Postra Pro!`);
     }
     if (stripePlan !== stripePlanEffective) {
-      msg = localized(`We're having trouble billing your Mailspring subscription.`);
+      msg = localized(`We're having trouble billing your Postra subscription.`);
     }
 
     return { msg };

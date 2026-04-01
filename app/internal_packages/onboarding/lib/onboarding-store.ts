@@ -55,11 +55,11 @@ class OnboardingStore extends MailspringStore {
       this._pageStack = ['account-choose'];
     } else if (identity) {
       // Should only happen if config was edited to remove all accounts,
-      // but don't want to re-login to Mailspring account. Very useful when
+      // but don't want to re-login to Postra account. Very useful when
       // switching environments.
       this._pageStack = ['account-choose'];
     } else if (hasAccounts) {
-      // Should only happen when the user has "signed out" of their Mailspring ID,
+      // Should only happen when the user has "signed out" of their Postra ID,
       // but already has accounts synced. Or is upgrading from a very old build.
       // We used to show "Welcome Back", but now just jump to sign in.
       this._pageStack = ['authenticate'];
@@ -154,7 +154,7 @@ class OnboardingStore extends MailspringStore {
       AppEnv.showErrorDialog({
         title: localized('Unable to Add Account'),
         message: localized(
-          'Sorry, something went wrong when this account was added to Mailspring. If you do not see the account, try linking it again. %@',
+          'Sorry, something went wrong when this account was added to Postra. If you do not see the account, try linking it again. %@',
           e.toString()
         ),
       });

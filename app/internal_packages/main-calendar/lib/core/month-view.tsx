@@ -1,7 +1,7 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { InjectedComponentSet } from 'mailspring-component-kit';
-import { MailspringCalendarViewProps } from './mailspring-calendar';
+import { PostraCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
@@ -17,13 +17,13 @@ interface MonthViewState {
   events: EventOccurrence[];
 }
 
-export class MonthView extends React.Component<MailspringCalendarViewProps, MonthViewState> {
+export class MonthView extends React.Component<PostraCalendarViewProps, MonthViewState> {
   static displayName = 'MonthView';
 
   _mounted = false;
   _sub?: Disposable;
 
-  constructor(props: MailspringCalendarViewProps) {
+  constructor(props: PostraCalendarViewProps) {
     super(props);
     this.state = {
       events: [],
@@ -35,7 +35,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     this.updateSubscription();
   }
 
-  componentDidUpdate(prevProps: MailspringCalendarViewProps) {
+  componentDidUpdate(prevProps: PostraCalendarViewProps) {
     if (
       prevProps.focusedMoment !== this.props.focusedMoment ||
       prevProps.disabledCalendars !== this.props.disabledCalendars

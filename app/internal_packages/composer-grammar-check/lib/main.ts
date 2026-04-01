@@ -14,7 +14,7 @@ const { setGrammarCheckStore, clearGrammarCheckStore, cleanupDraft, clearAllGram
 const GrammarCheckToggleWithTip = HasTutorialTip(GrammarCheckToggle, {
   title: localized('Check your grammar'),
   instructions: localized(
-    "Enable grammar checking to find writing issues as you compose. Text is sent to Mailspring's LanguageTool service and is not stored."
+    "Enable grammar checking to find writing issues as you compose. Text is sent to Postra's LanguageTool service and is not stored."
   ),
 });
 

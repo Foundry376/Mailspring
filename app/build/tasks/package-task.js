@@ -120,7 +120,7 @@ module.exports = grunt => {
       platform: platform,
       protocols: [
         {
-          name: 'Mailspring Protocol',
+          name: 'Postra Protocol',
           schemes: ['mailspring'],
         },
         {
@@ -148,8 +148,9 @@ module.exports = grunt => {
         linux: undefined,
       }[platform],
       name: {
-        darwin: 'Mailspring',
-        win32: 'Mailspring',
+        darwin: 'Postra',
+        win32: 'Postra',
+        // Keep Linux executable name for packaged installs (deb/rpm scripts expect `mailspring`).
         linux: 'mailspring',
       }[platform],
       appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
@@ -235,7 +236,7 @@ module.exports = grunt => {
               // cannot match to a profile scoped to that binary.
               // Note: electron-osx-sign passes the .app bundle path (not the
               // inner executable path) when signing the top-level app bundle.
-              const isMainExecutable = filePath.endsWith('/Mailspring.app');
+              const isMainExecutable = filePath.endsWith('/Postra.app');
 
               return {
                 hardenedRuntime: true,
@@ -260,9 +261,9 @@ module.exports = grunt => {
         : undefined,
       win32metadata: {
         CompanyName: 'Foundry 376, LLC',
-        FileDescription: 'Mailspring',
+        FileDescription: 'Postra',
         LegalCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
-        ProductName: 'Mailspring',
+        ProductName: 'Postra',
       },
       // NOTE: The following plist keys can NOT be set in the
       // extra.plist since they are manually overridden by
@@ -279,7 +280,7 @@ module.exports = grunt => {
       // Electron.app/Contents/Info.plist. A majority of the defaults are
       // left in the Electron Info.plist file
       extendInfo: path.resolve(grunt.config('appDir'), 'build', 'resources', 'mac', 'extra.plist'),
-      appBundleId: 'com.mailspring.mailspring',
+      appBundleId: 'com.postra.postra',
       afterCopy: [
         runCopyPlatformSpecificResources,
         runWriteCommitHashIntoPackage,
@@ -290,7 +291,7 @@ module.exports = grunt => {
     },
   });
 
-  grunt.registerTask('package', 'Package Mailspring', function pack() {
+  grunt.registerTask('package', 'Package Postra', function pack() {
     const done = this.async();
     const start = Date.now();
 

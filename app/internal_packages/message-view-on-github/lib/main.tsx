@@ -2,14 +2,14 @@
 This package displays a "Vew on Github Button" whenever the message you're
 looking at contains a "view it on Github" link.
 
-This is the entry point of an Mailspring package. All packages must have a file
+This is the entry point of an Postra package. All packages must have a file
 called `main` in their `/lib` folder.
 
 The `activate` method of the package gets called when it is activated.
-This happens during Mailspring's bootup. It can also happen when a user manually
+This happens during Postra's bootup. It can also happen when a user manually
 enables your package.
 
-Nearly all Mailspring packages have similar `activate` methods. The most common
+Nearly all Postra packages have similar `activate` methods. The most common
 action is to register a {React} component with the {ComponentRegistry}
 
 See more details about how this works in the {ComponentRegistry}
@@ -36,7 +36,7 @@ All packages must export a basic object that has at least the following 3
 methods:
 
 1. `activate` - Actions to take once the package gets turned on.
-Pre-enabled packages get activated on Mailspring bootup. They can also be
+Pre-enabled packages get activated on Postra bootup. They can also be
 activated manually by a user.
 
 2. `deactivate` - Actions to take when a package gets turned off. This can

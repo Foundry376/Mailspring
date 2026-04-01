@@ -51,7 +51,7 @@ const ProTourFeatures = [
     icon: `icon-composer-reminders.png`,
     title: localized(`Follow-up reminders`),
     text: localized(
-      `Never forget to follow up! Mailspring reminds you if your messages haven't received replies.`
+      `Never forget to follow up! Postra reminds you if your messages haven't received replies.`
     ),
   },
   {
@@ -179,7 +179,7 @@ class PreferencesIdentity extends React.Component<
           <div style={{ display: 'flex', alignItems: 'flex-start' }}>
             <div className="basic-explanation" style={{ display: 'flex' }}>
               {localizedReactFragment(
-                `You are not signed in to Mailspring. Link the app to a free Mailspring ID to use great free features like send later and snoozing, or upgrade to Mailspring Pro for unlimited message translation and more.`
+                `You are not signed in to Postra. Link the app to a free Postra ID to use great free features like send later and snoozing, or upgrade to Postra Pro for unlimited message translation and more.`
               )}
               <div
                 className="btn btn-emphasis"
@@ -187,7 +187,7 @@ class PreferencesIdentity extends React.Component<
                 style={{ verticalAlign: 'top', flexShrink: 0, marginLeft: 30 }}
               >
                 <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} />{' '}
-                {localized(`Setup Mailspring ID`)}
+                {localized(`Setup Postra ID`)}
               </div>
             </div>
           </div>
@@ -207,13 +207,13 @@ class PreferencesIdentity extends React.Component<
           <div className="basic-explanation">
             {localizedReactFragment(
               `You are using %@, which is free! You can try pro features like snooze, send later, read receipts and reminders a few times a week.`,
-              <strong>{localized('Mailspring Basic')}</strong>
+              <strong>{localized('Postra Basic')}</strong>
             )}
             {process.platform === 'linux' && (
               <span>
                 {localizedReactFragment(
-                  `Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.`,
-                  <a href="https://github.com/Foundry376/Mailspring/">{localized('open source')}</a>
+                  `Postra is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.`,
+                  <a href="https://github.com/Foundry376/Postra/">{localized('open source')}</a>
                 )}
               </span>
             )}
@@ -221,7 +221,7 @@ class PreferencesIdentity extends React.Component<
             <br />
             {localizedReactFragment(
               `Upgrade to %@ to use all these great features permanently:`,
-              <a onClick={onLearnMore}>{localized('Mailspring Pro')}</a>
+              <a onClick={onLearnMore}>{localized('Postra Pro')}</a>
             )}
             <ExploreMailspringSmall />
           </div>
@@ -237,7 +237,7 @@ class PreferencesIdentity extends React.Component<
               style={{ verticalAlign: 'top' }}
             >
               <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} />{' '}
-              {localized(`Get Mailspring Pro`)}
+              {localized(`Get Postra Pro`)}
             </div>
           </div>
         </div>
@@ -252,7 +252,7 @@ class PreferencesIdentity extends React.Component<
     const unpaidNote = effectivePlanName !== planName && (
       <p>
         {localized(
-          `Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring %@. Click 'Billing' below to correct the issue.`,
+          `Note: Due to issues with your most recent payment, you've been temporarily downgraded to Postra %@. Click 'Billing' below to correct the issue.`,
           effectivePlanName
         )}
       </p>
@@ -262,9 +262,7 @@ class PreferencesIdentity extends React.Component<
         <div>
           {localizedReactFragment(
             `Thank you for using %@ and supporting independent software. Get the most out of your subscription: explore pro features below or visit the %@ to learn more about reminders, templates, activity insights, and more.`,
-            <strong
-              style={{ textTransform: 'capitalize' }}
-            >{`Mailspring ${planDisplayName}`}</strong>,
+            <strong style={{ textTransform: 'capitalize' }}>{`Postra ${planDisplayName}`}</strong>,
             <a href="https://community.getmailspring.com/docs?topic=241">
               {localized(`Help Center`)}
             </a>
@@ -395,7 +393,7 @@ const ExploreMailspringSmall: React.FunctionComponent = () => (
 
 const ExploreMailspringPro: React.FunctionComponent = () => (
   <>
-    <div className="feature-explore-title">{localized('Explore Mailspring Pro')}</div>
+    <div className="feature-explore-title">{localized('Explore Postra Pro')}</div>
     <div className="feature-explore-grid">
       {ProTourFeatures.map(item => (
         <a key={item.title} className="feature" href={item.link}>

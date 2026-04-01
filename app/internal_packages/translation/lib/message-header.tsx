@@ -240,7 +240,7 @@ export class TranslateMessageHeader extends React.Component<
     if (!IdentityStore.hasProFeatures()) {
       try {
         await FeatureUsageStore.displayUpgradeModal('translation', {
-          headerText: localized('Translate automatically with Mailspring Pro'),
+          headerText: localized('Translate automatically with Postra Pro'),
           rechargeText: `${localized(
             "Unfortunately, translation services bill per character and we can't offer this feature for free."
           )} ${localized('Upgrade to Pro today!')}`,
@@ -268,7 +268,7 @@ export class TranslateMessageHeader extends React.Component<
       buttons: [localized('Yes'), localized('Cancel')],
       message: localized('Are you sure?'),
       detail: localized(
-        'Mailspring will no longer offer to translate messages written in %@.',
+        'Postra will no longer offer to translate messages written in %@.',
         AllLanguages[this.state.detected]
       ),
     });
@@ -295,7 +295,7 @@ export class TranslateMessageHeader extends React.Component<
           <div className="message with-actions">
             <div className="message-centered">
               {localized(
-                'Mailspring has translated this message into %@.',
+                'Postra has translated this message into %@.',
                 AllLanguages[result.toLang]
               )}
             </div>

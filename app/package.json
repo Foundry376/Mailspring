@@ -1,10 +1,10 @@
 {
-  "name": "mailspring",
-  "productName": "Mailspring",
+  "name": "postra",
+  "productName": "Postra",
   "version": "1.19.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/foundry376/mailspring.git"
+    "url": "git://github.com/fcools/postra-mail.git"
   },
   "commitHash": "COMMIT_INSERTED_DURING_PACKAGING",
   "description": "The best email app for people and teams at work",

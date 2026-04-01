@@ -29,7 +29,7 @@ export class TranslateComposerButton extends React.Component<{
 
   shouldComponentUpdate(nextProps) {
     // Our render method doesn't use the provided `draft`, and the draft changes
-    // constantly (on every keystroke!) `shouldComponentUpdate` helps keep Mailspring fast.
+    // constantly (on every keystroke!) `shouldComponentUpdate` helps keep Postra fast.
     return nextProps.session !== this.props.session;
   }
 

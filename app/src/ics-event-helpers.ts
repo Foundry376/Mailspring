@@ -301,7 +301,7 @@ export function createICSString(options: CreateEventOptions): string {
 
   // Create VCALENDAR component
   const calendar = new ical.Component(['vcalendar', [], []]);
-  calendar.updatePropertyWithValue('prodid', '-//Mailspring//Calendar//EN');
+  calendar.updatePropertyWithValue('prodid', '-//Postra//Calendar//EN');
   calendar.updatePropertyWithValue('version', '2.0');
   calendar.updatePropertyWithValue('calscale', 'GREGORIAN');
 

@@ -71,7 +71,7 @@ export interface EventRendererProps {
   onEventFocused: (event: EventOccurrence) => void;
 }
 
-export interface MailspringCalendarViewProps extends EventRendererProps {
+export interface PostraCalendarViewProps extends EventRendererProps {
   dataSource: CalendarDataSource;
   disabledCalendars: string[];
   focusedMoment: Moment;
@@ -97,11 +97,11 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 }
 
 /*
- * Mailspring Calendar
+ * Postra Calendar
  */
-interface MailspringCalendarProps {}
+interface PostraCalendarProps {}
 
-interface MailspringCalendarState {
+interface PostraCalendarState {
   view: CalendarView;
   selectedEvents: EventOccurrence[];
   focusedEvent: FocusedEventInfo | null;
@@ -115,11 +115,8 @@ interface MailspringCalendarState {
   readOnlyCalendarIds: Set<string>;
 }
 
-export class MailspringCalendar extends React.Component<
-  MailspringCalendarProps,
-  MailspringCalendarState
-> {
-  static displayName = 'MailspringCalendar';
+export class PostraCalendar extends React.Component<PostraCalendarProps, PostraCalendarState> {
+  static displayName = 'PostraCalendar';
 
   static DayView = DayView;
   static WeekView = WeekView;
@@ -132,7 +129,7 @@ export class MailspringCalendar extends React.Component<
   _unlisten?: () => void;
   _dataSource = new CalendarDataSource();
 
-  constructor(props: MailspringCalendarProps) {
+  constructor(props: PostraCalendarProps) {
     super(props);
     this.state = {
       calendars: [],

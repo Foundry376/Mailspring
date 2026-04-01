@@ -234,7 +234,7 @@ export default class ApplicationMenu {
   getDefaultTemplate() {
     return [
       {
-        label: 'Mailspring',
+        label: 'Postra',
         submenu: [
           { label: localized('Check for Updates'), metadata: { autoUpdate: true } },
           {

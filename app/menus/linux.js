@@ -232,10 +232,10 @@ module.exports = {
       submenu: [
         { label: 'VERSION', enabled: false },
         { type: 'separator' },
-        { label: localized('Mailspring Help'), command: 'application:view-help' },
+        { label: localized('Postra Help'), command: 'application:view-help' },
         { type: 'separator' },
         { label: localized('Getting Started Guide'), command: 'application:view-getting-started' },
-        { label: localized('Mailspring Community'), command: 'application:view-community' },
+        { label: localized('Postra Community'), command: 'application:view-community' },
         { type: 'separator' },
         { label: localized('View License'), command: 'application:view-license' },
       ],

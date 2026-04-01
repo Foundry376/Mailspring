@@ -13,7 +13,7 @@ When creating this React component the first consideration was when &
 where we'd be rendered. The next consideration was what data we need to
 display.
 
-Unlike a traditional React application, Mailspring components have very few
+Unlike a traditional React application, Postra components have very few
 guarantees on who will render them and where they will be rendered. In our
 `lib/main.cjsx` file we registered this component with our
 {ComponentRegistry} for the `"ThreadActionsToolbarButton"` role. That means that
@@ -31,7 +31,7 @@ message body then implement some kind of regex to find and parse out that
 link.
 
 We could have put all of that logic in this React Component, but that's
-not what React components should be doing. In Mailspring a component's only
+not what React components should be doing. In Postra a component's only
 job is to display known data and be the first responders to user interaction.
 
 We instead create a {GithubStore} to handle the fetching and preparation
@@ -97,9 +97,9 @@ export default class ViewOnGithubButton extends React.Component<
     this._unlisten();
   }
 
-  /** ** Super common Mailspring Component private methods ****
+  /** ** Super common Postra Component private methods ****
   /*
-  * An extremely common pattern for all Mailspring components are the methods
+  * An extremely common pattern for all Postra components are the methods
   * `onStoreChanged` and `getStateFromStores`.
   *
   * Most components listen to some source of data, which is usally a

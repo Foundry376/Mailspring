@@ -23,7 +23,7 @@ export default class DevModeNotification extends React.Component<
     return (
       <Notification
         priority="0"
-        title={localized('Mailspring is running in dev mode and may be slower!')}
+        title={localized('Postra is running in dev mode and may be slower!')}
       />
     );
   }

@@ -97,7 +97,7 @@ class KeyManager {
       try {
         raw = await safeStorage.decryptString(Buffer.from(encryptedCredentials, 'utf-8'));
       } catch (err) {
-        console.error('Mailspring encountered an error reading passwords from the keychain.');
+        console.error('Postra encountered an error reading passwords from the keychain.');
         console.error(err);
       }
     }
@@ -116,9 +116,9 @@ class KeyManager {
   _reportFatalError(err: Error) {
     const clickedButton = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'error',
-      buttons: [localized('Mailspring Help'), localized('Quit')],
+      buttons: [localized('Postra Help'), localized('Quit')],
       message: localized(
-        `Mailspring could not store your password securely. For more information, visit %@`,
+        `Postra could not store your password securely. For more information, visit %@`,
         'https://community.getmailspring.com/t/password-management-error/199'
       ),
     });

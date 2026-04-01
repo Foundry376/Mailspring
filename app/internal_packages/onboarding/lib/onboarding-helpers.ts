@@ -9,7 +9,7 @@ import {
   MailsyncProcess,
   localized,
 } from 'mailspring-exports';
-import MailspringProviderSettings from './mailspring-provider-settings.json';
+import PostraProviderSettings from './mailspring-provider-settings.json';
 import MailcoreProviderSettings from './mailcore-provider-settings.json';
 import dns from 'dns';
 import {
@@ -149,12 +149,12 @@ export async function expandAccountWithCommonSettings(account: Account) {
   // this matches the acccount type presets ("yahoo") and common domains against
   // data derived from Thunderbirds ISPDB.
   let mstemplate =
-    MailspringProviderSettings[domain] || MailspringProviderSettings[account.provider];
+    PostraProviderSettings[domain] || PostraProviderSettings[account.provider];
   if (mstemplate) {
     if (mstemplate.alias) {
-      mstemplate = MailspringProviderSettings[mstemplate.alias];
+      mstemplate = PostraProviderSettings[mstemplate.alias];
     }
-    console.log(`Using Mailspring Template: ${JSON.stringify(mstemplate, null, 2)}`);
+    console.log(`Using Postra Template: ${JSON.stringify(mstemplate, null, 2)}`);
   } else {
     console.log(`Using Fallback Template`);
     mstemplate = {
@@ -210,7 +210,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
   // on protonmail by default Folders set as container folder
   const containerFolderDefault = AccountStore.containerFolderDefaultGetter();
   if (
-    containerFolderDefault !== 'Mailspring' &&
+    containerFolderDefault !== 'Postra' &&
     (populated.settings.container_folder === '' ||
       populated.settings.container_folder === undefined)
   ) {

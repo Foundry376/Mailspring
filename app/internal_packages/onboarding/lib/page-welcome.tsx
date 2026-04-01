@@ -15,7 +15,7 @@ export default class WelcomePage extends React.Component {
         <div className="steps-container">
           <div>
             <p className="hero-text" style={{ fontSize: 46, marginTop: 257 }}>
-              {localized('Welcome to Mailspring')}
+              {localized('Welcome to Postra')}
             </p>
             <RetinaImg
               className="icons"

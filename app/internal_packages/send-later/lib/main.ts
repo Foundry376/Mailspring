@@ -19,7 +19,7 @@ let unlisten = null;
 const SendLaterButtonWithTip = HasTutorialTip(SendLaterButton, {
   title: localized('Send on your own schedule'),
   instructions: localized(
-    'Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!'
+    'Schedule this message to send at the ideal time. Postra makes it easy to control the fabric of spacetime!'
   ),
 });
 

@@ -6,7 +6,7 @@ import ModeToggle from './mode-toggle';
 const ToggleWithTutorialTip = HasTutorialTip(ModeToggle, {
   title: localized('Compose with context'),
   instructions: localized(
-    'Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.'
+    'Postra shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.'
   ),
 });
 

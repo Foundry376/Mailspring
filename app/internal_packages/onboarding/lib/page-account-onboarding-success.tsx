@@ -33,7 +33,7 @@ class AccountOnboardingSuccess extends Component<{ account: Account }> {
               providerConfig.displayNameShort || providerConfig.displayName
             )}
           </h2>
-          <h3>{localized('Adding your account to Mailspring…')}</h3>
+          <h3>{localized('Adding your account to Postra…')}</h3>
         </div>
       </div>
     );

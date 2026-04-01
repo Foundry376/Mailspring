@@ -6,9 +6,9 @@ const path = require('path');
 module.exports = grunt => {
   const { spawn } = grunt.config('taskHelpers');
 
-  grunt.registerTask('create-mac-zip', 'Zip up Mailspring', function pack() {
+  grunt.registerTask('create-mac-zip', 'Zip up Postra', function pack() {
     const done = this.async();
-    const zipPath = path.join(grunt.config('outputDir'), 'Mailspring.zip');
+    const zipPath = path.join(grunt.config('outputDir'), 'Postra.zip');
 
     if (grunt.file.exists(zipPath)) {
       grunt.file.delete(zipPath, { force: true });
@@ -18,14 +18,14 @@ module.exports = grunt => {
     process.chdir(
       path.join(
         grunt.config('outputDir'),
-        `Mailspring-darwin-${process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch}`
+        `Postra-darwin-${process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch}`
       )
     );
 
     spawn(
       {
         cmd: 'zip',
-        args: ['-9', '-y', '-r', '-9', '-X', zipPath, 'Mailspring.app'],
+        args: ['-9', '-y', '-r', '-9', '-X', zipPath, 'Postra.app'],
       },
       error => {
         process.chdir(orig);

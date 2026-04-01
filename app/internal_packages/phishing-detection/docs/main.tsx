@@ -3,7 +3,7 @@
 // This is a simple package to notify N1 users if an email is a potential
 // phishing scam.
 
-// You can access Mailspring dependencies by requiring 'mailspring-exports'
+// You can access Postra dependencies by requiring 'mailspring-exports'
 import React from 'react';
 import {
   PropTypes,

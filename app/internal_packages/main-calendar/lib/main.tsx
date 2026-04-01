@@ -1,7 +1,7 @@
 import React from 'react';
 import { WorkspaceStore, ComponentRegistry, localized } from 'mailspring-exports';
 import { QuickEventButton } from './quick-event-button';
-import { MailspringCalendar } from './core/mailspring-calendar';
+import { PostraCalendar } from './core/mailspring-calendar';
 import { EventSearchBar } from './core/event-search-bar';
 
 const Notice = () =>
@@ -84,7 +84,7 @@ function adjustMenus() {
 export function activate() {
   adjustMenus();
 
-  ComponentRegistry.register(MailspringCalendar, {
+  ComponentRegistry.register(PostraCalendar, {
     location: WorkspaceStore.Location.Center,
   });
   ComponentRegistry.register(Notice, {
@@ -99,7 +99,7 @@ export function activate() {
 }
 
 export function deactivate() {
-  ComponentRegistry.unregister(MailspringCalendar);
+  ComponentRegistry.unregister(PostraCalendar);
   ComponentRegistry.unregister(QuickEventButton);
   ComponentRegistry.unregister(EventSearchBar);
 }

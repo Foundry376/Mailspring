@@ -380,11 +380,11 @@ export default class WindowEventHandler {
 
     if (!AppEnv.inDevMode()) {
       console.log(
-        "%c Welcome to Mailspring! If you're exploring the source or building a " +
+        "%c Welcome to Postra! If you're exploring the source or building a " +
           "plugin, you should enable debug flags. It's slower, but " +
           'gives you better exceptions, the debug version of React, ' +
           'and more. Choose %c Developer > Run with Debug Flags %c ' +
-          'from the menu. Also, check out http://Foundry376.github.io/Mailspring/ ' +
+          'from the menu. Also, check out https://github.com/fcools/postra-mail ' +
           'for documentation and sample code!',
         'background-color: antiquewhite;',
         'background-color: antiquewhite; font-weight:bold;',

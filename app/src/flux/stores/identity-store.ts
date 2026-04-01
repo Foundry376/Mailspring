@@ -137,7 +137,7 @@ class _IdentityStore extends MailspringStore {
       : null;
 
     if (this._identity && !this._identity.token) {
-      const message = `Your Mailspring ID password could not be loaded from your keychain. Please visit Preferences > Subscription and click "Setup Mailspring ID" to sign in to your Mailspring account again.\n\nYour Mailspring ID email address is ${this._identity.emailAddress}.`;
+      const message = `Your Postra ID password could not be loaded from your keychain. Please visit Preferences > Subscription and click "Setup Postra ID" to sign in to your Postra account again.\n\nYour Postra ID email address is ${this._identity.emailAddress}.`;
       console.warn(message);
 
       if (!this._displayedPasswordError) {

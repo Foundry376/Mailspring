@@ -35,7 +35,7 @@ class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormP
     return (
       providerConfig.note ||
       localized(
-        `Enter your email account credentials to get started. Mailspring\nstores your email password securely and it is never sent to our servers.`
+        `Enter your email account credentials to get started. Postra\nstores your email password securely and it is never sent to our servers.`
       )
     );
   };

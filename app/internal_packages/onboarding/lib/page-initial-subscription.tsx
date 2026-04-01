@@ -11,7 +11,7 @@ export default class InitialPreferencesPage extends React.Component {
   render() {
     return (
       <div className="page opaque initial-subscription" style={{ width: 900, height: 620 }}>
-        <h1 style={{ paddingTop: 100 }}>{localized(`Go further with Mailspring Pro`)}</h1>
+        <h1 style={{ paddingTop: 100 }}>{localized(`Go further with Postra Pro`)}</h1>
         <div
           style={{
             display: 'flex',
@@ -33,12 +33,12 @@ export default class InitialPreferencesPage extends React.Component {
             <p>
               {localizedReactFragment(
                 `You are using %@, which is free! You can try pro features like snooze, send later, read receipts and reminders a few times a week.`,
-                <strong>Mailspring Basic</strong>
+                <strong>Postra Basic</strong>
               )}
             </p>
             <p>
               {localizedReactFragment(
-                `If you enjoy Mailspring, upgrade to Mailspring Pro from %@ to enable all these great features permanently:`,
+                `If you enjoy Postra, upgrade to Postra Pro from %@ to enable all these great features permanently:`,
                 <strong>{localized(`Preferences > Subscription`)}</strong>
               )}
             </p>

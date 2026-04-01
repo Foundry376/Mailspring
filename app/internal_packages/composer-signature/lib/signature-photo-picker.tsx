@@ -132,7 +132,7 @@ export default class SignaturePhotoPicker extends React.Component<
     } catch (err) {
       AppEnv.showErrorDialog(
         localized(
-          `Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(%@)`,
+          `Sorry, we couldn't save your signature image to Postra's servers. Please try again.\n\n(%@)`,
           err.toString()
         )
       );
@@ -157,7 +157,7 @@ export default class SignaturePhotoPicker extends React.Component<
 
     // we don't display the <input> for data URLs because they can be
     // long and the UI becomes slow.
-    const isMailspringURL = resolvedURL && resolvedURL.includes('getmailspring.com');
+    const isPostraURL = resolvedURL && resolvedURL.includes('getmailspring.com');
     const isUploadEnabled = IdentityStore.identity() !== null;
 
     const dropNote =
@@ -211,7 +211,7 @@ export default class SignaturePhotoPicker extends React.Component<
               <option value="custom">{localized('Custom Image…')}</option>
             </select>
             {source === 'custom' &&
-              (isMailspringURL ? (
+              (isPostraURL ? (
                 <a
                   className="btn"
                   onClick={() => this.props.onChange({ target: { value: '', id: 'photoURL' } })}
