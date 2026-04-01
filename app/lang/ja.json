@@ -209,7 +209,6 @@
   "Encountered an error while syncing %@": "%@を同期中にエラーが発生しました",
   "Enter Full Screen": "フルスクリーンにする",
   "Enter your email account credentials to get started.": "開始するには、メールアカウントの認証情報を入力してください。",
-  "Enter your email account credentials to get started. Postra\nstores your email password securely and it is never sent to our servers.": "開始するには、メールアカウントの認証情報を入力してください。 Postra \nはメールパスワードを安全に保管し、弊社のサーバーに送信することはありません。",
   "Error": "エラー",
   "Event": "イベント",
   "Exit": "終了",

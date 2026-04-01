@@ -27,18 +27,10 @@ export function activate() {
   );
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
-      tabId: 'Subscription',
-      displayName: localized('Subscription'),
-      componentClassFn: () => require('./tabs/preferences-identity').default,
-      order: 3,
-    })
-  );
-  PreferencesUIStore.registerPreferencesTab(
-    new PreferencesUIStore.TabItem({
       tabId: 'Appearance',
       displayName: localized('Appearance'),
       componentClassFn: () => require('./tabs/preferences-appearance').default,
-      order: 4,
+      order: 3,
     })
   );
   PreferencesUIStore.registerPreferencesTab(
@@ -46,7 +38,7 @@ export function activate() {
       tabId: 'Shortcuts',
       displayName: localized('Shortcuts'),
       componentClassFn: () => require('./tabs/preferences-keymaps').default,
-      order: 5,
+      order: 4,
     })
   );
   PreferencesUIStore.registerPreferencesTab(
@@ -54,7 +46,7 @@ export function activate() {
       tabId: 'Mail Rules',
       displayName: localized('Mail Rules'),
       componentClassFn: () => require('./tabs/preferences-mail-rules').default,
-      order: 6,
+      order: 5,
     })
   );
 

@@ -56,7 +56,7 @@ export default class PleaseSubscribeNotification extends React.Component<
           {
             label: localized('Manage'),
             fn: () => {
-              Actions.switchPreferencesTab('Subscription');
+              Actions.switchPreferencesTab('Accounts');
               Actions.openPreferences();
             },
           },

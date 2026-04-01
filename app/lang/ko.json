@@ -209,7 +209,6 @@
   "Encountered an error while syncing %@": "%@ 동기화 중에 오류가 발생했습니다.",
   "Enter Full Screen": "전체 화면 모드",
   "Enter your email account credentials to get started.": "시작하려면 이메일 계정 자격증 명을 입력하십시오.",
-  "Enter your email account credentials to get started. Postra\nstores your email password securely and it is never sent to our servers.": "시작하려면 이메일 계정 자격증명을 입력하십시오. Postra \n은 전자 메일 암호를 안전하게 저장하고 서버에 보내지 않습니다.",
   "Error": "오류",
   "Event": "이벤트",
   "Exit": "Postra 종료",

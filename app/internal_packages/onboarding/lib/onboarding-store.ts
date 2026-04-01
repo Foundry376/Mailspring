@@ -59,12 +59,10 @@ class OnboardingStore extends MailspringStore {
       // switching environments.
       this._pageStack = ['account-choose'];
     } else if (hasAccounts) {
-      // Should only happen when the user has "signed out" of their Postra ID,
-      // but already has accounts synced. Or is upgrading from a very old build.
-      // We used to show "Welcome Back", but now just jump to sign in.
-      this._pageStack = ['authenticate'];
+      // No cloud identity, but accounts exist (e.g. legacy data): go straight to add account.
+      this._pageStack = ['account-choose'];
     } else {
-      // Standard new user onboarding flow.
+      // New user: welcome → tutorial → account setup (no Postra ID webview).
       this._pageStack = ['welcome'];
     }
   }

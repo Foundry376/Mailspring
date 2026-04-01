@@ -97,7 +97,7 @@ export default class TutorialPage extends React.Component<
     if (nextItem) {
       this.setState({ current: nextItem, seen: nextSeen });
     } else {
-      OnboardingActions.moveToPage('authenticate');
+      OnboardingActions.moveToPage('account-choose');
     }
   };
 

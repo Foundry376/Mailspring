@@ -233,7 +233,7 @@
   "Encountered an error while syncing %@": "Encountered an error while syncing %@",
   "Enter Full Screen": "Enter Full Screen",
   "Enter your email account credentials to get started.": "Enter your email account credentials to get started.",
-  "Enter your email account credentials to get started. Postra\nstores your email password securely and it is never sent to our servers.": "Enter your email account credentials to get started. Postra\nstores your email password securely and it is never sent to our servers.",
+  "Enter your email account credentials to get started. Postra\nstores your email password securely.": "Enter your email account credentials to get started. Postra\nstores your email password securely.",
   "Error": "Error",
   "Error Details...": "Error Details...",
   "Event": "Event",

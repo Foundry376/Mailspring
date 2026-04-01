@@ -1,5 +1,5 @@
 import { Utils, KeyManager } from 'mailspring-exports';
-import { IdentityStore } from '../../src/flux/stores/identity-store';
+import { IdentityStore, IdentityStoreConfig } from '../../src/flux/stores/identity-store';
 import * as MailspringAPIRequest from '../../src/flux/mailspring-api-request';
 
 const TEST_NYLAS_ID = 'icihsnqh4pwujyqihlrj70vh';
@@ -74,10 +74,15 @@ describe('IdentityStore', function identityStoreSpec() {
 
   describe('fetchIdentity', () => {
     beforeEach(() => {
+      IdentityStoreConfig.cloudServicesEnabled = true;
       IdentityStore._identity = this.identityJSON;
       spyOn(IdentityStore, 'saveIdentity');
       spyOn(AppEnv, 'reportError');
       spyOn(console, 'error');
+    });
+
+    afterEach(() => {
+      IdentityStoreConfig.cloudServicesEnabled = false;
     });
 
     it('saves the identity returned', async () => {

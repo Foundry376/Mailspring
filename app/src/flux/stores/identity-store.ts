@@ -12,6 +12,14 @@ import { Disposable } from 'event-kit';
 // Note this key name is used when migrating to Mailspring Pro accounts from old N1.
 const PASSWORD_NAME = 'Mailspring Account';
 
+/**
+ * When false: no Postra ID onboarding, no polling id.getmailspring.com, fetchIdentity is local-only.
+ * Set true only if you restore cloud billing / identity integration.
+ */
+export const IdentityStoreConfig = {
+  cloudServicesEnabled: false,
+};
+
 export interface IIdentity {
   id: string;
   token: string;
@@ -62,7 +70,18 @@ class _IdentityStore extends MailspringStore {
     this._onIdentityChanged();
 
     this.listenTo(Actions.logoutMailspringIdentity, this._onLogoutMailspringIdentity);
-    this._fetchAndPollRemoteIdentity();
+
+    if (IdentityStoreConfig.cloudServicesEnabled) {
+      this._fetchAndPollRemoteIdentity();
+    } else if (!AppEnv.inSpecMode() && !AppEnv.isEmptyWindow()) {
+      void this._clearStoredIdentityIfPresent();
+    }
+  }
+
+  async _clearStoredIdentityIfPresent() {
+    if (AppEnv.config.get('identity')) {
+      await this.saveIdentity(null);
+    }
   }
 
   deactivate() {
@@ -87,7 +106,7 @@ class _IdentityStore extends MailspringStore {
   }
 
   _fetchAndPollRemoteIdentity() {
-    if (!AppEnv.isMainWindow()) return;
+    if (!AppEnv.isMainWindow() || !IdentityStoreConfig.cloudServicesEnabled) return;
     setTimeout(() => {
       this.fetchIdentity();
     }, 1000);
@@ -218,6 +237,9 @@ class _IdentityStore extends MailspringStore {
   }
 
   async fetchIdentity() {
+    if (!IdentityStoreConfig.cloudServicesEnabled) {
+      return this._identity;
+    }
     if (!this._identity || !this._identity.token) {
       return null;
     }

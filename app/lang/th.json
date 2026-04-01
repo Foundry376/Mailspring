@@ -209,7 +209,6 @@
   "Encountered an error while syncing %@": "พบข้อผิดพลาดขณะซิงค์%@",
   "Enter Full Screen": "เข้าสู่ภาพเต็มหน้าจอ",
   "Enter your email account credentials to get started.": "ป้อนข้อมูลรับรองบัญชีอีเมลของคุณเพื่อเริ่มต้นใช้งาน",
-  "Enter your email account credentials to get started. Postra\nstores your email password securely and it is never sent to our servers.": "ป้อนข้อมูลรับรองบัญชีอีเมลของคุณเพื่อเริ่มต้นใช้งาน Postra \n จัดเก็บรหัสผ่านอีเมลของคุณไว้อย่างปลอดภัยและไม่ได้ถูกส่งไปยังเซิร์ฟเวอร์ของเรา",
   "Error": "ข้อผิดพลาด",
   "Event": "กิจกรรม",
   "Exit": "ออก",
