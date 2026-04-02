@@ -1,0 +1,56 @@
+@import 'ui-variables';
+
+.time-card-popover-base() {
+  color: fadeout(@btn-default-text-color, 20%);
+  display: flex;
+  flex-direction: column;
+
+  .snooze-row {
+    display: flex;
+
+    .snooze-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px 0;
+      cursor: default;
+      width: 105px;
+      line-height: initial;
+      text-align: initial;
+
+      img {
+        background-color: fadeout(@btn-default-text-color, 20%);
+      }
+      &:hover {
+        background-color: darken(@btn-default-bg-color, 5%);
+        color: fadeout(@btn-default-text-color, 10%);
+        img {
+          background-color: fadeout(@btn-default-text-color, 10%);
+        }
+      }
+      &:active {
+        background-color: darken(@btn-default-bg-color, 8%);
+        color: fadeout(@btn-default-text-color, 0%);
+        img {
+          background-color: fadeout(@btn-default-text-color, 0%);
+        }
+      }
+      & + .snooze-item {
+        border-left: 1px solid @border-color-divider;
+      }
+    }
+
+    & + .snooze-row {
+      border-top: 1px solid @border-color-divider;
+    }
+  }
+
+  .snooze-input {
+    border-top: 1px solid @border-color-divider;
+    padding: @padding-large-vertical @padding-large-horizontal;
+
+    input {
+      margin-bottom: 3px;
+    }
+  }
+}

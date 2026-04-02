@@ -1,9 +1,15 @@
 @import 'ui-variables';
+@import '../../thread-snooze/styles/time-card-popover';
 @reminders-background-color: #f2efff;
 @reminders-color: #5a31e1;
 
 .send-reminders-popover {
+  .time-card-popover-base();
+
   .section.send-reminders-footer {
+    border-top: 1px solid @border-color-divider;
+    padding-top: @padding-base-vertical;
+
     .reminders-label {
       color: @text-color-very-subtle;
       font-size: 0.8em;

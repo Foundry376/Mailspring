@@ -1,6 +1,14 @@
 @import 'ui-variables';
+@import '../../thread-snooze/styles/time-card-popover';
 
 .send-later-popover {
+  .time-card-popover-base();
+
+  .send-later-footer {
+    border-top: 1px solid @border-color-divider;
+    padding: 0 @padding-large-horizontal @padding-large-vertical @padding-large-horizontal;
+  }
+
   .btn-cancel {
     width: 100%;
   }
