@@ -63,6 +63,10 @@ export default class AccountSidebar extends React.Component<
     return sections.map(section => <OutlineView key={section.title} {...section} />);
   }
 
+  _onOpenCalendar = () => {
+    ipcRenderer.send('command', 'application:show-calendar', {});
+  };
+
   _onOpenContacts = () => {
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
@@ -80,6 +84,20 @@ export default class AccountSidebar extends React.Component<
           </nav>
         </ScrollRegion>
         <div className="account-sidebar-footer">
+          <button
+            type="button"
+            className="btn btn-account-sidebar-calendar"
+            onClick={this._onOpenCalendar}
+            aria-label={localized('Calendar')}
+          >
+            <RetinaImg
+              name="ic-eventcard-time@2x.png"
+              mode={RetinaImg.Mode.ContentPreserve}
+              style={{ width: 16, height: 16 }}
+              alt=""
+            />
+            <span>{localized('Calendar')}</span>
+          </button>
           <button
             type="button"
             className="btn btn-account-sidebar-contacts"

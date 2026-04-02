@@ -139,6 +139,9 @@ load(`SignatureStore`, 'flux/stores/signature-store');
 load(`MessageStore`, 'flux/stores/message-store');
 load(`ContactStore`, 'flux/stores/contact-store');
 load(`IdentityStore`, 'flux/stores/identity-store');
+lazyLoadWithGetter(`IdentityStoreConfig`, () =>
+  require('../flux/stores/identity-store').IdentityStoreConfig
+);
 load(`CategoryStore`, 'flux/stores/category-store');
 load(`UndoRedoStore`, 'flux/stores/undo-redo-store');
 load(`WorkspaceStore`, 'flux/stores/workspace-store');

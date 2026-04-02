@@ -88,6 +88,7 @@
   "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.",
   "Caching mail": "Caching mail",
   "Caching recent mail": "Caching recent mail",
+  "Calendar": "Calendar",
   "Calendar Preview": "Calendar Preview",
   "Can't find the selected thread in your mailbox": "Can't find the selected thread in your mailbox",
   "Cancel": "Cancel",

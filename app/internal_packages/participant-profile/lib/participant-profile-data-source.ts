@@ -1,4 +1,6 @@
-import { MailspringAPIRequest, Utils } from 'mailspring-exports';
+import { MailspringAPIRequest, Utils, IdentityStoreConfig } from 'mailspring-exports';
+import { buildLocalParticipantProfile } from './local-participant-profile';
+
 const { makeRequest } = MailspringAPIRequest;
 
 const CACHE_SIZE = 200;
@@ -23,9 +25,17 @@ class ParticipantProfileDataSource {
       return {};
     }
 
-    const data = this.getCache(email);
-    if (data) {
-      return data;
+    const cloudOff = !IdentityStoreConfig?.cloudServicesEnabled;
+
+    if (!cloudOff) {
+      const data = this.getCache(email);
+      if (data) {
+        return data;
+      }
+    }
+
+    if (cloudOff) {
+      return buildLocalParticipantProfile(contact);
     }
 
     let body = null;
@@ -36,9 +46,8 @@ class ParticipantProfileDataSource {
         method: 'GET',
         path: `/api/info-for-email-v2/${email}?phrase=${encodeURIComponent(name)}`,
       });
-    } catch (err) {
-      // we don't care about errors
-      return {};
+    } catch (_err) {
+      return buildLocalParticipantProfile(contact);
     }
 
     if (!body.person) {

@@ -1,19 +1,18 @@
 import React from 'react';
-import {
-  localized,
-  IdentityStore,
-  Contact,
-  FeatureUsageStore,
-  PropTypes,
-  DOMUtils,
-  RegExpUtils,
-  Thread,
-  Utils,
-} from 'mailspring-exports';
+import { localized, Contact, PropTypes, DOMUtils, RegExpUtils, Utils } from 'mailspring-exports';
 import { RetinaImg, ContactProfilePhoto } from 'mailspring-component-kit';
 import moment from 'moment-timezone';
 
 import ParticipantProfileDataSource from './participant-profile-data-source';
+import { IconGitHub, IconInstagram, IconYouTube, SocialWebSearchRow } from './social-web-search';
+
+function youtubeProfileUrl(handle: string) {
+  const h = handle.replace(/^@/, '');
+  if (/^UC[a-zA-Z0-9_-]{10,}$/.test(h)) {
+    return `https://www.youtube.com/channel/${h}`;
+  }
+  return `https://www.youtube.com/@${h}`;
+}
 
 class TimeInTimezone extends React.Component<{ timeZone: string }, { tick: number }> {
   constructor(props) {
@@ -177,7 +176,6 @@ interface SidebarParticipantProfileProps {
 }
 
 interface SidebarParticipantProfileState {
-  trialing: boolean;
   loading: boolean;
   loaded: boolean;
   avatar?: string;
@@ -215,6 +213,9 @@ interface IPerson {
   facebook?: { handle: string };
   twitter?: { handle: string };
   linkedin?: { handle: string };
+  instagram?: { handle: string };
+  github?: { handle: string };
+  youtube?: { handle: string };
   employment?: {
     title: string;
     name: string;
@@ -240,8 +241,7 @@ export default class SidebarParticipantProfile extends React.Component<
   _mounted = false;
 
   state: SidebarParticipantProfileState = {
-    trialing: !IdentityStore.hasProFeatures(),
-    loading: IdentityStore.hasProFeatures(),
+    loading: true,
     loaded: false,
   };
 
@@ -267,22 +267,6 @@ export default class SidebarParticipantProfile extends React.Component<
   componentWillUnmount() {
     this._mounted = false;
   }
-
-  _onClickedToTry = async () => {
-    try {
-      await FeatureUsageStore.markUsedOrUpgrade('contact-profiles', {
-        headerText: localized('All Contact Previews Used'),
-        rechargeText: `${localized(
-          `You can view contact profiles for %1$@ emails each %2$@ with Postra Basic.`
-        )} ${localized('Upgrade to Pro today!')}`,
-        iconUrl: 'mailspring://participant-profile/assets/ic-contact-profile-modal@2x.png',
-      });
-    } catch (err) {
-      // user does not have access to this feature
-      return;
-    }
-    this._onFindContact();
-  };
 
   _onFindContact = async () => {
     if (!this._mounted) {
@@ -311,28 +295,6 @@ export default class SidebarParticipantProfile extends React.Component<
       sel.setBaseAndExtent(anchor, 0, focus, focus.data.length);
     }
   };
-
-  _renderFindCTA() {
-    if (!this.state.trialing || this.state.loaded) {
-      return;
-    }
-    if (!this.props.contact.email || Utils.likelyNonHumanEmail(this.props.contact.email)) {
-      return;
-    }
-
-    return (
-      <div style={{ textAlign: 'center', marginBottom: 20 }}>
-        <p>
-          {localized(
-            `The contact sidebar in Postra Pro shows information about the people and companies you're emailing with.`
-          )}
-        </p>
-        <div className="btn" onClick={!this.state.loading ? this._onClickedToTry : null}>
-          {!this.state.loading ? localized(`Try it Now`) : localized(`Loading...`)}
-        </div>
-      </div>
-    );
-  }
 
   _renderCompanyInfo() {
     if (!this.state.company || !this.state.company.name) {
@@ -450,7 +412,7 @@ export default class SidebarParticipantProfile extends React.Component<
   }
 
   _renderPersonInfo() {
-    const { facebook, linkedin, twitter, employment, location, bio } =
+    const { facebook, linkedin, twitter, instagram, github, youtube, employment, location, bio } =
       this.state.person || ({} as IPerson);
 
     return (
@@ -498,7 +460,39 @@ export default class SidebarParticipantProfile extends React.Component<
               hostname="twitter.com"
               handle={twitter && twitter.handle}
             />
+            {instagram && instagram.handle && (
+              <a
+                className="social-profile-item"
+                href={`https://www.instagram.com/${instagram.handle}/`}
+                title="Instagram"
+                rel="noopener noreferrer"
+              >
+                <IconInstagram />
+              </a>
+            )}
+            {github && github.handle && (
+              <a
+                className="social-profile-item"
+                href={`https://github.com/${github.handle}`}
+                title="GitHub"
+                rel="noopener noreferrer"
+              >
+                <IconGitHub />
+              </a>
+            )}
+            {youtube && youtube.handle && (
+              <a
+                className="social-profile-item"
+                href={youtubeProfileUrl(youtube.handle)}
+                title="YouTube"
+                rel="noopener noreferrer"
+              >
+                <IconYouTube />
+              </a>
+            )}
           </div>
+
+          <SocialWebSearchRow contact={this.props.contact} />
         </div>
 
         <div className="additional-info">
@@ -515,8 +509,6 @@ export default class SidebarParticipantProfile extends React.Component<
         {this._renderPersonInfo()}
 
         {this._renderCompanyInfo()}
-
-        {this._renderFindCTA()}
       </div>
     );
   }
