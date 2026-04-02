@@ -1,6 +1,7 @@
 import React from 'react';
+import { ipcRenderer } from 'electron';
 import { localized, Utils, DOMUtils, Account, AccountStore } from 'mailspring-exports';
-import { OutlineView, ScrollRegion, Flexbox } from 'mailspring-component-kit';
+import { OutlineView, ScrollRegion, Flexbox, RetinaImg } from 'mailspring-component-kit';
 import AccountSwitcher from './account-switcher';
 import SidebarStore from '../sidebar-store';
 import { ISidebarSection } from '../types';
@@ -62,18 +63,38 @@ export default class AccountSidebar extends React.Component<
     return sections.map(section => <OutlineView key={section.title} {...section} />);
   }
 
+  _onOpenContacts = () => {
+    ipcRenderer.send('command', 'application:show-contacts', {});
+  };
+
   render() {
     const { accounts, sidebarAccountIds, userSections, standardSection } = this.state;
 
     return (
-      <Flexbox direction="column" style={{ order: 0, flexShrink: 1, flex: 1 }}>
-        <ScrollRegion className="account-sidebar" style={{ order: 2 }}>
+      <Flexbox direction="column" style={{ order: 0, flexShrink: 1, flex: 1, minHeight: 0 }}>
+        <ScrollRegion className="account-sidebar" style={{ order: 2, flex: 1, minHeight: 0 }}>
           <AccountSwitcher accounts={accounts} sidebarAccountIds={sidebarAccountIds} />
           <nav className="account-sidebar-sections" aria-label={localized('Mailboxes')}>
             <OutlineView {...standardSection} />
             {this._renderUserSections(userSections)}
           </nav>
         </ScrollRegion>
+        <div className="account-sidebar-footer">
+          <button
+            type="button"
+            className="btn btn-account-sidebar-contacts"
+            onClick={this._onOpenContacts}
+            aria-label={localized('Contacts')}
+          >
+            <RetinaImg
+              name="person.png"
+              mode={RetinaImg.Mode.ContentIsMask}
+              style={{ width: 16, height: 16 }}
+              alt=""
+            />
+            <span>{localized('Contacts')}</span>
+          </button>
+        </div>
       </Flexbox>
     );
   }

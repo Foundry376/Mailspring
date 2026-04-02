@@ -4,7 +4,14 @@ import RegExpUtils from '../../regexp-utils';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
 import ComponentRegistry from '../../registries/component-registry';
-import { ContactGroup } from 'mailspring-exports';
+import { ContactGroup, Matcher } from 'mailspring-exports';
+import { parse as parseContactInfo } from '../../../internal_packages/contacts/lib/ContactInfoMapping';
+
+/** Match mail-derived contacts (refs) and address-book rows (CardDAV / Google) for composer lookup. */
+const contactQueryableForComposer = new Matcher.Or([
+  Contact.attributes.refs.greaterThan(0),
+  Contact.attributes.source.in(['carddav', 'gpeople']),
+]);
 
 /**
 Public: ContactStore provides convenience methods for searching contacts and
@@ -49,19 +56,77 @@ class ContactStore extends MailspringStore {
       return Promise.resolve([]);
     }
 
-    // Note that we ask for LIMIT * accountCount because we want to
-    // return contacts with distinct email addresses, and the same contact
-    // could exist in every account. Rather than make SQLite do a SELECT DISTINCT
-    // (which is very slow), we just ask for more items.
-    const query = DatabaseStore.findAll<Contact>(Contact)
-      .search(search)
-      .limit(limit * accountCount)
-      .where(Contact.attributes.refs.greaterThan(0))
-      .where(Contact.attributes.hidden.equal(false))
-      .order(Contact.attributes.refs.descending());
+    // FTS uses `ContactSearch` and works when the index is up to date. The `Contact`
+    // table does not expose `name` / `email` as SQLite columns (they live in JSON),
+    // so we cannot use SQL LIKE on those fields — filter inflated models in memory.
+    const fetchCap = limit * accountCount;
+    const matchesText = (c: Contact) => {
+      const name = (c.name || '').toLowerCase();
+      const email = (c.email || '').toLowerCase();
+      if (name.includes(search) || email.includes(search)) {
+        return true;
+      }
+      // CardDAV rows often keep FN/EMAIL only inside `info.vcf`; top-level name/email may be empty.
+      try {
+        const { data } = parseContactInfo(c);
+        const display = (data.name?.displayName || '').toLowerCase();
+        if (display.includes(search)) return true;
+        const given = (data.name?.givenName || '').toLowerCase();
+        const family = (data.name?.familyName || '').toLowerCase();
+        if (given.includes(search) || family.includes(search)) return true;
+        for (const ea of data.emailAddresses || []) {
+          if ((ea.value || '').toLowerCase().includes(search)) return true;
+        }
+      } catch (_err) {
+        // ignore parse failures
+      }
+      return false;
+    };
 
-    return (query.then(async _results => {
-      let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
+    const ftsPromise = Promise.resolve(
+      DatabaseStore.findAll<Contact>(Contact)
+        .search(search)
+        .limit(fetchCap)
+        .where(contactQueryableForComposer)
+        .where(Contact.attributes.hidden.equal(false))
+        .order(Contact.attributes.refs.descending())
+    ).catch((): Contact[] => []);
+
+    // By-refs scan: good for mail-derived contacts with refs > 0.
+    const scanLimit = Math.min(2500, Math.max(fetchCap * 40, 400));
+    const scanQuery = DatabaseStore.findAll<Contact>(Contact)
+      .limit(scanLimit)
+      .where(contactQueryableForComposer)
+      .where(Contact.attributes.hidden.equal(false))
+      .order([Contact.attributes.refs.descending(), Contact.attributes.id.descending()])
+      .then(rows => rows.filter(matchesText));
+
+    // New CardDAV / Google contacts keep refs === 0 until used in mail; the refs-ordered
+    // scan above never reaches them when the limit cuts off the tail. Scan recent
+    // address-book rows by id so created contacts appear in To/CC autocomplete.
+    const addressBookScanLimit = Math.min(1500, Math.max(fetchCap * 30, 300));
+    const addressBookScan = DatabaseStore.findAll<Contact>(Contact)
+      .limit(addressBookScanLimit)
+      .where(Contact.attributes.source.in(['carddav', 'gpeople']))
+      .where(Contact.attributes.hidden.equal(false))
+      .order(Contact.attributes.id.descending())
+      .then(rows => rows.filter(matchesText));
+
+    return (Promise.all([ftsPromise, scanQuery, addressBookScan]).then(
+      async ([ftsResults, scanResults, addressBookResults]) => {
+      const merged = new Map<string, Contact>();
+      for (const c of ftsResults) {
+        merged.set(c.id, c);
+      }
+      for (const c of scanResults) {
+        merged.set(c.id, c);
+      }
+      for (const c of addressBookResults) {
+        merged.set(c.id, c);
+      }
+      let results = Array.from(merged.values());
+      results.sort((a, b) => (b.refs || 0) - (a.refs || 0));
+      results = this._distinctByEmail(this._omitFindInMailDisabled(results));
       for (const ext of extensions) {
         results = await ext.findAdditionalContacts(search, results);
       }
@@ -76,9 +141,9 @@ class ContactStore extends MailspringStore {
     const accountCount = AccountStore.accounts().length;
     return DatabaseStore.findAll<Contact>(Contact)
       .limit(limit * accountCount)
-      .where(Contact.attributes.refs.greaterThan(0))
+      .where(contactQueryableForComposer)
       .where(Contact.attributes.hidden.equal(false))
-      .order(Contact.attributes.refs.descending())
+      .order([Contact.attributes.refs.descending(), Contact.attributes.id.descending()])
       .then(async _results => {
         const results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
         if (results.length > limit) {

@@ -13,6 +13,7 @@ import {
 import { ContactsPerspective, Store } from './Store';
 import { writeContactsToTempVCF, importContactsFromPaths } from './VCFImportExport';
 import { ContactListContextMenu } from './ContactListContextMenu';
+import { showGPeopleReadonlyNotice } from './GoogleSupport';
 import _ from 'underscore';
 
 const ContactColumn = new ListTabular.Column({
@@ -82,6 +83,12 @@ class ContactListWithData extends React.Component<ContactListProps, ContactListS
     const contacts = this.refs.list.itemsForMouseEvent(event) as Contact[];
     if (!contacts || contacts.length === 0) return;
     new ContactListContextMenu(contacts).displayMenu();
+  };
+
+  _onDoubleClickContact = (item: Contact) => {
+    if (item.source === 'mail') return;
+    if (showGPeopleReadonlyNotice(item.accountId)) return;
+    Store.setEditing(item.id);
   };
 
   _onDragItems = (event, items) => {
@@ -190,6 +197,7 @@ class ContactListWithData extends React.Component<ContactListProps, ContactListS
             itemPropsProvider={() => ({})}
             itemHeight={32}
             EmptyComponent={ContactsListEmpty}
+            onDoubleClick={this._onDoubleClickContact}
             onDragItems={this._onDragItems}
             onDragEnd={() => null}
           />

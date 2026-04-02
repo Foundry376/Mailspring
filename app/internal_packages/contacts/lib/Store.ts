@@ -4,10 +4,17 @@ import {
   Contact,
   ContactGroup,
   ContactBook,
+  Matcher,
   MutableQuerySubscription,
 } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 import { ListTabular } from 'mailspring-component-kit';
+
+/** Include mail-derived contacts (refs) and address-book rows (CardDAV / Google) even if never emailed. */
+const visibleInContactsWindow = new Matcher.Or([
+  Contact.attributes.refs.greaterThan(0),
+  Contact.attributes.source.in(['carddav', 'gpeople']),
+]);
 
 class ContactsWindowStore extends MailspringStore {
   _perspective: ContactsPerspective = { type: 'unified' };
@@ -28,7 +35,7 @@ class ContactsWindowStore extends MailspringStore {
       AppEnv.displayWindow();
 
       const contacts = DatabaseStore.findAll<Contact>(Contact)
-        .where(Contact.attributes.refs.greaterThan(0))
+        .where(visibleInContactsWindow)
         .where(Contact.attributes.hidden.equal(false));
       this._contactsSubscription = new MutableQuerySubscription<Contact>(contacts);
 
@@ -85,7 +92,7 @@ class ContactsWindowStore extends MailspringStore {
 
   setPerspective(perspective: ContactsPerspective) {
     const q = DatabaseStore.findAll<Contact>(Contact)
-      .where(Contact.attributes.refs.greaterThan(0))
+      .where(visibleInContactsWindow)
       .where(Contact.attributes.hidden.equal(false));
 
     if (perspective.type === 'all') {

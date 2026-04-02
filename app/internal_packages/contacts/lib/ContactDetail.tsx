@@ -6,9 +6,10 @@ import {
   SyncbackContactTask,
   AccountStore,
   ContactGroup,
+  FocusedContentStore,
 } from 'mailspring-exports';
 import { isEqual } from 'underscore';
-import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
+import { ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
 import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactInfoMapping';
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
@@ -20,6 +21,7 @@ interface ContactDetailProps {
   contacts: Contact[];
   perspective: ContactsPerspective;
   focusedId?: string;
+  keyboardCursorId?: string;
 }
 
 interface ContactDetailState {
@@ -59,22 +61,51 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     this.state = this.getStateForProps();
   }
 
-  componentDidUpdate(prevProps) {
-    const prevContact = prevProps.contacts.find(c => c.id === prevProps.focusedId);
-    const newContact = this.props.contacts.find(c => c.id === this.props.focusedId);
+  _activeId(props: ContactDetailProps = this.props) {
+    return props.focusedId || props.keyboardCursorId;
+  }
 
-    if (isEqual(prevContact, newContact) && prevProps.editing === this.props.editing) return;
-    if (newContact && this.props.editing !== newContact.id) Store.setEditing(false);
+  componentDidUpdate(prevProps) {
+    const { editing, contacts } = this.props;
+    const prevActiveId = prevProps.focusedId || prevProps.keyboardCursorId;
+    const activeId = this._activeId();
+
+    const at = (id?: string) => id && contacts.find(c => c.id === id);
+    const prevFocused = at(prevActiveId);
+    const newFocused = at(activeId);
+
+    if (isEqual(prevFocused, newFocused) && prevProps.editing === editing) return;
+
+    if (editing === 'new') {
+      if (prevActiveId !== activeId && (prevActiveId != null || activeId != null)) {
+        Store.setEditing(false);
+      }
+    } else if (typeof editing === 'string') {
+      if (
+        prevActiveId !== activeId &&
+        activeId !== undefined &&
+        prevActiveId !== undefined &&
+        activeId !== editing
+      ) {
+        Store.setEditing(false);
+      }
+    }
+
     this.setState(this.getStateForProps());
   }
 
   getStateForProps() {
-    const { editing, contacts, focusedId, perspective } = this.props;
+    const { editing, contacts, perspective } = this.props;
+    const activeId = this._activeId();
 
-    const contact =
-      editing === 'new' && 'accountId' in perspective
-        ? emptyContactForAccountId(perspective.accountId)
-        : contacts?.find(c => c.id === focusedId);
+    let contact: Contact | undefined;
+    if (editing === 'new' && 'accountId' in perspective) {
+      contact = emptyContactForAccountId(perspective.accountId);
+    } else if (typeof editing === 'string' && editing !== 'new') {
+      contact = contacts?.find(c => c.id === editing);
+    } else {
+      contact = contacts?.find(c => c.id === activeId);
+    }
 
     if (!contact) {
       return { metadata: null, data: null, contact: null };
@@ -97,12 +128,16 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     const { perspective } = this.props;
     const contact = apply(this.state.contact, this.state.data);
 
-    if (!('accountId' in perspective)) return;
+    if (contact.id) {
+      Actions.queueTask(SyncbackContactTask.forUpdating({ contact }));
+      Store.setEditing(false);
+      return;
+    }
 
-    const task = contact.id
-      ? SyncbackContactTask.forUpdating({ contact })
-      : SyncbackContactTask.forCreating({ contact, accountId: perspective.accountId });
-    Actions.queueTask(task);
+    if (!('accountId' in perspective)) return;
+    Actions.queueTask(
+      SyncbackContactTask.forCreating({ contact, accountId: perspective.accountId })
+    );
     Store.setEditing(false);
   };
 
@@ -127,7 +162,11 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
             <ContactDetailEdit
               data={data}
               contact={contact}
-              onChange={changes => this.setState({ data: { ...data, ...changes } })}
+              onChange={changes =>
+                this.setState(prev => ({
+                  data: { ...prev.data, ...changes },
+                }))
+              }
             />
           ) : (
             <ContactDetailRead data={data} contact={contact} metadata={metadata} groups={groups} />
@@ -150,23 +189,25 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
 }
 
 export const ContactDetail: React.FunctionComponent<ContactDetailProps> = ListensToFluxStore(
-  ({ contacts, perspective, editing, groups }) => (
-    <FocusContainer collection="contact">
-      <ContactDetailWithFocus
-        contacts={contacts}
-        editing={editing}
-        perspective={perspective}
-        groups={groups}
-      />
-    </FocusContainer>
+  ({ contacts, perspective, editing, groups, focusedId, keyboardCursorId }) => (
+    <ContactDetailWithFocus
+      contacts={contacts}
+      editing={editing}
+      perspective={perspective}
+      groups={groups}
+      focusedId={focusedId}
+      keyboardCursorId={keyboardCursorId}
+    />
   ),
   {
-    stores: [Store],
+    stores: [Store, FocusedContentStore],
     getStateFromStores: () => ({
       editing: Store.editing(),
       groups: Store.groups(),
       contacts: Store.filteredContacts(),
       perspective: Store.perspective(),
+      focusedId: FocusedContentStore.focusedId('contact'),
+      keyboardCursorId: FocusedContentStore.keyboardCursorId('contact'),
     }),
   }
 );

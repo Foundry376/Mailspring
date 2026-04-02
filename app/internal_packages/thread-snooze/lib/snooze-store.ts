@@ -2,7 +2,6 @@ import MailspringStore from 'mailspring-store';
 
 import {
   localized,
-  FeatureUsageStore,
   SyncbackMetadataTask,
   Actions,
   DatabaseStore,
@@ -32,18 +31,9 @@ class _SnoozeStore extends MailspringStore {
     this.unsubscribers.forEach(unsub => unsub());
   }
 
-  _onSnoozeThreads = async (threads, snoozeDate, label) => {
+  _onSnoozeThreads = async (threads, snoozeDate, _label) => {
     try {
-      // ensure the user is authorized to use this feature
-      await FeatureUsageStore.markUsedOrUpgrade('snooze', {
-        headerText: localized('All Snoozes Used'),
-        rechargeText: `${localized(
-          `You can snooze %1$@ emails each %2$@ with Postra Basic.`
-        )} ${localized('Upgrade to Pro today!')}`,
-        iconUrl: 'mailspring://thread-snooze/assets/ic-snooze-modal@2x.png',
-      });
-
-      // move the threads to the snoozed folder
+      // Snooze is fully local: labels/folders + thread metadata expiration (no cloud quota).
       await moveThreads(threads, {
         snooze: true,
         description: snoozedUntilMessage(snoozeDate),
@@ -62,9 +52,6 @@ class _SnoozeStore extends MailspringStore {
         )
       );
     } catch (error) {
-      if (error instanceof FeatureUsageStore.NoProAccessError) {
-        return;
-      }
       moveThreads(threads, { snooze: false, description: 'Unsnoozed' });
       Actions.closePopover();
       AppEnv.reportError(error);

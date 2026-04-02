@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  FocusContainer,
   ListensToFluxStore,
   ListDataSource,
   RetinaImg,
@@ -13,6 +12,7 @@ import {
   Actions,
   Contact,
   ChangeContactGroupMembershipTask,
+  FocusedContentStore,
 } from 'mailspring-exports';
 import { showGPeopleReadonlyNotice } from './GoogleSupport';
 import { exportContactsToFile } from './VCFImportExport';
@@ -21,7 +21,9 @@ interface ContactDetailToolbarProps {
   editing: string | 'new' | false;
   listSource: ListDataSource;
   perspective: ContactsPerspective;
+  /** Primary selection from click; may be empty on root sheets when only the keyboard cursor moved. */
   focusedId?: string;
+  keyboardCursorId?: string;
 }
 
 class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarProps> {
@@ -72,8 +74,9 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
   };
 
   actionSet() {
-    const { listSource, focusedId } = this.props;
-    const focused = focusedId && listSource.getById(focusedId);
+    const { listSource, focusedId, keyboardCursorId } = this.props;
+    const activeId = focusedId || keyboardCursorId;
+    const focused = activeId && listSource.getById(activeId);
     const models = focused ? [focused] : listSource.selection.items();
     return (models as any) as Contact[];
   }
@@ -153,21 +156,23 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
 }
 
 export const ContactDetailToolbar: React.FunctionComponent<ContactDetailToolbarProps> = ListensToFluxStore(
-  ({ listSource, editing, perspective }) => (
-    <FocusContainer collection="contact">
-      <ContactDetailToolbarWithData
-        listSource={listSource}
-        editing={editing}
-        perspective={perspective}
-      />
-    </FocusContainer>
+  ({ listSource, editing, perspective, focusedId, keyboardCursorId }) => (
+    <ContactDetailToolbarWithData
+      listSource={listSource}
+      editing={editing}
+      perspective={perspective}
+      focusedId={focusedId}
+      keyboardCursorId={keyboardCursorId}
+    />
   ),
   {
-    stores: [Store],
+    stores: [Store, FocusedContentStore],
     getStateFromStores: () => ({
       editing: Store.editing(),
       listSource: Store.listSource(),
       perspective: Store.perspective(),
+      focusedId: FocusedContentStore.focusedId('contact'),
+      keyboardCursorId: FocusedContentStore.keyboardCursorId('contact'),
     }),
   }
 );

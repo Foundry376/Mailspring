@@ -176,6 +176,9 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
     } else if (key === 'phoneNumbers' || key === 'emailAddresses' || key === 'urls') {
       const attr = { phoneNumbers: 'tel', emailAddresses: 'email', urls: 'url' }[key];
       VCFHelpers.setArray(attr, card, changes[key]);
+      if (key === 'emailAddresses' && changes.emailAddresses && changes.emailAddresses.length > 0) {
+        contact.email = changes.emailAddresses[0].value;
+      }
     } else if (key === 'birthdays') {
       VCFHelpers.setArray('bday', card, changes.birthdays.map(VCFHelpers.serializeBirthday));
     } else if (key === 'addresses') {

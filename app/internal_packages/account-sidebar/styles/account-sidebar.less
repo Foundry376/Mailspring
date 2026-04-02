@@ -1,6 +1,43 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
+.account-sidebar-footer {
+  flex-shrink: 0;
+  border-top: 1px solid @border-color-divider;
+  padding: 8px;
+  background-color: @source-list-bg;
+
+  .btn-account-sidebar-contacts {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    margin: 0;
+    border: none;
+    border-radius: @border-radius-base;
+    background: transparent;
+    color: @text-color;
+    font-size: @font-size-base;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background-color: @background-secondary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid @component-active-color;
+      outline-offset: 2px;
+    }
+
+    img.content-mask {
+      background-color: @text-color-subtle;
+    }
+  }
+}
+
 .account-sidebar {
   flex: 1;
   height: 100%;

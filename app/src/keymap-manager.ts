@@ -55,7 +55,11 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
   if (withinTextInput) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
     const isReservedTextEditingShortcut = /(mod|command|ctrl)\+(a|x|c|v|left|right)/.test(combo);
-    if (isPlainKey || isReservedTextEditingShortcut) {
+    // window:toggle-dev-tools — AltGr on many layouts is implemented as Ctrl+Alt and
+    // matches mod+alt+i (Linux) or similar, so typing @ / special chars can toggle DevTools.
+    const isToggleDevtoolsCombo =
+      /^(mod|meta|command)\+alt\+i$/i.test(combo) || /^ctrl\+shift\+i$/i.test(combo);
+    if (isPlainKey || isReservedTextEditingShortcut || isToggleDevtoolsCombo) {
       return true;
     }
   }

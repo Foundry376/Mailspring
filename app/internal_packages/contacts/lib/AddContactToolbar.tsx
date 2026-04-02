@@ -18,9 +18,25 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
 
   onAdd = () => {
     const { perspective } = this.props;
+    let accountId: string | null = null;
 
-    if (!('accountId' in perspective)) return;
-    if (showGPeopleReadonlyNotice(perspective.accountId)) return;
+    if ('accountId' in perspective && perspective.accountId) {
+      accountId = perspective.accountId;
+    } else if (perspective.type === 'unified') {
+      const accounts = AccountStore.accounts();
+      const pick = accounts.find(a => a.provider !== 'gmail') || accounts[0];
+      if (pick) {
+        accountId = pick.id;
+        Store.setPerspective({
+          type: 'all',
+          accountId: pick.id,
+          label: localized('All Contacts'),
+        });
+      }
+    }
+
+    if (!accountId) return;
+    if (showGPeopleReadonlyNotice(accountId)) return;
 
     Actions.setFocus({ collection: 'contact', item: null });
     Store.setEditing('new');
@@ -28,12 +44,16 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
 
   render() {
     const { editing, perspective } = this.props;
+    const hasAccounts = AccountStore.accounts().length > 0;
     const enabled =
-      'accountId' in perspective &&
       editing === false &&
-      perspective.accountId &&
-      perspective.type !== 'found-in-mail';
-    const acct = 'accountId' in perspective && AccountStore.accountForId(perspective.accountId);
+      perspective.type !== 'found-in-mail' &&
+      hasAccounts &&
+      (('accountId' in perspective && !!perspective.accountId) || perspective.type === 'unified');
+    const acct =
+      'accountId' in perspective && perspective.accountId
+        ? AccountStore.accountForId(perspective.accountId)
+        : null;
 
     return (
       <div style={{ display: 'flex', order: 1000 }}>
@@ -47,6 +67,8 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
             title={
               acct
                 ? localized('New contact in %@', acct.label)
+                : perspective.type === 'unified' && hasAccounts
+                ? localized('New contact')
                 : localized('Select an account to add a contact.')
             }
             onClick={enabled ? this.onAdd : undefined}
@@ -60,11 +82,11 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
 }
 
 export const AddContactToolbar: React.FunctionComponent<AddContactToolbarProps> = ListensToFluxStore(
-  ({ listSource, editing, perspective }) => (
+  ({ editing, perspective }) => (
     <AddContactToolbarWithData editing={editing} perspective={perspective} />
   ),
   {
-    stores: [Store],
+    stores: [Store, AccountStore],
     getStateFromStores: () => ({
       editing: Store.editing(),
       perspective: Store.perspective(),
