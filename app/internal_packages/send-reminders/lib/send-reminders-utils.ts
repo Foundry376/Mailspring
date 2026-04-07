@@ -1,12 +1,4 @@
-import {
-  Thread,
-  Message,
-  Actions,
-  localized,
-  DatabaseStore,
-  FeatureUsageStore,
-  SyncbackMetadataTask,
-} from 'mailspring-exports';
+import { Thread, Message, Actions, DatabaseStore, SyncbackMetadataTask } from 'mailspring-exports';
 
 import { PLUGIN_ID } from './send-reminders-constants';
 
@@ -18,19 +10,8 @@ async function incrementMetadataUse(model, expiration) {
   if (reminderDateFor(model)) {
     return true;
   }
-  try {
-    await FeatureUsageStore.markUsedOrUpgrade(PLUGIN_ID, {
-      headerText: localized('All Reminders Used'),
-      rechargeText: `${localized(
-        `You can add reminders to %1$@ emails each %2$@ with Postra Basic.`
-      )} ${localized('Upgrade to Pro today!')}`,
-      iconUrl: 'mailspring://send-reminders/assets/ic-send-reminders-modal@2x.png',
-    });
-  } catch (error) {
-    if (error instanceof FeatureUsageStore.NoProAccessError) {
-      return false;
-    }
-  }
+  // Reminders are local metadata + local task behavior, so they are always
+  // available even when cloud identity / billing features are disabled.
   return true;
 }
 

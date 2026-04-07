@@ -74,8 +74,23 @@ export default class OAuthSignInPage extends React.Component<
       const { query } = url.parse(request.url, true);
       if (query.code) {
         this._onReceivedCode(query.code);
-        response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
-        response.end();
+
+        // Local-only completion page: avoid redirecting to the Postra identity
+        // server (cloud) after we receive the OAuth `code`.
+        response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        response.end(`
+          <!doctype html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <title>OAuth Completed</title>
+            </head>
+            <body style="font-family: sans-serif; margin: 24px;">
+              <h3>Sign-in complete</h3>
+              <p>You can close this window and return to Postra.</p>
+            </body>
+          </html>
+        `);
       } else {
         response.end('Unknown Request');
       }

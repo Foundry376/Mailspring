@@ -45,6 +45,18 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     Actions.upsertSignature({ ...sig, body }, sig.id);
   };
 
+  _onPhotoBatchChange = (updates: Record<string, string>) => {
+    const sig = this.props.signature;
+    sig.data = { ...sig.data, ...updates };
+    if (sig.data.templateName) {
+      const template = Templates.find(t => t.name === sig.data.templateName);
+      if (template) {
+        sig.body = RenderSignatureData(sig.data);
+      }
+    }
+    Actions.upsertSignature(sig, sig.id);
+  };
+
   _onDataFieldChange = event => {
     const { id, value } = event.target;
     const sig = this.props.signature;
@@ -71,7 +83,13 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     }
 
     // apply change
-    sig.data = { ...sig.data, [id]: value };
+    let nextData = { ...sig.data, [id]: value };
+    if (id === 'photoURL') {
+      if (typeof value === 'string' && !value.startsWith('data:')) {
+        nextData = { ...nextData, photoMsw: '', photoMsh: '' };
+      }
+    }
+    sig.data = nextData;
 
     // re-render
     if (sig.data.templateName) {
@@ -170,6 +188,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
                   data={data}
                   resolvedURL={resolvedData.photoURL}
                   onChange={this._onDataFieldChange}
+                  onBatchChange={this._onPhotoBatchChange}
                 />
               </div>,
             ]}

@@ -3,6 +3,7 @@ import { IdentityStore, IdentityStoreConfig } from '../../src/flux/stores/identi
 import * as MailspringAPIRequest from '../../src/flux/mailspring-api-request';
 
 const TEST_NYLAS_ID = 'icihsnqh4pwujyqihlrj70vh';
+const MOCK_IDENTITY_OAUTH_TOKEN = 'mock-oauth-token-for-identity-store-spec';
 
 describe('IdentityStore', function identityStoreSpec() {
   beforeEach(() => {
@@ -17,7 +18,7 @@ describe('IdentityStore', function identityStoreSpec() {
           usedInPeriod: 1,
         },
       },
-      token: 'secret token',
+      token: MOCK_IDENTITY_OAUTH_TOKEN,
     };
   });
 

@@ -1,90 +1,77 @@
 import React from 'react';
 import querystring from 'querystring';
 
-// Static components
-
-const FB_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/fb.gif"
-    width="13"
-    height="13"
-    alt="Facebook"
-  />
-);
-
-const MEDIUM_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/medium.gif"
-    width="13"
-    height="13"
-    alt="Medium"
-  />
-);
-
-const GITHUB_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/github.gif"
-    width="13"
-    height="13"
-    alt="Github"
-  />
-);
-
-const YOUTUBE_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/youtube.gif"
-    width="13"
-    height="13"
-    alt="YouTube"
-  />
-);
-
-const TWITTER_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/twitter.gif"
-    width="13"
-    height="13"
-    alt="Twitter"
-  />
-);
-const LINKEDIN_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/linkedin.gif"
-    width="13"
-    height="13"
-    alt="LinkedIn"
-  />
-);
-
-const INSTAGRAM_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/instagram.gif"
-    width="13"
-    height="13"
-    alt="Instagram"
-  />
-);
+/** Text badge instead of remote GIFs — keeps signatures free of http(s) image URLs. */
+function SocialBadge({ letter, color }: { letter: string; color?: string }) {
+  const c = color || '#666';
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        minWidth: 13,
+        height: 13,
+        lineHeight: '13px',
+        fontSize: 9,
+        fontWeight: 700,
+        textAlign: 'center',
+        color: c,
+        border: `1px solid ${c}`,
+        borderRadius: 2,
+        verticalAlign: 'middle',
+      }}
+    >
+      {letter}
+    </span>
+  );
+}
 
 function widthAndHeightForPhotoURL(
   photoURL,
-  { maxWidth, maxHeight }: { maxWidth?: number; maxHeight?: number } = {}
+  {
+    maxWidth,
+    maxHeight,
+    photoMsw,
+    photoMsh,
+  }: {
+    maxWidth?: number;
+    maxHeight?: number;
+    photoMsw?: string | number;
+    photoMsh?: string | number;
+  } = {}
 ) {
   if (!photoURL) {
     return {};
   }
-  let q: any = {};
-  try {
-    q = querystring.parse(photoURL.split('?').pop());
-  } catch (err) {
+  let msw: number;
+  let msh: number;
+  const ew = photoMsw != null && photoMsw !== '' ? parseInt(String(photoMsw), 10) : NaN;
+  const eh = photoMsh != null && photoMsh !== '' ? parseInt(String(photoMsh), 10) : NaN;
+  if (!Number.isNaN(ew) && !Number.isNaN(eh) && ew > 0 && eh > 0) {
+    msw = ew;
+    msh = eh;
+  } else {
+    let q: any = {};
+    try {
+      const qPart = photoURL.includes('?') ? photoURL.split('?').pop() : '';
+      q = querystring.parse(qPart);
+    } catch (err) {
+      return {};
+    }
+    if (!q.msw || !q.msh) {
+      return {};
+    }
+    msw = parseInt(String(q.msw), 10);
+    msh = parseInt(String(q.msh), 10);
+  }
+  if (!msw || !msh || msw <= 0 || msh <= 0) {
     return {};
   }
-  if (!q.msw || !q.msh) {
-    return {};
-  }
-  const scale = Math.min(1, maxWidth / q.msw, maxHeight / q.msh);
+  const mw = maxWidth != null ? maxWidth : msw;
+  const mh = maxHeight != null ? maxHeight : msh;
+  const scale = Math.min(1, mw / msw, mh / msh);
   return {
-    width: Math.round(q.msw * scale),
-    height: Math.round(q.msh * scale),
+    width: Math.round(msw * scale),
+    height: Math.round(msh * scale),
   };
 }
 // Generic components used across templates
@@ -166,7 +153,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             title="Facebook"
             style={{ marginRight: 8, color: props.tintColor }}
           >
-            {FB_SHARE}
+            <SocialBadge letter="f" color={props.tintColor} />
           </a>
         )}
         {props.linkedinURL && (
@@ -175,7 +162,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             title="LinkedIn"
             style={{ marginRight: 8, color: props.tintColor }}
           >
-            {LINKEDIN_SHARE}
+            <SocialBadge letter="L" color={props.tintColor} />
           </a>
         )}
         {props.mediumURL && (
@@ -184,7 +171,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             title="Medium"
             style={{ marginRight: 8, color: props.tintColor }}
           >
-            {MEDIUM_SHARE}
+            <SocialBadge letter="M" color={props.tintColor} />
           </a>
         )}
         {props.githubURL && (
@@ -193,7 +180,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             title="GitHub"
             style={{ marginRight: 8, color: props.tintColor }}
           >
-            {GITHUB_SHARE}
+            <SocialBadge letter="G" color={props.tintColor} />
           </a>
         )}
         {props.youtubeURL && (
@@ -202,7 +189,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             title="YouTube"
             style={{ marginRight: 8, color: props.tintColor }}
           >
-            {YOUTUBE_SHARE}
+            <SocialBadge letter="Y" color={props.tintColor} />
           </a>
         )}
         {props.twitterHandle && (
@@ -211,7 +198,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             title="Twitter"
             style={{ marginRight: 8, color: props.tintColor }}
           >
-            {TWITTER_SHARE}
+            <SocialBadge letter="X" color={props.tintColor} />
           </a>
         )}
         {props.instagramURL && (
@@ -220,7 +207,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
             title="Instagram"
             style={{ marginRight: 8, color: props.tintColor }}
           >
-            {INSTAGRAM_SHARE}
+            <SocialBadge letter="I" color={props.tintColor} />
           </a>
         )}
       </div>
@@ -243,7 +230,12 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
-                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 60, maxHeight: 60 })}
+                  {...widthAndHeightForPhotoURL(props.photoURL, {
+                    maxWidth: 60,
+                    maxHeight: 60,
+                    photoMsw: props.photoMsw,
+                    photoMsh: props.photoMsh,
+                  })}
                   style={{ maxWidth: 60, maxHeight: 60, marginRight: 10 }}
                 />
               )}
@@ -294,7 +286,12 @@ const Templates = [
                     alt=""
                     key={props.photoURL}
                     src={props.photoURL}
-                    {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 60 })}
+                    {...widthAndHeightForPhotoURL(props.photoURL, {
+                      maxWidth: 200,
+                      maxHeight: 60,
+                      photoMsw: props.photoMsw,
+                      photoMsh: props.photoMsh,
+                    })}
                     style={{ maxWidth: 200, maxHeight: 60 }}
                   />
                 )}
@@ -330,7 +327,12 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
-                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 130 })}
+                  {...widthAndHeightForPhotoURL(props.photoURL, {
+                    maxWidth: 200,
+                    maxHeight: 130,
+                    photoMsw: props.photoMsw,
+                    photoMsh: props.photoMsh,
+                  })}
                   style={{ maxWidth: 200, maxHeight: 130, marginRight: 20 }}
                 />
               )}
@@ -393,7 +395,12 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
-                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 130 })}
+                  {...widthAndHeightForPhotoURL(props.photoURL, {
+                    maxWidth: 200,
+                    maxHeight: 130,
+                    photoMsw: props.photoMsw,
+                    photoMsh: props.photoMsh,
+                  })}
                   style={{ maxWidth: 200, maxHeight: 130, marginTop: 12, marginBottom: 12 }}
                 />
               )}
@@ -427,7 +434,12 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
-                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 60, maxHeight: 60 })}
+                  {...widthAndHeightForPhotoURL(props.photoURL, {
+                    maxWidth: 60,
+                    maxHeight: 60,
+                    photoMsw: props.photoMsw,
+                    photoMsh: props.photoMsh,
+                  })}
                   style={{ maxWidth: 60, maxHeight: 60, marginRight: 10 }}
                 />
               )}
@@ -484,7 +496,7 @@ const Templates = [
                       title="Facebook"
                       style={{ marginRight: 8, color: props.tintColor }}
                     >
-                      {FB_SHARE}
+                      <SocialBadge letter="f" color={props.tintColor} />
                     </a>
                   )}
                   {props.mediumURL && (
@@ -493,7 +505,7 @@ const Templates = [
                       title="Medium"
                       style={{ marginRight: 8, color: props.tintColor }}
                     >
-                      {MEDIUM_SHARE}
+                      <SocialBadge letter="M" color={props.tintColor} />
                     </a>
                   )}
                   {props.githubURL && (
@@ -502,7 +514,7 @@ const Templates = [
                       title="Github"
                       style={{ marginRight: 8, color: props.tintColor }}
                     >
-                      {GITHUB_SHARE}
+                      <SocialBadge letter="G" color={props.tintColor} />
                     </a>
                   )}
                   {props.youtubeURL && (
@@ -511,7 +523,7 @@ const Templates = [
                       title="YouTube"
                       style={{ marginRight: 8, color: props.tintColor }}
                     >
-                      {YOUTUBE_SHARE}
+                      <SocialBadge letter="Y" color={props.tintColor} />
                     </a>
                   )}
                   {props.linkedinURL && (
@@ -520,7 +532,7 @@ const Templates = [
                       title="LinkedIn"
                       style={{ marginRight: 8, color: props.tintColor }}
                     >
-                      {LINKEDIN_SHARE}
+                      <SocialBadge letter="L" color={props.tintColor} />
                     </a>
                   )}
                   {props.twitterHandle && (
@@ -529,7 +541,7 @@ const Templates = [
                       title="Twitter"
                       style={{ marginRight: 8, color: props.tintColor }}
                     >
-                      {TWITTER_SHARE}
+                      <SocialBadge letter="X" color={props.tintColor} />
                     </a>
                   )}
                 </div>

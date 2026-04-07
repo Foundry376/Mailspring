@@ -37,6 +37,7 @@ const HiddenRoleMap = ToObject([
   'important',
   'snoozed',
   '[Mailspring]',
+  '[Postra]',
 ]);
 
 /*
@@ -77,13 +78,15 @@ export class Category extends Model {
   get displayName() {
     const decoded = utf7.imap.decode(this.path) as string;
 
-    for (const prefix of ['INBOX', '[Gmail]', '[Mailspring]']) {
+    for (const prefix of ['INBOX', '[Gmail]', '[Mailspring]', '[Postra]']) {
       if (decoded.startsWith(prefix) && decoded.length > prefix.length + 1) {
         return decoded.substr(prefix.length + 1); // + delimiter
       }
     }
-    if (decoded.startsWith('Mailspring/') || decoded.startsWith('Mailspring.')) {
-      return decoded.substr(11);
+    for (const root of ['Mailspring', 'Postra']) {
+      if (decoded.startsWith(`${root}/`) || decoded.startsWith(`${root}.`)) {
+        return decoded.substr(root.length + 1); // + delimiter
+      }
     }
     if (decoded === 'INBOX') {
       return 'Inbox';

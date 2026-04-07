@@ -1,6 +1,6 @@
 import React from 'react';
 import { webUtils } from 'electron';
-import { localized, PropTypes, MailspringAPIRequest, IdentityStore } from 'mailspring-exports';
+import { localized, PropTypes } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
@@ -11,6 +11,7 @@ export default class SignaturePhotoPicker extends React.Component<
     data: any;
     resolvedURL: string;
     onChange: (e: { target: { value: string; id?: string } }) => void;
+    onBatchChange?: (updates: Record<string, string>) => void;
   },
   {
     isDropping?: boolean;
@@ -22,6 +23,7 @@ export default class SignaturePhotoPicker extends React.Component<
     data: PropTypes.object,
     resolvedURL: PropTypes.string,
     onChange: PropTypes.func,
+    onBatchChange: PropTypes.func,
   };
 
   _isMounted: boolean;
@@ -70,8 +72,6 @@ export default class SignaturePhotoPicker extends React.Component<
       return;
     }
 
-    // attach the image to the DOM and resize it to be no more than 300px x 300px,
-    // then save it as a data URL
     const img = new Image();
     img.onload = () => {
       let scale = Math.min(MAX_IMAGE_RES / img.width, MAX_IMAGE_RES / img.height, 1);
@@ -81,11 +81,6 @@ export default class SignaturePhotoPicker extends React.Component<
       let times = 0;
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        // instead of scaling from 1 to 0.4, we'll scale in steps where each step is >= 50%.
-        // Adding intermediate step improves visual quality a lot for logos, text, etc.
-        // because Chrome is old-school and uses low quality bi-linear interpolation.
-        //
-        // The math here works because (0.4^0.5)^2 = 0.4
         times += 1;
         scale = Math.pow(scaleDesired, 1.0 / times);
         if (scale >= 0.6) {
@@ -102,8 +97,6 @@ export default class SignaturePhotoPicker extends React.Component<
         source = canvas;
       }
 
-      // png, gif, svg stay in PNG format, everything else gets converted to
-      // a JPG with lossy compression
       if (ext === 'png' || ext === 'gif' || ext === 'svg') {
         source.toBlob(
           blob => this._onChooseImageBlob(blob, source.width, source.height),
@@ -120,82 +113,97 @@ export default class SignaturePhotoPicker extends React.Component<
     img.src = `file://${filepath}`;
   };
 
-  _onChooseImageBlob = async (blob, width, height) => {
+  _onChooseImageBlob = (blob: Blob, width: number, height: number) => {
     this.setState({ isUploading: true });
 
-    const ext = { 'image/jpg': 'jpg', 'image/png': 'png' }[blob.type];
-    const filename = `sig-${this.props.id}.${ext}`;
-    let link = null;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (!this._isMounted) return;
+      const dataUrl = reader.result as string;
+      this.setState({ isUploading: false });
 
-    try {
-      link = await MailspringAPIRequest.postStaticAsset({ filename, blob });
-    } catch (err) {
-      AppEnv.showErrorDialog(
-        localized(
-          `Sorry, we couldn't save your signature image to Postra's servers. Please try again.\n\n(%@)`,
-          err.toString()
-        )
-      );
-      return;
+      const batch = {
+        photoURL: dataUrl,
+        photoMsw: String(Math.round(width)),
+        photoMsh: String(Math.round(height)),
+      };
+      if (this.props.onBatchChange) {
+        this.props.onBatchChange(batch);
+      } else {
+        this.props.onChange({ target: { value: dataUrl, id: 'photoURL' } });
+        this.props.onChange({ target: { value: batch.photoMsw, id: 'photoMsw' } });
+        this.props.onChange({ target: { value: batch.photoMsh, id: 'photoMsh' } });
+      }
+    };
+    reader.onerror = () => {
+      if (!this._isMounted) return;
+      this.setState({ isUploading: false });
+      AppEnv.showErrorDialog(localized('Could not read the image file.'));
+    };
+    reader.readAsDataURL(blob);
+  };
+
+  _clearEmbeddedPhoto = () => {
+    const batch = { photoURL: '', photoMsw: '', photoMsh: '' };
+    if (this.props.onBatchChange) {
+      this.props.onBatchChange(batch);
+    } else {
+      this.props.onChange({ target: { value: '', id: 'photoURL' } });
+      this.props.onChange({ target: { value: '', id: 'photoMsw' } });
+      this.props.onChange({ target: { value: '', id: 'photoMsh' } });
     }
-    if (!this._isMounted) return;
-    this.setState({ isUploading: false });
-
-    this.props.onChange({
-      target: { value: `${link}?t=${Date.now()}&msw=${width}&msh=${height}`, id: 'photoURL' },
-    });
   };
 
   render() {
     const { data, resolvedURL } = this.props;
     const { isDropping, isUploading } = this.state;
 
-    let source = data.photoURL || '';
-    if (!['gravatar', 'company', ''].includes(source)) {
+    const raw = data.photoURL || '';
+    let source = raw;
+    if (!['gravatar', 'custom', ''].includes(raw)) {
       source = 'custom';
     }
 
-    // we don't display the <input> for data URLs because they can be
-    // long and the UI becomes slow.
-    const isPostraURL = resolvedURL && resolvedURL.includes('getmailspring.com');
-    const isUploadEnabled = IdentityStore.identity() !== null;
+    const hasEmbeddedImage = raw.startsWith('data:');
+    const isCloudHostedUrl =
+      resolvedURL &&
+      (resolvedURL.includes('getmailspring.com') || resolvedURL.includes('getpostra.com'));
 
-    const dropNote =
-      resolvedURL && resolvedURL !== ''
-        ? localized('Click to replace')
-        : localized('Click to upload');
+    const dropNote = hasEmbeddedImage
+      ? localized('Click to replace')
+      : localized('Click to choose an image');
 
     const emptyPlaceholderURL =
       ' data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAMAAAAPdrEwAAAAWlBMVEUAAACZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmb09q6AAAAHXRSTlMA5joH1zxJ+yUtA6pxM5hkFrVPRkDvV7+3toqIfkj9t0gAAADfSURBVFjD7dXLbsMgEIXhAZOAMfie9Hre/zXrRqVS7cgbz6KJziexmcUvhJBGiIiIiIjoGZg9cgj2HE2n+bw2zdN5TsfTtWxVy6mPp62s5RfX9GLV0lGK3gFo9NKhqcrohIWp1B6kQ1tGwQNwMSul4wB0ZZaAy6jyIOWm3pZhHoOopT+xcL38UktHh29D1E9PHjfvt7+SNdMtflxlNHiLeunelLRpPYBOL33FX5egln7FyqCVDh5rnVL6Axu+1khnadyGaTXStVT3aKyCZE/32AT847W7Q4iIiIiI6PF9AVm2Jjrl81jZAAAAAElFTkSuQmCC';
+
+    const previewUrl = resolvedURL || (hasEmbeddedImage ? raw : '') || emptyPlaceholderURL;
 
     return (
       <div className="field photo-picker">
         <label htmlFor="photoURL">Picture</label>
         <div style={{ display: 'flex' }}>
-          {isUploadEnabled && (
-            <div>
-              <DropZone
-                onClick={this._onChooseImage}
-                onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
-                onDrop={e =>
-                  this._onChooseImageFilePath(webUtils.getPathForFile(e.dataTransfer.files[0]))
-                }
-                shouldAcceptDrop={e => (e as any).dataTransfer.types.includes('Files')}
-                style={{
-                  backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,
-                }}
-                className={`photo-well ${isDropping && 'dropping'}`}
-              >
-                {isUploading && (
-                  <RetinaImg
-                    style={{ width: 14, height: 14 }}
-                    name="inline-loading-spinner.gif"
-                    mode={RetinaImg.Mode.ContentPreserve}
-                  />
-                )}
-              </DropZone>
-            </div>
-          )}
+          <div>
+            <DropZone
+              onClick={this._onChooseImage}
+              onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
+              onDrop={e =>
+                this._onChooseImageFilePath(webUtils.getPathForFile(e.dataTransfer.files[0]))
+              }
+              shouldAcceptDrop={e => (e as any).dataTransfer.types.includes('Files')}
+              style={{
+                backgroundImage: !isUploading && `url(${previewUrl})`,
+              }}
+              className={`photo-well ${isDropping && 'dropping'}`}
+            >
+              {isUploading && (
+                <RetinaImg
+                  style={{ width: 14, height: 14 }}
+                  name="inline-loading-spinner.gif"
+                  mode={RetinaImg.Mode.ContentPreserve}
+                />
+              )}
+            </DropZone>
+          </div>
           <div className="photo-options">
             <select
               id="photoURL"
@@ -206,35 +214,22 @@ export default class SignaturePhotoPicker extends React.Component<
             >
               <option value="">{localized('None')}</option>
               <option value="gravatar">{localized('Gravatar Profile Photo')}</option>
-              <option value="company">{localized('Company / Domain Logo')}</option>
               <option disabled>──────────</option>
-              <option value="custom">{localized('Custom Image…')}</option>
+              <option value="custom">{localized('Embedded image…')}</option>
             </select>
             {source === 'custom' &&
-              (isPostraURL ? (
-                <a
-                  className="btn"
-                  onClick={() => this.props.onChange({ target: { value: '', id: 'photoURL' } })}
-                >
+              (hasEmbeddedImage || isCloudHostedUrl ? (
+                <a className="btn" onClick={this._clearEmbeddedPhoto}>
                   {localized('Remove')}
                 </a>
               ) : (
-                <>
-                  <label htmlFor="photoURL" className="sr-only">
-                    {localized('Photo URL')}
-                  </label>
-                  <input
-                    type="url"
-                    id="photoURL"
-                    placeholder="http://"
-                    value={data.photoURL === 'custom' ? '' : data.photoURL}
-                    onChange={this.props.onChange}
-                  />
-                </>
+                <span style={{ fontSize: '0.85em', display: 'block', opacity: 0.75 }}>
+                  {localized('Use the image well on the left to embed a picture (no web URL).')}
+                </span>
               ))}
           </div>
         </div>
-        {isUploadEnabled && <div className="drop-note">{dropNote}</div>}
+        <div className="drop-note">{dropNote}</div>
       </div>
     );
   }

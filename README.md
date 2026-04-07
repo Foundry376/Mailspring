@@ -57,6 +57,27 @@ You can attach command line parameters by separating them using a double hyphen:
 npm start -- --help
 ```
 
+### OAuth Client Overrides (Google / Microsoft)
+
+Mailspring's onboarding supports overriding built-in OAuth app IDs via environment
+variables. This is useful if you want your fork (for example, Postra) to use your
+own OAuth applications and branding on provider consent screens.
+
+Supported variables (checked in this order):
+
+- Gmail client ID: `POSTRA_GMAIL_CLIENT_ID`, `GMAIL_CLIENT_ID`, `MS_GMAIL_CLIENT_ID`
+- Gmail client secret: `POSTRA_GMAIL_CLIENT_SECRET`, `GMAIL_CLIENT_SECRET`, `MS_GMAIL_CLIENT_SECRET`
+- Microsoft client ID: `POSTRA_O365_CLIENT_ID`, `O365_CLIENT_ID`, `MS_O365_CLIENT_ID`
+
+Example:
+
+```bash
+export POSTRA_GMAIL_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+export POSTRA_GMAIL_CLIENT_SECRET="your-google-client-secret"
+export POSTRA_O365_CLIENT_ID="your-microsoft-client-id"
+npm start
+```
+
 ### Building Mailspring
 
 To build Mailspring, you need to run the following command from the root directory

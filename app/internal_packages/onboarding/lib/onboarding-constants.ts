@@ -2,9 +2,25 @@ import crypto from 'crypto';
 
 export const LOCAL_SERVER_PORT = 12141;
 
+const firstEnv = (...keys: string[]) => {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (value && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return null;
+};
+
 export const GMAIL_CLIENT_ID =
-  process.env.MS_GMAIL_CLIENT_ID ||
-  '662287800555-pdiq3r3puob8a44locitndbocua7c30f.apps.googleusercontent.com';
+  firstEnv(
+    // Preferred project-specific keys
+    'POSTRA_GMAIL_CLIENT_ID',
+    // Generic fallback keys
+    'GMAIL_CLIENT_ID',
+    // Legacy key used in older forks
+    'MS_GMAIL_CLIENT_ID'
+  ) || '662287800555-pdiq3r3puob8a44locitndbocua7c30f.apps.googleusercontent.com';
 
 // per https://stackoverflow.com/questions/59416326/safely-distribute-oauth-2-0-client-secret-in-desktop-applications-in-python,
 // we really do need to embed this in the application and it's more an extension of the Client ID than a proper Client Secret.
@@ -17,7 +33,14 @@ export const GMAIL_CLIENT_ID =
 // Client ID and Secret. For now, it seems we're on the honor code - Please don't do this.
 //
 export const GMAIL_CLIENT_SECRET =
-  process.env.MS_GMAIL_CLIENT_SECRET ||
+  firstEnv(
+    // Preferred project-specific keys
+    'POSTRA_GMAIL_CLIENT_SECRET',
+    // Generic fallback keys
+    'GMAIL_CLIENT_SECRET',
+    // Legacy key used in older forks
+    'MS_GMAIL_CLIENT_SECRET'
+  ) ||
   crypto
     .createDecipheriv(
       'aes-256-ctr',
@@ -36,7 +59,14 @@ export const GMAIL_SCOPES = [
 ];
 
 export const O365_CLIENT_ID =
-  process.env.MS_O365_CLIENT_ID || '8787a430-6eee-41e1-b914-681d90d35625';
+  firstEnv(
+    // Preferred project-specific keys
+    'POSTRA_O365_CLIENT_ID',
+    // Generic fallback keys
+    'O365_CLIENT_ID',
+    // Legacy key used in older forks
+    'MS_O365_CLIENT_ID'
+  ) || '8787a430-6eee-41e1-b914-681d90d35625';
 
 export const O365_SCOPES = [
   'user.read', // email address

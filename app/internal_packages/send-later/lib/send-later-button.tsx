@@ -5,7 +5,6 @@ import moment from 'moment';
 import {
   localized,
   Actions,
-  FeatureUsageStore,
   Message,
   DraftEditingSession,
 } from 'mailspring-exports';
@@ -83,23 +82,9 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
       return;
     }
 
-    // Only check for feature usage and record metrics if this draft is not
-    // already set to send later.
+    // Send Later is local draft metadata and should remain available without
+    // identity / billing services.
     if (!currentSendLaterDate) {
-      try {
-        await FeatureUsageStore.markUsedOrUpgrade('send-later', {
-          headerText: localized('All Scheduled Sends Used'),
-          rechargeText: `${localized(
-            `You can schedule sending of %1$@ emails each %2$@ with Postra Basic.`
-          )} ${localized('Upgrade to Pro today!')}`,
-          iconUrl: 'mailspring://send-later/assets/ic-send-later-modal@2x.png',
-        });
-      } catch (error) {
-        if (error instanceof FeatureUsageStore.NoProAccessError) {
-          return;
-        }
-      }
-
       this.setState({ saving: true });
     }
 

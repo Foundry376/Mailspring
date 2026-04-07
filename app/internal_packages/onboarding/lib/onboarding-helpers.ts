@@ -22,7 +22,7 @@ import {
   GMAIL_SCOPES,
   CODE_CHALLENGE,
 } from './onboarding-constants';
-import { parseStringPromise } from "xml2js";
+import { parseStringPromise } from 'xml2js';
 
 interface TokenResponse {
   access_token: string;
@@ -141,15 +141,14 @@ export async function expandAccountWithCommonSettings(account: Account) {
     return populated;
   }
 
-  if (await TryThunderbirdAutoconfig(populated, account)){
+  if (await TryThunderbirdAutoconfig(populated, account)) {
     return populated;
   }
 
   // find matching template by domain or provider in the old lookup tables
   // this matches the acccount type presets ("yahoo") and common domains against
   // data derived from Thunderbirds ISPDB.
-  let mstemplate =
-    PostraProviderSettings[domain] || PostraProviderSettings[account.provider];
+  let mstemplate = PostraProviderSettings[domain] || PostraProviderSettings[account.provider];
   if (mstemplate) {
     if (mstemplate.alias) {
       mstemplate = PostraProviderSettings[mstemplate.alias];
@@ -158,11 +157,11 @@ export async function expandAccountWithCommonSettings(account: Account) {
   } else {
     console.log(`Using Fallback Template`);
     mstemplate = {
-      "imap_host": `imap.${domain}`,
-      "imap_user_format": "email",
-      "smtp_host": `smtp.${domain}`,
-      "smtp_user_format": "email",
-      "container_folder": "",
+      imap_host: `imap.${domain}`,
+      imap_user_format: 'email',
+      smtp_host: `smtp.${domain}`,
+      smtp_user_format: 'email',
+      container_folder: '',
     };
   }
 
@@ -375,7 +374,27 @@ export async function finalizeAndValidateAccount(account: Account) {
   const proc = new MailsyncProcess(AppEnv.getLoadSettings());
   proc.identity = IdentityStore.identity();
   proc.account = account;
-  await proc.test();
+  try {
+    await proc.test();
+  } catch (err) {
+    // Local-only onboarding improvement:
+    // Gmail accounts can be missing certain folders (notably "All Mail")
+    // until the user enables the corresponding IMAP labels in Gmail settings.
+    // `proc.test()` treats this as a hard failure and blocks account creation,
+    // even though the user could still proceed and sync partially.
+    //
+    // We only relax the validation for this specific case.
+    const msg = String(err);
+    const isMissingGmailFolders =
+      msg.includes('Required folder not found') &&
+      (msg.includes('All Mail') || msg.includes('Inbox'));
+
+    if (!isMissingGmailFolders) {
+      throw err;
+    }
+
+    console.warn(`Gmail onboarding validation skipped due to missing IMAP folders: ${msg}`);
+  }
 
   // Record the date of successful auth
   account.authedAt = new Date();
@@ -383,16 +402,19 @@ export async function finalizeAndValidateAccount(account: Account) {
 }
 
 async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
-  function extractServerDetails(server: { hostname: string;port: string;username: string;socketType: string; }, account: Account) {
+  function extractServerDetails(
+    server: { hostname: string; port: string; username: string; socketType: string },
+    account: Account
+  ) {
     const details = {
       host: server.hostname,
       port: server.port,
-      username: "",
-      security: "",
+      username: '',
+      security: '',
     };
 
     switch (server.username) {
-      case "%EMAILLOCALPART%":
+      case '%EMAILLOCALPART%':
         details.username = account.emailAddress.split('@')[0];
         break;
       default:
@@ -401,17 +423,17 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
     }
 
     switch (server.socketType) {
-      case "plain":
-        details.security = "None";
+      case 'plain':
+        details.security = 'None';
         break;
-      case "STARTTLS":
-        details.security = "STARTTLS";
+      case 'STARTTLS':
+        details.security = 'STARTTLS';
         break;
-      case "SSL":
-        details.security = "SSL / TLS";
+      case 'SSL':
+        details.security = 'SSL / TLS';
         break;
       default:
-        details.security = "STARTTLS";
+        details.security = 'STARTTLS';
         break;
     }
 
@@ -439,7 +461,7 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
       }
     }
 
-    if(provider.incomingServer === undefined || provider.outgoingServer === undefined)
+    if (provider.incomingServer === undefined || provider.outgoingServer === undefined)
       return false;
 
     let imapDetails = null;
@@ -448,24 +470,24 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
     // Handle IMAP
     if (Array.isArray(provider.incomingServer)) {
       for (const incomingServer of provider.incomingServer) {
-        if (incomingServer.$.type === "imap") {
+        if (incomingServer.$.type === 'imap') {
           imapDetails = extractServerDetails(incomingServer, account);
           break;
         }
       }
-    } else if (provider.incomingServer.$.type === "imap") {
+    } else if (provider.incomingServer.$.type === 'imap') {
       imapDetails = extractServerDetails(provider.incomingServer, account);
     }
 
     // Handle SMTP
     if (Array.isArray(provider.outgoingServer)) {
       for (const outgoingServer of provider.outgoingServer) {
-        if (outgoingServer.$.type === "smtp") {
+        if (outgoingServer.$.type === 'smtp') {
           smtpDetails = extractServerDetails(outgoingServer, account);
           break;
         }
       }
-    } else if (provider.outgoingServer.$.type === "smtp") {
+    } else if (provider.outgoingServer.$.type === 'smtp') {
       smtpDetails = extractServerDetails(provider.outgoingServer, account);
     }
 
@@ -482,7 +504,7 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
       smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
       smtp_security: smtpDetails?.security,
       smtp_allow_insecure_ssl: false,
-      container_folder: "",
+      container_folder: '',
     };
 
     populated.settings = Object.assign(settings, populated.settings);

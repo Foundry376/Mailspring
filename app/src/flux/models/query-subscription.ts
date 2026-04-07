@@ -287,7 +287,7 @@ export class QuerySubscription<T extends Model> {
   }
 
   _createResultAndTrigger() {
-    const allCompleteModels = this._set.isComplete();
+    let allCompleteModels = this._set.isComplete();
 
     const d = {};
     const a = this._set.ids();
@@ -296,6 +296,18 @@ export class QuerySubscription<T extends Model> {
 
     let error = null;
     if (!allCompleteModels) {
+      // Occasionally the id window can contain rows deleted immediately after
+      // query execution. Prune unresolved ids so the result set remains usable.
+      const before = this._set._ids.length;
+      this._set._ids = this._set._ids.filter(id => !!this._set.modelWithId(id));
+      this._set._idToIndexHash = null;
+      const after = this._set._ids.length;
+      allCompleteModels = this._set.isComplete();
+      if (before !== after) {
+        console.warn(
+          `QuerySubscription: pruned ${before - after} missing model ids from result set.`
+        );
+      }
       error = new Error('QuerySubscription: Applied all changes and result set is missing models.');
     }
     if (!allUniqueIds) {

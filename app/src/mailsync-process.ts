@@ -31,7 +31,7 @@ export const LocalizedErrorStrings = {
   ),
   ErrorInvalidAccount: localized(
     'This account is invalid or Postra could not find the Inbox or All Mail folder. %@',
-    'http://support.getmailspring.com/hc/en-us/articles/115001881912'
+    'http://support.getpostra.com/hc/en-us/articles/115001881912'
   ),
   ErrorTLSNotAvailable: localized('TLS Not Available'),
   ErrorParse: localized('Parsing Error'),
@@ -78,7 +78,7 @@ export const LocalizedErrorStrings = {
   ),
   ErrorIdentityMissingFields: localized(
     'Your Postra ID is missing required fields - you may need to reset Postra. %@',
-    'http://support.getmailspring.com/hc/en-us/articles/115002012491'
+    'http://support.getpostra.com/hc/en-us/articles/115002012491'
   ),
 };
 

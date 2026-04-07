@@ -41,6 +41,11 @@ export default class AutoUpdateManager extends EventEmitter {
     setTimeout(() => this.setupAutoUpdater(), 0);
   }
 
+  cloudServicesEnabled() {
+    const flag = (process.env.POSTRA_CLOUD_SERVICES || '').toLowerCase();
+    return flag === '1' || flag === 'true' || flag === 'yes' || flag === 'on';
+  }
+
   updateFeedURL = () => {
     const params = {
       platform: process.platform,
@@ -71,6 +76,12 @@ export default class AutoUpdateManager extends EventEmitter {
   };
 
   setupAutoUpdater() {
+    if (!this.cloudServicesEnabled()) {
+      console.log('Cloud services disabled: skipping auto-update checks.');
+      this.setState(UnsupportedState);
+      return;
+    }
+
     if (process.platform === 'win32') {
       const Impl = require('./autoupdate-impl-win32').default;
       autoUpdater = new Impl();
