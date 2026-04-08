@@ -91,8 +91,10 @@
 @font-weight-blond: 300;
 @font-weight-normal: 400;
 @font-weight-medium: 500;
-@font-weight-semi-bold: 600;
-@headings-font-weight: 600;
+// Semi-bold is defined as a CSS custom property --font-weight-semi-bold
+// in workspace.less (600 default, 700 on Windows) because Nylas-Pro's
+// heaviest face is SemiBold at 600, while Windows system-ui (Segoe UI)
+// needs 700 for visible distinction from normal weight.
 
 // ----- Font Sizes -----
 @font-size-base: 14px;
