@@ -1,6 +1,10 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
+:root {
+  --font-weight-semi-bold: 600;
+}
+
 html,
 body {
   width: 100%;
@@ -516,9 +520,12 @@ body.platform-win32 {
 }
 
 // WINDOWS
-// The custom font looks blurry, system-ui looks better
+// The custom font looks blurry, system-ui looks better.
+// Segoe UI (system-ui on Windows) doesn't render font-weight: 600 (semi-bold)
+// with enough visual distinction from 400 (normal), so we bump to 700 (bold).
 
 body.platform-win32 {
+  --font-weight-semi-bold: 700;
   font-family: system-ui;
 
   mailspring-workspace {
