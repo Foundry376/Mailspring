@@ -171,11 +171,19 @@ export class MailsyncProcess extends EventEmitter {
       args.push('--info', this.account.emailAddress);
     }
     // On Linux, mailsync is a shell script wrapper that spawns mailsync.bin.
-    // We use detached mode to create a new process group so that kill() can
-    // terminate both the wrapper and the actual binary, preventing orphaned
-    // mailsync.bin processes that consume 100% CPU after the app closes.
-    const isLinux = process.platform === 'linux';
-    this._proc = spawn(this.binaryPath, args, { env, detached: isLinux });
+    // When Mailspring kills the wrapper, the child mailsync.bin is orphaned and
+    // consumes 100% CPU. Bypass the wrapper by invoking mailsync.bin directly
+    // and setting the environment variables (SASL_PATH, LD_LIBRARY_PATH) that
+    // the wrapper would have provided.
+    let binaryPath = this.binaryPath;
+    const directBinary = this.binaryPath + '.bin';
+    if (process.platform === 'linux' && fs.existsSync(directBinary)) {
+      const binDir = path.dirname(this.binaryPath);
+      env.SASL_PATH = binDir;
+      env.LD_LIBRARY_PATH = `${binDir}:${env.LD_LIBRARY_PATH || ''}`;
+      binaryPath = directBinary;
+    }
+    this._proc = spawn(binaryPath, args, { env });
 
     /* Allow us to buffer up to 1MB on stdin instead of 16k. This is necessary
     because some tasks (creating replies to drafts, etc.) can be gigantic amounts
@@ -280,21 +288,7 @@ export class MailsyncProcess extends EventEmitter {
 
   kill() {
     console.warn('Terminating mailsync...');
-    if (!this._proc) return;
-
-    // On Linux, mailsync may be a shell script wrapper around mailsync.bin.
-    // Killing only the shell process leaves mailsync.bin orphaned and consuming CPU.
-    // Kill the entire process group (negative PID) to terminate all child processes.
-    if (process.platform === 'linux' && this._proc.pid) {
-      try {
-        process.kill(-this._proc.pid, 'SIGTERM');
-      } catch (e) {
-        // Process group may already be gone
-        this._proc.kill();
-      }
-    } else {
-      this._proc.kill();
-    }
+    this._proc && this._proc.kill();
   }
 
   sync() {
