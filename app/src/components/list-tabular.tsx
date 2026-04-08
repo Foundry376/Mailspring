@@ -104,7 +104,19 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
   }
 
   render() {
-    const { rows, innerStyles, draggable, role, ariaLabel, ariaMultiselectable, tabIndex, ariaActiveDescendant, domRef, onDragStart, onDragEnd } = this.props;
+    const {
+      rows,
+      innerStyles,
+      draggable,
+      role,
+      ariaLabel,
+      ariaMultiselectable,
+      tabIndex,
+      ariaActiveDescendant,
+      domRef,
+      onDragStart,
+      onDragEnd,
+    } = this.props;
     return (
       <div
         ref={domRef}
@@ -200,6 +212,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   _onWindowResize?: any;
   _scrollRegion: ScrollRegion;
   _listRowsEl: HTMLElement | null = null;
+  _mounted = false;
 
   _setListRowsEl = (el: HTMLElement | null) => {
     this._listRowsEl = el;
@@ -217,6 +230,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   }
 
   componentDidMount() {
+    this._mounted = true;
     window.addEventListener('resize', this.onWindowResize, true);
     this.setupDataSource(this.props.dataSource);
   }
@@ -247,9 +261,13 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   }
 
   componentWillUnmount() {
+    this._mounted = false;
     window.removeEventListener('resize', this.onWindowResize, true);
     if (this._cleanupAnimationTimeout) {
       window.clearTimeout(this._cleanupAnimationTimeout);
+    }
+    if (this._onWindowResize && this._onWindowResize.cancel) {
+      this._onWindowResize.cancel();
     }
     this._unlisten();
   }
@@ -278,7 +296,9 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     });
 
     if (Object.keys(nextAnimatingOut).length < Object.keys(this.state.animatingOut).length) {
-      this.setState({ animatingOut: nextAnimatingOut });
+      if (this._mounted) {
+        this.setState({ animatingOut: nextAnimatingOut });
+      }
     }
 
     if (Object.keys(nextAnimatingOut).length > 0) {
@@ -288,11 +308,18 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
 
   setupDataSource(dataSource) {
     this._unlisten();
-    this._unlisten = dataSource.listen(() => this.setState(this.buildStateForRange()));
+    this._unlisten = dataSource.listen(() => {
+      if (!this._mounted) {
+        return;
+      }
+      this.setState(this.buildStateForRange());
+    });
 
     const range = this.getRange();
     this.props.dataSource.setRetainedRange(range);
-    this.setState(this.buildStateForRange({ ...range, dataSource }));
+    if (this._mounted) {
+      this.setState(this.buildStateForRange({ ...range, dataSource }));
+    }
   }
 
   getRowsToRender() {
@@ -366,7 +393,9 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     ) {
       this.updateRangeStateFiring = true;
       this.props.dataSource.setRetainedRange(range);
-      this.setState(this.buildStateForRange(range));
+      if (this._mounted) {
+        this.setState(this.buildStateForRange(range));
+      }
     }
   }
 

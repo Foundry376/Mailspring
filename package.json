@@ -72,6 +72,7 @@
     "underscore": "^1.13.1"
   },
   "scripts": {
+    "audit:rename": "bash ./scripts/rename-audit.sh",
     "postinstall": "node scripts/postinstall.js",
     "start": "electron ./app --enable-logging --dev",
     "lint": "eslint --fix -c .eslintrc app/src/**/*.ts app/internal_packages/**/*.tsx",

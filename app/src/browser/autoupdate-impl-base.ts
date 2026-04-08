@@ -82,6 +82,8 @@ export default class AutoupdateImplBase extends EventEmitter {
 
   /* Public: Install the update. */
   quitAndInstall() {
-    shell.openExternal(this.lastRetrievedUpdateURL || 'https://getmailspring.com/download');
+    if (this.lastRetrievedUpdateURL) {
+      shell.openExternal(this.lastRetrievedUpdateURL);
+    }
   }
 }

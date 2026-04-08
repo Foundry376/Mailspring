@@ -71,10 +71,13 @@ export class TrashButton extends React.Component<{ items: Thread[] }> {
   };
 
   _onRemove = (event?: React.MouseEvent) => {
-    const tasks = TaskFactory.tasksForMovingToTrash({
-      threads: this.props.items,
-      source: 'Toolbar Button: Thread List',
-    });
+    const current = FocusedPerspectiveStore.current();
+    const tasks = current.isTrash()
+      ? current.tasksForRemovingItems(this.props.items, 'Toolbar Button: Thread List')
+      : TaskFactory.tasksForMovingToTrash({
+          threads: this.props.items,
+          source: 'Toolbar Button: Thread List',
+        });
     Actions.queueTasks(tasks);
     Actions.popSheet();
     if (event) {
@@ -84,18 +87,22 @@ export class TrashButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'trash');
+    const current = FocusedPerspectiveStore.current();
+    const inTrash = current.isTrash();
+    const allowed = inTrash || current.canMoveThreadsTo(this.props.items, 'trash');
     if (!allowed) {
       return false;
     }
+
+    const label = inTrash ? localized('Delete Forever') : localized('Move to Trash');
 
     return (
       <BindGlobalCommands commands={{ 'core:delete-item': () => this._onRemove() }}>
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
-          title={localized('Move to Trash')}
-          aria-label={localized('Move to Trash')}
+          title={label}
+          aria-label={label}
           onClick={this._onRemove}
         >
           <RetinaImg

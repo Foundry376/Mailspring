@@ -42,8 +42,7 @@ export default class AutoUpdateManager extends EventEmitter {
   }
 
   cloudServicesEnabled() {
-    const flag = (process.env.POSTRA_CLOUD_SERVICES || '').toLowerCase();
-    return flag === '1' || flag === 'true' || flag === 'yes' || flag === 'on';
+    return false;
   }
 
   updateFeedURL = () => {
@@ -64,12 +63,7 @@ export default class AutoUpdateManager extends EventEmitter {
       }
     }
 
-    let host = `updates.getmailspring.com`;
-    if (this.config.get('env') === 'staging') {
-      host = `updates-staging.getmailspring.com`;
-    }
-
-    this.feedURL = `https://${host}/check/${params.platform}/${params.arch}/${params.version}/${params.id}/${params.channel}`;
+    this.feedURL = `http://127.0.0.1:0/check/${params.platform}/${params.arch}/${params.version}/${params.id}/${params.channel}`;
     if (autoUpdater) {
       autoUpdater.setFeedURL(this.feedURL);
     }
@@ -181,12 +175,7 @@ export default class AutoUpdateManager extends EventEmitter {
   }
 
   dialogIcon() {
-    const iconPath = path.join(
-      global.application.resourcePath,
-      'static',
-      'images',
-      'mailspring.png'
-    );
+    const iconPath = path.join(global.application.resourcePath, 'static', 'images', 'postra.png');
     if (!fs.existsSync(iconPath)) return undefined;
     return nativeImage.createFromPath(iconPath);
   }
@@ -199,7 +188,7 @@ export default class AutoUpdateManager extends EventEmitter {
       icon: this.dialogIcon(),
       message: localized('No update available.'),
       title: localized('No update available.'),
-      detail: localized(`You're running the latest version of Mailspring (%@).`, this.version),
+      detail: localized(`You're running the latest version of Postra (%@).`, this.version),
     });
   };
 

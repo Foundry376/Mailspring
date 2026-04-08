@@ -11,6 +11,12 @@ interface AddContactToolbarProps {
   focusedId?: string;
 }
 
+function defaultContactAccountId() {
+  const accounts = AccountStore.accounts();
+  const pick = accounts.find(a => a.provider !== 'gmail') || accounts[0];
+  return pick ? pick.id : null;
+}
+
 class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> {
   constructor(props: AddContactToolbarProps) {
     super(props);
@@ -22,17 +28,12 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
 
     if ('accountId' in perspective && perspective.accountId) {
       accountId = perspective.accountId;
-    } else if (perspective.type === 'unified') {
-      const accounts = AccountStore.accounts();
-      const pick = accounts.find(a => a.provider !== 'gmail') || accounts[0];
-      if (pick) {
-        accountId = pick.id;
-        Store.setPerspective({
-          type: 'all',
-          accountId: pick.id,
-          label: localized('All Contacts'),
-        });
-      }
+    } else if (
+      perspective.type === 'unified' ||
+      perspective.type === 'local-group' ||
+      perspective.type === 'local-all'
+    ) {
+      accountId = defaultContactAccountId();
     }
 
     if (!accountId) return;
@@ -45,15 +46,20 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
   render() {
     const { editing, perspective } = this.props;
     const hasAccounts = AccountStore.accounts().length > 0;
+    const resolvedAccountId =
+      'accountId' in perspective && perspective.accountId
+        ? perspective.accountId
+        : perspective.type === 'unified' ||
+          perspective.type === 'local-group' ||
+          perspective.type === 'local-all'
+        ? defaultContactAccountId()
+        : null;
     const enabled =
       editing === false &&
       perspective.type !== 'found-in-mail' &&
       hasAccounts &&
-      (('accountId' in perspective && !!perspective.accountId) || perspective.type === 'unified');
-    const acct =
-      'accountId' in perspective && perspective.accountId
-        ? AccountStore.accountForId(perspective.accountId)
-        : null;
+      !!resolvedAccountId;
+    const acct = resolvedAccountId ? AccountStore.accountForId(resolvedAccountId) : null;
 
     return (
       <div style={{ display: 'flex', order: 1000 }}>

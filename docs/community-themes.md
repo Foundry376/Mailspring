@@ -1,12 +1,12 @@
-# Community Themes for Mailspring
+# Community Themes for Postra
 
-This document lists known third-party themes for Mailspring found on GitHub.
+This document lists known third-party themes for Postra found on GitHub.
 
 ## Official Resources
 
 | Repository | Description |
 |------------|-------------|
-| [Foundry376/Mailspring-Theme-Starter](https://github.com/Foundry376/Mailspring-Theme-Starter) | Official theme template for creating your own themes |
+| [fcools/postra-mail-Theme-Starter](https://github.com/fcools/postra-mail-Theme-Starter) | Official theme template for creating your own themes |
 
 ## Popular Theme Collections
 
@@ -75,7 +75,7 @@ These themes are part of larger theme ecosystems:
 
 To create your own theme:
 
-1. Clone the [Mailspring-Theme-Starter](https://github.com/Foundry376/Mailspring-Theme-Starter)
+1. Clone the [Postra-Theme-Starter](https://github.com/fcools/postra-mail-Theme-Starter)
 2. Edit `package.json` with your theme's name and description
 3. Modify the LESS files in `styles/`:
    - `index.less` - Main stylesheet
@@ -84,12 +84,12 @@ To create your own theme:
 
 ### Theme Installation
 
-Install themes via **Edit > Install Theme...** (or **Mailspring > Install Theme...** on macOS) and select the theme folder.
+Install themes via **Edit > Install Theme...** (or **Postra > Install Theme...** on macOS) and select the theme folder.
 
 Alternatively, copy or symlink themes to:
-- **macOS**: `~/Library/Application Support/Mailspring/packages/`
-- **Linux**: `~/.config/Mailspring/packages/`
-- **Windows**: `%APPDATA%/Mailspring/packages/`
+- **macOS**: `~/Library/Application Support/Postra/packages/`
+- **Linux**: `~/.config/Postra/packages/`
+- **Windows**: `%APPDATA%/Postra/packages/`
 
 ### Theme Structure
 

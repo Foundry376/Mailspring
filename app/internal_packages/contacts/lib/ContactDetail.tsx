@@ -30,6 +30,26 @@ interface ContactDetailState {
   metadata: ContactInteractorMetadata | null;
 }
 
+function defaultContactAccountId() {
+  const accounts = AccountStore.accounts();
+  const pick = accounts.find(a => a.provider !== 'gmail') || accounts[0];
+  return pick ? pick.id : null;
+}
+
+function accountIdForPerspective(perspective: ContactsPerspective) {
+  if ('accountId' in perspective && perspective.accountId) {
+    return perspective.accountId;
+  }
+  if (
+    perspective.type === 'unified' ||
+    perspective.type === 'local-group' ||
+    perspective.type === 'local-all'
+  ) {
+    return defaultContactAccountId();
+  }
+  return null;
+}
+
 function emptyContactForAccountId(accountId: string) {
   const account = AccountStore.accountForId(accountId);
   const source = account.provider === 'gmail' ? 'gpeople' : 'carddav';
@@ -99,8 +119,11 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     const activeId = this._activeId();
 
     let contact: Contact | undefined;
-    if (editing === 'new' && 'accountId' in perspective) {
-      contact = emptyContactForAccountId(perspective.accountId);
+    if (editing === 'new') {
+      const accountId = accountIdForPerspective(perspective);
+      if (accountId) {
+        contact = emptyContactForAccountId(accountId);
+      }
     } else if (typeof editing === 'string' && editing !== 'new') {
       contact = contacts?.find(c => c.id === editing);
     } else {
@@ -124,9 +147,35 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     Store.setEditing(false);
   };
 
+  contactPreparedForEditing = (contact: Contact) => {
+    const prepared = contact.clone();
+    const account = AccountStore.accountForId(contact.accountId);
+    const source = account?.provider === 'gmail' ? 'gpeople' : 'carddav';
+    const hasInfo = !!prepared.info && Object.keys(prepared.info).length > 0;
+
+    if (prepared.source === 'mail' || !hasInfo) {
+      prepared.source = source;
+      if (source === 'gpeople') {
+        prepared.info = {
+          names: [],
+          resourceName: '',
+          etag: '',
+          addresses: [],
+        } as any;
+      } else {
+        prepared.info = {
+          vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${crypto.randomUUID()}\r\nEND:VCARD\r\n`,
+          href: '',
+        } as any;
+      }
+    }
+    return prepared;
+  };
+
   onSaveChanges = () => {
     const { perspective } = this.props;
-    const contact = apply(this.state.contact, this.state.data);
+    const prepared = this.contactPreparedForEditing(this.state.contact);
+    const contact = apply(prepared, this.state.data);
 
     if (contact.id) {
       Actions.queueTask(SyncbackContactTask.forUpdating({ contact }));
@@ -134,16 +183,16 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
       return;
     }
 
-    if (!('accountId' in perspective)) return;
-    Actions.queueTask(
-      SyncbackContactTask.forCreating({ contact, accountId: perspective.accountId })
-    );
+    const accountId = accountIdForPerspective(perspective);
+    if (!accountId) return;
+    Actions.queueTask(SyncbackContactTask.forCreating({ contact, accountId }));
     Store.setEditing(false);
   };
 
   render() {
     const { editing, groups } = this.props;
     const { data, metadata, contact } = this.state;
+    const willConvertMailContactOnSave = !!editing && !!contact && contact.source === 'mail';
 
     if (!data) {
       return (
@@ -174,6 +223,11 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
         </ScrollRegion>
         {editing && (
           <div className="contact-edit-footer">
+            {willConvertMailContactOnSave && (
+              <div style={{ alignSelf: 'center', marginRight: 12, opacity: 0.75 }}>
+                {localized('This contact was found in mail and will be saved to your contacts.')}
+              </div>
+            )}
             <button className={`btn`} onClick={this.onCancel}>
               {localized('Cancel')}
             </button>

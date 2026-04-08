@@ -2,10 +2,10 @@ import { protocol } from 'electron';
 import fs from 'fs';
 import path from 'path';
 
-// Handles requests with 'mailspring' protocol.
+// Handles requests with custom resource protocols.
 //
 // It's created by {Application} upon instantiation and is used to create a
-// custom resource loader for 'mailspring://' URLs.
+// custom resource loader for 'postra://' and 'mailspring://' URLs.
 //
 // The following directories are searched in order:
 //   * <config-dir>/assets
@@ -26,27 +26,28 @@ export default class MailspringProtocolHandler {
     this.registerProtocol();
   }
 
-  // Creates the 'Mailspring' custom protocol handler.
+  // Creates the custom protocol handlers used for local package assets.
   registerProtocol() {
-    const scheme = 'mailspring';
-    protocol.registerFileProtocol(scheme, (request, callback) => {
-      const relativePath = path.normalize(request.url.substr(scheme.length + 1));
+    const schemes = ['postra', 'mailspring'];
+    for (const scheme of schemes) {
+      protocol.registerFileProtocol(scheme, (request, callback) => {
+        const relativePath = path.normalize(request.url.substr(scheme.length + 1));
 
-      let filePath = null;
-      for (const loadPath of this.loadPaths) {
-        filePath = path.join(loadPath, relativePath);
-        let fileStats: fs.Stats | false = false;
-        try {
-          fileStats = fs.statSync(filePath);
-        } catch (e) {
-          // path doesn't exist
+        let filePath = null;
+        for (const loadPath of this.loadPaths) {
+          filePath = path.join(loadPath, relativePath);
+          let fileStats: fs.Stats | false = false;
+          try {
+            fileStats = fs.statSync(filePath);
+          } catch (e) {
+            // path doesn't exist
+          }
+          if (fileStats && fileStats.isFile && fileStats.isFile()) {
+            break;
+          }
         }
-        if (fileStats && fileStats.isFile && fileStats.isFile()) {
-          break;
-        }
-      }
-
-      callback(filePath);
-    });
+        callback(filePath);
+      });
+    }
   }
 }

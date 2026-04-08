@@ -524,7 +524,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   //
   // if you're looking at a folder:
   // - spam: null
-  // - trash: null
+  // - trash: permanently delete
   // - archive: trash
   // - all others: "finished category (archive or trash)"
 
@@ -544,9 +544,13 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       return TaskFactory.tasksForMovingToTrash({ threads, source });
     }
 
-    // If you are viewing spam or trash, "remove" does nothing
-    if (['spam', 'trash'].includes(this.categoriesSharedRole())) {
+    // If you are viewing spam, "remove" does nothing
+    if (this.categoriesSharedRole() === 'spam') {
       return [];
+    }
+
+    if (this.categoriesSharedRole() === 'trash') {
+      return TaskFactory.tasksForPermanentDeletion({ threads });
     }
 
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {

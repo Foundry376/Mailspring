@@ -1,8 +1,8 @@
-# Contributing to Mailspring
+# Contributing to Postra
 
-Thanks for checking out Mailspring! We'd love for you to contribute. Whether
+Thanks for checking out Postra! We'd love for you to contribute. Whether
 you're a first-time open source contributor or an experienced developer, there
-are ways you can help make Mailspring great!
+are ways you can help make Postra great!
 
 ## Contributing Code
 
@@ -27,7 +27,7 @@ especially looking for anything marked `for-plugin`.
 The first time you submit a pull request, a bot will ask you to sign a
 standard, bare-bones Contributor License Agreement. The CLA states that you
 waive any patent or copyright claims you might have to the code you're
-contributing. (For example, you can't submit a PR and then sue Mailspring
+contributing. (For example, you can't submit a PR and then sue Postra
 for using your code.)
 
 ## Triaging Issues
@@ -48,16 +48,16 @@ We're in the process of migrating. If someone has already reported a bug or
 requested the feature you have in mind,  **vote for it** at the top.
 Higher voted issues are more likely to be addressed.
 
-For bugs, please verify that you're running the latest version of Mailspring.
+For bugs, please verify that you're running the latest version of Postra.
 If you file an issue without providing detail, we may close it without comment.
 
 **Under no circumstances should you report an issue via GitHub. The GitHub
-Issues feature is exclusively for Mailspring contributors to track tasks
+Issues feature is exclusively for Postra contributors to track tasks
 which have been diagnosed, accepted, and scheduled on the roadmap.**
 
 # Build and Run From Source
 
-If you want to understand how Mailspring works or want to debug an issue,
+If you want to understand how Postra works or want to debug an issue,
 you'll want to get the source, build it, and run it locally.
 
 ## Installing Prerequisites
@@ -86,11 +86,11 @@ recommended. Based on your platform, you'll also need:
   - On Red Hat-based Linux: `sudo yum install libX11-devel.x86_64 libxkbfile-devel.x86_64 libsecret-1-dev libsecret-devel`.
 
 After you have these tools installed, run the following commands to check out
-Mailspring,install dependencies, and launch the app:
+Postra, install dependencies, and launch the app:
 
 ```
-git clone https://github.com/foundry376/mailspring
-cd mailspring
+git clone https://github.com/fcools/postra-mail.git
+cd postra-mail
 npm install
 npm start
 ```
@@ -99,17 +99,17 @@ npm start
 
 ### App Data
 
-When you're running Mailspring with `npm start`, it runs with the `--dev` flag
-and user data is located in a `Mailspring-dev` folder alongside the regular
+When you're running Postra with `npm start`, it runs with the `--dev` flag
+and user data is located in a `Postra-dev` folder alongside the regular
 settings folder:
 
-- Mac: `~/Library/Application Support/Mailspring-dev`
-- Windows: `C:\Users\<you>\AppData\Roaming\Mailspring-dev`
-- Linux: `~/.config/Mailspring-dev/`
+- Mac: `~/Library/Application Support/Postra-dev`
+- Windows: `C:\Users\<you>\AppData\Roaming\Postra-dev`
+- Linux: `~/.config/Postra-dev/`
 
 ### Developer Tools
 
-From Mailspring, you can open the Developer Tools from the
+From Postra, you can open the Developer Tools from the
 menu: `Menu > Developer > Toggle Developer Tools`. Here are a few tips for
 getting started:
 
@@ -118,7 +118,7 @@ getting started:
 - On the console, `$m` is a shorthand for `mailspring-exports`, and allows you
   to access global `Stores` and `Model` classes.
 
-- You don't need to stop and restart the development version of Mailspring
+- You don't need to stop and restart the development version of Postra
   after each change. You can just reload the window via `CTRL+R` (Windows/Linux)
   or `CMD+R` (macOS).
 
@@ -131,13 +131,12 @@ submitting a pull request to ensure the CI servers accept your code.
 ### Documentation
 
 Back in 2015 and 2016, the Nylas Mail team made a huge effort to document
-the codebase. The docs are still
-[available on GitHub pages](https://foundry376.github.io/Mailspring/), and are
-still largely relevant to Mailspring development.
+the codebase. The docs in this repository's `docs/` directory are still
+largely relevant to Postra development.
 
 ### Testing Localization
 
-You can run the app in different localizations by passing a langauge code to
+You can run the app in different localizations by passing a language code to
 Electron via `--lang=de`. To use this in conjunction `npm start`, you'll need
 to use the `--` argument forwarding syntax: `npm start -- --lang=de`.
 

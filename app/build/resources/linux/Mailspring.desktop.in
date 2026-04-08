@@ -2,14 +2,14 @@
 Name=<%= productName %>
 Comment=<%= description %>
 GenericName=Mail Client
-Exec=mailspring %U
-Icon=mailspring
+Exec=postra %U
+Icon=postra
 Type=Application
 StartupNotify=true
 StartupWMClass=<%= productName %>
 Categories=GNOME;GTK;Network;Email;
 Keywords=email;internet;
-MimeType=x-scheme-handler/mailto;x-scheme-handler/mailspring;
+MimeType=x-scheme-handler/mailto;x-scheme-handler/postra;x-scheme-handler/mailspring;
 Actions=NewMessage
 X-GNOME-UsesNotifications=true
 
@@ -110,4 +110,4 @@ Name[zh_CN]=新邮件
 Name[zh_TW]=新增郵件
 Name[zh]=新信息
 Name[zu]=Umyalezo omusha
-Exec=mailspring mailto:
+Exec=postra mailto:

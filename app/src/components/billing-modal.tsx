@@ -78,9 +78,7 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
     if (!result) return;
     if (result !== IdentityStore.identityId()) {
       AppEnv.reportError(
-        new Error(
-          'id.getmailspring.com/payment_success did not have a valid #payment-success-data field'
-        )
+        new Error('billing payment_success did not have a valid #payment-success-data field')
       );
     }
     const listenForContinue = `

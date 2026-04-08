@@ -8,7 +8,7 @@ import { isWaylandSession } from './is-wayland';
 let WindowIconPath = null;
 let idNum = 0;
 
-export interface MailspringWindowSettings {
+export interface PostraWindowSettings {
   frame?: boolean;
   title?: string;
   width?: number;
@@ -36,12 +36,12 @@ export interface MailspringWindowSettings {
   [key: string]: unknown;
 }
 
-export default class MailspringWindow extends EventEmitter {
+export default class PostraWindow extends EventEmitter {
   static includeShellLoadTime = true;
 
   public windowType: string;
   public browserWindow: BrowserWindow & {
-    loadSettings?: MailspringWindowSettings;
+    loadSettings?: PostraWindowSettings;
     loadSettingsChangedSinceGetURL?: boolean;
   } = null;
   public devMode: boolean;
@@ -58,7 +58,7 @@ export default class MailspringWindow extends EventEmitter {
 
   private isWindowClosing: boolean;
 
-  constructor(settings: MailspringWindowSettings = {}) {
+  constructor(settings: PostraWindowSettings = {}) {
     super();
 
     let frame, height, pathToOpen, resizable, title, width, autoHideMenuBar, titleBarStyle;
@@ -126,12 +126,17 @@ export default class MailspringWindow extends EventEmitter {
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if (process.platform === 'linux') {
       if (!WindowIconPath) {
-        WindowIconPath = path.resolve('/usr', 'share', 'pixmaps', 'mailspring.png');
-        if (!fs.existsSync(WindowIconPath)) {
-          WindowIconPath = path.resolve(this.resourcePath, 'static', 'images', 'mailspring.png');
-        }
+        const iconCandidates = [
+          path.resolve(this.resourcePath, '..', 'assets', 'logo.png'),
+          path.resolve(process.cwd(), 'assets', 'logo.png'),
+          path.resolve('/usr', 'share', 'pixmaps', 'postra.png'),
+          path.resolve(this.resourcePath, 'static', 'images', 'postra.png'),
+        ];
+        WindowIconPath = iconCandidates.find(p => fs.existsSync(p));
       }
-      browserWindowOptions.icon = WindowIconPath;
+      if (WindowIconPath) {
+        browserWindowOptions.icon = WindowIconPath;
+      }
     }
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
@@ -157,8 +162,8 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     // Only send to the first non-spec window created
-    if (MailspringWindow.includeShellLoadTime && !this.isSpec) {
-      MailspringWindow.includeShellLoadTime = false;
+    if (PostraWindow.includeShellLoadTime && !this.isSpec) {
+      PostraWindow.includeShellLoadTime = false;
       if (loadSettings.shellLoadTime == null) {
         loadSettings.shellLoadTime = Date.now() - global.shellStartTime;
       }
@@ -204,7 +209,12 @@ export default class MailspringWindow extends EventEmitter {
       this.browserWindow.webContents.once('did-finish-load', () => {
         if (!this.browserWindow.isDestroyed() && !this.browserWindow.isVisible()) {
           const initInBackground = this.browserWindow.loadSettings?.initializeInBackground;
+          const startupMaximized =
+            this.browserWindow.loadSettings?.startupMaximized && !initInBackground;
           this.browserWindow.show();
+          if (startupMaximized) {
+            this.browserWindow.maximize();
+          }
           if (initInBackground) {
             this.once('window:loaded', () => {
               if (!this.browserWindow.isDestroyed()) {
@@ -229,7 +239,7 @@ export default class MailspringWindow extends EventEmitter {
     this.setLoadSettings({ ...this.browserWindow.loadSettings, ...newSettings });
   };
 
-  loadSettings(): MailspringWindowSettings {
+  loadSettings(): PostraWindowSettings {
     return this.browserWindow.loadSettings;
   }
 
@@ -367,7 +377,7 @@ export default class MailspringWindow extends EventEmitter {
           type: 'warning',
           buttons: ['Close Window', 'Reload', 'Keep It Open'],
           message: 'Postra has crashed',
-          detail: 'Please report this issue to us at support@getmailspring.com.',
+          detail: 'Please check your local logs for details.',
         });
         if (chosen === 0) {
           this.browserWindow.destroy();
@@ -447,6 +457,12 @@ export default class MailspringWindow extends EventEmitter {
   showWhenLoaded() {
     this.waitForLoad(() => {
       this.show();
+      if (
+        this.browserWindow.loadSettings?.startupMaximized &&
+        !this.browserWindow.loadSettings?.initializeInBackground
+      ) {
+        this.maximize();
+      }
       this.focus();
     });
   }

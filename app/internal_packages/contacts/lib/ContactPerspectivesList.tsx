@@ -11,7 +11,13 @@ import {
   ChangeContactGroupMembershipTask,
   localized,
 } from 'mailspring-exports';
-import { ContactsPerspective, Store, ContactsPerspectiveForGroup } from './Store';
+import {
+  ContactsPerspective,
+  Store,
+  ContactsPerspectiveForGroup,
+  ContactsPerspectiveForLocalGroup,
+  ContactsPerspectiveForLocalAll,
+} from './Store';
 import {
   ScrollRegion,
   OutlineView,
@@ -27,9 +33,62 @@ interface ContactsPerspectivesProps {
   accounts: Account[];
   groups: ContactGroup[];
   books: ContactBook[];
+  localGroups: LocalGroup[];
   findInMailDisabled: string[];
   selected: ContactsPerspective;
   onSelect: (item: ContactsPerspective) => void;
+}
+
+type LocalGroup = {
+  id: string;
+  name: string;
+};
+
+const LOCAL_GROUPS_KEY = 'core.contacts.localGroups';
+const LOCAL_GROUP_MEMBERS_KEY = 'core.contacts.localGroupMembers';
+
+function localGroupsFromConfig(): LocalGroup[] {
+  return AppEnv.config.get(LOCAL_GROUPS_KEY) || [];
+}
+
+function setLocalGroups(groups: LocalGroup[]) {
+  AppEnv.config.set(LOCAL_GROUPS_KEY, groups);
+}
+
+function localGroupMembersFromConfig(): { [groupId: string]: string[] } {
+  return AppEnv.config.get(LOCAL_GROUP_MEMBERS_KEY) || {};
+}
+
+function setLocalGroupMembers(members: { [groupId: string]: string[] }) {
+  AppEnv.config.set(LOCAL_GROUP_MEMBERS_KEY, members);
+}
+
+function nextDefaultLocalGroupName(groups: LocalGroup[]) {
+  const base = localized('New Group');
+  const existing = new Set(groups.map(g => (g.name || '').trim().toLowerCase()));
+  if (!existing.has(base.toLowerCase())) {
+    return base;
+  }
+  let suffix = 2;
+  while (existing.has(`${base} ${suffix}`.toLowerCase())) {
+    suffix += 1;
+  }
+  return `${base} ${suffix}`;
+}
+
+function perspectiveForLocalGroup(g: LocalGroup): ContactsPerspectiveForLocalGroup {
+  return {
+    type: 'local-group',
+    groupId: g.id,
+    label: g.name,
+  };
+}
+
+function perspectiveForLocalAll(): ContactsPerspectiveForLocalAll {
+  return {
+    type: 'local-all',
+    label: localized('All Local Contacts'),
+  };
 }
 
 function perspectiveForGroup(g: ContactGroup): ContactsPerspectiveForGroup {
@@ -165,37 +224,162 @@ const OutlineViewForAccount = ({
 const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectivesProps> = ({
   findInMailDisabled,
   groups,
+  localGroups,
   books,
   accounts,
   selected,
   onSelect,
-}) => (
-  <ScrollRegion style={{ flex: 1 }} className="contacts-perspective-list">
-    <section className="outline-view nylas-outline-view" style={{ paddingTop: 15 }}>
-      <OutlineViewItem
-        item={{
-          id: 'bla',
-          name: 'All Contacts',
-          iconName: 'people.png',
-          children: [],
-          selected: selected.type === 'unified',
-          onSelect: () => onSelect({ type: 'unified' }),
-        }}
-      />
-    </section>
-    {accounts.map(a => (
-      <OutlineViewForAccount
-        key={a.id}
-        account={a}
-        findInMailDisabled={findInMailDisabled.includes(a.id)}
-        books={books.filter(b => b.accountId === a.id)}
-        groups={groups.filter(b => b.accountId === a.id)}
-        selected={'accountId' in selected && selected.accountId === a.id ? selected : null}
-        onSelect={onSelect}
-      />
-    ))}
-  </ScrollRegion>
-);
+}) => {
+  const selectedRemoteGroup =
+    selected.type === 'group' ? groups.find(g => g.id === selected.groupId) : null;
+  const selectedLocalGroup =
+    selected.type === 'local-group' ? localGroups.find(g => g.id === selected.groupId) : null;
+
+  const localItems: IOutlineViewItem[] = [
+    {
+      id: 'local-all-contacts',
+      name: localized('All Local Contacts'),
+      iconName: 'person.png',
+      children: [],
+      selected: selected.type === 'local-all',
+      onSelect: () => onSelect(perspectiveForLocalAll()),
+      shouldAcceptDrop: () => false,
+    },
+    ...localGroups.map(group => {
+      const perspective = perspectiveForLocalGroup(group);
+      return {
+        id: `local-${group.id}`,
+        name: group.name,
+        iconName: 'label.png',
+        children: [],
+        selected: selected.type === 'local-group' && selected.groupId === group.id,
+        onSelect: () => onSelect(perspective),
+        onEdited: (item, value: string) => {
+          const trimmed = (value || '').trim();
+          if (!trimmed) {
+            return false;
+          }
+          const updated = localGroups.map(g => (g.id === group.id ? { ...g, name: trimmed } : g));
+          setLocalGroups(updated);
+          if (selected.type === 'local-group' && selected.groupId === group.id) {
+            onSelect({ type: 'local-group', groupId: group.id, label: trimmed });
+          }
+        },
+        onDelete: () => {
+          const nextGroups = localGroups.filter(g => g.id !== group.id);
+          setLocalGroups(nextGroups);
+          const members = localGroupMembersFromConfig();
+          delete members[group.id];
+          setLocalGroupMembers(members);
+          if (selected.type === 'local-group' && selected.groupId === group.id) {
+            onSelect({ type: 'unified' });
+          }
+        },
+        onDrop: (item, { dataTransfer }) => {
+          const data = JSON.parse(dataTransfer.getData('mailspring-contacts-data'));
+          const members = localGroupMembersFromConfig();
+          const existing = new Set(members[group.id] || []);
+          for (const id of data.ids || []) {
+            existing.add(id);
+          }
+          members[group.id] = Array.from(existing);
+          setLocalGroupMembers(members);
+          if (selected.type === 'local-group' && selected.groupId === group.id) {
+            Store.repopulate();
+          }
+        },
+        shouldAcceptDrop: (item, { dataTransfer }) => {
+          if (!dataTransfer.types.includes('mailspring-contacts-data')) {
+            return false;
+          }
+          return !(selected.type === 'local-group' && selected.groupId === group.id);
+        },
+      };
+    }),
+  ];
+
+  return (
+    <div className="contacts-perspective-column">
+      <ScrollRegion style={{ flex: 1 }} className="contacts-perspective-list">
+        <section className="outline-view nylas-outline-view" style={{ paddingTop: 15 }}>
+          <OutlineViewItem
+            item={{
+              id: 'bla',
+              name: 'All Contacts',
+              iconName: 'people.png',
+              children: [],
+              selected: selected.type === 'unified',
+              onSelect: () => onSelect({ type: 'unified' }),
+            }}
+          />
+        </section>
+        <OutlineView title={localized('Local Contacts')} items={localItems} />
+        {accounts.map(a => (
+          <OutlineViewForAccount
+            key={a.id}
+            account={a}
+            findInMailDisabled={findInMailDisabled.includes(a.id)}
+            books={books.filter(b => b.accountId === a.id)}
+            groups={groups.filter(b => b.accountId === a.id)}
+            selected={'accountId' in selected && selected.accountId === a.id ? selected : null}
+            onSelect={onSelect}
+          />
+        ))}
+      </ScrollRegion>
+      <div className="contacts-group-actions">
+        <button
+          className="btn btn-toolbar btn-group-action"
+          title={localized('Create local group')}
+          disabled={false}
+          onClick={() => {
+            const current = localGroupsFromConfig();
+            const next = {
+              id: `local-group-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+              name: nextDefaultLocalGroupName(current),
+            };
+            setLocalGroups([...current, next]);
+            onSelect({ type: 'local-group', groupId: next.id, label: next.name });
+          }}
+        >
+          +
+        </button>
+        <button
+          className={`btn btn-toolbar btn-group-action ${
+            !selectedRemoteGroup && !selectedLocalGroup ? 'btn-disabled' : ''
+          }`}
+          title={
+            selectedRemoteGroup
+              ? localized('Delete group %@', selectedRemoteGroup.name)
+              : selectedLocalGroup
+              ? localized('Delete group %@', selectedLocalGroup.name)
+              : localized('Select a group to delete it.')
+          }
+          disabled={!selectedRemoteGroup && !selectedLocalGroup}
+          onClick={() => {
+            if (selectedLocalGroup) {
+              const nextGroups = localGroups.filter(g => g.id !== selectedLocalGroup.id);
+              setLocalGroups(nextGroups);
+              const members = localGroupMembersFromConfig();
+              delete members[selectedLocalGroup.id];
+              setLocalGroupMembers(members);
+              onSelect({ type: 'unified' });
+              return;
+            }
+            if (!selectedRemoteGroup) {
+              return;
+            }
+            if (showGPeopleReadonlyNotice(selectedRemoteGroup.accountId)) {
+              return;
+            }
+            Actions.queueTask(DestroyContactGroupTask.forRemoving(selectedRemoteGroup));
+          }}
+        >
+          -
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const ContactPerspectivesList = ListensToObservable(
   ListensToFluxStore(ContactsPerspectivesWithData, {
@@ -209,9 +393,15 @@ export const ContactPerspectivesList = ListensToObservable(
     }),
   }),
   {
-    getObservable: () => Rx.Observable.fromConfig('core.contacts.findInMailDisabled'),
+    getObservable: () =>
+      Rx.Observable.merge(
+        Rx.Observable.fromConfig('core.contacts.findInMailDisabled'),
+        Rx.Observable.fromConfig(LOCAL_GROUPS_KEY),
+        Rx.Observable.fromConfig(LOCAL_GROUP_MEMBERS_KEY)
+      ),
     getStateFromObservable: () => ({
       findInMailDisabled: AppEnv.config.get('core.contacts.findInMailDisabled'),
+      localGroups: localGroupsFromConfig(),
     }),
   }
 );

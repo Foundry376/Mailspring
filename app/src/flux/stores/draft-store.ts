@@ -15,6 +15,7 @@ import { Message } from '../models/message';
 import * as Actions from '../actions';
 import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
+import { IdentityStoreConfig } from './identity-store';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import { localized } from '../../intl';
@@ -242,42 +243,41 @@ class DraftStore extends MailspringStore {
       threadId: threadId,
       message: message,
       messageId: messageId,
-      popout: popout 
+      popout: popout,
     });
   };
 
-  _onComposeAndSendForward = async({
-    thread,
-    threadId,
-    message,
-    messageId,
-    to
-  }) => {
-    const { headerMessageId, draft } = await this._composeForward({
-      thread: thread,
-      threadId: threadId,
-      message: message,
-      messageId: messageId,
-    }, to);
+  _onComposeAndSendForward = async ({ thread, threadId, message, messageId, to }) => {
+    const { headerMessageId, draft } = await this._composeForward(
+      {
+        thread: thread,
+        threadId: threadId,
+        message: message,
+        messageId: messageId,
+      },
+      to
+    );
     Actions.sendDraft(headerMessageId);
-  }
+  };
 
-  _composeForward = async ({ 
-    thread,
-    threadId,
-    message,
-    messageId,
-    popout,
-  }: IThreadMessageModelOrId & { popout?: boolean }, to?: Contact[]) => {
+  _composeForward = async (
+    {
+      thread,
+      threadId,
+      message,
+      messageId,
+      popout,
+    }: IThreadMessageModelOrId & { popout?: boolean },
+    to?: Contact[]
+  ) => {
     const resolved = await this._modelifyContext({ thread, threadId, message, messageId });
     if (!resolved.message || !resolved.thread) return;
     const draft = await DraftFactory.createDraftForForward(resolved);
     if (to) {
-      draft.to = to
+      draft.to = to;
     }
     return this._finalizeAndPersistNewMessage(draft, { popout });
   };
-  
 
   _modelifyContext({
     thread,
@@ -453,6 +453,7 @@ class DraftStore extends MailspringStore {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,
     } = options;
+    const effectiveDelay = IdentityStoreConfig.cloudServicesEnabled ? delay : 0;
 
     this._draftsSending[headerMessageId] = true;
 
@@ -461,8 +462,8 @@ class DraftStore extends MailspringStore {
       throw new Error(`Cant find send action ${actionKey} `);
     }
 
-    const sendLaterMetadataValue = delay > 0 && {
-      expiration: new Date(Date.now() + delay),
+    const sendLaterMetadataValue = effectiveDelay > 0 && {
+      expiration: new Date(Date.now() + effectiveDelay),
       isUndoSend: true,
       actionKey: actionKey,
     };

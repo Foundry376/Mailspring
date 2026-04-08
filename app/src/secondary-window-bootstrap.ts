@@ -7,9 +7,9 @@
 // #
 // Eventually when `WindowManager::newWindow` gets called, instead of
 // actually spawning a new window, we'll call
-// `MailspringWindow::setLoadSettings` on the window instead. This will replace
+// `PostraWindow::setLoadSettings` on the window instead. This will replace
 // the window options, adjust params as necessary, and then re-load the
-// plugins. Once `MailspringWindow::setLoadSettings` fires, the main AppEnv in
+// plugins. Once `PostraWindow::setLoadSettings` fires, the main AppEnv in
 // the window will be notified via the `load-settings-changed` config
 //
 // Extend the standard promise class a bit

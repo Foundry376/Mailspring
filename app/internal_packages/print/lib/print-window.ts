@@ -32,7 +32,7 @@ export default class PrintWindow {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; frame-src 'none'; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:; object-src none; media-src none; manifest-src none;">
+          <meta http-equiv="Content-Security-Policy" content="default-src * postra: mailspring:; frame-src 'none'; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' postra: mailspring:; img-src * data: postra: mailspring: file:; object-src none; media-src none; manifest-src none;">
           <meta charset="utf-8">
           ${styleTags}
           <link rel="stylesheet" type="text/css" href="${stylesPath}">

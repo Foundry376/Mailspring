@@ -1,10 +1,22 @@
 import _ from 'underscore';
-import { localized, Contact } from 'mailspring-exports';
+import {
+  localized,
+  Contact,
+  ContactGroup,
+  Actions,
+  ChangeContactGroupMembershipTask,
+} from 'mailspring-exports';
 import { Store } from './Store';
 import { exportContactsToFile } from './VCFImportExport';
 import { showGPeopleReadonlyNotice } from './GoogleSupport';
 
-type TemplateItem = { label: string; click: () => void } | { type: 'separator' };
+type ClickItem = {
+  label: string;
+  click?: () => void;
+  enabled?: boolean;
+  submenu?: ClickItem[];
+};
+type TemplateItem = ClickItem | { type: 'separator' };
 
 export class ContactListContextMenu {
   contacts: Contact[];
@@ -37,9 +49,80 @@ export class ContactListContextMenu {
     };
   }
 
+  groupsForSelection(): ContactGroup[] {
+    const accountIds = _.uniq(this.contacts.map(c => c.accountId));
+    if (accountIds.length !== 1) return [];
+    return Store.groups()
+      .filter(g => g.accountId === accountIds[0])
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  addToGroupItem(): TemplateItem | null {
+    const groups = this.groupsForSelection();
+    if (groups.length === 0) return null;
+
+    const submenu: ClickItem[] = groups.map(group => {
+      const contactsToAdd = this.contacts.filter(c => !c.contactGroups.includes(group.id));
+      return {
+        label: group.name,
+        enabled: contactsToAdd.length > 0,
+        click: () => {
+          if (showGPeopleReadonlyNotice(group.accountId)) return;
+          if (contactsToAdd.length === 0) return;
+          Actions.queueTask(
+            ChangeContactGroupMembershipTask.forMoving({
+              direction: 'add',
+              contacts: contactsToAdd,
+              group,
+            })
+          );
+        },
+      };
+    });
+
+    return {
+      label: localized('Add to Group'),
+      submenu,
+    };
+  }
+
+  removeFromGroupItem(): TemplateItem | null {
+    const groups = this.groupsForSelection();
+    if (groups.length === 0) return null;
+
+    const submenu: ClickItem[] = groups.map(group => {
+      const contactsToRemove = this.contacts.filter(c => c.contactGroups.includes(group.id));
+      return {
+        label: group.name,
+        enabled: contactsToRemove.length > 0,
+        click: () => {
+          if (showGPeopleReadonlyNotice(group.accountId)) return;
+          if (contactsToRemove.length === 0) return;
+          Actions.queueTask(
+            ChangeContactGroupMembershipTask.forMoving({
+              direction: 'remove',
+              contacts: contactsToRemove,
+              group,
+            })
+          );
+        },
+      };
+    });
+
+    const hasAnyMembership = submenu.some(item => item.enabled);
+    if (!hasAnyMembership) return null;
+
+    return {
+      label: localized('Remove from Group'),
+      submenu,
+    };
+  }
+
   template(): TemplateItem[] {
     const items: (TemplateItem | null)[] = [
       this.editItem(),
+      this.addToGroupItem(),
+      this.removeFromGroupItem(),
       { type: 'separator' },
       this.exportItem(),
     ];

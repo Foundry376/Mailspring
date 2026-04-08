@@ -169,17 +169,20 @@ export default class ThreadListContextMenu {
 
   trashItem(): TemplateItem | null {
     const perspective = FocusedPerspectiveStore.current();
-    const allowed = perspective.canMoveThreadsTo(this.threads, 'trash');
+    const inTrash = perspective.isTrash();
+    const allowed = inTrash || perspective.canMoveThreadsTo(this.threads, 'trash');
     if (!allowed) {
       return null;
     }
     return {
-      label: localized('Trash'),
+      label: inTrash ? localized('Delete Forever') : localized('Trash'),
       click: () => {
-        const tasks = TaskFactory.tasksForMovingToTrash({
-          source: 'Context Menu: Thread List',
-          threads: this.threads,
-        });
+        const tasks = inTrash
+          ? perspective.tasksForRemovingItems(this.threads, 'Context Menu: Thread List')
+          : TaskFactory.tasksForMovingToTrash({
+              source: 'Context Menu: Thread List',
+              threads: this.threads,
+            });
         Actions.queueTasks(tasks);
       },
     };

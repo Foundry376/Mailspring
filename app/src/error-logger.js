@@ -110,8 +110,8 @@ module.exports = ErrorLogger = (function () {
     require('electron').crashReporter.start({
       productName: 'Postra',
       companyName: 'Postra',
-      submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
-      uploadToServer: true,
+      submitURL: '',
+      uploadToServer: false,
       autoSubmit: true,
       extra: {
         ver: appVersion,

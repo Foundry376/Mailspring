@@ -74,7 +74,7 @@ const RegExpUtils = {
   },
 
   mailspringCommandRegex() {
-    return new RegExp(/mailspring:\S+/i);
+    return new RegExp(/(?:postra|mailspring):\S+/i);
   },
 
   // Test cases: https://regex101.com/r/pD7iS5/4
@@ -112,10 +112,10 @@ const RegExpUtils = {
       '(',
       // This OR block matches any TLD if the URL includes a scheme, and only
       // the top ten TLDs if the scheme is omitted.
-      // YES - https://getmailspring.ai
+      // YES - https://postra.local
       // YES - https://10.2.3.1
-      // YES - getmailspring.com
-      // NO  - getmailspring.ai
+      // YES - postra.local
+      // NO  - postra.invalid
       '(',
       // scheme, ala https:// (mandatory)
       '([A-Za-z]{3,9}:(?:\\/\\/))',
@@ -221,14 +221,14 @@ const RegExpUtils = {
     return /<img\s+[^>]*src="([^"]*)"[^>]*>/g;
   },
 
-  // Regex that matches our link tracking urls, surrounded by quotes
-  // ("link.getmailspring.com...?redirect=")
+  // Regex that matches tracked link urls, surrounded by quotes
+  // ("link.postra.local...?redirect=")
   // Test cases: https://regex101.com/r/rB4fO4/3
   // Returns the following capturing groups
   // 1.The redirect url: the actual url you want to visit by clicking a url
   // that matches this regex
   trackedLinkRegex() {
-    return /["|']https:\/\/link\.getmailspring\.com\/link\/.*?\?.*?redirect=([^&"']*).*?["|']/g;
+    return /["|']https:\/\/link\.postra\.local\/link\/.*?\?.*?redirect=([^&"']*).*?["|']/g;
   },
 
   punctuation({ exclude }: { exclude?: [] } = {}) {

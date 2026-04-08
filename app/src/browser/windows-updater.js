@@ -183,10 +183,10 @@ exports.createRegistryEntries = createRegistryEntries;
 exports.existsSync = () => fs.existsSync(updateDotExe);
 
 // Register the AppUserModelId with a display name so Windows notifications
-// show "Postra" instead of "com.squirrel.mailspring.mailspring"
+// show "Postra" instead of "com.postra.postra"
 // Registry path: HKEY_CURRENT_USER\SOFTWARE\Classes\AppUserModelId\{AUMID}
 function registerAppUserModelId(callback) {
-  const aumid = 'com.squirrel.mailspring.mailspring';
+  const aumid = 'com.postra.postra';
   const displayName = 'Postra';
   const iconPath = path.join(appFolder, 'resources', 'mailspring-square.ico');
 
@@ -231,12 +231,13 @@ exports.registerAppUserModelId = registerAppUserModelId;
 // Windows can display a branded tile. Errors are ignored — these are optional.
 function copyVisualElements() {
   try {
-    const files = ['mailspring-75px.png', 'mailspring-150px.png', 'mailspring.VisualElementsManifest.xml'];
+    const files = [
+      'mailspring-75px.png',
+      'mailspring-150px.png',
+      'mailspring.VisualElementsManifest.xml',
+    ];
     for (const file of files) {
-      fs.copyFileSync(
-        path.join(appFolder, 'resources', file),
-        path.join(rootAppDataFolder, file)
-      );
+      fs.copyFileSync(path.join(appFolder, 'resources', file), path.join(rootAppDataFolder, file));
     }
   } catch (err) {
     // Ignore errors - visual elements are optional
@@ -299,7 +300,7 @@ exports.handleSquirrelInstall = app => {
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
     iconIndex: 0,
     description: 'The best email app for people and teams at work',
-    appUserModelId: 'com.squirrel.mailspring.mailspring',
+    appUserModelId: 'com.postra.postra',
   };
 
   try {
@@ -319,7 +320,7 @@ exports.handleSquirrelInstall = app => {
   }
 
   // Spawn reg.exe to register AUMID (detached - won't block exit)
-  const aumid = 'com.squirrel.mailspring.mailspring';
+  const aumid = 'com.postra.postra';
   const regKey = `HKEY_CURRENT_USER\\SOFTWARE\\Classes\\AppUserModelId\\${aumid}`;
   let regPath = 'reg.exe';
   if (process.env.SystemRoot) {

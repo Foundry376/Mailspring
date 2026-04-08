@@ -1,12 +1,12 @@
-# Community Plugins for Mailspring
+# Community Plugins for Postra
 
-This document lists known third-party plugins for Mailspring found on GitHub.
+This document lists known third-party plugins for Postra found on GitHub.
 
 ## Official Resources
 
 | Repository | Description |
 |------------|-------------|
-| [Foundry376/Mailspring-Plugin-Starter](https://github.com/Foundry376/Mailspring-Plugin-Starter) | Official plugin template for creating your own plugins |
+| [fcools/postra-mail-Plugin-Starter](https://github.com/fcools/postra-mail-Plugin-Starter) | Official plugin template for creating your own plugins |
 
 ## Functional Plugins
 
@@ -14,7 +14,7 @@ This document lists known third-party plugins for Mailspring found on GitHub.
 
 | Repository | Description | Stars |
 |------------|-------------|-------|
-| [Striffly/mailspring-avatars](https://github.com/Striffly/mailspring-avatars) | Adds avatars to contacts in Mailspring | ⭐76 |
+| [Striffly/mailspring-avatars](https://github.com/Striffly/mailspring-avatars) | Adds avatars to contacts in Postra | ⭐76 |
 | [bnesimsysadmin/AI-assistant-mailspring-plugin](https://github.com/bnesimsysadmin/AI-assistant-mailspring-plugin) | AI assistant for composing emails | - |
 | [smartium/Mailspring-Plugin](https://github.com/smartium/Mailspring-Plugin) | Community plugin | - |
 
@@ -54,11 +54,11 @@ This document lists known third-party plugins for Mailspring found on GitHub.
 
 ## Alternative Backends & Forks
 
-These projects modify or replace Mailspring's backend services:
+These projects modify or replace Postra's backend services:
 
 | Repository | Description | Stars |
 |------------|-------------|-------|
-| [1RandomDev/mailspring-api](https://github.com/1RandomDev/mailspring-api) | Self-hosted reimplementation of the Mailspring Sync backend | ⭐11 |
+| [1RandomDev/mailspring-api](https://github.com/1RandomDev/mailspring-api) | Self-hosted reimplementation of the Postra sync backend | ⭐11 |
 | [notpushkin/Mailspring-Libre](https://github.com/notpushkin/Mailspring-Libre) | Libre build with no telemetry (archived) | - |
 | [algv/Mailspring-Libre](https://github.com/algv/Mailspring-Libre) | Fork of Mailspring-Libre | - |
 | [arthurzenika/Mailspring-Libre](https://github.com/arthurzenika/Mailspring-Libre) | Fork of Mailspring-Libre | - |
@@ -72,15 +72,15 @@ These projects modify or replace Mailspring's backend services:
 ## Creating Your Own Plugin
 
 To create your own plugin, see:
-- [Mailspring-Plugin-Starter](https://github.com/Foundry376/Mailspring-Plugin-Starter) - Official template
+- [Postra-Plugin-Starter](https://github.com/fcools/postra-mail-Plugin-Starter) - Official template
 - [Creating Composer Plugins](./creating-composer-plugins.md) - Guide in this repo
 - Built-in plugins in `app/internal_packages/` for reference (e.g., `composer-templates`, `phishing-detection`)
 
 ### Plugin Installation
 
 Plugins should be copied or symlinked to:
-- **macOS**: `~/Library/Application Support/Mailspring/packages/`
-- **Linux**: `~/.config/Mailspring/packages/`
-- **Windows**: `%APPDATA%/Mailspring/packages/`
+- **macOS**: `~/Library/Application Support/Postra/packages/`
+- **Linux**: `~/.config/Postra/packages/`
+- **Windows**: `%APPDATA%/Postra/packages/`
 
-You can find this directory by going to **Developer > Show Mailsync Logs** in Mailspring.
+You can find this directory by going to **Developer > Show Mailsync Logs** in Postra.

@@ -63,7 +63,7 @@ class DraftFactory {
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: `${crypto.randomUUID().toUpperCase()}@getmailspring.com`,
+      headerMessageId: `${crypto.randomUUID().toUpperCase()}@postra.local`,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,
@@ -275,7 +275,7 @@ class DraftFactory {
     }
 
     return this.createDraft({
-      from: [new Contact({ email: account.emailAddress, name: `${account.name} via Mailspring` })],
+      from: [new Contact({ email: account.emailAddress, name: `${account.name} via Postra` })],
       to: [account.defaultMe()],
       cc: [],
       pristine: false,

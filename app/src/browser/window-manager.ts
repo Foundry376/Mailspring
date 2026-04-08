@@ -2,7 +2,7 @@ import _ from 'underscore';
 import { app, BrowserWindow, screen } from 'electron';
 import WindowLauncher from './window-launcher';
 import { localized } from '../intl';
-import MailspringWindow from './mailspring-window';
+import PostraWindow from './postra-window';
 
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
@@ -18,7 +18,7 @@ export default class WindowManager {
   static CONTACTS_WINDOW = CONTACTS_WINDOW;
 
   initializeInBackground: boolean;
-  _windows: { [key: string]: MailspringWindow } = {};
+  _windows: { [key: string]: PostraWindow } = {};
   windowLauncher: WindowLauncher;
 
   constructor({
@@ -251,6 +251,7 @@ export default class WindowManager {
       width: 900, // Gets changed based on previous settings
       height: 600, // Gets changed based on previous settings
       initializeInBackground: this.initializeInBackground,
+      startupMaximized: true,
     };
 
     coreWinOpts[WindowManager.ONBOARDING_WINDOW] = {

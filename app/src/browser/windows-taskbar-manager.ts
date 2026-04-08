@@ -22,7 +22,7 @@ class WindowsTaskbarManager {
    * Set up the Windows Jump List with quick actions.
    * Jump Lists appear when users right-click the app's taskbar icon.
    *
-   * Uses mailto: and mailspring: protocol URLs so that clicks are routed
+   * Uses mailto: and postra: protocol URLs so that clicks are routed
    * through the existing protocol handler in application.ts, which works
    * for both first launch and second-instance scenarios.
    */
@@ -46,7 +46,7 @@ class WindowsTaskbarManager {
               title: localized('Inbox'),
               description: localized('Open your inbox'),
               program: process.execPath,
-              args: 'mailspring://open-inbox',
+              args: 'postra://open-inbox',
               iconPath: process.execPath,
               iconIndex: 0,
             },
@@ -58,7 +58,7 @@ class WindowsTaskbarManager {
               title: localized('Preferences'),
               description: localized('Open Postra preferences'),
               program: process.execPath,
-              args: 'mailspring://open-preferences',
+              args: 'postra://open-preferences',
               iconPath: process.execPath,
               iconIndex: 0,
             },

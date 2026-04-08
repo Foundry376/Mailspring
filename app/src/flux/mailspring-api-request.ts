@@ -29,22 +29,14 @@ export const CanceledErrorCodes = [-123, 'ECONNABORTED'];
 export const SampleTemporaryErrorCode = 504;
 
 let IdentityStore = null;
+const LOCAL_ONLY_ERROR = 'Cloud API is disabled in local-only mode.';
 
 // server option
 
 export function rootURLForServer(server: 'identity') {
-  const env = AppEnv.config.get('env');
-
-  if (!['development', 'staging', 'production'].includes(env)) {
-    throw new Error(`rootURLForServer: ${env} is not a valid environment.`);
-  }
-
   if (server === 'identity') {
-    return {
-      development: 'http://localhost:5101',
-      staging: 'https://id-staging.getmailspring.com',
-      production: 'https://id.getmailspring.com',
-    }[env];
+    // Local-only build: never resolve cloud endpoints.
+    return 'http://127.0.0.1:0';
   }
   throw new Error('rootURLForServer: You must provide a valid `server` value');
 }
@@ -56,32 +48,15 @@ export async function postStaticAsset({
   filename: string;
   blob: string | Blob;
 }) {
-  const body = new FormData();
-  body.set('filename', filename);
-  if (typeof blob === 'string') {
-    body.set('file', new Blob([blob], { type: 'text/plain' }), filename);
-  } else {
-    body.set('file', blob, filename);
-  }
-  const resp = await makeRequest({
-    server: 'identity',
-    method: 'POST',
-    path: `/api/save-public-asset`,
-    body: body,
-  });
-  return resp.link;
+  const error = new APIError(LOCAL_ONLY_ERROR);
+  error.statusCode = 0;
+  throw error;
 }
 
 export async function postStaticPage({ html, key }: { html: string; key: string }) {
-  const json = await makeRequest({
-    server: 'identity',
-    method: 'POST',
-    path: '/api/share-static-page',
-    json: true,
-    body: { key, html },
-    timeout: 1500,
-  });
-  return json.link;
+  const error = new APIError(LOCAL_ONLY_ERROR);
+  error.statusCode = 0;
+  throw error;
 }
 
 export async function makeRequest({
@@ -97,6 +72,10 @@ export async function makeRequest({
   timeout?: number;
   json?: true;
 }) {
+  const localOnlyError = new APIError(LOCAL_ONLY_ERROR);
+  localOnlyError.statusCode = 0;
+  throw localOnlyError;
+
   // for some reason when `fetch` completes, the stack trace has been lost.
   // In case the request failsm capture the stack now.
   const root = rootURLForServer(server);
@@ -105,7 +84,7 @@ export async function makeRequest({
   IdentityStore = IdentityStore || require('./stores/identity-store').IdentityStore;
   const identity = IdentityStore.identity();
   if (!identity) {
-    throw new Error('makeRequest: A Mailspring identity is required.');
+    throw new Error('makeRequest: A Postra identity is required.');
   }
 
   const init: RequestInit = { ...rest };

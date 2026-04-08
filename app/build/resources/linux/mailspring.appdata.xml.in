@@ -6,34 +6,34 @@
   <summary><%= description %></summary>
   <description>
     <p>
-      Mailspring is a new version of Nylas Mail maintained by one of the original authors. It's
+      Postra is a new version of Nylas Mail maintained by one of the original authors. It's
       faster, leaner, and shipping today! It replaces the JavaScript sync code in Nylas Mail with
       a new C++ sync engine based on Mailcore2. It uses roughly half the RAM and CPU of Nylas Mail
       and idles with almost zero "CPU Wakes", which translates to great battery life. It also has
       an entirely revamped composer and other great new features.
     </p>
     <p>
-      Mailspring comes packed with powerful features like Unified Inbox, Snooze, Send Later, Mail
-      Rules, Templates and more. Mailspring Pro, which you can unlock with a monthly subscription,
+      Postra comes packed with powerful features like Unified Inbox, Snooze, Send Later, Mail
+      Rules, Templates and more. Postra Pro, which you can unlock with a monthly subscription,
       adds even more features for people who send a ton of email: link tracking, read receipts,
       mailbox analytics, contact and company profiles. All of these features run in the client -
-      Mailspring does not send your email credentials to the cloud.
+      Postra does not send your email credentials to the cloud.
     </p>
   </description>
   <url type="homepage">https://getmailspring.com/</url>
   <url type="bugtracker">https://community.getmailspring.com/c/bugs</url>
   <url type="help">http://support.getmailspring.com/</url>
-  <url type="vcs-browser">https://github.com/Foundry376/Mailspring</url>
+  <url type="vcs-browser">https://github.com/fcools/postra-mail</url>
   <launchable type="desktop-id"><%= productName %>.desktop</launchable>
 
   <developer id="com.getmailspring">
-    <name>Mailspring</name>
+    <name>Postra</name>
   </developer>
   <project_license>GPL-3.0+</project_license>
 
   <screenshots>
     <screenshot type="default">
-      <caption>Mailspring Hero</caption>
+      <caption>Postra Hero</caption>
       <image type="source">https://getmailspring.com/static/img/hero_graphic_linux@2x.png</image>
     </screenshot>
   </screenshots>

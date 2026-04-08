@@ -521,7 +521,7 @@ Changes:
 
 - Fix `[Message Clipped - Show All]` link (Thanks @glenn2223! #2426)
 
-- The message participant list is easier to interact with, thanks to several adjustments by @glenn2223! See https://github.com/Foundry376/Mailspring/pull/2425 for more details.
+- The message participant list is easier to interact with, thanks to several adjustments by @glenn2223! See https://github.com/fcools/postra-mail/pull/2425 for more details.
 
 - The "Recent Emails" content in Mailspring's sidebar now displays the weekday and time (eg: "Mon, 10:15") and shows 5 days of emails rather than 2.
 
@@ -813,7 +813,7 @@ Thanks to everyone for reporting these issues and contributing the information w
 
 - We no longer use `is-online` and DNS checks to verify that the app is online. Instead, Mailspring checks that it can reach your actual IMAP / SMTP mail servers. #1357, #1731, #1123
 
-- Mailspring now supports plaintext mail display and composition! It can be enabled via a new setting, or for a single draft by holding Alt/Option when creating it. Most composer features are disabled in ths mode - for more information, check out https://github.com/Foundry376/Mailspring/issues/52#issuecomment-588627578.
+- Mailspring now supports plaintext mail display and composition! It can be enabled via a new setting, or for a single draft by holding Alt/Option when creating it. Most composer features are disabled in ths mode - for more information, check out https://github.com/fcools/postra-mail/issues/52#issuecomment-588627578.
 
 **Fixes:**
 
@@ -913,7 +913,7 @@ Developer:
 
 - On Debian Linux, we suggest rather than require gnomekeyring #998
 
-- The (broken) plugin template has been removed - the starter for a Mailspring plugin is now located at https://github.com/Foundry376/Mailspring-Plugin-Starter #1645
+- The (broken) plugin template has been removed - the starter for a Mailspring plugin is now located at https://github.com/fcools/postra-mail-Plugin-Starter #1645
 
 ### 1.6.3 (7/1/2019)
 
@@ -1223,7 +1223,7 @@ Features:
 
 - Mailspring now supports localization! The app detects your system locale and all text, menus, buttons, etc. in the app appear in your language. Mailspring's core strings has been manually localized in 38 languages and the rest (mostly error messages and text describing features) have been automatically translated.
 
-  - We'd love your help improving these localizations! A new "Developer > Toggle Localizer Tools" menu option in Mailspring allows you to submit better translations right within the app. You can also edit the translation files directly and submit a pull request. See the new [localizer guide here](https://github.com/Foundry376/Mailspring/blob/master/LOCALIZATION.md).
+  - We'd love your help improving these localizations! A new "Developer > Toggle Localizer Tools" menu option in Mailspring allows you to submit better translations right within the app. You can also edit the translation files directly and submit a pull request. See the new [localizer guide here](https://github.com/fcools/postra-mail/blob/master/LOCALIZATION.md).
 
   - If you use a RTL language, Mailspring's entire UI now appears right-justified, including the sidebar, preference panels, scrollbars, and more. If you use Mailspring in Arabic or Hebrew and notice issues in the right-to-left presentation, please file issues or submit pull requests.
 

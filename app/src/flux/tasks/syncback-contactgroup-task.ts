@@ -22,7 +22,7 @@ export class SyncbackContactGroupTask extends Task {
   static forCreating(accountId: string, name: string) {
     return new SyncbackContactGroupTask({
       accountId: accountId,
-      group: new ContactGroup({ name }),
+      group: new ContactGroup({ accountId, name }),
     });
   }
 

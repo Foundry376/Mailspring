@@ -9,11 +9,12 @@ import KeyManager from '../../key-manager';
 import { makeRequest, rootURLForServer } from '../mailspring-api-request';
 import { Disposable } from 'event-kit';
 
-// Note this key name is used when migrating to Mailspring Pro accounts from old N1.
-const PASSWORD_NAME = 'Mailspring Account';
+// Keep a legacy alias so existing keychain entries are migrated seamlessly.
+const PASSWORD_NAME = 'Postra Account';
+const LEGACY_PASSWORD_NAMES = ['Mailspring Account'];
 
 /**
- * When false: no Postra ID onboarding, no polling id.getmailspring.com, fetchIdentity is local-only.
+ * When false: no Postra ID onboarding, no remote polling, fetchIdentity is local-only.
  * Set true only if you restore cloud billing / identity integration.
  */
 export const IdentityStoreConfig = {
@@ -119,6 +120,9 @@ class _IdentityStore extends MailspringStore {
     if (!identity) {
       this._identity = null;
       await KeyManager.deletePassword(PASSWORD_NAME);
+      for (const legacyName of LEGACY_PASSWORD_NAMES) {
+        await KeyManager.deletePassword(legacyName);
+      }
       AppEnv.config.set('identity', null);
       return;
     }
@@ -151,9 +155,19 @@ class _IdentityStore extends MailspringStore {
    */
   _onIdentityChanged = async () => {
     const value = AppEnv.config.get('identity');
-    this._identity = value
-      ? { ...value, token: await KeyManager.getPassword(PASSWORD_NAME) }
-      : null;
+    let token = await KeyManager.getPassword(PASSWORD_NAME);
+    if (!token) {
+      for (const legacyName of LEGACY_PASSWORD_NAMES) {
+        token = await KeyManager.getPassword(legacyName);
+        if (token) {
+          // Migrate legacy keychain entries to the new Postra key.
+          await KeyManager.replacePassword(PASSWORD_NAME, token);
+          await KeyManager.deletePassword(legacyName);
+          break;
+        }
+      }
+    }
+    this._identity = value ? { ...value, token } : null;
 
     if (this._identity && !this._identity.token) {
       const message = `Your Postra ID password could not be loaded from your keychain. Please visit Preferences > Subscription and click "Setup Postra ID" to sign in to your Postra account again.\n\nYour Postra ID email address is ${this._identity.emailAddress}.`;
@@ -189,6 +203,10 @@ class _IdentityStore extends MailspringStore {
     path: string,
     { source, campaign, content }: { source?: string; campaign?: string; content?: string } = {}
   ) {
+    if (!IdentityStoreConfig.cloudServicesEnabled) {
+      return 'about:blank';
+    }
+
     if (!this._identity) {
       return Promise.reject(new Error('fetchSingleSignOnURL: no identity set.'));
     }

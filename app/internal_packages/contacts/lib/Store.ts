@@ -126,13 +126,25 @@ class ContactsWindowStore extends MailspringStore {
     const perspective = this._perspective;
     let filtered = [...this._contacts];
 
-    if (perspective.type !== 'unified') {
+    if (perspective.type !== 'unified' && 'accountId' in perspective) {
       filtered = filtered.filter(c => {
         if (c.accountId !== perspective.accountId) return false;
         if (c.source !== 'mail' && perspective.type === 'found-in-mail') return false;
         if (c.source === 'mail' && perspective.type !== 'found-in-mail') return false;
         return true;
       });
+    }
+    if (perspective.type === 'local-group') {
+      const localGroupMembers = AppEnv.config.get('core.contacts.localGroupMembers') || {};
+      const memberIds = new Set(localGroupMembers[perspective.groupId] || []);
+      filtered = filtered.filter(c => memberIds.has(c.id));
+    }
+    if (perspective.type === 'local-all') {
+      const localGroupMembers = AppEnv.config.get('core.contacts.localGroupMembers') || {};
+      const memberIds = new Set(
+        Object.values(localGroupMembers).reduce((all, ids: string[]) => all.concat(ids || []), [])
+      );
+      filtered = filtered.filter(c => memberIds.has(c.id));
     }
     if (this._search) {
       const isearch = this._search.toLowerCase();
@@ -155,6 +167,17 @@ export type ContactsPerspectiveForGroup = {
   type: 'group';
 };
 
+export type ContactsPerspectiveForLocalGroup = {
+  label: string;
+  groupId: string;
+  type: 'local-group';
+};
+
+export type ContactsPerspectiveForLocalAll = {
+  label: string;
+  type: 'local-all';
+};
+
 export type ContactsPerspective =
   | { type: 'unified' }
   | {
@@ -167,6 +190,8 @@ export type ContactsPerspective =
       accountId: string;
       type: 'found-in-mail';
     }
-  | ContactsPerspectiveForGroup;
+  | ContactsPerspectiveForGroup
+  | ContactsPerspectiveForLocalGroup
+  | ContactsPerspectiveForLocalAll;
 
 export const Store = new ContactsWindowStore();

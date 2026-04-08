@@ -34,7 +34,7 @@ export class DefaultClientHelperWindows implements DCH {
               callback(err1 || err2);
               return;
             }
-            callback(output.includes('Postra') || output.includes('Mailspring'));
+            callback(output.includes('Postra'));
           }
         );
       }
@@ -101,7 +101,7 @@ export class DefaultClientHelperLinux implements DCH {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
     exec(`xdg-mime query default x-scheme-handler/${scheme}`, (err, stdout) =>
-      err ? callback(err) : callback(stdout.trim() === 'Mailspring.desktop')
+      err ? callback(err) : callback(stdout.trim() === 'Postra.desktop')
     );
   }
 
@@ -111,7 +111,7 @@ export class DefaultClientHelperLinux implements DCH {
     );
   }
   registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    exec(`xdg-mime default Mailspring.desktop x-scheme-handler/${scheme}`, err =>
+    exec(`xdg-mime default Postra.desktop x-scheme-handler/${scheme}`, err =>
       err ? callback(err) : callback(null)
     );
   }

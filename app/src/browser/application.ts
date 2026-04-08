@@ -151,8 +151,10 @@ export default class Application extends EventEmitter {
 
     if (process.platform === 'linux') {
       const helper = new DefaultClientHelper();
+      helper.registerForURLScheme('postra');
       helper.registerForURLScheme('mailspring');
     } else {
+      app.setAsDefaultProtocolClient('postra');
       app.setAsDefaultProtocolClient('mailspring');
     }
   }
@@ -351,8 +353,8 @@ export default class Application extends EventEmitter {
       app.quit();
     });
 
-    this.on('application:inspect', ({ x, y, MailspringWindow }) => {
-      const win = MailspringWindow || this.windowManager.focusedWindow();
+    this.on('application:inspect', ({ x, y, PostraWindow: postraWindow }) => {
+      const win = postraWindow || this.windowManager.focusedWindow();
       if (!win) {
         return;
       }
@@ -409,18 +411,30 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-help', () => {
-      const helpUrl = 'https://community.getmailspring.com/docs';
-      shell.openExternal(helpUrl);
+      shell.openPath(
+        path.join(this.resourcePath, 'static', 'all_licenses.html').replace(
+          'app.asar',
+          'app.asar.unpacked'
+        )
+      );
     });
 
     this.on('application:view-getting-started', () => {
-      const helpUrl = 'https://community.getmailspring.com/pub/quick-start-guide';
-      shell.openExternal(helpUrl);
+      shell.openPath(
+        path.join(this.resourcePath, 'static', 'all_licenses.html').replace(
+          'app.asar',
+          'app.asar.unpacked'
+        )
+      );
     });
 
     this.on('application:view-community', () => {
-      const helpUrl = 'https://community.getmailspring.com/';
-      shell.openExternal(helpUrl);
+      shell.openPath(
+        path.join(this.resourcePath, 'static', 'all_licenses.html').replace(
+          'app.asar',
+          'app.asar.unpacked'
+        )
+      );
     });
 
     this.on('application:open-preferences', () => {
@@ -810,16 +824,16 @@ export default class Application extends EventEmitter {
   // Public: Executes the given command on the given window.
   //
   // command - The string representing the command.
-  // MailspringWindow - The {MailspringWindow} to send the command to.
+  // postraWindow - The {PostraWindow} to send the command to.
   // args - The optional arguments to pass along.
-  sendCommandToWindow = (command, MailspringWindow, ...args) => {
+  sendCommandToWindow = (command, postraWindow, ...args) => {
     console.log('sendCommandToWindow');
     console.log(command);
     if (this.emit(command, ...args)) {
       return;
     }
-    if (MailspringWindow) {
-      MailspringWindow.sendCommand(command, ...args);
+    if (postraWindow) {
+      postraWindow.sendCommand(command, ...args);
     } else {
       this.sendCommandToFirstResponder(command);
     }
@@ -861,7 +875,7 @@ export default class Application extends EventEmitter {
 
     if (parts.protocol === 'mailto:') {
       main.sendMessage('mailto', urlToOpen);
-    } else if (parts.protocol === 'mailspring:') {
+    } else if (parts.protocol === 'postra:' || parts.protocol === 'mailspring:') {
       // Handle notification action URLs from Windows toast notifications
       // These URLs are triggered when users click buttons on Windows toast notifications
       // since Windows toast XML with activationType="background" doesn't work reliably with Electron
@@ -891,7 +905,7 @@ export default class Application extends EventEmitter {
     }
   }
 
-  // Opens up a new {MailspringWindow} to run specs within.
+  // Opens up a new {PostraWindow} to run specs within.
   //
   // options -
   //   :exitWhenDone - A Boolean that, if true, will close the window upon

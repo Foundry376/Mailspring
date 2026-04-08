@@ -24,10 +24,10 @@ const setupConfigDir = args => {
   if (args.specMode) {
     dirname = 'Postra-spec';
   }
-  
+
   // Check if a custom config dir was provided via --config-dir-path
   let configDirPath = args.configDirPath || path.join(app.getPath('appData'), dirname);
-  
+
   if (process.platform === 'linux' && process.env.SNAP) {
     // for linux snap, use the sandbox directory that is persisted between snap revisions
     configDirPath = args.configDirPath || process.env.SNAP_USER_COMMON;
@@ -57,6 +57,42 @@ const setupErrorLogger = (args = {}) => {
   process.on('uncaughtException', errorLogger.reportError);
   process.on('unhandledRejection', errorLogger.reportError);
   return errorLogger;
+};
+
+const ensureLinuxDesktopEntry = args => {
+  if (process.platform !== 'linux') {
+    return;
+  }
+
+  try {
+    const desktopDirPath = path.join(app.getPath('home'), '.local', 'share', 'applications');
+    fs.mkdirSync(desktopDirPath, { recursive: true });
+
+    const iconCandidates = [
+      path.resolve(args.resourcePath, '..', 'assets', 'logo.png'),
+      path.resolve(process.cwd(), 'assets', 'logo.png'),
+      path.resolve(args.resourcePath, 'static', 'images', 'postra.png'),
+      '/usr/share/pixmaps/postra.png',
+    ];
+    const iconPath = iconCandidates.find(p => fs.existsSync(p));
+    if (!iconPath) {
+      return;
+    }
+
+    const desktopEntry = [
+      '[Desktop Entry]',
+      'Type=Application',
+      'Name=Postra',
+      `Exec="${process.execPath}" %U`,
+      `Icon=${iconPath}`,
+      'StartupWMClass=Postra',
+      'NoDisplay=true',
+    ].join('\n');
+
+    fs.writeFileSync(path.join(desktopDirPath, 'postra.desktop'), `${desktopEntry}\n`, 'utf8');
+  } catch (err) {
+    console.warn('Unable to write local postra.desktop file for icon mapping', err);
+  }
 };
 
 const declareOptions = argv => {
@@ -150,7 +186,7 @@ const parseCommandLine = argv => {
   let mailtoLink;
 
   // On Windows and Linux, mailto and file opens are passed in argv. Go through
-  // the items and pluck out things that look like mailto:, mailspring:, file paths
+  // the items and pluck out things that look like mailto:, postra:, mailspring:, file paths
   let ignoreNext = false;
   // args._ is all of the non-hyphenated options.
   for (const arg of args._) {
@@ -166,7 +202,7 @@ const parseCommandLine = argv => {
     if (path.resolve(arg) === resourcePath) {
       continue;
     }
-    if (arg.startsWith('mailto:') || arg.startsWith('mailspring:')) {
+    if (arg.startsWith('mailto:') || arg.startsWith('postra:') || arg.startsWith('mailspring:')) {
       // Handle nautilus-sendto links correctly
       mailtoLink = extractMailtoLink(arg);
       urlsToOpen = urlsToOpen.concat(mailtoLink.urlsToOpen);
@@ -287,7 +323,7 @@ const handleStartupEventWithSquirrel = () => {
 };
 
 const start = () => {
-  app.setAppUserModelId('com.squirrel.mailspring.mailspring');
+  app.setAppUserModelId('com.postra.postra');
 
   // Set the app name explicitly for Linux to ensure the system tray icon
   // gets a unique ID. Without this, all Electron apps share the same
@@ -295,6 +331,8 @@ const start = () => {
   // to be synchronized. See: https://github.com/electron/electron/issues/40936
   if (process.platform === 'linux') {
     app.setName('Postra');
+    // Help Linux desktops map this window to the Postra desktop entry/icon.
+    app.setDesktopName('postra');
   }
 
   if (handleStartupEventWithSquirrel()) {
@@ -302,7 +340,7 @@ const start = () => {
   }
 
   // On Windows, register the AppUserModelId with a display name so notifications
-  // show "Postra" instead of "com.squirrel.mailspring.mailspring".
+  // show "Postra" instead of "com.postra.postra".
   // Also register mailto: protocol handler so Windows knows Postra can handle
   // mailto: links (this doesn't make it the default, just registers it as an option).
   // This handles existing installations and ensures registration completes even if
@@ -328,6 +366,7 @@ const start = () => {
   app.commandLine.appendSwitch('js-flags', '--harmony');
 
   const options = parseCommandLine(process.argv);
+  ensureLinuxDesktopEntry(options);
   global.errorLogger = setupErrorLogger(options);
   const configDirPath = setupConfigDir(options);
   options.configDirPath = configDirPath;
@@ -398,7 +437,7 @@ const start = () => {
         responseHeaders: {
           ...details.responseHeaders,
           'Content-Security-Policy': [
-            "default-src * mailspring:; script-src 'self' 'unsafe-inline' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:; object-src none; media-src mailspring:; manifest-src none;",
+            "default-src * postra: mailspring:; script-src 'self' 'unsafe-inline' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' postra: mailspring:; img-src * data: postra: mailspring: file:; object-src none; media-src postra: mailspring:; manifest-src none;",
           ],
         },
       });

@@ -2,6 +2,7 @@ import { ChangeFolderTask } from './change-folder-task';
 import { ChangeLabelsTask } from './change-labels-task';
 import { ChangeUnreadTask } from './change-unread-task';
 import { ChangeStarredTask } from './change-starred-task';
+import { DestroyModelTask } from './destroy-model-task';
 import CategoryStore from '../stores/category-store';
 import { Thread } from '../models/thread';
 import { Label } from '../models/label';
@@ -82,6 +83,20 @@ export const TaskFactory = {
       const trash = CategoryStore.getTrashCategory(accountId) as any;
       if (!trash) return null;
       return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
+    });
+  },
+
+  tasksForPermanentDeletion({ threads }: { threads: Thread[] }) {
+    return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      return accountThreads.map(
+        thread =>
+          new DestroyModelTask({
+            modelId: thread.id,
+            modelName: thread.constructor.name,
+            endpoint: '/threads',
+            accountId,
+          })
+      );
     });
   },
 

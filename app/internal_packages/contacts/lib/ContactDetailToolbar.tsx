@@ -84,7 +84,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
   render() {
     const { perspective, editing } = this.props;
     const actionSet = this.actionSet();
-    const editable = actionSet.length === 1 && actionSet[0].source !== 'mail';
+    const editable = actionSet.length === 1;
 
     if (editing) {
       return <span />;

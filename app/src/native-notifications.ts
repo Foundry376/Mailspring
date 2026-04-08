@@ -9,12 +9,13 @@ import fs from 'fs';
 import os from 'os';
 
 const platform = process.platform;
-const DEFAULT_ICON = path.resolve(
-  AppEnv.getLoadSettings().resourcePath,
-  'static',
-  'images',
-  'mailspring.png'
-);
+const DEFAULT_ICON_CANDIDATES = [
+  path.resolve(AppEnv.getLoadSettings().resourcePath, '..', 'assets', 'logo.png'),
+  path.resolve(process.cwd(), 'assets', 'logo.png'),
+  path.resolve('/usr', 'share', 'pixmaps', 'postra.png'),
+  path.resolve(AppEnv.getLoadSettings().resourcePath, 'static', 'images', 'postra.png'),
+];
+const DEFAULT_ICON = DEFAULT_ICON_CANDIDATES.find(iconPath => fs.existsSync(iconPath));
 
 type INotificationCallback = (args: {
   response: string | null;
@@ -128,10 +129,10 @@ class NativeNotifications {
   }
 
   /**
-   * Get notification icon. Only works on linux, otherwise the Mailspring default icon wil be read
+   * Get notification icon. Only works on linux, otherwise the Postra default icon will be read
    * from resources.
    *
-   * Reading the icon name from the desktop file of Mailspring. If the icon is a name, reads the
+   * Reading the icon name from the desktop file of Postra. If the icon is a name, reads the
    * icon theme directory for this icon. As the notification only works with PNG files, SVG files
    * must be converted to PNG
    *
@@ -144,7 +145,7 @@ class NativeNotifications {
         os.homedir() + '/.local/share/applications/',
         '/usr/share/applications/',
       ];
-      const desktopFileNames = ['mailspring.desktop', 'Mailspring.desktop'];
+      const desktopFileNames = ['Postra.desktop', 'postra.desktop'];
       // check the applications directories, the user directory has a higher priority
       for (const baseDir of desktopBaseDirs) {
         // check multiple spellings
@@ -246,7 +247,7 @@ class NativeNotifications {
     // Note: Windows supports up to 5 buttons total (including reply button)
     const actionsContent = (options.actions || [])
       .map((action, i) => {
-        const actionUrl = `mailspring://notification-action?${baseParams}&actionIndex=${i}`;
+        const actionUrl = `postra://notification-action?${baseParams}&actionIndex=${i}`;
         return `    <action content="${this.escapeXml(action.text)}" arguments="${this.escapeXml(
           actionUrl
         )}" activationType="protocol"/>`;
@@ -259,7 +260,7 @@ class NativeNotifications {
     // - hint-maxLines="1" prevents sender name from wrapping
     // - group attribute enables notification stacking per thread
     // - activationType="protocol" allows handling when app is closed
-    const clickUrl = `mailspring://notification-click?${baseParams}`;
+    const clickUrl = `postra://notification-click?${baseParams}`;
     return `<toast launch="${this.escapeXml(
       clickUrl
     )}" activationType="protocol" group="thread-${options.threadId || 'default'}">
@@ -296,7 +297,7 @@ ${actionsXml}
       messageId: '',
     }).toString();
 
-    const clickUrl = `mailspring://notification-click?${baseParams}`;
+    const clickUrl = `postra://notification-click?${baseParams}`;
 
     return `<toast launch="${this.escapeXml(clickUrl)}" activationType="protocol">
   <visual>

@@ -14,7 +14,7 @@ export default function moveToApplications() {
     cancelId: 1,
     title: localized('Move to Applications?'),
     message: localized(
-      'Thanks for downloading Mailspring! Would you like to move it to your Applications folder?'
+      'Thanks for downloading Postra! Would you like to move it to your Applications folder?'
     ),
   });
 

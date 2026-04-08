@@ -116,16 +116,14 @@ class KeyManager {
   _reportFatalError(err: Error) {
     const clickedButton = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'error',
-      buttons: [localized('Postra Help'), localized('Quit')],
+      buttons: [localized('OK'), localized('Quit')],
       message: localized(
-        `Postra could not store your password securely. For more information, visit %@`,
-        'https://community.getmailspring.com/t/password-management-error/199'
+        `Postra could not store your password securely. Local-only mode is enabled, so no online troubleshooting links are available.`
       ),
     });
 
     if (clickedButton == 0) {
-      const shell = require('electron').shell;
-      shell.openExternal('https://community.getmailspring.com/t/password-management-error/199');
+      return;
     }
 
     // tell the app to exit and rethrow the error to ensure code relying

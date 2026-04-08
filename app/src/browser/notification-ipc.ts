@@ -30,6 +30,7 @@ const activeNotifications = new Map<string, { notification: Notification; thread
  *
  * Allowed paths:
  * - Application's static resources (resourcePath/static/)
+ * - Application assets directories used for bundled/dev icons (../assets, cwd/assets)
  * - System icon directories on Linux (/usr/share/icons/, ~/.local/share/icons/)
  * - System temp directory (for converted PNG icons on Linux)
  *
@@ -43,12 +44,21 @@ const validateIconPath = (iconPath: string): string | null => {
   const resolvedIcon = path.resolve(iconPath);
   const platform = process.platform;
 
-  // Always allow paths within the application's static resources
+  // Always allow paths within application-owned resource directories.
   const resourcePath = global.application?.resourcePath;
+  const appAllowedPaths: string[] = [];
+
   if (resourcePath) {
-    const staticPath = path.resolve(resourcePath, 'static');
-    // Append path.sep to prevent prefix-matching attacks (e.g., /static-evil/)
-    if (resolvedIcon.startsWith(staticPath + path.sep)) {
+    appAllowedPaths.push(path.resolve(resourcePath, 'static'));
+    appAllowedPaths.push(path.resolve(resourcePath, '..', 'assets'));
+  }
+
+  // In dev mode notifications can use icons from the local repository root.
+  appAllowedPaths.push(path.resolve(process.cwd(), 'assets'));
+
+  for (const allowedPath of appAllowedPaths) {
+    // Append path.sep to prevent prefix-matching attacks (e.g., /assets-evil/)
+    if (resolvedIcon.startsWith(allowedPath + path.sep)) {
       return resolvedIcon;
     }
   }

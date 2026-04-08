@@ -121,7 +121,7 @@ module.exports = grunt => {
       protocols: [
         {
           name: 'Postra Protocol',
-          schemes: ['mailspring'],
+          schemes: ['postra', 'mailspring'],
         },
         {
           name: 'Mailto Protocol',
@@ -150,8 +150,7 @@ module.exports = grunt => {
       name: {
         darwin: 'Postra',
         win32: 'Postra',
-        // Keep Linux executable name for packaged installs (deb/rpm scripts expect `mailspring`).
-        linux: 'mailspring',
+        linux: 'Postra',
       }[platform],
       appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
       derefSymlinks: false,

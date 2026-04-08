@@ -59,21 +59,21 @@ export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> 
   static propTypes = { thread: PropTypes.object };
 
   render() {
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
-      [this.props.thread],
-      'trash'
-    );
+    const current = FocusedPerspectiveStore.current();
+    const allowed = current.isTrash() || current.canMoveThreadsTo([this.props.thread], 'trash');
     if (!allowed) {
       return <span />;
     }
+
+    const label = current.isTrash() ? localized('Delete Forever') : localized('Trash');
 
     return (
       <div
         key="remove"
         role="button"
         tabIndex={0}
-        title={localized('Trash')}
-        aria-label={localized('Trash')}
+        title={label}
+        aria-label={label}
         style={{ order: 110 }}
         className="btn action action-trash"
         onClick={this._onRemove}
@@ -92,10 +92,13 @@ export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> 
   }
 
   _onRemove = event => {
-    const tasks = TaskFactory.tasksForMovingToTrash({
-      source: 'Quick Actions: Thread List',
-      threads: [this.props.thread],
-    });
+    const current = FocusedPerspectiveStore.current();
+    const tasks = current.isTrash()
+      ? current.tasksForRemovingItems([this.props.thread], 'Quick Actions: Thread List')
+      : TaskFactory.tasksForMovingToTrash({
+          source: 'Quick Actions: Thread List',
+          threads: [this.props.thread],
+        });
     Actions.queueTasks(tasks);
 
     // Don't trigger the thread row click

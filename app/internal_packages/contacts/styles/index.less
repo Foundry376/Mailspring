@@ -10,6 +10,33 @@
   }
 }
 
+.contacts-perspective-column {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  background-color: @source-list-bg;
+}
+
+.contacts-group-actions {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid @border-color-divider;
+  background-color: @source-list-bg;
+
+  .btn-group-action {
+    flex: 0 0 26px;
+    width: 26px;
+    min-width: 26px;
+    height: 24px;
+    padding: 0;
+    text-align: center;
+    line-height: 22px;
+    font-size: 16px;
+  }
+}
+
 .contact-detail-column {
   height: 100%;
   flex: 1;

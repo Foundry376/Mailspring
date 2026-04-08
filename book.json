@@ -14,12 +14,12 @@
     ],
     "pluginsConfig": {
         "editlink": {
-          "base": "https://github.com/Foundry376/Mailspring/tree/master",
+          "base": "https://github.com/fcools/postra-mail/tree/master",
           "label": "Edit This Page",
           "multilingual": false
         },
         "github": {
-            "url": "https://github.com/Foundry376/Mailspring"
+            "url": "https://github.com/fcools/postra-mail"
         },
         "favicon": {
             "shortcut": "/img/favicon.png"

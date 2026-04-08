@@ -133,7 +133,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
         target: this._launcherPath(),
         args: '--processStart Postra.exe --process-start-args "--background"',
         description: 'An extensible, open-source mail client built on the modern web.',
-        appUserModelId: 'com.squirrel.mailspring.mailspring',
+        appUserModelId: 'com.postra.postra',
       });
       if (!success) {
         AppEnv.reportError(new Error('Failed to create startup shortcut'));
@@ -203,12 +203,12 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
   }
 
   _launcherPath() {
-    return path.join('/', 'usr', 'share', 'applications', 'Mailspring.desktop');
+    return path.join('/', 'usr', 'share', 'applications', 'Postra.desktop');
   }
 
   _shortcutPath() {
     const configDir = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
-    return path.join(configDir, 'autostart', 'Mailspring.desktop');
+    return path.join(configDir, 'autostart', 'Postra.desktop');
   }
 }
 
