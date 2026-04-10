@@ -269,10 +269,7 @@ class ThreadList extends React.Component<
       if (!messages.length) continue;
 
       const message = messages[0];
-      const subject = (message.subject || 'untitled')
-        .replace(/[/?<>\\:*|"]/g, '_')
-        .substring(0, 80);
-      const filepath = pathModule.join(tempDir, `${subject}.eml`);
+      const filepath = pathModule.join(tempDir, `${message.id}.eml`);
 
       Actions.queueTask(
         new GetMessageRFC2822Task({

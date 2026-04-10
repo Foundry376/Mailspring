@@ -200,6 +200,8 @@ export type RegExpUtils = typeof import('../regexp-utils').default;
 export const RegExpUtils: RegExpUtils;
 export type MenuHelpers = typeof import('../menu-helpers');
 export const MenuHelpers: MenuHelpers;
+export type EmlUtils = typeof import('../services/eml-utils');
+export const EmlUtils: EmlUtils;
 export type VirtualDOMUtils = typeof import('../virtual-dom-utils').default;
 export const VirtualDOMUtils: VirtualDOMUtils;
 export type Spellchecker = typeof import('../spellchecker').default;

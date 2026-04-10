@@ -9,6 +9,7 @@ import {
   DatabaseStore,
   FocusedPerspectiveStore,
   GetMessageRFC2822Task,
+  EmlUtils,
 } from 'mailspring-exports';
 
 type TemplateItem =
@@ -283,10 +284,7 @@ export default class ThreadListContextMenu {
           if (!messages.length) return;
 
           const message = messages[0];
-          const subject = (message.subject || 'untitled')
-            .replace(/[/?<>\\:*|"]/g, '_')
-            .substring(0, 80);
-          const defaultFilename = `${subject}.eml`;
+          const defaultFilename = EmlUtils.defaultEmlFilename(message.subject);
 
           AppEnv.showSaveDialog({ defaultPath: defaultFilename }, async (savePath) => {
             if (!savePath) return;
@@ -309,8 +307,7 @@ export default class ThreadListContextMenu {
               const outputDir = selected[0];
               const path = require('path');
 
-              for (let i = 0; i < this.threads.length; i++) {
-                const thread = this.threads[i];
+              for (const thread of this.threads) {
                 const messages = await DatabaseStore.findAll<Message>(Message, {
                   threadId: thread.id,
                 })
@@ -319,15 +316,7 @@ export default class ThreadListContextMenu {
                 if (!messages.length) continue;
 
                 const message = messages[0];
-                const subject = (message.subject || 'untitled')
-                  .replace(/[/?<>\\:*|"]/g, '_')
-                  .substring(0, 80);
-                const date = message.date || new Date();
-                const year = date.getUTCFullYear();
-                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                const day = String(date.getUTCDate()).padStart(2, '0');
-                const idx = String(i + 1).padStart(5, '0');
-                const filename = `${idx} - ${subject} - ${year}-${month}-${day}.eml`;
+                const filename = EmlUtils.defaultEmlFilename(message.subject);
 
                 const task = new GetMessageRFC2822Task({
                   messageId: message.id,

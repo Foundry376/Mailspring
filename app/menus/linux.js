@@ -156,6 +156,7 @@ module.exports = {
         { type: 'separator' },
         { label: localized('Share this thread') + '...', command: 'core:share-item-link' },
         { label: localized('Copy mailbox permalink'), command: 'core:copy-mailbox-link' },
+        { label: localized('Save as .eml...'), command: 'core:save-as-eml' },
         { type: 'separator' },
         { label: localized('Remove from view'), command: 'core:remove-from-view' },
         { label: localized('Remove and show next'), command: 'core:remove-and-next' },

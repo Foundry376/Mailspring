@@ -7,6 +7,7 @@ import {
   Actions,
   TaskQueue,
   GetMessageRFC2822Task,
+  EmlUtils,
   Thread,
   Message,
 } from 'mailspring-exports';
@@ -101,8 +102,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
   _onDownloadEml = () => {
     const { message } = this.props;
-    const subject = (message.subject || 'untitled').replace(/[/?<>\\:*|"]/g, '_').substring(0, 80);
-    const defaultFilename = `${subject}.eml`;
+    const defaultFilename = EmlUtils.defaultEmlFilename(message.subject);
 
     AppEnv.showSaveDialog(
       { defaultPath: defaultFilename, title: localized('Save Email') },

@@ -12,6 +12,7 @@ import {
   GetMessageRFC2822Task,
   SyncbackDraftTask,
   DraftFactory,
+  EmlUtils,
   SearchableComponentStore,
   SearchableComponentMaker,
 } from 'mailspring-exports';
@@ -109,6 +110,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
         }),
       'core:forward': () => this._onForward(),
       'core:forward-as-attachment': () => this._onForwardAsAttachment(),
+      'core:save-as-eml': () => this._onSaveAsEml(),
       'core:print-thread': () => this._onPrintThread(),
       'core:messages-page-up': () => this._onScrollByPage(-1),
       'core:messages-page-down': () => this._onScrollByPage(1),
@@ -141,7 +143,6 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
       return;
     }
     const pathModule = require('path');
-    const subject = (message.subject || 'untitled').replace(/[/?<>\\:*|"]/g, '_').substring(0, 80);
     const tempPath = pathModule.join(
       require('@electron/remote').app.getPath('temp'),
       `${message.id}.eml`
@@ -171,6 +172,27 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
         Actions.composePopoutDraft(draft.headerMessageId);
       },
     });
+  };
+
+  _onSaveAsEml = () => {
+    const message = this._lastMessage();
+    if (!message) {
+      return;
+    }
+    const defaultFilename = EmlUtils.defaultEmlFilename(message.subject);
+
+    AppEnv.showSaveDialog(
+      { defaultPath: defaultFilename, title: localized('Save Email') },
+      async (savePath) => {
+        if (!savePath) return;
+        const task = new GetMessageRFC2822Task({
+          messageId: message.id,
+          accountId: message.accountId,
+          filepath: savePath,
+        });
+        Actions.queueTask(task);
+      }
+    );
   };
 
   _lastMessage() {
