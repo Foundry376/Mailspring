@@ -193,7 +193,11 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
   };
 
   _shouldShowContextMenu = () => {
-    return this.props.item.onDelete != null || this.props.item.onEdited != null;
+    return (
+      this.props.item.onDelete != null ||
+      this.props.item.onEdited != null ||
+      this.props.item.onExport != null
+    );
   };
 
   _shouldAcceptDrop = (event) => {
@@ -289,6 +293,15 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         })
       );
     }
+
+    if (this.props.item.onExport) {
+      menu.append(
+        new MenuItem({
+          label: localized(`Export folder as .eml files...`),
+          click: () => this._runCallback('onExport'),
+        })
+      );
+    }
     menu.popup({});
   };
 
@@ -376,7 +389,9 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         aria-level={this.props.level || 1}
         aria-selected={item.selected || false}
         aria-expanded={hasChildren ? !item.collapsed : undefined}
-        aria-label={this.props.sectionTitle ? `${this.props.sectionTitle}, ${item.name}` : item.name}
+        aria-label={
+          this.props.sectionTitle ? `${this.props.sectionTitle}, ${item.name}` : item.name
+        }
         tabIndex={item.selected || this.props.isFirst ? 0 : -1}
       >
         <span className={containerClasses}>

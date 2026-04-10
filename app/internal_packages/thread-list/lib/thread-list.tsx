@@ -18,11 +18,14 @@ import {
   ChangeStarredTask,
   ChangeFolderTask,
   ChangeLabelsTask,
+  DatabaseStore,
   DOMUtils,
   ExtensionRegistry,
   FocusedContentStore,
   FocusedPerspectiveStore,
   FolderSyncProgressStore,
+  GetMessageRFC2822Task,
+  Message,
   Thread,
   TaskFactory,
   localized,
@@ -119,7 +122,7 @@ class ThreadList extends React.Component<
             scrollTooltipComponent={ThreadListScrollTooltip}
             EmptyComponent={EmptyListState}
             ariaLabel={FocusedPerspectiveStore.current().name || localized('Threads')}
-            ariaLabelForItem={thread => threadAriaLabel(thread)}
+            ariaLabelForItem={(thread) => threadAriaLabel(thread)}
             keymapHandlers={{
               'thread-list:select-read': this._onSelectRead,
               'thread-list:select-unread': this._onSelectUnread,
@@ -127,7 +130,7 @@ class ThreadList extends React.Component<
               'thread-list:select-unstarred': this._onSelectUnstarred,
               'thread-list:mark-all-as-read': this._onMarkAllAsRead,
             }}
-            onDoubleClick={thread => Actions.popoutThread(thread)}
+            onDoubleClick={(thread) => Actions.popoutThread(thread)}
             onDragItems={this._onDragItems}
             onDragEnd={this._onDragEnd}
           />
@@ -141,7 +144,7 @@ class ThreadList extends React.Component<
       unread: item.unread,
     });
     classes += ExtensionRegistry.ThreadList.extensions()
-      .filter(ext => ext.cssClassNamesForThreadListItem != null)
+      .filter((ext) => ext.cssClassNamesForThreadListItem != null)
       .reduce((prev, ext) => prev + ' ' + ext.cssClassNamesForThreadListItem(item), ' ');
 
     const props: any = { className: classes };
@@ -168,15 +171,15 @@ class ThreadList extends React.Component<
         task instanceof ChangeStarredTask
           ? 'unstar'
           : task instanceof ChangeFolderTask
-          ? task.folder.name
-          : task instanceof ChangeLabelsTask
-          ? 'archive'
-          : 'remove';
+            ? task.folder.name
+            : task instanceof ChangeLabelsTask
+              ? 'archive'
+              : 'remove';
 
       return `swipe-${name}`;
     };
 
-    props.onSwipeRight = function(callback) {
+    props.onSwipeRight = function (callback) {
       const perspective = FocusedPerspectiveStore.current();
       const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
       if (tasks.length === 0) {
@@ -196,7 +199,7 @@ class ThreadList extends React.Component<
       props.onSwipeCenter = () => {
         Actions.closePopover();
       };
-      props.onSwipeLeft = callback => {
+      props.onSwipeLeft = (callback) => {
         // TODO this should be grabbed from elsewhere
         const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
 
@@ -218,33 +221,70 @@ class ThreadList extends React.Component<
     this.setState({ syncing });
   };
 
-  _onShowContextMenu = event => {
+  _onShowContextMenu = (event) => {
     const items = this.refs.list.itemsForMouseEvent(event);
     if (!items || items.length === 0) {
       event.preventDefault();
       return;
     }
     new ThreadListContextMenu({
-      threadIds: items.map(t => t.id),
-      accountIds: _.uniq(items.map(t => t.accountId)),
+      threadIds: items.map((t) => t.id),
+      accountIds: _.uniq(items.map((t) => t.accountId)),
     }).displayMenu();
   };
 
   _onDragItems = (event, items) => {
     const data = {
-      threadIds: items.map(t => t.id),
-      accountIds: _.uniq(items.map(t => t.accountId)),
+      threadIds: items.map((t) => t.id),
+      accountIds: _.uniq(items.map((t) => t.accountId)),
     };
-    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.effectAllowed = 'all';
     event.dataTransfer.dragEffect = 'move';
 
     const canvas = CanvasUtils.canvasForDragging('threads', data.threadIds.length);
     event.dataTransfer.setDragImage(canvas, 10, 10);
     event.dataTransfer.setData('mailspring-threads-data', JSON.stringify(data));
     event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');
+
+    // Pre-stage .eml files for potential external drag-to-desktop
+    this._prepareEmlFilesForDrag(items);
   };
 
-  _onDragEnd = event => {};
+  _prepareEmlFilesForDrag = async (items: Thread[]) => {
+    const pathModule = require('path');
+    const fs = require('fs');
+    const os = require('os');
+
+    const tempDir = pathModule.join(os.tmpdir(), 'mailspring-eml-drag');
+    try {
+      fs.mkdirSync(tempDir, { recursive: true });
+    } catch (e) {
+      // directory may already exist
+    }
+
+    for (const thread of items.slice(0, 10)) {
+      const messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id })
+        .order(Message.attributes.date.descending())
+        .limit(1);
+      if (!messages.length) continue;
+
+      const message = messages[0];
+      const subject = (message.subject || 'untitled')
+        .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+        .substring(0, 80);
+      const filepath = pathModule.join(tempDir, `${subject}.eml`);
+
+      Actions.queueTask(
+        new GetMessageRFC2822Task({
+          messageId: message.id,
+          accountId: message.accountId,
+          filepath,
+        })
+      );
+    }
+  };
+
+  _onDragEnd = (event) => {};
 
   _onResize = (event?: any) => {
     const narrowStyleWidth = DOMUtils.getWorkspaceCssNumberProperty(
@@ -277,31 +317,31 @@ class ThreadList extends React.Component<
 
   _onSelectRead = () => {
     const dataSource = ThreadListStore.dataSource();
-    const items = dataSource.itemsCurrentlyInViewMatching(item => !item.unread);
+    const items = dataSource.itemsCurrentlyInViewMatching((item) => !item.unread);
     this.refs.list.handler().onSelect(items);
   };
 
   _onSelectUnread = () => {
     const dataSource = ThreadListStore.dataSource();
-    const items = dataSource.itemsCurrentlyInViewMatching(item => item.unread);
+    const items = dataSource.itemsCurrentlyInViewMatching((item) => item.unread);
     this.refs.list.handler().onSelect(items);
   };
 
   _onSelectStarred = () => {
     const dataSource = ThreadListStore.dataSource();
-    const items = dataSource.itemsCurrentlyInViewMatching(item => item.starred);
+    const items = dataSource.itemsCurrentlyInViewMatching((item) => item.starred);
     this.refs.list.handler().onSelect(items);
   };
 
   _onSelectUnstarred = () => {
     const dataSource = ThreadListStore.dataSource();
-    const items = dataSource.itemsCurrentlyInViewMatching(item => !item.starred);
+    const items = dataSource.itemsCurrentlyInViewMatching((item) => !item.starred);
     this.refs.list.handler().onSelect(items);
   };
 
   _onMarkAllAsRead = () => {
     const dataSource = ThreadListStore.dataSource();
-    const items = dataSource.itemsCurrentlyInViewMatching(item => item.unread) as Thread[];
+    const items = dataSource.itemsCurrentlyInViewMatching((item) => item.unread) as Thread[];
 
     if (items.length === 0) {
       return;

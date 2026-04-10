@@ -8,13 +8,14 @@ import {
   TaskFactory,
   DatabaseStore,
   FocusedPerspectiveStore,
+  GetMessageRFC2822Task,
 } from 'mailspring-exports';
 
 type TemplateItem =
   | {
-    label: string;
-    click: () => void;
-  }
+      label: string;
+      click: () => void;
+    }
   | { type: 'separator' };
 
 export default class ThreadListContextMenu {
@@ -29,7 +30,7 @@ export default class ThreadListContextMenu {
 
   menuItemTemplate() {
     return DatabaseStore.modelify<Thread>(Thread, this.threadIds)
-      .then(threads => {
+      .then((threads) => {
         this.threads = threads;
 
         return Promise.all<TemplateItem>([
@@ -48,9 +49,11 @@ export default class ThreadListContextMenu {
           this.markAsSpamItem(),
           { type: 'separator' },
           this.createMailboxLinkItem(),
+          { type: 'separator' },
+          this.saveAsEmlItem(),
         ]);
       })
-      .then(menuItems => {
+      .then((menuItems) => {
         const compacted = _.compact(menuItems);
         return compacted.filter((item, index) => {
           if ((item as any).type !== 'separator') return true;
@@ -67,7 +70,7 @@ export default class ThreadListContextMenu {
       return null;
     }
     const first = this.threads[0];
-    const from = first.participants.find(p => !p.isMe()) || first.participants[0];
+    const from = first.participants.find((p) => !p.isMe()) || first.participants[0];
 
     return {
       label: localized(`Search for`) + ' ' + from.email,
@@ -119,7 +122,7 @@ export default class ThreadListContextMenu {
     return DatabaseStore.findBy<Message>(Message, { threadId: this.threadIds[0] })
       .order(Message.attributes.date.descending())
       .limit(1)
-      .then(message => {
+      .then((message) => {
         if (message && message.canReplyAll()) {
           return {
             label: localized('Reply All'),
@@ -186,7 +189,7 @@ export default class ThreadListContextMenu {
   }
 
   markAsReadItem(): TemplateItem | null {
-    const unread = this.threads.every(t => t.unread === false);
+    const unread = this.threads.every((t) => t.unread === false);
     const dir = unread ? localized('Unread') : localized('Read');
 
     return {
@@ -203,7 +206,7 @@ export default class ThreadListContextMenu {
   }
 
   markAsSpamItem(): TemplateItem | null {
-    const allInSpam = this.threads.every(item => item.folders.some(c => c.role === 'spam'));
+    const allInSpam = this.threads.every((item) => item.folders.some((c) => c.role === 'spam'));
     const dir = allInSpam ? localized('Not Spam') : localized('Spam');
 
     return {
@@ -212,20 +215,20 @@ export default class ThreadListContextMenu {
         Actions.queueTasks(
           allInSpam
             ? TaskFactory.tasksForMarkingNotSpam({
-              source: 'Context Menu: Thread List',
-              threads: this.threads,
-            })
+                source: 'Context Menu: Thread List',
+                threads: this.threads,
+              })
             : TaskFactory.tasksForMarkingAsSpam({
-              source: 'Context Menu: Thread List',
-              threads: this.threads,
-            })
+                source: 'Context Menu: Thread List',
+                threads: this.threads,
+              })
         );
       },
     };
   }
 
   starItem(): TemplateItem | null {
-    const starred = this.threads.every(t => t.starred === false);
+    const starred = this.threads.every((t) => t.starred === false);
 
     let label = localized('Star');
     if (!starred) {
@@ -258,13 +261,90 @@ export default class ThreadListContextMenu {
         if (!thread) return;
         navigator.clipboard
           .writeText(thread.getMailboxPermalink())
-          .catch(err => console.error('Failed to copy to clipboard:', err));
+          .catch((err) => console.error('Failed to copy to clipboard:', err));
+      },
+    };
+  }
+
+  saveAsEmlItem(): TemplateItem {
+    const label =
+      this.threadIds.length > 1
+        ? localized('Save %1$@ threads as .eml...', this.threadIds.length)
+        : localized('Save as .eml...');
+
+    return {
+      label,
+      click: async () => {
+        if (this.threadIds.length === 1) {
+          const thread = this.threads[0];
+          const messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id })
+            .order(Message.attributes.date.descending())
+            .limit(1);
+          if (!messages.length) return;
+
+          const message = messages[0];
+          const subject = (message.subject || 'untitled')
+            .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+            .substring(0, 80);
+          const defaultFilename = `${subject}.eml`;
+
+          AppEnv.showSaveDialog({ defaultPath: defaultFilename }, async (savePath) => {
+            if (!savePath) return;
+            const task = new GetMessageRFC2822Task({
+              messageId: message.id,
+              accountId: message.accountId,
+              filepath: savePath,
+            });
+            Actions.queueTask(task);
+          });
+        } else {
+          AppEnv.showOpenDialog(
+            {
+              title: localized('Save .eml files to...'),
+              buttonLabel: localized('Save All'),
+              properties: ['openDirectory', 'createDirectory'],
+            },
+            async (selected) => {
+              if (!selected || selected.length === 0) return;
+              const outputDir = selected[0];
+              const path = require('path');
+
+              for (let i = 0; i < this.threads.length; i++) {
+                const thread = this.threads[i];
+                const messages = await DatabaseStore.findAll<Message>(Message, {
+                  threadId: thread.id,
+                })
+                  .order(Message.attributes.date.descending())
+                  .limit(1);
+                if (!messages.length) continue;
+
+                const message = messages[0];
+                const subject = (message.subject || 'untitled')
+                  .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+                  .substring(0, 80);
+                const date = message.date || new Date();
+                const year = date.getUTCFullYear();
+                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(date.getUTCDate()).padStart(2, '0');
+                const idx = String(i + 1).padStart(5, '0');
+                const filename = `${idx} - ${subject} - ${year}-${month}-${day}.eml`;
+
+                const task = new GetMessageRFC2822Task({
+                  messageId: message.id,
+                  accountId: message.accountId,
+                  filepath: path.join(outputDir, filename),
+                });
+                Actions.queueTask(task);
+              }
+            }
+          );
+        }
       },
     };
   }
 
   displayMenu() {
-    this.menuItemTemplate().then(template => {
+    this.menuItemTemplate().then((template) => {
       require('@electron/remote').Menu.buildFromTemplate(template).popup({});
     });
   }

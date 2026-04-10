@@ -7,6 +7,7 @@ import {
   FocusedPerspectiveStore,
   SyncbackCategoryTask,
   DestroyCategoryTask,
+  GetManyRFC2822Task,
   CategoryStore,
   Actions,
   RegExpUtils,
@@ -16,7 +17,7 @@ import {
 import * as SidebarActions from './sidebar-actions';
 import { ISidebarItem } from './types';
 
-const idForCategories = categories => _.pluck(categories, 'id').join('-');
+const idForCategories = (categories) => _.pluck(categories, 'id').join('-');
 
 const countForItem = function (perspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
@@ -26,7 +27,7 @@ const countForItem = function (perspective) {
   return 0;
 };
 
-const isItemSelected = perspective => FocusedPerspectiveStore.current().isEqual(perspective);
+const isItemSelected = (perspective) => FocusedPerspectiveStore.current().isEqual(perspective);
 
 const isItemCollapsed = function (id) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
@@ -71,6 +72,37 @@ const onDeleteItem = function (item) {
       path: category.path,
       accountId: category.accountId,
     })
+  );
+};
+
+const EXCLUDED_EXPORT_ROLES = new Set(['drafts', 'starred', 'unread']);
+
+const onExportFolder = function (item) {
+  const category = item.perspective.category();
+  if (!category) {
+    return;
+  }
+
+  AppEnv.showOpenDialog(
+    {
+      title: localized('Export folder as .eml files'),
+      buttonLabel: localized('Export'),
+      properties: ['openDirectory', 'createDirectory'],
+    },
+    (selected) => {
+      if (!selected || selected.length === 0) {
+        return;
+      }
+      const outputDir = selected[0];
+      Actions.queueTask(
+        new GetManyRFC2822Task({
+          accountId: category.accountId,
+          folderId: category.id,
+          folderPath: category.path,
+          outputDir,
+        })
+      );
+    }
   );
 };
 
@@ -134,6 +166,7 @@ export default class SidebarItem {
         counterStyle,
         onDelete: opts.deletable ? onDeleteItem : undefined,
         onEdited: opts.editable ? onEditItem : undefined,
+        onExport: opts.exportable ? onExportFolder : undefined,
         onCollapseToggled: toggleItemCollapsed,
 
         onDrop(item, event) {
@@ -162,7 +195,7 @@ export default class SidebarItem {
 
           // We can't inspect the drag payload until drop, so we use a dataTransfer
           // type to encode the account IDs of threads currently being dragged.
-          const accountsType = event.dataTransfer.types.find(t =>
+          const accountsType = event.dataTransfer.types.find((t) =>
             t.startsWith('mailspring-accounts=')
           );
           const accountIds = (accountsType || '').replace('mailspring-accounts=', '').split(',');
@@ -190,6 +223,10 @@ export default class SidebarItem {
     if (opts.editable == null) {
       opts.editable = true;
     }
+    if (opts.exportable == null) {
+      const role = categories[0] != null ? categories[0].role : null;
+      opts.exportable = !role || !EXCLUDED_EXPORT_ROLES.has(role);
+    }
     opts.contextMenuLabel = contextMenuLabel;
     return this.forPerspective(id, perspective, opts);
   }
@@ -204,7 +241,7 @@ export default class SidebarItem {
   }
 
   static forUnread(accountIds, opts: Partial<ISidebarItem> = {}) {
-    let categories = accountIds.map(accId => {
+    let categories = accountIds.map((accId) => {
       return CategoryStore.getCategoryByRole(accId, 'inbox');
     });
 

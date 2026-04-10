@@ -7,6 +7,10 @@ import {
   Actions,
   TaskQueue,
   GetMessageRFC2822Task,
+  SyncbackDraftTask,
+  DraftFactory,
+  DraftStore,
+  AccountStore,
   Thread,
   Message,
 } from 'mailspring-exports';
@@ -40,6 +44,11 @@ export default class MessageControls extends React.Component<MessageControlsProp
       image: 'ic-dropdown-forward.png',
       select: this._onForward,
     };
+    const forwardAsAttachment = {
+      name: localized('Forward as Attachment'),
+      image: 'ic-dropdown-forward.png',
+      select: this._onForwardAsAttachment,
+    };
 
     const showOriginal = {
       name: localized('Show Original'),
@@ -48,16 +57,16 @@ export default class MessageControls extends React.Component<MessageControlsProp
     };
 
     if (!this.props.message.canReplyAll()) {
-      return [reply, forward, showOriginal];
+      return [reply, forward, forwardAsAttachment, showOriginal];
     }
     const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
     return defaultReplyType === 'reply-all'
-      ? [replyAll, reply, forward, showOriginal]
-      : [reply, replyAll, forward, showOriginal];
+      ? [replyAll, reply, forward, forwardAsAttachment, showOriginal]
+      : [reply, replyAll, forward, forwardAsAttachment, showOriginal];
   }
 
   _dropdownMenu(items) {
-    const itemContent = item => (
+    const itemContent = (item) => (
       <span>
         <RetinaImg name={item.image} mode={RetinaImg.Mode.ContentIsMask} />
         &nbsp;&nbsp;{item.name}&nbsp;&nbsp;
@@ -67,9 +76,9 @@ export default class MessageControls extends React.Component<MessageControlsProp
     return (
       <Menu
         items={items}
-        itemKey={item => item.name}
+        itemKey={(item) => item.name}
         itemContent={itemContent}
-        onSelect={item => item.select()}
+        onSelect={(item) => item.select()}
       />
     );
   }
@@ -99,6 +108,69 @@ export default class MessageControls extends React.Component<MessageControlsProp
     Actions.composeForward({ thread, message });
   };
 
+  _onDownloadEml = () => {
+    const { message } = this.props;
+    const subject = (message.subject || 'untitled')
+      .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+      .substring(0, 80);
+    const defaultFilename = `${subject}.eml`;
+
+    AppEnv.showSaveDialog(
+      { defaultPath: defaultFilename, title: localized('Save Email') },
+      async (savePath) => {
+        if (!savePath) return;
+        const task = new GetMessageRFC2822Task({
+          messageId: message.id,
+          accountId: message.accountId,
+          filepath: savePath,
+        });
+        Actions.queueTask(task);
+        await TaskQueue.waitForPerformRemote(task);
+      }
+    );
+  };
+
+  _onForwardAsAttachment = async () => {
+    const { message } = this.props;
+    const pathModule = require('path');
+    const subject = (message.subject || 'untitled')
+      .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+      .substring(0, 80);
+    const tempPath = pathModule.join(
+      require('@electron/remote').app.getPath('temp'),
+      `${message.id}.eml`
+    );
+
+    // Fetch the RFC2822 message source to a temp file
+    const task = new GetMessageRFC2822Task({
+      messageId: message.id,
+      accountId: message.accountId,
+      filepath: tempPath,
+    });
+    Actions.queueTask(task);
+    await TaskQueue.waitForPerformRemote(task);
+
+    // Create a new draft with Fwd: subject
+    const draft = await DraftFactory.createDraft({
+      subject: `Fwd: ${message.subject || ''}`,
+      accountId: message.accountId,
+    });
+
+    // Persist the draft and get its headerMessageId
+    const syncTask = new SyncbackDraftTask({ draft });
+    Actions.queueTask(syncTask);
+    await TaskQueue.waitForPerformLocal(syncTask);
+
+    // Attach the .eml file, then pop out the composer when ready
+    Actions.addAttachment({
+      filePath: tempPath,
+      headerMessageId: draft.headerMessageId,
+      onCreated: () => {
+        Actions.composePopoutDraft(draft.headerMessageId);
+      },
+    });
+  };
+
   _onShowActionsMenu = () => {
     const SystemMenu = require('@electron/remote').Menu;
     const SystemMenuItem = require('@electron/remote').MenuItem;
@@ -115,6 +187,10 @@ export default class MessageControls extends React.Component<MessageControlsProp
         label: localized('Copy Debug Info to Clipboard'),
         click: this._onCopyToClipboard,
       })
+    );
+    menu.append(new SystemMenuItem({ type: 'separator' }));
+    menu.append(
+      new SystemMenuItem({ label: localized('Download as .eml'), click: this._onDownloadEml })
     );
     menu.popup({});
   };
@@ -163,13 +239,13 @@ export default class MessageControls extends React.Component<MessageControlsProp
     `;
     navigator.clipboard
       .writeText(data)
-      .catch(err => console.error('Failed to copy to clipboard:', err));
+      .catch((err) => console.error('Failed to copy to clipboard:', err));
   };
 
   render() {
     const items = this._items();
     return (
-      <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
+      <div className="message-actions-wrap" onClick={(e) => e.stopPropagation()}>
         <ButtonDropdown
           primaryItem={<RetinaImg name={items[0].image} mode={RetinaImg.Mode.ContentIsMask} />}
           primaryTitle={items[0].name}
@@ -181,7 +257,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
           className="message-actions-ellipsis"
           tabIndex={-1}
           onClick={this._onShowActionsMenu}
-          onKeyDown={e => {
+          onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               this._onShowActionsMenu();

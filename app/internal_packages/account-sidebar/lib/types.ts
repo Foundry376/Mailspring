@@ -13,6 +13,7 @@ export interface ISidebarItem {
   counterStyle: string;
   onDelete?: () => void;
   onEdited?: (item, name: string) => void;
+  onExport?: () => void;
   onCollapseToggled: () => void;
   onDrop: (item, event) => void;
   shouldAcceptDrop: (item, event) => void;
@@ -20,6 +21,7 @@ export interface ISidebarItem {
 
   deletable?: boolean;
   editable?: boolean;
+  exportable?: boolean;
 }
 
 export interface ISidebarSection {

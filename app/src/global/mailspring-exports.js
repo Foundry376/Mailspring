@@ -113,6 +113,7 @@ lazyLoadAndRegisterTask(`DestroyCategoryTask`, 'destroy-category-task');
 lazyLoadAndRegisterTask(`SyncbackCategoryTask`, 'syncback-category-task');
 lazyLoadAndRegisterTask(`SyncbackMetadataTask`, 'syncback-metadata-task');
 lazyLoadAndRegisterTask(`GetMessageRFC2822Task`, 'get-message-rfc2822-task');
+lazyLoadAndRegisterTask(`GetManyRFC2822Task`, 'get-many-rfc2822-task');
 lazyLoadAndRegisterTask(`ExpungeAllInFolderTask`, 'expunge-all-in-folder-task');
 lazyLoadAndRegisterTask(`ChangeRoleMappingTask`, 'change-role-mapping-task');
 lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-task');
