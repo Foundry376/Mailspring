@@ -145,7 +145,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     const pathModule = require('path');
     const tempPath = pathModule.join(
       require('@electron/remote').app.getPath('temp'),
-      `${message.id}.eml`
+      `Forwarded Message.eml`
     );
 
     const task = new GetMessageRFC2822Task({

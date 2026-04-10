@@ -6,10 +6,12 @@ import {
   FolderSyncProgressStore,
   TaskQueue,
   SendDraftTask,
+  GetManyRFC2822Task,
 } from 'mailspring-exports';
 
 import { SyncActivity } from './sync-activity';
 import { SyncbackActivity } from './syncback-activity';
+import { ExportActivity } from './export-activity';
 
 const SEND_TASK_CLASSES = [SendDraftTask];
 
@@ -44,7 +46,7 @@ export default class ActivitySidebar extends React.Component<
     this.setState(this._getStateFromStores(this.state.expanded));
   };
 
-  _getStateFromStores = isExpanded => {
+  _getStateFromStores = (isExpanded) => {
     return {
       tasks: TaskQueue.queue(),
 
@@ -85,10 +87,13 @@ export default class ActivitySidebar extends React.Component<
     const { tasks, syncSummary, syncState, expanded } = this.state;
 
     const sendTasks = [];
+    const exportTasks = [];
     const nonSendTasks = [];
-    tasks.forEach(task => {
-      if (SEND_TASK_CLASSES.some(klass => task instanceof klass)) {
+    tasks.forEach((task) => {
+      if (SEND_TASK_CLASSES.some((klass) => task instanceof klass)) {
         sendTasks.push(task);
+      } else if (task instanceof GetManyRFC2822Task) {
+        exportTasks.push(task);
       } else {
         nonSendTasks.push(task);
       }
@@ -98,6 +103,7 @@ export default class ActivitySidebar extends React.Component<
       <div className="sidebar-activity-floating-container">
         <div className="sidebar-activity">
           {sendTasks.length ? <SyncbackActivity tasks={sendTasks} /> : null}
+          {exportTasks.length ? <ExportActivity tasks={exportTasks} /> : null}
           {nonSendTasks.length || syncSummary.phrase ? (
             <div
               className="item"
