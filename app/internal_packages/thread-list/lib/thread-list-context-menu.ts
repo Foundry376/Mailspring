@@ -9,6 +9,10 @@ import {
   DatabaseStore,
   FocusedPerspectiveStore,
   GetMessageRFC2822Task,
+  SyncbackDraftTask,
+  DraftFactory,
+  AccountStore,
+  TaskQueue,
   EmlUtils,
 } from 'mailspring-exports';
 
@@ -41,6 +45,7 @@ export default class ThreadListContextMenu {
           this.replyItem(),
           this.replyAllItem(),
           this.forwardItem(),
+          this.forwardAsAttachmentItem(),
           { type: 'separator' },
           this.archiveItem(),
           this.markAsReadItem(),
@@ -149,6 +154,66 @@ export default class ThreadListContextMenu {
       label: localized('Forward'),
       click: () => {
         Actions.composeForward({ threadId: this.threadIds[0], popout: true });
+      },
+    };
+  }
+
+  forwardAsAttachmentItem(): TemplateItem | null {
+    if (this.threadIds.length !== 1 || !this.threads[0]) {
+      return null;
+    }
+    return {
+      label: localized('Forward as Attachment'),
+      click: async () => {
+        const thread = this.threads[0];
+        const messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id })
+          .order(Message.attributes.date.descending())
+          .limit(1);
+        if (!messages.length) return;
+
+        const message = messages[0];
+        const pathModule = require('path');
+        const fs = require('fs');
+        const tempDir = pathModule.join(
+          require('@electron/remote').app.getPath('temp'),
+          `mailspring-fwd-${message.id}`
+        );
+        fs.mkdirSync(tempDir, { recursive: true });
+        const tempPath = pathModule.join(tempDir, 'Forwarded Message.eml');
+
+        const task = new GetMessageRFC2822Task({
+          messageId: message.id,
+          accountId: message.accountId,
+          filepath: tempPath,
+        });
+        Actions.queueTask(task);
+        await TaskQueue.waitForPerformRemote(task);
+
+        if (!fs.existsSync(tempPath)) {
+          AppEnv.showErrorDialog(
+            localized('Could not download the original message. Please try again.')
+          );
+          return;
+        }
+
+        const account = AccountStore.accountForId(message.accountId);
+        const draft = await DraftFactory.createDraft({
+          subject: `Fwd: ${message.subject || ''}`,
+          from: [account.defaultMe()],
+          accountId: message.accountId,
+        });
+
+        const syncTask = new SyncbackDraftTask({ draft });
+        Actions.queueTask(syncTask);
+        await TaskQueue.waitForPerformLocal(syncTask);
+
+        Actions.addAttachment({
+          filePath: tempPath,
+          headerMessageId: draft.headerMessageId,
+          onCreated: () => {
+            Actions.composePopoutDraft(draft.headerMessageId);
+          },
+        });
       },
     };
   }
