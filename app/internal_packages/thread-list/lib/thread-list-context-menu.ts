@@ -284,7 +284,7 @@ export default class ThreadListContextMenu {
 
           const message = messages[0];
           const subject = (message.subject || 'untitled')
-            .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+            .replace(/[/?<>\\:*|"]/g, '_')
             .substring(0, 80);
           const defaultFilename = `${subject}.eml`;
 
@@ -320,7 +320,7 @@ export default class ThreadListContextMenu {
 
                 const message = messages[0];
                 const subject = (message.subject || 'untitled')
-                  .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+                  .replace(/[/?<>\\:*|"]/g, '_')
                   .substring(0, 80);
                 const date = message.date || new Date();
                 const year = date.getUTCFullYear();

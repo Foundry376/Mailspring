@@ -165,6 +165,7 @@ module.exports = {
         { label: localized('Reply'), command: 'core:reply' },
         { label: localized('Reply All'), command: 'core:reply-all' },
         { label: localized('Forward'), command: 'core:forward' },
+        { label: localized('Forward as Attachment'), command: 'core:forward-as-attachment' },
         { type: 'separator' },
         { label: localized('Mark as %@', localized('Unread')), command: 'core:mark-as-unread' },
         { label: localized('Mark as %@', localized('Read')), command: 'core:mark-as-read' },

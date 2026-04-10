@@ -6,11 +6,12 @@ import os from 'os';
  */
 function sanitizeForFilesystem(input: string): string {
   // Replace filesystem-illegal characters with underscore
-  let sanitized = input.replace(/[\/\?\<\>\\\:\*\|\"]/g, '_');
+  let sanitized = input.replace(/[/?<>\\:*|"]/g, '_');
   // Remove control characters
-  sanitized = sanitized.replace(/[\x00-\x1f\x7f]/g, '');
+  // eslint-disable-next-line no-control-regex
+  sanitized = sanitized.replace(/[\u0000-\u001f\u007f]/g, '');
   // Remove trailing dots and spaces
-  sanitized = sanitized.replace(/[\.\s]+$/, '');
+  sanitized = sanitized.replace(/[.\s]+$/, '');
   return sanitized;
 }
 

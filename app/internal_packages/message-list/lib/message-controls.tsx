@@ -7,10 +7,6 @@ import {
   Actions,
   TaskQueue,
   GetMessageRFC2822Task,
-  SyncbackDraftTask,
-  DraftFactory,
-  DraftStore,
-  AccountStore,
   Thread,
   Message,
 } from 'mailspring-exports';
@@ -44,11 +40,6 @@ export default class MessageControls extends React.Component<MessageControlsProp
       image: 'ic-dropdown-forward.png',
       select: this._onForward,
     };
-    const forwardAsAttachment = {
-      name: localized('Forward as Attachment'),
-      image: 'ic-dropdown-forward.png',
-      select: this._onForwardAsAttachment,
-    };
 
     const showOriginal = {
       name: localized('Show Original'),
@@ -57,12 +48,12 @@ export default class MessageControls extends React.Component<MessageControlsProp
     };
 
     if (!this.props.message.canReplyAll()) {
-      return [reply, forward, forwardAsAttachment, showOriginal];
+      return [reply, forward, showOriginal];
     }
     const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
     return defaultReplyType === 'reply-all'
-      ? [replyAll, reply, forward, forwardAsAttachment, showOriginal]
-      : [reply, replyAll, forward, forwardAsAttachment, showOriginal];
+      ? [replyAll, reply, forward, showOriginal]
+      : [reply, replyAll, forward, showOriginal];
   }
 
   _dropdownMenu(items) {
@@ -110,9 +101,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
   _onDownloadEml = () => {
     const { message } = this.props;
-    const subject = (message.subject || 'untitled')
-      .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
-      .substring(0, 80);
+    const subject = (message.subject || 'untitled').replace(/[/?<>\\:*|"]/g, '_').substring(0, 80);
     const defaultFilename = `${subject}.eml`;
 
     AppEnv.showSaveDialog(
@@ -128,47 +117,6 @@ export default class MessageControls extends React.Component<MessageControlsProp
         await TaskQueue.waitForPerformRemote(task);
       }
     );
-  };
-
-  _onForwardAsAttachment = async () => {
-    const { message } = this.props;
-    const pathModule = require('path');
-    const subject = (message.subject || 'untitled')
-      .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
-      .substring(0, 80);
-    const tempPath = pathModule.join(
-      require('@electron/remote').app.getPath('temp'),
-      `${message.id}.eml`
-    );
-
-    // Fetch the RFC2822 message source to a temp file
-    const task = new GetMessageRFC2822Task({
-      messageId: message.id,
-      accountId: message.accountId,
-      filepath: tempPath,
-    });
-    Actions.queueTask(task);
-    await TaskQueue.waitForPerformRemote(task);
-
-    // Create a new draft with Fwd: subject
-    const draft = await DraftFactory.createDraft({
-      subject: `Fwd: ${message.subject || ''}`,
-      accountId: message.accountId,
-    });
-
-    // Persist the draft and get its headerMessageId
-    const syncTask = new SyncbackDraftTask({ draft });
-    Actions.queueTask(syncTask);
-    await TaskQueue.waitForPerformLocal(syncTask);
-
-    // Attach the .eml file, then pop out the composer when ready
-    Actions.addAttachment({
-      filePath: tempPath,
-      headerMessageId: draft.headerMessageId,
-      onCreated: () => {
-        Actions.composePopoutDraft(draft.headerMessageId);
-      },
-    });
   };
 
   _onShowActionsMenu = () => {

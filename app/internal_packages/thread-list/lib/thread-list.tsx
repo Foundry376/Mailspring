@@ -270,7 +270,7 @@ class ThreadList extends React.Component<
 
       const message = messages[0];
       const subject = (message.subject || 'untitled')
-        .replace(/[\/\?\<\>\\\:\*\|\"]/g, '_')
+        .replace(/[/?<>\\:*|"]/g, '_')
         .substring(0, 80);
       const filepath = pathModule.join(tempDir, `${subject}.eml`);
 

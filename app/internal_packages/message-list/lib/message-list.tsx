@@ -8,6 +8,10 @@ import {
   MessageStore,
   Message,
   Thread,
+  TaskQueue,
+  GetMessageRFC2822Task,
+  SyncbackDraftTask,
+  DraftFactory,
   SearchableComponentStore,
   SearchableComponentMaker,
 } from 'mailspring-exports';
@@ -104,6 +108,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
           behavior: 'prefer-existing',
         }),
       'core:forward': () => this._onForward(),
+      'core:forward-as-attachment': () => this._onForwardAsAttachment(),
       'core:print-thread': () => this._onPrintThread(),
       'core:messages-page-up': () => this._onScrollByPage(-1),
       'core:messages-page-down': () => this._onScrollByPage(1),
@@ -130,8 +135,46 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     });
   };
 
+  _onForwardAsAttachment = async () => {
+    const message = this._lastMessage();
+    if (!message || !this.state.currentThread) {
+      return;
+    }
+    const pathModule = require('path');
+    const subject = (message.subject || 'untitled').replace(/[/?<>\\:*|"]/g, '_').substring(0, 80);
+    const tempPath = pathModule.join(
+      require('@electron/remote').app.getPath('temp'),
+      `${message.id}.eml`
+    );
+
+    const task = new GetMessageRFC2822Task({
+      messageId: message.id,
+      accountId: message.accountId,
+      filepath: tempPath,
+    });
+    Actions.queueTask(task);
+    await TaskQueue.waitForPerformRemote(task);
+
+    const draft = await DraftFactory.createDraft({
+      subject: `Fwd: ${message.subject || ''}`,
+      accountId: message.accountId,
+    });
+
+    const syncTask = new SyncbackDraftTask({ draft });
+    Actions.queueTask(syncTask);
+    await TaskQueue.waitForPerformLocal(syncTask);
+
+    Actions.addAttachment({
+      filePath: tempPath,
+      headerMessageId: draft.headerMessageId,
+      onCreated: () => {
+        Actions.composePopoutDraft(draft.headerMessageId);
+      },
+    });
+  };
+
   _lastMessage() {
-    return (this.state.messages || []).filter(m => !m.draft).pop();
+    return (this.state.messages || []).filter((m) => !m.draft).pop();
   }
 
   // Returns either "reply" or "reply-all"
@@ -253,7 +296,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     // Index across all rendered items (messages + minified bundles) for roving tabindex
     let itemIndex = 0;
 
-    messages.forEach(message => {
+    messages.forEach((message) => {
       if (message.type === 'minifiedBundle') {
         elements.push(this._renderMinifiedBundle(message, itemIndex++));
         return;
@@ -398,7 +441,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     }
   };
 
-  _onScrollByPage = direction => {
+  _onScrollByPage = (direction) => {
     const height = (ReactDOM.findDOMNode(this._messageWrapEl) as HTMLElement).clientHeight;
     this._messageWrapEl.scrollTop += height * direction;
   };
@@ -524,7 +567,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
             className={wrapClass}
             scrollbarTickProvider={SearchableComponentStore}
             scrollTooltipComponent={MessageListScrollTooltip}
-            ref={el => {
+            ref={(el) => {
               this._messageWrapEl = el;
             }}
           >
@@ -545,7 +588,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
               data-usesarrowkeys={true}
               aria-label={localized('Messages')}
               onKeyDown={this._onMessageListKeyDown}
-              ref={el => {
+              ref={(el) => {
                 this._messageListEl = el;
               }}
             >
