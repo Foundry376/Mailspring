@@ -18,15 +18,11 @@ import {
   ChangeStarredTask,
   ChangeFolderTask,
   ChangeLabelsTask,
-  DatabaseStore,
   DOMUtils,
-  EmlUtils,
   ExtensionRegistry,
   FocusedContentStore,
   FocusedPerspectiveStore,
   FolderSyncProgressStore,
-  GetMessageRFC2822Task,
-  Message,
   Thread,
   TaskFactory,
   localized,
@@ -235,63 +231,17 @@ class ThreadList extends React.Component<
   };
 
   _onDragItems = (event, items) => {
-    const pathModule = require('path');
-    const os = require('os');
-
     const data = {
       threadIds: items.map((t) => t.id),
       accountIds: _.uniq(items.map((t) => t.accountId)),
     };
-    event.dataTransfer.effectAllowed = 'all';
+    event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.dragEffect = 'move';
 
     const canvas = CanvasUtils.canvasForDragging('threads', data.threadIds.length);
     event.dataTransfer.setDragImage(canvas, 10, 10);
     event.dataTransfer.setData('mailspring-threads-data', JSON.stringify(data));
     event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');
-
-    // Build file URIs for desktop drops (text/uri-list is honored by most
-    // desktop file managers — Nautilus, KDE Dolphin, macOS Finder — and
-    // doesn't interfere with the internal mailspring-threads-data type).
-    const tempDir = pathModule.join(os.tmpdir(), 'mailspring-eml-drag');
-    const threads = items.slice(0, 10);
-    const fileUris = threads.map((t) => {
-      const filename = EmlUtils.defaultEmlFilename(t.subject);
-      return `file://${pathModule.join(tempDir, filename)}`;
-    });
-    event.dataTransfer.setData('text/uri-list', fileUris.join('\r\n'));
-
-    // Fetch the actual RFC2822 data to those temp paths async
-    this._fetchEmlFilesForDrag(threads, tempDir);
-  };
-
-  _fetchEmlFilesForDrag = async (threads: Thread[], tempDir: string) => {
-    const pathModule = require('path');
-    const fs = require('fs');
-    try {
-      fs.mkdirSync(tempDir, { recursive: true });
-    } catch (e) {
-      // directory may already exist
-    }
-
-    for (const thread of threads) {
-      const messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id })
-        .order(Message.attributes.date.descending())
-        .limit(1);
-      if (!messages.length) continue;
-
-      const message = messages[0];
-      const filename = EmlUtils.defaultEmlFilename(message.subject);
-      const filepath = pathModule.join(tempDir, filename);
-
-      Actions.queueTask(
-        new GetMessageRFC2822Task({
-          messageId: message.id,
-          accountId: message.accountId,
-          filepath,
-        })
-      );
-    }
   };
 
   _onDragEnd = (event) => {};
