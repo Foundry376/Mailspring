@@ -106,6 +106,45 @@ const onExportFolder = function (item) {
   );
 };
 
+const detectFolderSeparator = function (category): string {
+  // Check if the displayName already has a separator (nested folder)
+  const sepMatch = /[./\\]/.exec(category.displayName);
+  if (sepMatch) return sepMatch[0];
+
+  // Look at category paths to detect the server's hierarchy separator
+  for (const cat of CategoryStore.categories(category.accountId)) {
+    const catPath = cat.path;
+    for (const prefix of ['INBOX', '[Gmail]', '[Mailspring]', 'Mailspring']) {
+      if (catPath.startsWith(prefix) && catPath.length > prefix.length) {
+        const ch = catPath[prefix.length];
+        if (ch === '.' || ch === '/' || ch === '\\') return ch;
+      }
+    }
+  }
+
+  return '/';
+};
+
+const onCreateChild = function (item, childName) {
+  if (!childName) {
+    return;
+  }
+  const category = item.perspective.category();
+  if (!category) {
+    return;
+  }
+
+  const separator = detectFolderSeparator(category);
+  const fullName = category.displayName + separator + childName;
+
+  Actions.queueTask(
+    SyncbackCategoryTask.forCreating({
+      name: fullName,
+      accountId: category.accountId,
+    })
+  );
+};
+
 const onEditItem = function (item, value) {
   let newDisplayName;
   if (!value) {
@@ -167,6 +206,7 @@ export default class SidebarItem {
         onDelete: opts.deletable ? onDeleteItem : undefined,
         onEdited: opts.editable ? onEditItem : undefined,
         onExport: opts.exportable ? onExportFolder : undefined,
+        onCreateChild: opts.editable ? onCreateChild : undefined,
         onCollapseToggled: toggleItemCollapsed,
 
         onDrop(item, event) {

@@ -14,6 +14,7 @@ export interface ISidebarItem {
   onDelete?: () => void;
   onEdited?: (item, name: string) => void;
   onExport?: () => void;
+  onCreateChild?: (item, childName: string) => void;
   onCollapseToggled: () => void;
   onDrop: (item, event) => void;
   shouldAcceptDrop: (item, event) => void;

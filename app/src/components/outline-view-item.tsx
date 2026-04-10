@@ -30,6 +30,7 @@ type OutlineViewItemProps = {
 type OutlineViewItemState = {
   editing: boolean;
   isDropping: boolean;
+  creatingChild: boolean;
 };
 /*
  * Renders an item that may contain more arbitrarily nested items
@@ -156,6 +157,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     this.state = {
       isDropping: false,
       editing: props.item.editing || false,
+      creatingChild: false,
     };
   }
 
@@ -196,7 +198,8 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     return (
       this.props.item.onDelete != null ||
       this.props.item.onEdited != null ||
-      this.props.item.onExport != null
+      this.props.item.onExport != null ||
+      this.props.item.onCreateChild != null
     );
   };
 
@@ -250,6 +253,24 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     }
   };
 
+  _onCreateChildTriggered = () => {
+    if (this.props.item.collapsed) {
+      this._onCollapseToggled();
+    }
+    this.setState({ creatingChild: true });
+  };
+
+  _onChildCreated = (_item, value) => {
+    this.setState({ creatingChild: false });
+    if (value) {
+      this._runCallback('onCreateChild', value);
+    }
+  };
+
+  _onCreateChildInputCleared = () => {
+    this.setState({ creatingChild: false });
+  };
+
   _onInputFocus = (event) => {
     const input = event.target;
     input.selectionStart = input.selectionEnd = input.value.length;
@@ -290,6 +311,15 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         new MenuItem({
           label: `${localized(`Delete`)} ${contextMenuLabel}`,
           click: this._onDelete,
+        })
+      );
+    }
+
+    if (this.props.item.onCreateChild) {
+      menu.append(
+        new MenuItem({
+          label: localized(`New Subfolder...`),
+          click: this._onCreateChildTriggered,
         })
       );
     }
@@ -362,14 +392,33 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     );
   }
 
+  _renderCreateChildInput() {
+    const item = {
+      id: `create-child-${this.props.item.id}`,
+      name: '',
+      children: [],
+      editing: true,
+      iconName: this.props.item.iconName || 'folder.png',
+      onEdited: this._onChildCreated,
+      inputPlaceholder: localized('Subfolder name'),
+      onInputCleared: this._onCreateChildInputCleared,
+    };
+    return <OutlineViewItem item={item} />;
+  }
+
   _renderChildren(item = this.props.item) {
-    if (item.children.length > 0 && !item.collapsed) {
+    const showRegularChildren = item.children.length > 0 && !item.collapsed;
+    const showCreateChildInput = this.state.creatingChild;
+
+    if (showRegularChildren || showCreateChildInput) {
       const childLevel = (this.props.level || 1) + 1;
       return (
         <div role="group" className="item-children" key={`${item.id}-children`}>
-          {item.children.map((child) => (
-            <OutlineViewItem key={child.id} item={child} level={childLevel} />
-          ))}
+          {showCreateChildInput && this._renderCreateChildInput()}
+          {showRegularChildren &&
+            item.children.map((child) => (
+              <OutlineViewItem key={child.id} item={child} level={childLevel} />
+            ))}
         </div>
       );
     }
@@ -379,6 +428,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
   render() {
     const item = this.props.item;
     const hasChildren = item.children.length > 0;
+    const showAsExpanded = this.state.creatingChild;
     const containerClasses = classnames({
       'item-container': true,
       dropping: this.state.isDropping,
@@ -388,7 +438,9 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         role="treeitem"
         aria-level={this.props.level || 1}
         aria-selected={item.selected || false}
-        aria-expanded={hasChildren ? !item.collapsed : undefined}
+        aria-expanded={
+          hasChildren || showAsExpanded ? !(item.collapsed && !showAsExpanded) : undefined
+        }
         aria-label={
           this.props.sectionTitle ? `${this.props.sectionTitle}, ${item.name}` : item.name
         }
@@ -396,8 +448,8 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
       >
         <span className={containerClasses}>
           <DisclosureTriangle
-            collapsed={item.collapsed}
-            visible={hasChildren}
+            collapsed={item.collapsed && !showAsExpanded}
+            visible={hasChildren || showAsExpanded}
             onCollapseToggled={this._onCollapseToggled}
           />
           {this._renderItem()}
