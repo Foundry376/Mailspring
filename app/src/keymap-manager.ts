@@ -42,9 +42,14 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
   if (withinTree) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
     const isArrowKey = /(left|right|up|down)/.test(combo);
-    if (isPlainKey && isArrowKey) {
-      return true;
-    }
+    // Only block plain arrow keys within tree / arrow-key widgets so the
+    // widget's own navigation works. All other keys (Escape, letter keys
+    // for Gmail-style shortcuts, etc.) must pass through – returning false
+    // explicitly so the withinTextInput check below is skipped. Without
+    // the explicit return, non-arrow keys fall through to withinTextInput
+    // and get blocked when focus is on a contentEditable element inside
+    // the widget (e.g. the reply composer within the message list).
+    return isPlainKey && isArrowKey;
   }
 
   const withinTextInput =
