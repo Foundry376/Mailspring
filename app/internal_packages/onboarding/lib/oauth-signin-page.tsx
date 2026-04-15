@@ -9,6 +9,19 @@ import FormErrorMessage from './form-error-message';
 import { LOCAL_SERVER_PORT } from './onboarding-constants';
 import AccountProviders from './account-providers';
 
+/**
+ * Extract the OAuth authorization code from a redirect URL's query string.
+ * Uses decodeURIComponent instead of querystring.parse to preserve `+` as
+ * a literal character (RFC 3986) rather than decoding it as a space
+ * (application/x-www-form-urlencoded).
+ */
+export function extractOAuthCodeFromUrl(requestUrl: string): string | null {
+  const parsedUrl = url.parse(requestUrl);
+  const rawQuery = parsedUrl.query || '';
+  const codeMatch = rawQuery.match(/(?:^|&)code=([^&]*)/);
+  return codeMatch ? decodeURIComponent(codeMatch[1]) : null;
+}
+
 interface OAuthSignInPageProps {
   providerAuthPageUrl: string;
   buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
@@ -71,17 +84,7 @@ export default class OAuthSignInPage extends React.Component<
     // launch a web server
     this._server = http.createServer((request, response) => {
       if (!this._mounted) return;
-      // Parse the query string using decodeURIComponent instead of querystring.parse
-      // (which url.parse with `true` uses internally). querystring.parse decodes `+`
-      // as a space per the application/x-www-form-urlencoded spec, but the OAuth
-      // redirect is a URL query string where `+` is a valid literal character per
-      // RFC 3986. If Google's authorization code contains a `+` that isn't encoded
-      // as %2B, querystring.parse would silently corrupt it into a space, causing
-      // token exchange or downstream XOAuth2 authentication to fail.
-      const parsedUrl = url.parse(request.url);
-      const rawQuery = parsedUrl.query || '';
-      const codeMatch = rawQuery.match(/(?:^|&)code=([^&]*)/);
-      const code = codeMatch ? decodeURIComponent(codeMatch[1]) : null;
+      const code = extractOAuthCodeFromUrl(request.url);
       if (code) {
         this._onReceivedCode(code);
         response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
