@@ -107,9 +107,9 @@ const onExportFolder = function (item) {
   );
 };
 
-const detectFolderSeparator = function (category): string {
+function detectFolderSeparator(accountId: string): string {
   // Check category paths for known prefixes — most reliable signal
-  for (const cat of CategoryStore.categories(category.accountId)) {
+  for (const cat of CategoryStore.categories(accountId)) {
     const catPath = cat.path;
     for (const prefix of ['INBOX', '[Gmail]', '[Mailspring]', 'Mailspring']) {
       if (catPath.startsWith(prefix) && catPath.length > prefix.length) {
@@ -119,32 +119,37 @@ const detectFolderSeparator = function (category): string {
     }
   }
 
-  // Fallback: check if the displayName has a separator (nested folder)
-  const sepMatch = /[./\\]/.exec(category.displayName);
-  if (sepMatch) return sepMatch[0];
-
   return '/';
-};
+}
 
-const onCreateChild = function (item, childName) {
-  if (!childName) {
-    return;
-  }
-  const category = item.perspective.category();
-  if (!category) {
+export function createCategory(accountId: string, name: string, parentCategory?: { path: string }) {
+  if (!name) {
     return;
   }
 
-  const separator = detectFolderSeparator(category);
-  const decodedPath = utf7.imap.decode(category.path);
-  const fullName = decodedPath + separator + childName;
+  let fullName: string;
+  if (parentCategory) {
+    const separator = detectFolderSeparator(accountId);
+    const decodedPath = utf7.imap.decode(parentCategory.path);
+    fullName = decodedPath + separator + name;
+  } else {
+    fullName = name;
+  }
 
   Actions.queueTask(
     SyncbackCategoryTask.forCreating({
       name: fullName,
-      accountId: category.accountId,
+      accountId,
     })
   );
+}
+
+const onCreateChild = function (item, childName) {
+  const category = item.perspective.category();
+  if (!category) {
+    return;
+  }
+  createCategory(category.accountId, childName, category);
 };
 
 const onEditItem = function (item, value) {
