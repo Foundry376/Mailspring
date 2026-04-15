@@ -405,7 +405,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
       inputPlaceholder: isLabel ? localized('Sublabel name') : localized('Subfolder name'),
       onInputCleared: this._onCreateChildInputCleared,
     };
-    return <OutlineViewItem item={item} />;
+    return <OutlineViewItem item={item} level={(this.props.level || 1) + 1} />;
   }
 
   _renderChildren(item = this.props.item) {

@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import utf7 from 'utf7';
 
 import _str from 'underscore.string';
 import { OutlineViewItem } from 'mailspring-component-kit';
@@ -107,11 +108,7 @@ const onExportFolder = function (item) {
 };
 
 const detectFolderSeparator = function (category): string {
-  // Check if the displayName already has a separator (nested folder)
-  const sepMatch = /[./\\]/.exec(category.displayName);
-  if (sepMatch) return sepMatch[0];
-
-  // Look at category paths to detect the server's hierarchy separator
+  // Check category paths for known prefixes — most reliable signal
   for (const cat of CategoryStore.categories(category.accountId)) {
     const catPath = cat.path;
     for (const prefix of ['INBOX', '[Gmail]', '[Mailspring]', 'Mailspring']) {
@@ -121,6 +118,10 @@ const detectFolderSeparator = function (category): string {
       }
     }
   }
+
+  // Fallback: check if the displayName has a separator (nested folder)
+  const sepMatch = /[./\\]/.exec(category.displayName);
+  if (sepMatch) return sepMatch[0];
 
   return '/';
 };
@@ -135,7 +136,8 @@ const onCreateChild = function (item, childName) {
   }
 
   const separator = detectFolderSeparator(category);
-  const fullName = category.displayName + separator + childName;
+  const decodedPath = utf7.imap.decode(category.path);
+  const fullName = decodedPath + separator + childName;
 
   Actions.queueTask(
     SyncbackCategoryTask.forCreating({
