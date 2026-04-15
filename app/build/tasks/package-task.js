@@ -204,6 +204,7 @@ module.exports = grunt => {
         /\.gyp/,
         /\.mk/,
         /\.dYSM$/,
+        /\.map$/,
 
         // specific (large) module bits we know we don't need
         /node_modules[/]+less[/]+dist$/,
