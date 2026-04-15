@@ -14,7 +14,7 @@ interface OAuthSignInPageProps {
   buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
   onSuccess: (account: Account) => void;
   onTryAgain: () => void;
-  providerConfig: typeof AccountProviders[0];
+  providerConfig: (typeof AccountProviders)[0];
   serviceName: string;
 }
 
@@ -71,16 +71,26 @@ export default class OAuthSignInPage extends React.Component<
     // launch a web server
     this._server = http.createServer((request, response) => {
       if (!this._mounted) return;
-      const { query } = url.parse(request.url, true);
-      if (query.code) {
-        this._onReceivedCode(query.code);
+      // Parse the query string using decodeURIComponent instead of querystring.parse
+      // (which url.parse with `true` uses internally). querystring.parse decodes `+`
+      // as a space per the application/x-www-form-urlencoded spec, but the OAuth
+      // redirect is a URL query string where `+` is a valid literal character per
+      // RFC 3986. If Google's authorization code contains a `+` that isn't encoded
+      // as %2B, querystring.parse would silently corrupt it into a space, causing
+      // token exchange or downstream XOAuth2 authentication to fail.
+      const parsedUrl = url.parse(request.url);
+      const rawQuery = parsedUrl.query || '';
+      const codeMatch = rawQuery.match(/(?:^|&)code=([^&]*)/);
+      const code = codeMatch ? decodeURIComponent(codeMatch[1]) : null;
+      if (code) {
+        this._onReceivedCode(code);
         response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
         response.end();
       } else {
         response.end('Unknown Request');
       }
     });
-    this._server.once('error', err => {
+    this._server.once('error', (err) => {
       AppEnv.showErrorDialog({
         title: localized('Unable to Start Local Server'),
         message: localized(
@@ -196,7 +206,7 @@ export default class OAuthSignInPage extends React.Component<
             onClick={() =>
               navigator.clipboard
                 .writeText(this.props.providerAuthPageUrl)
-                .catch(err => console.error('Failed to copy to clipboard:', err))
+                .catch((err) => console.error('Failed to copy to clipboard:', err))
             }
             onMouseDown={() => this.setState({ pressed: true })}
             onMouseUp={() => this.setState({ pressed: false })}
