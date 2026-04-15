@@ -290,8 +290,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     }
   };
 
-  _onShowContextMenu = (event) => {
-    event.stopPropagation();
+  _buildContextMenu = () => {
     const item = this.props.item;
     const contextMenuLabel = item.contextMenuLabel || item.name;
     const { Menu, MenuItem } = require('@electron/remote');
@@ -333,7 +332,18 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         })
       );
     }
-    menu.popup({});
+
+    return menu;
+  };
+
+  _onShowContextMenu = (event) => {
+    event.stopPropagation();
+    this._buildContextMenu().popup({});
+  };
+
+  _onMenuButtonClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    this._buildContextMenu().popup({});
   };
 
   // Renderers
@@ -387,6 +397,17 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         ) : (
           <div className="name" title={item.name}>
             {item.name}
+          </div>
+        )}
+        {this._shouldShowContextMenu() && !state.editing && (
+          <div
+            className="item-action-button"
+            role="button"
+            tabIndex={-1}
+            aria-label={localized('Actions')}
+            onClick={this._onMenuButtonClick}
+          >
+            &middot;&middot;&middot;
           </div>
         )}
       </DropZone>

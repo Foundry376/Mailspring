@@ -126,12 +126,36 @@
     .item-count-box.spam {
       display: none;
     }
+    .item-action-button {
+      order: 4;
+      flex-shrink: 0;
+      margin-left: auto;
+      cursor: pointer;
+      font-size: 10px;
+      letter-spacing: 1px;
+      line-height: 1;
+      padding: 0 2px;
+      border-radius: 3px;
+      color: @text-color-very-subtle;
+      display: none;
+      &:hover {
+        color: @text-color-subtle;
+        background: fade(@text-color-subtle, 15%);
+      }
+    }
 
     &.selected {
       background: @source-list-active-bg;
       color: @source-list-active-color;
       img.content-mask {
         background-color: @source-list-active-color;
+      }
+      .item-action-button {
+        color: fadeout(@source-list-active-color, 30%);
+        &:hover {
+          color: @source-list-active-color;
+          background: fade(@source-list-active-color, 15%);
+        }
       }
     }
     &.dropping {
@@ -156,6 +180,9 @@
     }
     &:hover {
       cursor: default;
+      .item-action-button {
+        display: flex;
+      }
     }
   }
 }
