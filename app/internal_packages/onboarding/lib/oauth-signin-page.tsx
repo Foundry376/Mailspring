@@ -160,11 +160,13 @@ export default class OAuthSignInPage extends React.Component<
     }
 
     // Error
+    const { note } = this.props.providerConfig;
     return (
       <div>
         <h2>{localized('Sorry, we had trouble logging you in')}</h2>
         <div className="error-region">
           <FormErrorMessage message={this.state.errorMessage} />
+          {note && <div className="message empty note">{note}</div>}
           <div className="btn" style={{ marginTop: 20 }} onClick={this.props.onTryAgain}>
             {localized('Try Again')}
           </div>
@@ -209,6 +211,7 @@ export default class OAuthSignInPage extends React.Component<
   }
 
   _renderNote() {
+    if (this.state.authStage === 'error') return null;
     const { note } = this.props.providerConfig;
     if (!note) return null;
     return <div className="message empty note">{note}</div>;
