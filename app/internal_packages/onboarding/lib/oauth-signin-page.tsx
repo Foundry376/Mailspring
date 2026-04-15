@@ -19,7 +19,12 @@ export function extractOAuthCodeFromUrl(requestUrl: string): string | null {
   const parsedUrl = url.parse(requestUrl);
   const rawQuery = parsedUrl.query || '';
   const codeMatch = rawQuery.match(/(?:^|&)code=([^&]*)/);
-  return codeMatch ? decodeURIComponent(codeMatch[1]) : null;
+  if (!codeMatch) return null;
+  try {
+    return decodeURIComponent(codeMatch[1]);
+  } catch {
+    return null;
+  }
 }
 
 interface OAuthSignInPageProps {

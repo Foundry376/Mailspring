@@ -30,4 +30,8 @@ describe('extractOAuthCodeFromUrl', function extractOAuthCodeTests() {
   it('returns null for a bare path with no query string', () => {
     expect(extractOAuthCodeFromUrl('/')).toEqual(null);
   });
+
+  it('returns null for a malformed percent-encoded code instead of throwing', () => {
+    expect(extractOAuthCodeFromUrl('/?code=4%2F0AeanS0m%ZZbad')).toEqual(null);
+  });
 });
