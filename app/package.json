@@ -1,6 +1,7 @@
 {
   "name": "mailspring",
   "productName": "Mailspring",
+  "desktopName": "Mailspring.desktop",
   "version": "1.19.1",
   "repository": {
     "type": "git",
