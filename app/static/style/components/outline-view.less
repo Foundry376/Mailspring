@@ -131,16 +131,17 @@
       flex-shrink: 0;
       margin-left: auto;
       cursor: pointer;
-      font-size: 10px;
+      font-size: @font-size-base * 0.5;
       letter-spacing: 1px;
-      line-height: 1;
-      padding: 0 2px;
+      line-height: 18px;
+      width: 18px;
+      text-align: center;
       border-radius: 3px;
-      color: @text-color-very-subtle;
+      color: @text-color-very-subtle !important;
       display: none;
       &:hover {
-        color: @text-color-subtle;
-        background: fade(@text-color-subtle, 15%);
+        color: @text-color-subtle !important;
+        background: fade(@text-color-subtle, 15%) !important;
       }
     }
 
@@ -181,7 +182,7 @@
     &:hover {
       cursor: default;
       .item-action-button {
-        display: flex;
+        display: block;
       }
     }
   }
