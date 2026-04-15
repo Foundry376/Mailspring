@@ -18,7 +18,7 @@ const AccountProviders = [
           'Office 365 accounts require IMAP and Authenticated SMTP to be enabled. Your organization\'s admin may need to enable these in the Microsoft 365 Admin Center. %@',
           <a
             style={{ fontWeight: 600 }}
-            href="https://community.getmailspring.com/t/14392"
+            href="https://community.getmailspring.com/t/connecting-mailspring-to-microsoft-office-365-and-outlook-com/14394"
           >
             {localized('Learn more')}
           </a>
@@ -61,7 +61,7 @@ const AccountProviders = [
           'If you have trouble connecting, you may need to enable IMAP and SMTP access in your Microsoft account settings. %@',
           <a
             style={{ fontWeight: 600 }}
-            href="https://community.getmailspring.com/t/14392"
+            href="https://community.getmailspring.com/t/connecting-mailspring-to-microsoft-office-365-and-outlook-com/14394"
           >
             {localized('Learn more')}
           </a>
