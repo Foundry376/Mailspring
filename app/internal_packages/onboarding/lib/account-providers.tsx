@@ -11,6 +11,20 @@ const AccountProviders = [
   {
     provider: 'office365',
     displayName: 'Office 365',
+    note: (
+      <span>
+        <strong>{localized('Note')}:</strong>{' '}
+        {localizedReactFragment(
+          'Office 365 accounts require IMAP and Authenticated SMTP to be enabled. Your organization\'s admin may need to enable these in the Microsoft 365 Admin Center. %@',
+          <a
+            style={{ fontWeight: 600 }}
+            href="https://community.getmailspring.com/t/14392"
+          >
+            {localized('Learn more')}
+          </a>
+        )}
+      </span>
+    ),
     icon: 'ic-settings-account-office365.png',
     headerIcon: 'setup-icon-provider-office365.png',
     color: '#D83B01',
@@ -40,6 +54,20 @@ const AccountProviders = [
     provider: 'outlook',
     displayName: 'Outlook.com / Hotmail',
     displayNameShort: 'Outlook',
+    note: (
+      <span>
+        <strong>{localized('Note')}:</strong>{' '}
+        {localizedReactFragment(
+          'If you have trouble connecting, you may need to enable IMAP and SMTP access in your Microsoft account settings. %@',
+          <a
+            style={{ fontWeight: 600 }}
+            href="https://community.getmailspring.com/t/14392"
+          >
+            {localized('Learn more')}
+          </a>
+        )}
+      </span>
+    ),
     icon: 'ic-settings-account-outlook.png',
     headerIcon: 'setup-icon-provider-outlook.png',
     color: '#0078d7',

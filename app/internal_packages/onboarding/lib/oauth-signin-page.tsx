@@ -208,6 +208,12 @@ export default class OAuthSignInPage extends React.Component<
     );
   }
 
+  _renderNote() {
+    const { note } = this.props.providerConfig;
+    if (!note) return null;
+    return <div className="message empty note">{note}</div>;
+  }
+
   render() {
     return (
       <div className={`page account-setup ${this.props.serviceName.toLowerCase()}`}>
@@ -220,6 +226,7 @@ export default class OAuthSignInPage extends React.Component<
           />
         </div>
         {this._renderHeader()}
+        {this._renderNote()}
         {this._renderAlternative()}
       </div>
     );
