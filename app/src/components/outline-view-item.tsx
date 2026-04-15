@@ -316,9 +316,10 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     }
 
     if (this.props.item.onCreateChild) {
+      const isLabel = contextMenuLabel.toLowerCase() === 'label';
       menu.append(
         new MenuItem({
-          label: localized(`New Subfolder...`),
+          label: isLabel ? localized(`New Sublabel...`) : localized(`New Subfolder...`),
           click: this._onCreateChildTriggered,
         })
       );
@@ -393,6 +394,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
   }
 
   _renderCreateChildInput() {
+    const isLabel = (this.props.item.contextMenuLabel || '').toLowerCase() === 'label';
     const item = {
       id: `create-child-${this.props.item.id}`,
       name: '',
@@ -400,7 +402,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
       editing: true,
       iconName: this.props.item.iconName || 'folder.png',
       onEdited: this._onChildCreated,
-      inputPlaceholder: localized('Subfolder name'),
+      inputPlaceholder: isLabel ? localized('Sublabel name') : localized('Subfolder name'),
       onInputCleared: this._onCreateChildInputCleared,
     };
     return <OutlineViewItem item={item} />;
