@@ -456,7 +456,7 @@ export class DraftEditingSession extends MailspringStore {
     let changed = false;
     for (const [key] of Object.entries(Message.attributes)) {
       if (key === 'headerMessageId') continue;
-      if (nextDraft[key] === undefined) continue;
+      if (nextDraft[key] == null) continue;
       if (lockedFields.includes(key)) continue;
       if (this._draft[key] === nextDraft[key]) continue;
 
