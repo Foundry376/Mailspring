@@ -101,11 +101,7 @@ export async function transferReminderMetadataFromDraftToThread({ accountId, hea
   }
 
   if (!message) {
-    // The message may have been deleted by the user (e.g. they deleted the thread
-    // after sending but before the reminder metadata could be transferred). This is
-    // expected and not an error — the reminder is simply no longer needed.
-    console.log('SendReminders: Message not found, reminder transfer skipped (likely deleted)');
-    return;
+    throw new Error('SendReminders: Could not find message to update');
   }
 
   const metadata = message.metadataForPluginId(PLUGIN_ID) || {};
@@ -115,9 +111,7 @@ export async function transferReminderMetadataFromDraftToThread({ accountId, hea
 
   const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
   if (!thread) {
-    // Same as above — the thread was deleted, so the reminder is no longer relevant.
-    console.log('SendReminders: Thread not found, reminder transfer skipped (likely deleted)');
-    return;
+    throw new Error('SendReminders: Could not find thread to update');
   }
   updateReminderMetadata(thread, {
     expiration: metadata.expiration,
