@@ -125,8 +125,17 @@ export default class PackageManager {
       return;
     }
 
-    this.active[pkg.name] = pkg;
-    pkg.activate();
+    try {
+      this.active[pkg.name] = pkg;
+      pkg.activate();
+    } catch (err) {
+      delete this.active[pkg.name];
+      AppEnv.reportError(
+        new Error(
+          localized(`Failed to activate plugin %@: %@`, pkg.name, err.message || err.toString())
+        )
+      );
+    }
   }
 
   deactivatePackages() {}

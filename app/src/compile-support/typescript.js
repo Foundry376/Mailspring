@@ -50,7 +50,10 @@ exports.compile = function(sourceCode, filePath) {
     }
   }
   if (TypeScript === 'missing') {
-    return sourceCode;
+    throw new Error(
+      `Cannot compile ${filePath}: Mailspring no longer ships with TypeScript. ` +
+        `Ask the plugin developer to compile the plugin to vanilla JavaScript as a pre-publish step.`
+    );
   }
   return TypeScript.transpileModule(sourceCode, { compilerOptions, fileName: filePath }).outputText;
 };
