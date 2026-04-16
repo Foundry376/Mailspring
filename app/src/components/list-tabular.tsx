@@ -359,10 +359,12 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
 
   updateRangeStateIfViewportChanged() {
     const range = this.getRange();
+    if (!range) {
+      return;
+    }
 
     // Final sanity check to prevent needless work
     if (
-      !range ||
       range.end !== this.state.renderedRangeEnd ||
       range.start !== this.state.renderedRangeStart
     ) {
