@@ -58,6 +58,7 @@ export default class Application extends EventEmitter {
   _resettingAndRelaunching: boolean;
   _initialized: boolean = false;
   _pendingLaunchOptions: any[] = [];
+  _pendingUrls: string[] = [];
 
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
@@ -157,6 +158,9 @@ export default class Application extends EventEmitter {
     this.handleLaunchOptions(options);
     for (const pendingOpts of this._pendingLaunchOptions.splice(0)) {
       this.handleLaunchOptions(pendingOpts);
+    }
+    for (const pendingUrl of this._pendingUrls.splice(0)) {
+      this.openUrl(pendingUrl);
     }
 
     if (process.platform === 'linux') {
@@ -870,6 +874,11 @@ export default class Application extends EventEmitter {
   // Open a mailto:// url.
   //
   openUrl(urlToOpen) {
+    if (!this._initialized) {
+      this._pendingUrls.push(urlToOpen);
+      return;
+    }
+
     const parts = url.parse(urlToOpen, true);
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
