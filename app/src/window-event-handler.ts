@@ -368,7 +368,9 @@ export default class WindowEventHandler {
         .getGlobal('application')
         .openUrl(sanitized);
     } else if (['http:', 'https:', 'tel:'].includes(protocol)) {
-      shell.openExternal(resolved, { activate: !metaKey });
+      shell.openExternal(resolved, { activate: !metaKey }).catch(err => {
+        console.error(`Failed to open link: ${err.message}`);
+      });
     }
     return;
   }
