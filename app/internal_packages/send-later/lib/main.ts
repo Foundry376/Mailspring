@@ -49,6 +49,10 @@ function handleMetadataExpiration(change) {
 
     // clear the metadata
     const session = await DraftStore.sessionForClientId(message.headerMessageId);
+    if (!session.draft()) {
+      // Draft was already sent or deleted before the expiration fired
+      return;
+    }
     session.changes.addPluginMetadata(PLUGIN_ID, { expiration: null });
     session.changes.commit();
 
