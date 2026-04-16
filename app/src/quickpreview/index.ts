@@ -355,6 +355,11 @@ async function _generateNextCrossplatformPreview() {
   // Token is generated via IPC to ensure it's stored in the main process
   const previewToken = await generatePreviewToken(previewPath);
 
+  // captureWindow may have been destroyed/crashed during the async token generation above
+  if (!captureWindow || captureWindow.isDestroyed()) {
+    captureWindow = _createCaptureWindow();
+  }
+
   // Start the thumbnail generation
   captureWindow
     .loadFile(path.join(filesRoot, 'renderer.html'), {
