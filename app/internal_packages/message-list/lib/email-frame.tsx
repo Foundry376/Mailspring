@@ -139,6 +139,10 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     });
 
     window.requestAnimationFrame(() => {
+      // Guard: component may have unmounted or _writeContent called again (calling
+      // doc.open() a second time), leaving doc.body null until the next doc.write().
+      if (!this._mounted || !doc.body) return;
+
       Autolink(doc.body, {
         async: true,
         telAggressiveMatch: false,
@@ -156,7 +160,8 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
             iframe: iframeEl,
           });
         } catch (e) {
-          AppEnv.reportError(e);
+          const name = (extension as any).displayName || (extension as any).name || 'unknown';
+          AppEnv.reportError(e, { extensionName: name });
         }
       }
     });
