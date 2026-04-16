@@ -28,7 +28,7 @@ class SendRemindersStore extends MailspringStore {
   }
 
   deactivate() {
-    this._unsubscribers.forEach(unsub => unsub());
+    this._unsubscribers.forEach((unsub) => unsub());
   }
 
   _sendReminderEmail = async (thread, sentHeaderMessageId) => {
@@ -53,6 +53,13 @@ class SendRemindersStore extends MailspringStore {
     }
 
     if (!AppEnv.isMainWindow()) {
+      return;
+    }
+
+    // If threads with reminders were deleted, there's nothing to clean up — the
+    // metadata is gone with the thread. Just skip processing to avoid operating
+    // on deleted models.
+    if (type === 'unpersist') {
       return;
     }
 

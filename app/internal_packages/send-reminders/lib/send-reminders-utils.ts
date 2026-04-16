@@ -84,7 +84,7 @@ export async function findMessage({ accountId, headerMessageId }) {
   // accounts if you sent it to yourself. To make this more performant, we do a find
   // and then a filter in code.
   return (await DatabaseStore.findAll<Message>(Message, { headerMessageId })).find(
-    m => m.accountId === accountId
+    (m) => m.accountId === accountId
   );
 }
 
@@ -101,7 +101,11 @@ export async function transferReminderMetadataFromDraftToThread({ accountId, hea
   }
 
   if (!message) {
-    throw new Error('SendReminders: Could not find message to update');
+    // The message may have been deleted by the user (e.g. they deleted the thread
+    // after sending but before the reminder metadata could be transferred). This is
+    // expected and not an error — the reminder is simply no longer needed.
+    console.log('SendReminders: Message not found, reminder transfer skipped (likely deleted)');
+    return;
   }
 
   const metadata = message.metadataForPluginId(PLUGIN_ID) || {};
@@ -111,7 +115,9 @@ export async function transferReminderMetadataFromDraftToThread({ accountId, hea
 
   const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
   if (!thread) {
-    throw new Error('SendReminders: Could not find thread to update');
+    // Same as above — the thread was deleted, so the reminder is no longer relevant.
+    console.log('SendReminders: Thread not found, reminder transfer skipped (likely deleted)');
+    return;
   }
   updateReminderMetadata(thread, {
     expiration: metadata.expiration,
