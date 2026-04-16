@@ -94,13 +94,24 @@ export default class PrintWindow {
       if (!filePath) {
         return;
       }
-      const data = await this.browserWin.webContents.printToPDF({
-        margins: { marginType: 'none' },
-        pageSize: 'Letter',
-        printBackground: true,
-        landscape: false,
-      });
-      fs.writeFileSync(filePath, data);
+
+      try {
+        const data = await this.browserWin.webContents.printToPDF({
+          margins: { marginType: 'none' },
+          pageSize: 'Letter',
+          printBackground: true,
+          landscape: false,
+        });
+        fs.writeFileSync(filePath, data);
+      } catch (err) {
+        dialog.showErrorBox(
+          localized('Save as PDF Failed'),
+          localized(
+            'Mailspring could not generate the PDF. Please try again. If the problem persists, try printing to a PDF printer instead.\n\nError: %@',
+            err.message
+          )
+        );
+      }
     });
 
     this.browserWin.removeMenu();
