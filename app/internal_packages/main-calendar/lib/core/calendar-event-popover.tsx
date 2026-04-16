@@ -395,7 +395,7 @@ export class CalendarEventPopover extends React.Component<
       location: location || undefined,
       attendees:
         attendees && attendees.length > 0
-          ? attendees.map(a => ({ email: a.email, name: a.name }))
+          ? attendees.map((a) => ({ email: a.email, name: a.name }))
           : undefined,
       recurrenceRule: repeatOptionToRRule(repeat) || undefined,
       timezone,
@@ -445,7 +445,7 @@ export class CalendarEventPopover extends React.Component<
               aria-label={localized('Event title')}
               placeholder={localized('New Event')}
               value={title}
-              onChange={e => this.updateField('title', e.target.value)}
+              onChange={(e) => this.updateField('title', e.target.value)}
             />
             {/* CalendarColorPicker disabled until custom event colors are fully supported */}
           </div>
@@ -466,7 +466,7 @@ export class CalendarEventPopover extends React.Component<
           {/* Location with video call toggle */}
           <LocationVideoInput
             value={location}
-            onChange={value => this.updateField('location', value)}
+            onChange={(value) => this.updateField('location', value)}
             onVideoToggle={() => {
               // Placeholder: could add video call link
             }}
@@ -475,44 +475,47 @@ export class CalendarEventPopover extends React.Component<
           {/* All-day toggle */}
           <AllDayToggle
             checked={allDay}
-            onChange={checked => this.updateField('allDay', checked)}
+            onChange={(checked) => this.updateField('allDay', checked)}
           />
 
           {/* Start/End times using property rows */}
           <EventPropertyRow label={localized('starts:')}>
             <DatePicker
               value={start * 1000}
-              onChange={ts => this.updateField('start', ts / 1000)}
+              onChange={(ts) => this.updateField('start', ts / 1000)}
             />
             {!allDay && (
               <TimePicker
                 value={start * 1000}
-                onChange={ts => this.updateField('start', ts / 1000)}
+                onChange={(ts) => this.updateField('start', ts / 1000)}
               />
             )}
           </EventPropertyRow>
 
           <EventPropertyRow label={localized('ends:')}>
-            <DatePicker value={end * 1000} onChange={ts => this.updateField('end', ts / 1000)} />
+            <DatePicker value={end * 1000} onChange={(ts) => this.updateField('end', ts / 1000)} />
             {!allDay && (
-              <TimePicker value={end * 1000} onChange={ts => this.updateField('end', ts / 1000)} />
+              <TimePicker
+                value={end * 1000}
+                onChange={(ts) => this.updateField('end', ts / 1000)}
+              />
             )}
           </EventPropertyRow>
 
           {/* Time zone selector */}
           <TimeZoneSelector
             value={timezone}
-            onChange={value => this.updateField('timezone', value)}
+            onChange={(value) => this.updateField('timezone', value)}
           />
 
           {/* Repeat selector */}
-          <RepeatSelector value={repeat} onChange={value => this.updateField('repeat', value)} />
+          <RepeatSelector value={repeat} onChange={(value) => this.updateField('repeat', value)} />
 
           {/* Alert selector */}
-          <AlertSelector value={alert} onChange={value => this.updateField('alert', value)} />
+          <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
 
           {/* Show as selector */}
-          <ShowAsSelector value={showAs} onChange={value => this.updateField('showAs', value)} />
+          <ShowAsSelector value={showAs} onChange={(value) => this.updateField('showAs', value)} />
 
           {/* Invitees section - collapsible */}
           {showInvitees ? (
@@ -530,7 +533,7 @@ export class CalendarEventPopover extends React.Component<
                 ref={this.attendeesInputRef}
                 className="event-participant-field"
                 attendees={attendees}
-                change={val => this.updateField('attendees', val)}
+                change={(val) => this.updateField('attendees', val)}
               />
             </div>
           ) : (
@@ -553,7 +556,7 @@ export class CalendarEventPopover extends React.Component<
                 value={notes}
                 aria-label={localized('Notes')}
                 placeholder={localized('Add notes or URL...')}
-                onChange={e => this.updateField('description', e.target.value)}
+                onChange={(e) => this.updateField('description', e.target.value)}
               />
             </div>
           ) : (
@@ -646,17 +649,58 @@ class CalendarEventPopoverUnenditable extends React.Component<{
           <div className="invitees-list">
             {sortAttendeesByStatus(attendees).map((a, idx) => {
               const partstat = a.partstat || 'NEEDS-ACTION';
-              let statusIcon = '?';
+              let statusIcon: React.ReactNode;
               let statusClass = 'needs-action';
               if (partstat === 'ACCEPTED') {
-                statusIcon = '✓';
+                statusIcon = (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path
+                      d="M1.5 5.5L4 8l4.5-6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                );
                 statusClass = 'accepted';
               } else if (partstat === 'DECLINED') {
-                statusIcon = '✗';
+                statusIcon = (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path
+                      d="M2 2l6 6M8 2l-6 6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                );
                 statusClass = 'declined';
               } else if (partstat === 'TENTATIVE') {
-                statusIcon = '?';
+                statusIcon = (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path
+                      d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
+                  </svg>
+                );
                 statusClass = 'tentative';
+              } else {
+                statusIcon = (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path
+                      d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
+                  </svg>
+                );
               }
               return (
                 <div key={idx} className={`attendee-chip ${statusClass}`}>
@@ -700,7 +744,7 @@ function extractNotesFromDescription(description: string) {
   let notes: string = null;
   if (els.length) {
     notes = Array.from(els)
-      .map(el => (el as HTMLMetaElement).content)
+      .map((el) => (el as HTMLMetaElement).content)
       .join('\n');
   } else {
     notes = descriptionRoot.innerText;

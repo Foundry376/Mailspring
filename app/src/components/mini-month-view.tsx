@@ -73,7 +73,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     return (
       <div
         className="day-grid"
-        onClick={event => {
+        onClick={(event) => {
           if (event.target instanceof HTMLElement && event.target.dataset.unix) {
             this.props.onChange(moment(Number(event.target.dataset.unix)));
           }
@@ -97,15 +97,31 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
       <div className="mini-month-view">
         <div className="header">
           <div className="btn btn-icon" onClick={() => onChangeMonth(-1)}>
-            &lsaquo;
+            <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+              <path
+                d="M7 1L2 6l5 5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
           <span className="month-title">{month.format('MMMM YYYY')}</span>
           <div className="btn btn-icon" onClick={() => onChangeMonth(1)}>
-            &rsaquo;
+            <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+              <path
+                d="M1 1l5 5-5 5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         </div>
         <div className="legend">
-          {[0, 1, 2, 3, 4, 5, 6].map(i => (
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
             <span key={i} className="weekday">
               {weekdayGen.weekday(i).format('dd')}
             </span>
