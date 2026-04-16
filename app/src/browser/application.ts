@@ -242,7 +242,7 @@ export default class Application extends EventEmitter {
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
   deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
-    const callbackWithRetry = err => {
+    const callbackWithRetry = (err) => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
         setTimeout(() => {
@@ -305,7 +305,7 @@ export default class Application extends EventEmitter {
     this._deleteDatabase(done);
   };
 
-  _deleteDatabase = callback => {
+  _deleteDatabase = (callback) => {
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db'), callback);
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-shm'));
@@ -447,7 +447,7 @@ export default class Application extends EventEmitter {
     this.on('application:toggle-dev', () => {
       let args = process.argv.slice(1);
       if (args.includes('--dev')) {
-        args = args.filter(a => a !== '--dev');
+        args = args.filter((a) => a !== '--dev');
       } else {
         args.push('--dev');
       }
@@ -737,6 +737,23 @@ export default class Application extends EventEmitter {
       try {
         const errorParams = JSON.parse(params.errorJSON || '{}');
         const extra = JSON.parse(params.extra || '{}');
+
+        // LESS compilation errors from custom themes/plugins are already handled
+        // by the theme error dialog (encountered-theme-error IPC handler). These
+        // errors have no useful stack trace when reported to Sentry because
+        // LessError objects don't carry a JS stack, so the Sentry report only
+        // shows the IPC handler call site. Skip reporting them.
+        if (
+          errorParams &&
+          typeof errorParams === 'object' &&
+          typeof errorParams.line === 'number' &&
+          Array.isArray(errorParams.extract) &&
+          (errorParams.type === 'Parse' || errorParams.type === 'Syntax')
+        ) {
+          event.returnValue = true;
+          return;
+        }
+
         // Use new Error(message) to ensure the message is set as a proper Error property,
         // since Object.assign on an Error with no initial message may not propagate it
         // correctly to error reporting tools like Sentry/Raven.
@@ -827,7 +844,7 @@ export default class Application extends EventEmitter {
 
   // Translates the command into OS X action and sends it to application's first
   // responder.
-  sendCommandToFirstResponder = command => {
+  sendCommandToFirstResponder = (command) => {
     if (process.platform !== 'darwin') {
       return false;
     }
