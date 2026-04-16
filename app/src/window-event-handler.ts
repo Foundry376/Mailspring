@@ -369,7 +369,13 @@ export default class WindowEventHandler {
         .openUrl(sanitized);
     } else if (['http:', 'https:', 'tel:'].includes(protocol)) {
       shell.openExternal(resolved, { activate: !metaKey }).catch(err => {
-        console.error(`Failed to open link: ${err.message}`);
+        AppEnv.showErrorDialog({
+          title: localized('Failed to Open Link'),
+          message: localized(
+            'Mailspring was unable to open the link in your browser.\n\n%@',
+            err.message
+          ),
+        });
       });
     }
     return;

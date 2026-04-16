@@ -85,7 +85,13 @@ export class DefaultClientHelperWindows implements DCH {
             // On Windows 11 21H2+ (with April 2023 update), this deep links directly to
             // Mailspring's default app settings. On older versions, falls back to Default Apps.
             shell.openExternal('ms-settings:defaultapps?registeredAppUser=Mailspring').catch(err => {
-              console.error(`Failed to open settings: ${err.message}`);
+              AppEnv.showErrorDialog({
+                title: localized('Failed to Open Settings'),
+                message: localized(
+                  'Mailspring was unable to open Windows Settings.\n\n%@',
+                  err.message
+                ),
+              });
             });
           }
         }
