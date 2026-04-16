@@ -201,6 +201,11 @@ export default class AppEnvConstructor {
   //
   reportError(error, extra: any = {}) {
     // Check if this error should be ignored and not reported to Sentry
+    // Errors marked noSentry have already been displayed to the user via a dialog.
+    if (error && error.noSentry) {
+      return;
+    }
+
     const errorMessage = `${error}`.toLowerCase();
 
     // ResizeObserver errors happen infrequently but spam Sentry with thousands of reports
