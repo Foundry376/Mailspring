@@ -649,6 +649,17 @@ class CalendarEventPopoverUnenditable extends React.Component<{
           <div className="invitees-list">
             {sortAttendeesByStatus(attendees).map((a, idx) => {
               const partstat = a.partstat || 'NEEDS-ACTION';
+              const questionMarkIcon = (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path
+                    d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
+                </svg>
+              );
               let statusIcon: React.ReactNode;
               let statusClass = 'needs-action';
               if (partstat === 'ACCEPTED') {
@@ -677,30 +688,10 @@ class CalendarEventPopoverUnenditable extends React.Component<{
                 );
                 statusClass = 'declined';
               } else if (partstat === 'TENTATIVE') {
-                statusIcon = (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path
-                      d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
-                  </svg>
-                );
+                statusIcon = questionMarkIcon;
                 statusClass = 'tentative';
               } else {
-                statusIcon = (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path
-                      d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
-                  </svg>
-                );
+                statusIcon = questionMarkIcon;
               }
               return (
                 <div key={idx} className={`attendee-chip ${statusClass}`}>

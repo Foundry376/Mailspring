@@ -270,14 +270,14 @@ describe('EditableList', function editableList() {
       const list = makeList();
       const button = scryRenderedDOMComponentsWithClass(list, 'btn-editable-list')[0];
 
-      expect(findDOMNode(button).querySelector('svg')).toBeDefined();
+      expect(findDOMNode(button).querySelector('svg')).not.toBeNull();
     });
 
     it('renders delete button', () => {
       const list = makeList(['1', '2'], { selected: '2' });
       const button = scryRenderedDOMComponentsWithClass(list, 'btn-editable-list')[1];
 
-      expect(findDOMNode(button).querySelector('svg')).toBeDefined();
+      expect(findDOMNode(button).querySelector('svg')).not.toBeNull();
     });
 
     it('disables the delete button when no item is selected', () => {
