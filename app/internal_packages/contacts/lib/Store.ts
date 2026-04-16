@@ -71,7 +71,7 @@ class ContactsWindowStore extends MailspringStore {
   }
 
   filteredContacts() {
-    return this._filtered;
+    return this._filtered || [];
   }
 
   editing() {

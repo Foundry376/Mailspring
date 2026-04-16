@@ -60,8 +60,8 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
   }
 
   componentDidUpdate(prevProps) {
-    const prevContact = prevProps.contacts.find(c => c.id === prevProps.focusedId);
-    const newContact = this.props.contacts.find(c => c.id === this.props.focusedId);
+    const prevContact = prevProps.contacts?.find(c => c.id === prevProps.focusedId);
+    const newContact = this.props.contacts?.find(c => c.id === this.props.focusedId);
 
     if (isEqual(prevContact, newContact) && prevProps.editing === this.props.editing) return;
     if (newContact && this.props.editing !== newContact.id) Store.setEditing(false);
