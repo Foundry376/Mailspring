@@ -110,10 +110,16 @@ class KeyManager {
 
   async _writeKeyHash(keys: KeySet) {
     if (!safeStorage.isEncryptionAvailable()) {
+      const platformHint =
+        process.platform === 'linux'
+          ? localized(
+              ' On Linux, Mailspring requires a secret service such as GNOME Keyring or KWallet. Please ensure one is installed and running, then restart Mailspring.'
+            )
+          : '';
       throw new Error(
         localized(
-          `Mailspring could not store your password securely because encryption is not available on this system. On Linux, Mailspring requires a secret service such as GNOME Keyring or KWallet. Please ensure one is installed and running, then restart Mailspring.`
-        )
+          `Mailspring could not store your password securely because encryption is not available on this system.`
+        ) + platformHint
       );
     }
     const enrcyptedCredentials = await safeStorage.encryptString(JSON.stringify(keys));
