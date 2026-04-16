@@ -23,7 +23,11 @@ export default class AutoupdateImplBase extends EventEmitter {
   }
 
   emitError = (error) => {
-    this.emit('error', error);
+    if (this.listenerCount('error') > 0) {
+      this.emit('error', error);
+    } else {
+      console.error('Autoupdater error (unhandled):', error.message);
+    }
   };
 
   manuallyQueryUpdateServer(successCallback) {
