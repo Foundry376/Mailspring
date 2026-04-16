@@ -46,7 +46,8 @@ export class MailboxPerspective {
   }
 
   static forCategories(categories) {
-    return categories.length > 0 ? new CategoryMailboxPerspective(categories) : this.forNothing();
+    const valid = _.compact(categories);
+    return valid.length > 0 ? new CategoryMailboxPerspective(valid) : this.forNothing();
   }
 
   static forStandardCategories(accountsOrIds, ...names) {
