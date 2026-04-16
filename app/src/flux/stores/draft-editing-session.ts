@@ -486,8 +486,7 @@ export class DraftEditingSession extends MailspringStore {
       return;
     }
     if (!this._draft) {
-      console.warn('DraftChangeSet was modified before the draft was prepared.');
-      return;
+      throw new Error('DraftChangeSet was modified before the draft was prepared.');
     }
 
     this._draft = fastCloneDraft(this._draft);
