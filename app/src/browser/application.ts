@@ -56,6 +56,8 @@ export default class Application extends EventEmitter {
 
   _sourceWindows: { [taskId: string]: BrowserWindow } = {};
   _resettingAndRelaunching: boolean;
+  _initialized: boolean = false;
+  _pendingLaunchOptions: any[] = [];
 
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
@@ -147,7 +149,15 @@ export default class Application extends EventEmitter {
     }
 
     this.handleEvents();
+
+    // Mark initialization complete, then process the initial launch options
+    // followed by any second-instance options that arrived while we were
+    // still awaiting async initialization steps above.
+    this._initialized = true;
     this.handleLaunchOptions(options);
+    for (const pendingOpts of this._pendingLaunchOptions.splice(0)) {
+      this.handleLaunchOptions(pendingOpts);
+    }
 
     if (process.platform === 'linux') {
       const helper = new DefaultClientHelper();
@@ -172,6 +182,15 @@ export default class Application extends EventEmitter {
 
   // Opens a new window based on the options provided.
   handleLaunchOptions(options) {
+    // If start() hasn't finished initializing yet (e.g. a second-instance event
+    // arrives while the async mailsync migration or oneTimeMoveToApplications is
+    // still running), windowManager won't exist yet.  Queue the options and
+    // process them once initialization is complete.
+    if (!this._initialized) {
+      this._pendingLaunchOptions.push(options);
+      return;
+    }
+
     const { specMode, pathsToOpen, urlsToOpen } = options;
 
     if (specMode) {
