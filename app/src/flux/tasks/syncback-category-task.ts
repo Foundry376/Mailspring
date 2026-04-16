@@ -1,4 +1,4 @@
-import utf7 from 'utf7';
+import { imapUtf7 } from '../../utils/imap-utf7';
 import { Task } from './task';
 import * as Attributes from '../attributes';
 import { localized } from '../../intl';
@@ -25,7 +25,7 @@ export class SyncbackCategoryTask extends Task {
 
   static forCreating({ name, accountId }: { name: string; accountId: string }) {
     return new SyncbackCategoryTask({
-      path: utf7.imap.encode(String(name)),
+      path: imapUtf7.encode(String(name)),
       accountId: accountId,
     });
   }
@@ -41,7 +41,7 @@ export class SyncbackCategoryTask extends Task {
   }) {
     return new SyncbackCategoryTask({
       existingPath: path,
-      path: utf7.imap.encode(String(newName)),
+      path: imapUtf7.encode(String(newName)),
       accountId: accountId,
     });
   }
@@ -52,7 +52,7 @@ export class SyncbackCategoryTask extends Task {
 
   label() {
     return this.existingPath
-      ? localized(`Renaming %@`, utf7.imap.decode(String(this.existingPath)))
-      : localized(`Creating %@`, utf7.imap.decode(String(this.path)));
+      ? localized(`Renaming %@`, imapUtf7.decode(String(this.existingPath)))
+      : localized(`Creating %@`, imapUtf7.decode(String(this.path)));
   }
 }

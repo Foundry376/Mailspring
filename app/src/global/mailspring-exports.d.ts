@@ -178,6 +178,8 @@ export type DOMUtils = typeof import('../dom-utils').default;
 export const DOMUtils: DOMUtils;
 export type DateUtils = typeof import('../date-utils').default;
 export const DateUtils: DateUtils;
+export type imapUtf7 = typeof import('../utils/imap-utf7').imapUtf7;
+export const imapUtf7: imapUtf7;
 
 export type CalendarUtils = typeof import('../calendar-utils');
 export const CalendarUtils: CalendarUtils;

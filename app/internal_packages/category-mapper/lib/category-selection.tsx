@@ -1,12 +1,11 @@
 import React from 'react';
-import utf7 from 'utf7';
 import {
   RetinaImg,
   DropdownMenu,
   LabelColorizer,
   BoldedSearchResult,
 } from 'mailspring-component-kit';
-import { localized, Label, Utils, PropTypes } from 'mailspring-exports';
+import { localized, Label, Utils, PropTypes, imapUtf7 } from 'mailspring-exports';
 
 interface CategorySelectionProps {
   allowLabels: boolean;
@@ -46,8 +45,8 @@ export default class CategorySelection extends React.Component<
   _itemsForCategories(): CategoryItem[] {
     return this.props.all
       .sort((a, b) => {
-        const pathA = utf7.imap.decode(a.path).toUpperCase();
-        const pathB = utf7.imap.decode(b.path).toUpperCase();
+        const pathA = imapUtf7.decode(a.path).toUpperCase();
+        const pathB = imapUtf7.decode(b.path).toUpperCase();
         if (pathA < pathB) {
           return -1;
         }
@@ -56,7 +55,7 @@ export default class CategorySelection extends React.Component<
         }
         return 0;
       })
-      .filter(c => Utils.wordSearchRegExp(this.state.searchValue).test(utf7.imap.decode(c.path)))
+      .filter(c => Utils.wordSearchRegExp(this.state.searchValue).test(imapUtf7.decode(c.path)))
       .map(c => {
         c.backgroundColor = LabelColorizer.backgroundColorDark(c);
         return c;
@@ -82,7 +81,7 @@ export default class CategorySelection extends React.Component<
       );
     }
 
-    const displayPath = utf7.imap.decode(item.path);
+    const displayPath = imapUtf7.decode(item.path);
 
     return (
       <div className="category-item">

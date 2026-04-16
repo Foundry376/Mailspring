@@ -1,4 +1,4 @@
-import utf7 from 'utf7';
+import { imapUtf7 } from '../../utils/imap-utf7';
 import { Task } from './task';
 import * as Attributes from '../attributes';
 import { localized } from '../../intl';
@@ -20,6 +20,6 @@ export class DestroyCategoryTask extends Task {
   }
 
   label() {
-    return localized(`Deleting %@`, utf7.imap.decode(this.path));
+    return localized(`Deleting %@`, imapUtf7.decode(this.path));
   }
 }

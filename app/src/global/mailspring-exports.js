@@ -181,6 +181,7 @@ lazyLoad(`ComponentRegistry`, 'registries/component-registry');
 lazyLoad(`Utils`, 'flux/models/utils');
 lazyLoad(`DOMUtils`, 'dom-utils');
 lazyLoad(`DateUtils`, 'date-utils');
+lazyLoadWithGetter(`imapUtf7`, () => require('../utils/imap-utf7').imapUtf7);
 lazyLoad(`CalendarUtils`, 'calendar-utils');
 lazyLoad(`ICSEventHelpers`, 'ics-event-helpers');
 lazyLoad(`FsUtils`, 'fs-utils');

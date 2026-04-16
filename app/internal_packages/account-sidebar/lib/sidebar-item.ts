@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import utf7 from 'utf7';
+import { imapUtf7 } from 'mailspring-exports';
 
 import _str from 'underscore.string';
 import { OutlineViewItem } from 'mailspring-component-kit';
@@ -130,7 +130,7 @@ export function createCategory(accountId: string, name: string, parentCategory?:
   let fullName: string;
   if (parentCategory) {
     const separator = detectFolderSeparator(accountId);
-    const decodedPath = utf7.imap.decode(parentCategory.path);
+    const decodedPath = imapUtf7.decode(parentCategory.path);
     fullName = decodedPath + separator + name;
   } else {
     fullName = name;
