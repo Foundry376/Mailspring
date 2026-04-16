@@ -70,7 +70,13 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     fs.readFile(AttachmentStore.pathForFile(file), async (err, data) => {
       if (err || !this._mounted) return;
 
-      const { event, root } = CalendarUtils.parseICSString(data.toString());
+      let event, root;
+      try {
+        ({ event, root } = CalendarUtils.parseICSString(data.toString()));
+      } catch (e) {
+        console.warn(`EventHeader: Could not parse ICS data from attachment ${file.filename}: ${e.message}`);
+        return;
+      }
 
       const method = root.getFirstPropertyValue('method');
       const methodLower = (typeof method === 'string' ? method : 'request').toLowerCase();
@@ -90,9 +96,13 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         })
       ).subscribe(calEvent => {
         if (!this._mounted || !calEvent) return;
-        this.setState({
-          icsEvent: CalendarUtils.parseICSString(calEvent.ics).event,
-        });
+        try {
+          this.setState({
+            icsEvent: CalendarUtils.parseICSString(calEvent.ics).event,
+          });
+        } catch (e) {
+          console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
+        }
       });
     });
   }
