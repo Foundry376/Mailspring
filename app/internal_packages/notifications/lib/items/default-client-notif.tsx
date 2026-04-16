@@ -51,7 +51,7 @@ export default class DefaultClientNotification extends React.Component<
   _onAccept = () => {
     this.helper.registerForURLScheme('mailto', err => {
       if (err) {
-        if (err.message && err.message.includes('xdg-mime: command not found')) {
+        if (err.message && err.message.includes('xdg-mime') && err.message.includes('not found')) {
           require('@electron/remote').dialog.showMessageBox({
             type: 'error',
             buttons: [localized('OK')],
