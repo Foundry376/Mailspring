@@ -323,6 +323,20 @@ export class MailsyncProcess extends EventEmitter {
     });
 
     let cleanedUp = false;
+
+    // Handle EPIPE and other stdin errors that occur when the child process
+    // exits while we're still trying to write to it. These errors are emitted
+    // asynchronously as 'error' events on stdin rather than thrown from write(),
+    // so the try/catch in sendMessage() does not catch them.
+    if (this._proc.stdin) {
+      this._proc.stdin.on('error', err => {
+        if (cleanedUp) return;
+        cleanedUp = true;
+        this._proc.kill();
+        this.emit('close', { code: -2, error: err, signal: null });
+      });
+    }
+
     const onStreamCloseOrExit = (code: number, signal: string) => {
       if (cleanedUp) {
         return;
@@ -379,7 +393,10 @@ export class MailsyncProcess extends EventEmitter {
     try {
       this._proc.stdin.write(msg, 'utf-8');
     } catch (error) {
-      if (error && error.message.includes('socket has been ended')) {
+      if (
+        error &&
+        (error.message.includes('socket has been ended') || error.code === 'EPIPE')
+      ) {
         // The process probably already exited and we missed it somehow,
         // but try to kill it anyway and then force-emit a 'close' to trigger
         // the bridge to restart us.
