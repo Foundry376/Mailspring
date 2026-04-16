@@ -70,7 +70,6 @@
     "tld": "^0.0.2",
     "underscore": "^1.13.7",
     "underscore.string": "^3.3.5",
-    "utf7": "^1.0.1",
     "vcf": "^2.0.5",
     "windows-iana": "^4.2.1",
     "xml2js": "^0.6.2"
