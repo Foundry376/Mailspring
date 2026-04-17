@@ -31,9 +31,6 @@ export default {
             type: 'boolean',
             default: true,
             title: localized('Use system accent color'),
-            note: localized(
-              'Tint the interface with the accent / tint color from your operating system.'
-            ),
           },
         },
       },

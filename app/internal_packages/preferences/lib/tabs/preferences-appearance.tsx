@@ -369,7 +369,11 @@ class PreferencesAppearance extends React.Component<{ config: ConfigLike; config
         <section>
           <h6 style={{ marginTop: 10 }}>{localized('Theme and Style')}</h6>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <button className="btn btn-large" onClick={this.onPickTheme}>
+            <button
+              className="btn btn-large"
+              style={{ flexShrink: 0 }}
+              onClick={this.onPickTheme}
+            >
               {localized('Change Theme...')}
             </button>
             <ConfigSchemaItem
