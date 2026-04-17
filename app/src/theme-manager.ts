@@ -87,8 +87,14 @@ export default class ThemeManager {
     });
   }
 
+  // New users (no `core.theme` saved in config) default to automatic mode so
+  // the app follows their OS appearance. Existing users keep whatever they set.
+  private getConfiguredThemeName(): string {
+    return AppEnv.config.get(CONFIG_THEME_KEY) || AUTOMATIC_THEME_NAME;
+  }
+
   private isAutomaticModeSelected() {
-    return !this.baseThemeOnly && AppEnv.config.get(CONFIG_THEME_KEY) === AUTOMATIC_THEME_NAME;
+    return !this.baseThemeOnly && this.getConfiguredThemeName() === AUTOMATIC_THEME_NAME;
   }
 
   // Called from the onboarding window to disable any custom theme
@@ -144,7 +150,7 @@ export default class ThemeManager {
     if (this.baseThemeOnly) {
       return this.getBaseTheme();
     }
-    const configured = AppEnv.config.get(CONFIG_THEME_KEY);
+    const configured = this.getConfiguredThemeName();
     if (configured === AUTOMATIC_THEME_NAME) {
       const resolvedName = this._systemDarkMode ? DARK_THEME_NAME : LIGHT_THEME_NAME;
       return this.packageManager.getPackageNamed(resolvedName) || this.getBaseTheme();
@@ -158,8 +164,7 @@ export default class ThemeManager {
       return this.getBaseTheme();
     }
     return (
-      this.packageManager.getPackageNamed(AppEnv.config.get(CONFIG_THEME_KEY)) ||
-      this.getBaseTheme()
+      this.packageManager.getPackageNamed(this.getConfiguredThemeName()) || this.getBaseTheme()
     );
   }
 
