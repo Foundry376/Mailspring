@@ -92,10 +92,16 @@ class SystemTrayIconStore {
   };
 
   inboxZeroIcon = () => {
+    if (platform === 'darwin') {
+      return path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero-Template.png');
+    }
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Zero${this._dark()}.png`);
   };
 
   inboxFullIcon = () => {
+    if (platform === 'darwin') {
+      return path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-Template.png');
+    }
     return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Full${this._dark()}.png`);
   };
 
