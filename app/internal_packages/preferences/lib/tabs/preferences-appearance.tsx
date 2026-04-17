@@ -368,18 +368,18 @@ class PreferencesAppearance extends React.Component<{ config: ConfigLike; config
         </section>
         <section>
           <h6 style={{ marginTop: 10 }}>{localized('Theme and Style')}</h6>
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <button className="btn btn-large" onClick={this.onPickTheme}>
               {localized('Change Theme...')}
             </button>
+            <ConfigSchemaItem
+              configSchema={
+                this.props.configSchema.properties.appearance.properties.useSystemAccent
+              }
+              keyPath="core.appearance.useSystemAccent"
+              config={this.props.config}
+            />
           </div>
-          <ConfigSchemaItem
-            configSchema={
-              this.props.configSchema.properties.appearance.properties.useSystemAccent
-            }
-            keyPath="core.appearance.useSystemAccent"
-            config={this.props.config}
-          />
         </section>
         <MenubarStylePicker config={this.props.config} />
         <section>
