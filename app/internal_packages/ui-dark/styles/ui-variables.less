@@ -8,8 +8,10 @@
 @gray-lighter: darken(@gray-base, 92.5%);
 @white: #0a0a0a;
 
-@accent-primary: #58b660;
-@accent-primary-dark: darken(@accent-primary, 10%);
+@accent-primary: var(--system-accent, #58b660);
+// @accent-primary-dark falls through to base/ui-variables.less, which derives
+// it from @accent-primary via color-mix (10% darker). Override here only if
+// a different shade is desired for this theme.
 
 @background-primary: #212121;
 @background-off-primary: #212121;

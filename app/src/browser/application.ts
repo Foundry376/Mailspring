@@ -15,6 +15,7 @@ import ConfigMigrator from './config-migrator';
 import ApplicationMenu from './application-menu';
 import ApplicationTouchBar from './application-touch-bar';
 import AutoUpdateManager from './autoupdate-manager';
+import SystemAccentWatcher from './system-accent-watcher';
 import SystemTrayManager from './system-tray-manager';
 import { DefaultClientHelper } from '../default-client-helper';
 import MailspringProtocolHandler from './mailspring-protocol-handler';
@@ -51,6 +52,7 @@ export default class Application extends EventEmitter {
   mailspringProtocolHandler: MailspringProtocolHandler;
   windowManager: WindowManager;
   autoUpdateManager: AutoUpdateManager;
+  systemAccentWatcher: SystemAccentWatcher;
   systemTrayManager: SystemTrayManager;
   windowsTaskbarManager?: WindowsTaskbarManager;
 
@@ -142,6 +144,10 @@ export default class Application extends EventEmitter {
       initializeInBackground: initializeInBackground,
     });
     this.systemTrayManager = new SystemTrayManager(process.platform, this);
+    this.systemAccentWatcher = new SystemAccentWatcher();
+    this.systemAccentWatcher.on('change', color => {
+      this.windowManager.sendToAllWindows('system-accent-color-changed', {}, color);
+    });
     if (process.platform === 'darwin') {
       this.touchBar = new ApplicationTouchBar(resourcePath);
     }
@@ -598,6 +604,10 @@ export default class Application extends EventEmitter {
     // Theme Error Handling
 
     let userResetTheme = false;
+
+    ipcMain.handle('get-system-accent-color', () => {
+      return this.systemAccentWatcher ? this.systemAccentWatcher.getCurrent() : null;
+    });
 
     ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;

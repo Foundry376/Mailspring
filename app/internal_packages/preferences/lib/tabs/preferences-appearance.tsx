@@ -5,6 +5,7 @@ import React from 'react';
 import { isWaylandSession } from '../../../../src/browser/is-wayland';
 import SystemTrayIconStore from '../../../system-tray/lib/system-tray-icon-store';
 import { ConfigLike } from '../types';
+import ConfigSchemaItem from './config-schema-item';
 
 class AppearanceScaleSlider extends React.Component<
   { id: string; config: ConfigLike },
@@ -372,6 +373,13 @@ class PreferencesAppearance extends React.Component<{ config: ConfigLike; config
               {localized('Change Theme...')}
             </button>
           </div>
+          <ConfigSchemaItem
+            configSchema={
+              this.props.configSchema.properties.appearance.properties.useSystemAccent
+            }
+            keyPath="core.appearance.useSystemAccent"
+            config={this.props.config}
+          />
         </section>
         <MenubarStylePicker config={this.props.config} />
         <section>

@@ -16,7 +16,7 @@
     font-size: 0.9em;
 
     .selected {
-      background-color: fade(desaturate(@component-active-color, 100%), 70%);
+      background-color: hsl(from @component-active-color h 0% l / 70%);
       color: @component-active-bg;
     }
 
@@ -33,7 +33,7 @@
         position: absolute;
         top: -1px;
         background-color: @component-active-color;
-        box-shadow: 0 0 1px fade(@component-active-color, 50%);
+        box-shadow: 0 0 1px color-mix(in srgb, transparent, @component-active-color 50%);
       }
     }
 

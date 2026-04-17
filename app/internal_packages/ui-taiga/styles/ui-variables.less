@@ -5,8 +5,8 @@
 
 @import 'variables';
 
-@accent-primary: @taiga-light;
-@accent-primary-dark: darken(@taiga-light, 20%);
+@accent-primary: var(--system-accent, @taiga-light);
+@accent-primary-dark: var(--system-accent-dark, color-mix(in srgb, @accent-primary, black 20%));
 
 @background-secondary: @white;
 @text-color: @taiga-dark;

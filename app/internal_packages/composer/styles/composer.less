@@ -126,7 +126,7 @@
 
   button {
     cursor: pointer;
-    color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
+    color: color-mix(in srgb, color-mix(in srgb, @btn-default-text-color 88%, @component-active-color), transparent 30%);
     padding: 4px 4.7px;
     border: none;
     background: none;
@@ -136,7 +136,7 @@
     max-width: 32px;
 
     &:hover {
-      color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
+      color: color-mix(in srgb, color-mix(in srgb, @btn-default-text-color 88%, @component-active-color), transparent 5%);
       background: none;
     }
     &.with-select {
@@ -299,11 +299,11 @@ body.platform-win32 {
       white-space: nowrap;
 
       img.content-mask {
-        background-color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
+        background-color: color-mix(in srgb, color-mix(in srgb, @btn-default-text-color 88%, @component-active-color), transparent 30%);
       }
       &:hover {
         img.content-mask {
-          background-color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
+          background-color: color-mix(in srgb, color-mix(in srgb, @btn-default-text-color 88%, @component-active-color), transparent 5%);
         }
       }
       &.btn-enabled {

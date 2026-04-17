@@ -193,7 +193,7 @@
 
         &:focus {
           outline: none;
-          box-shadow: 0 0 0 2px fade(@accent-primary, 40%);
+          box-shadow: 0 0 0 2px color-mix(in srgb, transparent, @accent-primary 40%);
         }
       }
 
@@ -308,7 +308,7 @@
 
       &:focus {
         outline: none;
-        box-shadow: 0 0 0 2px fade(@accent-primary, 40%);
+        box-shadow: 0 0 0 2px color-mix(in srgb, transparent, @accent-primary 40%);
       }
     }
   }
@@ -355,7 +355,7 @@
       }
 
       &.active {
-        background-color: fade(@accent-primary, 15%);
+        background-color: color-mix(in srgb, transparent, @accent-primary 15%);
         color: @accent-primary;
       }
 
@@ -467,7 +467,7 @@
       &:focus {
         outline: none;
         border-color: @accent-primary;
-        box-shadow: 0 0 0 2px fade(@accent-primary, 20%);
+        box-shadow: 0 0 0 2px color-mix(in srgb, transparent, @accent-primary 20%);
       }
     }
 

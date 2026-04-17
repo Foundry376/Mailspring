@@ -178,7 +178,7 @@ body.platform-win32 {
         color: @text-color-inverse;
       }
       &:before {
-        background: darken(@accent-primary, 15%);
+        background: color-mix(in srgb, @accent-primary, black 15%);
       }
     }
 
@@ -674,7 +674,7 @@ body.platform-win32 {
         }
 
         &:before {
-          background: darken(@accent-primary, 15%);
+          background: color-mix(in srgb, @accent-primary, black 15%);
         }
       }
 

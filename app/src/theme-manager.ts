@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { Emitter } from 'event-kit';
+import { Emitter, Disposable } from 'event-kit';
 import path from 'path';
 import fs from 'fs';
 import { localized } from './intl';
@@ -7,6 +7,15 @@ import LessCompileCache from './less-compile-cache';
 import PackageManager from './package-manager';
 
 const CONFIG_THEME_KEY = 'core.theme';
+const CONFIG_USE_SYSTEM_ACCENT_KEY = 'core.appearance.useSystemAccent';
+const SYSTEM_ACCENT_SOURCE_PATH = 'system-accent:dynamic';
+
+function buildSystemAccentCSS(color: string): string {
+  return `:root {
+  --system-accent: ${color};
+  --system-accent-dark: color-mix(in srgb, ${color}, black 10%);
+}`;
+}
 
 /**
  * The ThemeManager observes the user's theme selection and ensures that
@@ -34,6 +43,9 @@ export default class ThemeManager {
 
   private themeValueCache: { emailTextColor?: string } = {};
 
+  private _systemAccentColor: string | null = null;
+  private _systemAccentDisposable: Disposable | null = null;
+
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;
     this.resourcePath = resourcePath;
@@ -46,6 +58,16 @@ export default class ThemeManager {
     });
 
     AppEnv.config.onDidChange(CONFIG_THEME_KEY, () => this.updateThemePackageAndRecomputeLESS());
+    AppEnv.config.onDidChange(CONFIG_USE_SYSTEM_ACCENT_KEY, () => this.applySystemAccent());
+
+    ipcRenderer.on('system-accent-color-changed', (_event, color: string | null) => {
+      this._systemAccentColor = color;
+      this.applySystemAccent();
+    });
+    ipcRenderer.invoke('get-system-accent-color').then((color: string | null) => {
+      this._systemAccentColor = color;
+      this.applySystemAccent();
+    });
   }
 
   // Called from the onboarding window to disable any custom theme
@@ -153,6 +175,25 @@ export default class ThemeManager {
       paths.unshift(active.getStylesheetsPath());
     }
     return paths;
+  }
+
+  // Writes a <style> tag setting the --system-accent CSS custom properties
+  // when the user opted into system accent and the OS provided a color.
+  // Otherwise removes the tag so per-theme fallbacks in LESS take over.
+  applySystemAccent() {
+    const enabled = AppEnv.config.get(CONFIG_USE_SYSTEM_ACCENT_KEY) !== false;
+    const color = enabled ? this._systemAccentColor : null;
+
+    if (this._systemAccentDisposable) {
+      this._systemAccentDisposable.dispose();
+      this._systemAccentDisposable = null;
+    }
+    if (color) {
+      this._systemAccentDisposable = AppEnv.styles.addStyleSheet(buildSystemAccentCSS(color), {
+        sourcePath: SYSTEM_ACCENT_SOURCE_PATH,
+        priority: 2,
+      });
+    }
   }
 
   // Section: Private

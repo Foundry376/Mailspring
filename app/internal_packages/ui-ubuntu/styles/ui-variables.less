@@ -3,8 +3,8 @@
 // `ui-variables` to make their custom CSS react to the current theme.
 @import 'base/ui-variables';
 
-@accent-primary: #f07746;
-@accent-primary-dark: darken(#f07746, 1%);
+@accent-primary: var(--system-accent, #f07746);
+@accent-primary-dark: var(--system-accent-dark, color-mix(in srgb, @accent-primary, black 1%));
 
 @border-color-divider: #e2e2e2;
 @border-color-secondary: lighten(@background-secondary, 10%);

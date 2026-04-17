@@ -584,7 +584,7 @@ body.platform-win32 {
 
 .download-all {
   @download-btn-color: fadeout(#929292, 20%);
-  @download-hover-color: fadeout(@component-active-color, 20%);
+  @download-hover-color: color-mix(in srgb, @component-active-color, transparent 20%);
 
   display: flex;
   align-items: center;
