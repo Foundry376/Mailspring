@@ -107,9 +107,11 @@
     }
     &:hover {
       background: linear-gradient(to bottom, @token-hover-top 0%, @token-hover-bottom 100%);
-      box-shadow: 0 0.5px 0 darken(@token-hover-bottom, 35%),
-        0 -0.5px 0 darken(@token-hover-top, 25%), 0.5px 0 0 darken(@token-hover-bottom, 25%),
-        -0.5px 0 0 darken(@token-hover-bottom, 25%), 0 1px 1px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 0.5px 0 color-mix(in srgb, @token-hover-bottom, black 35%),
+        0 -0.5px 0 color-mix(in srgb, @token-hover-top, black 25%),
+        0.5px 0 0 color-mix(in srgb, @token-hover-bottom, black 25%),
+        -0.5px 0 0 color-mix(in srgb, @token-hover-bottom, black 25%),
+        0 1px 1px rgba(0, 0, 0, 0.07);
       cursor: default;
     }
     &.invalid {
@@ -137,8 +139,8 @@
     &.dragging {
       background: linear-gradient(to bottom, @token-selected-top 0%, @token-selected-bottom 100%);
       box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.3), 0 1px 1px rgba(0, 0, 0, 0.1);
-      border: 1px solid darken(@token-selected-bottom, 8%);
-      border-top: 1px solid darken(@token-selected-top, 10%);
+      border: 1px solid color-mix(in srgb, @token-selected-bottom, black 8%);
+      border-top: 1px solid color-mix(in srgb, @token-selected-top, black 10%);
       border-radius: @border-radius-base;
 
       // Note: we switch from 0.5px borders with box shadows to a real border,
