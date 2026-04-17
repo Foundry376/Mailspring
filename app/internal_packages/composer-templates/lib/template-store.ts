@@ -149,7 +149,7 @@ class TemplateStore extends MailspringStore {
   }
 
   _displayError(message) {
-    require('@electron/remote').dialog.showErrorBox(localized('Template Creation Error'), message);
+    AppEnv.showErrorDialog({ title: localized('Template Creation Error'), message });
   }
 
   _displayDialog(title, message, buttons) {
