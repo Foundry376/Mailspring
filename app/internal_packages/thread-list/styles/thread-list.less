@@ -383,7 +383,7 @@ body.platform-win32 {
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
   background-image: linear-gradient(
     to right,
-    fade(@list-selected-bg, 0%) 0%,
+    rgb(from @list-selected-bg r g b / 0) 0%,
     @list-selected-bg 50%,
     @list-selected-bg 100%
   );
@@ -392,7 +392,7 @@ body.platform-win32 {
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner {
   background-image: linear-gradient(
     to right,
-    fade(@list-focused-bg, 0%) 0%,
+    rgb(from @list-focused-bg r g b / 0) 0%,
     @list-focused-bg 50%,
     @list-focused-bg 100%
   );
@@ -520,7 +520,7 @@ body.platform-win32 {
   .list-item.selected:hover .list-column-HoverActions .inner {
     background-image: linear-gradient(
       to right,
-      fade(@list-focused-bg, 0%) 0%,
+      rgb(from @list-focused-bg r g b / 0) 0%,
       @list-focused-bg 50%,
       @list-focused-bg 100%
     );
@@ -542,8 +542,8 @@ body.is-blurred {
   .thread-list.handler-split {
     .list-item {
       &.selected {
-        background: fadeout(desaturate(@list-focused-bg, 100%), 65%);
-        border-bottom: 1px solid fadeout(desaturate(@list-focused-border, 100%), 65%);
+        background: hsl(from @list-focused-bg h 0% l / 35%);
+        border-bottom: 1px solid hsl(from @list-focused-border h 0% l / 35%);
         color: @text-color;
       }
     }

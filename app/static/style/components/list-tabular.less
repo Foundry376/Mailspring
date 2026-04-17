@@ -128,14 +128,14 @@ body.is-blurred {
   .list-container {
     .list-item {
       &.selected {
-        background: fadeout(desaturate(@list-selected-bg, 100%), 65%);
-        border-bottom: 1px solid fadeout(desaturate(@list-selected-border, 100%), 65%);
+        background: hsl(from @list-selected-bg h 0% l / 35%);
+        border-bottom: 1px solid hsl(from @list-selected-border h 0% l / 35%);
         color: @text-color;
       }
 
       &.focused {
-        background: fadeout(desaturate(@list-focused-bg, 100%), 65%);
-        border-bottom: 1px solid fadeout(desaturate(@list-focused-border, 100%), 65%);
+        background: hsl(from @list-focused-bg h 0% l / 35%);
+        border-bottom: 1px solid hsl(from @list-focused-border h 0% l / 35%);
         color: @text-color;
       }
     }

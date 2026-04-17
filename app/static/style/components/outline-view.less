@@ -152,10 +152,10 @@
         background-color: @source-list-active-color;
       }
       .item-action-button {
-        color: fadeout(@source-list-active-color, 30%);
+        color: rgb(from @source-list-active-color r g b / 70%);
         &:hover {
           color: @source-list-active-color;
-          background: fade(@source-list-active-color, 15%);
+          background: rgb(from @source-list-active-color r g b / 15%);
         }
       }
     }
