@@ -364,7 +364,22 @@ async function _generateNextCrossplatformPreview() {
 
   // Generate an opaque token for the preview path instead of passing the path directly
   // Token is generated via IPC to ensure it's stored in the main process
-  const previewToken = await generatePreviewToken(previewPath);
+  let previewToken: string;
+  try {
+    previewToken = await generatePreviewToken(previewPath);
+  } catch (err) {
+    console.error('Quickpreview failed to generate token:', err);
+    captureWindowInUse = false;
+    process.nextTick(_generateNextCrossplatformPreview);
+    resolve(false);
+    return;
+  }
+
+  // The renderer process may have crashed while we were awaiting the token above.
+  // Recreate the window so generation can continue.
+  if (!captureWindow || captureWindow.isDestroyed()) {
+    captureWindow = _createCaptureWindow();
+  }
 
   // Start the thumbnail generation
   captureWindow
