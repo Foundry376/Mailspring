@@ -560,8 +560,8 @@ export default class Application extends EventEmitter {
     });
 
     // System Tray
-    ipcMain.on('update-system-tray', (event, iconPath, unreadString, isTemplateImg) => {
-      this.systemTrayManager.updateTraySettings(iconPath, unreadString, isTemplateImg);
+    ipcMain.on('update-system-tray', (event, iconPath, unreadString) => {
+      this.systemTrayManager.updateTraySettings(iconPath, unreadString);
     });
 
     ipcMain.on('set-badge-value', (event, value) => {
