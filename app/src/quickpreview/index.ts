@@ -27,6 +27,7 @@ const QuickPreviewCSP = [
 
 let quickPreviewWindow = null;
 let captureWindow = null;
+let captureWindowInUse = false;
 const captureQueue = [];
 
 const filesRoot = __dirname.replace('app.asar', 'app.asar.unpacked');
@@ -340,25 +341,30 @@ function _createCaptureWindow() {
 
 async function _generateNextCrossplatformPreview() {
   if (captureQueue.length === 0) {
-    if (captureWindow && !captureWindow.isDestroyed()) {
-      captureWindow.destroy();
-    } else {
-      console.warn(`Thumbnail generation finished but window is already destroyed.`);
+    // Don't tear down the window if a generation is already in progress — that
+    // invocation will schedule the next call to _generateNextCrossplatformPreview
+    // once it finishes, which will then reach this branch and clean up properly.
+    if (!captureWindowInUse) {
+      if (captureWindow && !captureWindow.isDestroyed()) {
+        captureWindow.destroy();
+      } else {
+        console.warn(`Thumbnail generation finished but window is already destroyed.`);
+      }
+      captureWindow = null;
     }
-    captureWindow = null;
     return;
   }
 
   const { strategy, filePath, previewPath, resolve } = captureQueue.pop();
 
+  // Mark the window as in-use before the async token generation so that a
+  // concurrent invocation reaching the queue-empty branch above does not
+  // destroy the window while we are suspended at the await below.
+  captureWindowInUse = true;
+
   // Generate an opaque token for the preview path instead of passing the path directly
   // Token is generated via IPC to ensure it's stored in the main process
   const previewToken = await generatePreviewToken(previewPath);
-
-  // captureWindow may have been destroyed/crashed during the async token generation above
-  if (!captureWindow || captureWindow.isDestroyed()) {
-    captureWindow = _createCaptureWindow();
-  }
 
   // Start the thumbnail generation
   captureWindow
@@ -387,6 +393,7 @@ async function _generateNextCrossplatformPreview() {
   };
 
   onFinalize = success => {
+    captureWindowInUse = false;
     clearTimeout(timer);
     if (captureWindow) {
       captureWindow.removeListener('page-title-updated', onRendererSuccess);
