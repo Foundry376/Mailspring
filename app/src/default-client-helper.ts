@@ -46,7 +46,13 @@ export class DefaultClientHelperWindows implements DCH {
     // default app settings page. On older Windows versions, this falls back to the main
     // Default Apps page, which is still better than opening a web browser.
     shell.openExternal('ms-settings:defaultapps?registeredAppUser=Mailspring').catch(err => {
-      console.error(`Failed to open settings: ${err.message}`);
+      AppEnv.showErrorDialog({
+        title: localized('Failed to Open Settings'),
+        message: localized(
+          'Mailspring was unable to open Windows Settings.\n\n%@',
+          err.message
+        ),
+      });
     });
   }
 
@@ -91,7 +97,7 @@ export class DefaultClientHelperWindows implements DCH {
                   'Mailspring was unable to open Windows Settings.\n\n%@',
                   err.message
                 ),
-              });
+              })
             });
           }
         }
