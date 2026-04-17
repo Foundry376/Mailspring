@@ -8,9 +8,9 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
     this.iconStore = new SystemTrayIconStore();
   });
 
-  function getCallData() {
+  function getIconPath() {
     const { args } = (ipcRenderer.send as jasmine.Spy).calls[0];
-    return { path: args[1], isTemplateImg: args[3] };
+    return args[1];
   }
 
   describe('_getIconImageData', () => {
@@ -18,7 +18,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(0);
       spyOn(BadgeStore, 'total').andReturn(0);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: this.iconStore.inboxZeroIcon(), isTemplateImg: true });
+      expect(getIconPath()).toEqual(this.iconStore.inboxZeroIcon());
     });
 
     it('shows inbox zero icon when isInboxZero and window is blurred', () => {
@@ -26,7 +26,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(0);
       spyOn(BadgeStore, 'total').andReturn(0);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: this.iconStore.inboxZeroIcon(), isTemplateImg: true });
+      expect(getIconPath()).toEqual(this.iconStore.inboxZeroIcon());
     });
 
     it('shows inbox full icon when not isInboxZero and window is focused', () => {
@@ -34,10 +34,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({
-        path: this.iconStore.inboxFullUnreadIcon(),
-        isTemplateImg: false,
-      });
+      expect(getIconPath()).toEqual(this.iconStore.inboxFullUnreadIcon());
     });
 
     it('shows inbox full /alt/ icon when not isInboxZero and window is blurred', () => {
@@ -45,10 +42,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(102);
       spyOn(BadgeStore, 'total').andReturn(123123);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({
-        path: this.iconStore.inboxFullUnreadIcon(),
-        isTemplateImg: false,
-      });
+      expect(getIconPath()).toEqual(this.iconStore.inboxFullUnreadIcon());
     });
   });
 
@@ -64,14 +58,14 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       spyOn(BadgeStore, 'unread').andReturn(5);
       spyOn(BadgeStore, 'total').andReturn(10);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: this.iconStore.inboxFullIcon(), isTemplateImg: true });
+      expect(getIconPath()).toEqual(this.iconStore.inboxFullIcon());
     });
 
     it('shows inbox zero icon when inbox is empty', () => {
       spyOn(BadgeStore, 'unread').andReturn(0);
       spyOn(BadgeStore, 'total').andReturn(0);
       this.iconStore._updateIcon();
-      expect(getCallData()).toEqual({ path: this.iconStore.inboxZeroIcon(), isTemplateImg: true });
+      expect(getIconPath()).toEqual(this.iconStore.inboxZeroIcon());
     });
   });
 
