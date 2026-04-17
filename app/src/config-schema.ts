@@ -36,9 +36,12 @@ export default {
             type: 'boolean',
             default: true,
             title: localized('Show icon in menu bar / system tray'),
-            note: localized(
-              'On Linux you need to restart Mailspring for the tray icon to disappear.'
-            ),
+            note:
+              process.platform === 'linux'
+                ? localized(
+                    'On Linux you need to restart Mailspring for the tray icon to disappear.'
+                  )
+                : undefined,
           },
           trayIconStyle: {
             type: 'string',
