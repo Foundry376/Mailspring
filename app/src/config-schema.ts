@@ -274,9 +274,7 @@ export default {
               'Vietnamese',
             ],
             title: localized('Spellcheck language'),
-            note: localized(
-              'Windows and Linux only - on macOS, the spellcheck language is detected by the system as you type.'
-            ),
+            platforms: ['win32', 'linux'],
           },
         },
       },

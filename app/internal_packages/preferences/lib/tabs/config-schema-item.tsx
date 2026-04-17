@@ -29,7 +29,7 @@ class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
   };
 
   _appliesToPlatform() {
-    if (!this.props.configSchema.platform) {
+    if (!this.props.configSchema.platforms) {
       return true;
     } else if (this.props.configSchema.platforms.indexOf(process.platform) !== -1) {
       return true;

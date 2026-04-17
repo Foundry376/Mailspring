@@ -14,6 +14,5 @@ export interface ConfigSchemaLike {
   title?: string;
   enum?: string;
   enumLabels: string;
-  platforms: string[];
-  platform: string;
+  platforms?: string[];
 }
