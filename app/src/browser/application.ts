@@ -623,6 +623,14 @@ export default class Application extends EventEmitter {
     ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;
 
+      // showMessageBoxSync blocks the main process indefinitely in headless
+      // test environments (xvfb can't render or accept input), hanging the
+      // spec suite until the 20 minute CI timeout.
+      if (this.specMode) {
+        console.error(`${message}\n${detail}`);
+        return;
+      }
+
       const buttonIndex = dialog.showMessageBoxSync({
         type: 'warning',
         buttons: [localized('Reset Theme'), localized('Continue')],
