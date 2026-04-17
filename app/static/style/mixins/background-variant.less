@@ -3,6 +3,6 @@
 .bg-variant(@color) {
   background-color: @color;
   &:hover {
-    background-color: darken(@color, 10%);
+    background-color: color-mix(in srgb, @color, black 10%);
   }
 }

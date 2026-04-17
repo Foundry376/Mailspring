@@ -3,6 +3,6 @@
 .text-emphasis-variant(@color) {
   color: @color;
   a&:hover {
-    color: darken(@color, 10%);
+    color: color-mix(in srgb, @color, black 10%);
   }
 }
