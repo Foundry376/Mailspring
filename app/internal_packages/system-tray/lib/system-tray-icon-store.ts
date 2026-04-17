@@ -64,7 +64,8 @@ class SystemTrayIconStore {
     this._updateIcon();
   };
 
-  // On Mac the icon color is automatically inverted via isTemplateImg.
+  // On Mac, icons intended to adapt to the menu bar use the -Template filename
+  // convention, which Electron detects automatically via createFromPath.
   // On Windows and Linux we ship separate dark/light icon variants.
   // Returns '-dark' when we need a light icon (for dark backgrounds).
   _dark = () => {
@@ -132,21 +133,17 @@ class SystemTrayIconStore {
 
     const newMessagesIconStyle = AppEnv.config.get('core.workspace.trayIconStyle') || 'blue';
 
-    let icon = { path: this.inboxFullIcon(), isTemplateImg: true };
+    let iconPath = this.inboxFullIcon();
     if (isInboxZero) {
-      icon = { path: this.inboxZeroIcon(), isTemplateImg: true };
+      iconPath = this.inboxZeroIcon();
     } else if (unread !== 0 && newMessagesIconStyle !== 'none') {
       if (newMessagesIconStyle === 'blue') {
-        icon = { path: this.inboxFullUnreadIcon(), isTemplateImg: false };
+        iconPath = this.inboxFullUnreadIcon();
       } else {
-        if (this._windowBackgrounded) {
-          icon = { path: this.inboxFullNewIcon(), isTemplateImg: false };
-        } else {
-          icon = { path: this.inboxFullUnreadIcon(), isTemplateImg: false };
-        }
+        iconPath = this._windowBackgrounded ? this.inboxFullNewIcon() : this.inboxFullUnreadIcon();
       }
     }
-    ipcRenderer.send('update-system-tray', icon.path, unreadString, icon.isTemplateImg);
+    ipcRenderer.send('update-system-tray', iconPath, unreadString);
   };
 }
 
