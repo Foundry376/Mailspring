@@ -27,17 +27,25 @@ function readAccent(): string | null {
 
 export default class SystemAccentWatcher extends EventEmitter {
   private _current: string | null = null;
+  private _darkMode: boolean = false;
   private _macSubscriptionId: number | null = null;
 
   constructor() {
     super();
     this._current = readAccent();
+    this._darkMode = !!nativeTheme.shouldUseDarkColors;
 
     const refresh = () => {
-      const next = readAccent();
-      if (next === this._current) return;
-      this._current = next;
-      this.emit('change', this._current);
+      const nextAccent = readAccent();
+      if (nextAccent !== this._current) {
+        this._current = nextAccent;
+        this.emit('change', this._current);
+      }
+      const nextDark = !!nativeTheme.shouldUseDarkColors;
+      if (nextDark !== this._darkMode) {
+        this._darkMode = nextDark;
+        this.emit('dark-mode-change', this._darkMode);
+      }
     };
 
     // Fires natively on Windows and on Linux (Electron 37+).
@@ -52,11 +60,16 @@ export default class SystemAccentWatcher extends EventEmitter {
 
     // Catch-all: on some desktops accent changes ride along with a theme
     // change (e.g. switching to dark mode) rather than a dedicated event.
+    // Also the sole trigger for pure dark-mode toggles that don't touch accent.
     nativeTheme.on('updated', refresh);
   }
 
   getCurrent(): string | null {
     return this._current;
+  }
+
+  getDarkMode(): boolean {
+    return this._darkMode;
   }
 
   dispose() {

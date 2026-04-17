@@ -1,0 +1,12 @@
+{
+  "name": "ui-automatic",
+  "displayName": "Automatic",
+  "theme": "ui",
+  "version": "0.1.0",
+  "description": "Follows the system light/dark theme preference",
+  "license": "GPL-3.0",
+  "engines": {
+    "mailspring": "*"
+  },
+  "private": true
+}

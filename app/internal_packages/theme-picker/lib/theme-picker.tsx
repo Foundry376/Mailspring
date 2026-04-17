@@ -32,7 +32,7 @@ class ThemePicker extends React.Component<
   _getState() {
     return {
       themes: this.themes.getAvailableThemes(),
-      activeTheme: this.themes.getActiveTheme().name,
+      activeTheme: this.themes.getActiveThemeSetting().name,
     };
   }
 
@@ -69,6 +69,7 @@ class ThemePicker extends React.Component<
       'ui-darkside',
       'ui-dark',
       'ui-light',
+      'ui-automatic',
     ];
     const sortedThemes = [...this.state.themes];
     sortedThemes.sort((a, b) => {

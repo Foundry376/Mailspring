@@ -9,6 +9,9 @@ import PackageManager from './package-manager';
 const CONFIG_THEME_KEY = 'core.theme';
 const CONFIG_USE_SYSTEM_ACCENT_KEY = 'core.appearance.useSystemAccent';
 const SYSTEM_ACCENT_SOURCE_PATH = 'system-accent:dynamic';
+const AUTOMATIC_THEME_NAME = 'ui-automatic';
+const LIGHT_THEME_NAME = 'ui-light';
+const DARK_THEME_NAME = 'ui-dark';
 
 function buildSystemAccentCSS(color: string): string {
   return `:root {
@@ -45,12 +48,19 @@ export default class ThemeManager {
 
   private _systemAccentColor: string | null = null;
   private _systemAccentDisposable: Disposable | null = null;
+  private _systemDarkMode: boolean = false;
 
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;
     this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
     this.safeMode = safeMode;
+
+    // Prime the system dark-mode state synchronously so the initial theme
+    // resolution in activateThemePackage() picks the right light/dark variant
+    // without a flash of the wrong theme.
+    this._systemDarkMode = !!ipcRenderer.sendSync('get-system-dark-mode-sync');
+
     this.lessCache = new LessCompileCache({
       configDirPath: this.configDirPath,
       resourcePath: this.resourcePath,
@@ -68,6 +78,17 @@ export default class ThemeManager {
       this._systemAccentColor = color;
       this.applySystemAccent();
     });
+
+    ipcRenderer.on('system-dark-mode-changed', (_event, darkMode: boolean) => {
+      this._systemDarkMode = !!darkMode;
+      if (this.isAutomaticModeSelected()) {
+        this.updateThemePackageAndRecomputeLESS();
+      }
+    });
+  }
+
+  private isAutomaticModeSelected() {
+    return !this.baseThemeOnly && AppEnv.config.get(CONFIG_THEME_KEY) === AUTOMATIC_THEME_NAME;
   }
 
   // Called from the onboarding window to disable any custom theme
@@ -120,6 +141,19 @@ export default class ThemeManager {
   }
 
   getActiveTheme() {
+    if (this.baseThemeOnly) {
+      return this.getBaseTheme();
+    }
+    const configured = AppEnv.config.get(CONFIG_THEME_KEY);
+    if (configured === AUTOMATIC_THEME_NAME) {
+      const resolvedName = this._systemDarkMode ? DARK_THEME_NAME : LIGHT_THEME_NAME;
+      return this.packageManager.getPackageNamed(resolvedName) || this.getBaseTheme();
+    }
+    return this.packageManager.getPackageNamed(configured) || this.getBaseTheme();
+  }
+
+  // Returns the theme the user selected, which may be "ui-automatic" (unresolved).
+  getActiveThemeSetting() {
     if (this.baseThemeOnly) {
       return this.getBaseTheme();
     }
