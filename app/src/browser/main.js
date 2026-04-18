@@ -272,6 +272,13 @@ const handleStartupEventWithSquirrel = () => {
 };
 
 const start = () => {
+  if (process.platform === 'win32') {
+    // Must be set before setAppUserModelId so RegisterActivator writes it
+    // into the Start Menu shortcut. Without this, action/reply notification
+    // events are silently dropped (COM server is never registered).
+    app.setToastActivatorCLSID('{E6AD16B0-2830-48E7-9DB7-439152FA917B}');
+  }
+
   app.setAppUserModelId('com.squirrel.mailspring.mailspring');
 
   // Set the app name explicitly for Linux to ensure the system tray icon
