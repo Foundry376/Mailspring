@@ -68,6 +68,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
     const settings = app.getLoginItemSettings({
       path: this._updateExePath(),
       args: this._loginArgs(),
+      name: app.getName(),
     });
     return Promise.resolve(settings.openAtLogin as boolean);
   }
@@ -78,7 +79,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
       openAtLogin: true,
       path: this._updateExePath(),
       args: this._loginArgs(),
-      name: 'Mailspring',
+      name: app.getName(),
     });
     this._cleanupLegacyShortcut();
   }
@@ -89,7 +90,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
       openAtLogin: false,
       path: this._updateExePath(),
       args: this._loginArgs(),
-      name: 'Mailspring',
+      name: app.getName(),
     });
     this._cleanupLegacyShortcut();
   }
