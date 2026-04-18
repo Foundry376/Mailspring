@@ -58,7 +58,6 @@ interface IIPCNotificationOptions {
   actions?: Array<{ type: 'button'; text: string }>;
   urgency?: 'low' | 'normal' | 'critical';
   timeoutType?: 'default' | 'never';
-  toastXml?: string;
 }
 
 class NativeNotifications {
@@ -181,20 +180,6 @@ class NativeNotifications {
   }
 
   /**
-   * Safely escape a string for use in XML content using browser DOM APIs.
-   * This handles the full UTF-8 range including Chinese characters and other
-   * international text, as well as any special characters in untrusted email input.
-   */
-  private escapeXml(str: string): string {
-    if (!str) return '';
-    // Use the DOM's XMLSerializer to properly escape text for XML.
-    // Creating a text node and serializing it handles all XML special characters.
-    const doc = document.implementation.createDocument(null, 'root', null);
-    const textNode = doc.createTextNode(str);
-    return new XMLSerializer().serializeToString(textNode);
-  }
-
-  /**
    * Format an array of sender names into a human-readable string.
    * Uses proper English formatting: "X", "X and Y", "X, Y, and Z", "X, Y, and N others"
    *
@@ -213,105 +198,6 @@ class NativeNotifications {
     } else {
       return `${senders[0]}, ${senders[1]}, and ${senders.length - 2} others`;
     }
-  }
-
-  /**
-   * Build Windows toast XML following Microsoft's best practices for email notifications.
-   * See: https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts
-   *
-   * @param options Notification options
-   * @returns Toast XML string
-   */
-  private buildWindowsToastXml(options: {
-    id: string;
-    title: string;
-    subtitle?: string;
-    body?: string;
-    actions?: Array<{ type: 'button'; text: string }>;
-    threadId?: string;
-    messageId?: string;
-    replyPlaceholder?: string;
-    canReply?: boolean;
-  }): string {
-    // Build URL query parameters for protocol activation
-    // These are used to route actions back through the app's URL handler
-    // We use URLSearchParams for proper URL encoding, then XML-escape the full URL
-    const baseParams = new URLSearchParams({
-      id: options.id,
-      threadId: options.threadId || '',
-      messageId: options.messageId || '',
-    }).toString();
-
-    // Build action buttons XML using protocol activation
-    // Note: Windows supports up to 5 buttons total (including reply button)
-    const actionsContent = (options.actions || [])
-      .map((action, i) => {
-        const actionUrl = `mailspring://notification-action?${baseParams}&actionIndex=${i}`;
-        return `    <action content="${this.escapeXml(action.text)}" arguments="${this.escapeXml(
-          actionUrl
-        )}" activationType="protocol"/>`;
-      })
-      .join('\n');
-
-    const actionsXml = actionsContent ? `  <actions>\n${actionsContent}\n  </actions>` : '';
-
-    // Build the complete toast XML
-    // - hint-maxLines="1" prevents sender name from wrapping
-    // - group attribute enables notification stacking per thread
-    // - activationType="protocol" allows handling when app is closed
-    const clickUrl = `mailspring://notification-click?${baseParams}`;
-    return `<toast launch="${this.escapeXml(
-      clickUrl
-    )}" activationType="protocol" group="thread-${options.threadId || 'default'}">
-  <visual>
-    <binding template="ToastGeneric">
-      <text hint-maxLines="1">${this.escapeXml(options.title)}</text>
-      ${options.subtitle ? `<text>${this.escapeXml(options.subtitle)}</text>` : ''}
-      ${
-        options.body
-          ? `<text hint-style="captionSubtle">${this.escapeXml(options.body)}</text>`
-          : ''
-      }
-    </binding>
-  </visual>
-  <audio silent="true"/>
-${actionsXml}
-</toast>`;
-  }
-
-  /**
-   * Build Windows toast XML for a summary notification (multiple unread messages).
-   * Used when there are 5+ unread messages to avoid notification spam.
-   *
-   * @param count Number of unread messages
-   * @param senders Array of sender names to display
-   * @returns Toast XML string
-   */
-  private buildWindowsSummaryToastXml(id: string, count: number, senders: string[]): string {
-    const sendersText = this.formatSenderList(senders);
-
-    const baseParams = new URLSearchParams({
-      id: id,
-      threadId: '',
-      messageId: '',
-    }).toString();
-
-    const clickUrl = `mailspring://notification-click?${baseParams}`;
-
-    return `<toast launch="${this.escapeXml(clickUrl)}" activationType="protocol">
-  <visual>
-    <binding template="ToastGeneric">
-      <text hint-maxLines="1">${count} new messages</text>
-      ${sendersText ? `<text>${this.escapeXml(sendersText)}</text>` : ''}
-      <text hint-style="captionSubtle">Click to view your inbox</text>
-    </binding>
-  </visual>
-  <audio silent="true"/>
-  <actions>
-    <action content="View Inbox" arguments="${this.escapeXml(clickUrl)}" activationType="protocol"/>
-    <action content="Dismiss" arguments="dismiss" activationType="system"/>
-  </actions>
-</toast>`;
   }
 
   async displayNotification({
@@ -347,8 +233,8 @@ ${actionsXml}
       messageId,
     };
 
-    // macOS-specific features
-    if (platform === 'darwin') {
+    // macOS and Windows support inline reply and action buttons natively
+    if (platform === 'darwin' || platform === 'win32') {
       if (canReply) {
         options.hasReply = true;
         options.replyPlaceholder = replyPlaceholder || 'Reply...';
@@ -356,21 +242,6 @@ ${actionsXml}
       if (actions && actions.length > 0) {
         options.actions = actions;
       }
-    }
-
-    // Windows toast XML for rich notifications with actions and/or reply
-    if (platform === 'win32' && (actions?.length > 0 || canReply)) {
-      options.toastXml = this.buildWindowsToastXml({
-        id,
-        title,
-        subtitle,
-        body,
-        actions,
-        threadId,
-        messageId,
-        canReply,
-        replyPlaceholder,
-      });
     }
 
     try {
@@ -392,7 +263,6 @@ ${actionsXml}
 
   /**
    * Display a summary notification for multiple unread messages.
-   * On Windows, this uses a special toast XML format optimized for summaries.
    *
    * @param count Number of unread messages
    * @param senders Array of sender names (will show up to 3)
@@ -424,11 +294,6 @@ ${actionsXml}
       tag: 'unread-summary',
       icon: this.resolvedIcon,
     };
-
-    // Use special summary toast XML on Windows
-    if (platform === 'win32') {
-      options.toastXml = this.buildWindowsSummaryToastXml(id, count, senders);
-    }
 
     try {
       await ipcRenderer.invoke('notification:display', options);

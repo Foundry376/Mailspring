@@ -1,7 +1,6 @@
 import { Notification, IpcMain, IpcMainInvokeEvent, nativeImage } from 'electron';
 import path from 'path';
 import os from 'os';
-import { UrlWithParsedQuery } from 'url';
 
 interface NotificationOptions {
   id: string;
@@ -17,7 +16,6 @@ interface NotificationOptions {
   actions?: Array<{ type: 'button'; text: string }>;
   urgency?: 'low' | 'normal' | 'critical';
   timeoutType?: 'default' | 'never';
-  toastXml?: string;
 }
 
 // Track active notifications by ID, with metadata for thread-based dismissal
@@ -112,12 +110,14 @@ const displayNotification = (
     silent: true, // App handles sounds separately via SoundRegistry
   };
 
-  // macOS-specific options
-  if (platform === 'darwin') {
-    if (options.subtitle && options.body) {
-      notifOptions.subtitle = options.subtitle;
-      notifOptions.body = options.body;
-    }
+  // macOS supports a separate subtitle field distinct from body
+  if (platform === 'darwin' && options.subtitle && options.body) {
+    notifOptions.subtitle = options.subtitle;
+    notifOptions.body = options.body;
+  }
+
+  // macOS and Windows support inline reply and action buttons natively
+  if (platform === 'darwin' || platform === 'win32') {
     if (options.hasReply) {
       notifOptions.hasReply = true;
       notifOptions.replyPlaceholder = options.replyPlaceholder || 'Reply...';
@@ -137,22 +137,9 @@ const displayNotification = (
     }
   }
 
-  // Windows-specific options
-  if (platform === 'win32') {
-    if (options.toastXml) {
-      notifOptions.toastXml = options.toastXml;
-    } else if (options.timeoutType) {
-      notifOptions.timeoutType = options.timeoutType;
-    }
-  }
-
   const notification = new Notification(notifOptions);
 
   // Handle click event
-  // On Windows with toastXml + activationType="protocol", clicks are routed through
-  // the OS protocol handler (mailspring:// URLs) rather than Electron's Activated callback,
-  // so this event won't fire. We register it anyway as a fallback for non-toastXml
-  // notifications or if protocol activation fails.
   notification.on('click', () => {
     sendToAllWindows('notification:clicked', {
       id: options.id,
@@ -167,7 +154,7 @@ const displayNotification = (
     sendToAllWindows('notification:closed', { id: options.id });
   });
 
-  // Handle reply event (macOS only)
+  // Handle inline reply (macOS and Windows)
   notification.on('reply', (replyEvent, reply) => {
     sendToAllWindows('notification:replied', {
       id: options.id,
@@ -177,7 +164,7 @@ const displayNotification = (
     });
   });
 
-  // Handle action button event (macOS only)
+  // Handle action button event (macOS and Windows)
   notification.on('action', (actionEvent, index) => {
     sendToAllWindows('notification:action', {
       id: options.id,
@@ -224,19 +211,4 @@ const closeNotification = (event: IpcMainInvokeEvent, id: string): void => {
 export function registerNotificationIPCHandlers(ipcMain: IpcMain) {
   ipcMain.handle('notification:display', displayNotification);
   ipcMain.handle('notification:close', closeNotification);
-}
-
-export function handleWindowsToastXMLProtocolAction(parts: UrlWithParsedQuery) {
-  const windowsNotifEventArgs = {
-    id: parts.query.id as string,
-    threadId: parts.query.threadId as string,
-    messageId: parts.query.messageId as string,
-  };
-
-  if (parts.host === 'notification-click') {
-    sendToAllWindows('notification:clicked', windowsNotifEventArgs);
-  } else if (parts.host === 'notification-action') {
-    const actionIndex = parseInt(parts.query.actionIndex as string, 10);
-    sendToAllWindows('notification:action', { ...windowsNotifEventArgs, actionIndex });
-  }
 }
