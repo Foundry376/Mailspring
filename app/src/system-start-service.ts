@@ -1,16 +1,13 @@
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { exec } from 'child_process';
-import { shell } from 'electron';
-import { localized } from './intl';
 
 class SystemStartServiceBase {
   checkAvailability(): Promise<boolean> {
     return Promise.resolve(false);
   }
 
-  doesLaunchOnSystemStart() {
+  doesLaunchOnSystemStart(): Promise<boolean> {
     throw new Error('doesLaunchOnSystemStart is not available');
   }
 
@@ -25,134 +22,90 @@ class SystemStartServiceBase {
 
 class SystemStartServiceDarwin extends SystemStartServiceBase {
   checkAvailability() {
-    return new Promise<boolean>(resolve => {
-      fs.access(this._launcherPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
-    });
+    return Promise.resolve(true);
   }
 
   doesLaunchOnSystemStart() {
-    return new Promise(resolve => {
-      fs.access(this._plistPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
-    });
+    const app = require('@electron/remote').app;
+    const settings = app.getLoginItemSettings();
+    return Promise.resolve(settings.openAtLogin as boolean);
   }
 
   configureToLaunchOnSystemStart() {
-    fs.mkdir(this._plistDir(), { recursive: true }, err => {
-      if (err) return this._displayError(err);
-
-      fs.writeFile(this._plistPath(), JSON.stringify(this._launchdPlist()), err => {
-        if (err) {
-          this._displayError(err);
-        } else {
-          exec(`plutil -convert xml1 ${this._plistPath()}`);
-        }
-      });
-    });
+    const app = require('@electron/remote').app;
+    app.setLoginItemSettings({ openAtLogin: true });
+    this._cleanupLegacyPlist();
   }
 
   dontLaunchOnSystemStart() {
-    fs.unlink(this._plistPath(), err => {
-      if (err) {
-        this._displayError(err);
-      }
-    });
+    const app = require('@electron/remote').app;
+    app.setLoginItemSettings({ openAtLogin: false });
+    this._cleanupLegacyPlist();
   }
 
-  _displayError(err: Error) {
-    AppEnv.showErrorDialog(
-      localized(
-        'Mailspring was unable to create or delete the LaunchAgent file at %@.',
-        this._plistPath()
-      ) + `\n\n${err.toString()}`
+  _cleanupLegacyPlist() {
+    const plistPath = path.join(
+      process.env.HOME,
+      'Library',
+      'LaunchAgents',
+      'com.mailspring.plist'
     );
-  }
-
-  _launcherPath() {
-    return path.join('/', 'Applications', 'Mailspring.app', 'Contents', 'MacOS', 'Mailspring');
-  }
-
-  _plistPath() {
-    return path.join(process.env.HOME, 'Library', 'LaunchAgents', 'com.mailspring.plist');
-  }
-
-  _plistDir() {
-    return path.join(process.env.HOME, 'Library', 'LaunchAgents');
-  }
-
-  _launchdPlist() {
-    return {
-      Label: 'com.mailspring.mailspring',
-      ProgramArguments: [this._launcherPath(), '--background'],
-      RunAtLoad: true,
-    };
+    fs.unlink(plistPath, () => {});
   }
 }
 
 class SystemStartServiceWin32 extends SystemStartServiceBase {
   checkAvailability() {
-    return new Promise<boolean>(resolve => {
-      fs.access(this._launcherPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
+    return new Promise<boolean>((resolve) => {
+      fs.access(this._updateExePath(), fs.constants.R_OK, (err) => {
+        resolve(!err);
       });
     });
   }
 
   doesLaunchOnSystemStart() {
-    return new Promise(resolve => {
-      fs.access(this._shortcutPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
+    const app = require('@electron/remote').app;
+    const settings = app.getLoginItemSettings({
+      path: this._updateExePath(),
+      args: this._loginArgs(),
     });
+    return Promise.resolve(settings.openAtLogin as boolean);
   }
 
   configureToLaunchOnSystemStart() {
-    // Use Electron's shell.writeShortcutLink API instead of deprecated windows-shortcuts package
-    // See: https://www.electronjs.org/docs/latest/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
-    try {
-      const success = shell.writeShortcutLink(this._shortcutPath(), 'create', {
-        target: this._launcherPath(),
-        args: '--processStart mailspring.exe --process-start-args "--background"',
-        description: 'An extensible, open-source mail client built on the modern web.',
-        appUserModelId: 'com.squirrel.mailspring.mailspring',
-      });
-      if (!success) {
-        AppEnv.reportError(new Error('Failed to create startup shortcut'));
-      }
-    } catch (err) {
-      AppEnv.reportError(err);
-    }
+    const app = require('@electron/remote').app;
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      path: this._updateExePath(),
+      args: this._loginArgs(),
+      name: 'Mailspring',
+    });
+    this._cleanupLegacyShortcut();
   }
 
   dontLaunchOnSystemStart() {
-    return fs.unlink(this._shortcutPath(), () => {});
+    const app = require('@electron/remote').app;
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      path: this._updateExePath(),
+      args: this._loginArgs(),
+      name: 'Mailspring',
+    });
+    this._cleanupLegacyShortcut();
   }
 
-  _launcherPath() {
-    return path.join(process.env.LOCALAPPDATA, 'mailspring', 'Update.exe');
+  _updateExePath() {
+    const appFolder = path.dirname(process.execPath);
+    return path.resolve(appFolder, '..', 'Update.exe');
   }
 
-  _shortcutPath() {
-    return path.join(
+  _loginArgs() {
+    const exeName = path.basename(process.execPath);
+    return ['--processStart', `"${exeName}"`, '--process-start-args', `"--background"`];
+  }
+
+  _cleanupLegacyShortcut() {
+    const shortcutPath = path.join(
       process.env.APPDATA,
       'Microsoft',
       'Windows',
@@ -161,13 +114,14 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
       'Startup',
       'Mailspring.lnk'
     );
+    fs.unlink(shortcutPath, () => {});
   }
 }
 
 class SystemStartServiceLinux extends SystemStartServiceBase {
   checkAvailability() {
-    return new Promise<boolean>(resolve => {
-      fs.access(this._launcherPath(), fs.constants.R_OK, err => {
+    return new Promise<boolean>((resolve) => {
+      fs.access(this._launcherPath(), fs.constants.R_OK, (err) => {
         if (err) {
           resolve(false);
         } else {
@@ -178,8 +132,8 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
   }
 
   doesLaunchOnSystemStart() {
-    return new Promise(resolve => {
-      fs.access(this._shortcutPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
+    return new Promise((resolve) => {
+      fs.access(this._shortcutPath(), fs.constants.R_OK | fs.constants.W_OK, (err) => {
         if (err) {
           resolve(false);
         } else {

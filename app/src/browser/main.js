@@ -16,7 +16,7 @@ if (typeof process.setFdLimit === 'function') {
   process.setFdLimit(1024);
 }
 
-const setupConfigDir = args => {
+const setupConfigDir = (args) => {
   let dirname = 'Mailspring';
   if (args.devMode) {
     dirname = 'Mailspring-dev';
@@ -24,10 +24,10 @@ const setupConfigDir = args => {
   if (args.specMode) {
     dirname = 'Mailspring-spec';
   }
-  
+
   // Check if a custom config dir was provided via --config-dir-path
   let configDirPath = args.configDirPath || path.join(app.getPath('appData'), dirname);
-  
+
   if (process.platform === 'linux' && process.env.SNAP) {
     // for linux snap, use the sandbox directory that is persisted between snap revisions
     configDirPath = args.configDirPath || process.env.SNAP_USER_COMMON;
@@ -42,7 +42,7 @@ const setupConfigDir = args => {
   return configDirPath;
 };
 
-const setupCompileCache = configDirPath => {
+const setupCompileCache = (configDirPath) => {
   const compileCache = require('../compile-cache');
   return compileCache.setHomeDirectory(configDirPath);
 };
@@ -59,16 +59,13 @@ const setupErrorLogger = (args = {}) => {
   return errorLogger;
 };
 
-const declareOptions = argv => {
+const declareOptions = (argv) => {
   const optimist = require('optimist');
   const options = optimist(argv);
   options.usage(
     `Mailspring\n\nUsage: mailspring [options] [recipient] [attachment]\n\nRun Mailspring: The open source extensible email client\n\n\`mailspring mailto:johndoe@example.com\` to compose an e-mail to johndoe@example.com.\n\`mailspring ./attachment.txt\` to compose an e-mail with a text file attached.\n\`mailspring --dev\` to start the client in dev mode.\n\`mailspring --test\` to run unit tests.`
   );
-  options
-    .alias('d', 'dev')
-    .boolean('d')
-    .describe('d', 'Run in development mode.');
+  options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.');
   options
     .alias('t', 'test')
     .boolean('t')
@@ -85,14 +82,8 @@ const declareOptions = argv => {
   options.boolean('enable-crashpad');
   options.boolean('allow-file-access-from-files');
   options.boolean('source-app-id');
-  options
-    .alias('h', 'help')
-    .boolean('h')
-    .describe('h', 'Print this usage message.');
-  options
-    .alias('l', 'log-file')
-    .string('l')
-    .describe('l', 'Log all test output to file.');
+  options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.');
+  options.alias('l', 'log-file').string('l').describe('l', 'Log all test output to file.');
   options
     .alias('c', 'config-dir-path')
     .string('c')
@@ -108,18 +99,12 @@ const declareOptions = argv => {
       'f',
       'Override the default file regex to determine which tests should run (defaults to "-spec.(js|jsx|es6|es)$" )'
     );
-  options
-    .alias('v', 'version')
-    .boolean('v')
-    .describe('v', 'Print the version.');
-  options
-    .alias('b', 'background')
-    .boolean('b')
-    .describe('b', 'Start Mailspring in the background');
+  options.alias('v', 'version').boolean('v').describe('v', 'Print the version.');
+  options.alias('b', 'background').boolean('b').describe('b', 'Start Mailspring in the background');
   return options;
 };
 
-const parseCommandLine = argv => {
+const parseCommandLine = (argv) => {
   const pkg = require('../../package.json');
   const version = `${pkg.version}-${pkg.commitHash}`;
 
@@ -206,7 +191,7 @@ const parseCommandLine = argv => {
   };
 };
 
-const extractMailtoLink = mailtoLink => {
+const extractMailtoLink = (mailtoLink) => {
   console.log(mailtoLink);
 
   // Handle links in the form mailto:test@example.com?attach=file:///path/to/file.txt
@@ -332,6 +317,15 @@ const start = () => {
   const configDirPath = setupConfigDir(options);
   options.configDirPath = configDirPath;
 
+  // On macOS, setLoginItemSettings doesn't support passing custom args, so we
+  // detect login-item launches via wasOpenedAtLogin and start in background.
+  if (process.platform === 'darwin' && !options.background) {
+    const settings = app.getLoginItemSettings();
+    if (settings.wasOpenedAtLogin) {
+      options.background = true;
+    }
+  }
+
   if (!options.devMode) {
     const gotTheLock = app.requestSingleInstanceLock();
 
@@ -380,7 +374,7 @@ const start = () => {
           .replace('app.asar', 'app.asar.unpacked'),
         { allowFileAccess: true }
       )
-      .catch(err => console.error(`Error loading language detection extension: ${err}`));
+      .catch((err) => console.error(`Error loading language detection extension: ${err}`));
 
     session.defaultSession.webRequest.onBeforeSendHeaders(o365Filter, (details, callback) => {
       delete details.requestHeaders['Origin'];
@@ -405,8 +399,9 @@ const start = () => {
     });
 
     // eslint-disable-next-line
-    const Application = require(path.join(options.resourcePath, 'src', 'browser', 'application'))
-      .default;
+    const Application = require(
+      path.join(options.resourcePath, 'src', 'browser', 'application')
+    ).default;
     global.application = new Application();
     global.application.start(options);
 
