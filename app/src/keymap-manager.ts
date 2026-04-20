@@ -34,42 +34,30 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
   if (e.isPropagationStopped()) {
     return true;
   }
-  // Stop mousetrap from firing global commands when focus is within a tree widget
-  // (e.g. the mailbox outline view), so the tree's own arrow-key navigation works.
-  const withinTree =
-    !!element.closest('[role="tree"]') ||
-    !!element.closest('[data-usesarrowkeys]:has(:focus-visible)');
-
   const withinTextInput =
     element.tagName === 'INPUT' ||
     element.tagName === 'SELECT' ||
     element.tagName === 'TEXTAREA' ||
     element.isContentEditable;
-
-  if (withinTree) {
-    const isPlainKey = !/(mod|command|ctrl)/.test(combo);
-    const isArrowKey = /(left|right|up|down)/.test(combo);
-
-    if (isPlainKey && isArrowKey) {
-      return true; // block so the tree widget handles its own arrow-key navigation
-    }
-    if (withinTextInput && isPlainKey) {
-      // Typing in a text input (e.g. the inline reply composer) inside the tree:
-      // block all plain keys so they type normally, except Escape which must
-      // still fire core:pop-sheet to close the composer.
-      return combo !== 'escape';
-    }
-    // Focus is on a non-text tree row: allow all non-arrow shortcuts to fire
-    // (Gmail-style single-letter shortcuts, Escape, modifier combos, etc.)
-    return false;
-  }
-
   if (withinTextInput) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
     const isReservedTextEditingShortcut = /(mod|command|ctrl)\+(a|x|c|v|left|right)/.test(combo);
     if (isPlainKey || isReservedTextEditingShortcut) {
       return true;
     }
+  }
+
+  // Stop mousetrap from firing global commands when focus is within a tree widget
+  // (e.g. the mailbox outline view), so the tree's own arrow-key navigation works.
+  // withinTextInput runs first so that typing in an inline composer inside the tree
+  // is handled correctly before we apply tree-specific logic.
+  const withinTree =
+    !!element.closest('[role="tree"]') ||
+    !!element.closest('[data-usesarrowkeys]:has(:focus-visible)');
+  if (withinTree) {
+    const isPlainKey = !/(mod|command|ctrl)/.test(combo);
+    const isArrowKey = /(left|right|up|down)/.test(combo);
+    return isPlainKey && isArrowKey;
   }
   return false;
 };
