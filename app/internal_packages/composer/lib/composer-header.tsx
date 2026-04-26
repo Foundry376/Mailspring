@@ -100,6 +100,9 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     if (draft.bcc.length && !enabledFields.find(f => f === Fields.Bcc)) {
       enabledFields = [Fields.Bcc].concat(enabledFields);
     }
+    if (draft.replyTo.length && !enabledFields.find(f => f === Fields.ReplyTo)) {
+      enabledFields = [Fields.ReplyTo].concat(enabledFields);
+    }
     if (enabledFields !== this.state.enabledFields) {
       this.setState({ enabledFields });
     }
@@ -108,7 +111,8 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
   _initialStateForDraft(draft, props) {
     const enabledFields = [Fields.To];
     if (draft.cc.length > 0) enabledFields.push(Fields.Cc);
-    if (draft.cc.length > 0) enabledFields.push(Fields.Bcc);
+    if (draft.bcc.length > 0) enabledFields.push(Fields.Bcc);
+    if (draft.replyTo.length > 0) enabledFields.push(Fields.ReplyTo);
     enabledFields.push(Fields.From);
     if (this._shouldEnableSubject()) {
       enabledFields.push(Fields.Subject);
@@ -167,7 +171,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
   };
 
   _renderFields = () => {
-    const { to, cc, bcc, from } = this.props.draft;
+    const { to, cc, bcc, from, replyTo } = this.props.draft;
 
     // Note: We need to physically add and remove these elements, not just hide them.
     // If they're hidden, shift-tab between fields breaks.
@@ -185,7 +189,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
         label={localized('To')}
         change={this._onChangeParticipants}
         className="composer-participant-field to-field"
-        participants={{ to, cc, bcc }}
+        participants={{ to, cc, bcc, replyTo }}
         draft={this.props.draft}
         session={this.props.session}
       />
@@ -205,7 +209,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Cc)}
           className="composer-participant-field cc-field"
-          participants={{ to, cc, bcc }}
+          participants={{ to, cc, bcc, replyTo }}
           draft={this.props.draft}
           session={this.props.session}
         />
@@ -226,7 +230,28 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Bcc)}
           className="composer-participant-field bcc-field"
-          participants={{ to, cc, bcc }}
+          participants={{ to, cc, bcc, replyTo }}
+          draft={this.props.draft}
+          session={this.props.session}
+        />
+      );
+    }
+
+    if (this.state.enabledFields.includes(Fields.ReplyTo)) {
+      fields.push(
+        <ParticipantsTextField
+          ref={el => {
+            if (el) {
+              this._els[Fields.ReplyTo] = el;
+            }
+          }}
+          key="replyTo"
+          field="replyTo"
+          label={localized('Reply-To')}
+          change={this._onChangeParticipants}
+          onEmptied={() => this.hideField(Fields.ReplyTo)}
+          className="composer-participant-field replyto-field"
+          participants={{ to, cc, bcc, replyTo }}
           draft={this.props.draft}
           session={this.props.session}
         />

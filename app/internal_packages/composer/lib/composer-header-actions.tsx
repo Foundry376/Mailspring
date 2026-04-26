@@ -62,6 +62,21 @@ export default class ComposerHeaderActions extends React.Component<ComposerHeade
       );
     }
 
+    if (!this.props.enabledFields.includes(Fields.ReplyTo)) {
+      items.push(
+        <span
+          className="action show-reply-to"
+          key="replyTo"
+          role="button"
+          tabIndex={-1}
+          onClick={() => this.props.onShowAndFocusField(Fields.ReplyTo)}
+          onKeyDown={this._onKeyDown(() => this.props.onShowAndFocusField(Fields.ReplyTo))}
+        >
+          {localized('Reply-To')}
+        </span>
+      );
+    }
+
     if (!this.props.enabledFields.includes(Fields.Subject)) {
       items.push(
         <span

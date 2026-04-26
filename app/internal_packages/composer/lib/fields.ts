@@ -5,6 +5,7 @@ const Fields = {
   From: 'fromField',
   Subject: 'textFieldSubject',
   Body: 'contentBody',
+  ReplyTo: 'textFieldReplyTo',
   ParticipantFields: [],
   Order: {},
 };
@@ -15,6 +16,7 @@ Fields.Order = {
   textFieldTo: 1,
   textFieldCc: 2,
   textFieldBcc: 3,
+  textFieldReplyTo: 4,
   fromField: -1, // Not selectable
   textFieldSubject: 5,
   contentBody: 6,
