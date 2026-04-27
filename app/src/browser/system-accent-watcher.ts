@@ -8,11 +8,18 @@ const APPLE_COLOR_NOTIFICATION = 'AppleColorPreferencesChangedNotification';
 
 // Normalize Electron's #RRGGBBAA (or platform-specific "rrggbbaa" without #)
 // to #RRGGBB. Returns null when the platform/DE didn't provide a color.
+//
+// Strictly validates that the value is hex digits only — some Linux DEs
+// return non-hex tokens (empty string, names like "default") that previously
+// passed a length-only check and were spliced into invalid CSS like #defaul,
+// which broke every var(--system-accent, ...) consumer downstream.
+const HEX_ACCENT_RE = /^#?([0-9a-fA-F]{6})(?:[0-9a-fA-F]{2})?$/;
+
 function normalize(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const hex = raw.startsWith('#') ? raw.slice(1) : raw;
-  if (hex.length < 6) return null;
-  return `#${hex.slice(0, 6).toLowerCase()}`;
+  const match = HEX_ACCENT_RE.exec(raw);
+  if (!match) return null;
+  return `#${match[1].toLowerCase()}`;
 }
 
 function readAccent(): string | null {
