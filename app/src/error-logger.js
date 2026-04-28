@@ -9,7 +9,7 @@ if (process.type === 'renderer') {
 }
 
 var appVersion = app.getVersion();
-var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter');
+var SentryErrorReporter = require('./error-logger-extensions/sentry-error-reporter');
 
 // A globally available ErrorLogger that can report errors to various
 // sources and enhance error functionality.
@@ -40,7 +40,7 @@ module.exports = ErrorLogger = (function () {
     this._extendNativeConsole();
 
     this.extensions = [
-      new RavenErrorReporter({
+      new SentryErrorReporter({
         inSpecMode: args.inSpecMode,
         inDevMode: args.inDevMode,
         resourcePath: args.resourcePath,
@@ -117,7 +117,7 @@ module.exports = ErrorLogger = (function () {
         ver: appVersion,
         platform: process.platform,
       },
-    })
+    });
   };
 
   ErrorLogger.prototype._extendNativeConsole = function (args) {
