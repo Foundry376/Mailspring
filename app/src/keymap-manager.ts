@@ -34,11 +34,15 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
   if (e.isPropagationStopped()) {
     return true;
   }
+  // Also treat anything inside an open composer as text input so that focus
+  // landing on composer chrome (footer, attachment area, between recipient
+  // chips, etc.) doesn't let plain keys fall through to global shortcuts.
   const withinTextInput =
     element.tagName === 'INPUT' ||
     element.tagName === 'SELECT' ||
     element.tagName === 'TEXTAREA' ||
-    element.isContentEditable;
+    element.isContentEditable ||
+    !!element.closest('.composer-outer-wrap');
   if (withinTextInput) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
     const isReservedTextEditingShortcut = /(mod|command|ctrl)\+(a|x|c|v|left|right)/.test(combo);
