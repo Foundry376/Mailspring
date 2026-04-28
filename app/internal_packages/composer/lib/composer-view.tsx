@@ -108,8 +108,11 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     // so this will autoselect the draft if it has been edited or created in the last 3s.
     const isBrandNew = Date.now() - (date instanceof Date ? date.getTime() : Number(date)) < 3000;
     if (isBrandNew) {
-      (ReactDOM.findDOMNode(this) as HTMLElement).scrollIntoView(false);
-      window.requestAnimationFrame(() => this.focus());
+      const el = ReactDOM.findDOMNode(this) as HTMLElement;
+      window.requestAnimationFrame(() => {
+        el.scrollIntoView(false);
+        this.focus();
+      });
     }
   }
 
