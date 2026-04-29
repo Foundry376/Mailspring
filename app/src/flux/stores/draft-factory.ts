@@ -157,6 +157,7 @@ class DraftFactory {
 
     if (query.body && this.useHTML()) {
       query.body = query.body.replace(/[\n\r]/g, '<br/>');
+      query.body = await SanitizeTransformer.run(query.body);
     }
 
     return this.createDraft(Object.assign(query, await Promise.props(contacts)));

@@ -4,7 +4,7 @@ import * as Immutable from 'immutable';
 import { Editor, Value, Operation, Range, Block, Text } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps, Plugin } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
-import { InlineStyleTransformer } from 'mailspring-exports';
+import { InlineStyleTransformer, SanitizeTransformer } from 'mailspring-exports';
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
@@ -246,6 +246,11 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     let html = event.clipboardData.getData('text/html');
 
     if (html) {
+      // Strip event handlers and disallowed tags before any DOM parsing or rendering — the
+      // composer runs with nodeIntegration so an <img onerror=...> in pasted HTML would
+      // execute with full Node access once it lands inside an uneditable block.
+      html = SanitizeTransformer.runSync(html);
+
       // Unfortuantely, pasting HTML requires an synchronous hop through our main process style
       // transfomer. This ensures that we inline styles and preserve as much as possible.
       // (eg: pasting tables from Excel).

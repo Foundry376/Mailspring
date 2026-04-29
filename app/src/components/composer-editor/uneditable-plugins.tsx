@@ -1,7 +1,7 @@
 import React from 'react';
 import { Editor } from 'slate';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localized } from 'mailspring-exports';
+import { localized, SanitizeTransformer } from 'mailspring-exports';
 import { ComposerEditorPlugin } from './types';
 
 export const UNEDITABLE_TYPE = 'uneditable';
@@ -51,11 +51,16 @@ const rules = [
       const tagName = el.tagName.toLowerCase();
 
       if (UNEDITABLE_TAGS.includes(tagName)) {
+        // The captured HTML is later re-injected via dangerouslySetInnerHTML in
+        // UneditableNode. Because this composer runs in a renderer with nodeIntegration,
+        // any preserved <img onerror=...>, <iframe>, or <script> would execute with Node
+        // access. Sanitize here so every input path (mailto, paste, drag-drop, programmatic)
+        // is covered at the funnel.
         return {
           object: 'block',
           type: UNEDITABLE_TYPE,
           data: {
-            html: el.outerHTML,
+            html: SanitizeTransformer.runSync(el.outerHTML),
           },
           nodes: [],
         };
