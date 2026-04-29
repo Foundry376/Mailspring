@@ -146,7 +146,7 @@ export class Spinner extends React.Component<SpinnerProps, SpinnerState> {
       paused: this.state.paused,
     });
 
-    const style = {
+    const style: React.CSSProperties = {
       ...(this.props.style != null ? this.props.style : {}),
       position: 'absolute',
       left: '50%',

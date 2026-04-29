@@ -42,8 +42,12 @@ function setupWindow(loadSettings) {
     copyEnvFromMainProcess();
   }
 
-  var CompileCache = require('../src/compile-cache');
-  CompileCache.setHomeDirectory(loadSettings.configDirPath);
+  if (loadSettings.devMode) {
+    var CompileCache = require('../src/compile-cache-ts');
+    CompileCache.setHomeDirectory(loadSettings.configDirPath);
+  } else {
+    require('../src/compile-cache-ts-unsupported');
+  }
 
   require(loadSettings.bootstrapScript);
 }

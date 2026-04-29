@@ -42,9 +42,12 @@ const setupConfigDir = args => {
   return configDirPath;
 };
 
-const setupCompileCache = configDirPath => {
-  const compileCache = require('../compile-cache');
-  return compileCache.setHomeDirectory(configDirPath);
+const setupCompileCache = (configDirPath, devMode) => {
+  if (devMode) {
+    require('../compile-cache-ts').setHomeDirectory(configDirPath);
+  } else {
+    require('../compile-cache-ts-unsupported');
+  }
 };
 
 const setupErrorLogger = (args = {}) => {
@@ -362,7 +365,7 @@ const start = () => {
     });
   }
 
-  setupCompileCache(configDirPath);
+  setupCompileCache(configDirPath, options.devMode);
 
   const onOpenFileBeforeReady = (event, file) => {
     event.preventDefault();

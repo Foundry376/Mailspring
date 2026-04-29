@@ -3,7 +3,7 @@ import { Emitter, Disposable } from 'event-kit';
 import path from 'path';
 import fs from 'fs';
 import { localized } from './intl';
-import LessCompileCache from './less-compile-cache';
+import LessCompileCache from './compile-cache-less';
 import PackageManager from './package-manager';
 
 const CONFIG_THEME_KEY = 'core.theme';
