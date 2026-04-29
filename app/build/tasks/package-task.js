@@ -104,11 +104,69 @@ module.exports = grunt => {
         console.log(`  ---> Compiling ${tsPath.slice(tsPath.indexOf('/app') + 4)}`);
         const res = TypeScript.transpileModule(tsCode, { compilerOptions, fileName: tsPath });
         grunt.file.write(outPath, res.outputText);
+        if (res.sourceMapText) {
+          grunt.file.write(outPath + '.map', res.sourceMapText);
+        }
         fs.unlinkSync(tsPath);
       });
     });
 
     callback();
+  }
+
+  async function runUploadSourceMapsToSentry(buildPath, electronVersion, platform, arch, callback) {
+    const { SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT } = process.env;
+
+    const mapFiles = glob.sync('**/*.js.map', { cwd: buildPath });
+
+    const cleanup = () => {
+      mapFiles.forEach(relPath => fs.unlinkSync(path.join(buildPath, relPath)));
+      console.log(`---> Cleaned up ${mapFiles.length} source map files`);
+    };
+
+    if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) {
+      console.log(
+        '---> Skipping Sentry source map upload (set SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT to enable)'
+      );
+      cleanup();
+      callback();
+      return;
+    }
+
+    let SentryCli;
+    try {
+      SentryCli = require('@sentry/cli');
+    } catch (e) {
+      console.log('---> @sentry/cli not found, skipping source map upload');
+      cleanup();
+      callback();
+      return;
+    }
+
+    console.log('---> Uploading source maps to Sentry');
+    const commitHash = execSync('git rev-parse HEAD').toString().trim().substr(0, 8);
+    const version = `${packageJSON.version}-${commitHash}`;
+    const cli = new SentryCli(null, {
+      authToken: SENTRY_AUTH_TOKEN,
+      org: SENTRY_ORG,
+      project: SENTRY_PROJECT,
+    });
+
+    try {
+      await cli.releases.new(version);
+      await cli.releases.uploadSourceMaps(version, {
+        include: [buildPath],
+        urlPrefix: 'app:///',
+        rewrite: true,
+      });
+      await cli.releases.finalize(version);
+      console.log(`---> Source maps uploaded to Sentry release ${version}`);
+    } catch (err) {
+      console.error(`---> Sentry source map upload failed: ${err.message}`);
+    } finally {
+      cleanup();
+      callback();
+    }
   }
 
   const platform = grunt.option('platform');
@@ -287,6 +345,7 @@ module.exports = grunt => {
         runUpdateSandboxHelperPermissions,
         runCopySymlinkedPackages,
         runTranspilers,
+        runUploadSourceMapsToSentry,
       ],
     },
   });
@@ -305,15 +364,17 @@ module.exports = grunt => {
 
     resolveRealSymlinkPaths(grunt.config('appDir'));
 
-    packager(grunt.config.get('packager'))
-      .catch(err => {
-        grunt.fail.fatal(err);
-        return done(err);
-      })
-      .then(appPaths => {
+    (async () => {
+      try {
+        const appPaths = await packager(grunt.config.get('packager'));
         clearInterval(ongoing);
         console.log(`---> Done Successfully. Built into: ${appPaths}`);
-        return done();
-      });
+        done();
+      } catch (err) {
+        clearInterval(ongoing);
+        grunt.fail.fatal(err);
+        done(err);
+      }
+    })();
   });
 };

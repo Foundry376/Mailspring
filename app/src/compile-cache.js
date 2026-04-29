@@ -111,18 +111,18 @@ require('source-map-support').install({
     const sourceMappingURL = lastMatch[1];
 
     // check whether this is a file path, or an inline sourcemap and load it
-    let rawData = null;
-    if (sourceMappingURL.includes(',')) {
-      rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
-    } else {
-      rawData = fs.readFileSync(path.resolve(path.dirname(filePath), sourceMappingURL));
-    }
-
     let sourceMap = null;
     try {
-      sourceMap = JSON.parse(Buffer.from(rawData, 'base64'));
+      if (sourceMappingURL.includes(',')) {
+        // Inline data URI: content after the comma is base64-encoded JSON
+        const rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
+        sourceMap = JSON.parse(Buffer.from(rawData, 'base64'));
+      } else {
+        // External file reference: content is plain JSON
+        const mapPath = path.resolve(path.dirname(filePath), sourceMappingURL);
+        sourceMap = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+      }
     } catch (error) {
-      console.warn('Error parsing source map', error.stack);
       return null;
     }
 
