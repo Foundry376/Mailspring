@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 import React from 'react';
 import {
@@ -160,9 +161,14 @@ export default class MessageItemBody extends React.Component<
           // Render a spinner
           merged = merged.replace(inlineImgRegexp, () => SpinnerImg);
         } else {
-          merged = merged.replace(inlineImgRegexp, match =>
-            match.replace(`cid:${file.contentId}`, `file://${AttachmentStore.pathForFile(file)}`)
-          );
+          merged = merged.replace(inlineImgRegexp, match => {
+            const filePath = AttachmentStore.pathForFile(file);
+            const cacheDir = AttachmentStore.filesDirectory;
+            if (!filePath || !filePath.startsWith(cacheDir + path.sep)) {
+              return match;
+            }
+            return match.replace(`cid:${file.contentId}`, `file://${filePath}`);
+          });
         }
       });
 
