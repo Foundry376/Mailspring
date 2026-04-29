@@ -37,6 +37,18 @@ function isInApp(filename) {
 //   "    at fnName (/path/to/file.js:12:34)"
 //   "    at /path/to/file.js:12:34"
 // Sentry expects frames oldest-first; V8 produces newest-first, so reverse.
+
+// In packaged builds, frames contain absolute paths like:
+//   /Applications/Mailspring.app/Contents/Resources/app.asar/src/foo.js
+// Normalize to app:///src/foo.js so Sentry matches uploaded source map artifacts.
+function normalizeFilename(filename) {
+  const asarIdx = filename.indexOf('.asar/');
+  if (asarIdx !== -1) {
+    return 'app:///' + filename.slice(asarIdx + 6);
+  }
+  return filename;
+}
+
 function parseStack(stack) {
   if (!stack || typeof stack !== 'string') return [];
   const frames = [];
@@ -47,7 +59,7 @@ function parseStack(stack) {
     const filename = m[2];
     frames.push({
       function: m[1] || '?',
-      filename,
+      filename: normalizeFilename(filename),
       lineno: Number(m[3]),
       colno: Number(m[4]),
       in_app: isInApp(filename),
@@ -143,8 +155,13 @@ module.exports = class SentryErrorReporter {
     }
   }
 
-  getVersion() {
-    return process.type === 'renderer' ? AppEnv.getVersion() : require('electron').app.getVersion();
+  getRelease() {
+    // Use version-commitHash so Sentry releases match uploaded source map artifacts.
+    // commitHash is written into package.json by the build pipeline.
+    const pkg = require('../../package.json');
+    const version =
+      process.type === 'renderer' ? AppEnv.getVersion() : require('electron').app.getVersion();
+    return `${version}-${pkg.commitHash}`;
   }
 
   reportError(err, extra) {
@@ -161,7 +178,7 @@ module.exports = class SentryErrorReporter {
       err = new Error(message);
     }
 
-    const release = this.getVersion();
+    const release = this.getRelease();
     const event = buildEvent({
       err,
       extra,

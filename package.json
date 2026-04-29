@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@electron/packager": "18.3.6",
+    "@sentry/cli": "^2.43.0",
     "@types/better-sqlite3": "^7.6.3",
     "@types/debug": "^4.1.2",
     "@types/event-kit": "^2.4.0",
