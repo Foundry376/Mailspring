@@ -82,6 +82,7 @@ const AllowedTags = [
   'samp',
   'section',
   'select',
+  'signature',
   'small',
   'source',
   'span',
