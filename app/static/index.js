@@ -43,10 +43,10 @@ function setupWindow(loadSettings) {
   }
 
   if (loadSettings.devMode) {
-    var CompileCache = require('../src/compile-cache');
+    var CompileCache = require('../src/compile-cache-ts');
     CompileCache.setHomeDirectory(loadSettings.configDirPath);
   } else {
-    require('../src/uncompiled-source-error');
+    require('../src/compile-cache-ts-unsupported');
   }
 
   require(loadSettings.bootstrapScript);
