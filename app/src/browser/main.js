@@ -364,6 +364,8 @@ const start = () => {
 
   if (options.devMode) {
     setupCompileCache(configDirPath);
+  } else {
+    require('../uncompiled-source-error');
   }
 
   const onOpenFileBeforeReady = (event, file) => {
