@@ -115,9 +115,7 @@ class SpecRunner {
   }
 
   _setupWindow() {
-    console.log('_setupWindow');
     window.addEventListener('beforeunload', () => {
-      console.log('beforeunload');
       AppEnv.storeWindowDimensions();
       AppEnv.saveWindowState();
     });
@@ -143,7 +141,6 @@ class SpecRunner {
   }
 
   _addReporters() {
-    console.log('_addReporters');
     const timeReporter = new TimeReporter();
     const consoleReporter = new ConsoleReporter();
 
@@ -155,7 +152,11 @@ class SpecRunner {
       // global scope before it gets extended. This is done in
       // `_extendGlobalWindow`
       require('jasmine-reporters');
-      const jUnitXmlReporter = new (jasmine as any).JUnitXmlReporter(loadSettings.jUnitXmlPath, true, true);
+      const jUnitXmlReporter = new (jasmine as any).JUnitXmlReporter(
+        loadSettings.jUnitXmlPath,
+        true,
+        true
+      );
       this.jasmineEnv.addReporter(jUnitXmlReporter);
     }
     this.jasmineEnv.addReporter(timeReporter);
