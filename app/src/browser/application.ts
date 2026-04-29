@@ -13,7 +13,6 @@ import WindowManager from './window-manager';
 import FileListCache from './file-list-cache';
 import ConfigMigrator from './config-migrator';
 import ApplicationMenu from './application-menu';
-import ApplicationTouchBar from './application-touch-bar';
 import AutoUpdateManager from './autoupdate-manager';
 import SystemAccentWatcher from './system-accent-watcher';
 import SystemTrayManager from './system-tray-manager';
@@ -46,7 +45,6 @@ export default class Application extends EventEmitter {
 
   configMigrator: ConfigMigrator;
   configPersistenceManager: ConfigPersistenceManager;
-  touchBar: ApplicationTouchBar;
   fileListCache: FileListCache;
   applicationMenu: ApplicationMenu;
   mailspringProtocolHandler: MailspringProtocolHandler;
@@ -151,9 +149,6 @@ export default class Application extends EventEmitter {
     this.systemAccentWatcher.on('dark-mode-change', darkMode => {
       this.windowManager.sendToAllWindows('system-dark-mode-changed', {}, darkMode);
     });
-    if (process.platform === 'darwin') {
-      this.touchBar = new ApplicationTouchBar(resourcePath);
-    }
     if (process.platform === 'win32') {
       this.windowsTaskbarManager = new WindowsTaskbarManager(this);
     }
@@ -674,9 +669,6 @@ export default class Application extends EventEmitter {
     ipcMain.on('update-application-menu', (event, template, keystrokesByCommand) => {
       const win = BrowserWindow.fromWebContents(event.sender);
       this.applicationMenu.update(win, template, keystrokesByCommand);
-      if (win === this.getMainWindow() && process.platform === 'darwin') {
-        this.touchBar.update(template);
-      }
     });
 
     ipcMain.on('command', (event, command, ...args) => {
