@@ -174,15 +174,15 @@ async function runUploadSourceMapsToSentry(buildPath, electronVersion, plat, arc
   }
 
   console.log('---> Uploading source maps to Sentry');
-  const commitHash = execSync('git rev-parse HEAD').toString().trim().substr(0, 8);
-  const version = `${packageJSON.version}-${commitHash}`;
-  const cli = new SentryCli(null, {
-    authToken: SENTRY_AUTH_TOKEN,
-    org: SENTRY_ORG,
-    project: SENTRY_PROJECT,
-  });
 
   try {
+    const commitHash = execSync('git rev-parse HEAD').toString().trim().substr(0, 8);
+    const version = `${packageJSON.version}-${commitHash}`;
+    const cli = new SentryCli(null, {
+      authToken: SENTRY_AUTH_TOKEN,
+      org: SENTRY_ORG,
+      project: SENTRY_PROJECT,
+    });
     await cli.releases.new(version);
     await cli.releases.uploadSourceMaps(version, {
       include: [buildPath],
@@ -396,8 +396,15 @@ async function createDebInstaller() {
   const contentsDir = path.join(outputDir, `mailspring-linux-${process.arch}`);
   const linuxAssetsDir = path.resolve(path.join(buildDir, 'resources', 'linux'));
 
-  const { stdout } = await spawn({ cmd: 'du', args: ['-sk', contentsDir] });
-  const installedSize = stdout.split(/\s+/).shift() || '200000';
+  // `du` failures (e.g. permission errors) are non-fatal — fall back to a
+  // 200MB estimate so the .deb still gets built. Matches the old behavior.
+  let installedSize = '200000';
+  try {
+    const { stdout } = await spawn({ cmd: 'du', args: ['-sk', contentsDir] });
+    installedSize = stdout.split(/\s+/).shift() || '200000';
+  } catch (err) {
+    console.warn(`---> du failed (${err.message}), defaulting installed size to ${installedSize}KB`);
+  }
 
   const data = {
     version: packageJSON.version,
