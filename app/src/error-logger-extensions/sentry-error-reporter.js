@@ -87,7 +87,7 @@ function sendEnvelope(event, release) {
       'X-Sentry-Auth': `Sentry sentry_version=7, sentry_key=${publicKey}, sentry_client=mailspring/${release}`,
     },
   });
-  req.on('error', (e) => {
+  req.on('error', e => {
     console.log(`Sentry: ${e.message}`);
   });
   req.end(body);
@@ -104,7 +104,10 @@ module.exports = class SentryErrorReporter {
       try {
         getMac((err, macAddress) => {
           if (!err && macAddress) {
-            this.deviceHash = crypto.createHash('sha256').update(macAddress).digest('hex');
+            this.deviceHash = crypto
+              .createHash('sha256')
+              .update(macAddress)
+              .digest('hex');
           }
         });
       } catch (err) {
