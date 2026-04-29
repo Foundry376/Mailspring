@@ -264,7 +264,15 @@ function decodeCssEscape(s: string, i: number): { value: string; end: number } {
       hex += s[j];
       j++;
     }
-    if (j < s.length && /[\t\n\f\r ]/.test(s[j])) j++;
+    // Per CSS Syntax §3.3, the browser preprocesses `\r\n` into a single
+    // `\n` before tokenization, so the hex escape's post-digits whitespace
+    // terminator consumes both. We have to coalesce them too — otherwise
+    // `@\69\r\nmport` looks like a broken identifier here but still parses
+    // as `@import` in the iframe and fetches the URL.
+    if (j < s.length && /[\t\n\f\r ]/.test(s[j])) {
+      if (s[j] === '\r' && s[j + 1] === '\n') j += 2;
+      else j++;
+    }
     let codePoint = parseInt(hex, 16);
     if (!Number.isFinite(codePoint) || codePoint === 0 || codePoint > 0x10ffff) {
       codePoint = 0xfffd;
