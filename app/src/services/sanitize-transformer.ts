@@ -1,5 +1,10 @@
 import DOMPurify from 'dompurify';
 
+// <form>, <input>, and <button> are intentionally permitted: some marketing and
+// transactional emails embed basic interactive forms (RSVPs, polls, feedback)
+// and we want to keep rendering them. <meta> and <keygen> are not allowed —
+// <meta http-equiv="refresh"> can navigate the message iframe to an attacker
+// origin, and <keygen> is obsolete with no legitimate email use.
 const AllowedTags = [
   '#text',
   'a',
@@ -53,7 +58,6 @@ const AllowedTags = [
   'input',
   'ins',
   'kbd',
-  'keygen',
   'label',
   'legend',
   'li',
@@ -62,7 +66,6 @@ const AllowedTags = [
   'mark',
   'menu',
   'menuitem',
-  'meta',
   'meter',
   'nav',
   'ol',
@@ -151,11 +154,9 @@ const AllowedAttributes = [
   'enctype',
   'face',
   'form',
-  'formaction',
   'formenctype',
   'formmethod',
   'formnovalidate',
-  'formtarget',
   'frame',
   'frameborder',
   'headers',
@@ -165,7 +166,6 @@ const AllowedAttributes = [
   'href',
   'hreflang',
   'htmlfor',
-  'httpequiv',
   'hspace',
   'icon',
   'id',
@@ -174,7 +174,6 @@ const AllowedAttributes = [
   'list',
   'loop',
   'low',
-  'manifest',
   'marginheight',
   'marginwidth',
   'max',
@@ -203,7 +202,6 @@ const AllowedAttributes = [
   'rowspan',
   'rows',
   'rules',
-  'sandbox',
   'scope',
   'scoped',
   'scrolling',
@@ -218,7 +216,6 @@ const AllowedAttributes = [
   'span',
   'spellcheck',
   'src',
-  'srcdoc',
   'srcset',
   'start',
   'step',
@@ -236,6 +233,36 @@ const AllowedAttributes = [
   'width',
   'wmode',
 ];
+
+// Strip `@import` rules from <style> blocks. They reach the network even when
+// the user has remote-content blocking enabled, so they're a silent open-tracking
+// vector in HTML mail. We parse the CSS instead of regex-matching so both
+// `@import url(...)` and the string form `@import "..."` are caught.
+function stripAtImportRules(cssText: string): string {
+  const ConstructedSheet = (globalThis as any).CSSStyleSheet;
+  if (typeof ConstructedSheet === 'function') {
+    try {
+      const sheet = new ConstructedSheet();
+      // replaceSync silently drops @import rules — they're not allowed in
+      // constructed stylesheets — so reserialized rules are clean.
+      sheet.replaceSync(cssText);
+      return Array.from(sheet.cssRules as CSSRuleList)
+        .map(rule => rule.cssText)
+        .join('\n');
+    } catch {
+      // fall through to regex fallback
+    }
+  }
+  return cssText.replace(/@import\b[^;]*;?/gi, '');
+}
+
+DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+  if (data.tagName !== 'style') return;
+  const styleEl = node as HTMLStyleElement;
+  const cssText = styleEl.textContent ?? '';
+  if (!/@import/i.test(cssText)) return;
+  styleEl.textContent = stripAtImportRules(cssText);
+});
 
 class SanitizeTransformer {
   async run(bodyHTML: string) {
