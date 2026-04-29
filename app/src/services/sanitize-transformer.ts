@@ -283,7 +283,7 @@ function readIdent(s: string, start: number): { name: string; end: number } {
       const decoded = decodeCssEscape(s, i);
       name += decoded.value;
       i = decoded.end;
-    } else if (/[a-zA-Z0-9_\-]/.test(c)) {
+    } else if (/[a-zA-Z0-9_-]/.test(c)) {
       name += c;
       i++;
     } else {
