@@ -19,6 +19,20 @@ function makeEventId() {
   return crypto.randomBytes(16).toString('hex');
 }
 
+// Filenames Sentry should not classify as "in_app": Node internals,
+// chrome-extension URLs, anonymous/eval pseudo-files, and anything that
+// isn't an absolute path. Mirrors what raven-node did in utils.js.
+function isInApp(filename) {
+  if (!filename) return false;
+  if (filename.startsWith('node:')) return false;
+  if (filename.startsWith('chrome-extension://')) return false;
+  if (filename === '<anonymous>') return false;
+  if (filename.startsWith('[')) return false;
+  if (filename.includes('node_modules')) return false;
+  const isAbsolute = filename.startsWith('/') || /^[A-Za-z]:[\\/]/.test(filename);
+  return isAbsolute;
+}
+
 // V8 stack frames look like:
 //   "    at fnName (/path/to/file.js:12:34)"
 //   "    at /path/to/file.js:12:34"
@@ -36,15 +50,23 @@ function parseStack(stack) {
       filename,
       lineno: Number(m[3]),
       colno: Number(m[4]),
-      in_app: !filename.includes('node_modules'),
+      in_app: isInApp(filename),
     });
   }
   return frames.reverse();
 }
 
 function buildEvent({ err, extra, deviceHash, release, tags }) {
-  const message = (err && err.message) || (typeof err === 'string' ? err : 'Unknown error');
-  const name = (err && err.name) || 'Error';
+  const message = err.message || 'Unknown error';
+  const name = err.name || 'Error';
+  const frames = parseStack(err.stack);
+  // Sentry's Relay rejects events whose stacktrace.frames is empty
+  // (it's marked nonempty in the schema), so omit stacktrace entirely
+  // when we couldn't parse any frames.
+  const exceptionValue = { type: name, value: String(message) };
+  if (frames.length > 0) {
+    exceptionValue.stacktrace = { frames };
+  }
   return {
     event_id: makeEventId(),
     timestamp: Date.now() / 1000,
@@ -55,15 +77,7 @@ function buildEvent({ err, extra, deviceHash, release, tags }) {
     tags,
     user: { id: deviceHash },
     extra: extra || {},
-    exception: {
-      values: [
-        {
-          type: name,
-          value: String(message),
-          stacktrace: { frames: parseStack(err && err.stack) },
-        },
-      ],
-    },
+    exception: { values: [exceptionValue] },
   };
 }
 
@@ -89,6 +103,19 @@ function sendEnvelope(event, release) {
   });
   req.on('error', e => {
     console.log(`Sentry: ${e.message}`);
+  });
+  req.on('response', res => {
+    // Drain the response so the socket can be released back to the agent
+    // and the event loop doesn't stay alive past app quit.
+    res.on('data', () => {});
+    res.on('end', () => {
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        console.log(`Sentry: ${res.statusCode} - ${res.statusMessage}`);
+      }
+    });
+  });
+  req.setTimeout(5000, () => {
+    req.destroy(new Error('Sentry request timed out'));
   });
   req.end(body);
 }
@@ -123,6 +150,15 @@ module.exports = class SentryErrorReporter {
   reportError(err, extra) {
     if (this.inSpecMode || this.inDevMode) {
       return;
+    }
+
+    // Coerce non-Error inputs into a real Error so V8 captures a stack.
+    // Otherwise our stack-frames array would be empty and Sentry's Relay
+    // rejects the event. Matches raven 2.1.2's captureException behavior.
+    if (!(err instanceof Error)) {
+      const message =
+        err && err.message ? err.message : typeof err === 'string' ? err : 'Unknown error';
+      err = new Error(message);
     }
 
     const release = this.getVersion();
