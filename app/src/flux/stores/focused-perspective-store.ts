@@ -199,7 +199,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     let categories = this._current.accountIds.map(id =>
       CategoryStore.getCategoryByRole(id, categoryName)
     );
-    categories = _.compact(categories);
+    categories = categories.filter(Boolean);
     if (categories.length === 0) {
       return;
     }

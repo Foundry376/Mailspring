@@ -88,7 +88,7 @@ class SidebarStore extends MailspringStore {
     let item = this.standardSection().items.find(i => i.name === itemName);
     if (!item) {
       for (const section of this.userSections()) {
-        item = _.findWhere(section.items, { name: itemName });
+        item = section.items.find(x => x.name === itemName);
         if (item) {
           break;
         }

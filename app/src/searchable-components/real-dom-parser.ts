@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import { DOMUtils } from 'mailspring-exports';
 import UnifiedDOMParser from './unified-dom-parser';
 
@@ -42,7 +41,7 @@ export default class RealDOMParser extends UnifiedDOMParser {
   }
 
   getRawFullString(fullString: any) {
-    return _.pluck(fullString, 'data').join('');
+    return fullString.map(x => x.data).join('');
   }
 
   removeMatchesAndNormalize(element: any) {

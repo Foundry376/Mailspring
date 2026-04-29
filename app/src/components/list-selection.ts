@@ -74,7 +74,7 @@ export class ListSelection {
       throw new Error('toggle must be called with a Model');
     }
 
-    const without = _.reject(this._items, t => t.id === item.id);
+    const without = this._items.filter(t => t.id !== item.id);
     if (without.length < this._items.length) {
       this._items = without;
     } else {
@@ -160,7 +160,7 @@ export class ListSelection {
         .map((val, idx) => (startIdx > endIdx ? startIdx - idx : startIdx + idx));
       indexes.forEach(idx => {
         const idxItem = this._view.get(idx);
-        this._items = _.reject(this._items, t => t.id === idxItem.id);
+        this._items = this._items.filter(t => t.id !== idxItem.id);
         this._items.push(idxItem);
       });
     }
@@ -199,7 +199,7 @@ export class ListSelection {
         // Important: As you walk over this item, remove it and re-push it on the selected
         // array even if it's already there. That way, the items in _items are always
         // in the order you walked over them, and you can walk back to deselect them.
-        this._items = _.reject(this._items, t => t.id === next.id);
+        this._items = this._items.filter(t => t.id !== next.id);
         this._items.push(next);
       }
     }

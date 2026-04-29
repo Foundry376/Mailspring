@@ -6,7 +6,6 @@ import {
   Thread,
   ContactStore,
 } from 'mailspring-exports';
-import _ from 'underscore';
 
 // start of string or preceding whitespace
 // a known token
@@ -50,16 +49,16 @@ export const getContactSuggestions = async (term, accountIds) => {
 
   contacts.forEach(c => results.push(c.email, c.name));
 
-  return _.uniq(results).filter(r => r.toLowerCase().startsWith(term));
+  return [...new Set(results)].filter(r => r.toLowerCase().startsWith(term));
 };
 
 export const getCategorySuggestions = async (term, accountIds) =>
-  _.uniq(
+  [...new Set(
     CategoryStore.categories()
       .filter(c => accountIds.includes(c.accountId))
       .sort((a, b) => rankOfRole(b.role) - rankOfRole(a.role))
       .map(c => c.displayName)
-  )
+  )]
     .filter(s => s.toLowerCase().startsWith(term))
     .slice(0, 8);
 

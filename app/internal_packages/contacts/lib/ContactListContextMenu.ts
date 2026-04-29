@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import { localized, Contact } from 'mailspring-exports';
 import { Store } from './Store';
 import { exportContactsToFile } from './VCFImportExport';
@@ -45,7 +44,7 @@ export class ContactListContextMenu {
     ];
 
     // Drop nulls, then strip any separators at the leading or trailing edges.
-    return _.compact(items).filter((item, idx, arr) => {
+    return items.filter(Boolean).filter((item, idx, arr) => {
       if ((item as any).type !== 'separator') return true;
       return idx !== 0 && idx !== arr.length - 1;
     });

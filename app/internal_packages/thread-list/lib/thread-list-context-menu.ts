@@ -1,5 +1,4 @@
 /* eslint global-require: 0*/
-import _ from 'underscore';
 import {
   localized,
   Thread,
@@ -60,7 +59,7 @@ export default class ThreadListContextMenu {
         ]);
       })
       .then((menuItems) => {
-        const compacted = _.compact(menuItems);
+        const compacted = menuItems.filter(Boolean);
         return compacted.filter((item, index) => {
           if ((item as any).type !== 'separator') return true;
           // Remove leading, trailing, and consecutive separators

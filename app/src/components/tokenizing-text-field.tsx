@@ -574,13 +574,13 @@ export class TokenizingTextField<T> extends React.Component<
     // select the last token on left arrow press if no tokens are selected
     if (selectedKeys.length === 0) {
       if (delta === -1) {
-        const key = tokenKey(_.last(tokens));
+        const key = tokenKey(tokens.at(-1));
         this.setState({ selectedKeys: [key] });
       }
       return;
     }
 
-    const headKey = _.last(selectedKeys);
+    const headKey = selectedKeys.at(-1);
     const headIdx = tokens.map(t => tokenKey(t)).indexOf(headKey);
     const nextToken = tokens[headIdx + delta];
 
@@ -701,7 +701,7 @@ export class TokenizingTextField<T> extends React.Component<
       // Expand selection from the currently selected item to the one the user
       // has clicked. We must walk the items in order so selectedKeys is
       // an ordered list.
-      let headKey = _.last(selectedKeys);
+      let headKey = selectedKeys.at(-1);
       let headIdx = tokens.map(t => tokenKey(t)).indexOf(headKey);
       const clickedIdx = tokens.indexOf(token);
 
@@ -783,7 +783,7 @@ export class TokenizingTextField<T> extends React.Component<
         selectedKeys: selectedKeys.filter(k => !tokensToDeleteKeys.includes(k)),
       });
     } else {
-      const lastToken = _.last(tokens);
+      const lastToken = tokens.at(-1);
       if (lastToken) {
         const lastTokenKey = tokenKey(lastToken);
         this.setState({

@@ -146,13 +146,14 @@ export class Spinner extends React.Component<SpinnerProps, SpinnerState> {
       paused: this.state.paused,
     });
 
-    const style = _.extend({}, this.props.style != null ? this.props.style : {}, {
+    const style = {
+      ...(this.props.style != null ? this.props.style : {}),
       position: 'absolute',
       left: '50%',
       top: '50%',
       zIndex: 1001,
       transform: 'translate(-50%,-50%)',
-    });
+    };
 
     const otherProps = _.omit(this.props, Object.keys(Spinner.propTypes));
     return (

@@ -300,9 +300,8 @@ export class Message extends ModelWithMetadata {
     const excludedFroms = this.from.map(c => Utils.toEquivalentEmailForm(c.email));
 
     const excludeMeAndFroms = (cc: Contact[]) =>
-      _.reject(
-        cc,
-        p => p.isMe() || _.contains(excludedFroms, Utils.toEquivalentEmailForm(p.email))
+      cc.filter(
+        p => !(p.isMe() || excludedFroms.includes(Utils.toEquivalentEmailForm(p.email)))
       );
 
     let to: Contact[] = null;

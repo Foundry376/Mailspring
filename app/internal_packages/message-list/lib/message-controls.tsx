@@ -58,7 +58,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
   }
 
   _dropdownMenu(items) {
-    const itemContent = (item) => (
+    const itemContent = item => (
       <span>
         <RetinaImg name={item.image} mode={RetinaImg.Mode.ContentIsMask} />
         &nbsp;&nbsp;{item.name}&nbsp;&nbsp;
@@ -68,9 +68,9 @@ export default class MessageControls extends React.Component<MessageControlsProp
     return (
       <Menu
         items={items}
-        itemKey={(item) => item.name}
+        itemKey={item => item.name}
         itemContent={itemContent}
-        onSelect={(item) => item.select()}
+        onSelect={item => item.select()}
       />
     );
   }
@@ -106,7 +106,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
     AppEnv.showSaveDialog(
       { defaultPath: defaultFilename, title: localized('Save Email') },
-      async (savePath) => {
+      async savePath => {
         if (!savePath) return;
         const task = new GetMessageRFC2822Task({
           messageId: message.id,
@@ -187,13 +187,13 @@ export default class MessageControls extends React.Component<MessageControlsProp
     `;
     navigator.clipboard
       .writeText(data)
-      .catch((err) => console.error('Failed to copy to clipboard:', err));
+      .catch(err => console.error('Failed to copy to clipboard:', err));
   };
 
   render() {
     const items = this._items();
     return (
-      <div className="message-actions-wrap" onClick={(e) => e.stopPropagation()}>
+      <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
         <ButtonDropdown
           primaryItem={<RetinaImg name={items[0].image} mode={RetinaImg.Mode.ContentIsMask} />}
           primaryTitle={items[0].name}
@@ -205,7 +205,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
           className="message-actions-ellipsis"
           tabIndex={-1}
           onClick={this._onShowActionsMenu}
-          onKeyDown={(e) => {
+          onKeyDown={e => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               this._onShowActionsMenu();

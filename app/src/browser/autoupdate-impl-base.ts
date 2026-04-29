@@ -22,7 +22,7 @@ export default class AutoupdateImplBase extends EventEmitter {
     this.lastRetrievedUpdateURL = null;
   }
 
-  emitError = (error) => {
+  emitError = error => {
     if (this.listenerCount('error') > 0) {
       this.emit('error', error);
     } else {
@@ -37,7 +37,7 @@ export default class AutoupdateImplBase extends EventEmitter {
     // Hit the feed URL ourselves and see if an update is available.
     // On linux we can't autoupdate, but we can still show the "update available" bar.
     https
-      .get({ host: feedHost, path: feedPath }, (res) => {
+      .get({ host: feedHost, path: feedPath }, res => {
         console.log(`Manual update check (${feedHost}${feedPath}) returned ${res.statusCode}`);
 
         if (res.statusCode === 204) {
@@ -53,7 +53,7 @@ export default class AutoupdateImplBase extends EventEmitter {
 
         let data = '';
         res.on('error', this.emitError);
-        res.on('data', (chunk) => {
+        res.on('data', chunk => {
           data += chunk;
         });
         res.on('end', () => {
@@ -80,7 +80,7 @@ export default class AutoupdateImplBase extends EventEmitter {
 
     this.emit('checking-for-update');
 
-    this.manuallyQueryUpdateServer((json) => {
+    this.manuallyQueryUpdateServer(json => {
       if (!json) {
         this.emit('update-not-available');
         return;

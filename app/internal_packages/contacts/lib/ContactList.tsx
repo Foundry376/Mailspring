@@ -13,7 +13,6 @@ import {
 import { ContactsPerspective, Store } from './Store';
 import { writeContactsToTempVCF, importContactsFromPaths } from './VCFImportExport';
 import { ContactListContextMenu } from './ContactListContextMenu';
-import _ from 'underscore';
 
 const ContactColumn = new ListTabular.Column({
   name: 'Item',
@@ -87,7 +86,7 @@ class ContactListWithData extends React.Component<ContactListProps, ContactListS
   _onDragItems = (event, items) => {
     const data = {
       ids: items.map(c => c.id),
-      accountIds: _.uniq(items.map(t => t.accountId)),
+      accountIds: [...new Set(items.map(t => t.accountId))],
     };
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.dragEffect = 'move';

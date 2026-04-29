@@ -135,7 +135,7 @@ class _AccountStore extends MailspringStore {
       if (!account || !account.id) {
         const err = new Error('An invalid account was added to `this._accounts`');
         AppEnv.reportError(err);
-        this._accounts = _.compact(this._accounts);
+        this._accounts = this._accounts.filter(Boolean);
       }
     }
     this.trigger();
@@ -276,10 +276,10 @@ class _AccountStore extends MailspringStore {
 
   accountsForItems = (items: Thread[]) => {
     const accounts: { [id: string]: Account } = {};
-    _.compact(items).forEach(({ accountId }) => {
+    items.filter(Boolean).forEach(({ accountId }) => {
       accounts[accountId] = accounts[accountId] || this.accountForId(accountId);
     });
-    return _.compact(Object.values(accounts));
+    return Object.values(accounts).filter(Boolean);
   };
 
   accountForItems = (items: Thread[]) => {
@@ -313,7 +313,7 @@ class _AccountStore extends MailspringStore {
   emailAddresses() {
     let addresses = (this.accounts() ? this.accounts() : []).map(a => a.emailAddress);
     addresses = addresses.concat((this.aliases() ? this.aliases() : []).map(a => a.email));
-    return _.unique(addresses);
+    return [...new Set(addresses)];
   }
 
   aliases(): IAliasSet {

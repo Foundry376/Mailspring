@@ -14,7 +14,7 @@ exports.shouldCompile = function() {
 
 exports.getCachePath = function(sourceCode) {
   if (typescriptVersionDir == null) {
-    var version = '3.3'; // todo
+    var version = '5.7.3'; // todo
     typescriptVersionDir = path.join('ts', createVersionAndOptionsDigest(version, compilerOptions));
   }
 

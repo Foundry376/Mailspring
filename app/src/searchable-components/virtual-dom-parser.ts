@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import { VirtualDOMUtils } from 'mailspring-exports';
 
@@ -35,7 +34,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
       return false;
     }
     const blockTypes = ['br', 'p', 'blockquote', 'div', 'table', 'iframe'];
-    if (_.isFunction(element.type)) {
+    if (typeof element.type === 'function') {
       return true;
     } else if (blockTypes.indexOf(element.type) >= 0) {
       return true;
@@ -44,7 +43,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
   }
 
   getRawFullString(fullString) {
-    return _.pluck(fullString, 'element').join('');
+    return fullString.map(x => x.element).join('');
   }
 
   removeMatchesAndNormalize(element: any) {
@@ -58,10 +57,10 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
       }
     };
 
-    if (React.isValidElement(element) || _.isArray(element)) {
+    if (React.isValidElement(element) || Array.isArray(element)) {
       let children;
 
-      if (_.isArray(element)) {
+      if (Array.isArray(element)) {
         children = element;
       } else {
         children = (element.props as any).children;
@@ -92,7 +91,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
 
       resetAccumulator();
 
-      if (_.isArray(element)) {
+      if (Array.isArray(element)) {
         return newChildren;
       }
       return React.cloneElement(element, {}, newChildren);
@@ -115,11 +114,11 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
   }
 
   highlightSearch(element, matchNodeMap) {
-    if (React.isValidElement(element) || _.isArray(element)) {
+    if (React.isValidElement(element) || Array.isArray(element)) {
       let newChildren = [];
       let children;
 
-      if (_.isArray(element)) {
+      if (Array.isArray(element)) {
         children = element;
       } else {
         children = (element.props as any).children;
@@ -158,7 +157,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
         }
       }
 
-      if (_.isArray(element)) {
+      if (Array.isArray(element)) {
         return newChildren;
       }
       return React.cloneElement(element, {}, newChildren);

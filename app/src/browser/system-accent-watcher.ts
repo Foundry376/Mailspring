@@ -34,7 +34,7 @@ function readAccent(): string | null {
 
 export default class SystemAccentWatcher extends EventEmitter {
   private _current: string | null = null;
-  private _darkMode: boolean = false;
+  private _darkMode = false;
   private _macSubscriptionId: number | null = null;
 
   constructor() {

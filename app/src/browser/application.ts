@@ -58,7 +58,7 @@ export default class Application extends EventEmitter {
 
   _sourceWindows: { [taskId: string]: BrowserWindow } = {};
   _resettingAndRelaunching: boolean;
-  _initialized: boolean = false;
+  _initialized = false;
   _pendingLaunchOptions: any[] = [];
   _pendingUrls: string[] = [];
 

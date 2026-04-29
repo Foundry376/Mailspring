@@ -124,7 +124,7 @@ const DOMUtils = {
     // _.intersection will preserve the ordering of the parent node arrays.
     // parents are ordered top to bottom, so the last node is the most
     // specific common ancenstor
-    return _.last(_.intersection.apply(null, nodes.map(getParents)));
+    return _.intersection.apply(null, nodes.map(getParents)).at(-1);
   },
 
   scrollAdjustmentToMakeNodeVisibleInContainer(node, container) {
@@ -181,11 +181,11 @@ const DOMUtils = {
       return node;
     }
 
-    let lastChild = _.last(node.childNodes);
+    let lastChild = node.childNodes.at(-1);
     replacedNodes.unshift(lastChild);
     parent.replaceChild(lastChild, node);
 
-    while ((child = _.last(node.childNodes))) {
+    while ((child = node.childNodes.at(-1))) {
       replacedNodes.unshift(child);
       parent.insertBefore(child, lastChild);
       lastChild = child;

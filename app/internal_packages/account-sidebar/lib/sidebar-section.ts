@@ -107,7 +107,7 @@ class SidebarSection {
       // eslint-disable-next-line
       accounts.forEach((acc) => {
         const cat = _.first(
-          _.compact((names as string[]).map((name) => CategoryStore.getCategoryByRole(acc, name)))
+          (names as string[]).map((name) => CategoryStore.getCategoryByRole(acc, name)).filter(Boolean)
         );
         if (!cat) {
           return;
@@ -122,7 +122,7 @@ class SidebarSection {
       );
     }
 
-    const accountIds = _.pluck(accounts, 'id');
+    const accountIds = accounts.map(a => a.id);
 
     const starredItem = SidebarItem.forStarred(accountIds, {
       children: accounts.map((acc) => SidebarItem.forStarred([acc.id], { name: acc.label })),

@@ -67,7 +67,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
     }
 
     const isImportant =
-      category && _.findWhere(props.thread.labels, { id: category.id } as Partial<Label>) != null;
+      category && props.thread.labels?.find(x => x.id === category.id) != null;
 
     return { visible, category, isImportant };
   };
@@ -128,7 +128,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
 
     if (category) {
       const isImportant =
-        _.findWhere(this.props.thread.labels, { id: category.id } as Partial<Label>) != null;
+        this.props.thread.labels?.find(x => x.id === category.id) != null;
 
       if (!isImportant) {
         Actions.queueTask(

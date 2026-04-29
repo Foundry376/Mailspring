@@ -4,8 +4,6 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import _ from 'underscore';
-
 const ItemSpecificities = new WeakMap();
 
 export type IMenuItem = {
@@ -44,7 +42,7 @@ export function merge(menu: IMenuItem[], item: IMenuItem, itemSpecificity?: numb
         return (menu[matchingItemIndex] = item);
       }
     }
-  } else if (item.type !== 'separator' || (_.last(menu) || ({} as any)).type !== 'separator') {
+  } else if (item.type !== 'separator' || (menu.at(-1) || ({} as any)).type !== 'separator') {
     return menu.push(item);
   }
 }

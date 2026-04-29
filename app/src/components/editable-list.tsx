@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import classNames from 'classnames';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
@@ -205,7 +204,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
 
   _onEditInputKeyDown = (event, item, idx) => {
     event.stopPropagation();
-    if (_.includes(['Enter', 'Return'], event.key)) {
+    if (['Enter', 'Return'].includes(event.key)) {
       this._updateItem(event.target.value, item, idx);
     } else if (event.key === 'Escape') {
       this._clearEditingState();
@@ -218,7 +217,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
 
   _onCreateInputKeyDown = (event) => {
     event.stopPropagation();
-    if (_.includes(['Enter', 'Return'], event.key)) {
+    if (['Enter', 'Return'].includes(event.key)) {
       this._createItem(event.target.value);
     } else if (event.key === 'Escape') {
       this._clearCreatingState();
@@ -368,9 +367,9 @@ class EditableList extends Component<EditableListProps, EditableListState> {
         type="text"
         placeholder={itemContent}
         defaultValue={itemContent}
-        onBlur={_.partial(onInputBlur, _, item, idx)}
+        onBlur={(e) => onInputBlur(e, item, idx)}
         onFocus={onInputFocus}
-        onKeyDown={_.partial(onInputKeyDown, _, item, idx)}
+        onKeyDown={(e) => onInputKeyDown(e, item, idx)}
       />
     );
   };
@@ -422,8 +421,8 @@ class EditableList extends Component<EditableListProps, EditableListState> {
         data-item-idx={idx}
         draggable
         onDragStart={this._onItemDragStart}
-        onClick={_.partial(onClick, _, item, idx)}
-        onDoubleClick={_.partial(onEdit, _, item, idx)}
+        onClick={(e) => onClick(e, item, idx)}
+        onDoubleClick={(e) => onEdit(e, item, idx)}
       >
         {itemContent}
         <RetinaImg
@@ -431,7 +430,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
           name="edit-icon.png"
           title={localized('Edit Item')}
           mode={RetinaImg.Mode.ContentIsMask}
-          onClick={_.partial(onEdit, _, item, idx)}
+          onClick={(e) => onEdit(e, item, idx)}
         />
       </div>
     );

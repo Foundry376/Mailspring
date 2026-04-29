@@ -15,7 +15,7 @@ const AccountProviders = [
       <span>
         <strong>{localized('Note')}:</strong>{' '}
         {localizedReactFragment(
-          'Office 365 accounts require IMAP and Authenticated SMTP to be enabled. Your organization\'s admin may need to enable these in the Microsoft 365 Admin Center. %@',
+          "Office 365 accounts require IMAP and Authenticated SMTP to be enabled. Your organization's admin may need to enable these in the Microsoft 365 Admin Center. %@",
           <a
             style={{ fontWeight: 600 }}
             href="https://community.getmailspring.com/t/connecting-mailspring-to-microsoft-office-365-and-outlook-com/14394"

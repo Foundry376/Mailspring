@@ -46,7 +46,7 @@ export class MailboxPerspective {
   }
 
   static forCategories(categories) {
-    const valid = _.compact(categories);
+    const valid = categories.filter(Boolean);
     return valid.length > 0 ? new CategoryMailboxPerspective(valid) : this.forNothing();
   }
 
@@ -349,7 +349,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   _categories: Category[];
 
   constructor(_categories) {
-    super(_.uniq(_categories.map(c => c.accountId)));
+    super([...new Set(_categories.map(c => c.accountId))]);
     this._categories = _categories;
 
     if (this._categories.length === 0) {

@@ -31,7 +31,7 @@ class GithubStore extends MailspringStore {
       return;
     }
 
-    const itemIds = _.pluck(MessageStore.items(), 'id');
+    const itemIds = MessageStore.items().map(i => i.id);
     if (itemIds.length === 0 || _.isEqual(itemIds, this._lastItemIds)) {
       return;
     }
@@ -48,7 +48,7 @@ class GithubStore extends MailspringStore {
       // last message. This may be less relaiable since the last message
       // might be a side-thread that doesn't contain the link in the quoted
       // text.
-      msg = _.last(MessageStore.items());
+      msg = MessageStore.items().at(-1);
     }
 
     // Use a regex to parse the message body for GitHub URLs - this is a quick

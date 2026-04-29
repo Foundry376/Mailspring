@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import { imapUtf7 } from 'mailspring-exports';
 
 import _str from 'underscore.string';
@@ -18,7 +17,7 @@ import {
 import * as SidebarActions from './sidebar-actions';
 import { ISidebarItem } from './types';
 
-const idForCategories = (categories) => _.pluck(categories, 'id').join('-');
+const idForCategories = (categories) => categories.map(c => c.id).join('-');
 
 const countForItem = function (perspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
@@ -297,7 +296,7 @@ export default class SidebarItem {
     // changes, it'll trigger the exact moment an account is added to the
     // config. However, the API has not yet come back with the list of
     // `categories` for that account.
-    categories = _.compact(categories);
+    categories = categories.filter(Boolean);
 
     const perspective = MailboxPerspective.forUnread(categories);
     let id = 'Unread';

@@ -7,7 +7,6 @@ import path from 'path';
 import { EventedIFrame } from 'mailspring-component-kit';
 import Package from '../../../src/package';
 import LessCompileCache from '../../../src/less-compile-cache';
-import _ from 'underscore';
 
 interface ThemeOptionProps {
   theme: Package;
@@ -34,10 +33,12 @@ class ThemeOption extends React.Component<ThemeOptionProps> {
   }
 
   _getImportPaths() {
-    return _.uniq([
-      this.props.theme.getStylesheetsPath(),
-      AppEnv.themes.getBaseTheme().getStylesheetsPath(),
-    ]);
+    return [
+      ...new Set([
+        this.props.theme.getStylesheetsPath(),
+        AppEnv.themes.getBaseTheme().getStylesheetsPath(),
+      ]),
+    ];
   }
 
   _loadStylesheet(stylesheetPath) {

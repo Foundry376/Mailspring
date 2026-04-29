@@ -74,7 +74,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       try {
         parsed = CalendarUtils.parseICSString(data.toString());
       } catch (e) {
-        console.warn(`EventHeader: Could not parse ICS data from attachment ${file.filename}: ${e.message}`);
+        console.warn(
+          `EventHeader: Could not parse ICS data from attachment ${file.filename}: ${e.message}`
+        );
         return;
       }
       const { event, root } = parsed;

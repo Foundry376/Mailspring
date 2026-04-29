@@ -337,24 +337,22 @@ export function emailsHaveSameDomain(...args: string[]) {
     return false;
   }
   const domains = args.map((email = '') => {
-    return _.last(
-      email
-        .toLowerCase()
-        .trim()
-        .split('@')
-    );
+    return email
+      .toLowerCase()
+      .trim()
+      .split('@')
+      .at(-1);
   });
   const toMatch = domains[0];
   return _.every(domains, domain => domain.length > 0 && toMatch === domain);
 }
 
 export function emailHasCommonDomain(email = '') {
-  const domain = _.last(
-    email
-      .toLowerCase()
-      .trim()
-      .split('@')
-  );
+  const domain = email
+    .toLowerCase()
+    .trim()
+    .split('@')
+    .at(-1);
   return commonDomains[domain] != null ? commonDomains[domain] : false;
 }
 

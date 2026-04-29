@@ -305,7 +305,7 @@ export default class AppEnvConstructor {
       return [];
     }
     const stackPaths = error.stack.match(/((?:\/[\w-_]+)+)/g) || [];
-    const stackPathComponents = _.uniq(_.flatten(stackPaths.map(p => p.split('/'))));
+    const stackPathComponents = [...new Set(stackPaths.flatMap(p => p.split('/')))];
 
     const names = [];
     for (const pkg of this.packages.getActivePackages()) {

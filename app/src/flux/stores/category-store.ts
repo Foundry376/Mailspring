@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import { Categories } from 'mailspring-observables';
 import MailspringStore from 'mailspring-store';
 import { AccountStore } from './account-store';
@@ -105,11 +104,11 @@ class CategoryStore extends MailspringStore {
       let res = [];
       for (const accOrId of accountsOrIds) {
         const cats = names.map(name => this.getCategoryByRole(accOrId, name));
-        res = res.concat(_.compact(cats));
+        res = res.concat(cats.filter(Boolean));
       }
       return res;
     }
-    return _.compact(names.map(name => this.getCategoryByRole(accountsOrIds, name)));
+    return names.map(name => this.getCategoryByRole(accountsOrIds, name)).filter(Boolean);
   }
 
   // Public: Returns the Folder or Label object that should be used for "Archive"

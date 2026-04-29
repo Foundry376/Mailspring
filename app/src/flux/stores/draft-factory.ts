@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import * as Actions from '../actions';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
@@ -333,10 +332,10 @@ class DraftFactory {
 
       // Remove participants present in the reply-all set and not the reply set
       for (const key of ['to', 'cc']) {
-        updated[key] = _.reject<Contact[]>(updated[key], contact => {
-          const inReplySet = _.findWhere(replySet[key], { email: contact.email });
-          const inReplyAllSet = _.findWhere(replyAllSet[key], { email: contact.email });
-          return inReplyAllSet && !inReplySet;
+        updated[key] = updated[key].filter(contact => {
+          const inReplySet = replySet[key]?.find(x => x.email === contact.email);
+          const inReplyAllSet = replyAllSet[key]?.find(x => x.email === contact.email);
+          return !(inReplyAllSet && !inReplySet);
         });
       }
     } else {
@@ -347,7 +346,7 @@ class DraftFactory {
 
     for (const key of ['to', 'cc']) {
       for (const contact of targetSet[key]) {
-        if (!_.findWhere(updated[key], { email: contact.email })) {
+        if (!updated[key]?.find(x => x.email === contact.email)) {
           updated[key].push(contact);
         }
       }

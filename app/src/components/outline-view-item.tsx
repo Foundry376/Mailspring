@@ -1,6 +1,5 @@
 /* eslint global-require:0 */
 
-import _ from 'underscore';
 import { Utils, localized } from 'mailspring-exports';
 import classnames from 'classnames';
 import React, { Component } from 'react';
@@ -284,7 +283,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     if (event.key === 'Escape') {
       this._clearEditingState(event);
     }
-    if (_.includes(['Enter', 'Return'], event.key)) {
+    if (['Enter', 'Return'].includes(event.key)) {
       this._onEdited(event.target.value);
       this._clearEditingState(event);
     }
