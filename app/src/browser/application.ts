@@ -11,7 +11,6 @@ import { EventEmitter } from 'events';
 import { localized, initializeLocalization } from '../intl';
 import WindowManager from './window-manager';
 import FileListCache from './file-list-cache';
-import ConfigMigrator from './config-migrator';
 import ApplicationMenu from './application-menu';
 import ApplicationTouchBar from './application-touch-bar';
 import AutoUpdateManager from './autoupdate-manager';
@@ -44,7 +43,6 @@ export default class Application extends EventEmitter {
   safeMode: boolean;
   quitting: boolean;
 
-  configMigrator: ConfigMigrator;
   configPersistenceManager: ConfigPersistenceManager;
   touchBar: ApplicationTouchBar;
   fileListCache: FileListCache;
@@ -120,9 +118,6 @@ export default class Application extends EventEmitter {
     this.config = config;
     this.configPersistenceManager = new ConfigPersistenceManager({ configDirPath, resourcePath });
     config.load();
-
-    this.configMigrator = new ConfigMigrator(this.config);
-    this.configMigrator.migrate();
 
     let initializeInBackground = options.background;
     if (initializeInBackground === undefined) {
@@ -876,24 +871,6 @@ export default class Application extends EventEmitter {
     }
   }
 
-  // Public: Executes the given command on the given window.
-  //
-  // command - The string representing the command.
-  // MailspringWindow - The {MailspringWindow} to send the command to.
-  // args - The optional arguments to pass along.
-  sendCommandToWindow = (command, MailspringWindow, ...args) => {
-    console.log('sendCommandToWindow');
-    console.log(command);
-    if (this.emit(command, ...args)) {
-      return;
-    }
-    if (MailspringWindow) {
-      MailspringWindow.sendCommand(command, ...args);
-    } else {
-      this.sendCommandToFirstResponder(command);
-    }
-  };
-
   // Translates the command into OS X action and sends it to application's first
   // responder.
   sendCommandToFirstResponder = command => {
@@ -929,7 +906,6 @@ export default class Application extends EventEmitter {
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
     if (!main) {
-      console.log(`Ignoring URL - main window is not available, user may not be authed.`);
       return;
     }
 
@@ -953,8 +929,6 @@ export default class Application extends EventEmitter {
       } else {
         main.sendMessage('openThreadFromWeb', urlToOpen);
       }
-    } else {
-      console.log(`Ignoring unknown URL type: ${urlToOpen}`);
     }
   }
 
