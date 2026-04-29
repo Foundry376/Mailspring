@@ -20,7 +20,7 @@ function showDialog(filePath) {
   );
 }
 
-['.ts', '.tsx'].forEach(extension => {
+['.ts', '.tsx', '.jsx', '.es6'].forEach(extension => {
   Object.defineProperty(require.extensions, extension, {
     enumerable: true,
     writable: true,
