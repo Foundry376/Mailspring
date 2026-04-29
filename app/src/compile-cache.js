@@ -1,26 +1,37 @@
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const TypeScript = require('typescript');
 
-const typescriptCompiler = require('./compile-support/typescript');
+const { compilerOptions } = require('../tsconfig.json');
+const SUPPORTED_EXTENSIONS = ['.jsx', '.ts', '.tsx', '.es6'];
 
-const COMPILERS = {
-  '.jsx': typescriptCompiler,
-  '.ts': typescriptCompiler,
-  '.tsx': typescriptCompiler,
-  '.es6': typescriptCompiler,
-};
-
-const cacheStats = {};
 let cacheDirectory = null;
+
+const optionsDigest = crypto
+  .createHash('sha256')
+  .update('ts', 'utf8')
+  .update('\0', 'utf8')
+  .update(TypeScript.version, 'utf8')
+  .update('\0', 'utf8')
+  .update(JSON.stringify(compilerOptions), 'utf8')
+  .digest('hex');
+
+function getCachePath(sourceCode) {
+  const sourceDigest = crypto
+    .createHash('sha256')
+    .update(sourceCode, 'utf8')
+    .digest('hex');
+  return path.join('ts', optionsDigest, `${sourceDigest}.js`);
+}
 
 function readCachedJavascript(relativeCachePath) {
   const cachePath = path.join(cacheDirectory, relativeCachePath);
   try {
     return fs.readFileSync(cachePath, 'utf8');
   } catch (error) {
-    //
+    return null;
   }
-  return null;
 }
 
 function writeCachedJavascript(relativeCachePath, code) {
@@ -39,21 +50,19 @@ function addSourceURL(jsCode, filePath) {
   return `${jsCode}\n//# sourceURL=${encodeURI(finalPath)}\n`;
 }
 
-function compileFileAtPath(compiler, filePath, extension) {
+function compileFileAtPath(filePath) {
   const sourceCode = fs.readFileSync(filePath, 'utf8');
-  if (compiler.shouldCompile(sourceCode, filePath)) {
-    const cachePath = compiler.getCachePath(sourceCode, filePath);
-    let compiledCode = readCachedJavascript(cachePath);
-    if (compiledCode != null) {
-      cacheStats[extension].hits++;
-    } else {
-      cacheStats[extension].misses++;
-      compiledCode = addSourceURL(compiler.compile(sourceCode, filePath), filePath);
-      writeCachedJavascript(cachePath, compiledCode);
-    }
-    return compiledCode;
+  const cachePath = getCachePath(sourceCode);
+  let compiledCode = readCachedJavascript(cachePath);
+  if (compiledCode == null) {
+    const { outputText } = TypeScript.transpileModule(sourceCode, {
+      compilerOptions,
+      fileName: filePath,
+    });
+    compiledCode = addSourceURL(outputText, filePath);
+    writeCachedJavascript(cachePath, compiledCode);
   }
-  return sourceCode;
+  return compiledCode;
 }
 
 const INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/gm;
@@ -61,16 +70,16 @@ const INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/gm;
 require('source-map-support').install({
   handleUncaughtExceptions: false,
 
-  // Most of this logic is the same as the default implementation in the
-  // source-map-support module, but we've overridden it to read the javascript
-  // code from our cache directory.
+  // Read the compiled JavaScript for the original source from our cache
+  // directory, then extract its source map (inline data URI or external file).
+  // For files we don't compile, returning null lets source-map-support fall
+  // back to its default lookup.
   retrieveSourceMap: filePath => {
-    if (!cacheDirectory) {
+    if (!cacheDirectory || !SUPPORTED_EXTENSIONS.includes(path.extname(filePath))) {
       return null;
     }
 
-    // read the original source
-    let sourceCode = null;
+    let sourceCode;
     try {
       sourceCode = fs.readFileSync(filePath, 'utf8');
     } catch (error) {
@@ -80,20 +89,7 @@ require('source-map-support').install({
       return null;
     }
 
-    // retrieve the javascript for the original source
-    const compiler = COMPILERS[path.extname(filePath)];
-    let javascriptCode = null;
-    if (compiler) {
-      try {
-        javascriptCode = readCachedJavascript(compiler.getCachePath(sourceCode, filePath));
-      } catch (error) {
-        console.warn('Error reading compiled file', error.stack);
-        return null;
-      }
-    } else {
-      javascriptCode = sourceCode;
-    }
-
+    const javascriptCode = readCachedJavascript(getCachePath(sourceCode));
     if (javascriptCode == null) {
       return null;
     }
@@ -109,8 +105,6 @@ require('source-map-support').install({
     }
 
     const sourceMappingURL = lastMatch[1];
-
-    // check whether this is a file path, or an inline sourcemap and load it
     let sourceMap = null;
     try {
       if (sourceMappingURL.includes(',')) {
@@ -118,7 +112,9 @@ require('source-map-support').install({
         const rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
         sourceMap = JSON.parse(Buffer.from(rawData, 'base64'));
       } else {
-        // External file reference: content is plain JSON
+        // External file reference: content is plain JSON. The map file may
+        // not exist on disk (it's stripped from production bundles), in
+        // which case we silently fall back to no source mapping.
         const mapPath = path.resolve(path.dirname(filePath), sourceMappingURL);
         sourceMap = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
       }
@@ -126,22 +122,16 @@ require('source-map-support').install({
       return null;
     }
 
-    return {
-      map: sourceMap,
-      url: null,
-    };
+    return { map: sourceMap, url: null };
   },
 });
 
-Object.keys(COMPILERS).forEach(extension => {
-  const compiler = COMPILERS[extension];
-
+SUPPORTED_EXTENSIONS.forEach(extension => {
   Object.defineProperty(require.extensions, extension, {
     enumerable: true,
     writable: true,
     value: (module, filePath) => {
-      const code = compileFileAtPath(compiler, filePath, extension);
-      return module._compile(code, filePath);
+      return module._compile(compileFileAtPath(filePath), filePath);
     },
   });
 });
@@ -155,36 +145,5 @@ exports.setHomeDirectory = nylasHome => {
   ) {
     cacheDir = path.join(cacheDir, 'root');
   }
-  this.setCacheDirectory(cacheDir);
+  cacheDirectory = cacheDir;
 };
-
-exports.setCacheDirectory = directory => {
-  cacheDirectory = directory;
-};
-
-exports.getCacheDirectory = () => {
-  return cacheDirectory;
-};
-
-exports.addPathToCache = (filePath, nylasHome) => {
-  this.setHomeDirectory(nylasHome);
-  const extension = path.extname(filePath);
-  const compiler = COMPILERS[extension];
-  if (compiler) {
-    compileFileAtPath(compiler, filePath, extension);
-  }
-};
-
-exports.getCacheStats = () => {
-  return cacheStats;
-};
-
-exports.resetCacheStats = () => {
-  Object.keys(COMPILERS).forEach(extension => {
-    cacheStats[extension] = {
-      hits: 0,
-      misses: 0,
-    };
-  });
-};
-exports.resetCacheStats();
