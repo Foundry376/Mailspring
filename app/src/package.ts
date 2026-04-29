@@ -2,9 +2,17 @@ import path from 'path';
 import fs from 'fs';
 
 class NoPackageJSONError extends Error {}
+class InvalidPackageNameError extends Error {}
+
+const VALID_PACKAGE_NAME = /^[a-z0-9._-]+$/;
+
+export function isValidPackageName(name: unknown): name is string {
+  return typeof name === 'string' && name.length > 0 && name !== '.' && name !== '..' && VALID_PACKAGE_NAME.test(name);
+}
 
 export default class Package {
   static NoPackageJSONError = NoPackageJSONError;
+  static InvalidPackageNameError = InvalidPackageNameError;
 
   public disposables = [];
   public directory: string;
@@ -28,6 +36,11 @@ export default class Package {
     }
 
     this.json = JSON.parse(jsonString);
+    if (!isValidPackageName(this.json.name)) {
+      throw new InvalidPackageNameError(
+        `Plugin in ${dir} has an invalid "name" field. Names must match /^[a-z0-9._-]+$/.`
+      );
+    }
     this.name = this.json.name;
     this.displayName = this.json.displayName || this.json.name;
     this.syncInit = this.json.syncInit;

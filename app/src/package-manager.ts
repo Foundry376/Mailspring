@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { shell } from 'electron';
 import { localized } from './intl';
-import Package from './package';
+import Package, { isValidPackageName } from './package';
 
 export default class PackageManager {
   packageDirectories: string[] = [];
@@ -65,6 +65,10 @@ export default class PackageManager {
           if (err instanceof Package.NoPackageJSONError) {
             continue;
           }
+          if (err instanceof Package.InvalidPackageNameError) {
+            console.error(err.message);
+            continue;
+          }
           const wrapped = new Error(
             localized(`Unable to read package.json for %@: %@`, filename, err.toString())
           );
@@ -105,7 +109,7 @@ export default class PackageManager {
     }
 
     const disabled = AppEnv.config.get('core.disabledPackages');
-    if (pkg.isOptional() && disabled.includes(pkg.name)) {
+    if (Array.isArray(disabled) && disabled.includes(pkg.name)) {
       return;
     }
 
@@ -165,15 +169,15 @@ export default class PackageManager {
   installPackageManually() {
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
-      buttons: [localized('Continue'), localized('Cancel')],
+      buttons: [localized('Cancel'), localized('Continue')],
       defaultId: 0,
-      cancelId: 1,
+      cancelId: 0,
       message: localized('Only install plugins from sources you trust'),
       detail: localized(
         'Mailspring plugins run in the application and have access to your email data. Only install plugins from developers you trust.'
       ),
     });
-    if (response === 1) {
+    if (response !== 1) {
       return;
     }
     AppEnv.showOpenDialog(
@@ -231,8 +235,31 @@ export default class PackageManager {
       );
     }
 
+    if (!isValidPackageName(json.name)) {
+      return callback(
+        new Error(
+          localized(
+            `The plugin or theme you selected has an invalid "name" field in its package.json. Names must match /^[a-z0-9._-]+$/.`
+          )
+        )
+      );
+    }
+
     // copy the package into a new directory based on it's name
-    const packageFinalDir = path.join(this.configDirPath, 'packages', json.name);
+    const packagesRoot = path.join(this.configDirPath, 'packages');
+    const packageFinalDir = path.join(packagesRoot, json.name);
+    const resolvedFinalDir = path.resolve(packageFinalDir);
+    const resolvedPackagesRoot = path.resolve(packagesRoot);
+    if (
+      resolvedFinalDir !== path.join(resolvedPackagesRoot, json.name) ||
+      path.dirname(resolvedFinalDir) !== resolvedPackagesRoot
+    ) {
+      return callback(
+        new Error(
+          localized(`The plugin or theme you selected has an unsafe "name" field in its package.json.`)
+        )
+      );
+    }
     fs.cpSync(packagePath, packageFinalDir, { recursive: true });
 
     // activate the package
