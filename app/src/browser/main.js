@@ -210,33 +210,7 @@ const parseCommandLine = argv => {
 };
 
 const extractMailtoLink = mailtoLink => {
-  console.log(mailtoLink);
-
-  // Handle links in the form mailto:test@example.com?attach=file:///path/to/file.txt
-  // This will handle links e.g. for nautilus-sendto and attach the attachments correctly.
-  // Attachments currently cannot be attached to mails with a recipient,
-  // so if a recipient and an attachment is given two mail windows are opened.
-  let mailCreated = false;
-
-  const urlsToOpen = [];
-  const pathsToOpen = [];
-
-  const mailtoUrl = new URL(mailtoLink);
-  mailtoUrl.searchParams.forEach((value, key) => {
-    if (key === 'attach') {
-      // We need to strip the leading `file://` in order to detect the files
-      pathsToOpen.push(value.replace(/^file:\/\//, ''));
-      mailCreated = true;
-    }
-  });
-
-  // Check if another draft window should be opened if there is a recipient set
-  // Prevents duplicate draft window for links such as mailto:?attach=file:///path/to/file.txt
-  if (!mailCreated || mailtoUrl.pathname !== '') {
-    urlsToOpen.push(mailtoLink);
-  }
-
-  return { urlsToOpen, pathsToOpen };
+  return { urlsToOpen: [mailtoLink], pathsToOpen: [] };
 };
 
 /*
