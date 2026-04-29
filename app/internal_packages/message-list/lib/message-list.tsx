@@ -665,6 +665,14 @@ class MessageListReplyArea extends React.Component<{ onClick: () => void; replyT
     }
   };
 
+  // Prevent the click from moving focus to this placeholder. Otherwise focus
+  // briefly lands here, the placeholder unmounts when the composer mounts in
+  // its place, and the first keystrokes hit `<body>` before the composer's
+  // requestAnimationFrame focus restore can run — firing global shortcuts.
+  _onMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
   render() {
     return (
       <div
@@ -672,6 +680,7 @@ class MessageListReplyArea extends React.Component<{ onClick: () => void; replyT
         role="button"
         tabIndex={0}
         onClick={this.props.onClick}
+        onMouseDown={this._onMouseDown}
         onKeyDown={this._onKeyDown}
       >
         <div className="footer-reply-area">
