@@ -362,7 +362,9 @@ const start = () => {
     });
   }
 
-  setupCompileCache(configDirPath);
+  if (options.devMode) {
+    setupCompileCache(configDirPath);
+  }
 
   const onOpenFileBeforeReady = (event, file) => {
     event.preventDefault();
