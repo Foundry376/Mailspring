@@ -5,13 +5,14 @@ import url from 'url';
 
 const FALLBACK_DOWNLOAD_URL = 'https://getmailspring.com/download';
 
-function isSafeHttpUrl(value: unknown): value is string {
-  if (typeof value !== 'string') return false;
+function safeHttpUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
   try {
     const parsed = new URL(value);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    return parsed.href;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -75,12 +76,14 @@ export default class AutoupdateImplBase extends EventEmitter {
               this.emitError(new Error(`Autoupdater response did not include URL: ${data}`));
               return;
             }
-            if (!isSafeHttpUrl(json.url)) {
+            const safeUrl = safeHttpUrl(json.url);
+            if (!safeUrl) {
               this.emitError(
                 new Error(`Autoupdater response URL has disallowed scheme: ${json.url}`)
               );
               return;
             }
+            json.url = safeUrl;
             successCallback(json);
           } catch (err) {
             this.emitError(err);
@@ -110,9 +113,6 @@ export default class AutoupdateImplBase extends EventEmitter {
 
   /* Public: Install the update. */
   quitAndInstall() {
-    const target = isSafeHttpUrl(this.lastRetrievedUpdateURL)
-      ? this.lastRetrievedUpdateURL
-      : FALLBACK_DOWNLOAD_URL;
-    shell.openExternal(target);
+    shell.openExternal(safeHttpUrl(this.lastRetrievedUpdateURL) ?? FALLBACK_DOWNLOAD_URL);
   }
 }
