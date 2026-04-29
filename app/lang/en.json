@@ -328,6 +328,8 @@
   "Install": "Install",
   "Install Theme": "Install Theme",
   "Install a Plugin": "Install a Plugin",
+  "Mailspring plugins run in the application and have access to your email data. Only install plugins from developers you trust.": "Mailspring plugins run in the application and have access to your email data. Only install plugins from developers you trust.",
+  "Only install plugins from sources you trust": "Only install plugins from sources you trust",
   "Instantly": "Instantly",
   "Instantly translate messages you receive into your preferred reading language.": "Instantly translate messages you receive into your preferred reading language.",
   "Interface Language": "Interface Language",

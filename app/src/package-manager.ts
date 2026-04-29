@@ -163,6 +163,19 @@ export default class PackageManager {
   // Installing and Creating Packages
 
   installPackageManually() {
+    const response = require('@electron/remote').dialog.showMessageBoxSync({
+      type: 'warning',
+      buttons: [localized('Continue'), localized('Cancel')],
+      defaultId: 0,
+      cancelId: 1,
+      message: localized('Only install plugins from sources you trust'),
+      detail: localized(
+        'Mailspring plugins run in the application and have access to your email data. Only install plugins from developers you trust.'
+      ),
+    });
+    if (response === 1) {
+      return;
+    }
     AppEnv.showOpenDialog(
       {
         title: localized('Choose Directory'),
