@@ -14,9 +14,7 @@
         "keybase",
         "composer-markdown",
         "composer-scheduler",
-        "composer-mail-merge",
-        "send-and-archive",
-        "main-calendar"
+        "composer-mail-merge"
       ]
     }
   }

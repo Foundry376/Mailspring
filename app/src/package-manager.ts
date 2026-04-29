@@ -260,10 +260,27 @@ export default class PackageManager {
         )
       );
     }
-    fs.cpSync(packagePath, packageFinalDir, { recursive: true });
+    let pkg: Package;
+    try {
+      fs.cpSync(packagePath, packageFinalDir, { recursive: true });
+      pkg = new Package(packageFinalDir);
+    } catch (err) {
+      try {
+        fs.rmSync(packageFinalDir, { recursive: true, force: true });
+      } catch (cleanupErr) {
+        // best effort
+      }
+      return callback(
+        new Error(
+          localized(
+            `Failed to install the plugin or theme: %@`,
+            err && err.message ? err.message : err.toString()
+          )
+        )
+      );
+    }
 
     // activate the package
-    const pkg = new Package(packageFinalDir);
     this.available[pkg.name] = pkg;
     if (pkg.isTheme()) {
       AppEnv.themes.setActiveTheme(pkg.name);
