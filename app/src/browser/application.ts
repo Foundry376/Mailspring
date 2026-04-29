@@ -720,9 +720,14 @@ export default class Application extends EventEmitter {
         return;
       }
       // If devtools aren't open the `webContents::devToolsWebContents` will be null
-      if (event.sender.devToolsWebContents) {
-        event.sender.devToolsWebContents[method](...args);
+      if (!event.sender.devToolsWebContents) {
+        return;
       }
+      if (!event.sender.devToolsWebContents[method]) {
+        console.error(`Method ${method} does not exist on devToolsWebContents!`);
+        return;
+      }
+      event.sender.devToolsWebContents[method](...args);
     });
 
     ipcMain.on('call-webcontents-method', (event, method, ...args) => {
