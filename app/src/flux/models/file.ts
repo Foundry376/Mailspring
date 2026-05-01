@@ -78,7 +78,21 @@ export class File extends Model {
   }
 
   safeDisplayName() {
-    return this.displayName().replace(RegExpUtils.illegalPathCharactersRegexp(), '-');
+    let name = this.displayName()
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      // Strip bidi/RTL controls so "report\u202Egpj.exe" can't render as "report.exe.jpg".
+      .replace(/[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '')
+      .replace(RegExpUtils.illegalPathCharactersRegexp(), '-')
+      // Windows silently strips trailing dots/spaces, turning "evil.exe." into "evil.exe".
+      .replace(/[. ]+$/, '');
+
+    if (/^(CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³]|CONIN\$|CONOUT\$)(\.|$)/i.test(name)) {
+      name = `_${name}`;
+    }
+    if (name.length === 0) {
+      name = '-';
+    }
+    return name;
   }
 
   // Public: Returns the file extension that should be used for this file.
