@@ -238,170 +238,31 @@ const AllowedAttributes = [
 // the user has remote-content blocking enabled, so they're a silent
 // open-tracking vector in HTML mail.
 //
-// We can't just regex `@import` — CSS hex-escapes like `@\69 mport` are valid
-// spellings that the browser's CSS parser still resolves into real
-// CSSImportRules and fetches. We also can't reserialize the parsed sheet via
-// CSSStyleSheet/cssRules.cssText: that's lossy (drops comments, @charset,
-// vendor hacks the strict parser doesn't recognize), which would mangle the
-// many marketing emails that combine an @import line with cross-client
-// fallbacks.
+// We use CSSStyleSheet.replaceSync, which silently drops `@import` from
+// constructed stylesheets — and gets us the browser's own tokenizer for free,
+// so CSS escapes like `@\69 mport`, CRLF preprocessing, etc. all just work
+// without us reimplementing the spec.
 //
-// Instead, walk the CSS surgically: tokenize enough to know when we're inside
-// a string or comment (so an `@import` substring there is left alone), and at
-// each top-level `@`, decode the at-keyword with CSS escape handling. If it
-// resolves to "import", excise the at-rule (up to its `;`, its `{...}` block,
-// or EOF — whichever ends it per CSS Syntax §5.4.1) and leave everything else
-// byte-for-byte identical.
-
-function decodeCssEscape(s: string, i: number): { value: string; end: number } {
-  // Caller guarantees s[i] === '\\'.
-  if (i + 1 >= s.length) return { value: '', end: i + 1 };
-  const next = s[i + 1];
-  if (/[0-9a-fA-F]/.test(next)) {
-    let hex = '';
-    let j = i + 1;
-    while (j < s.length && hex.length < 6 && /[0-9a-fA-F]/.test(s[j])) {
-      hex += s[j];
-      j++;
-    }
-    // Per CSS Syntax §3.3, the browser preprocesses `\r\n` into a single
-    // `\n` before tokenization, so the hex escape's post-digits whitespace
-    // terminator consumes both. We have to coalesce them too — otherwise
-    // `@\69\r\nmport` looks like a broken identifier here but still parses
-    // as `@import` in the iframe and fetches the URL.
-    if (j < s.length && /[\t\n\f\r ]/.test(s[j])) {
-      if (s[j] === '\r' && s[j + 1] === '\n') j += 2;
-      else j++;
-    }
-    let codePoint = parseInt(hex, 16);
-    if (!Number.isFinite(codePoint) || codePoint === 0 || codePoint > 0x10ffff) {
-      codePoint = 0xfffd;
-    }
-    return { value: String.fromCodePoint(codePoint), end: j };
-  }
-  return { value: next, end: i + 2 };
-}
-
-function readIdent(s: string, start: number): { name: string; end: number } {
-  let name = '';
-  let i = start;
-  while (i < s.length) {
-    const c = s[i];
-    if (c === '\\') {
-      const decoded = decodeCssEscape(s, i);
-      name += decoded.value;
-      i = decoded.end;
-    } else if (/[a-zA-Z0-9_-]/.test(c)) {
-      name += c;
-      i++;
-    } else {
-      break;
-    }
-  }
-  return { name, end: i };
-}
-
-function skipString(s: string, i: number): number {
-  const quote = s[i];
-  i++;
-  while (i < s.length) {
-    const c = s[i];
-    if (c === '\\' && i + 1 < s.length) {
-      i += 2;
-    } else if (c === quote) {
-      return i + 1;
-    } else if (c === '\n') {
-      return i; // unterminated string
-    } else {
-      i++;
-    }
-  }
-  return i;
-}
-
-function skipBlockComment(s: string, i: number): number {
-  const close = s.indexOf('*/', i + 2);
-  return close === -1 ? s.length : close + 2;
-}
-
-function findAtRuleEnd(s: string, start: number): number {
-  let i = start;
-  while (i < s.length) {
-    const c = s[i];
-    if (c === ';') return i + 1;
-    if (c === '"' || c === "'") {
-      i = skipString(s, i);
-      continue;
-    }
-    if (c === '/' && s[i + 1] === '*') {
-      i = skipBlockComment(s, i);
-      continue;
-    }
-    if (c === '{') {
-      let depth = 1;
-      i++;
-      while (i < s.length && depth > 0) {
-        const cc = s[i];
-        if (cc === '"' || cc === "'") {
-          i = skipString(s, i);
-        } else if (cc === '/' && s[i + 1] === '*') {
-          i = skipBlockComment(s, i);
-        } else if (cc === '{') {
-          depth++;
-          i++;
-        } else if (cc === '}') {
-          depth--;
-          i++;
-        } else {
-          i++;
-        }
-      }
-      return i;
-    }
-    i++;
-  }
-  return i;
-}
-
+// Reserializing via `cssRules.cssText` is lossy (drops comments, `@charset`,
+// declarations the strict parser doesn't recognize like the IE6/7 `*display`
+// hack, and normalizes whitespace). That's OK here: the only consumers are
+// the same Chromium that just parsed the sheet (in the message iframe) and,
+// on the draft path, juice — both of which would already have dropped the
+// same things. If a future consumer needs byte-for-byte fidelity, this hook
+// is the wrong place to do it.
 function stripAtImportRules(cssText: string): string {
-  let out = '';
-  let i = 0;
-  while (i < cssText.length) {
-    const ch = cssText[i];
-
-    if (ch === '/' && cssText[i + 1] === '*') {
-      const end = skipBlockComment(cssText, i);
-      out += cssText.slice(i, end);
-      i = end;
-      continue;
-    }
-
-    if (ch === '"' || ch === "'") {
-      const end = skipString(cssText, i);
-      out += cssText.slice(i, end);
-      i = end;
-      continue;
-    }
-
-    if (ch === '@') {
-      const { name, end } = readIdent(cssText, i + 1);
-      if (name.toLowerCase() === 'import') {
-        // Per CSS Syntax §5.4.1, an at-rule ends at `;`, at `{...}`, or EOF.
-        // Skip over strings and comments while scanning so a `;` inside a
-        // string doesn't fool us, and walk balanced braces so a missing `;`
-        // before a following ruleset doesn't make us gobble its content.
-        i = findAtRuleEnd(cssText, end);
-        continue;
-      }
-      out += ch;
-      i++;
-      continue;
-    }
-
-    out += ch;
-    i++;
+  try {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(cssText);
+    return Array.from(sheet.cssRules)
+      .map(rule => rule.cssText)
+      .join('\n');
+  } catch {
+    // Parse failure — fall back to leaving the CSS untouched rather than
+    // wiping the whole stylesheet. The DOMPurify allow-list still strips
+    // <script>, <link>, etc., so this isn't a script-injection path.
+    return cssText;
   }
-  return out;
 }
 
 DOMPurify.addHook('uponSanitizeElement', (node, data) => {
