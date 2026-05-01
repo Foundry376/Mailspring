@@ -29,11 +29,14 @@ class AutoloadImagesStore extends MailspringStore {
     // - background: url(....)
     // - background: url(""...."")
     // - @import url(....)
-    return /((?:src|background|placeholder|icon|poster|srcset)\s*=\s*['"]?(?=[cid:|\w*://])|(?::|@import)\s*url\(['"]?)+([^"')]*)/gi;
+    // - @import "...." / @import '....' (string form, no url())
+    return /((?:src|background|placeholder|icon|poster|srcset)\s*=\s*['"]?(?=[cid:|\w*://])|(?::|@import)\s*url\(['"]?|@import\s+['"])+([^"')]*)/gi;
   };
 
   getLinkTagRegexp = () => {
-    return /<link [^>]+>/gi;
+    // Use \s+ rather than a literal space so tabs/newlines between <link and
+    // its attributes don't slip a tracking <link> through unmatched.
+    return /<link\s+[^>]+>/gi;
   };
 
   shouldBlockImagesIn = message => {
