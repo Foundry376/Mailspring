@@ -150,7 +150,6 @@ const parseCommandLine = argv => {
   const resourcePath = path.normalize(path.resolve(path.dirname(path.dirname(__dirname))));
   let urlsToOpen = [];
   let pathsToOpen = [];
-  let mailtoLink;
 
   // On Windows and Linux, mailto and file opens are passed in argv. Go through
   // the items and pluck out things that look like mailto:, mailspring:, file paths
@@ -170,20 +169,9 @@ const parseCommandLine = argv => {
       continue;
     }
     if (arg.startsWith('mailto:') || arg.startsWith('mailspring:')) {
-      // Handle nautilus-sendto links correctly
-      mailtoLink = extractMailtoLink(arg);
-      urlsToOpen = urlsToOpen.concat(mailtoLink.urlsToOpen);
-      pathsToOpen = pathsToOpen.concat(mailtoLink.pathsToOpen);
+      urlsToOpen.push(arg);
     } else if (arg[0] !== '-' && /[/|\\]/.test(arg)) {
-      if (arg.startsWith('?')) {
-        // Handle thunar-sendto links correctly by giving them a similar form
-        // as the nautilus-sendto links by adding a leading `mailto`
-        mailtoLink = extractMailtoLink('mailto:' + arg);
-        urlsToOpen = urlsToOpen.concat(mailtoLink.urlsToOpen);
-        pathsToOpen = pathsToOpen.concat(mailtoLink.pathsToOpen);
-      } else {
-        pathsToOpen.push(arg);
-      }
+      pathsToOpen.push(arg);
     }
   }
 
@@ -207,10 +195,6 @@ const parseCommandLine = argv => {
     urlsToOpen,
     pathsToOpen,
   };
-};
-
-const extractMailtoLink = mailtoLink => {
-  return { urlsToOpen: [mailtoLink], pathsToOpen: [] };
 };
 
 /*
