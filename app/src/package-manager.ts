@@ -109,7 +109,7 @@ export default class PackageManager {
     }
 
     const disabled = AppEnv.config.get('core.disabledPackages');
-    if (Array.isArray(disabled) && disabled.includes(pkg.name)) {
+    if (pkg.isOptional() && Array.isArray(disabled) && disabled.includes(pkg.name)) {
       return;
     }
 
