@@ -56,10 +56,6 @@ class AttachmentStore extends MailspringStore {
   // for files that don't have a name and avoid returning <downloads/dir/"">
   // which causes operations to happen on the directory (badness!)
   //
-  get filesDirectory() {
-    return this._filesDirectory;
-  }
-
   pathForFile(file: File) {
     if (!file) {
       return null;
