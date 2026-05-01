@@ -170,7 +170,7 @@ const parseCommandLine = argv => {
     }
     if (arg.startsWith('mailto:') || arg.startsWith('mailspring:')) {
       urlsToOpen.push(arg);
-    } else if (arg[0] !== '-' && /[/|\\]/.test(arg)) {
+    } else if (arg[0] !== '-' && arg[0] !== '?' && /[/|\\]/.test(arg)) {
       pathsToOpen.push(arg);
     }
   }
