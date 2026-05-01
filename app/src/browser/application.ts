@@ -680,24 +680,56 @@ export default class Application extends EventEmitter {
       win.emit(command, ...args);
     });
 
+    const ALLOWED_WINDOW_METHODS = new Set([
+      'setPosition',
+      'center',
+      'focus',
+      'show',
+      'hide',
+      'maximize',
+      'minimize',
+      'setFullScreen',
+    ]);
+    const ALLOWED_WEBCONTENTS_METHODS = new Set(['reload', 'openDevTools', 'toggleDevTools']);
+    const ALLOWED_DEVTOOLS_WEBCONTENTS_METHODS = new Set(['executeJavaScript']);
+
     ipcMain.on('call-window-method', (event, method, ...args) => {
+      if (!ALLOWED_WINDOW_METHODS.has(method)) {
+        console.error(`Method ${method} is not permitted on BrowserWindow!`);
+        return;
+      }
       const win = BrowserWindow.fromWebContents(event.sender);
       if (!win[method]) {
         console.error(`Method ${method} does not exist on BrowserWindow!`);
+        return;
       }
       win[method](...args);
     });
 
     ipcMain.on('call-devtools-webcontents-method', (event, method, ...args) => {
-      // If devtools aren't open the `webContents::devToolsWebContents` will be null
-      if (event.sender.devToolsWebContents) {
-        event.sender.devToolsWebContents[method](...args);
+      if (!ALLOWED_DEVTOOLS_WEBCONTENTS_METHODS.has(method)) {
+        console.error(`Method ${method} is not permitted on devToolsWebContents!`);
+        return;
       }
+      // If devtools aren't open the `webContents::devToolsWebContents` will be null
+      if (!event.sender.devToolsWebContents) {
+        return;
+      }
+      if (!event.sender.devToolsWebContents[method]) {
+        console.error(`Method ${method} does not exist on devToolsWebContents!`);
+        return;
+      }
+      event.sender.devToolsWebContents[method](...args);
     });
 
     ipcMain.on('call-webcontents-method', (event, method, ...args) => {
+      if (!ALLOWED_WEBCONTENTS_METHODS.has(method)) {
+        console.error(`Method ${method} is not permitted on WebContents!`);
+        return;
+      }
       if (!event.sender[method]) {
         console.error(`Method ${method} does not exist on WebContents!`);
+        return;
       }
       event.sender[method](...args);
     });
