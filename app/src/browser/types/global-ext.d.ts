@@ -15,13 +15,5 @@ declare global {
       loadSettingsChangedSinceGetURL: boolean;
       updateLoadSettings: boolean;
     }
-    interface TouchBarButton {
-      command: string;
-      group: string;
-    }
-    interface TouchBarSpacer {
-      command: string;
-      group: string;
-    }
   }
 }
