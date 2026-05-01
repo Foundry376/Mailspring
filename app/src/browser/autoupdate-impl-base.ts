@@ -3,6 +3,19 @@ import https from 'https';
 import { shell } from 'electron';
 import url from 'url';
 
+const FALLBACK_DOWNLOAD_URL = 'https://getmailspring.com/download';
+
+function safeHttpUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
+
 export default class AutoupdateImplBase extends EventEmitter {
   feedURL: string;
   lastRetrievedUpdateURL?: string;
@@ -63,6 +76,14 @@ export default class AutoupdateImplBase extends EventEmitter {
               this.emitError(new Error(`Autoupdater response did not include URL: ${data}`));
               return;
             }
+            const safeUrl = safeHttpUrl(json.url);
+            if (!safeUrl) {
+              this.emitError(
+                new Error(`Autoupdater response URL has disallowed scheme: ${json.url}`)
+              );
+              return;
+            }
+            json.url = safeUrl;
             successCallback(json);
           } catch (err) {
             this.emitError(err);
@@ -92,6 +113,6 @@ export default class AutoupdateImplBase extends EventEmitter {
 
   /* Public: Install the update. */
   quitAndInstall() {
-    shell.openExternal(this.lastRetrievedUpdateURL || 'https://getmailspring.com/download');
+    shell.openExternal(safeHttpUrl(this.lastRetrievedUpdateURL) ?? FALLBACK_DOWNLOAD_URL);
   }
 }
