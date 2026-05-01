@@ -82,6 +82,7 @@ const AllowedTags = [
   'samp',
   'section',
   'select',
+  'signature',
   'small',
   'source',
   'span',
@@ -238,13 +239,17 @@ const AllowedAttributes = [
 ];
 
 class SanitizeTransformer {
-  async run(bodyHTML: string) {
+  runSync(bodyHTML: string) {
     return DOMPurify.sanitize(bodyHTML, {
       ALLOWED_TAGS: AllowedTags,
       ALLOWED_ATTR: AllowedAttributes,
       ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|xxx):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
       KEEP_CONTENT: true,
     });
+  }
+
+  async run(bodyHTML: string) {
+    return this.runSync(bodyHTML);
   }
 }
 
