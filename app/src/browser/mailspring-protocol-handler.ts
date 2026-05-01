@@ -34,14 +34,26 @@ export default class MailspringProtocolHandler {
 
       let filePath = null;
       for (const loadPath of this.loadPaths) {
-        filePath = path.join(loadPath, relativePath);
+        const resolvedBase = path.resolve(loadPath);
+        // Use path.join (not path.resolve) so absolute-looking inputs like
+        // "/foo" stay anchored to the load path instead of replacing it.
+        const candidate = path.resolve(path.join(resolvedBase, relativePath));
+        // Ensure the resolved path is contained within the load path.
+        // Append path.sep to prevent prefix-matching attacks (e.g. /packages-evil/).
+        if (
+          candidate !== resolvedBase &&
+          !candidate.startsWith(resolvedBase + path.sep)
+        ) {
+          continue;
+        }
         let fileStats: fs.Stats | false = false;
         try {
-          fileStats = fs.statSync(filePath);
+          fileStats = fs.statSync(candidate);
         } catch (e) {
           // path doesn't exist
         }
         if (fileStats && fileStats.isFile && fileStats.isFile()) {
+          filePath = candidate;
           break;
         }
       }
