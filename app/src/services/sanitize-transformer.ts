@@ -277,7 +277,10 @@ class SanitizeTransformer {
     return DOMPurify.sanitize(bodyHTML, {
       ALLOWED_TAGS: AllowedTags,
       ALLOWED_ATTR: AllowedAttributes,
-      ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|xxx):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
+      // Explicit allowlist of safe URI schemes for email content.
+      // file: is intentionally absent — legitimate attachment file:// paths are
+      // injected programmatically after sanitization, never from raw email HTML.
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|ftps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|(?!file:)[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
       KEEP_CONTENT: true,
     });
   }

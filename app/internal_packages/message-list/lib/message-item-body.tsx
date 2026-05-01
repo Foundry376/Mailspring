@@ -160,9 +160,11 @@ export default class MessageItemBody extends React.Component<
           // Render a spinner
           merged = merged.replace(inlineImgRegexp, () => SpinnerImg);
         } else {
-          merged = merged.replace(inlineImgRegexp, match =>
-            match.replace(`cid:${file.contentId}`, `file://${AttachmentStore.pathForFile(file)}`)
-          );
+          merged = merged.replace(inlineImgRegexp, match => {
+            const filePath = AttachmentStore.pathForFile(file);
+            if (!filePath) return match;
+            return match.replace(`cid:${file.contentId}`, `file://${filePath}`);
+          });
         }
       });
 
