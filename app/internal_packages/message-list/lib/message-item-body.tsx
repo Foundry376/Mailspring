@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 
 import React from 'react';
 import {
@@ -163,10 +162,7 @@ export default class MessageItemBody extends React.Component<
         } else {
           merged = merged.replace(inlineImgRegexp, match => {
             const filePath = AttachmentStore.pathForFile(file);
-            const cacheDir = AttachmentStore.filesDirectory;
-            if (!filePath || !filePath.startsWith(cacheDir + path.sep)) {
-              return match;
-            }
+            if (!filePath) return match;
             return match.replace(`cid:${file.contentId}`, `file://${filePath}`);
           });
         }

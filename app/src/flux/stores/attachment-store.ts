@@ -65,13 +65,17 @@ class AttachmentStore extends MailspringStore {
       return null;
     }
     const id = file.id.toLowerCase();
-    return path.join(
+    const filePath = path.join(
       this._filesDirectory,
       id.substr(0, 2),
       id.substr(2, 2),
       id,
       file.safeDisplayName()
     );
+    if (!filePath.startsWith(this._filesDirectory + path.sep)) {
+      return null;
+    }
+    return filePath;
   }
 
   getDownloadDataForFile(fileId: string): AttachmentDownloadData {
