@@ -16,7 +16,7 @@ class ParticipantProfileDataSource {
     }
   }
 
-  async find(contact) {
+  async find(contact: { email: string; name: string }) {
     const { email, name } = contact;
 
     if (!email || Utils.likelyNonHumanEmail(email)) {
@@ -54,11 +54,11 @@ class ParticipantProfileDataSource {
 
   // LocalStorage Retrieval / Saving
 
-  hasCache(email) {
+  hasCache(email: string) {
     return localStorage.getItem(`${CACHE_KEY_PREFIX}${email}`) !== null;
   }
 
-  getCache(email) {
+  getCache(email: string) {
     const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}${email}`);
     if (!raw) {
       return null;
@@ -70,7 +70,7 @@ class ParticipantProfileDataSource {
     }
   }
 
-  setCache(email, value) {
+  setCache(email: string, value: unknown) {
     localStorage.setItem(`${CACHE_KEY_PREFIX}${email}`, JSON.stringify(value));
     const updatedIndex = this._cacheIndex.filter(e => e !== email);
     updatedIndex.push(email);

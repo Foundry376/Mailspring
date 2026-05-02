@@ -78,7 +78,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   updateCount = 0;
   fallback: Direction;
 
-  constructor(props) {
+  constructor(props: FixedPopoverProps) {
     super(props);
     this.fallback = this.props.fallbackDirection;
     this.state = {
@@ -105,7 +105,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     _.defer(this.onPopoverRendered);
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: FixedPopoverProps, nextState: FixedPopoverState) {
     return !_.isEqual(this.state, nextState) || !_.isEqual(this.props, nextProps);
   }
 
@@ -154,17 +154,17 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     }
   };
 
-  onBlur = event => {
+  onBlur = (event: React.FocusEvent<HTMLDivElement>) => {
     const target = event.nativeEvent.relatedTarget;
     if (!this.props.closeOnAppBlur && target === null) {
       return;
     }
-    if (!target || !findDOMNode(this).contains(target)) {
+    if (!target || !findDOMNode(this).contains(target as Node)) {
       Actions.closePopover();
     }
   };
 
-  onKeyDown = event => {
+  onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
       Actions.closePopover();
     }

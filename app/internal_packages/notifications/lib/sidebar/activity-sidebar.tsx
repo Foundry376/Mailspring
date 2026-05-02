@@ -58,7 +58,7 @@ export default class ActivitySidebar extends React.Component<
     };
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: Record<string, unknown>, nextState: ActivitySidebarState) {
     return !Utils.isEqualReact(nextState, this.state);
   }
 

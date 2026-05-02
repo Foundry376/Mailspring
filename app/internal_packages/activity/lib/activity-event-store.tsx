@@ -4,16 +4,26 @@ import {
   Actions,
   Thread,
   Message,
+  Contact,
   DatabaseStore,
   NativeNotifications,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
+interface ActivityAction {
+  messageId: string;
+  threadId: string;
+  title: string;
+  recipient: Contact | null;
+  pluginId: string;
+  timestamp: number;
+}
+
 import * as ActivityActions from './activity-actions';
 import ActivityDataSource from './activity-data-source';
 import { configForPluginId, LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
 
-export function pluckByEmail(recipients, email) {
+export function pluckByEmail(recipients: Contact[], email: string) {
   if (email) {
     return recipients.find(r => r.email === email);
   } else if (recipients.length === 1) {
@@ -59,12 +69,12 @@ class ActivityEventStore extends MailspringStore {
     return this._actions;
   }
 
-  actionIsUnseen(action) {
+  actionIsUnseen(action: ActivityAction) {
     if (!AppEnv.savedState.activityListViewed) return true;
     return action.timestamp >= AppEnv.savedState.activityListViewed;
   }
 
-  actionIsUnnotified(action) {
+  actionIsUnnotified(action: ActivityAction) {
     if (!AppEnv.savedState.activityListNotified) return true;
     return action.timestamp >= AppEnv.savedState.activityListNotified;
   }
@@ -78,7 +88,7 @@ class ActivityEventStore extends MailspringStore {
     return '999+';
   }
 
-  focusThread(threadId) {
+  focusThread(threadId: string) {
     AppEnv.displayWindow();
     Actions.closePopover();
     DatabaseStore.find<Thread>(Thread, threadId).then(thread => {
@@ -175,7 +185,13 @@ class ActivityEventStore extends MailspringStore {
     this.trigger();
   }
 
-  _appendActionsForMessage(message, pluginId, actionLoopFn) {
+  _appendActionsForMessage(
+    message: Message,
+    pluginId: string,
+    actionLoopFn: (
+      cb: (event: { recipient: string; timestamp: number }, title: string) => void
+    ) => void
+  ) {
     const recipients = message.to.concat(message.cc, message.bcc);
 
     let actions = [];

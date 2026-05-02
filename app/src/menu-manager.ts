@@ -42,7 +42,7 @@ export default class MenuManager {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to remove the
   // added menu items.
-  add(items) {
+  add(items: IMenuItem[]) {
     const cloned = Utils.deepClone(items);
     for (const item of cloned) {
       this.merge(this.template, item);
@@ -52,7 +52,7 @@ export default class MenuManager {
     return new Disposable(() => this.remove(items));
   }
 
-  remove(items) {
+  remove(items: IMenuItem[]) {
     for (const item of items) {
       this.unmerge(this.template, item);
     }
@@ -94,18 +94,18 @@ export default class MenuManager {
 
   // Merges an item in a submenu aware way such that new items are always
   // appended to the bottom of existing menus where possible.
-  merge(menu, item) {
+  merge(menu: IMenuItem[], item: IMenuItem) {
     return MenuHelpers.merge(menu, item);
   }
 
-  unmerge(menu, item) {
+  unmerge(menu: IMenuItem[], item: IMenuItem) {
     return MenuHelpers.unmerge(menu, item);
   }
 
   // OSX can't handle displaying accelerators for multiple keystrokes.
   // If they are sent across, it will stop processing accelerators for the rest
   // of the menu items.
-  filterMultipleKeystroke(keystrokesByCommand) {
+  filterMultipleKeystroke(keystrokesByCommand: Record<string, string[]>) {
     if (!keystrokesByCommand) {
       return {};
     }
@@ -130,7 +130,7 @@ export default class MenuManager {
     return filtered;
   }
 
-  sendToBrowserProcess(template, keystrokesByCommand) {
+  sendToBrowserProcess(template: IMenuItem[], keystrokesByCommand: Record<string, string[]>) {
     const filtered = this.filterMultipleKeystroke(keystrokesByCommand);
     return ipcRenderer.send('update-application-menu', template, filtered);
   }

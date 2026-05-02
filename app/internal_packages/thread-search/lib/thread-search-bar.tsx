@@ -29,17 +29,18 @@ interface ThreadSearchBarProps {
   perspective: MailboxPerspective;
 }
 
+type ThreadSearchSuggestion = {
+  token?: string | null;
+  term: string;
+  description: string;
+  termSuggestions?: string[] | ((term: string, accountIds: string[]) => Promise<any>);
+  thread?: any;
+};
+
 interface ThreadSearchBarState {
-  suggestions: {
-    token: string;
-    term: string;
-    description: string;
-    termSuggestions: string[] | ((term: string, accountIds: string[]) => Promise<any>);
-  }[];
+  suggestions: ThreadSearchSuggestion[];
   focused: boolean;
-  selected?: {
-    description: any;
-  };
+  selected?: ThreadSearchSuggestion;
   selectedIdx: number;
 }
 
@@ -54,7 +55,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
 
   _fieldEl: TokenizingContenteditable;
 
-  constructor(props) {
+  constructor(props: ThreadSearchBarProps) {
     super(props);
     this.state = {
       suggestions: TokenSuggestionsForEmpty,
@@ -96,7 +97,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     }
   }
 
-  async _generateSuggestionsForQuery(query) {
+  async _generateSuggestionsForQuery(query: string) {
     let insertionIndex = this._fieldEl.insertionIndex();
 
     // Treat the initial query (eg: "in:starred AND ") as if it's
@@ -180,7 +181,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     }
   }
 
-  _onFocus = e => {
+  _onFocus = (e: React.FocusEvent) => {
     this.setState({ focused: true });
     if (this.props.query === '') {
       this._onSearchQueryChanged(this._initialQueryForPerspective());
@@ -188,14 +189,14 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     }
   };
 
-  _onBlur = e => {
+  _onBlur = (e: React.FocusEvent) => {
     this.setState({ focused: false });
     if (this.props.query === this._initialQueryForPerspective()) {
       this._onSearchQueryChanged('');
     }
   };
 
-  _onKeyDown = e => {
+  _onKeyDown = (e: React.KeyboardEvent) => {
     const { suggestions, selected, selectedIdx } = this.state;
     const delta = { 40: 1, 38: -1 }[e.keyCode];
 
@@ -226,7 +227,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     }
   };
 
-  _onChooseSuggestion = suggestion => {
+  _onChooseSuggestion = (suggestion: ThreadSearchSuggestion) => {
     const { query } = this.props;
 
     let nextQuery = null;
@@ -265,7 +266,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     }
   };
 
-  _onSearchQueryChanged = async query => {
+  _onSearchQueryChanged = async (query: string) => {
     if (query === this.props.query) {
       return;
     }
@@ -275,7 +276,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     }
   };
 
-  _setSuggestionState = suggestions => {
+  _setSuggestionState = (suggestions: ThreadSearchSuggestion[]) => {
     const sameItemIdx = suggestions.findIndex(
       s => this.state.selected && s.description === this.state.selected.description
     );
@@ -289,12 +290,12 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
     });
   };
 
-  _onSubmitSearchQuery = nextQuery => {
+  _onSubmitSearchQuery = (nextQuery: string) => {
     Actions.searchQuerySubmitted(nextQuery);
     this._fieldEl.blur();
   };
 
-  _onClearSearchQuery = (e?: React.MouseEvent) => {
+  _onClearSearchQuery = (e?: React.MouseEvent | React.KeyboardEvent) => {
     if (this.props.query !== '') {
       Actions.searchQuerySubmitted('');
     } else {

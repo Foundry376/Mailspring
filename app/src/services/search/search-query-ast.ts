@@ -1,53 +1,53 @@
 export class SearchQueryExpressionVisitor {
   _result = null;
 
-  visitAndGetResult(node) {
+  visitAndGetResult(node: QueryExpression) {
     node.accept(this);
     const result = this._result;
     this._result = null;
     return result;
   }
 
-  visitAnd(node) {
+  visitAnd(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitNot(node) {
+  visitNot(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitOr(node) {
+  visitOr(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitFrom(node) {
+  visitFrom(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitDate(node) {
+  visitDate(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitTo(node) {
+  visitTo(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitSubject(node) {
+  visitSubject(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitGeneric(node) {
+  visitGeneric(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitText(node) {
+  visitText(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitUnread(node) {
+  visitUnread(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitStarred(node) {
+  visitStarred(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitMatch(node) {
+  visitMatch(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitIn(node) {
+  visitIn(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
-  visitHasAttachment(node) {
+  visitHasAttachment(node: QueryExpression) {
     throw new Error(`Abstract function not implemented!: ${node}`);
   }
 }
@@ -55,7 +55,7 @@ export class SearchQueryExpressionVisitor {
 export class QueryExpression {
   _isMatchCompatible = null;
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     throw new Error(`Abstract function not implemented!: ${visitor}`);
   }
 
@@ -70,7 +70,7 @@ export class QueryExpression {
     throw new Error('Abstract function not implemented!');
   }
 
-  equals(other): boolean {
+  equals(other: QueryExpression): boolean {
     throw new Error(`Abstract function not implemented!: ${other}`);
   }
 }
@@ -79,13 +79,13 @@ export class NotQueryExpression extends QueryExpression {
   e1: QueryExpression;
   e2: QueryExpression;
 
-  constructor(e1, e2) {
+  constructor(e1: QueryExpression, e2: QueryExpression) {
     super();
     this.e1 = e1;
     this.e2 = e2;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitNot(this);
   }
 
@@ -96,7 +96,7 @@ export class NotQueryExpression extends QueryExpression {
     return this.e1.isMatchCompatible() && this.e2.isMatchCompatible();
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof NotQueryExpression)) {
       return false;
     }
@@ -108,13 +108,13 @@ export class AndQueryExpression extends QueryExpression {
   e1: QueryExpression;
   e2: QueryExpression;
 
-  constructor(e1, e2) {
+  constructor(e1: QueryExpression, e2: QueryExpression) {
     super();
     this.e1 = e1;
     this.e2 = e2;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitAnd(this);
   }
 
@@ -125,7 +125,7 @@ export class AndQueryExpression extends QueryExpression {
     return this.e1.isMatchCompatible() && this.e2.isMatchCompatible();
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof AndQueryExpression)) {
       return false;
     }
@@ -137,13 +137,13 @@ export class OrQueryExpression extends QueryExpression {
   e1: QueryExpression;
   e2: QueryExpression;
 
-  constructor(e1, e2) {
+  constructor(e1: QueryExpression, e2: QueryExpression) {
     super();
     this.e1 = e1;
     this.e2 = e2;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitOr(this);
   }
 
@@ -154,7 +154,7 @@ export class OrQueryExpression extends QueryExpression {
     return this.e1.isMatchCompatible() && this.e2.isMatchCompatible();
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof OrQueryExpression)) {
       return false;
     }
@@ -163,14 +163,14 @@ export class OrQueryExpression extends QueryExpression {
 }
 
 export class FromQueryExpression extends QueryExpression {
-  text: SearchQueryToken;
+  text: TextQueryExpression;
 
-  constructor(text) {
+  constructor(text: TextQueryExpression) {
     super();
     this.text = text;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitFrom(this);
   }
 
@@ -178,7 +178,7 @@ export class FromQueryExpression extends QueryExpression {
     return true;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof FromQueryExpression)) {
       return false;
     }
@@ -187,16 +187,16 @@ export class FromQueryExpression extends QueryExpression {
 }
 
 export class DateQueryExpression extends QueryExpression {
-  text: SearchQueryToken;
+  text: TextQueryExpression;
   direction: 'before' | 'after';
 
-  constructor(text, direction: 'before' | 'after' = 'before') {
+  constructor(text: TextQueryExpression, direction: 'before' | 'after' = 'before') {
     super();
     this.text = text;
     this.direction = direction;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitDate(this);
   }
 
@@ -204,7 +204,7 @@ export class DateQueryExpression extends QueryExpression {
     return false;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof DateQueryExpression)) {
       return false;
     }
@@ -213,14 +213,14 @@ export class DateQueryExpression extends QueryExpression {
 }
 
 export class ToQueryExpression extends QueryExpression {
-  text: SearchQueryToken;
+  text: TextQueryExpression;
 
-  constructor(text) {
+  constructor(text: TextQueryExpression) {
     super();
     this.text = text;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitTo(this);
   }
 
@@ -228,7 +228,7 @@ export class ToQueryExpression extends QueryExpression {
     return true;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof ToQueryExpression)) {
       return false;
     }
@@ -237,14 +237,14 @@ export class ToQueryExpression extends QueryExpression {
 }
 
 export class SubjectQueryExpression extends QueryExpression {
-  text: SearchQueryToken;
+  text: TextQueryExpression;
 
-  constructor(text) {
+  constructor(text: TextQueryExpression) {
     super();
     this.text = text;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitSubject(this);
   }
 
@@ -252,7 +252,7 @@ export class SubjectQueryExpression extends QueryExpression {
     return true;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof SubjectQueryExpression)) {
       return false;
     }
@@ -263,12 +263,12 @@ export class SubjectQueryExpression extends QueryExpression {
 export class UnreadStatusQueryExpression extends QueryExpression {
   status: boolean;
 
-  constructor(status) {
+  constructor(status: boolean) {
     super();
     this.status = status;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitUnread(this);
   }
 
@@ -276,7 +276,7 @@ export class UnreadStatusQueryExpression extends QueryExpression {
     return false;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof UnreadStatusQueryExpression)) {
       return false;
     }
@@ -287,12 +287,12 @@ export class UnreadStatusQueryExpression extends QueryExpression {
 export class StarredStatusQueryExpression extends QueryExpression {
   status: boolean;
 
-  constructor(status) {
+  constructor(status: boolean) {
     super();
     this.status = status;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitStarred(this);
   }
 
@@ -300,7 +300,7 @@ export class StarredStatusQueryExpression extends QueryExpression {
     return false;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof StarredStatusQueryExpression)) {
       return false;
     }
@@ -309,14 +309,14 @@ export class StarredStatusQueryExpression extends QueryExpression {
 }
 
 export class GenericQueryExpression extends QueryExpression {
-  text: SearchQueryToken;
+  text: TextQueryExpression;
 
-  constructor(text) {
+  constructor(text: TextQueryExpression) {
     super();
     this.text = text;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitGeneric(this);
   }
 
@@ -324,7 +324,7 @@ export class GenericQueryExpression extends QueryExpression {
     return true;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof GenericQueryExpression)) {
       return false;
     }
@@ -335,12 +335,12 @@ export class GenericQueryExpression extends QueryExpression {
 export class TextQueryExpression extends QueryExpression {
   token: SearchQueryToken;
 
-  constructor(text) {
+  constructor(text: SearchQueryToken) {
     super();
     this.token = text;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitText(this);
   }
 
@@ -348,7 +348,7 @@ export class TextQueryExpression extends QueryExpression {
     return true;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof TextQueryExpression)) {
       return false;
     }
@@ -357,14 +357,14 @@ export class TextQueryExpression extends QueryExpression {
 }
 
 export class InQueryExpression extends QueryExpression {
-  text: SearchQueryToken;
+  text: TextQueryExpression;
 
-  constructor(text) {
+  constructor(text: TextQueryExpression) {
     super();
     this.text = text;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitIn(this);
   }
 
@@ -372,7 +372,7 @@ export class InQueryExpression extends QueryExpression {
     return true;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof InQueryExpression)) {
       return false;
     }
@@ -381,7 +381,7 @@ export class InQueryExpression extends QueryExpression {
 }
 
 export class HasAttachmentQueryExpression extends QueryExpression {
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitHasAttachment(this);
   }
 
@@ -389,7 +389,7 @@ export class HasAttachmentQueryExpression extends QueryExpression {
     return false;
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     return other instanceof HasAttachmentQueryExpression;
   }
 }
@@ -401,12 +401,12 @@ export class HasAttachmentQueryExpression extends QueryExpression {
 export class MatchQueryExpression extends QueryExpression {
   rawQuery: string;
 
-  constructor(rawMatchQuery) {
+  constructor(rawMatchQuery: string) {
     super();
     this.rawQuery = rawMatchQuery;
   }
 
-  accept(visitor) {
+  accept(visitor: SearchQueryExpressionVisitor) {
     visitor.visitMatch(this);
   }
 
@@ -418,7 +418,7 @@ export class MatchQueryExpression extends QueryExpression {
     throw new Error('Invalid node');
   }
 
-  equals(other) {
+  equals(other: QueryExpression) {
     if (!(other instanceof MatchQueryExpression)) {
       return false;
     }
@@ -429,11 +429,11 @@ export class MatchQueryExpression extends QueryExpression {
 export class SearchQueryToken {
   s: string;
 
-  constructor(s) {
+  constructor(s: string) {
     this.s = s;
   }
 
-  equals(other) {
+  equals(other: SearchQueryToken) {
     if (!(other instanceof SearchQueryToken)) {
       return false;
     }

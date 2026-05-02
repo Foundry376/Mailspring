@@ -88,7 +88,7 @@ class DraftStore extends MailspringStore {
   @param {String} headerMessageId - The headerMessageId of the draft.
   @returns {Promise} - Resolves to an {DraftEditingSession} for the draft once it has been prepared
   */
-  async sessionForClientId(headerMessageId) {
+  async sessionForClientId(headerMessageId: string) {
     if (!headerMessageId) {
       throw new Error('DraftStore::sessionForClientId requires a headerMessageId');
     }
@@ -246,13 +246,13 @@ class DraftStore extends MailspringStore {
     });
   };
 
-  _onComposeAndSendForward = async({
+  _onComposeAndSendForward = async ({
     thread,
     threadId,
     message,
     messageId,
-    to
-  }) => {
+    to,
+  }: IThreadMessageModelOrId & { to?: Contact[] }) => {
     const { headerMessageId, draft } = await this._composeForward({
       thread: thread,
       threadId: threadId,
@@ -325,7 +325,7 @@ class DraftStore extends MailspringStore {
     return Promise.props(queries);
   }
 
-  async _finalizeAndPersistNewMessage(draft, { popout }: { popout?: boolean } = {}) {
+  async _finalizeAndPersistNewMessage(draft: Message, { popout }: { popout?: boolean } = {}) {
     // Give extensions an opportunity to perform additional setup to the draft
     ExtensionRegistry.Composer.extensions().forEach(extension => {
       if (!extension.prepareNewDraft) {
@@ -353,7 +353,7 @@ class DraftStore extends MailspringStore {
     return this._draftSessions[headerMessageId];
   }
 
-  _onPopoutNewDraftToRecipient = async contact => {
+  _onPopoutNewDraftToRecipient = async (contact: Contact) => {
     const draft = await DraftFactory.createDraft({ to: [contact] });
     await this._finalizeAndPersistNewMessage(draft, { popout: true });
   };
@@ -387,7 +387,7 @@ class DraftStore extends MailspringStore {
     });
   };
 
-  _onHandleMailtoLink = async (event, urlString) => {
+  _onHandleMailtoLink = async (event: Electron.IpcRendererEvent, urlString: string) => {
     // returned promise is just used for specs
     const draft = await DraftFactory.createDraftForMailto(urlString);
     try {
@@ -397,7 +397,7 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onHandleMailFiles = async (event, paths) => {
+  _onHandleMailFiles = async (event: Electron.IpcRendererEvent, paths: string[]) => {
     // returned promise is just used for specs
     const draft = await DraftFactory.createDraft();
     const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
@@ -419,7 +419,7 @@ class DraftStore extends MailspringStore {
     });
   };
 
-  _onDestroyDraft = ({ accountId, headerMessageId, id }) => {
+  _onDestroyDraft = ({ accountId, headerMessageId, id }: { accountId: string; headerMessageId: string; id?: string }) => {
     const session = this._draftSessions[headerMessageId];
 
     // Immediately reset any pending changes so no saves occur

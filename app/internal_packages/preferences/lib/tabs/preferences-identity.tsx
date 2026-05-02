@@ -246,7 +246,7 @@ class PreferencesIdentity extends React.Component<
     );
   }
 
-  _renderPaidPlan(planName, effectivePlanName) {
+  _renderPaidPlan(planName: string, effectivePlanName: string) {
     const planDisplayName = planName.replace('Annual', ` (${localized('annual')})`);
 
     const unpaidNote = effectivePlanName !== planName && (

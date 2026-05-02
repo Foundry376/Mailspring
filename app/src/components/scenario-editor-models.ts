@@ -17,13 +17,16 @@ export class Comparator {
     );
   }
 
-  constructor({ name, arrayMatchFn }, fn) {
+  constructor(
+    { name, arrayMatchFn }: { name: string; arrayMatchFn: typeof Array.prototype.some },
+    fn: (args: { actual: any; desired: any }) => boolean
+  ) {
     this.name = name;
     this.fn = fn;
     this.arrayMatchFn = arrayMatchFn;
   }
 
-  evaluate({ actual, desired }) {
+  evaluate({ actual, desired }: { actual: any; desired: any }) {
     if (actual instanceof Array) {
       return this.arrayMatchFn.call(actual, item => this.fn({ actual: item, desired }));
     }
@@ -141,7 +144,7 @@ export class Template {
   valueForMessage?: (message: Message) => any;
   comparators: { [comparatorKey: string]: Comparator };
 
-  constructor(key, type, options: Partial<Template> = {}) {
+  constructor(key: string, type: string, options: Partial<Template> = {}) {
     this.key = key;
     this.type = type;
 
@@ -173,7 +176,7 @@ export class Template {
     };
   }
 
-  coerceInstance(instance) {
+  coerceInstance(instance: { templateKey: string; comparatorKey: string; value: any }) {
     instance.templateKey = this.key;
     if (!this.comparators) {
       instance.comparatorKey = undefined;
@@ -183,7 +186,7 @@ export class Template {
     return instance;
   }
 
-  evaluate(instance, value) {
+  evaluate(instance: { comparatorKey: string; value: any }, value: any) {
     let comparator = this.comparators[instance.comparatorKey];
     if (typeof comparator === 'undefined' || comparator === null) {
       comparator = Comparator.Default;

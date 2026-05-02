@@ -523,7 +523,7 @@ xdescribe('DraftStore', function draftStore() {
 
       it('should give extensions a chance to customize the draft via ext.prepareNewDraft', () => {
         waitsForPromise(() => {
-          return DraftStore._onHandleMailtoLink({}, 'mailto:bengotow@gmail.com').then(() => {
+          return DraftStore._onHandleMailtoLink({} as any, 'mailto:bengotow@gmail.com').then(() => {
             const received = (globalThis as any).DatabaseWriter.prototype.persistModel.mostRecentCall.args[0];
             expect(received.body.indexOf('Edited by TestExtension!')).toBe(0);
           });
@@ -536,7 +536,7 @@ xdescribe('DraftStore', function draftStore() {
       spyOn(DraftFactory, 'createDraftForMailto').andReturn(Promise.resolve(draft));
       spyOn(DraftStore, '_onPopoutDraft');
       waitsForPromise(() => {
-        return DraftStore._onHandleMailtoLink({}, 'mailto:bengotow@gmail.com').then(() => {
+        return DraftStore._onHandleMailtoLink({} as any, 'mailto:bengotow@gmail.com').then(() => {
           const received = (globalThis as any).DatabaseWriter.prototype.persistModel.mostRecentCall.args[0];
           expect(received).toEqual(draft);
           expect(DraftStore._onPopoutDraft).toHaveBeenCalled();
@@ -551,7 +551,7 @@ xdescribe('DraftStore', function draftStore() {
       spyOn(DraftStore, '_onPopoutDraft');
       spyOn(Account.prototype, 'defaultMe').andReturn(defaultMe);
       spyOn(Actions, 'addAttachment').andCallFake(({ onCreated }) => onCreated());
-      DraftStore._onHandleMailFiles({}, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
+      DraftStore._onHandleMailFiles({} as any, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
       waitsFor(() => (globalThis as any).DatabaseWriter.prototype.persistModel.callCount > 0);
       runs(() => {
         const { body, subject, from } = (globalThis as any).DatabaseWriter.prototype.persistModel.calls[0].args[0];
@@ -562,7 +562,7 @@ xdescribe('DraftStore', function draftStore() {
 
     it('should call addAttachment for each provided file path', () => {
       spyOn(Actions, 'addAttachment');
-      DraftStore._onHandleMailFiles({}, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
+      DraftStore._onHandleMailFiles({} as any, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
       waitsFor(() => (Actions.addAttachment as unknown as jasmine.Spy).callCount === 2);
       runs(() => {
         expect((Actions.addAttachment as unknown as jasmine.Spy).calls[0].args[0].filePath).toEqual('/Users/ben/file1.png');

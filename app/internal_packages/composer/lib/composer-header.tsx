@@ -52,7 +52,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     participantsContainer?: KeyCommandsRegion;
   } = {};
 
-  constructor(props) {
+  constructor(props: ComposerHeaderProps) {
     super(props);
     this._els = {};
     this.state = this._initialStateForDraft(this.props.draft, props);
@@ -92,7 +92,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     this.setState({ enabledFields });
   };
 
-  _ensureFilledFieldsEnabled(draft) {
+  _ensureFilledFieldsEnabled(draft: Message) {
     let enabledFields = this.state.enabledFields;
     if (draft.cc.length && !enabledFields.find(f => f === Fields.Cc)) {
       enabledFields = [Fields.Cc].concat(enabledFields);
@@ -108,7 +108,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     }
   }
 
-  _initialStateForDraft(draft, props) {
+  _initialStateForDraft(draft: Message, props: ComposerHeaderProps) {
     const enabledFields = [Fields.To];
     if (draft.cc.length > 0) enabledFields.push(Fields.Cc);
     if (draft.bcc.length > 0) enabledFields.push(Fields.Bcc);
@@ -140,7 +140,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     Actions.draftParticipantsChanged(this.props.draft.id, changes);
   };
 
-  _onSubjectChange = event => {
+  _onSubjectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.props.session.changes.add({ subject: event.target.value });
   };
 

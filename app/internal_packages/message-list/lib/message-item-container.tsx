@@ -27,7 +27,7 @@ export default class MessageItemContainer extends React.Component<
   _unlisten: () => void;
   _messageComponent: MessageItem | React.ComponentType<any>;
 
-  constructor(props, context) {
+  constructor(props: MessageItemContainerProps, context: object) {
     super(props, context);
     this.state = this._getStateFromStores();
   }
@@ -44,7 +44,10 @@ export default class MessageItemContainer extends React.Component<
     }
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(
+    nextProps: MessageItemContainerProps,
+    nextState: MessageItemContainerState
+  ) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -80,7 +83,7 @@ export default class MessageItemContainer extends React.Component<
     };
   }
 
-  _renderMessage({ pending }) {
+  _renderMessage({ pending }: { pending: boolean }) {
     return (
       <MessageItem
         ref={cm => {

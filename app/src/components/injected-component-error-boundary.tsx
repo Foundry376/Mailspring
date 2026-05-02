@@ -12,12 +12,12 @@ export default class InjectedComponentErrorBoundary extends React.Component<
 > {
   static displayName = 'InjectedComponentErrorBoundary';
 
-  constructor(props) {
+  constructor(props: Record<string, unknown>) {
     super(props);
     this.state = { error: null };
   }
 
-  componentDidCatch(error, info) {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     this.setState({ error: error.stack });
     AppEnv.reportError(error);
   }

@@ -493,7 +493,7 @@ export class DraftEditingSession extends MailspringStore {
 
     for (const [key, val] of Object.entries(changes)) {
       if (key.startsWith(MetadataChangePrefix)) {
-        this._draft.directlyAttachMetadata(key.split(MetadataChangePrefix).pop(), val);
+        this._draft.directlyAttachMetadata(key.split(MetadataChangePrefix).pop(), val as Record<string, any>);
       } else {
         this._draft[key] = val;
       }

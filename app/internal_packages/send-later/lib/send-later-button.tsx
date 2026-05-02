@@ -14,7 +14,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 import SendLaterPopover from './send-later-popover';
 import { PLUGIN_ID } from './send-later-constants';
 
-function sendLaterDateForDraft(draft) {
+function sendLaterDateForDraft(draft: Message) {
   return ((draft && draft.metadataForPluginId(PLUGIN_ID)) || {}).expiration;
 }
 
@@ -49,7 +49,7 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
     this.mounted = true;
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: SendLaterButtonProps, nextState: SendLaterButtonState) {
     if (nextState.saving !== this.state.saving) {
       return true;
     }
@@ -59,7 +59,7 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
     return false;
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: SendLaterButtonProps) {
     if (
       this.state.saving &&
       sendLaterDateForDraft(prevProps.draft) !== sendLaterDateForDraft(this.props.draft)
@@ -72,7 +72,7 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
     this.mounted = false;
   }
 
-  onAssignSendLaterDate = async (sendLaterDate, dateLabel) => {
+  onAssignSendLaterDate = async (sendLaterDate: Date, dateLabel: string) => {
     if (!this.props.isValidDraft()) {
       return;
     }

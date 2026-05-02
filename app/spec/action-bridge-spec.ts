@@ -5,7 +5,7 @@ import ActionBridge from '../src/flux/action-bridge';
 const ipc = {
   on() {},
   send() {},
-};
+} as any;
 
 describe('ActionBridge', function() {
   describe('in the main window', function() {

@@ -49,7 +49,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
 
   _headerEl: HTMLElement;
 
-  constructor(props, context) {
+  constructor(props: MessageItemProps, context: object) {
     super(props, context);
 
     const fileIds = this.props.message.fileIds();
@@ -68,7 +68,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     this._storeUnlisten = AttachmentStore.listen(this._onDownloadStoreChange);
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: MessageItemProps, nextState: MessageItemState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -91,7 +91,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     return;
   };
 
-  _onClickHeader = e => {
+  _onClickHeader = (e: React.MouseEvent<HTMLElement>) => {
     this._onToggleCollapsed();
   };
 

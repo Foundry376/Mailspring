@@ -23,11 +23,14 @@ export class MessageListScrollTooltip extends React.Component<
     }
   }
 
-  shouldComponentUpdate(newProps, newState) {
+  shouldComponentUpdate(
+    newProps: { viewportCenter: number; totalHeight: number },
+    newState: { idx: number; count: number }
+  ) {
     return !Utils.isEqualReact(this.state, newState);
   }
 
-  setupForProps(props) {
+  setupForProps(props: { viewportCenter: number; totalHeight: number }) {
     // Technically, we could have MessageList provide the currently visible
     // item index, but the DOM approach is simple and self-contained.
     //

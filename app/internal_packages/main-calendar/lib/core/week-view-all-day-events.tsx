@@ -34,7 +34,7 @@ interface WeekViewAllDayEventsProps extends EventRendererProps {
 export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsProps> {
   static displayName = 'WeekViewAllDayEvents';
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: WeekViewAllDayEventsProps, nextState: Record<string, never>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 

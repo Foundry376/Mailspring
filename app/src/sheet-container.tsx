@@ -32,7 +32,7 @@ export default class SheetContainer extends React.Component<
     this.unsubscribe = WorkspaceStore.listen(this._onStoreChange);
   }
 
-  componentDidCatch(error, info) {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     // We don't currently display the error, but we need to call setState within
     // this function or the component does not re-render after being reset.
     this.setState({ error: error.stack });
@@ -52,7 +52,7 @@ export default class SheetContainer extends React.Component<
     };
   }
 
-  _onColumnSizeChanged = sheet => {
+  _onColumnSizeChanged = (sheet: Sheet) => {
     const toolbar = this._toolbarComponents[sheet.props.depth];
     if (toolbar) {
       toolbar.recomputeLayout();

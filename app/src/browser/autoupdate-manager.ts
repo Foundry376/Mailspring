@@ -27,7 +27,7 @@ export default class AutoUpdateManager extends EventEmitter {
   releaseNotes: string;
   releaseVersion: string;
 
-  constructor(version, config, specMode) {
+  constructor(version: string, config: import('../config').default, specMode: boolean) {
     super();
 
     this.version = version;
@@ -137,7 +137,7 @@ export default class AutoUpdateManager extends EventEmitter {
     );
   }
 
-  setState(state) {
+  setState(state: string) {
     if (this.state === state) {
       return;
     }

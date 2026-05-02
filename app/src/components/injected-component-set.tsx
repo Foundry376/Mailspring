@@ -91,7 +91,7 @@ export class InjectedComponentSet extends React.Component<
   _mounted = false;
   _componentUnlistener?: () => void;
 
-  constructor(props, context) {
+  constructor(props: InjectedComponentSetProps & React.HTMLProps<HTMLDivElement>, context: unknown) {
     super(props, context);
     this.state = !props.deferred ? this._getStateFromStores() : { components: [], visible: false };
   }

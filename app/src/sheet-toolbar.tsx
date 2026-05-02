@@ -132,7 +132,7 @@ class ToolbarWindowControls extends React.Component<Record<string, unknown>, { a
     this.setState({ alt: AppEnv.keymaps.getIsAltKeyDown() });
   };
 
-  _onMaximize = event => {
+  _onMaximize = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (process.platform === 'darwin' && !event.altKey) {
       AppEnv.setFullScreen(!AppEnv.isFullScreen());
     } else {
@@ -291,7 +291,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     window.requestAnimationFrame(() => this.recomputeLayout());
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: ToolbarProps, nextState: ToolbarState) {
     // This is very important. Because toolbar uses CSSTransitionGroup,
     // repetitive unnecessary updates can break animations and cause performance issues.
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
@@ -356,7 +356,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     this.recomputeLayout();
   };
 
-  _getStateFromStores(props = this.props) {
+  _getStateFromStores(props: ToolbarProps = this.props) {
     const state: ToolbarState = {
       mode: WorkspaceStore.layoutMode(),
       columns: [],
@@ -410,7 +410,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     return state;
   }
 
-  _flexboxForComponents(components) {
+  _flexboxForComponents(components: Array<typeof React.Component & { displayName?: string }>) {
     const elements = components.map(Component => (
       <Component key={Component.displayName} {...this.props} />
     ));

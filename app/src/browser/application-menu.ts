@@ -19,7 +19,7 @@ export default class ApplicationMenu {
   activeTemplate: any;
   menu: Electron.Menu;
 
-  constructor(version) {
+  constructor(version: string) {
     this.version = version;
     this.setActiveTemplate(this.getDefaultTemplate());
     global.application.autoUpdateManager.on('state-changed', state => {
@@ -33,7 +33,7 @@ export default class ApplicationMenu {
   // template - The Object which describes the menu to display.
   // keystrokesByCommand - An Object where the keys are commands and the values
   //                       are Arrays containing the keystroke.
-  update(window, template, keystrokesByCommand) {
+  update(window: BrowserWindow, template: any[], keystrokesByCommand: Record<string, string[]>) {
     this.translateTemplate(template, keystrokesByCommand);
     this.windowTemplates.set(window, template);
     if (window === this.lastFocusedWindow) {
@@ -64,7 +64,7 @@ export default class ApplicationMenu {
   }
 
   // Register a BrowserWindow with this application menu.
-  addWindow(window) {
+  addWindow(window: BrowserWindow) {
     if (!this.lastFocusedWindow) {
       this.lastFocusedWindow = window;
     }
@@ -100,7 +100,7 @@ export default class ApplicationMenu {
   // menu - A complete menu configuration object for electron's menu API.
   //
   // Returns an Array of native menu items.
-  flattenMenuItems(menu) {
+  flattenMenuItems(menu: Electron.Menu) {
     let items = [];
     for (const item of menu.items || []) {
       items.push(item);
@@ -116,7 +116,7 @@ export default class ApplicationMenu {
   // template - An object describing the menu item.
   //
   // Returns an Array of native menu items.
-  flattenMenuTemplate(template) {
+  flattenMenuTemplate(template: any[]) {
     let items = [];
     for (const item of template) {
       items.push(item);
@@ -131,7 +131,7 @@ export default class ApplicationMenu {
   //
   // enable - If true enables all window specific items, if false disables all
   //          window specific items.
-  enableWindowSpecificItems(enable) {
+  enableWindowSpecificItems(enable: boolean) {
     for (const item of this.flattenMenuItems(this.menu)) {
       if (item.metadata && item.metadata['windowSpecific']) {
         item.enabled = enable;
@@ -140,14 +140,14 @@ export default class ApplicationMenu {
   }
 
   // Replaces VERSION with the current version.
-  extendTemplateWithVersion(template) {
+  extendTemplateWithVersion(template: any[]) {
     const item = this.flattenMenuTemplate(template).find(({ label }) => label === 'VERSION');
     if (item) {
       item.label = `Version ${this.version}`;
     }
   }
 
-  extendTemplateWithWindowMenu(template) {
+  extendTemplateWithWindowMenu(template: any[]) {
     const windowMenu = template.find(({ label }) => label === localized('Window'));
     if (!windowMenu) {
       return;
@@ -169,7 +169,7 @@ export default class ApplicationMenu {
   }
 
   // Sets the proper visible state the update menu items
-  updateAutoupdateMenuItem(state) {
+  updateAutoupdateMenuItem(state: string) {
     const checkForUpdateItem = this.flattenMenuItems(this.menu).find(
       ({ label }) => label === localized('Check for Updates')
     );
@@ -205,7 +205,7 @@ export default class ApplicationMenu {
     }
   }
 
-  updateFullscreenMenuItem(fullscreen) {
+  updateFullscreenMenuItem(fullscreen: boolean) {
     const enterItem = this.flattenMenuItems(this.menu).find(
       ({ label }) => label === localized('Enter Full Screen')
     );
@@ -277,7 +277,7 @@ export default class ApplicationMenu {
   //
   // Returns a complete menu configuration object for electron's menu API.
   //
-  translateTemplate(template, keystrokesByCommand) {
+  translateTemplate(template: any[], keystrokesByCommand: Record<string, string[]>) {
     template.forEach(item => {
       if (item.metadata == null) {
         item.metadata = {};
@@ -306,7 +306,7 @@ export default class ApplicationMenu {
   //
   // Returns a String containing the keystroke in a format that can be interpreted
   //   by Electron to provide nice icons where available.
-  acceleratorForCommand(command, keystrokesByCommand) {
+  acceleratorForCommand(command: string, keystrokesByCommand: Record<string, string[]>) {
     let firstKeystroke = keystrokesByCommand[command] && keystrokesByCommand[command][0];
     if (!firstKeystroke) {
       return null;

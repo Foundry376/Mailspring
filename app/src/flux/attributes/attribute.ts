@@ -37,7 +37,7 @@ export class Attribute {
     this.loadFromColumn = loadFromColumn;
   }
 
-  _assertPresentAndQueryable(fnName, val) {
+  _assertPresentAndQueryable(fnName: string, val: unknown) {
     if (val === undefined) {
       throw new Error(`Attribute::${fnName} (${this.modelKey}) - you must provide a value`);
     }
@@ -55,7 +55,7 @@ export class Attribute {
   }
 
   // Public: Returns a {Matcher} for objects `=` to the provided value.
-  in(val, { notIn }: { notIn?: boolean } = {}) {
+  in(val: (string | number | boolean)[], { notIn }: { notIn?: boolean } = {}) {
     this._assertPresentAndQueryable('in', val);
 
     if (!(val instanceof Array)) {
@@ -74,12 +74,12 @@ export class Attribute {
     return new Matcher(this, matcherType, val);
   }
 
-  notIn(val) {
+  notIn(val: (string | number | boolean)[]) {
     return this.in(val, { notIn: true });
   }
 
   // Public: Returns a {Matcher} for objects `!=` to the provided value.
-  not(val) {
+  not(val: string | number | boolean) {
     this._assertPresentAndQueryable('not', val);
     return new Matcher(this, '!=', val);
   }
@@ -94,15 +94,15 @@ export class Attribute {
     return new SortOrder(this, 'ASC');
   }
 
-  toJSON(val) {
+  toJSON(val: unknown): unknown {
     return val;
   }
 
-  fromJSON(val) {
+  fromJSON(val: unknown): unknown {
     return val || null;
   }
 
-  fromColumn(val) {
+  fromColumn(val: unknown): unknown {
     return this.fromJSON(val);
   }
 

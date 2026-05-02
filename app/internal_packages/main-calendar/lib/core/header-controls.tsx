@@ -56,7 +56,7 @@ export class HeaderControls extends React.Component<{
     );
   }
 
-  _changeView = newView => {
+  _changeView = (newView: CalendarView) => {
     this.props.onChangeView(newView);
   };
 

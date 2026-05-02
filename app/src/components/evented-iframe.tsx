@@ -66,7 +66,7 @@ export class EventedIFrame extends React.Component<
     if (this.props.searchable) {
       this._regionId = Utils.generateTempId();
       this._searchUsub = SearchableComponentStore.listen(this._onSearchableStoreChange);
-      SearchableComponentStore.registerSearchRegion(this._regionId, ReactDOM.findDOMNode(this));
+      SearchableComponentStore.registerSearchRegion(this._regionId, ReactDOM.findDOMNode(this) as HTMLElement);
     }
     this._subscribeToIFrameEvents();
   }
@@ -81,11 +81,11 @@ export class EventedIFrame extends React.Component<
 
   componentDidUpdate() {
     if (this.props.searchable) {
-      SearchableComponentStore.registerSearchRegion(this._regionId, ReactDOM.findDOMNode(this));
+      SearchableComponentStore.registerSearchRegion(this._regionId, ReactDOM.findDOMNode(this) as HTMLElement);
     }
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: EventedIFrameProps & React.HTMLProps<HTMLIFrameElement>, nextState: Record<string, unknown>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -98,7 +98,7 @@ export class EventedIFrame extends React.Component<
     this._subscribeToIFrameEvents();
   }
 
-  setHeightQuietly(height) {
+  setHeightQuietly(height: number) {
     const el = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     if (el.style.height !== `${height}px`) {
       el.style.height = `${height}px`;
@@ -167,9 +167,9 @@ export class EventedIFrame extends React.Component<
     });
   }
 
-  _getContainingTarget(event, options) {
-    let { target } = event;
-    while (target != null && target !== document && target !== window) {
+  _getContainingTarget(event: MouseEvent, options: { with: string }): HTMLElement | null {
+    let target = event.target as HTMLElement | null;
+    while (target != null && target !== (document as unknown) && target !== (window as unknown)) {
       if (target.getAttribute(options.with) != null) {
         return target;
       }
@@ -239,7 +239,7 @@ export class EventedIFrame extends React.Component<
     }
   };
 
-  _isBlacklistedHref(href) {
+  _isBlacklistedHref(href: string) {
     return new RegExp(/^file:/i).test(href);
   }
 
@@ -387,7 +387,7 @@ export class EventedIFrame extends React.Component<
                 const canvas = document.createElement('canvas');
                 canvas.width = img.width;
                 canvas.height = img.height;
-                canvas.getContext('2d').drawImage(imageTarget, 0, 0);
+                canvas.getContext('2d').drawImage(imageTarget as HTMLImageElement, 0, 0);
                 const imageDataURL = canvas.toDataURL('image/png');
                 ipcRenderer.send('write-image-to-clipboard', imageDataURL);
               },
@@ -410,7 +410,7 @@ export class EventedIFrame extends React.Component<
       text = range.toString();
     }
     if (!text || text.length === 0) {
-      text = (linkTarget != null ? linkTarget : event.target).innerText;
+      text = (linkTarget != null ? linkTarget : (event.target as HTMLElement)).innerText;
     }
     text = text.trim();
 

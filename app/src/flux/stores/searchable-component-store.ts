@@ -37,7 +37,7 @@ class SearchableComponentStore extends MailspringStore {
     });
   }
 
-  getCurrentRegionIndex(regionId) {
+  getCurrentRegionIndex(regionId: string) {
     let regionOffset = null;
     if (
       regionId &&
@@ -143,7 +143,7 @@ class SearchableComponentStore extends MailspringStore {
         this.currentMatch = this.matches[this.globalIndex];
       }
 
-      const parentFilter = node => {
+      const parentFilter = (node: Element) => {
         return node.classList.contains('scroll-region-content');
       };
       this.scrollAncestor = DOMUtils.commonAncestor(searchNodes, parentFilter);
@@ -177,7 +177,7 @@ class SearchableComponentStore extends MailspringStore {
     this.trigger();
   }, 33);
 
-  _moveGlobalIndexBy(amount) {
+  _moveGlobalIndexBy(amount: number) {
     if (this.matches.length === 0) {
       return;
     }
@@ -212,7 +212,7 @@ class SearchableComponentStore extends MailspringStore {
     }
   }
 
-  _findInThread = search => {
+  _findInThread = (search: string | null) => {
     if (search !== this.searchTerm) {
       this.searchTerm = search;
       this.trigger();
@@ -220,12 +220,12 @@ class SearchableComponentStore extends MailspringStore {
     }
   };
 
-  registerSearchRegion(regionId, domNode) {
+  registerSearchRegion(regionId: string, domNode: HTMLElement) {
     this.searchRegions[regionId] = domNode;
     this._recalculateMatches();
   }
 
-  unregisterSearchRegion(regionId) {
+  unregisterSearchRegion(regionId: string) {
     delete this.searchRegions[regionId];
     this._recalculateMatches();
   }

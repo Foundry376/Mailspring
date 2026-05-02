@@ -40,7 +40,7 @@ export class ListTabularItem extends React.Component<ListTabularItemProps> {
   // DO NOT DELETE unless you know what you're doing! This method cuts
   // React.Perf.wasted-time from ~300msec to 20msec by doing a deep
   // comparison of props before triggering a re-render.
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: ListTabularItemProps, nextState: Record<string, unknown>) {
     if (
       !Utils.isEqualReact(this.props.item, nextProps.item) ||
       this.props.columns !== nextProps.columns
@@ -116,7 +116,7 @@ export class ListTabularItem extends React.Component<ListTabularItemProps> {
     });
   };
 
-  _onClick = event => {
+  _onClick = (event: React.MouseEvent) => {
     if (typeof this.props.onSelect === 'function') {
       this.props.onSelect(this.props.item, event);
     }

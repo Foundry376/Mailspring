@@ -151,7 +151,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
 
   _expandTimeout?: NodeJS.Timeout;
 
-  constructor(props) {
+  constructor(props: OutlineViewItemProps) {
     super(props);
     this.state = {
       isDropping: false,
@@ -172,7 +172,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     }
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: OutlineViewItemProps, nextState: OutlineViewItemState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -185,10 +185,11 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
 
   // Helpers
 
-  _runCallback = (method, ...args) => {
+  _runCallback = (method: keyof IOutlineViewItem, ...args: unknown[]) => {
     const item = this.props.item;
-    if (item[method]) {
-      return item[method](item, ...args);
+    const fn = item[method];
+    if (typeof fn === 'function') {
+      return fn(item, ...args);
     }
     return undefined;
   };
@@ -202,11 +203,11 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     );
   };
 
-  _shouldAcceptDrop = event => {
+  _shouldAcceptDrop = (event: React.DragEvent) => {
     return this._runCallback('shouldAcceptDrop', event);
   };
 
-  _clearEditingState = event => {
+  _clearEditingState = (event: React.SyntheticEvent) => {
     this.setState({ editing: false });
     this._runCallback('onInputCleared', event);
   };
@@ -225,7 +226,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     }
   };
 
-  _onDrop = event => {
+  _onDrop = (event: React.DragEvent) => {
     this._runCallback('onDrop', event);
   };
 
@@ -233,7 +234,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     this._runCallback('onCollapseToggled');
   };
 
-  _onClick = event => {
+  _onClick = (event: React.MouseEvent) => {
     event.preventDefault();
     this._runCallback('onSelect');
   };
@@ -242,7 +243,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     this._runCallback('onDelete');
   };
 
-  _onEdited = value => {
+  _onEdited = (value: string) => {
     this._runCallback('onEdited', value);
   };
 
@@ -259,7 +260,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     this.setState({ creatingChild: true });
   };
 
-  _onChildCreated = (_item, value) => {
+  _onChildCreated = (_item: IOutlineViewItem, value: string) => {
     this.setState({ creatingChild: false });
     if (value) {
       this._runCallback('onCreateChild', value);
@@ -270,21 +271,21 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     this.setState({ creatingChild: false });
   };
 
-  _onInputFocus = event => {
+  _onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     const input = event.target;
     input.selectionStart = input.selectionEnd = input.value.length;
   };
 
-  _onInputBlur = event => {
+  _onInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     this._clearEditingState(event);
   };
 
-  _onInputKeyDown = event => {
+  _onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       this._clearEditingState(event);
     }
     if (['Enter', 'Return'].includes(event.key)) {
-      this._onEdited(event.target.value);
+      this._onEdited((event.target as HTMLInputElement).value);
       this._clearEditingState(event);
     }
   };
@@ -335,7 +336,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     return menu;
   };
 
-  _onShowContextMenu = event => {
+  _onShowContextMenu = (event: MouseEvent) => {
     event.stopPropagation();
     this._buildContextMenu().popup({});
   };
@@ -347,7 +348,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
 
   // Renderers
 
-  _renderItem(item = this.props.item, state = this.state) {
+  _renderItem(item: IOutlineViewItem = this.props.item, state: OutlineViewItemState = this.state) {
     const containerClass = classnames({
       item: true,
       selected: item.selected,
@@ -428,7 +429,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     return <OutlineViewItem item={item} level={(this.props.level || 1) + 1} />;
   }
 
-  _renderChildren(item = this.props.item) {
+  _renderChildren(item: IOutlineViewItem = this.props.item) {
     const showRegularChildren = item.children.length > 0 && !item.collapsed;
     const showCreateChildInput = this.state.creatingChild;
 

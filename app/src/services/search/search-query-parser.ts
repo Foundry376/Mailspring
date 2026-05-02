@@ -188,7 +188,7 @@ const consumeExpectedToken = (text: string, token: string) => {
   return afterTok;
 };
 
-const parseText = (text: string): [QueryExpression, string] => {
+const parseText = (text: string): [TextQueryExpression, string] => {
   const [tok, afterTok] = nextToken(text);
   if (tok === null) {
     throw new Error('Expected text but none available');

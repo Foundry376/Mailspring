@@ -25,7 +25,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
     return element.length;
   }
 
-  textNodeContents(textNode) {
+  textNodeContents(textNode: { element: string }) {
     return textNode.element;
   }
 
@@ -42,7 +42,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
     return false;
   }
 
-  getRawFullString(fullString) {
+  getRawFullString(fullString: Array<{ element: string }>) {
     return fullString.map(x => x.element).join('');
   }
 
@@ -98,7 +98,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
     }
     return element;
   }
-  _isSearchElement(element) {
+  _isSearchElement(element: React.ReactElement) {
     return element.type === SearchMatch;
   }
 
@@ -109,7 +109,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
     const className = isCurrentMatch ? 'current-match' : '';
     return React.createElement(SearchMatch, { className, regionId, renderIndex }, matchText);
   }
-  textNodeKey(textElement) {
+  textNodeKey(textElement: { parentNode: unknown }) {
     return textElement.parentNode;
   }
 

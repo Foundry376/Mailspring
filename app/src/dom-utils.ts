@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 const DOMUtils = {
-  findLastTextNode(node) {
+  findLastTextNode(node: Node) {
     if (!node) {
       return null;
     }
@@ -21,7 +21,7 @@ const DOMUtils = {
     return null;
   },
 
-  findFirstTextNode(node) {
+  findFirstTextNode(node: Node) {
     if (!node) {
       return null;
     }
@@ -40,7 +40,7 @@ const DOMUtils = {
     return null;
   },
 
-  escapeHTMLCharacters(text) {
+  escapeHTMLCharacters(text: string) {
     const map = {
       '&': '&amp;',
       '<': '&lt;',
@@ -56,9 +56,9 @@ const DOMUtils = {
   //
   // WARNING. This is a fairly expensive operation and should be used
   // sparingly.
-  nodeIsVisible(node) {
+  nodeIsVisible(node: Node) {
     while (node && node.nodeType === Node.ELEMENT_NODE) {
-      const style = window.getComputedStyle(node);
+      const style = window.getComputedStyle(node as Element);
       node = node.parentNode;
       if (style == null) {
         continue;
@@ -82,11 +82,11 @@ const DOMUtils = {
   // It is less thorough then Utils.nodeIsVisible, but is ~16x faster!!
   // http://jsperf.com/check-hidden
   // http://stackoverflow.com/a/21696585/793472
-  nodeIsLikelyVisible(node) {
+  nodeIsLikelyVisible(node: HTMLElement) {
     return node.offsetParent !== null;
   },
 
-  commonAncestor(nodes, parentFilter) {
+  commonAncestor(nodes: NodeList | Node[], parentFilter?: (node: Node) => boolean) {
     if (nodes == null) {
       return null;
     }
@@ -94,7 +94,7 @@ const DOMUtils = {
       return null;
     }
 
-    nodes = Array.prototype.slice.call(nodes);
+    const nodesArray: Node[] = Array.prototype.slice.call(nodes);
 
     let minDepth = Number.MAX_VALUE;
     // Sometimes we can potentially have tons of REALLY deeply nested
@@ -124,10 +124,11 @@ const DOMUtils = {
     // _.intersection will preserve the ordering of the parent node arrays.
     // parents are ordered top to bottom, so the last node is the most
     // specific common ancenstor
-    return _.intersection.apply(null, nodes.map(getParents)).at(-1);
+    const result = _.intersection.apply(null, nodesArray.map(getParents));
+    return result[result.length - 1];
   },
 
-  scrollAdjustmentToMakeNodeVisibleInContainer(node, container) {
+  scrollAdjustmentToMakeNodeVisibleInContainer(node: Element, container: Element) {
     if (!node) {
       return;
     }
@@ -136,7 +137,7 @@ const DOMUtils = {
     return this.scrollAdjustmentToMakeRectVisibleInRect(nodeRect, containerRect);
   },
 
-  scrollAdjustmentToMakeRectVisibleInRect(nodeRect, containerRect) {
+  scrollAdjustmentToMakeRectVisibleInRect(nodeRect: DOMRect, containerRect: DOMRect) {
     const distanceBelowBottom =
       nodeRect.top + nodeRect.height - (containerRect.top + containerRect.height);
     if (distanceBelowBottom >= 0) {
@@ -155,7 +156,7 @@ const DOMUtils = {
   //
   // If the range starts or ends in the middle of an node, that node will be split.
   // This will likely break selections that contain any of the affected nodes.
-  wrap(range, nodeName) {
+  wrap(range: Range, nodeName: string) {
     const newNode = document.createElement(nodeName);
     try {
       range.surroundContents(newNode);
@@ -170,7 +171,7 @@ const DOMUtils = {
   // This may break selections containing the affected nodes.
   // We don't use `document.createFragment` because the returned `fragment`
   // would be empty and useless after its children get replaced.
-  unwrapNode(node) {
+  unwrapNode(node: Element) {
     let child;
     if (node.childNodes.length === 0) {
       return node;
@@ -181,11 +182,11 @@ const DOMUtils = {
       return node;
     }
 
-    let lastChild = node.childNodes.at(-1);
+    let lastChild = node.childNodes[node.childNodes.length - 1];
     replacedNodes.unshift(lastChild);
     parent.replaceChild(lastChild, node);
 
-    while ((child = node.childNodes.at(-1))) {
+    while ((child = node.childNodes[node.childNodes.length - 1])) {
       replacedNodes.unshift(child);
       parent.insertBefore(child, lastChild);
       lastChild = child;
@@ -194,11 +195,11 @@ const DOMUtils = {
     return replacedNodes;
   },
 
-  looksLikeBlockElement(node) {
+  looksLikeBlockElement(node: Element) {
     return ['BR', 'P', 'BLOCKQUOTE', 'DIV', 'TABLE'].includes(node.nodeName);
   },
 
-  getWorkspaceCssNumberProperty(property, defaultValue) {
+  getWorkspaceCssNumberProperty(property: string, defaultValue: number) {
     const workspaceElement = document.querySelector('mailspring-workspace');
     if (workspaceElement) {
       const value = getComputedStyle(workspaceElement).getPropertyValue(`--${property}`);

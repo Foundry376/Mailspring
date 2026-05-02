@@ -16,6 +16,12 @@ import fs from 'fs';
 // https://regex101.com/r/nD3eY8/1
 const INVALID_TEMPLATE_NAME_REGEX = /[^a-zA-Z\u00C0-\u017F0-9_\- ]+/g;
 
+interface TemplateItem {
+  id: string;
+  name: string;
+  path: string;
+}
+
 class TemplateStore extends MailspringStore {
   private _items = [];
   private _templatesDir = path.join(AppEnv.getConfigDirPath(), 'templates');
@@ -123,7 +129,7 @@ class TemplateStore extends MailspringStore {
     this.saveNewTemplate(name, contents, this._onShowTemplates);
   }
 
-  async _onCreateTemplateFromDraft(headerMessageId) {
+  async _onCreateTemplateFromDraft(headerMessageId: string) {
     const session = await DraftStore.sessionForClientId(headerMessageId);
     const draft = session.draft();
     const draftName = draft.subject.replace(INVALID_TEMPLATE_NAME_REGEX, '');
@@ -148,11 +154,11 @@ class TemplateStore extends MailspringStore {
     Actions.openPreferences();
   }
 
-  _displayError(message) {
+  _displayError(message: string) {
     AppEnv.showErrorDialog({ title: localized('Template Creation Error'), message });
   }
 
-  _displayDialog(title, message, buttons) {
+  _displayDialog(title: string, message: string, buttons: string[]) {
     return (
       require('@electron/remote').dialog.showMessageBoxSync({
         title: title,
@@ -164,7 +170,7 @@ class TemplateStore extends MailspringStore {
     );
   }
 
-  saveNewTemplate(name, contents, callback) {
+  saveNewTemplate(name: string, contents: string, callback: (template: TemplateItem) => void) {
     if (!name || name.length === 0) {
       this._displayError(localized('You must provide a template name.'));
       return;
@@ -190,7 +196,7 @@ class TemplateStore extends MailspringStore {
     this.trigger(this);
   }
 
-  saveTemplate(name, contents, callback) {
+  saveTemplate(name: string, contents: string, callback: (template: TemplateItem) => void) {
     const filename = `${name}.html`;
     const templatePath = path.join(this._templatesDir, filename);
     let template = this._items.find(t => t.name === name);
@@ -199,7 +205,7 @@ class TemplateStore extends MailspringStore {
     fs.writeFile(templatePath, contents, err => {
       this.watch();
       if (err) {
-        this._displayError(err);
+        this._displayError(err.message);
       }
       if (!template) {
         template = {
@@ -215,7 +221,7 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  _onDeleteTemplate(name) {
+  _onDeleteTemplate(name: string) {
     const template = this._items.find(t => t.name === name);
     if (!template) {
       return;
@@ -234,7 +240,7 @@ class TemplateStore extends MailspringStore {
     }
   }
 
-  _onRenameTemplate(name, newName) {
+  _onRenameTemplate(name: string, newName: string) {
     const template = this._items.find(t => t.name === name);
     if (!template) {
       return;

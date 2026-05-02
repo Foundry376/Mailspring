@@ -37,7 +37,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
   unsubscribe?: () => void;
   subscription?: Disposable;
 
-  constructor(props) {
+  constructor(props: MailImportantIconProps) {
     super(props);
     this.state = this.getState();
   }
@@ -96,7 +96,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
     }
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: MailImportantIconProps, nextState: MailImportantIconState) {
     return !_.isEqual(nextState, this.state);
   }
 
@@ -123,7 +123,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
     return <div className={classes} title={title} onClick={this._onToggleImportant} />;
   }
 
-  _onToggleImportant = event => {
+  _onToggleImportant = (event: React.MouseEvent) => {
     const { category } = this.state;
 
     if (category) {

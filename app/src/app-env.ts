@@ -11,7 +11,7 @@ import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
 import { isWaylandSession } from './browser/is-wayland';
 
-function ensureInteger(f, fallback) {
+function ensureInteger(f: number, fallback: number) {
   let int = f;
   if (isNaN(f) || f === undefined || f === null) {
     int = fallback;
@@ -420,16 +420,16 @@ export default class AppEnvConstructor {
   //
   // * `width` The {Number} of pixels.
   // * `height` The {Number} of pixels.
-  setSize(width, height) {
+  setSize(width: number, height: number) {
     return this.getCurrentWindow().setSize(ensureInteger(width, 100), ensureInteger(height, 100));
   }
 
-  setMinimumWidth(minWidth) {
+  setMinimumWidth(minWidth: number) {
     const win = this.getCurrentWindow();
     const minHeight = win.getMinimumSize()[1];
     win.setMinimumSize(ensureInteger(minWidth, 0), minHeight);
 
-    const [currWidth, currHeight] = Array.from(win.getSize());
+    const [currWidth, currHeight] = win.getSize();
     if (minWidth > currWidth) {
       win.setSize(minWidth, currHeight);
     }
@@ -447,7 +447,7 @@ export default class AppEnvConstructor {
   //
   // * `x` The {Number} of pixels.
   // * `y` The {Number} of pixels.
-  setPosition(x, y) {
+  setPosition(x: number, y: number) {
     return ipcRenderer.send(
       'call-window-method',
       'setPosition',
@@ -517,7 +517,7 @@ export default class AppEnvConstructor {
   // - callback: A function to call when window props are received, just before
   //   the hot window is shown. The first parameter is the new windowProps.
   //
-  onWindowPropsReceived(callback) {
+  onWindowPropsReceived(callback: (...args: unknown[]) => void) {
     return this.emitter.on('window-props-received', callback);
   }
 
@@ -651,21 +651,21 @@ export default class AppEnvConstructor {
     }
   }
 
-  storeColumnWidth({ id, width }) {
+  storeColumnWidth({ id, width }: { id: string; width: number }) {
     if (this.savedState.columnWidths == null) {
       this.savedState.columnWidths = {};
     }
     this.savedState.columnWidths[id] = width;
   }
 
-  getColumnWidth(id) {
+  getColumnWidth(id: string) {
     if (this.savedState.columnWidths == null) {
       this.savedState.columnWidths = {};
     }
     return this.savedState.columnWidths[id];
   }
 
-  storeThreadListVerticalHeight(height) {
+  storeThreadListVerticalHeight(height: number) {
     this.savedState.threadListVerticalHeight = height;
   }
 

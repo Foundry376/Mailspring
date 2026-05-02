@@ -47,7 +47,7 @@ function renderNode(props, editor: Editor = null, next = () => {}) {
 
 const rules = [
   {
-    deserialize(el, next) {
+    deserialize(el: HTMLElement, next: (elements: NodeList) => any) {
       const tagName = el.tagName.toLowerCase();
 
       if (UNEDITABLE_TAGS.includes(tagName)) {
@@ -66,7 +66,7 @@ const rules = [
         };
       }
     },
-    serialize(obj, children) {
+    serialize(obj: any, children: any) {
       if (obj.object !== 'block') return;
       return renderNode({ node: obj, children, targetIsHTML: true });
     },

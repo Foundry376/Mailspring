@@ -31,7 +31,7 @@ class ActionBridge {
   initiatorId = AppEnv.getWindowType();
   role = AppEnv.isMainWindow() ? Role.MAIN : Role.SECONDARY;
 
-  constructor(ipc) {
+  constructor(ipc: Electron.IpcRenderer) {
     this.ipc = ipc;
 
     AppEnv.onBeforeUnload(this.onBeforeUnload);
@@ -56,7 +56,12 @@ class ActionBridge {
     }
   }
 
-  onIPCMessage = (event, initiatorId, name, json) => {
+  onIPCMessage = (
+    event: Electron.IpcRendererEvent,
+    initiatorId: string,
+    name: string,
+    json: string
+  ) => {
     if (AppEnv.isEmptyWindow()) {
       throw new Error("Empty windows shouldn't receive IPC messages");
     }
@@ -84,7 +89,7 @@ class ActionBridge {
     }, 0);
   };
 
-  onRebroadcast = (target, name, args) => {
+  onRebroadcast = (target: string, name: string, args: unknown[]) => {
     if (Actions[name] && Actions[name].firing) {
       Actions[name].firing = false;
       return;
@@ -110,7 +115,7 @@ class ActionBridge {
     this.ipcLastSendTime = Date.now();
   };
 
-  onBeforeUnload = readyToUnload => {
+  onBeforeUnload = (readyToUnload: () => void) => {
     // Unfortunately, if you call ipc.send and then immediately close the window,
     // Electron won't actually send the message. To work around this, we wait an
     // arbitrary amount of time before closing the window after the last IPC event

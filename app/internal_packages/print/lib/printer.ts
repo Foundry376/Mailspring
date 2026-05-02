@@ -1,10 +1,10 @@
-import { AccountStore, Actions } from 'mailspring-exports';
+import { AccountStore, Actions, Thread } from 'mailspring-exports';
 import PrintWindow from './print-window';
 
 class Printer {
   public unsub = Actions.printThread.listen(this._printThread);
 
-  _printThread(thread, htmlContent) {
+  _printThread(thread: Thread, htmlContent: string) {
     if (!thread) throw new Error('Printing: No thread active!');
     const account = AccountStore.accountForId(thread.accountId);
 

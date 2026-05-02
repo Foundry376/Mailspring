@@ -28,7 +28,7 @@ export default class SendRemindersPopoverButton extends Component<{
       (ReactDOM.findDOMNode(inst) as HTMLElement).getBoundingClientRect(),
   };
 
-  onSetReminder = async expiration => {
+  onSetReminder = async (expiration: Date | null) => {
     const { thread } = this.props;
 
     // get the messages on the thread and find the last one received.
@@ -50,7 +50,7 @@ export default class SendRemindersPopoverButton extends Component<{
     });
   };
 
-  onClick = event => {
+  onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     const { direction, thread, getBoundingClientRect } = this.props;
     const reminderDate = reminderDateFor(thread);

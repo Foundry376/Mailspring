@@ -38,7 +38,7 @@ function isBlockTypeOrWithinType(value: Value, type: string) {
   return !!(isMe || isParent);
 }
 
-function toggleBlockTypeWithBreakout(editor: Editor, type) {
+function toggleBlockTypeWithBreakout(editor: Editor, type: string) {
   if (!editor.value.focusBlock) return;
 
   const ancestors = editor.value.document.getAncestors(editor.value.focusBlock.key);
@@ -282,7 +282,7 @@ const rules = [
         };
       }
     },
-    serialize(obj, children) {
+    serialize(obj: any, children: any) {
       if (obj.object !== 'block') return;
       return renderNode({ node: obj, children, targetIsHTML: true });
     },

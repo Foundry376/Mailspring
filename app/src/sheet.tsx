@@ -70,7 +70,7 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
     ];
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: SheetProps, nextState: SheetState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqual(nextState, this.state);
   }
 
@@ -145,12 +145,12 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
     });
   }
 
-  _onColumnResize = (column, width) => {
+  _onColumnResize = (column: SheetColumn, width: number) => {
     AppEnv.storeColumnWidth({ id: column.location.id, width: width });
     this.props.onColumnSizeChanged(this);
   };
 
-  _buildState(props = this.props) {
+  _buildState(props: SheetProps = this.props) {
     const state = {
       mode: WorkspaceStore.layoutMode(),
       columns: [],

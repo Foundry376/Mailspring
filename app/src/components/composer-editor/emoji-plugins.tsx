@@ -2,7 +2,12 @@ import React from 'react';
 import * as NodeEmoji from 'node-emoji';
 import { Actions } from 'mailspring-exports';
 import { Editor, Mark } from 'slate';
-import { Rule, ComposerEditorPlugin, ComposerEditorPluginTopLevelComponentProps } from './types';
+import {
+  Rule,
+  ComposerEditorPlugin,
+  ComposerEditorPluginTopLevelComponentProps,
+  ComposerEditorPluginToolbarComponentProps,
+} from './types';
 import EmojiToolbarPopover from './emoji-toolbar-popover';
 
 let EmojiNameToImageTable = null;
@@ -25,7 +30,9 @@ let allEmojiNames: string[] | null = null;
 function getAllEmojiNames(): string[] {
   if (!allEmojiNames) {
     // node-emoji v2: search() returns { name, emoji } objects where `name` is the identifier.
-    allEmojiNames = NodeEmoji.search('').map(e => e.name).sort();
+    allEmojiNames = NodeEmoji.search('')
+      .map(e => e.name)
+      .sort();
   }
   return allEmojiNames;
 }
@@ -194,7 +201,7 @@ const rules: Rule[] = [
         };
       }
     },
-    serialize(obj, children) {
+    serialize(obj: any, children: any) {
       if (obj.object === 'mark') {
         return renderMark({ mark: obj, children, targetIsHTML: true });
       } else if (obj.object === 'inline') {
@@ -221,7 +228,11 @@ export function swapEmojiMarkFor(editor: Editor, emoji: Mark, picked: string) {
   }
 }
 
-export function updateEmojiMark(editor: Editor, existing, { typed, suggestions, picked }) {
+export function updateEmojiMark(
+  editor: Editor,
+  existing: Mark,
+  { typed, suggestions, picked }: { typed: string; suggestions: string[]; picked: string }
+) {
   editor.moveAnchorBackward(typed.length);
   editor.removeMark(existing);
   editor.addMark({
@@ -302,7 +313,7 @@ function onKeyUp(event: React.KeyboardEvent, editor: Editor, next: () => void) {
   return next();
 }
 
-const ToolbarEmojiButton = ({ value, editor }) => {
+const ToolbarEmojiButton = ({ value, editor }: ComposerEditorPluginToolbarComponentProps) => {
   const onInsertEmoji = name => {
     const inline = {
       object: 'inline',

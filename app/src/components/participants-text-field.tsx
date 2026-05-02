@@ -87,7 +87,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     visible: true,
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: ParticipantsTextFieldProps, nextState: Record<string, unknown>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -97,7 +97,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     this._textfieldEl.focus();
   };
 
-  _completionNode = p => {
+  _completionNode = (p: (Contact | ContactGroup) & { customComponent?: React.ComponentType<any> }) => {
     const CustomComponent = p.customComponent;
     if (CustomComponent) return <CustomComponent token={p} />;
     if (p instanceof Contact) {
@@ -107,7 +107,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     }
   };
 
-  _tokensForString = async (string, options = {}) => {
+  _tokensForString = async (string: string, options: Record<string, unknown> = {}) => {
     // If the input is a string, parse out email addresses and build
     // an array of contact objects. For each email address wrapped in
     // parentheses, look for a preceding name, if one exists.
@@ -125,16 +125,20 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     return [new Contact({ email: string, name: null })];
   };
 
-  _remove = values => {
+  _remove = (values: (string | Contact)[]) => {
     const field = this.props.field;
     const updates = {};
     updates[field] = this.props.participants[field].filter(
-      p => !(values.includes(p.email) || values.map(o => o.email).includes(p.email))
+      p =>
+        !(
+          values.includes(p.email) ||
+          values.map(o => (typeof o === 'string' ? o : o.email)).includes(p.email)
+        )
     );
     this.props.change(updates);
   };
 
-  _edit = async (token, replacementString) => {
+  _edit = async (token: Contact, replacementString: string) => {
     const field = this.props.field;
     const tokenIndex = this.props.participants[field].indexOf(token);
 
@@ -145,7 +149,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     this.props.change(updates);
   };
 
-  _add = (values, options = {}) => {
+  _add = (values: string | (Contact | ContactGroup)[], options: Record<string, unknown> = {}) => {
     // It's important we return here (as opposed to ignoring the
     // `this.props.change` callback) because this method is asynchronous.
 
@@ -199,7 +203,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     return '';
   };
 
-  _onShowContextMenu = participant => {
+  _onShowContextMenu = (participant: Contact) => {
     // Warning: Menu is already initialized as Menu.ts!
     const MenuClass = require('@electron/remote').Menu;
     const MenuItem = require('@electron/remote').MenuItem;
@@ -228,15 +232,15 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     menu.popup({});
   };
 
-  _onInputTrySubmit = (inputValue, completions = [], selectedItem) => {
+  _onInputTrySubmit = (inputValue: string, completions: (Contact | ContactGroup)[] = [], selectedItem: Contact | ContactGroup | null) => {
     if (RegExpUtils.emailRegex().test(inputValue)) {
       return inputValue; // no token default to raw value.
     }
     return selectedItem || completions[0]; // first completion if any
   };
 
-  _shouldBreakOnKeydown = event => {
-    const val = event.target.value.trim();
+  _shouldBreakOnKeydown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const val = (event.target as HTMLInputElement).value.trim();
     if (RegExpUtils.emailRegex().test(val) && event.key === ' ') {
       return true;
     }

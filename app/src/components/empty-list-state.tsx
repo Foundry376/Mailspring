@@ -134,7 +134,7 @@ class EmptyListState extends React.Component<
   _mounted = false;
   _unlisteners = [];
 
-  constructor(props) {
+  constructor(props: { visible: boolean }) {
     super(props);
     this.state = Object.assign(
       {
@@ -157,7 +157,7 @@ class EmptyListState extends React.Component<
     }
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: { visible: boolean }, nextState: { active: boolean; syncing: boolean }) {
     if (nextProps.visible !== this.props.visible) {
       return true;
     }

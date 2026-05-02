@@ -29,7 +29,7 @@ class ConditionalQuotedTextControl extends React.Component<{ body: string; onCli
     onClick: PropTypes.func,
   };
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: { body: string; onClick?: () => void }) {
     return this.props.body !== nextProps.body;
   }
 
@@ -69,7 +69,7 @@ export default class MessageItemBody extends React.Component<
   _mounted = false;
   _unsub: () => void;
 
-  constructor(props, context) {
+  constructor(props: MessageItemBodyProps, context: object) {
     super(props, context);
 
     const cached = MessageBodyProcessor.retrieveCached(props.message);

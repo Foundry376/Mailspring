@@ -30,7 +30,7 @@ class MultiselectToolbar extends Component<MultiselectToolbarProps> {
     selectionCount: PropTypes.node,
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: MultiselectToolbarProps, nextState: Record<string, unknown>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 

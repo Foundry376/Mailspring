@@ -21,7 +21,7 @@ const looksLikeTrackingPixel = img => {
 class QuotedHTMLTransformer {
   annotationClass = 'mailspring-quoted-text-segment';
 
-  hasQuotedHTML(html) {
+  hasQuotedHTML(html: string) {
     const doc = this._parseHTML(html);
     this._removeImagesStrippedByAnotherClient(doc);
     this._removeTrailingFootersAndWhitespace(doc);
@@ -42,7 +42,7 @@ class QuotedHTMLTransformer {
   //
   // Returns HTML without quoted text
   //
-  removeQuotedHTML(html, options = { keepIfWholeBodyIsQuote: true }) {
+  removeQuotedHTML(html: string, options = { keepIfWholeBodyIsQuote: true }) {
     const doc = this._parseHTML(html);
     this._removeImagesStrippedByAnotherClient(doc);
     this._removeTrailingFootersAndWhitespace(doc);
@@ -76,7 +76,7 @@ class QuotedHTMLTransformer {
     return this._outputHTMLFor(doc, { initialHTML: html });
   }
 
-  _removeImagesStrippedByAnotherClient(doc) {
+  _removeImagesStrippedByAnotherClient(doc: Document) {
     if (!doc.body) {
       return;
     }
@@ -100,7 +100,7 @@ class QuotedHTMLTransformer {
     nodes.forEach(n => n.remove());
   }
 
-  _removeUnnecessaryWhitespace(doc) {
+  _removeUnnecessaryWhitespace(doc: Document) {
     if (!doc.body) {
       return;
     }
@@ -126,7 +126,7 @@ class QuotedHTMLTransformer {
     // The deepest node at the end of the document.
     let lastOfLast = doc.body;
     while (lastOfLast.lastElementChild) {
-      lastOfLast = lastOfLast.lastElementChild;
+      lastOfLast = lastOfLast.lastElementChild as HTMLElement;
     }
 
     // Traverse back up the tree - at each level, attempt to remove
@@ -162,7 +162,7 @@ class QuotedHTMLTransformer {
     }
   }
 
-  appendQuotedHTML(htmlWithoutQuotes, originalHTML) {
+  appendQuotedHTML(htmlWithoutQuotes: string, originalHTML: string) {
     let doc = this._parseHTML(originalHTML);
     const quoteElements = this._findQuoteElements(doc);
     doc = this._parseHTML(htmlWithoutQuotes);
@@ -173,7 +173,7 @@ class QuotedHTMLTransformer {
     return this._outputHTMLFor(doc, { initialHTML: originalHTML });
   }
 
-  _parseHTML(text) {
+  _parseHTML(text: string) {
     const domParser = new DOMParser();
     let doc;
     try {
@@ -199,7 +199,7 @@ class QuotedHTMLTransformer {
     return doc.body.innerHTML;
   }
 
-  _findQuoteElements(doc) {
+  _findQuoteElements(doc: Document) {
     const parsers = [
       this._findGmailQuotes,
       this._findYahooQuotes,
@@ -228,19 +228,19 @@ class QuotedHTMLTransformer {
     return quoteElements;
   }
 
-  _isElementFollowedByUnquotedElement(el, quoteElementSet: Set<any>) {
+  _isElementFollowedByUnquotedElement(el: Element, quoteElementSet: Set<any>) {
     const seen = new Set();
     let head = el;
 
     while (head) {
       // advance to the next sibling, or the parent's next sibling
       while (head && !head.nextSibling) {
-        head = head.parentNode;
+        head = head.parentNode as Element;
       }
       if (!head) {
         break;
       }
-      head = head.nextSibling;
+      head = head.nextSibling as Element;
 
       // search this branch of the tree for any text nodes / images that
       // are not contained within a matched quoted text block. We mark
@@ -272,24 +272,24 @@ class QuotedHTMLTransformer {
     return false;
   }
 
-  _findGmailQuotes(doc) {
+  _findGmailQuotes(doc: Document) {
     // Gmail creates both div.gmail_quote and blockquote.gmail_quote. The div
     // version marks text but does not cause indentation, but both should be
     // considered quoted text.
     return Array.from(doc.querySelectorAll('.gmail_quote'));
   }
 
-  _findYahooQuotes(doc) {
+  _findYahooQuotes(doc: Document) {
     // Both Yahoo and AOL wrap their quotes in divs with classes that contain
     // the text yahoo_quoted
     return Array.from(doc.querySelectorAll('[class*="yahoo_quoted"]'));
   }
 
-  _findBlockquoteQuotes(doc) {
+  _findBlockquoteQuotes(doc: Document) {
     return Array.from(doc.querySelectorAll('blockquote'));
   }
 
-  _removeTrailingFootersAndWhitespace(doc) {
+  _removeTrailingFootersAndWhitespace(doc: Document) {
     let els = [];
     let iters = 0;
     while ((els = this._findTrailingFooter(doc))) {
@@ -302,7 +302,7 @@ class QuotedHTMLTransformer {
     }
   }
 
-  _findTrailingFooter(doc) {
+  _findTrailingFooter(doc: Document) {
     // Traverse from the body down the tree of "last" nodes looking for a
     // Confidentiality Notice, "To unsubscribe from this group", etc.
     // We strip these nodes because otherwise the quoted text logic
@@ -341,15 +341,15 @@ class QuotedHTMLTransformer {
       }
 
       if (head.childNodes.length === 0 && tc === '') {
-        head = head.previousSibling;
+        head = head.previousSibling as HTMLElement;
       } else {
-        head = head.lastChild;
+        head = head.lastChild as HTMLElement;
       }
     }
     return null;
   }
 
-  _findQuotesAfter__OriginalMessage__(doc) {
+  _findQuotesAfter__OriginalMessage__(doc: Document) {
     // these are pulled from specific messages seen in the wild. I think that doing this
     // via Xpath is still more performant than writing code to traverse + examine?
     const originalMessageMarker = doc.evaluate(
@@ -372,7 +372,7 @@ class QuotedHTMLTransformer {
     return this._collectAllNodesBelow(originalMessageMarker);
   }
 
-  _findQuotesAfterMessageHeaderBlock(doc) {
+  _findQuotesAfterMessageHeaderBlock(doc: Document) {
     // This detector looks for a element in the DOM tree containing
     // three children: <b>Sent:</b> or <b>Date:</b> and <b>To:</b> and
     // <b>Subject:</b>. It then returns every node after that as quoted text.

@@ -31,7 +31,7 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
     filePreviewPaths: {},
   };
 
-  renderAttachment(AttachmentRenderer, file) {
+  renderAttachment(AttachmentRenderer: React.ComponentType<any>, file: File) {
     const { canRemoveAttachments, downloads, filePreviewPaths } = this.props;
     const download = downloads[file.id];
     const filePath = AttachmentStore.pathForFile(file);

@@ -6,7 +6,7 @@ export class ExportActivity extends React.Component<{ tasks: any[] }> {
     tasks: PropTypes.array,
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: { tasks: any[] }, nextState: Record<string, never>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 

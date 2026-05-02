@@ -84,7 +84,7 @@ export class Matcher {
     return this.val;
   }
 
-  evaluate(model: typeof Model) {
+  evaluate(model: Model) {
     let modelValue = model[this.attr.modelKey];
     if (modelValue instanceof Function) {
       modelValue = modelValue();
@@ -150,7 +150,7 @@ export class Matcher {
     }
   }
 
-  whereSQL(klass) {
+  whereSQL(klass: typeof Model) {
     const val = this.comparator === 'like' ? `%${this.val}%` : this.val;
     let escaped = null;
 
@@ -222,7 +222,7 @@ export class OrCompositeMatcher extends Matcher {
     return null;
   }
 
-  evaluate(model) {
+  evaluate(model: Model) {
     return this.children.some(matcher => matcher.evaluate(model));
   }
 
@@ -259,7 +259,7 @@ export class AndCompositeMatcher extends Matcher {
     return null;
   }
 
-  evaluate(model) {
+  evaluate(model: Model) {
     return this.children.every(m => m.evaluate(model));
   }
 

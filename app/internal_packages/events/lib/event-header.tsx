@@ -110,7 +110,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     });
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps: EventHeaderProps, prevState: EventHeaderState) {
     if (prevState.inflight) {
       this.setState({ inflight: undefined });
     }

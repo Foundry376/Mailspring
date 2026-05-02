@@ -350,7 +350,7 @@ export default class Config {
     }
   }
 
-  _logError(prefix, error) {
+  _logError(prefix: string, error: Error) {
     error.message = `${prefix}: ${error.message}`;
     console.error(error.message);
     errorLogger.reportError(error);
@@ -384,7 +384,7 @@ export default class Config {
   //
   // Returns a {Disposable} with the following keys on which you can call
   // `.dispose()` to unsubscribe.
-  observe(keyPath, callback) {
+  observe(keyPath: string, callback: (value: unknown) => void) {
     callback(this.get(keyPath));
     return this.onDidChangeKeyPath(keyPath, event => callback(event.newValue));
   }

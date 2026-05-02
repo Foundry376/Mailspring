@@ -127,7 +127,7 @@ export class ResizableRegion extends React.Component<
     handle: ResizableHandle.Right,
   };
 
-  constructor(props) {
+  constructor(props: ResizableRegionProps & React.HTMLProps<HTMLDivElement>) {
     super(props);
 
     this.state = {
@@ -205,7 +205,7 @@ export class ResizableRegion extends React.Component<
     }
   }
 
-  _mouseDown = event => {
+  _mouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.button !== 0) {
       return;
     }
@@ -218,7 +218,7 @@ export class ResizableRegion extends React.Component<
     event.preventDefault();
   };
 
-  _mouseUp = event => {
+  _mouseUp = (event: MouseEvent) => {
     if (event.button !== 0) {
       return;
     }
@@ -232,7 +232,7 @@ export class ResizableRegion extends React.Component<
     event.preventDefault();
   };
 
-  _mouseMove = event => {
+  _mouseMove = (event: MouseEvent) => {
     if (!this.state.dragging) {
       return;
     }

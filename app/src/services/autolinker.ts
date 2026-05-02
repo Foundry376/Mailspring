@@ -57,7 +57,7 @@ function _runOnTextNode(node, matchers) {
     const range = document.createRange();
     range.setStart(node, match.index);
     range.setEnd(node, match.index + match[0].length);
-    const aTag: HTMLAnchorElement = DOMUtils.wrap(range, 'A');
+    const aTag = DOMUtils.wrap(range, 'A') as HTMLAnchorElement;
     aTag.href = href;
     aTag.title = href;
 

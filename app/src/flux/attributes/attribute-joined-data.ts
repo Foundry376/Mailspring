@@ -1,4 +1,5 @@
 import { Attribute } from './attribute';
+import { Model } from '../models/model';
 
 const NullPlaceholder = '!NULLVALUE!';
 
@@ -47,19 +48,19 @@ export class AttributeJoinedData extends Attribute {
     this.modelTable = modelTable;
   }
 
-  serialize(thisValue, val) {
+  serialize(thisValue: unknown, val: string): string {
     return val;
   }
 
-  deserialize(thisValue, val) {
+  deserialize(thisValue: unknown, val: string): string {
     return val;
   }
 
-  toJSON(val) {
+  toJSON(val: string | null): string | null {
     return val;
   }
 
-  fromJSON(val) {
+  fromJSON(val: unknown): string | null {
     return val === null || val === undefined || val === false ? null : `${val}`;
   }
 
@@ -69,7 +70,7 @@ export class AttributeJoinedData extends Attribute {
     return `IFNULL(\`${this.modelTable}\`.\`value\`, '${NullPlaceholder}') AS \`${this.modelKey}\``;
   }
 
-  includeSQL(klass) {
+  includeSQL(klass: typeof Model): string {
     return `LEFT OUTER JOIN \`${this.modelTable}\` ON \`${this.modelTable}\`.\`id\` = \`${klass.name}\`.\`id\``;
   }
 }

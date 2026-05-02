@@ -31,7 +31,7 @@ export class SendActionButton extends React.Component<
   _unlisteners = [];
   _composedComponent: any;
 
-  constructor(props) {
+  constructor(props: SendActionButtonProps) {
     super(props);
     this.state = {
       sendActions: SendActionsStore.orderedSendActionsForDraft(props.draft),
@@ -65,7 +65,7 @@ export class SendActionButton extends React.Component<
 
   /* This component is re-rendered constantly because `draft` changes in random ways.
   We only use the draft prop when you click send, so update with more discretion. */
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: SendActionButtonProps, nextState: SendActionButtonState) {
     return (
       nextState.sendActions.map(a => a.configKey).join(',') !==
       this.state.sendActions.map(a => a.configKey).join(',')
@@ -80,7 +80,7 @@ export class SendActionButton extends React.Component<
     this._onSendWithAction(this.state.sendActions[0]);
   };
 
-  _onSendWithAction = sendAction => {
+  _onSendWithAction = (sendAction: ISendAction) => {
     if (this.props.isValidDraft()) {
       if (AppEnv.config.get('core.sending.sounds')) {
         SoundRegistry.playSound('hit-send');

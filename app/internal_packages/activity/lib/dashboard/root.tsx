@@ -100,7 +100,7 @@ class RootWithTimespan extends React.Component<
     }
   }
 
-  getLoadingState({ timespan }) {
+  getLoadingState({ timespan }: { timespan: Timespan }) {
     return {
       version: 0,
       loading: true,
@@ -126,7 +126,12 @@ class RootWithTimespan extends React.Component<
     this._mounted = false;
   }
 
-  async _forEachMessageIn(accountIds, startUnix, endUnix, callback) {
+  async _forEachMessageIn(
+    accountIds: string[],
+    startUnix: number,
+    endUnix: number,
+    callback: (message: Message, messageUnix: number) => void | Promise<void>
+  ) {
     let chunkStartUnix = startUnix;
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -294,7 +299,7 @@ class RootWithTimespan extends React.Component<
     }, animationDelay);
   };
 
-  _onFetchChunk(accountIds, startUnix, endUnix) {
+  _onFetchChunk(accountIds: string[], startUnix: number, endUnix: number) {
     return new Promise<Message[]>(resolve => {
       window.requestAnimationFrame(() => {
         DatabaseStore.findAll<Message>(Message)
@@ -371,7 +376,7 @@ class RootWithTimespan extends React.Component<
           `${esc(message.subject)},` +
           `${esc(opens)},${esc(clicks)}\n`;
 
-        return new Promise(resolve => ws.write(line, resolve));
+        return new Promise<void>(resolve => ws.write(line, () => resolve()));
       });
       ws.close();
     });
@@ -513,7 +518,7 @@ class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespa
     this.state = this.getStateForTimespanId(DEFAULT_TIMESPAN_ID);
   }
 
-  getStateForTimespanId(timespanId) {
+  getStateForTimespanId(timespanId: string) {
     const [startDate, endDate] = getTimespanStartEnd(timespanId);
     // if the difference in days is 1, we need to display [0, 1] = 2 items
     const days = endDate.diff(startDate, 'days') + 1;

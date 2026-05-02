@@ -18,7 +18,7 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
     this._renderEventGridBackground();
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: EventGridBackgroundProps, nextState: Record<string, never>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -33,7 +33,7 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
     const height = this.props.height;
     canvas.height = height;
 
-    const doStroke = (type, strokeStyle) => {
+    const doStroke = (type: 'major' | 'minor', strokeStyle: string) => {
       ctx.strokeStyle = strokeStyle;
       ctx.beginPath();
       for (const { y } of tickGenerator(type, this.props.intervalHeight)) {

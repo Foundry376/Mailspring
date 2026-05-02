@@ -2,15 +2,15 @@ import { Utils } from 'mailspring-exports';
 import { MAX_MATCHES, CHAR_THRESHOLD } from './search-constants';
 
 export default class UnifiedDOMParser {
-  regionId: number;
+  regionId: string;
   matchRenderIndex: number;
 
-  constructor(regionId) {
+  constructor(regionId: string) {
     this.regionId = regionId;
     this.matchRenderIndex = 0;
   }
 
-  matchesSearch(dom, searchTerm) {
+  matchesSearch(dom: any, searchTerm: string) {
     if ((searchTerm || '').trim().length < CHAR_THRESHOLD) {
       return false;
     }
@@ -69,7 +69,7 @@ export default class UnifiedDOMParser {
     throw new Error('unimplemented');
   }
 
-  matchesFromFullString(fullString, searchTerm) {
+  matchesFromFullString(fullString: any[], searchTerm: string) {
     const re = this.searchRE(searchTerm);
     if (!re) {
       return [];
@@ -89,7 +89,7 @@ export default class UnifiedDOMParser {
   }
   getRawFullString(fullString: any) {}
 
-  searchRE(searchTerm) {
+  searchRE(searchTerm: string) {
     let re;
     const regexRe = /^\/(.+)\/(.*)$/;
     try {
@@ -110,7 +110,7 @@ export default class UnifiedDOMParser {
   // OVERRIDE ME
   removeMatchesAndNormalize(element: any) {}
 
-  getElementsWithNewMatchNodes(rootNode, searchTerm, currentMatchRenderIndex) {
+  getElementsWithNewMatchNodes(rootNode: any, searchTerm: string, currentMatchRenderIndex: number) {
     const fullStrings = this.buildNormalizedText(rootNode);
 
     const modifiedElements = new Map();
@@ -138,7 +138,7 @@ export default class UnifiedDOMParser {
     return modifiedElements;
   }
 
-  slicePointsForMatches(textElement, matches) {
+  slicePointsForMatches(textElement: any, matches: Array<[number, number]>) {
     const textElStart = textElement.fullStringIndex;
     const textLength = this.textNodeLength(textElement);
     const textElEnd = textElement.fullStringIndex + textLength;
@@ -171,7 +171,11 @@ export default class UnifiedDOMParser {
    * element at the slice points and return the new nodes as a value,
    * keyed by a way to find that insertion point in the DOM.
    */
-  slicedTextElement(textNode, slicePoints, currentMatchRenderIndex) {
+  slicedTextElement(
+    textNode: any,
+    slicePoints: Array<[number, number]>,
+    currentMatchRenderIndex: number
+  ) {
     const key = this.textNodeKey(textNode);
     const text = this.textNodeContents(textNode);
     const newTextNodes = [];

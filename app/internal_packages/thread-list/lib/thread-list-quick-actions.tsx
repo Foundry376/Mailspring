@@ -38,11 +38,11 @@ export class ThreadArchiveQuickAction extends React.Component<{ thread: Thread }
     );
   }
 
-  shouldComponentUpdate(newProps, newState) {
+  shouldComponentUpdate(newProps: { thread: Thread }, newState) {
     return newProps.thread.id !== (this.props != null ? this.props.thread.id : undefined);
   }
 
-  _onArchive = event => {
+  _onArchive = (event: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForArchiving({
       source: 'Quick Actions: Thread List',
       threads: [this.props.thread],
@@ -87,11 +87,11 @@ export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> 
     );
   }
 
-  shouldComponentUpdate(newProps, newState) {
+  shouldComponentUpdate(newProps: { thread: Thread }, newState) {
     return newProps.thread.id !== (this.props != null ? this.props.thread.id : undefined);
   }
 
-  _onRemove = event => {
+  _onRemove = (event: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       source: 'Quick Actions: Thread List',
       threads: [this.props.thread],

@@ -6,14 +6,14 @@ import { Category } from '../models/category';
 import { Folder } from '../models/folder';
 import { Label } from '../models/label';
 
-const asAccount = a => {
+const asAccount = (a: Account | string) => {
   if (!a) {
     throw new Error('You must pass an Account or Account Id');
   }
   return a instanceof Account ? a : AccountStore.accountForId(a);
 };
 
-const asAccountId = a => {
+const asAccountId = (a: Account | string) => {
   if (!a) {
     throw new Error('You must pass an Account or Account Id');
   }
@@ -41,7 +41,7 @@ class CategoryStore extends MailspringStore {
       .subscribe(this._onCategoriesChanged);
   }
 
-  byId(accountOrId, categoryId) {
+  byId(accountOrId: Account | string, categoryId: string) {
     const categories = this._categoryCache[asAccountId(accountOrId)] || {};
     return categories[categoryId];
   }
@@ -50,7 +50,7 @@ class CategoryStore extends MailspringStore {
   // standard and user generated. The items returned by this function will be
   // either {Folder} or {Label} objects.
   //
-  categories(accountOrId = null) {
+  categories(accountOrId: Account | string | null = null) {
     if (accountOrId) {
       const cached = this._categoryCache[asAccountId(accountOrId)];
       return cached ? Object.values(cached) : [];
@@ -64,18 +64,18 @@ class CategoryStore extends MailspringStore {
 
   // Public: Returns all of the standard categories for the given account.
   //
-  standardCategories(accountOrId) {
+  standardCategories(accountOrId: Account | string) {
     return this._standardCategories[asAccountId(accountOrId)] || [];
   }
 
-  hiddenCategories(accountOrId) {
+  hiddenCategories(accountOrId: Account | string) {
     return this._hiddenCategories[asAccountId(accountOrId)] || [];
   }
 
   // Public: Returns all of the categories that are not part of the standard
   // category set.
   //
-  userCategories(accountOrId) {
+  userCategories(accountOrId: Account | string) {
     return this._userCategories[asAccountId(accountOrId)] || [];
   }
 
@@ -84,7 +84,7 @@ class CategoryStore extends MailspringStore {
   // ('inbox', 'drafts', etc.) It's possible for this to return `null`.
   // For example, Gmail likely doesn't have an `archive` label.
   //
-  getCategoryByRole(accountOrId, role) {
+  getCategoryByRole(accountOrId: Account | string | null, role: string) {
     if (!accountOrId) {
       return null;
     }
@@ -99,7 +99,7 @@ class CategoryStore extends MailspringStore {
 
   // Public: Returns the set of all standard categories that match the given
   // names for each of the provided accounts
-  getCategoriesWithRoles(accountsOrIds, ...names) {
+  getCategoriesWithRoles(accountsOrIds: Account | string | (Account | string)[], ...names: string[]) {
     if (Array.isArray(accountsOrIds)) {
       let res = [];
       for (const accOrId of accountsOrIds) {
@@ -115,7 +115,7 @@ class CategoryStore extends MailspringStore {
   // actions. On Gmail, this is the "all" label. On providers using folders, it
   // returns any available "Archive" folder, or null if no such folder exists.
   //
-  getArchiveCategory(accountOrId) {
+  getArchiveCategory(accountOrId: Account | string | null) {
     if (!accountOrId) {
       return null;
     }
@@ -131,7 +131,7 @@ class CategoryStore extends MailspringStore {
 
   // Public: Returns Label object for "All mail"
   //
-  getAllMailCategory(accountOrId) {
+  getAllMailCategory(accountOrId: Account | string | null) {
     if (!accountOrId) {
       return null;
     }
@@ -146,25 +146,25 @@ class CategoryStore extends MailspringStore {
   // Public: Returns the Folder or Label object that should be used for
   // the inbox or null if it doesn't exist
   //
-  getInboxCategory(accountOrId) {
+  getInboxCategory(accountOrId: Account | string | null) {
     return this.getCategoryByRole(accountOrId, 'inbox');
   }
 
   // Public: Returns the Folder or Label object that should be used for
   // "Move to Trash", or null if no trash folder exists.
   //
-  getTrashCategory(accountOrId) {
+  getTrashCategory(accountOrId: Account | string | null) {
     return this.getCategoryByRole(accountOrId, 'trash');
   }
 
   // Public: Returns the Folder or Label object that should be used for
   // "Move to Spam", or null if no trash folder exists.
   //
-  getSpamCategory(accountOrId) {
+  getSpamCategory(accountOrId: Account | string | null) {
     return this.getCategoryByRole(accountOrId, 'spam');
   }
 
-  _onCategoriesChanged = categories => {
+  _onCategoriesChanged = (categories: (Folder | Label)[]) => {
     this._categoryResult = categories;
     this._categoryCache = {};
     for (const cat of categories) {

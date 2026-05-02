@@ -1,6 +1,7 @@
 import _ from 'underscore';
 
 import { Model } from '../flux/models/model';
+import { Matcher } from '../flux/attributes/matcher';
 import DatabaseStore from '../flux/stores/database-store';
 import { ListDataSource } from './list-data-source';
 
@@ -13,7 +14,7 @@ export class ListSelection {
   _callback: () => void;
   _unlisten: () => void;
 
-  constructor(_view, callback) {
+  constructor(_view: ListDataSource, callback: () => void) {
     this._view = _view;
     this._callback = callback;
     if (!this._view) {
@@ -55,7 +56,7 @@ export class ListSelection {
     this.set([]);
   }
 
-  set(items) {
+  set(items: Model[]) {
     this._items = [];
     for (const item of items) {
       if (!(item instanceof Model)) {
@@ -124,7 +125,7 @@ export class ListSelection {
     }
   }
 
-  removeItemsNotMatching(matchers) {
+  removeItemsNotMatching(matchers: Matcher[]) {
     const count = this._items.length;
     this._items = this._items.filter(t => t.matches(matchers));
     if (this._items.length !== count) {
@@ -167,7 +168,7 @@ export class ListSelection {
     this.trigger();
   }
 
-  walk({ current, next }) {
+  walk({ current, next }: { current?: Model; next: Model }) {
     // When the user holds shift and uses the arrow keys to modify their selection,
     // we call that "walking". When walking you're usually selecting items. However,
     // if you're walking "back" through your selection in the same order you selected
@@ -207,7 +208,11 @@ export class ListSelection {
     return this.trigger();
   }
 
-  _applyChangeRecord(change) {
+  _applyChangeRecord(change: {
+    type: 'persist' | 'unpersist';
+    objectClass: string;
+    objects: Model[];
+  }) {
     if (this._items.length === 0) {
       return;
     }

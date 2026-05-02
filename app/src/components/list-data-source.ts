@@ -16,8 +16,8 @@ export class ListDataSource {
 
   _emitter = new EventEmitter();
   _cleanedup = false;
-  selection = new ListSelection(this, arg => {
-    this._emitter.emit('trigger', arg);
+  selection = new ListSelection(this, () => {
+    this._emitter.emit('trigger');
   });
 
   // Accessing Data
@@ -26,7 +26,7 @@ export class ListDataSource {
     this._emitter.emit('trigger', arg);
   };
 
-  listen(callback, bindContext) {
+  listen(callback: (...args: any[]) => void, bindContext: unknown) {
     if (!(callback instanceof Function)) {
       throw new Error('ListDataSource: You must pass a function to `listen`');
     }
@@ -54,15 +54,15 @@ export class ListDataSource {
     throw new Error('ListDataSource base class does not implement empty()');
   }
 
-  get(idx): Model {
+  get(idx: number): Model {
     throw new Error('ListDataSource base class does not implement get()');
   }
 
-  getById(id): Model {
+  getById(id: string): Model {
     throw new Error('ListDataSource base class does not implement getById()');
   }
 
-  indexOfId(id): number {
+  indexOfId(id: string): number {
     throw new Error('ListDataSource base class does not implement indexOfId()');
   }
 
@@ -70,11 +70,11 @@ export class ListDataSource {
     throw new Error('ListDataSource base class does not implement count()');
   }
 
-  itemsCurrentlyInViewMatching(matchFn): Model[] {
+  itemsCurrentlyInViewMatching(matchFn: (item: Model) => boolean): Model[] {
     throw new Error('ListDataSource base class does not implement itemsCurrentlyInViewMatching()');
   }
 
-  setRetainedRange({ start, end }) {
+  setRetainedRange({ start, end }: { start: number; end: number }) {
     throw new Error('ListDataSource base class does not implement setRetainedRange()');
   }
 

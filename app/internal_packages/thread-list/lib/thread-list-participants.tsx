@@ -1,5 +1,5 @@
 import React from 'react';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { PropTypes, Utils, Contact } from 'mailspring-exports';
 import { AccountColorBar } from 'mailspring-component-kit';
 import { ThreadWithMessagesMetadata } from './types';
 
@@ -8,7 +8,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
 
   static propTypes = { thread: PropTypes.object.isRequired };
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: { thread: ThreadWithMessagesMetadata }) {
     if (nextProps.thread === this.props.thread) {
       return false;
     }
@@ -25,7 +25,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
     );
   }
 
-  renderSpans(items) {
+  renderSpans(items: Array<{ spacer?: boolean; contact?: Contact; unread?: boolean }>) {
     const spans = [];
     let accumulated = null;
     let accumulatedUnread = false;

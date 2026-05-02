@@ -36,7 +36,7 @@ const PT_TO_SIZE = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 5, 
 
 let plugins = null;
 
-function isMeaningfulColor(color, el: HTMLElement) {
+function isMeaningfulColor(color: string, el: HTMLElement) {
   if (!color) return false;
 
   const meaningless = ['black', 'rgb(0,0,0)', 'rgba(0,0,0,1)', '#000', '#000000'];
@@ -48,11 +48,11 @@ function isMeaningfulColor(color, el: HTMLElement) {
   return true;
 }
 
-function isMeaningfulFontSize(size) {
+function isMeaningfulFontSize(size: number) {
   return size && size / 1 !== DEFAULT_FONT_SIZE;
 }
 
-function isMeaningfulFontStyle(style) {
+function isMeaningfulFontStyle(style: string) {
   return style && style !== '14px';
 }
 
@@ -255,7 +255,7 @@ const rules: Rule[] = [
         return root;
       }
     },
-    serialize(obj, children) {
+    serialize(obj: any, children: any) {
       if (obj.object !== 'mark') return;
       return renderMark({ mark: obj, children, targetIsHTML: true });
     },

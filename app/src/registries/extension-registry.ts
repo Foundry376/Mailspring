@@ -5,13 +5,13 @@ export class Registry extends MailspringStore {
   name: string;
   _registry: { name: string; extension: any; priority: number }[];
 
-  constructor(name) {
+  constructor(name: string) {
     super();
     this.name = name;
     this.clear();
   }
 
-  register(extension, { priority = 0 } = {}) {
+  register(extension: { name: string }, { priority = 0 } = {}) {
     this.validateExtension(extension, 'register');
 
     if (this._registry.find(entry => entry.name === extension.name)) {
@@ -26,7 +26,7 @@ export class Registry extends MailspringStore {
     return this;
   }
 
-  unregister(extension) {
+  unregister(extension: { name: string }) {
     this.validateExtension(extension, 'unregister');
     this._registry = this._registry.filter(entry => entry.extension !== extension);
     this.triggerDebounced();
@@ -42,7 +42,7 @@ export class Registry extends MailspringStore {
 
   triggerDebounced = _.debounce(() => this.trigger(), 1);
 
-  validateExtension(extension, method) {
+  validateExtension(extension: { name: string } | null, method: string) {
     if (!extension || Array.isArray(extension) || !_.isObject(extension)) {
       throw new Error(
         `ExtensionRegistry.${this.name}.${method} requires a valid extension object that implements one of the functions defined by ${this.name}Extension`

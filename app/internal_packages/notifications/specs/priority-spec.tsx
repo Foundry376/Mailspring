@@ -4,7 +4,7 @@ import { Notification } from 'mailspring-component-kit';
 
 import NotifWrapper from '../lib/notif-wrapper';
 
-const stubNotif = priority => {
+const stubNotif = (priority: number) => {
   return class extends React.Component {
     static displayName = `NotifPriority${priority}`;
     static containerRequired = false;
@@ -14,7 +14,7 @@ const stubNotif = priority => {
   };
 };
 
-const checkHighestPriority = (expectedPriority, container) => {
+const checkHighestPriority = (expectedPriority: number, container: HTMLElement) => {
   const visibleElems = container.querySelectorAll('.highest-priority');
   expect(visibleElems.length).toEqual(1);
 

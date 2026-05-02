@@ -38,18 +38,18 @@ export default class LessCompileCache {
   // because it walks the entire file tree and does a file state for each
   // and every importPath. If we already have the imports, then load it
   // from our backend FileListCache.
-  setImportPaths(importPaths = []) {
+  setImportPaths(importPaths: string[] = []) {
     const fullImportPaths = importPaths.concat(this.lessSearchPaths);
     if (!_.isEqual(fullImportPaths, this.cache.importPaths)) {
       this.cache.setImportPaths(fullImportPaths);
     }
   }
 
-  read(stylesheetPath) {
+  read(stylesheetPath: string) {
     return this.cache.readFileSync(stylesheetPath);
   }
 
-  cssForFile(stylesheetPath, lessContent) {
+  cssForFile(stylesheetPath: string, lessContent: string) {
     return this.cache.cssForFile(stylesheetPath, lessContent);
   }
 }

@@ -18,7 +18,7 @@
 export default class SerializableRegistry {
   _constructorFactories = {};
 
-  get(name) {
+  get(name: string) {
     return this._constructorFactories[name].call(null);
   }
 
@@ -30,14 +30,14 @@ export default class SerializableRegistry {
     return constructors;
   }
 
-  isInRegistry(name) {
+  isInRegistry(name: string) {
     return !!this._constructorFactories[name];
   }
 
-  deserialize(name, dataJSON) {
+  deserialize(name: string, dataJSON: string | object) {
     let data = dataJSON;
     if (typeof data === 'string') {
-      data = JSON.parse(dataJSON);
+      data = JSON.parse(data);
     }
 
     const constructor = this.get(name);
@@ -53,11 +53,11 @@ Your constructor factory must return a class constructor.`);
     return object;
   }
 
-  register(name, constructorFactory) {
+  register(name: string, constructorFactory: () => new (...args: unknown[]) => unknown) {
     this._constructorFactories[name] = constructorFactory;
   }
 
-  unregister(name) {
+  unregister(name: string) {
     delete this._constructorFactories[name];
   }
 }

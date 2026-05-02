@@ -16,7 +16,7 @@ export class ObservableListDataSource extends ListTabular.DataSource {
   _setRetainedRange: (args: { start: number; end: number }) => void;
   _subscription?: Rx.Disposable;
 
-  constructor(resultSetObservable, setRetainedRange) {
+  constructor(resultSetObservable: Rx.Observable<any>, setRetainedRange: (args: { start: number; end: number }) => void) {
     super();
     this._$resultSetObservable = resultSetObservable;
     this._setRetainedRange = setRetainedRange;
@@ -69,21 +69,21 @@ export class ObservableListDataSource extends ListTabular.DataSource {
     return !this._resultSet || this._resultSet.empty();
   };
 
-  get = offset => {
+  get = (offset: number) => {
     if (!this._resultSet) {
       return null;
     }
     return this._resultSet.modelAtOffset(offset);
   };
 
-  getById(id) {
+  getById(id: string) {
     if (!this._resultSet) {
       return null;
     }
     return this._resultSet.modelWithId(id);
   }
 
-  indexOfId(id) {
+  indexOfId(id: string) {
     if (!this._resultSet || !id) {
       return -1;
     }

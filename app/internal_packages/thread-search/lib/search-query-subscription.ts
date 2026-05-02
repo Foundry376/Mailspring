@@ -15,7 +15,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _extDisposables = [];
   _searching = false;
 
-  constructor(searchQuery, accountIds) {
+  constructor(searchQuery: string, accountIds: string[]) {
     super(null, { emitResultSet: true });
     this._searchQuery = searchQuery;
     this._accountIds = accountIds;
@@ -62,7 +62,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     }
   }
 
-  _addThreadIdsToSearch(ids = []) {
+  _addThreadIdsToSearch(ids: string[] = []) {
     const currentResults = this._set && this._set.ids().length > 0;
     let searchIds = ids;
     if (currentResults) {

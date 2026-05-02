@@ -93,7 +93,7 @@ const CrossplatformStrategies = {
 
 const CrossplatformStrategiesBetterThanQuicklook = ['snarkdown', 'prism'];
 
-function strategyForPreviewing(ext) {
+function strategyForPreviewing(ext: string) {
   if (ext.startsWith('.')) ext = ext.substr(1);
 
   const strategy = Object.keys(CrossplatformStrategies).find(strategy =>
@@ -198,14 +198,14 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
   },
 ];
 
-export function canPossiblyPreviewExtension(file) {
+export function canPossiblyPreviewExtension(file: File) {
   if (file.size > FileSizeLimit) {
     return false;
   }
   return !!strategyForPreviewing(file.displayExtension());
 }
 
-export function displayQuickPreviewWindow(filePath) {
+export function displayQuickPreviewWindow(filePath: string) {
   const isPDF = filePath.endsWith('.pdf');
   const strategy = strategyForPreviewing(path.extname(filePath));
 
@@ -294,7 +294,17 @@ export async function generatePreview({
 
 // Private
 
-async function _generateCrossplatformPreview({ file, filePath, previewPath, strategy }) {
+async function _generateCrossplatformPreview({
+  file,
+  filePath,
+  previewPath,
+  strategy,
+}: {
+  file: File;
+  filePath: string;
+  previewPath: string;
+  strategy: string;
+}) {
   return new Promise(resolve => {
     captureQueue.push({ file, filePath, previewPath, strategy, resolve });
 

@@ -13,8 +13,7 @@ import _ from 'underscore';
 xdescribe('DraftEditingSession Specs', function() {
   describe('DraftChangeSet', function() {
     beforeEach(function() {
-      this.onDidAddChanges = jasmine.createSpy('onDidAddChanges');
-      this.onWillAddChanges = jasmine.createSpy('onWillAddChanges');
+      this.onAddChanges = jasmine.createSpy('onAddChanges');
       this.commitResolve = null;
       this.commitResolves = [];
       this.onCommit = jasmine.createSpy('commit').andCallFake(() => {
@@ -25,8 +24,7 @@ xdescribe('DraftEditingSession Specs', function() {
       });
 
       this.changeSet = new DraftChangeSet({
-        onDidAddChanges: this.onDidAddChanges,
-        onWillAddChanges: this.onWillAddChanges,
+        onAddChanges: this.onAddChanges,
         onCommit: this.onCommit,
       });
       this.changeSet._pending = { subject: 'Change to subject line' };

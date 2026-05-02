@@ -22,7 +22,7 @@ export interface IEditorToolbarConfigItem {
   };
 }
 
-function removeMarksOfTypeInRange(editor: Editor, range: Range | Selection, type) {
+function removeMarksOfTypeInRange(editor: Editor, range: Range | Selection, type: string) {
   if (range.isCollapsed) {
     const active = editor.value.activeMarks.find(m => m.type === type);
     if (active) {
@@ -51,28 +51,28 @@ function removeMarksOfTypeInRange(editor: Editor, range: Range | Selection, type
   });
 }
 
-export function expandSelectionToRangeOfMark(editor, type) {
+export function expandSelectionToRangeOfMark(editor: Editor, type: string) {
   const { selection, document } = editor.value;
   const node = document.getNode(selection.anchor.key);
   let start = selection.anchor.offset;
   let end = selection.anchor.offset;
 
   // expand backwards until the mark disappears
-  while (start > 0 && node.getMarksAtIndex(start).find(m => m.type === type)) {
+  while (start > 0 && (node as any).getMarksAtIndex(start).find(m => m.type === type)) {
     start -= 1;
   }
   // expand forwards until the mark disappears
-  while (end < node.text.length - 1 && node.getMarksAtIndex(end + 1).find(m => m.type === type)) {
+  while (end < node.text.length - 1 && (node as any).getMarksAtIndex(end + 1).find(m => m.type === type)) {
     end += 1;
   }
 
   // expand selection
   editor.select({
-    anchor: { key: selection.anchor.key, offset: start },
-    focus: { key: selection.anchor.key, offset: end },
+    anchor: { key: selection.anchor.key, offset: start } as any,
+    focus: { key: selection.anchor.key, offset: end } as any,
     isFocused: true,
     isBackward: false,
-  });
+  } as any);
 }
 
 export function getActiveValueForMark(value: Value, type: string) {
@@ -133,7 +133,7 @@ export function BuildMarkButtonWithValuePicker(config) {
       expanded: false,
     };
 
-    onPrompt = e => {
+    onPrompt = (e: React.MouseEvent) => {
       e.preventDefault();
       const active = this.props.value.activeMarks.find(m => m.type === config.type);
       const fieldValue = (active && active.data.get(config.field)) || '';
@@ -145,7 +145,7 @@ export function BuildMarkButtonWithValuePicker(config) {
       });
     };
 
-    onConfirm = e => {
+    onConfirm = (e: React.MouseEvent | React.KeyboardEvent) => {
       e.preventDefault();
 
       // attach the URL value to the LINK that was created when we opened the link modal
@@ -153,7 +153,7 @@ export function BuildMarkButtonWithValuePicker(config) {
       const { fieldValue } = this.state;
 
       if (fieldValue.trim() === '') {
-        this.onRemove(e);
+        this.onRemove(e as React.MouseEvent);
         this.setState({ expanded: false, fieldValue: '' });
         return;
       }
@@ -189,7 +189,7 @@ export function BuildMarkButtonWithValuePicker(config) {
       this.setState({ expanded: false, fieldValue: '' });
     };
 
-    onRemove = e => {
+    onRemove = (e: React.MouseEvent) => {
       e.preventDefault();
       const { value, editor } = this.props;
       const active = value.activeMarks.find(m => m.type === config.type);
@@ -202,8 +202,8 @@ export function BuildMarkButtonWithValuePicker(config) {
       }
     };
 
-    onBlur = e => {
-      if (!this._el.contains(e.relatedTarget)) {
+    onBlur = (e: React.FocusEvent) => {
+      if (!this._el.contains(e.relatedTarget as Node)) {
         this.setState({ expanded: false });
       }
     };
@@ -260,7 +260,7 @@ export function BuildColorPicker(config) {
   > {
     _el: HTMLElement;
 
-    constructor(props) {
+    constructor(props: ComposerEditorPluginToolbarComponentProps) {
       super(props);
       this.state = {
         expanded: false,
@@ -271,8 +271,8 @@ export function BuildColorPicker(config) {
       this.setState({ expanded: !this.state.expanded });
     };
 
-    _onBlur = e => {
-      if (!this._el.contains(e.relatedTarget)) {
+    _onBlur = (e: React.FocusEvent) => {
+      if (!this._el.contains(e.relatedTarget as Node)) {
         this.setState({ expanded: false });
       }
     };
@@ -324,11 +324,11 @@ export function BuildColorPicker(config) {
 
 export function BuildFontPicker(config) {
   return class FontPicker extends React.Component<ComposerEditorPluginToolbarComponentProps> {
-    _onSetValue = e => {
+    _onSetValue = (e: React.ChangeEvent<HTMLSelectElement>) => {
       const { editor } = this.props;
-      let markValue = e.target.value !== config.default ? e.target.value : null;
+      let markValue: string | number | null = e.target.value !== config.default ? e.target.value : null;
       if (!(typeof config.options[0].value === 'string')) {
-        markValue = markValue / 1;
+        markValue = Number(markValue);
       }
       applyValueForMark(editor, config.type, markValue);
     };

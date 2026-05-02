@@ -72,7 +72,7 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
     onDragEnd: PropTypes.func,
   };
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: ListTabularRowsProps, nextState: Record<string, unknown>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -205,7 +205,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     this._listRowsEl = el;
   };
 
-  constructor(props) {
+  constructor(props: ListTabularProps) {
     super(props);
     if (!props.itemHeight) {
       throw new Error(
@@ -221,7 +221,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     this.setupDataSource(this.props.dataSource);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps: ListTabularProps, prevState: ListTabularState) {
     if (this.props.onComponentDidUpdate) {
       this.props.onComponentDidUpdate();
     }
@@ -286,9 +286,9 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     }
   };
 
-  setupDataSource(dataSource) {
+  setupDataSource(dataSource: ListDataSource) {
     this._unlisten();
-    this._unlisten = dataSource.listen(() => this.setState(this.buildStateForRange()));
+    this._unlisten = dataSource.listen(() => this.setState(this.buildStateForRange()), this);
 
     const range = this.getRange();
     if (range) {
@@ -319,7 +319,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     return rows;
   }
 
-  scrollTo(node) {
+  scrollTo(node: HTMLElement) {
     if (!this._scrollRegion) {
       return;
     }
@@ -330,7 +330,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     this._listRowsEl?.focus({ preventScroll: true });
   }
 
-  scrollByPage(direction) {
+  scrollByPage(direction: number) {
     if (!this._scrollRegion) {
       return;
     }

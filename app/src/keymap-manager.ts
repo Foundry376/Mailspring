@@ -72,7 +72,7 @@ class KeymapFile {
   _path: string;
   _manager: KeymapManager;
 
-  constructor(manager, filePath) {
+  constructor(manager: KeymapManager, filePath: string) {
     this._manager = manager;
     this._path = filePath;
   }
@@ -222,7 +222,7 @@ export default class KeymapManager {
     }
   };
 
-  loadKeymap(filePath) {
+  loadKeymap(filePath: string) {
     const file = new KeymapFile(this, filePath);
     this._files.push(file);
     file.load();
@@ -233,7 +233,7 @@ export default class KeymapManager {
     });
   }
 
-  ensureKeystrokesRegistered(keystrokes) {
+  ensureKeystrokesRegistered(keystrokes: string) {
     if (this._registered[keystrokes]) {
       return;
     }
@@ -283,7 +283,7 @@ export default class KeymapManager {
     this._emitter.emit('on-did-reload-keymap');
   }
 
-  onDidReloadKeymap = callback => {
+  onDidReloadKeymap = (callback: () => void) => {
     return this._emitter.on('on-did-reload-keymap', callback);
   };
 
@@ -291,7 +291,7 @@ export default class KeymapManager {
     return this._bindingsCache;
   }
 
-  getBindingsForCommand(command) {
+  getBindingsForCommand(command: string) {
     return this._bindingsCache[command] || [];
   }
 }

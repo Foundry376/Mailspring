@@ -9,7 +9,7 @@ import { ComposerEditorPlugin } from './types';
 
 export const LINK_TYPE = 'link';
 
-function onPaste(event, editor: Editor, next: () => void) {
+function onPaste(event: React.ClipboardEvent, editor: Editor, next: () => void) {
   const html = event.clipboardData.getData('text/html');
   const plain = event.clipboardData.getData('text/plain');
   const regex = RegExpUtils.urlRegex({ matchStartOfString: true, matchTailOfString: true });
@@ -71,7 +71,7 @@ function renderMark({ mark, children, targetIsHTML }, editor: Editor = null, nex
 
 const rules = [
   {
-    deserialize(el, next) {
+    deserialize(el: HTMLElement, next: (elements: NodeList) => any) {
       if (el.tagName.toLowerCase() === 'a') {
         return {
           object: 'mark',
@@ -83,7 +83,7 @@ const rules = [
         };
       }
     },
-    serialize(obj, children) {
+    serialize(obj: any, children: any) {
       if (obj.object !== 'mark') return;
       return renderMark({ mark: obj, children, targetIsHTML: true });
     },

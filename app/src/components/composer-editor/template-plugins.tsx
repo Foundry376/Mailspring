@@ -43,7 +43,7 @@ function renderNode(
 
 const rules = [
   {
-    deserialize(el, next) {
+    deserialize(el: HTMLElement, next: (elements: NodeList) => any) {
       let name = el.dataset && el.dataset.tvar;
       if (el.tagName === 'CODE' && el.classList.contains('var')) {
         name = '';
@@ -57,7 +57,7 @@ const rules = [
         };
       }
     },
-    serialize(obj, children) {
+    serialize(obj: any, children: any) {
       if (obj.object !== 'inline') return;
       return renderNode({ node: obj, children, targetIsHTML: true });
     },

@@ -30,7 +30,7 @@ export class DraftChangeSet extends EventEmitter {
   _lastCommitTime = 0;
   _commitPromise: Promise<any> = null;
 
-  constructor(callbacks) {
+  constructor(callbacks: { onAddChanges: (changes: Record<string, unknown>) => void; onCommit: () => Promise<void> }) {
     super();
     this.callbacks = callbacks;
   }
@@ -43,7 +43,7 @@ export class DraftChangeSet extends EventEmitter {
     }
   }
 
-  add(changes, { skipSaving = false } = {}) {
+  add(changes: Record<string, unknown>, { skipSaving = false }: { skipSaving?: boolean } = {}) {
     if (!skipSaving) {
       changes.pristine = false;
 
@@ -57,7 +57,7 @@ export class DraftChangeSet extends EventEmitter {
     this.callbacks.onAddChanges(changes);
   }
 
-  addPluginMetadata(pluginId, metadata) {
+  addPluginMetadata(pluginId: string, metadata: unknown) {
     this._lastModifiedTimes.pluginMetadata = performance.now();
     this.callbacks.onAddChanges({ [`${MetadataChangePrefix}${pluginId}`]: metadata });
     this.debounceCommit();

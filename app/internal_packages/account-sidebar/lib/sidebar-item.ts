@@ -19,7 +19,7 @@ import { ISidebarItem } from './types';
 
 const idForCategories = (categories) => categories.map(c => c.id).join('-');
 
-const countForItem = function (perspective) {
+const countForItem = function (perspective: MailboxPerspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
   if (perspective.isInbox() || unreadCountEnabled) {
     return perspective.unreadCount();
@@ -27,9 +27,9 @@ const countForItem = function (perspective) {
   return 0;
 };
 
-const isItemSelected = (perspective) => FocusedPerspectiveStore.current().isEqual(perspective);
+const isItemSelected = (perspective: MailboxPerspective) => FocusedPerspectiveStore.current().isEqual(perspective);
 
-const isItemCollapsed = function (id) {
+const isItemCollapsed = function (id: string) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
     return AppEnv.savedState.sidebarKeysCollapsed[id];
   } else {
@@ -37,14 +37,14 @@ const isItemCollapsed = function (id) {
   }
 };
 
-const toggleItemCollapsed = function (item) {
+const toggleItemCollapsed = function (item: ISidebarItem) {
   if (!(item.children.length > 0)) {
     return;
   }
   SidebarActions.setKeyCollapsed(item.id, !isItemCollapsed(item.id));
 };
 
-const onDeleteItem = function (item) {
+const onDeleteItem = function (item: ISidebarItem) {
   if (item.deleted === true) {
     return;
   }
@@ -77,7 +77,7 @@ const onDeleteItem = function (item) {
 
 const EXCLUDED_EXPORT_ROLES = new Set(['drafts', 'starred', 'unread']);
 
-const onExportFolder = function (item) {
+const onExportFolder = function (item: ISidebarItem) {
   const category = item.perspective.category();
   if (!category) {
     return;
@@ -143,7 +143,7 @@ export function createCategory(accountId: string, name: string, parentCategory?:
   );
 }
 
-const onCreateChild = function (item, childName) {
+const onCreateChild = function (item: ISidebarItem, childName: string) {
   const category = item.perspective.category();
   if (!category) {
     return;
@@ -151,7 +151,7 @@ const onCreateChild = function (item, childName) {
   createCategory(category.accountId, childName, category);
 };
 
-const onEditItem = function (item, value) {
+const onEditItem = function (item: ISidebarItem, value: string) {
   let newDisplayName;
   if (!value) {
     return;
@@ -189,7 +189,7 @@ const onEditItem = function (item, value) {
 };
 
 export default class SidebarItem {
-  static forPerspective(id, perspective, opts: Partial<ISidebarItem> = {}): ISidebarItem {
+  static forPerspective(id: string, perspective: MailboxPerspective, opts: Partial<ISidebarItem> = {}): ISidebarItem {
     let counterStyle;
     if (perspective.isInbox()) {
       counterStyle = OutlineViewItem.CounterStyles.Alt;
@@ -277,7 +277,7 @@ export default class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forStarred(accountIds, opts: Partial<ISidebarItem> = {}) {
+  static forStarred(accountIds: string[], opts: Partial<ISidebarItem> = {}) {
     const perspective = MailboxPerspective.forStarred(accountIds);
     let id = 'Starred';
     if (opts.name) {
@@ -286,7 +286,7 @@ export default class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forUnread(accountIds, opts: Partial<ISidebarItem> = {}) {
+  static forUnread(accountIds: string[], opts: Partial<ISidebarItem> = {}) {
     let categories = accountIds.map((accId) => {
       return CategoryStore.getCategoryByRole(accId, 'inbox');
     });
@@ -306,7 +306,7 @@ export default class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forDrafts(accountIds, opts: Partial<ISidebarItem> = {}) {
+  static forDrafts(accountIds: string[], opts: Partial<ISidebarItem> = {}) {
     const perspective = MailboxPerspective.forDrafts(accountIds);
     const id = `Drafts-${opts.name}`;
     return this.forPerspective(id, perspective, opts);
