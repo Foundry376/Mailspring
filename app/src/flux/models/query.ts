@@ -248,7 +248,7 @@ export default class ModelQuery<T extends Model | Model[]> {
   // A convenience method for setting both limit and offset given a desired page size.
   //
   page(start: number, end: number, pageSize = 50, pagePadding = 100) {
-    const roundToPage = n => Math.max(0, Math.floor(n / pageSize) * pageSize);
+    const roundToPage = (n) => Math.max(0, Math.floor(n / pageSize) * pageSize);
     this.offset(roundToPage(start - pagePadding));
     this.limit(roundToPage(end - start + pagePadding * 2));
     return this;
@@ -298,11 +298,11 @@ export default class ModelQuery<T extends Model | Model[]> {
       return result[0].count / 1;
     }
     if (this._returnIds) {
-      return result.map(row => row.id as string);
+      return result.map((row) => row.id as string);
     }
 
     try {
-      return result.map(row => {
+      return result.map((row) => {
         const object: T = Utils.convertToModel(JSON.parse(row.data));
         for (const attrName of Object.keys(this._klass.attributes)) {
           const attr = this._klass.attributes[attrName];
@@ -368,7 +368,7 @@ export default class ModelQuery<T extends Model | Model[]> {
         }
         result += `, ${attr.tableColumn} `;
       }
-      this._includeJoinedData.forEach(attr => {
+      this._includeJoinedData.forEach((attr) => {
         result += `, ${attr.selectSQL()} `;
       });
     }
@@ -388,7 +388,7 @@ export default class ModelQuery<T extends Model | Model[]> {
     const distinct = this._distinct ? ' DISTINCT' : '';
     const allMatchers = this.matchersFlattened();
 
-    const joins = allMatchers.filter(matcher => matcher.attr instanceof AttributeCollection);
+    const joins = allMatchers.filter((matcher) => matcher.attr instanceof AttributeCollection);
 
     if (joins.length === 1 && this._canSubselectForJoin(joins[0], allMatchers)) {
       const subSql = this._subselectSQL(joins[0], this._matchers, order, limit);
@@ -416,12 +416,12 @@ export default class ModelQuery<T extends Model | Model[]> {
     }
 
     const allMatchersOnJoinTable = allMatchers.every(
-      m =>
+      (m) =>
         m === matcher ||
         joinAttribute.joinQueryableBy.includes(m.attr.modelKey) ||
         m.attr.modelKey === 'id'
     );
-    const allOrdersOnJoinTable = this._orders.every(o =>
+    const allOrdersOnJoinTable = this._orders.every((o) =>
       joinAttribute.joinQueryableBy.includes(o.attr.modelKey)
     );
 
@@ -437,7 +437,7 @@ export default class ModelQuery<T extends Model | Model[]> {
     const returningAttribute = returningMatcher.attribute() as AttributeCollection;
 
     const table = returningAttribute.tableNameForJoinAgainst(this._klass);
-    const wheres = subselectMatchers.map(c => c.whereSQL(this._klass)).filter(c => !!c);
+    const wheres = subselectMatchers.map((c) => c.whereSQL(this._klass)).filter((c) => !!c);
 
     let innerSQL = `SELECT \`id\` FROM \`${table}\` WHERE ${wheres.join(
       ' AND '
@@ -452,14 +452,14 @@ export default class ModelQuery<T extends Model | Model[]> {
 
   _whereClause() {
     const joins = [];
-    this._matchers.forEach(c => {
+    this._matchers.forEach((c) => {
       const join = c.joinSQL(this._klass);
       if (join) {
         joins.push(join);
       }
     });
 
-    this._includeJoinedData.forEach(attr => {
+    this._includeJoinedData.forEach((attr) => {
       const join = attr.includeSQL(this._klass);
       if (join) {
         joins.push(join);
@@ -467,7 +467,7 @@ export default class ModelQuery<T extends Model | Model[]> {
     });
 
     const wheres = [];
-    this._matchers.forEach(c => {
+    this._matchers.forEach((c) => {
       const where = c.whereSQL(this._klass);
       if (where) {
         wheres.push(where);
@@ -487,9 +487,7 @@ export default class ModelQuery<T extends Model | Model[]> {
     }
 
     let sql = ' ORDER BY ';
-    sql += this._orders
-      .map(sort => sort.orderBySQL(this._klass))
-      .join(', ')
+    sql += this._orders.map((sort) => sort.orderBySQL(this._klass)).join(', ');
     return sql;
   }
 
@@ -531,7 +529,7 @@ export default class ModelQuery<T extends Model | Model[]> {
 
   matchersFlattened() {
     const all = [];
-    const traverse = matchers => {
+    const traverse = (matchers) => {
       if (!(matchers instanceof Array)) {
         return;
       }
@@ -548,7 +546,7 @@ export default class ModelQuery<T extends Model | Model[]> {
   }
 
   matcherValueForModelKey(key: string) {
-    const matcher = this._matchers.find(m => m.attr.modelKey === key);
+    const matcher = this._matchers.find((m) => m.attr.modelKey === key);
     return matcher ? matcher.val : null;
   }
 

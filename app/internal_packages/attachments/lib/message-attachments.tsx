@@ -66,12 +66,12 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
 
   render() {
     const { files } = this.props;
-    const nonImageFiles = files.filter(f => !Utils.shouldDisplayAsImage(f));
-    const imageFiles = files.filter(f => Utils.shouldDisplayAsImage(f));
+    const nonImageFiles = files.filter((f) => !Utils.shouldDisplayAsImage(f));
+    const imageFiles = files.filter((f) => Utils.shouldDisplayAsImage(f));
     return (
       <div>
-        {nonImageFiles.map(file => this.renderAttachment(AttachmentItem, file))}
-        {imageFiles.map(file => this.renderAttachment(ImageAttachmentItem, file))}
+        {nonImageFiles.map((file) => this.renderAttachment(AttachmentItem, file))}
+        {imageFiles.map((file) => this.renderAttachment(ImageAttachmentItem, file))}
       </div>
     );
   }

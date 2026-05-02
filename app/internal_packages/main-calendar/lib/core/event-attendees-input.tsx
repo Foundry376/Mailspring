@@ -62,7 +62,7 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
       return Promise.resolve([]);
     }
 
-    return ContactStore.parseContactsInString(string, options).then(contacts => {
+    return ContactStore.parseContactsInString(string, options).then((contacts) => {
       if (contacts.length > 0) {
         return Promise.resolve(contacts);
       }
@@ -73,15 +73,15 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
   };
 
   _remove = (values: EventAttendee[]): void => {
-    const emailsToRemove = values.map(o => o.email);
-    const updates = _.reject(this.props.attendees, p => emailsToRemove.includes(p.email));
+    const emailsToRemove = values.map((o) => o.email);
+    const updates = _.reject(this.props.attendees, (p) => emailsToRemove.includes(p.email));
     this.props.change(updates);
   };
 
   _edit = (token: EventAttendee, replacementString: string): void => {
     const tokenIndex = this.props.attendees.indexOf(token);
 
-    this._tokensForString(replacementString).then(replacements => {
+    this._tokensForString(replacementString).then((replacements) => {
       const updates = this.props.attendees.slice(0);
       updates.splice(tokenIndex, 1, ...replacements);
       this.props.change(updates);
@@ -99,10 +99,10 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
       tokensPromise = Promise.resolve(values);
     }
 
-    tokensPromise.then(tokens => {
+    tokensPromise.then((tokens) => {
       // Safety check: remove anything from the incoming tokens that isn't
       // a Contact. We should never receive anything else in the tokens array.
-      const contactTokens = tokens.filter(value => value instanceof Contact);
+      const contactTokens = tokens.filter((value) => value instanceof Contact);
       let updates = this.props.attendees.slice(0);
 
       for (const token of contactTokens) {
@@ -127,7 +127,7 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
         click: () =>
           navigator.clipboard
             .writeText(participant.email)
-            .catch(err => console.error('Failed to copy to clipboard:', err)),
+            .catch((err) => console.error('Failed to copy to clipboard:', err)),
       })
     );
     menu.append(
@@ -169,10 +169,10 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
         className={this.props.className}
         ref="textField"
         tokens={this.props.attendees}
-        tokenKey={p => p.email}
-        tokenIsValid={p => ContactStore.isValidContact(p)}
+        tokenKey={(p) => p.email}
+        tokenIsValid={(p) => ContactStore.isValidContact(p)}
         tokenRenderer={TokenRenderer}
-        onRequestCompletions={input => ContactStore.searchContacts(input)}
+        onRequestCompletions={(input) => ContactStore.searchContacts(input)}
         shouldBreakOnKeydown={this._shouldBreakOnKeydown}
         onInputTrySubmit={this._onInputTrySubmit}
         completionNode={this._completionNode}

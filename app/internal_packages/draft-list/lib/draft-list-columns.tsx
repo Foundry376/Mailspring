@@ -23,13 +23,13 @@ function subject(subj) {
 const ParticipantsColumn = new ListTabular.Column({
   name: 'Participants',
   width: 200,
-  resolver: draft => {
+  resolver: (draft) => {
     const list = [...draft.to, ...draft.cc, ...draft.bcc];
 
     if (list.length > 0) {
       return (
         <div className="participants">
-          <span>{list.map(p => p.displayName()).join(', ')}</span>
+          <span>{list.map((p) => p.displayName()).join(', ')}</span>
         </div>
       );
     } else {
@@ -41,7 +41,7 @@ const ParticipantsColumn = new ListTabular.Column({
 const ContentsColumn = new ListTabular.Column({
   name: 'Contents',
   flex: 4,
-  resolver: draft => {
+  resolver: (draft) => {
     let attachments: JSX.Element[] | JSX.Element = [];
     if (draft.files && draft.files.length > 0) {
       attachments = <div className="thread-icon thread-icon-attachment" />;
@@ -58,7 +58,7 @@ const ContentsColumn = new ListTabular.Column({
 
 const StatusColumn = new ListTabular.Column({
   name: 'State',
-  resolver: draft => {
+  resolver: (draft) => {
     return (
       <InjectedComponentSet
         inline={true}

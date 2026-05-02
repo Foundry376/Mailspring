@@ -19,7 +19,7 @@ class _SnoozeStore extends MailspringStore {
   activate() {
     this.unsubscribers = [
       SnoozeActions.snoozeThreads.listen(this._onSnoozeThreads),
-      DatabaseStore.listen(change => {
+      DatabaseStore.listen((change) => {
         if (change.type !== 'metadata-expiration' || change.objectClass !== Thread.name) {
           return;
         }
@@ -29,7 +29,7 @@ class _SnoozeStore extends MailspringStore {
   }
 
   deactivate() {
-    this.unsubscribers.forEach(unsub => unsub());
+    this.unsubscribers.forEach((unsub) => unsub());
   }
 
   _onSnoozeThreads = async (threads, snoozeDate, label) => {
@@ -51,7 +51,7 @@ class _SnoozeStore extends MailspringStore {
 
       // attach metadata to the threads to unsnooze them later
       Actions.queueTasks(
-        threads.map(model =>
+        threads.map((model) =>
           SyncbackMetadataTask.forSaving({
             model,
             pluginId: PLUGIN_ID,
@@ -74,7 +74,7 @@ class _SnoozeStore extends MailspringStore {
     }
   };
 
-  _onUnsnoozeThreads = threads => {
+  _onUnsnoozeThreads = (threads) => {
     // move the threads back to the inbox
     moveThreads(threads, { snooze: false, description: 'Unsnoozed' });
 
@@ -82,11 +82,11 @@ class _SnoozeStore extends MailspringStore {
     markUnreadOrResurfaceThreads(threads, localized('Unsnoozed message'));
   };
 
-  _onMetadataExpired = threads => {
+  _onMetadataExpired = (threads) => {
     if (!AppEnv.isMainWindow()) {
       return;
     }
-    const unsnooze = threads.filter(thread => {
+    const unsnooze = threads.filter((thread) => {
       const metadata = thread.metadataForPluginId(PLUGIN_ID);
       return metadata && metadata.expiration && metadata.expiration < new Date();
     });
@@ -95,7 +95,7 @@ class _SnoozeStore extends MailspringStore {
       // otherwise we'll receive a notification from the sync worker over and
       // over again.
       Actions.queueTasks(
-        threads.map(model =>
+        threads.map((model) =>
           SyncbackMetadataTask.forSaving({
             model,
             pluginId: PLUGIN_ID,
@@ -108,7 +108,9 @@ class _SnoozeStore extends MailspringStore {
 
       // unsnooze messages that are still in the snoozed folder. (The user may have
       // moved the thread out of the snoozed folder using another client )
-      this._onUnsnoozeThreads(unsnooze.filter(t => t.categories.find(c => c.role === 'snoozed')));
+      this._onUnsnoozeThreads(
+        unsnooze.filter((t) => t.categories.find((c) => c.role === 'snoozed'))
+      );
     }
   };
 }

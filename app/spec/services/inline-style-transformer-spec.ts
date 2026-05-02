@@ -5,7 +5,7 @@ describe('InlineStyleTransformer', function specs() {
   describe('run', () => {
     beforeEach(() => {
       spyOn(ipcRenderer, 'send');
-      spyOn(InlineStyleTransformer, '_injectUserAgentStyles').andCallFake(input => input);
+      spyOn(InlineStyleTransformer, '_injectUserAgentStyles').andCallFake((input) => input);
       InlineStyleTransformer._inlineStylePromises = {};
     });
     it('should return a Promise', () => {
@@ -68,7 +68,9 @@ describe('InlineStyleTransformer', function specs() {
       -->
       </style>Other content goes here`);
       expect(ipcRenderer.send).toHaveBeenCalled();
-      expect((ipcRenderer.send as jasmine.Spy).mostRecentCall.args[0]).toEqual('inline-style-parse');
+      expect((ipcRenderer.send as jasmine.Spy).mostRecentCall.args[0]).toEqual(
+        'inline-style-parse'
+      );
     });
   });
 });

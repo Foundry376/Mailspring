@@ -66,7 +66,7 @@ export class AttributeCollection extends Attribute {
       throw new Error(`AttributeCollection::toJSON: ${this.modelKey} is not an array.`);
     }
 
-    return vals.map(val => {
+    return vals.map((val) => {
       if (this.itemClass && !(val instanceof this.itemClass)) {
         throw new Error(
           `AttributeCollection::toJSON: Value \`${val}\` in ${this.modelKey} is not an ${this.itemClass.name}`
@@ -82,7 +82,7 @@ export class AttributeCollection extends Attribute {
     if (!json || !(json instanceof Array)) {
       return [];
     }
-    return json.map(objJSON => {
+    return json.map((objJSON) => {
       if (!objJSON || !Klass || objJSON instanceof Klass) {
         return objJSON;
       }

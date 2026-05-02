@@ -58,7 +58,7 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
         data-calendar-end={this.props.end}
         data-calendar-type="all-day-area"
       >
-        {allDayEvents.map(e => (
+        {allDayEvents.map((e) => (
           <CalendarEvent
             event={e}
             order={allDayOverlap[e.id]?.order || 1}

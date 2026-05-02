@@ -144,8 +144,8 @@ export default class MessageItemBody extends React.Component<
 
     // Replace cid: references with the paths to downloaded files
     this.props.message.files
-      .filter(f => f.contentId)
-      .forEach(file => {
+      .filter((f) => f.contentId)
+      .forEach((file) => {
         const download = this.props.downloads[file.id];
         const safeContentId = Utils.escapeRegExp(file.contentId);
 
@@ -160,7 +160,7 @@ export default class MessageItemBody extends React.Component<
           // Render a spinner
           merged = merged.replace(inlineImgRegexp, () => SpinnerImg);
         } else {
-          merged = merged.replace(inlineImgRegexp, match => {
+          merged = merged.replace(inlineImgRegexp, (match) => {
             const filePath = AttachmentStore.pathForFile(file);
             if (!filePath) return match;
             return match.replace(`cid:${file.contentId}`, `file://${filePath}`);

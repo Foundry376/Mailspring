@@ -218,7 +218,7 @@ export default class EmojiToolbarPopover extends React.Component<
     return position;
   }
 
-  calcEmojiByPosition = position => {
+  calcEmojiByPosition = (position) => {
     for (const category of Object.keys(this.state.categoryPositions)) {
       const LEFT_BOUNDARY = 8;
       const RIGHT_BOUNDARY = 201;
@@ -244,7 +244,7 @@ export default class EmojiToolbarPopover extends React.Component<
 
   renderTabs() {
     const tabs = [];
-    this.state.categoryNames.forEach(category => {
+    this.state.categoryNames.forEach((category) => {
       let className = `emoji-tab ${category.replace(/ /g, '-').toLowerCase()}`;
       if (category === this.state.activeTab) {
         className += ' active';
@@ -355,7 +355,7 @@ export default class EmojiToolbarPopover extends React.Component<
             />
           </div>
           <canvas
-            ref={el => {
+            ref={(el) => {
               this._canvasEl = el;
             }}
             width="420"

@@ -17,7 +17,7 @@ import {
 import * as SidebarActions from './sidebar-actions';
 import { ISidebarItem } from './types';
 
-const idForCategories = (categories) => categories.map(c => c.id).join('-');
+const idForCategories = (categories) => categories.map((c) => c.id).join('-');
 
 const countForItem = function (perspective: MailboxPerspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
@@ -27,7 +27,8 @@ const countForItem = function (perspective: MailboxPerspective) {
   return 0;
 };
 
-const isItemSelected = (perspective: MailboxPerspective) => FocusedPerspectiveStore.current().isEqual(perspective);
+const isItemSelected = (perspective: MailboxPerspective) =>
+  FocusedPerspectiveStore.current().isEqual(perspective);
 
 const isItemCollapsed = function (id: string) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
@@ -189,7 +190,11 @@ const onEditItem = function (item: ISidebarItem, value: string) {
 };
 
 export default class SidebarItem {
-  static forPerspective(id: string, perspective: MailboxPerspective, opts: Partial<ISidebarItem> = {}): ISidebarItem {
+  static forPerspective(
+    id: string,
+    perspective: MailboxPerspective,
+    opts: Partial<ISidebarItem> = {}
+  ): ISidebarItem {
     let counterStyle;
     if (perspective.isInbox()) {
       counterStyle = OutlineViewItem.CounterStyles.Alt;

@@ -63,7 +63,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
         startUnix: rangeStart.unix(),
         endUnix: rangeEnd.unix(),
       })
-      .subscribe(state => {
+      .subscribe((state) => {
         if (this._mounted) {
           this.setState(state);
         }
@@ -85,17 +85,12 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
     const days: DayEvents[] = [];
 
     for (let i = 0; i < DAYS_IN_VIEW; i++) {
-      const day = moment(focusedMoment)
-        .startOf('day')
-        .add(i, 'days');
+      const day = moment(focusedMoment).startOf('day').add(i, 'days');
       const dayStart = day.unix();
-      const dayEnd = day
-        .clone()
-        .endOf('day')
-        .unix();
+      const dayEnd = day.clone().endOf('day').unix();
 
       const events = this.state.events
-        .filter(event => event.start < dayEnd && event.end > dayStart)
+        .filter((event) => event.start < dayEnd && event.end > dayStart)
         .sort((a, b) => {
           // All-day events first, then sort by start time
           if (a.isAllDay && !b.isAllDay) return -1;
@@ -166,7 +161,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
   _renderEvent(event: EventOccurrence, dayKey: string) {
     const colors = calcEventColors(event.calendarId);
     const meetingDomain = extractMeetingDomain(event.location, event.description);
-    const isSelected = this.props.selectedEvents.some(e => e.id === event.id);
+    const isSelected = this.props.selectedEvents.some((e) => e.id === event.id);
 
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
     const uniqueId = `${event.id}-${dayKey}`;
@@ -185,8 +180,8 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
         id={uniqueId}
         key={uniqueId}
         className={className}
-        onClick={e => this.props.onEventClick(e, event)}
-        onDoubleClick={e => this._onAgendaEventDoubleClick(e, event)}
+        onClick={(e) => this.props.onEventClick(e, event)}
+        onDoubleClick={(e) => this._onAgendaEventDoubleClick(e, event)}
         tabIndex={0}
       >
         <div className="agenda-event-color-bar" style={{ backgroundColor: colors.band }} />
@@ -220,7 +215,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
         {this._renderDayHeader(day)}
         <div className="agenda-day-events">
           {events.length > 0 ? (
-            events.map(event => this._renderEvent(event, dayKey))
+            events.map((event) => this._renderEvent(event, dayKey))
           ) : (
             <div className="agenda-no-events">{localized('No events')}</div>
           )}

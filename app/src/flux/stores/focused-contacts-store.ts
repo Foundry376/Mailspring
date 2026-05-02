@@ -65,8 +65,10 @@ class FocusedContactsStore extends MailspringStore {
     this._scoreAllParticipants();
     // Sort ascending then reverse to match the tie-breaking behavior of
     // _.sortBy().reverse() — ties appear in reverse insertion order.
-    const sorted = Object.values(this._contactScores).sort((a, b) => a.score - b.score).reverse();
-    this._currentContacts = sorted.map(obj => obj.contact);
+    const sorted = Object.values(this._contactScores)
+      .sort((a, b) => a.score - b.score)
+      .reverse();
+    this._currentContacts = sorted.map((obj) => obj.contact);
     return this._onFocusContact(this._currentContacts[0]);
   }
 
@@ -93,7 +95,7 @@ class FocusedContactsStore extends MailspringStore {
         accountId: this._currentThread.accountId,
         email: contact.email,
       });
-      this._unsubFocusedContact = Rx.Observable.fromQuery(query).subscribe(match => {
+      this._unsubFocusedContact = Rx.Observable.fromQuery(query).subscribe((match) => {
         if (match) {
           match.name = contact.name; // always show the name from the current email
         }
@@ -118,7 +120,12 @@ class FocusedContactsStore extends MailspringStore {
     const score = (message: Message, msgNum: number, field: string, multiplier: number) => {
       (message[field] || []).forEach((contact, j) => {
         const bonus = message[field].length - j;
-        this._assignScore(contact, (msgNum + 1) * multiplier + bonus, myEmail, myEmailIsCommonDomain);
+        this._assignScore(
+          contact,
+          (msgNum + 1) * multiplier + bonus,
+          myEmail,
+          myEmailIsCommonDomain
+        );
       });
     };
 
@@ -157,7 +164,12 @@ class FocusedContactsStore extends MailspringStore {
     }
   }
 
-  _calculatePenalties(contact: Contact, score: number, myEmail?: string, myEmailIsCommonDomain?: boolean) {
+  _calculatePenalties(
+    contact: Contact,
+    score: number,
+    myEmail?: string,
+    myEmailIsCommonDomain?: boolean
+  ) {
     let penalties = 0;
     const email = contact.email.toLowerCase().trim();
 

@@ -7,10 +7,10 @@ import { PropTypes, Utils } from 'mailspring-exports';
 // This is a stripped down version of
 // https://github.com/michaelvillar/dynamics.js/blob/master/src/dynamics.coffee#L1179,
 //
-const SpringBounceFactory = options => {
+const SpringBounceFactory = (options) => {
   const frequency = Math.max(1, options.frequency / 20);
   const friction = 20 ** (options.friction / 100);
-  return t => {
+  return (t) => {
     return 1 - (friction / 10) ** -t * (1 - t) * Math.cos(frequency * t);
   };
 };
@@ -165,7 +165,7 @@ export default class SwipeContainer extends React.Component<
     // }
   };
 
-  _onDragWithVelocity = velocityX => {
+  _onDragWithVelocity = (velocityX) => {
     if (this.tracking === false || !this._isEnabled()) {
       return;
     }
@@ -190,7 +190,7 @@ export default class SwipeContainer extends React.Component<
     const fullDist = fullDistance as number;
     const threshDist = thresholdDistance as number;
 
-    const clipToMax = v => Math.max(-fullDist, Math.min(fullDist, v));
+    const clipToMax = (v) => Math.max(-fullDist, Math.min(fullDist, v));
     const currentX = clipToMax(this.state.currentX + velocityX);
     const estimatedSettleX = clipToMax(currentX + velocityX * 5);
     const lastDragX = currentX;
@@ -242,7 +242,7 @@ export default class SwipeContainer extends React.Component<
     }
   };
 
-  _onTouchStart = e => {
+  _onTouchStart = (e) => {
     if (this.trackingTouchIdentifier === null && e.targetTouches.length > 0) {
       const touch = e.targetTouches.item(0);
       this.trackingTouchIdentifier = touch.identifier;
@@ -252,7 +252,7 @@ export default class SwipeContainer extends React.Component<
     }
   };
 
-  _onTouchMove = e => {
+  _onTouchMove = (e) => {
     if (this.trackingTouchIdentifier === null) {
       return;
     }
@@ -298,7 +298,7 @@ export default class SwipeContainer extends React.Component<
     }
   };
 
-  _onTouchEnd = e => {
+  _onTouchEnd = (e) => {
     if (this.trackingTouchIdentifier === null) {
       return;
     }
@@ -311,7 +311,7 @@ export default class SwipeContainer extends React.Component<
     }
   };
 
-  _onSwipeActionCompleted = rowWillDisappear => {
+  _onSwipeActionCompleted = (rowWillDisappear) => {
     let delay = 0;
     if (rowWillDisappear) {
       delay = 550;

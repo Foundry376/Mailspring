@@ -15,7 +15,7 @@ import { Store } from './Store';
 import { exportContactsToFile, importContactsFromFile } from './VCFImportExport';
 
 function adjustMenus() {
-  const contactMenu: typeof AppEnv.menu.template[0] = {
+  const contactMenu: (typeof AppEnv.menu.template)[0] = {
     id: 'Contact',
     label: localized('Contact'),
     submenu: [
@@ -53,8 +53,10 @@ function adjustMenus() {
     ],
   };
 
-  const template = AppEnv.menu.template.filter(item => item.id !== 'Thread' && item.id !== 'View');
-  const editIndex = template.findIndex(item => item.id === 'Edit');
+  const template = AppEnv.menu.template.filter(
+    (item) => item.id !== 'Thread' && item.id !== 'View'
+  );
+  const editIndex = template.findIndex((item) => item.id === 'Edit');
   template.splice(editIndex + 1, 0, contactMenu);
 
   AppEnv.menu.template = template;
@@ -69,7 +71,7 @@ function resolveImportAccountId(): string | null {
     return perspective.accountId;
   }
   // Unified view — fall back to the first CardDAV-capable account.
-  const account = AccountStore.accounts().find(a => a.provider !== 'gmail');
+  const account = AccountStore.accounts().find((a) => a.provider !== 'gmail');
   return account ? account.id : null;
 }
 

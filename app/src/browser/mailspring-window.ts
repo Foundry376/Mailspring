@@ -262,7 +262,7 @@ export default class MailspringWindow extends EventEmitter {
     // action.
     //
     // This uses the DOM's `beforeunload` event.
-    this.browserWindow.on('close', event => {
+    this.browserWindow.on('close', (event) => {
       if (global.application.isQuitting()) {
         return;
       }

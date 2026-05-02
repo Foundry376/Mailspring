@@ -49,7 +49,7 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
     const messageUid = draft.headerMessageId;
     const links = [];
 
-    forEachATagInBody(draftBodyRootNode, el => {
+    forEachATagInBody(draftBodyRootNode, (el) => {
       const url = el.getAttribute('href');
       if (!RegExpUtils.urlRegex().test(url)) {
         return;

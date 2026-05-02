@@ -111,8 +111,8 @@ class _PreferencesUIStore extends MailspringStore {
     this._triggerDebounced();
   };
 
-  unregisterPreferencesTab = tabItemOrId => {
-    this._tabs = this._tabs.filter(s => s.tabId !== tabItemOrId && s !== tabItemOrId);
+  unregisterPreferencesTab = (tabItemOrId) => {
+    this._tabs = this._tabs.filter((s) => s.tabId !== tabItemOrId && s !== tabItemOrId);
     this._triggerDebounced();
   };
 }

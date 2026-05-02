@@ -159,7 +159,7 @@ describe('MutableQueryResultSet', function MutableQueryResultSetSpecs() {
 
   describe('updateModel', () => {
     beforeEach(() => {
-      this.mockModel = id => {
+      this.mockModel = (id) => {
         return {
           id: id,
           constructor: {

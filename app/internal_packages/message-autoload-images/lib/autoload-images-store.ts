@@ -39,7 +39,7 @@ class AutoloadImagesStore extends MailspringStore {
     return /<link\s+[^>]+>/gi;
   };
 
-  shouldBlockImagesIn = message => {
+  shouldBlockImagesIn = (message) => {
     const spam = CategoryStore.getSpamCategory(message.accountId);
     const spamFolderId = spam ? spam.id : undefined;
 
@@ -59,7 +59,7 @@ class AutoloadImagesStore extends MailspringStore {
   };
 
   _loadWhitelist = () => {
-    fs.exists(this._whitelistEmailsPath, exists => {
+    fs.exists(this._whitelistEmailsPath, (exists) => {
       if (!exists) {
         return;
       }
@@ -74,7 +74,7 @@ class AutoloadImagesStore extends MailspringStore {
         body
           .toString()
           .split(/[\n\r]+/)
-          .forEach(email => {
+          .forEach((email) => {
             this._whitelistEmails[Utils.toEquivalentEmailForm(email)] = true;
           });
         this.trigger();
@@ -84,20 +84,20 @@ class AutoloadImagesStore extends MailspringStore {
 
   _saveWhitelist = () => {
     const data = Object.keys(this._whitelistEmails).join('\n');
-    fs.writeFile(this._whitelistEmailsPath, data, err => {
+    fs.writeFile(this._whitelistEmailsPath, data, (err) => {
       if (err) {
         console.error(`AutoloadImagesStore could not save whitelist: ${err.toString()}`);
       }
     });
   };
 
-  _onTemporarilyEnableImages = message => {
+  _onTemporarilyEnableImages = (message) => {
     this._whitelistMessageIds[message.id] = true;
     MessageBodyProcessor.resetCache();
     this.trigger();
   };
 
-  _onPermanentlyEnableImages = message => {
+  _onPermanentlyEnableImages = (message) => {
     const email = Utils.toEquivalentEmailForm(message.fromContact().email);
     this._whitelistEmails[email] = true;
     MessageBodyProcessor.resetCache();

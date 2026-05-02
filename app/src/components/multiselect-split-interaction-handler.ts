@@ -33,19 +33,19 @@ export default class MultiselectSplitInteractionHandler {
     return this.props.dataSource.selection.count() > 1;
   }
 
-  onClick = item => {
+  onClick = (item) => {
     this.onFocusItem(item);
     this.props.dataSource.selection.clear();
     this._checkSelectionAndFocusConsistency();
   };
 
-  onMetaClick = item => {
+  onMetaClick = (item) => {
     this._turnFocusIntoSelection();
     this.props.dataSource.selection.toggle(item);
     this._checkSelectionAndFocusConsistency();
   };
 
-  onShiftClick = item => {
+  onShiftClick = (item) => {
     this._turnFocusIntoSelection();
     this.props.dataSource.selection.expandTo(item);
     this._checkSelectionAndFocusConsistency();
@@ -59,7 +59,7 @@ export default class MultiselectSplitInteractionHandler {
     this._checkSelectionAndFocusConsistency();
   };
 
-  onSelect = items => {
+  onSelect = (items) => {
     this.props.dataSource.selection.set(items);
     this._checkSelectionAndFocusConsistency();
   };

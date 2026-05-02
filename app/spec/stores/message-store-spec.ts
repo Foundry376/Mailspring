@@ -32,9 +32,9 @@ const testMessage3 = new Message({
   accountId: TEST_ACCOUNT_ID,
 });
 
-describe('MessageStore', function() {
-  describe('when the receiving focus changes from the FocusedContentStore', function() {
-    beforeEach(function() {
+describe('MessageStore', function () {
+  describe('when the receiving focus changes from the FocusedContentStore', function () {
+    beforeEach(function () {
       if (MessageStore._onFocusChangedTimer) {
         clearTimeout(MessageStore._onFocusChangedTimer);
         MessageStore._onFocusChangedTimer = null;
@@ -42,7 +42,7 @@ describe('MessageStore', function() {
       spyOn(MessageStore, '_onApplyFocusChange');
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (MessageStore._onFocusChangedTimer) {
         clearTimeout(MessageStore._onFocusChangedTimer);
         MessageStore._onFocusChangedTimer = null;
@@ -50,7 +50,7 @@ describe('MessageStore', function() {
     });
 
     describe('if no change has happened in the last 100ms', () =>
-      it('should apply immediately', function() {
+      it('should apply immediately', function () {
         FocusedContentStore.trigger({
           impactsCollection(c) {
             return true;
@@ -59,8 +59,8 @@ describe('MessageStore', function() {
         expect(MessageStore._onApplyFocusChange).toHaveBeenCalled();
       }));
 
-    describe('if a change has happened in the last 100ms', function() {
-      it('should not apply immediately', function() {
+    describe('if a change has happened in the last 100ms', function () {
+      it('should not apply immediately', function () {
         const noop = () => {};
         MessageStore._onFocusChangedTimer = setTimeout(noop, 100);
         FocusedContentStore.trigger({
@@ -71,7 +71,7 @@ describe('MessageStore', function() {
         expect(MessageStore._onApplyFocusChange).not.toHaveBeenCalled();
       });
 
-      it('should apply 100ms after the last focus change and reset', function() {
+      it('should apply 100ms after the last focus change and reset', function () {
         FocusedContentStore.trigger({
           impactsCollection(c) {
             return true;
@@ -110,8 +110,8 @@ describe('MessageStore', function() {
     });
   });
 
-  describe('items', function() {
-    beforeEach(function() {
+  describe('items', function () {
+    beforeEach(function () {
       MessageStore._showingHiddenItems = false;
       MessageStore._items = [
         new Message({
@@ -132,13 +132,13 @@ describe('MessageStore', function() {
     });
 
     describe('when showing hidden items', () =>
-      it('should return the entire items array', function() {
+      it('should return the entire items array', function () {
         MessageStore._showingHiddenItems = true;
         expect(MessageStore.items().length).toBe(5);
       }));
 
     describe('when in trash or spam', () =>
-      it('should show only the message which are in trash or spam, and drafts', function() {
+      it('should show only the message which are in trash or spam, and drafts', function () {
         spyOn(FocusedPerspectiveStore, 'current').andReturn({
           categoriesSharedRole: () => 'trash',
         });
@@ -150,7 +150,7 @@ describe('MessageStore', function() {
       }));
 
     describe('when in another folder', () =>
-      it('should hide all of the messages which are in trash or spam', function() {
+      it('should hide all of the messages which are in trash or spam', function () {
         spyOn(FocusedPerspectiveStore, 'current').andReturn({
           categoriesSharedRole: () => 'inbox',
         });
@@ -162,12 +162,12 @@ describe('MessageStore', function() {
       }));
   });
 
-  describe('when applying focus changes', function() {
-    beforeEach(function() {
+  describe('when applying focus changes', function () {
+    beforeEach(function () {
       (MessageStore as any)._lastLoadedThreadId = null;
 
       this.focus = null;
-      spyOn(FocusedContentStore, 'focused').andCallFake(collection => {
+      spyOn(FocusedContentStore, 'focused').andCallFake((collection) => {
         if (collection === 'thread') {
           return this.focus;
         } else {
@@ -175,7 +175,7 @@ describe('MessageStore', function() {
         }
       });
 
-      spyOn(FocusedContentStore, 'focusedId').andCallFake(collection => {
+      spyOn(FocusedContentStore, 'focusedId').andCallFake((collection) => {
         if (collection === 'thread') {
           return this.focus != null ? this.focus.id : undefined;
         } else {
@@ -183,7 +183,7 @@ describe('MessageStore', function() {
         }
       });
 
-      spyOn(DatabaseStore, 'findAll').andCallFake(function() {
+      spyOn(DatabaseStore, 'findAll').andCallFake(function () {
         return {
           include() {
             return this;
@@ -198,7 +198,7 @@ describe('MessageStore', function() {
       });
     });
 
-    it('should retrieve the focused thread', function() {
+    it('should retrieve the focused thread', function () {
       this.focus = testThread;
       MessageStore._thread = null;
       MessageStore._onApplyFocusChange();
@@ -207,37 +207,40 @@ describe('MessageStore', function() {
     });
 
     describe('when the thread is already focused', () =>
-      it('should do nothing', function() {
+      it('should do nothing', function () {
         this.focus = testThread;
         MessageStore._thread = this.focus;
         MessageStore._onApplyFocusChange();
         expect(DatabaseStore.findAll).not.toHaveBeenCalled();
       }));
 
-    describe('when the thread is unread', function() {
-      beforeEach(function() {
+    describe('when the thread is unread', function () {
+      beforeEach(function () {
         this.focus = null;
         MessageStore._onApplyFocusChange();
         testThread.unread = true;
         spyOn(Actions, 'queueTask');
-        spyOn(AppEnv.config, 'get').andCallFake(key => {
+        spyOn(AppEnv.config, 'get').andCallFake((key) => {
           if (key === 'core.reading.markAsReadDelay') {
             return 600;
           }
         });
       });
 
-      it('should queue a task to mark the thread as read', function() {
+      it('should queue a task to mark the thread as read', function () {
         this.focus = testThread;
         MessageStore._onApplyFocusChange();
         advanceClock(500);
         expect(Actions.queueTask).not.toHaveBeenCalled();
         advanceClock(500);
         expect(Actions.queueTask).toHaveBeenCalled();
-        expect((Actions.queueTask as unknown as jasmine.Spy).mostRecentCall.args[0] instanceof ChangeUnreadTask).toBe(true);
+        expect(
+          (Actions.queueTask as unknown as jasmine.Spy).mostRecentCall.args[0] instanceof
+            ChangeUnreadTask
+        ).toBe(true);
       });
 
-      it('should not queue a task to mark the thread as read if the thread is no longer selected 500msec later', function() {
+      it('should not queue a task to mark the thread as read if the thread is no longer selected 500msec later', function () {
         this.focus = testThread;
         MessageStore._onApplyFocusChange();
         advanceClock(500);
@@ -248,7 +251,7 @@ describe('MessageStore', function() {
         expect(Actions.queueTask).not.toHaveBeenCalled();
       });
 
-      it('should not re-mark the thread as read when made unread', function() {
+      it('should not re-mark the thread as read when made unread', function () {
         this.focus = testThread;
         testThread.unread = false;
         MessageStore._onApplyFocusChange();
@@ -265,25 +268,25 @@ describe('MessageStore', function() {
     });
   });
 
-  describe('when toggling expansion of all messages', function() {
-    beforeEach(function() {
+  describe('when toggling expansion of all messages', function () {
+    beforeEach(function () {
       MessageStore._items = [testMessage1, testMessage2, testMessage3];
       spyOn(MessageStore, '_fetchExpandedAttachments');
     });
 
-    it('should expand all when at default state', function() {
+    it('should expand all when at default state', function () {
       MessageStore._itemsExpanded = { c: 'default' };
       Actions.toggleAllMessagesExpanded();
       expect(MessageStore._itemsExpanded).toEqual({ a: 'explicit', b: 'explicit', c: 'explicit' });
     });
 
-    it('should expand all when at least one item is collapsed', function() {
+    it('should expand all when at least one item is collapsed', function () {
       MessageStore._itemsExpanded = { b: 'explicit', c: 'explicit' };
       Actions.toggleAllMessagesExpanded();
       expect(MessageStore._itemsExpanded).toEqual({ a: 'explicit', b: 'explicit', c: 'explicit' });
     });
 
-    it('should collapse all except the latest message when all expanded', function() {
+    it('should collapse all except the latest message when all expanded', function () {
       MessageStore._itemsExpanded = { a: 'explicit', b: 'explicit', c: 'explicit' };
       Actions.toggleAllMessagesExpanded();
       expect(MessageStore._itemsExpanded).toEqual({ c: 'explicit' });

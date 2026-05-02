@@ -24,7 +24,7 @@ export default class DefaultClientNotification extends React.Component<
 
   componentDidMount() {
     this.mounted = true;
-    this.helper.isRegisteredForURLScheme('mailto', registered => {
+    this.helper.isRegisteredForURLScheme('mailto', (registered) => {
       if (this.mounted) {
         this.setState({
           initializing: false,
@@ -49,7 +49,7 @@ export default class DefaultClientNotification extends React.Component<
   }
 
   _onAccept = () => {
-    this.helper.registerForURLScheme('mailto', err => {
+    this.helper.registerForURLScheme('mailto', (err) => {
       if (err) {
         if (err.message && err.message.includes('xdg-mime') && err.message.includes('not found')) {
           require('@electron/remote').dialog.showMessageBox({

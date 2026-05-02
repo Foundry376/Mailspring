@@ -86,7 +86,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
       return '';
     }
     const rolesAndPaths = [
-      ...new Set(perspective.categories().map(c => c.role || wrapInQuotes(c.path))),
+      ...new Set(perspective.categories().map((c) => c.role || wrapInQuotes(c.path))),
     ];
     if (rolesAndPaths.length > 1) {
       return `(in:${rolesAndPaths.join(' OR in:')}) `;
@@ -116,11 +116,11 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
 
     if (token) {
       // show token autocompletion options ala Stripe Dashboard
-      suggestions = TokenSuggestions.filter(s => s.token.startsWith(token));
+      suggestions = TokenSuggestions.filter((s) => s.token.startsWith(token));
 
       if (suggestions.length && suggestions[0].token === token) {
         const { termSuggestions } = suggestions[0];
-        const textToSuggestion = term => ({
+        const textToSuggestion = (term) => ({
           term: wrapInQuotes(term),
           description: term.includes(' ') ? wrapInQuotes(term) : term,
           token,
@@ -129,13 +129,13 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
         if (termSuggestions instanceof Function) {
           suggestions = [];
           promises.push(
-            termSuggestions(term, accountIds).then(results => {
+            termSuggestions(term, accountIds).then((results) => {
               suggestions.push(...results.map(textToSuggestion));
             })
           );
         } else {
           suggestions = termSuggestions
-            .filter(t => !term || (t.startsWith(term) && t !== term))
+            .filter((t) => !term || (t.startsWith(term) && t !== term))
             .map(textToSuggestion);
         }
       }
@@ -147,16 +147,16 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
       suggestions = [];
       promises.push(
         Promise.props({
-          subjects: getThreadSuggestions(query, accountIds).then(threads =>
-            threads.map(t => ({
+          subjects: getThreadSuggestions(query, accountIds).then((threads) =>
+            threads.map((t) => ({
               token: null,
               term: wrapInQuotes(t.subject),
               description: t.subject,
               thread: t,
             }))
           ),
-          contacts: getContactSuggestions(query, accountIds).then(results =>
-            results.map(term => ({ token: null, term: wrapInQuotes(term), description: term }))
+          contacts: getContactSuggestions(query, accountIds).then((results) =>
+            results.map((term) => ({ token: null, term: wrapInQuotes(term), description: term }))
           ),
         }).then(({ contacts, subjects }) => {
           suggestions = [...contacts, ...subjects].sort((a, b) => {
@@ -246,7 +246,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
         `${suggestion.token}:${suggestion.term}`,
         query.substr(index + length).trim(),
       ]
-        .filter(s => s.length)
+        .filter((s) => s.length)
         .join(' ');
     } else {
       nextQuery = suggestion.term;
@@ -278,7 +278,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
 
   _setSuggestionState = (suggestions: ThreadSearchSuggestion[]) => {
     const sameItemIdx = suggestions.findIndex(
-      s => this.state.selected && s.description === this.state.selected.description
+      (s) => this.state.selected && s.description === this.state.selected.description
     );
     const backupIdx = Math.max(-1, Math.min(this.state.selectedIdx, suggestions.length - 1));
     const selectedIdx = sameItemIdx !== -1 ? sameItemIdx : backupIdx;
@@ -362,7 +362,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
           />
         )}
         <TokenizingContenteditable
-          ref={el => (this._fieldEl = el)}
+          ref={(el) => (this._fieldEl = el)}
           value={showPlaceholder ? this._placeholder() : query}
           onKeyDown={this._onKeyDown}
           onFocus={this._onFocus}
@@ -384,7 +384,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
           <div className="suggestions" role="listbox">
             {suggestions.map((s, idx) => (
               <div
-                onMouseDown={e => {
+                onMouseDown={(e) => {
                   this._onChooseSuggestion(s);
                   e.preventDefault();
                 }}
@@ -403,7 +403,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
                   'Pro tip: Combine search terms with AND and OR to create complex queries.'
                 )}{' '}
                 <a
-                  onMouseDown={e => {
+                  onMouseDown={(e) => {
                     AppEnv.windowEventHandler.openLink({
                       href: LearnMoreURL,
                       metaKey: e.metaKey,

@@ -3,8 +3,8 @@ import ReactTestUtils from 'react-dom/test-utils';
 const EventedIFrame = require('../../src/components/evented-iframe').EventedIFrame;
 
 describe('EventedIFrame', () =>
-  describe('link clicking behavior', function() {
-    beforeEach(function() {
+  describe('link clicking behavior', function () {
+    beforeEach(function () {
       this.frame = ReactTestUtils.renderIntoDocument(<EventedIFrame src="about:blank" />);
 
       this.setAttributeSpy = jasmine.createSpy('setAttribute');
@@ -14,7 +14,7 @@ describe('EventedIFrame', () =>
       this.oldOpenLink = AppEnv.windowEventHandler.openLink;
       AppEnv.windowEventHandler.openLink = this.openLinkSpy;
 
-      this.fakeEvent = href => {
+      this.fakeEvent = (href) => {
         return {
           stopPropagation() {},
           preventDefault: this.preventDefaultSpy,
@@ -28,11 +28,11 @@ describe('EventedIFrame', () =>
       };
     });
 
-    afterEach(function() {
+    afterEach(function () {
       AppEnv.windowEventHandler.openLink = this.oldOpenLink;
     });
 
-    it('works for acceptable link types', function() {
+    it('works for acceptable link types', function () {
       const hrefs = [
         'http://mailspring.com',
         'https://www.mailspring.com',
@@ -52,7 +52,7 @@ describe('EventedIFrame', () =>
       }
     });
 
-    it('corrects relative uris', function() {
+    it('corrects relative uris', function () {
       const hrefs = ['mailspring.com', 'www.mailspring.com'];
       for (let i = 0; i < hrefs.length; i++) {
         const href = hrefs[i];
@@ -63,7 +63,7 @@ describe('EventedIFrame', () =>
       }
     });
 
-    it('corrects protocol-relative uris', function() {
+    it('corrects protocol-relative uris', function () {
       const hrefs = ['//mailspring.com', '//www.mailspring.com'];
       for (let i = 0; i < hrefs.length; i++) {
         const href = hrefs[i];
@@ -74,7 +74,7 @@ describe('EventedIFrame', () =>
       }
     });
 
-    it('disallows malicious uris', function() {
+    it('disallows malicious uris', function () {
       const hrefs = ['file://usr/bin/bad'];
       for (let href of Array.from(hrefs)) {
         this.frame._onIFrameClick(this.fakeEvent(href));

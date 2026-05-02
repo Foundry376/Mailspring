@@ -51,11 +51,11 @@ export default class FindInThread extends React.Component<
     this.setState(SearchableComponentStore.getCurrentSearchData());
   };
 
-  _onFindChange = event => {
+  _onFindChange = (event) => {
     Actions.findInThread(event.target.value);
   };
 
-  _onFindKeyDown = event => {
+  _onFindKeyDown = (event) => {
     if (event.key === 'Enter') {
       return event.shiftKey ? this._onPrevResult() : this._onNextResult();
     } else if (event.key === 'Escape') {
@@ -109,14 +109,14 @@ export default class FindInThread extends React.Component<
         <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers}>
           <div
             className="controls-wrap"
-            ref={el => {
+            ref={(el) => {
               this._controlsWrapEl = el;
             }}
           >
             <div className="input-wrap">
               <input
                 type="text"
-                ref={el => {
+                ref={(el) => {
                   this._searchBoxEl = el;
                 }}
                 aria-label={localized('Find in thread')}

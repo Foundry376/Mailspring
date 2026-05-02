@@ -29,7 +29,7 @@ export default class PersonalLevelIcon extends React.Component<{ thread: Thread 
   // `props`. In that sense, `render` methods are deterministic.
   render() {
     const { thread } = this.props;
-    const me = thread.participants.find(p => p.isMe());
+    const me = thread.participants.find((p) => p.isMe());
 
     if (me && thread.participants.length === 2) {
       return this.renderIndicator(2);

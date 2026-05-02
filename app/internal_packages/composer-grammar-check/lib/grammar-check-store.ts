@@ -143,7 +143,7 @@ class _GrammarCheckStore extends MailspringStore {
     // Remove errors with this ruleId from all drafts
     for (const [, blockErrors] of this._errorsByDraft) {
       for (const [blockKey, result] of blockErrors) {
-        const filtered = result.errors.filter(e => e.ruleId !== ruleId);
+        const filtered = result.errors.filter((e) => e.ruleId !== ruleId);
         if (filtered.length !== result.errors.length) {
           blockErrors.set(blockKey, { text: result.text, errors: filtered });
         }
@@ -212,7 +212,7 @@ class _GrammarCheckStore extends MailspringStore {
           }
 
           // Filter out dismissed rules
-          const filteredErrors = errors.filter(e => !this._dismissedRules.has(e.ruleId));
+          const filteredErrors = errors.filter((e) => !this._dismissedRules.has(e.ruleId));
 
           draftErrors.set(blockKey, { text: blockText, errors: filteredErrors });
         } catch (err) {

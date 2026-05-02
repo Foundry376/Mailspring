@@ -96,7 +96,7 @@ const CrossplatformStrategiesBetterThanQuicklook = ['snarkdown', 'prism'];
 function strategyForPreviewing(ext: string) {
   if (ext.startsWith('.')) ext = ext.substr(1);
 
-  const strategy = Object.keys(CrossplatformStrategies).find(strategy =>
+  const strategy = Object.keys(CrossplatformStrategies).find((strategy) =>
     CrossplatformStrategies[strategy].includes(ext)
   );
 
@@ -170,27 +170,27 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
       {
         label: 'Reload',
         accelerator: 'CmdOrCtrl+R',
-        click: function(item, focusedWindow) {
+        click: function (item, focusedWindow) {
           if (focusedWindow) (focusedWindow as Electron.BrowserWindow).reload();
         },
       },
       {
         label: 'Toggle Full Screen',
-        accelerator: (function() {
+        accelerator: (function () {
           if (process.platform === 'darwin') return 'Ctrl+Command+F';
           else return 'F11';
         })(),
-        click: function(item, focusedWindow) {
+        click: function (item, focusedWindow) {
           if (focusedWindow) focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
         },
       },
       {
         label: 'Toggle Developer Tools',
-        accelerator: (function() {
+        accelerator: (function () {
           if (process.platform === 'darwin') return 'Alt+Command+I';
           else return 'Ctrl+Shift+I';
         })(),
-        click: function(item, focusedWindow) {
+        click: function (item, focusedWindow) {
           if (focusedWindow) (focusedWindow as Electron.BrowserWindow).webContents.toggleDevTools();
         },
       },
@@ -305,7 +305,7 @@ async function _generateCrossplatformPreview({
   previewPath: string;
   strategy: string;
 }) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     captureQueue.push({ file, filePath, previewPath, strategy, resolve });
 
     if (!captureWindow || captureWindow.isDestroyed()) {
@@ -417,7 +417,7 @@ async function _generateNextCrossplatformPreview() {
     onFinalize(true);
   };
 
-  onFinalize = success => {
+  onFinalize = (success) => {
     captureWindowInUse = false;
     clearTimeout(timer);
     if (captureWindow) {
@@ -438,7 +438,7 @@ async function _generateQuicklookPreview({ filePath }: { filePath: string }) {
   const dirQuoted = path.dirname(filePath).replace(/"/g, '\\"');
   const pathQuoted = filePath.replace(/"/g, '\\"');
 
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const cmd = '/usr/bin/qlmanage';
     const args = [
       '-t',

@@ -32,7 +32,8 @@ export * from '../flux/stores/observable-list-data-source';
 export * from '../flux/models/mutable-query-subscription';
 
 // Database Objects
-export type DatabaseObjectRegistry = typeof import('../registries/database-object-registry').default;
+export type DatabaseObjectRegistry =
+  typeof import('../registries/database-object-registry').default;
 export const DatabaseObjectRegistry: DatabaseObjectRegistry;
 export * from '../flux/models/model';
 export type Attributes = typeof import('../flux/attributes');
@@ -135,11 +136,14 @@ export type MessageBodyProcessor = typeof import('../flux/stores/message-body-pr
 export const MessageBodyProcessor: MessageBodyProcessor;
 export type FocusedContactsStore = typeof import('../flux/stores/focused-contacts-store').default;
 export const FocusedContactsStore: FocusedContactsStore;
-export type FolderSyncProgressStore = typeof import('../flux/stores/folder-sync-progress-store').default;
+export type FolderSyncProgressStore =
+  typeof import('../flux/stores/folder-sync-progress-store').default;
 export const FolderSyncProgressStore: FolderSyncProgressStore;
-export type FocusedPerspectiveStore = typeof import('../flux/stores/focused-perspective-store').default;
+export type FocusedPerspectiveStore =
+  typeof import('../flux/stores/focused-perspective-store').default;
 export const FocusedPerspectiveStore: FocusedPerspectiveStore;
-export type SearchableComponentStore = typeof import('../flux/stores/searchable-component-store').default;
+export type SearchableComponentStore =
+  typeof import('../flux/stores/searchable-component-store').default;
 export const SearchableComponentStore: SearchableComponentStore;
 
 export type ServiceRegistry = typeof import('../registries/service-registry').default;
@@ -233,9 +237,11 @@ export const InlineStyleTransformer: InlineStyleTransformer;
 export * from '../searchable-components/searchable-component-maker';
 
 // Composer Editor Plugin APIs
-export type GrammarCheckPluginAPI = typeof import('../components/composer-editor/grammar-check-plugins').GrammarCheckPluginAPI;
+export type GrammarCheckPluginAPI =
+  typeof import('../components/composer-editor/grammar-check-plugins').GrammarCheckPluginAPI;
 export const GrammarCheckPluginAPI: GrammarCheckPluginAPI;
-export type GrammarCheckStoreAPI = typeof import('../components/composer-editor/grammar-check-plugins').GrammarCheckStoreAPI;
+export type GrammarCheckStoreAPI =
+  typeof import('../components/composer-editor/grammar-check-plugins').GrammarCheckStoreAPI;
 
 // Errors
 export * from '../flux/errors';

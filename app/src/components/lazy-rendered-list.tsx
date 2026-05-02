@@ -47,7 +47,11 @@ export class LazyRenderedList extends React.Component<
   }
 
   componentDidUpdate(prevProps: LazyRenderedListProps) {
-    if (prevProps.items !== this.props.items || prevProps.itemHeight !== this.props.itemHeight || prevProps.containerHeight !== this.props.containerHeight) {
+    if (
+      prevProps.items !== this.props.items ||
+      prevProps.itemHeight !== this.props.itemHeight ||
+      prevProps.containerHeight !== this.props.containerHeight
+    ) {
       this.updateRangeState(this.props);
     }
   }

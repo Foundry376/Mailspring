@@ -59,7 +59,7 @@ class ActivityListButton extends React.Component<
         title={localized('View activity')}
         aria-label={ariaLabel}
         onClick={this.onClick}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             this.onClick();

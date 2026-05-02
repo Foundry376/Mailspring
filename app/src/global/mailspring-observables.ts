@@ -17,7 +17,7 @@ interface ICategoryOperators {
 
 const CategoryOperators = {
   sort() {
-    const obs = this.map(categories => {
+    const obs = this.map((categories) => {
       return categories.sort((catA, catB) => {
         let nameA = catA.displayName;
         let nameB = catB.displayName;
@@ -37,7 +37,7 @@ const CategoryOperators = {
   },
 
   categoryFilter(filter: (Category) => boolean) {
-    const obs = this.map(categories => categories.filter(filter));
+    const obs = this.map((categories) => categories.filter(filter));
     return Object.assign(obs, CategoryOperators);
   },
 };
@@ -56,7 +56,7 @@ const CategoryObservables = {
   },
 
   forAccount(account) {
-    const scoped = account ? q => q.where({ accountId: account.id }) : q => q;
+    const scoped = account ? (q) => q.where({ accountId: account.id }) : (q) => q;
 
     const folders = Rx.Observable.fromQuery(scoped(DatabaseStore.findAll<Folder>(Folder)));
     const labels = Rx.Observable.fromQuery(scoped(DatabaseStore.findAll<Label>(Label)));
@@ -67,10 +67,10 @@ const CategoryObservables = {
 
   standard(account): Observable<Category[]> & ICategoryOperators {
     const observable = Rx.Observable.fromConfig('core.workspace.showImportant').flatMapLatest(
-      showImportant => {
+      (showImportant) => {
         return CategoryObservables.forAccount(account)
           .sort()
-          .categoryFilter(cat => cat.isStandardCategory(showImportant));
+          .categoryFilter((cat) => cat.isStandardCategory(showImportant));
       }
     );
     Object.assign(observable, CategoryOperators);
@@ -80,13 +80,13 @@ const CategoryObservables = {
   user(account) {
     return CategoryObservables.forAccount(account)
       .sort()
-      .categoryFilter(cat => cat.isUserCategory());
+      .categoryFilter((cat) => cat.isUserCategory());
   },
 
   hidden(account) {
     return CategoryObservables.forAccount(account)
       .sort()
-      .categoryFilter(cat => cat.isHiddenCategory());
+      .categoryFilter((cat) => cat.isHiddenCategory());
   },
 };
 
@@ -94,8 +94,8 @@ export const Categories = CategoryObservables;
 
 // Attach a few global helpers
 
-Rx.Observable.fromStore = store => {
-  return Rx.Observable.create(observer => {
+Rx.Observable.fromStore = (store) => {
+  return Rx.Observable.create((observer) => {
     const unsubscribe = store.listen(() => {
       observer.onNext(store);
     });
@@ -106,8 +106,8 @@ Rx.Observable.fromStore = store => {
 
 // Takes a store that provides an {ObservableListDataSource} via `dataSource()`
 // Returns an observable that provides array of selected items on subscription
-Rx.Observable.fromListSelection = originStore => {
-  return Rx.Observable.create(observer => {
+Rx.Observable.fromListSelection = (originStore) => {
+  return Rx.Observable.create((observer) => {
     let dataSourceDisposable = null;
     const storeObservable = Rx.Observable.fromStore(originStore);
 
@@ -135,7 +135,7 @@ Rx.Observable.fromListSelection = originStore => {
 };
 
 Rx.Observable.fromConfig = (configKey: string) => {
-  return Rx.Observable.create(observer => {
+  return Rx.Observable.create((observer) => {
     const disposable = AppEnv.config.onDidChange(configKey, () =>
       observer.onNext(AppEnv.config.get(configKey))
     );
@@ -145,15 +145,15 @@ Rx.Observable.fromConfig = (configKey: string) => {
 };
 
 Rx.Observable.fromAction = (action: any) => {
-  return Rx.Observable.create(observer => {
-    const unsubscribe = action.listen(arg => observer.onNext(arg));
+  return Rx.Observable.create((observer) => {
+    const unsubscribe = action.listen((arg) => observer.onNext(arg));
     return Rx.Disposable.create(unsubscribe);
   });
 };
 
 Rx.Observable.fromQuery = <T extends Model | Model[]>(query: ModelQuery<T>) => {
-  return Rx.Observable.create(observer => {
-    const unsubscribe = QuerySubscriptionPool.add(query, result => observer.onNext(result));
+  return Rx.Observable.create((observer) => {
+    const unsubscribe = QuerySubscriptionPool.add(query, (result) => observer.onNext(result));
     return Rx.Disposable.create(unsubscribe);
   });
 };
@@ -162,8 +162,8 @@ Rx.Observable.fromNamedQuerySubscription = <T extends Model>(
   name: string,
   subscription: QuerySubscription<T>
 ) => {
-  return Rx.Observable.create(observer => {
-    const unsubscribe = QuerySubscriptionPool.addPrivateSubscription(name, subscription, result =>
+  return Rx.Observable.create((observer) => {
+    const unsubscribe = QuerySubscriptionPool.addPrivateSubscription(name, subscription, (result) =>
       observer.onNext(result)
     );
     return Rx.Disposable.create(unsubscribe);

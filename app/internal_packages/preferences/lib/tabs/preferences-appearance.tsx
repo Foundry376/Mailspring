@@ -54,7 +54,7 @@ class AppearanceScaleSlider extends React.Component<
           step={0.05}
           value={this.state.value}
           aria-label={localized('Interface Scale')}
-          onChange={e => this.props.config.set(this.kp, e.target.value)}
+          onChange={(e) => this.props.config.set(this.kp, e.target.value)}
         />
       </div>
     );
@@ -64,7 +64,7 @@ class AppearanceScaleSlider extends React.Component<
 class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.menubarStyle';
 
-  onChangeMenubarStyle = e => {
+  onChangeMenubarStyle = (e) => {
     this.props.config.set(this.kp, e.target.value);
   };
 
@@ -162,7 +162,7 @@ class AppearanceModeSwitch extends React.Component<
   };
 
   _renderModeOptions() {
-    return ['list', 'split', 'splitVertical'].map(mode => (
+    return ['list', 'split', 'splitVertical'].map((mode) => (
       <AppearanceModeOption
         mode={mode}
         key={mode}
@@ -197,7 +197,7 @@ class AppearanceModeSwitch extends React.Component<
 class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.trayIconStyle';
 
-  onChangeTrayIconStyle = e => {
+  onChangeTrayIconStyle = (e) => {
     this.props.config.set(this.kp, e.target.value);
   };
 
@@ -260,7 +260,7 @@ class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
 class TrayIconThemePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.traySystemTheme';
 
-  onChangeTrayIconTheme = e => {
+  onChangeTrayIconTheme = (e) => {
     this.props.config.set(this.kp, e.target.value);
   };
 

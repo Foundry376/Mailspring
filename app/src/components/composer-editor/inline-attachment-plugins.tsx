@@ -21,7 +21,7 @@ function ImageNode(props) {
   }
 
   const { draft } = editor.props.propsForPlugins;
-  const file = draft.files.find(f => contentId === f.contentId);
+  const file = draft.files.find((f) => contentId === f.contentId);
   if (!file) {
     return <span />;
   }
@@ -70,10 +70,7 @@ const rules = [
             nodes: [],
             type: IMAGE_TYPE,
             data: {
-              contentId: el
-                .getAttribute('src')
-                .split('cid:')
-                .pop(),
+              contentId: el.getAttribute('src').split('cid:').pop(),
               imgProps: {
                 width: Number.parseInt(el.getAttribute('width')),
                 height: Number.parseInt(el.getAttribute('height')),

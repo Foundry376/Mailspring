@@ -47,7 +47,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     this._onChange(val.dayOfYear(day + numDays));
   }
 
-  _onKeyDown = event => {
+  _onKeyDown = (event) => {
     if (event.key === 'ArrowLeft') {
       this._moveDay(-1);
     } else if (event.key === 'ArrowRight') {
@@ -69,7 +69,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     this.setState({ focused: false });
   };
 
-  _onSelectDay = newTimestamp => {
+  _onSelectDay = (newTimestamp) => {
     this._onChange(moment(newTimestamp));
     this.context.parentTabGroup.shiftFocus(1);
   };

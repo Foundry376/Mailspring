@@ -104,7 +104,19 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
   }
 
   render() {
-    const { rows, innerStyles, draggable, role, ariaLabel, ariaMultiselectable, tabIndex, ariaActiveDescendant, domRef, onDragStart, onDragEnd } = this.props;
+    const {
+      rows,
+      innerStyles,
+      draggable,
+      role,
+      ariaLabel,
+      ariaMultiselectable,
+      tabIndex,
+      ariaActiveDescendant,
+      domRef,
+      onDragStart,
+      onDragEnd,
+    } = this.props;
     return (
       <div
         ref={domRef}
@@ -119,7 +131,7 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
         tabIndex={tabIndex}
         aria-activedescendant={ariaActiveDescendant}
       >
-        {rows.map(r => this.renderRow(r))}
+        {rows.map((r) => this.renderRow(r))}
       </div>
     );
   }
@@ -308,7 +320,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
       rows.push({ item: record.item, idx: Number(idx) / 1, itemProps });
     });
 
-    Utils.range(renderedRangeStart, renderedRangeEnd).forEach(idx => {
+    Utils.range(renderedRangeStart, renderedRangeEnd).forEach((idx) => {
       const item = items[idx];
       if (item) {
         const itemProps = itemPropsProvider(item, idx);
@@ -384,7 +396,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     const items: { [id: number]: Model } = {};
     let animatingOut = {};
 
-    Utils.range(start, end).forEach(idx => {
+    Utils.range(start, end).forEach((idx) => {
       items[idx] = dataSource.get(idx);
     });
 
@@ -393,7 +405,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     // last time but not allocate height to them. This allows us to animate them
     // being covered by other items, not just disappearing when others start to slide up.
     if (this.state && start === this.state.renderedRangeStart) {
-      const nextIds = Object.values(items).map(a => a && a.id);
+      const nextIds = Object.values(items).map((a) => a && a.id);
       animatingOut = {};
 
       // Keep items which are still animating out and are still not in the set
@@ -461,7 +473,7 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
     return (
       <div className={`list-container list-tabular ${className}`}>
         <ScrollRegion
-          ref={cm => {
+          ref={(cm) => {
             this._scrollRegion = cm;
           }}
           onScroll={this.onScroll}

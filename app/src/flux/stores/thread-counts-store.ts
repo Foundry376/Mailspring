@@ -18,7 +18,7 @@ class ThreadCountsStore extends MailspringStore {
     if (AppEnv.isMainWindow()) {
       // For now, unread counts are only retrieved in the main window.
       const onCountsChangedDebounced = _.throttle(this._onCountsChanged, 1000);
-      DatabaseStore.listen(change => {
+      DatabaseStore.listen((change) => {
         if (change.objectClass === Thread.name) {
           onCountsChangedDebounced();
         }

@@ -256,7 +256,7 @@ function stripAtImportRules(cssText: string): string {
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(cssText);
     return Array.from(sheet.cssRules)
-      .map(rule => rule.cssText)
+      .map((rule) => rule.cssText)
       .join('\n');
   } catch {
     // Parse failure — fall back to leaving the CSS untouched rather than
@@ -280,7 +280,8 @@ class SanitizeTransformer {
       // Explicit allowlist of safe URI schemes for email content.
       // file: is intentionally absent — legitimate attachment file:// paths are
       // injected programmatically after sanitization, never from raw email HTML.
-      ALLOWED_URI_REGEXP: /^(?:(?:https?|ftps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|(?!file:)[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
+      ALLOWED_URI_REGEXP:
+        /^(?:(?:https?|ftps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|(?!file:)[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
       KEEP_CONTENT: true,
     });
   }

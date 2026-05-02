@@ -172,8 +172,8 @@ const automaticLocale =
 const langsDir = path.join(__dirname, '..', 'lang');
 const langsFiles = fs
   .readdirSync(langsDir)
-  .filter(f => f.endsWith('.json'))
-  .map(f => f.replace('.json', ''));
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => f.replace('.json', ''));
 
 let localizations = {};
 let locale = null;
@@ -269,7 +269,7 @@ export function getCurrentLocale() {
 }
 
 export function getAvailableLanguages() {
-  const localeToItem = f => ({ key: f, name: LANG_NAMES[f] || f });
+  const localeToItem = (f) => ({ key: f, name: LANG_NAMES[f] || f });
 
   // The list we expose is mostly just languages, but also a few lang-locale combos like zh-CN.
   // If our current/system locale in a known combo expose that, otherwis cut it so it's always
@@ -283,6 +283,6 @@ export function getAvailableLanguages() {
     current: localeToItem(currentLang),
     automatic: localeToItem(automaticLang),
     verified: VERIFIED_LANGS.map(localeToItem),
-    experimental: langsFiles.filter(f => !VERIFIED_LANGS.includes(f)).map(localeToItem),
+    experimental: langsFiles.filter((f) => !VERIFIED_LANGS.includes(f)).map(localeToItem),
   };
 }

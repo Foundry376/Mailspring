@@ -9,7 +9,7 @@ import { Calendar, Account } from 'mailspring-exports';
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 function renderCalendarToggles(calendars: Calendar[], disabledCalendars: string[]) {
-  return calendars.map(calendar => {
+  return calendars.map((calendar) => {
     const calendarId = calendar.id;
     const onClick = () => {
       const cals = AppEnv.config.get(DISABLED_CALENDARS) || [];
@@ -53,7 +53,7 @@ export function CalendarSourceList(props: CalendarSourceListProps) {
   const accountSections = [];
   for (const accountId of Object.keys(calsByAccountId)) {
     const calendars = calsByAccountId[accountId];
-    const account = props.accounts.find(a => a.id === accountId);
+    const account = props.accounts.find((a) => a.id === accountId);
     if (!account || !calendars || calendars.length === 0) {
       continue;
     }

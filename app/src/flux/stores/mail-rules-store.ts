@@ -27,14 +27,14 @@ export interface MailRule extends Template {
       templateKey: string;
       comparatorKey: string;
       value: string;
-    }
+    },
   ];
   conditionMode: 'any' | 'all';
   actions: [
     {
       value: string;
       templateKey: string;
-    }
+    },
   ];
 }
 
@@ -87,11 +87,11 @@ class MailRulesStore extends MailspringStore {
   }
 
   rulesForAccountId(accountId: string) {
-    return this._rules.filter(f => f.accountId === accountId);
+    return this._rules.filter((f) => f.accountId === accountId);
   }
 
   disabledRules(accountId?: string) {
-    return this._rules.filter(f => (!accountId || f.accountId === accountId) && f.disabled);
+    return this._rules.filter((f) => (!accountId || f.accountId === accountId) && f.disabled);
   }
 
   reprocessState() {
@@ -107,11 +107,13 @@ class MailRulesStore extends MailspringStore {
     // that the mail rules only run once on the message (and not in subsequent updates,
     // eg: marking as read), the sync engine attaches a custom `fullSyncComplete` flag
     // that is only true once when both parts are ready.
-    const newIds = record.objectsRawJSON.filter(json => json.fullSyncComplete).map(json => json.id);
+    const newIds = record.objectsRawJSON
+      .filter((json) => json.fullSyncComplete)
+      .map((json) => json.id);
     if (newIds.length === 0) return;
 
     const newMessages = record.objects.filter(
-      m => newIds.includes(m.id) && !m.draft && m.date && m.date.valueOf() > this._autoSince
+      (m) => newIds.includes(m.id) && !m.draft && m.date && m.date.valueOf() > this._autoSince
     );
 
     if (newMessages.length > 0) {
@@ -119,14 +121,14 @@ class MailRulesStore extends MailspringStore {
     }
   };
 
-  _onDeleteMailRule = id => {
-    this._rules = this._rules.filter(f => f.id !== id);
+  _onDeleteMailRule = (id) => {
+    this._rules = this._rules.filter((f) => f.id !== id);
     this._saveMailRules();
     this.trigger();
   };
 
   _onReorderMailRule = (id, newIdx) => {
-    const currentIdx = this._rules.findIndex(r => r.id === id);
+    const currentIdx = this._rules.findIndex((r) => r.id === id);
     if (currentIdx === -1) {
       return;
     }
@@ -137,7 +139,7 @@ class MailRulesStore extends MailspringStore {
     this.trigger();
   };
 
-  _onAddMailRule = properties => {
+  _onAddMailRule = (properties) => {
     const defaults = {
       id: Utils.generateTempId(),
       name: localized('Untitled Rule'),
@@ -157,14 +159,14 @@ class MailRulesStore extends MailspringStore {
   };
 
   _onUpdateMailRule = (id, properties) => {
-    const existing = this._rules.find(f => id === f.id);
+    const existing = this._rules.find((f) => id === f.id);
     Object.assign(existing, properties);
     this._saveMailRules();
     this.trigger();
   };
 
   _onDisableMailRule = (id, reason) => {
-    const existing = this._rules.find(f => id === f.id);
+    const existing = this._rules.find((f) => id === f.id);
     if (!existing || existing.disabled === true) {
       return;
     }
@@ -192,7 +194,7 @@ class MailRulesStore extends MailspringStore {
 
   // Reprocessing Existing Mail
 
-  _onStartReprocessing = aid => {
+  _onStartReprocessing = (aid) => {
     const inboxCategory = CategoryStore.getCategoryByRole(aid, 'inbox');
     if (!inboxCategory) {
       AppEnv.showErrorDialog(
@@ -212,7 +214,7 @@ class MailRulesStore extends MailspringStore {
     this.trigger();
   };
 
-  _onStopReprocessing = aid => {
+  _onStopReprocessing = (aid) => {
     delete this._reprocessing[aid];
     this.trigger();
   };
@@ -237,7 +239,7 @@ class MailRulesStore extends MailspringStore {
       query.where(Thread.attributes.lastMessageReceivedTimestamp.lessThan(lastTimestamp));
     }
 
-    query.then(threads => {
+    query.then((threads) => {
       if (!this._reprocessing[accountId]) {
         return;
       }
@@ -247,8 +249,8 @@ class MailRulesStore extends MailspringStore {
       }
 
       DatabaseStore.findAll<Message>(Message, {
-        threadId: threads.map(t => t.id),
-      }).then(messages => {
+        threadId: threads.map((t) => t.id),
+      }).then((messages) => {
         if (!this._reprocessing[accountId]) {
           return;
         }

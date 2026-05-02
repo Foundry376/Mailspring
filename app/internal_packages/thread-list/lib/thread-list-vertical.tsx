@@ -19,7 +19,7 @@ class ThreadListVertical extends React.Component<
           minHeight={minHeight}
           initialHeight={initialHeight}
           handle={ResizableHandle.Bottom}
-          onResize={h => this._onResize(h)}
+          onResize={(h) => this._onResize(h)}
         >
           <InjectedComponentSet matching={{ role: 'ThreadList' }} />
         </ResizableRegion>
@@ -42,7 +42,7 @@ class ThreadListVertical extends React.Component<
     );
   }
 
-  _onResize = height => {
+  _onResize = (height) => {
     AppEnv.storeThreadListVerticalHeight(height);
   };
 }

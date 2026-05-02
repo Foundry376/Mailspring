@@ -16,7 +16,7 @@ describe('DateInput', function dateInput() {
       const fakeMoment = { clone: () => fakeMoment, format: () => 'formatted' };
       spyOn(DateUtils, 'futureDateFromString').andReturn(fakeMoment);
 
-      ['Enter', 'Return'].forEach(key => {
+      ['Enter', 'Return'].forEach((key) => {
         const onDateSubmitted = jasmine.createSpy('onDateSubmitted');
         const { container } = render(
           <DateInput onDateSubmitted={onDateSubmitted} dateFormat="blah" />

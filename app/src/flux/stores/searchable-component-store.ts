@@ -60,7 +60,7 @@ class SearchableComponentStore extends MailspringStore {
   scrollbarTicks() {
     let ticks = [];
     if (this.matches.length > 0 && this.scrollAncestor && this.scrollAncestor.scrollHeight > -1) {
-      ticks = this.matches.map(match => {
+      ticks = this.matches.map((match) => {
         if (match === this.currentMatch) {
           return {
             percent: match.top / this.scrollAncestor.scrollHeight,
@@ -93,7 +93,7 @@ class SearchableComponentStore extends MailspringStore {
     const searchNodes = [];
 
     if (this.searchTerm && this.searchTerm.length >= CHAR_THRESHOLD) {
-      Object.values(this.searchRegions).forEach(node => {
+      Object.values(this.searchRegions).forEach((node) => {
         if (this.matches.length >= MAX_MATCHES) {
           return;
         }
@@ -156,7 +156,7 @@ class SearchableComponentStore extends MailspringStore {
         // We save the position relative to the top of the scrollAncestor
         // instead of the current getBoudingClientRect (which is dependent
         // on the current scroll position)
-        this.matches.forEach(match => {
+        this.matches.forEach((match) => {
           match.top -= scrollTop;
         });
       }

@@ -42,14 +42,14 @@ export default class SignaturePhotoPicker extends React.Component<
     this._isMounted = false;
   }
 
-  _onChooseImage = event => {
+  _onChooseImage = (event) => {
     AppEnv.showOpenDialog(
       {
         title: localized('Choose an image'),
         buttonLabel: localized('Choose'),
         properties: ['openFile'],
       },
-      paths => {
+      (paths) => {
         if (paths && paths.length > 0) {
           this._onChooseImageFilePath(paths[0]);
         }
@@ -57,9 +57,9 @@ export default class SignaturePhotoPicker extends React.Component<
     );
   };
 
-  _onChooseImageFilePath = filepath => {
+  _onChooseImageFilePath = (filepath) => {
     const exts = ['png', 'jpg', 'svg', 'tif', 'gif', 'jpeg'];
-    const ext = exts.find(ext => filepath.toLowerCase().endsWith(`.${ext}`));
+    const ext = exts.find((ext) => filepath.toLowerCase().endsWith(`.${ext}`));
     if (!ext) {
       AppEnv.showErrorDialog(
         localized(
@@ -106,12 +106,12 @@ export default class SignaturePhotoPicker extends React.Component<
       // a JPG with lossy compression
       if (ext === 'png' || ext === 'gif' || ext === 'svg') {
         source.toBlob(
-          blob => this._onChooseImageBlob(blob, source.width, source.height),
+          (blob) => this._onChooseImageBlob(blob, source.width, source.height),
           'image/png'
         );
       } else {
         source.toBlob(
-          blob => this._onChooseImageBlob(blob, source.width, source.height),
+          (blob) => this._onChooseImageBlob(blob, source.width, source.height),
           'image/jpg',
           0.65
         );
@@ -177,10 +177,10 @@ export default class SignaturePhotoPicker extends React.Component<
               <DropZone
                 onClick={this._onChooseImage}
                 onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
-                onDrop={e =>
+                onDrop={(e) =>
                   this._onChooseImageFilePath(webUtils.getPathForFile(e.dataTransfer.files[0]))
                 }
-                shouldAcceptDrop={e => (e as any).dataTransfer.types.includes('Files')}
+                shouldAcceptDrop={(e) => (e as any).dataTransfer.types.includes('Files')}
                 style={{
                   backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,
                 }}

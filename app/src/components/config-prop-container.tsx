@@ -36,13 +36,13 @@ export class ConfigPropContainer extends React.Component<
 
   getConfigWithMutators() {
     return Object.assign(AppEnv.config.get(), {
-      get: key => {
+      get: (key) => {
         return AppEnv.config.get(key);
       },
       set: (key, value) => {
         AppEnv.config.set(key, value);
       },
-      toggle: key => {
+      toggle: (key) => {
         AppEnv.config.set(key, !AppEnv.config.get(key));
       },
       contains: (key, val) => {
@@ -55,7 +55,10 @@ export class ConfigPropContainer extends React.Component<
           vals = [];
         }
         if (vals.includes(val)) {
-          AppEnv.config.set(key, vals.filter(v => v !== val));
+          AppEnv.config.set(
+            key,
+            vals.filter((v) => v !== val)
+          );
         } else {
           AppEnv.config.set(key, vals.concat([val]));
         }

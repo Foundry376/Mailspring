@@ -366,10 +366,7 @@ export default class MailsyncBridge {
     task.willBeQueued();
 
     task.status = 'local';
-    (task as any).origin = new Error().stack
-      .split('\n')
-      .slice(2)
-      .join('\n');
+    (task as any).origin = new Error().stack.split('\n').slice(2).join('\n');
 
     this.sendMessageToAccount(task.accountId, { type: 'queue-task', task: task });
   }
@@ -386,7 +383,7 @@ export default class MailsyncBridge {
   _onCancelTask(taskOrId: Task | string) {
     let task: Task;
     if (typeof taskOrId === 'string') {
-      task = TaskQueue.queue().find(t => t.id === taskOrId);
+      task = TaskQueue.queue().find((t) => t.id === taskOrId);
     } else {
       task = taskOrId;
     }
@@ -497,9 +494,7 @@ export default class MailsyncBridge {
     // by 400ms the first time beforeUnload is called so other windows
     // ave a chance to save drafts before we kill the workers.
     if (
-      require('@electron/remote')
-        .getGlobal('application')
-        .windowManager.getOpenWindowCount() <= 1
+      require('@electron/remote').getGlobal('application').windowManager.getOpenWindowCount() <= 1
     ) {
       return true;
     }

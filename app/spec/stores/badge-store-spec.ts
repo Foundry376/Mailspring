@@ -2,7 +2,7 @@ import BadgeStore from '../../src/flux/stores/badge-store';
 
 describe('BadgeStore', () =>
   describe('_setBadgeForCount', () =>
-    it('should set the badge correctly', function() {
+    it('should set the badge correctly', function () {
       spyOn(BadgeStore, '_setBadge');
       (BadgeStore as any)._unread = 0;
       BadgeStore._setBadgeForCount();

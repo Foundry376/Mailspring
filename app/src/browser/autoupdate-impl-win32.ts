@@ -18,7 +18,7 @@ export default class AutoupdateImplWin32 extends AutoupdateImplBase {
 
     this.emit('checking-for-update');
 
-    this.manuallyQueryUpdateServer(json => {
+    this.manuallyQueryUpdateServer((json) => {
       if (!json) {
         this.emit('update-not-available');
         return;

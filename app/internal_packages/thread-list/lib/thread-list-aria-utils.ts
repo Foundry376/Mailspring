@@ -7,9 +7,9 @@ export function threadAriaLabel(thread: Thread): string {
 
   const participants = thread.participants || [];
   const names = participants
-    .filter(c => !c.isMe())
+    .filter((c) => !c.isMe())
     .slice(0, 3)
-    .map(c => c.displayName({ compact: false }))
+    .map((c) => c.displayName({ compact: false }))
     .join(', ');
   if (names) parts.push(names);
 

@@ -186,7 +186,7 @@ export default class PackageManager {
         buttonLabel: localized('Choose'),
         properties: ['openDirectory'],
       },
-      filenames => {
+      (filenames) => {
         if (!filenames || filenames.length === 0) {
           return;
         }
@@ -256,7 +256,9 @@ export default class PackageManager {
     ) {
       return callback(
         new Error(
-          localized(`The plugin or theme you selected has an unsafe "name" field in its package.json.`)
+          localized(
+            `The plugin or theme you selected has an unsafe "name" field in its package.json.`
+          )
         )
       );
     }

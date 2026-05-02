@@ -38,13 +38,13 @@ class TemplateStore extends MailspringStore {
 
     // I know this is a bit of pain but don't do anything that
     // could possibly slow down app launch
-    fs.exists(this._templatesDir, exists => {
+    fs.exists(this._templatesDir, (exists) => {
       if (exists) {
         this._populate();
         this.watch();
       } else {
         fs.mkdir(this._templatesDir, () => {
-          this._welcomeTemplate().then(welcomeTemplate => {
+          this._welcomeTemplate().then((welcomeTemplate) => {
             fs.readFile(welcomeTemplate.path, (err, welcome) => {
               fs.writeFile(path.join(this._templatesDir, welcomeTemplate.name), welcome, () => {
                 this.watch();
@@ -187,7 +187,7 @@ class TemplateStore extends MailspringStore {
 
     let number = 1;
     let resolvedName = name;
-    const sameName = t => t.name === resolvedName;
+    const sameName = (t) => t.name === resolvedName;
     while (this._items.find(sameName)) {
       resolvedName = `${name} ${number}`;
       number += 1;
@@ -199,10 +199,10 @@ class TemplateStore extends MailspringStore {
   saveTemplate(name: string, contents: string, callback: (template: TemplateItem) => void) {
     const filename = `${name}.html`;
     const templatePath = path.join(this._templatesDir, filename);
-    let template = this._items.find(t => t.name === name);
+    let template = this._items.find((t) => t.name === name);
 
     this.unwatch();
-    fs.writeFile(templatePath, contents, err => {
+    fs.writeFile(templatePath, contents, (err) => {
       this.watch();
       if (err) {
         this._displayError(err.message);
@@ -222,7 +222,7 @@ class TemplateStore extends MailspringStore {
   }
 
   _onDeleteTemplate(name: string) {
-    const template = this._items.find(t => t.name === name);
+    const template = this._items.find((t) => t.name === name);
     if (!template) {
       return;
     }
@@ -241,7 +241,7 @@ class TemplateStore extends MailspringStore {
   }
 
   _onRenameTemplate(name: string, newName: string) {
-    const template = this._items.find(t => t.name === name);
+    const template = this._items.find((t) => t.name === name);
     if (!template) {
       return;
     }
@@ -274,7 +274,7 @@ class TemplateStore extends MailspringStore {
     templateId,
     headerMessageId,
   }: { templateId?: string; headerMessageId?: string } = {}) {
-    const template = this._items.find(t => t.id === templateId);
+    const template = this._items.find((t) => t.id === templateId);
     const templateBody = fs.readFileSync(template.path).toString();
     const session = await DraftStore.sessionForClientId(headerMessageId);
 
@@ -307,11 +307,11 @@ class TemplateStore extends MailspringStore {
   }
 
   _welcomeTemplate(): Promise<{ name: string; path: string }> {
-    const getTemplatePath = name => path.join(__dirname, '..', 'assets', `${name}.html`);
+    const getTemplatePath = (name) => path.join(__dirname, '..', 'assets', `${name}.html`);
     let welcomeName = localized('Welcome to Templates');
 
     return new Promise((resolve, reject) => {
-      fs.exists(getTemplatePath(welcomeName), exists => {
+      fs.exists(getTemplatePath(welcomeName), (exists) => {
         if (!exists) {
           welcomeName = 'Welcome to Templates';
         }

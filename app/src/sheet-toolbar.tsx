@@ -193,8 +193,7 @@ class ToolbarMenuControl extends React.Component {
     const enabled =
       process.platform === 'win32' ||
       (process.platform === 'linux' &&
-        (AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger' ||
-          isWaylandSession()));
+        (AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger' || isWaylandSession()));
 
     if (!enabled) {
       return <span />;
@@ -346,9 +345,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     // Record our overall height for sheets
     if (el.clientHeight !== lastReportedToolbarHeight) {
       lastReportedToolbarHeight = el.clientHeight;
-      require('@electron/remote')
-        .getCurrentWindow()
-        .setSheetOffset(el.clientHeight);
+      require('@electron/remote').getCurrentWindow().setSheetOffset(el.clientHeight);
     }
   }
 
@@ -411,7 +408,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
   }
 
   _flexboxForComponents(components: Array<typeof React.Component & { displayName?: string }>) {
-    const elements = components.map(Component => (
+    const elements = components.map((Component) => (
       <Component key={Component.displayName} {...this.props} />
     ));
     return (

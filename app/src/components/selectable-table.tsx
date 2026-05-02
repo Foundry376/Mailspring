@@ -270,14 +270,8 @@ class SelectableTable extends Component<SelectableTableProps> {
   }
 
   render() {
-    const {
-      selection,
-      onSetSelection,
-      onShiftSelection,
-      extraProps,
-      RowRenderer,
-      CellRenderer,
-    } = this.props;
+    const { selection, onSetSelection, onShiftSelection, extraProps, RowRenderer, CellRenderer } =
+      this.props;
     const selectionProps = {
       selection,
       onSetSelection,
@@ -295,6 +289,6 @@ class SelectableTable extends Component<SelectableTableProps> {
   }
 }
 
-export default compose(SelectableTable, ListensToMovementKeys, Comp =>
+export default compose(SelectableTable, ListensToMovementKeys, (Comp) =>
   AutoFocuses(Comp, { onUpdate: false })
 );

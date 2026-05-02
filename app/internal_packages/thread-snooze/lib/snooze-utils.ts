@@ -70,7 +70,7 @@ export async function markUnreadOrResurfaceThreads(threads, source) {
     }
   } else {
     // just mark the threads as unread (unless they're all already unread)
-    if (!threads.some(t => !t.unread)) {
+    if (!threads.some((t) => !t.unread)) {
       return;
     }
     Actions.queueTask(

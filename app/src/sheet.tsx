@@ -84,7 +84,7 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach(u => u());
+    this.unlisteners.forEach((u) => u());
     this.unlisteners = [];
   }
 
@@ -105,7 +105,7 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
             data-column={idx}
             role={ariaRole}
             aria-label={ariaLabel}
-            onResize={w => this._onColumnResize(column, w)}
+            onResize={(w) => this._onColumnResize(column, w)}
             initialWidth={width}
             minWidth={minWidth}
             maxWidth={maxWidth}

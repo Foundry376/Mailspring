@@ -14,7 +14,7 @@ export class Registry extends MailspringStore {
   register(extension: { name: string }, { priority = 0 } = {}) {
     this.validateExtension(extension, 'register');
 
-    if (this._registry.find(entry => entry.name === extension.name)) {
+    if (this._registry.find((entry) => entry.name === extension.name)) {
       throw new Error(
         `ExtensionRegistry.${this.name}.register requires each extension to have a unique name.`
       );
@@ -28,12 +28,12 @@ export class Registry extends MailspringStore {
 
   unregister(extension: { name: string }) {
     this.validateExtension(extension, 'unregister');
-    this._registry = this._registry.filter(entry => entry.extension !== extension);
+    this._registry = this._registry.filter((entry) => entry.extension !== extension);
     this.triggerDebounced();
   }
 
   extensions() {
-    return this._registry.map(e => e.extension);
+    return this._registry.map((e) => e.extension);
   }
 
   clear() {

@@ -28,7 +28,7 @@ class DefaultMailClientItem extends React.Component<
     if (helper.available()) {
       await Promise.delay(DELAY_FOR_SHEET_ANIMATION);
       if (!this._mounted) return;
-      helper.isRegisteredForURLScheme('mailto', registered => {
+      helper.isRegisteredForURLScheme('mailto', (registered) => {
         if (!this._mounted) return;
         this.setState({ defaultClient: registered instanceof Error ? 'unknown' : registered });
       });
@@ -39,7 +39,7 @@ class DefaultMailClientItem extends React.Component<
     this._mounted = false;
   }
 
-  toggleDefaultMailClient = event => {
+  toggleDefaultMailClient = (event) => {
     if (this.state.defaultClient) {
       this.setState({ defaultClient: false });
       helper.resetURLScheme('mailto');
@@ -117,7 +117,7 @@ class LaunchSystemStartItem extends React.Component {
     this._mounted = false;
   }
 
-  _toggleLaunchOnStart = event => {
+  _toggleLaunchOnStart = (event) => {
     if (this.state.launchOnStart) {
       this.setState({ launchOnStart: false });
       service.dontLaunchOnSystemStart();
@@ -145,7 +145,7 @@ class LaunchSystemStartItem extends React.Component {
   }
 }
 
-const WorkspaceSection = props => {
+const WorkspaceSection = (props) => {
   return (
     <section>
       <DefaultMailClientItem />

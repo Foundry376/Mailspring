@@ -91,7 +91,10 @@ export class InjectedComponentSet extends React.Component<
   _mounted = false;
   _componentUnlistener?: () => void;
 
-  constructor(props: InjectedComponentSetProps & React.HTMLProps<HTMLDivElement>, context: unknown) {
+  constructor(
+    props: InjectedComponentSetProps & React.HTMLProps<HTMLDivElement>,
+    context: unknown
+  ) {
     super(props, context);
     this.state = !props.deferred ? this._getStateFromStores() : { components: [], visible: false };
   }
@@ -146,7 +149,7 @@ export class InjectedComponentSet extends React.Component<
 
     const flexboxProps = Utils.fastOmit(this.props, Object.keys(InjectedComponentSet.propTypes));
 
-    const elements = components.map(Component => {
+    const elements = components.map((Component) => {
       if (containersRequired === false || Component.containerRequired === false) {
         return <Component key={Component.displayName} {...exposedProps} />;
       }

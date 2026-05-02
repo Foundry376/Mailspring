@@ -34,11 +34,11 @@ export function remove(array, element) {
 
 export function deepClone(object) {
   if (_.isArray(object)) {
-    return object.map(function(value) {
+    return object.map(function (value) {
       return deepClone(value);
     });
   } else if (_.isObject(object) && !_.isFunction(object)) {
-    return _.mapObject(object, function(value) {
+    return _.mapObject(object, function (value) {
       return deepClone(value);
     });
   } else {

@@ -29,14 +29,14 @@ class DatePickerPopover extends Component<DatePickerPopoverProps> {
     Actions.closePopover();
   }
 
-  onSelectMenuOption = optionKey => {
+  onSelectMenuOption = (optionKey) => {
     const { dateOptions } = this.props;
     const date = dateOptions[optionKey]();
     this._dateInputComponent.clearInput();
     this.selectDate(date, optionKey);
   };
 
-  onCustomDateInterpreted = date => {
+  onCustomDateInterpreted = (date) => {
     const { shouldSelectDateWhenInterpreted } = this.props;
     if (date && shouldSelectDateWhenInterpreted) {
       this._menuComponent.clearSelection();
@@ -60,7 +60,7 @@ class DatePickerPopover extends Component<DatePickerPopoverProps> {
     this.props.onSelectDate(nonMomentDate, dateLabel);
   };
 
-  renderMenuOption = optionKey => {
+  renderMenuOption = (optionKey) => {
     const { dateOptions } = this.props;
     const date = dateOptions[optionKey]();
     const formatted = DateUtils.format(date, DATE_FORMAT_SHORT);
@@ -78,7 +78,7 @@ class DatePickerPopover extends Component<DatePickerPopoverProps> {
     let footerComponents: React.ReactNode[] = [
       <div key="divider" className="divider" />,
       <DateInput
-        ref={cm => {
+        ref={(cm) => {
           this._dateInputComponent = cm;
         }}
         key="custom-section"
@@ -99,11 +99,11 @@ class DatePickerPopover extends Component<DatePickerPopoverProps> {
     return (
       <div className={`date-picker-popover ${className}`}>
         <Menu
-          ref={cm => {
+          ref={(cm) => {
             this._menuComponent = cm;
           }}
           items={Object.keys(dateOptions)}
-          itemKey={item => item}
+          itemKey={(item) => item}
           itemContent={this.renderMenuOption}
           defaultSelectedIndex={-1}
           headerComponents={header}

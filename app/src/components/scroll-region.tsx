@@ -79,7 +79,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     }
 
     // Set and then monitor our trackHeight via a ResizeObserver
-    this._heightObserver = new window.ResizeObserver(entries => {
+    this._heightObserver = new window.ResizeObserver((entries) => {
       if (entries[0] && this.state.trackHeight === entries[0].contentRect.height) return;
       this.setState({ trackHeight: entries[0].contentRect.height });
     });
@@ -176,7 +176,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     };
   };
 
-  _onHandleDown = event => {
+  _onHandleDown = (event) => {
     const trackNode = ReactDOM.findDOMNode(this.refs.track) as HTMLElement;
     const handleNode = ReactDOM.findDOMNode(this.refs.handle) as HTMLElement;
     this._trackOffset = trackNode.getBoundingClientRect().top;
@@ -187,7 +187,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     event.preventDefault();
   };
 
-  _onHandleMove = event => {
+  _onHandleMove = (event) => {
     const trackY = event.pageY - this._trackOffset - this._mouseOffsetWithinHandle;
     const trackPxToViewportPx =
       (this.state.totalHeight - this.state.viewportHeight) /
@@ -196,19 +196,19 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     event.preventDefault();
   };
 
-  _onHandleUp = event => {
+  _onHandleUp = (event) => {
     window.removeEventListener('mousemove', this._onHandleMove);
     window.removeEventListener('mouseup', this._onHandleUp);
     this.setState({ dragging: false });
     event.preventDefault();
   };
 
-  _onHandleClick = event => {
+  _onHandleClick = (event) => {
     // Avoid event propogating up to track
     event.stopPropagation();
   };
 
-  _onScrollJump = event => {
+  _onScrollJump = (event) => {
     const handleNode = ReactDOM.findDOMNode(this.refs.handle) as HTMLElement;
     const direction = event.pageY < handleNode.getBoundingClientRect().top ? -1 : 1;
     this.props.getScrollRegion().scrollTop += direction * this.state.viewportHeight;
@@ -319,13 +319,13 @@ export class ScrollRegion extends React.Component<
     const viewportEl = this._viewportRef.current;
     const innerWrapperEl = this._innerRef.current;
 
-    this._viewportHeightObserver = new window.ResizeObserver(entries => {
+    this._viewportHeightObserver = new window.ResizeObserver((entries) => {
       if (entries[0] && entries[0].contentRect.height !== this.state.viewportHeight) {
         this._setSharedState({ viewportHeight: entries[0].contentRect.height });
         this.props.onViewportResize && this.props.onViewportResize(entries[0].contentRect);
       }
     });
-    this._totalHeightObserver = new window.ResizeObserver(entries => {
+    this._totalHeightObserver = new window.ResizeObserver((entries) => {
       // Note: we need to use target.clientHeight because the inner element can have padding
       // and the contentRect.height is the inner padded size, not the bounding box size.
       if (entries[0] && entries[0].contentRect.height !== this.state.totalHeight) {
@@ -360,7 +360,7 @@ export class ScrollRegion extends React.Component<
     this._mounted = false;
   }
 
-  shouldInvalidateScrollbarComponent = newProps => {
+  shouldInvalidateScrollbarComponent = (newProps) => {
     if (newProps.scrollTooltipComponent !== this.props.scrollTooltipComponent) {
       return true;
     }
@@ -452,7 +452,7 @@ export class ScrollRegion extends React.Component<
     if (settle === true) {
       settleFn = this._settleHeight;
     } else {
-      settleFn = callback => callback();
+      settleFn = (callback) => callback();
     }
 
     this._scrollToTaskId += 1;
@@ -506,7 +506,7 @@ export class ScrollRegion extends React.Component<
     });
   }
 
-  _settleHeight = callback => {
+  _settleHeight = (callback) => {
     const viewportNode = this._viewportRef.current;
     let lastContentHeight = -1;
     const scrollIfSettled = () => {
@@ -530,7 +530,7 @@ export class ScrollRegion extends React.Component<
     this.setState(state as any);
   }
 
-  _onScroll = event => {
+  _onScroll = (event) => {
     // onScroll events propogate, which is a bit strange. We could actually be
     // receiving a scroll event for a textarea inside the scroll region.
     // See Preferences > Signatures > textarea

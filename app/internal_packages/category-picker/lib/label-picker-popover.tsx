@@ -62,15 +62,13 @@ export default class LabelPickerPopover extends Component<
   _registerObservables = (props = this.props) => {
     this._unregisterObservables();
     this.disposables = [
-      Categories.forAccount(props.account)
-        .sort()
-        .subscribe(this._onLabelsChanged),
+      Categories.forAccount(props.account).sort().subscribe(this._onLabelsChanged),
     ];
   };
 
   _unregisterObservables = () => {
     if (this.disposables) {
-      this.disposables.forEach(disp => disp.dispose());
+      this.disposables.forEach((disp) => disp.dispose());
     }
   };
 
@@ -82,14 +80,14 @@ export default class LabelPickerPopover extends Component<
     }
 
     const categoryData = this._labels
-      .filter(label => Utils.wordSearchRegExp(searchValue).test(label.displayName))
-      .map<CategoryData>(label => {
+      .filter((label) => Utils.wordSearchRegExp(searchValue).test(label.displayName))
+      .map<CategoryData>((label) => {
         return {
           id: label.id,
           category: label,
           displayName: label.displayName,
           backgroundColor: LabelColorizer.backgroundColorDark(label),
-          usage: threads.filter(t => t.categories.find(c => c.id === label.id)).length,
+          usage: threads.filter((t) => t.categories.find((c) => c.id === label.id)).length,
           numThreads: threads.length,
         };
       });
@@ -104,12 +102,12 @@ export default class LabelPickerPopover extends Component<
     return { categoryData, searchValue };
   };
 
-  _onLabelsChanged = categories => {
-    this._labels = categories.filter(c => {
+  _onLabelsChanged = (categories) => {
+    this._labels = categories.filter((c) => {
       return c instanceof Label && !c.role;
     });
     // Use functional setState to preserve any pending searchValue updates from user typing
-    this.setState(prevState =>
+    this.setState((prevState) =>
       this._recalculateState(this.props, { searchValue: prevState.searchValue })
     );
   };
@@ -118,7 +116,7 @@ export default class LabelPickerPopover extends Component<
     Actions.closePopover();
   };
 
-  _onSelectLabel = item => {
+  _onSelectLabel = (item) => {
     const { account, threads } = this.props;
 
     if (threads.length === 0) return;
@@ -129,7 +127,7 @@ export default class LabelPickerPopover extends Component<
         accountId: account.id,
       });
 
-      TaskQueue.waitForPerformRemote(syncbackTask).then(finishedTask => {
+      TaskQueue.waitForPerformRemote(syncbackTask).then((finishedTask) => {
         if (!finishedTask.created) {
           AppEnv.showErrorDialog({ title: 'Error', message: `Could not create label.` });
           return;
@@ -166,11 +164,11 @@ export default class LabelPickerPopover extends Component<
     Actions.closePopover();
   };
 
-  _onSearchValueChange = event => {
+  _onSearchValueChange = (event) => {
     this.setState(this._recalculateState(this.props, { searchValue: event.target.value }));
   };
 
-  _renderCheckbox = item => {
+  _renderCheckbox = (item) => {
     const styles: CSSProperties = {};
     let checkStatus;
     styles.backgroundColor = item.backgroundColor;
@@ -225,7 +223,7 @@ export default class LabelPickerPopover extends Component<
     );
   };
 
-  _renderItem = item => {
+  _renderItem = (item) => {
     if (item.divider) {
       return <Menu.Item key={item.id} divider={item.divider} />;
     } else if (item.newCategoryItem) {
@@ -261,7 +259,7 @@ export default class LabelPickerPopover extends Component<
           headerComponents={headerComponents}
           footerComponents={[]}
           items={this.state.categoryData}
-          itemKey={item => item.id}
+          itemKey={(item) => item.id}
           itemContent={this._renderItem}
           onSelect={this._onSelectLabel}
           onEscape={this._onEscape}

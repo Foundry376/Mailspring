@@ -46,7 +46,7 @@ function InjectsToolbarButtons(
     }
   }
 
-  const getStateFromObservable = items => {
+  const getStateFromObservable = (items) => {
     if (!items) {
       return { items: [] };
     }

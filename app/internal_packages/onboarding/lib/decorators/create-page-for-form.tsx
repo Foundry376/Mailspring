@@ -11,7 +11,7 @@ import AccountProviders from '../account-providers';
 
 let didWarnAboutGmailIMAP = false;
 
-const CreatePageForForm = FormComponent => {
+const CreatePageForForm = (FormComponent) => {
   return class Composed extends React.Component<
     { account: Account },
     {
@@ -121,7 +121,7 @@ const CreatePageForForm = FormComponent => {
       }
     };
 
-    onFieldKeyPress = event => {
+    onFieldKeyPress = (event) => {
       if (!this._isValid()) {
         return;
       }
@@ -165,11 +165,11 @@ const CreatePageForForm = FormComponent => {
       this.setState({ submitting: true });
 
       finalizeAndValidateAccount(account)
-        .then(validated => {
+        .then((validated) => {
           OnboardingActions.moveToPage('account-onboarding-success');
           OnboardingActions.finishAndAddAccount(validated);
         })
-        .catch(err => {
+        .catch((err) => {
           // If we're connecting from the `basic` settings page with an IMAP account,
           // the settings are from a template. If authentication fails, move the user
           // to the full settings since our guesses may have been wrong.
@@ -313,7 +313,7 @@ const CreatePageForForm = FormComponent => {
           />
           {this._renderCredentialsNote()}
           <FormComponent
-            ref={el => {
+            ref={(el) => {
               this._formEl = el;
             }}
             account={account}

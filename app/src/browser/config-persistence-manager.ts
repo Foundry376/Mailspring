@@ -185,7 +185,7 @@ export default class ConfigPersistenceManager {
   emitChangeEvent = ({ sourceWebcontentsId }: { sourceWebcontentsId?: number } = {}) => {
     global.application.config.updateSettings(this.settings);
 
-    BrowserWindow.getAllWindows().forEach(win => {
+    BrowserWindow.getAllWindows().forEach((win) => {
       if (win.webContents && win.webContents.id !== sourceWebcontentsId) {
         win.webContents.send('on-config-reloaded', this.settings);
       }

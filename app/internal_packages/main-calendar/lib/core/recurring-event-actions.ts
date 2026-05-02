@@ -109,8 +109,14 @@ export function modifySimpleEvent(options: EventTimeChangeOptions): void {
  * Undo reverses the entire master ICS change, removing the inline exception.
  */
 export function createOccurrenceException(options: EventTimeChangeOptions): void {
-  const { event: masterEvent, originalOccurrenceStart, newStart, newEnd, isAllDay, description } =
-    options;
+  const {
+    event: masterEvent,
+    originalOccurrenceStart,
+    newStart,
+    newEnd,
+    isAllDay,
+    description,
+  } = options;
 
   // Capture master event state for undo BEFORE modifying
   const masterUndoData = captureEventSnapshot(masterEvent);

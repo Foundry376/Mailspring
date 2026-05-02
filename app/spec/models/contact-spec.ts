@@ -7,24 +7,24 @@ const contact_1 = {
   email: 'evan@mailspring.com',
 };
 
-describe('Contact', function() {
-  beforeEach(function() {
+describe('Contact', function () {
+  beforeEach(function () {
     this.account = AccountStore.accounts()[0];
   });
 
-  it('can be built via the constructor', function() {
+  it('can be built via the constructor', function () {
     const c1 = new Contact(contact_1);
     expect(c1.name).toBe('Evan Morikawa');
     expect(c1.email).toBe('evan@mailspring.com');
   });
 
-  it('accepts a JSON response', function() {
+  it('accepts a JSON response', function () {
     const c1 = new Contact({}).fromJSON(contact_1);
     expect(c1.name).toBe('Evan Morikawa');
     expect(c1.email).toBe('evan@mailspring.com');
   });
 
-  it('correctly parses first and last names', function() {
+  it('correctly parses first and last names', function () {
     const c1 = new Contact({ name: 'Evan Morikawa' });
     expect(c1.firstName()).toBe('Evan');
     expect(c1.lastName()).toBe('Morikawa');
@@ -58,7 +58,7 @@ describe('Contact', function() {
     expect(c8.lastName()).toBe('');
   });
 
-  it('properly parses Mike Kaylor via LinkedIn', function() {
+  it('properly parses Mike Kaylor via LinkedIn', function () {
     let c8 = new Contact({ name: 'Mike Kaylor via LinkedIn' });
     expect(c8.firstName()).toBe('Mike');
     expect(c8.lastName()).toBe('Kaylor');
@@ -73,13 +73,13 @@ describe('Contact', function() {
     expect(c8.lastName()).toBe('Pope');
   });
 
-  it('should not by fancy about the contents of parenthesis (Evan Morikawa)', function() {
+  it('should not by fancy about the contents of parenthesis (Evan Morikawa)', function () {
     const c8 = new Contact({ name: 'Evan (Evan Morikawa)' });
     expect(c8.firstName()).toBe('Evan');
     expect(c8.lastName()).toBe('(Evan Morikawa)');
   });
 
-  it("falls back to the first component of the email if name isn't present", function() {
+  it("falls back to the first component of the email if name isn't present", function () {
     const c1 = new Contact({ name: ' Evan Morikawa ', email: 'evan@mailspring.com' });
     expect(c1.displayName()).toBe('Evan Morikawa');
     expect(c1.displayName({ compact: true })).toBe('Evan');
@@ -93,7 +93,7 @@ describe('Contact', function() {
     expect(c3.displayName({ compact: true })).toBe('');
   });
 
-  it('properly parses names with @', function() {
+  it('properly parses names with @', function () {
     let c1 = new Contact({ name: 'nyl@s' });
     expect(c1.firstName()).toBe('nyl@s');
     expect(c1.lastName()).toBe('');
@@ -123,7 +123,7 @@ describe('Contact', function() {
     expect(c8.lastName()).toBe('K@ylor');
   });
 
-  it('properly parses names with last, first (description)', function() {
+  it('properly parses names with last, first (description)', function () {
     const c1 = new Contact({ name: 'Smith, Bob' });
     expect(c1.firstName()).toBe('Bob');
     expect(c1.lastName()).toBe('Smith');
@@ -140,26 +140,26 @@ describe('Contact', function() {
     expect(c3.fullName()).toBe('Ricky Bobby von Smith (Awesome Employee)');
   });
 
-  it('should properly return `You` as the display name for the current user', function() {
+  it('should properly return `You` as the display name for the current user', function () {
     const c1 = new Contact({ name: ' Test Monkey', email: this.account.emailAddress });
     expect(c1.displayName()).toBe('You (tester@mailspring.com)');
     expect(c1.displayName({ compact: true })).toBe('You');
   });
 
-  describe('isMe', function() {
-    it('returns true if the contact name matches the account email address', function() {
+  describe('isMe', function () {
+    it('returns true if the contact name matches the account email address', function () {
       let c1 = new Contact({ email: this.account.emailAddress });
       expect(c1.isMe()).toBe(true);
       c1 = new Contact({ email: 'ben@mailspring.com' });
       expect(c1.isMe()).toBe(false);
     });
 
-    it('is case insensitive', function() {
+    it('is case insensitive', function () {
       const c1 = new Contact({ email: this.account.emailAddress.toUpperCase() });
       expect(c1.isMe()).toBe(true);
     });
 
-    it('it calls through to accountForEmail', function() {
+    it('it calls through to accountForEmail', function () {
       const c1 = new Contact({ email: this.account.emailAddress });
       const acct = new Account({});
       spyOn(AccountStore, 'accountForEmail').andReturn(acct);
@@ -168,8 +168,8 @@ describe('Contact', function() {
     });
   });
 
-  describe('isValid', function() {
-    it('should return true for a variety of valid contacts', function() {
+  describe('isValid', function () {
+    it('should return true for a variety of valid contacts', function () {
       expect(new Contact({ name: 'Ben', email: 'ben@mailspring.com' }).isValid()).toBe(true);
       expect(new Contact({ email: 'ben@mailspring.com' }).isValid()).toBe(true);
       expect(new Contact({ email: 'ben+123@mailspring.com' }).isValid()).toBe(true);
@@ -181,7 +181,7 @@ describe('Contact', function() {
     it('should return false if the contact has no email', () =>
       expect(new Contact({ name: 'Ben' }).isValid()).toBe(false));
 
-    it('should return false if the contact has an email that is not valid', function() {
+    it('should return false if the contact has an email that is not valid', function () {
       expect(new Contact({ name: 'Ben', email: 'Ben <ben@mailspring.com>' }).isValid()).toBe(false);
       expect(new Contact({ name: 'Ben', email: '<ben@mailspring.com>' }).isValid()).toBe(false);
       expect(new Contact({ name: 'Ben', email: '"ben@mailspring.com"' }).isValid()).toBe(false);

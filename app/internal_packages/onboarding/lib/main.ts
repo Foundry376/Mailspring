@@ -14,11 +14,11 @@ export function activate() {
 
   if (accounts.length === 0) {
     const startService = new SystemStartService();
-    startService.checkAvailability().then(available => {
+    startService.checkAvailability().then((available) => {
       if (!available) {
         return;
       }
-      startService.doesLaunchOnSystemStart().then(launchesOnStart => {
+      startService.doesLaunchOnSystemStart().then((launchesOnStart) => {
         if (!launchesOnStart) {
           startService.configureToLaunchOnSystemStart();
         }

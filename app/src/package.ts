@@ -7,7 +7,13 @@ class InvalidPackageNameError extends Error {}
 const VALID_PACKAGE_NAME = /^[a-z0-9._-]+$/;
 
 export function isValidPackageName(name: unknown): name is string {
-  return typeof name === 'string' && name.length > 0 && name !== '.' && name !== '..' && VALID_PACKAGE_NAME.test(name);
+  return (
+    typeof name === 'string' &&
+    name.length > 0 &&
+    name !== '.' &&
+    name !== '..' &&
+    VALID_PACKAGE_NAME.test(name)
+  );
 }
 
 export default class Package {
@@ -116,8 +122,8 @@ export default class Package {
     try {
       keymapPaths = fs
         .readdirSync(keymapsRoot)
-        .filter(fn => fn.endsWith('.json'))
-        .map(fn => path.join(keymapsRoot, fn));
+        .filter((fn) => fn.endsWith('.json'))
+        .map((fn) => path.join(keymapsRoot, fn));
     } catch (err) {
       // no menus
     }
@@ -132,13 +138,13 @@ export default class Package {
     const stylesRoot = this.getStylesheetsPath();
     try {
       const filenames = fs.readdirSync(stylesRoot);
-      const index = filenames.find(fn => fn.startsWith('index.'));
+      const index = filenames.find((fn) => fn.startsWith('index.'));
       if (index) {
         stylesheets = [path.join(stylesRoot, index)];
       } else {
         stylesheets = filenames
-          .filter(fn => fn.endsWith('ss'))
-          .map(fn => path.join(stylesRoot, fn));
+          .filter((fn) => fn.endsWith('ss'))
+          .map((fn) => path.join(stylesRoot, fn));
       }
     } catch (err) {
       // styles directory not found
@@ -161,8 +167,8 @@ export default class Package {
     try {
       menuPaths = fs
         .readdirSync(menusRoot)
-        .filter(fn => fn.endsWith('.json'))
-        .map(fn => path.join(menusRoot, fn));
+        .filter((fn) => fn.endsWith('.json'))
+        .map((fn) => path.join(menusRoot, fn));
     } catch (err) {
       // no menus
     }

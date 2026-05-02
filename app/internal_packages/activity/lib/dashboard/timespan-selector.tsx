@@ -19,7 +19,7 @@ export default class TimespanSelector extends React.Component<{
     const { id, startDate, endDate } = this.props.timespan;
 
     const options = getTimespanOptions();
-    const itemIdx = options.findIndex(item => item.id === id);
+    const itemIdx = options.findIndex((item) => item.id === id);
 
     const longFormat = id.startsWith('month')
       ? localized('MMMM Do, h:mmA')
@@ -37,9 +37,9 @@ export default class TimespanSelector extends React.Component<{
           headerComponents={[]}
           footerComponents={[]}
           items={options}
-          itemKey={item => item.id}
-          itemContent={item => (item.divider ? <Menu.Item key="divider" divider /> : item.name)}
-          onSelect={item => this.props.onChange(item.id)}
+          itemKey={(item) => item.id}
+          itemContent={(item) => (item.divider ? <Menu.Item key="divider" divider /> : item.name)}
+          onSelect={(item) => this.props.onChange(item.id)}
         />
       </div>
     );

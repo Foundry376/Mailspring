@@ -81,7 +81,7 @@ export default class SignatureComposerDropdown extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unsubscribers.forEach(unsubscribe => unsubscribe());
+    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
   }
 
   _getStateFromStores() {
@@ -90,7 +90,7 @@ export default class SignatureComposerDropdown extends React.Component<
     };
   }
 
-  _onChangeSignature = sig => {
+  _onChangeSignature = (sig) => {
     let body;
     if (sig) {
       body = applySignature(this.props.draft.body, sig);
@@ -121,9 +121,9 @@ export default class SignatureComposerDropdown extends React.Component<
         ]}
         footerComponents={this._staticFooterItems}
         items={Object.values(this.state.signatures)}
-        itemKey={sig => sig.id}
-        itemChecked={sig => currentId === sig.id}
-        itemContent={sig => <span className={`signature-title-${sig.title}`}>{sig.title}</span>}
+        itemKey={(sig) => sig.id}
+        itemChecked={(sig) => currentId === sig.id}
+        itemContent={(sig) => <span className={`signature-title-${sig.title}`}>{sig.title}</span>}
         onSelect={this._onChangeSignature}
       />
     );

@@ -68,12 +68,12 @@ export default class MenuManager {
     window.requestAnimationFrame(() => {
       this.pendingUpdateOperation = false;
 
-      MenuHelpers.forEachMenuItem(this.template, item => {
+      MenuHelpers.forEachMenuItem(this.template, (item) => {
         if (item.command && item.command.startsWith('application:') === false) {
           item.enabled = AppEnv.commands.listenerCountForCommand(item.command) > 0;
         }
         if (item.submenu != null) {
-          item.enabled = !item.submenu.every(subitem => subitem.enabled === false);
+          item.enabled = !item.submenu.every((subitem) => subitem.enabled === false);
         }
         if (item.hideWhenDisabled) {
           item.visible = item.enabled;

@@ -99,7 +99,7 @@ class FocusedContentStore extends MailspringStore {
     }
 
     if (changed.length > 0) {
-      this.trigger({ impactsCollection: c => changed.includes(c) });
+      this.trigger({ impactsCollection: (c) => changed.includes(c) });
     }
   };
 
@@ -119,7 +119,7 @@ class FocusedContentStore extends MailspringStore {
     }
 
     this._keyboardCursor[collection] = item;
-    this.triggerAfterAnimationFrame({ impactsCollection: c => c === collection });
+    this.triggerAfterAnimationFrame({ impactsCollection: (c) => c === collection });
   };
 
   _onFocus = ({
@@ -153,7 +153,7 @@ class FocusedContentStore extends MailspringStore {
     if (item) {
       this._keyboardCursor[collection] = item;
     }
-    this.triggerAfterAnimationFrame({ impactsCollection: c => c === collection });
+    this.triggerAfterAnimationFrame({ impactsCollection: (c) => c === collection });
   };
 
   _onWorkspaceChange = () => {
@@ -201,7 +201,7 @@ class FocusedContentStore extends MailspringStore {
     }
 
     if (touched.length > 0) {
-      this.trigger({ impactsCollection: c => c in touched });
+      this.trigger({ impactsCollection: (c) => c in touched });
     }
   };
 

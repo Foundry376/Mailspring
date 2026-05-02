@@ -71,7 +71,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
         data-calendar-end={dayEndUnix}
         data-calendar-type="day-column"
       >
-        {events.map(e => (
+        {events.map((e) => (
           <CalendarEvent
             event={e}
             selected={selectedEvents.includes(e)}

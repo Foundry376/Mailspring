@@ -1,5 +1,5 @@
 const foo = () => {
-  return new Promise<void>(resolve => {
+  return new Promise<void>((resolve) => {
     setTimeout(() => {
       console.log('---------------------------------- RESOLVING');
       resolve();

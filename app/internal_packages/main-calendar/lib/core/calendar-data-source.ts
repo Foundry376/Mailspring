@@ -91,7 +91,7 @@ export class CalendarDataSource {
     }
 
     const query = DatabaseStore.findAll<Event>(Event).where(matcher);
-    this.observable = Rx.Observable.fromQuery(query).flatMapLatest(results =>
+    this.observable = Rx.Observable.fromQuery(query).flatMapLatest((results) =>
       Rx.Observable.from([{ events: occurrencesForEvents(results, { startUnix, endUnix }) }])
     );
     return this.observable;
@@ -121,8 +121,8 @@ export function occurrencesForEvents(
   // Process each group of events with the same UID
   for (const [, events] of eventsByUid) {
     // Separate master from exceptions
-    const master = events.find(e => !e.recurrenceId);
-    const exceptions = events.filter(e => e.recurrenceId);
+    const master = events.find((e) => !e.recurrenceId);
+    const exceptions = events.filter((e) => e.recurrenceId);
 
     // Track occurrence start times generated from master expansion
     // to avoid duplicates when exceptions are in the same ICS file
@@ -147,7 +147,7 @@ export function occurrencesForEvents(
           expandedStartTimes.add(start);
 
           // Parse attendees with their participation status
-          const attendees: EventAttendee[] = item.attendees.map(a => ({
+          const attendees: EventAttendee[] = item.attendees.map((a) => ({
             email: normalizeEmail(String(a.getFirstValue() || '')),
             name: a.getFirstParameter('cn') || '',
             partstat: (a.getFirstParameter('partstat') || 'NEEDS-ACTION') as ParticipationStatus,
@@ -157,7 +157,9 @@ export function occurrencesForEvents(
           // 1. Event status is TENTATIVE, or
           // 2. Current user is an attendee who hasn't accepted
           const isTentativeStatus = status.toUpperCase() === 'TENTATIVE';
-          const myAttendee = attendees.find(a => a.email && new Contact({ email: a.email }).isMe());
+          const myAttendee = attendees.find(
+            (a) => a.email && new Contact({ email: a.email }).isMe()
+          );
           const myPartstat = myAttendee?.partstat?.toUpperCase();
           const isAwaitingMyResponse =
             myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
@@ -233,7 +235,7 @@ export function occurrencesForEvents(
         const status = typeof statusValue === 'string' ? statusValue : '';
 
         // Parse attendees with their participation status
-        const attendees: EventAttendee[] = icsEvent.attendees.map(a => ({
+        const attendees: EventAttendee[] = icsEvent.attendees.map((a) => ({
           email: normalizeEmail(String(a.getFirstValue() || '')),
           name: a.getFirstParameter('cn') || '',
           partstat: (a.getFirstParameter('partstat') || 'NEEDS-ACTION') as ParticipationStatus,
@@ -241,7 +243,7 @@ export function occurrencesForEvents(
 
         // Determine if event should show "pending" styling
         const isTentativeStatus = status.toUpperCase() === 'TENTATIVE';
-        const myAttendee = attendees.find(a => a.email && new Contact({ email: a.email }).isMe());
+        const myAttendee = attendees.find((a) => a.email && new Contact({ email: a.email }).isMe());
         const myPartstat = myAttendee?.partstat?.toUpperCase();
         const isAwaitingMyResponse =
           myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';

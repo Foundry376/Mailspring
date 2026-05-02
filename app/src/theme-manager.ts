@@ -126,11 +126,11 @@ export default class ThemeManager {
 
   reloadCoreStyles() {
     console.log('Reloading /static and /internal_packages to incorporate LESS changes');
-    const reloadStylesIn = folder => {
+    const reloadStylesIn = (folder) => {
       (fs.readdirSync(folder, { recursive: true }) as string[])
-        .map(f => path.join(folder, f))
-        .filter(stylePath => stylePath.endsWith('.less'))
-        .forEach(stylePath => {
+        .map((f) => path.join(folder, f))
+        .filter((stylePath) => stylePath.endsWith('.less'))
+        .forEach((stylePath) => {
           const styleEl = document.head.querySelector(`[source-path="${stylePath}"]`);
           if (styleEl) styleEl.textContent = this.cssContentsOfStylesheet(stylePath);
         });
@@ -175,7 +175,7 @@ export default class ThemeManager {
   }
 
   getAvailableThemes() {
-    return this.packageManager.getAvailablePackages().filter(p => p.isTheme());
+    return this.packageManager.getAvailablePackages().filter((p) => p.isTheme());
   }
 
   // Set the active theme.

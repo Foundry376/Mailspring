@@ -75,7 +75,7 @@ export default class OpenTrackingIcon extends React.Component<{
         onMouseDown={opened ? this.onMouseDown : null}
         onKeyDown={
           opened
-            ? e => {
+            ? (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   this.onMouseDown();

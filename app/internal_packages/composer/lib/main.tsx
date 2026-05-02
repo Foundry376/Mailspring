@@ -79,7 +79,7 @@ class ComposerWithWindowProps extends React.Component<
   render() {
     return (
       <ComposerViewForDraftClientId
-        ref={cm => {
+        ref={(cm) => {
           this._composerComponent = cm;
         }}
         onDraftReady={this._onDraftReady}

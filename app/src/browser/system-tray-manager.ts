@@ -116,7 +116,7 @@ class SystemTrayManager {
         this._application.emit('application:show-main-window');
       } else {
         const visibleWindows = this._application.windowManager.getVisibleWindows();
-        visibleWindows.forEach(window => window.hide());
+        visibleWindows.forEach((window) => window.hide());
       }
     }
   };

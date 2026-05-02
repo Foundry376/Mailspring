@@ -8,7 +8,7 @@ export function scryRenderedComponentsWithTypeAndProps(root, type, props) {
     throw new Error('Must supply a root to scryRenderedComponentsWithTypeAndProps');
   }
   return _.compact(
-    _.map(ReactTestUtils.scryRenderedComponentsWithType(root, type), el => {
+    _.map(ReactTestUtils.scryRenderedComponentsWithType(root, type), (el) => {
       if (_.isEqual(_.pick(el.props, Object.keys(props)), props)) {
         return el;
       }

@@ -83,12 +83,7 @@ function __getDesktopSettingsPath(): string {
  */
 function __exec(cmd: string): string {
   try {
-    return cmd == null
-      ? null
-      : execSync(cmd)
-          .toString()
-          .trim()
-          .replace(/'/g, '');
+    return cmd == null ? null : execSync(cmd).toString().trim().replace(/'/g, '');
   } catch (error) {
     console.warn(error);
     return null;
@@ -310,9 +305,7 @@ function getIcon(
  */
 function convertToPNG(iconName: string, iconPath: string) {
   try {
-    const version = execSync('convert --version')
-      .toString()
-      .trim();
+    const version = execSync('convert --version').toString().trim();
     if (!version) {
       console.warn('Cannot find ImageMagick');
       return null;

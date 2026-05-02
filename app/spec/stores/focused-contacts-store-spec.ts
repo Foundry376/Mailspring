@@ -1,7 +1,7 @@
 const FocusedContactsStore = require('../../src/flux/stores/focused-contacts-store');
 
-xdescribe('FocusedContactsStore', function() {
-  beforeEach(function() {
+xdescribe('FocusedContactsStore', function () {
+  beforeEach(function () {
     FocusedContactsStore._currentThreadId = null;
     FocusedContactsStore._clearCurrentParticipants({ silent: true });
   });

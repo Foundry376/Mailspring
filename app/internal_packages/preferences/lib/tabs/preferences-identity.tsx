@@ -63,8 +63,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
+    link: 'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
     icon: `icon-composer-eye.png`,
     title: localized(`Read Receipts`),
     text: localized(
@@ -80,8 +79,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
+    link: 'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
     icon: `icon-composer-linktracking.png`,
     title: localized(`Link tracking`),
     text: localized(
@@ -113,8 +111,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link:
-      'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
+    link: 'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
     icon: `icon-toolbar-activity.png`,
     title: localized(`Mailbox insights`),
     text: localized(
@@ -296,8 +293,8 @@ class PreferencesIdentity extends React.Component<
           {!stripePlan
             ? this._renderNoIdentity()
             : stripePlan === 'Basic'
-            ? this._renderBasicPlan()
-            : this._renderPaidPlan(stripePlan, identity.stripePlanEffective)}
+              ? this._renderBasicPlan()
+              : this._renderPaidPlan(stripePlan, identity.stripePlanEffective)}
         </div>
       </div>
     );
@@ -397,7 +394,7 @@ const ExploreMailspringPro: React.FunctionComponent = () => (
   <>
     <div className="feature-explore-title">{localized('Explore Mailspring Pro')}</div>
     <div className="feature-explore-grid">
-      {ProTourFeatures.map(item => (
+      {ProTourFeatures.map((item) => (
         <a key={item.title} className="feature" href={item.link}>
           <div className="popout">
             <RetinaImg name="thread-popout.png" mode={RetinaImg.Mode.ContentDark} />
@@ -417,7 +414,7 @@ const ExploreMailspringPro: React.FunctionComponent = () => (
   </>
 );
 
-const IdentitySummary: React.FunctionComponent<{ identity: IIdentity }> = props => {
+const IdentitySummary: React.FunctionComponent<{ identity: IIdentity }> = (props) => {
   const { firstName, lastName, emailAddress } = props.identity;
   const logout = () => Actions.logoutMailspringIdentity();
   return (

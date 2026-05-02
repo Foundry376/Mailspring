@@ -224,7 +224,7 @@ class DraftFactory {
     message.files.forEach((f: File) => Actions.fetchFile(f));
 
     const formatContact = (cs: Contact[]) => {
-      const text = cs.map(c => c.toString()).join(', ');
+      const text = cs.map((c) => c.toString()).join(', ');
       return this.useHTML() ? DOMUtils.escapeHTMLCharacters(text) : text;
     };
 
@@ -298,7 +298,7 @@ class DraftFactory {
         : await DatabaseStore.findAll<Message>(Message, { threadId: message.threadId });
 
     const candidateDrafts = messages.filter(
-      other => other.replyToHeaderMessageId === message.headerMessageId && other.draft === true
+      (other) => other.replyToHeaderMessageId === message.headerMessageId && other.draft === true
     );
 
     if (candidateDrafts.length === 0) {
@@ -310,11 +310,11 @@ class DraftFactory {
     if (behavior === 'prefer-existing-if-pristine') {
       DraftStore = DraftStore || require('./draft-store').default;
       const sessions = await Promise.all(
-        candidateDrafts.map(candidateDraft =>
+        candidateDrafts.map((candidateDraft) =>
           DraftStore.sessionForClientId(candidateDraft.headerMessageId)
         )
       );
-      return sessions.map(s => s.draft()).find(d => d && d.pristine);
+      return sessions.map((s) => s.draft()).find((d) => d && d.pristine);
     }
   }
 
@@ -333,9 +333,9 @@ class DraftFactory {
 
       // Remove participants present in the reply-all set and not the reply set
       for (const key of ['to', 'cc']) {
-        updated[key] = updated[key].filter(contact => {
-          const inReplySet = replySet[key]?.find(x => x.email === contact.email);
-          const inReplyAllSet = replyAllSet[key]?.find(x => x.email === contact.email);
+        updated[key] = updated[key].filter((contact) => {
+          const inReplySet = replySet[key]?.find((x) => x.email === contact.email);
+          const inReplyAllSet = replyAllSet[key]?.find((x) => x.email === contact.email);
           return !(inReplyAllSet && !inReplySet);
         });
       }
@@ -347,7 +347,7 @@ class DraftFactory {
 
     for (const key of ['to', 'cc']) {
       for (const contact of targetSet[key]) {
-        if (!updated[key]?.find(x => x.email === contact.email)) {
+        if (!updated[key]?.find((x) => x.email === contact.email)) {
           updated[key].push(contact);
         }
       }

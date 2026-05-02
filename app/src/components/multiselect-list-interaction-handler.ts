@@ -34,16 +34,16 @@ export default class MultiselectListInteractionHandler {
     return true;
   }
 
-  onClick = item => {
+  onClick = (item) => {
     this.onFocusItem(item);
   };
 
-  onMetaClick = item => {
+  onMetaClick = (item) => {
     this.props.dataSource.selection.toggle(item);
     this.onSetCursorPosition(item);
   };
 
-  onShiftClick = item => {
+  onShiftClick = (item) => {
     this.props.dataSource.selection.expandTo(item);
     this.onSetCursorPosition(item);
   };
@@ -60,7 +60,7 @@ export default class MultiselectListInteractionHandler {
     this.props.dataSource.selection.clear();
   };
 
-  onSelect = items => {
+  onSelect = (items) => {
     this.props.dataSource.selection.set(items);
   };
 

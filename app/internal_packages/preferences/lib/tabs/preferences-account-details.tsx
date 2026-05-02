@@ -30,7 +30,7 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
             aria-label={localized('Automatically CC or BCC recipients')}
             style={{ marginTop: 0, marginLeft: 8 }}
             value={autoaddress.type}
-            onChange={e => onChange({ ...autoaddress, type: e.target.value as 'cc' | 'bcc' })}
+            onChange={(e) => onChange({ ...autoaddress, type: e.target.value as 'cc' | 'bcc' })}
             onBlur={onSaveChanges}
           >
             <option value="cc">{localized('Cc')}</option>
@@ -42,7 +42,7 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
           type="text"
           aria-label={localized('Comma-separated email addresses to automatically CC or BCC')}
           value={autoaddress.value}
-          onChange={e => onChange({ ...autoaddress, value: e.target.value })}
+          onChange={(e) => onChange({ ...autoaddress, value: e.target.value })}
           onBlur={onSaveChanges}
           placeholder={localized('Comma-separated email addresses')}
         />
@@ -119,18 +119,18 @@ class PreferencesAccountDetails extends Component<
     this.setState({ account }, callback);
   };
 
-  _setStateAndSave = updates => {
+  _setStateAndSave = (updates) => {
     this._setState(updates, () => {
       this._saveChanges();
     });
   };
 
   // Handlers
-  _onAccountAutoaddressUpdated = autoaddress => {
+  _onAccountAutoaddressUpdated = (autoaddress) => {
     this._setState({ autoaddress });
   };
 
-  _onAccountAliasCreated = newAlias => {
+  _onAccountAliasCreated = (newAlias) => {
     const coercedAlias = this._makeAlias(newAlias);
     const aliases = this.state.account.aliases.concat([coercedAlias]);
     this._setStateAndSave({ aliases });
@@ -157,7 +157,7 @@ class PreferencesAccountDetails extends Component<
     this._setStateAndSave({ aliases, defaultAlias });
   };
 
-  _onDefaultAliasSelected = event => {
+  _onDefaultAliasSelected = (event) => {
     const defaultAlias = event.target.value === 'None' ? null : event.target.value;
     this._setStateAndSave({ defaultAlias });
   };
@@ -176,7 +176,7 @@ class PreferencesAccountDetails extends Component<
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
 
-  _onSetColor = colorChanged => {
+  _onSetColor = (colorChanged) => {
     // TODO: Ensure that the account color is updated in all places where it is displayed:
     // - internal_packages/composer/lib/account-contict-field.tsx
     // - internal_packages/contacts/lib/ContactsList.tsx
@@ -300,7 +300,7 @@ class PreferencesAccountDetails extends Component<
           type="text"
           value={account.label}
           onBlur={this._saveChanges}
-          onChange={e => this._setState({ label: e.target.value })}
+          onChange={(e) => this._setState({ label: e.target.value })}
         />
         <label htmlFor="account-sender-name">
           <h6>{localized('Sender Name')}</h6>
@@ -310,7 +310,7 @@ class PreferencesAccountDetails extends Component<
           type="text"
           value={account.name}
           onBlur={this._saveChanges}
-          onChange={e => this._setState({ name: e.target.value })}
+          onChange={(e) => this._setState({ name: e.target.value })}
         />
         <h6>{localized('Automatic CC / BCC')}</h6>
         <AutoaddressControl
@@ -344,9 +344,7 @@ class PreferencesAccountDetails extends Component<
               ))}
             </select>
           </div>
-        ) : (
-          undefined
-        )}
+        ) : undefined}
         <label htmlFor="account-color">
           <h6>{localized('Account Color')}</h6>
         </label>
@@ -356,7 +354,7 @@ class PreferencesAccountDetails extends Component<
             type="color"
             value={account.color}
             onBlur={this._saveChanges}
-            onChange={e => this._onSetColor({ color: e.target.value })}
+            onChange={(e) => this._onSetColor({ color: e.target.value })}
           />
           <div className="btn" style={{ marginLeft: 6 }} onClick={this._onResetColor}>
             {localized('Reset Account Color')}

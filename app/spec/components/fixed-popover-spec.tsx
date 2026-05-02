@@ -2,7 +2,9 @@ import React from 'react';
 import FixedPopover from '../../src/components/fixed-popover';
 import MTestUtils from '../mailspring-test-utils';
 
-const { Directions: { Up, Down, Left, Right } } = FixedPopover;
+const {
+  Directions: { Up, Down, Left, Right },
+} = FixedPopover;
 
 const makePopover = (props: any = {}) => {
   const originRect = props.originRect ? props.originRect : {};
@@ -88,7 +90,7 @@ describe('FixedPopover', function fixedPopover() {
         expect(direction).toEqual(Right);
       });
 
-      [Up, Down, Left, Right].forEach(dir => {
+      [Up, Down, Left, Right].forEach((dir) => {
         if (dir === Up || dir === Down) {
           it('moves left if its overflowing on the right', () => {
             const { offset, direction } = compute(dir, {

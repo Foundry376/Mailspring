@@ -138,7 +138,7 @@ const MailRulesActions: {
     }
 
     const label = CategoryStore.categories(thread.accountId).find(
-      c => c.id === roleOrId || c.role === roleOrId
+      (c) => c.id === roleOrId || c.role === roleOrId
     );
 
     if (!label || !(label instanceof Label)) {
@@ -148,7 +148,7 @@ const MailRulesActions: {
       source: 'Mail Rules',
       labelsToRemove: []
         .concat(thread.labels)
-        .filter(l => !l.isLockedCategory() && l.id !== label.id),
+        .filter((l) => !l.isLockedCategory() && l.id !== label.id),
       labelsToAdd: [label],
       threads: [thread],
     });
@@ -162,14 +162,14 @@ class MailRulesProcessor {
       return;
     }
 
-    const enabledRules = MailRulesStore.rules().filter(r => !r.disabled);
+    const enabledRules = MailRulesStore.rules().filter((r) => !r.disabled);
 
     // When messages arrive, we process all the messages in parallel, but one
     // rule at a time. This is important, because users can order rules which
     // may do and undo a change. Ie: "Star if from Ben, Unstar if subject is "Bla"
     for (const rule of enabledRules) {
       try {
-        const allMatching = messages.filter(message => this._checkRuleForMessage(rule, message));
+        const allMatching = messages.filter((message) => this._checkRuleForMessage(rule, message));
 
         // Rules are declared at the message level, but actions are applied to
         // threads. To ensure we don't apply the same action 50x on the same thread,
@@ -200,7 +200,7 @@ class MailRulesProcessor {
     }
   }
 
-  _conditionTemplateMap: Map<string, typeof ConditionTemplates[number]> | null = null;
+  _conditionTemplateMap: Map<string, (typeof ConditionTemplates)[number]> | null = null;
 
   _getConditionTemplateMap() {
     if (!this._conditionTemplateMap) {
@@ -220,7 +220,7 @@ class MailRulesProcessor {
     }
 
     const templateMap = this._getConditionTemplateMap();
-    return fn.call(rule.conditions, condition => {
+    return fn.call(rule.conditions, (condition) => {
       const template = templateMap.get(condition.templateKey);
       if (!template) {
         console.warn(`Unknown mail rule condition template: ${condition.templateKey}`);
@@ -233,7 +233,7 @@ class MailRulesProcessor {
 
   async _applyRuleToMessage(rule: MailRule, message: Message, thread: Thread) {
     try {
-      const actionPromises = rule.actions.map(action => {
+      const actionPromises = rule.actions.map((action) => {
         const actionFn = MailRulesActions[action.templateKey];
         if (!actionFn) {
           throw new Error(`${action.templateKey} is not a supported action.`);
@@ -242,14 +242,14 @@ class MailRulesProcessor {
       });
 
       const actionResults = await Promise.all<Task | undefined>(actionPromises);
-      const actionTasks = actionResults.filter(r => r instanceof Task);
+      const actionTasks = actionResults.filter((r) => r instanceof Task);
 
       // mark that none of these tasks are undoable
-      actionTasks.forEach(t => {
+      actionTasks.forEach((t) => {
         (t as any).canBeUndone = false;
       });
 
-      const performLocalPromises = actionTasks.map(t => TaskQueue.waitForPerformLocal(t));
+      const performLocalPromises = actionTasks.map((t) => TaskQueue.waitForPerformLocal(t));
       Actions.queueTasks(actionTasks);
       await performLocalPromises;
     } catch (err) {

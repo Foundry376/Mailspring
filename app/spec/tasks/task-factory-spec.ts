@@ -36,16 +36,16 @@ describe('TaskFactory', function taskFactory() {
     };
     this.threads = [new Thread({ accountId: 'ac-1' }), new Thread({ accountId: 'ac-2' })];
 
-    spyOn(CategoryStore, 'getArchiveCategory').andCallFake(acc => {
+    spyOn(CategoryStore, 'getArchiveCategory').andCallFake((acc) => {
       return this.categories[acc.id].archive;
     });
-    spyOn(CategoryStore, 'getInboxCategory').andCallFake(acc => {
+    spyOn(CategoryStore, 'getInboxCategory').andCallFake((acc) => {
       return this.categories[acc.id].inbox;
     });
-    spyOn(CategoryStore, 'getTrashCategory').andCallFake(acc => {
+    spyOn(CategoryStore, 'getTrashCategory').andCallFake((acc) => {
       return this.categories[acc.id].trash;
     });
-    spyOn(AccountStore, 'accountForId').andCallFake(accId => {
+    spyOn(AccountStore, 'accountForId').andCallFake((accId) => {
       return this.accounts[accId];
     });
   });

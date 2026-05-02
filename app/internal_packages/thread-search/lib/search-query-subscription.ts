@@ -90,7 +90,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
       role: 'SearchBarResults',
     });
 
-    this._extDisposables = searchExtensions.map(ext => {
+    this._extDisposables = searchExtensions.map((ext) => {
       return ext.observeThreadIdsForQuery(this._searchQuery).subscribe((ids = []) => {
         const allIds = ids.flat().filter(Boolean);
         if (allIds.length === 0) return;
@@ -100,8 +100,8 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   }
 
   onLastCallbackRemoved() {
-    this._connections.forEach(conn => conn.end());
-    this._extDisposables.forEach(disposable => disposable.dispose());
+    this._connections.forEach((conn) => conn.end());
+    this._extDisposables.forEach((disposable) => disposable.dispose());
   }
 }
 

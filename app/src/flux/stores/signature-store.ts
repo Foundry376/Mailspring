@@ -54,14 +54,14 @@ class _SignatureStore extends MailspringStore {
           },
         },
       };
-      AccountStore.accounts().forEach(a => {
+      AccountStore.accounts().forEach((a) => {
         this.defaultSignatures[a.emailAddress] = 'initial';
       });
     }
 
     // migrate signatures that didn't have a `data` property
     Object.values(this.signatures).forEach(
-      sig => (sig.data = sig.data || { title: '', templateName: '' })
+      (sig) => (sig.data = sig.data || { title: '', templateName: '' })
     );
 
     this._autoselectSignatureId();
@@ -101,7 +101,7 @@ class _SignatureStore extends MailspringStore {
     return this.defaultSignatures;
   }
 
-  signatureForEmail = email => {
+  signatureForEmail = (email) => {
     return this.signatures[this.defaultSignatures[email]];
   };
 
@@ -113,7 +113,7 @@ class _SignatureStore extends MailspringStore {
     AppEnv.config.set(`defaultSignatures`, this.defaultSignatures);
   }
 
-  _onSelectSignature = id => {
+  _onSelectSignature = (id) => {
     this.selectedSignatureId = id;
     this.trigger();
   };
@@ -123,7 +123,7 @@ class _SignatureStore extends MailspringStore {
     this.selectedSignatureId = sigIds.length ? sigIds[0] : null;
   }
 
-  _onRemoveSignature = signatureToDelete => {
+  _onRemoveSignature = (signatureToDelete) => {
     this.signatures = Object.assign({}, this.signatures);
     delete this.signatures[signatureToDelete.id];
     this._autoselectSignatureId();
@@ -137,7 +137,7 @@ class _SignatureStore extends MailspringStore {
     this._saveSignatures();
   };
 
-  _onToggleAccount = email => {
+  _onToggleAccount = (email) => {
     if (this.defaultSignatures[email] === this.selectedSignatureId) {
       this.defaultSignatures[email] = null;
     } else {

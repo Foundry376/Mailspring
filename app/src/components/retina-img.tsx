@@ -105,11 +105,11 @@ export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<
     active: PropTypes.bool,
   };
 
-  shouldComponentUpdate = nextProps => {
+  shouldComponentUpdate = (nextProps) => {
     return !_.isEqual(this.props, nextProps);
   };
 
-  _pathFor = name => {
+  _pathFor = (name) => {
     if (!name || typeof name !== 'string') return null;
     let pathName = name;
 
@@ -155,8 +155,6 @@ export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<
     }
 
     const otherProps = Utils.fastOmit(this.props, Object.keys(RetinaImg.propTypes));
-    return (
-      <img alt={''} className={className} src={path} style={style} {...otherProps} />
-    );
+    return <img alt={''} className={className} src={path} style={style} {...otherProps} />;
   }
 }

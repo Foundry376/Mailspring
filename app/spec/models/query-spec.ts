@@ -135,12 +135,7 @@ describe('ModelQuery', function ModelQuerySpecs() {
         const q = new ModelQuery(klass, this.db);
         Attributes.Matcher.muid = 1;
         scenario.builder(q);
-        expect(
-          q
-            .sql()
-            .replace(/ /g, '')
-            .trim()
-        ).toBe(scenario.sql.replace(/ /g, '').trim());
+        expect(q.sql().replace(/ /g, '').trim()).toBe(scenario.sql.replace(/ /g, '').trim());
       };
     });
 
@@ -153,7 +148,7 @@ describe('ModelQuery', function ModelQuerySpecs() {
 
     it('should correctly generate queries with multiple where clauses', () => {
       this.runScenario(Account, {
-        builder: q => q.where({ emailAddress: 'ben@mailspring.com' }).where({ id: 2 }),
+        builder: (q) => q.where({ emailAddress: 'ben@mailspring.com' }).where({ id: 2 }),
         sql:
           'SELECT `Account`.`data` FROM `Account`  ' +
           "WHERE `Account`.`emailAddress` = 'ben@mailspring.com' AND `Account`.`id` = 2",
@@ -162,29 +157,28 @@ describe('ModelQuery', function ModelQuerySpecs() {
 
     it('should correctly escape single quotes with more double single quotes (LIKE)', () => {
       this.runScenario(Account, {
-        builder: q => q.where(Account.attributes.emailAddress.like("you're")),
-        sql:
-          "SELECT `Account`.`data` FROM `Account`  WHERE `Account`.`emailAddress` like '%you''re%'",
+        builder: (q) => q.where(Account.attributes.emailAddress.like("you're")),
+        sql: "SELECT `Account`.`data` FROM `Account`  WHERE `Account`.`emailAddress` like '%you''re%'",
       });
     });
 
     it('should correctly escape single quotes with more double single quotes (equal)', () => {
       this.runScenario(Account, {
-        builder: q => q.where(Account.attributes.emailAddress.equal("you're")),
+        builder: (q) => q.where(Account.attributes.emailAddress.equal("you're")),
         sql: "SELECT `Account`.`data` FROM `Account`  WHERE `Account`.`emailAddress` = 'you''re'",
       });
     });
 
     it('should correctly generate COUNT queries', () => {
       this.runScenario(Thread, {
-        builder: q => q.where({ accountId: 'abcd' }).count(),
+        builder: (q) => q.where({ accountId: 'abcd' }).count(),
         sql: 'SELECT COUNT(*) as count FROM `Thread`  ' + "WHERE `Thread`.`accountId` = 'abcd'  ",
       });
     });
 
     it('should correctly generate LIMIT 1 queries for single items', () => {
       this.runScenario(Thread, {
-        builder: q => q.where({ accountId: 'abcd' }).one(),
+        builder: (q) => q.where({ accountId: 'abcd' }).one(),
         sql:
           'SELECT `Thread`.`data`  FROM `Thread`  ' +
           "WHERE `Thread`.`accountId` = 'abcd'  " +
@@ -194,7 +188,7 @@ describe('ModelQuery', function ModelQuerySpecs() {
 
     it('should correctly generate ORDER BY with single sort order', () => {
       this.runScenario(Thread, {
-        builder: q => q.where({ accountId: 'abcd' }).order(Thread.attributes.unread.descending()),
+        builder: (q) => q.where({ accountId: 'abcd' }).order(Thread.attributes.unread.descending()),
 
         sql:
           'SELECT `Thread`.`data`  FROM `Thread`  ' +
@@ -205,10 +199,13 @@ describe('ModelQuery', function ModelQuerySpecs() {
 
     it('should correctly generate ORDER BY with multiple sort orders', () => {
       this.runScenario(Thread, {
-        builder: q => q.where({ accountId: 'abcd' }).order([
-          Thread.attributes.lastMessageReceivedTimestamp.ascending(),
-          Thread.attributes.unread.descending(),
-        ]),
+        builder: (q) =>
+          q
+            .where({ accountId: 'abcd' })
+            .order([
+              Thread.attributes.lastMessageReceivedTimestamp.ascending(),
+              Thread.attributes.unread.descending(),
+            ]),
 
         sql:
           'SELECT `Thread`.`data`  FROM `Thread`  ' +
@@ -219,7 +216,7 @@ describe('ModelQuery', function ModelQuerySpecs() {
 
     it('should correctly generate `contains` queries using JOINS', () => {
       this.runScenario(Thread, {
-        builder: q =>
+        builder: (q) =>
           q.where(Thread.attributes.categories.contains('category-id')).where({ id: '1234' }),
         sql:
           'SELECT `Thread`.`data`  FROM `Thread` ' +
@@ -229,7 +226,7 @@ describe('ModelQuery', function ModelQuerySpecs() {
       });
 
       this.runScenario(Thread, {
-        builder: q =>
+        builder: (q) =>
           q.where([
             Thread.attributes.categories.contains('l-1'),
             Thread.attributes.categories.contains('l-2'),
@@ -245,7 +242,7 @@ describe('ModelQuery', function ModelQuerySpecs() {
 
     it("should correctly generate queries with the class's naturalSortOrder when one is available and no other orders are provided", () => {
       this.runScenario(Thread, {
-        builder: q => q.where({ accountId: 'abcd' }),
+        builder: (q) => q.where({ accountId: 'abcd' }),
         sql:
           'SELECT `Thread`.`data`  FROM `Thread`  ' +
           "WHERE `Thread`.`accountId` = 'abcd'  " +
@@ -253,7 +250,7 @@ describe('ModelQuery', function ModelQuerySpecs() {
       });
 
       this.runScenario(Thread, {
-        builder: q =>
+        builder: (q) =>
           q
             .where({ accountId: 'abcd' })
             .order(Thread.attributes.lastMessageReceivedTimestamp.ascending()),
@@ -264,14 +261,14 @@ describe('ModelQuery', function ModelQuerySpecs() {
       });
 
       this.runScenario(Account, {
-        builder: q => q.where({ id: 'abcd' }),
+        builder: (q) => q.where({ id: 'abcd' }),
         sql: 'SELECT `Account`.`data` FROM `Account`  ' + "WHERE `Account`.`id` = 'abcd'  ",
       });
     });
 
     it('should correctly generate queries requesting joined data attributes', () => {
       this.runScenario(Message, {
-        builder: q => q.where({ id: '1234' }).include(Message.attributes.body),
+        builder: (q) => q.where({ id: '1234' }).include(Message.attributes.body),
         sql:
           "SELECT `Message`.`data`, IFNULL(`MessageBody`.`value`, '!NULLVALUE!') AS `body`  " +
           'FROM `Message` LEFT OUTER JOIN `MessageBody` ON `MessageBody`.`id` = `Message`.`id` ' +

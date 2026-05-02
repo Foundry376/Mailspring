@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const FormField = props => {
+const FormField = (props) => {
   const field = props.field;
   let val = props.account[field];
   if (props.field.includes('.')) {

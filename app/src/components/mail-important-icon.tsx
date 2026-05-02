@@ -66,8 +66,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
       visible = category != null;
     }
 
-    const isImportant =
-      category && props.thread.labels?.find(x => x.id === category.id) != null;
+    const isImportant = category && props.thread.labels?.find((x) => x.id === category.id) != null;
 
     return { visible, category, isImportant };
   };
@@ -82,7 +81,10 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
   }
 
   componentDidUpdate(prevProps: MailImportantIconProps) {
-    if (prevProps.thread !== this.props.thread || prevProps.showIfAvailableForAnyAccount !== this.props.showIfAvailableForAnyAccount) {
+    if (
+      prevProps.thread !== this.props.thread ||
+      prevProps.showIfAvailableForAnyAccount !== this.props.showIfAvailableForAnyAccount
+    ) {
       this.setState(this.getState());
     }
   }
@@ -127,8 +129,7 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
     const { category } = this.state;
 
     if (category) {
-      const isImportant =
-        this.props.thread.labels?.find(x => x.id === category.id) != null;
+      const isImportant = this.props.thread.labels?.find((x) => x.id === category.id) != null;
 
       if (!isImportant) {
         Actions.queueTask(

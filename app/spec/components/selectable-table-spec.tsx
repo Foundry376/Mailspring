@@ -44,13 +44,21 @@ describe('SelectableTable Components', function describeBlock() {
 
     describe('selection state', () => {
       it('has selected class when selection rowIdx and colIdx match cell position', () => {
-        const { container } = renderCell({ rowIdx: 1, colIdx: 2, selection: { rowIdx: 1, colIdx: 2, key: null } });
+        const { container } = renderCell({
+          rowIdx: 1,
+          colIdx: 2,
+          selection: { rowIdx: 1, colIdx: 2, key: null },
+        });
         const td = container.querySelector('td');
         expect(td.classList.contains('selected')).toBe(true);
       });
 
       it('does not have selected class when selection does not match cell position', () => {
-        const { container } = renderCell({ rowIdx: 1, colIdx: 2, selection: { rowIdx: 0, colIdx: 0, key: null } });
+        const { container } = renderCell({
+          rowIdx: 1,
+          colIdx: 2,
+          selection: { rowIdx: 0, colIdx: 0, key: null },
+        });
         const td = container.querySelector('td');
         expect(td.classList.contains('selected')).toBe(false);
       });
@@ -75,13 +83,19 @@ describe('SelectableTable Components', function describeBlock() {
 
       it('has selected class when cell is in the last row and position matches', () => {
         // rowIdx=2 is the last row (testDataSource has 3 rows, indices 0–2)
-        const { container } = renderCell({ rowIdx: 2, selection: { rowIdx: 2, colIdx: 0, key: null } });
+        const { container } = renderCell({
+          rowIdx: 2,
+          selection: { rowIdx: 2, colIdx: 0, key: null },
+        });
         const td = container.querySelector('td');
         expect(td.classList.contains('selected')).toBe(true);
       });
 
       it('does not have selected class when cell is in last row but position does not match', () => {
-        const { container } = renderCell({ rowIdx: 2, selection: { rowIdx: 0, colIdx: 0, key: null } });
+        const { container } = renderCell({
+          rowIdx: 2,
+          selection: { rowIdx: 0, colIdx: 0, key: null },
+        });
         const td = container.querySelector('td');
         expect(td.classList.contains('selected')).toBe(false);
       });
@@ -122,13 +136,19 @@ describe('SelectableTable Components', function describeBlock() {
 
     describe('selection state', () => {
       it('has selected class when selection rowIdx matches row position', () => {
-        const { container } = renderRow({ rowIdx: 1, selection: { rowIdx: 1, colIdx: 0, key: null } });
+        const { container } = renderRow({
+          rowIdx: 1,
+          selection: { rowIdx: 1, colIdx: 0, key: null },
+        });
         const tr = container.querySelector('tr');
         expect(tr.classList.contains('selected')).toBe(true);
       });
 
       it('does not have selected class when selection rowIdx differs from row position', () => {
-        const { container } = renderRow({ rowIdx: 1, selection: { rowIdx: 2, colIdx: 0, key: null } });
+        const { container } = renderRow({
+          rowIdx: 1,
+          selection: { rowIdx: 2, colIdx: 0, key: null },
+        });
         const tr = container.querySelector('tr');
         expect(tr.classList.contains('selected')).toBe(false);
       });

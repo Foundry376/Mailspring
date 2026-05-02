@@ -29,7 +29,7 @@ export default class ThreadSharingButton extends React.Component<{ items: any[];
     // since this plugin also implements the receiving side (_onOpenThreadFromWeb).
     navigator.clipboard
       .writeText(this.props.thread.getMailboxPermalink())
-      .catch(err => console.error('Failed to copy to clipboard:', err));
+      .catch((err) => console.error('Failed to copy to clipboard:', err));
   };
 
   render() {

@@ -96,7 +96,7 @@ class TestModel extends Model {
     }),
   });
 
-(TestModel as any).configureWithJoinedDataAttribute = function() {
+(TestModel as any).configureWithJoinedDataAttribute = function () {
   (TestModel as any).attributes = {
     id: Attributes.String({
       queryable: true,

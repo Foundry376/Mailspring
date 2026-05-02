@@ -86,7 +86,7 @@ export class HeaderControls extends React.Component<{
               view: CalendarView.AGENDA,
               isDisabled: CalendarView.AGENDA === this.props.disabledViewButton,
             },
-          ].map(buttonOptions => (
+          ].map((buttonOptions) => (
             <button
               key={buttonOptions.view}
               className={buttonOptions.isDisabled ? 'cur-view-btn' : 'view-btn'}

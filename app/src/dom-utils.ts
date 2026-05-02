@@ -48,7 +48,7 @@ const DOMUtils = {
       '"': '&quot;',
       "'": '&#039;',
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return text.replace(/[&<>"']/g, (m) => map[m]);
   },
 
   // Checks to see if a particular node is visible and any of its parents
@@ -101,7 +101,7 @@ const DOMUtils = {
     // nodes. Since we're looking for a common ancestor we can really speed
     // this up by keeping track of the min depth reached. We know that we
     // won't need to check past that.
-    const getParents = function(node) {
+    const getParents = function (node) {
       const parentNodes = [node];
       let depth = 0;
       while ((node = node.parentNode)) {

@@ -18,7 +18,7 @@ function UneditableNode(props) {
     <div {...attributes} className={`uneditable custom-block ${isFocused && 'focused'}`}>
       <a
         className="uneditable-remove"
-        onClick={e => {
+        onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
           editor.removeNodeByKey(node.key);

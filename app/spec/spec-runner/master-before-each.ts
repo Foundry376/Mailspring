@@ -127,13 +127,11 @@ class MasterBeforeEach {
 
   _resetClipboard() {
     let clipboardContent = 'initial clipboard content';
-    spyOn(navigator.clipboard, 'writeText').andCallFake(text => {
+    spyOn(navigator.clipboard, 'writeText').andCallFake((text) => {
       clipboardContent = text;
       return Promise.resolve();
     });
-    spyOn(navigator.clipboard, 'readText').andCallFake(() =>
-      Promise.resolve(clipboardContent)
-    );
+    spyOn(navigator.clipboard, 'readText').andCallFake(() => Promise.resolve(clipboardContent));
   }
 }
 export default new MasterBeforeEach();

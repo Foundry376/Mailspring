@@ -23,8 +23,8 @@ export const ContactDetailRead = ({
         <h3>{data.name.displayName}</h3>
       </div>
       <div className="contact-group-memberships">
-        {contact.contactGroups.map(gid => {
-          const group = groups.find(g => g.id === gid);
+        {contact.contactGroups.map((gid) => {
+          const group = groups.find((g) => g.id === gid);
           const label = group ? group.name : gid;
           return (
             <div

@@ -44,12 +44,12 @@ class SearchStore extends MailspringStore {
     this.trigger();
   };
 
-  _onQueryChanged = query => {
+  _onQueryChanged = (query) => {
     this._searchQuery = query;
     this.trigger();
   };
 
-  _onQuerySubmitted = query => {
+  _onQuerySubmitted = (query) => {
     this._searchQuery = query;
     this.trigger();
 

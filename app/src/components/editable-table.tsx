@@ -93,7 +93,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
 
   static defaultProps = {
     inputProps: {},
-    InputRenderer: props => <input {...pickHTMLProps(props)} defaultValue={props.defaultValue} />,
+    InputRenderer: (props) => <input {...pickHTMLProps(props)} defaultValue={props.defaultValue} />,
   };
 
   componentDidMount() {
@@ -112,7 +112,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
     }
   }
 
-  onInputBlur = event => {
+  onInputBlur = (event) => {
     const {
       target: { value },
     } = event;
@@ -123,7 +123,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
     }
   };
 
-  onInputKeyDown = event => {
+  onInputKeyDown = (event) => {
     const { key } = event;
     const { onAddRow } = this.props;
 

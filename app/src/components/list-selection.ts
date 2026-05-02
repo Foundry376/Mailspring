@@ -39,7 +39,7 @@ export class ListSelection {
   ids(): string[] {
     // ListTabular asks for ids /a lot/. Cache this value and clear it on trigger.
     if (this._caches.ids == null) {
-      this._caches.ids = this._items.map(i => i.id);
+      this._caches.ids = this._items.map((i) => i.id);
     }
     return this._caches.ids;
   }
@@ -75,7 +75,7 @@ export class ListSelection {
       throw new Error('toggle must be called with a Model');
     }
 
-    const without = this._items.filter(t => t.id !== item.id);
+    const without = this._items.filter((t) => t.id !== item.id);
     if (without.length < this._items.length) {
       this._items = without;
     } else {
@@ -92,7 +92,7 @@ export class ListSelection {
       throw new Error('add must be called with a Model');
     }
 
-    const updated = this._items.filter(t => t.id !== item.id);
+    const updated = this._items.filter((t) => t.id !== item.id);
     updated.push(item);
 
     if (updated.length !== this._items.length) {
@@ -117,8 +117,8 @@ export class ListSelection {
       }
     }
 
-    const itemIds = items.map(i => i.id);
-    const nextItems = this._items.filter(t => !itemIds.includes(t.id));
+    const itemIds = items.map((i) => i.id);
+    const nextItems = this._items.filter((t) => !itemIds.includes(t.id));
     if (nextItems.length < this._items.length) {
       this._items = nextItems;
       this.trigger();
@@ -127,7 +127,7 @@ export class ListSelection {
 
   removeItemsNotMatching(matchers: Matcher[]) {
     const count = this._items.length;
-    this._items = this._items.filter(t => t.matches(matchers));
+    this._items = this._items.filter((t) => t.matches(matchers));
     if (this._items.length !== count) {
       this.trigger();
     }
@@ -159,9 +159,9 @@ export class ListSelection {
       const indexes = new Array(count)
         .fill(0)
         .map((val, idx) => (startIdx > endIdx ? startIdx - idx : startIdx + idx));
-      indexes.forEach(idx => {
+      indexes.forEach((idx) => {
         const idxItem = this._view.get(idx);
-        this._items = this._items.filter(t => t.id !== idxItem.id);
+        this._items = this._items.filter((t) => t.id !== idxItem.id);
         this._items.push(idxItem);
       });
     }
@@ -200,7 +200,7 @@ export class ListSelection {
         // Important: As you walk over this item, remove it and re-push it on the selected
         // array even if it's already there. That way, the items in _items are always
         // in the order you walked over them, and you can walk back to deselect them.
-        this._items = this._items.filter(t => t.id !== next.id);
+        this._items = this._items.filter((t) => t.id !== next.id);
         this._items.push(next);
       }
     }

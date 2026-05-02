@@ -21,9 +21,9 @@ export default class TimeReporter extends jasmine.Reporter {
     window.timedSuites = {};
 
     window.logLongestSpec = () => this.logLongestSpecs(1);
-    window.logLongestSpecs = number => this.logLongestSpecs(number);
+    window.logLongestSpecs = (number) => this.logLongestSpecs(number);
     window.logLongestSuite = () => this.logLongestSuites(1);
-    window.logLongestSuites = number => this.logLongestSuites(number);
+    window.logLongestSuites = (number) => this.logLongestSuites(number);
   }
 
   logLongestSuites(number?, log?) {
@@ -35,11 +35,11 @@ export default class TimeReporter extends jasmine.Reporter {
     }
 
     if (log == null) {
-      log = line => console.log(line);
+      log = (line) => console.log(line);
     }
     log('Longest running suites:');
     const suites = _.map(window.timedSuites, (key, value) => [value, key] as [string, number]);
-    for (let suite of Array.from(_.sortBy(suites, suite => -suite[1]).slice(0, number))) {
+    for (let suite of Array.from(_.sortBy(suites, (suite) => -suite[1]).slice(0, number))) {
       const time = Math.round(suite[1] / 100) / 10;
       log(`  ${suite[0]} (${time}s)`);
     }
@@ -54,10 +54,12 @@ export default class TimeReporter extends jasmine.Reporter {
     }
 
     if (log == null) {
-      log = line => console.log(line);
+      log = (line) => console.log(line);
     }
     log('Longest running specs:');
-    for (let spec of Array.from(_.sortBy(window.timedSpecs, spec => -spec.time).slice(0, number))) {
+    for (let spec of Array.from(
+      _.sortBy(window.timedSpecs, (spec) => -spec.time).slice(0, number)
+    )) {
       const time = Math.round(spec.time / 100) / 10;
       log(`${spec.description} (${time}s)`);
     }
@@ -72,7 +74,7 @@ export default class TimeReporter extends jasmine.Reporter {
       suite = suite.parentSuite;
     }
 
-    const reducer = function(memo, description, index) {
+    const reducer = function (memo, description, index) {
       if (index === 0) {
         return `${description}`;
       } else {

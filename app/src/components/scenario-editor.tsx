@@ -69,8 +69,8 @@ export default class ScenarioEditor extends React.Component<
     this.props.onChange(instances);
   }
 
-  _onRemoveRule = idx => {
-    this._performChange(instances => {
+  _onRemoveRule = (idx) => {
+    this._performChange((instances) => {
       if (instances.length > 1) {
         instances.splice(idx, 1);
       }
@@ -78,13 +78,13 @@ export default class ScenarioEditor extends React.Component<
   };
 
   _onInsertRule = () => {
-    this._performChange(instances => {
+    this._performChange((instances) => {
       instances.push(this.props.templates[0].createDefaultInstance());
     });
   };
 
   _onChangeRowValue = (newInstance, idx) => {
-    this._performChange(instances => {
+    this._performChange((instances) => {
       instances[idx] = newInstance;
     });
   };
@@ -100,7 +100,7 @@ export default class ScenarioEditor extends React.Component<
             templates={this.props.templates}
             onRemove={() => this._onRemoveRule(idx)}
             onInsert={() => this._onInsertRule()}
-            onChange={updatedInstance => this._onChangeRowValue(updatedInstance, idx)}
+            onChange={(updatedInstance) => this._onChangeRowValue(updatedInstance, idx)}
           />
         ))}
       </div>

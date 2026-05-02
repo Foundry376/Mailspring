@@ -50,20 +50,17 @@ export const serializeBirthday = ({
 };
 
 export const removeRandomSemicolons = (value: string) => {
-  return value
-    .replace(/;/g, ' ')
-    .replace(/  +/g, ' ')
-    .trim();
+  return value.replace(/;/g, ' ').replace(/  +/g, ' ').trim();
 };
 
 export const formatAddress = (addr: ContactBase['addresses'][0]) => {
   return [
-    [addr.streetAddress].filter(a => a.length).join(' '),
+    [addr.streetAddress].filter((a) => a.length).join(' '),
     [addr.extendedAddress].join(' '),
-    [addr.city, addr.region, addr.postalCode].filter(a => a.length).join(' '),
+    [addr.city, addr.region, addr.postalCode].filter((a) => a.length).join(' '),
     [addr.country].join(' '),
   ]
-    .filter(l => l.length)
+    .filter((l) => l.length)
     .join('\n')
     .replace(/\\n/g, '\n')
     .replace(/\\,/g, ',');
@@ -91,13 +88,13 @@ export const parseAddress = (item: { _data: string; label?: string; type?: strin
 };
 
 export const parseType = (value: string) => {
-  return asArray(value).filter(v => v !== 'internet' && v !== 'pref')[0];
+  return asArray(value).filter((v) => v !== 'internet' && v !== 'pref')[0];
 };
 
 export const parseValueAndTypeCollection = (items: any[]) => {
   return (
     items.length > 0 &&
-    items.map(item => ({
+    items.map((item) => ({
       value: item._data,
       type: parseType(item.type),
     }))

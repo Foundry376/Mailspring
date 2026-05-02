@@ -72,7 +72,7 @@ class ParticipantProfileDataSource {
 
   setCache(email: string, value: unknown) {
     localStorage.setItem(`${CACHE_KEY_PREFIX}${email}`, JSON.stringify(value));
-    const updatedIndex = this._cacheIndex.filter(e => e !== email);
+    const updatedIndex = this._cacheIndex.filter((e) => e !== email);
     updatedIndex.push(email);
 
     if (updatedIndex.length > CACHE_SIZE) {

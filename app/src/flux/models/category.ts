@@ -7,7 +7,7 @@ import { localized } from '../../intl';
 // We look for a few standard categories and display them in the Mailboxes
 // portion of the left sidebar. Note that these may not all be present on
 // a particular account.
-const ToObject = arr => {
+const ToObject = (arr) => {
   return arr.reduce((o, v) => {
     o[v] = v;
     return o;
@@ -129,7 +129,7 @@ export class Category extends Model {
       return null;
     }
     const role = cats[0].role;
-    if (!cats.every(cat => cat.role === role)) {
+    if (!cats.every((cat) => cat.role === role)) {
       return null;
     }
     return role;

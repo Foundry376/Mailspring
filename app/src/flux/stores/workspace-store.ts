@@ -142,7 +142,7 @@ class WorkspaceStore extends MailspringStore {
   Inbound Events
   */
 
-  _onSelectRootSheet = sheet => {
+  _onSelectRootSheet = (sheet) => {
     if (!sheet) {
       throw new Error(`Actions.selectRootSheet - ${sheet} is not a valid sheet.`);
     }
@@ -195,7 +195,7 @@ class WorkspaceStore extends MailspringStore {
     }
   };
 
-  _onSelectLayoutMode = mode => {
+  _onSelectLayoutMode = (mode) => {
     if (mode === this._preferredLayoutMode) {
       return;
     }
@@ -353,7 +353,7 @@ class WorkspaceStore extends MailspringStore {
   //
   // * `sheet` The {Sheet} type to push onto the stack.
   //
-  pushSheet = sheet => {
+  pushSheet = (sheet) => {
     this._sheetStack.push(sheet);
     this.trigger();
   };

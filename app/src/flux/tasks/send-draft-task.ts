@@ -20,7 +20,7 @@ function applyExtensionTransforms(draft: Message, recipient: Contact) {
 
   const before = draft.body;
   const extensions = ComposerExtensionRegistry.extensions().filter(
-    ext => !!ext.applyTransformsForSending
+    (ext) => !!ext.applyTransformsForSending
   );
 
   if (draft.plaintext) {
@@ -56,7 +56,7 @@ export class SendDraftTask extends Task {
     task.silent = silent;
 
     const separateBodies = ComposerExtensionRegistry.extensions().some(
-      ext => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
+      (ext) => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
     );
 
     if (task.draft.plaintext) {
@@ -69,7 +69,7 @@ export class SendDraftTask extends Task {
       task.perRecipientBodies = {
         self: task.draft.body,
       };
-      task.draft.participants({ includeFrom: false, includeBcc: true }).forEach(recipient => {
+      task.draft.participants({ includeFrom: false, includeBcc: true }).forEach((recipient) => {
         task.perRecipientBodies[recipient.email] = applyExtensionTransforms(task.draft, recipient);
       });
     } else {

@@ -8,7 +8,7 @@ describe('AutoloadImagesExtension', function autoloadImagesExtension() {
     const scenarios = [];
     const fixtures = path.resolve(path.join(__dirname, 'fixtures'));
 
-    fs.readdirSync(fixtures).forEach(filename => {
+    fs.readdirSync(fixtures).forEach((filename) => {
       if (filename.endsWith('-in.html')) {
         const name = filename.replace('-in.html', '');
 
@@ -20,7 +20,7 @@ describe('AutoloadImagesExtension', function autoloadImagesExtension() {
       }
     });
 
-    scenarios.forEach(scenario => {
+    scenarios.forEach((scenario) => {
       it(`should process ${scenario.name}`, () => {
         spyOn(AutoloadImagesStore, 'shouldBlockImagesIn').andReturn(true);
 

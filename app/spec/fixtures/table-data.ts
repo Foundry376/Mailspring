@@ -2,12 +2,20 @@ import { Table } from 'mailspring-component-kit';
 
 export const testData = {
   columns: ['col1', 'col2', 'col3'],
-  rows: [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+  rows: [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+  ],
 };
 
 export const testDataUneven = {
   columns: ['col1', 'col2', 'col3'],
-  rows: [[1, 2], [4, 5, 6], [7, 8]],
+  rows: [
+    [1, 2],
+    [4, 5, 6],
+    [7, 8],
+  ],
 };
 
 export const testDataEmpty = {

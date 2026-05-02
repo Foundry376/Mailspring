@@ -33,7 +33,7 @@ export class TranslateComposerButton extends React.Component<{
     return nextProps.session !== this.props.session;
   }
 
-  _onTranslate = async langName => {
+  _onTranslate = async (langName) => {
     Actions.closePopover();
 
     try {
@@ -68,8 +68,8 @@ export class TranslateComposerButton extends React.Component<{
       <Menu
         className="translate-language-picker"
         items={Object.keys(TranslatePopupOptions)}
-        itemKey={item => item}
-        itemContent={item => item}
+        itemKey={(item) => item}
+        itemContent={(item) => item}
         headerComponents={headerComponents}
         defaultSelectedIndex={-1}
         onSelect={this._onTranslate}

@@ -38,7 +38,7 @@ class _MessageStore extends MailspringStore {
     const viewing = FocusedPerspectiveStore.current().categoriesSharedRole();
     const viewingHiddenCategory = FolderNamesHiddenByDefault.includes(viewing);
 
-    return this._items.filter(item => {
+    return this._items.filter((item) => {
       const inHidden = FolderNamesHiddenByDefault.includes(item.folder.role);
       return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
     });
@@ -67,7 +67,7 @@ class _MessageStore extends MailspringStore {
   }
 
   itemIds() {
-    return this._items.map(i => i.id);
+    return this._items.map((i) => i.id);
   }
 
   itemsLoading() {
@@ -79,7 +79,7 @@ class _MessageStore extends MailspringStore {
   */
 
   // Public: Returns the extensions registered with the MessageStore.
-  extensions(): typeof MessageViewExtension[] {
+  extensions(): (typeof MessageViewExtension)[] {
     return ExtensionRegistry.MessageView.extensions();
   }
 
@@ -118,15 +118,15 @@ class _MessageStore extends MailspringStore {
     if (!this._thread) return;
 
     if (change.objectClass === Message.name) {
-      const inDisplayedThread = change.objects.some(obj => obj.threadId === this._thread.id);
+      const inDisplayedThread = change.objects.some((obj) => obj.threadId === this._thread.id);
       if (!inDisplayedThread) return;
 
       if (change.objects.length === 1 && change.objects[0].draft === true) {
         const item = change.objects[0];
-        const itemIndex = this._items.findIndex(msg => msg.id === item.id);
+        const itemIndex = this._items.findIndex((msg) => msg.id === item.id);
 
         if (change.type === 'persist' && itemIndex === -1) {
-          this._items = [...this._items, item].filter(m => !m.isHidden());
+          this._items = [...this._items, item].filter((m) => !m.isHidden());
           this._items = this._sortItemsForDisplay(this._items);
           this._expandItemsToDefault();
           this.trigger();
@@ -134,7 +134,7 @@ class _MessageStore extends MailspringStore {
         }
 
         if (change.type === 'unpersist' && itemIndex !== -1) {
-          this._items = [...this._items].filter(m => !m.isHidden());
+          this._items = [...this._items].filter((m) => !m.isHidden());
           this._items.splice(itemIndex, 1);
           this._expandItemsToDefault();
           this.trigger();
@@ -146,7 +146,7 @@ class _MessageStore extends MailspringStore {
     }
 
     if (change.objectClass === Thread.name) {
-      const updatedThread = change.objects.find(t => t.id === this._thread.id);
+      const updatedThread = change.objects.find((t) => t.id === this._thread.id);
       if (updatedThread) {
         this._thread = updatedThread;
         this._fetchFromCache();
@@ -235,10 +235,10 @@ class _MessageStore extends MailspringStore {
 
   _onToggleAllMessagesExpanded() {
     if (this.hasCollapsedItems()) {
-      this._items.forEach(i => this._expandItem(i));
+      this._items.forEach((i) => this._expandItem(i));
     } else {
       // Do not collapse the latest message, i.e. the last one
-      this._items.slice(0, -1).forEach(i => this._collapseItem(i));
+      this._items.slice(0, -1).forEach((i) => this._collapseItem(i));
     }
     this.trigger();
   }
@@ -251,7 +251,7 @@ class _MessageStore extends MailspringStore {
   }
 
   _onToggleMessageIdExpanded(id) {
-    const item = this._items.find(i => i.id === id);
+    const item = this._items.find((i) => i.id === id);
     if (!item) return;
 
     if (this._itemsExpanded[id]) {
@@ -282,12 +282,12 @@ class _MessageStore extends MailspringStore {
     query.where({ threadId: loadedThreadId });
     query.include(Message.attributes.body);
 
-    return query.then(items => {
+    return query.then((items) => {
       // Check to make sure that our thread is still the thread we were
       // loading items for. Necessary because this takes a while.
       if (loadedThreadId !== this.threadId()) return;
 
-      this._items = items.filter(m => !m.isHidden());
+      this._items = items.filter((m) => !m.isHidden());
       this._items = this._sortItemsForDisplay(this._items);
 
       this._expandItemsToDefault();
@@ -311,7 +311,7 @@ class _MessageStore extends MailspringStore {
   }
 
   _fetchMissingBodies(items) {
-    const missing = items.filter(i => i.body === null);
+    const missing = items.filter((i) => i.body === null);
     if (missing.length > 0) {
       return Actions.fetchBodies(missing);
     }
@@ -320,7 +320,7 @@ class _MessageStore extends MailspringStore {
   _fetchExpandedAttachments(items) {
     for (const item of items) {
       if (!this._itemsExpanded[item.id]) continue;
-      item.files.map(file => Actions.fetchFile(file));
+      item.files.map((file) => Actions.fetchFile(file));
     }
   }
 

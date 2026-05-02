@@ -24,7 +24,7 @@ export interface ICSParticipant {
 }
 
 function fixJCalDatesWithoutTimes(jCal) {
-  jCal[1].forEach(property => {
+  jCal[1].forEach((property) => {
     if (
       property[0] === 'dtstart' ||
       property[0] === 'dtend' ||
@@ -95,7 +95,7 @@ export function emailFromParticipantURI(uri: string): string | null {
 }
 
 export function cleanParticipants(icsEvent: ICALEvent): ICSParticipant[] {
-  return icsEvent.attendees.map(a => ({
+  return icsEvent.attendees.map((a) => ({
     component: a,
     status: (a.getParameter('partstat') || 'NEEDS-ACTION') as ICSParticipantStatus,
     role: (a.getParameter('role') || 'REQ-PARTICIPANT') as ICSParticipant['role'],
@@ -103,7 +103,7 @@ export function cleanParticipants(icsEvent: ICALEvent): ICSParticipant[] {
       a
         .getValues()
         .map(emailFromParticipantURI)
-        .find(v => !!v) || null,
+        .find((v) => !!v) || null,
   }));
 }
 
@@ -111,7 +111,7 @@ export function selfParticipant(
   icsEvent: ICALEvent,
   accountId: string
 ): ICSParticipant | undefined {
-  const me = cleanParticipants(icsEvent).find(a => {
+  const me = cleanParticipants(icsEvent).find((a) => {
     const acct = AccountStore.accountForEmail(a.email);
     return acct && acct.id === accountId;
   });

@@ -143,10 +143,10 @@ export default class Application extends EventEmitter {
     });
     this.systemTrayManager = new SystemTrayManager(process.platform, this);
     this.systemAccentWatcher = new SystemAccentWatcher();
-    this.systemAccentWatcher.on('change', color => {
+    this.systemAccentWatcher.on('change', (color) => {
       this.windowManager.sendToAllWindows('system-accent-color-changed', {}, color);
     });
-    this.systemAccentWatcher.on('dark-mode-change', darkMode => {
+    this.systemAccentWatcher.on('dark-mode-change', (darkMode) => {
       this.windowManager.sendToAllWindows('system-dark-mode-changed', {}, darkMode);
     });
     if (process.platform === 'win32') {
@@ -272,7 +272,7 @@ export default class Application extends EventEmitter {
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
   deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
-    const callbackWithRetry = err => {
+    const callbackWithRetry = (err) => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
         setTimeout(() => {
@@ -334,7 +334,7 @@ export default class Application extends EventEmitter {
     this._deleteDatabase(done);
   };
 
-  _deleteDatabase = callback => {
+  _deleteDatabase = (callback) => {
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db'), callback);
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-shm'));
@@ -476,7 +476,7 @@ export default class Application extends EventEmitter {
     this.on('application:toggle-dev', () => {
       let args = process.argv.slice(1);
       if (args.includes('--dev')) {
-        args = args.filter(a => a !== '--dev');
+        args = args.filter((a) => a !== '--dev');
       } else {
         args.push('--dev');
       }
@@ -611,7 +611,7 @@ export default class Application extends EventEmitter {
 
     // Synchronous because ThemeManager needs the value during its constructor to
     // pick the initial ui-light / ui-dark variant without a flash.
-    ipcMain.on('get-system-dark-mode-sync', event => {
+    ipcMain.on('get-system-dark-mode-sync', (event) => {
       event.returnValue = this.systemAccentWatcher ? this.systemAccentWatcher.getDarkMode() : false;
     });
 
@@ -920,7 +920,7 @@ export default class Application extends EventEmitter {
 
   // Translates the command into OS X action and sends it to application's first
   // responder.
-  sendCommandToFirstResponder = command => {
+  sendCommandToFirstResponder = (command) => {
     if (process.platform !== 'darwin') {
       return false;
     }

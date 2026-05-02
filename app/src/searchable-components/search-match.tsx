@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const SearchMatch = props => {
+const SearchMatch = (props) => {
   return (
     <span
       data-region-id={props.regionId}

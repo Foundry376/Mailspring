@@ -10,12 +10,10 @@ export function getTimespanOptions() {
     { id: '14', name: localized('Last 2 Weeks') },
     { id: '28', name: localized('Last 4 Weeks') },
     { id: '-', name: '-', divider: true },
-    ...[0, 1, 2].map(n => {
+    ...[0, 1, 2].map((n) => {
       return {
         id: `month-${n}`,
-        name: moment()
-          .subtract(n, 'month')
-          .format(localized('MMMM YYYY')),
+        name: moment().subtract(n, 'month').format(localized('MMMM YYYY')),
       };
     }),
   ];
@@ -26,10 +24,7 @@ export function getTimespanStartEnd(id) {
     const n = id.split('-').pop() / 1;
     const current = n === 0;
     return [
-      moment()
-        .startOf('month')
-        .subtract(n, 'month')
-        .add(1, 'minute'),
+      moment().startOf('month').subtract(n, 'month').add(1, 'minute'),
       current
         ? moment()
         : moment()

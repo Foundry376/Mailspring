@@ -126,10 +126,10 @@ class DumbArrayDataSource<T extends Model> extends ListDataSource {
     return this._items[idx];
   }
   getById(id: string) {
-    return this._items.find(i => i.id === id);
+    return this._items.find((i) => i.id === id);
   }
   indexOfId(id: string) {
-    return this._items.findIndex(i => i.id === id);
+    return this._items.findIndex((i) => i.id === id);
   }
   count() {
     return this._items.length;

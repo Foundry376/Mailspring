@@ -24,7 +24,7 @@ export class SnoozeMailLabel extends Component<{ thread: Thread }> {
     }
 
     const { thread } = this.props;
-    if (!thread.categories.find(c => c.role === 'snoozed')) {
+    if (!thread.categories.find((c) => c.role === 'snoozed')) {
       return false;
     }
 

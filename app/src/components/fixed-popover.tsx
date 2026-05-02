@@ -205,7 +205,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     offsetPadding = OFFSET_PADDING,
   }) => {
     const { overflows, overflowValues } = this.computeOverflows({ currentRect, windowDimensions });
-    const overflowCount = Object.keys(_.pick(overflows, val => val === true)).length;
+    const overflowCount = Object.keys(_.pick(overflows, (val) => val === true)).length;
 
     if (overflowCount > 0) {
       if (fallback) {
@@ -370,7 +370,4 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   }
 }
 
-export default compose(
-  FixedPopover,
-  AutoFocuses
-);
+export default compose(FixedPopover, AutoFocuses);

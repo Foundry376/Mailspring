@@ -36,16 +36,16 @@ class _AccountStore extends MailspringStore {
     this.listenTo(Actions.reorderAccount, this._onReorderAccount);
     this.listenTo(Actions.updateContainerFolderDefault, this._onUpdateContainerFolderDefault);
 
-    AppEnv.config.onDidChange(configVersionKey, async change => {
+    AppEnv.config.onDidChange(configVersionKey, async (change) => {
       // If we already have this version of the accounts config, it means we
       // are the ones who saved the change, and we don't need to reload.
       if (this._version / 1 === change.newValue / 1) {
         return;
       }
 
-      const oldAccountIds = this._accounts.map(a => a.id);
+      const oldAccountIds = this._accounts.map((a) => a.id);
       this._loadAccounts();
-      const accountIds = this._accounts.map(a => a.id);
+      const accountIds = this._accounts.map((a) => a.id);
       const newAccountIds = _.difference(accountIds, oldAccountIds);
 
       if (AppEnv.isMainWindow() && newAccountIds.length > 0) {
@@ -69,7 +69,7 @@ class _AccountStore extends MailspringStore {
     const emails = typeof emailOrEmails === 'string' ? [emailOrEmails] : emailOrEmails;
 
     for (const email of emails) {
-      if (myEmails.find(myEmail => Utils.emailIsEquivalent(myEmail, email))) {
+      if (myEmails.find((myEmail) => Utils.emailIsEquivalent(myEmail, email))) {
         return true;
       }
     }
@@ -101,7 +101,7 @@ class _AccountStore extends MailspringStore {
     const seenEmails = {};
     let message = null;
 
-    this._accounts = this._accounts.filter(account => {
+    this._accounts = this._accounts.filter((account) => {
       if (!account.emailAddress) {
         message =
           'Assertion failure: One of the accounts in config.json did not have an emailAddress, and was removed. You should re-link the account.';
@@ -143,8 +143,8 @@ class _AccountStore extends MailspringStore {
 
   _save = () => {
     this._version += 1;
-    const configAccounts = this._accounts.map(a => a.toJSON());
-    configAccounts.forEach(a => {
+    const configAccounts = this._accounts.map((a) => a.toJSON());
+    configAccounts.forEach((a) => {
       delete a.sync_error;
 
       // this should not be necessary since this info is stripped when
@@ -164,7 +164,7 @@ class _AccountStore extends MailspringStore {
    * This will update the account with its updated sync state
    */
   _onUpdateAccount = (id: string, updated: Partial<Account>) => {
-    const idx = this._accounts.findIndex(a => a.id === id);
+    const idx = this._accounts.findIndex((a) => a.id === id);
     let account = this._accounts[idx];
     if (!account) return;
     account = Object.assign(account, updated);
@@ -180,12 +180,12 @@ class _AccountStore extends MailspringStore {
    * delete the Account on the local sync side.
    */
   _onRemoveAccount = (id: string) => {
-    const account = this._accounts.find(a => a.id === id);
+    const account = this._accounts.find((a) => a.id === id);
     if (!account) return;
 
     this._caches = {};
 
-    const remainingAccounts = this._accounts.filter(a => a !== account);
+    const remainingAccounts = this._accounts.filter((a) => a !== account);
     // This action is called before saving because we need to unfocus the
     // perspective of the account that is being removed before removing the
     // account, otherwise when we trigger with the new set of accounts, the
@@ -213,7 +213,7 @@ class _AccountStore extends MailspringStore {
   };
 
   _onReorderAccount = (id: string, newIdx: number) => {
-    const existingIdx = this._accounts.findIndex(a => a.id === id);
+    const existingIdx = this._accounts.findIndex((a) => a.id === id);
     if (existingIdx === -1) return;
     const account = this._accounts[existingIdx];
     this._caches = {};
@@ -239,7 +239,7 @@ class _AccountStore extends MailspringStore {
     this._loadAccounts();
 
     const existingIdx = this._accounts.findIndex(
-      a => a.id === cleanAccount.id || a.emailAddress === cleanAccount.emailAddress
+      (a) => a.id === cleanAccount.id || a.emailAddress === cleanAccount.emailAddress
     );
 
     if (existingIdx === -1) {
@@ -271,7 +271,7 @@ class _AccountStore extends MailspringStore {
   };
 
   accountIds = () => {
-    return this._accounts.map(a => a.id);
+    return this._accounts.map((a) => a.id);
   };
 
   accountsForItems = (items: Thread[]) => {
@@ -307,12 +307,12 @@ class _AccountStore extends MailspringStore {
 
   // Public: Returns the {Account} for the given account id, or null.
   accountForId(id: string) {
-    return this._cachedGetter(`accountForId:${id}`, () => this._accounts.find(a => a.id === id));
+    return this._cachedGetter(`accountForId:${id}`, () => this._accounts.find((a) => a.id === id));
   }
 
   emailAddresses() {
-    let addresses = (this.accounts() ? this.accounts() : []).map(a => a.emailAddress);
-    addresses = addresses.concat((this.aliases() ? this.aliases() : []).map(a => a.email));
+    let addresses = (this.accounts() ? this.accounts() : []).map((a) => a.emailAddress);
+    addresses = addresses.concat((this.aliases() ? this.aliases() : []).map((a) => a.email));
     return [...new Set(addresses)];
   }
 
@@ -332,10 +332,10 @@ class _AccountStore extends MailspringStore {
   }
 
   aliasesFor(accountsOrIds: Array<Account | string>): IAliasSet {
-    const ids = accountsOrIds.map(accOrId => {
+    const ids = accountsOrIds.map((accOrId) => {
       return accOrId instanceof Account ? accOrId.id : accOrId;
     });
-    return this.aliases().filter(contact => ids.includes(contact.accountId));
+    return this.aliases().filter((contact) => ids.includes(contact.accountId));
   }
 
   // Public: Returns the currently active {Account}.

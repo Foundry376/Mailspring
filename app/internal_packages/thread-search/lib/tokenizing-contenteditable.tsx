@@ -65,7 +65,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
     return -1;
   };
 
-  valueToHTML = text => {
+  valueToHTML = (text) => {
     const tokens = [];
     let m = null;
     let lastIndex = 0;
@@ -95,7 +95,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
     return tokens.join('');
   };
 
-  onPaste = e => {
+  onPaste = (e) => {
     e.preventDefault();
     e.stopPropagation();
     const text = e.clipboardData
@@ -116,7 +116,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
     }
   };
 
-  onChange = e => {
+  onChange = (e) => {
     const value = e.target.innerText.replace(/\s/g, ' ');
     this._tokensEl.innerHTML = this.valueToHTML(value);
     this.props.onChange(value);
@@ -129,7 +129,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
           contentEditable
           spellCheck={true}
           className="layer layer-text"
-          ref={el => (this._textEl = el)}
+          ref={(el) => (this._textEl = el)}
           dangerouslySetInnerHTML={{ __html: this.props.value.replace(/\s/g, '&nbsp;') }}
           onKeyDown={this.props.onKeyDown}
           onPaste={this.onPaste}
@@ -145,7 +145,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
         <div
           className="layer layer-tokens"
           dangerouslySetInnerHTML={{ __html: this.valueToHTML(this.props.value) }}
-          ref={el => (this._tokensEl = el)}
+          ref={(el) => (this._tokensEl = el)}
         />
       </div>
     );

@@ -86,7 +86,7 @@ export default class MessageItemContainer extends React.Component<
   _renderMessage({ pending }: { pending: boolean }) {
     return (
       <MessageItem
-        ref={cm => {
+        ref={(cm) => {
           this._messageComponent = cm;
         }}
         pending={pending}
@@ -107,7 +107,7 @@ export default class MessageItemContainer extends React.Component<
     }
     return (
       <Composer
-        ref={cm => {
+        ref={(cm) => {
           this._messageComponent = cm;
         }}
         headerMessageId={this.props.message.headerMessageId}

@@ -130,10 +130,12 @@ class KeyManager {
     const clickedButton = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'error',
       buttons: [localized('Mailspring Help'), localized('Quit')],
-      message: err.message || localized(
-        `Mailspring could not store your password securely. For more information, visit %@`,
-        'https://community.getmailspring.com/t/password-management-error/199'
-      ),
+      message:
+        err.message ||
+        localized(
+          `Mailspring could not store your password securely. For more information, visit %@`,
+          'https://community.getmailspring.com/t/password-management-error/199'
+        ),
     });
 
     if (clickedButton == 0) {

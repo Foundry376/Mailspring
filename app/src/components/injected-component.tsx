@@ -144,8 +144,8 @@ export default class InjectedComponent extends React.Component<
     }
   };
 
-  _setRequiredMethods = methods => {
-    methods.forEach(method => {
+  _setRequiredMethods = (methods) => {
+    methods.forEach((method) => {
       Object.defineProperty(this, method, {
         configurable: true,
         enumerable: true,
@@ -157,7 +157,7 @@ export default class InjectedComponent extends React.Component<
   _verifyRequiredMethods = () => {
     if (this.state.component) {
       const component = this.state.component;
-      this.props.requiredMethods.forEach(method => {
+      this.props.requiredMethods.forEach((method) => {
         if (component.prototype[method] === undefined) {
           throw new Error(
             `${

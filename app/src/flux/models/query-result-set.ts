@@ -56,7 +56,7 @@ export class QueryResultSet<T extends Model> {
   }
 
   isComplete() {
-    return this._ids.every(id => !!this._modelsHash[id]);
+    return this._ids.every((id) => !!this._modelsHash[id]);
   }
 
   range() {
@@ -84,7 +84,7 @@ export class QueryResultSet<T extends Model> {
   }
 
   models() {
-    return this._ids.map(id => this._modelsHash[id]);
+    return this._ids.map((id) => this._modelsHash[id]);
   }
 
   modelCacheCount() {

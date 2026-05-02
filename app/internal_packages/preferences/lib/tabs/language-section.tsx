@@ -10,7 +10,7 @@ const LanguageSection = ({ config }) => {
   const relaunchRequiredToUnset = !configValue && current.key !== automatic.key;
   const relaunchRequired = relaunchRequiredToSet || relaunchRequiredToUnset;
 
-  const onChangeValue = event => {
+  const onChangeValue = (event) => {
     config.set('core.intl.language', event.target.value);
     event.target.blur();
   };

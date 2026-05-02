@@ -80,15 +80,15 @@ class OnboardingStore extends MailspringStore {
     }, 100);
   };
 
-  _onChooseAccountProvider = provider => {
+  _onChooseAccountProvider = (provider) => {
     const nextPage =
       provider === 'gmail'
         ? 'account-settings-gmail'
         : provider === 'office365'
-        ? 'account-settings-o365'
-        : provider === 'outlook'
-        ? 'account-settings-outlook'
-        : 'account-settings';
+          ? 'account-settings-o365'
+          : provider === 'outlook'
+            ? 'account-settings-outlook'
+            : 'account-settings';
 
     // Don't carry over any type-specific account information
     this._onSetAccount(
@@ -103,7 +103,7 @@ class OnboardingStore extends MailspringStore {
     this._onMoveToPage(nextPage);
   };
 
-  _onSetAccount = acct => {
+  _onSetAccount = (acct) => {
     if (!(acct instanceof Account)) {
       throw new Error('OnboardingActions.setAccount expects an Account instance.');
     }
@@ -116,7 +116,7 @@ class OnboardingStore extends MailspringStore {
     this.trigger();
   };
 
-  _onMoveToPage = page => {
+  _onMoveToPage = (page) => {
     this._pageStack.push(page);
     this.trigger();
   };
@@ -144,7 +144,7 @@ class OnboardingStore extends MailspringStore {
     }, 1000);
   };
 
-  _onFinishAndAddAccount = async account => {
+  _onFinishAndAddAccount = async (account) => {
     const isFirstAccount = AccountStore.accounts().length === 0;
 
     try {

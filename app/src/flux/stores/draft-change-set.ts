@@ -30,7 +30,10 @@ export class DraftChangeSet extends EventEmitter {
   _lastCommitTime = 0;
   _commitPromise: Promise<any> = null;
 
-  constructor(callbacks: { onAddChanges: (changes: Record<string, unknown>) => void; onCommit: () => Promise<void> }) {
+  constructor(callbacks: {
+    onAddChanges: (changes: Record<string, unknown>) => void;
+    onCommit: () => Promise<void>;
+  }) {
     super();
     this.callbacks = callbacks;
   }
@@ -69,7 +72,7 @@ export class DraftChangeSet extends EventEmitter {
 
   dirtyFields() {
     return Object.keys(this._lastModifiedTimes).filter(
-      key => this._lastModifiedTimes[key] > this._lastCommitTime
+      (key) => this._lastModifiedTimes[key] > this._lastCommitTime
     );
   }
 

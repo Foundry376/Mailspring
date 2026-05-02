@@ -13,7 +13,7 @@ export default class SignatureTemplatePicker extends React.Component<{
 
   _el: HTMLElement;
 
-  _onClickItem = event => {
+  _onClickItem = (event) => {
     const value = event.currentTarget.dataset.value;
     this.props.onChange({ target: { id: 'templateName', value } });
   };
@@ -53,7 +53,7 @@ export default class SignatureTemplatePicker extends React.Component<{
       };
     }
     return (
-      <div ref={el => (this._el = el)} className="signature-template-picker">
+      <div ref={(el) => (this._el = el)} className="signature-template-picker">
         {Templates.map((t, idx) => (
           <div
             key={idx}

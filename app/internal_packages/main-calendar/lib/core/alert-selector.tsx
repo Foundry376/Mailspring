@@ -38,9 +38,9 @@ export const AlertSelector: React.FC<AlertSelectorProps> = ({ value, onChange })
       <select
         className="alert-select"
         value={value}
-        onChange={e => onChange(e.target.value as AlertTiming)}
+        onChange={(e) => onChange(e.target.value as AlertTiming)}
       >
-        {ALERT_OPTIONS.map(opt => (
+        {ALERT_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>

@@ -7,14 +7,14 @@ export const QuotedTextControl: React.FunctionComponent<{
   quotedTextHidden: boolean;
   onUnhide: () => void;
   onRemove: () => void;
-}> = props => {
+}> = (props) => {
   if (!props.quotedTextPresent || !props.quotedTextHidden) {
     return null;
   }
   return (
     <a
       className="quoted-text-control"
-      onMouseDown={e => {
+      onMouseDown={(e) => {
         if (e.target instanceof HTMLElement && e.target.closest('.remove-quoted-text')) return;
         e.preventDefault();
         e.stopPropagation();
@@ -24,7 +24,7 @@ export const QuotedTextControl: React.FunctionComponent<{
       <span className="dots">&bull;&bull;&bull;</span>
       <span
         className="remove-quoted-text"
-        onMouseUp={e => {
+        onMouseUp={(e) => {
           e.preventDefault();
           e.stopPropagation();
           props.onRemove();

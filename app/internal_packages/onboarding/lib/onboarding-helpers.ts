@@ -22,7 +22,7 @@ import {
   GMAIL_SCOPES,
   CODE_CHALLENGE,
 } from './onboarding-constants';
-import { parseStringPromise } from "xml2js";
+import { parseStringPromise } from 'xml2js';
 
 interface TokenResponse {
   access_token: string;
@@ -45,11 +45,7 @@ function idForAccount(emailAddress: string, connectionSettings) {
   };
 
   const idString = `${emailAddress}${JSON.stringify(settingsThatCouldChangeMailContents)}`;
-  return crypto
-    .createHash('sha256')
-    .update(idString, 'utf8')
-    .digest('hex')
-    .substr(0, 8);
+  return crypto.createHash('sha256').update(idString, 'utf8').digest('hex').substr(0, 8);
 }
 
 async function fetchPostWithFormBody<T>(url: string, body: { [key: string]: string }) {
@@ -78,21 +74,18 @@ function mxRecordsForDomain(domain) {
       if (err) {
         resolve([]);
       } else {
-        resolve(addresses.map(a => a.exchange.toLowerCase()));
+        resolve(addresses.map((a) => a.exchange.toLowerCase()));
       }
     });
   });
 }
 
 export async function expandAccountWithCommonSettings(account: Account) {
-  const domain = account.emailAddress
-    .split('@')
-    .pop()
-    .toLowerCase();
+  const domain = account.emailAddress.split('@').pop().toLowerCase();
   const mxRecords = await mxRecordsForDomain(domain);
   const populated = account.clone();
 
-  const usernameWithFormat = format => {
+  const usernameWithFormat = (format) => {
     if (format === 'email') return account.emailAddress;
     if (format === 'email-without-domain') return account.emailAddress.split('@').shift();
     return undefined;
@@ -101,7 +94,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
   // find matching template using new Mailcore lookup tables. These match against the
   // email's domain and the mx records for the domain, which means it will identify that
   // "foundry376.com" uses Google Apps, for example.
-  const template = Object.values(MailcoreProviderSettings).find(p => {
+  const template = Object.values(MailcoreProviderSettings).find((p) => {
     for (const test of p['domain-match'] || []) {
       if (new RegExp(`^${test}$`).test(domain)) {
         return true;
@@ -109,7 +102,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
     }
     for (const test of p['mx-match'] || []) {
       const reg = new RegExp(`^${test}$`);
-      if (mxRecords.some(record => reg.test(record))) {
+      if (mxRecords.some((record) => reg.test(record))) {
         return true;
       }
     }
@@ -141,7 +134,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
     return populated;
   }
 
-  if (await TryThunderbirdAutoconfig(populated, account)){
+  if (await TryThunderbirdAutoconfig(populated, account)) {
     return populated;
   }
 
@@ -158,11 +151,11 @@ export async function expandAccountWithCommonSettings(account: Account) {
   } else {
     console.log(`Using Fallback Template`);
     mstemplate = {
-      "imap_host": `imap.${domain}`,
-      "imap_user_format": "email",
-      "smtp_host": `smtp.${domain}`,
-      "smtp_user_format": "email",
-      "container_folder": "",
+      imap_host: `imap.${domain}`,
+      imap_user_format: 'email',
+      smtp_host: `smtp.${domain}`,
+      smtp_user_format: 'email',
+      container_folder: '',
     };
   }
 
@@ -280,7 +273,7 @@ export async function buildMicrosoftAccountFromAuthResponse(
     `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
     {
       code: code,
-      scope: O365_SCOPES.filter(f => !f.startsWith('https://outlook.office.com')).join(' '),
+      scope: O365_SCOPES.filter((f) => !f.startsWith('https://outlook.office.com')).join(' '),
       client_id: O365_CLIENT_ID,
       code_verifier: CODE_VERIFIER,
       grant_type: `authorization_code`,
@@ -383,16 +376,19 @@ export async function finalizeAndValidateAccount(account: Account) {
 }
 
 async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
-  function extractServerDetails(server: { hostname: string;port: string;username: string;socketType: string; }, account: Account) {
+  function extractServerDetails(
+    server: { hostname: string; port: string; username: string; socketType: string },
+    account: Account
+  ) {
     const details = {
       host: server.hostname,
       port: server.port,
-      username: "",
-      security: "",
+      username: '',
+      security: '',
     };
 
     switch (server.username) {
-      case "%EMAILLOCALPART%":
+      case '%EMAILLOCALPART%':
         details.username = account.emailAddress.split('@')[0];
         break;
       default:
@@ -401,27 +397,24 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
     }
 
     switch (server.socketType) {
-      case "plain":
-        details.security = "None";
+      case 'plain':
+        details.security = 'None';
         break;
-      case "STARTTLS":
-        details.security = "STARTTLS";
+      case 'STARTTLS':
+        details.security = 'STARTTLS';
         break;
-      case "SSL":
-        details.security = "SSL / TLS";
+      case 'SSL':
+        details.security = 'SSL / TLS';
         break;
       default:
-        details.security = "STARTTLS";
+        details.security = 'STARTTLS';
         break;
     }
 
     return details;
   }
 
-  const domain = account.emailAddress
-    .split('@')
-    .pop()
-    .toLowerCase();
+  const domain = account.emailAddress.split('@').pop().toLowerCase();
 
   let url = `https://autoconfig.${domain}/mail/config-v1.1.xml`;
   let autoConfig = await getThunderbirdAutoconfig(url);
@@ -433,13 +426,13 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
   if (autoConfig !== false && autoConfig.emailProvider) {
     let provider = autoConfig.emailProvider;
     if (Array.isArray(provider)) {
-      provider = provider.find(p => p.$.id === domain);
+      provider = provider.find((p) => p.$.id === domain);
       if (provider === undefined) {
         return false;
       }
     }
 
-    if(provider.incomingServer === undefined || provider.outgoingServer === undefined)
+    if (provider.incomingServer === undefined || provider.outgoingServer === undefined)
       return false;
 
     let imapDetails = null;
@@ -448,24 +441,24 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
     // Handle IMAP
     if (Array.isArray(provider.incomingServer)) {
       for (const incomingServer of provider.incomingServer) {
-        if (incomingServer.$.type === "imap") {
+        if (incomingServer.$.type === 'imap') {
           imapDetails = extractServerDetails(incomingServer, account);
           break;
         }
       }
-    } else if (provider.incomingServer.$.type === "imap") {
+    } else if (provider.incomingServer.$.type === 'imap') {
       imapDetails = extractServerDetails(provider.incomingServer, account);
     }
 
     // Handle SMTP
     if (Array.isArray(provider.outgoingServer)) {
       for (const outgoingServer of provider.outgoingServer) {
-        if (outgoingServer.$.type === "smtp") {
+        if (outgoingServer.$.type === 'smtp') {
           smtpDetails = extractServerDetails(outgoingServer, account);
           break;
         }
       }
-    } else if (provider.outgoingServer.$.type === "smtp") {
+    } else if (provider.outgoingServer.$.type === 'smtp') {
       smtpDetails = extractServerDetails(provider.outgoingServer, account);
     }
 
@@ -482,7 +475,7 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
       smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
       smtp_security: smtpDetails?.security,
       smtp_allow_insecure_ssl: false,
-      container_folder: "",
+      container_folder: '',
     };
 
     populated.settings = Object.assign(settings, populated.settings);

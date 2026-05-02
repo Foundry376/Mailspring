@@ -386,7 +386,7 @@ export default class Config {
   // `.dispose()` to unsubscribe.
   observe(keyPath: string, callback: (value: unknown) => void) {
     callback(this.get(keyPath));
-    return this.onDidChangeKeyPath(keyPath, event => callback(event.newValue));
+    return this.onDidChangeKeyPath(keyPath, (event) => callback(event.newValue));
   }
 
   // Essential: Add a listener for changes to a given key path. If `keyPath` is
@@ -599,7 +599,7 @@ export default class Config {
     Section: Private methods managing global settings
     */
 
-  updateSettings = newSettings => {
+  updateSettings = (newSettings) => {
     if (!newSettings || _.isEmpty(newSettings)) {
       throw new Error(`Tried to update settings with false-y value: ${newSettings}`);
     }
@@ -674,9 +674,9 @@ export default class Config {
 
   deepClone(object) {
     if (_.isArray(object)) {
-      return object.map(value => this.deepClone(value));
+      return object.map((value) => this.deepClone(value));
     } else if (isPlainObject(object)) {
-      return _.mapObject(object, value => this.deepClone(value));
+      return _.mapObject(object, (value) => this.deepClone(value));
     } else {
       return object;
     }

@@ -18,7 +18,7 @@ export default class LinkTrackingMessageExtension extends MessageViewExtension {
     }
 
     const trackedLinksWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, {
-      acceptNode: node => {
+      acceptNode: (node) => {
         if (node.nodeName === 'A' && links[node.getAttribute('href')]) {
           return NodeFilter.FILTER_ACCEPT;
         }

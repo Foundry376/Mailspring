@@ -1,9 +1,4 @@
-import {
-  Actions,
-  ICSEventHelpers,
-  CalendarUtils,
-  SyncbackEventTask,
-} from 'mailspring-exports';
+import { Actions, ICSEventHelpers, CalendarUtils, SyncbackEventTask } from 'mailspring-exports';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 
 // Import the functions under test directly from the source file.
@@ -112,14 +107,14 @@ const T_NEW_END = Date.UTC(2026, 2, 2, 9, 0, 0) / 1000;
 // modifySimpleEvent
 // ---------------------------------------------------------------------------
 
-describe('modifySimpleEvent', function() {
-  beforeEach(function() {
+describe('modifySimpleEvent', function () {
+  beforeEach(function () {
     spyOn(ICSEventHelpers, 'updateEventTimes').andCallFake((ics, _opts) => ics);
     spyOn(Actions, 'queueTask');
-    spyOn(SyncbackEventTask, 'forUpdating').andCallFake(opts => ({ _opts: opts }));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));
   });
 
-  it('calls ICSEventHelpers.updateEventTimes with the correct options', function() {
+  it('calls ICSEventHelpers.updateEventTimes with the correct options', function () {
     const event = makeEvent(SIMPLE_ICS);
     modifySimpleEvent({
       event,
@@ -136,7 +131,7 @@ describe('modifySimpleEvent', function() {
     });
   });
 
-  it('updates event.recurrenceStart and event.recurrenceEnd', function() {
+  it('updates event.recurrenceStart and event.recurrenceEnd', function () {
     const event = makeEvent(SIMPLE_ICS);
     modifySimpleEvent({
       event,
@@ -150,7 +145,7 @@ describe('modifySimpleEvent', function() {
     expect(event.recurrenceEnd).toBe(T_NEW_END);
   });
 
-  it('queues a SyncbackEventTask via Actions.queueTask', function() {
+  it('queues a SyncbackEventTask via Actions.queueTask', function () {
     const event = makeEvent(SIMPLE_ICS);
     modifySimpleEvent({
       event,
@@ -164,7 +159,7 @@ describe('modifySimpleEvent', function() {
     expect(SyncbackEventTask.forUpdating).toHaveBeenCalled();
   });
 
-  it('passes undoData to SyncbackEventTask.forUpdating (captured before modification)', function() {
+  it('passes undoData to SyncbackEventTask.forUpdating (captured before modification)', function () {
     const originalIcs = SIMPLE_ICS;
     const originalStart = Date.UTC(2026, 2, 1, 14, 0, 0) / 1000;
     const originalEnd = Date.UTC(2026, 2, 1, 15, 0, 0) / 1000;
@@ -188,7 +183,7 @@ describe('modifySimpleEvent', function() {
     expect(callArgs.undoData.recurrenceEnd).toBe(originalEnd);
   });
 
-  it('uses the provided description in the task', function() {
+  it('uses the provided description in the task', function () {
     const event = makeEvent(SIMPLE_ICS);
     modifySimpleEvent({
       event,
@@ -208,8 +203,8 @@ describe('modifySimpleEvent', function() {
 // createOccurrenceException
 // ---------------------------------------------------------------------------
 
-describe('createOccurrenceException', function() {
-  beforeEach(function() {
+describe('createOccurrenceException', function () {
+  beforeEach(function () {
     spyOn(ICSEventHelpers, 'createRecurrenceException').andCallFake(
       (_masterIcs, _origStart, _newStart, _newEnd, _isAllDay) => ({
         masterIcs: FAKE_MASTER_ICS_WITH_EXCEPTION,
@@ -217,10 +212,10 @@ describe('createOccurrenceException', function() {
       })
     );
     spyOn(Actions, 'queueTask');
-    spyOn(SyncbackEventTask, 'forUpdating').andCallFake(opts => ({ _opts: opts }));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));
   });
 
-  it('calls ICSEventHelpers.createRecurrenceException with the correct arguments', function() {
+  it('calls ICSEventHelpers.createRecurrenceException with the correct arguments', function () {
     const event = makeEvent(RECURRING_ICS);
     createOccurrenceException({
       event,
@@ -239,7 +234,7 @@ describe('createOccurrenceException', function() {
     );
   });
 
-  it('updates masterEvent.ics with the returned masterIcs', function() {
+  it('updates masterEvent.ics with the returned masterIcs', function () {
     const event = makeEvent(RECURRING_ICS);
     createOccurrenceException({
       event,
@@ -252,7 +247,7 @@ describe('createOccurrenceException', function() {
     expect(event.ics).toBe(FAKE_MASTER_ICS_WITH_EXCEPTION);
   });
 
-  it('updates masterEvent.recurrenceStart and recurrenceEnd', function() {
+  it('updates masterEvent.recurrenceStart and recurrenceEnd', function () {
     const event = makeEvent(RECURRING_ICS);
     createOccurrenceException({
       event,
@@ -266,7 +261,7 @@ describe('createOccurrenceException', function() {
     expect(event.recurrenceEnd).toBe(T_NEW_END);
   });
 
-  it('queues exactly one task (NOT forCreating, only forUpdating)', function() {
+  it('queues exactly one task (NOT forCreating, only forUpdating)', function () {
     spyOn(SyncbackEventTask, 'forCreating');
     const event = makeEvent(RECURRING_ICS);
     createOccurrenceException({
@@ -282,7 +277,7 @@ describe('createOccurrenceException', function() {
     expect((SyncbackEventTask.forUpdating as jasmine.Spy).calls.length).toBe(1);
   });
 
-  it('passes the master event (not a new event) to forUpdating', function() {
+  it('passes the master event (not a new event) to forUpdating', function () {
     const event = makeEvent(RECURRING_ICS);
     createOccurrenceException({
       event,
@@ -296,7 +291,7 @@ describe('createOccurrenceException', function() {
     expect(callArgs.event).toBe(event);
   });
 
-  it('captures undo data from the master event BEFORE modifying it', function() {
+  it('captures undo data from the master event BEFORE modifying it', function () {
     const originalIcs = RECURRING_ICS;
     const originalStart = Date.UTC(2026, 2, 1, 6, 0, 0) / 1000;
     const originalEnd = Date.UTC(2026, 2, 1, 7, 0, 0) / 1000;
@@ -321,7 +316,7 @@ describe('createOccurrenceException', function() {
     expect(callArgs.undoData.recurrenceEnd).toBe(originalEnd);
   });
 
-  it('uses the provided description in the task', function() {
+  it('uses the provided description in the task', function () {
     const event = makeEvent(RECURRING_ICS);
     createOccurrenceException({
       event,
@@ -341,7 +336,7 @@ describe('createOccurrenceException', function() {
 // modifyAllOccurrences
 // ---------------------------------------------------------------------------
 
-describe('modifyAllOccurrences', function() {
+describe('modifyAllOccurrences', function () {
   // A fake ICS produced by updateRecurringEventTimes (DTSTART shifted by +2h)
   const SHIFTED_ICS = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -374,9 +369,9 @@ END:VCALENDAR`;
     };
   }
 
-  beforeEach(function() {
+  beforeEach(function () {
     spyOn(ICSEventHelpers, 'updateRecurringEventTimes').andCallFake(() => SHIFTED_ICS);
-    spyOn(ICSEventHelpers, 'shiftInlineExceptions').andCallFake(ics => ics);
+    spyOn(ICSEventHelpers, 'shiftInlineExceptions').andCallFake((ics) => ics);
     spyOn(CalendarUtils, 'parseICSString').andCallFake(() =>
       makeFakeParsedEvent(
         Date.UTC(2026, 2, 1, 8, 0, 0), // new DTSTART = 08:00Z
@@ -384,10 +379,10 @@ END:VCALENDAR`;
       )
     );
     spyOn(Actions, 'queueTask');
-    spyOn(SyncbackEventTask, 'forUpdating').andCallFake(opts => ({ _opts: opts }));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));
   });
 
-  it('calls ICSEventHelpers.updateRecurringEventTimes with correct arguments', function() {
+  it('calls ICSEventHelpers.updateRecurringEventTimes with correct arguments', function () {
     const event = makeEvent(RECURRING_ICS);
     modifyAllOccurrences({
       event,
@@ -406,7 +401,7 @@ END:VCALENDAR`;
     );
   });
 
-  it('calls shiftInlineExceptions with the correct deltaMs when delta is non-zero', function() {
+  it('calls shiftInlineExceptions with the correct deltaMs when delta is non-zero', function () {
     const event = makeEvent(RECURRING_ICS);
     // delta = (T_NEW_START - T_OCC2_START) * 1000 = (8:00 - 6:00) = 2h = 7200000ms
     const expectedDeltaMs = (T_NEW_START - T_OCC2_START) * 1000;
@@ -425,7 +420,7 @@ END:VCALENDAR`;
     );
   });
 
-  it('does NOT call shiftInlineExceptions when deltaMs is 0', function() {
+  it('does NOT call shiftInlineExceptions when deltaMs is 0', function () {
     const event = makeEvent(RECURRING_ICS);
     modifyAllOccurrences({
       event,
@@ -438,7 +433,7 @@ END:VCALENDAR`;
     expect(ICSEventHelpers.shiftInlineExceptions).not.toHaveBeenCalled();
   });
 
-  it('queues a SyncbackEventTask.forUpdating (not forCreating)', function() {
+  it('queues a SyncbackEventTask.forUpdating (not forCreating)', function () {
     spyOn(SyncbackEventTask, 'forCreating');
     const event = makeEvent(RECURRING_ICS);
     modifyAllOccurrences({
@@ -454,7 +449,7 @@ END:VCALENDAR`;
     expect((SyncbackEventTask.forUpdating as jasmine.Spy).calls.length).toBe(1);
   });
 
-  it('captures undo data from the event BEFORE modifying it', function() {
+  it('captures undo data from the event BEFORE modifying it', function () {
     const originalIcs = RECURRING_ICS;
     const originalStart = Date.UTC(2026, 2, 1, 6, 0, 0) / 1000;
     const originalEnd = Date.UTC(2026, 2, 1, 7, 0, 0) / 1000;
@@ -478,7 +473,7 @@ END:VCALENDAR`;
     expect(callArgs.undoData.recurrenceEnd).toBe(originalEnd);
   });
 
-  it('updates event.recurrenceStart / recurrenceEnd from the re-parsed ICS', function() {
+  it('updates event.recurrenceStart / recurrenceEnd from the re-parsed ICS', function () {
     const event = makeEvent(RECURRING_ICS);
     modifyAllOccurrences({
       event,
@@ -493,7 +488,7 @@ END:VCALENDAR`;
     expect(event.recurrenceEnd).toBe(Date.UTC(2026, 2, 1, 9, 0, 0) / 1000);
   });
 
-  it('calls CalendarUtils.parseICSString to extract new master times', function() {
+  it('calls CalendarUtils.parseICSString to extract new master times', function () {
     const event = makeEvent(RECURRING_ICS);
     modifyAllOccurrences({
       event,
@@ -506,7 +501,7 @@ END:VCALENDAR`;
     expect(CalendarUtils.parseICSString).toHaveBeenCalled();
   });
 
-  it('uses the provided description in the queued task', function() {
+  it('uses the provided description in the queued task', function () {
     const event = makeEvent(RECURRING_ICS);
     modifyAllOccurrences({
       event,
@@ -526,13 +521,13 @@ END:VCALENDAR`;
 // modifyEventWithRecurringSupport
 // ---------------------------------------------------------------------------
 
-describe('modifyEventWithRecurringSupport', function() {
+describe('modifyEventWithRecurringSupport', function () {
   // Spy on the underlying Electron dialog that showRecurringEventDialog calls.
   // This is the same pattern used by draft-store-spec.ts. We control what button
   // index the dialog returns (0=this-occurrence, 1=all-occurrences, 2=cancel).
   let dialogSpy: jasmine.Spy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     dialogSpy = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(2); // default: cancel
 
     // Stub ICS helpers so we can verify which branch is taken without real ICS parsing
@@ -540,13 +535,13 @@ describe('modifyEventWithRecurringSupport', function() {
       masterIcs: FAKE_MASTER_ICS_WITH_EXCEPTION,
       recurrenceId: '20260302T060000Z',
     }));
-    spyOn(ICSEventHelpers, 'updateEventTimes').andCallFake(ics => ics);
+    spyOn(ICSEventHelpers, 'updateEventTimes').andCallFake((ics) => ics);
     spyOn(ICSEventHelpers, 'updateRecurringEventTimes').andCallFake(
       () => FAKE_MASTER_ICS_WITH_EXCEPTION
     );
-    spyOn(ICSEventHelpers, 'shiftInlineExceptions').andCallFake(ics => ics);
+    spyOn(ICSEventHelpers, 'shiftInlineExceptions').andCallFake((ics) => ics);
     spyOn(Actions, 'queueTask');
-    spyOn(SyncbackEventTask, 'forUpdating').andCallFake(opts => ({ _opts: opts }));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));
 
     // Fake CalendarUtils.parseICSString for the modifyAllOccurrences code path
     spyOn(CalendarUtils, 'parseICSString').andCallFake(() => ({
@@ -560,11 +555,11 @@ describe('modifyEventWithRecurringSupport', function() {
     // interfere with it (both use the same module cache entry, so the spy would
     // intercept the parseICSString call inside isRecurringEvent and return an object
     // without `root`, causing `root.name` to throw).
-    spyOn(ICSEventHelpers, 'isRecurringEvent').andCallFake(ics => ics.includes('RRULE'));
+    spyOn(ICSEventHelpers, 'isRecurringEvent').andCallFake((ics) => ics.includes('RRULE'));
   });
 
-  describe('when isException is true (occurrence is already an inline exception)', function() {
-    it('calls createOccurrenceException directly without showing the dialog', async function() {
+  describe('when isException is true (occurrence is already an inline exception)', function () {
+    it('calls createOccurrenceException directly without showing the dialog', async function () {
       const event = makeEvent(RECURRING_ICS);
       const result = await modifyEventWithRecurringSupport(
         {
@@ -589,7 +584,7 @@ describe('modifyEventWithRecurringSupport', function() {
       expect(dialogSpy.calls.length).toBe(0);
     });
 
-    it('queues exactly one SyncbackEventTask.forUpdating call', async function() {
+    it('queues exactly one SyncbackEventTask.forUpdating call', async function () {
       const event = makeEvent(RECURRING_ICS);
       await modifyEventWithRecurringSupport(
         {
@@ -609,8 +604,8 @@ describe('modifyEventWithRecurringSupport', function() {
     });
   });
 
-  describe('when isException is false/undefined and event is recurring (shows dialog)', function() {
-    it('returns cancelled when the user dismisses the dialog (button index 2)', async function() {
+  describe('when isException is false/undefined and event is recurring (shows dialog)', function () {
+    it('returns cancelled when the user dismisses the dialog (button index 2)', async function () {
       dialogSpy.andReturn(2); // 2 = Cancel
 
       const event = makeEvent(RECURRING_ICS);
@@ -634,7 +629,7 @@ describe('modifyEventWithRecurringSupport', function() {
       expect(dialogSpy.calls.length).toBe(1);
     });
 
-    it('calls createOccurrenceException when dialog returns "this-occurrence" (button index 0)', async function() {
+    it('calls createOccurrenceException when dialog returns "this-occurrence" (button index 0)', async function () {
       dialogSpy.andReturn(0); // 0 = This occurrence only
 
       const event = makeEvent(RECURRING_ICS);
@@ -655,7 +650,7 @@ describe('modifyEventWithRecurringSupport', function() {
       expect(ICSEventHelpers.updateRecurringEventTimes).not.toHaveBeenCalled();
     });
 
-    it('calls modifyAllOccurrences when dialog returns "all-occurrences" (button index 1)', async function() {
+    it('calls modifyAllOccurrences when dialog returns "all-occurrences" (button index 1)', async function () {
       dialogSpy.andReturn(1); // 1 = All occurrences
 
       const event = makeEvent(RECURRING_ICS);
@@ -677,8 +672,8 @@ describe('modifyEventWithRecurringSupport', function() {
     });
   });
 
-  describe('when event is non-recurring (simple update, no dialog)', function() {
-    it('calls modifySimpleEvent and returns success without showing dialog', async function() {
+  describe('when event is non-recurring (simple update, no dialog)', function () {
+    it('calls modifySimpleEvent and returns success without showing dialog', async function () {
       const event = makeEvent(SIMPLE_ICS);
       const result = await modifyEventWithRecurringSupport(
         {
@@ -701,14 +696,14 @@ describe('modifyEventWithRecurringSupport', function() {
     });
   });
 
-  describe('when isException is true but event is a standalone DB exception (event.isRecurrenceException() === true)', function() {
+  describe('when isException is true but event is a standalone DB exception (event.isRecurrenceException() === true)', function () {
     // A standalone exception is a separate DB record (legacy or server-sent). When the
     // drag handler resolves its ID, parseEventIdFromOccurrence returns the exception
     // record's ID — so options.event IS the exception, not the master. Calling
     // createOccurrenceException here would try to embed inline into the exception ICS
     // rather than the master. The correct path is modifySimpleEvent (direct ICS update).
 
-    it('routes to modifySimpleEvent, not createOccurrenceException, even when isException is true', async function() {
+    it('routes to modifySimpleEvent, not createOccurrenceException, even when isException is true', async function () {
       // recurrenceId set → event.isRecurrenceException() returns true (standalone DB record)
       const event = makeEvent(STANDALONE_EXCEPTION_ICS, {
         recurrenceId: '20260302T060000Z',
@@ -732,7 +727,7 @@ describe('modifyEventWithRecurringSupport', function() {
       expect(dialogSpy.calls.length).toBe(0);
     });
 
-    it('does not show the dialog for standalone exceptions', async function() {
+    it('does not show the dialog for standalone exceptions', async function () {
       const event = makeEvent(STANDALONE_EXCEPTION_ICS, {
         recurrenceId: '20260302T060000Z',
       } as any);

@@ -31,8 +31,8 @@ const almost_me = new Contact({
   email: 'tester+12345@mailspring.com',
 });
 
-describe('Message', function() {
-  describe('detecting empty bodies', function() {
+describe('Message', function () {
+  describe('detecting empty bodies', function () {
     const cases = [
       {
         itMsg: "has plain br's and a signature",
@@ -82,14 +82,14 @@ describe('Message', function() {
       },
     ];
     cases.forEach(({ itMsg, body, isEmpty }) =>
-      it(itMsg, function() {
+      it(itMsg, function () {
         const msg = new Message({ body, pristine: false, draft: true });
         expect(msg.hasEmptyBody()).toBe(isEmpty);
       })
     );
   });
 
-  it('correctly aggregates participants', function() {
+  it('correctly aggregates participants', function () {
     const m1 = new Message({
       to: [],
       cc: null,
@@ -132,7 +132,7 @@ describe('Message', function() {
     expect(m5.participants().length).toBe(2);
   });
 
-  describe('participant replies', function() {
+  describe('participant replies', function () {
     const cases = [
       // Basic cases
       {
@@ -465,23 +465,23 @@ describe('Message', function() {
     ];
 
     const itString = (prefix, msg) =>
-      `${prefix} from: ${msg.from.map(c => c.email).join(', ')} | to: ${msg.to
-        .map(c => c.email)
-        .join(', ')} | cc: ${msg.cc.map(c => c.email).join(', ')} | bcc: ${msg.bcc
-        .map(c => c.email)
-        .join(', ')} | replyTo: ${msg.replyTo.map(c => c.email).join(', ')}`;
+      `${prefix} from: ${msg.from.map((c) => c.email).join(', ')} | to: ${msg.to
+        .map((c) => c.email)
+        .join(', ')} | cc: ${msg.cc.map((c) => c.email).join(', ')} | bcc: ${msg.bcc
+        .map((c) => c.email)
+        .join(', ')} | replyTo: ${msg.replyTo.map((c) => c.email).join(', ')}`;
 
-    it('thinks me and almost_me are equivalent', function() {
+    it('thinks me and almost_me are equivalent', function () {
       expect(Utils.emailIsEquivalent(me.email, almost_me.email)).toBe(true);
       expect(Utils.emailIsEquivalent(ben.email, me.email)).toBe(false);
     });
 
-    cases.forEach(function({ msg, expected }) {
+    cases.forEach(function ({ msg, expected }) {
       it(itString('Reply All:', msg), () =>
         expect(msg.participantsForReplyAll()).toEqual(expected)
       );
 
-      it(itString('Reply:', msg), function() {
+      it(itString('Reply:', msg), function () {
         const { to, cc } = msg.participantsForReply();
         expect(to).toEqual(expected.to);
         expect(cc).toEqual([]);

@@ -96,7 +96,7 @@ describe('EditableTable Components', function describeBlock() {
 
     it('renders the InputRenderer with the correct props passed through', () => {
       // testDataSource.cellAt({rowIdx:2, colIdx:2}) === 9
-      const InputRenderer = props => (
+      const InputRenderer = (props) => (
         <input
           data-testid="custom-input"
           data-rowidx={props.rowIdx}

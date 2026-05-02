@@ -33,13 +33,13 @@ export default class AccountContactField extends React.Component<AccountContactF
 
   _dropdownComponent: ButtonDropdown;
 
-  _onChooseContact = async contact => {
+  _onChooseContact = async (contact) => {
     const { draft, session, onChange } = this.props;
     const { autoaddress } = AccountStore.accountForEmail(contact.email);
 
-    const existing = [...draft.to, ...draft.cc, ...draft.bcc].map(c => c.email);
+    const existing = [...draft.to, ...draft.cc, ...draft.bcc].map((c) => c.email);
     let autocontacts = await ContactStore.parseContactsInString(autoaddress.value);
-    autocontacts = autocontacts.filter(c => !existing.includes(c.email));
+    autocontacts = autocontacts.filter((c) => !existing.includes(c.email));
 
     this._dropdownComponent.toggleDropdown();
 
@@ -74,7 +74,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     if (multipleAccounts || hasAliases) {
       return (
         <ButtonDropdown
-          ref={cm => {
+          ref={(cm) => {
             this._dropdownComponent = cm;
           }}
           bordered={false}
@@ -101,7 +101,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     );
   };
 
-  _renderMenuItem = contact => {
+  _renderMenuItem = (contact) => {
     const account = AccountStore.accountForId(contact.accountId);
     let style: CSSProperties = {};
     if (account && account.color) {
@@ -129,7 +129,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     return (
       <Menu
         items={items}
-        itemKey={contact => contact.id}
+        itemKey={(contact) => contact.id}
         itemContent={this._renderMenuItem}
         onSelect={this._onChooseContact}
       />

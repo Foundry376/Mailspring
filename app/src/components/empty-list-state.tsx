@@ -68,7 +68,7 @@ class EmptyInboxState extends React.Component<
   };
 
   componentDidMount() {
-    this._containerSizeObserver = new window.ResizeObserver(entries =>
+    this._containerSizeObserver = new window.ResizeObserver((entries) =>
       window.requestAnimationFrame(() =>
         this.setState({
           width: entries[0].contentRect.width,
@@ -111,7 +111,7 @@ class EmptyInboxState extends React.Component<
     const style = factor ? { transform: `scale(${factor})` } : {};
 
     return (
-      <div className="inbox-zero-animation" ref={el => (this._containerEl = el)}>
+      <div className="inbox-zero-animation" ref={(el) => (this._containerEl = el)}>
         <div className="animation-wrapper" style={style}>
           <iframe
             title="animation"
@@ -157,7 +157,10 @@ class EmptyListState extends React.Component<
     }
   }
 
-  shouldComponentUpdate(nextProps: { visible: boolean }, nextState: { active: boolean; syncing: boolean }) {
+  shouldComponentUpdate(
+    nextProps: { visible: boolean },
+    nextState: { active: boolean; syncing: boolean }
+  ) {
     if (nextProps.visible !== this.props.visible) {
       return true;
     }

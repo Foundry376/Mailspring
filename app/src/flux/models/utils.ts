@@ -14,7 +14,7 @@ import DatabaseObjectRegistry from '../../registries/database-object-registry';
 export function waitFor(latch, options: { timeout?: number } = {}) {
   const timeout = options.timeout || 400;
   const expire = Date.now() + timeout;
-  return new Promise<void>(function(resolve, reject) {
+  return new Promise<void>(function (resolve, reject) {
     const attempt = () => {
       if (Date.now() > expire) {
         return reject(new Error(`Utils.waitFor hit timeout (${timeout}ms) without firing.`));
@@ -35,7 +35,7 @@ export function showIconForAttachments(files) {
   // TODO BG: This code has been duplicated into the mailsync core. The
   // Thread.attachmentCount property is now the number of attachments that
   // meet these two criteria so this function can be removed soon.
-  return files.find(f => !f.contentId || f.size > 12 * 1024);
+  return files.find((f) => !f.contentId || f.size > 12 * 1024);
 }
 
 export function extractTextFromHtml(html, param: { maxLength?: number } = {}) {
@@ -47,8 +47,8 @@ export function extractTextFromHtml(html, param: { maxLength?: number } = {}) {
     html = html.slice(0, maxLength);
   }
   const body = new DOMParser().parseFromString(html, 'text/html').body;
-  body.querySelectorAll('style').forEach(el => el.remove());
-  body.querySelectorAll('script').forEach(el => el.remove());
+  body.querySelectorAll('style').forEach((el) => el.remove());
+  body.querySelectorAll('script').forEach((el) => el.remove());
   return body.textContent.trim();
 }
 
@@ -116,11 +116,7 @@ export function wordSearchRegExp(str = '') {
 // Takes an optional customizer. The customizer is passed the key and the
 // new cloned value for that key. The customizer is expected to either
 // modify the value and return it or simply be the identity function.
-export function deepClone<T>(
-  object: T,
-  customizer?,
-  _circularRefs: Map<any, any> = new Map()
-): T {
+export function deepClone<T>(object: T, customizer?, _circularRefs: Map<any, any> = new Map()): T {
   let newObject;
   if (!_.isObject(object)) {
     return object;
@@ -193,7 +189,7 @@ export function shouldDisplayAsImage(
 // And the original source here: https://github.com/angular/angular.js/blob/master/src/ngSanitize/sanitize.js#L451
 export function encodeHTMLEntities(value) {
   const SURROGATE_PAIR_REGEXP = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
-  const pairFix = function(value) {
+  const pairFix = function (value) {
     const hi = value.charCodeAt(0);
     const low = value.charCodeAt(1);
     return `&#${(hi - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000};`;
@@ -201,7 +197,7 @@ export function encodeHTMLEntities(value) {
 
   // Match everything outside of normal chars and " (quote character)
   const NON_ALPHANUMERIC_REGEXP = /([^#-~| |!])/g;
-  const alphaFix = value => `&#${value.charCodeAt(0)};`;
+  const alphaFix = (value) => `&#${value.charCodeAt(0)};`;
 
   return value
     .replace(/&/g, '&amp;')
@@ -256,7 +252,7 @@ function ensureImageCacheReady() {
     }
 
     const imagesPath = path.join(ResourcePath, 'static', 'images');
-    const files = (fs.readdirSync(imagesPath, { recursive: true }) as string[]).map(f =>
+    const files = (fs.readdirSync(imagesPath, { recursive: true }) as string[]).map((f) =>
       path.join(imagesPath, f)
     );
     for (let file of files) {
@@ -337,22 +333,14 @@ export function emailsHaveSameDomain(...args: string[]) {
     return false;
   }
   const domains = args.map((email = '') => {
-    return email
-      .toLowerCase()
-      .trim()
-      .split('@')
-      .at(-1);
+    return email.toLowerCase().trim().split('@').at(-1);
   });
   const toMatch = domains[0];
-  return _.every(domains, domain => domain.length > 0 && toMatch === domain);
+  return _.every(domains, (domain) => domain.length > 0 && toMatch === domain);
 }
 
 export function emailHasCommonDomain(email = '') {
-  const domain = email
-    .toLowerCase()
-    .trim()
-    .split('@')
-    .at(-1);
+  const domain = email.toLowerCase().trim().split('@').at(-1);
   return commonDomains[domain] != null ? commonDomains[domain] : false;
 }
 
@@ -499,7 +487,8 @@ export function _isEqual(
         _.isFunction(bCtor) &&
         bCtor instanceof bCtor
       ) &&
-      ('constructor' in a && 'constructor' in b)
+      'constructor' in a &&
+      'constructor' in b
     ) {
       return false;
     }
@@ -754,7 +743,7 @@ export function hueForString(str: string | null) {
   return (
     str
       .split('')
-      .map(c => c.charCodeAt(0))
+      .map((c) => c.charCodeAt(0))
       .reduce((n, a) => n + a, 0) % 360
   );
 }
@@ -771,11 +760,7 @@ export function likelyNonHumanEmail(email) {
   }
 
   // simple catch for things like hex sequences in prefixes
-  const digitCount =
-    email
-      .split('@')
-      .shift()
-      .split(/[0-9]/g).length - 1;
+  const digitCount = email.split('@').shift().split(/[0-9]/g).length - 1;
   if (digitCount >= 6) {
     return true;
   }

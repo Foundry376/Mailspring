@@ -8,13 +8,11 @@ export const EventTimerangePicker: React.FunctionComponent<{
   end: number;
   onChange: ({ start, end }) => void;
 }> = ({ start, end, onChange }) => {
-  const onChangeStartTime = newTimestamp => {
+  const onChangeStartTime = (newTimestamp) => {
     const newStart = moment(newTimestamp);
     let newEnd = moment(end);
     if (newEnd.isSameOrBefore(newStart)) {
-      const leftInDay = moment(newStart)
-        .endOf('day')
-        .diff(newStart);
+      const leftInDay = moment(newStart).endOf('day').diff(newStart);
       const move = Math.min(leftInDay, moment.duration(1, 'hour').asMilliseconds());
       newEnd = moment(newStart).add(move, 'ms');
     }
@@ -53,11 +51,7 @@ export const EventTimerangePicker: React.FunctionComponent<{
         <TimePicker value={start * 1000} onChange={onChangeStartTime} />
         to
         <TimePicker value={end * 1000} onChange={onChangeEndTime} />
-        <span className="timezone">
-          {moment()
-            .tz(DateUtils.timeZone)
-            .format('z')}
-        </span>
+        <span className="timezone">{moment().tz(DateUtils.timeZone).format('z')}</span>
         &nbsp; on &nbsp;
         <DatePicker value={start * 1000} onChange={onChangeDay} />
       </span>

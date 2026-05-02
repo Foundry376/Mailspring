@@ -67,8 +67,8 @@ export class SendActionButton extends React.Component<
   We only use the draft prop when you click send, so update with more discretion. */
   shouldComponentUpdate(nextProps: SendActionButtonProps, nextState: SendActionButtonState) {
     return (
-      nextState.sendActions.map(a => a.configKey).join(',') !==
-      this.state.sendActions.map(a => a.configKey).join(',')
+      nextState.sendActions.map((a) => a.configKey).join(',') !==
+      this.state.sendActions.map((a) => a.configKey).join(',')
     );
   }
 
@@ -126,7 +126,7 @@ export class SendActionButton extends React.Component<
         menu={
           <Menu
             items={this.state.sendActions.slice(1)}
-            itemKey={actionConfig => actionConfig.configKey}
+            itemKey={(actionConfig) => actionConfig.configKey}
             itemContent={this._renderSendActionItem}
             onSelect={this._onSendWithAction}
           />

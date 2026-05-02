@@ -156,7 +156,7 @@ export class Thread extends ModelWithMetadata {
       .where({ threadId: this.id })
       .include(Message.attributes.body);
     if (!includeHidden) {
-      return messages.filter(message => !message.isHidden());
+      return messages.filter((message) => !message.isHidden());
     }
     return messages;
   }
@@ -180,7 +180,7 @@ export class Thread extends ModelWithMetadata {
     super.fromJSON(json);
 
     if (this.participants && this.participants instanceof Array) {
-      this.participants.forEach(item => {
+      this.participants.forEach((item) => {
         item.accountId = this.accountId;
       });
     }
@@ -192,9 +192,9 @@ export class Thread extends ModelWithMetadata {
       return [];
     }
     let out = [];
-    const isImportant = l => l.role === 'important';
-    const isStandardCategory = l => l.isStandardCategory();
-    const isUnhiddenStandardLabel = l =>
+    const isImportant = (l) => l.role === 'important';
+    const isStandardCategory = (l) => l.isStandardCategory();
+    const isUnhiddenStandardLabel = (l) =>
       !isImportant(l) && isStandardCategory(l) && !l.isHiddenCategory();
 
     const importantLabel = this.categories.find(isImportant);
@@ -207,7 +207,7 @@ export class Thread extends ModelWithMetadata {
       out = out.concat(standardLabels);
     }
 
-    const userLabels = this.categories.filter(l => !isImportant(l) && !isStandardCategory(l));
+    const userLabels = this.categories.filter((l) => !isImportant(l) && !isStandardCategory(l));
 
     if (userLabels.length > 0) {
       out = out.concat(userLabels.sort((a, b) => a.displayName.localeCompare(b.displayName)));

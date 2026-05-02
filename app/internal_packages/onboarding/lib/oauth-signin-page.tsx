@@ -32,7 +32,7 @@ interface OAuthSignInPageProps {
   buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
   onSuccess: (account: Account) => void;
   onTryAgain: () => void;
-  providerConfig: typeof AccountProviders[0];
+  providerConfig: (typeof AccountProviders)[0];
   serviceName: string;
 }
 
@@ -98,7 +98,7 @@ export default class OAuthSignInPage extends React.Component<
         response.end('Unknown Request');
       }
     });
-    this._server.once('error', err => {
+    this._server.once('error', (err) => {
       AppEnv.showErrorDialog({
         title: localized('Unable to Start Local Server'),
         message: localized(
@@ -216,7 +216,7 @@ export default class OAuthSignInPage extends React.Component<
             onClick={() =>
               navigator.clipboard
                 .writeText(this.props.providerAuthPageUrl)
-                .catch(err => console.error('Failed to copy to clipboard:', err))
+                .catch((err) => console.error('Failed to copy to clipboard:', err))
             }
             onMouseDown={() => this.setState({ pressed: true })}
             onMouseUp={() => this.setState({ pressed: false })}

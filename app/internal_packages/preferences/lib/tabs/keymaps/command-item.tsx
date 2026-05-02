@@ -148,7 +148,7 @@ export default class CommandKeybinding extends React.Component<
     }, 100);
   };
 
-  _onKey = event => {
+  _onKey = (event) => {
     if (!this.state.editing) {
       return;
     }

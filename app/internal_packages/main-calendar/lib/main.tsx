@@ -17,7 +17,7 @@ const Notice = () =>
 Notice.displayName = 'Notice';
 
 function adjustMenus() {
-  const calendarMenu: typeof AppEnv.menu.template[0] = {
+  const calendarMenu: (typeof AppEnv.menu.template)[0] = {
     id: 'Calendar',
     label: localized('Calendar'),
     submenu: [
@@ -73,8 +73,10 @@ function adjustMenus() {
     ],
   };
 
-  const template = AppEnv.menu.template.filter(item => item.id !== 'Thread' && item.id !== 'View');
-  const editIndex = template.findIndex(item => item.id === 'Edit');
+  const template = AppEnv.menu.template.filter(
+    (item) => item.id !== 'Thread' && item.id !== 'View'
+  );
+  const editIndex = template.findIndex((item) => item.id === 'Edit');
   template.splice(editIndex + 1, 0, calendarMenu);
 
   AppEnv.menu.template = template;

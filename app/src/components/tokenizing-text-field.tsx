@@ -139,7 +139,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
         value={this.state.editing !== null ? this.state.editing : this.props.item.toString()}
         onKeyDown={this._onEditKeydown}
         onBlur={this._onEditFinished}
-        onChange={event => this.setState({ editing: event.currentTarget.value })}
+        onChange={(event) => this.setState({ editing: event.currentTarget.value })}
       />
     );
   }
@@ -180,7 +180,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     );
   }
 
-  _onDragStart = event => {
+  _onDragStart = (event) => {
     if (this.props.disabled) return;
     this.props.onDragStart(event, this.props.item);
     this.setState({ dragging: true });
@@ -191,7 +191,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     this.setState({ dragging: false });
   };
 
-  _onClick = event => {
+  _onClick = (event) => {
     if (this.props.disabled) return;
     this.props.onClick(event, this.props.item);
   };
@@ -206,7 +206,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     }
   };
 
-  _onEditKeydown = event => {
+  _onEditKeydown = (event) => {
     if (this.props.disabled) return;
     if (event.key === 'Enter' && this.props.selected && this.props.onEditMotion) {
       this.props.onEditMotion(this.props.item);
@@ -224,7 +224,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     this.setState({ editing: null });
   };
 
-  _onAction = event => {
+  _onAction = (event) => {
     if (this.props.disabled) return;
     this.props.onAction(this.props.item);
     event.preventDefault();
@@ -471,7 +471,7 @@ export class TokenizingTextField<T> extends React.Component<
 
   // Maintaining Input State
 
-  _onClick = event => {
+  _onClick = (event) => {
     // Don't focus if the focus is already on an input within our field,
     // like an editable token's input
     if (event.target.tagName === 'INPUT' && ReactDOM.findDOMNode(this).contains(event.target)) {
@@ -484,7 +484,7 @@ export class TokenizingTextField<T> extends React.Component<
     this.focus({ preventScroll: true });
   };
 
-  _onDrop = event => {
+  _onDrop = (event) => {
     if (!event.dataTransfer.types.includes('mailspring-token-items')) {
       return;
     }
@@ -493,7 +493,7 @@ export class TokenizingTextField<T> extends React.Component<
     this._onAddItemsFromJSON(data);
   };
 
-  _onAddItemsFromJSON = json => {
+  _onAddItemsFromJSON = (json) => {
     let items = null;
 
     try {
@@ -521,7 +521,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onInputKeydown = event => {
+  _onInputKeydown = (event) => {
     if (['Backspace', 'Delete'].includes(event.key)) {
       this._removeTokens(this._selectedTokens());
     } else if (['Escape'].includes(event.key)) {
@@ -557,7 +557,7 @@ export class TokenizingTextField<T> extends React.Component<
 
   _onSelectAll = () => {
     const { tokens, tokenKey } = this.props;
-    this.setState({ selectedKeys: tokens.map(t => tokenKey(t)) });
+    this.setState({ selectedKeys: tokens.map((t) => tokenKey(t)) });
   };
 
   _onSelectNone = () => {
@@ -581,7 +581,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
 
     const headKey = selectedKeys.at(-1);
-    const headIdx = tokens.map(t => tokenKey(t)).indexOf(headKey);
+    const headIdx = tokens.map((t) => tokenKey(t)).indexOf(headKey);
     const nextToken = tokens[headIdx + delta];
 
     if (multiselectModifierPresent) {
@@ -595,13 +595,13 @@ export class TokenizingTextField<T> extends React.Component<
         // If the user is "walking back" their selection, deselect the head item
         // Ex: Shift+Left, Shift+Right undoes prev. Shift+left.
         this.setState({
-          selectedKeys: selectedKeys.filter(t => t !== headKey),
+          selectedKeys: selectedKeys.filter((t) => t !== headKey),
         });
       } else {
         // If the user is expanding their selection, always filter then add to
         // ensure the last item in the array is the most recently selected.
         this.setState({
-          selectedKeys: selectedKeys.filter(t => t !== nextKey).concat([nextKey]),
+          selectedKeys: selectedKeys.filter((t) => t !== nextKey).concat([nextKey]),
         });
       }
     } else {
@@ -611,7 +611,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onInputTrySubmit = event => {
+  _onInputTrySubmit = (event) => {
     if ((this.state.inputValue || '').trim().length === 0) {
       return;
     }
@@ -642,7 +642,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onInputChanged = event => {
+  _onInputChanged = (event) => {
     const val = event.target.value.trimLeft();
     this.setState({
       selectedKeys: [],
@@ -652,7 +652,7 @@ export class TokenizingTextField<T> extends React.Component<
     this._refreshCompletions(val);
   };
 
-  _onInputBlurred = event => {
+  _onInputBlurred = (event) => {
     // Not having a relatedTarget can happen when the whole app blurs. When
     // this happens we want to leave the field as-is
     if (!event.relatedTarget) {
@@ -702,7 +702,7 @@ export class TokenizingTextField<T> extends React.Component<
       // has clicked. We must walk the items in order so selectedKeys is
       // an ordered list.
       let headKey = selectedKeys.at(-1);
-      let headIdx = tokens.map(t => tokenKey(t)).indexOf(headKey);
+      let headIdx = tokens.map((t) => tokenKey(t)).indexOf(headKey);
       const clickedIdx = tokens.indexOf(token);
 
       if (clickedIdx === -1 || clickedIdx === headIdx) {
@@ -715,14 +715,14 @@ export class TokenizingTextField<T> extends React.Component<
         headIdx += step;
         headKey = tokenKey(tokens[headIdx]);
         // eslint-disable-next-line
-        selectedKeys = selectedKeys.filter(t => t !== headKey).concat([headKey]);
+        selectedKeys = selectedKeys.filter((t) => t !== headKey).concat([headKey]);
       } while (headIdx !== clickedIdx);
     } else if (event.metaKey) {
       // Expand the selection to include the clicked item, without selecting
       // the items in between. If the item is already selected, deselect it.
       const key = tokenKey(token);
       if (selectedKeys.includes(key)) {
-        selectedKeys = selectedKeys.filter(t => t !== key);
+        selectedKeys = selectedKeys.filter((t) => t !== key);
       } else {
         selectedKeys = selectedKeys.concat([key]);
       }
@@ -741,23 +741,25 @@ export class TokenizingTextField<T> extends React.Component<
     }
     const json = JSON.stringify(tokens);
     event.dataTransfer.setData('mailspring-token-items', json);
-    event.dataTransfer.setData('text/plain', tokens.map(t => t.toString()).join(', '));
+    event.dataTransfer.setData('text/plain', tokens.map((t) => t.toString()).join(', '));
     event.dataTransfer.dropEffect = 'move';
     event.dataTransfer.effectAllowed = 'move';
   };
 
   _selectedTokens() {
-    return this.props.tokens.filter(t => this.state.selectedKeys.includes(this.props.tokenKey(t)));
+    return this.props.tokens.filter((t) =>
+      this.state.selectedKeys.includes(this.props.tokenKey(t))
+    );
   }
 
-  _addToken = token => {
+  _addToken = (token) => {
     if (!token) {
       return;
     }
     this._addTokens([token]);
   };
 
-  _addTokens = tokens => {
+  _addTokens = (tokens) => {
     this.props.onAdd(tokens);
     // It's possible for `_addTokens` to be fired by the menu
     // asynchronously. When the tokenizing text field is in a popover it's
@@ -768,7 +770,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _removeTokens = tokensToDelete => {
+  _removeTokens = (tokensToDelete) => {
     const { inputValue, selectedKeys } = this.state;
     const { onEmptied, onRemove, tokens, tokenKey } = this.props;
 
@@ -777,23 +779,23 @@ export class TokenizingTextField<T> extends React.Component<
     }
 
     if (tokensToDelete.length) {
-      const tokensToDeleteKeys = tokensToDelete.map(t => tokenKey(t));
+      const tokensToDeleteKeys = tokensToDelete.map((t) => tokenKey(t));
       onRemove(tokensToDelete);
       this.setState({
-        selectedKeys: selectedKeys.filter(k => !tokensToDeleteKeys.includes(k)),
+        selectedKeys: selectedKeys.filter((k) => !tokensToDeleteKeys.includes(k)),
       });
     } else {
       const lastToken = tokens.at(-1);
       if (lastToken) {
         const lastTokenKey = tokenKey(lastToken);
         this.setState({
-          selectedKeys: selectedKeys.filter(k => k !== lastTokenKey).concat([lastTokenKey]),
+          selectedKeys: selectedKeys.filter((k) => k !== lastTokenKey).concat([lastTokenKey]),
         });
       }
     }
   };
 
-  _showDefaultTokenMenu = token => {
+  _showDefaultTokenMenu = (token) => {
     const menu = require('@electron/remote').Menu();
     menu.append(
       require('@electron/remote').MenuItem({
@@ -815,7 +817,7 @@ export class TokenizingTextField<T> extends React.Component<
 
   // Copy and Paste
 
-  _onCut = event => {
+  _onCut = (event) => {
     if (this.state.selectedKeys.length) {
       this._onAttachToClipboard(event);
       // clear the tokens which were selected
@@ -825,14 +827,14 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onCopy = event => {
+  _onCopy = (event) => {
     if (this.state.selectedKeys.length) {
       this._onAttachToClipboard(event);
       event.preventDefault();
     }
   };
 
-  _onAttachToClipboard = event => {
+  _onAttachToClipboard = (event) => {
     const text = this.state.selectedKeys.join(', ');
     if (event.clipboardData) {
       const json = JSON.stringify(this._selectedTokens());
@@ -850,7 +852,7 @@ export class TokenizingTextField<T> extends React.Component<
     event.preventDefault();
   };
 
-  _onPaste = event => {
+  _onPaste = (event) => {
     const json = event.clipboardData.getData('mailspring-token-items');
     const inputValue = event.clipboardData.getData('mailspring-token-input');
     if (json) {
@@ -882,8 +884,8 @@ export class TokenizingTextField<T> extends React.Component<
   // `onRequestCompletions` returns.
   _refreshCompletions = (val = this.state.inputValue, { clear }: { clear?: boolean } = {}) => {
     const usedKeys = this.props.tokens.map(this.props.tokenKey);
-    const removeUsedTokens = tokens => {
-      return tokens.filter(t => !usedKeys.includes(this.props.tokenKey(t)));
+    const removeUsedTokens = (tokens) => {
+      return tokens.filter((t) => !usedKeys.includes(this.props.tokenKey(t)));
     };
 
     const tokensOrPromise = this.props.onRequestCompletions(val, { clear });
@@ -891,7 +893,7 @@ export class TokenizingTextField<T> extends React.Component<
     if (_.isArray(tokensOrPromise)) {
       this.setState({ completions: removeUsedTokens(tokensOrPromise) });
     } else if (tokensOrPromise instanceof Promise) {
-      tokensOrPromise.then(tokens => {
+      tokensOrPromise.then((tokens) => {
         if (!this._mounted) {
           return;
         }
@@ -948,7 +950,7 @@ export class TokenizingTextField<T> extends React.Component<
     // enable additional items to be inserted
     if (this._atMaxTokens()) {
       props.className = 'noop-input';
-      props.onFocus = e => this._onInputFocused(e, { noCompletions: true });
+      props.onFocus = (e) => this._onInputFocused(e, { noCompletions: true });
       props.onPaste = () => 'noop-input';
       props.onChange = () => 'noop';
       props.value = '';
@@ -972,7 +974,7 @@ export class TokenizingTextField<T> extends React.Component<
       onEdit,
     } = this.props;
 
-    return tokens.map(item => {
+    return tokens.map((item) => {
       const key = tokenKey(item);
       const valid = tokenIsValid ? tokenIsValid(item) : true;
 
@@ -1006,7 +1008,7 @@ export class TokenizingTextField<T> extends React.Component<
     });
     // Build a screen-reader-only description of current token values so that
     // when the user focuses the input, the AT announces what is already in the field.
-    const tokenDescription = this.props.tokens.map(t => t.toString()).join(', ');
+    const tokenDescription = this.props.tokens.map((t) => t.toString()).join(', ');
     return (
       <KeyCommandsRegion
         key="field-component"
@@ -1060,7 +1062,7 @@ export class TokenizingTextField<T> extends React.Component<
         className={classes}
         ref="completions"
         items={this.state.completions}
-        itemKey={item => item.id}
+        itemKey={(item) => item.id}
         itemContext={{ inputValue: this.state.inputValue }}
         itemContent={this.props.completionNode}
         headerComponents={[this._fieldComponent()]}

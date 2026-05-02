@@ -85,7 +85,7 @@ class SpecRunner {
 
   _makeSurroundAsync(jasmineBeforeAfter) {
     const self = this;
-    return userFn => {
+    return (userFn) => {
       return jasmineBeforeAfter(function asyncBeforeAfter() {
         self._runAsync.call(this, userFn);
       });
@@ -123,14 +123,14 @@ class SpecRunner {
     // Log full stack traces for uncaught errors and unhandled promise rejections,
     // since Chromium's default renderer error logging only shows the message and
     // compiled-JS line number — no call stack.
-    window.addEventListener('error', e => {
+    window.addEventListener('error', (e) => {
       if (e.error && e.error.stack) {
         console.error('Uncaught error (stack):\n' + e.error.stack);
       } else {
         console.error('Uncaught error:\n' + e.error);
       }
     });
-    window.addEventListener('unhandledrejection', e => {
+    window.addEventListener('unhandledrejection', (e) => {
       const r = e.reason;
       if (r && r.stack) {
         console.error('Unhandled promise rejection (stack):\n' + r.stack);

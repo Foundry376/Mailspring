@@ -61,7 +61,7 @@ class FluxContainer<T> extends React.Component<
 
     // Listeners reference the instance property, not the captured props.
     // This ensures they always use the most current getStateFromStores function.
-    this._unlisteners = props.stores.map(store => {
+    this._unlisteners = props.stores.map((store) => {
       return store.listen(() => this.setState(this._getStateFromStores()));
     });
   }

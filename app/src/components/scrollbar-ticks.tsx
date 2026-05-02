@@ -23,7 +23,7 @@ export default class ScrollbarTicks extends React.Component<ScrollbarTicksProps>
 
   _updateTicks() {
     const html = this.props.ticks
-      .map(percentData => {
+      .map((percentData) => {
         let percent;
         let className = '';
         if (typeof percentData === 'number') {

@@ -6,7 +6,7 @@ import { Thread } from '../models/thread';
 import { Model } from '../models/model';
 import ModelQuery from './query';
 
-const buildQuery = categoryIds => {
+const buildQuery = (categoryIds) => {
   const unreadMatchers = new Matcher.And([
     Thread.attributes.categories.containsAny(categoryIds),
     Thread.attributes.unread.equal(true),
@@ -40,9 +40,7 @@ export default class UnreadQuerySubscription extends MutableQuerySubscription<Th
 
   onRecentlyReadChanged = () => {
     const { limit, offset } = this._query.range();
-    this._query = buildQuery(this._categoryIds)
-      .limit(limit)
-      .offset(offset);
+    this._query = buildQuery(this._categoryIds).limit(limit).offset(offset);
   };
 
   onLastCallbackRemoved() {

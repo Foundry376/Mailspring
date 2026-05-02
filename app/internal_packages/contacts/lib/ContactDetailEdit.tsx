@@ -61,7 +61,7 @@ export class ContactDetailEdit extends React.Component<{
                 <input
                   type="text"
                   value={data.name.givenName}
-                  onChange={e =>
+                  onChange={(e) =>
                     onChange({ name: { ...data.name, givenName: e.currentTarget.value } })
                   }
                 />
@@ -73,7 +73,7 @@ export class ContactDetailEdit extends React.Component<{
                 <input
                   type="text"
                   value={data.name.familyName}
-                  onChange={e =>
+                  onChange={(e) =>
                     onChange({ name: { ...data.name, familyName: e.currentTarget.value } })
                   }
                 />
@@ -83,7 +83,7 @@ export class ContactDetailEdit extends React.Component<{
             <ListEditor<ContactBase['nicknames'][0]>
               items={data.nicknames || []}
               itemTemplate={{ value: '' }}
-              onChange={items => onChange({ nicknames: items })}
+              onChange={(items) => onChange({ nicknames: items })}
             >
               {(item, onChange) => (
                 <div className="contact-edit-field">
@@ -92,7 +92,7 @@ export class ContactDetailEdit extends React.Component<{
                     <input
                       type="text"
                       value={item.value}
-                      onChange={e => onChange({ value: e.currentTarget.value })}
+                      onChange={(e) => onChange({ value: e.currentTarget.value })}
                     />
                   </label>
                 </div>
@@ -113,7 +113,7 @@ export class ContactDetailEdit extends React.Component<{
                   <input
                     type="text"
                     value={data.title}
-                    onChange={e => onChange({ title: e.currentTarget.value })}
+                    onChange={(e) => onChange({ title: e.currentTarget.value })}
                   />
                 </label>
               </div>
@@ -123,7 +123,7 @@ export class ContactDetailEdit extends React.Component<{
                   <input
                     type="text"
                     value={data.company}
-                    onChange={e => onChange({ company: e.currentTarget.value })}
+                    onChange={(e) => onChange({ company: e.currentTarget.value })}
                   />
                 </label>
               </div>
@@ -139,7 +139,7 @@ export class ContactDetailEdit extends React.Component<{
             <ListEditor<ContactBase['emailAddresses'][0]>
               items={data.emailAddresses || []}
               itemTemplate={{ type: '', value: '' }}
-              onChange={items => onChange({ emailAddresses: items })}
+              onChange={(items) => onChange({ emailAddresses: items })}
             >
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
@@ -149,7 +149,7 @@ export class ContactDetailEdit extends React.Component<{
                       <input
                         type="text"
                         value={item.value}
-                        onChange={e => onChange({ value: e.currentTarget.value })}
+                        onChange={(e) => onChange({ value: e.currentTarget.value })}
                       />
                     </label>
                   </div>
@@ -159,7 +159,7 @@ export class ContactDetailEdit extends React.Component<{
                       placeholder="Label"
                       suggestions={BaseTypes}
                       value={item.type || ''}
-                      onChange={e => onChange({ type: e.currentTarget.value })}
+                      onChange={(e) => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>
@@ -176,7 +176,7 @@ export class ContactDetailEdit extends React.Component<{
             <ListEditor<ContactBase['phoneNumbers'][0]>
               items={data.phoneNumbers || []}
               itemTemplate={{ type: '', value: '' }}
-              onChange={items => onChange({ phoneNumbers: items })}
+              onChange={(items) => onChange({ phoneNumbers: items })}
             >
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
@@ -186,7 +186,7 @@ export class ContactDetailEdit extends React.Component<{
                       <input
                         type="text"
                         value={item.value}
-                        onChange={e => onChange({ value: e.currentTarget.value })}
+                        onChange={(e) => onChange({ value: e.currentTarget.value })}
                       />
                     </label>
                   </div>
@@ -196,7 +196,7 @@ export class ContactDetailEdit extends React.Component<{
                       placeholder="Label"
                       suggestions={PhoneTypes}
                       value={item.type || ''}
-                      onChange={e => onChange({ type: e.currentTarget.value })}
+                      onChange={(e) => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export class ContactDetailEdit extends React.Component<{
                 streetAddress: '',
                 extendedAddress: '',
               }}
-              onChange={items => onChange({ addresses: items })}
+              onChange={(items) => onChange({ addresses: items })}
             >
               {(item, onChange) => (
                 <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -231,7 +231,7 @@ export class ContactDetailEdit extends React.Component<{
                       <input
                         type="text"
                         value={item.streetAddress}
-                        onChange={e => onChange({ streetAddress: e.currentTarget.value })}
+                        onChange={(e) => onChange({ streetAddress: e.currentTarget.value })}
                       />
                     </label>
                   </div>
@@ -241,7 +241,7 @@ export class ContactDetailEdit extends React.Component<{
                       <input
                         type="text"
                         value={item.extendedAddress}
-                        onChange={e => onChange({ extendedAddress: e.currentTarget.value })}
+                        onChange={(e) => onChange({ extendedAddress: e.currentTarget.value })}
                       />
                     </label>
                   </div>
@@ -251,7 +251,7 @@ export class ContactDetailEdit extends React.Component<{
                       <input
                         type="text"
                         value={item.city}
-                        onChange={e => onChange({ city: e.currentTarget.value })}
+                        onChange={(e) => onChange({ city: e.currentTarget.value })}
                       />
                     </label>
                   </div>
@@ -262,7 +262,7 @@ export class ContactDetailEdit extends React.Component<{
                         <input
                           type="text"
                           value={item.region}
-                          onChange={e => onChange({ region: e.currentTarget.value })}
+                          onChange={(e) => onChange({ region: e.currentTarget.value })}
                         />
                       </label>
                     </div>
@@ -272,7 +272,7 @@ export class ContactDetailEdit extends React.Component<{
                         <input
                           type="text"
                           value={item.postalCode}
-                          onChange={e => onChange({ postalCode: e.currentTarget.value })}
+                          onChange={(e) => onChange({ postalCode: e.currentTarget.value })}
                         />
                       </label>
                     </div>
@@ -284,7 +284,7 @@ export class ContactDetailEdit extends React.Component<{
                       <input
                         type="text"
                         value={item.country}
-                        onChange={e => onChange({ country: e.currentTarget.value })}
+                        onChange={(e) => onChange({ country: e.currentTarget.value })}
                       />
                     </label>
                   </div>
@@ -295,7 +295,7 @@ export class ContactDetailEdit extends React.Component<{
                       placeholder="Label"
                       suggestions={BaseTypes}
                       value={item.type || ''}
-                      onChange={e => onChange({ type: e.currentTarget.value })}
+                      onChange={(e) => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>
@@ -311,10 +311,10 @@ export class ContactDetailEdit extends React.Component<{
             <ListEditor<ContactBase['birthdays'][0]>
               items={data.birthdays || []}
               itemTemplate={{ date: { year: null, month: null, day: null } }}
-              onChange={items => onChange({ birthdays: items })}
+              onChange={(items) => onChange({ birthdays: items })}
             >
               {(item, onChange) => (
-                <YYMMDDInput value={item.date} onChange={date => onChange({ date })} />
+                <YYMMDDInput value={item.date} onChange={(date) => onChange({ date })} />
               )}
             </ListEditor>
           </div>
@@ -328,7 +328,7 @@ export class ContactDetailEdit extends React.Component<{
               <ListEditor<ContactBase['relations'][0]>
                 items={data.relations || []}
                 itemTemplate={{ person: '', type: '' }}
-                onChange={items => onChange({ relations: items })}
+                onChange={(items) => onChange({ relations: items })}
               >
                 {(item, onChange) => (
                   <div className="contact-edit-twoup">
@@ -338,7 +338,7 @@ export class ContactDetailEdit extends React.Component<{
                         <input
                           type="text"
                           value={item.person}
-                          onChange={e => onChange({ person: e.currentTarget.value })}
+                          onChange={(e) => onChange({ person: e.currentTarget.value })}
                         />
                       </label>
                     </div>
@@ -348,7 +348,7 @@ export class ContactDetailEdit extends React.Component<{
                         placeholder="Label"
                         suggestions={RelationTypes}
                         value={item.type || ''}
-                        onChange={e => onChange({ type: e.currentTarget.value })}
+                        onChange={(e) => onChange({ type: e.currentTarget.value })}
                       />
                     </div>
                   </div>
@@ -365,7 +365,7 @@ export class ContactDetailEdit extends React.Component<{
             <ListEditor<ContactBase['urls'][0]>
               items={data.urls || []}
               itemTemplate={{ value: '', type: '' }}
-              onChange={items => onChange({ urls: items })}
+              onChange={(items) => onChange({ urls: items })}
             >
               {(item, onChange) => (
                 <div className="contact-edit-twoup">
@@ -375,7 +375,7 @@ export class ContactDetailEdit extends React.Component<{
                       <input
                         type="text"
                         value={item.value}
-                        onChange={e => onChange({ value: e.currentTarget.value })}
+                        onChange={(e) => onChange({ value: e.currentTarget.value })}
                       />
                     </label>
                   </div>
@@ -385,7 +385,7 @@ export class ContactDetailEdit extends React.Component<{
                       placeholder="Label"
                       suggestions={WebTypes}
                       value={item.type || ''}
-                      onChange={e => onChange({ type: e.currentTarget.value })}
+                      onChange={(e) => onChange({ type: e.currentTarget.value })}
                     />
                   </div>
                 </div>
@@ -404,7 +404,7 @@ export class ContactDetailEdit extends React.Component<{
                 <textarea
                   className="contact-notes-textarea"
                   value={data.notes || ''}
-                  onChange={e => onChange({ notes: e.currentTarget.value })}
+                  onChange={(e) => onChange({ notes: e.currentTarget.value })}
                   rows={4}
                 />
               </label>

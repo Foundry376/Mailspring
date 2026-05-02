@@ -36,7 +36,7 @@ function ListensToObservable<T, U, V>(
       this.unmounted = false;
       this.subscriptionId++;
       const currentSubscriptionId = this.subscriptionId;
-      this.disposable = this.observable.subscribe(data =>
+      this.disposable = this.observable.subscribe((data) =>
         this.onObservableChanged(data, currentSubscriptionId)
       );
     }
@@ -49,7 +49,7 @@ function ListensToObservable<T, U, V>(
         this.subscriptionId++;
         const currentSubscriptionId = this.subscriptionId;
         this.observable = getObservable(this.props);
-        this.disposable = this.observable.subscribe(data =>
+        this.disposable = this.observable.subscribe((data) =>
           this.onObservableChanged(data, currentSubscriptionId)
         );
       }

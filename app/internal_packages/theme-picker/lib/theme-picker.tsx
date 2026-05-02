@@ -75,7 +75,7 @@ class ThemePicker extends React.Component<
     sortedThemes.sort((a, b) => {
       return (internalThemes.indexOf(a.name) - internalThemes.indexOf(b.name)) * -1;
     });
-    return sortedThemes.map(theme => (
+    return sortedThemes.map((theme) => (
       <ThemeOption
         key={theme.name}
         theme={theme}

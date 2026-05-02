@@ -19,12 +19,12 @@ export const TokenAndTermRegexp = () =>
 export const LearnMoreURL =
   'https://community.getmailspring.com/t/search-with-advanced-gmail-style-queries/153';
 
-export const rankOfRole = role => {
+export const rankOfRole = (role) => {
   const rank = ['inbox', 'important', 'snoozed', 'sent', 'all', 'spam', 'trash'].indexOf(role);
   return rank !== -1 ? 20 - rank : -1000;
 };
 
-export const wrapInQuotes = s => `"${s.replace(/"/g, '')}"`;
+export const wrapInQuotes = (s) => `"${s.replace(/"/g, '')}"`;
 
 export const getThreadSuggestions = async (term, accountIds) => {
   let dbQuery = DatabaseStore.findAll<Thread>(Thread)
@@ -38,7 +38,7 @@ export const getThreadSuggestions = async (term, accountIds) => {
     dbQuery = dbQuery.where({ accountId: accountIds[0] });
   }
 
-  return dbQuery.background().then(results => results);
+  return dbQuery.background().then((results) => results);
 };
 
 export const getContactSuggestions = async (term, accountIds) => {
@@ -47,19 +47,21 @@ export const getContactSuggestions = async (term, accountIds) => {
     ? await ContactStore.searchContacts(term, { limit: 5 })
     : await ContactStore.topContacts({ limit: 5 });
 
-  contacts.forEach(c => results.push(c.email, c.name));
+  contacts.forEach((c) => results.push(c.email, c.name));
 
-  return [...new Set(results)].filter(r => r.toLowerCase().startsWith(term));
+  return [...new Set(results)].filter((r) => r.toLowerCase().startsWith(term));
 };
 
 export const getCategorySuggestions = async (term, accountIds) =>
-  [...new Set(
-    CategoryStore.categories()
-      .filter(c => accountIds.includes(c.accountId))
-      .sort((a, b) => rankOfRole(b.role) - rankOfRole(a.role))
-      .map(c => c.displayName)
-  )]
-    .filter(s => s.toLowerCase().startsWith(term))
+  [
+    ...new Set(
+      CategoryStore.categories()
+        .filter((c) => accountIds.includes(c.accountId))
+        .sort((a, b) => rankOfRole(b.role) - rankOfRole(a.role))
+        .map((c) => c.displayName)
+    ),
+  ]
+    .filter((s) => s.toLowerCase().startsWith(term))
     .slice(0, 8);
 
 export const TokenSuggestions = [
@@ -126,7 +128,7 @@ export const TokenSuggestions = [
   // },
 ];
 
-export const TokenSuggestionsForEmpty = TokenSuggestions.filter(t => !t.hidden);
+export const TokenSuggestionsForEmpty = TokenSuggestions.filter((t) => !t.hidden);
 
 export function getCurrentTokenAndTerm(query, insertionIndex) {
   const regexp = TokenAndTermRegexp();
@@ -137,10 +139,7 @@ export function getCurrentTokenAndTerm(query, insertionIndex) {
     if (next.index <= insertionIndex && next.index + next[0].length >= insertionIndex) {
       return {
         token: next[2],
-        term: (next[3] || '')
-          .replace(/"$/, '')
-          .replace(/^"/, '')
-          .toLowerCase(),
+        term: (next[3] || '').replace(/"$/, '').replace(/^"/, '').toLowerCase(),
         index: next.index,
         length: next[0].length,
       };

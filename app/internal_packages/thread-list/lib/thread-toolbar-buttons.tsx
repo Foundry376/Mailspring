@@ -152,7 +152,7 @@ class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
 class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'HiddenToggleImportantButton';
 
-  _onSetImportant = important => {
+  _onSetImportant = (important) => {
     Actions.queueTasks(
       TaskFactory.tasksForThreadsByAccountId(this.props.items, (accountThreads, accountId) => {
         return new ChangeLabelsTask({
@@ -179,8 +179,8 @@ class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
       return false;
     }
 
-    const allImportant = this.props.items.every(item =>
-      item.labels.some(c => c.role === 'important')
+    const allImportant = this.props.items.every((item) =>
+      item.labels.some((c) => c.role === 'important')
     );
 
     return (
@@ -234,7 +234,7 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const allInSpam = this.props.items.every(item => item.folders.some(c => c.role === 'spam'));
+    const allInSpam = this.props.items.every((item) => item.folders.some((c) => c.role === 'spam'));
 
     if (allInSpam) {
       return (
@@ -308,7 +308,7 @@ export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const postClickStarredState = this.props.items.every(t => t.starred === false);
+    const postClickStarredState = this.props.items.every((t) => t.starred === false);
     const title = postClickStarredState ? localized('Star') : localized('Unstar');
     const imageName = postClickStarredState ? 'toolbar-star.png' : 'toolbar-star-selected.png';
 
@@ -336,14 +336,14 @@ export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
     items: PropTypes.array.isRequired,
   };
 
-  _onClick = event => {
-    const targetUnread = this.props.items.every(t => t.unread === false);
+  _onClick = (event) => {
+    const targetUnread = this.props.items.every((t) => t.unread === false);
     this._onChangeUnread(targetUnread);
     event.stopPropagation();
     return;
   };
 
-  _onChangeUnread = targetUnread => {
+  _onChangeUnread = (targetUnread) => {
     Actions.queueTask(
       TaskFactory.taskForSettingUnread({
         threads: this.props.items,
@@ -355,7 +355,7 @@ export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const targetUnread = this.props.items.every(t => t.unread === false);
+    const targetUnread = this.props.items.every((t) => t.unread === false);
     const fragment = targetUnread ? localized('Unread') : localized('Read');
     const key = targetUnread ? 'unread' : 'read';
     const label = localized(`Mark as %@`, fragment);

@@ -35,12 +35,15 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     const models = this.models();
     this._modelsHash = {};
     this._idToIndexHash = null;
-    models.forEach(m => this.updateModel(m));
+    models.forEach((m) => this.updateModel(m));
   }
 
   addModelsInRange(rangeModels: T[], range) {
-    this.addIdsInRange(rangeModels.map(m => m.id), range);
-    rangeModels.forEach(m => this.updateModel(m));
+    this.addIdsInRange(
+      rangeModels.map((m) => m.id),
+      range
+    );
+    rangeModels.forEach((m) => this.updateModel(m));
   }
 
   addIdsInRange(rangeIds: string[], range) {

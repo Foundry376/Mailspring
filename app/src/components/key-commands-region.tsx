@@ -210,7 +210,7 @@ export class KeyCommandsRegion extends React.Component<
     this.setState({ focused: false });
   };
 
-  _onFocusIn = event => {
+  _onFocusIn = (event) => {
     this._lastFocusElement = event.target;
     this._losingFocusToElement = null;
     if (this.state.focused === false) {
@@ -219,7 +219,7 @@ export class KeyCommandsRegion extends React.Component<
     this.setState({ focused: true });
   };
 
-  _onFocusOut = event => {
+  _onFocusOut = (event) => {
     this._lastFocusElement = event.target;
     this._losingFocusToElement = event.relatedTarget;
 

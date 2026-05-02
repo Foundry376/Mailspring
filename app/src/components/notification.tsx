@@ -94,7 +94,7 @@ export default class Notification extends React.Component<NotificationProps, Not
 
       if (this.mounted) {
         this.setState({
-          loadingActions: this.state.loadingActions.filter(f => f !== actionId),
+          loadingActions: this.state.loadingActions.filter((f) => f !== actionId),
         });
       }
     }
@@ -143,7 +143,7 @@ export default class Notification extends React.Component<NotificationProps, Not
           key={id}
           id={id}
           className={className}
-          onClick={e => this._onClick(e, id, action.fn)}
+          onClick={(e) => this._onClick(e, id, action.fn)}
           {...action.props}
         >
           {action.label}

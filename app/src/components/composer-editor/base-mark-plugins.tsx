@@ -62,30 +62,30 @@ export const MARK_CONFIG: {
   bold: {
     type: 'bold',
     tagNames: ['b', 'strong'],
-    render: props => <strong>{props.children}</strong>,
+    render: (props) => <strong>{props.children}</strong>,
     button: {
-      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.bold.type),
-      onToggle: editor => editor.toggleMark(MARK_CONFIG.bold.type),
+      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.bold.type),
+      onToggle: (editor) => editor.toggleMark(MARK_CONFIG.bold.type),
       iconClass: 'fa fa-bold',
     },
   },
   italic: {
     type: 'italic',
     tagNames: ['em', 'i'],
-    render: props => <em>{props.children}</em>,
+    render: (props) => <em>{props.children}</em>,
     button: {
-      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.italic.type),
-      onToggle: editor => editor.toggleMark(MARK_CONFIG.italic.type),
+      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.italic.type),
+      onToggle: (editor) => editor.toggleMark(MARK_CONFIG.italic.type),
       iconClass: 'fa fa-italic',
     },
   },
   underline: {
     type: 'underline',
     tagNames: ['u'],
-    render: props => <u>{props.children}</u>,
+    render: (props) => <u>{props.children}</u>,
     button: {
-      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.underline.type),
-      onToggle: editor => editor.toggleMark(MARK_CONFIG.underline.type),
+      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.underline.type),
+      onToggle: (editor) => editor.toggleMark(MARK_CONFIG.underline.type),
       iconClass: 'fa fa-underline',
     },
   },
@@ -93,10 +93,10 @@ export const MARK_CONFIG: {
   strike: {
     type: 'strike',
     tagNames: ['strike', 's', 'del'],
-    render: props => <strike>{props.children}</strike>,
+    render: (props) => <strike>{props.children}</strike>,
     button: {
-      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.strike.type),
-      onToggle: editor => editor.toggleMark(MARK_CONFIG.strike.type),
+      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.strike.type),
+      onToggle: (editor) => editor.toggleMark(MARK_CONFIG.strike.type),
       iconClass: 'fa fa-strikethrough',
     },
   },
@@ -104,7 +104,7 @@ export const MARK_CONFIG: {
   codeInline: {
     type: 'codeInline',
     tagNames: ['code'],
-    render: props => <code spellCheck={false}>{props.children}</code>,
+    render: (props) => <code spellCheck={false}>{props.children}</code>,
   },
 
   color: {
@@ -151,7 +151,7 @@ const rules: Rule[] = [
     deserialize(el, next) {
       const marks = [];
       const tagName = el.tagName.toLowerCase();
-      const config = Object.values(MARK_CONFIG).find(m => m.tagNames.includes(tagName));
+      const config = Object.values(MARK_CONFIG).find((m) => m.tagNames.includes(tagName));
 
       if (config) {
         return {
@@ -215,7 +215,7 @@ const rules: Rule[] = [
         // plugins (eg link-plugin), to add more marks. Manually run them
         // and collect any additional marks:
         plugins = plugins || require('./conversion').plugins;
-        const subsequentPlugins = plugins.slice(plugins.findIndex(p => p.rules === rules) + 1);
+        const subsequentPlugins = plugins.slice(plugins.findIndex((p) => p.rules === rules) + 1);
         for (const p of subsequentPlugins) {
           for (const { deserialize } of p.rules || []) {
             const result = deserialize && deserialize(el, () => []);
@@ -266,7 +266,7 @@ const BaseMarkPlugin: ComposerEditorPlugin = {
   toolbarComponents: []
     .concat(
       Object.values(MARK_CONFIG)
-        .filter(m => m.button)
+        .filter((m) => m.button)
         .map(BuildToggleButton)
     )
     .concat([
@@ -275,7 +275,7 @@ const BaseMarkPlugin: ComposerEditorPlugin = {
         type: 'face',
         default: DEFAULT_FONT_FACE,
         options: DEFAULT_FONT_FACE_OPTIONS,
-        convert: provided => {
+        convert: (provided) => {
           let opt = null;
           let score = 10000;
           for (const aopt of DEFAULT_FONT_FACE_OPTIONS) {
@@ -293,7 +293,7 @@ const BaseMarkPlugin: ComposerEditorPlugin = {
         iconClass: 'fa fa-text-height',
         default: DEFAULT_FONT_SIZE,
         options: DEFAULT_FONT_OPTIONS,
-        convert: provided => {
+        convert: (provided) => {
           if (typeof provided === 'string') {
             let size = 2;
             if (provided.endsWith('px')) {

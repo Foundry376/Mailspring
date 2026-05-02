@@ -49,7 +49,7 @@ export class ChangeLabelsTask extends ChangeMailTask {
       return this.taskDescription;
     }
 
-    const withCount = str => {
+    const withCount = (str) => {
       if (this.threadIds.length > 1) {
         return str.replace('%@', `${this.threadIds.length} ${localized('threads')}`);
       }
@@ -71,9 +71,12 @@ export class ChangeLabelsTask extends ChangeMailTask {
     } else if (removed && removed.name === 'trash') {
       return withCount(localized(`Removed %@ from Trash`));
     }
-    if (this.labelsToAdd.length === 0 && this.labelsToRemove.find(l => l.role === 'inbox')) {
+    if (this.labelsToAdd.length === 0 && this.labelsToRemove.find((l) => l.role === 'inbox')) {
       return withCount(localized(`Archived %@`));
-    } else if (this.labelsToRemove.length === 0 && this.labelsToAdd.find(l => l.role === 'inbox')) {
+    } else if (
+      this.labelsToRemove.length === 0 &&
+      this.labelsToAdd.find((l) => l.role === 'inbox')
+    ) {
       return withCount(localized(`Unarchived %@`));
     }
     if (this.labelsToAdd.length === 1 && this.labelsToRemove.length === 0) {
@@ -92,7 +95,7 @@ export class ChangeLabelsTask extends ChangeMailTask {
   }
 
   _isArchive() {
-    const toAdd = this.labelsToAdd.map(l => l.name);
+    const toAdd = this.labelsToAdd.map((l) => l.name);
     return toAdd.includes('all') || toAdd.includes('archive');
   }
 

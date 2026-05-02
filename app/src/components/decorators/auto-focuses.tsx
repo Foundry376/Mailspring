@@ -64,7 +64,7 @@ function AutoFocuses(
 
       // _.sortBy ranks in ascending numerical order.
       const focusable = currentNode.querySelectorAll(FOCUSABLE_SELECTOR);
-      const matches = _.sortBy(focusable, _node => {
+      const matches = _.sortBy(focusable, (_node) => {
         const node = _node as HTMLElement;
         if (node.tabIndex > 0) {
           return node.tabIndex;

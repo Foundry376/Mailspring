@@ -4,7 +4,7 @@ export interface LinkTrackingMetadata {
     {
       url: string;
       redirect_url: string;
-    }
+    },
   ];
   click_data: {
     recipient: string;

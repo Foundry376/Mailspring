@@ -28,7 +28,7 @@ export class Comparator {
 
   evaluate({ actual, desired }: { actual: any; desired: any }) {
     if (actual instanceof Array) {
-      return this.arrayMatchFn.call(actual, item => this.fn({ actual: item, desired }));
+      return this.arrayMatchFn.call(actual, (item) => this.fn({ actual: item, desired }));
     }
     return this.fn({ actual, desired });
   }

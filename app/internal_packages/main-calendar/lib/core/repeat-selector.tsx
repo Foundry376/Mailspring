@@ -23,9 +23,9 @@ export const RepeatSelector: React.FC<RepeatSelectorProps> = ({ value, onChange 
       <select
         className="repeat-select"
         value={value}
-        onChange={e => onChange(e.target.value as RepeatOption)}
+        onChange={(e) => onChange(e.target.value as RepeatOption)}
       >
-        {REPEAT_OPTIONS.map(opt => (
+        {REPEAT_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>

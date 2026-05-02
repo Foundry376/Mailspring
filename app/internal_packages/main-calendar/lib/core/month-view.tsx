@@ -59,7 +59,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
         startUnix: monthStart.unix(),
         endUnix: monthEnd.unix(),
       })
-      .subscribe(state => {
+      .subscribe((state) => {
         if (this._mounted) {
           this.setState(state);
         }
@@ -70,13 +70,9 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     const { focusedMoment } = this.props;
 
     // Get the first day of the month
-    const monthStart = moment(focusedMoment)
-      .startOf('month')
-      .startOf('week');
+    const monthStart = moment(focusedMoment).startOf('month').startOf('week');
     // Get the last day of the month view (may include days from next month)
-    const monthEnd = moment(focusedMoment)
-      .endOf('month')
-      .endOf('week');
+    const monthEnd = moment(focusedMoment).endOf('month').endOf('week');
 
     return { monthStart, monthEnd };
   }
@@ -99,17 +95,11 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   }
 
   _getEventsForDay(day: Moment): EventOccurrence[] {
-    const dayStart = day
-      .clone()
-      .startOf('day')
-      .unix();
-    const dayEnd = day
-      .clone()
-      .endOf('day')
-      .unix();
+    const dayStart = day.clone().startOf('day').unix();
+    const dayEnd = day.clone().endOf('day').unix();
     const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
 
-    return events.filter(event => {
+    return events.filter((event) => {
       // Event overlaps with this day
       return event.start < dayEnd && event.end > dayStart;
     });

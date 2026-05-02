@@ -34,21 +34,21 @@ class UndoRedoStore extends MailspringStore {
       return;
     }
 
-    if (tasks.every(t => t.canBeUndone)) {
+    if (tasks.every((t) => t.canBeUndone)) {
       const block = {
         tasks: tasks,
-        description: tasks.map(t => t.description()).join(', '),
+        description: tasks.map((t) => t.description()).join(', '),
         do: () => {
           // no-op, tasks queued separately
         },
         undo: () => {
           this._queueingTasks = true;
-          Actions.queueTasks(tasks.map(t => t.createUndoTask()));
+          Actions.queueTasks(tasks.map((t) => t.createUndoTask()));
           this._queueingTasks = false;
         },
         redo: () => {
           this._queueingTasks = true;
-          Actions.queueTasks(tasks.map(t => t.createIdenticalTask()));
+          Actions.queueTasks(tasks.map((t) => t.createIdenticalTask()));
           this._queueingTasks = false;
         },
       };

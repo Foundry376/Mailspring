@@ -55,7 +55,7 @@ class FolderSyncProgressStore extends MailspringStore {
     let totalWeight = 0;
 
     for (const accountId of AccountStore.accountIds()) {
-      const folders = CategoryStore.categories(accountId).filter(cat => cat instanceof Folder);
+      const folders = CategoryStore.categories(accountId).filter((cat) => cat instanceof Folder);
       const state = {};
 
       /*
@@ -70,8 +70,7 @@ class FolderSyncProgressStore extends MailspringStore {
           syncedMinUID = undefined,
           bodiesPresent = undefined,
           bodiesWanted = undefined,
-        } =
-          folder.localStatus || {};
+        } = folder.localStatus || {};
 
         state[folder.path] = {
           busy: busy,
@@ -152,14 +151,14 @@ class FolderSyncProgressStore extends MailspringStore {
     if (!state) {
       return false;
     }
-    return Object.values(state).some(i => i.scanProgress > 0);
+    return Object.values(state).some((i) => i.scanProgress > 0);
   }
 
   whenCategoryListSynced(accountId: string): Promise<void> {
     if (this.isCategoryListSynced(accountId)) {
       return Promise.resolve();
     }
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       const unsubscribe = this.listen(() => {
         if (this.isCategoryListSynced(accountId)) {
           unsubscribe();
@@ -181,18 +180,18 @@ class FolderSyncProgressStore extends MailspringStore {
     }
 
     const folderPaths = Object.keys(state);
-    return folderPaths.some(p => state[p].busy);
+    return folderPaths.some((p) => state[p].busy);
   }
 
   isSyncing() {
-    return Object.keys(this._statesByAccount).some(aid => this.isSyncingAccount(aid));
+    return Object.keys(this._statesByAccount).some((aid) => this.isSyncingAccount(aid));
   }
 
   whenSyncComplete(): Promise<void> {
     if (!this.isSyncing()) {
       return Promise.resolve();
     }
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       const unsubscribe = this.listen(() => {
         if (!this.isSyncing()) {
           unsubscribe();

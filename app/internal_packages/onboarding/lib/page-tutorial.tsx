@@ -93,7 +93,7 @@ export default class TutorialPage extends React.Component<
 
   _onNextUnseen = () => {
     const nextSeen = [...this.state.seen, this.state.current];
-    const nextItem = Steps.find(s => !nextSeen.includes(s));
+    const nextItem = Steps.find((s) => !nextSeen.includes(s));
     if (nextItem) {
       this.setState({ current: nextItem, seen: nextSeen });
     } else {
@@ -101,8 +101,8 @@ export default class TutorialPage extends React.Component<
     }
   };
 
-  _onMouseOverOverlay = event => {
-    const item = Steps.find(i => i.id === event.target.id);
+  _onMouseOverOverlay = (event) => {
+    const item = Steps.find((i) => i.id === event.target.id);
     if (item) {
       if (!this.state.seen.includes(item)) {
         this.state.seen.push(item);
@@ -119,7 +119,7 @@ export default class TutorialPage extends React.Component<
         <div className="tutorial-container">
           <div className="left">
             <div className="screenshot">
-              {Steps.map(step => (
+              {Steps.map((step) => (
                 <div
                   key={step.id}
                   id={step.id}

@@ -98,7 +98,7 @@ export class DayView extends React.Component<
         startUnix: bufferedStart.unix(),
         endUnix: bufferedEnd.unix(),
       })
-      .subscribe(state => {
+      .subscribe((state) => {
         this.setState(state);
       });
   }
@@ -113,19 +113,14 @@ export class DayView extends React.Component<
       ? moment.tz([focusedMoment.year(), focusedMoment.month(), focusedMoment.date()], tz)
       : moment([focusedMoment.year(), focusedMoment.month(), focusedMoment.date()]);
 
-    const end = start
-      .clone()
-      .add(DAYS_IN_VIEW, 'days')
-      .subtract(1, 'millisecond');
+    const end = start.clone().add(DAYS_IN_VIEW, 'days').subtract(1, 'millisecond');
 
     return {
       visibleStart: start,
       visibleEnd: end,
 
       bufferedStart: start.clone().subtract(BUFFER_DAYS, 'days'),
-      bufferedEnd: moment(end)
-        .add(BUFFER_DAYS, 'days')
-        .subtract(1, 'millisecond'),
+      bufferedEnd: moment(end).add(BUFFER_DAYS, 'days').subtract(1, 'millisecond'),
     };
   }
 
@@ -220,7 +215,7 @@ export class DayView extends React.Component<
     const days = this._daysInView();
     const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
     const eventsByDay = eventsGroupedByDay(events, days);
-    const todayColumnIdx = days.findIndex(d => this._isToday(d));
+    const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
     const range = this._calculateMomentRange();
@@ -305,12 +300,14 @@ export class DayView extends React.Component<
                 className="event-grid-wrap"
                 ref={this._gridScrollRegion}
                 scrollbarRef={this._scrollbar}
-                onScroll={event => (this._legendWrapEl.current.scrollTop = event.target.scrollTop)}
+                onScroll={(event) =>
+                  (this._legendWrapEl.current.scrollTop = event.target.scrollTop)
+                }
                 onViewportResize={this._setIntervalHeight}
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >
                 <div className="event-grid" style={{ height: totalHeight }}>
-                  {days.map(day => (
+                  {days.map((day) => (
                     <WeekViewEventColumn
                       day={day}
                       dayEnd={day.unix() + 24 * 60 * 60 - 1}

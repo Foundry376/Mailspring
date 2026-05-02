@@ -12,7 +12,7 @@ interface SubjectLineIconsProps {
   onToggleAllExpanded: () => void;
 }
 
-export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = props => (
+export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = (props) => (
   <div className="message-icons-wrap">
     {props.canCollapse && (
       <div
@@ -21,7 +21,7 @@ export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = 
         aria-label={props.hasCollapsedItems ? localized('Expand All') : localized('Collapse All')}
         title={props.hasCollapsedItems ? localized('Expand All') : localized('Collapse All')}
         onClick={props.onToggleAllExpanded}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             props.onToggleAllExpanded();
@@ -41,7 +41,7 @@ export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = 
       aria-label={localized('Print Thread')}
       title={localized('Print Thread')}
       onClick={props.onPrint}
-      onKeyDown={e => {
+      onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           props.onPrint();
@@ -57,7 +57,7 @@ export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = 
         aria-label={localized('Pop thread in')}
         title={localized('Pop thread in')}
         onClick={props.onPopIn}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             props.onPopIn();
@@ -73,7 +73,7 @@ export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = 
         aria-label={localized('Popout thread')}
         title={localized('Popout thread')}
         onClick={props.onPopOut}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             props.onPopOut();

@@ -42,7 +42,7 @@ export default class ThreadSharingPopover extends React.Component<
     this._mounted = true;
     this._disposable = Rx.Observable.fromQuery(
       DatabaseStore.find<Thread>(Thread, thread.id)
-    ).subscribe(t => {
+    ).subscribe((t) => {
       if (!t) return;
       this.setState({ url: sharingURLForThread(t) });
     });
@@ -101,7 +101,7 @@ export default class ThreadSharingPopover extends React.Component<
     this.setState({ saving: false, url: nextUrl });
   };
 
-  _onClickInput = event => {
+  _onClickInput = (event) => {
     event.target.select();
   };
 

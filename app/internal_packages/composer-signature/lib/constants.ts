@@ -68,10 +68,10 @@ export const DataShape = [
   },
 ];
 
-export const ResolveSignatureData = data => {
+export const ResolveSignatureData = (data) => {
   data = { ...data };
 
-  ['websiteURL', 'facebookURL', 'youtubeURL'].forEach(key => {
+  ['websiteURL', 'facebookURL', 'youtubeURL'].forEach((key) => {
     if (data[key] && !data[key].includes(':')) {
       data[key] = `http://${data[key]}`;
     }
@@ -142,6 +142,6 @@ export const ResolveSignatureData = data => {
 };
 
 export function RenderSignatureData(data) {
-  const template = Templates.find(t => t.name === data.templateName) || Templates[0];
+  const template = Templates.find((t) => t.name === data.templateName) || Templates[0];
   return ReactDOMServer.renderToStaticMarkup(template(ResolveSignatureData(data)));
 }

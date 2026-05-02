@@ -50,7 +50,7 @@ class Modal extends React.Component<ModalProps, ModalState> {
     const modalNode = ReactDOM.findDOMNode(this) as HTMLElement;
 
     const focusable = modalNode.querySelectorAll('[tabIndex], input');
-    const matches = _.sortBy(focusable, node => {
+    const matches = _.sortBy(focusable, (node) => {
       if ((node as HTMLElement).tabIndex > 0) {
         return (node as HTMLElement).tabIndex;
       } else if (node.nodeName === 'INPUT') {
@@ -78,7 +78,7 @@ class Modal extends React.Component<ModalProps, ModalState> {
     return { modalStyle };
   };
 
-  _onKeyDown = event => {
+  _onKeyDown = (event) => {
     if (event.key === 'Escape') {
       Actions.closeModal();
     }
@@ -94,13 +94,13 @@ class Modal extends React.Component<ModalProps, ModalState> {
         onKeyDown={this._onKeyDown}
         onClick={() => Actions.closeModal()}
       >
-        <div className="modal" style={modalStyle} onClick={event => event.stopPropagation()}>
+        <div className="modal" style={modalStyle} onClick={(event) => event.stopPropagation()}>
           <RetinaImg
             className="modal-close"
             style={{ width: '14', WebkitFilter: 'none', zIndex: 1, position: 'relative' }}
             name="modal-close.png"
             mode={RetinaImg.Mode.ContentDark}
-            onClick={event => {
+            onClick={(event) => {
               event.stopPropagation();
               Actions.closeModal();
             }}

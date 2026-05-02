@@ -91,9 +91,12 @@ class _IdentityStore extends MailspringStore {
     setTimeout(() => {
       this.fetchIdentity();
     }, 1000);
-    setInterval(() => {
-      this.fetchIdentity();
-    }, 1000 * 60 * 10); // 10 minutes
+    setInterval(
+      () => {
+        this.fetchIdentity();
+      },
+      1000 * 60 * 10
+    ); // 10 minutes
   }
 
   async saveIdentity(identity: IIdentity | null) {

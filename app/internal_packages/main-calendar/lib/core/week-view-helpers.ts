@@ -112,12 +112,12 @@ export function maxConcurrentEvents(eventOverlap: OverlapByEventId) {
 export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
   const map: { allDay: EventOccurrence[]; [dayUnix: string]: EventOccurrence[] } = { allDay: [] };
 
-  const unixDays = days.map(d => d.unix());
-  unixDays.forEach(day => {
+  const unixDays = days.map((d) => d.unix());
+  unixDays.forEach((day) => {
     map[`${day}`] = [];
   });
 
-  events.forEach(event => {
+  events.forEach((event) => {
     if (event.isAllDay) {
       map.allDay.push(event);
     } else {

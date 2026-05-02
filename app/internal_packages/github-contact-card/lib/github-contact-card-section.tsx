@@ -24,7 +24,7 @@ const GithubProfile = function GithubProfile(props) {
   const { profile } = props;
 
   // Transform the profile's array of repos into an array of React <GithubRepo> elements
-  const repoElements = profile.repos.map(repo => {
+  const repoElements = profile.repos.map((repo) => {
     return <GithubRepo key={repo.id} repo={repo} />;
   });
 

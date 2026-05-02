@@ -18,7 +18,7 @@ export class ListEditor<T> extends React.Component<ListEditorProps<T>> {
       <div>
         {displayed.map((item, idx) => (
           <div className="list-editor-item" key={idx}>
-            {children(item, changes => {
+            {children(item, (changes) => {
               onChange([...items.slice(0, idx), { ...item, ...changes }, ...items.slice(idx + 1)]);
             })}
             {isEqual(item, itemTemplate) ? (

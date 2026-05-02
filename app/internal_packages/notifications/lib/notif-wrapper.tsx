@@ -34,7 +34,7 @@ export default class NotifWrapper extends React.Component {
       return;
     }
 
-    const highestPriorityElem = _.max(elemsWithPriority, elem =>
+    const highestPriorityElem = _.max(elemsWithPriority, (elem) =>
       parseInt((elem as HTMLElement).dataset.priority, 10)
     ) as Element;
 

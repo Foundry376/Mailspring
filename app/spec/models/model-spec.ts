@@ -265,7 +265,7 @@ describe('Model', function modelSpecs() {
     });
 
     it('should pass itself as an argument to the matchers', () => {
-      spyOn(this.truthyMatcher, 'evaluate').andCallFake(param => {
+      spyOn(this.truthyMatcher, 'evaluate').andCallFake((param) => {
         expect(param).toBe(this.model);
       });
       this.model.matches([this.truthyMatcher]);

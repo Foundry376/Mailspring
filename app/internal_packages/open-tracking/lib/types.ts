@@ -4,6 +4,6 @@ export interface OpenTrackingMetadata {
     {
       timestamp: number;
       recipient: string;
-    }
+    },
   ];
 }

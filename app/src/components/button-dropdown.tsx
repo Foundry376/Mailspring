@@ -69,7 +69,10 @@ export class ButtonDropdown extends React.Component<ButtonDropdownProps, ButtonD
             aria-label={this.props.primaryTitle}
             onClick={this.props.primaryClick}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.primaryClick(); }
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.props.primaryClick();
+              }
             }}
           >
             {this.props.primaryItem}
@@ -83,7 +86,10 @@ export class ButtonDropdown extends React.Component<ButtonDropdownProps, ButtonD
             className="secondary-picker"
             onClick={this.toggleDropdown}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggleDropdown(); }
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.toggleDropdown();
+              }
             }}
           >
             <RetinaImg name={'icon-thread-disclosure.png'} mode={RetinaImg.Mode.ContentIsMask} />
@@ -139,13 +145,13 @@ export class ButtonDropdown extends React.Component<ButtonDropdownProps, ButtonD
     }
   };
 
-  _onMenuClick = event => {
+  _onMenuClick = (event) => {
     if (this.props.closeOnMenuClick) {
       this.setState({ open: false });
     }
   };
 
-  _onBlur = event => {
+  _onBlur = (event) => {
     const target = event.nativeEvent.relatedTarget;
     if (target != null && ReactDOM.findDOMNode(this.refs.button).contains(target)) {
       return;

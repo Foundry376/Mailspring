@@ -56,14 +56,14 @@ class TaskQueue extends MailspringStore {
     );
   }
 
-  _onQueueChangedDebounced = _.throttle(tasks => {
+  _onQueueChangedDebounced = _.throttle((tasks) => {
     const finished = [Task.Status.Complete, Task.Status.Cancelled];
-    this._queue = tasks.filter(t => !finished.includes(t.status));
-    this._completed = tasks.filter(t => finished.includes(t.status));
+    this._queue = tasks.filter((t) => !finished.includes(t.status));
+    this._completed = tasks.filter((t) => finished.includes(t.status));
     const all = [...this._queue, ...this._completed];
 
     this._waitingForLocal.filter(({ task, resolve }) => {
-      const match = all.find(t => task.id === t.id);
+      const match = all.find((t) => task.id === t.id);
       if (match && match.hasRunLocally()) {
         resolve(match);
         return false;
@@ -72,7 +72,7 @@ class TaskQueue extends MailspringStore {
     });
 
     this._waitingForRemote.filter(({ task, resolve }) => {
-      const match = this._completed.find(t => task.id === t.id);
+      const match = this._completed.find((t) => task.id === t.id);
       if (match) {
         resolve(match);
         return false;
@@ -103,7 +103,7 @@ class TaskQueue extends MailspringStore {
     const type = typeof typeOrClass === 'string' ? typeOrClass : typeOrClass.name;
     const tasks = includeCompleted ? [...this._queue, ...this._completed] : this._queue;
 
-    const matches = tasks.filter(task => {
+    const matches = tasks.filter((task) => {
       if (task.constructor.name !== type) {
         return false;
       }
@@ -117,23 +117,23 @@ class TaskQueue extends MailspringStore {
   }
 
   waitForPerformLocal = <T extends Task>(task: T) => {
-    const upToDateTask = [...this._queue, ...this._completed].find(t => t.id === task.id);
+    const upToDateTask = [...this._queue, ...this._completed].find((t) => t.id === task.id);
     if (upToDateTask && upToDateTask.hasRunLocally()) {
       return Promise.resolve(upToDateTask as T);
     }
 
-    return new Promise<T>(resolve => {
+    return new Promise<T>((resolve) => {
       this._waitingForLocal.push({ task, resolve });
     });
   };
 
   waitForPerformRemote = <T extends Task>(task: T) => {
-    const upToDateTask = [...this._queue, ...this._completed].find(t => t.id === task.id);
+    const upToDateTask = [...this._queue, ...this._completed].find((t) => t.id === task.id);
     if (upToDateTask && upToDateTask.status === Task.Status.Complete) {
       return Promise.resolve<T>(upToDateTask as T);
     }
 
-    return new Promise<T>(resolve => {
+    return new Promise<T>((resolve) => {
       this._waitingForRemote.push({ task, resolve });
     });
   };

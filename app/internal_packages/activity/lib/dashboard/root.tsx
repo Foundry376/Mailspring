@@ -224,7 +224,7 @@ class RootWithTimespan extends React.Component<
       if (linkM && linkM.tracked && linkM.links instanceof Array) {
         threadStats[message.threadId].tracked = true;
         linkTrackingEnabled += 1;
-        if (linkM.links.some(l => l.click_count > 0)) {
+        if (linkM.links.some((l) => l.click_count > 0)) {
           threadStats[message.threadId].clicked = true;
           linkTrackingTriggered += 1;
         }
@@ -232,7 +232,7 @@ class RootWithTimespan extends React.Component<
       return;
     });
 
-    const outboundThreadStats = Object.values(threadStats).filter(stats => stats.outbound);
+    const outboundThreadStats = Object.values(threadStats).filter((stats) => stats.outbound);
 
     // compute total reply rate for all sent messages
     let threadsOutbound = 0;
@@ -270,7 +270,7 @@ class RootWithTimespan extends React.Component<
     }
 
     const bySubjectSorted = Object.values(bySubject)
-      .filter(a => a.count > 1)
+      .filter((a) => a.count > 1)
       .sort((a, b) => b.opens - a.opens);
 
     // Okay! Make sure we've taken at least 1500ms and then fade in the stats
@@ -300,7 +300,7 @@ class RootWithTimespan extends React.Component<
   };
 
   _onFetchChunk(accountIds: string[], startUnix: number, endUnix: number) {
-    return new Promise<Message[]>(resolve => {
+    return new Promise<Message[]>((resolve) => {
       window.requestAnimationFrame(() => {
         DatabaseStore.findAll<Message>(Message)
           .background()
@@ -319,7 +319,7 @@ class RootWithTimespan extends React.Component<
   };
 
   _onExport = () => {
-    AppEnv.showSaveDialog({ defaultPath: 'report.csv' }, async filepath => {
+    AppEnv.showSaveDialog({ defaultPath: 'report.csv' }, async (filepath) => {
       if (!filepath) {
         return;
       }
@@ -328,10 +328,10 @@ class RootWithTimespan extends React.Component<
         timespan: { startDate, endDate },
         accountIds,
       } = this.props;
-      const esc = cell => '"' + `${cell}`.replace(/"/g, '""') + '"';
+      const esc = (cell) => '"' + `${cell}`.replace(/"/g, '""') + '"';
       const ws = fs.createWriteStream(filepath);
 
-      ws.on('error', err => {
+      ws.on('error', (err) => {
         AppEnv.showErrorDialog({
           title: localized('Export Failed'),
           message: localized(
@@ -346,7 +346,7 @@ class RootWithTimespan extends React.Component<
 
       ws.write('Sent,From,To,Cc,Bcc,Date,Subject,Opens,Clicks\n');
 
-      await this._forEachMessageIn(accountIds, startDate.unix(), endDate.unix(), message => {
+      await this._forEachMessageIn(accountIds, startDate.unix(), endDate.unix(), (message) => {
         let sent = 'false';
         let opens = '';
         let clicks = '';
@@ -376,7 +376,7 @@ class RootWithTimespan extends React.Component<
           `${esc(message.subject)},` +
           `${esc(opens)},${esc(clicks)}\n`;
 
-        return new Promise<void>(resolve => ws.write(line, () => resolve()));
+        return new Promise<void>((resolve) => ws.write(line, () => resolve()));
       });
       ws.close();
     });
@@ -532,7 +532,7 @@ class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespa
     };
   }
 
-  _onChangeTimespan = timespanId => {
+  _onChangeTimespan = (timespanId) => {
     this.setState(this.getStateForTimespanId(timespanId));
   };
 
@@ -558,7 +558,7 @@ class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespa
 }
 export default ListensToFluxStore(Root, {
   stores: [FocusedPerspectiveStore],
-  getStateFromStores: props => {
+  getStateFromStores: (props) => {
     return {
       ...props,
       accountIds: FocusedPerspectiveStore.current().accountIds,

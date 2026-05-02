@@ -77,7 +77,7 @@ class ActivityList extends React.Component<
       return <ActivityListEmptyState />;
     }
 
-    return this._groupActions(this.state.actions).map(group => (
+    return this._groupActions(this.state.actions).map((group) => (
       <ActivityListItemContainer
         key={`${group[0].messageId}-${group[0].timestamp}`}
         group={group}

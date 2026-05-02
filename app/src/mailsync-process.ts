@@ -199,24 +199,24 @@ export class MailsyncProcess extends EventEmitter {
       let buffer = Buffer.from([]);
 
       if (this._proc.stdout) {
-        this._proc.stdout.on('data', data => {
+        this._proc.stdout.on('data', (data) => {
           buffer += data;
           if (onData) onData(data);
         });
       }
       if (this._proc.stderr) {
-        this._proc.stderr.on('data', data => {
+        this._proc.stderr.on('data', (data) => {
           buffer += data;
           if (onData) onData(data);
         });
       }
 
-      this._proc.on('error', err => {
+      this._proc.on('error', (err) => {
         reject(err);
       });
 
-      this._proc.on('close', code => {
-        const stripSecrets = text => {
+      this._proc.on('close', (code) => {
+        const stripSecrets = (text) => {
           const settings = (this.account && this.account.settings) || {
             refresh_token: undefined,
             imap_password: undefined,
@@ -224,7 +224,7 @@ export class MailsyncProcess extends EventEmitter {
           };
           const { refresh_token, imap_password, smtp_password } = settings;
 
-          const escape = string => string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+          const escape = (string) => string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
           return (text || '')
             .replace(new RegExp(escape(refresh_token || 'not-present'), 'g'), '*********')
             .replace(new RegExp(escape(imap_password || 'not-present'), 'g'), '*********')
@@ -232,10 +232,7 @@ export class MailsyncProcess extends EventEmitter {
         };
 
         try {
-          const lastLine = buffer
-            .toString('utf-8')
-            .split('\n')
-            .pop();
+          const lastLine = buffer.toString('utf-8').split('\n').pop();
 
           let response: any;
           try {
@@ -287,7 +284,7 @@ export class MailsyncProcess extends EventEmitter {
     let errBuffer = '';
 
     if (this._proc.stdout) {
-      this._proc.stdout.on('data', data => {
+      this._proc.stdout.on('data', (data) => {
         const added = data.toString();
         try {
           outBuffer += added;
@@ -304,7 +301,7 @@ export class MailsyncProcess extends EventEmitter {
       });
     }
     if (this._proc.stderr) {
-      this._proc.stderr.on('data', data => {
+      this._proc.stderr.on('data', (data) => {
         try {
           errBuffer += data.toString();
           // Trim to last 100KB if the buffer grows too large to avoid OOM
@@ -317,7 +314,7 @@ export class MailsyncProcess extends EventEmitter {
         }
       });
     }
-    this._proc.on('error', err => {
+    this._proc.on('error', (err) => {
       console.log(`Sync worker exited with ${err}`);
       this.emit('error', err);
     });
@@ -329,7 +326,7 @@ export class MailsyncProcess extends EventEmitter {
     // asynchronously as 'error' events on stdin rather than thrown from write(),
     // so the try/catch in sendMessage() does not catch them.
     if (this._proc.stdin) {
-      this._proc.stdin.on('error', err => {
+      this._proc.stdin.on('error', (err) => {
         if (cleanedUp) return;
         cleanedUp = true;
         this._proc.kill();
@@ -373,7 +370,7 @@ export class MailsyncProcess extends EventEmitter {
       this.emit('close', { code, error, signal } as MailsyncProcessExit);
     };
 
-    this._proc.on('error', error => {
+    this._proc.on('error', (error) => {
       if (cleanedUp) {
         return;
       }
@@ -393,10 +390,7 @@ export class MailsyncProcess extends EventEmitter {
     try {
       this._proc.stdin.write(msg, 'utf-8');
     } catch (error) {
-      if (
-        error &&
-        (error.message.includes('socket has been ended') || error.code === 'EPIPE')
-      ) {
+      if (error && (error.message.includes('socket has been ended') || error.code === 'EPIPE')) {
         // The process probably already exited and we missed it somehow,
         // but try to kill it anyway and then force-emit a 'close' to trigger
         // the bridge to restart us.
@@ -410,7 +404,7 @@ export class MailsyncProcess extends EventEmitter {
     try {
       console.log('Running database migrations');
       const { buffer } = await this._spawnAndWait('migrate', {
-        onData: data => {
+        onData: (data) => {
           const str = data.toString().toLowerCase();
           if (str.includes('running migration')) this._showStatusWindow('migration');
           if (str.includes('running vacuum')) this._showStatusWindow('vacuum');

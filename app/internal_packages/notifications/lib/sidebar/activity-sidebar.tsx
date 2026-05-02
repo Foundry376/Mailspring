@@ -90,8 +90,8 @@ export default class ActivitySidebar extends React.Component<
     const sendTasks: SendDraftTask[] = [];
     const exportTasks: GetManyRFC2822Task[] = [];
     const nonSendTasks: Task[] = [];
-    tasks.forEach(task => {
-      if (SEND_TASK_CLASSES.some(klass => task instanceof klass)) {
+    tasks.forEach((task) => {
+      if (SEND_TASK_CLASSES.some((klass) => task instanceof klass)) {
         sendTasks.push(task);
       } else if (task instanceof GetManyRFC2822Task) {
         exportTasks.push(task);

@@ -172,7 +172,7 @@ class ComponentRegistry extends MailspringStore {
     // values (`[]`) are necessary and it was getting messy.
     const overlaps = (entry = [], search = []) => _.intersection(entry, search).length > 0;
 
-    const entries = Object.values(this._registry).filter(entry => {
+    const entries = Object.values(this._registry).filter((entry) => {
       if (modes && entry.modes && !overlaps(modes, entry.modes)) {
         return false;
       }
@@ -185,7 +185,7 @@ class ComponentRegistry extends MailspringStore {
       return true;
     });
 
-    const results = entries.map(entry => entry.component);
+    const results = entries.map((entry) => entry.component);
     this._cache[cacheKey] = results;
 
     return [...results];

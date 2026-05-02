@@ -40,7 +40,7 @@ class ActionBridge {
     this.ipc.on('action-bridge-message', this.onIPCMessage);
 
     // Observe all global actions and re-broadcast them to other windows
-    Actions.globalActions.forEach(action => {
+    Actions.globalActions.forEach((action) => {
       const callback = (...args) => this.onRebroadcast(TargetWindows.ALL, action.actionName, args);
       return action.listen(callback, this);
     });
@@ -48,7 +48,7 @@ class ActionBridge {
     if (this.role !== Role.MAIN) {
       // Observe actions for the main window fired in this window and re-broadcast
       // them to the main window.
-      Actions.mainWindowActions.forEach(action => {
+      Actions.mainWindowActions.forEach((action) => {
         const callback = (...args) =>
           this.onRebroadcast(TargetWindows.MAIN, action.actionName, args);
         return action.listen(callback, this);
@@ -96,7 +96,7 @@ class ActionBridge {
     }
 
     const params = [];
-    args.forEach(arg => {
+    args.forEach((arg) => {
       if (arg instanceof Function) {
         throw new Error(
           'ActionBridge cannot forward action argument of type `function` to another window.'

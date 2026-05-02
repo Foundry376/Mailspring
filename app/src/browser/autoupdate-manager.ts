@@ -81,7 +81,7 @@ export default class AutoUpdateManager extends EventEmitter {
       autoUpdater = require('electron').autoUpdater;
     }
 
-    autoUpdater.on('error', error => {
+    autoUpdater.on('error', (error) => {
       if (this.specMode) return;
       console.error(`Error Downloading Update: ${error.message}`);
       this.setState(ErrorState);
@@ -117,13 +117,16 @@ export default class AutoUpdateManager extends EventEmitter {
     this.check({ hidePopups: true });
 
     //check every 30 minutes
-    setInterval(() => {
-      if ([UpdateAvailableState, UnsupportedState].includes(this.state)) {
-        console.log('Skipping update check... update ready to install, or updater unavailable.');
-        return;
-      }
-      this.check({ hidePopups: true });
-    }, 1000 * 60 * 30);
+    setInterval(
+      () => {
+        if ([UpdateAvailableState, UnsupportedState].includes(this.state)) {
+          console.log('Skipping update check... update ready to install, or updater unavailable.');
+          return;
+        }
+        this.check({ hidePopups: true });
+      },
+      1000 * 60 * 30
+    );
   }
 
   emitUpdateAvailableEvent() {

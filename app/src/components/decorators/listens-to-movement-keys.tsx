@@ -9,28 +9,28 @@ function ListensToMovementKeys(ComposedComponent) {
 
     localKeyHandlers() {
       return {
-        'core:previous-item': event => {
+        'core:previous-item': (event) => {
           if (!(this._component || {}).onArrowUp) {
             return;
           }
           event.stopPropagation();
           this._component.onArrowUp(event);
         },
-        'core:next-item': event => {
+        'core:next-item': (event) => {
           if (!(this._component || {}).onArrowDown) {
             return;
           }
           event.stopPropagation();
           this._component.onArrowDown(event);
         },
-        'core:move-left': event => {
+        'core:move-left': (event) => {
           if (!(this._component || {}).onArrowDown) {
             return;
           }
           event.stopPropagation();
           this._component.onArrowLeft(event);
         },
-        'core:move-right': event => {
+        'core:move-right': (event) => {
           if (!(this._component || {}).onArrowDown) {
             return;
           }
@@ -40,7 +40,7 @@ function ListensToMovementKeys(ComposedComponent) {
       };
     }
 
-    onKeyDown = event => {
+    onKeyDown = (event) => {
       if (['Enter', 'Return'].includes(event.key)) {
         if (!(this._component || {}).onEnter) {
           return;
@@ -75,7 +75,7 @@ function ListensToMovementKeys(ComposedComponent) {
           onKeyDown={this.onKeyDown}
         >
           <ComposedComponent
-            ref={cm => {
+            ref={(cm) => {
               this._component = cm;
             }}
             {...this.props}

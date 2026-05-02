@@ -160,8 +160,8 @@ const T_NEW_END = Date.UTC(2026, 2, 2, 9, 0, 0) / 1000; // 09:00 UTC
 // createRecurrenceException
 // ---------------------------------------------------------------------------
 
-describe('ICSEventHelpers.createRecurrenceException', function() {
-  it('returns both masterIcs and recurrenceId', function() {
+describe('ICSEventHelpers.createRecurrenceException', function () {
+  it('returns both masterIcs and recurrenceId', function () {
     const result = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -175,7 +175,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     expect(result.recurrenceId.length).toBeGreaterThan(0);
   });
 
-  it('embeds exactly two VEVENTs in the returned masterIcs (master + exception)', function() {
+  it('embeds exactly two VEVENTs in the returned masterIcs (master + exception)', function () {
     const { masterIcs } = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -186,7 +186,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     expect(countVevents(masterIcs)).toBe(2);
   });
 
-  it('preserves the RRULE on the master VEVENT', function() {
+  it('preserves the RRULE on the master VEVENT', function () {
     const { masterIcs } = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -197,7 +197,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     expect(hasProperty(masterIcs, 'RRULE')).toBe(true);
   });
 
-  it('does NOT add RRULE to the exception VEVENT', function() {
+  it('does NOT add RRULE to the exception VEVENT', function () {
     const { masterIcs } = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -210,7 +210,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     expect(rruleMatches.length).toBe(1);
   });
 
-  it('produces a RECURRENCE-ID in UTC format (YYYYMMDDTHHMMSSz) for timed events', function() {
+  it('produces a RECURRENCE-ID in UTC format (YYYYMMDDTHHMMSSz) for timed events', function () {
     const { recurrenceId } = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -223,7 +223,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     expect(recurrenceId).toBe('20260302T060000Z');
   });
 
-  it('produces a RECURRENCE-ID in date-only format (YYYYMMDD) for all-day events', function() {
+  it('produces a RECURRENCE-ID in date-only format (YYYYMMDD) for all-day events', function () {
     const allDayOccStart = Date.UTC(2026, 2, 8) / 1000; // 2026-03-08
     const allDayNewStart = Date.UTC(2026, 2, 9) / 1000;
     const allDayNewEnd = Date.UTC(2026, 2, 10) / 1000;
@@ -239,7 +239,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     expect(/^\d{8}$/.test(recurrenceId)).toBe(true);
   });
 
-  it('embeds a RECURRENCE-ID property inside the returned masterIcs', function() {
+  it('embeds a RECURRENCE-ID property inside the returned masterIcs', function () {
     const { masterIcs } = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -250,8 +250,8 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     expect(hasProperty(masterIcs, 'RECURRENCE-ID')).toBe(true);
   });
 
-  describe('upsert semantics', function() {
-    it('replaces an existing exception when called again with the same originalOccurrenceStart', function() {
+  describe('upsert semantics', function () {
+    it('replaces an existing exception when called again with the same originalOccurrenceStart', function () {
       // First call — create the exception
       const { masterIcs: firstMasterIcs } = ICSEventHelpers.createRecurrenceException(
         DAILY_STANDUP_ICS,
@@ -278,8 +278,8 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     });
   });
 
-  describe('deep clone isolation', function() {
-    it('mutation of the exception VEVENT does not corrupt the master VEVENT', function() {
+  describe('deep clone isolation', function () {
+    it('mutation of the exception VEVENT does not corrupt the master VEVENT', function () {
       const { masterIcs } = ICSEventHelpers.createRecurrenceException(
         DAILY_STANDUP_ICS,
         T_OCC2_START,
@@ -297,8 +297,8 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     });
   });
 
-  describe('with an existing inline exception (upsert on pre-excepted ICS)', function() {
-    it('still produces exactly 2 VEVENTs when re-editing the same occurrence', function() {
+  describe('with an existing inline exception (upsert on pre-excepted ICS)', function () {
+    it('still produces exactly 2 VEVENTs when re-editing the same occurrence', function () {
       // RECURRING_WITH_EXCEPTION_ICS already has 20260302T060000Z excepted
       const { masterIcs } = ICSEventHelpers.createRecurrenceException(
         RECURRING_WITH_EXCEPTION_ICS,
@@ -310,7 +310,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
       expect(countVevents(masterIcs)).toBe(2);
     });
 
-    it('keeps 3 VEVENTs when creating an exception for a different occurrence', function() {
+    it('keeps 3 VEVENTs when creating an exception for a different occurrence', function () {
       // Exception for the third occurrence (20260303T060000Z), not the existing one
       const T_OCC3_START = Date.UTC(2026, 2, 3, 6, 0, 0) / 1000;
       const T_OCC3_NEW_START = Date.UTC(2026, 2, 3, 9, 0, 0) / 1000;
@@ -328,7 +328,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
     });
   });
 
-  it('throws when newEnd is before newStart', function() {
+  it('throws when newEnd is before newStart', function () {
     expect(() =>
       ICSEventHelpers.createRecurrenceException(
         DAILY_STANDUP_ICS,
@@ -351,13 +351,13 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
   //   "20260312T140000" !== "20260312T190000Z"
   // failed to recognise these as the same moment (14:00 CDT = 19:00 UTC).
   // Fix: compare via toJSDate().getTime() after registering VTIMEZONE.
-  describe('timezone-aware upsert (TZID-format RECURRENCE-ID)', function() {
+  describe('timezone-aware upsert (TZID-format RECURRENCE-ID)', function () {
     // March 12 2026 14:00 CDT (UTC-5) = 19:00 UTC
     const T_MARCH12_CDT_AS_UTC = Date.UTC(2026, 2, 12, 19, 0, 0) / 1000;
     const T_MARCH12_NEW_START = Date.UTC(2026, 2, 12, 20, 0, 0) / 1000;
     const T_MARCH12_NEW_END = Date.UTC(2026, 2, 12, 21, 0, 0) / 1000;
 
-    it('produces exactly 2 VEVENTs when originalOccurrenceStart matches a TZID-formatted existing exception', function() {
+    it('produces exactly 2 VEVENTs when originalOccurrenceStart matches a TZID-formatted existing exception', function () {
       // The fixture has RECURRENCE-ID;TZID=America/Chicago:20260312T140000.
       // T_MARCH12_CDT_AS_UTC is the UTC equivalent (19:00Z).
       // The upsert must recognise them as the same moment and replace the old
@@ -372,7 +372,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
       expect(countVevents(masterIcs)).toBe(2);
     });
 
-    it('removes the TZID-format RECURRENCE-ID and replaces it with UTC format', function() {
+    it('removes the TZID-format RECURRENCE-ID and replaces it with UTC format', function () {
       const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
         RECURRING_WITH_TZID_EXCEPTION_ICS,
         T_MARCH12_CDT_AS_UTC,
@@ -388,7 +388,7 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
       expect(masterIcs).toContain('RECURRENCE-ID:20260312T190000Z');
     });
 
-    it('applying a summary edit via applyEditsToException updates only the new exception', function() {
+    it('applying a summary edit via applyEditsToException updates only the new exception', function () {
       // This is the exact user-reported scenario: editing the summary of a
       // TZID-format exception should produce an ICS where ical-expander
       // displays the *new* summary, not the old one.
@@ -416,11 +416,11 @@ describe('ICSEventHelpers.createRecurrenceException', function() {
 // applyEditsToException
 // ---------------------------------------------------------------------------
 
-describe('ICSEventHelpers.applyEditsToException', function() {
+describe('ICSEventHelpers.applyEditsToException', function () {
   let masterIcsWithException: string;
   let recurrenceId: string;
 
-  beforeEach(function() {
+  beforeEach(function () {
     const result = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -432,7 +432,7 @@ describe('ICSEventHelpers.applyEditsToException', function() {
     recurrenceId = result.recurrenceId;
   });
 
-  it('updates the summary on the exception VEVENT', function() {
+  it('updates the summary on the exception VEVENT', function () {
     const updated = ICSEventHelpers.applyEditsToException(masterIcsWithException, recurrenceId, {
       summary: 'Exception Summary',
     });
@@ -442,7 +442,7 @@ describe('ICSEventHelpers.applyEditsToException', function() {
     expect(updated).toContain('Daily Standup');
   });
 
-  it('updates the location on the exception VEVENT only', function() {
+  it('updates the location on the exception VEVENT only', function () {
     const updated = ICSEventHelpers.applyEditsToException(masterIcsWithException, recurrenceId, {
       location: 'Conference Room B',
     });
@@ -453,14 +453,14 @@ describe('ICSEventHelpers.applyEditsToException', function() {
     expect(locationCount).toBe(1);
   });
 
-  it('updates the description on the exception VEVENT', function() {
+  it('updates the description on the exception VEVENT', function () {
     const updated = ICSEventHelpers.applyEditsToException(masterIcsWithException, recurrenceId, {
       description: 'Updated description for this occurrence',
     });
     expect(updated).toContain('Updated description for this occurrence');
   });
 
-  it('does not modify the master VEVENT summary when editing the exception summary', function() {
+  it('does not modify the master VEVENT summary when editing the exception summary', function () {
     const updated = ICSEventHelpers.applyEditsToException(masterIcsWithException, recurrenceId, {
       summary: 'Changed Exception Title',
     });
@@ -468,7 +468,7 @@ describe('ICSEventHelpers.applyEditsToException', function() {
     expect(updated).toContain('Daily Standup');
   });
 
-  it('throws when no exception VEVENT with the given RECURRENCE-ID exists', function() {
+  it('throws when no exception VEVENT with the given RECURRENCE-ID exists', function () {
     const bogusRecurrenceId = '20261231T120000Z';
     expect(() =>
       ICSEventHelpers.applyEditsToException(masterIcsWithException, bogusRecurrenceId, {
@@ -477,7 +477,7 @@ describe('ICSEventHelpers.applyEditsToException', function() {
     ).toThrow();
   });
 
-  it('throws when the ICS has no VCALENDAR root', function() {
+  it('throws when the ICS has no VCALENDAR root', function () {
     // A bare VEVENT (no VCALENDAR wrapper) should trigger an error
     const bareVevent = `BEGIN:VEVENT
 UID:bare@test
@@ -495,11 +495,11 @@ END:VEVENT`;
 // shiftInlineExceptions
 // ---------------------------------------------------------------------------
 
-describe('ICSEventHelpers.shiftInlineExceptions', function() {
+describe('ICSEventHelpers.shiftInlineExceptions', function () {
   let masterIcsWithException: string;
   let originalRecurrenceId: string;
 
-  beforeEach(function() {
+  beforeEach(function () {
     const result = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -511,12 +511,12 @@ describe('ICSEventHelpers.shiftInlineExceptions', function() {
     originalRecurrenceId = result.recurrenceId; // '20260302T060000Z'
   });
 
-  it('returns the ICS unchanged when deltaMs is 0', function() {
+  it('returns the ICS unchanged when deltaMs is 0', function () {
     const result = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, 0);
     expect(result).toBe(masterIcsWithException);
   });
 
-  it('shifts the RECURRENCE-ID forward by the given delta', function() {
+  it('shifts the RECURRENCE-ID forward by the given delta', function () {
     // Shift forward 1 day = 86400000 ms
     const shifted = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, 86400000);
     // Original RECURRENCE-ID was 20260302T060000Z → should become 20260303T060000Z
@@ -524,7 +524,7 @@ describe('ICSEventHelpers.shiftInlineExceptions', function() {
     expect(shifted).not.toContain('20260302T060000Z');
   });
 
-  it('shifts the RECURRENCE-ID backward by the given delta', function() {
+  it('shifts the RECURRENCE-ID backward by the given delta', function () {
     // Shift backward 1 day = -86400000 ms
     const shifted = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, -86400000);
     // Should become 20260301T060000Z
@@ -532,13 +532,13 @@ describe('ICSEventHelpers.shiftInlineExceptions', function() {
     expect(shifted).not.toContain('20260302T060000Z');
   });
 
-  it('does NOT change the exception DTSTART when shifting RECURRENCE-ID', function() {
+  it('does NOT change the exception DTSTART when shifting RECURRENCE-ID', function () {
     const shifted = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, 86400000);
     // Exception DTSTART was set to T_NEW_START = 20260302T080000Z — must remain
     expect(shifted).toContain('20260302T080000Z');
   });
 
-  it('does not touch the master VEVENT (the one without RECURRENCE-ID)', function() {
+  it('does not touch the master VEVENT (the one without RECURRENCE-ID)', function () {
     const shifted = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, 86400000);
     // Master DTSTART should still be 20260301T060000Z
     expect(shifted).toContain('20260301T060000Z');
@@ -546,14 +546,14 @@ describe('ICSEventHelpers.shiftInlineExceptions', function() {
     expect(hasProperty(shifted, 'RRULE')).toBe(true);
   });
 
-  it('handles ICS with no inline exceptions gracefully (returns it unchanged except dtstamp)', function() {
+  it('handles ICS with no inline exceptions gracefully (returns it unchanged except dtstamp)', function () {
     // A plain recurring event with no exception VEVENTs
     const shifted = ICSEventHelpers.shiftInlineExceptions(DAILY_STANDUP_ICS, 3600000);
     // Should still be valid ICS with one VEVENT
     expect(countVevents(shifted)).toBe(1);
   });
 
-  it('shifts multiple exceptions independently', function() {
+  it('shifts multiple exceptions independently', function () {
     // Create a second exception (for the 3rd occurrence)
     const T_OCC3_START = Date.UTC(2026, 2, 3, 6, 0, 0) / 1000;
     const T_OCC3_NEW = Date.UTC(2026, 2, 3, 9, 0, 0) / 1000;
@@ -582,24 +582,24 @@ describe('ICSEventHelpers.shiftInlineExceptions', function() {
 // addExclusionDate
 // ---------------------------------------------------------------------------
 
-describe('ICSEventHelpers.addExclusionDate', function() {
-  it('adds an EXDATE property to the master VEVENT', function() {
+describe('ICSEventHelpers.addExclusionDate', function () {
+  it('adds an EXDATE property to the master VEVENT', function () {
     const result = ICSEventHelpers.addExclusionDate(DAILY_STANDUP_ICS, T_OCC2_START, false);
     expect(hasProperty(result, 'EXDATE')).toBe(true);
   });
 
-  it('the returned ICS still has the RRULE', function() {
+  it('the returned ICS still has the RRULE', function () {
     const result = ICSEventHelpers.addExclusionDate(DAILY_STANDUP_ICS, T_OCC2_START, false);
     expect(hasProperty(result, 'RRULE')).toBe(true);
   });
 
-  it('increments SEQUENCE when the property is present', function() {
+  it('increments SEQUENCE when the property is present', function () {
     const result = ICSEventHelpers.addExclusionDate(DAILY_STANDUP_ICS, T_OCC2_START, false);
     const seqValue = getPropertyValue(result, 'SEQUENCE');
     expect(seqValue ? parseInt(seqValue, 10) : 0).toBe(1);
   });
 
-  it('does not increment SEQUENCE when the property is absent', function() {
+  it('does not increment SEQUENCE when the property is absent', function () {
     // ICS without SEQUENCE
     const noSeqIcs = DAILY_STANDUP_ICS.replace(/\r?\nSEQUENCE:0/g, '');
     const result = ICSEventHelpers.addExclusionDate(noSeqIcs, T_OCC2_START, false);
@@ -607,13 +607,13 @@ describe('ICSEventHelpers.addExclusionDate', function() {
     expect(result).toBeDefined();
   });
 
-  it('handles all-day events (DATE value format)', function() {
+  it('handles all-day events (DATE value format)', function () {
     const allDayOccStart = Date.UTC(2026, 2, 8) / 1000;
     const result = ICSEventHelpers.addExclusionDate(ALL_DAY_RECURRING_ICS, allDayOccStart, true);
     expect(hasProperty(result, 'EXDATE')).toBe(true);
   });
 
-  it('can add multiple EXDATE values by calling it multiple times', function() {
+  it('can add multiple EXDATE values by calling it multiple times', function () {
     const T_OCC3_START = Date.UTC(2026, 2, 3, 6, 0, 0) / 1000;
     const after1 = ICSEventHelpers.addExclusionDate(DAILY_STANDUP_ICS, T_OCC2_START, false);
     const after2 = ICSEventHelpers.addExclusionDate(after1, T_OCC3_START, false);
@@ -626,8 +626,8 @@ describe('ICSEventHelpers.addExclusionDate', function() {
 // updateRecurringEventTimes
 // ---------------------------------------------------------------------------
 
-describe('ICSEventHelpers.updateRecurringEventTimes', function() {
-  it('shifts the master DTSTART by the delta (not to an absolute new time)', function() {
+describe('ICSEventHelpers.updateRecurringEventTimes', function () {
+  it('shifts the master DTSTART by the delta (not to an absolute new time)', function () {
     // originalOccurrenceStart is the 2nd occurrence: 2026-03-02T06:00Z
     // newStart is 2026-03-02T08:00Z → delta = +2h
     // master DTSTART was 2026-03-01T06:00Z → should become 2026-03-01T08:00Z
@@ -642,7 +642,7 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function() {
     expect(result).toContain('20260301T080000Z');
   });
 
-  it('preserves the RRULE after shifting', function() {
+  it('preserves the RRULE after shifting', function () {
     const result = ICSEventHelpers.updateRecurringEventTimes(
       DAILY_STANDUP_ICS,
       T_OCC2_START,
@@ -654,7 +654,7 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function() {
     expect(result).toContain('FREQ=DAILY');
   });
 
-  it('shifts both DTSTART and DTEND by the same delta', function() {
+  it('shifts both DTSTART and DTEND by the same delta', function () {
     // Original DTEND = 20260301T070000Z (1h after DTSTART)
     // After +2h shift: DTSTART = 20260301T080000Z, DTEND = 20260301T090000Z
     const result = ICSEventHelpers.updateRecurringEventTimes(
@@ -668,7 +668,7 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function() {
     expect(result).toContain('20260301T090000Z'); // shifted DTEND
   });
 
-  it('handles a zero delta (returns an equivalent ICS)', function() {
+  it('handles a zero delta (returns an equivalent ICS)', function () {
     // originalOccurrenceStart == newStart → delta = 0 → no shift
     const result = ICSEventHelpers.updateRecurringEventTimes(
       DAILY_STANDUP_ICS,
@@ -680,7 +680,7 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function() {
     expect(result).toContain('20260301T060000Z'); // master DTSTART unchanged
   });
 
-  it('can shift backward (negative delta)', function() {
+  it('can shift backward (negative delta)', function () {
     // Move from 06:00 to 04:00 → delta = -2h
     const T_EARLIER_START = Date.UTC(2026, 2, 2, 4, 0, 0) / 1000;
     const T_EARLIER_END = Date.UTC(2026, 2, 2, 5, 0, 0) / 1000;
@@ -700,12 +700,12 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function() {
 // isRecurringEvent
 // ---------------------------------------------------------------------------
 
-describe('ICSEventHelpers.isRecurringEvent', function() {
-  it('returns true for a recurring event (has RRULE)', function() {
+describe('ICSEventHelpers.isRecurringEvent', function () {
+  it('returns true for a recurring event (has RRULE)', function () {
     expect(ICSEventHelpers.isRecurringEvent(DAILY_STANDUP_ICS)).toBe(true);
   });
 
-  it('returns false for a simple (non-recurring) event', function() {
+  it('returns false for a simple (non-recurring) event', function () {
     expect(ICSEventHelpers.isRecurringEvent(SIMPLE_ICS)).toBe(false);
   });
 });

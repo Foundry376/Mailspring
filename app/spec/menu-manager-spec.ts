@@ -1,22 +1,22 @@
 import MenuManager from '../src/menu-manager';
 
-describe('MenuManager', function() {
+describe('MenuManager', function () {
   let menu = null;
 
-  beforeEach(function() {
+  beforeEach(function () {
     menu = new MenuManager({ resourcePath: AppEnv.getLoadSettings().resourcePath });
     menu.template = [];
   });
 
-  describe('::add(items)', function() {
-    it('can add new menus that can be removed with the returned disposable', function() {
+  describe('::add(items)', function () {
+    it('can add new menus that can be removed with the returned disposable', function () {
       const disposable = menu.add([{ label: 'A', submenu: [{ label: 'B', command: 'b' }] }]);
       expect(menu.template).toEqual([{ label: 'A', submenu: [{ label: 'B', command: 'b' }] }]);
       disposable.dispose();
       expect(menu.template).toEqual([]);
     });
 
-    it('can add submenu items to existing menus that can be removed with the returned disposable', function() {
+    it('can add submenu items to existing menus that can be removed with the returned disposable', function () {
       const disposable1 = menu.add([{ label: 'A', submenu: [{ label: 'B', command: 'b' }] }]);
       const disposable2 = menu.add([
         { label: 'A', submenu: [{ label: 'C', submenu: [{ label: 'D', command: 'd' }] }] },
@@ -59,7 +59,7 @@ describe('MenuManager', function() {
       expect(menu.template).toEqual([]);
     });
 
-    it('does not add duplicate labels to the same menu', function() {
+    it('does not add duplicate labels to the same menu', function () {
       const originalItemCount = menu.template.length;
       menu.add([{ label: 'A', submenu: [{ label: 'B', command: 'b' }] }]);
       menu.add([{ label: 'A', submenu: [{ label: 'B', command: 'b' }] }]);

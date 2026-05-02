@@ -54,13 +54,13 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
 
   draft.__bodyPropDescriptor = {
     configurable: true,
-    get: function() {
+    get: function () {
       if (_bodyHTMLValue === null) {
         _bodyHTMLValue = convertToHTML(_bodyEditorValue);
       }
       return _bodyHTMLValue;
     },
-    set: function(inHTML) {
+    set: function (inHTML) {
       if (_bodyHTMLValue === inHTML) return;
 
       _bodyHTMLValue = inHTML;
@@ -106,7 +106,9 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
           // equivalent document of the same shape.
           AppEnv.reportError(new Error(`Unable to insert fragment into existing document.`), {
             underlyingError: err,
-            existingSlateShape: session._mountedEditor ? convertToShapeWithoutContent(session._mountedEditor.value) : null,
+            existingSlateShape: session._mountedEditor
+              ? convertToShapeWithoutContent(session._mountedEditor.value)
+              : null,
             incomingSlateShape: convertToShapeWithoutContent(inHTMLEditorValue),
           });
           _bodyEditorValue = inHTMLEditorValue;
@@ -120,13 +122,13 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
 
   draft.__bodyEditorValuePropDescriptor = {
     configurable: true,
-    get: function() {
+    get: function () {
       if (_bodyEditorValue === null) {
         _bodyEditorValue = convertFromHTML(_bodyHTMLValue);
       }
       return _bodyEditorValue;
     },
-    set: function(inValue) {
+    set: function (inValue) {
       if (_bodyEditorValue === inValue) return;
       _bodyHTMLValue = null;
       _bodyEditorValue = inValue;
@@ -185,7 +187,7 @@ export class DraftEditingSession extends MailspringStore {
 
   headerMessageId: string;
   changes = new DraftChangeSet({
-    onAddChanges: changes => this.changeSetApplyChanges(changes),
+    onAddChanges: (changes) => this.changeSetApplyChanges(changes),
     onCommit: () => this.changeSetCommit(), // for specs
   });
 
@@ -208,7 +210,7 @@ export class DraftEditingSession extends MailspringStore {
         draft: true,
       })
         .include(Message.attributes.body)
-        .then(draft => {
+        .then((draft) => {
           if (this._destroyed) {
             console.warn(`Draft loaded but session has been torn down.`);
             return;
@@ -278,7 +280,6 @@ export class DraftEditingSession extends MailspringStore {
     return { miscErrors, miscWarnings };
   }
 
-
   validateDraftRecipients() {
     const recipientWarnings = [];
     const recipientErrors = [];
@@ -294,7 +295,12 @@ export class DraftEditingSession extends MailspringStore {
         );
       }
       const name = contact.fullName();
-      if (name && name.length && name !== contact.email && !this.checkRecipientInWarningBlacklist(contact.email)) {
+      if (
+        name &&
+        name.length &&
+        name !== contact.email &&
+        !this.checkRecipientInWarningBlacklist(contact.email)
+      ) {
         allNames.push(name.toLowerCase()); // ben gotow
         allNames.push(...name.toLowerCase().split(' ')); // ben, gotow
         allNames.push(...name.toLowerCase().split('-')); // anne-marie => anne, marie
@@ -330,13 +336,14 @@ export class DraftEditingSession extends MailspringStore {
     if (!unnamedRecipientPresent) {
       // https://www.regexpal.com/?fam=99334
       // note: requires that the name is capitalized, to avoid catching "Hey guys"
-      const englishSalutationPhrases = /(?:[y|Y]o|[h|H]ey|[h|H]i|[M|m]orning|[A|a]fternoon|[E|e]vening|[D|d]ear){1} ([A-Z][A-Za-zÀ-ÿ. -]+)[!_—,.\n\r< ]/;
+      const englishSalutationPhrases =
+        /(?:[y|Y]o|[h|H]ey|[h|H]i|[M|m]orning|[A|a]fternoon|[E|e]vening|[D|d]ear){1} ([A-Z][A-Za-zÀ-ÿ. -]+)[!_—,.\n\r< ]/;
       const match = englishSalutationPhrases.exec(cleaned);
       if (match) {
         let salutation = (match[1] || '').toLowerCase();
         if (salutation.endsWith('-')) salutation = salutation.substr(0, salutation.length - 1);
 
-        if (!allNames.find(n => n === salutation || (n.length > 1 && salutation.includes(n)))) {
+        if (!allNames.find((n) => n === salutation || (n.length > 1 && salutation.includes(n)))) {
           recipientWarnings.push(
             localized(
               `The message is addressed to a name that doesn't appear to be a recipient ("%@")`,
@@ -352,19 +359,18 @@ export class DraftEditingSession extends MailspringStore {
 
   addRecipientsToWarningBlacklist() {
     const allRecipients = [...this._draft.to, ...this._draft.cc, ...this._draft.bcc];
-    const allRecipientEmails = allRecipients.map(contact =>  contact.email);
-    let blacklist = JSON.parse(localStorage.getItem("recipientWarningBlacklist"));
+    const allRecipientEmails = allRecipients.map((contact) => contact.email);
+    let blacklist = JSON.parse(localStorage.getItem('recipientWarningBlacklist'));
     if (blacklist === null) blacklist = [];
     blacklist.push(...allRecipientEmails);
-    localStorage.setItem("recipientWarningBlacklist", JSON.stringify(blacklist));
+    localStorage.setItem('recipientWarningBlacklist', JSON.stringify(blacklist));
   }
-  
+
   checkRecipientInWarningBlacklist(email) {
-    const blacklist = JSON.parse(localStorage.getItem("recipientWarningBlacklist"));
+    const blacklist = JSON.parse(localStorage.getItem('recipientWarningBlacklist'));
     if (blacklist && blacklist.includes(email)) return true;
     return false;
   }
-
 
   // This function makes sure the draft is attached to a valid account, and changes
   // it's accountId if the from address does not match the account for the from
@@ -422,7 +428,7 @@ export class DraftEditingSession extends MailspringStore {
     return this;
   }
 
-  _onDraftChanged = change => {
+  _onDraftChanged = (change) => {
     if (change === undefined || change.type !== 'persist') {
       return;
     }
@@ -441,7 +447,7 @@ export class DraftEditingSession extends MailspringStore {
     }
 
     const nextDraft = change.objects
-      .filter(obj => obj.headerMessageId === this._draft.headerMessageId)
+      .filter((obj) => obj.headerMessageId === this._draft.headerMessageId)
       .pop();
 
     if (!nextDraft) {
@@ -481,7 +487,7 @@ export class DraftEditingSession extends MailspringStore {
     await TaskQueue.waitForPerformLocal(task);
   }
 
-  changeSetApplyChanges = changes => {
+  changeSetApplyChanges = (changes) => {
     if (this._destroyed) {
       return;
     }
@@ -493,7 +499,10 @@ export class DraftEditingSession extends MailspringStore {
 
     for (const [key, val] of Object.entries(changes)) {
       if (key.startsWith(MetadataChangePrefix)) {
-        this._draft.directlyAttachMetadata(key.split(MetadataChangePrefix).pop(), val as Record<string, any>);
+        this._draft.directlyAttachMetadata(
+          key.split(MetadataChangePrefix).pop(),
+          val as Record<string, any>
+        );
       } else {
         this._draft[key] = val;
       }

@@ -23,7 +23,7 @@ export function currentSignatureIdSlate(value: Value) {
   const sigNode = value.document
     .getBlocksByType('uneditable')
     .toArray()
-    .find(a => a.data.get('html').startsWith('<signature '));
+    .find((a) => a.data.get('html').startsWith('<signature '));
   if (!sigNode) return null;
 
   const signatureRegex = RegExpUtils.mailspringSignatureRegex();

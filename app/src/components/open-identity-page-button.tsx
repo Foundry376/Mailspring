@@ -43,7 +43,7 @@ export default class OpenIdentityPageButton extends React.Component<
       source: this.props.source,
       campaign: this.props.campaign,
       content: this.props.label,
-    }).then(url => {
+    }).then((url) => {
       this.setState({ loading: false });
       if (/^https?:\/\/.+/i.test(url)) {
         shell.openExternal(url);

@@ -65,9 +65,9 @@ export class ComposerEditorPlaintext extends React.Component<ComposerEditorPlain
 
   removeQuotedText = () => {};
 
-  insertInlineAttachment = file => {};
+  insertInlineAttachment = (file) => {};
 
-  onFocusIfBlurred = event => {
+  onFocusIfBlurred = (event) => {
     this._el.current.focus();
   };
 
@@ -75,7 +75,7 @@ export class ComposerEditorPlaintext extends React.Component<ComposerEditorPlain
   // to the end of text. If you tabbed in from the Subject field and there's quoted or
   // forwarded text this is not great. For now, let's aggressively shift selection to
   // the end of the user content.
-  onFocus = event => {
+  onFocus = (event) => {
     if (!this._el.current) return;
     if (this._el.current.value.length === this._el.current.selectionStart) {
       this.focusEndReplyText();

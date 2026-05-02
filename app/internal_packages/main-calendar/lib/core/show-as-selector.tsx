@@ -21,9 +21,9 @@ export const ShowAsSelector: React.FC<ShowAsSelectorProps> = ({ value, onChange 
       <select
         className="show-as-select"
         value={value}
-        onChange={e => onChange(e.target.value as ShowAsOption)}
+        onChange={(e) => onChange(e.target.value as ShowAsOption)}
       >
-        {SHOW_AS_OPTIONS.map(opt => (
+        {SHOW_AS_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>

@@ -23,7 +23,7 @@ export default class InjectedComponentLabel extends React.Component<InjectedComp
         val = val.id;
       }
       if (key === 'locations') {
-        val = val.map(v => v.id);
+        val = val.map((v) => v.id);
       }
       matchingDescriptions.push(`${key}: ${val}`);
     }

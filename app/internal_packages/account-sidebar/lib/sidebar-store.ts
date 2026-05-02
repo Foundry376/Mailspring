@@ -85,10 +85,10 @@ class SidebarStore extends MailspringStore {
   };
 
   _onSetCollapsedByName = (itemName: string, collapsed: boolean) => {
-    let item = this.standardSection().items.find(i => i.name === itemName);
+    let item = this.standardSection().items.find((i) => i.name === itemName);
     if (!item) {
       for (const section of this.userSections()) {
-        item = section.items.find(x => x.name === itemName);
+        item = section.items.find((x) => x.name === itemName);
         if (item) {
           break;
         }
@@ -142,8 +142,8 @@ class SidebarStore extends MailspringStore {
 
   _updateSections = () => {
     const accounts = FocusedPerspectiveStore.sidebarAccountIds()
-      .map(id => AccountStore.accountForId(id))
-      .filter(a => !!a);
+      .map((id) => AccountStore.accountForId(id))
+      .filter((a) => !!a);
 
     if (accounts.length === 0) {
       return;
@@ -151,7 +151,7 @@ class SidebarStore extends MailspringStore {
     const multiAccount = accounts.length > 1;
 
     this._sections[Sections.Standard] = SidebarSection.standardSectionForAccounts(accounts);
-    this._sections[Sections.User] = accounts.map(function(acc) {
+    this._sections[Sections.User] = accounts.map(function (acc) {
       const opts: { title?: string; collapsible?: boolean } = {};
       if (multiAccount) {
         opts.title = acc.label;

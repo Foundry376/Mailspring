@@ -200,15 +200,15 @@ export default class AppEnvConstructor {
       return this.reportError(originalError, { url, line: newLine, column: newColumn });
     };
 
-    process.on('uncaughtException', error => {
+    process.on('uncaughtException', (error) => {
       this.reportError(error);
     });
 
-    process.on('unhandledRejection', error => {
+    process.on('unhandledRejection', (error) => {
       this.reportError(error);
     });
 
-    window.addEventListener('unhandledrejection', e => {
+    window.addEventListener('unhandledrejection', (e) => {
       // This event is supposed to look like {reason, promise}, according to
       // https://developer.mozilla.org/en-US/docs/Web/API/PromiseRejectionEvent
       // In practice, it can have different shapes, so we make our best guess
@@ -289,8 +289,8 @@ export default class AppEnvConstructor {
 
     if (
       error.message &&
-      ['EROFS', 'EPIPE', 'ENOSPC', 'EBUSY', 'EACCES', 'UNKNOWN: unknown error, open'].find(prefix =>
-        error.message.startsWith(prefix)
+      ['EROFS', 'EPIPE', 'ENOSPC', 'EBUSY', 'EACCES', 'UNKNOWN: unknown error, open'].find(
+        (prefix) => error.message.startsWith(prefix)
       )
     ) {
       // Don't fill Sentry with "couldn't open an attachment" type errors.
@@ -305,7 +305,7 @@ export default class AppEnvConstructor {
       return [];
     }
     const stackPaths = error.stack.match(/((?:\/[\w-_]+)+)/g) || [];
-    const stackPathComponents = [...new Set(stackPaths.flatMap(p => p.split('/')))];
+    const stackPathComponents = [...new Set(stackPaths.flatMap((p) => p.split('/')))];
 
     const names = [];
     for (const pkg of this.packages.getActivePackages()) {
@@ -889,9 +889,7 @@ export default class AppEnvConstructor {
 
     let winToShow = null;
     if (showInMainWindow) {
-      winToShow = require('@electron/remote')
-        .getGlobal('application')
-        .getMainWindow();
+      winToShow = require('@electron/remote').getGlobal('application').getMainWindow();
     }
 
     if (!detail) {

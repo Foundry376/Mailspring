@@ -31,7 +31,7 @@ class N1SpecLoader {
     // EDGEHILL_CORE: Look in internal_packages instead of node_modules
     let packagePathsList: string[] = [];
     const pkgsDir = path.join(resourcePath, 'internal_packages');
-    const iterable = fs.readdirSync(pkgsDir).map(f => path.join(pkgsDir, f));
+    const iterable = fs.readdirSync(pkgsDir).map((f) => path.join(pkgsDir, f));
     for (let i = 0; i < iterable.length; i++) {
       const packagePath = iterable[i];
       if (fs.statSync(packagePath).isDirectory()) {
@@ -41,7 +41,7 @@ class N1SpecLoader {
 
     packagePathsList = _.uniq(packagePathsList);
 
-    const packagePaths: { [key: string]: string[] } = _.groupBy(packagePathsList, packagePath => {
+    const packagePaths: { [key: string]: string[] } = _.groupBy(packagePathsList, (packagePath) => {
       if (packagePath.indexOf(`${fixturesPackagesPath}${path.sep}`) === 0) {
         return 'fixtures';
       } else if (packagePath.indexOf(`${resourcePath}${path.sep}`) === 0) {
@@ -77,7 +77,9 @@ class N1SpecLoader {
     }
 
     if (!fs.existsSync(specDirectory)) return;
-    for (const specFilePath of (fs.readdirSync(specDirectory, { recursive: true }) as string[]).map(f => path.join(specDirectory, f))) {
+    for (const specFilePath of (fs.readdirSync(specDirectory, { recursive: true }) as string[]).map(
+      (f) => path.join(specDirectory, f)
+    )) {
       if (regex.test(specFilePath)) {
         try {
           require(specFilePath);

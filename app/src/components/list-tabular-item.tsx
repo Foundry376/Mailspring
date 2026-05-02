@@ -60,7 +60,13 @@ export class ListTabularItem extends React.Component<ListTabularItemProps> {
     const itemProps = this.props.itemProps || {};
     const className = `list-item list-tabular-item ${itemProps.className}`;
     const { role, id, ariaSelected, ariaLabel } = itemProps;
-    const props = Utils.fastOmit(itemProps, ['className', 'role', 'id', 'ariaSelected', 'ariaLabel']);
+    const props = Utils.fastOmit(itemProps, [
+      'className',
+      'role',
+      'id',
+      'ariaSelected',
+      'ariaLabel',
+    ]);
 
     // It's expensive to compute the contents of columns (format timestamps, etc.)
     // We only do it if the item prop has changed.
@@ -96,7 +102,7 @@ export class ListTabularItem extends React.Component<ListTabularItemProps> {
 
   _columns = () => {
     const names = {};
-    return (this.props.columns || []).map(column => {
+    return (this.props.columns || []).map((column) => {
       if (names[column.name]) {
         console.warn(
           `ListTabular: Columns do not have distinct names, will cause React error! \`${column.name}\` twice.`

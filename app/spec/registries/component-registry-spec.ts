@@ -40,11 +40,11 @@ class FComponent extends React.Component {
   static displayName = 'F';
 }
 
-describe('ComponentRegistry', function() {
+describe('ComponentRegistry', function () {
   beforeEach(() => ComponentRegistry._clear());
 
-  describe('register', function() {
-    it('throws an exception if passed a non-component', function() {
+  describe('register', function () {
+    it('throws an exception if passed a non-component', function () {
       expect(() => ComponentRegistry.register(null, null)).toThrow();
       expect(() => ComponentRegistry.register('cheese' as any, null)).toThrow();
     });
@@ -52,12 +52,12 @@ describe('ComponentRegistry', function() {
     it('returns itself', () =>
       expect(ComponentRegistry.register(TestComponent, { role: 'bla' })).toBe(ComponentRegistry));
 
-    it('does allow the exact same component to be redefined with different role/locations', function() {
+    it('does allow the exact same component to be redefined with different role/locations', function () {
       ComponentRegistry.register(TestComponent, { role: 'bla' });
       expect(() => ComponentRegistry.register(TestComponent, { role: 'other-role' })).not.toThrow();
     });
 
-    it('does not allow components to be overridden by other components with the same displayName', function() {
+    it('does not allow components to be overridden by other components with the same displayName', function () {
       ComponentRegistry.register(TestComponent, { role: 'bla' });
       expect(() =>
         ComponentRegistry.register(TestComponentNotSameIdentity, { role: 'bla' })
@@ -70,8 +70,8 @@ describe('ComponentRegistry', function() {
       ).toThrow());
   });
 
-  describe('findComponentByName', function() {
-    it('should return a component', function() {
+  describe('findComponentByName', function () {
+    it('should return a component', function () {
       ComponentRegistry.register(TestComponent, { role: 'bla' });
       expect(ComponentRegistry.findComponentByName('TestComponent')).toEqual(TestComponent);
     });
@@ -80,11 +80,11 @@ describe('ComponentRegistry', function() {
       expect(ComponentRegistry.findComponentByName('not actually a name')).toBeUndefined());
   });
 
-  describe('findComponentsMatching', function() {
+  describe('findComponentsMatching', function () {
     it('should throw if a descriptor is not provided', () =>
       expect(() => (ComponentRegistry as any).findComponentsMatching()).toThrow());
 
-    it('should return the correct results in a wide range of test cases', function() {
+    it('should return the correct results in a wide range of test cases', function () {
       const StubLocation1 = { id: 'StubLocation1' };
       const StubLocation2 = { id: 'StubLocation2' };
       ComponentRegistry.register(AComponent, { role: 'ThreadAction' });
@@ -119,8 +119,8 @@ describe('ComponentRegistry', function() {
     });
   });
 
-  describe('unregister', function() {
-    it('unregisters the component if it exists', function() {
+  describe('unregister', function () {
+    it('unregisters the component if it exists', function () {
       ComponentRegistry.register(TestComponent, { role: 'bla' });
       ComponentRegistry.unregister(TestComponent);
       expect(ComponentRegistry.findComponentByName('TestComponent')).toBeUndefined();

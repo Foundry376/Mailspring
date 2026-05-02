@@ -22,7 +22,7 @@ const participant3 = new Contact({
 xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
   afterEach(cleanup);
 
-  beforeEach(function() {
+  beforeEach(function () {
     spyOn(AppEnv, 'isMainWindow').andReturn(true);
     this.propChange = jasmine.createSpy('change');
 
@@ -77,12 +77,12 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
     };
   });
 
-  it('renders into the document', function() {
+  it('renders into the document', function () {
     expect(this.container.querySelector('input') !== null).toBe(true);
   });
 
   describe('inserting participant text', () => {
-    it('should fire onChange with an updated participants hash', function() {
+    it('should fire onChange with an updated participants hash', function () {
       this.expectInputToYield('abc@abc.com', {
         to: [
           participant1,
@@ -94,7 +94,7 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
       });
     });
 
-    it('should remove added participants from other fields', function() {
+    it('should remove added participants from other fields', function () {
       this.expectInputToYield(participant3.email, {
         to: [
           participant1,
@@ -106,8 +106,8 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
       });
     });
 
-    it('should use the name of an existing contact in the ContactStore if possible', function() {
-      spyOn(ContactStore, 'searchContacts').andCallFake(val => {
+    it('should use the name of an existing contact in the ContactStore if possible', function () {
+      spyOn(ContactStore, 'searchContacts').andCallFake((val) => {
         if (val === participant3.name) {
           return Promise.resolve([participant3]);
         }
@@ -121,8 +121,8 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
       });
     });
 
-    it("should use the plain email if that's what's entered", function() {
-      spyOn(ContactStore, 'searchContacts').andCallFake(val => {
+    it("should use the plain email if that's what's entered", function () {
+      spyOn(ContactStore, 'searchContacts').andCallFake((val) => {
         if (val === participant3.name) {
           return Promise.resolve([participant3]);
         }
@@ -136,8 +136,8 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
       });
     });
 
-    it('should not have the same contact auto-picked multiple times', function() {
-      spyOn(ContactStore, 'searchContacts').andCallFake(val => {
+    it('should not have the same contact auto-picked multiple times', function () {
+      spyOn(ContactStore, 'searchContacts').andCallFake((val) => {
         if (val === participant2.name) {
           return Promise.resolve([participant2]);
         }
@@ -156,13 +156,16 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
     });
 
     describe('when text contains Name (Email) formatted data', () => {
-      it('should correctly parse it into named Contact objects', function() {
+      it('should correctly parse it into named Contact objects', function () {
         const newContact1 = new Contact({
           id: 'b1',
           name: 'Ben Imposter',
           email: 'imposter@mailspring.com',
         });
-        const newContact2 = new Contact({ name: 'Mailspring Team', email: 'feedback@mailspring.com' });
+        const newContact2 = new Contact({
+          name: 'Mailspring Team',
+          email: 'feedback@mailspring.com',
+        });
 
         const inputs = [
           'Ben Imposter <imposter@mailspring.com>, Mailspring Team <feedback@mailspring.com>',
@@ -182,7 +185,7 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
     });
 
     describe('when text contains emails mixed with garbage text', () => {
-      it('should still parse out emails into Contact objects', function() {
+      it('should still parse out emails into Contact objects', function () {
         const newContact1 = new Contact({
           id: 'gm',
           name: 'garbage-man@mailspring.com',

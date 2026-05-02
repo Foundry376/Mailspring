@@ -33,19 +33,16 @@ class TimeInTimezone extends React.Component<{ timeZone: string }, { tick: numbe
 
   scheduleTick = () => {
     // schedules for the next minute change each minute
-    this._timer = setTimeout(() => {
-      this.setState({ tick: this.state.tick + 1 }, this.scheduleTick);
-    }, 60000 - (Date.now() % 60000));
+    this._timer = setTimeout(
+      () => {
+        this.setState({ tick: this.state.tick + 1 }, this.scheduleTick);
+      },
+      60000 - (Date.now() % 60000)
+    );
   };
 
   render() {
-    return (
-      <strong>
-        {`Currently ${moment()
-          .tz(this.props.timeZone)
-          .format('h:mma')}`}
-      </strong>
-    );
+    return <strong>{`Currently ${moment().tz(this.props.timeZone).format('h:mma')}`}</strong>;
   }
 }
 
@@ -291,7 +288,7 @@ export default class SidebarParticipantProfile extends React.Component<
     if (!this.state.loading) {
       this.setState({ loading: true });
     }
-    ParticipantProfileDataSource.find(this.props.contact).then(result => {
+    ParticipantProfileDataSource.find(this.props.contact).then((result) => {
       if (!this._mounted) {
         return;
       }
@@ -299,7 +296,7 @@ export default class SidebarParticipantProfile extends React.Component<
     });
   };
 
-  _onSelect = event => {
+  _onSelect = (event) => {
     const el = event.target;
     const sel = document.getSelection();
     if (el.contains(sel.anchorNode) && !sel.isCollapsed) {

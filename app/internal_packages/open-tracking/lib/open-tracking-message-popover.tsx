@@ -17,7 +17,7 @@ class OpenTrackingMessagePopover extends React.Component<{
 
   renderOpenActions() {
     const opens = this.props.openMetadata.open_data;
-    return opens.map(open => {
+    return opens.map((open) => {
       const recipients = this.props.message.to.concat(
         this.props.message.cc,
         this.props.message.bcc

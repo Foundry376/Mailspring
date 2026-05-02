@@ -61,20 +61,20 @@ class InitialPreferencesOptions extends React.Component<
         return;
       }
       let templates = files.filter(
-        filename => path.extname(filename) === '.cson' || path.extname(filename) === '.json'
+        (filename) => path.extname(filename) === '.cson' || path.extname(filename) === '.json'
       );
-      templates = templates.map(filename => path.parse(filename).name);
+      templates = templates.map((filename) => path.parse(filename).name);
       this.setState({ templates });
       this._setConfigDefaultsForAccount(templates);
     });
   };
 
-  _setConfigDefaultsForAccount = templates => {
+  _setConfigDefaultsForAccount = (templates) => {
     if (!this.props.account) {
       return;
     }
 
-    const templateWithBasename = name => templates.find(t => t.indexOf(name) === 0);
+    const templateWithBasename = (name) => templates.find((t) => t.indexOf(name) === 0);
 
     if (this.props.account.provider === 'gmail') {
       this.props.config.set('core.workspace.mode', 'list');
@@ -117,7 +117,7 @@ class InitialPreferencesOptions extends React.Component<
             {localized('Do you prefer a single panel layout (like Gmail) or a two panel layout?')}
           </p>
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
-            {['list', 'split'].map(mode => (
+            {['list', 'split'].map((mode) => (
               <AppearanceModeOption
                 mode={mode}
                 key={mode}
@@ -140,9 +140,9 @@ class InitialPreferencesOptions extends React.Component<
           <select
             style={{ margin: 0 }}
             value={this.props.config.get('core.keymapTemplate')}
-            onChange={event => this.props.config.set('core.keymapTemplate', event.target.value)}
+            onChange={(event) => this.props.config.set('core.keymapTemplate', event.target.value)}
           >
-            {this.state.templates.map(template => (
+            {this.state.templates.map((template) => (
               <option key={template} value={template}>
                 {template}
               </option>

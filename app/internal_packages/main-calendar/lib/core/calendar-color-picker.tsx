@@ -59,7 +59,7 @@ export const CalendarColorPicker: React.FC<CalendarColorPickerProps> = ({
       </div>
       {isOpen && (
         <div className="color-picker-dropdown">
-          {availableColors.map(c => (
+          {availableColors.map((c) => (
             <div
               key={c}
               className={`color-option ${c === color ? 'selected' : ''}`}

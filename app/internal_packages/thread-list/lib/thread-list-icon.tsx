@@ -8,7 +8,7 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
 
   _extensionsIconClassNames = () => {
     return ExtensionRegistry.ThreadList.extensions()
-      .filter(ext => ext.cssClassNamesForThreadListIcon != null)
+      .filter((ext) => ext.cssClassNamesForThreadListIcon != null)
       .reduce((prev, ext) => prev + ' ' + ext.cssClassNamesForThreadListIcon(this.props.thread), '')
       .trim();
   };
@@ -50,7 +50,7 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
     if (!msgs || !(msgs instanceof Array)) {
       return [];
     }
-    msgs = msgs.filter(m => m.id && !m.draft);
+    msgs = msgs.filter((m) => m.id && !m.draft);
     return msgs;
   }
 
@@ -85,7 +85,7 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
     }
   };
 
-  _onToggleStar = event => {
+  _onToggleStar = (event) => {
     Actions.queueTask(
       TaskFactory.taskForInvertingStarred({
         threads: [this.props.thread],

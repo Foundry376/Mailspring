@@ -16,7 +16,10 @@ export class ObservableListDataSource extends ListTabular.DataSource {
   _setRetainedRange: (args: { start: number; end: number }) => void;
   _subscription?: Rx.Disposable;
 
-  constructor(resultSetObservable: Rx.Observable<any>, setRetainedRange: (args: { start: number; end: number }) => void) {
+  constructor(
+    resultSetObservable: Rx.Observable<any>,
+    setRetainedRange: (args: { start: number; end: number }) => void
+  ) {
     super();
     this._$resultSetObservable = resultSetObservable;
     this._setRetainedRange = setRetainedRange;
@@ -25,7 +28,7 @@ export class ObservableListDataSource extends ListTabular.DataSource {
   }
 
   _attach = () => {
-    this._subscription = this._$resultSetObservable.subscribe(nextResultSet => {
+    this._subscription = this._$resultSetObservable.subscribe((nextResultSet) => {
       if (nextResultSet.range().end === this._resultDesiredLast) {
         this._countEstimate = Math.max(this._countEstimate, nextResultSet.range().end);
       } else {

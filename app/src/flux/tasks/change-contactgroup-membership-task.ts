@@ -36,7 +36,7 @@ export class ChangeContactGroupMembershipTask extends Task {
     direction: 'add' | 'remove';
   }) {
     const accountId = contacts ? contacts[0].accountId : undefined;
-    if (contacts.some(c => c.accountId !== accountId)) {
+    if (contacts.some((c) => c.accountId !== accountId)) {
       throw new Error('ChangeContactGroupMembershipTask: all contacts must be in the same account');
     }
     if (group.accountId !== accountId) {

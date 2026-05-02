@@ -42,7 +42,7 @@ export default class ComposerEditorToolbar extends React.Component<
         }
 
         this._el.style.height = `${this._floatingEl.clientHeight}px`;
-        this._heightObserver = new window.ResizeObserver(entries => {
+        this._heightObserver = new window.ResizeObserver((entries) => {
           this._el.style.height = `${this._floatingEl.clientHeight}px`;
           this._onScroll();
         });
@@ -91,7 +91,7 @@ export default class ComposerEditorToolbar extends React.Component<
     }
 
     const pluginsWithToolbars = plugins.filter(
-      p => p.toolbarComponents && p.toolbarComponents.length
+      (p) => p.toolbarComponents && p.toolbarComponents.length
     );
 
     pluginsWithToolbars.forEach(({ toolbarComponents, toolbarSectionClass }, idx) => {
@@ -113,8 +113,8 @@ export default class ComposerEditorToolbar extends React.Component<
     });
 
     return (
-      <div ref={el => (this._el = el)} className="RichEditor-toolbar">
-        <div ref={el => (this._floatingEl = el)} className="floating-container">
+      <div ref={(el) => (this._el = el)} className="RichEditor-toolbar">
+        <div ref={(el) => (this._floatingEl = el)} className="floating-container">
           <div className="inner display-deferrable">{sectionItems}</div>
         </div>
       </div>

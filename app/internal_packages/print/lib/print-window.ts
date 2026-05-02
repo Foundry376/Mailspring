@@ -21,7 +21,7 @@ export default class PrintWindow {
     const scriptPath = path.join(__dirname, '..', 'static', 'print.js');
     const stylesPath = path.join(__dirname, '..', 'static', 'print-styles.css');
     const participantsHtml = participants
-      .map(part => {
+      .map((part) => {
         return `<li class="participant"><span>
           ${escapeHTML(part.name || '')} &lt;${escapeHTML(part.email)}&gt;
         </span></li>`;
@@ -55,8 +55,8 @@ export default class PrintWindow {
               </div>
               <div class="logo-wrapper">
                 <span class="account">${escapeHTML(account.name)} &lt;${escapeHTML(
-      account.email
-    )}&gt;</span>
+                  account.email
+                )}&gt;</span>
               </div>
             </div>
           </div>

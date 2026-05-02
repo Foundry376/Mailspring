@@ -52,7 +52,7 @@ export class TranslateMessageExtension extends MessageViewExtension {
   static formatMessageBody = ({ message }) => {
     // retrieve from cache and push to the end to ensure the least recently viewed message is
     // removed from the cache first.
-    const idx = RecentlyTranslatedBodies.findIndex(o => o.id === message.id);
+    const idx = RecentlyTranslatedBodies.findIndex((o) => o.id === message.id);
     if (idx === -1) return;
 
     const [result] = RecentlyTranslatedBodies.splice(idx, 1);
@@ -117,7 +117,7 @@ export class TranslateMessageHeader extends React.Component<
     if (this.props.message.isFromMe()) return;
 
     // load the previous translation result if this message is already translated
-    const result = RecentlyTranslatedBodies.find(o => o.id === this.props.message.id);
+    const result = RecentlyTranslatedBodies.find((o) => o.id === this.props.message.id);
     if (result) {
       this._detectionStarted = true;
       this.setState({ detected: result.fromLang });
@@ -177,7 +177,7 @@ export class TranslateMessageHeader extends React.Component<
   _onTranslate = async (mode: 'auto' | 'manual') => {
     const { message } = this.props;
 
-    const result = RecentlyTranslatedBodies.find(o => o.id === message.id);
+    const result = RecentlyTranslatedBodies.find((o) => o.id === message.id);
     if (result) {
       if (!result.enabled) this._onToggleTranslate();
       return;
@@ -224,14 +224,14 @@ export class TranslateMessageHeader extends React.Component<
   };
 
   _onToggleTranslate = () => {
-    const result = RecentlyTranslatedBodies.find(o => o.id === this.props.message.id);
+    const result = RecentlyTranslatedBodies.find((o) => o.id === this.props.message.id);
     result.enabled = !result.enabled;
     MessageBodyProcessor.updateCacheForMessage(this.props.message);
   };
 
   _onDisableAlwaysForLanguage = () => {
     const prefs = getPrefs();
-    prefs.automatic = prefs.automatic.filter(p => p !== this.state.detected);
+    prefs.automatic = prefs.automatic.filter((p) => p !== this.state.detected);
     setPrefs(prefs);
     this.forceUpdate();
   };
@@ -252,7 +252,7 @@ export class TranslateMessageHeader extends React.Component<
     }
 
     const prefs = getPrefs();
-    prefs.disabled = prefs.disabled.filter(p => p !== this.state.detected);
+    prefs.disabled = prefs.disabled.filter((p) => p !== this.state.detected);
     prefs.automatic = prefs.automatic.concat([this.state.detected]);
     setPrefs(prefs);
 
@@ -275,7 +275,7 @@ export class TranslateMessageHeader extends React.Component<
     if (response === 0) {
       const prefs = getPrefs();
       prefs.disabled = prefs.disabled.concat([this.state.detected]);
-      prefs.automatic = prefs.automatic.filter(p => p !== this.state.detected);
+      prefs.automatic = prefs.automatic.filter((p) => p !== this.state.detected);
       setPrefs(prefs);
       this.setState({ detected: null });
     }
@@ -287,7 +287,7 @@ export class TranslateMessageHeader extends React.Component<
   };
 
   render() {
-    const result = RecentlyTranslatedBodies.find(o => o.id === this.props.message.id);
+    const result = RecentlyTranslatedBodies.find((o) => o.id === this.props.message.id);
 
     if (result && result.enabled) {
       return (
@@ -388,11 +388,11 @@ export class TranslateMessageHeader extends React.Component<
                     select: this._onReset,
                   },
                 ]}
-                itemKey={item => item.key}
-                itemContent={item =>
+                itemKey={(item) => item.key}
+                itemContent={(item) =>
                   item.label ? item.label : <Menu.Item key={item.key} divider={true} />
                 }
-                onSelect={item => item.select()}
+                onSelect={(item) => item.select()}
               />
             }
           />

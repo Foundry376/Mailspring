@@ -10,8 +10,8 @@ function getExtendedSendingSchema(configSchema) {
     type: 'string',
     title: localized('Send new messages from:').replace(':', ''),
     default: 'selected-mailbox',
-    enum: ['selected-mailbox'].concat(accounts.map(acc => acc.id)),
-    enumLabels: [localized('Selected Account')].concat(accounts.map(acc => acc.me().toString())),
+    enum: ['selected-mailbox'].concat(accounts.map((acc) => acc.id)),
+    enumLabels: [localized('Selected Account')].concat(accounts.map((acc) => acc.me().toString())),
   };
   // TODO re-enable sending actions at some point
   // const defaultSendType = {

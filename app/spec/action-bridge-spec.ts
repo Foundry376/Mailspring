@@ -7,33 +7,33 @@ const ipc = {
   send() {},
 } as any;
 
-describe('ActionBridge', function() {
-  describe('in the main window', function() {
-    beforeEach(function() {
+describe('ActionBridge', function () {
+  describe('in the main window', function () {
+    beforeEach(function () {
       spyOn(AppEnv, 'getWindowType').andReturn('default');
       spyOn(AppEnv, 'isMainWindow').andReturn(true);
       this.bridge = new ActionBridge(ipc);
     });
 
-    it('should have the role Role.MAIN', function() {
+    it('should have the role Role.MAIN', function () {
       expect(this.bridge.role).toBe(ActionBridge.Role.MAIN);
     });
 
-    it('should rebroadcast global actions', function() {
+    it('should rebroadcast global actions', function () {
       spyOn(this.bridge, 'onRebroadcast');
       const testAction = Actions.globalActions[0];
       testAction('bla');
       expect(this.bridge.onRebroadcast).toHaveBeenCalled();
     });
 
-    it('should not rebroadcast mainWindow actions since it is the main window', function() {
+    it('should not rebroadcast mainWindow actions since it is the main window', function () {
       spyOn(this.bridge, 'onRebroadcast');
       const testAction = Actions.queueTask;
       testAction('bla');
       expect(this.bridge.onRebroadcast).not.toHaveBeenCalled();
     });
 
-    it('should not rebroadcast window actions', function() {
+    it('should not rebroadcast window actions', function () {
       spyOn(this.bridge, 'onRebroadcast');
       const testAction = Actions.windowActions[0];
       testAction('bla');
@@ -41,8 +41,8 @@ describe('ActionBridge', function() {
     });
   });
 
-  describe('in another window', function() {
-    beforeEach(function() {
+  describe('in another window', function () {
+    beforeEach(function () {
       spyOn(AppEnv, 'getWindowType').andReturn('popout');
       spyOn(AppEnv, 'isMainWindow').andReturn(false);
       this.bridge = new ActionBridge(ipc);
@@ -52,25 +52,25 @@ describe('ActionBridge', function() {
       });
     });
 
-    it('should have the role Role.SECONDARY', function() {
+    it('should have the role Role.SECONDARY', function () {
       expect(this.bridge.role).toBe(ActionBridge.Role.SECONDARY);
     });
 
-    it('should rebroadcast global actions', function() {
+    it('should rebroadcast global actions', function () {
       spyOn(this.bridge, 'onRebroadcast');
       const testAction = Actions.globalActions[0];
       testAction('bla');
       expect(this.bridge.onRebroadcast).toHaveBeenCalled();
     });
 
-    it('should rebroadcast mainWindow actions', function() {
+    it('should rebroadcast mainWindow actions', function () {
       spyOn(this.bridge, 'onRebroadcast');
       const testAction = Actions.queueTask;
       testAction('bla');
       expect(this.bridge.onRebroadcast).toHaveBeenCalled();
     });
 
-    it('should not rebroadcast window actions', function() {
+    it('should not rebroadcast window actions', function () {
       spyOn(this.bridge, 'onRebroadcast');
       const testAction = Actions.windowActions[0];
       testAction('bla');
@@ -78,15 +78,15 @@ describe('ActionBridge', function() {
     });
   });
 
-  describe('onRebroadcast', function() {
-    beforeEach(function() {
+  describe('onRebroadcast', function () {
+    beforeEach(function () {
       spyOn(AppEnv, 'getWindowType').andReturn('popout');
       spyOn(AppEnv, 'isMainWindow').andReturn(false);
       this.bridge = new ActionBridge(ipc);
     });
 
     describe('when called with TargetWindows.ALL', () =>
-      it('should broadcast the action over IPC to all windows', function() {
+      it('should broadcast the action over IPC to all windows', function () {
         spyOn(ipc, 'send');
         (Actions.openPreferences as any).firing = false;
         this.bridge.onRebroadcast(ActionBridge.TargetWindows.ALL, 'openPreferences', [
@@ -101,7 +101,7 @@ describe('ActionBridge', function() {
       }));
 
     describe('when called with TargetWindows.MAIN', () =>
-      it('should broadcast the action over IPC to the main window only', function() {
+      it('should broadcast the action over IPC to the main window only', function () {
         spyOn(ipc, 'send');
         (Actions.openPreferences as any).firing = false;
         this.bridge.onRebroadcast(ActionBridge.TargetWindows.MAIN, 'openPreferences', [
@@ -115,7 +115,7 @@ describe('ActionBridge', function() {
         );
       }));
 
-    it('should not do anything if the current invocation of the Action was triggered by itself', function() {
+    it('should not do anything if the current invocation of the Action was triggered by itself', function () {
       spyOn(ipc, 'send');
       (Actions.openPreferences as any).firing = true;
       this.bridge.onRebroadcast(ActionBridge.TargetWindows.ALL, 'openPreferences', [

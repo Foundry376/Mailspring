@@ -257,7 +257,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     if (itemsChanged && state.selectedItemKey !== null && props.items.length > 0) {
       // Try to find the previously selected item by key in the new items array
       const newItemIndex = props.items.findIndex(
-        item => props.itemKey(item) === state.selectedItemKey
+        (item) => props.itemKey(item) === state.selectedItemKey
       );
 
       if (newItemIndex !== -1) {
@@ -377,7 +377,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     );
   }
 
-  onKeyDown = event => {
+  onKeyDown = (event) => {
     if (this.props.items.length === 0) {
       return;
     }
@@ -421,7 +421,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
         return content;
       }
 
-      const onMouseDown = event => {
+      const onMouseDown = (event) => {
         event.preventDefault();
         const key = this.props.itemKey(item);
         this.setState({ selectedIndex: i, selectedItemKey: key });
@@ -469,7 +469,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     );
   };
 
-  _onShiftSelectedIndex = delta => {
+  _onShiftSelectedIndex = (delta) => {
     if (this.props.items.length === 0) {
       return;
     }

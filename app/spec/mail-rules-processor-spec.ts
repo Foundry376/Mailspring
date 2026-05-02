@@ -146,8 +146,8 @@ const Tests = [
   },
 ];
 
-describe('MailRulesProcessor', function() {
-  describe('_checkRuleForMessage', function() {
+describe('MailRulesProcessor', function () {
+  describe('_checkRuleForMessage', function () {
     it('should correctly filter sample messages', () =>
       Tests.forEach(({ rule, good, bad }) => {
         let idx, message;
@@ -173,7 +173,7 @@ describe('MailRulesProcessor', function() {
         })();
       }));
 
-    it('should check the account id', function() {
+    it('should check the account id', function () {
       const { rule, good } = Tests[0];
       const message = good[0];
       message.accountId = 'not the same!';
@@ -182,7 +182,7 @@ describe('MailRulesProcessor', function() {
   });
 
   describe('_applyRuleToMessage', () =>
-    it('should queue tasks for messages', function() {
+    it('should queue tasks for messages', function () {
       spyOn(TaskQueue, 'waitForPerformLocal');
       spyOn(Actions, 'queueTasks');
       spyOn(DatabaseStore, 'findBy').andReturn(Promise.resolve({}));

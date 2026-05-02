@@ -32,7 +32,7 @@ export default class WindowManager {
   }) {
     this.initializeInBackground = initializeInBackground;
 
-    const onCreatedHotWindow = win => {
+    const onCreatedHotWindow = (win) => {
       this._registerWindow(win);
       this._didCreateNewWindow(win);
     };
@@ -53,14 +53,14 @@ export default class WindowManager {
 
   getOpenWindows() {
     const values = [];
-    Object.keys(this._windows).forEach(key => {
+    Object.keys(this._windows).forEach((key) => {
       const win = this._windows[key];
       if (win.windowType !== WindowLauncher.EMPTY_WINDOW) {
         values.push(win);
       }
     });
 
-    const score = win => (win.loadSettings().mainWindow ? 1000 : win.browserWindow.id);
+    const score = (win) => (win.loadSettings().mainWindow ? 1000 : win.browserWindow.id);
 
     return values.sort((a, b) => score(b) - score(a));
   }
@@ -71,7 +71,7 @@ export default class WindowManager {
 
   getVisibleWindows() {
     const values = [];
-    Object.keys(this._windows).forEach(key => {
+    Object.keys(this._windows).forEach((key) => {
       const win = this._windows[key];
       if (win.isVisible()) {
         values.push(win);
@@ -87,7 +87,7 @@ export default class WindowManager {
 
   getAllWindowDimensions() {
     const dims = {};
-    Object.keys(this._windows).forEach(key => {
+    Object.keys(this._windows).forEach((key) => {
       const win = this._windows[key];
       if (win.windowType !== WindowLauncher.EMPTY_WINDOW) {
         const { x, y, width, height } = win.browserWindow.getBounds();
@@ -115,7 +115,7 @@ export default class WindowManager {
     return win;
   }
 
-  _registerWindow = win => {
+  _registerWindow = (win) => {
     if (!win.windowKey) {
       throw new Error('WindowManager: You must provide a windowKey');
     }
@@ -129,7 +129,7 @@ export default class WindowManager {
     this._windows[win.windowKey] = win;
   };
 
-  _didCreateNewWindow = win => {
+  _didCreateNewWindow = (win) => {
     win.browserWindow.on('closed', () => {
       delete this._windows[win.windowKey];
       if (this.windowLauncher.hotWindow === win) {
@@ -144,7 +144,7 @@ export default class WindowManager {
     global.application.applicationMenu.addWindow(win.browserWindow);
   };
 
-  _registeredKeyForWindow = win => {
+  _registeredKeyForWindow = (win) => {
     for (const key of Object.keys(this._windows)) {
       const otherWin = this._windows[key];
       if (win === otherWin) {
@@ -234,7 +234,7 @@ export default class WindowManager {
   }
 
   quitCheck = _.debounce(() => {
-    const visibleWindows = _.filter(this._windows, win => win.isVisible());
+    const visibleWindows = _.filter(this._windows, (win) => win.isVisible());
     const mainWindow = this.get(WindowManager.MAIN_WINDOW);
     const noMainWindowLoaded = !mainWindow || !mainWindow.isLoaded();
     if (visibleWindows.length === 0 && noMainWindowLoaded) {
@@ -243,7 +243,7 @@ export default class WindowManager {
   }, 25000);
 
   focusedWindow() {
-    return _.find(this._windows, win => win.isFocused());
+    return _.find(this._windows, (win) => win.isFocused());
   }
 
   _coreWindowOpts(windowKey, extraOpts = {}) {

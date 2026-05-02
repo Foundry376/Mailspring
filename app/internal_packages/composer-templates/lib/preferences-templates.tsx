@@ -49,7 +49,7 @@ class TemplateEditor extends React.Component<
     }
   };
 
-  _onFocusEditor = e => {
+  _onFocusEditor = (e) => {
     if (e.target === ReactDOM.findDOMNode(this._composer)) {
       this._composer.focusEndAbsolute();
     }
@@ -71,15 +71,15 @@ class TemplateEditor extends React.Component<
             placeholder={localized('Name')}
             style={{ maxWidth: 400 }}
             defaultValue={template ? template.name : ''}
-            onBlur={e => onEditTitle(e.target.value)}
+            onBlur={(e) => onEditTitle(e.target.value)}
           />
         </div>
         <div className="section editor" onClick={this._onFocusEditor}>
           <ComposerEditor
-            ref={c => (this._composer = c)}
+            ref={(c) => (this._composer = c)}
             value={editorState}
             propsForPlugins={{ inTemplateEditor: true }}
-            onChange={change => this.setState({ editorState: change.value })}
+            onChange={(change) => this.setState({ editorState: change.value })}
             onBlur={this._onSave}
           />
         </div>
@@ -118,7 +118,7 @@ export default class PreferencesTemplates extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unsubscribers.forEach(unsubscribe => unsubscribe());
+    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
   }
 
   _getStateFromStores() {
@@ -126,11 +126,12 @@ export default class PreferencesTemplates extends React.Component<
     let lastSelIndex = null;
     if (this.state) {
       lastSelName = this.state.selected && this.state.selected.name;
-      lastSelIndex = this.state.templates.findIndex(t => t.name === lastSelName);
+      lastSelIndex = this.state.templates.findIndex((t) => t.name === lastSelName);
     }
 
     const templates = TemplateStore.items();
-    const selected = templates.find(t => t.name === lastSelName) || templates[lastSelIndex] || null;
+    const selected =
+      templates.find((t) => t.name === lastSelName) || templates[lastSelIndex] || null;
 
     return {
       templates,
@@ -149,11 +150,11 @@ export default class PreferencesTemplates extends React.Component<
     Actions.deleteTemplate(this.state.selected.name);
   };
 
-  _onEditTitle = newName => {
+  _onEditTitle = (newName) => {
     Actions.renameTemplate(this.state.selected.name, newName);
   };
 
-  _onSelect = item => {
+  _onSelect = (item) => {
     this.setState({ selected: item });
   };
 
@@ -169,7 +170,7 @@ export default class PreferencesTemplates extends React.Component<
                 showEditIcon
                 className="template-list"
                 items={this.state.templates}
-                itemContent={template => template.name}
+                itemContent={(template) => template.name}
                 onCreateItem={this._onAdd}
                 onDeleteItem={this._onDelete}
                 onItemEdited={this._onEditTitle}

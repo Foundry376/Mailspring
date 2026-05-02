@@ -55,7 +55,7 @@ export interface ContactInfoGoogle {
       };
       person: string;
       type: string;
-    }
+    },
   ];
   emailAddresses?: {
     metadata: {
@@ -259,7 +259,7 @@ const nameSuffixes = {};
   'trustees of',
   'vadm',
   'vice admiral',
-].forEach(prefix => {
+].forEach((prefix) => {
   namePrefixes[prefix] = true;
 });
 
@@ -336,7 +336,7 @@ const nameSuffixes = {};
   'usn ret',
   'usn us navy',
   'vm',
-].forEach(suffix => {
+].forEach((suffix) => {
   nameSuffixes[suffix] = true;
 });
 
@@ -509,7 +509,11 @@ export class Contact extends Model {
       return null;
     }
 
-    if (includeAccountLabel && account && (AccountStore.accounts().length > 1 || forceAccountLabel)) {
+    if (
+      includeAccountLabel &&
+      account &&
+      (AccountStore.accounts().length > 1 || forceAccountLabel)
+    ) {
       return `${localized('You')} (${account.label})`;
     }
 
@@ -548,15 +552,11 @@ export class Contact extends Model {
 
   firstName() {
     const exclusions = ['a', 'the', 'dr.', 'mrs.', 'mr.', 'mx.', 'prof.', 'ph.d.'];
-    return this._nameParts().find(p => !exclusions.includes(p.toLowerCase())) || '';
+    return this._nameParts().find((p) => !exclusions.includes(p.toLowerCase())) || '';
   }
 
   lastName() {
-    return (
-      this._nameParts()
-        .slice(1)
-        .join(' ') || ''
-    );
+    return this._nameParts().slice(1).join(' ') || '';
   }
 
   nameAbbreviation() {
@@ -572,11 +572,7 @@ export class Contact extends Model {
     if (Utils.emailHasCommonDomain(email)) {
       return '';
     }
-    const domain = email
-      .toLowerCase()
-      .trim()
-      .split('@')
-      .pop();
+    const domain = email.toLowerCase().trim().split('@').pop();
     const domainParts = domain.split('.');
     if (domainParts.length >= 2) {
       return _str.titleize(_str.humanize(domainParts[domainParts.length - 2]));

@@ -39,7 +39,7 @@ class PreferencesGeneral extends React.Component<{
     });
 
     if (chosen === 1) {
-      fs.rm(AppEnv.getConfigDirPath(), { recursive: true, force: true }, err => {
+      fs.rm(AppEnv.getConfigDirPath(), { recursive: true, force: true }, (err) => {
         if (err) {
           return AppEnv.showErrorDialog(
             localized(

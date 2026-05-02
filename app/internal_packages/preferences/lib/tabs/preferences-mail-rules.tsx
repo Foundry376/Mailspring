@@ -49,21 +49,21 @@ class PreferencesMailRules extends React.Component<
   }
 
   componentWillUnmount() {
-    this._unsubscribers.forEach(unsubscribe => unsubscribe());
+    this._unsubscribers.forEach((unsubscribe) => unsubscribe());
   }
 
   _getStateFromStores(): PreferencesMailRulesState {
     const accounts = AccountStore.accounts();
 
     let currentAccount = this.state ? this.state.currentAccount : null;
-    if (!accounts.find(acct => acct === currentAccount)) {
+    if (!accounts.find((acct) => acct === currentAccount)) {
       currentAccount = accounts[0];
     }
 
     const rules = MailRulesStore.rulesForAccountId(currentAccount.id);
     const selectedRule =
       this.state && this.state.selectedRule
-        ? rules.find(r => r.id === this.state.selectedRule.id)
+        ? rules.find((r) => r.id === this.state.selectedRule.id)
         : rules[0];
 
     return {
@@ -77,9 +77,9 @@ class PreferencesMailRules extends React.Component<
     };
   }
 
-  _onSelectAccount = event => {
+  _onSelectAccount = (event) => {
     const accountId = event.target.value;
-    const currentAccount = this.state.accounts.find(acct => acct.id === accountId);
+    const currentAccount = this.state.accounts.find((acct) => acct.id === accountId);
     this.setState({ currentAccount: currentAccount }, () => {
       this.setState(this._getStateFromStores());
     });
@@ -121,7 +121,7 @@ class PreferencesMailRules extends React.Component<
     Actions.addMailRule({ accountId: this.state.currentAccount.id });
   };
 
-  _onSelectRule = rule => {
+  _onSelectRule = (rule) => {
     this.setState({ selectedRule: rule });
   };
 
@@ -129,7 +129,7 @@ class PreferencesMailRules extends React.Component<
     Actions.reorderMailRule(rule.id, endIdx);
   };
 
-  _onDeleteRule = rule => {
+  _onDeleteRule = (rule) => {
     Actions.deleteMailRule(rule.id);
   };
 
@@ -137,7 +137,7 @@ class PreferencesMailRules extends React.Component<
     Actions.updateMailRule(rule.id, { name: newName });
   };
 
-  _onRuleConditionModeEdited = event => {
+  _onRuleConditionModeEdited = (event) => {
     Actions.updateMailRule(this.state.selectedRule.id, { conditionMode: event.target.value });
   };
 
@@ -159,7 +159,7 @@ class PreferencesMailRules extends React.Component<
   };
 
   _renderAccountPicker() {
-    const options = this.state.accounts.map(account => (
+    const options = this.state.accounts.map((account) => (
       <option value={account.id} key={account.id}>
         {account.label}
       </option>
@@ -242,14 +242,14 @@ class PreferencesMailRules extends React.Component<
             <ScenarioEditor
               instances={rule.conditions}
               templates={this.state.conditionTemplates}
-              onChange={conditions => Actions.updateMailRule(rule.id, { conditions })}
+              onChange={(conditions) => Actions.updateMailRule(rule.id, { conditions })}
               className="well well-matchers"
             />
             <span>{localized('Perform these actions:')}</span>
             <ScenarioEditor
               instances={rule.actions}
               templates={this.state.actionTemplates}
-              onChange={actions => Actions.updateMailRule(rule.id, { actions })}
+              onChange={(actions) => Actions.updateMailRule(rule.id, { actions })}
               className="well well-actions"
             />
           </div>
@@ -284,7 +284,7 @@ class PreferencesMailRules extends React.Component<
   _renderTasks() {
     return (
       <div style={{ flex: 1, paddingLeft: 20 }}>
-        {Object.keys(this.state.reprocessing).map(accountId => {
+        {Object.keys(this.state.reprocessing).map((accountId) => {
           const { count } = this.state.reprocessing[accountId];
           return (
             <Flexbox key={accountId} style={{ alignItems: 'baseline' }}>

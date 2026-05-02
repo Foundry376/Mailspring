@@ -20,7 +20,7 @@ class Spellchecker {
 
       // Monitor language setting for changes. Note that as the user types in a draft we
       // change spellcheck to that language.
-      AppEnv.config.onDidChange('core.composing.spellcheckDefaultLanguage', value => {
+      AppEnv.config.onDidChange('core.composing.spellcheckDefaultLanguage', (value) => {
         this._switchToLanguage(value.newValue);
       });
     };
@@ -57,7 +57,9 @@ class Spellchecker {
         }
       }
       const loadedDict = JSON.parse(fileData);
-      Object.keys(loadedDict).forEach(word => this._session.addWordToSpellCheckerDictionary(word));
+      Object.keys(loadedDict).forEach((word) =>
+        this._session.addWordToSpellCheckerDictionary(word)
+      );
       fs.unlink(customDictFilePath, () => {});
     });
   };

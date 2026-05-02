@@ -37,7 +37,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
 
   componentDidMount() {
     this._mounted = true;
-    this._iframeDocObserver = new window.ResizeObserver(entries =>
+    this._iframeDocObserver = new window.ResizeObserver((entries) =>
       window.requestAnimationFrame(() => {
         if (!this._mounted) return;
         this._onReevaluateContentSize(entries[0]);
@@ -210,7 +210,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       <div
         className="message-iframe-container"
         style={{ height: 0 }}
-        ref={el => {
+        ref={(el) => {
           this._iframeWrapperEl = el;
         }}
       >
@@ -220,7 +220,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
           seamless={true}
           title={localized('Email message')}
           style={{ height: 0 }}
-          ref={cm => {
+          ref={(cm) => {
             this._iframeComponent = cm;
           }}
         />

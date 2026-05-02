@@ -17,7 +17,7 @@ export class SyncbackActivity extends React.Component<{ tasks: any[] }> {
     }
 
     const counts = {};
-    this.props.tasks.forEach(task => {
+    this.props.tasks.forEach((task) => {
       const label = task.label ? task.label() : null;
       if (!label) {
         return;

@@ -93,7 +93,7 @@ export class LanguageToolBackend implements GrammarCheckBackend {
     this.disabledRules = disabledRulesStr
       ? disabledRulesStr
           .split(',')
-          .map(s => s.trim())
+          .map((s) => s.trim())
           .filter(Boolean)
       : [];
   }
@@ -145,14 +145,14 @@ export class LanguageToolBackend implements GrammarCheckBackend {
       throw err;
     }
 
-    const filtered = data.matches.filter(match => match.rule.issueType !== 'misspelling');
+    const filtered = data.matches.filter((match) => match.rule.issueType !== 'misspelling');
 
-    return filtered.map(match => ({
+    return filtered.map((match) => ({
       offset: match.offset,
       length: match.length,
       message: match.message,
       shortMessage: match.shortMessage || '',
-      replacements: match.replacements.map(r => r.value),
+      replacements: match.replacements.map((r) => r.value),
       ruleId: match.rule.id,
       ruleDescription: match.rule.description,
       category: match.rule.category.id,

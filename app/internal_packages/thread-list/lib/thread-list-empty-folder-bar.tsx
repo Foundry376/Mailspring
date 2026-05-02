@@ -26,7 +26,7 @@ class ThreadListEmptyFolderBar extends React.Component<ThreadListEmptyFolderBarP
 
     Actions.queueTasks(
       folders.map(
-        folder =>
+        (folder) =>
           new ExpungeAllInFolderTask({
             accountId: folder.accountId,
             folder,
@@ -69,13 +69,13 @@ class ThreadListEmptyFolderBar extends React.Component<ThreadListEmptyFolderBarP
 
 export default ListensToFluxStore(ThreadListEmptyFolderBar, {
   stores: [TaskQueue, ThreadCountsStore, FocusedPerspectiveStore],
-  getStateFromStores: props => {
+  getStateFromStores: (props) => {
     const p = FocusedPerspectiveStore.current();
     const folders = (p && p.categories()) || [];
 
     if (
       !folders.length ||
-      !folders.every(c => c instanceof Folder && (c.role === 'trash' || c.role === 'spam'))
+      !folders.every((c) => c instanceof Folder && (c.role === 'trash' || c.role === 'spam'))
     ) {
       return { role: null, folders: null };
     }
@@ -83,8 +83,8 @@ export default ListensToFluxStore(ThreadListEmptyFolderBar, {
     return {
       folders,
       role: folders[0].role,
-      busy: TaskQueue.findTasks(ExpungeAllInFolderTask).some(t =>
-        folders.map(f => f.accountId).includes(t.accountId)
+      busy: TaskQueue.findTasks(ExpungeAllInFolderTask).some((t) =>
+        folders.map((f) => f.accountId).includes(t.accountId)
       ),
       count: folders.reduce(
         (sum, { id }) => sum + ThreadCountsStore.totalCountForCategoryId(id),

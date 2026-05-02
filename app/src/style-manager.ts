@@ -39,7 +39,8 @@ export default class StyleManager {
   insertStyleElementIntoDOM(styleElement) {
     const { priority } = styleElement;
     const beforeEl =
-      priority !== undefined && this.getStyleElements().find(el => (el as any).priority > priority);
+      priority !== undefined &&
+      this.getStyleElements().find((el) => (el as any).priority > priority);
     if (!beforeEl) {
       this.el.appendChild(styleElement);
     } else {

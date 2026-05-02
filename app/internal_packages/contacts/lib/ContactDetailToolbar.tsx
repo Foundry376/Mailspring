@@ -39,7 +39,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     }
 
     const groupId = this.props.perspective.groupId;
-    const group = Store.groups().find(g => g.id === groupId);
+    const group = Store.groups().find((g) => g.id === groupId);
 
     Actions.queueTask(
       ChangeContactGroupMembershipTask.forMoving({
@@ -61,7 +61,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
 
   _onDelete = () => {
     const contacts = this.actionSet();
-    if (contacts.some(c => c.source === 'gpeople' && showGPeopleReadonlyNotice(c.accountId))) {
+    if (contacts.some((c) => c.source === 'gpeople' && showGPeopleReadonlyNotice(c.accountId))) {
       return;
     }
     Actions.queueTask(
@@ -75,7 +75,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     const { listSource, focusedId } = this.props;
     const focused = focusedId && listSource.getById(focusedId);
     const models = focused ? [focused] : listSource.selection.items();
-    return (models as any) as Contact[];
+    return models as any as Contact[];
   }
 
   render() {
@@ -152,24 +152,25 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
   }
 }
 
-export const ContactDetailToolbar: React.FunctionComponent<ContactDetailToolbarProps> = ListensToFluxStore(
-  ({ listSource, editing, perspective }) => (
-    <FocusContainer collection="contact">
-      <ContactDetailToolbarWithData
-        listSource={listSource}
-        editing={editing}
-        perspective={perspective}
-      />
-    </FocusContainer>
-  ),
-  {
-    stores: [Store],
-    getStateFromStores: () => ({
-      editing: Store.editing(),
-      listSource: Store.listSource(),
-      perspective: Store.perspective(),
-    }),
-  }
-);
+export const ContactDetailToolbar: React.FunctionComponent<ContactDetailToolbarProps> =
+  ListensToFluxStore(
+    ({ listSource, editing, perspective }) => (
+      <FocusContainer collection="contact">
+        <ContactDetailToolbarWithData
+          listSource={listSource}
+          editing={editing}
+          perspective={perspective}
+        />
+      </FocusContainer>
+    ),
+    {
+      stores: [Store],
+      getStateFromStores: () => ({
+        editing: Store.editing(),
+        listSource: Store.listSource(),
+        perspective: Store.perspective(),
+      }),
+    }
+  );
 
 ContactDetailToolbar.displayName = 'ContactDetailToolbar';

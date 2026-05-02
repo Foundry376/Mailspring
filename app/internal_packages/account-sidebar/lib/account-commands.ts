@@ -86,7 +86,7 @@ export function registerCommands(accounts: Account[]) {
   const allKey = 'window:select-account-0';
   commands[allKey] = _focusAccounts.bind(this, accounts);
 
-  [1, 2, 3, 4, 5, 6, 7, 8].forEach(index => {
+  [1, 2, 3, 4, 5, 6, 7, 8].forEach((index) => {
     const account = accounts[index - 1];
     if (!account) {
       return;
@@ -106,7 +106,7 @@ export function registerMenuItems(accounts: Account[], sidebarAccountIds: string
     return;
   }
 
-  const submenu = windowMenu.submenu.filter(item => !(item as any).account);
+  const submenu = windowMenu.submenu.filter((item) => !(item as any).account);
   if (!submenu) {
     return;
   }

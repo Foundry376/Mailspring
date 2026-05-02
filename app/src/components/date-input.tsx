@@ -45,7 +45,7 @@ class DateInput extends Component<DateInputProps, DateInputState> {
     this._mounted = false;
   }
 
-  onInputKeyDown = event => {
+  onInputKeyDown = (event) => {
     const {
       key,
       target: { value },
@@ -58,7 +58,7 @@ class DateInput extends Component<DateInputProps, DateInputState> {
     }
   };
 
-  onInputChange = event => {
+  onInputChange = (event) => {
     const {
       target: { value },
     } = event;

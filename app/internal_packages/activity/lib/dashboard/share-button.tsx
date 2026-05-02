@@ -107,7 +107,7 @@ export default class ShareButton extends React.Component<
         {this.state.link && (
           <div>
             <input
-              ref={el => (this._linkEl = el)}
+              ref={(el) => (this._linkEl = el)}
               type="url"
               value={this.state.link}
               style={{ width: 300, marginLeft: 10 }}
@@ -118,7 +118,7 @@ export default class ShareButton extends React.Component<
               onClick={() =>
                 navigator.clipboard
                   .writeText(this.state.link)
-                  .catch(err => console.error('Failed to copy to clipboard:', err))
+                  .catch((err) => console.error('Failed to copy to clipboard:', err))
               }
             >
               <RetinaImg name="icon-copytoclipboard.png" mode={RetinaImg.Mode.ContentIsMask} />

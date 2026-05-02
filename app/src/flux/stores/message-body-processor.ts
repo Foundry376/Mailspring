@@ -22,9 +22,9 @@ class MessageBodyProcessor {
   constructor() {
     this.resetCache();
 
-    DatabaseStore.listen(change => {
+    DatabaseStore.listen((change) => {
       if (change.objectClass === Message.name) {
-        change.objects.forEach(m => {
+        change.objects.forEach((m) => {
           const key = this._key(m);
           if (!this._recentlyProcessedD[key]) {
             return;
@@ -103,7 +103,7 @@ class MessageBodyProcessor {
       // Extra defer to ensure that subscribe never calls it's callback synchronously,
       // (In Node, callbacks should always be called after caller execution has finished)
       _.defer(() =>
-        this.retrieve(message).then(output => {
+        this.retrieve(message).then((output) => {
           if (this._subscriptions.includes(sub)) {
             callback(output);
           }

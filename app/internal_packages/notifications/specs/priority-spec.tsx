@@ -53,7 +53,7 @@ describe('NotifPriority', function notifPriorityTests() {
     beforeEach(async () => {
       components = [stubNotif(5), stubNotif(7), stubNotif(3), stubNotif(2)];
       ComponentRegistry._clear();
-      components.forEach(item => {
+      components.forEach((item) => {
         ComponentRegistry.register(item, { role: 'RootSidebar:Notifications' });
       });
       await trigger();

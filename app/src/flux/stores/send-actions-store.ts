@@ -76,7 +76,7 @@ class _SendActionsStore extends MailspringStore {
   }
 
   sendActionForKey(configKey: string) {
-    return this._sendActions.find(a => a.configKey === configKey);
+    return this._sendActions.find((a) => a.configKey === configKey);
   }
 
   orderedSendActionsForDraft(draft: Message) {
@@ -87,12 +87,12 @@ class _SendActionsStore extends MailspringStore {
       preferredKey = DefaultSendActionKey;
     }
 
-    let preferred = this._sendActions.find(a => a.configKey === preferredKey);
+    let preferred = this._sendActions.find((a) => a.configKey === preferredKey);
     if (!preferred || !preferred.isAvailableForDraft({ draft })) {
       preferred = DefaultSendAction;
     }
     const rest = this._sendActions.filter(
-      action => action !== preferred && action.isAvailableForDraft({ draft })
+      (action) => action !== preferred && action.isAvailableForDraft({ draft })
     );
 
     return [preferred, ...rest];

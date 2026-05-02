@@ -17,7 +17,7 @@ export default class AccountSettingsPageO365 extends React.Component<{ account: 
   }
 
   render() {
-    const providerConfig = AccountProviders.find(a => a.provider === this.props.account.provider);
+    const providerConfig = AccountProviders.find((a) => a.provider === this.props.account.provider);
     const goBack = () => OnboardingActions.moveToPreviousPage();
 
     return (

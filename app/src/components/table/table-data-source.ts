@@ -127,7 +127,7 @@ export default class TableDataSource {
       throw new Error('TableDataSource::isEmpty - Must provide a valid rowIdx');
     }
     if (colIdx == null) {
-      return row.every(el => !el);
+      return row.every((el) => !el);
     }
     return !this.cellAt({ rowIdx, colIdx });
   }
@@ -167,7 +167,7 @@ export default class TableDataSource {
     const columns = this.columns();
     return new TableDataSource({
       ...this._tableData,
-      rows: rows.map(row => row.concat(null)),
+      rows: rows.map((row) => row.concat(null)),
       columns: columns.concat([name]),
     });
   }
@@ -180,7 +180,7 @@ export default class TableDataSource {
    */
   removeLastColumn() {
     const nextNumColumns = this.columns().length - 1;
-    const nextRows = this.rows().map(row => row.slice(0, nextNumColumns));
+    const nextRows = this.rows().map((row) => row.slice(0, nextNumColumns));
     const nextColumns = this.columns().slice(0, nextNumColumns);
     return new TableDataSource({
       ...this._tableData,

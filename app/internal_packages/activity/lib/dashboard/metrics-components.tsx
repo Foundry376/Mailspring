@@ -26,7 +26,7 @@ export class MetricStat extends React.Component<{
     const { value, units, name } = this.props;
 
     return (
-      <div className={`metric-stat ${name}`} ref={el => (this._el = el)}>
+      <div className={`metric-stat ${name}`} ref={(el) => (this._el = el)}>
         <div
           className="layer hidden-on-web"
           style={{
@@ -72,7 +72,7 @@ export class MetricHistogram extends React.Component<{
     }
 
     return (
-      <div className="metric-histogram" ref={el => (this._el = el)}>
+      <div className="metric-histogram" ref={(el) => (this._el = el)}>
         <div className="legend">
           <div>{left}</div>
           <div style={{ flex: 1 }} />
@@ -131,7 +131,7 @@ export class MetricGraph extends React.Component<{ loading: boolean; values: num
     }
 
     return (
-      <div className="metric-graph" ref={el => (this._el = el)}>
+      <div className="metric-graph" ref={(el) => (this._el = el)}>
         <div className="layer" style={{ zIndex: 1 }}>
           {values.map((_, idx) => (
             <div

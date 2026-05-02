@@ -31,7 +31,7 @@ class GithubStore extends MailspringStore {
       return;
     }
 
-    const itemIds = MessageStore.items().map(i => i.id);
+    const itemIds = MessageStore.items().map((i) => i.id);
     if (itemIds.length === 0 || _.isEqual(itemIds, this._lastItemIds)) {
       return;
     }
@@ -67,7 +67,7 @@ class GithubStore extends MailspringStore {
   _isRelevantThread() {
     const participants = MessageStore.thread().participants || [];
     const githubDomainRegex = /@github\.com/gi;
-    return participants.some(contact => githubDomainRegex.test(contact.email));
+    return participants.some((contact) => githubDomainRegex.test(contact.email));
   }
 }
 

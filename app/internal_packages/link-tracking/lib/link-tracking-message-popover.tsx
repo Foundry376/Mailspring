@@ -17,7 +17,7 @@ class LinkTrackingMessagePopover extends React.Component<{
 
   renderClickActions() {
     const clicks = this.props.linkMetadata.click_data;
-    return clicks.map(click => {
+    return clicks.map((click) => {
       const recipients = this.props.message.to.concat(
         this.props.message.cc,
         this.props.message.bcc

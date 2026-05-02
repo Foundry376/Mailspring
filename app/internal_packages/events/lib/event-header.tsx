@@ -97,7 +97,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
           icsuid: event.uid,
           accountId: message.accountId,
         })
-      ).subscribe(calEvent => {
+      ).subscribe((calEvent) => {
         if (!this._mounted || !calEvent) return;
         try {
           this.setState({
@@ -179,8 +179,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             {icsMethod === 'cancel'
               ? this._renderCancellation()
               : icsMethod === 'request'
-              ? this._renderRSVP()
-              : this._renderSenderResponse()}
+                ? this._renderRSVP()
+                : this._renderSenderResponse()}
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     const from = this.props.message.from[0];
     if (!from) return false;
 
-    const sender = CalendarUtils.cleanParticipants(icsEvent).find(p => p.email === from.email);
+    const sender = CalendarUtils.cleanParticipants(icsEvent).find((p) => p.email === from.email);
     if (!sender) return false;
 
     const verb: { [key: string]: string } = {

@@ -13,7 +13,7 @@ export const TaskFactory = {
     callback: (accountThreads: Thread[], accountId: string) => Task | Task[]
   ) {
     const byAccount = {};
-    threads.forEach(thread => {
+    threads.forEach((thread) => {
       if (!(thread instanceof Thread)) {
         throw new Error('tasksForThreadsByAccountId: `threads` must be instances of Thread');
       }
@@ -94,7 +94,7 @@ export const TaskFactory = {
     source: string;
     canBeUndone?: boolean;
   }) {
-    const unread = threads.every(t => t.unread === false);
+    const unread = threads.every((t) => t.unread === false);
     return new ChangeUnreadTask({ threads, unread, source, canBeUndone });
   },
 
@@ -113,7 +113,7 @@ export const TaskFactory = {
   },
 
   taskForInvertingStarred({ threads, source }: { threads: Thread[]; source: string }) {
-    const starred = threads.every(t => t.starred === false);
+    const starred = threads.every((t) => t.starred === false);
     return new ChangeStarredTask({ threads, starred, source });
   },
 };

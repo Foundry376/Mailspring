@@ -104,7 +104,7 @@ class ThemeOption extends React.Component<ThemeOptionProps> {
     return (
       <div className="clickable-theme-option" onMouseDown={this.props.onSelect}>
         <EventedIFrame
-          ref={cm => {
+          ref={(cm) => {
             this._iframeComponent = cm;
           }}
           className={toSelector(this.props.theme.name)}

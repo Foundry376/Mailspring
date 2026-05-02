@@ -208,7 +208,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
 
     AppEnv.showSaveDialog(
       { defaultPath: defaultFilename, title: localized('Save Email') },
-      async savePath => {
+      async (savePath) => {
         if (!savePath) return;
         const task = new GetMessageRFC2822Task({
           messageId: message.id,
@@ -221,7 +221,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
   };
 
   _lastMessage() {
-    return (this.state.messages || []).filter(m => !m.draft).pop();
+    return (this.state.messages || []).filter((m) => !m.draft).pop();
   }
 
   // Returns either "reply" or "reply-all"
@@ -344,7 +344,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     // Index across all rendered items (messages + minified bundles) for roving tabindex
     let itemIndex = 0;
 
-    messages.forEach(message => {
+    messages.forEach((message) => {
       if (isMinifiedBundle(message)) {
         elements.push(this._renderMinifiedBundle(message, itemIndex++));
         return;
@@ -618,7 +618,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
             className={wrapClass}
             scrollbarTickProvider={SearchableComponentStore}
             scrollTooltipComponent={MessageListScrollTooltip}
-            ref={el => {
+            ref={(el) => {
               this._messageWrapEl = el;
             }}
           >
@@ -639,7 +639,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
               data-usesarrowkeys={true}
               aria-label={localized('Messages')}
               onKeyDown={this._onMessageListKeyDown}
-              ref={el => {
+              ref={(el) => {
                 this._messageListEl = el;
               }}
             >

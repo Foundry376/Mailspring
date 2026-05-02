@@ -35,7 +35,7 @@ class DraftList extends React.Component {
       </FluxContainer>
     );
   }
-  _itemPropsProvider = draft => {
+  _itemPropsProvider = (draft) => {
     const props: any = {};
     if (draft.uploadTaskId) {
       props.className = 'sending';
@@ -51,7 +51,7 @@ class DraftList extends React.Component {
     };
   };
 
-  _onDoubleClick = draft => {
+  _onDoubleClick = (draft) => {
     if (!draft.uploadTaskId) {
       Actions.composePopoutDraft(draft.headerMessageId);
     }

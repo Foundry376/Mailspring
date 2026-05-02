@@ -30,7 +30,7 @@ export function CalendarSelector({
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const calendarId = e.target.value;
-    const calendar = calendars.find(c => c.id === calendarId);
+    const calendar = calendars.find((c) => c.id === calendarId);
     if (calendar) {
       onChange(calendar.id, calendar.accountId);
     }
@@ -40,14 +40,14 @@ export function CalendarSelector({
     <div className="calendar-selector">
       <div className="calendar-selector-dot" style={{ backgroundColor: selectedColor }} />
       <select value={selectedCalendarId} onChange={handleChange}>
-        {Object.keys(calsByAccountId).map(accountId => {
+        {Object.keys(calsByAccountId).map((accountId) => {
           const cals = calsByAccountId[accountId];
-          const account = accounts.find(a => a.id === accountId);
+          const account = accounts.find((a) => a.id === accountId);
           const accountLabel = account ? account.label : accountId;
 
           return (
             <optgroup key={accountId} label={accountLabel}>
-              {cals.map(cal => (
+              {cals.map((cal) => (
                 <option key={cal.id} value={cal.id}>
                   {cal.name}
                 </option>

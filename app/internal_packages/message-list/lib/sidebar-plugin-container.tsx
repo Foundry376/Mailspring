@@ -49,7 +49,7 @@ class FocusedContactStorePropsContainer extends React.Component<
   }
 }
 
-const SidebarPluginContainerInner = props => {
+const SidebarPluginContainerInner = (props) => {
   return (
     <InjectedComponentSet
       className="sidebar-contact-card"

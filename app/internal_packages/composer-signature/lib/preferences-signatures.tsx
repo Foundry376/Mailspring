@@ -29,12 +29,12 @@ interface SignatureEditorProps {
 interface SignatureEditorState {}
 
 class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEditorState> {
-  _onTitleChange = event => {
+  _onTitleChange = (event) => {
     const sig = this.props.signature;
     Actions.upsertSignature({ ...sig, title: event.target.value }, sig.id);
   };
 
-  _onRawBodyChange = async event => {
+  _onRawBodyChange = async (event) => {
     const sig = this.props.signature;
     let body = event.target.value;
     try {
@@ -45,7 +45,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     Actions.upsertSignature({ ...sig, body }, sig.id);
   };
 
-  _onDataFieldChange = event => {
+  _onDataFieldChange = (event) => {
     const { id, value } = event.target;
     const sig = this.props.signature;
 
@@ -53,7 +53,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     // display a warning UNLESS the html is an unmodified template HTML
     if (id === 'templateName' && !sig.data.templateName && value) {
       const htmlMatchesATemplate = Templates.find(
-        t => sig.body === RenderSignatureData({ ...sig.data, templateName: t.name })
+        (t) => sig.body === RenderSignatureData({ ...sig.data, templateName: t.name })
       );
       if (!htmlMatchesATemplate) {
         const idx = require('@electron/remote').dialog.showMessageBoxSync({
@@ -75,7 +75,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
 
     // re-render
     if (sig.data.templateName) {
-      const template = Templates.find(t => t.name === sig.data.templateName);
+      const template = Templates.find((t) => t.name === sig.data.templateName);
       if (template) {
         sig.body = RenderSignatureData(sig.data);
       }
@@ -153,7 +153,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
                 {localized('Information')}
               </div>,
               <div key="section" className="section information">
-                {DataShape.map(item => (
+                {DataShape.map((item) => (
                   <div className="field" key={item.key}>
                     <label htmlFor={item.key}>{item.label}</label>
                     <input
@@ -203,7 +203,7 @@ export default class PreferencesSignatures extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unsubscribers.forEach(unsubscribe => unsubscribe());
+    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
   }
 
   _onChange = () => {
@@ -242,16 +242,16 @@ export default class PreferencesSignatures extends React.Component<
     Actions.selectSignature(id);
   };
 
-  _onDeleteSignature = signature => {
+  _onDeleteSignature = (signature) => {
     Actions.removeSignature(signature);
   };
 
-  _onEditSignatureTitle = nextTitle => {
+  _onEditSignatureTitle = (nextTitle) => {
     const { title, ...rest } = this.state.selectedSignature;
     Actions.upsertSignature({ title: nextTitle, ...rest }, rest.id);
   };
 
-  _onSelectSignature = sig => {
+  _onSelectSignature = (sig) => {
     Actions.selectSignature(sig.id);
   };
 
@@ -264,7 +264,7 @@ export default class PreferencesSignatures extends React.Component<
           showEditIcon
           className="signature-list"
           items={sigArr}
-          itemContent={sig => sig.title}
+          itemContent={(sig) => sig.title}
           onCreateItem={this._onAddSignature}
           onDeleteItem={this._onDeleteSignature}
           onItemEdited={this._onEditSignatureTitle}

@@ -10,7 +10,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-const formatStackTrace = function(spec, message, stackTrace, indent = '') {
+const formatStackTrace = function (spec, message, stackTrace, indent = '') {
   if (message == null) {
     message = '';
   }
@@ -51,7 +51,7 @@ const formatStackTrace = function(spec, message, stackTrace, indent = '') {
     lines[index] = line.replace(`at ${spec.specDirectory}${path.sep}`, 'at ');
   }
 
-  lines = lines.map(line => indent + line.trim());
+  lines = lines.map((line) => indent + line.trim());
   return lines.join('\n');
 };
 
@@ -108,7 +108,7 @@ class N1GuiReporter extends React.Component<N1GuiReporterProps, {}> {
     );
   }
 
-  _renderSpecsOfType = type => {
+  _renderSpecsOfType = (type) => {
     const items = [];
     this.props.specs.forEach((spec, idx) => {
       if (spec.specType !== type) {
@@ -140,7 +140,7 @@ class N1GuiReporter extends React.Component<N1GuiReporterProps, {}> {
     const topLevelSuites = [];
 
     const failedSpecs = this.props.specs.filter(
-      spec => spec.endedAt && spec.results().failedCount > 0
+      (spec) => spec.endedAt && spec.results().failedCount > 0
     );
 
     for (let spec of failedSpecs) {
@@ -186,8 +186,9 @@ class N1GuiReporter extends React.Component<N1GuiReporterProps, {}> {
     }
 
     if (skippedCount) {
-      specCount = `${completeCount - skippedCount}/${this.props.specs.length -
-        skippedCount} (${skippedCount} skipped)`;
+      specCount = `${completeCount - skippedCount}/${
+        this.props.specs.length - skippedCount
+      } (${skippedCount} skipped)`;
     } else {
       specCount = `${completeCount}/${this.props.specs.length}`;
     }
@@ -202,8 +203,7 @@ class N1GuiReporter extends React.Component<N1GuiReporterProps, {}> {
   };
 
   onReloadSpecs = () => {
-    require('@electron/remote').getCurrentWindow()
-      .reload();
+    require('@electron/remote').getCurrentWindow().reload();
   };
 }
 
@@ -222,7 +222,7 @@ class SuiteResultView extends React.Component<SuiteResultViewProps, {}> {
     let items = [];
     let subsuites = [];
 
-    this.props.allSpecs.forEach(spec => {
+    this.props.allSpecs.forEach((spec) => {
       if (spec.suite === this.props.suite) {
         return items.push(spec);
       } else {

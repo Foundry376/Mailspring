@@ -6,7 +6,7 @@ import UnifiedDOMParser from './unified-dom-parser';
 
 export default class VirtualDOMParser extends UnifiedDOMParser {
   getWalker(dom): Iterable<HTMLElement> {
-    const pruneFn = node => {
+    const pruneFn = (node) => {
       return node.type === 'style';
     };
     return VirtualDOMUtils.walk({
@@ -43,7 +43,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
   }
 
   getRawFullString(fullString: Array<{ element: string }>) {
-    return fullString.map(x => x.element).join('');
+    return fullString.map((x) => x.element).join('');
   }
 
   removeMatchesAndNormalize(element: any) {

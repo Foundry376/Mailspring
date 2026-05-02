@@ -11,7 +11,7 @@ import {
 import { PreferencesUIStore } from 'mailspring-exports';
 import PreferencesTabsBar from './preferences-tabs-bar';
 
-const stopPropagation = e => {
+const stopPropagation = (e) => {
   e.stopPropagation();
 };
 
@@ -83,7 +83,7 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
           <PreferencesTabsBar tabs={tabs} selection={selection} />
           <ScrollRegion className="preferences-content">
             <ConfigPropContainer
-              ref={el => {
+              ref={(el) => {
                 this._contentComponent = el;
               }}
             >
@@ -101,7 +101,7 @@ export default ListensToFluxStore(PreferencesRoot, {
   getStateFromStores() {
     const tabs = PreferencesUIStore.tabs();
     const selection = PreferencesUIStore.selection();
-    const tab = tabs.find(t => t.tabId === selection.tabId);
+    const tab = tabs.find((t) => t.tabId === selection.tabId);
     return { tabs, selection, tab };
   },
 });

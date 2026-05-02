@@ -5,63 +5,63 @@ import { localized } from './intl';
 export const ConditionTemplates = [
   new Template('from', Template.Type.String, {
     name: localized('From'),
-    valueForMessage: message =>
+    valueForMessage: (message) =>
       [].concat(
-        message.from.map(c => c.email),
-        message.from.map(c => c.name)
+        message.from.map((c) => c.email),
+        message.from.map((c) => c.name)
       ),
   }),
 
   new Template('to', Template.Type.String, {
     name: localized('To'),
-    valueForMessage: message =>
+    valueForMessage: (message) =>
       [].concat(
-        message.to.map(c => c.email),
-        message.to.map(c => c.name)
+        message.to.map((c) => c.email),
+        message.to.map((c) => c.name)
       ),
   }),
 
   new Template('cc', Template.Type.String, {
     name: localized('Cc'),
-    valueForMessage: message =>
+    valueForMessage: (message) =>
       [].concat(
-        message.cc.map(c => c.email),
-        message.cc.map(c => c.name)
+        message.cc.map((c) => c.email),
+        message.cc.map((c) => c.name)
       ),
   }),
 
   new Template('bcc', Template.Type.String, {
     name: localized('Bcc'),
-    valueForMessage: message =>
+    valueForMessage: (message) =>
       [].concat(
-        message.bcc.map(c => c.email),
-        message.bcc.map(c => c.name)
+        message.bcc.map((c) => c.email),
+        message.bcc.map((c) => c.name)
       ),
   }),
 
   new Template('anyRecipient', Template.Type.String, {
     name: localized('Recipient'),
-    valueForMessage: message => {
+    valueForMessage: (message) => {
       const recipients = [].concat(message.to, message.cc, message.bcc);
       return [].concat(
-        recipients.map(c => c.email),
-        recipients.map(c => c.name)
+        recipients.map((c) => c.email),
+        recipients.map((c) => c.name)
       );
     },
   }),
 
   new Template('replyTo', Template.Type.String, {
     name: localized('Reply to'),
-    valueForMessage: message =>
+    valueForMessage: (message) =>
       [].concat(
-        message.replyTo.map(c => c.email),
-        message.replyTo.map(c => c.name)
+        message.replyTo.map((c) => c.email),
+        message.replyTo.map((c) => c.name)
       ),
   }),
 
   new Template('anyAttachmentName', Template.Type.String, {
     name: localized('Attachment name'),
-    valueForMessage: message => message.files.map(f => f.filename),
+    valueForMessage: (message) => message.files.map((f) => f.filename),
   }),
 
   new Template('hasAttachment', Template.Type.Enum, {
@@ -71,7 +71,7 @@ export const ConditionTemplates = [
       { name: localized('False'), value: 'false' },
     ],
     valueLabel: 'is:',
-    valueForMessage: message => {
+    valueForMessage: (message) => {
       return message.files && message.files.length > 0 ? 'true' : 'false';
     },
   }),
@@ -83,21 +83,21 @@ export const ConditionTemplates = [
       { name: localized('False'), value: 'false' },
     ],
     valueLabel: 'is:',
-    valueForMessage: message => {
+    valueForMessage: (message) => {
       return message.starred ? 'true' : 'false';
     },
   }),
 
   new Template('subject', Template.Type.String, {
     name: localized('Subject'),
-    valueForMessage: message => {
+    valueForMessage: (message) => {
       return message.subject;
     },
   }),
 
   new Template('body', Template.Type.String, {
     name: localized('Body'),
-    valueForMessage: message => {
+    valueForMessage: (message) => {
       return message.body;
     },
   }),
@@ -131,9 +131,9 @@ export function ActionTemplatesForAccount(account): Template[] {
 
   const CategoryNamesObservable = Categories.forAccount(account)
     .sort()
-    .map(cats => cats.filter(cat => !cat.isLockedCategory()))
-    .map(cats =>
-      cats.map(cat => {
+    .map((cats) => cats.filter((cat) => !cat.isLockedCategory()))
+    .map((cats) =>
+      cats.map((cat) => {
         return {
           name: cat.displayName || cat.name,
           value: cat.id,

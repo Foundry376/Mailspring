@@ -45,17 +45,17 @@ export class SidebarParticipantPicker extends React.Component<
     return contact.email + SPLIT_KEY + contact.name;
   }
 
-  _onSelectContact = event => {
+  _onSelectContact = (event) => {
     const { sortedContacts } = this.state;
     const [email, name] = event.target.value.split(SPLIT_KEY);
     const contact = sortedContacts.find(
-      c => (c.name === name || typeof c.name === 'undefined') && c.email === email
+      (c) => (c.name === name || typeof c.name === 'undefined') && c.email === email
     );
     return Actions.focusContact(contact);
   };
 
   _renderSortedContacts() {
-    return this.state.sortedContacts.map(contact => {
+    return this.state.sortedContacts.map((contact) => {
       const key = this._getKeyForContact(contact);
 
       return (

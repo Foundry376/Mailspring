@@ -59,17 +59,18 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
   }
 }
 
-export const AddContactToolbar: React.FunctionComponent<AddContactToolbarProps> = ListensToFluxStore(
-  ({ listSource, editing, perspective }) => (
-    <AddContactToolbarWithData editing={editing} perspective={perspective} />
-  ),
-  {
-    stores: [Store],
-    getStateFromStores: () => ({
-      editing: Store.editing(),
-      perspective: Store.perspective(),
-    }),
-  }
-);
+export const AddContactToolbar: React.FunctionComponent<AddContactToolbarProps> =
+  ListensToFluxStore(
+    ({ listSource, editing, perspective }) => (
+      <AddContactToolbarWithData editing={editing} perspective={perspective} />
+    ),
+    {
+      stores: [Store],
+      getStateFromStores: () => ({
+        editing: Store.editing(),
+        perspective: Store.perspective(),
+      }),
+    }
+  );
 
 AddContactToolbar.displayName = 'AddContactToolbar';

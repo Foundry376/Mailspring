@@ -13,7 +13,6 @@ import {
   FocusedContentStore,
 } from 'mailspring-exports';
 
-
 import DraftFactory from '../../src/flux/stores/draft-factory';
 
 class TestExtension extends ComposerExtension {
@@ -27,8 +26,8 @@ xdescribe('DraftStore', function draftStore() {
     this.fakeThread = new Thread({ id: 'fake-thread', headerMessageId: 'fake-thread' });
     this.fakeMessage = new Message({ id: 'fake-message', headerMessageId: 'fake-message' });
 
-    spyOn(AppEnv, 'newWindow').andCallFake(() => { });
-    spyOn(DatabaseStore, 'run').andCallFake(query => {
+    spyOn(AppEnv, 'newWindow').andCallFake(() => {});
+    spyOn(DatabaseStore, 'run').andCallFake((query) => {
       if (query._klass === Thread) {
         return Promise.resolve(this.fakeThread);
       }
@@ -179,7 +178,7 @@ xdescribe('DraftStore', function draftStore() {
           commit() {
             return Promise.resolve();
           },
-          teardown() { },
+          teardown() {},
         },
         teardown: this.draftSessionTeardown,
       };
@@ -199,7 +198,10 @@ xdescribe('DraftStore', function draftStore() {
     it('should queue a destroy draft task', () => {
       DraftStore._onDestroyDraft('abc' as any);
       expect(Actions.queueTask).toHaveBeenCalled();
-      expect((Actions.queueTask as unknown as jasmine.Spy).mostRecentCall.args[0] instanceof DestroyDraftTask).toBe(true);
+      expect(
+        (Actions.queueTask as unknown as jasmine.Spy).mostRecentCall.args[0] instanceof
+          DestroyDraftTask
+      ).toBe(true);
     });
 
     it('should clean up the draft session', () => {
@@ -237,7 +239,10 @@ xdescribe('DraftStore', function draftStore() {
       spyOn(Actions, 'queueTask');
       DraftStore._onBeforeUnload(false as any);
       expect(Actions.queueTask).toHaveBeenCalled();
-      expect((Actions.queueTask as unknown as jasmine.Spy).mostRecentCall.args[0] instanceof DestroyDraftTask).toBe(true);
+      expect(
+        (Actions.queueTask as unknown as jasmine.Spy).mostRecentCall.args[0] instanceof
+          DestroyDraftTask
+      ).toBe(true);
     });
 
     describe('when drafts return unresolved commit promises', () => {
@@ -247,7 +252,7 @@ xdescribe('DraftStore', function draftStore() {
           abc: {
             changes: {
               commit: () =>
-                new Promise(resolve => {
+                new Promise((resolve) => {
                   this.resolve = resolve;
                 }),
             },
@@ -317,7 +322,7 @@ xdescribe('DraftStore', function draftStore() {
         prepare() {
           return Promise.resolve(session);
         },
-        teardown() { },
+        teardown() {},
         draft: () => this.draft,
         changes: {
           commit: ({ force } = {} as any) => {
@@ -491,7 +496,7 @@ xdescribe('DraftStore', function draftStore() {
           commit() {
             return Promise.resolve();
           },
-          reset() { },
+          reset() {},
         },
         teardown: this.draftTeardown,
       } as any;
@@ -524,7 +529,8 @@ xdescribe('DraftStore', function draftStore() {
       it('should give extensions a chance to customize the draft via ext.prepareNewDraft', () => {
         waitsForPromise(() => {
           return DraftStore._onHandleMailtoLink({} as any, 'mailto:bengotow@gmail.com').then(() => {
-            const received = (globalThis as any).DatabaseWriter.prototype.persistModel.mostRecentCall.args[0];
+            const received = (globalThis as any).DatabaseWriter.prototype.persistModel
+              .mostRecentCall.args[0];
             expect(received.body.indexOf('Edited by TestExtension!')).toBe(0);
           });
         });
@@ -537,7 +543,8 @@ xdescribe('DraftStore', function draftStore() {
       spyOn(DraftStore, '_onPopoutDraft');
       waitsForPromise(() => {
         return DraftStore._onHandleMailtoLink({} as any, 'mailto:bengotow@gmail.com').then(() => {
-          const received = (globalThis as any).DatabaseWriter.prototype.persistModel.mostRecentCall.args[0];
+          const received = (globalThis as any).DatabaseWriter.prototype.persistModel.mostRecentCall
+            .args[0];
           expect(received).toEqual(draft);
           expect(DraftStore._onPopoutDraft).toHaveBeenCalled();
         });
@@ -554,7 +561,8 @@ xdescribe('DraftStore', function draftStore() {
       DraftStore._onHandleMailFiles({} as any, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
       waitsFor(() => (globalThis as any).DatabaseWriter.prototype.persistModel.callCount > 0);
       runs(() => {
-        const { body, subject, from } = (globalThis as any).DatabaseWriter.prototype.persistModel.calls[0].args[0];
+        const { body, subject, from } = (globalThis as any).DatabaseWriter.prototype.persistModel
+          .calls[0].args[0];
         expect({ body, subject, from }).toEqual({ body: '', subject: '', from: [defaultMe] });
         expect(DraftStore._onPopoutDraft).toHaveBeenCalled();
       });
@@ -565,8 +573,12 @@ xdescribe('DraftStore', function draftStore() {
       DraftStore._onHandleMailFiles({} as any, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
       waitsFor(() => (Actions.addAttachment as unknown as jasmine.Spy).callCount === 2);
       runs(() => {
-        expect((Actions.addAttachment as unknown as jasmine.Spy).calls[0].args[0].filePath).toEqual('/Users/ben/file1.png');
-        expect((Actions.addAttachment as unknown as jasmine.Spy).calls[1].args[0].filePath).toEqual('/Users/ben/file2.png');
+        expect((Actions.addAttachment as unknown as jasmine.Spy).calls[0].args[0].filePath).toEqual(
+          '/Users/ben/file1.png'
+        );
+        expect((Actions.addAttachment as unknown as jasmine.Spy).calls[1].args[0].filePath).toEqual(
+          '/Users/ben/file2.png'
+        );
       });
     });
   });

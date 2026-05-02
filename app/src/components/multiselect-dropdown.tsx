@@ -49,11 +49,11 @@ class MultiselectDropdown extends Component<MultiselectDropdownProps> {
     itemContent: () => {},
   };
 
-  _onItemClick = item => {
+  _onItemClick = (item) => {
     this.props.onToggleItem(item);
   };
 
-  _renderItem = item => {
+  _renderItem = (item) => {
     const MenuItem = Menu.Item;
     return (
       <MenuItem
@@ -65,12 +65,12 @@ class MultiselectDropdown extends Component<MultiselectDropdownProps> {
     );
   };
 
-  _renderMenu = items => {
+  _renderMenu = (items) => {
     return (
       <Menu
         items={items}
         itemContent={this._renderItem}
-        itemKey={item => this.props.itemKey(item)}
+        itemKey={(item) => this.props.itemKey(item)}
         onSelect={() => {}}
       />
     );

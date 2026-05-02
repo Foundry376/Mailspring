@@ -389,11 +389,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         tabIndex={0}
         style={styles}
         className={classNames}
-        onClick={e => {
+        onClick={(e) => {
           e.stopPropagation();
           onClick(e, event);
         }}
-        onDoubleClick={e => {
+        onDoubleClick={(e) => {
           e.stopPropagation();
           onDoubleClick(event);
         }}

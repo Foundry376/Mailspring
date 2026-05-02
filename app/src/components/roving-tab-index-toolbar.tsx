@@ -35,7 +35,7 @@ export class RovingTabIndexToolbar extends React.Component<
       this._ref.current.querySelectorAll<HTMLElement>(
         'button:not([disabled]), [role="button"]:not([aria-disabled="true"])'
       )
-    ).filter(el => !el.hasAttribute('disabled'));
+    ).filter((el) => !el.hasAttribute('disabled'));
 
     // Sort by visual flex order so ArrowLeft/Right respect CSS `order` properties.
     return elements.sort((a, b) => this._getFlexOrder(a) - this._getFlexOrder(b));
@@ -94,9 +94,8 @@ export class RovingTabIndexToolbar extends React.Component<
     // removed (e.g. Cc/Bcc buttons disappearing after activation), which changes
     // which index should hold tabIndex=0 even if focusedIndex didn't change.
     const children = this._getFocusableChildren();
-    const clampedIndex = children.length > 0
-      ? Math.min(this.state.focusedIndex, children.length - 1)
-      : 0;
+    const clampedIndex =
+      children.length > 0 ? Math.min(this.state.focusedIndex, children.length - 1) : 0;
     this._updateTabIndices(clampedIndex);
     if (clampedIndex !== this.state.focusedIndex) {
       this.setState({ focusedIndex: clampedIndex });

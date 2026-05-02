@@ -49,19 +49,19 @@
     "devtron": "^1.4.0",
     "electron": "41.3.0",
     "electron-winstaller": "5.4.0",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "7.2.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsx-a11y": "^6.4.1",
-    "eslint-plugin-prettier": "3",
-    "eslint-plugin-react": "7.22.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.33.0",
     "fs-extra": "2.x.x",
     "fs-plus": "2.x.x",
     "glob": "7.x.x",
     "jasmine": "2.x.x",
     "license-extractor": "^1.0.4",
     "node-gyp": "^12.2.0",
-    "prettier": "^1.10.0",
+    "prettier": "^3.0.0",
     "rimraf": "^2.6.1",
     "targz": "^1.0.1",
     "temp": "0.8.x",
@@ -77,5 +77,9 @@
     "test-window": "electron ./app --enable-logging --test=window",
     "tsc-watch": "tsc -w -p ./app --noEmit",
     "build": "node app/build/build.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "electron-playwright-helpers": "^2.1.0"
   }
 }

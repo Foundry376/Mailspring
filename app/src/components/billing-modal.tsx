@@ -28,7 +28,7 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
 
   componentWillMount() {
     if (!this.state.src) {
-      IdentityStore.fetchSingleSignOnURL('/payment?embedded=true').then(url => {
+      IdentityStore.fetchSingleSignOnURL('/payment?embedded=true').then((url) => {
         if (!this._mounted) return;
         this.setState({ src: url });
       });
@@ -88,7 +88,7 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
         if (el) {el.addEventListener('click', function(event) {console.log("continue clicked")})}
       `;
     webview.executeJavaScript(listenForContinue);
-    webview.addEventListener('console-message', e => {
+    webview.addEventListener('console-message', (e) => {
       if (e.message === 'continue clicked') {
         // See comment on componentWillUnmount
         Actions.closeModal();

@@ -36,7 +36,7 @@ function _applyMaxWidthAndHeight(node) {
   // https://web-design-weekly.com/2014/11/18/viewport-units-vw-vh-vmin-vmax/
   if (width && height && widthUnits === heightUnits) {
     node.style.maxWidth = '100vw';
-    node.style.maxHeight = `${100 * Number(height) / Number(width)}vw`;
+    node.style.maxHeight = `${(100 * Number(height)) / Number(width)}vw`;
   } else if (!height) {
     node.style.maxWidth = '100vw';
   } else {
@@ -48,7 +48,7 @@ function _applyMaxWidthAndHeight(node) {
 
 export function adjustImages(doc) {
   const imgTagWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: node => {
+    acceptNode: (node) => {
       if (node.nodeName === 'IMG') {
         return NodeFilter.FILTER_ACCEPT;
       }

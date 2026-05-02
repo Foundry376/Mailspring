@@ -228,10 +228,7 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
       const activeCursorId = this.props.keyboardCursorId || this.props.focusedId;
 
       return (
-        <KeyCommandsRegion
-          globalHandlers={this._globalKeymapHandlers()}
-          className={className}
-        >
+        <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()} className={className}>
           <ListTabular
             ref={this.listRef}
             columns={this.state.computedColumns}

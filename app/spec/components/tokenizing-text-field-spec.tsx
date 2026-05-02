@@ -43,21 +43,21 @@ const participant5 = new Contact({
   name: 'Michael',
 });
 
-describe('TokenizingTextField', function() {
+describe('TokenizingTextField', function () {
   afterEach(cleanup);
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.completions = [];
     this.propAdd = jasmine.createSpy('add');
     this.propEdit = jasmine.createSpy('edit');
     this.propRemove = jasmine.createSpy('remove');
     this.propEmptied = jasmine.createSpy('emptied');
-    this.propTokenKey = jasmine.createSpy('tokenKey').andCallFake(p => p.email);
+    this.propTokenKey = jasmine.createSpy('tokenKey').andCallFake((p) => p.email);
     this.propTokenIsValid = jasmine.createSpy('tokenIsValid').andReturn(true);
     this.propTokenRenderer = CustomToken;
     this.propOnTokenAction = jasmine.createSpy('tokenAction');
-    this.propCompletionNode = p => <CustomSuggestion item={p} />;
-    this.propCompletionsForInput = input => this.completions;
+    this.propCompletionNode = (p) => <CustomSuggestion item={p} />;
+    this.propCompletionsForInput = (input) => this.completions;
 
     spyOn(this, 'propCompletionNode').andCallThrough();
     spyOn(this, 'propCompletionsForInput').andCallThrough();
@@ -90,30 +90,30 @@ describe('TokenizingTextField', function() {
     this.rebuildRenderedField();
   });
 
-  it('renders into the document', function() {
+  it('renders into the document', function () {
     expect(this.container.querySelector('.tokenizing-field')).not.toBe(null);
   });
 
-  it('should render an input field', function() {
+  it('should render an input field', function () {
     expect(this.renderedInput).not.toBe(null);
   });
 
-  it('shows the tokens provided by the tokenRenderer', function() {
+  it('shows the tokens provided by the tokenRenderer', function () {
     // Each token renders a CustomToken wrapped in a .token div
     expect(this.container.querySelectorAll('.token').length).toBe(this.tokens.length);
   });
 
-  it('shows the tokens in the correct order', function() {
+  it('shows the tokens in the correct order', function () {
     const tokenEls = this.container.querySelectorAll('.token');
-    const expectedEmails = this.tokens.map(t => t.email);
-    __range__(0, this.tokens.length - 1, true).map(i =>
+    const expectedEmails = this.tokens.map((t) => t.email);
+    __range__(0, this.tokens.length - 1, true).map((i) =>
       expect(tokenEls[i].textContent).toContain(expectedEmails[i])
     );
   });
 
-  describe('prop: tokenIsValid', function() {
-    it("should be evaluated for each token when it's provided", function() {
-      this.propTokenIsValid = jasmine.createSpy('tokenIsValid').andCallFake(p => {
+  describe('prop: tokenIsValid', function () {
+    it("should be evaluated for each token when it's provided", function () {
+      this.propTokenIsValid = jasmine.createSpy('tokenIsValid').andCallFake((p) => {
         if (p === participant2) {
           return true;
         } else {
@@ -129,7 +129,7 @@ describe('TokenizingTextField', function() {
       expect(tokenEls[2].classList.contains('invalid')).toBe(true);
     });
 
-    it('should default to true when not provided', function() {
+    it('should default to true when not provided', function () {
       this.propTokenIsValid = null;
       this.rebuildRenderedField();
       const tokenEls = this.container.querySelectorAll('.token');
@@ -140,7 +140,7 @@ describe('TokenizingTextField', function() {
   });
 
   describe('when the user drags and drops a token between two fields', () =>
-    it('should work properly', function() {
+    it('should work properly', function () {
       const tokensA = [participant1, participant2, participant3];
       const resultA = render(
         <TokenizingTextField
@@ -214,13 +214,13 @@ describe('TokenizingTextField', function() {
       expect(this.propAdd).toHaveBeenCalledWith([tokensA[tokenIndexToDrag]]);
     }));
 
-  describe('When the user selects a token', function() {
-    beforeEach(function() {
+  describe('When the user selects a token', function () {
+    beforeEach(function () {
       const token = this.container.querySelector('.token');
       fireEvent.click(token);
     });
 
-    it('should set the selectedKeys state', function() {
+    it('should set the selectedKeys state', function () {
       // selectedKeys state is reflected via .selected CSS class on the token
       expect(this.container.querySelectorAll('.token.selected').length).toEqual(1);
       expect(this.container.querySelector('.token.selected').textContent).toContain(
@@ -228,27 +228,27 @@ describe('TokenizingTextField', function() {
       );
     });
 
-    it('should return the appropriate token object', function() {
+    it('should return the appropriate token object', function () {
       expect(this.propTokenKey).toHaveBeenCalledWith(participant1);
       expect(this.container.querySelectorAll('.token.selected').length).toEqual(1);
     });
   });
 
   describe('when focused', () =>
-    it('should receive the `focused` class', function() {
+    it('should receive the `focused` class', function () {
       expect(this.container.querySelectorAll('.focused').length).toBe(0);
       fireEvent.focus(this.renderedInput);
       expect(this.container.querySelectorAll('.focused').length).not.toBe(0);
     }));
 
-  describe('when the user types in the input', function() {
-    it('should fetch completions for the text', function() {
+  describe('when the user types in the input', function () {
+    it('should fetch completions for the text', function () {
       fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
       advanceClock(1000);
       expect(this.propCompletionsForInput.calls[0].args[0]).toBe('abc');
     });
 
-    it('should fetch completions on focus', function() {
+    it('should fetch completions on focus', function () {
       // Set input value first so the field has a value, then trigger focus
       fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
       fireEvent.focus(this.renderedInput);
@@ -256,7 +256,7 @@ describe('TokenizingTextField', function() {
       expect(this.propCompletionsForInput.calls[0].args[0]).toBe('abc');
     });
 
-    it('should display the completions', function() {
+    it('should display the completions', function () {
       this.completions = [participant4, participant5];
       fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
 
@@ -267,7 +267,7 @@ describe('TokenizingTextField', function() {
       expect(items[1].textContent).toContain(participant5.email);
     });
 
-    it('should not display items with keys matching items already in the token field', function() {
+    it('should not display items with keys matching items already in the token field', function () {
       this.completions = [participant2, participant4, participant1];
       fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
 
@@ -276,7 +276,7 @@ describe('TokenizingTextField', function() {
       expect(items[0].textContent).toContain(participant4.email);
     });
 
-    it('should highlight the first completion', function() {
+    it('should highlight the first completion', function () {
       this.completions = [participant4, participant5];
       fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
       const items = this.container.querySelectorAll('.item:not(.divider)');
@@ -284,7 +284,7 @@ describe('TokenizingTextField', function() {
       expect(items[0].classList.contains('selected')).toBe(true);
     });
 
-    it('select the clicked element', function() {
+    it('select the clicked element', function () {
       this.completions = [participant4, participant5];
       fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
       const firstItem = this.container.querySelector('.item:not(.divider)');
@@ -292,14 +292,14 @@ describe('TokenizingTextField', function() {
       expect(this.propAdd).toHaveBeenCalledWith([participant4]);
     });
 
-    it("doesn't sumbmit if it looks like an email but has no space at the end", function() {
+    it("doesn't sumbmit if it looks like an email but has no space at the end", function () {
       fireEvent.change(this.renderedInput, { target: { value: 'abc@foo.com' } });
       advanceClock(10);
       expect(this.propCompletionsForInput.calls[0].args[0]).toBe('abc@foo.com');
       expect(this.propAdd).not.toHaveBeenCalled();
     });
 
-    it("allows spaces if what's currently being entered doesn't look like an email", function() {
+    it("allows spaces if what's currently being entered doesn't look like an email", function () {
       fireEvent.change(this.renderedInput, { target: { value: 'ab' } });
       advanceClock(10);
       fireEvent.change(this.renderedInput, { target: { value: 'ab ' } });
@@ -311,10 +311,13 @@ describe('TokenizingTextField', function() {
     });
   });
 
-  [{ key: 'Enter', keyCode: 13 }, { key: ',', keyCode: 188 }].forEach(({ key, keyCode }) =>
-    describe(`when the user presses ${key}`, function() {
+  [
+    { key: 'Enter', keyCode: 13 },
+    { key: ',', keyCode: 188 },
+  ].forEach(({ key, keyCode }) =>
+    describe(`when the user presses ${key}`, function () {
       describe('and there is an completion available', () =>
-        it('should call add with the first completion', function() {
+        it('should call add with the first completion', function () {
           this.completions = [participant4];
           fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
           fireEvent.keyDown(this.renderedInput, { key, keyCode });
@@ -322,7 +325,7 @@ describe('TokenizingTextField', function() {
         }));
 
       describe('and there is NO completion available', () =>
-        it('should call add, allowing the parent to (optionally) turn the text into a token', function() {
+        it('should call add, allowing the parent to (optionally) turn the text into a token', function () {
           this.completions = [];
           fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
           fireEvent.keyDown(this.renderedInput, { key, keyCode });
@@ -331,26 +334,26 @@ describe('TokenizingTextField', function() {
     })
   );
 
-  describe('when the user presses tab', function() {
+  describe('when the user presses tab', function () {
     // Note: fireEvent creates real DOM events; we cannot inject spy functions
     // for preventDefault/stopPropagation. We test observable behavior instead.
 
     describe('and there is an completion available', () =>
-      it('should call add with the first completion', function() {
+      it('should call add with the first completion', function () {
         this.completions = [participant4];
         fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
         fireEvent.keyDown(this.renderedInput, { key: 'Tab', keyCode: 9 });
         expect(this.propAdd).toHaveBeenCalledWith([participant4]);
       }));
 
-    it("shouldn't handle the event in the input is empty", function() {
+    it("shouldn't handle the event in the input is empty", function () {
       // We ignore on empty input values
       fireEvent.change(this.renderedInput, { target: { value: ' ' } });
       fireEvent.keyDown(this.renderedInput, { key: 'Tab', keyCode: 9 });
       expect(this.propAdd).not.toHaveBeenCalled();
     });
 
-    it('should NOT stop the propagation if the input is empty.', function() {
+    it('should NOT stop the propagation if the input is empty.', function () {
       // This is to allow tabs to propagate up to controls that might want
       // to change the focus later.
       fireEvent.change(this.renderedInput, { target: { value: ' ' } });
@@ -358,7 +361,7 @@ describe('TokenizingTextField', function() {
       expect(this.propAdd).not.toHaveBeenCalled();
     });
 
-    it('should add the raw input value if there are no completions', function() {
+    it('should add the raw input value if there are no completions', function () {
       this.completions = [];
       fireEvent.change(this.renderedInput, { target: { value: 'abc' } });
       fireEvent.keyDown(this.renderedInput, { key: 'Tab', keyCode: 9 });
@@ -366,8 +369,8 @@ describe('TokenizingTextField', function() {
     });
   });
 
-  describe('when blurred', function() {
-    it('should do nothing if the relatedTarget is null meaning the app has been blurred', function() {
+  describe('when blurred', function () {
+    it('should do nothing if the relatedTarget is null meaning the app has been blurred', function () {
       fireEvent.focus(this.renderedInput);
       fireEvent.change(this.renderedInput, { target: { value: 'text' } });
       fireEvent.blur(this.renderedInput, { relatedTarget: null });
@@ -375,21 +378,21 @@ describe('TokenizingTextField', function() {
       expect(this.container.querySelectorAll('.focused').length).not.toBe(0);
     });
 
-    it('should call add, allowing the parent component to (optionally) turn the entered text into a token', function() {
+    it('should call add, allowing the parent component to (optionally) turn the entered text into a token', function () {
       fireEvent.focus(this.renderedInput);
       fireEvent.change(this.renderedInput, { target: { value: 'text' } });
       fireEvent.blur(this.renderedInput, { relatedTarget: document.body });
       expect(this.propAdd).toHaveBeenCalledWith('text', {});
     });
 
-    it('should clear the entered text', function() {
+    it('should clear the entered text', function () {
       fireEvent.focus(this.renderedInput);
       fireEvent.change(this.renderedInput, { target: { value: 'text' } });
       fireEvent.blur(this.renderedInput, { relatedTarget: document.body });
       expect(this.renderedInput.value).toBe('');
     });
 
-    it('should no longer have the `focused` class', function() {
+    it('should no longer have the `focused` class', function () {
       fireEvent.focus(this.renderedInput);
       expect(this.container.querySelectorAll('.tokenizing-field.focused').length).not.toBe(0);
       fireEvent.blur(this.renderedInput, { relatedTarget: document.body });
@@ -398,7 +401,7 @@ describe('TokenizingTextField', function() {
   });
 
   describe('cut', () =>
-    it('removes the selected tokens', function() {
+    it('removes the selected tokens', function () {
       // Select participant1 by clicking its token
       const firstToken = this.container.querySelector('.token');
       fireEvent.click(firstToken);
@@ -409,9 +412,9 @@ describe('TokenizingTextField', function() {
       expect(this.propEmptied).not.toHaveBeenCalled();
     }));
 
-  describe('backspace', function() {
+  describe('backspace', function () {
     describe('when no token is selected', () =>
-      it("selects the last token first and doesn't remove", function() {
+      it("selects the last token first and doesn't remove", function () {
         fireEvent.keyDown(this.renderedInput, { key: 'Backspace', keyCode: 8 });
         expect(this.container.querySelectorAll('.token.selected').length).toEqual(1);
         expect(this.propRemove).not.toHaveBeenCalled();
@@ -419,7 +422,7 @@ describe('TokenizingTextField', function() {
       }));
 
     describe('when a token is selected', () =>
-      it('removes that token and deselects', function() {
+      it('removes that token and deselects', function () {
         // Select participant1 by clicking its token
         const firstToken = this.container.querySelector('.token');
         fireEvent.click(firstToken);
@@ -431,7 +434,7 @@ describe('TokenizingTextField', function() {
       }));
 
     describe('when there are no tokens left', () =>
-      it('fires onEmptied', function() {
+      it('fires onEmptied', function () {
         this.rerender(
           <TokenizingTextField
             tokens={[]}
@@ -455,11 +458,11 @@ describe('TokenizingTextField', function() {
   });
 });
 
-describe('TokenizingTextField.Token', function() {
+describe('TokenizingTextField.Token', function () {
   afterEach(cleanup);
 
-  describe('when an onEdit prop has been provided', function() {
-    beforeEach(function() {
+  describe('when an onEdit prop has been provided', function () {
+    beforeEach(function () {
       this.propEdit = jasmine.createSpy('onEdit');
       this.propClick = jasmine.createSpy('onClick');
       const result = render(
@@ -476,7 +479,7 @@ describe('TokenizingTextField.Token', function() {
       this.container = result.container;
     });
 
-    it('should enter editing mode when double-clicked', function() {
+    it('should enter editing mode when double-clicked', function () {
       // Not editing: the token renders its children, no input visible in the token area
       expect(this.container.querySelector('.token')).not.toBe(null);
       expect(this.container.querySelector('input')).toBe(null);
@@ -485,7 +488,7 @@ describe('TokenizingTextField.Token', function() {
       expect(this.container.querySelector('input')).not.toBe(null);
     });
 
-    it('should call onEdited when blurred while editing', function() {
+    it('should call onEdited when blurred while editing', function () {
       // Not editing: no input visible
       expect(this.container.querySelector('input')).toBe(null);
       fireEvent.dblClick(this.container.querySelector('.token'));
@@ -499,7 +502,7 @@ describe('TokenizingTextField.Token', function() {
   });
 
   describe('when no onEdit prop has been provided', () =>
-    it('should not enter editing mode', function() {
+    it('should not enter editing mode', function () {
       const result = render(
         React.createElement(TokenizingTextField.Token, {
           selected: false,

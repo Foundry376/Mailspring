@@ -40,7 +40,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
   componentDidMount() {
     this._loadCalendars();
     this._disposable = Rx.Observable.fromConfig<string[] | undefined>(DISABLED_CALENDARS).subscribe(
-      disabledCalendars => {
+      (disabledCalendars) => {
         this.setState({ disabledCalendars: disabledCalendars || [] });
       }
     );
@@ -58,7 +58,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
   _loadCalendars = async () => {
     const calendars = await DatabaseStore.findAll<Calendar>(Calendar);
     const calendarMap = new Map<string, Calendar>();
-    calendars.forEach(cal => calendarMap.set(cal.id, cal));
+    calendars.forEach((cal) => calendarMap.set(cal.id, cal));
     this.setState({ calendars: calendarMap });
   };
 
@@ -99,12 +99,8 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
 
       // Expand events to occurrences within a wide time range
       const suggestions = occurrencesForEvents(events, {
-        startUnix: moment()
-          .add(-2, 'years')
-          .unix(),
-        endUnix: moment()
-          .add(2, 'years')
-          .unix(),
+        startUnix: moment().add(-2, 'years').unix(),
+        endUnix: moment().add(2, 'years').unix(),
       });
 
       // Sort by start date, closest to now first
@@ -281,7 +277,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
                   <div
                     key={event.id}
                     className={`suggestion ${selectedIdx === idx ? 'selected' : ''}`}
-                    onMouseDown={e => {
+                    onMouseDown={(e) => {
                       this._onSelectEvent(event);
                       e.preventDefault();
                     }}

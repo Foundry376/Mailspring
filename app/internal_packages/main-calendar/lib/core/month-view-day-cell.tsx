@@ -38,7 +38,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
   };
 
   _isEventSelected(event: EventOccurrence): boolean {
-    return this.props.selectedEvents.some(e => e.id === event.id);
+    return this.props.selectedEvents.some((e) => e.id === event.id);
   }
 
   _sortEvents(events: EventOccurrence[]): EventOccurrence[] {
@@ -78,14 +78,8 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       'is-other-month': !isCurrentMonth,
     });
 
-    const dayStartUnix = day
-      .clone()
-      .startOf('day')
-      .unix();
-    const dayEndUnix = day
-      .clone()
-      .endOf('day')
-      .unix();
+    const dayStartUnix = day.clone().startOf('day').unix();
+    const dayEndUnix = day.clone().endOf('day').unix();
 
     return (
       <div
@@ -103,7 +97,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
           </span>
         </div>
         <div className="month-view-day-events">
-          {visibleEvents.map(event => (
+          {visibleEvents.map((event) => (
             <MonthViewEvent
               key={event.id}
               event={event}

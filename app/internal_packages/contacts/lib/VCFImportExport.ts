@@ -114,10 +114,7 @@ export function vcfStringToContacts(vcfContent: string, accountId: string): Cont
 
       // Inject VERSION:3.0 if missing so safeParseVCard doesn't throw.
       if (!vcardString.match(/^VERSION:/im)) {
-        vcardString = vcardString.replace(
-          /BEGIN:VCARD\r\n/i,
-          'BEGIN:VCARD\r\nVERSION:3.0\r\n'
-        );
+        vcardString = vcardString.replace(/BEGIN:VCARD\r\n/i, 'BEGIN:VCARD\r\nVERSION:3.0\r\n');
       }
 
       // Always replace (or inject) the UID with a fresh UUID. Imported contacts
@@ -172,7 +169,7 @@ export function exportContactsToFile(contacts: Contact[]) {
   if (contacts.length === 0) return;
   const defaultName =
     contacts.length === 1 ? `${contacts[0].name || 'contact'}.vcf` : 'contacts.vcf';
-  AppEnv.showSaveDialog({ defaultPath: defaultName }, filePath => {
+  AppEnv.showSaveDialog({ defaultPath: defaultName }, (filePath) => {
     if (!filePath) return;
     try {
       fs.writeFileSync(filePath, contactsToVCFFileContent(contacts), 'utf-8');
@@ -255,7 +252,7 @@ export function importContactsFromFile(accountId: string) {
       filters: [{ name: 'VCard Files', extensions: ['vcf', 'vcard'] }],
       properties: ['openFile', 'multiSelections'],
     },
-    filePaths => {
+    (filePaths) => {
       if (!filePaths || filePaths.length === 0) return;
       importContactsFromPaths(filePaths, accountId);
     }

@@ -36,9 +36,7 @@ class CategoryStore extends MailspringStore {
       }
     });
 
-    Categories.forAllAccounts()
-      .sort()
-      .subscribe(this._onCategoriesChanged);
+    Categories.forAllAccounts().sort().subscribe(this._onCategoriesChanged);
   }
 
   byId(accountOrId: Account | string, categoryId: string) {
@@ -94,21 +92,24 @@ class CategoryStore extends MailspringStore {
     }
 
     const accountCategories = this._standardCategories[asAccountId(accountOrId)];
-    return (accountCategories && accountCategories.find(c => c.role === role)) || null;
+    return (accountCategories && accountCategories.find((c) => c.role === role)) || null;
   }
 
   // Public: Returns the set of all standard categories that match the given
   // names for each of the provided accounts
-  getCategoriesWithRoles(accountsOrIds: Account | string | (Account | string)[], ...names: string[]) {
+  getCategoriesWithRoles(
+    accountsOrIds: Account | string | (Account | string)[],
+    ...names: string[]
+  ) {
     if (Array.isArray(accountsOrIds)) {
       let res = [];
       for (const accOrId of accountsOrIds) {
-        const cats = names.map(name => this.getCategoryByRole(accOrId, name));
+        const cats = names.map((name) => this.getCategoryByRole(accOrId, name));
         res = res.concat(cats.filter(Boolean));
       }
       return res;
     }
-    return names.map(name => this.getCategoryByRole(accountsOrIds, name)).filter(Boolean);
+    return names.map((name) => this.getCategoryByRole(accountsOrIds, name)).filter(Boolean);
   }
 
   // Public: Returns the Folder or Label object that should be used for "Archive"
@@ -172,7 +173,7 @@ class CategoryStore extends MailspringStore {
       this._categoryCache[cat.accountId][cat.id] = cat;
     }
 
-    const filteredByAccount = fn => {
+    const filteredByAccount = (fn) => {
       const result = {};
       for (const cat of categories) {
         if (!fn(cat)) {
@@ -184,9 +185,9 @@ class CategoryStore extends MailspringStore {
       return result;
     };
 
-    this._standardCategories = filteredByAccount(cat => cat.isStandardCategory());
-    this._userCategories = filteredByAccount(cat => cat.isUserCategory());
-    this._hiddenCategories = filteredByAccount(cat => cat.isHiddenCategory());
+    this._standardCategories = filteredByAccount((cat) => cat.isStandardCategory());
+    this._userCategories = filteredByAccount((cat) => cat.isUserCategory());
+    this._hiddenCategories = filteredByAccount((cat) => cat.isHiddenCategory());
 
     // Ensure standard categories are always sorted in the correct order
     for (const accountCategories of Object.values(this._standardCategories)) {

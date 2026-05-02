@@ -63,7 +63,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     return moment(value).format('LT');
   }
 
-  _onKeyDown = event => {
+  _onKeyDown = (event) => {
     if (event.key === 'ArrowUp') {
       event.preventDefault();
       this._onArrow(event.key);
@@ -97,7 +97,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     el.setSelectionRange(0, el.value.length);
   };
 
-  _onBlur = event => {
+  _onBlur = (event) => {
     this.setState({ focused: false });
     if (event.relatedTarget && Array.from(event.relatedTarget.classList).includes('time-options')) {
       return;
@@ -105,7 +105,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     this._saveIfValid(this.state.rawText);
   };
 
-  _onRawTextChange = event => {
+  _onRawTextChange = (event) => {
     this.setState({ rawText: event.target.value });
   };
 
@@ -163,9 +163,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     const firstVisibleMoment = moment(roundedMoment);
     firstVisibleMoment.add(...INTERVAL);
 
-    let startVal = moment(this.props.value)
-      .startOf('day')
-      .valueOf();
+    let startVal = moment(this.props.value).startOf('day').valueOf();
     startVal = Math.max(startVal, this.props.relativeTo || 0);
 
     const startMoment = moment(startVal);

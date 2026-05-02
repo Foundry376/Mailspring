@@ -22,7 +22,7 @@ export default class ApplicationMenu {
   constructor(version: string) {
     this.version = version;
     this.setActiveTemplate(this.getDefaultTemplate());
-    global.application.autoUpdateManager.on('state-changed', state => {
+    global.application.autoUpdateManager.on('state-changed', (state) => {
       this.updateAutoupdateMenuItem(state);
     });
   }
@@ -156,8 +156,8 @@ export default class ApplicationMenu {
 
     const windows = global.application.windowManager.getOpenWindows();
     const windowsItems = windows
-      .filter(w => w.windowType !== 'default' && w.windowType !== 'contacts')
-      .map(w => ({
+      .filter((w) => w.windowType !== 'default' && w.windowType !== 'contacts')
+      .map((w) => ({
         label: w.loadSettings().title || 'Window',
         click() {
           w.show();
@@ -278,7 +278,7 @@ export default class ApplicationMenu {
   // Returns a complete menu configuration object for electron's menu API.
   //
   translateTemplate(template: any[], keystrokesByCommand: Record<string, string[]>) {
-    template.forEach(item => {
+    template.forEach((item) => {
       if (item.metadata == null) {
         item.metadata = {};
       }
@@ -319,7 +319,7 @@ export default class ApplicationMenu {
     let modifiers = firstKeystroke.split('+');
     const key = modifiers.pop();
 
-    modifiers = modifiers.map(modifier =>
+    modifiers = modifiers.map((modifier) =>
       modifier
         .replace(/shift/gi, 'Shift')
         .replace(/command/gi, 'Command')

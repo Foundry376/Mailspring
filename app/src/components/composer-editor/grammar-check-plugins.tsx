@@ -57,7 +57,7 @@ export function cleanupDraft(draftId: string) {
 // --- Clear grammar decorations from all tracked editors ---
 // Called when grammar check is toggled off so underlines disappear immediately.
 export function clearAllGrammarDecorations() {
-  latestEditorByDraft.forEach(editor => {
+  latestEditorByDraft.forEach((editor) => {
     try {
       const decorations = editor.value.get('decorations') as any;
       if (!decorations || !decorations.size) return;
@@ -82,7 +82,7 @@ function _scheduleCheck(draftId: string, editor: Editor, delayMs: number, start 
   const timer = setTimeout(() => {
     debounceTimers.delete(draftId);
     if (!grammarCheckStore) return;
-    grammarCheckStore.checkDirtyBlocks(draftId).then(completed => {
+    grammarCheckStore.checkDirtyBlocks(draftId).then((completed) => {
       if (!completed) return; // superseded by a newer check — it will apply its own decorations
       try {
         applyGrammarDecorations(editor, draftId);
@@ -102,7 +102,7 @@ export function requestInitialCheckForDraft(draftId: string) {
   const editor = latestEditorByDraft.get(draftId);
   if (!editor) return;
 
-  editor.value.document.nodes.forEach(block => {
+  editor.value.document.nodes.forEach((block) => {
     if (block.object === 'block') {
       grammarCheckStore.markDirty(draftId, block.key, block.text);
     }
@@ -209,7 +209,7 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
   const allErrors = grammarCheckStore.allErrorsForDraft(draftId);
   const decorations: Decoration[] = [];
 
-  value.document.nodes.forEach(block => {
+  value.document.nodes.forEach((block) => {
     if (block.object !== 'block') return;
 
     const blockErrors = allErrors.get(block.key);
@@ -236,7 +236,7 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
               blockErrors.text
             )}\n` +
             `  text nodes: ${JSON.stringify(
-              texts.map(t => ({ key: t.key, len: t.text.length, text: t.text }))
+              texts.map((t) => ({ key: t.key, len: t.text.length, text: t.text }))
             )}`
         );
         continue;
@@ -391,7 +391,7 @@ function renderMark(
     <span
       className="grammar-error"
       data-grammar-error={true}
-      onContextMenu={e => {
+      onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
         if (editor) showGrammarContextMenu(mark, editor);
@@ -473,7 +473,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
             <button
               key={replacement}
               className="btn btn-small"
-              onMouseDown={e => {
+              onMouseDown={(e) => {
                 e.preventDefault();
                 applyReplacement(editor, replacement);
               }}
@@ -486,7 +486,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
       <div className="grammar-actions">
         <button
           className="btn btn-small btn-dismiss"
-          onMouseDown={e => {
+          onMouseDown={(e) => {
             e.preventDefault();
             grammarCheckStore.dismissRule(ruleId);
           }}
@@ -533,7 +533,7 @@ function onChange(editor: Editor, next: () => void) {
 
   if (prevDoc) {
     // Diff blocks to find which paragraphs changed
-    currDoc.nodes.forEach(block => {
+    currDoc.nodes.forEach((block) => {
       if (block.object !== 'block') return;
       const prevBlock = prevDoc.getNode(block.key);
       if (!prevBlock || prevBlock.text !== block.text) {
@@ -542,7 +542,7 @@ function onChange(editor: Editor, next: () => void) {
     });
 
     // Clear errors for deleted blocks
-    prevDoc.nodes.forEach(block => {
+    prevDoc.nodes.forEach((block) => {
       if (block.object !== 'block') return;
       if (!currDoc.getNode(block.key)) {
         grammarCheckStore.clearBlock(draftId, block.key);
@@ -550,7 +550,7 @@ function onChange(editor: Editor, next: () => void) {
     });
   } else {
     // First onChange for this draft - mark all blocks dirty for initial check
-    currDoc.nodes.forEach(block => {
+    currDoc.nodes.forEach((block) => {
       if (block.object === 'block') {
         grammarCheckStore.markDirty(draftId, block.key, block.text);
       }

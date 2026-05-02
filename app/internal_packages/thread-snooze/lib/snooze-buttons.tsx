@@ -35,7 +35,7 @@ class SnoozeButton extends Component<SnoozeButtonProps> {
     className: 'btn btn-toolbar',
     direction: 'down',
     shouldRenderIconImg: true,
-    getBoundingClientRect: inst =>
+    getBoundingClientRect: (inst) =>
       (ReactDOM.findDOMNode(inst) as HTMLElement).getBoundingClientRect(),
   };
 
@@ -120,7 +120,7 @@ export class ToolbarSnooze extends Component<{ items: Thread[] }> {
     return (
       <RovingTabIndexToolbar label="Snooze" className="button-group">
         <BindGlobalCommands commands={{ 'core:snooze-item': () => this._btn.onClick() }}>
-          <SnoozeButton threads={this.props.items} ref={b => (this._btn = b)} />
+          <SnoozeButton threads={this.props.items} ref={(b) => (this._btn = b)} />
         </BindGlobalCommands>
       </RovingTabIndexToolbar>
     );

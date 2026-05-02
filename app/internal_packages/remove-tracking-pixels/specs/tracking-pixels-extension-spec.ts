@@ -3,11 +3,8 @@ import fs from 'fs';
 import { removeTrackingPixels } from '../lib/main';
 import { Message } from 'mailspring-exports';
 
-const readFixture = name => {
-  return fs
-    .readFileSync(`${__dirname}/fixtures/${name}`)
-    .toString()
-    .trim();
+const readFixture = (name) => {
+  return fs.readFileSync(`${__dirname}/fixtures/${name}`).toString().trim();
 };
 
 describe('TrackingPixelsExtension', function trackingPixelsExtension() {

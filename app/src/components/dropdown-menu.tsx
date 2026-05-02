@@ -54,7 +54,7 @@ export default class DropdownMenu extends React.Component<DropdownMenuProps, Dro
     }
   };
 
-  _onSelect = item => {
+  _onSelect = (item) => {
     this.setState({ currentSelection: item });
     if (this.props.onSelect) {
       this.props.onSelect(item);
@@ -62,7 +62,7 @@ export default class DropdownMenu extends React.Component<DropdownMenuProps, Dro
     this._close();
   };
 
-  _onBlur = e => {
+  _onBlur = (e) => {
     const node = ReactDOM.findDOMNode(this);
     let otherNode = e.relatedTarget;
     if (otherNode) {

@@ -34,7 +34,7 @@ export function merge(menu: IMenuItem[], item: IMenuItem, itemSpecificity?: numb
 
   if (matchingItem != null) {
     if (item.submenu != null) {
-      return item.submenu.map(submenuItem =>
+      return item.submenu.map((submenuItem) =>
         merge(matchingItem.submenu, submenuItem, itemSpecificity)
       );
     } else if (itemSpecificity) {
@@ -101,7 +101,7 @@ export function normalizeLabel(label: string | null) {
 export function cloneMenuItem(item: IMenuItem) {
   item = { ...item };
   if (item.submenu != null) {
-    item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));
+    item.submenu = item.submenu.map((submenuItem) => cloneMenuItem(submenuItem));
   }
   return item;
 }

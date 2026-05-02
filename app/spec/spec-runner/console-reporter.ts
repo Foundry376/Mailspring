@@ -61,7 +61,10 @@ export default class ConsoleReporter {
       this.passCount++;
       process.stdout.write(`${indent}\u2713 ${spec.description}\n`);
     } else {
-      const failItems = spec.results().getItems().filter((item: any) => !item.passed_);
+      const failItems = spec
+        .results()
+        .getItems()
+        .filter((item: any) => !item.passed_);
       this.failures.push({ name: spec.getFullName(), items: failItems });
       process.stdout.write(`${indent}\u2717 ${spec.description}\n`);
     }
@@ -82,7 +85,7 @@ export default class ConsoleReporter {
             item.trace.stack
               .split('\n')
               .slice(1, 6)
-              .forEach(line => process.stdout.write(`     ${line.trim()}\n`));
+              .forEach((line) => process.stdout.write(`     ${line.trim()}\n`));
           }
           process.stdout.write('\n');
         });

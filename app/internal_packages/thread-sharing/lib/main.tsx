@@ -26,7 +26,7 @@ const _onDatabaseChange = (change: DatabaseChangeRecord<any>) => {
     return;
   }
 
-  change.objects.forEach(async thread => {
+  change.objects.forEach(async (thread) => {
     if (isShared(thread)) {
       syncThreadToWebSoon(thread);
     }
@@ -76,9 +76,9 @@ export const syncThreadToWeb = async (thread: Thread) => {
   );
 
   // hide reminder notifications, deleted emails, etc.
-  messages = messages.filter(m => !m.isHidden());
+  messages = messages.filter((m) => !m.isHidden());
 
-  const combinedVersionHash = messages.map(m => m.version).join('|');
+  const combinedVersionHash = messages.map((m) => m.version).join('|');
   if (metadata.combinedVersionHash === combinedVersionHash) {
     // since thread sharing really just shows the messages in the thread, we don't need
     // to perform work (and could enter an infinite loop if we continue to update the metadata.)
@@ -93,7 +93,7 @@ export const syncThreadToWeb = async (thread: Thread) => {
 
   // first, sync any new attachments
   const files = messages.reduce((a, m) => a.concat(m.files), []);
-  const toUpload = files.filter(f => !metadata.fileURLs[f.id]);
+  const toUpload = files.filter((f) => !metadata.fileURLs[f.id]);
   while (toUpload.length) {
     const file = toUpload.pop();
     try {
@@ -121,7 +121,7 @@ export const syncThreadToWeb = async (thread: Thread) => {
       thread: thread,
       sharedBy: { firstName, lastName, emailAddress },
       fileURLs: metadata.fileURLs,
-      messages: messages.map(m =>
+      messages: messages.map((m) =>
         Object.assign({}, m.toJSON(), {
           body: QuotedHTMLTransformer.removeQuotedHTML(m.body, {
             keepIfWholeBodyIsQuote: true,

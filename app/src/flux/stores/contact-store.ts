@@ -22,7 +22,7 @@ class ContactStore extends MailspringStore {
     }
 
     const groups = await DatabaseStore.findAll<ContactGroup>(ContactGroup);
-    return groups.filter(g => g.name.toLowerCase().startsWith(search)).slice(0, 4);
+    return groups.filter((g) => g.name.toLowerCase().startsWith(search)).slice(0, 4);
   }
 
   // Public: Search the user's contact list for the given search term.
@@ -60,7 +60,7 @@ class ContactStore extends MailspringStore {
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending());
 
-    return (query.then(async _results => {
+    return query.then(async (_results) => {
       let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
       for (const ext of extensions) {
         results = await ext.findAdditionalContacts(search, results);
@@ -69,7 +69,7 @@ class ContactStore extends MailspringStore {
         results.length = limit;
       }
       return results;
-    }) as any) as Promise<Contact[]>;
+    }) as any as Promise<Contact[]>;
   }
 
   topContacts({ limit = 5 } = {}) {
@@ -79,7 +79,7 @@ class ContactStore extends MailspringStore {
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending())
-      .then(async _results => {
+      .then(async (_results) => {
         const results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
         if (results.length > limit) {
           results.length = limit;
@@ -145,7 +145,7 @@ class ContactStore extends MailspringStore {
     }
 
     return Promise.all<Contact>(
-      detected.map(contact => {
+      detected.map((contact) => {
         if (contact.name !== contact.email) {
           return contact;
         }
@@ -160,7 +160,9 @@ class ContactStore extends MailspringStore {
     // remove results that the user has asked not to see. (Cheaper to do this in JS
     // than construct a WHERE clause that makes SQLite's index selection non-obvious.)
     const findInMailDisabled = AppEnv.config.get('core.contacts.findInMailDisabled');
-    return results.filter(r => !(r.source === 'mail' && findInMailDisabled.includes(r.accountId)));
+    return results.filter(
+      (r) => !(r.source === 'mail' && findInMailDisabled.includes(r.accountId))
+    );
   }
 
   _distinctByEmail(contacts: Contact[]) {
@@ -172,7 +174,7 @@ class ContactStore extends MailspringStore {
       }
       const key = contact.email.toLowerCase();
       const existing = uniq[key];
-      if (!existing || (!existing.name || existing.name === existing.email)) {
+      if (!existing || !existing.name || existing.name === existing.email) {
         uniq[key] = contact;
       }
     }

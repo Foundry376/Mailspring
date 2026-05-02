@@ -71,9 +71,9 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
       ];
       // Actually returns correct sets for queries, since matchers can evaluate
       // themselves against models in memory
-      spyOn(DatabaseStore, 'run').andCallFake(query => {
-        const results = this.models.filter(model =>
-          query._matchers.every(matcher => matcher.evaluate(model))
+      spyOn(DatabaseStore, 'run').andCallFake((query) => {
+        const results = this.models.filter((model) =>
+          query._matchers.every((matcher) => matcher.evaluate(model))
         );
         return Promise.resolve(results);
       });
@@ -82,7 +82,7 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
     describe('when given an array or input that is not an array', () =>
       it('resolves immediately with an empty array', () =>
         waitsForPromise(() => {
-          return DatabaseStore.modelify(Thread, null).then(output => {
+          return DatabaseStore.modelify(Thread, null).then((output) => {
             expect(output).toEqual([]);
           });
         })));
@@ -98,7 +98,7 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
           this.models[6],
         ];
         return waitsForPromise(() => {
-          return DatabaseStore.modelify(Thread, input).then(output => {
+          return DatabaseStore.modelify(Thread, input).then((output) => {
             expect(output).toEqual(expectedOutput);
           });
         });
@@ -109,7 +109,7 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
         const input = ['local-D', 'local-F', 'local-G'];
         const expectedOutput = [this.models[3], this.models[5], this.models[6]];
         return waitsForPromise(() => {
-          return DatabaseStore.modelify(Thread, input).then(output => {
+          return DatabaseStore.modelify(Thread, input).then((output) => {
             expect(output).toEqual(expectedOutput);
           });
         });
@@ -120,7 +120,7 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
         const input = [this.models[0], this.models[1], this.models[2], this.models[3]];
         const expectedOutput = [this.models[0], this.models[1], this.models[2], this.models[3]];
         return waitsForPromise(() => {
-          return DatabaseStore.modelify(Thread, input).then(output => {
+          return DatabaseStore.modelify(Thread, input).then((output) => {
             expect(output).toEqual(expectedOutput);
           });
         });

@@ -28,7 +28,7 @@ export class ThreadArchiveQuickAction extends React.Component<{ thread: Thread }
         style={{ order: 100 }}
         className="btn action action-archive"
         onClick={this._onArchive}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             this._onArchive(e as any);
@@ -77,7 +77,7 @@ export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> 
         style={{ order: 110 }}
         className="btn action action-trash"
         onClick={this._onRemove}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             this._onRemove(e as any);

@@ -24,7 +24,7 @@ export default class SendRemindersPopoverButton extends Component<{
   static defaultProps = {
     direction: 'down',
     className: 'btn btn-toolbar',
-    getBoundingClientRect: inst =>
+    getBoundingClientRect: (inst) =>
       (ReactDOM.findDOMNode(inst) as HTMLElement).getBoundingClientRect(),
   };
 
@@ -33,8 +33,8 @@ export default class SendRemindersPopoverButton extends Component<{
 
     // get the messages on the thread and find the last one received.
     // we need to identify the message which will show the reminder
-    DatabaseStore.findAll<Message>(Message, { threadId: thread.id }).then(messages => {
-      const lastSent = messages.reverse().find(m => m.isFromMe());
+    DatabaseStore.findAll<Message>(Message, { threadId: thread.id }).then((messages) => {
+      const lastSent = messages.reverse().find((m) => m.isFromMe());
       const metadata = expiration
         ? {
             expiration,
@@ -58,7 +58,7 @@ export default class SendRemindersPopoverButton extends Component<{
     Actions.openPopover(
       <SendRemindersPopover
         reminderDate={reminderDate}
-        onRemind={date => this.onSetReminder(date)}
+        onRemind={(date) => this.onSetReminder(date)}
         onCancelReminder={() => this.onSetReminder(null)}
       />,
       { originRect: buttonRect, direction }

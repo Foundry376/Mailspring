@@ -95,11 +95,11 @@ class TimeOverride {
       return id;
     };
 
-    this._fakeClearTimeout = idToClear => {
+    this._fakeClearTimeout = (idToClear) => {
       if (this.timeouts == null) {
         this.timeouts = [];
       }
-      this.timeouts = this.timeouts.filter(function(...args) {
+      this.timeouts = this.timeouts.filter(function (...args) {
         const [id] = args[0];
         return id !== idToClear;
       });
@@ -115,7 +115,7 @@ class TimeOverride {
       return id;
     };
 
-    this._fakeClearInterval = idToClear => {
+    this._fakeClearInterval = (idToClear) => {
       this._fakeClearTimeout(this.intervalTimeouts[idToClear]);
     };
   }

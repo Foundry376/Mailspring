@@ -41,9 +41,9 @@ export interface ModelClass {
 }
 
 export class Model implements HasStaticAttributes {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  'constructor': typeof Model; // prettier-ignore
+  get ctor(): typeof Model {
+    return this.constructor as unknown as typeof Model;
+  }
 
   static attributes: ModelAttributes = {
     id: Attributes.String({
@@ -75,7 +75,7 @@ export class Model implements HasStaticAttributes {
       if (data.__cls) {
         this.fromJSON(data);
       } else {
-        for (const key of Object.keys(this.constructor.attributes)) {
+        for (const key of Object.keys(this.ctor.attributes)) {
           if (data[key] !== undefined) {
             this[key] = data[key];
           }
@@ -95,8 +95,8 @@ export class Model implements HasStaticAttributes {
   //
   // This method is chainable.
   fromJSON(json) {
-    for (const key of Object.keys(this.constructor.attributes)) {
-      const attr = this.constructor.attributes[key];
+    for (const key of Object.keys(this.ctor.attributes)) {
+      const attr = this.ctor.attributes[key];
       const attrValue = json[attr.jsonKey || key];
       if (attrValue !== undefined) {
         this[key] = attr.fromJSON(attrValue);
@@ -112,15 +112,15 @@ export class Model implements HasStaticAttributes {
   //
   toJSON() {
     const json: any = {};
-    for (const key of Object.keys(this.constructor.attributes)) {
-      const attr = this.constructor.attributes[key];
+    for (const key of Object.keys(this.ctor.attributes)) {
+      const attr = this.ctor.attributes[key];
       const attrValue = this[key];
       if (attrValue === undefined) {
         continue;
       }
       json[attr.jsonKey || key] = attr.toJSON(attrValue);
     }
-    json.__cls = this.constructor.name;
+    json.__cls = this.ctor.name;
     return json;
   }
 

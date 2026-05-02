@@ -20,7 +20,7 @@ describe('MailboxPerspective', function mailboxPerspective() {
       },
     };
     this.perspective = new MailboxPerspective(this.accountIds);
-    spyOn(AccountStore, 'accountForId').andCallFake(accId => this.accounts[accId]);
+    spyOn(AccountStore, 'accountForId').andCallFake((accId) => this.accounts[accId]);
   });
 
   describe('isEqual', () => {

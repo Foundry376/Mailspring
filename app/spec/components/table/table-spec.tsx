@@ -69,7 +69,9 @@ describe('Table Components', function describeBlock() {
         <table>
           <tbody>
             <tr>
-              <TableCell className="my-cell" onClick={handler}>{null}</TableCell>
+              <TableCell className="my-cell" onClick={handler}>
+                {null}
+              </TableCell>
             </tr>
           </tbody>
         </table>
@@ -140,7 +142,11 @@ describe('Table Components', function describeBlock() {
       const CellRenderer = (props: any) => {
         // Render a div with a data-testid so we can verify it's used
         const { children, tableDataSource: _ds, rowIdx: _ri, colIdx: _ci, ...rest } = props;
-        return <td {...rest} data-custom-cell="true">{children}</td>;
+        return (
+          <td {...rest} data-custom-cell="true">
+            {children}
+          </td>
+        );
       };
       const container = renderRow({ CellRenderer });
       const customCells = container.querySelectorAll('[data-custom-cell="true"]');
@@ -153,12 +159,7 @@ describe('Table Components', function describeBlock() {
       const CellRenderer = (props: any) => {
         const { children, tableDataSource: _ds, rowIdx, colIdx, prop1, ...rest } = props;
         return (
-          <td
-            {...rest}
-            data-row-idx={rowIdx}
-            data-col-idx={colIdx}
-            data-prop1={prop1}
-          >
+          <td {...rest} data-row-idx={rowIdx} data-col-idx={colIdx} data-prop1={prop1}>
             {children}
           </td>
         );
@@ -167,7 +168,7 @@ describe('Table Components', function describeBlock() {
       const container = renderRow({ extraProps, CellRenderer });
       const cells = container.querySelectorAll('td');
       expect(cells.length).toBe(3);
-      [0, 1, 2].forEach(idx => {
+      [0, 1, 2].forEach((idx) => {
         expect(cells[idx].getAttribute('data-row-idx')).toEqual('0');
         expect(cells[idx].getAttribute('data-col-idx')).toEqual(`${idx}`);
         expect(cells[idx].getAttribute('data-prop1')).toEqual('prop1');
@@ -191,8 +192,15 @@ describe('Table Components', function describeBlock() {
         // The RowRenderer must render something inside thead. We use a custom
         // RowRenderer that renders a tr with a data attribute so we can identify it.
         const RowRenderer = (props: any) => {
-          const { tableDataSource: _ds, rowIdx: _ri, extraProps: _ep, CellRenderer: _cr,
-                  displayNumbers: _dn, isHeader: _ih, ...rest } = props;
+          const {
+            tableDataSource: _ds,
+            rowIdx: _ri,
+            extraProps: _ep,
+            CellRenderer: _cr,
+            displayNumbers: _dn,
+            isHeader: _ih,
+            ...rest
+          } = props;
           return <tr {...rest} data-custom-row="true" />;
         };
         const container = renderTable({ displayHeader: true, RowRenderer });
@@ -237,7 +245,7 @@ describe('Table Components', function describeBlock() {
         // 3 data rows rendered as tr elements (plus 2 buffer tr elements from LazyRenderedList)
         const rows = tbody.querySelectorAll('tr');
         // Find rows that have actual td cells (not buffer rows)
-        const dataRows = Array.from(rows).filter(r => r.querySelectorAll('td').length > 0);
+        const dataRows = Array.from(rows).filter((r) => r.querySelectorAll('td').length > 0);
         expect(dataRows.length).toBe(3);
       });
 
@@ -245,7 +253,7 @@ describe('Table Components', function describeBlock() {
         const container = renderTable();
         const tbody = container.querySelector('tbody');
         const rows = tbody.querySelectorAll('tr');
-        const dataRows = Array.from(rows).filter(r => r.querySelectorAll('td').length > 0);
+        const dataRows = Array.from(rows).filter((r) => r.querySelectorAll('td').length > 0);
         // Row 0: [1, 2, 3], Row 1: [4, 5, 6], Row 2: [7, 8, 9]
         const row0Cells = dataRows[0].querySelectorAll('td');
         expect(row0Cells[0].textContent).toEqual('1');
@@ -269,8 +277,14 @@ describe('Table Components', function describeBlock() {
         // Instead of extracting renderRow via instance(), render the full Table
         // with a custom RowRenderer and verify it appears in the DOM body.
         const RowRenderer = (props: any) => {
-          const { tableDataSource: _ds, rowIdx, extraProps: _ep, CellRenderer: _cr,
-                  displayNumbers: _dn, ...rest } = props;
+          const {
+            tableDataSource: _ds,
+            rowIdx,
+            extraProps: _ep,
+            CellRenderer: _cr,
+            displayNumbers: _dn,
+            ...rest
+          } = props;
           return <tr {...rest} data-custom-row="true" data-row-idx={rowIdx} />;
         };
         const container = renderTable({ RowRenderer });
@@ -284,14 +298,17 @@ describe('Table Components', function describeBlock() {
         // Render with a CellRenderer that exposes props as data-attributes so we
         // can verify displayNumbers and extraProps are forwarded to each row/cell.
         const CellRenderer = (props: any) => {
-          const { children, tableDataSource: _ds, rowIdx, colIdx, p1, isHeader: _ih, ...rest } = props;
+          const {
+            children,
+            tableDataSource: _ds,
+            rowIdx,
+            colIdx,
+            p1,
+            isHeader: _ih,
+            ...rest
+          } = props;
           return (
-            <td
-              {...rest}
-              data-row-idx={rowIdx}
-              data-col-idx={colIdx}
-              data-p1={p1}
-            >
+            <td {...rest} data-row-idx={rowIdx} data-col-idx={colIdx} data-p1={p1}>
               {children}
             </td>
           );
@@ -305,7 +322,7 @@ describe('Table Components', function describeBlock() {
         });
         const tbody = container.querySelector('tbody');
         const rows = tbody.querySelectorAll('tr');
-        const dataRows = Array.from(rows).filter(r => r.querySelectorAll('td').length > 0);
+        const dataRows = Array.from(rows).filter((r) => r.querySelectorAll('td').length > 0);
         expect(dataRows.length).toBe(3);
 
         // Each data row should have 4 cells: 1 numbered + 3 data cells
@@ -327,8 +344,14 @@ describe('Table Components', function describeBlock() {
       it('passes the correct rowIdx to each body row when displayHeader is false', () => {
         // Use a RowRenderer that exposes rowIdx as a data attribute.
         const RowRenderer = (props: any) => {
-          const { tableDataSource: _ds, rowIdx, extraProps: _ep, CellRenderer: _cr,
-                  displayNumbers: _dn, ...rest } = props;
+          const {
+            tableDataSource: _ds,
+            rowIdx,
+            extraProps: _ep,
+            CellRenderer: _cr,
+            displayNumbers: _dn,
+            ...rest
+          } = props;
           return <tr {...rest} data-row-idx={rowIdx} />;
         };
         const container = renderTable({ displayHeader: false, RowRenderer });

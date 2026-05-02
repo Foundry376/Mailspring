@@ -131,7 +131,7 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
       phoneNumbers: VCFHelpers.parseValueAndTypeCollection(tels),
       emailAddresses: VCFHelpers.parseValueAndTypeCollection(emails),
       urls: VCFHelpers.parseValueAndTypeCollection(urls),
-      addresses: adrs.length > 0 && adrs.map(item => VCFHelpers.parseAddress(item)),
+      addresses: adrs.length > 0 && adrs.map((item) => VCFHelpers.parseAddress(item)),
       birthdays:
         bday && (!bday.value || bday.value === 'date')
           ? [{ date: VCFHelpers.parseBirthday(bday._data) }]
@@ -260,7 +260,7 @@ export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
       }
       info.organizations[0].name = val;
     } else if (key === 'addresses') {
-      info.addresses = val.map(address => ({
+      info.addresses = val.map((address) => ({
         ...address,
         formattedValue: VCFHelpers.formatAddress(address),
       }));
@@ -281,8 +281,8 @@ export function parse(contact: Contact): ContactParseResult {
     return !contact.info || Object.keys(contact.info).length === 0
       ? fromContact(contact)
       : 'vcf' in contact.info
-      ? fromVCF(contact.info)
-      : fromGoogle(contact.info);
+        ? fromVCF(contact.info)
+        : fromGoogle(contact.info);
   } catch (err) {
     console.warn(`Parsing of contact ${contact.email} failed: ${err.toString()}`);
     return fromContact(contact);

@@ -194,7 +194,11 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     );
   }
 
-  _renderHeading(allowCreate: boolean, collapsed: boolean, collapsible: ((props: OutlineViewProps) => void) | undefined) {
+  _renderHeading(
+    allowCreate: boolean,
+    collapsed: boolean,
+    collapsible: ((props: OutlineViewProps) => void) | undefined
+  ) {
     const collapseLabel = collapsed ? localized('Show') : localized('Hide');
     let style: CSSProperties = {};
     if (this.props.titleColor) {

@@ -19,15 +19,12 @@ class InlineStyleTransformer {
       return Promise.resolve(html);
     }
 
-    const key = crypto
-      .createHash('sha256')
-      .update(html)
-      .digest('hex');
+    const key = crypto.createHash('sha256').update(html).digest('hex');
 
     if (this._inlineStylePromises[key] == null) {
       html = this._prepareHTMLForInlineStyling(html);
 
-      this._inlineStylePromises[key] = new Promise(resolve => {
+      this._inlineStylePromises[key] = new Promise((resolve) => {
         this._inlineStyleResolvers[key] = resolve;
         ipcRenderer.send('inline-style-parse', { html, key });
       });

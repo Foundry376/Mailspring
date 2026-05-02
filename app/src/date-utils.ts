@@ -20,8 +20,8 @@ const Hours = {
 const Days = {
   // The value for next monday and next weekend varies depending if the current
   // day is saturday or sunday. See http://momentjs.com/docs/#/get-set/day/
-  NextMonday: day => (day === 0 ? 1 : 8),
-  ThisWeekend: day => (day === 6 ? 13 : 6),
+  NextMonday: (day) => (day === 0 ? 1 : 8),
+  ThisWeekend: (day) => (day === 6 ? 13 : 6),
 };
 
 function oclock(momentDate) {
@@ -68,7 +68,7 @@ function getChronoFuture() {
   _chronoFuture = chrono.casual.clone();
   _chronoFuture.refiners.push({
     refine: (text, results) => {
-      results.forEach(result => {
+      results.forEach((result) => {
         const current = Object.assign({}, result.start.knownValues, result.start.impliedValues);
 
         if (result.start.isCertain('weekday') && !result.start.isCertain('day')) {
@@ -104,7 +104,7 @@ function getChronoPast() {
   _chronoPast = chrono.casual.clone();
   _chronoPast.refiners.push({
     refine: (text, results) => {
-      results.forEach(result => {
+      results.forEach((result) => {
         const current = Object.assign({}, result.start.knownValues, result.start.impliedValues);
 
         if (result.start.isCertain('weekday') && !result.start.isCertain('day')) {
@@ -182,16 +182,10 @@ const DateUtils = {
   // Localized format: ddd, MMM D, YYYY h:mmA
   DATE_FORMAT_LONG: 'llll',
 
-  DATE_FORMAT_LONG_NO_YEAR: moment
-    .localeData()
-    .longDateFormat('llll')
-    .replace(yearRegex, ''),
+  DATE_FORMAT_LONG_NO_YEAR: moment.localeData().longDateFormat('llll').replace(yearRegex, ''),
 
   // Localized format: MMM D, h:mmA
-  DATE_FORMAT_SHORT: moment
-    .localeData()
-    .longDateFormat('lll')
-    .replace(yearRegex, ''),
+  DATE_FORMAT_SHORT: moment.localeData().longDateFormat('lll').replace(yearRegex, ''),
 
   DATE_FORMAT_llll_NO_TIME: moment
     .localeData()
@@ -274,9 +268,7 @@ const DateUtils = {
 
   getChronoPast,
 
-  parseDateString(
-    dateLikeString: string
-  ): {
+  parseDateString(dateLikeString: string): {
     leftoverText: string;
     start: Moment;
     end: Moment;

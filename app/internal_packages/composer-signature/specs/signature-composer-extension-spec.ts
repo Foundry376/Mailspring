@@ -15,8 +15,8 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
   describe('prepareNewDraft', () => {
     describe('when a signature is defined', () => {
       beforeEach(() => {
-        spyOn(AppEnv.config, 'get').andCallFake(
-          key => (key === 'signatures' ? TEST_SIGNATURES : null)
+        spyOn(AppEnv.config, 'get').andCallFake((key) =>
+          key === 'signatures' ? TEST_SIGNATURES : null
         );
         spyOn(SignatureStore, 'signatureForEmail').andReturn(TEST_SIGNATURE);
         SignatureStore.activate();
@@ -73,7 +73,7 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
         },
       ];
 
-      scenarios.forEach(scenario => {
+      scenarios.forEach((scenario) => {
         it(`should replace the signature if a signature is already present (${
           scenario.name
         })`, () => {

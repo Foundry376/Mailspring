@@ -3,8 +3,8 @@ import WorkspaceStore from '../../src/flux/stores/workspace-store';
 import { Thread } from '../../src/flux/models/thread';
 import _ from 'underscore';
 
-describe('MultiselectSplitInteractionHandler', function() {
-  beforeEach(function() {
+describe('MultiselectSplitInteractionHandler', function () {
+  beforeEach(function () {
     this.item = new Thread({ id: '123' });
     this.itemFocus = new Thread({ id: 'focus' });
     this.itemKeyboardFocus = new Thread({ id: 'keyboard-focus' });
@@ -38,10 +38,10 @@ describe('MultiselectSplitInteractionHandler', function() {
         return data[idx];
       },
       getById(id) {
-        return _.find(data, item => item.id === id);
+        return _.find(data, (item) => item.id === id);
       },
       indexOfId(id) {
-        return _.findIndex(data, item => item.id === id);
+        return _.findIndex(data, (item) => item.id === id);
       },
       count() {
         return data.length;
@@ -64,11 +64,11 @@ describe('MultiselectSplitInteractionHandler', function() {
     spyOn(WorkspaceStore, 'topSheet').andCallFake(() => ({ root: this.isRootSheet }));
   });
 
-  it('should always show focus', function() {
+  it('should always show focus', function () {
     expect(this.handler.shouldShowFocus()).toEqual(true);
   });
 
-  it('should show the keyboard cursor when multiple items are selected', function() {
+  it('should show the keyboard cursor when multiple items are selected', function () {
     this.selection = [];
     expect(this.handler.shouldShowKeyboardCursor()).toEqual(false);
     this.selection = [this.item];
@@ -78,84 +78,84 @@ describe('MultiselectSplitInteractionHandler', function() {
   });
 
   describe('onClick', () =>
-    it('should focus the list item and indicate it was focused via click', function() {
+    it('should focus the list item and indicate it was focused via click', function () {
       this.handler.onClick(this.item);
       expect(this.onFocusItem).toHaveBeenCalledWith(this.item);
     }));
 
-  describe('onMetaClick', function() {
-    describe('when there is currently a focused item', function() {
-      it('should turn the focused item into the first selected item', function() {
+  describe('onMetaClick', function () {
+    describe('when there is currently a focused item', function () {
+      it('should turn the focused item into the first selected item', function () {
         this.handler.onMetaClick(this.item);
         expect(this.dataSource.selection.add).toHaveBeenCalledWith(this.itemFocus);
       });
 
-      it('should clear the focus', function() {
+      it('should clear the focus', function () {
         this.handler.onMetaClick(this.item);
         expect(this.onFocusItem).toHaveBeenCalledWith(null);
       });
     });
 
-    it('should toggle selection', function() {
+    it('should toggle selection', function () {
       this.handler.onMetaClick(this.item);
       expect(this.dataSource.selection.toggle).toHaveBeenCalledWith(this.item);
     });
 
-    it('should call _checkSelectionAndFocusConsistency', function() {
+    it('should call _checkSelectionAndFocusConsistency', function () {
       spyOn(this.handler, '_checkSelectionAndFocusConsistency');
       this.handler.onMetaClick(this.item);
       expect(this.handler._checkSelectionAndFocusConsistency).toHaveBeenCalled();
     });
   });
 
-  describe('onShiftClick', function() {
-    describe('when there is currently a focused item', function() {
-      it('should turn the focused item into the first selected item', function() {
+  describe('onShiftClick', function () {
+    describe('when there is currently a focused item', function () {
+      it('should turn the focused item into the first selected item', function () {
         this.handler.onMetaClick(this.item);
         expect(this.dataSource.selection.add).toHaveBeenCalledWith(this.itemFocus);
       });
 
-      it('should clear the focus', function() {
+      it('should clear the focus', function () {
         this.handler.onMetaClick(this.item);
         expect(this.onFocusItem).toHaveBeenCalledWith(null);
       });
     });
 
-    it('should expand selection', function() {
+    it('should expand selection', function () {
       this.handler.onShiftClick(this.item);
       expect(this.dataSource.selection.expandTo).toHaveBeenCalledWith(this.item);
     });
 
-    it('should call _checkSelectionAndFocusConsistency', function() {
+    it('should call _checkSelectionAndFocusConsistency', function () {
       spyOn(this.handler, '_checkSelectionAndFocusConsistency');
       this.handler.onMetaClick(this.item);
       expect(this.handler._checkSelectionAndFocusConsistency).toHaveBeenCalled();
     });
   });
 
-  describe('onEnter', function() {});
+  describe('onEnter', function () {});
 
   describe('onSelect (x key on keyboard)', () =>
-    it('should call _checkSelectionAndFocusConsistency', function() {
+    it('should call _checkSelectionAndFocusConsistency', function () {
       spyOn(this.handler, '_checkSelectionAndFocusConsistency');
       this.handler.onMetaClick(this.item);
       expect(this.handler._checkSelectionAndFocusConsistency).toHaveBeenCalled();
     }));
 
-  describe('onShift', function() {
-    it('should call _checkSelectionAndFocusConsistency', function() {
+  describe('onShift', function () {
+    it('should call _checkSelectionAndFocusConsistency', function () {
       spyOn(this.handler, '_checkSelectionAndFocusConsistency');
       this.handler.onMetaClick(this.item);
       expect(this.handler._checkSelectionAndFocusConsistency).toHaveBeenCalled();
     });
 
-    describe('when the select option is passed', function() {
-      it('should turn the existing focused item into a selected item', function() {
+    describe('when the select option is passed', function () {
+      it('should turn the existing focused item into a selected item', function () {
         this.handler.onShift(1, { select: true });
         expect(this.dataSource.selection.add).toHaveBeenCalledWith(this.itemFocus);
       });
 
-      it('should walk the selection to the shift target', function() {
+      it('should walk the selection to the shift target', function () {
         this.handler.onShift(1, { select: true });
         expect(this.dataSource.selection.walk).toHaveBeenCalledWith({
           current: this.itemFocus,
@@ -165,28 +165,28 @@ describe('MultiselectSplitInteractionHandler', function() {
     });
 
     describe('when one or more items is selected', () =>
-      it('should move the keyboard cursor', function() {
+      it('should move the keyboard cursor', function () {
         this.selection = [this.itemFocus, this.itemAfterFocus, this.itemKeyboardFocus];
         this.handler.onShift(1, {});
         expect(this.onSetCursorPosition).toHaveBeenCalledWith(this.itemAfterKeyboardFocus);
       }));
 
     describe('when no items are selected', () =>
-      it('should move the focus', function() {
+      it('should move the focus', function () {
         this.handler.onShift(1, {});
         expect(this.onFocusItem).toHaveBeenCalledWith(this.itemAfterFocus);
       }));
   });
 
   describe('_checkSelectionAndFocusConsistency', () =>
-    describe('when only one item is selected', function() {
-      beforeEach(function() {
+    describe('when only one item is selected', function () {
+      beforeEach(function () {
         this.selection = [this.item];
         this.props.focused = null;
         this.handler = new MultiselectSplitInteractionHandler(this.props);
       });
 
-      it('should clear the selection and make the item focused', function() {
+      it('should clear the selection and make the item focused', function () {
         this.handler._checkSelectionAndFocusConsistency();
         expect(this.dataSource.selection.clear).toHaveBeenCalled();
         expect(this.onFocusItem).toHaveBeenCalledWith(this.item);

@@ -33,9 +33,9 @@ class Bar extends Foo {
   }
 }
 
-describe('Utils', function() {
-  describe('modelTypesReviver', function() {
-    beforeEach(function() {
+describe('Utils', function () {
+  describe('modelTypesReviver', function () {
+    beforeEach(function () {
       this.testThread = new Thread({
         id: 'local-1',
         accountId: '1',
@@ -47,15 +47,22 @@ describe('Utils', function() {
             email: 'juan@mailspring.com',
             accountId: '1',
             hidden: false,
-            source: 'mail'
+            source: 'mail',
           }),
-          new Contact({ id: 'local-b', name: 'Ben', email: 'ben@mailspring.com', accountId: '1', hidden: false, source: 'mail' }),
+          new Contact({
+            id: 'local-b',
+            name: 'Ben',
+            email: 'ben@mailspring.com',
+            accountId: '1',
+            hidden: false,
+            source: 'mail',
+          }),
         ],
         subject: 'Test 1234',
       });
     });
 
-    it('should serialize and de-serialize models correctly', function() {
+    it('should serialize and de-serialize models correctly', function () {
       const expectedString =
         '[{"id":"local-1","aid":"1","metadata":[],"subject":"Test 1234","categories":[],"participants":[{"id":"local-a","aid":"1","name":"Juan","h":false,"s":"mail","email":"juan@mailspring.com","gis":[],"__cls":"Contact"},{"id":"local-b","aid":"1","name":"Ben","h":false,"s":"mail","email":"ben@mailspring.com","gis":[],"__cls":"Contact"}],"__cls":"Thread"}]';
 
@@ -65,7 +72,7 @@ describe('Utils', function() {
       expect(revived).toEqual([this.testThread]);
     });
 
-    it("should re-inflate Models in places they're not explicitly declared types", function() {
+    it("should re-inflate Models in places they're not explicitly declared types", function () {
       const b = { id: 'ThreadsToProcess', json: [this.testThread] };
       const jsonString = JSON.stringify(b);
       const expectedString =
@@ -79,8 +86,8 @@ describe('Utils', function() {
     });
   });
 
-  describe('deepClone', function() {
-    beforeEach(function() {
+  describe('deepClone', function () {
+    beforeEach(function () {
       this.v1 = [1, 2, 3];
       this.v2 = [4, 5, 6];
       this.foo = new Foo(this.v1);
@@ -94,13 +101,13 @@ describe('Utils', function() {
       this.o2Clone = Utils.deepClone(this.o2);
     });
 
-    it('deep clones dates correctly', function() {
+    it('deep clones dates correctly', function () {
       const d1 = new Date(2016, 1, 1);
       const d2 = Utils.deepClone(d1);
       expect(d2.valueOf()).toBe(d1.valueOf());
     });
 
-    it('makes a deep clone', function() {
+    it('makes a deep clone', function () {
       this.v1.push(4);
       this.v2.push(7);
       this.foo.stuff = 'stuff';
@@ -113,22 +120,22 @@ describe('Utils', function() {
       expect(this.o2Clone[2]).toBe('abc');
     });
 
-    it('does not deep clone the prototype', function() {
+    it('does not deep clone the prototype', function () {
       this.foo.field.a = 'changed under the hood';
       expect(this.o2Clone[0].field.a).toBe('changed under the hood');
     });
 
-    it('clones constructors properly', function() {
+    it('clones constructors properly', function () {
       expect(new this.o2Clone[1].fn() instanceof Foo).toBe(true);
     });
 
-    it('clones prototypes properly', function() {
+    it('clones prototypes properly', function () {
       expect(this.o2Clone[1].foo instanceof Foo).toBe(true);
       expect(this.o2Clone[1].bar instanceof Bar).toBe(true);
     });
 
-    it('can take a customizer to edit values as we clone', function() {
-      const clone = Utils.deepClone(this.o2, function(key, clonedValue) {
+    it('can take a customizer to edit values as we clone', function () {
+      const clone = Utils.deepClone(this.o2, function (key, clonedValue) {
         if (key === 'v2') {
           clonedValue.push('custom value');
           return clonedValue;
@@ -144,16 +151,16 @@ describe('Utils', function() {
 
   // Pulled equality tests from underscore
   // https://github.com/jashkenas/underscore/blob/master/test/objects.js
-  describe('isEqual', function() {
-    describe('custom behavior', function() {
-      it('makes functions always equal', function() {
-        const f1 = function() {};
-        const f2 = function() {};
+  describe('isEqual', function () {
+    describe('custom behavior', function () {
+      it('makes functions always equal', function () {
+        const f1 = function () {};
+        const f2 = function () {};
         expect(Utils.isEqual(f1, f2)).toBe(false);
         expect(Utils.isEqual(f1, f2, { functionsAreEqual: true })).toBe(true);
       });
 
-      it('can ignore keys in objects', function() {
+      it('can ignore keys in objects', function () {
         const o1 = {
           foo: 'bar',
           arr: [1, 2, 3],
@@ -172,18 +179,18 @@ describe('Utils', function() {
       });
     });
 
-    it('passes all underscore equality tests', function() {
-      const First = function(this: any) {
+    it('passes all underscore equality tests', function () {
+      const First = function (this: any) {
         return (this.value = 1);
       };
       First.prototype.value = 1;
 
-      const Second = function(this: any) {
+      const Second = function (this: any) {
         return (this.value = 1);
       };
       Second.prototype.value = 2;
 
-      const ok = val => expect(val).toBe(true);
+      const ok = (val) => expect(val).toBe(true);
 
       // Basic equality and identity comparisons.
       ok(Utils.isEqual(null, null));
@@ -192,26 +199,16 @@ describe('Utils', function() {
       ok(!Utils.isEqual(0, -0));
       ok(!Utils.isEqual(-0, 0));
       ok(!Utils.isEqual(null, undefined));
-      ok(
-        !Utils.isEqual(undefined, null)
-      );
+      ok(!Utils.isEqual(undefined, null));
 
       // String object and primitive comparisons.
       ok(Utils.isEqual('Curly', 'Curly'));
-      ok(
-        Utils.isEqual(new String('Curly'), new String('Curly'))
-      );
-      ok(
-        Utils.isEqual(new String('Curly'), 'Curly')
-      );
-      ok(
-        Utils.isEqual('Curly', new String('Curly'))
-      );
+      ok(Utils.isEqual(new String('Curly'), new String('Curly')));
+      ok(Utils.isEqual(new String('Curly'), 'Curly'));
+      ok(Utils.isEqual('Curly', new String('Curly')));
 
       ok(!Utils.isEqual('Curly', 'Larry'));
-      ok(
-        !Utils.isEqual(new String('Curly'), new String('Larry'))
-      );
+      ok(!Utils.isEqual(new String('Curly'), new String('Larry')));
       ok(
         !Utils.isEqual(new String('Curly'), {
           toString() {
@@ -222,23 +219,13 @@ describe('Utils', function() {
 
       // Number object and primitive comparisons.
       ok(Utils.isEqual(75, 75));
-      ok(
-        Utils.isEqual(new Number(75), new Number(75))
-      );
-      ok(
-        Utils.isEqual(75, new Number(75))
-      );
-      ok(
-        Utils.isEqual(new Number(75), 75)
-      );
+      ok(Utils.isEqual(new Number(75), new Number(75)));
+      ok(Utils.isEqual(75, new Number(75)));
+      ok(Utils.isEqual(new Number(75), 75));
       ok(!Utils.isEqual(new Number(0), -0));
-      ok(
-        !Utils.isEqual(0, new Number(-0))
-      );
+      ok(!Utils.isEqual(0, new Number(-0)));
 
-      ok(
-        !Utils.isEqual(new Number(75), new Number(63))
-      );
+      ok(!Utils.isEqual(new Number(75), new Number(63)));
       ok(
         !Utils.isEqual(new Number(63), {
           valueOf() {
@@ -256,47 +243,25 @@ describe('Utils', function() {
 
       // Boolean object and primitive comparisons.
       ok(Utils.isEqual(true, true));
-      ok(
-        Utils.isEqual(new Boolean(), new Boolean())
-      );
-      ok(
-        Utils.isEqual(true, new Boolean(true))
-      );
-      ok(
-        Utils.isEqual(new Boolean(true), true)
-      );
-      ok(
-        !Utils.isEqual(new Boolean(true), new Boolean())
-      );
+      ok(Utils.isEqual(new Boolean(), new Boolean()));
+      ok(Utils.isEqual(true, new Boolean(true)));
+      ok(Utils.isEqual(new Boolean(true), true));
+      ok(!Utils.isEqual(new Boolean(true), new Boolean()));
 
       // Common type coercions.
       ok(!Utils.isEqual(new Boolean(false), true));
       ok(!Utils.isEqual('75', 75));
-      ok(
-        !Utils.isEqual(new Number(63), new String(63))
-      );
-      ok(
-        !Utils.isEqual(75, '75')
-      );
+      ok(!Utils.isEqual(new Number(63), new String(63)));
+      ok(!Utils.isEqual(75, '75'));
       ok(!Utils.isEqual(0, ''));
       ok(!Utils.isEqual(1, true));
-      ok(
-        !Utils.isEqual(new Boolean(false), new Number(0))
-      );
-      ok(
-        !Utils.isEqual(false, new String(''))
-      );
-      ok(
-        !Utils.isEqual(12564504e5, new Date(2009, 9, 25))
-      );
+      ok(!Utils.isEqual(new Boolean(false), new Number(0)));
+      ok(!Utils.isEqual(false, new String('')));
+      ok(!Utils.isEqual(12564504e5, new Date(2009, 9, 25)));
 
       // Dates.
-      ok(
-        Utils.isEqual(new Date(2009, 9, 25), new Date(2009, 9, 25))
-      );
-      ok(
-        !Utils.isEqual(new Date(2009, 9, 25), new Date(2009, 11, 13))
-      );
+      ok(Utils.isEqual(new Date(2009, 9, 25), new Date(2009, 9, 25)));
+      ok(!Utils.isEqual(new Date(2009, 9, 25), new Date(2009, 11, 13)));
       ok(
         !Utils.isEqual(new Date(2009, 11, 13), {
           getTime() {
@@ -307,21 +272,13 @@ describe('Utils', function() {
       ok(!Utils.isEqual(new Date('Curly'), new Date('Curly')));
 
       // Functions.
-      ok(
-        !Utils.isEqual(First, Second)
-      );
+      ok(!Utils.isEqual(First, Second));
 
       // RegExps.
-      ok(
-        Utils.isEqual(/(?:)/gim, /(?:)/gim)
-      );
+      ok(Utils.isEqual(/(?:)/gim, /(?:)/gim));
       ok(Utils.isEqual(/(?:)/gi, /(?:)/gi));
-      ok(
-        !Utils.isEqual(/(?:)/g, /(?:)/gi)
-      );
-      ok(
-        !Utils.isEqual(/Moe/gim, /Curly/gim)
-      );
+      ok(!Utils.isEqual(/(?:)/g, /(?:)/gi));
+      ok(!Utils.isEqual(/Moe/gim, /Curly/gim));
       ok(!Utils.isEqual(/(?:)/gi, /(?:)/g));
       ok(
         !Utils.isEqual(/Curly/g, {
@@ -337,20 +294,14 @@ describe('Utils', function() {
       ok(Utils.isEqual([], []));
       ok(Utils.isEqual([{}], [{}]));
       ok(!Utils.isEqual({ length: 0 }, []));
-      ok(
-        !Utils.isEqual([], { length: 0 })
-      );
+      ok(!Utils.isEqual([], { length: 0 }));
 
       ok(!Utils.isEqual({}, []));
       ok(!Utils.isEqual([], {}));
 
       // Arrays with primitive and object values.
-      ok(
-        Utils.isEqual([1, 'Larry', true], [1, 'Larry', true])
-      );
-      ok(
-        Utils.isEqual([/Moe/g, new Date(2009, 9, 25)], [/Moe/g, new Date(2009, 9, 25)])
-      );
+      ok(Utils.isEqual([1, 'Larry', true], [1, 'Larry', true]));
+      ok(Utils.isEqual([/Moe/g, new Date(2009, 9, 25)], [/Moe/g, new Date(2009, 9, 25)]));
 
       // Multi-dimensional arrays.
       let a: any = [
@@ -371,59 +322,59 @@ describe('Utils', function() {
         ['running', 'biking', new String('programming')],
         { a: 47 },
       ];
-      ok(
-        Utils.isEqual(a, b)
-      );
+      ok(Utils.isEqual(a, b));
 
       // Overwrite the methods defined in ES 5.1 section 15.4.4.
-      a.forEach = a.map = a.filter = a.every = a.indexOf = a.lastIndexOf = a.some = a.reduce = a.reduceRight = null;
-      b.join = b.pop = b.reverse = b.shift = b.slice = b.splice = b.concat = b.sort = b.unshift = null;
+      a.forEach =
+        a.map =
+        a.filter =
+        a.every =
+        a.indexOf =
+        a.lastIndexOf =
+        a.some =
+        a.reduce =
+        a.reduceRight =
+          null;
+      b.join =
+        b.pop =
+        b.reverse =
+        b.shift =
+        b.slice =
+        b.splice =
+        b.concat =
+        b.sort =
+        b.unshift =
+          null;
 
       // Array elements and properties.
-      ok(
-        Utils.isEqual(a, b)
-      );
+      ok(Utils.isEqual(a, b));
       a.push('White Rocks');
       ok(!Utils.isEqual(a, b));
       a.push('East Boulder');
       b.push('Gunbarrel Ranch', 'Teller Farm');
-      ok(
-        !Utils.isEqual(a, b)
-      );
+      ok(!Utils.isEqual(a, b));
 
       // Sparse arrays.
       ok(Utils.isEqual(Array(3), Array(3)));
-      ok(
-        !Utils.isEqual(Array(3), Array(6))
-      );
+      ok(!Utils.isEqual(Array(3), Array(6)));
 
       const sparse = [];
       sparse[1] = 5;
       ok(Utils.isEqual(sparse, [undefined, 5]));
 
       // Simple objects.
-      ok(
-        Utils.isEqual({ a: 'Curly', b: 1, c: true }, { a: 'Curly', b: 1, c: true })
-      );
+      ok(Utils.isEqual({ a: 'Curly', b: 1, c: true }, { a: 'Curly', b: 1, c: true }));
       ok(
         Utils.isEqual(
           { a: /Curly/g, b: new Date(2009, 11, 13) },
           { a: /Curly/g, b: new Date(2009, 11, 13) }
         )
       );
-      ok(
-        !Utils.isEqual({ a: 63, b: 75 }, { a: 61, b: 55 })
-      );
-      ok(
-        !Utils.isEqual({ a: 63, b: 75 }, { a: 61, c: 55 })
-      );
+      ok(!Utils.isEqual({ a: 63, b: 75 }, { a: 61, b: 55 }));
+      ok(!Utils.isEqual({ a: 63, b: 75 }, { a: 61, c: 55 }));
       ok(!Utils.isEqual({ a: 1, b: 2 }, { a: 1 }));
-      ok(
-        !Utils.isEqual({ a: 1 }, { a: 1, b: 2 })
-      );
-      ok(
-        !Utils.isEqual({ x: 1, y: undefined }, { x: 1, z: 2 })
-      );
+      ok(!Utils.isEqual({ a: 1 }, { a: 1, b: 2 }));
+      ok(!Utils.isEqual({ x: 1, y: undefined }, { x: 1, z: 2 }));
 
       // `A` contains nested objects and arrays.
       a = {
@@ -458,15 +409,9 @@ describe('Utils', function() {
 
       // Instances.
       ok(Utils.isEqual(new (First as any)(), new (First as any)()));
-      ok(
-        !Utils.isEqual(new (First as any)(), new (Second as any)())
-      );
-      ok(
-        !Utils.isEqual({ value: 1 }, new (First as any)())
-      );
-      ok(
-        !Utils.isEqual({ value: 2 }, new (Second as any)())
-      );
+      ok(!Utils.isEqual(new (First as any)(), new (Second as any)()));
+      ok(!Utils.isEqual({ value: 1 }, new (First as any)()));
+      ok(!Utils.isEqual({ value: 2 }, new (Second as any)()));
 
       // Circular Arrays.
       (a = []).push(a);
@@ -474,22 +419,16 @@ describe('Utils', function() {
       ok(Utils.isEqual(a, b));
       a.push(new String('Larry'));
       b.push(new String('Larry'));
-      ok(
-        Utils.isEqual(a, b)
-      );
+      ok(Utils.isEqual(a, b));
       a.push('Shemp');
       b.push('Curly');
-      ok(
-        !Utils.isEqual(a, b)
-      );
+      ok(!Utils.isEqual(a, b));
 
       // More circular arrays #767.
       a = ['everything is checked but', 'this', 'is not'];
       a[1] = a;
       b = ['everything is checked but', ['this', 'array'], 'is not'];
-      ok(
-        !Utils.isEqual(a, b)
-      );
+      ok(!Utils.isEqual(a, b));
 
       // Circular Objects.
       a = { abc: null };
@@ -499,22 +438,16 @@ describe('Utils', function() {
       ok(Utils.isEqual(a, b));
       a.def = 75;
       b.def = 75;
-      ok(
-        Utils.isEqual(a, b)
-      );
+      ok(Utils.isEqual(a, b));
       a.def = new Number(75);
       b.def = new Number(63);
-      ok(
-        !Utils.isEqual(a, b)
-      );
+      ok(!Utils.isEqual(a, b));
 
       // More circular objects #767.
       a = { everything: 'is checked', but: 'this', is: 'not' };
       a.but = a;
       b = { everything: 'is checked', but: { that: 'object' }, is: 'not' };
-      ok(
-        !Utils.isEqual(a, b)
-      );
+      ok(!Utils.isEqual(a, b));
 
       // Cyclic Structures.
       a = [{ abc: null }];
@@ -534,9 +467,7 @@ describe('Utils', function() {
       b = { foo: { b: { foo: { c: { foo: null } } } } };
       a.foo.b.foo.c.foo = a;
       b.foo.b.foo.c.foo = b;
-      ok(
-        Utils.isEqual(a, b)
-      );
+      ok(Utils.isEqual(a, b));
 
       // Chaining.
       // NOTE: underscore doesn't support chaining
@@ -554,7 +485,7 @@ describe('Utils', function() {
         ok(Utils.isEqual(a, b));
       }
 
-      const FooFunc: any = function(this: any) {
+      const FooFunc: any = function (this: any) {
         return (this.a = 1);
       };
       FooFunc.prototype.constructor = null;
@@ -564,7 +495,7 @@ describe('Utils', function() {
     });
   });
 
-  describe('subjectWithPrefix', function() {
+  describe('subjectWithPrefix', function () {
     it('should replace an existing Re:', () =>
       expect(Utils.subjectWithPrefix('Re: Test Case', 'Fwd:')).toEqual('Fwd: Test Case'));
 
@@ -577,7 +508,7 @@ describe('Utils', function() {
     it('should replace an existing fwd:', () =>
       expect(Utils.subjectWithPrefix('fwd: Test Case', 'Re:')).toEqual('Re: Test Case'));
 
-    it('should not replace Re: or Fwd: found embedded in the subject', function() {
+    it('should not replace Re: or Fwd: found embedded in the subject', function () {
       expect(Utils.subjectWithPrefix('My questions are: 123', 'Fwd:')).toEqual(
         'Fwd: My questions are: 123'
       );

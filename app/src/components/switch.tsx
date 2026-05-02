@@ -16,7 +16,7 @@ type SwitchProps = {
   labelledBy?: string;
 };
 
-const Switch: React.SFC<SwitchProps> = props => {
+const Switch: React.SFC<SwitchProps> = (props) => {
   let classnames = `${props.className || ''} slide-switch`;
   if (props.checked) {
     classnames += ' active';

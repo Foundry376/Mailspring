@@ -83,7 +83,7 @@ class PreferencesTabsBar extends React.Component<PreferencesTabBarProps> {
 
   _onKeyDown = (e: React.KeyboardEvent) => {
     const { tabs, selection } = this.props;
-    const currentIdx = tabs.findIndex(t => t.tabId === selection.tabId);
+    const currentIdx = tabs.findIndex((t) => t.tabId === selection.tabId);
 
     let nextIdx: number | null = null;
     if (e.key === 'ArrowRight') {
@@ -107,7 +107,7 @@ class PreferencesTabsBar extends React.Component<PreferencesTabBarProps> {
   };
 
   renderTabs() {
-    return this.props.tabs.map(tabItem => (
+    return this.props.tabs.map((tabItem) => (
       <PreferencesTabItem key={tabItem.tabId} tabItem={tabItem} selection={this.props.selection} />
     ));
   }

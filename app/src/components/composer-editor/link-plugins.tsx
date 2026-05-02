@@ -15,18 +15,15 @@ function onPaste(event: React.ClipboardEvent, editor: Editor, next: () => void) 
   const regex = RegExpUtils.urlRegex({ matchStartOfString: true, matchTailOfString: true });
   if (!html && plain && plain.match(regex)) {
     const mark = Mark.create({ type: LINK_TYPE, data: { href: plain } });
-    editor
-      .addMark(mark)
-      .insertText(plain)
-      .removeMark(mark);
+    editor.addMark(mark).insertText(plain).removeMark(mark);
   } else {
     return next();
   }
 }
 
 function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
-  return function(editor: Editor, e, matches) {
-    if (editor.value.activeMarks.find(m => m.type === LINK_TYPE))
+  return function (editor: Editor, e, matches) {
+    if (editor.value.activeMarks.find((m) => m.type === LINK_TYPE))
       return editor.insertText(TriggerKeyValues[e.key]);
 
     const link = matches.before[0];
@@ -57,7 +54,7 @@ function renderMark({ mark, children, targetIsHTML }, editor: Editor = null, nex
         className="link"
         title={href}
         spellCheck={false}
-        onClick={e => {
+        onClick={(e) => {
           if (e.ctrlKey || e.metaKey || e.altKey) {
             AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });
           }
@@ -112,7 +109,7 @@ const BaseLinkPlugin: ComposerEditorPlugin = {
     if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {
       return next();
     }
-    const mark = editor.value.activeMarks.find(m => m.type === LINK_TYPE);
+    const mark = editor.value.activeMarks.find((m) => m.type === LINK_TYPE);
     if (mark) {
       editor.removeMark(mark);
     }
@@ -150,12 +147,12 @@ const BaseLinkPlugin: ComposerEditorPlugin = {
 const plugins: ComposerEditorPlugin[] = [
   BaseLinkPlugin,
   AutoReplace({
-    trigger: e => !!TriggerKeyValues[e.key],
+    trigger: (e) => !!TriggerKeyValues[e.key],
     before: RegExpUtils.emailRegex({ requireStartOrWhitespace: true, matchTailOfString: true }),
     change: buildAutoReplaceHandler({ hrefPrefix: 'mailto:' }),
   }),
   AutoReplace({
-    trigger: e => !!TriggerKeyValues[e.key],
+    trigger: (e) => !!TriggerKeyValues[e.key],
     before: RegExpUtils.urlRegex({ matchTailOfString: true }),
     change: buildAutoReplaceHandler(),
   }),

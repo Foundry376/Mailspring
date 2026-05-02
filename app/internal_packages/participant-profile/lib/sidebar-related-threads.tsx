@@ -96,7 +96,7 @@ class RelatedThreadsWithData extends React.Component<{
 
     return (
       <div className="related-threads" style={{ height }}>
-        {shownThreads.map(thread => (
+        {shownThreads.map((thread) => (
           <div
             key={thread.id}
             className="related-thread"

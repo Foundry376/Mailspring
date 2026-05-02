@@ -6,7 +6,7 @@ import * as Attributes from '../attributes';
  (like a `Thread`, `Message`, or `Account`).
  */
 export class PluginMetadata extends Model {
-  static attributes = ({
+  static attributes = {
     pluginId: Attributes.String({
       modelKey: 'pluginId',
     }),
@@ -17,7 +17,7 @@ export class PluginMetadata extends Model {
     value: Attributes.Obj({
       modelKey: 'value',
     }),
-  } as unknown) as typeof Model['attributes'];
+  } as unknown as (typeof Model)['attributes'];
 
   public pluginId: string;
   public version: number;
@@ -106,7 +106,7 @@ export class ModelWithMetadata extends Model {
    */
   directlyAttachMetadata(pluginId: string, metadataValue: Record<string, any>) {
     // ensure that this function treats metadata objects as immutable
-    this.pluginMetadata = [].concat(this.pluginMetadata.map(p => p.clone()));
+    this.pluginMetadata = [].concat(this.pluginMetadata.map((p) => p.clone()));
 
     let metadata = this.metadataObjectForPluginId(pluginId);
     if (!metadata) {
@@ -127,6 +127,6 @@ export class ModelWithMetadata extends Model {
     if (typeof pluginId !== 'string') {
       throw new Error(`Invalid pluginId. Must be a valid string: '${pluginId}'`);
     }
-    return this.pluginMetadata.find(metadata => metadata.pluginId === pluginId);
+    return this.pluginMetadata.find((metadata) => metadata.pluginId === pluginId);
   }
 }

@@ -10,8 +10,8 @@ import CategoryStore from '../../src/flux/stores/category-store';
 import { AccountStore } from '../../src/flux/stores/account-store';
 import FocusedPerspectiveStore from '../../src/flux/stores/focused-perspective-store';
 
-describe('FocusedPerspectiveStore', function() {
-  beforeEach(function() {
+describe('FocusedPerspectiveStore', function () {
+  beforeEach(function () {
     spyOn(FocusedPerspectiveStore, 'trigger');
     FocusedPerspectiveStore._current = MailboxPerspective.forNothing();
     this.account = AccountStore.accounts()[0];
@@ -46,16 +46,16 @@ describe('FocusedPerspectiveStore', function() {
     });
   });
 
-  describe('_initializeFromSavedState', function() {
-    beforeEach(function() {
+  describe('_initializeFromSavedState', function () {
+    beforeEach(function () {
       this.default = MailboxPerspective.forCategory(this.inboxCategory);
       spyOn(AccountStore, 'accountIds').andReturn([1, 2]);
-      spyOn(MailboxPerspective, 'fromJSON').andCallFake(json => json);
+      spyOn(MailboxPerspective, 'fromJSON').andCallFake((json) => json);
       spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.default);
       spyOn(FocusedPerspectiveStore, '_setPerspective');
     });
 
-    it('uses default perspective when no perspective has been saved', function() {
+    it('uses default perspective when no perspective has been saved', function () {
       AppEnv.savedState.sidebarAccountIds = undefined;
       AppEnv.savedState.perspective = undefined;
       FocusedPerspectiveStore._initializeFromSavedState();
@@ -65,7 +65,7 @@ describe('FocusedPerspectiveStore', function() {
       );
     });
 
-    it('uses default if the saved perspective has account ids no longer present', function() {
+    it('uses default if the saved perspective has account ids no longer present', function () {
       AppEnv.savedState.sidebarAccountIds = [1, 2, 3];
       AppEnv.savedState.perspective = {
         accountIds: [1, 2, 3],
@@ -89,7 +89,7 @@ describe('FocusedPerspectiveStore', function() {
       );
     });
 
-    it('uses default if the saved perspective has category ids no longer present', function() {
+    it('uses default if the saved perspective has category ids no longer present', function () {
       AppEnv.savedState.sidebarAccountIds = [2];
       AppEnv.savedState.perspective = {
         accountIds: [2],
@@ -102,7 +102,7 @@ describe('FocusedPerspectiveStore', function() {
       );
     });
 
-    it('does not honor sidebarAccountIds if it includes account ids no longer present', function() {
+    it('does not honor sidebarAccountIds if it includes account ids no longer present', function () {
       AppEnv.savedState.sidebarAccountIds = [1, 2, 3];
       AppEnv.savedState.perspective = {
         accountIds: [1],
@@ -115,7 +115,7 @@ describe('FocusedPerspectiveStore', function() {
       );
     });
 
-    it('uses the saved perspective if it is still valid', function() {
+    it('uses the saved perspective if it is still valid', function () {
       AppEnv.savedState.sidebarAccountIds = [1, 2];
       AppEnv.savedState.perspective = {
         accountIds: [1, 2],
@@ -155,8 +155,8 @@ describe('FocusedPerspectiveStore', function() {
     });
   });
 
-  describe('_onCategoryStoreChanged', function() {
-    it("should try to initialize if the curernt perspective hasn't been fully initialized", function() {
+  describe('_onCategoryStoreChanged', function () {
+    it("should try to initialize if the curernt perspective hasn't been fully initialized", function () {
       spyOn(FocusedPerspectiveStore, '_initializeFromSavedState');
 
       FocusedPerspectiveStore._current = this.inboxPerspective;
@@ -170,7 +170,7 @@ describe('FocusedPerspectiveStore', function() {
       expect(FocusedPerspectiveStore._initializeFromSavedState).toHaveBeenCalled();
     });
 
-    it('should set the current category to default when the current category no longer exists in the CategoryStore', function() {
+    it('should set the current category to default when the current category no longer exists in the CategoryStore', function () {
       const defaultPerspective = this.inboxPerspective;
       FocusedPerspectiveStore._initialized = true;
       spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(defaultPerspective);
@@ -185,14 +185,14 @@ describe('FocusedPerspectiveStore', function() {
   });
 
   describe('_onFocusPerspective', () =>
-    it('should focus the category and trigger', function() {
+    it('should focus the category and trigger', function () {
       FocusedPerspectiveStore._onFocusPerspective(this.userPerspective);
       expect(FocusedPerspectiveStore.trigger).toHaveBeenCalled();
       expect(FocusedPerspectiveStore.current().categories()).toEqual([this.userCategory]);
     }));
 
   describe('_setPerspective', () =>
-    it('should not trigger if the perspective is already focused', function() {
+    it('should not trigger if the perspective is already focused', function () {
       FocusedPerspectiveStore._setPerspective(this.inboxPerspective);
       (FocusedPerspectiveStore.trigger as jasmine.Spy).reset();
       FocusedPerspectiveStore._setPerspective(this.inboxPerspective);

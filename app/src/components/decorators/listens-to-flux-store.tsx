@@ -18,7 +18,7 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
     }
 
     componentDidMount() {
-      stores.forEach(store => {
+      stores.forEach((store) => {
         this._unlisteners.push(
           store.listen(() => {
             this.setState(getStateFromStores(this.props));
@@ -46,7 +46,7 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
         ...this.state,
       };
       if (Component.isPrototypeOf(ComposedComponent)) {
-        props.ref = cm => {
+        props.ref = (cm) => {
           this._composedComponent = cm;
         };
       }

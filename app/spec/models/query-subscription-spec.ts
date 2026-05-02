@@ -35,7 +35,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       describe('when initialModels are provided', () =>
         it('should apply the models and trigger', () => {
           const query = DatabaseStore.findAll<Thread>(Thread);
-          const threads = [1, 2, 3, 4, 5].map(i => new Thread({ id: i }));
+          const threads = [1, 2, 3, 4, 5].map((i) => new Thread({ id: i }));
           const subscription = new QuerySubscription(query, { initialModels: threads });
           expect(subscription._set).not.toBe(null);
         }));
@@ -222,8 +222,8 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
     jasmine.unspy(Utils, 'generateTempId');
 
     describe('scenarios', () =>
-      scenarios.forEach(scenario => {
-        scenario.tests.forEach(test => {
+      scenarios.forEach((scenario) => {
+        scenario.tests.forEach((test) => {
           it(`with ${scenario.name}, should correctly apply ${test.name}`, () => {
             const subscription = new QuerySubscription(scenario.query);
             subscription._set = new MutableQueryResultSet();
@@ -277,7 +277,10 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       it('should fetch full full models only when the previous set is empty', () => {
         const subscription = new QuerySubscription(DatabaseStore.findAll<Thread>(Thread));
         subscription._set = new MutableQueryResultSet();
-        subscription._set.addModelsInRange([new Thread({} as any)], new QueryRange({ start: 0, end: 1 }));
+        subscription._set.addModelsInRange(
+          [new Thread({} as any)],
+          new QueryRange({ start: 0, end: 1 })
+        );
         subscription.update();
         advanceClock();
         expect(subscription._fetchRange).toHaveBeenCalledWith(QueryRange.infinite(), {
@@ -310,7 +313,10 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
           spyOn(QueryRange, 'rangesBySubtracting').andReturn([customRange]);
           const subscription = new QuerySubscription(this.query);
           subscription._set = new MutableQueryResultSet();
-          subscription._set.addModelsInRange([new Thread({} as any)], new QueryRange({ start: 0, end: 1 }));
+          subscription._set.addModelsInRange(
+            [new Thread({} as any)],
+            new QueryRange({ start: 0, end: 1 })
+          );
 
           advanceClock();
           (subscription._fetchRange as jasmine.Spy).reset();

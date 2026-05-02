@@ -10,16 +10,7 @@ export class MutableQuerySubscription<T extends Model> extends QuerySubscription
     let rangeIsOnlyChange = false;
     if (this._query) {
       rangeIsOnlyChange =
-        this._query
-          .clone()
-          .offset(0)
-          .limit(0)
-          .sql() ===
-        nextQuery
-          .clone()
-          .offset(0)
-          .limit(0)
-          .sql();
+        this._query.clone().offset(0).limit(0).sql() === nextQuery.clone().offset(0).limit(0).sql();
     }
 
     this.cancelPendingUpdate();

@@ -34,7 +34,7 @@ const nextStringToken = (text: string): [SearchQueryToken, string] => {
   throw new Error('Expected string but ran out of input');
 };
 
-const isWhitespace = c => {
+const isWhitespace = (c) => {
   switch (c) {
     case ' ':
     case '\t':

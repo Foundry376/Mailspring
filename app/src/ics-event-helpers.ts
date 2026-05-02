@@ -65,9 +65,7 @@ export interface RecurrenceInfo {
  */
 export function generateUID(): string {
   const timestamp = Date.now().toString(36);
-  const random = Math.random()
-    .toString(36)
-    .substring(2, 15);
+  const random = Math.random().toString(36).substring(2, 15);
   return `${timestamp}-${random}@mailspring`;
 }
 
@@ -557,8 +555,8 @@ export function createRecurrenceException(
   const masterVevent = vcalendar
     ? vcalendar.getFirstSubcomponent('vevent')
     : masterRoot.name === 'vevent'
-    ? masterRoot
-    : null;
+      ? masterRoot
+      : null;
 
   if (!masterVevent) {
     throw new Error('Invalid ICS: no VEVENT component found');
@@ -658,8 +656,8 @@ export function applyEditsToException(
         typeof rid === 'string'
           ? rid
           : typeof (rid as any).toString === 'function'
-          ? (rid as any).toString()
-          : String(rid);
+            ? (rid as any).toString()
+            : String(rid);
       if (
         ridStr === recurrenceId ||
         ridStr.replace(/[^0-9TZ]/g, '') === recurrenceId.replace(/[^0-9TZ]/g, '')

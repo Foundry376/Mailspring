@@ -74,7 +74,7 @@ function promisify(original, settings) {
 }
 
 function promisifyAll(target) {
-  Object.getOwnPropertyNames(target).forEach(key => {
+  Object.getOwnPropertyNames(target).forEach((key) => {
     const descriptor = Object.getOwnPropertyDescriptor(target, key);
 
     if (typeof descriptor.value !== 'function') {
@@ -91,7 +91,7 @@ function promisifyAll(target) {
 
     target[promisifiedKey] = promisify(target[key], {});
 
-    [key, promisifiedKey].forEach(rkey => {
+    [key, promisifiedKey].forEach((rkey) => {
       Object.defineProperty(target[rkey], MAGIC_KEY, {
         value: true,
         configurable: true,
@@ -113,7 +113,7 @@ async function each(items, fn) {
 }
 
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function props(obj) {
@@ -135,7 +135,7 @@ function props(obj) {
 async function getState() {
   const t = {};
   return await Promise.race([this, t]).then(
-    v => (v === t ? 'pending' : 'fulfilled'),
+    (v) => (v === t ? 'pending' : 'fulfilled'),
     () => 'rejected'
   );
 }

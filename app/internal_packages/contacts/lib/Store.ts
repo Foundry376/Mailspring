@@ -33,7 +33,7 @@ class ContactsWindowStore extends MailspringStore {
       this._contactsSubscription = new MutableQuerySubscription<Contact>(contacts);
 
       Rx.Observable.fromNamedQuerySubscription('contacts', this._contactsSubscription).subscribe(
-        contacts => {
+        (contacts) => {
           this._contacts = contacts as Contact[];
           this._filtered = null;
           this.repopulate();
@@ -41,16 +41,18 @@ class ContactsWindowStore extends MailspringStore {
       );
 
       Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup)).subscribe(
-        groups => {
+        (groups) => {
           this._groups = groups;
           this.trigger();
         }
       );
 
-      Rx.Observable.fromQuery(DatabaseStore.findAll<ContactBook>(ContactBook)).subscribe(books => {
-        this._books = books;
-        this.trigger();
-      });
+      Rx.Observable.fromQuery(DatabaseStore.findAll<ContactBook>(ContactBook)).subscribe(
+        (books) => {
+          this._books = books;
+          this.trigger();
+        }
+      );
     });
   }
 
@@ -120,7 +122,7 @@ class ContactsWindowStore extends MailspringStore {
     let filtered = [...this._contacts];
 
     if (perspective.type !== 'unified') {
-      filtered = filtered.filter(c => {
+      filtered = filtered.filter((c) => {
         if (c.accountId !== perspective.accountId) return false;
         if (c.source !== 'mail' && perspective.type === 'found-in-mail') return false;
         if (c.source === 'mail' && perspective.type !== 'found-in-mail') return false;
@@ -130,7 +132,7 @@ class ContactsWindowStore extends MailspringStore {
     if (this._search) {
       const isearch = this._search.toLowerCase();
       filtered = filtered.filter(
-        c => c.name.toLowerCase().includes(isearch) || c.email.toLowerCase().includes(isearch)
+        (c) => c.name.toLowerCase().includes(isearch) || c.email.toLowerCase().includes(isearch)
       );
     }
 

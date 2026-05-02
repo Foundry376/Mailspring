@@ -4,7 +4,7 @@ import { AccountStore } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import * as OnboardingActions from './onboarding-actions';
 
-const PageTopBar = props => {
+const PageTopBar = (props) => {
   const { pageDepth } = props;
 
   const closeClass = pageDepth > 1 ? 'back' : 'close';

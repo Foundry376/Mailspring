@@ -181,20 +181,20 @@ export function getBestUnsubscribeOption(
 
   // If one-click is supported, prefer HTTPS URL
   if (hasOneClickSupport) {
-    const httpsOption = options.find(o => o.type === 'https');
+    const httpsOption = options.find((o) => o.type === 'https');
     if (httpsOption) {
       return { option: httpsOption, method: 'one-click' };
     }
   }
 
   // Otherwise, prefer mailto (opens composer for user review)
-  const mailtoOption = options.find(o => o.type === 'mailto');
+  const mailtoOption = options.find((o) => o.type === 'mailto');
   if (mailtoOption) {
     return { option: mailtoOption, method: 'mailto' };
   }
 
   // Fall back to web (opens in browser)
-  const webOption = options.find(o => o.type === 'https' || o.type === 'http');
+  const webOption = options.find((o) => o.type === 'https' || o.type === 'http');
   if (webOption) {
     return { option: webOption, method: 'web' };
   }

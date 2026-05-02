@@ -51,8 +51,6 @@ export class ContactListContextMenu {
   }
 
   displayMenu() {
-    require('@electron/remote')
-      .Menu.buildFromTemplate(this.template())
-      .popup({});
+    require('@electron/remote').Menu.buildFromTemplate(this.template()).popup({});
   }
 }

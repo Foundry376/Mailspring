@@ -46,7 +46,7 @@ export default class SendRemindersComposerButton extends Component<
     return reminderDateFor(nextProps.draft) !== reminderDateFor(this.props.draft);
   }
 
-  onSetReminder = reminderDate => {
+  onSetReminder = (reminderDate) => {
     const { draft, session } = this.props;
     this.setState({ saving: true });
 
@@ -64,7 +64,7 @@ export default class SendRemindersComposerButton extends Component<
     Actions.openPopover(
       <SendRemindersPopover
         reminderDate={reminderDateFor(draft)}
-        onRemind={date => this.onSetReminder(date)}
+        onRemind={(date) => this.onSetReminder(date)}
         onCancelReminder={() => this.onSetReminder(null)}
       />,
       { originRect: buttonRect, direction: 'up' }

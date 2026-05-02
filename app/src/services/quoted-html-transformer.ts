@@ -2,13 +2,13 @@ import quoteStringDetector from './quote-string-detector';
 import unwrappedSignatureDetector from './unwrapped-signature-detector';
 const { FIRST_ORDERED_NODE_TYPE } = XPathResult;
 
-const isEmptyishTextContent = el => {
+const isEmptyishTextContent = (el) => {
   // either '' or '---' (often left over from sig / confidentiality notice removal)
   const trimmed = el.textContent.trim();
   return trimmed === '' || /^-+$/.test(trimmed);
 };
 
-const looksLikeTrackingPixel = img => {
+const looksLikeTrackingPixel = (img) => {
   // we want to avoid hiding quoted text if the user has added an image beneath it, but only
   // if that image is more than 1px in size...
   const w = Number(img.getAttribute('width') || (img.style.width || '').replace('px', '') || 10000);
@@ -97,7 +97,7 @@ class QuotedHTMLTransformer {
       nodes.push(node);
       node = result.iterateNext();
     }
-    nodes.forEach(n => n.remove());
+    nodes.forEach((n) => n.remove());
   }
 
   _removeUnnecessaryWhitespace(doc: Document) {
@@ -136,7 +136,7 @@ class QuotedHTMLTransformer {
     //
     // Containers with empty space at the end occur pretty often when we
     // remove the quoted text and it had preceding spaces.
-    const removeTrailingWhitespaceChildren = el => {
+    const removeTrailingWhitespaceChildren = (el) => {
       while (el.lastChild) {
         const child = el.lastChild;
         if (child.nodeType === Node.TEXT_NODE) {
@@ -222,7 +222,7 @@ class QuotedHTMLTransformer {
     // Keep quotes that are followed by non-quote blocks (eg: inline reply text)
     const quoteElementSet = new Set(quoteElements);
     quoteElements = quoteElements.filter(
-      el => !this._isElementFollowedByUnquotedElement(el, quoteElementSet)
+      (el) => !this._isElementFollowedByUnquotedElement(el, quoteElementSet)
     );
 
     return quoteElements;
@@ -294,7 +294,7 @@ class QuotedHTMLTransformer {
     let iters = 0;
     while ((els = this._findTrailingFooter(doc))) {
       iters++;
-      els.forEach(el => el.remove());
+      els.forEach((el) => el.remove());
       this._removeUnnecessaryWhitespace(doc);
       if (iters > 20) {
         return;
@@ -318,7 +318,7 @@ class QuotedHTMLTransformer {
     while (head) {
       const tc = head.textContent.trim();
       if (head.nodeType === Node.TEXT_NODE) {
-        if (footerRegexps.find(r => r.test(tc))) {
+        if (footerRegexps.find((r) => r.test(tc))) {
           return [head];
         }
       }
@@ -387,8 +387,13 @@ class QuotedHTMLTransformer {
       //span[. = 'Date: '] |
       //span[. = 'Sent:'] |
       //span[. = 'Date:']`;
-    const dateMarker = doc.evaluate(dateXPath, doc.body, null, FIRST_ORDERED_NODE_TYPE, null)
-      .singleNodeValue;
+    const dateMarker = doc.evaluate(
+      dateXPath,
+      doc.body,
+      null,
+      FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
 
     if (!dateMarker) {
       return [];
@@ -413,8 +418,13 @@ class QuotedHTMLTransformer {
     // Special case to add "From:" because it's often detatched from the rest of the
     // header fields. We just add it where ever it's located.
     const fromXPath = "//b[. = 'From:'] | //span[. = 'From:']| //span[. = 'From: ']";
-    let from = doc.evaluate(fromXPath, doc.body, null, FIRST_ORDERED_NODE_TYPE, null)
-      .singleNodeValue;
+    let from = doc.evaluate(
+      fromXPath,
+      doc.body,
+      null,
+      FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
 
     if (from) {
       if (from.nodeName === 'SPAN') {
@@ -426,7 +436,7 @@ class QuotedHTMLTransformer {
     return quotedTextNodes;
   }
 
-  _collectAllNodesBelow = headerContainer => {
+  _collectAllNodesBelow = (headerContainer) => {
     // The headers container and everything past it in the document is quoted text.
     // This traverses the DOM, walking up the tree and adding all siblings below
     // our current path to the array.

@@ -17,7 +17,7 @@ export function waitsForPromise(...args) {
   }
   const fn = _.last(args);
 
-  return (window as any).waitsFor(timeout, moveOn => {
+  return (window as any).waitsFor(timeout, (moveOn) => {
     const promise = fn();
     // Keep in mind we can't check `promise instanceof Promise` because parts of
     // the app still use other Promise libraries Just see if it looks
@@ -38,7 +38,7 @@ export function waitsForPromise(...args) {
     }
 
     promise.then(moveOn);
-    return promise.catch(error => {
+    return promise.catch((error) => {
       // I don't know what `pp` does, but for standard `new Error` objects,
       // it sometimes returns "{  }". Catch this case and fall through to toString()
       let msg = jasmine.pp(error);

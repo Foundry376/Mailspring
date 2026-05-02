@@ -1,1 +1,1 @@
-describe('SendAndArchive', function() {});
+describe('SendAndArchive', function () {});

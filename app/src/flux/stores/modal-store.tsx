@@ -16,7 +16,7 @@ function createContainer(id) {
 class ModalStore extends MailspringStore {
   isOpen = false;
   container: HTMLElement;
-  
+
   constructor(containerId = CONTAINER_ID) {
     super();
     this.container = createContainer(containerId);

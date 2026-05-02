@@ -10,9 +10,9 @@ import { EventHeader } from './event-header';
 
 function bestICSAttachment(files: File[]) {
   return (
-    files.find(f => f.filename.endsWith('.ics')) ||
-    files.find(f => f.contentType === 'text/calendar') ||
-    files.find(f => f.filename.endsWith('.vcs'))
+    files.find((f) => f.filename.endsWith('.ics')) ||
+    files.find((f) => f.contentType === 'text/calendar') ||
+    files.find((f) => f.filename.endsWith('.vcs'))
   );
 }
 
@@ -32,7 +32,7 @@ class HideICSAttachmentExtension extends MessageViewExtension {
     // to ensure it's recognized everywhere, so we remove all the attachments with the exact
     // file size and an ics content type.
     return files.filter(
-      f => !(f.size === best.size && ['application/ics', 'text/calendar'].includes(f.contentType))
+      (f) => !(f.size === best.size && ['application/ics', 'text/calendar'].includes(f.contentType))
     );
   }
 }

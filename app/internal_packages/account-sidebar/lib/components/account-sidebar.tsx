@@ -42,7 +42,7 @@ export default class AccountSidebar extends React.Component<
   }
 
   componentWillUnmount() {
-    return this.unsubscribers.map(unsubscribe => unsubscribe());
+    return this.unsubscribers.map((unsubscribe) => unsubscribe());
   }
 
   _onStoreChange = () => {
@@ -59,7 +59,7 @@ export default class AccountSidebar extends React.Component<
   };
 
   _renderUserSections(sections: ISidebarSection[]) {
-    return sections.map(section => <OutlineView key={section.title} {...section} />);
+    return sections.map((section) => <OutlineView key={section.title} {...section} />);
   }
 
   render() {

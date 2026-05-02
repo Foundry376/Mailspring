@@ -439,7 +439,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         <div role="group" className="item-children" key={`${item.id}-children`}>
           {showCreateChildInput && this._renderCreateChildInput()}
           {showRegularChildren &&
-            item.children.map(child => (
+            item.children.map((child) => (
               <OutlineViewItem key={child.id} item={child} level={childLevel} />
             ))}
         </div>

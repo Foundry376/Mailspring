@@ -81,7 +81,7 @@ class ThreadListStore extends MailspringStore {
       const focusedIndex = focused ? previous.offsetOfId(focused.id) : -1;
       const keyboardIndex = keyboard ? previous.offsetOfId(keyboard.id) : -1;
 
-      const nextItemFromIndex = i => {
+      const nextItemFromIndex = (i) => {
         let nextIndex;
         if (
           i > 0 &&
@@ -96,7 +96,7 @@ class ThreadListStore extends MailspringStore {
         return next.modelAtOffset(nextIndex);
       };
 
-      const notInSet = function(model) {
+      const notInSet = function (model) {
         if (matchers) {
           return model.matches(matchers) === false;
         } else {

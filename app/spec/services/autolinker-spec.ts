@@ -5,8 +5,8 @@ import { Autolink } from '../../src/services/autolinker';
 describe('autolink', function autolinkSpec() {
   const fixturesDir = path.join(__dirname, 'autolinker-fixtures');
   fs.readdirSync(fixturesDir)
-    .filter(filename => filename.indexOf('-in.html') !== -1)
-    .forEach(filename => {
+    .filter((filename) => filename.indexOf('-in.html') !== -1)
+    .forEach((filename) => {
       it(`should properly autolink a variety of email bodies ${filename}`, () => {
         const div = document.createElement('div');
         const inputPath = path.join(fixturesDir, filename);

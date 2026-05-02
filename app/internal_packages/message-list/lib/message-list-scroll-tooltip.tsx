@@ -35,7 +35,9 @@ export class MessageListScrollTooltip extends React.Component<
     // item index, but the DOM approach is simple and self-contained.
     //
     const els = document.querySelectorAll('.message-item-wrap');
-    let idx = Array.from(els).findIndex(el => (el as HTMLElement).offsetTop > props.viewportCenter);
+    let idx = Array.from(els).findIndex(
+      (el) => (el as HTMLElement).offsetTop > props.viewportCenter
+    );
     if (idx === -1) {
       idx = els.length;
     }

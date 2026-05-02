@@ -33,7 +33,7 @@ export function activate() {
     ComponentRegistry.register(MessageList, { location: WorkspaceStore.Location.Center });
 
     // We need to locate the thread and focus it so that the MessageList displays it
-    DatabaseStore.find<Thread>(Thread, threadId).then(thread =>
+    DatabaseStore.find<Thread>(Thread, threadId).then((thread) =>
       Actions.setFocus({ collection: 'thread', item: thread })
     );
 

@@ -2,20 +2,23 @@ import fs from 'fs';
 import path from 'path';
 import QuotedHTMLTransformer from '../../src/services/quoted-html-transformer';
 
-describe('QuotedHTMLTransformer', function() {
-  const readFile = function(fname) {
+describe('QuotedHTMLTransformer', function () {
+  const readFile = function (fname) {
     const emailPath = path.resolve(__dirname, '..', 'fixtures', 'emails', fname);
     return fs.readFileSync(emailPath, 'utf8');
   };
 
-  const removeQuotedHTML = function(fname, opts: { keepIfWholeBodyIsQuote?: boolean } = {}) {
-    return QuotedHTMLTransformer.removeQuotedHTML(readFile(fname), opts as {
-      keepIfWholeBodyIsQuote: boolean;
-    });
+  const removeQuotedHTML = function (fname, opts: { keepIfWholeBodyIsQuote?: boolean } = {}) {
+    return QuotedHTMLTransformer.removeQuotedHTML(
+      readFile(fname),
+      opts as {
+        keepIfWholeBodyIsQuote: boolean;
+      }
+    );
   };
 
   for (let n = 1; n <= 28; n++) {
-    it(`properly parses email_${n}`, function() {
+    it(`properly parses email_${n}`, function () {
       const opts = { keepIfWholeBodyIsQuote: true };
       const actual = removeQuotedHTML(`email_${n}.html`, opts).trim();
       const expected = readFile(`email_${n}_stripped.html`).trim();
@@ -29,8 +32,8 @@ describe('QuotedHTMLTransformer', function() {
     });
   }
 
-  describe('manual quote detection tests', function() {
-    const clean = str => str.replace(/[\n\r]/g, '').replace(/\s{2,}/g, ' ');
+  describe('manual quote detection tests', function () {
+    const clean = (str) => str.replace(/[\n\r]/g, '').replace(/\s{2,}/g, ' ');
 
     // The key is the inHTML. The value is the outHTML
     const tests = [];
@@ -357,19 +360,19 @@ On Thu, Mar 3, 2016 I went to my writing club and wrote:
         return result;
       })());
 
-    it('removes all trailing <br> tags', function() {
+    it('removes all trailing <br> tags', function () {
       const input0 = 'hello world<br><br><blockquote>foolololol</blockquote>';
       const expect0 = 'hello world';
       expect(QuotedHTMLTransformer.removeQuotedHTML(input0)).toEqual(expect0);
     });
 
-    it('preserves <br> tags in the middle and only chops off tail', function() {
+    it('preserves <br> tags in the middle and only chops off tail', function () {
       const input0 = 'hello<br><br>world<br><br><blockquote>foolololol</blockquote>';
       const expect0 = 'hello<br><br>world';
       expect(QuotedHTMLTransformer.removeQuotedHTML(input0)).toEqual(expect0);
     });
 
-    it('works as expected when body tag inside the html', function() {
+    it('works as expected when body tag inside the html', function () {
       const input0 = `\
 <br><br><blockquote class="gmail_quote"
   style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
@@ -403,7 +406,7 @@ On Thu, Mar 3, 2016 I went to my writing club and wrote:
   // `QuotedHTMLTransformer` needs Electron booted up in order to work because
   // of the DOMParser.
   xit('Run this simple function to generate output files', () =>
-    [18, 20].forEach(function(n) {
+    [18, 20].forEach(function (n) {
       const newHTML = QuotedHTMLTransformer.removeQuotedHTML(readFile(`email_${n}.html`));
       const outPath = path.resolve(
         __dirname,

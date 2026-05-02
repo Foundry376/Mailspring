@@ -73,8 +73,8 @@ class DraftListStore extends MailspringStore {
           const resultSetWithTasks = new MutableQueryResultSet(resultSet);
 
           // TODO BG modelWithId: task.headerMessageId does not work
-          mailboxPerspective.accountIds.forEach(aid => {
-            outboxStore.itemsForAccount(aid).forEach(task => {
+          mailboxPerspective.accountIds.forEach((aid) => {
+            outboxStore.itemsForAccount(aid).forEach((task) => {
               let draft = resultSet.modelWithId(task.headerMessageId) as any;
               if (draft) {
                 draft = draft.clone();

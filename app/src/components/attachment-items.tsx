@@ -67,9 +67,7 @@ function buildContextMenu(fns: {
       label: localized('Save Into...'),
     });
   }
-  require('@electron/remote')
-    .Menu.buildFromTemplate(template)
-    .popup({});
+  require('@electron/remote').Menu.buildFromTemplate(template).popup({});
 }
 
 const ProgressBar: React.FunctionComponent<{
@@ -108,7 +106,7 @@ function AttachmentActionIcon(props) {
   const isDownloading = download ? download.state === 'downloading' : false;
   const actionIconName = isRemovable || isDownloading ? removeIcon : downloadIcon;
 
-  const onClickActionIcon = event => {
+  const onClickActionIcon = (event) => {
     event.stopPropagation(); // Prevent 'onOpenAttachment'
     if (isRemovable) {
       onRemoveAttachment();
@@ -160,7 +158,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
 
   _fileIconComponent: RetinaImg;
 
-  _onDragStart = event => {
+  _onDragStart = (event) => {
     const { contentType, filePath } = this.props;
     if (fs.existsSync(filePath)) {
       // Note: From trial and error, it appears that the second param /MUST/ be the
@@ -178,7 +176,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
     }
   };
 
-  _onAttachmentKeyDown = event => {
+  _onAttachmentKeyDown = (event) => {
     if (event.key === SPACE && this.props.filePreviewPath) {
       event.preventDefault();
       event.stopPropagation();
@@ -255,7 +253,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">
               <RetinaImg
-                ref={cm => {
+                ref={(cm) => {
                   this._fileIconComponent = cm;
                 }}
                 className="file-icon"
@@ -353,14 +351,8 @@ export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
   }
 
   render() {
-    const {
-      className,
-      displayName,
-      download,
-      onOpenAttachment,
-      onSaveAttachment,
-      ...extraProps
-    } = this.props;
+    const { className, displayName, download, onOpenAttachment, onSaveAttachment, ...extraProps } =
+      this.props;
 
     return (
       <div

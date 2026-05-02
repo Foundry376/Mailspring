@@ -17,7 +17,7 @@ export default class AccountSettingsPageOutlook extends React.Component<{ accoun
   }
 
   render() {
-    const providerConfig = AccountProviders.find(a => a.provider === this.props.account.provider);
+    const providerConfig = AccountProviders.find((a) => a.provider === this.props.account.provider);
     const goBack = () => OnboardingActions.moveToPreviousPage();
 
     return (
