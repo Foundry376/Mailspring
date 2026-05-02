@@ -74,7 +74,7 @@ export class Task extends Model {
     delete json.status;
     delete json.version;
     delete json.id;
-    return new this.constructor(json) as this;
+    return new (this.ctor as any)(json) as this;
   }
 
   // Public: code to run if (someone tries to dequeue your task while it is)

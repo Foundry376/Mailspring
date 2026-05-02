@@ -19,14 +19,6 @@ getter that resolves to the id first, and then the id.
 Section: Models
  */
 
-interface HasStaticAttributes {
-  constructor: {
-    attributes: {
-      [attribute: string]: Attribute;
-    };
-  };
-}
-
 export type AttributeValues<T> = { [P in keyof T]?: any } & { __cls?: string };
 
 type ModelAttributes = {
@@ -40,7 +32,7 @@ export interface ModelClass {
   new (): Model;
 }
 
-export class Model implements HasStaticAttributes {
+export class Model {
   get ctor(): typeof Model {
     return this.constructor as unknown as typeof Model;
   }
@@ -85,7 +77,7 @@ export class Model implements HasStaticAttributes {
   }
 
   clone(): this {
-    return new this.constructor(this.toJSON()) as any;
+    return new (this.ctor as any)(this.toJSON()) as any;
   }
 
   // Public: Inflates the model object from JSON, using the defined attributes to

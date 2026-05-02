@@ -1,3 +1,4 @@
 {
+  "name": "package-with-main",
   "main": "main-module.ts"
 }

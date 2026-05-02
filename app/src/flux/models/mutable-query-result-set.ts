@@ -92,7 +92,7 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     // Make sure we never drop joined data by pulling it over.
     const existing = this._modelsHash[item.id];
     if (existing) {
-      const attrs = existing.constructor.attributes;
+      const attrs = (existing.constructor as any).attributes;
       for (const key of Object.keys(attrs)) {
         const attr = attrs[key];
         if (attr instanceof AttributeJoinedData && item[attr.modelKey] === undefined) {

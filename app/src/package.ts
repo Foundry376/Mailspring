@@ -44,7 +44,7 @@ export default class Package {
     this.json = JSON.parse(jsonString);
     if (!isValidPackageName(this.json.name)) {
       throw new InvalidPackageNameError(
-        `Plugin in ${dir} has an invalid "name" field. Names must match /^[a-z0-9._-]+$/.`
+        `Plugin in ${dir} has an invalid or missing "name" field. Names must match /^[a-z0-9._-]+$/.`
       );
     }
     this.name = this.json.name;
