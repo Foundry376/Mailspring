@@ -58,11 +58,8 @@
     "fs-extra": "2.x.x",
     "fs-plus": "2.x.x",
     "glob": "7.x.x",
-    "grunt": "^1.4.1",
-    "grunt-cli": "^1.4.3",
     "jasmine": "2.x.x",
     "license-extractor": "^1.0.4",
-    "load-grunt-parent-tasks": "^0.1.2",
     "node-gyp": "^12.2.0",
     "prettier": "^1.10.0",
     "rimraf": "^2.6.1",
@@ -79,6 +76,6 @@
     "test": "electron ./app --enable-logging --test",
     "test-window": "electron ./app --enable-logging --test=window",
     "tsc-watch": "tsc -w -p ./app --noEmit",
-    "build": "grunt build-client --gruntfile=app/build/Gruntfile.js --base=./"
+    "build": "node app/build/build.js"
   }
 }

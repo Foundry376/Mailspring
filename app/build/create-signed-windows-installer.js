@@ -1,11 +1,8 @@
 /* eslint import/no-dynamic-require:0 */
 /**
- * NOTE: Due to path issues, this script must be run outside of grunt
- * directly from a powershell command.
- *
- * Code signing is handled separately by Azure Trusted Signing action in the
- * GitHub workflow. This script creates an unsigned installer which is then
- * signed by the workflow after creation.
+ * Code signing is handled separately by the Azure Trusted Signing action in
+ * the GitHub workflow. This script creates an unsigned installer which is
+ * then signed by the workflow after creation.
  */
 const path = require('path');
 const { createWindowsInstaller } = require('electron-winstaller');
