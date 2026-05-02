@@ -463,6 +463,11 @@ async function createRpmInstaller() {
 async function main() {
   await runPackager();
 
+  if (process.argv.includes('--skip-installers')) {
+    console.log('---> Skipping installer creation (--skip-installers flag detected)');
+    return;
+  }
+
   if (platform === 'darwin') {
     await createMacZip();
   } else if (platform === 'linux') {
