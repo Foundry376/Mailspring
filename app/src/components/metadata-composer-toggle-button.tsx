@@ -48,20 +48,25 @@ export default class MetadataComposerToggleButton extends React.Component<
   constructor(props) {
     super(props);
 
-    this.state = {
-      pending: false,
-      onByDefaultButUsedUp: false,
-    };
+    // Decide auto-enable in the constructor so the first paint reflects the
+    // pending state, matching prior componentWillMount behavior. The actual
+    // side effect (queueing the metadata change) runs in componentDidMount.
+    let pending = false;
+    let onByDefaultButUsedUp = false;
+    if (this._isEnabledByDefault() && !this._isEnabled()) {
+      if (FeatureUsageStore.isUsable(props.pluginId)) {
+        pending = true;
+      } else {
+        onByDefaultButUsedUp = true;
+      }
+    }
+
+    this.state = { pending, onByDefaultButUsedUp };
   }
 
   componentDidMount() {
-    // Auto-enable plugin if it should be on by default and isn't already enabled
-    if (this._isEnabledByDefault() && !this._isEnabled()) {
-      if (FeatureUsageStore.isUsable(this.props.pluginId)) {
-        this._setEnabled(true);
-      } else {
-        this.setState({ onByDefaultButUsedUp: true });
-      }
+    if (this.state.pending) {
+      this._setEnabled(true);
     }
   }
 

@@ -137,7 +137,7 @@ export class MailspringCalendar extends React.Component<
     this.state = {
       calendars: [],
       calendarsLoaded: false,
-      accounts: [],
+      accounts: AccountStore.accounts(),
       focusedEvent: null,
       selectedEvents: [],
       view: AppEnv.config.get(CALENDAR_VIEW) || CalendarView.WEEK,
