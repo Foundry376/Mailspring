@@ -18,11 +18,6 @@ document.addEventListener('compositionend', () => {
 });
 
 export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivElement>> {
-  // Stable context value object to avoid unnecessary re-renders of consumers
-  private _contextValue: TabGroupContextType = {
-    shiftFocus: this.shiftFocus,
-  };
-
   _onKeyDown = (event) => {
     if (event.key !== 'Tab' || event.defaultPrevented) return;
     if (compositionActive) return;
@@ -68,6 +63,12 @@ export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivEleme
     return (
       node.nodeName === 'INPUT' && node.type === 'text' && !node.classList.contains('no-select-end')
     );
+  };
+
+  // Stable context value object to avoid unnecessary re-renders of consumers.
+  // Declared after shiftFocus so the field initializer captures the bound method.
+  private _contextValue: TabGroupContextType = {
+    shiftFocus: this.shiftFocus,
   };
 
   render() {
