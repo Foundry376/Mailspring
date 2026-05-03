@@ -11,6 +11,7 @@ import {
   IDefaultSignatures,
   IAliasSet,
   InlineStyleTransformer,
+  SanitizeTransformer,
 } from 'mailspring-exports';
 import { Flexbox, EditableList } from 'mailspring-component-kit';
 
@@ -124,7 +125,10 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
 
         <div className="section preview">
           <div className="label">{localized('Preview')}</div>
-          <div className="preview" dangerouslySetInnerHTML={{ __html: signature.body }} />
+          <div
+            className="preview"
+            dangerouslySetInnerHTML={{ __html: SanitizeTransformer.runSync(signature.body || '') }}
+          />
         </div>
 
         <div className="section">
