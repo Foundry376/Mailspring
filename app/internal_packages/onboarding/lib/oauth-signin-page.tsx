@@ -40,6 +40,7 @@ interface OAuthSignInPageState {
   authStage: string;
   showAlternative: boolean;
   errorMessage?: string;
+  errorLog?: string;
   pressed?: boolean;
 }
 
@@ -126,6 +127,7 @@ export default class OAuthSignInPage extends React.Component<
             'A network error occurred. Please check your internet connection and try again.'
           )
         : err.message,
+      errorLog: err.rawLog,
     });
     if (!isNetworkError) {
       AppEnv.reportError(err);
@@ -183,7 +185,7 @@ export default class OAuthSignInPage extends React.Component<
       <div>
         <h2>{localized('Sorry, we had trouble logging you in')}</h2>
         <div className="error-region">
-          <FormErrorMessage message={this.state.errorMessage} />
+          <FormErrorMessage message={this.state.errorMessage} log={this.state.errorLog} />
           {note && <div className="message empty note">{note}</div>}
           <div className="btn" style={{ marginTop: 20 }} onClick={this.props.onTryAgain}>
             {localized('Try Again')}
