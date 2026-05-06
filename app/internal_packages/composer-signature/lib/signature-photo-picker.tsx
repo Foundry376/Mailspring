@@ -1,6 +1,6 @@
 import React from 'react';
 import { webUtils } from 'electron';
-import { localized, PropTypes, MailspringAPIRequest, IdentityStore } from 'mailspring-exports';
+import { localized, MailspringAPIRequest, IdentityStore } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
@@ -17,13 +17,6 @@ export default class SignaturePhotoPicker extends React.Component<
     isUploading?: boolean;
   }
 > {
-  static propTypes = {
-    id: PropTypes.string,
-    data: PropTypes.object,
-    resolvedURL: PropTypes.string,
-    onChange: PropTypes.func,
-  };
-
   _isMounted: boolean;
 
   constructor(props) {

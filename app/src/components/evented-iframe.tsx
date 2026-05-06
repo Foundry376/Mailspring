@@ -7,7 +7,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
-  PropTypes,
   Utils,
   localized,
   IdentityStore,
@@ -49,16 +48,13 @@ export class EventedIFrame extends React.Component<
 > {
   static displayName = 'EventedIFrame';
 
-  static propTypes = {
-    searchable: PropTypes.bool,
-    onResize: PropTypes.func,
-  };
+  static ownPropKeys = ['searchable', 'onResize'];
 
   _regionId: string;
   _searchUsub: () => void;
 
   render() {
-    const otherProps = Utils.fastOmit(this.props, Object.keys(EventedIFrame.propTypes));
+    const otherProps = Utils.fastOmit(this.props, EventedIFrame.ownPropKeys);
     return <iframe title="iframe" seamless {...otherProps} />;
   }
 

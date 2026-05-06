@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import _ from 'underscore';
 import React, { HTMLProps } from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, DOMUtils } from 'mailspring-exports';
+import { DOMUtils } from 'mailspring-exports';
 
 export interface MenuItemProps {
   id?: string;
@@ -64,12 +64,6 @@ class MenuItem extends React.Component<MenuItemProps> {
      - `selected` (optional) Pass a {Boolean} to specify whether the item is selected.
      - `checked` (optional) Pass a {Boolean} to specify whether the item is checked.
     */
-  static propTypes = {
-    divider: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    selected: PropTypes.bool,
-    checked: PropTypes.bool,
-  };
-
   render() {
     if (this.props.divider) {
       const dividerLabel = _.isString(this.props.divider) ? this.props.divider : '';
@@ -113,11 +107,6 @@ class MenuNameEmailContent extends React.Component<MenuNameEmailContentProps> {
      - `name` (optional) The {String} name to be displayed.
      - `email` (optional) The {String} email address to be displayed.
     */
-  static propTypes = {
-    name: PropTypes.string,
-    email: PropTypes.string,
-  };
-
   render() {
     if (this.props.name && this.props.name !== this.props.email) {
       return (
@@ -207,25 +196,6 @@ export class Menu extends React.Component<MenuProps, MenuState> {
      nothing selected.
 
     */
-  static propTypes = {
-    className: PropTypes.string,
-    footerComponents: PropTypes.node,
-    headerComponents: PropTypes.node,
-    itemContext: PropTypes.object,
-    itemContent: PropTypes.func.isRequired,
-    itemKey: PropTypes.func.isRequired,
-    itemChecked: PropTypes.func,
-
-    items: PropTypes.array.isRequired,
-
-    onSelect: PropTypes.func.isRequired,
-
-    onExpand: PropTypes.func,
-    onEscape: PropTypes.func,
-
-    defaultSelectedIndex: PropTypes.number,
-  };
-
   static defaultProps = { onEscape() {} };
 
   _mounted = false;

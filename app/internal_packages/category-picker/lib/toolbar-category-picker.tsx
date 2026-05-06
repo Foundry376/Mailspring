@@ -18,7 +18,6 @@ class MovePicker extends React.Component<{ items: Thread[] }> {
   static displayName = 'MovePicker';
   static containerRequired = false;
 
-  static propTypes = { items: PropTypes.array };
   static contextTypes = { sheetDepth: PropTypes.number };
 
   _account: Account;

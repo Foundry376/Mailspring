@@ -1,11 +1,7 @@
 import React from 'react';
-import { localized, Utils, PropTypes } from 'mailspring-exports';
+import { localized, Utils } from 'mailspring-exports';
 
 export class SyncbackActivity extends React.Component<{ tasks: any[] }> {
-  static propTypes = {
-    tasks: PropTypes.array,
-  };
-
   shouldComponentUpdate(nextProps: { tasks: any[] }, nextState: Record<string, never>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }

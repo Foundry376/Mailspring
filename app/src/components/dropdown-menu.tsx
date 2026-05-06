@@ -1,6 +1,5 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { Menu, MenuProps } from './menu';
 

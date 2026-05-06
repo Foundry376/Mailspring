@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { localized, Actions, Message, DraftEditingSession } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
@@ -23,11 +22,6 @@ export default class SendRemindersComposerButton extends Component<
   static displayName = 'SendRemindersComposerButton';
 
   static containerRequired = false;
-
-  static propTypes = {
-    draft: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-  };
 
   constructor(props) {
     super(props);

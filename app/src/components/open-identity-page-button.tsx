@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { shell } from 'electron';
 import classnames from 'classnames';
 import { RetinaImg } from './retina-img';
@@ -21,15 +20,6 @@ export default class OpenIdentityPageButton extends React.Component<
   OpenIdentityPageButtonProps,
   OpenIdentityPageButtonState
 > {
-  static propTypes = {
-    path: PropTypes.string,
-    label: PropTypes.string,
-    source: PropTypes.string,
-    campaign: PropTypes.string,
-    img: PropTypes.string,
-    isCTA: PropTypes.bool,
-  };
-
   constructor(props) {
     super(props);
     this.state = {

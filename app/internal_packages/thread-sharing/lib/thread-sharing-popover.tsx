@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {
   Rx,
-  PropTypes,
   Thread,
   DatabaseStore,
   localized,
@@ -20,11 +19,6 @@ export default class ThreadSharingPopover extends React.Component<
   },
   { saving: boolean; url: string }
 > {
-  static propTypes = {
-    thread: PropTypes.object,
-    accountId: PropTypes.string,
-  };
-
   _mounted = false;
   _disposable?: any;
 

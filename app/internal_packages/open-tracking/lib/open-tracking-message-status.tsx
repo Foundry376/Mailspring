@@ -1,16 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { localized, Actions, PropTypes, Message } from 'mailspring-exports';
+import { localized, Actions, Message } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import OpenTrackingMessagePopover from './open-tracking-message-popover';
 import { PLUGIN_ID } from './open-tracking-constants';
 
 export default class OpenTrackingMessageStatus extends React.Component<{ message: Message }> {
   static displayName = 'OpenTrackingMessageStatus';
-
-  static propTypes = {
-    message: PropTypes.object.isRequired,
-  };
 
   static containerStyles = {
     paddingTop: 4,

@@ -1,14 +1,20 @@
 import React from 'react';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localized, DateUtils } from 'mailspring-exports';
+import { localized, DateUtils, Thread, Message } from 'mailspring-exports';
 
 import { updateReminderMetadata } from './send-reminders-utils';
 import { PLUGIN_ID } from './send-reminders-constants';
 import { SendRemindersMetadata } from './types';
 
-export function NotificationExplanationMessageHeader({ thread, message }) {
+export function NotificationExplanationMessageHeader({
+  thread,
+  message,
+}: {
+  thread: Thread;
+  message: Message;
+  messages?: Message[];
+}) {
   const { shouldNotify, sentHeaderMessageId } =
     thread.metadataForPluginId(PLUGIN_ID) || ({} as SendRemindersMetadata);
 
@@ -32,13 +38,13 @@ export function NotificationExplanationMessageHeader({ thread, message }) {
 
 NotificationExplanationMessageHeader.displayName = 'NotificationExplanationMessageHeader';
 NotificationExplanationMessageHeader.containerRequired = false;
-NotificationExplanationMessageHeader.propTypes = {
-  messages: PropTypes.array,
-  message: PropTypes.object,
-  thread: PropTypes.object,
-};
 
-export function ScheduledReminderThreadHeader({ thread }) {
+export function ScheduledReminderThreadHeader({
+  thread,
+}: {
+  thread: Thread;
+  messages?: Message[];
+}) {
   const metadata = thread.metadataForPluginId(PLUGIN_ID) || {};
   if (!metadata.expiration) {
     return <span />;
@@ -62,7 +68,3 @@ export function ScheduledReminderThreadHeader({ thread }) {
 }
 ScheduledReminderThreadHeader.displayName = 'ScheduledReminderThreadHeader';
 ScheduledReminderThreadHeader.containerRequired = false;
-ScheduledReminderThreadHeader.propTypes = {
-  thread: PropTypes.object,
-  messages: PropTypes.array,
-};

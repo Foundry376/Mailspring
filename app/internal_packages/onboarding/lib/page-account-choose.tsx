@@ -1,16 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import * as OnboardingActions from './onboarding-actions';
 import AccountProviders from './account-providers';
 
-export default class AccountChoosePage extends React.Component {
+export default class AccountChoosePage extends React.Component<{ account?: object }> {
   static displayName = 'AccountChoosePage';
-
-  static propTypes = {
-    account: PropTypes.object,
-  };
 
   _renderProviders() {
     return AccountProviders.map(({ icon, displayName, provider }) => (

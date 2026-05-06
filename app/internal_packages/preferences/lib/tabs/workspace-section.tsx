@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { localized, DefaultClientHelper, SystemStartService } from 'mailspring-exports';
 import { shell } from 'electron';
 
@@ -191,11 +190,6 @@ const WorkspaceSection = (props: { config: any; configSchema: any }) => {
       )}
     </section>
   );
-};
-
-WorkspaceSection.propTypes = {
-  config: PropTypes.object,
-  configSchema: PropTypes.object,
 };
 
 export default WorkspaceSection;

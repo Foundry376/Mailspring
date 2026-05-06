@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
 import {
@@ -32,12 +31,6 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
   static displayName = 'SendLaterButton';
 
   static containerRequired = false;
-
-  static propTypes = {
-    draft: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-    isValidDraft: PropTypes.func,
-  };
 
   mounted = false;
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { RetinaImg, BindGlobalCommands, RovingTabIndexToolbar } from 'mailspring-component-kit';
 import {
@@ -18,10 +17,6 @@ import ThreadListStore from './thread-list-store';
 export class ArchiveButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'ArchiveButton';
   static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
 
   _onArchive = (event?: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForArchiving({
@@ -65,10 +60,6 @@ export class ArchiveButton extends React.Component<{ items: Thread[] }> {
 export class TrashButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'TrashButton';
   static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
 
   _onRemove = (event?: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForMovingToTrash({
@@ -202,10 +193,6 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'MarkAsSpamButton';
   static containerRequired = false;
 
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
-
   _onNotSpam = (event?: React.MouseEvent) => {
     // TODO BG REPLACE TASK FACTORY
     const tasks = TaskFactory.tasksForMarkingNotSpam({
@@ -290,10 +277,6 @@ export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'ToggleStarredButton';
   static containerRequired = false;
 
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
-
   _onStar = (event?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     Actions.queueTask(
       TaskFactory.taskForInvertingStarred({
@@ -331,10 +314,6 @@ export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
 export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'ToggleUnreadButton';
   static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-  };
 
   _onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const targetUnread = this.props.items.every((t) => t.unread === false);
@@ -399,13 +378,6 @@ class ThreadArrowButton extends React.Component<
   },
   ThreadArrowButtonState
 > {
-  static propTypes = {
-    getStateFromStores: PropTypes.func,
-    direction: PropTypes.string,
-    command: PropTypes.string,
-    title: PropTypes.string,
-  };
-
   _unsubscribe?: () => void;
   _unsubscribe_focus?: () => void;
 

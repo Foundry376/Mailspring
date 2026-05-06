@@ -1,6 +1,5 @@
 import { RetinaImg, RovingTabIndexToolbar } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
-import PropTypes from 'prop-types';
 import React from 'react';
 import { isWaylandSession } from '../../../../src/browser/is-wayland';
 import SystemTrayIconStore from '../../../system-tray/lib/system-tray-icon-store';
@@ -12,11 +11,6 @@ class AppearanceScaleSlider extends React.Component<
   { value: string }
 > {
   static displayName = 'AppearanceScaleSlider';
-
-  static propTypes = {
-    id: PropTypes.string,
-    config: PropTypes.object.isRequired,
-  };
 
   kp = `core.workspace.interfaceZoom`;
 
@@ -134,11 +128,6 @@ class AppearanceModeSwitch extends React.Component<
   { value: string }
 > {
   static displayName = 'AppearanceModeSwitch';
-
-  static propTypes = {
-    id: PropTypes.string,
-    config: PropTypes.object.isRequired,
-  };
 
   constructor(props) {
     super(props);
@@ -309,7 +298,11 @@ class TrayIconThemePicker extends React.Component<{ config: ConfigLike }> {
   }
 }
 
-const AppearanceModeOption = function AppearanceModeOption(props) {
+const AppearanceModeOption = function AppearanceModeOption(props: {
+  mode: string;
+  active?: boolean;
+  onClick?: (...args: any[]) => any;
+}) {
   let classname = 'appearance-mode';
   if (props.active) classname += ' active';
 
@@ -341,19 +334,9 @@ const AppearanceModeOption = function AppearanceModeOption(props) {
     </div>
   );
 };
-AppearanceModeOption.propTypes = {
-  mode: PropTypes.string.isRequired,
-  active: PropTypes.bool,
-  onClick: PropTypes.func,
-};
 
 class PreferencesAppearance extends React.Component<{ config: ConfigLike; configSchema: any }> {
   static displayName = 'PreferencesAppearance';
-
-  static propTypes = {
-    config: PropTypes.object,
-    configSchema: PropTypes.object,
-  };
 
   onPickTheme = () => {
     AppEnv.commands.dispatch('window:launch-theme-picker');

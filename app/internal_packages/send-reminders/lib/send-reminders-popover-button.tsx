@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { localized, Actions, DatabaseStore, Message, Thread } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
@@ -13,13 +12,6 @@ export default class SendRemindersPopoverButton extends Component<{
   getBoundingClientRect: (me: SendRemindersPopoverButton) => ClientRect;
 }> {
   static displayName = 'SendRemindersPopoverButton';
-
-  static propTypes = {
-    className: PropTypes.string,
-    thread: PropTypes.object,
-    direction: PropTypes.string,
-    getBoundingClientRect: PropTypes.func,
-  };
 
   static defaultProps = {
     direction: 'down',

@@ -1,6 +1,6 @@
 import { shell } from 'electron';
 import React from 'react';
-import { localized, PropTypes, Thread } from 'mailspring-exports';
+import { localized, Thread } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import GithubStore from './github-store';
@@ -54,10 +54,6 @@ export default class ViewOnGithubButton extends React.Component<
   static displayName = 'ViewOnGithubButton';
 
   static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array,
-  };
 
   /** ** React methods ****
    * The following methods are React methods that we override. See {React}

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Actions, PropTypes, localized } from 'mailspring-exports';
+import { Actions, localized } from 'mailspring-exports';
 
-function SyncingListState(props) {
+function SyncingListState(props: { empty?: boolean }) {
   let message = localized('Looking for more messages');
   if (props.empty) {
     message = localized('Loading Messages');
@@ -14,9 +14,5 @@ function SyncingListState(props) {
     </div>
   );
 }
-
-SyncingListState.propTypes = {
-  empty: PropTypes.bool,
-};
 
 export default SyncingListState;

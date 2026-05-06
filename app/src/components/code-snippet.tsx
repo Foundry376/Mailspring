@@ -1,7 +1,10 @@
 import React from 'react';
-import { PropTypes } from 'mailspring-exports';
 
-export default function CodeSnippet(props) {
+export default function CodeSnippet(props: {
+  intro?: string;
+  code?: string;
+  className?: string;
+}) {
   return (
     <div className={props.className}>
       {props.intro}
@@ -11,9 +14,3 @@ export default function CodeSnippet(props) {
     </div>
   );
 }
-
-CodeSnippet.propTypes = {
-  intro: PropTypes.string,
-  code: PropTypes.string,
-  className: PropTypes.string,
-};

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 
 type FluxContainerProps<T> = {
   stores: any[];
@@ -11,11 +11,7 @@ class FluxContainer<T> extends React.Component<
   FluxContainerProps<T> & React.HTMLProps<HTMLDivElement>
 > {
   static displayName = 'FluxContainer';
-  static propTypes = {
-    children: PropTypes.element,
-    stores: PropTypes.array.isRequired,
-    getStateFromStores: PropTypes.func.isRequired,
-  };
+  static ownPropKeys = ['children', 'stores', 'getStateFromStores'];
 
   _unlisteners = [];
   _getStateFromStores: (...args: any[]) => T;
@@ -67,7 +63,7 @@ class FluxContainer<T> extends React.Component<
   }
 
   render() {
-    const otherProps = Utils.fastOmit(this.props, Object.keys(FluxContainer.propTypes));
+    const otherProps = Utils.fastOmit(this.props, FluxContainer.ownPropKeys);
     return React.cloneElement(this.props.children, Object.assign({}, otherProps, this.state));
   }
 }

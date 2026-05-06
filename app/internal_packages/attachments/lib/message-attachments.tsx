@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Actions, Utils, AttachmentStore, File } from 'mailspring-exports';
 import { AttachmentItem, ImageAttachmentItem } from 'mailspring-component-kit';
 
@@ -17,14 +16,6 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
   static displayName = 'MessageAttachments';
 
   static containerRequired = false;
-
-  static propTypes = {
-    files: PropTypes.array,
-    downloads: PropTypes.object,
-    headerMessageId: PropTypes.string,
-    filePreviewPaths: PropTypes.object,
-    canRemoveAttachments: PropTypes.bool,
-  };
 
   static defaultProps = {
     downloads: {},

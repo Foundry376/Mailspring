@@ -3,7 +3,6 @@ import fs from 'fs';
 import React from 'react';
 import {
   Utils,
-  PropTypes,
   MessageUtils,
   MessageBodyProcessor,
   QuotedHTMLTransformer,
@@ -23,11 +22,6 @@ const SpinnerImg =
 
 class ConditionalQuotedTextControl extends React.Component<{ body: string; onClick?: () => void }> {
   static displayName = 'ConditionalQuotedTextControl';
-
-  static propTypes = {
-    body: PropTypes.string.isRequired,
-    onClick: PropTypes.func,
-  };
 
   shouldComponentUpdate(nextProps: { body: string; onClick?: () => void }) {
     return this.props.body !== nextProps.body;
@@ -61,10 +55,6 @@ export default class MessageItemBody extends React.Component<
   MessageItemBodyState
 > {
   static displayName = 'MessageItemBody';
-  static propTypes = {
-    message: PropTypes.object.isRequired,
-    downloads: PropTypes.object.isRequired,
-  };
 
   _mounted = false;
   _unsub: () => void;

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
 import {
   Utils,
@@ -33,11 +32,6 @@ export default class MovePickerPopover extends Component<
   MovePickerPopoverProps,
   MovePickerPopoverState
 > {
-  static propTypes = {
-    threads: PropTypes.array.isRequired,
-    account: PropTypes.object.isRequired,
-  };
-
   _standardFolders = [];
   _userCategories = [];
   disposables: Rx.Disposable[];

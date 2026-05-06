@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { CSSTransitionGroup } from 'react-transition-group';
 import { Rx, FocusedContentStore, Thread } from 'mailspring-exports';
 import ThreadListStore from './thread-list-store';
@@ -21,7 +20,13 @@ function getObservable() {
   });
 }
 
-const MessageListToolbar = ({ items, injectedButtons }) => {
+const MessageListToolbar = ({
+  items,
+  injectedButtons,
+}: {
+  items: Thread[];
+  injectedButtons?: React.ReactElement;
+}) => {
   const shouldRender = items.length > 0;
 
   return (
@@ -36,10 +41,6 @@ const MessageListToolbar = ({ items, injectedButtons }) => {
   );
 };
 MessageListToolbar.displayName = 'MessageListToolbar';
-MessageListToolbar.propTypes = {
-  items: PropTypes.array,
-  injectedButtons: PropTypes.element,
-};
 
 const toolbarProps = {
   getObservable,

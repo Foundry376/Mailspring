@@ -18,9 +18,6 @@ let FocusedPerspectiveStore = null;
 
 class ToolbarSpacer extends React.Component<{ order: number }> {
   static displayName = 'ToolbarSpacer';
-  static propTypes = {
-    order: PropTypes.number,
-  };
 
   render() {
     return <div className="item-spacer" style={{ flex: 1, order: this.props.order || 0 }} />;
@@ -255,11 +252,6 @@ let lastReportedToolbarHeight = 0;
 
 export default class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
   static displayName = 'Toolbar';
-
-  static propTypes = {
-    data: PropTypes.object,
-    depth: PropTypes.number,
-  };
 
   static childContextTypes = {
     sheetDepth: PropTypes.number,

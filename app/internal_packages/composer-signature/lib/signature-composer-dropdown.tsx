@@ -2,7 +2,6 @@ import React from 'react';
 import {
   localized,
   Actions,
-  PropTypes,
   SignatureStore,
   DraftEditingSession,
   Account,
@@ -28,13 +27,6 @@ export default class SignatureComposerDropdown extends React.Component<
   static displayName = 'SignatureComposerDropdown';
 
   static containerRequired = false;
-
-  static propTypes = {
-    draft: PropTypes.object.isRequired,
-    draftFromEmail: PropTypes.string,
-    session: PropTypes.object.isRequired,
-    accounts: PropTypes.array,
-  };
 
   _staticIcon = (
     <RetinaImg

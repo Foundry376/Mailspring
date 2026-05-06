@@ -1,6 +1,5 @@
 /* eslint global-require: 0*/
 import React from 'react';
-import PropTypes from 'prop-types';
 import fs from 'fs';
 import { localized } from 'mailspring-exports';
 import ConfigSchemaItem from './config-schema-item';
@@ -14,11 +13,6 @@ class PreferencesGeneral extends React.Component<{
   configSchema: ConfigSchemaLike;
 }> {
   static displayName = 'PreferencesGeneral';
-
-  static propTypes = {
-    config: PropTypes.object,
-    configSchema: PropTypes.object,
-  };
 
   _onReboot = () => {
     console.log('general relaunch');

@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { RetinaImg } from './retina-img';
 import {
@@ -21,11 +20,6 @@ type EmptyPerspectiveStateProps = {
 
 class EmptyPerspectiveState extends React.Component<EmptyPerspectiveStateProps> {
   static displayName = 'EmptyPerspectiveState';
-
-  static propTypes = {
-    perspective: PropTypes.object,
-    messageContent: PropTypes.node,
-  };
 
   render() {
     const { messageContent, perspective } = this.props;
@@ -56,8 +50,6 @@ class EmptyInboxState extends React.Component<
   { width: number; height: number }
 > {
   static displayName = 'EmptyInboxState';
-
-  static propTypes = { containerRect: PropTypes.object };
 
   _containerSizeObserver: ResizeObserver;
   _containerEl: HTMLDivElement;
@@ -129,7 +121,6 @@ class EmptyListState extends React.Component<
   { active: boolean; syncing: boolean }
 > {
   static displayName = 'EmptyListState';
-  static propTypes = { visible: PropTypes.bool.isRequired };
 
   _mounted = false;
   _unlisteners = [];

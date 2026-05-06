@@ -3,7 +3,6 @@ import React, { Component, CSSProperties } from 'react';
 import { DropZone } from './drop-zone';
 import { RetinaImg } from './retina-img';
 import OutlineViewItem from './outline-view-item';
-import PropTypes from 'prop-types';
 
 export interface IOutlineViewItem {
   id?: string;
@@ -85,16 +84,6 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
    * @callback props.onCollapseToggled
    * @param {object} props - The entire props object for this OutlineView
    */
-  static propTypes = {
-    title: PropTypes.string,
-    titleColor: PropTypes.string,
-    iconName: PropTypes.string,
-    items: PropTypes.array,
-    collapsed: PropTypes.bool,
-    onItemCreated: PropTypes.func,
-    onCollapseToggled: PropTypes.func,
-  };
-
   static defaultProps = {
     title: '',
     items: [],

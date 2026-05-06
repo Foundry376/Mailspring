@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Thread } from 'mailspring-exports';
 import { MultiselectToolbar } from 'mailspring-component-kit';
 import InjectsToolbarButtons, { ToolbarRole } from './injects-toolbar-buttons';
@@ -11,14 +10,6 @@ interface ThreadListToolbarProps {
 }
 class ThreadListToolbar extends Component<ThreadListToolbarProps> {
   static displayName = 'ThreadListToolbar';
-
-  static propTypes = {
-    items: PropTypes.array,
-    selection: PropTypes.shape({
-      clear: PropTypes.func,
-    }),
-    injectedButtons: PropTypes.element,
-  };
 
   onClearSelection = () => {
     this.props.selection.clear();

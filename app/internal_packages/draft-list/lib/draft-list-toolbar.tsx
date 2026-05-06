@@ -4,7 +4,6 @@ import {
   MultiselectToolbar,
   InjectedComponentSet,
 } from 'mailspring-component-kit';
-import PropTypes from 'prop-types';
 
 import DraftListStore from './draft-list-store';
 import { Message } from 'mailspring-exports';
@@ -22,10 +21,6 @@ function getStateFromObservable(items) {
 
 class DraftListToolbar extends Component<{ items: Message[] }> {
   static displayName = 'DraftListToolbar';
-
-  static propTypes = {
-    items: PropTypes.array,
-  };
 
   onClearSelection = () => {
     DraftListStore.dataSource().selection.clear();

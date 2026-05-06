@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { shell } from 'electron';
 import React from 'react';
-import { PropTypes, RegExpUtils } from 'mailspring-exports';
+import { RegExpUtils } from 'mailspring-exports';
 
 interface FormErrorProps {
   message: string;
@@ -52,11 +52,6 @@ const FormErrorMessage = (props: FormErrorProps) => {
       {rawLogLink}
     </div>
   );
-};
-
-FormErrorMessage.propTypes = {
-  empty: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
-  message: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 };
 
 export default FormErrorMessage;

@@ -1,6 +1,5 @@
 import classnames from 'classnames';
 import React, { Component, HTMLProps } from 'react';
-import PropTypes from 'prop-types';
 import { pickHTMLProps } from 'pick-react-known-prop';
 import { LazyRenderedList } from '../lazy-rendered-list';
 import TableDataSource from './table-data-source';
@@ -52,14 +51,6 @@ import TableDataSource from './table-data-source';
  * @class Table
  */
 
-const RendererType = PropTypes.oneOfType([PropTypes.func, PropTypes.string]);
-const IndexType = PropTypes.oneOfType([PropTypes.number, PropTypes.string]);
-const TablePropTypes = {
-  idx: IndexType,
-  renderer: RendererType,
-  tableDataSource: PropTypes.instanceOf(TableDataSource),
-};
-
 interface TableCellProps {
   children: React.ReactNode;
   className?: string;
@@ -76,11 +67,6 @@ export function TableCell(props: TableCellProps & HTMLProps<HTMLTableHeaderCellE
   );
 }
 
-TableCell.propTypes = {
-  isHeader: PropTypes.bool,
-  className: PropTypes.string,
-};
-
 export interface TableRowProps {
   className: string;
   isHeader?: boolean;
@@ -92,16 +78,6 @@ export interface TableRowProps {
 }
 
 export class TableRow extends Component<TableRowProps> {
-  static propTypes = {
-    className: PropTypes.string,
-    isHeader: PropTypes.bool,
-    displayNumbers: PropTypes.bool,
-    tableDataSource: TablePropTypes.tableDataSource.isRequired,
-    rowIdx: TablePropTypes.idx,
-    extraProps: PropTypes.object,
-    CellRenderer: TablePropTypes.renderer,
-  };
-
   static defaultProps = {
     className: '',
     extraProps: {},
@@ -159,18 +135,6 @@ export interface TableProps {
 
 export default class Table extends Component<TableProps> {
   static displayName = 'Table';
-
-  static propTypes = {
-    className: PropTypes.string,
-    displayHeader: PropTypes.bool,
-    displayNumbers: PropTypes.bool,
-    rowHeight: PropTypes.number,
-    bodyHeight: PropTypes.number,
-    tableDataSource: TablePropTypes.tableDataSource.isRequired,
-    extraProps: PropTypes.object,
-    RowRenderer: TablePropTypes.renderer,
-    CellRenderer: TablePropTypes.renderer,
-  };
 
   static defaultProps = {
     className: '',

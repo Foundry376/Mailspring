@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 
 interface ScrollbarTicksProps {
   ticks: Array<number | { percent: number; className: string }>;
@@ -8,10 +7,6 @@ interface ScrollbarTicksProps {
 
 export default class ScrollbarTicks extends React.Component<ScrollbarTicksProps> {
   static displayName = 'ScrollbarTicks';
-
-  static propTypes = {
-    ticks: PropTypes.array,
-  };
 
   componentDidMount() {
     this._updateTicks();

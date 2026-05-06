@@ -3,7 +3,7 @@ import _ from 'underscore';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { localized, PropTypes, Actions, WorkspaceStore, DOMUtils } from 'mailspring-exports';
+import { localized, Actions, WorkspaceStore, DOMUtils } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 import { Disposable } from 'event-kit';
 
@@ -57,13 +57,6 @@ interface TipPopoverContentsProps {
 }
 
 class TipPopoverContents extends React.Component<TipPopoverContentsProps> {
-  static propTypes = {
-    title: PropTypes.string,
-    tipKey: PropTypes.string,
-    instructions: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
-    onDismissed: PropTypes.func,
-  };
-
   componentDidMount() {
     if (TipsBackgroundEl.parentNode === null) {
       document.body.appendChild(TipsBackgroundEl);

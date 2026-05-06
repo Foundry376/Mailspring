@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { webFrame } from 'electron';
 import Webview from './webview';
 import * as Actions from '../flux/actions';

@@ -1,8 +1,8 @@
 import React from 'react';
-import { localized, OnlineStatusStore, PropTypes } from 'mailspring-exports';
+import { localized, OnlineStatusStore } from 'mailspring-exports';
 import { Notification, ListensToFluxStore } from 'mailspring-component-kit';
 
-function OfflineNotification({ isOnline }) {
+function OfflineNotification({ isOnline }: { isOnline: boolean }) {
   if (isOnline) {
     return false;
   }
@@ -26,9 +26,6 @@ function OfflineNotification({ isOnline }) {
 }
 
 OfflineNotification.displayName = 'OfflineNotification';
-OfflineNotification.propTypes = {
-  isOnline: PropTypes.bool,
-};
 
 export default ListensToFluxStore(OfflineNotification, {
   stores: [OnlineStatusStore],

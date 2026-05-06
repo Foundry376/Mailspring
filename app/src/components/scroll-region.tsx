@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils, isRTL } from 'mailspring-exports';
+import { Utils, isRTL } from 'mailspring-exports';
 import classNames from 'classnames';
 import ScrollbarTicks from './scrollbar-ticks';
 
@@ -46,19 +46,6 @@ interface ScrollbarState extends ScrollSharedState {
 
 class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   static displayName = 'Scrollbar';
-  static propTypes = {
-    scrollTooltipComponent: PropTypes.func,
-    // A scrollbarTickProvider is any object that has the `listen` and
-    // `scrollbarTicks` method. Since ScrollRegions tend to encompass large
-    // render trees it's more efficent for the scrollbar to listen for its
-    // own state then have it passed down as new props and potentially
-    // cause re-renders of the whole scroll region. The `scrollbarTicks`
-    // method must return an array of numbers between 0 and 1 which
-    // represent the height percentages at which tick marks will be
-    // rendered.
-    scrollbarTickProvider: PropTypes.object,
-    getScrollRegion: PropTypes.func,
-  };
 
   _heightObserver: ResizeObserver = null;
   _tickUnsub?: () => void;
@@ -266,17 +253,17 @@ export class ScrollRegion extends React.Component<
 > {
   static displayName = 'ScrollRegion';
 
-  static propTypes = {
-    onScroll: PropTypes.func,
-    onScrollEnd: PropTypes.func,
-    onContentResize: PropTypes.func,
-    onViewportResize: PropTypes.func,
-    className: PropTypes.string,
-    scrollTooltipComponent: PropTypes.func,
-    scrollbarTickProvider: PropTypes.object,
-    children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
-    scrollbarRef: PropTypes.object,
-  };
+  static ownPropKeys = [
+    'onScroll',
+    'onScrollEnd',
+    'onContentResize',
+    'onViewportResize',
+    'className',
+    'scrollTooltipComponent',
+    'scrollbarTickProvider',
+    'children',
+    'scrollbarRef',
+  ];
 
   static ScrollPosition = ScrollPosition;
   // Concept from https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UITableView_Class/#//apple_ref/c/tdef/UITableViewScrollPosition
@@ -392,7 +379,7 @@ export class ScrollRegion extends React.Component<
       }
     }
 
-    const otherProps = Utils.fastOmit(this.props, Object.keys(ScrollRegion.propTypes));
+    const otherProps = Utils.fastOmit(this.props, ScrollRegion.ownPropKeys);
 
     return (
       <div className={containerClasses} {...otherProps}>

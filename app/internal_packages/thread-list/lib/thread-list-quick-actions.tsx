@@ -2,7 +2,6 @@ import React from 'react';
 import {
   localized,
   Actions,
-  PropTypes,
   Thread,
   TaskFactory,
   FocusedPerspectiveStore,
@@ -10,7 +9,6 @@ import {
 
 export class ThreadArchiveQuickAction extends React.Component<{ thread: Thread }> {
   static displayName = 'ThreadArchiveQuickAction';
-  static propTypes = { thread: PropTypes.object };
 
   render() {
     const allowed = FocusedPerspectiveStore.current().canArchiveThreads([this.props.thread]);
@@ -56,7 +54,6 @@ export class ThreadArchiveQuickAction extends React.Component<{ thread: Thread }
 
 export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> {
   static displayName = 'ThreadTrashQuickAction';
-  static propTypes = { thread: PropTypes.object };
 
   render() {
     const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(

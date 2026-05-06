@@ -1,15 +1,10 @@
 import React from 'react';
-import { localized, PropTypes, Utils } from 'mailspring-exports';
+import { localized, Utils } from 'mailspring-exports';
 
 class CopyButton extends React.Component<
   { copyValue: string; btnLabel: string } & React.HTMLProps<HTMLButtonElement>,
   { btnLabel: string }
 > {
-  static propTypes = {
-    btnLabel: PropTypes.string,
-    copyValue: PropTypes.string,
-  };
-
   _timeout = null;
 
   constructor(props) {
@@ -55,7 +50,7 @@ class CopyButton extends React.Component<
 
   render() {
     const { btnLabel } = this.state;
-    const otherProps = Utils.fastOmit(this.props, Object.keys(CopyButton.propTypes));
+    const otherProps = Utils.fastOmit(this.props, ['btnLabel', 'copyValue']);
     return (
       <button onClick={this._onCopy} {...otherProps}>
         {btnLabel}

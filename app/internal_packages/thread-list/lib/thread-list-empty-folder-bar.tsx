@@ -4,7 +4,6 @@ import {
   localized,
   Actions,
   Folder,
-  PropTypes,
   TaskQueue,
   ExpungeAllInFolderTask,
   FocusedPerspectiveStore,

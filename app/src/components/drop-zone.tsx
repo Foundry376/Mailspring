@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 interface DropZoneProps {
@@ -13,13 +12,9 @@ interface DropZoneProps {
   onDragStateChange: (state: { isDropping: boolean }) => void;
 }
 
-export class DropZone extends React.Component<DropZoneProps> {
-  static propTypes = {
-    shouldAcceptDrop: PropTypes.func.isRequired,
-    onDrop: PropTypes.func.isRequired,
-    onDragStateChange: PropTypes.func,
-  };
+const DROP_ZONE_OWN_PROP_KEYS = ['shouldAcceptDrop', 'onDrop', 'onDragStateChange'];
 
+export class DropZone extends React.Component<DropZoneProps> {
   _dragCounter = 0;
 
   static defaultProps = {
@@ -70,7 +65,7 @@ export class DropZone extends React.Component<DropZoneProps> {
   };
 
   render() {
-    const otherProps = _.omit(this.props, Object.keys(DropZone.propTypes));
+    const otherProps = _.omit(this.props, DROP_ZONE_OWN_PROP_KEYS);
     return (
       <div
         {...otherProps}

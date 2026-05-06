@@ -1,15 +1,11 @@
 import React from 'react';
 import qs from 'querystring';
-import { PropTypes, MailspringAPIRequest, IdentityAuthResponse } from 'mailspring-exports';
+import { MailspringAPIRequest, IdentityAuthResponse } from 'mailspring-exports';
 import { Webview } from 'mailspring-component-kit';
 import * as OnboardingActions from './onboarding-actions';
 
-export default class AuthenticatePage extends React.Component {
+export default class AuthenticatePage extends React.Component<{ account?: object }> {
   static displayName = 'AuthenticatePage';
-
-  static propTypes = {
-    account: PropTypes.object,
-  };
 
   _src() {
     return `${MailspringAPIRequest.rootURLForServer('identity')}/onboarding?${qs.stringify({

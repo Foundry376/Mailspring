@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import path from 'path';
 import fs from 'fs';
 import { RetinaImg, Flexbox, ConfigPropContainer } from 'mailspring-component-kit';
@@ -13,12 +12,6 @@ class AppearanceModeOption extends React.Component<{
   active: boolean;
   onClick: (e: React.MouseEvent<any>) => void;
 }> {
-  static propTypes = {
-    mode: PropTypes.string.isRequired,
-    active: PropTypes.bool,
-    onClick: PropTypes.func,
-  };
-
   render() {
     let classname = 'appearance-mode';
     if (this.props.active) {
@@ -46,8 +39,6 @@ class InitialPreferencesOptions extends React.Component<
   { account: Account; config?: any },
   { templates: any[] }
 > {
-  static propTypes = { config: PropTypes.object };
-
   constructor(props) {
     super(props);
     this.state = { templates: [] };

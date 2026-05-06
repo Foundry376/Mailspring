@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { pickHTMLProps } from 'pick-react-known-prop';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 
 import { RetinaImg } from './retina-img';
 import SelectableTable, { SelectableTableCell } from './selectable-table';
@@ -75,17 +74,6 @@ type EditableTableCellProps = {
 };
 
 export class EditableTableCell extends Component<EditableTableCellProps> {
-  static propTypes = {
-    tableDataSource: SelectableTableCell.propTypes.tableDataSource,
-    rowIdx: SelectableTableCell.propTypes.colIdx,
-    colIdx: SelectableTableCell.propTypes.colIdx,
-    isHeader: PropTypes.bool,
-    inputProps: PropTypes.object,
-    InputRenderer: SelectableTable.propTypes.RowRenderer,
-    onAddRow: PropTypes.func,
-    onCellEdited: PropTypes.func.isRequired,
-  };
-
   refs: {
     cell: SelectableTableCell;
     inputContainer: HTMLDivElement;
@@ -225,16 +213,5 @@ function EditableTable(props: EditableTableProps) {
 }
 
 EditableTable.displayName = 'EditableTable';
-
-EditableTable.propTypes = {
-  tableDataSource: SelectableTable.propTypes.tableDataSource,
-  inputProps: PropTypes.object,
-  InputRenderer: PropTypes.any,
-  onCellEdited: PropTypes.func.isRequired,
-  onAddColumn: PropTypes.func,
-  onRemoveColumn: PropTypes.func,
-  onAddRow: PropTypes.func,
-  onRemoveRow: PropTypes.func,
-};
 
 export default EditableTable;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized, PropTypes, AccountStore, SendActionsStore } from 'mailspring-exports';
+import { localized, AccountStore, SendActionsStore } from 'mailspring-exports';
 import { ListensToFluxStore } from 'mailspring-component-kit';
 import ConfigSchemaItem from './config-schema-item';
 
@@ -28,7 +28,11 @@ function getExtendedSendingSchema(configSchema) {
   return configSchema.properties.sending;
 }
 
-function SendingSection(props) {
+function SendingSection(props: {
+  config?: any;
+  configSchema?: any;
+  sendingConfigSchema?: any;
+}) {
   const { config, sendingConfigSchema } = props;
 
   return (
@@ -42,11 +46,6 @@ function SendingSection(props) {
 }
 
 SendingSection.displayName = 'SendingSection';
-SendingSection.propTypes = {
-  config: PropTypes.object,
-  configSchema: PropTypes.object,
-  sendingConfigSchema: PropTypes.object,
-};
 
 export default ListensToFluxStore(SendingSection, {
   stores: [AccountStore, SendActionsStore],

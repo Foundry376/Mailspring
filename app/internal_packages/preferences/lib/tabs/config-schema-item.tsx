@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import _str from 'underscore.string';
 import { ConfigLike, ConfigSchemaLike } from '../types';
@@ -20,13 +19,6 @@ interface ConfigSchemaItemProps {
 
 class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
   static displayName = 'ConfigSchemaItem';
-
-  static propTypes = {
-    config: PropTypes.object,
-    configSchema: PropTypes.object,
-    keyName: PropTypes.string,
-    keyPath: PropTypes.string,
-  };
 
   _appliesToPlatform() {
     if (!this.props.configSchema.platforms) {

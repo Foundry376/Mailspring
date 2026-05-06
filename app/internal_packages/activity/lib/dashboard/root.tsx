@@ -1,6 +1,5 @@
 import fs from 'fs';
 import React from 'react';
-import PropTypes from 'prop-types';
 import { shell } from 'electron';
 import { ScrollRegion, ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
 import {
@@ -78,11 +77,6 @@ class RootWithTimespan extends React.Component<
   RootState
 > {
   static displayName = 'ActivityDashboardRootWithTimespan';
-
-  static propTypes = {
-    timespan: PropTypes.object,
-    accountIds: PropTypes.arrayOf(PropTypes.string),
-  };
 
   _mounted = false;
 
@@ -507,10 +501,6 @@ class RootWithTimespan extends React.Component<
 
 class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespan }> {
   static displayName = 'ActivityDashboardRoot';
-
-  static propTypes = {
-    accountIds: PropTypes.arrayOf(PropTypes.string),
-  };
 
   constructor(props) {
     super(props);

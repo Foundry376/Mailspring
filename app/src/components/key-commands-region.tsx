@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { Disposable } from 'rx-core';
 import { CommandCallback } from '../registries/command-registry';
@@ -104,13 +103,13 @@ export class KeyCommandsRegion extends React.Component<
 > {
   static displayName = 'KeyCommandsRegion';
 
-  static propTypes = {
-    className: PropTypes.string,
-    localHandlers: PropTypes.object,
-    globalHandlers: PropTypes.object,
-    onFocusIn: PropTypes.func,
-    onFocusOut: PropTypes.func,
-  };
+  static ownPropKeys = [
+    'className',
+    'localHandlers',
+    'globalHandlers',
+    'onFocusIn',
+    'onFocusOut',
+  ];
 
   static defaultProps = {
     className: '',
@@ -283,7 +282,7 @@ export class KeyCommandsRegion extends React.Component<
       'key-commands-region': true,
       focused: this.state.focused,
     });
-    const otherProps = _.omit(this.props, Object.keys(KeyCommandsRegion.propTypes));
+    const otherProps = _.omit(this.props, KeyCommandsRegion.ownPropKeys);
 
     return (
       <div className={`${classname} ${this.props.className}`} {...otherProps}>

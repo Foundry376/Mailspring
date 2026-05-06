@@ -2,7 +2,6 @@ import React, { Component, CSSProperties } from 'react';
 import { localized, Account } from 'mailspring-exports';
 import { RetinaImg, Flexbox, EditableList } from 'mailspring-component-kit';
 import classnames from 'classnames';
-import PropTypes from 'prop-types';
 
 interface PreferencesAccountListProps {
   accounts: Account[];
@@ -14,15 +13,6 @@ interface PreferencesAccountListProps {
 }
 
 class PreferencesAccountList extends Component<PreferencesAccountListProps> {
-  static propTypes = {
-    accounts: PropTypes.array,
-    selected: PropTypes.object,
-    onAddAccount: PropTypes.func.isRequired,
-    onReorderAccount: PropTypes.func.isRequired,
-    onSelectAccount: PropTypes.func.isRequired,
-    onRemoveAccount: PropTypes.func.isRequired,
-  };
-
   _renderAccountStateIcon(account: Account) {
     if (account.syncState !== 'running') {
       return (

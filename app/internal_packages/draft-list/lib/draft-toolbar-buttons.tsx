@@ -1,14 +1,10 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localized, PropTypes, Actions } from 'mailspring-exports';
+import { localized, Actions } from 'mailspring-exports';
 
 export class DraftDeleteButton extends React.Component<{ selection: any }> {
   static displayName = 'DraftDeleteButton';
   static containerRequired = false;
-
-  static propTypes = {
-    selection: PropTypes.object.isRequired,
-  };
 
   render() {
     return (

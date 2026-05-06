@@ -1,5 +1,4 @@
 import React, { CSSProperties } from 'react';
-import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import {
   localized,
@@ -22,14 +21,6 @@ interface AccountContactFieldProps {
 
 export default class AccountContactField extends React.Component<AccountContactFieldProps> {
   static displayName = 'AccountContactField';
-
-  static propTypes = {
-    value: PropTypes.object,
-    accounts: PropTypes.array,
-    session: PropTypes.object.isRequired,
-    draft: PropTypes.object.isRequired,
-    onChange: PropTypes.func.isRequired,
-  };
 
   _dropdownComponent: ButtonDropdown;
 

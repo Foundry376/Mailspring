@@ -1,7 +1,7 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { RetinaImg } from './retina-img';
-import { PropTypes, localized } from 'mailspring-exports';
+import { localized } from 'mailspring-exports';
 import classnames from 'classnames';
 
 type ButtonDropdownState = {
@@ -22,15 +22,6 @@ type ButtonDropdownProps = {
 
 export class ButtonDropdown extends React.Component<ButtonDropdownProps, ButtonDropdownState> {
   static displayName = 'ButtonDropdown';
-  static propTypes = {
-    primaryItem: PropTypes.element,
-    primaryClick: PropTypes.func,
-    bordered: PropTypes.bool,
-    menu: PropTypes.element,
-    style: PropTypes.object,
-    closeOnMenuClick: PropTypes.bool,
-    attachment: PropTypes.string,
-  };
 
   static defaultProps = {
     style: {},

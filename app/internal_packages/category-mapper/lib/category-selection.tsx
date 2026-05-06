@@ -5,7 +5,7 @@ import {
   LabelColorizer,
   BoldedSearchResult,
 } from 'mailspring-component-kit';
-import { localized, Label, Utils, PropTypes, imapUtf7 } from 'mailspring-exports';
+import { localized, Label, Utils, imapUtf7 } from 'mailspring-exports';
 
 interface CategorySelectionProps {
   allowLabels: boolean;
@@ -29,13 +29,6 @@ export default class CategorySelection extends React.Component<
   CategorySelectionProps,
   CategorySelectionState
 > {
-  static propTypes = {
-    allowLabels: PropTypes.bool,
-    all: PropTypes.array,
-    current: PropTypes.object,
-    onSelect: PropTypes.func,
-  };
-
   _categories = [];
 
   state = {
