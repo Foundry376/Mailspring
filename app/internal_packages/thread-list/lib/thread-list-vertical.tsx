@@ -42,7 +42,7 @@ class ThreadListVertical extends React.Component<
     );
   }
 
-  _onResize = (height) => {
+  _onResize = (height: number) => {
     AppEnv.storeThreadListVerticalHeight(height);
   };
 }

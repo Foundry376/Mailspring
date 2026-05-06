@@ -13,7 +13,19 @@ export default class PackageManager {
   configDirPath: string;
   identityPresent: boolean;
 
-  constructor({ configDirPath, devMode, safeMode, resourcePath, specMode }) {
+  constructor({
+    configDirPath,
+    devMode,
+    safeMode,
+    resourcePath,
+    specMode,
+  }: {
+    configDirPath: string;
+    devMode: boolean;
+    safeMode: boolean;
+    resourcePath: string;
+    specMode: boolean;
+  }) {
     this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
     this.identityPresent = !!AppEnv.config.get('identity');

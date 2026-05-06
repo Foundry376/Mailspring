@@ -20,7 +20,7 @@ export class DestroyModelTask extends Task {
     this.accountId = accountId;
   }
 
-  shouldDequeueOtherTask(other) {
+  shouldDequeueOtherTask(other: Task) {
     return (
       other instanceof DestroyModelTask &&
       this.modelName === other.modelName &&

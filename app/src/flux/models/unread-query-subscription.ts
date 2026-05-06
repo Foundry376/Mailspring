@@ -6,7 +6,7 @@ import { Thread } from '../models/thread';
 import { Model } from '../models/model';
 import ModelQuery from './query';
 
-const buildQuery = (categoryIds) => {
+const buildQuery = (categoryIds: string[]) => {
   const unreadMatchers = new Matcher.And([
     Thread.attributes.categories.containsAny(categoryIds),
     Thread.attributes.unread.equal(true),
@@ -32,7 +32,7 @@ export default class UnreadQuerySubscription extends MutableQuerySubscription<Th
   _categoryIds: string[];
   _unlisten: () => void;
 
-  constructor(categoryIds) {
+  constructor(categoryIds: string[]) {
     super(buildQuery(categoryIds), { emitResultSet: true });
     this._categoryIds = categoryIds;
     this._unlisten = RecentlyReadStore.listen(this.onRecentlyReadChanged);

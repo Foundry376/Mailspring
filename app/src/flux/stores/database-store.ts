@@ -48,7 +48,7 @@ function handleUnrecoverableDatabaseError(
   });
 }
 
-async function openDatabase(dbPath) {
+async function openDatabase(dbPath: string) {
   try {
     const db = new Sqlite3(dbPath, { readonly: true, timeout: 10000 }) as Sqlite3.Database;
 
@@ -72,7 +72,7 @@ async function openDatabase(dbPath) {
   }
 }
 
-function databasePath(configDirPath, specMode = false) {
+function databasePath(configDirPath: string, specMode = false) {
   let dbPath = path.join(configDirPath, 'edgehill.db');
   if (specMode) {
     dbPath = path.join(configDirPath, 'edgehill.test.db');
@@ -155,7 +155,7 @@ class DatabaseStore extends MailspringStore {
     this._emitter.emit('ready');
   }
 
-  _prettyConsoleLog(qa) {
+  _prettyConsoleLog(qa: string) {
     const darkTheme =
         window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
       primaryColor = darkTheme ? 'white' : 'black',
@@ -194,14 +194,14 @@ class DatabaseStore extends MailspringStore {
       }
     }
 
-    q = q.split('|||');
+    const parts = q.split('|||');
     const colors = [];
     const msg = [];
-    for (let i = 0; i < q.length; i++) {
+    for (let i = 0; i < parts.length; i++) {
       if (i % 2 === 0) {
-        colors.push(q[i]);
+        colors.push(parts[i]);
       } else {
-        msg.push(q[i]);
+        msg.push(parts[i]);
       }
     }
 

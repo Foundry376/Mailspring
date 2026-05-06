@@ -94,7 +94,7 @@ class PreferencesAccountDetails extends Component<
    * @param {string} str - The string the user entered on the alias input
    * @param {object} [account=this.props.account] - The account object
    */
-  _makeAlias(str, account = this.props.account) {
+  _makeAlias(str: string, account = this.props.account) {
     const emailRegex = RegExpUtils.emailRegex();
     const match = emailRegex.exec(str);
     if (!match) {
@@ -130,7 +130,7 @@ class PreferencesAccountDetails extends Component<
     this._setState({ autoaddress });
   };
 
-  _onAccountAliasCreated = (newAlias) => {
+  _onAccountAliasCreated = (newAlias: string) => {
     const coercedAlias = this._makeAlias(newAlias);
     const aliases = this.state.account.aliases.concat([coercedAlias]);
     this._setStateAndSave({ aliases });

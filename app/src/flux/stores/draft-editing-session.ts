@@ -366,7 +366,7 @@ export class DraftEditingSession extends MailspringStore {
     localStorage.setItem('recipientWarningBlacklist', JSON.stringify(blacklist));
   }
 
-  checkRecipientInWarningBlacklist(email) {
+  checkRecipientInWarningBlacklist(email: string) {
     const blacklist = JSON.parse(localStorage.getItem('recipientWarningBlacklist'));
     if (blacklist && blacklist.includes(email)) return true;
     return false;

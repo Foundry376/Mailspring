@@ -121,7 +121,7 @@ export function canvasForDragging(type: 'threads' | 'contacts', count: number) {
   return DragCanvas;
 }
 
-export function measureTextInCanvas(text, font) {
+export function measureTextInCanvas(text: string, font: string) {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   context.font = font;

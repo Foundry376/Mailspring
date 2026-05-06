@@ -89,7 +89,7 @@ class DraftFactory {
     return new Message(merged);
   }
 
-  async createDraftForMailto(urlString) {
+  async createDraftForMailto(urlString: string) {
     try {
       urlString = decodeURI(urlString);
     } catch (err) {
@@ -358,7 +358,7 @@ class DraftFactory {
     return draft;
   }
 
-  _fromContactForReply(message) {
+  _fromContactForReply(message: Message) {
     const account = AccountStore.accountForId(message.accountId);
     const defaultMe = account.defaultMe();
 

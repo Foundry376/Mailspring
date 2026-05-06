@@ -152,7 +152,7 @@ class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
 class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'HiddenToggleImportantButton';
 
-  _onSetImportant = (important) => {
+  _onSetImportant = (important: boolean) => {
     Actions.queueTasks(
       TaskFactory.tasksForThreadsByAccountId(this.props.items, (accountThreads, accountId) => {
         return new ChangeLabelsTask({
@@ -343,7 +343,7 @@ export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
     return;
   };
 
-  _onChangeUnread = (targetUnread) => {
+  _onChangeUnread = (targetUnread: boolean) => {
     Actions.queueTask(
       TaskFactory.taskForSettingUnread({
         threads: this.props.items,

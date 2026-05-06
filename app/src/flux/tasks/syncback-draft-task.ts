@@ -27,7 +27,7 @@ export class SyncbackDraftTask extends Task {
     this.headerMessageId = draft ? draft.headerMessageId : undefined;
   }
 
-  onError({ key, debuginfo }) {
+  onError({ key, debuginfo }: { key: string; debuginfo: string }) {
     if (key === 'no-drafts-folder') {
       AppEnv.showErrorDialog({
         title: localized('Drafts folder not found'),

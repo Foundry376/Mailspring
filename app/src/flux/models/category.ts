@@ -124,7 +124,7 @@ export class Category extends Model {
   static HiddenRoles = Object.keys(HiddenRoleMap);
   static LocalizedStringForRole = LocalizedStringForRole;
 
-  static categoriesSharedRole(cats) {
+  static categoriesSharedRole(cats: Category[]) {
     if (!cats || cats.length === 0) {
       return null;
     }

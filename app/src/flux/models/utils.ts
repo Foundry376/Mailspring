@@ -28,7 +28,7 @@ export function waitFor(latch, options: { timeout?: number } = {}) {
   });
 }
 
-export function showIconForAttachments(files) {
+export function showIconForAttachments(files: any[]) {
   if (!(files instanceof Array)) {
     return false;
   }
@@ -52,7 +52,7 @@ export function extractTextFromHtml(html, param: { maxLength?: number } = {}) {
   return body.textContent.trim();
 }
 
-export function modelTypesReviver(k, v) {
+export function modelTypesReviver(k: string, v: any) {
   const type = v != null ? v.__cls : undefined;
   if (!type) {
     return v;
@@ -65,7 +65,7 @@ export function modelTypesReviver(k, v) {
   return v;
 }
 
-export function convertToModel(json) {
+export function convertToModel(json: any) {
   if (!json) {
     return null;
   }
@@ -86,11 +86,11 @@ export function fastOmit(props, without) {
   return otherProps;
 }
 
-export function isHash(object) {
+export function isHash(object: any) {
   return _.isObject(object) && !_.isFunction(object) && !_.isArray(object);
 }
 
-export function escapeRegExp(str) {
+export function escapeRegExp(str: string) {
   return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
 }
 
@@ -155,7 +155,7 @@ export function deepClone<T>(object: T, customizer?, _circularRefs: Map<any, any
   return newObject;
 }
 
-export function toSet(arr = []) {
+export function toSet(arr: any[] = []) {
   const set = {};
   for (const item of arr) {
     set[item] = true;
@@ -187,7 +187,7 @@ export function shouldDisplayAsImage(
 // See their specs here:
 // https://github.com/angular/angular.js/blob/master/test/ngSanitize/sanitizeSpec.js
 // And the original source here: https://github.com/angular/angular.js/blob/master/src/ngSanitize/sanitize.js#L451
-export function encodeHTMLEntities(value) {
+export function encodeHTMLEntities(value: string) {
   const SURROGATE_PAIR_REGEXP = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
   const pairFix = function (value) {
     const hi = value.charCodeAt(0);
@@ -223,7 +223,7 @@ export function generateContentId() {
   return `mcid-${s4()}${s4()}-${s4()}`;
 }
 
-export function isTempId(id) {
+export function isTempId(id: string) {
   if (!id || !_.isString(id)) {
     return false;
   }
@@ -317,7 +317,7 @@ export function imageNamed(fullname: string) {
   return null;
 }
 
-export function subjectWithPrefix(subject, prefix) {
+export function subjectWithPrefix(subject: string, prefix: string) {
   if (subject.search(/fwd:/i) === 0) {
     return subject.replace(/fwd:/i, prefix);
   } else if (subject.search(/re:/i) === 0) {
@@ -346,14 +346,14 @@ export function emailHasCommonDomain(email = '') {
 
 // This looks for and removes plus-ing, it taks a VERY liberal approach
 // to match an email address. We'd rather let false positives through.
-export function toEquivalentEmailForm(email) {
+export function toEquivalentEmailForm(email: string) {
   // https://regex101.com/r/iS7kD5/3
   // eslint-disable-next-line
   const [ignored, user, domain] = /^([^+]+).*@(.+)$/gi.exec(email) || [null, '', ''];
   return `${user}@${domain}`.trim().toLowerCase();
 }
 
-export function emailIsEquivalent(email1, email2) {
+export function emailIsEquivalent(email1: string, email2: string) {
   if (email1 == null) {
     email1 = '';
   }
@@ -753,7 +753,7 @@ export function hueForString(str: string | null) {
 //
 // Also emails that are really long are likely computer-generated email
 // strings used for bcc-based automated teasks.
-export function likelyNonHumanEmail(email) {
+export function likelyNonHumanEmail(email: string) {
   // simple catch for long emails that are almost always autoreplies
   if (email.length > 48) {
     return true;

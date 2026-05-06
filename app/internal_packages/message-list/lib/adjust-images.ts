@@ -1,4 +1,4 @@
-function _getDimension(node, dim) {
+function _getDimension(node: HTMLElement, dim: string) {
   const raw = node.style[dim] || node[dim];
   if (!raw) {
     return [null, ''];
@@ -14,7 +14,7 @@ function _getDimension(node, dim) {
   return [Number(value), units];
 }
 
-function _correctMalformedSrc(node) {
+function _correctMalformedSrc(node: HTMLElement) {
   let src = node.getAttribute('src');
   if (src && src.startsWith('%20')) {
     while (src.startsWith('%20')) {
@@ -24,7 +24,7 @@ function _correctMalformedSrc(node) {
   }
 }
 
-function _applyMaxWidthAndHeight(node) {
+function _applyMaxWidthAndHeight(node: HTMLElement) {
   const [width, widthUnits] = _getDimension(node, 'width');
   const [height, heightUnits] = _getDimension(node, 'height');
 
@@ -57,7 +57,8 @@ export function adjustImages(doc) {
   });
 
   while (imgTagWalker.nextNode()) {
-    _applyMaxWidthAndHeight(imgTagWalker.currentNode);
-    _correctMalformedSrc(imgTagWalker.currentNode);
+    const el = imgTagWalker.currentNode as HTMLElement;
+    _applyMaxWidthAndHeight(el);
+    _correctMalformedSrc(el);
   }
 }

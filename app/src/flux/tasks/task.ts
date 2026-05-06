@@ -101,7 +101,7 @@ export class Task extends Model {
     return 1;
   }
 
-  onError(err) {
+  onError(err: any) {
     // noop
   }
 

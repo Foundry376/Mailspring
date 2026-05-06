@@ -29,6 +29,14 @@ export default class WindowManager {
     configDirPath,
     initializeInBackground,
     config,
+  }: {
+    devMode: boolean;
+    safeMode: boolean;
+    specMode: boolean;
+    resourcePath: string;
+    configDirPath: string;
+    initializeInBackground: boolean;
+    config: import('../config').default;
   }) {
     this.initializeInBackground = initializeInBackground;
 

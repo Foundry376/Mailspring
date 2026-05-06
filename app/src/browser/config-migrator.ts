@@ -3,7 +3,7 @@ import Config from '../config';
 export default class ConfigMigrator {
   config: Config;
 
-  constructor(config) {
+  constructor(config: Config) {
     this.config = config;
   }
 

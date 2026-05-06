@@ -154,7 +154,7 @@ export class SendDraftTask extends Task {
     }
   }
 
-  onError({ key, debuginfo }) {
+  onError({ key, debuginfo }: { key: string; debuginfo: string }) {
     let errorMessage = null;
     let errorDetail = null;
 

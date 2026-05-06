@@ -2,7 +2,6 @@ import { protocol } from 'electron';
 import fs from 'fs';
 import path from 'path';
 
-
 // Handles requests with 'mailspring' protocol.
 //
 // It's created by {Application} upon instantiation and is used to create a
@@ -57,9 +56,9 @@ export default class MailspringProtocolHandler {
       }
 
       if (filePath) {
-        return new Response(fs.readFileSync(filePath), { status: 200})
+        return new Response(fs.readFileSync(filePath), { status: 200 });
       } else {
-        return new Response('Not Found', {status: 404})
+        return new Response('Not Found', { status: 404 });
       }
     });
   }

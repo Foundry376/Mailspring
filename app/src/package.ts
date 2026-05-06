@@ -28,7 +28,7 @@ export default class Package {
   public windowTypes: { [windowName: string]: boolean };
   private json: any;
 
-  constructor(dir) {
+  constructor(dir: string) {
     this.directory = dir;
 
     let jsonString = null;

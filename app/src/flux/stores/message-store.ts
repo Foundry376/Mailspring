@@ -83,7 +83,7 @@ class _MessageStore extends MailspringStore {
     return ExtensionRegistry.MessageView.extensions();
   }
 
-  _onExtensionsChanged(role) {
+  _onExtensionsChanged(role: string) {
     const MessageBodyProcessor = require('./message-body-processor').default;
     MessageBodyProcessor.resetCache();
   }
@@ -250,7 +250,7 @@ class _MessageStore extends MailspringStore {
     this.trigger();
   }
 
-  _onToggleMessageIdExpanded(id) {
+  _onToggleMessageIdExpanded(id: string) {
     const item = this._items.find((i) => i.id === id);
     if (!item) return;
 
@@ -263,12 +263,12 @@ class _MessageStore extends MailspringStore {
     this.trigger();
   }
 
-  _expandItem(item) {
+  _expandItem(item: Message) {
     this._itemsExpanded[item.id] = 'explicit';
     this._fetchExpandedAttachments([item]);
   }
 
-  _collapseItem(item) {
+  _collapseItem(item: Message) {
     delete this._itemsExpanded[item.id];
   }
 
@@ -310,14 +310,14 @@ class _MessageStore extends MailspringStore {
     });
   }
 
-  _fetchMissingBodies(items) {
+  _fetchMissingBodies(items: Message[]) {
     const missing = items.filter((i) => i.body === null);
     if (missing.length > 0) {
       return Actions.fetchBodies(missing);
     }
   }
 
-  _fetchExpandedAttachments(items) {
+  _fetchExpandedAttachments(items: Message[]) {
     for (const item of items) {
       if (!this._itemsExpanded[item.id]) continue;
       item.files.map((file) => Actions.fetchFile(file));
@@ -343,7 +343,7 @@ class _MessageStore extends MailspringStore {
     }
   }
 
-  _sortItemsForDisplay(items) {
+  _sortItemsForDisplay(items: Message[]) {
     // Re-sort items in the list so that drafts appear after the message that
     // they are in reply to, when possible. First, identify all the drafts
     // with a replyToHeaderMessageId and remove them
@@ -376,7 +376,7 @@ class _MessageStore extends MailspringStore {
     return items;
   }
 
-  _onPopoutThread(thread) {
+  _onPopoutThread(thread: Thread) {
     return AppEnv.newWindow({
       title: false, // MessageList already displays the thread subject
       hidden: false,
@@ -389,7 +389,7 @@ class _MessageStore extends MailspringStore {
     });
   }
 
-  _onFocusThreadMainWindow(thread) {
+  _onFocusThreadMainWindow(thread: Thread) {
     if (AppEnv.isMainWindow()) {
       Actions.setFocus({ collection: 'thread', item: thread });
       return AppEnv.focus();

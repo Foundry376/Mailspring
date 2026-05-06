@@ -121,13 +121,13 @@ class MailRulesStore extends MailspringStore {
     }
   };
 
-  _onDeleteMailRule = (id) => {
+  _onDeleteMailRule = (id: string) => {
     this._rules = this._rules.filter((f) => f.id !== id);
     this._saveMailRules();
     this.trigger();
   };
 
-  _onReorderMailRule = (id, newIdx) => {
+  _onReorderMailRule = (id: string, newIdx: number) => {
     const currentIdx = this._rules.findIndex((r) => r.id === id);
     if (currentIdx === -1) {
       return;
@@ -158,14 +158,14 @@ class MailRulesStore extends MailspringStore {
     this.trigger();
   };
 
-  _onUpdateMailRule = (id, properties) => {
+  _onUpdateMailRule = (id: string, properties: Partial<MailRule>) => {
     const existing = this._rules.find((f) => id === f.id);
     Object.assign(existing, properties);
     this._saveMailRules();
     this.trigger();
   };
 
-  _onDisableMailRule = (id, reason) => {
+  _onDisableMailRule = (id: string, reason: string) => {
     const existing = this._rules.find((f) => id === f.id);
     if (!existing || existing.disabled === true) {
       return;
@@ -194,7 +194,7 @@ class MailRulesStore extends MailspringStore {
 
   // Reprocessing Existing Mail
 
-  _onStartReprocessing = (aid) => {
+  _onStartReprocessing = (aid: string) => {
     const inboxCategory = CategoryStore.getCategoryByRole(aid, 'inbox');
     if (!inboxCategory) {
       AppEnv.showErrorDialog(
@@ -214,12 +214,12 @@ class MailRulesStore extends MailspringStore {
     this.trigger();
   };
 
-  _onStopReprocessing = (aid) => {
+  _onStopReprocessing = (aid: string) => {
     delete this._reprocessing[aid];
     this.trigger();
   };
 
-  _reprocessSome = (accountId, callback?) => {
+  _reprocessSome = (accountId: string, callback?: () => void) => {
     if (!this._reprocessing[accountId]) {
       return;
     }

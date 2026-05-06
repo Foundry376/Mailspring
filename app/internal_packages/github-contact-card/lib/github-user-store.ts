@@ -57,7 +57,7 @@ class GithubUserStore extends MailspringStore {
     this.trigger(this);
   };
 
-  async _githubFetchProfile(email) {
+  async _githubFetchProfile(email: string) {
     this._loading = true;
 
     try {
@@ -99,7 +99,7 @@ class GithubUserStore extends MailspringStore {
   // Wrap the Node `request` library and pass the User-Agent header, which is required
   // by Github's API. Also pass `json:true`, which causes responses to be automatically
   // parsed.
-  async _githubRequest(url) {
+  async _githubRequest(url: string) {
     const headers = new Headers();
     headers.append('User-Agent', 'fetch-request');
     const resp = await fetch(url, { headers });

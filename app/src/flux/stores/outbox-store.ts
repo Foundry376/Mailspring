@@ -23,7 +23,7 @@ class OutboxStore extends MailspringStore {
     this.trigger();
   }
 
-  itemsForAccount(accountId) {
+  itemsForAccount(accountId: string) {
     return this._tasks.filter((task) => task.draftAccountId === accountId);
   }
 }

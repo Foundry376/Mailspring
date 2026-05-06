@@ -101,7 +101,7 @@ class _SignatureStore extends MailspringStore {
     return this.defaultSignatures;
   }
 
-  signatureForEmail = (email) => {
+  signatureForEmail = (email: string) => {
     return this.signatures[this.defaultSignatures[email]];
   };
 
@@ -113,7 +113,7 @@ class _SignatureStore extends MailspringStore {
     AppEnv.config.set(`defaultSignatures`, this.defaultSignatures);
   }
 
-  _onSelectSignature = (id) => {
+  _onSelectSignature = (id: string) => {
     this.selectedSignatureId = id;
     this.trigger();
   };
@@ -131,13 +131,13 @@ class _SignatureStore extends MailspringStore {
     this._saveSignatures();
   };
 
-  _onUpsertSignature = (signature, id) => {
+  _onUpsertSignature = (signature: ISignature, id: string) => {
     this.signatures[id] = signature;
     this.trigger();
     this._saveSignatures();
   };
 
-  _onToggleAccount = (email) => {
+  _onToggleAccount = (email: string) => {
     if (this.defaultSignatures[email] === this.selectedSignatureId) {
       this.defaultSignatures[email] = null;
     } else {

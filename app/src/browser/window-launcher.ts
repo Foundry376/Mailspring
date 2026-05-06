@@ -32,6 +32,14 @@ export default class WindowLauncher {
     configDirPath,
     onCreatedHotWindow,
     config,
+  }: {
+    devMode: boolean;
+    safeMode: boolean;
+    specMode: boolean;
+    resourcePath: string;
+    configDirPath: string;
+    onCreatedHotWindow: (win: MailspringWindow) => void;
+    config: import('../config').default;
   }) {
     this._defaultWindowOpts = {
       frame: process.platform !== 'darwin',

@@ -75,7 +75,7 @@ const scopes: {
   main: [],
 };
 
-const create = (name, scope: 'window' | 'global' | 'main') => {
+const create = (name: string, scope: 'window' | 'global' | 'main') => {
   const obj = Reflux.createAction(name) as Action;
   obj.scope = scope;
   obj.sync = true;

@@ -41,14 +41,14 @@ class ThreadCountsStore extends MailspringStore {
     });
   };
 
-  unreadCountForCategoryId(catId) {
+  unreadCountForCategoryId(catId: string) {
     if (this._counts[catId] === undefined) {
       return null;
     }
     return this._counts[catId]['unread'];
   }
 
-  totalCountForCategoryId(catId) {
+  totalCountForCategoryId(catId: string) {
     if (this._counts[catId] === undefined) {
       return null;
     }

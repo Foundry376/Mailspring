@@ -118,7 +118,7 @@ class AttachmentStore extends MailspringStore {
     return filePath;
   }
 
-  async _ensurePreviewOfFile(file) {
+  async _ensurePreviewOfFile(file: File) {
     if (!AppEnv.config.get('core.attachments.displayFilePreview')) {
       return;
     }
@@ -145,11 +145,11 @@ class AttachmentStore extends MailspringStore {
 
   // Section: Retrieval of Files
 
-  _quickPreviewFile = (filePath) => {
+  _quickPreviewFile = (filePath: string) => {
     displayQuickPreviewWindow(filePath);
   };
 
-  _fetch = (file) => {
+  _fetch = (file: File) => {
     return (
       this._prepareAndResolveFilePath(file)
         .catch(this._catchFSErrors)
@@ -158,7 +158,7 @@ class AttachmentStore extends MailspringStore {
     );
   };
 
-  _fetchAndOpen = (file) => {
+  _fetchAndOpen = (file: File) => {
     return this._prepareAndResolveFilePath(file)
       .then((filePath) => shell.openPath(filePath))
       .catch(this._catchFSErrors)
@@ -215,7 +215,7 @@ class AttachmentStore extends MailspringStore {
     });
   };
 
-  _fetchAndSaveAll = (files) => {
+  _fetchAndSaveAll = (files: File[]) => {
     const defaultPath = this._defaultSaveDir();
 
     return new Promise((resolve) => {
@@ -355,13 +355,13 @@ class AttachmentStore extends MailspringStore {
 
   // Section: Adding Files
 
-  _assertIdPresent(headerMessageId) {
+  _assertIdPresent(headerMessageId: string) {
     if (!headerMessageId) {
       throw new Error('You need to pass the headerID of the message (draft) this Action refers to');
     }
   }
 
-  _getFileStats(filepath) {
+  _getFileStats(filepath: string) {
     return fs
       .statAsync(filepath)
       .catch(() =>
@@ -470,7 +470,7 @@ class AttachmentStore extends MailspringStore {
     }
   };
 
-  _onRemoveAttachment = async (headerMessageId, fileToRemove) => {
+  _onRemoveAttachment = async (headerMessageId: string, fileToRemove: File) => {
     if (!fileToRemove) {
       return;
     }

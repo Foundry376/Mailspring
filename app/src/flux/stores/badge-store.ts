@@ -72,7 +72,7 @@ class BadgeStore extends MailspringStore {
     }
   };
 
-  _setBadge = (val) => {
+  _setBadge = (val: string) => {
     const { ipcRenderer } = require('electron');
     ipcRenderer.send('set-badge-value', val);
 

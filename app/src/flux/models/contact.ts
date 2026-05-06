@@ -568,7 +568,7 @@ export class Contact extends Model {
     return c1 + c2;
   }
 
-  guessCompanyFromEmail(email = this.email) {
+  guessCompanyFromEmail(email: string = this.email) {
     if (Utils.emailHasCommonDomain(email)) {
       return '';
     }
@@ -640,7 +640,7 @@ export class Contact extends Model {
     return parts;
   }
 
-  _parseReverseNames(name) {
+  _parseReverseNames(name: string) {
     const parts = [];
     const [lastName, remainder] = name.split(', ');
     if (remainder) {

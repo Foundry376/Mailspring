@@ -58,7 +58,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     });
   }
 
-  _isValidAccountSet(ids) {
+  _isValidAccountSet(ids: string[]) {
     const accountIds = AccountStore.accountIds();
     return ids.every((a) => accountIds.includes(a));
   }
@@ -143,7 +143,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     this._setPerspective(perspective, sidebarAccountIds || perspective.accountIds);
   };
 
-  _onEnsureCategoryIsFocused = (categoryName, accountIds = []) => {
+  _onEnsureCategoryIsFocused = (categoryName: string, accountIds: string[] = []) => {
     const ids = accountIds instanceof Array ? accountIds : [accountIds];
     const categories = ids.map((id) => CategoryStore.getCategoryByRole(id, categoryName));
     const perspective = MailboxPerspective.forCategories(categories);
@@ -197,7 +197,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     }
   }
 
-  _setPerspectiveByName(categoryName) {
+  _setPerspectiveByName(categoryName: string) {
     let categories = this._current.accountIds.map((id) =>
       CategoryStore.getCategoryByRole(id, categoryName)
     );

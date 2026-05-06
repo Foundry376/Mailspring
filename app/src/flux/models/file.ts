@@ -79,6 +79,7 @@ export class File extends Model {
 
   safeDisplayName() {
     let name = this.displayName()
+      // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
       // Strip bidi/RTL controls so "report\u202Egpj.exe" can't render as "report.exe.jpg".
       .replace(/[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '')

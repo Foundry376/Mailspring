@@ -49,7 +49,7 @@ export class ChangeLabelsTask extends ChangeMailTask {
       return this.taskDescription;
     }
 
-    const withCount = (str) => {
+    const withCount = (str: string) => {
       if (this.threadIds.length > 1) {
         return str.replace('%@', `${this.threadIds.length} ${localized('threads')}`);
       }

@@ -157,7 +157,7 @@ export class Account extends ModelWithMetadata {
     });
   }
 
-  meUsingAlias(alias) {
+  meUsingAlias(alias: string) {
     Contact = Contact || require('./contact').Contact;
 
     if (!alias) {

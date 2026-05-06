@@ -12,7 +12,7 @@ export class DatabaseChangeRecord<T extends Model> {
   type: string;
   objectClass: any;
 
-  constructor({ type, objectClass, objects, objectsRawJSON }) {
+  constructor({ type, objectClass, objects, objectsRawJSON }: { type: string; objectClass: string; objects: T[]; objectsRawJSON: Record<string, any>[] }) {
     this.objects = objects;
     this.objectsRawJSON = objectsRawJSON;
     this.type = type;

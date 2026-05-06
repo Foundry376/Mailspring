@@ -1,7 +1,7 @@
 import { RegExpUtils } from 'mailspring-exports';
 import { Value } from 'slate';
 
-function numberOfTrailingBRs(text) {
+function numberOfTrailingBRs(text: string) {
   let count = 0;
   text = text.trim();
   // eslint-disable-next-line no-constant-condition
