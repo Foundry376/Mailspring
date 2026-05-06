@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  PropTypes,
   MailspringAPIRequest,
   APIError,
   localized,
@@ -32,18 +31,6 @@ export default class MetadataComposerToggleButton extends React.Component<
   MetadataComposerToggleButtonState
 > {
   static displayName = 'MetadataComposerToggleButton';
-
-  static propTypes = {
-    iconUrl: PropTypes.string,
-    iconName: PropTypes.string,
-    pluginId: PropTypes.string.isRequired,
-    pluginName: PropTypes.string.isRequired,
-    metadataEnabledValue: PropTypes.object.isRequired,
-    errorMessage: PropTypes.func.isRequired,
-
-    draft: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-  };
 
   constructor(props) {
     super(props);

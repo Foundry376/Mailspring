@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 
 export const ResizableHandle: { [side: string]: IResizeHandle } = {
   Top: {
@@ -108,20 +108,17 @@ export class ResizableRegion extends React.Component<
      - `minHeight` (optional) Minimum height, if the handle indicates a vertical resizing axis.
      - `maxHeight` (optional) Maximum height, if the handle indicates a vertical resizing axis.
     */
-  static propTypes = {
-    handle: PropTypes.object.isRequired,
-    onResize: PropTypes.func,
-
-    initialWidth: PropTypes.number,
-    minWidth: PropTypes.number,
-    maxWidth: PropTypes.number,
-
-    initialHeight: PropTypes.number,
-    minHeight: PropTypes.number,
-    maxHeight: PropTypes.number,
-
-    style: PropTypes.object,
-  };
+  static ownPropKeys = [
+    'handle',
+    'onResize',
+    'initialWidth',
+    'minWidth',
+    'maxWidth',
+    'initialHeight',
+    'minHeight',
+    'maxHeight',
+    'style',
+  ];
 
   static defaultProps = {
     handle: ResizableHandle.Right,
@@ -168,7 +165,7 @@ export class ResizableRegion extends React.Component<
       }
     }
 
-    const otherProps = Utils.fastOmit(this.props, Object.keys(ResizableRegion.propTypes));
+    const otherProps = Utils.fastOmit(this.props, ResizableRegion.ownPropKeys);
 
     return (
       <div style={containerStyle} {...otherProps}>

@@ -1,7 +1,6 @@
 import classnames from 'classnames';
 import React, { Component } from 'react';
 import { localized, DateUtils } from 'mailspring-exports';
-import PropTypes from 'prop-types';
 
 type DateInputProps = {
   className?: string;
@@ -14,13 +13,6 @@ type DateInputState = { inputValue: string; inputDate: null } & any;
 
 class DateInput extends Component<DateInputProps, DateInputState> {
   static displayName = 'DateInput';
-
-  static propTypes = {
-    className: PropTypes.string,
-    dateFormat: PropTypes.string.isRequired,
-    onDateInterpreted: PropTypes.func,
-    onDateSubmitted: PropTypes.func,
-  };
 
   static defaultProps = {
     onDateInterpreted: () => {},

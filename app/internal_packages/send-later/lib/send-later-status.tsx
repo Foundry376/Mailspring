@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import {
   localized,
@@ -24,10 +23,6 @@ interface SendLaterStatusState {
 
 export default class SendLaterStatus extends Component<SendLaterStatusProps, SendLaterStatusState> {
   static displayName = 'SendLaterStatus';
-
-  static propTypes = {
-    draft: PropTypes.object,
-  };
 
   _unlisten?: () => void;
 

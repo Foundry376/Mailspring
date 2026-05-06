@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, { Component, CSSProperties } from 'react';
 import { Utils, Model } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 
 import { ScrollRegion, ScrollRegionProps } from './scroll-region';
 import { Spinner } from './spinner';
@@ -58,19 +57,6 @@ type ListTabularRowsProps = {
 
 export class ListTabularRows extends Component<ListTabularRowsProps> {
   static displayName = 'ListTabularRows';
-
-  static propTypes = {
-    rows: PropTypes.array,
-    columns: PropTypes.array.isRequired,
-    draggable: PropTypes.bool,
-    itemHeight: PropTypes.number,
-    innerStyles: PropTypes.object,
-    onSelect: PropTypes.func,
-    onClick: PropTypes.func,
-    onDoubleClick: PropTypes.func,
-    onDragStart: PropTypes.func,
-    onDragEnd: PropTypes.func,
-  };
 
   shouldComponentUpdate(nextProps: ListTabularRowsProps, nextState: Record<string, unknown>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
@@ -176,24 +162,6 @@ interface ListTabularState {
 
 export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   static displayName = 'ListTabular';
-
-  static propTypes = {
-    footer: PropTypes.node,
-    draggable: PropTypes.bool,
-    className: PropTypes.string,
-    columns: PropTypes.array.isRequired,
-    dataSource: PropTypes.object,
-    itemPropsProvider: PropTypes.func,
-    itemHeight: PropTypes.number,
-    EmptyComponent: PropTypes.func,
-    scrollTooltipComponent: PropTypes.func,
-    onClick: PropTypes.func,
-    onSelect: PropTypes.func,
-    onDoubleClick: PropTypes.func,
-    onDragStart: PropTypes.func,
-    onDragEnd: PropTypes.func,
-    onComponentDidUpdate: PropTypes.func,
-  };
 
   static defaultProps = {
     footer: false,

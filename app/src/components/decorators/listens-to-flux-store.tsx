@@ -7,8 +7,6 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
 
     static containerRequired = false;
 
-    static propTypes = ComposedComponent.propTypes;
-
     _unlisteners = [];
     _composedComponent: any;
 

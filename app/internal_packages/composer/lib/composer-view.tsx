@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {
   localized,
-  PropTypes,
   Utils,
   Actions,
   DraftStore,
@@ -48,12 +47,6 @@ interface ComposerViewState {
 // Composer with new props.
 export default class ComposerView extends React.Component<ComposerViewProps, ComposerViewState> {
   static displayName = 'ComposerView';
-
-  static propTypes = {
-    session: PropTypes.object.isRequired,
-    draft: PropTypes.object.isRequired,
-    className: PropTypes.string,
-  };
 
   _mounted = false;
   _mouseDownTarget: HTMLElement = null;

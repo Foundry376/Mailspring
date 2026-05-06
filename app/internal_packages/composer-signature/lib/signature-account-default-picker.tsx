@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   localized,
-  PropTypes,
   Actions,
   IAliasSet,
   ISignature,

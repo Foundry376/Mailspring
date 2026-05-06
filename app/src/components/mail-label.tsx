@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { RetinaImg } from './retina-img';
 import { Label } from 'mailspring-exports';
 
@@ -40,11 +39,6 @@ export const LabelColorizer = {
 };
 
 export class MailLabel extends React.Component<MailLabelProps> {
-  static propTypes = {
-    label: PropTypes.object.isRequired,
-    onRemove: PropTypes.func,
-  };
-
   shouldComponentUpdate(nextProps) {
     if (nextProps.label.id === this.props.label.id) {
       return false;

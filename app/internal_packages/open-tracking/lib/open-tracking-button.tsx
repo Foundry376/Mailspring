@@ -3,7 +3,6 @@ import {
   Message,
   DraftEditingSession,
   localized,
-  PropTypes,
   APIError,
   MailspringAPIRequest,
 } from 'mailspring-exports';
@@ -17,11 +16,6 @@ export default class OpenTrackingButton extends React.Component<{
   static displayName = 'OpenTrackingButton';
 
   static containerRequired = false;
-
-  static propTypes = {
-    draft: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-  };
 
   shouldComponentUpdate(nextProps: { draft: Message; session: DraftEditingSession }) {
     return (

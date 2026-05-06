@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import classnames from 'classnames';
 import React, { Component, CSSProperties } from 'react';
-import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import * as Actions from '../flux/actions';
 import { pickHTMLProps } from 'pick-react-known-prop';
@@ -10,25 +9,6 @@ import { RetinaImg } from './retina-img';
 import { Flexbox } from './flexbox';
 import { Spinner } from './spinner';
 import { localized } from '../intl';
-
-const propTypes = {
-  className: PropTypes.string,
-  draggable: PropTypes.bool,
-  focusable: PropTypes.bool,
-  filePath: PropTypes.string,
-  contentType: PropTypes.string,
-  download: PropTypes.shape({
-    state: PropTypes.string,
-    percent: PropTypes.number,
-  }),
-  displayName: PropTypes.string,
-  displaySize: PropTypes.string,
-  fileIconName: PropTypes.string,
-  filePreviewPath: PropTypes.string,
-  onOpenAttachment: PropTypes.func,
-  onRemoveAttachment: PropTypes.func,
-  onSaveAttachment: PropTypes.func,
-};
 
 const defaultProps = {
   draggable: true,
@@ -92,7 +72,14 @@ const ProgressBar: React.FunctionComponent<{
   );
 };
 
-function AttachmentActionIcon(props) {
+function AttachmentActionIcon(props: {
+  download?: { state: string; percent: number };
+  removeIcon?: string;
+  downloadIcon?: string;
+  retinaImgMode?: string;
+  onRemoveAttachment?: () => void;
+  onSaveAttachment?: () => void;
+}) {
   const {
     download,
     removeIcon,
@@ -121,12 +108,6 @@ function AttachmentActionIcon(props) {
     </div>
   );
 }
-AttachmentActionIcon.propTypes = {
-  removeIcon: PropTypes.string,
-  downloadIcon: PropTypes.string,
-  retinaImgMode: PropTypes.string,
-  ...propTypes,
-};
 
 interface AttachmentItemProps {
   className: string;
@@ -151,8 +132,6 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
   static displayName = 'AttachmentItem';
 
   static containerRequired = false;
-
-  static propTypes = propTypes;
 
   static defaultProps = defaultProps;
 
@@ -291,12 +270,6 @@ interface ImageAttachmentItemProps extends AttachmentItemProps {
 
 export class ImageAttachmentItem extends Component<ImageAttachmentItemProps> {
   static displayName = 'ImageAttachmentItem';
-
-  static propTypes = {
-    imgProps: PropTypes.object,
-    onResized: PropTypes.func,
-    ...propTypes,
-  };
 
   static defaultProps = defaultProps;
 

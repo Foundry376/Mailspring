@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import { Flexbox } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 import fs from 'fs';
@@ -23,12 +22,6 @@ export default class CommandKeybinding extends React.Component<
   CommandKeybindingProps,
   CommandKeybindingState
 > {
-  static propTypes = {
-    bindings: PropTypes.array,
-    label: PropTypes.string,
-    command: PropTypes.string,
-  };
-
   _mounted = false;
 
   constructor(props) {

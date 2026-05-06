@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import * as Actions from '../flux/actions';
 import { RetinaImg } from './retina-img';
 
@@ -17,13 +16,6 @@ type ModalState = {
 };
 
 class Modal extends React.Component<ModalProps, ModalState> {
-  static propTypes = {
-    className: PropTypes.string,
-    children: PropTypes.element,
-    height: PropTypes.number,
-    width: PropTypes.number,
-  };
-
   _mounted = false;
 
   state = {

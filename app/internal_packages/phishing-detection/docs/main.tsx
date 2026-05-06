@@ -6,7 +6,6 @@
 // You can access Mailspring dependencies by requiring 'mailspring-exports'
 import React from 'react';
 import {
-  PropTypes,
   // The ComponentRegistry manages all React components in N1.
   ComponentRegistry,
   // A `Store` is a Flux component which contains all business logic and data
@@ -14,13 +13,9 @@ import {
   MessageStore,
 } from 'mailspring-exports';
 
-class PhishingIndicator extends React.Component {
+class PhishingIndicator extends React.Component<{ thread: object }> {
   // Adding a @displayName to a React component helps for debugging.
   static displayName = 'PhishingIndicator';
-
-  // @propTypes is an object which validates the datatypes of properties that
-  // this React component can receive.
-  static propTypes = { thread: PropTypes.object.isRequired };
 
   // A React component's `render` method returns a virtual DOM element described
   // in CJSX. `render` is deterministic: with the same input, it will always

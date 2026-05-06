@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { localized, Actions } from 'mailspring-exports';
 import { RetinaImg, RovingTabIndexToolbar } from 'mailspring-component-kit';
 import Fields from './fields';
@@ -11,12 +10,6 @@ interface ComposerHeaderActionsProps {
 }
 export default class ComposerHeaderActions extends React.Component<ComposerHeaderActionsProps> {
   static displayName = 'ComposerHeaderActions';
-
-  static propTypes = {
-    headerMessageId: PropTypes.string.isRequired,
-    enabledFields: PropTypes.array.isRequired,
-    onShowAndFocusField: PropTypes.func.isRequired,
-  };
 
   _onPopoutComposer = () => {
     Actions.composePopoutDraft(this.props.headerMessageId);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Account, localized, Actions, PropTypes } from 'mailspring-exports';
+import { Account, localized, Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ipcRenderer } from 'electron';
 import * as AccountCommands from '../account-commands';
@@ -9,11 +9,6 @@ export default class AccountSwitcher extends React.Component<{
   sidebarAccountIds: string[];
 }> {
   static displayName = 'AccountSwitcher';
-
-  static propTypes = {
-    accounts: PropTypes.array.isRequired,
-    sidebarAccountIds: PropTypes.array.isRequired,
-  };
 
   _makeMenuTemplate = () => {
     let template = AccountCommands.menuTemplate(this.props.accounts, this.props.sidebarAccountIds, {

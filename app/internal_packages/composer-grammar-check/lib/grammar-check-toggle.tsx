@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  PropTypes,
   localized,
   Message,
   DraftEditingSession,
@@ -19,11 +18,6 @@ export class GrammarCheckToggle extends React.Component<{
   session: DraftEditingSession;
 }> {
   static displayName = 'GrammarCheckToggle';
-
-  static propTypes = {
-    draft: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-  };
 
   private _unsub?: () => void;
   private _featureUnsub?: () => void;

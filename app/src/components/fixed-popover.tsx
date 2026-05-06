@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React, { Component, CSSProperties } from 'react';
 import { findDOMNode } from 'react-dom';
-import PropTypes from 'prop-types';
 
 import * as Actions from '../flux/actions';
 import compose from './decorators/compose';
@@ -53,22 +52,6 @@ type FixedPopoverState = {
  **/
 class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   static Directions = Direction;
-
-  static propTypes = {
-    children: PropTypes.element,
-    direction: PropTypes.string,
-    fallbackDirection: PropTypes.string,
-    closeOnAppBlur: PropTypes.bool,
-    originRect: PropTypes.shape({
-      bottom: PropTypes.number,
-      top: PropTypes.number,
-      right: PropTypes.number,
-      left: PropTypes.number,
-      height: PropTypes.number,
-      width: PropTypes.number,
-    }),
-    focusElementWithTabIndex: PropTypes.func,
-  };
 
   static defaultProps = {
     closeOnAppBlur: true,

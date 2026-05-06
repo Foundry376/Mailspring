@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   localized,
-  PropTypes,
   Actions,
   DateUtils,
   Contact,
@@ -79,10 +78,6 @@ class RelatedThreadsWithData extends React.Component<{
   threads: Thread[];
 }> {
   static displayName = 'RelatedThreadsWithData';
-
-  static propTypes = {
-    threads: PropTypes.array,
-  };
 
   state = { expanded: false };
 

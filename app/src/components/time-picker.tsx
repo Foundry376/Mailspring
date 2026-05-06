@@ -21,12 +21,6 @@ type TimePickerState = {
 export default class TimePicker extends React.Component<TimePickerProps, TimePickerState> {
   static displayName = 'TimePicker';
 
-  static propTypes = {
-    value: PropTypes.number,
-    onChange: PropTypes.func,
-    relativeTo: PropTypes.number,
-  };
-
   static contextTypes = {
     parentTabGroup: PropTypes.object,
   };

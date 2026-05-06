@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {
   Thread,
   Message,
@@ -36,16 +35,6 @@ interface MessageItemState {
 
 export default class MessageItem extends React.Component<MessageItemProps, MessageItemState> {
   static displayName = 'MessageItem';
-
-  static propTypes = {
-    thread: PropTypes.object.isRequired,
-    message: PropTypes.object.isRequired,
-    messages: PropTypes.array.isRequired,
-    collapsed: PropTypes.bool,
-    pending: PropTypes.bool,
-    isMostRecent: PropTypes.bool,
-    className: PropTypes.string,
-  };
 
   _headerEl: HTMLElement;
 

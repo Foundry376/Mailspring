@@ -2,7 +2,6 @@ import { EventedIFrame } from 'mailspring-component-kit';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
-  PropTypes,
   Utils,
   localized,
   QuotedHTMLTransformer,
@@ -21,12 +20,6 @@ interface EmailFrameProps {
 
 export default class EmailFrame extends React.Component<EmailFrameProps> {
   static displayName = 'EmailFrame';
-
-  static propTypes = {
-    content: PropTypes.string.isRequired,
-    message: PropTypes.object,
-    showQuotedText: PropTypes.bool,
-  };
 
   _mounted = false;
   _unlisten: () => void;

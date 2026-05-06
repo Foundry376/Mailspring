@@ -1,11 +1,7 @@
 import React from 'react';
-import { localized, Utils, PropTypes, Actions, GetManyRFC2822Task } from 'mailspring-exports';
+import { localized, Utils, Actions, GetManyRFC2822Task } from 'mailspring-exports';
 
 export class ExportActivity extends React.Component<{ tasks: any[] }> {
-  static propTypes = {
-    tasks: PropTypes.array,
-  };
-
   shouldComponentUpdate(nextProps: { tasks: any[] }, nextState: Record<string, never>) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }

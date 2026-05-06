@@ -1,4 +1,4 @@
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 import React from 'react';
 
 type FlexboxProps = {
@@ -22,12 +22,7 @@ export class Flexbox extends React.Component<FlexboxProps & React.HTMLProps<HTML
    - `direction` (optional) A {String} Flexbox direction: either `column` or `row`.
    - `style` (optional) An {Object} with styles to apply to the flexbox.
   */
-  static propTypes = {
-    direction: PropTypes.string,
-    inline: PropTypes.bool,
-    style: PropTypes.object,
-    height: PropTypes.string,
-  };
+  static ownPropKeys = ['direction', 'inline', 'style', 'height'];
 
   static defaultProps = {
     height: '100%',
@@ -50,7 +45,7 @@ export class Flexbox extends React.Component<FlexboxProps & React.HTMLProps<HTML
       style.display = 'inline-flex';
     }
 
-    const otherProps = Utils.fastOmit(this.props, Object.keys(Flexbox.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Flexbox.ownPropKeys);
 
     return (
       <div style={style} {...otherProps}>

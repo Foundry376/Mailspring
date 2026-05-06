@@ -1,12 +1,10 @@
 import React from 'react';
-import { PropTypes, Utils, Contact } from 'mailspring-exports';
+import { Utils, Contact } from 'mailspring-exports';
 import { AccountColorBar } from 'mailspring-component-kit';
 import { ThreadWithMessagesMetadata } from './types';
 
 class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
   static displayName = 'ThreadListParticipants';
-
-  static propTypes = { thread: PropTypes.object.isRequired };
 
   shouldComponentUpdate(nextProps: { thread: ThreadWithMessagesMetadata }) {
     if (nextProps.thread === this.props.thread) {

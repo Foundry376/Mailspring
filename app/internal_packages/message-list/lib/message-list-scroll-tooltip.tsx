@@ -1,15 +1,11 @@
 import React from 'react';
-import { localized, PropTypes, Utils } from 'mailspring-exports';
+import { localized, Utils } from 'mailspring-exports';
 
 export class MessageListScrollTooltip extends React.Component<
   { viewportCenter: number; totalHeight: number },
   { idx: number; count: number }
 > {
   static displayName = 'MessageListScrollTooltip';
-  static propTypes = {
-    viewportCenter: PropTypes.number.isRequired,
-    totalHeight: PropTypes.number.isRequired,
-  };
 
   state = { idx: 0, count: 0 };
 

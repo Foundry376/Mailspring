@@ -1,7 +1,6 @@
 /* eslint global-require: 0 */
 import fs from 'fs';
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { shell, ipcRenderer } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
 import {
@@ -60,11 +59,6 @@ class PreferencesAccountDetails extends Component<
     account: Account;
   }
 > {
-  static propTypes = {
-    account: PropTypes.object,
-    onAccountUpdated: PropTypes.func.isRequired,
-  };
-
   constructor(props) {
     super(props);
     this.state = { account: props.account.clone() };

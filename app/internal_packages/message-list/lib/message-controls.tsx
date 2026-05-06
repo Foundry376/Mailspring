@@ -3,7 +3,6 @@
 import React from 'react';
 import {
   localized,
-  PropTypes,
   Actions,
   TaskQueue,
   GetMessageRFC2822Task,
@@ -20,10 +19,6 @@ interface MessageControlsProps {
 
 export default class MessageControls extends React.Component<MessageControlsProps> {
   static displayName = 'MessageControls';
-  static propTypes = {
-    thread: PropTypes.object.isRequired,
-    message: PropTypes.object.isRequired,
-  };
 
   _items() {
     const reply = {

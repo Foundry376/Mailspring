@@ -1,6 +1,5 @@
 import React from 'react';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import { localized, DateUtils } from 'mailspring-exports';
 import { DatePickerPopover } from 'mailspring-component-kit';
 
@@ -53,11 +52,5 @@ function SendRemindersPopover(props: {
   );
 }
 SendRemindersPopover.displayName = 'SendRemindersPopover';
-
-SendRemindersPopover.propTypes = {
-  reminderDate: PropTypes.instanceOf(Date),
-  onRemind: PropTypes.func,
-  onCancelReminder: PropTypes.func,
-};
 
 export default SendRemindersPopover;

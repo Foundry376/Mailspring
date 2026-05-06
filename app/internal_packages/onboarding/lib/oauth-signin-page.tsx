@@ -1,6 +1,6 @@
 import { shell } from 'electron';
 import React from 'react';
-import { localized, localizedReactFragment, PropTypes, Account } from 'mailspring-exports';
+import { localized, localizedReactFragment, Account } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import http from 'http';
 import url from 'url';
@@ -49,20 +49,6 @@ export default class OAuthSignInPage extends React.Component<
   OAuthSignInPageState
 > {
   static displayName = 'OAuthSignInPage';
-
-  static propTypes = {
-    /**
-     * Step 1: Open a webpage in the user's browser letting them login on
-     * the native provider's website. We pass along a key and a redirect
-     * url to a Mailspring-owned server
-     */
-    providerAuthPageUrl: PropTypes.string,
-    buildAccountFromAuthResponse: PropTypes.func,
-    onSuccess: PropTypes.func,
-    onTryAgain: PropTypes.func,
-    iconName: PropTypes.string,
-    serviceName: PropTypes.string,
-  };
 
   _server?: http.Server;
   _startTimer: NodeJS.Timeout;

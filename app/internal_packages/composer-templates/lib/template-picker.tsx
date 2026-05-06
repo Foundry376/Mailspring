@@ -1,15 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { localized, PropTypes, Actions, Message } from 'mailspring-exports';
+import { localized, Actions, Message } from 'mailspring-exports';
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 import TemplateStore from './template-store';
 
 class TemplatePopover extends React.Component<{ headerMessageId: string }> {
   static displayName = 'TemplatePopover';
-
-  static propTypes = {
-    headerMessageId: PropTypes.string,
-  };
 
   unsubscribe?: () => void;
 
@@ -105,10 +101,6 @@ class TemplatePicker extends React.Component<{
   draft: Message;
 }> {
   static displayName = 'TemplatePicker';
-
-  static propTypes = {
-    headerMessageId: PropTypes.string,
-  };
 
   _onClickButton = () => {
     const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();

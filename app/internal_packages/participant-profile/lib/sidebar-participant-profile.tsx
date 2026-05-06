@@ -4,7 +4,6 @@ import {
   IdentityStore,
   Contact,
   FeatureUsageStore,
-  PropTypes,
   DOMUtils,
   RegExpUtils,
   Thread,
@@ -51,12 +50,6 @@ class SocialProfileLink extends React.Component<{
   service: string;
   hostname: string;
 }> {
-  static propTypes = {
-    service: PropTypes.string,
-    handle: PropTypes.string,
-    hostname: PropTypes.string,
-  };
-
   render() {
     const { handle, service, hostname } = this.props;
 
@@ -79,11 +72,6 @@ class SocialProfileLink extends React.Component<{
 }
 
 class TextBlockWithAutolinkedElements extends React.Component<{ text: string; className: string }> {
-  static propTypes = {
-    className: PropTypes.string,
-    text: PropTypes.string,
-  };
-
   render() {
     if (!this.props.text) {
       return false;
@@ -117,11 +105,6 @@ class TextBlockWithAutolinkedElements extends React.Component<{ text: string; cl
 }
 
 class IconRow extends React.Component<{ node: React.ReactChild; icon: string }> {
-  static propTypes = {
-    node: PropTypes.node,
-    icon: PropTypes.string,
-  };
-
   render() {
     const { node, icon } = this.props;
 
@@ -144,10 +127,6 @@ class IconRow extends React.Component<{ node: React.ReactChild; icon: string }> 
 }
 
 class LocationRow extends React.Component<{ location: string }> {
-  static propTypes = {
-    location: PropTypes.string,
-  };
-
   render() {
     return (
       <IconRow
@@ -225,10 +204,6 @@ export default class SidebarParticipantProfile extends React.Component<
   SidebarParticipantProfileState
 > {
   static displayName = 'SidebarParticipantProfile';
-
-  static propTypes = {
-    contact: PropTypes.object,
-  };
 
   static containerStyles = {
     order: 0,

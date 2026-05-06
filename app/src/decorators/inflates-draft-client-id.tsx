@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import DraftStore from '../flux/stores/draft-store';
 import * as Actions from '../flux/actions';
 import * as Utils from '../flux/models/utils';
@@ -15,11 +14,6 @@ function InflatesDraftClientId(
     { draft: Message; session: DraftEditingSession; _lastHeaderMessageId: string }
   > {
     static displayName = ComposedComponent.displayName;
-
-    static propTypes = {
-      headerMessageId: PropTypes.string,
-      onDraftReady: PropTypes.func,
-    };
 
     static defaultProps = {
       onDraftReady: () => {},

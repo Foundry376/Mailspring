@@ -1,10 +1,9 @@
 import React from 'react';
-import { localized, PropTypes, Actions, TaskFactory, ExtensionRegistry } from 'mailspring-exports';
+import { localized, Actions, TaskFactory, ExtensionRegistry } from 'mailspring-exports';
 import { ThreadWithMessagesMetadata } from './types';
 
 class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
   static displayName = 'ThreadListIcon';
-  static propTypes = { thread: PropTypes.object };
 
   _extensionsIconClassNames = () => {
     return ExtensionRegistry.ThreadList.extensions()

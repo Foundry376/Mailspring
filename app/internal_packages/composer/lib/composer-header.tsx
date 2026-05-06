@@ -39,11 +39,6 @@ interface ComposerHeaderState {
 export class ComposerHeader extends React.Component<ComposerHeaderProps, ComposerHeaderState> {
   static displayName = 'ComposerHeader';
 
-  static propTypes = {
-    draft: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-  };
-
   static contextTypes = {
     parentTabGroup: PropTypes.object,
   };

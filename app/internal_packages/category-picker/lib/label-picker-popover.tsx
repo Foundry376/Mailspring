@@ -1,5 +1,4 @@
 import React, { Component, CSSProperties } from 'react';
-import PropTypes from 'prop-types';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
 import {
   Utils,
@@ -30,11 +29,6 @@ export default class LabelPickerPopover extends Component<
   LabelPickerPopoverProps,
   LabelPickerPopoverState
 > {
-  static propTypes = {
-    threads: PropTypes.array.isRequired,
-    account: PropTypes.object.isRequired,
-  };
-
   _labels: Label[] = [];
   disposables: Rx.Disposable[];
 

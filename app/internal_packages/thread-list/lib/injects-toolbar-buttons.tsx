@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Thread } from 'mailspring-exports';
-import PropTypes from 'prop-types';
 import { ListensToObservable, InjectedComponentSet } from 'mailspring-component-kit';
 import ThreadListStore from './thread-list-store';
 
@@ -21,10 +20,6 @@ function InjectsToolbarButtons(
 
   class ComposedComponent extends Component<{ items: any[] }> {
     static displayName = ToolbarComponent.displayName;
-
-    static propTypes = {
-      items: PropTypes.array,
-    };
 
     static containerRequired = false;
 

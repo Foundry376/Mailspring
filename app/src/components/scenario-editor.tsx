@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Comparator, Template } from './scenario-editor-models';
 import ScenarioEditorRow from './scenario-editor-row';
 
@@ -45,13 +44,6 @@ export default class ScenarioEditor extends React.Component<
   ScenarioEditorState
 > {
   static displayName = 'ScenarioEditor';
-
-  static propTypes = {
-    instances: PropTypes.array,
-    className: PropTypes.string,
-    onChange: PropTypes.func,
-    templates: PropTypes.array,
-  };
 
   static Template = Template;
   static Comparator = Comparator;

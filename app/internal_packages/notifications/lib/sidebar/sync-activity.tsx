@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized, AccountStore, PropTypes, imapUtf7 } from 'mailspring-exports';
+import { localized, AccountStore, imapUtf7 } from 'mailspring-exports';
 
 interface SyncActivityProps {
   syncState: {
@@ -10,10 +10,6 @@ interface SyncActivityProps {
 }
 export class SyncActivity extends React.Component<SyncActivityProps> {
   static displayName = 'ExpandedSyncActivity';
-
-  static propTypes = {
-    syncState: PropTypes.object,
-  };
 
   renderFolderProgress(folderPath, { bodyProgress, scanProgress, busy }) {
     let status = 'complete';

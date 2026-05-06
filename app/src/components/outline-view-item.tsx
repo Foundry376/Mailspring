@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom';
 import { DisclosureTriangle } from './disclosure-triangle';
 import { DropZone } from './drop-zone';
 import { RetinaImg } from './retina-img';
-import PropTypes from 'prop-types';
 import { IOutlineViewItem } from './outline-view';
 
 /*
@@ -124,29 +123,6 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
    * @param {object} item - The current item
    * @param {string} value - The new value
    */
-  static propTypes = {
-    item: PropTypes.shape({
-      className: PropTypes.string,
-      id: PropTypes.string.isRequired,
-      children: PropTypes.array.isRequired,
-      name: PropTypes.string.isRequired,
-      iconName: PropTypes.string,
-      count: PropTypes.number,
-      counterStyle: PropTypes.string,
-      inputPlaceholder: PropTypes.string,
-      collapsed: PropTypes.bool,
-      editing: PropTypes.bool,
-      selected: PropTypes.bool,
-      shouldAcceptDrop: PropTypes.func,
-      onCollapseToggled: PropTypes.func,
-      onInputCleared: PropTypes.func,
-      onDrop: PropTypes.func,
-      onSelect: PropTypes.func,
-      onDelete: PropTypes.func,
-      onEdited: PropTypes.func,
-    }).isRequired,
-  };
-
   static CounterStyles = CounterStyles;
 
   _expandTimeout?: NodeJS.Timeout;

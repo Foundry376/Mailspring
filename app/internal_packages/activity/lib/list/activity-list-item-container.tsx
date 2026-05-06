@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { DisclosureTriangle, Flexbox, RetinaImg } from 'mailspring-component-kit';
 import { localized, DateUtils } from 'mailspring-exports';
 
@@ -8,10 +7,6 @@ import { configForPluginId } from '../plugin-helpers';
 
 class ActivityListItemContainer extends React.Component<{ group: any }, { collapsed: boolean }> {
   static displayName = 'ActivityListItemContainer';
-
-  static propTypes = {
-    group: PropTypes.array,
-  };
 
   constructor(props) {
     super(props);

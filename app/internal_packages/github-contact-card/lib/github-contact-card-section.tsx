@@ -1,9 +1,9 @@
 import React from 'react';
-import { localized, PropTypes } from 'mailspring-exports';
+import { localized } from 'mailspring-exports';
 import GithubUserStore from './github-user-store';
 
 // Small React component that renders a single Github repository
-const GithubRepo = function GithubRepo(props) {
+const GithubRepo = function GithubRepo(props: { repo: any }) {
   const { repo } = props;
 
   return (
@@ -13,14 +13,9 @@ const GithubRepo = function GithubRepo(props) {
     </div>
   );
 };
-GithubRepo.propTypes = {
-  // This component takes a `repo` object as a prop. Listing props is optional
-  // but enables nice React warnings when our expectations aren't met
-  repo: PropTypes.object.isRequired,
-};
 
 // Small React component that renders the user's Github profile.
-const GithubProfile = function GithubProfile(props) {
+const GithubProfile = function GithubProfile(props: { profile: any }) {
   const { profile } = props;
 
   // Transform the profile's array of repos into an array of React <GithubRepo> elements
@@ -42,11 +37,6 @@ const GithubProfile = function GithubProfile(props) {
       <div>{repoElements}</div>
     </div>
   );
-};
-GithubProfile.propTypes = {
-  // This component takes a `profile` object as a prop. Listing props is optional
-  // but enables nice React warnings when our expectations aren't met.
-  profile: PropTypes.object.isRequired,
 };
 
 export default class GithubContactCardSection extends React.Component<

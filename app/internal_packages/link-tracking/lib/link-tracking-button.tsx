@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   localized,
-  PropTypes,
   APIError,
   MailspringAPIRequest,
   Message,
@@ -17,11 +16,6 @@ export default class LinkTrackingButton extends React.Component<{
   static displayName = 'LinkTrackingButton';
 
   static containersRequired: false;
-
-  static propTypes = {
-    draft: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-  };
 
   shouldComponentUpdate(nextProps: { draft: Message; session: DraftEditingSession }) {
     return (

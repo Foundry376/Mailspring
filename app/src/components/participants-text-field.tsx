@@ -2,7 +2,6 @@ import React from 'react';
 import { ipcRenderer } from 'electron';
 import {
   localized,
-  PropTypes,
   Utils,
   Contact,
   ContactStore,
@@ -14,7 +13,7 @@ import {
 } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
-const TokenRenderer = (props) => {
+const TokenRenderer = (props: { token: object }) => {
   const contact = props.token as Contact;
   let chipText = contact.email;
   if (contact.name && contact.name.length > 0 && contact.name !== contact.email) {
@@ -33,10 +32,6 @@ const TokenRenderer = (props) => {
   );
 };
 
-TokenRenderer.propTypes = {
-  token: PropTypes.object,
-};
-
 type ParticipantsTextFieldProps = {
   field?: string;
   label?: string;
@@ -51,35 +46,6 @@ type ParticipantsTextFieldProps = {
 
 export default class ParticipantsTextField extends React.Component<ParticipantsTextFieldProps> {
   static displayName = 'ParticipantsTextField';
-
-  static propTypes = {
-    // The name of the field, used for both display purposes and also
-    // to modify the `participants` provided.
-    field: PropTypes.string,
-
-    // The word displayed to the left of the field
-    label: PropTypes.string,
-
-    // An object containing arrays of participants. Typically, this is
-    // {to: [], cc: [], bcc: []}. Each ParticipantsTextField needs all of
-    // the values, because adding an element to one field may remove it
-    // from another.
-    participants: PropTypes.object.isRequired,
-
-    // The function to call with an updated `participants` object when
-    // changes are made.
-    change: PropTypes.func.isRequired,
-
-    className: PropTypes.string,
-
-    onEmptied: PropTypes.func,
-
-    onFocus: PropTypes.func,
-
-    draft: PropTypes.object,
-
-    session: PropTypes.object,
-  };
 
   _textfieldEl?: TokenizingTextField<Contact>;
 

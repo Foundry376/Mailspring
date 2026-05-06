@@ -3,7 +3,6 @@ import _ from 'underscore';
 import classNames from 'classnames';
 import {
   localized,
-  PropTypes,
   Actions,
   ChangeLabelsTask,
   CategoryStore,
@@ -29,10 +28,6 @@ type MailImportantIconState = {
 
 class MailImportantIcon extends React.Component<MailImportantIconProps, MailImportantIconState> {
   static displayName = 'MailImportantIcon';
-  static propTypes = {
-    thread: PropTypes.object,
-    showIfAvailableForAnyAccount: PropTypes.bool,
-  };
 
   unsubscribe?: () => void;
   subscription?: Disposable;

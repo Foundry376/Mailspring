@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,12 +18,6 @@ export function toSelector(themeName: string) {
 }
 
 class ThemeOption extends React.Component<ThemeOptionProps> {
-  static propTypes = {
-    theme: PropTypes.object.isRequired,
-    active: PropTypes.bool.isRequired,
-    onSelect: PropTypes.func.isRequired,
-  };
-
   lessCache = null;
   _iframeComponent: EventedIFrame;
 

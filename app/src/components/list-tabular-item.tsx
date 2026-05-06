@@ -1,6 +1,6 @@
 import SwipeContainer from './swipe-container';
 import React from 'react';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 import { ListTabularColumn } from './list-tabular';
 
 type ListTabularItemProps = {
@@ -24,15 +24,6 @@ type ListTabularItemProps = {
 
 export class ListTabularItem extends React.Component<ListTabularItemProps> {
   static displayName = 'ListTabularItem';
-  static propTypes = {
-    metrics: PropTypes.object,
-    columns: PropTypes.arrayOf(PropTypes.object).isRequired,
-    item: PropTypes.object.isRequired,
-    itemProps: PropTypes.object,
-    onSelect: PropTypes.func,
-    onClick: PropTypes.func,
-    onDoubleClick: PropTypes.func,
-  };
 
   _columnCache: JSX.Element[] | null = null;
   _lastClickTime: number;

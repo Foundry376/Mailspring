@@ -1,13 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import { RetinaImg } from 'mailspring-component-kit';
 
 export default class LoadingCover extends React.Component<{ active: boolean }> {
-  static propTypes = {
-    active: PropTypes.bool,
-  };
-
   render() {
     return (
       <div className={`loading-cover ${this.props.active && 'active'}`}>

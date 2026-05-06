@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Moment } from 'moment';
 import { localized, DateUtils, Actions, Thread } from 'mailspring-exports';
 import { RetinaImg, DateInput } from 'mailspring-component-kit';
@@ -35,11 +34,6 @@ class SnoozePopover extends Component<{
   swipeCallback: (didSnooze: boolean) => void;
 }> {
   static displayName = 'SnoozePopover';
-
-  static propTypes = {
-    threads: PropTypes.array.isRequired,
-    swipeCallback: PropTypes.func,
-  };
 
   static defaultProps = {
     swipeCallback: () => {},

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 const FormField = (props: {
   field: string;
@@ -34,18 +33,6 @@ const FormField = (props: {
       />
     </span>
   );
-};
-
-FormField.propTypes = {
-  field: PropTypes.string,
-  title: PropTypes.string,
-  type: PropTypes.string,
-  style: PropTypes.object,
-  submitting: PropTypes.bool,
-  onFieldKeyPress: PropTypes.func,
-  onFieldChange: PropTypes.func,
-  errorFieldNames: PropTypes.array,
-  account: PropTypes.object,
 };
 
 export default FormField;
