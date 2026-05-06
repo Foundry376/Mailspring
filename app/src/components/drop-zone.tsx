@@ -12,9 +12,9 @@ interface DropZoneProps {
   onDragStateChange: (state: { isDropping: boolean }) => void;
 }
 
-const DROP_ZONE_OWN_PROP_KEYS = ['shouldAcceptDrop', 'onDrop', 'onDragStateChange'];
-
 export class DropZone extends React.Component<DropZoneProps> {
+  static ownPropKeys = ['shouldAcceptDrop', 'onDrop', 'onDragStateChange'];
+
   _dragCounter = 0;
 
   static defaultProps = {
@@ -65,7 +65,7 @@ export class DropZone extends React.Component<DropZoneProps> {
   };
 
   render() {
-    const otherProps = _.omit(this.props, DROP_ZONE_OWN_PROP_KEYS);
+    const otherProps = _.omit(this.props, DropZone.ownPropKeys);
     return (
       <div
         {...otherProps}

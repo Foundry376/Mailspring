@@ -52,7 +52,7 @@ Section: Component Kit
 export class MultiselectList extends React.Component<MultiselectListProps, MultiselectListState> {
   static displayName = 'MultiselectList';
 
-  private static _propKeys = [
+  static ownPropKeys = [
     'dataSource',
     'className',
     'columns',
@@ -218,7 +218,7 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
   }
 
   render() {
-    const otherProps = Utils.fastOmit(this.props, MultiselectList._propKeys);
+    const otherProps = Utils.fastOmit(this.props, MultiselectList.ownPropKeys);
     let { className } = this.props;
 
     if (this.props.dataSource) {

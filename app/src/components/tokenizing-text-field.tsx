@@ -224,27 +224,121 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
 
 type TokenizingTextFieldProps<T> = {
   className?: string;
+
   disabled?: boolean;
+
   placeholder?: React.ReactNode;
+
+  /**
+   * An array of current tokens. A token is usually an object type like a `Contact`.
+   * The set of tokens is stored as a prop instead of `state`, so when the set of
+   * tokens needs to change it is the parent's responsibility to make that change.
+   */
   tokens?: T[];
+
+  /**
+   * The maximum number of tokens allowed. When null (the default) an unlimited
+   * number of tokens may be given.
+   */
   maxTokens?: number;
+
+  /** A string to pre-fill the input with when the tokens are empty. */
   defaultValue?: string;
+
+  /**
+   * Given an object used for tokens, returns a unique id (key) for that object.
+   * Necessary for React to assign each of the subitems a unique key.
+   */
   tokenKey: (token: T) => any;
+
+  /**
+   * Given a token, returns true if the token is valid and false otherwise. Useful
+   * if your implementation of onAdd allows invalid tokens to be added to the field
+   * (e.g. malformed email addresses). Optional.
+   */
   tokenIsValid?: (token: T) => any;
+
+  /**
+   * What each token looks like. Passed an object and should return React elements
+   * to display that individual token.
+   */
   tokenRenderer: (props: { token: T }) => any;
+
   tokenClassNames?: (token: T) => any;
+
+  /**
+   * Provides a list of possible options given the current input. Takes the current
+   * input as a value and should return an array of candidate objects (same type as
+   * are passed to the `tokens` prop). May return tokens directly or a Promise that
+   * resolves with the requested tokens.
+   */
   onRequestCompletions: (...args: any[]) => T[] | Promise<T[]>;
+
+  /**
+   * What each suggestion looks like. Passed through to the Menu component's
+   * `itemContent` prop. See components/menu for more info.
+   */
   completionNode: (...args: any[]) => any;
+
+  /**
+   * Called when we're ready to add whatever it is we're completing. Either passed
+   * an array of objects (the same ones used to render tokens), OR passed the string
+   * currently in the input field (the string case happens on paste and blur). It
+   * doesn't need to return anything but is generally responsible for mutating the
+   * parent's state in a way that eventually updates this component's `tokens` prop.
+   */
   onAdd: (...args: any[]) => any;
+
+  /**
+   * Fired when the user tries to submit a query with a break character (tab, comma,
+   * semicolon, etc). Lets the caller determine how to best deal with available
+   * options. If not implemented we pick the first available option in the completions.
+   */
   onInputTrySubmit?: (...args: any[]) => any;
+
+  /**
+   * If implemented, lets the caller determine when to cut a token based on the
+   * current input value and the current keydown.
+   */
   shouldBreakOnKeydown?: (...args: any[]) => any;
+
+  /**
+   * Called when we remove a token. Passed an array of objects (the same ones used
+   * to render tokens). It doesn't need to return anything but is generally
+   * responsible for mutating the parent's state in a way that eventually updates
+   * this component's `tokens` prop.
+   */
   onRemove: (...args: any[]) => any;
+
+  /**
+   * Called when an existing token is double-clicked and edited. Do not provide this
+   * method if you want to disable editing. Passed a token index and the new text
+   * typed in that location. It doesn't need to return anything but is generally
+   * responsible for mutating the parent's state in a way that eventually updates
+   * this component's `tokens` prop.
+   */
   onEdit?: (...args: any[]) => any;
+
+  /**
+   * Slightly different than onEdit — onEditMotion fires if the user does an
+   * editing-like action on a Token (double clicking, etc). Useful when you don't
+   * want the text of the tokens themselves to be editable but want to perform some
+   * action when the tokens are double clicked.
+   */
   onEditMotion?: (...args: any[]) => any;
+
+  /** Called when we remove and there's nothing left to remove. */
   onEmptied?: (...args: any[]) => any;
+
+  /** Called when the secondary action of the token gets invoked. */
   onTokenAction?: ((...args: any[]) => any) | false;
+
+  /** Called when the input is focused. */
   onFocus?: (...args: any[]) => any;
+
+  /** A prompt used in the head of the menu. */
   label?: string;
+
   tabIndex?: number;
 };
 type TokenizingTextFieldState<T> = {
