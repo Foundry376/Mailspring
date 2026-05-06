@@ -155,7 +155,12 @@ describe('MovePickerPopover', function() {
   describe('_onSelectCategory', function() {
     beforeEach(function() {
       setupForCreateNew.call(this);
+      // TODO: `taskForRemovingCategory` and `taskForApplyingCategory` were removed
+      // from TaskFactory; the spec was already broken before being typechecked.
+      // The `as any` cast preserves prior behavior — clean up alongside the spec.
       spyOn(TaskFactory as any, 'taskForRemovingCategory').andCallThrough();
+      // TODO: `tasK` is a typo (capital K) preserved from the original .jsx; the
+      // spy targets a property that does not exist on TaskFactory.
       spyOn(TaskFactory as any, 'tasK').andCallThrough();
       spyOn(Actions, 'queueTask');
     });

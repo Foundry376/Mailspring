@@ -8,6 +8,9 @@ const patched = proxyquire('../lib/items/default-client-notif', {
   'mailspring-exports': {
     DefaultClientHelper: class {
       constructor() {
+        // TODO: `isRegisteredForURLScheme` and `registerForURLScheme` no longer
+        // exist on the real DefaultClientHelper; the `as any` casts preserve the
+        // stub but the spec may not be exercising current production behavior.
         (this as any).isRegisteredForURLScheme = (urlScheme, callback) => {
           callback(stubIsRegistered);
         };
