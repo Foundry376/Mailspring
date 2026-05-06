@@ -17,11 +17,15 @@ interface AccountBasicSettingsFormProps {
 class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormProps> {
   static displayName = 'AccountBasicSettingsForm';
 
-  static submitLabel = (account) => {
+  static submitLabel = (account: Account) => {
     return account.provider === 'imap' ? localized('Continue') : localized('Connect Account');
   };
 
-  static titleLabel = (providerConfig) => {
+  static titleLabel = (providerConfig: {
+    title?: string;
+    displayNameShort?: string;
+    displayName: string;
+  }) => {
     return (
       providerConfig.title ||
       localized(
@@ -31,7 +35,7 @@ class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormP
     );
   };
 
-  static subtitleLabel = (providerConfig) => {
+  static subtitleLabel = (providerConfig: { note?: React.ReactNode }) => {
     return (
       providerConfig.note ||
       localized(
@@ -40,7 +44,7 @@ class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormP
     );
   };
 
-  static validateAccount = (account) => {
+  static validateAccount = (account: Account) => {
     const errorFieldNames = [];
     let errorMessage = null;
 

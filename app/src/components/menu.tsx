@@ -377,7 +377,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
     );
   }
 
-  onKeyDown = (event) => {
+  onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (this.props.items.length === 0) {
       return;
     }
@@ -421,7 +421,7 @@ export class Menu extends React.Component<MenuProps, MenuState> {
         return content;
       }
 
-      const onMouseDown = (event) => {
+      const onMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
         const key = this.props.itemKey(item);
         this.setState({ selectedIndex: i, selectedItemKey: key });

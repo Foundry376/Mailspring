@@ -49,7 +49,7 @@ class TemplateEditor extends React.Component<
     }
   };
 
-  _onFocusEditor = (e) => {
+  _onFocusEditor = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === ReactDOM.findDOMNode(this._composer)) {
       this._composer.focusEndAbsolute();
     }
@@ -150,11 +150,11 @@ export default class PreferencesTemplates extends React.Component<
     Actions.deleteTemplate(this.state.selected.name);
   };
 
-  _onEditTitle = (newName) => {
+  _onEditTitle = (newName: string) => {
     Actions.renameTemplate(this.state.selected.name, newName);
   };
 
-  _onSelect = (item) => {
+  _onSelect = (item: ITemplate) => {
     this.setState({ selected: item });
   };
 

@@ -403,7 +403,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  find<T extends Model>(klass: typeof Model, id) {
+  find<T extends Model>(klass: typeof Model, id: string) {
     if (!klass) {
       throw new Error(`DatabaseStore::find - You must provide a class`);
     }

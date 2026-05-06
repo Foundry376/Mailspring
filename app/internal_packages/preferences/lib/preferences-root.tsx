@@ -11,7 +11,7 @@ import {
 import { PreferencesUIStore } from 'mailspring-exports';
 import PreferencesTabsBar from './preferences-tabs-bar';
 
-const stopPropagation = (e) => {
+const stopPropagation = (e: CustomEvent) => {
   e.stopPropagation();
 };
 
@@ -49,7 +49,7 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
     this._focusContent();
   }
 
-  componentDidUpdate(oldProps) {
+  componentDidUpdate(oldProps: { tab: any; tabs: any[]; selection: any }) {
     if (oldProps.tab !== this.props.tab) {
       const scrollRegion = document.querySelector('.preferences-content .scroll-region-content');
       scrollRegion.scrollTop = 0;

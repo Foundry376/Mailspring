@@ -77,7 +77,7 @@ class PreferencesMailRules extends React.Component<
     };
   }
 
-  _onSelectAccount = (event) => {
+  _onSelectAccount = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const accountId = event.target.value;
     const currentAccount = this.state.accounts.find((acct) => acct.id === accountId);
     this.setState({ currentAccount: currentAccount }, () => {
@@ -121,23 +121,30 @@ class PreferencesMailRules extends React.Component<
     Actions.addMailRule({ accountId: this.state.currentAccount.id });
   };
 
-  _onSelectRule = (rule) => {
+  _onSelectRule = (rule: ReturnType<typeof MailRulesStore.rulesForAccountId>[0]) => {
     this.setState({ selectedRule: rule });
   };
 
-  _onReorderRule = (rule, startIdx, endIdx) => {
+  _onReorderRule = (
+    rule: ReturnType<typeof MailRulesStore.rulesForAccountId>[0],
+    startIdx: number,
+    endIdx: number
+  ) => {
     Actions.reorderMailRule(rule.id, endIdx);
   };
 
-  _onDeleteRule = (rule) => {
+  _onDeleteRule = (rule: ReturnType<typeof MailRulesStore.rulesForAccountId>[0]) => {
     Actions.deleteMailRule(rule.id);
   };
 
-  _onRuleNameEdited = (newName, rule) => {
+  _onRuleNameEdited = (
+    newName: string,
+    rule: ReturnType<typeof MailRulesStore.rulesForAccountId>[0]
+  ) => {
     Actions.updateMailRule(rule.id, { name: newName });
   };
 
-  _onRuleConditionModeEdited = (event) => {
+  _onRuleConditionModeEdited = (event: React.ChangeEvent<HTMLSelectElement>) => {
     Actions.updateMailRule(this.state.selectedRule.id, { conditionMode: event.target.value });
   };
 

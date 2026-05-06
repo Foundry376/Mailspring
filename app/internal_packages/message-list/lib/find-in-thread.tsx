@@ -51,11 +51,11 @@ export default class FindInThread extends React.Component<
     this.setState(SearchableComponentStore.getCurrentSearchData());
   };
 
-  _onFindChange = (event) => {
+  _onFindChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     Actions.findInThread(event.target.value);
   };
 
-  _onFindKeyDown = (event) => {
+  _onFindKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       return event.shiftKey ? this._onPrevResult() : this._onNextResult();
     } else if (event.key === 'Escape') {

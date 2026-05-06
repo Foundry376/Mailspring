@@ -12,6 +12,7 @@ import ContactStore from './contact-store';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
 import { DraftChangeSet } from './draft-change-set';
+import { DatabaseChangeRecord } from './database-change-record';
 import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
@@ -487,7 +488,7 @@ export class DraftEditingSession extends MailspringStore {
     await TaskQueue.waitForPerformLocal(task);
   }
 
-  changeSetApplyChanges = (changes) => {
+  changeSetApplyChanges = (changes: Record<string, unknown>) => {
     if (this._destroyed) {
       return;
     }

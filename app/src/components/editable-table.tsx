@@ -112,7 +112,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
     }
   }
 
-  onInputBlur = (event) => {
+  onInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const {
       target: { value },
     } = event;
@@ -123,7 +123,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
     }
   };
 
-  onInputKeyDown = (event) => {
+  onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = event;
     const { onAddRow } = this.props;
 

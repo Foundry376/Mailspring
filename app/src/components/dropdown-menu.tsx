@@ -62,9 +62,9 @@ export default class DropdownMenu extends React.Component<DropdownMenuProps, Dro
     this._close();
   };
 
-  _onBlur = (e) => {
+  _onBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     const node = ReactDOM.findDOMNode(this);
-    let otherNode = e.relatedTarget;
+    let otherNode = e.relatedTarget as Element | null;
     if (otherNode) {
       while (otherNode.parentElement) {
         // Don't close the dropdown if the related target is a child of this component

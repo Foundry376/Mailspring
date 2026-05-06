@@ -16,14 +16,15 @@ interface SignatureAccountDefaultPickerProps {
 }
 
 export default class SignatureAccountDefaultPicker extends React.Component<SignatureAccountDefaultPickerProps> {
-  _onToggleAccount = (account) => {
+  _onToggleAccount = (account: IAliasSet[0]) => {
     Actions.toggleAccount(account.email);
   };
 
   render() {
     const { accountsAndAliases, defaults, signature } = this.props;
 
-    const isChecked = (accountOrAlias) => defaults[accountOrAlias.email] === signature.id;
+    const isChecked = (accountOrAlias: IAliasSet[0]) =>
+      defaults[accountOrAlias.email] === signature.id;
     const checked = accountsAndAliases.filter(isChecked);
 
     const noun = checked.length === 1 ? localized('Account') : localized('Accounts');

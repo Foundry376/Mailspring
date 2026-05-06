@@ -8,6 +8,7 @@ import {
   DraftStore,
   DraftEditingSession,
   MessageWithEditorState,
+  File,
 } from 'mailspring-exports';
 import { webUtils } from 'electron';
 import {
@@ -164,7 +165,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                 value={draft.body}
                 propsForPlugins={{ draft, session }}
                 onFileReceived={this._onFileReceived}
-                onDrop={(e) => this.dropzone.current._onDrop(e)}
+                onDrop={(e) => this.dropzone.current._onDrop(e as React.DragEvent<HTMLDivElement>)}
                 onChange={(body) => {
                   session.changes.add({ body });
                 }}
@@ -178,7 +179,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                   propsForPlugins={{ draft, session }}
                   onFileReceived={this._onFileReceived}
                   onUpdatedSlateEditor={(editor) => session.setMountedEditor(editor)}
-                  onDrop={(e) => this.dropzone.current._onDrop(e)}
+                  onDrop={(e) => this.dropzone.current._onDrop(e as React.DragEvent<HTMLDivElement>)}
                   onChange={(change) => {
                     // We minimize thrashing and support editors in multiple windows by ensuring
                     // non-value changes (eg focus) to the editorState don't trigger database saves
@@ -234,20 +235,20 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   // separate mouseDown, mouseUp events because we need to ensure that the
   // start and end target are both not in the contenteditable. This ensures
   // that this behavior doesn't interfear with a click and drag selection.
-  _onMouseDownComposerBody = (event) => {
-    if (ReactDOM.findDOMNode(this.editor.current).contains(event.target)) {
+  _onMouseDownComposerBody = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (ReactDOM.findDOMNode(this.editor.current).contains(event.target as Node)) {
       this._mouseDownTarget = null;
     } else {
-      this._mouseDownTarget = event.target;
+      this._mouseDownTarget = event.target as HTMLElement;
     }
   };
 
-  _inFooterRegion(el) {
+  _inFooterRegion(el: HTMLElement) {
     return el.closest && el.closest('.composer-footer-region');
   }
 
-  _onMouseUpComposerBody = (event) => {
-    if (event.target === this._mouseDownTarget && !this._inFooterRegion(event.target)) {
+  _onMouseUpComposerBody = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === this._mouseDownTarget && !this._inFooterRegion(event.target as HTMLElement)) {
       // We don't set state directly here because we want the native
       // contenteditable focus behavior. When the contenteditable gets focused
       const bodyRect = (
@@ -267,7 +268,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     this._mouseDownTarget = null;
   };
 
-  _shouldAcceptDrop = (event) => {
+  _shouldAcceptDrop = (event: React.DragEvent<HTMLDivElement>) => {
     // If the drag was initiated within Slate, let Slate handle it by falling through
     // and not preventing default. Slate can drag-drop image (void) nodes on it's own.
     if (event.dataTransfer.types.includes('application/x-slate-fragment')) {
@@ -282,7 +283,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     return hasNativeFile || hasNonNativeFilePath;
   };
 
-  _nonNativeFilePathForDrop = (event) => {
+  _nonNativeFilePathForDrop = (event: React.DragEvent<HTMLDivElement>) => {
     if (event.dataTransfer.types.includes('text/mailspring-file-url')) {
       const downloadURL = event.dataTransfer.getData('text/mailspring-file-url');
       const downloadFilePath = downloadURL.split('file://')[1];
@@ -316,12 +317,12 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     }
   };
 
-  _onFileReceived = (filePath) => {
+  _onFileReceived = (filePath: string) => {
     // called from onDrop and onFilePaste - assume images should be inline
     Actions.addAttachment({
       filePath: filePath,
       headerMessageId: this.props.draft.headerMessageId,
-      onCreated: (file) => {
+      onCreated: (file: File) => {
         if (!this._mounted) return;
         if (this.props.draft.plaintext) return;
 

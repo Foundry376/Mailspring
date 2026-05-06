@@ -350,7 +350,7 @@ export default class ThreadListContextMenu {
           const message = messages[0];
           const defaultFilename = EmlUtils.defaultEmlFilename(message.subject);
 
-          AppEnv.showSaveDialog({ defaultPath: defaultFilename }, async (savePath) => {
+          AppEnv.showSaveDialog({ defaultPath: defaultFilename }, async (savePath: string) => {
             if (!savePath) return;
             const task = new GetMessageRFC2822Task({
               messageId: message.id,
@@ -366,7 +366,7 @@ export default class ThreadListContextMenu {
               buttonLabel: localized('Save All'),
               properties: ['openDirectory', 'createDirectory'],
             },
-            async (selected) => {
+            async (selected: string[]) => {
               if (!selected || selected.length === 0) return;
               const outputDir = selected[0];
               const path = require('path');

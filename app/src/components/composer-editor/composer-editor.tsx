@@ -84,7 +84,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
       if (!plugin.appCommands) return;
       Object.entries(plugin.appCommands).forEach(
         ([command, handler]: [string, (event: any, val: any) => any]) => {
-          this._pluginKeyHandlers[command] = (event) => {
+          this._pluginKeyHandlers[command] = (event: CustomEvent) => {
             if (!this._mounted) return;
             handler(event, this.editor);
           };
@@ -146,7 +146,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     InlineAttachmentChanges.insert(this.editor, file);
   };
 
-  onFocusIfBlurred = (event) => {
+  onFocusIfBlurred = (_event: React.MouseEvent<HTMLDivElement>) => {
     if (!this.props.value.selection.isFocused) {
       this.focus();
     }

@@ -266,7 +266,7 @@ function stripAtImportRules(cssText: string): string {
   }
 }
 
-DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+DOMPurify.addHook('uponSanitizeElement', (node: Element, data: { tagName: string }) => {
   if (data.tagName !== 'style') return;
   const styleEl = node as HTMLStyleElement;
   styleEl.textContent = stripAtImportRules(styleEl.textContent ?? '');

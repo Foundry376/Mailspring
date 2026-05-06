@@ -45,11 +45,9 @@ class DateInput extends Component<DateInputProps, DateInputState> {
     this._mounted = false;
   }
 
-  onInputKeyDown = (event) => {
-    const {
-      key,
-      target: { value },
-    } = event;
+  onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const key = event.key;
+    const value = (event.target as HTMLInputElement).value;
     if (value.length > 0 && ['Enter', 'Return'].includes(key)) {
       // This prevents onInputChange from being fired
       event.stopPropagation();
@@ -58,7 +56,7 @@ class DateInput extends Component<DateInputProps, DateInputState> {
     }
   };
 
-  onInputChange = (event) => {
+  onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
       target: { value },
     } = event;

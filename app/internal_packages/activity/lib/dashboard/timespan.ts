@@ -19,9 +19,9 @@ export function getTimespanOptions() {
   ];
 }
 
-export function getTimespanStartEnd(id) {
+export function getTimespanStartEnd(id: string) {
   if (id.startsWith('month-')) {
-    const n = id.split('-').pop() / 1;
+    const n = Number(id.split('-').pop());
     const current = n === 0;
     return [
       moment().startOf('month').subtract(n, 'month').add(1, 'minute'),
@@ -38,7 +38,7 @@ export function getTimespanStartEnd(id) {
     // That'd technically be 8 days, inclusive. Instead, make it Saturday midnight -> Friday 6PM
     moment()
       .startOf('day')
-      .subtract(Math.max(0, id / 1 - 1), 'day')
+      .subtract(Math.max(0, Number(id) - 1), 'day')
       .add(1, 'minute'),
     moment(),
   ];

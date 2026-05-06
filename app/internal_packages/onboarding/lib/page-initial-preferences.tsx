@@ -69,12 +69,12 @@ class InitialPreferencesOptions extends React.Component<
     });
   };
 
-  _setConfigDefaultsForAccount = (templates) => {
+  _setConfigDefaultsForAccount = (templates: string[]) => {
     if (!this.props.account) {
       return;
     }
 
-    const templateWithBasename = (name) => templates.find((t) => t.indexOf(name) === 0);
+    const templateWithBasename = (name: string) => templates.find((t) => t.indexOf(name) === 0);
 
     if (this.props.account.provider === 'gmail') {
       this.props.config.set('core.workspace.mode', 'list');

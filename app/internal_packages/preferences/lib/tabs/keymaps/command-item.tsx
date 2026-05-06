@@ -88,7 +88,7 @@ export default class CommandKeybinding extends React.Component<
     return clean;
   }
 
-  _renderKeystrokes = (keystrokes, idx) => {
+  _renderKeystrokes = (keystrokes: string, idx: number) => {
     const elements = [];
     const splitKeystrokes = keystrokes.split(' ');
     splitKeystrokes.forEach((keystroke, kidx) => {
@@ -148,7 +148,7 @@ export default class CommandKeybinding extends React.Component<
     }, 100);
   };
 
-  _onKey = (event) => {
+  _onKey = (event: React.KeyboardEvent<HTMLElement>) => {
     if (!this.state.editing) {
       return;
     }

@@ -126,7 +126,7 @@ export default class ThemeManager {
 
   reloadCoreStyles() {
     console.log('Reloading /static and /internal_packages to incorporate LESS changes');
-    const reloadStylesIn = (folder) => {
+    const reloadStylesIn = (folder: string) => {
       (fs.readdirSync(folder, { recursive: true }) as string[])
         .map((f) => path.join(folder, f))
         .filter((stylePath) => stylePath.endsWith('.less'))

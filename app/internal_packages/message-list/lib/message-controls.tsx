@@ -57,8 +57,8 @@ export default class MessageControls extends React.Component<MessageControlsProp
       : [reply, replyAll, forward, showOriginal];
   }
 
-  _dropdownMenu(items) {
-    const itemContent = (item) => (
+  _dropdownMenu(items: Array<{ name: string; image: string; select: () => void }>) {
+    const itemContent = (item: { name: string; image: string; select: () => void }) => (
       <span>
         <RetinaImg name={item.image} mode={RetinaImg.Mode.ContentIsMask} />
         &nbsp;&nbsp;{item.name}&nbsp;&nbsp;
@@ -106,7 +106,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
 
     AppEnv.showSaveDialog(
       { defaultPath: defaultFilename, title: localized('Save Email') },
-      async (savePath) => {
+      async (savePath: string) => {
         if (!savePath) return;
         const task = new GetMessageRFC2822Task({
           messageId: message.id,

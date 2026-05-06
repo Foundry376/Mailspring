@@ -59,7 +59,7 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     this.state = this.getStateForProps();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: ContactDetailProps) {
     const prevContact = prevProps.contacts?.find((c) => c.id === prevProps.focusedId);
     const newContact = this.props.contacts?.find((c) => c.id === this.props.focusedId);
 

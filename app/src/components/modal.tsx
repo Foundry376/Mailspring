@@ -78,7 +78,7 @@ class Modal extends React.Component<ModalProps, ModalState> {
     return { modalStyle };
   };
 
-  _onKeyDown = (event) => {
+  _onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
       Actions.closeModal();
     }

@@ -13,7 +13,11 @@ const SendLaterOptions = {
   [localized('Next Week')]: DateUtils.nextWeek,
 };
 
-function SendLaterPopover(props) {
+function SendLaterPopover(props: {
+  sendLaterDate?: Date;
+  onAssignSendLaterDate: (date: Date) => void;
+  onCancelSendLater: () => void;
+}) {
   let footer;
   const { onAssignSendLaterDate, onCancelSendLater, sendLaterDate } = props;
   const header = <span key="send-later-header">{localized('Send Later')}:</span>;

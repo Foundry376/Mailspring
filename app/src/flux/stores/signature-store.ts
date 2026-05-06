@@ -123,7 +123,7 @@ class _SignatureStore extends MailspringStore {
     this.selectedSignatureId = sigIds.length ? sigIds[0] : null;
   }
 
-  _onRemoveSignature = (signatureToDelete) => {
+  _onRemoveSignature = (signatureToDelete: ISignature) => {
     this.signatures = Object.assign({}, this.signatures);
     delete this.signatures[signatureToDelete.id];
     this._autoselectSignatureId();

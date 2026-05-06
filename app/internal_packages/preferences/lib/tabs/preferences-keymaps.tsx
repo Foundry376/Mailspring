@@ -87,7 +87,7 @@ export default class PreferencesKeymaps extends React.Component<
     }
   }
 
-  _renderBindingsSection = (section) => {
+  _renderBindingsSection = (section: { title: string; items: string[][] }) => {
     return (
       <section key={`section-${section.title}`}>
         <div className="shortcut-section-title">{section.title}</div>

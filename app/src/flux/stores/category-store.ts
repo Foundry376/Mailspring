@@ -173,7 +173,7 @@ class CategoryStore extends MailspringStore {
       this._categoryCache[cat.accountId][cat.id] = cat;
     }
 
-    const filteredByAccount = (fn) => {
+    const filteredByAccount = (fn: (cat: Folder | Label) => boolean) => {
       const result = {};
       for (const cat of categories) {
         if (!fn(cat)) {

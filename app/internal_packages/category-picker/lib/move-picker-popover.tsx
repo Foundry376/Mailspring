@@ -8,6 +8,7 @@ import {
   TaskQueue,
   Thread,
   Account,
+  Category,
   CategoryStore,
   Folder,
   SyncbackCategoryTask,
@@ -124,7 +125,7 @@ export default class MovePickerPopover extends Component<
     return { categoryData, searchValue };
   };
 
-  _onCategoriesChanged = (categories) => {
+  _onCategoriesChanged = (categories: Category[]) => {
     this._standardFolders = categories.filter((c) => c.role && c instanceof Folder);
     this._userCategories = categories.filter((c) => !c.role || !(c instanceof Folder));
     // Use functional setState to preserve any pending searchValue updates from user typing
@@ -137,7 +138,7 @@ export default class MovePickerPopover extends Component<
     Actions.closePopover();
   };
 
-  _onSelectCategory = (item) => {
+  _onSelectCategory = (item: CategoryData) => {
     if (this.props.threads.length === 0) {
       return;
     }
@@ -167,7 +168,7 @@ export default class MovePickerPopover extends Component<
     Actions.queueTask(syncbackTask);
   };
 
-  _onMoveToCategory = ({ category }) => {
+  _onMoveToCategory = ({ category }: CategoryData) => {
     const { threads } = this.props;
 
     if (category instanceof Folder) {
@@ -193,15 +194,15 @@ export default class MovePickerPopover extends Component<
     }
   };
 
-  _onCompleteAutosuggest = (item) => {
+  _onCompleteAutosuggest = (item: CategoryData) => {
     this.setState(this._recalculateState(this.props, { searchValue: item.displayName }));
   };
 
-  _onSearchValueChange = (event) => {
+  _onSearchValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState(this._recalculateState(this.props, { searchValue: event.target.value }));
   };
 
-  _renderCreateNewItem = ({ searchValue }) => {
+  _renderCreateNewItem = ({ searchValue }: CategoryData) => {
     const icon =
       CategoryStore.getInboxCategory(this.props.account) instanceof Folder ? 'folder' : 'tag';
 
@@ -219,7 +220,7 @@ export default class MovePickerPopover extends Component<
     );
   };
 
-  _renderItem = (item) => {
+  _renderItem = (item: CategoryData) => {
     if (item.divider) {
       return <Menu.Item key={item.id} divider={item.divider} />;
     } else if (item.newCategoryItem) {

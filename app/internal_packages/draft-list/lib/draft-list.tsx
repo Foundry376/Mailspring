@@ -1,5 +1,5 @@
 import React from 'react';
-import { Actions } from 'mailspring-exports';
+import { Actions, Message } from 'mailspring-exports';
 import {
   FluxContainer,
   FocusContainer,
@@ -35,9 +35,9 @@ class DraftList extends React.Component {
       </FluxContainer>
     );
   }
-  _itemPropsProvider = (draft) => {
+  _itemPropsProvider = (draft: Message) => {
     const props: any = {};
-    if (draft.uploadTaskId) {
+    if ((draft as any).uploadTaskId) {
       props.className = 'sending';
     }
     return props;
@@ -51,8 +51,8 @@ class DraftList extends React.Component {
     };
   };
 
-  _onDoubleClick = (draft) => {
-    if (!draft.uploadTaskId) {
+  _onDoubleClick = (draft: Message) => {
+    if (!(draft as any).uploadTaskId) {
       Actions.composePopoutDraft(draft.headerMessageId);
     }
   };

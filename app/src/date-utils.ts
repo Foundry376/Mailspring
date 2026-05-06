@@ -20,27 +20,27 @@ const Hours = {
 const Days = {
   // The value for next monday and next weekend varies depending if the current
   // day is saturday or sunday. See http://momentjs.com/docs/#/get-set/day/
-  NextMonday: (day) => (day === 0 ? 1 : 8),
-  ThisWeekend: (day) => (day === 6 ? 13 : 6),
+  NextMonday: (day: number) => (day === 0 ? 1 : 8),
+  ThisWeekend: (day: number) => (day === 6 ? 13 : 6),
 };
 
-function oclock(momentDate) {
+function oclock(momentDate: Moment) {
   return momentDate.minute(0).second(0);
 }
 
-function morning(momentDate, morningHour = Hours.Morning) {
+function morning(momentDate: Moment, morningHour = Hours.Morning) {
   return oclock(momentDate.hour(morningHour));
 }
 
-function evening(momentDate, eveningHour = Hours.Evening) {
+function evening(momentDate: Moment, eveningHour = Hours.Evening) {
   return oclock(momentDate.hour(eveningHour));
 }
 
-function midnight(momentDate, midnightHour = Hours.Midnight) {
+function midnight(momentDate: Moment, midnightHour = Hours.Midnight) {
   return oclock(momentDate.hour(midnightHour));
 }
 
-function isPastDate(inputDateObj, currentDate) {
+function isPastDate(inputDateObj: { month: number; [key: string]: unknown }, currentDate: Date | Moment | string) {
   const inputMoment = moment({ ...inputDateObj, month: inputDateObj.month - 1 });
   const currentMoment = moment(currentDate);
 

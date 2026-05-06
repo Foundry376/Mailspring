@@ -27,13 +27,13 @@ export class TranslateComposerButton extends React.Component<{
     session: PropTypes.object.isRequired,
   };
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: { draft: Message; session: DraftEditingSession }) {
     // Our render method doesn't use the provided `draft`, and the draft changes
     // constantly (on every keystroke!) `shouldComponentUpdate` helps keep Mailspring fast.
     return nextProps.session !== this.props.session;
   }
 
-  _onTranslate = async (langName) => {
+  _onTranslate = async (langName: string) => {
     Actions.closePopover();
 
     try {

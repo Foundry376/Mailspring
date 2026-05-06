@@ -39,7 +39,7 @@ export default class RelatedThreads extends React.Component<
     this._mounted = false;
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: { contact: Contact }) {
     if (emailFor(prevProps.contact) !== emailFor(this.props.contact)) {
       this.setState({ threads: [] });
       this.fetchThreads();

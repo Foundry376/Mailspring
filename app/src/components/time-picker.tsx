@@ -63,7 +63,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     return moment(value).format('LT');
   }
 
-  _onKeyDown = (event) => {
+  _onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'ArrowUp') {
       event.preventDefault();
       this._onArrow(event.key);
@@ -97,15 +97,15 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     el.setSelectionRange(0, el.value.length);
   };
 
-  _onBlur = (event) => {
+  _onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     this.setState({ focused: false });
-    if (event.relatedTarget && Array.from(event.relatedTarget.classList).includes('time-options')) {
+    if (event.relatedTarget && Array.from((event.relatedTarget as Element).classList).includes('time-options')) {
       return;
     }
     this._saveIfValid(this.state.rawText);
   };
 
-  _onRawTextChange = (event) => {
+  _onRawTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ rawText: event.target.value });
   };
 

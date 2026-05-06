@@ -6,15 +6,16 @@ import {
   DatabaseStore,
   FeatureUsageStore,
   SyncbackMetadataTask,
+  DraftEditingSession,
 } from 'mailspring-exports';
 
 import { PLUGIN_ID } from './send-reminders-constants';
 
-export function reminderDateFor(draftOrThread) {
+export function reminderDateFor(draftOrThread: Thread | Message | null) {
   return ((draftOrThread && draftOrThread.metadataForPluginId(PLUGIN_ID)) || {}).expiration;
 }
 
-async function incrementMetadataUse(model, expiration) {
+async function incrementMetadataUse(model: Thread | Message, expiration: Date | null) {
   if (reminderDateFor(model)) {
     return true;
   }
@@ -34,12 +35,12 @@ async function incrementMetadataUse(model, expiration) {
   return true;
 }
 
-function assertMetadataShape(value) {
+function assertMetadataShape(value: Record<string, unknown>) {
   const t = { ...value };
   if (t.expiration && !(t.expiration instanceof Date)) {
     throw new Error(`"expiration" should always be absent or a date. Received ${t.expiration}`);
   }
-  if (t.lastReplyTimestamp && !(t.lastReplyTimestamp < Date.now() / 100)) {
+  if (t.lastReplyTimestamp && !((t.lastReplyTimestamp as number) < Date.now() / 100)) {
     throw new Error(
       `"lastReplyTimestamp" should always be a unix timestamp in seconds. Received ${t.lastReplyTimestamp}`
     );
@@ -53,10 +54,10 @@ function assertMetadataShape(value) {
   }
 }
 
-export async function updateReminderMetadata(thread, metadataValue) {
+export async function updateReminderMetadata(thread: Thread, metadataValue: Record<string, unknown>) {
   assertMetadataShape(metadataValue);
 
-  if (!(await incrementMetadataUse(thread, metadataValue.expiration))) {
+  if (!(await incrementMetadataUse(thread, metadataValue.expiration as Date | null))) {
     return;
   }
   Actions.queueTask(
@@ -68,10 +69,10 @@ export async function updateReminderMetadata(thread, metadataValue) {
   );
 }
 
-export async function updateDraftReminderMetadata(draftSession, metadataValue) {
+export async function updateDraftReminderMetadata(draftSession: DraftEditingSession, metadataValue: Record<string, unknown>) {
   assertMetadataShape(metadataValue);
 
-  if (!(await incrementMetadataUse(draftSession.draft(), metadataValue.expiration))) {
+  if (!(await incrementMetadataUse(draftSession.draft(), metadataValue.expiration as Date | null))) {
     return;
   }
   draftSession.changes.add({ pristine: false });

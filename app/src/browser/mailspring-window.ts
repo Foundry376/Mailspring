@@ -49,7 +49,7 @@ export default class MailspringWindow extends EventEmitter {
 
   private loaded: boolean;
   private isSpec: boolean;
-  private windowKey: string;
+  public windowKey: string;
   private neverClose: boolean;
   private mainWindow: boolean;
   private resourcePath: string;
@@ -262,7 +262,7 @@ export default class MailspringWindow extends EventEmitter {
     // action.
     //
     // This uses the DOM's `beforeunload` event.
-    this.browserWindow.on('close', (event) => {
+    this.browserWindow.on('close', (event: Electron.Event) => {
       if (global.application.isQuitting()) {
         return;
       }

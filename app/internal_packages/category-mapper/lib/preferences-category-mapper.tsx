@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   localized,
+  Account,
   AccountStore,
   CategoryStore,
   Category,
@@ -80,7 +81,7 @@ export default class PreferencesCategoryMapper extends React.Component<
     Actions.updateContainerFolderDefault(this.state.containerFolderDefault);
   };
 
-  _renderRoleSection = (account, role) => {
+  _renderRoleSection = (account: Account, role: string) => {
     if (!account) return false;
 
     const assignments = this.state.assignments[account.id];

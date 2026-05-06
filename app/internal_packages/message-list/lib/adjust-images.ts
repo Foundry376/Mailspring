@@ -46,7 +46,7 @@ function _applyMaxWidthAndHeight(node: HTMLElement) {
   }
 }
 
-export function adjustImages(doc) {
+export function adjustImages(doc: Document) {
   const imgTagWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
     acceptNode: (node) => {
       if (node.nodeName === 'IMG') {

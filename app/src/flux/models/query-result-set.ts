@@ -26,7 +26,7 @@ export class QueryResultSet<T extends Model> {
   _modelsHash?: { [id: string]: T };
   _ids: string[] = [];
 
-  static setByApplyingModels(set, models) {
+  static setByApplyingModels<T extends Model>(set: QueryResultSet<T>, models: { [id: string]: T }) {
     if (models instanceof Array) {
       throw new Error('setByApplyingModels: A hash of models is required.');
     }

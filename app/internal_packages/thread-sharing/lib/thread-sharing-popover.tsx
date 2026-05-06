@@ -101,8 +101,8 @@ export default class ThreadSharingPopover extends React.Component<
     this.setState({ saving: false, url: nextUrl });
   };
 
-  _onClickInput = (event) => {
-    event.target.select();
+  _onClickInput = (event: React.MouseEvent<HTMLInputElement>) => {
+    event.currentTarget.select();
   };
 
   render() {

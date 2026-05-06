@@ -187,7 +187,7 @@ class TemplateStore extends MailspringStore {
 
     let number = 1;
     let resolvedName = name;
-    const sameName = (t) => t.name === resolvedName;
+    const sameName = (t: TemplateItem) => t.name === resolvedName;
     while (this._items.find(sameName)) {
       resolvedName = `${name} ${number}`;
       number += 1;
@@ -307,7 +307,7 @@ class TemplateStore extends MailspringStore {
   }
 
   _welcomeTemplate(): Promise<{ name: string; path: string }> {
-    const getTemplatePath = (name) => path.join(__dirname, '..', 'assets', `${name}.html`);
+    const getTemplatePath = (name: string) => path.join(__dirname, '..', 'assets', `${name}.html`);
     let welcomeName = localized('Welcome to Templates');
 
     return new Promise((resolve, reject) => {

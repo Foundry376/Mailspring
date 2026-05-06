@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import fs from 'fs';
 import path from 'path';
-import { Utils, MessageBodyProcessor, CategoryStore } from 'mailspring-exports';
+import { Utils, Message, MessageBodyProcessor, CategoryStore } from 'mailspring-exports';
 import * as AutoloadImagesActions from './autoload-images-actions';
 
 class AutoloadImagesStore extends MailspringStore {
@@ -39,7 +39,7 @@ class AutoloadImagesStore extends MailspringStore {
     return /<link\s+[^>]+>/gi;
   };
 
-  shouldBlockImagesIn = (message) => {
+  shouldBlockImagesIn = (message: Message) => {
     const spam = CategoryStore.getSpamCategory(message.accountId);
     const spamFolderId = spam ? spam.id : undefined;
 
@@ -91,13 +91,13 @@ class AutoloadImagesStore extends MailspringStore {
     });
   };
 
-  _onTemporarilyEnableImages = (message) => {
+  _onTemporarilyEnableImages = (message: Message) => {
     this._whitelistMessageIds[message.id] = true;
     MessageBodyProcessor.resetCache();
     this.trigger();
   };
 
-  _onPermanentlyEnableImages = (message) => {
+  _onPermanentlyEnableImages = (message: Message) => {
     const email = Utils.toEquivalentEmailForm(message.fromContact().email);
     this._whitelistEmails[email] = true;
     MessageBodyProcessor.resetCache();

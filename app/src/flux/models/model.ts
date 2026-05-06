@@ -1,5 +1,6 @@
 import * as Attributes from '../attributes';
 import { Attribute } from '../attributes/attribute';
+import { Matcher } from '../attributes/matcher';
 
 /**
 Public: A base class for API objects that provides abstract support for
@@ -86,7 +87,7 @@ export class Model {
   // - `json` A plain Javascript {Object} with the JSON representation of the model.
   //
   // This method is chainable.
-  fromJSON(json) {
+  fromJSON(json: any) {
     for (const key of Object.keys(this.ctor.attributes)) {
       const attr = this.ctor.attributes[key];
       const attrValue = json[attr.jsonKey || key];
@@ -126,7 +127,7 @@ export class Model {
   //
   // Returns true if the model matches the criteria.
   //
-  matches(criteria) {
+  matches(criteria: Matcher[]) {
     if (!(criteria instanceof Array)) {
       return false;
     }

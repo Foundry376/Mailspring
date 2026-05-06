@@ -101,12 +101,15 @@ export default class AutoUpdateManager extends EventEmitter {
       this.setState(DownloadingState);
     });
 
-    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseVersion) => {
-      this.releaseNotes = releaseNotes;
-      this.releaseVersion = releaseVersion;
-      this.setState(UpdateAvailableState);
-      this.emitUpdateAvailableEvent();
-    });
+    autoUpdater.on(
+      'update-downloaded',
+      (_event: Electron.Event, releaseNotes: string, releaseVersion: string) => {
+        this.releaseNotes = releaseNotes;
+        this.releaseVersion = releaseVersion;
+        this.setState(UpdateAvailableState);
+        this.emitUpdateAvailableEvent();
+      }
+    );
 
     if (autoUpdater.supportsUpdates && !autoUpdater.supportsUpdates()) {
       this.setState(UnsupportedState);
@@ -195,7 +198,7 @@ export default class AutoUpdateManager extends EventEmitter {
     });
   };
 
-  onUpdateError = (event, message) => {
+  onUpdateError = (event: Electron.Event, message: string) => {
     autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable);
     dialog.showMessageBox({
       type: 'warning',

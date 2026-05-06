@@ -27,8 +27,8 @@ dispatch a TextEvent into the editor manually.
 */
 
 let lastTextInputEvent = null;
-document.addEventListener('textInput', (e) => (lastTextInputEvent = e), true);
-document.addEventListener('compositionstart', (e) => (lastTextInputEvent = null), true);
+document.addEventListener('textInput', (e: Event) => (lastTextInputEvent = e), true);
+document.addEventListener('compositionstart', (_e: CompositionEvent) => (lastTextInputEvent = null), true);
 document.addEventListener(
   'compositionend',
   (e: CompositionEvent) => {
@@ -80,23 +80,23 @@ Testing notes:
 let repeatingKeyDown = null;
 let substitutionsPanelMayBeOpen = false;
 
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', (e: KeyboardEvent) => {
   repeatingKeyDown = e.repeat ? e.key : null;
   if (!['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
     substitutionsPanelMayBeOpen = false;
   }
 });
 
-document.addEventListener('keypress', (e) => {
+document.addEventListener('keypress', (_e: KeyboardEvent) => {
   substitutionsPanelMayBeOpen = false;
 });
 
-document.addEventListener('keyup', (e) => {
+document.addEventListener('keyup', (e: KeyboardEvent) => {
   substitutionsPanelMayBeOpen = repeatingKeyDown && repeatingKeyDown === e.key;
   repeatingKeyDown = false;
 });
 
-document.addEventListener('beforeinput', (e) => {
+document.addEventListener('beforeinput', (e: InputEvent) => {
   if (substitutionsPanelMayBeOpen) {
     substitutionsPanelMayBeOpen = false;
     if (e.target instanceof HTMLElement && e.target.closest('[data-slate-editor]')) {

@@ -145,14 +145,14 @@ export class ButtonDropdown extends React.Component<ButtonDropdownProps, ButtonD
     }
   };
 
-  _onMenuClick = (event) => {
+  _onMenuClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.closeOnMenuClick) {
       this.setState({ open: false });
     }
   };
 
-  _onBlur = (event) => {
-    const target = event.nativeEvent.relatedTarget;
+  _onBlur = (event: React.FocusEvent<HTMLDivElement>) => {
+    const target = event.nativeEvent.relatedTarget as Node | null;
     if (target != null && ReactDOM.findDOMNode(this.refs.button).contains(target)) {
       return;
     }

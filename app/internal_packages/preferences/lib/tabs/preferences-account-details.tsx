@@ -119,14 +119,14 @@ class PreferencesAccountDetails extends Component<
     this.setState({ account }, callback);
   };
 
-  _setStateAndSave = (updates) => {
+  _setStateAndSave = (updates: Partial<Account>) => {
     this._setState(updates, () => {
       this._saveChanges();
     });
   };
 
   // Handlers
-  _onAccountAutoaddressUpdated = (autoaddress) => {
+  _onAccountAutoaddressUpdated = (autoaddress: AccountAutoaddress) => {
     this._setState({ autoaddress });
   };
 
@@ -136,7 +136,7 @@ class PreferencesAccountDetails extends Component<
     this._setStateAndSave({ aliases });
   };
 
-  _onAccountAliasUpdated = (newAlias, alias, idx) => {
+  _onAccountAliasUpdated = (newAlias: string, alias: string, idx: number) => {
     const coercedAlias = this._makeAlias(newAlias);
     const aliases = this.state.account.aliases.slice();
     let defaultAlias = this.state.account.defaultAlias;
@@ -147,7 +147,7 @@ class PreferencesAccountDetails extends Component<
     this._setStateAndSave({ aliases, defaultAlias });
   };
 
-  _onAccountAliasRemoved = (alias, idx) => {
+  _onAccountAliasRemoved = (alias: string, idx: number) => {
     const aliases = this.state.account.aliases.slice();
     let defaultAlias = this.state.account.defaultAlias;
     if (defaultAlias === alias) {
@@ -157,7 +157,7 @@ class PreferencesAccountDetails extends Component<
     this._setStateAndSave({ aliases, defaultAlias });
   };
 
-  _onDefaultAliasSelected = (event) => {
+  _onDefaultAliasSelected = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const defaultAlias = event.target.value === 'None' ? null : event.target.value;
     this._setStateAndSave({ defaultAlias });
   };
@@ -176,7 +176,7 @@ class PreferencesAccountDetails extends Component<
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
 
-  _onSetColor = (colorChanged) => {
+  _onSetColor = (colorChanged: Partial<Account>) => {
     // TODO: Ensure that the account color is updated in all places where it is displayed:
     // - internal_packages/composer/lib/account-contict-field.tsx
     // - internal_packages/contacts/lib/ContactsList.tsx

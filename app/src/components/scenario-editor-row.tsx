@@ -68,7 +68,7 @@ class SourceSelect extends React.Component<SourceSelectProps, SourceSelectState>
     }
   }
 
-  _onChange = (event) => {
+  _onChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     this.props.onChange({
       target: {
         value: event.target.value === SOURCE_SELECT_NULL ? null : event.target.value,
@@ -119,19 +119,19 @@ export default class ScenarioEditorRow extends React.Component<ScenarioEditorRow
     onRemove: PropTypes.func,
   };
 
-  _onChangeValue = (event) => {
+  _onChangeValue = (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const instance = JSON.parse(JSON.stringify(this.props.instance));
     instance.value = event.target.value;
     this.props.onChange(instance);
   };
 
-  _onChangeComparator = (event) => {
+  _onChangeComparator = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const instance = JSON.parse(JSON.stringify(this.props.instance));
     instance.comparatorKey = event.target.value;
     this.props.onChange(instance);
   };
 
-  _onChangeTemplate = (event) => {
+  _onChangeTemplate = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const instance = JSON.parse(JSON.stringify(this.props.instance));
     const newTemplate = this.props.templates.find((t) => t.key === event.target.value);
     this.props.onChange(newTemplate.coerceInstance(instance));

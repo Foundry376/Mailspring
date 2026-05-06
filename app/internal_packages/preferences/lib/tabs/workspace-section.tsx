@@ -39,7 +39,7 @@ class DefaultMailClientItem extends React.Component<
     this._mounted = false;
   }
 
-  toggleDefaultMailClient = (event) => {
+  toggleDefaultMailClient = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (this.state.defaultClient) {
       this.setState({ defaultClient: false });
       helper.resetURLScheme('mailto');
@@ -117,7 +117,7 @@ class LaunchSystemStartItem extends React.Component {
     this._mounted = false;
   }
 
-  _toggleLaunchOnStart = (event) => {
+  _toggleLaunchOnStart = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (this.state.launchOnStart) {
       this.setState({ launchOnStart: false });
       service.dontLaunchOnSystemStart();
@@ -145,7 +145,7 @@ class LaunchSystemStartItem extends React.Component {
   }
 }
 
-const WorkspaceSection = (props) => {
+const WorkspaceSection = (props: { config: any; configSchema: any }) => {
   return (
     <section>
       <DefaultMailClientItem />

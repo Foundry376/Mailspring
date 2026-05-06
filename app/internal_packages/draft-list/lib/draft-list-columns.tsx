@@ -1,8 +1,8 @@
 import React from 'react';
-import { localized, Utils } from 'mailspring-exports';
+import { localized, Utils, Message } from 'mailspring-exports';
 import { InjectedComponentSet, ListTabular } from 'mailspring-component-kit';
 
-function snippet(html) {
+function snippet(html: string) {
   if (!(html && typeof html === 'string')) {
     return '';
   }
@@ -13,7 +13,7 @@ function snippet(html) {
   }
 }
 
-function subject(subj) {
+function subject(subj: string) {
   if ((subj || '').trim().length === 0) {
     return <span className="no-subject">{localized('(No Subject)')}</span>;
   }
@@ -23,7 +23,7 @@ function subject(subj) {
 const ParticipantsColumn = new ListTabular.Column({
   name: 'Participants',
   width: 200,
-  resolver: (draft) => {
+  resolver: (draft: Message) => {
     const list = [...draft.to, ...draft.cc, ...draft.bcc];
 
     if (list.length > 0) {
@@ -41,7 +41,7 @@ const ParticipantsColumn = new ListTabular.Column({
 const ContentsColumn = new ListTabular.Column({
   name: 'Contents',
   flex: 4,
-  resolver: (draft) => {
+  resolver: (draft: Message) => {
     let attachments: JSX.Element[] | JSX.Element = [];
     if (draft.files && draft.files.length > 0) {
       attachments = <div className="thread-icon thread-icon-attachment" />;
@@ -58,7 +58,7 @@ const ContentsColumn = new ListTabular.Column({
 
 const StatusColumn = new ListTabular.Column({
   name: 'State',
-  resolver: (draft) => {
+  resolver: (draft: Message) => {
     return (
       <InjectedComponentSet
         inline={true}

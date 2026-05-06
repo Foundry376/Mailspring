@@ -2,7 +2,7 @@ import React from 'react';
 import { localized, MailspringAPIRequest } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
-function buildShareHTML(htmlEl, styleEl) {
+function buildShareHTML(htmlEl: HTMLElement, styleEl: HTMLStyleElement) {
   return `
     <!DOCTYPE html>
     <html lang="en">

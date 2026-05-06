@@ -86,7 +86,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     this._unsubscribers.push(MessageStore.listen(this._onChange));
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps: Record<string, unknown>, nextState: MessageListState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
@@ -208,7 +208,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
 
     AppEnv.showSaveDialog(
       { defaultPath: defaultFilename, title: localized('Save Email') },
-      async (savePath) => {
+      async (savePath: string) => {
         if (!savePath) return;
         const task = new GetMessageRFC2822Task({
           messageId: message.id,

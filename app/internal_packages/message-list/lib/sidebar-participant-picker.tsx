@@ -38,14 +38,14 @@ export class SidebarParticipantPicker extends React.Component<
     };
   }
 
-  _getKeyForContact(contact) {
+  _getKeyForContact(contact: Contact | null) {
     if (!contact) {
       return null;
     }
     return contact.email + SPLIT_KEY + contact.name;
   }
 
-  _onSelectContact = (event) => {
+  _onSelectContact = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const { sortedContacts } = this.state;
     const [email, name] = event.target.value.split(SPLIT_KEY);
     const contact = sortedContacts.find(

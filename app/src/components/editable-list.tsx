@@ -192,48 +192,48 @@ class EditableList extends Component<EditableListProps, EditableListState> {
 
   // Handlers
 
-  _onEditInputBlur = (event, item, idx) => {
+  _onEditInputBlur = (event: React.FocusEvent<HTMLInputElement>, item, idx) => {
     this._updateItem(event.target.value, item, idx);
   };
 
-  _onEditInputFocus = (event) => {
+  _onEditInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     const input = event.target;
     // Move cursor to the end of the input
     input.selectionStart = input.selectionEnd = input.value.length;
   };
 
-  _onEditInputKeyDown = (event, item, idx) => {
+  _onEditInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, item, idx) => {
     event.stopPropagation();
     if (['Enter', 'Return'].includes(event.key)) {
-      this._updateItem(event.target.value, item, idx);
+      this._updateItem((event.target as HTMLInputElement).value, item, idx);
     } else if (event.key === 'Escape') {
       this._clearEditingState();
     }
   };
 
-  _onCreateInputBlur = (event) => {
+  _onCreateInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     this._createItem(event.target.value);
   };
 
-  _onCreateInputKeyDown = (event) => {
+  _onCreateInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     event.stopPropagation();
     if (['Enter', 'Return'].includes(event.key)) {
-      this._createItem(event.target.value);
+      this._createItem((event.target as HTMLInputElement).value);
     } else if (event.key === 'Escape') {
       this._clearCreatingState();
     }
   };
 
-  _onItemClick = (event, item, idx) => {
+  _onItemClick = (_event: React.MouseEvent<HTMLDivElement>, item, idx: number) => {
     this._selectItem(item, idx);
   };
 
-  _onItemEdit = (event, item, idx) => {
+  _onItemEdit = (_event: React.MouseEvent<HTMLDivElement>, item, idx: number) => {
     this.setState({ editingIndex: idx });
   };
 
   _listKeymapHandlers = () => {
-    const _shift = (dir) => {
+    const _shift = (dir: number) => {
       const len = this.props.items.length;
       const index = this.props.items.indexOf(this._getSelectedItem());
       const newIndex = Math.min(len - 1, Math.max(0, index + dir));
@@ -244,11 +244,11 @@ class EditableList extends Component<EditableListProps, EditableListState> {
       this._selectItem(this.props.items[newIndex], newIndex);
     };
     return {
-      'core:previous-item': (event) => {
+      'core:previous-item': (event: CustomEvent) => {
         event.stopPropagation();
         _shift(-1);
       },
-      'core:next-item': (event) => {
+      'core:next-item': (event: CustomEvent) => {
         event.stopPropagation();
         _shift(1);
       },
@@ -276,18 +276,19 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     }
   };
 
-  _onItemDragStart = (event) => {
+  _onItemDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     if (!this.props.onReorderItem) {
       event.preventDefault();
       return;
     }
 
-    const row = event.target.closest('[data-item-idx]') || event.target;
+    const target = event.target as HTMLElement;
+    const row = (target.closest('[data-item-idx]') || target) as HTMLElement;
     if (!row.dataset.itemIdx) {
       return;
     }
 
-    if (row.dataset.itemIdx / 1 === this.state.editingIndex / 1) {
+    if (Number(row.dataset.itemIdx) === this.state.editingIndex) {
       // dragging the row currently being edited makes text selection impossible
       event.preventDefault();
       return;
@@ -296,10 +297,10 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     event.dataTransfer.setData('editablelist-index', row.dataset.itemIdx);
     event.dataTransfer.setData(`editablelist-listid:${this.listId}`, 'true');
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.dragEffect = 'move';
+    event.dataTransfer.dropEffect = 'move';
   };
 
-  _onDragOver = (event) => {
+  _onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     const wrapperNode = ReactDOM.findDOMNode(this._itemsWrapperEl) as HTMLElement;
     event.preventDefault();
 
@@ -337,19 +338,22 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     this.setState({ dropInsertionIndex: -1 });
   };
 
-  _onDrop = (event) => {
+  _onDrop = (event: React.DragEvent<HTMLDivElement>) => {
     if (this.state.dropInsertionIndex !== -1) {
-      const startIdx = event.dataTransfer.getData('editablelist-index');
-      if (startIdx && this.state.dropInsertionIndex !== startIdx) {
-        const item = this.props.items[startIdx];
+      const startIdxStr = event.dataTransfer.getData('editablelist-index');
+      if (startIdxStr) {
+        const startIdx = Number(startIdxStr);
+        if (this.state.dropInsertionIndex !== startIdx) {
+          const item = this.props.items[startIdx];
 
-        let endIdx = this.state.dropInsertionIndex;
-        if (endIdx > startIdx) {
-          endIdx -= 1;
+          let endIdx = this.state.dropInsertionIndex;
+          if (endIdx > startIdx) {
+            endIdx -= 1;
+          }
+
+          this.props.onReorderItem(item, startIdx, endIdx);
+          this.setState({ dropInsertionIndex: -1 });
         }
-
-        this.props.onReorderItem(item, startIdx, endIdx);
-        this.setState({ dropInsertionIndex: -1 });
       }
     }
   };

@@ -42,7 +42,7 @@ export default class SignaturePhotoPicker extends React.Component<
     this._isMounted = false;
   }
 
-  _onChooseImage = (event) => {
+  _onChooseImage = (event: React.MouseEvent) => {
     AppEnv.showOpenDialog(
       {
         title: localized('Choose an image'),
@@ -57,7 +57,7 @@ export default class SignaturePhotoPicker extends React.Component<
     );
   };
 
-  _onChooseImageFilePath = (filepath) => {
+  _onChooseImageFilePath = (filepath: string) => {
     const exts = ['png', 'jpg', 'svg', 'tif', 'gif', 'jpeg'];
     const ext = exts.find((ext) => filepath.toLowerCase().endsWith(`.${ext}`));
     if (!ext) {
@@ -120,7 +120,7 @@ export default class SignaturePhotoPicker extends React.Component<
     img.src = `file://${filepath}`;
   };
 
-  _onChooseImageBlob = async (blob, width, height) => {
+  _onChooseImageBlob = async (blob: Blob, width: number, height: number) => {
     this.setState({ isUploading: true });
 
     const ext = { 'image/jpg': 'jpg', 'image/png': 'png' }[blob.type];

@@ -47,7 +47,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     this._onChange(val.dayOfYear(day + numDays));
   }
 
-  _onKeyDown = (event) => {
+  _onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'ArrowLeft') {
       this._moveDay(-1);
     } else if (event.key === 'ArrowRight') {

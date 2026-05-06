@@ -40,7 +40,7 @@ export default class WindowManager {
   }) {
     this.initializeInBackground = initializeInBackground;
 
-    const onCreatedHotWindow = (win) => {
+    const onCreatedHotWindow = (win: MailspringWindow) => {
       this._registerWindow(win);
       this._didCreateNewWindow(win);
     };
@@ -55,7 +55,7 @@ export default class WindowManager {
     });
   }
 
-  get(windowKey) {
+  get(windowKey: string) {
     return this._windows[windowKey];
   }
 
@@ -68,7 +68,8 @@ export default class WindowManager {
       }
     });
 
-    const score = (win) => (win.loadSettings().mainWindow ? 1000 : win.browserWindow.id);
+    const score = (win: MailspringWindow) =>
+      win.loadSettings().mainWindow ? 1000 : win.browserWindow.id;
 
     return values.sort((a, b) => score(b) - score(a));
   }
@@ -77,8 +78,8 @@ export default class WindowManager {
     return this.getOpenWindows().length;
   }
 
-  getVisibleWindows() {
-    const values = [];
+  getVisibleWindows(): MailspringWindow[] {
+    const values: MailspringWindow[] = [];
     Object.keys(this._windows).forEach((key) => {
       const win = this._windows[key];
       if (win.isVisible()) {
@@ -123,7 +124,7 @@ export default class WindowManager {
     return win;
   }
 
-  _registerWindow = (win) => {
+  _registerWindow = (win: MailspringWindow) => {
     if (!win.windowKey) {
       throw new Error('WindowManager: You must provide a windowKey');
     }
@@ -137,7 +138,7 @@ export default class WindowManager {
     this._windows[win.windowKey] = win;
   };
 
-  _didCreateNewWindow = (win) => {
+  _didCreateNewWindow = (win: MailspringWindow) => {
     win.browserWindow.on('closed', () => {
       delete this._windows[win.windowKey];
       if (this.windowLauncher.hotWindow === win) {
@@ -152,7 +153,7 @@ export default class WindowManager {
     global.application.applicationMenu.addWindow(win.browserWindow);
   };
 
-  _registeredKeyForWindow = (win) => {
+  _registeredKeyForWindow = (win: MailspringWindow) => {
     for (const key of Object.keys(this._windows)) {
       const otherWin = this._windows[key];
       if (win === otherWin) {

@@ -46,7 +46,7 @@ if (process.platform === 'darwin') {
   // vertical, not horizontal, behavior.
 }
 
-type SwipeContainerProps = {
+type SwipeContainerProps = React.HTMLProps<HTMLDivElement> & {
   shouldEnableSwipe?: (...args: any[]) => any;
   onSwipeLeft?: (...args: any[]) => any;
   onSwipeLeftClass?: string | ((...args: any[]) => any);
@@ -242,7 +242,7 @@ export default class SwipeContainer extends React.Component<
     }
   };
 
-  _onTouchStart = (e) => {
+  _onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (this.trackingTouchIdentifier === null && e.targetTouches.length > 0) {
       const touch = e.targetTouches.item(0);
       this.trackingTouchIdentifier = touch.identifier;
@@ -252,7 +252,7 @@ export default class SwipeContainer extends React.Component<
     }
   };
 
-  _onTouchMove = (e) => {
+  _onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (this.trackingTouchIdentifier === null) {
       return;
     }
@@ -298,7 +298,7 @@ export default class SwipeContainer extends React.Component<
     }
   };
 
-  _onTouchEnd = (e) => {
+  _onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     if (this.trackingTouchIdentifier === null) {
       return;
     }

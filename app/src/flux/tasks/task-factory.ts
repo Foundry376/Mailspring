@@ -12,7 +12,7 @@ export const TaskFactory = {
     threads: Thread[],
     callback: (accountThreads: Thread[], accountId: string) => Task | Task[]
   ) {
-    const byAccount = {};
+    const byAccount: { [accountId: string]: { accountThreads: Thread[]; accountId: string } } = {};
     threads.forEach((thread) => {
       if (!(thread instanceof Thread)) {
         throw new Error('tasksForThreadsByAccountId: `threads` must be instances of Thread');
@@ -24,13 +24,13 @@ export const TaskFactory = {
       byAccount[accountId].accountThreads.push(thread);
     });
 
-    const tasks = [];
+    const tasks: Task[] = [];
     Object.values(byAccount).forEach(({ accountThreads, accountId }) => {
       const taskOrTasks = callback(accountThreads, accountId);
       if (taskOrTasks && taskOrTasks instanceof Array) {
         tasks.push(...taskOrTasks);
       } else if (taskOrTasks) {
-        tasks.push(taskOrTasks);
+        tasks.push(taskOrTasks as Task);
       }
     });
     return tasks;

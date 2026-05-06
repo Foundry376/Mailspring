@@ -22,7 +22,7 @@ export default class ApplicationMenu {
   constructor(version: string) {
     this.version = version;
     this.setActiveTemplate(this.getDefaultTemplate());
-    global.application.autoUpdateManager.on('state-changed', (state) => {
+    global.application.autoUpdateManager.on('state-changed', (state: string) => {
       this.updateAutoupdateMenuItem(state);
     });
   }

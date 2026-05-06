@@ -20,7 +20,7 @@ class PreferencesTabItem extends React.Component<PreferencesTabItemProps> {
     Actions.switchPreferencesTab(this.props.tabItem.tabId);
   };
 
-  _onClickAccount = (event, accountId) => {
+  _onClickAccount = (event: React.MouseEvent, accountId: string) => {
     Actions.switchPreferencesTab(this.props.tabItem.tabId, { accountId });
     event.stopPropagation();
   };

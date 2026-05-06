@@ -180,7 +180,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     );
   }
 
-  _onDragStart = (event) => {
+  _onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     if (this.props.disabled) return;
     this.props.onDragStart(event, this.props.item);
     this.setState({ dragging: true });
@@ -191,7 +191,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     this.setState({ dragging: false });
   };
 
-  _onClick = (event) => {
+  _onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (this.props.disabled) return;
     this.props.onClick(event, this.props.item);
   };
@@ -206,7 +206,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     }
   };
 
-  _onEditKeydown = (event) => {
+  _onEditKeydown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (this.props.disabled) return;
     if (event.key === 'Enter' && this.props.selected && this.props.onEditMotion) {
       this.props.onEditMotion(this.props.item);
@@ -224,7 +224,7 @@ class Token<T> extends React.Component<TokenProps<T>, TokenState> {
     this.setState({ editing: null });
   };
 
-  _onAction = (event) => {
+  _onAction = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (this.props.disabled) return;
     this.props.onAction(this.props.item);
     event.preventDefault();
@@ -471,10 +471,10 @@ export class TokenizingTextField<T> extends React.Component<
 
   // Maintaining Input State
 
-  _onClick = (event) => {
+  _onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // Don't focus if the focus is already on an input within our field,
     // like an editable token's input
-    if (event.target.tagName === 'INPUT' && ReactDOM.findDOMNode(this).contains(event.target)) {
+    if (event.target instanceof HTMLElement && event.target.tagName === 'INPUT' && ReactDOM.findDOMNode(this).contains(event.target)) {
       return;
     }
 
@@ -484,7 +484,7 @@ export class TokenizingTextField<T> extends React.Component<
     this.focus({ preventScroll: true });
   };
 
-  _onDrop = (event) => {
+  _onDrop = (event: React.DragEvent<HTMLDivElement>) => {
     if (!event.dataTransfer.types.includes('mailspring-token-items')) {
       return;
     }
@@ -521,7 +521,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onInputKeydown = (event) => {
+  _onInputKeydown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (['Backspace', 'Delete'].includes(event.key)) {
       this._removeTokens(this._selectedTokens());
     } else if (['Escape'].includes(event.key)) {
@@ -564,7 +564,7 @@ export class TokenizingTextField<T> extends React.Component<
     this.setState({ selectedKeys: [] });
   };
 
-  _onShiftSelection = (delta, event) => {
+  _onShiftSelection = (delta: number, event: React.KeyboardEvent<HTMLInputElement>) => {
     const multiselectModifierPresent = event.shiftKey || event.metaKey;
     const { tokenKey, tokens } = this.props;
     const { selectedKeys } = this.state;
@@ -611,7 +611,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onInputTrySubmit = (event) => {
+  _onInputTrySubmit = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if ((this.state.inputValue || '').trim().length === 0) {
       return;
     }
@@ -642,7 +642,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onInputChanged = (event) => {
+  _onInputChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value.trimLeft();
     this.setState({
       selectedKeys: [],
@@ -652,7 +652,7 @@ export class TokenizingTextField<T> extends React.Component<
     this._refreshCompletions(val);
   };
 
-  _onInputBlurred = (event) => {
+  _onInputBlurred = (event: React.FocusEvent<HTMLInputElement>) => {
     // Not having a relatedTarget can happen when the whole app blurs. When
     // this happens we want to leave the field as-is
     if (!event.relatedTarget) {
@@ -693,7 +693,7 @@ export class TokenizingTextField<T> extends React.Component<
     this._clearInput();
   };
 
-  _onClickToken = (event, token: T) => {
+  _onClickToken = (event: React.MouseEvent<HTMLDivElement>, token: T) => {
     const { tokenKey, tokens } = this.props;
     let { selectedKeys } = this.state;
 
@@ -734,7 +734,7 @@ export class TokenizingTextField<T> extends React.Component<
     this.setState({ selectedKeys });
   };
 
-  _onDragToken = (event, token) => {
+  _onDragToken = (event: React.DragEvent<HTMLDivElement>, token: T) => {
     let tokens = this._selectedTokens();
     if (tokens.length === 0) {
       tokens = [token];
@@ -752,14 +752,14 @@ export class TokenizingTextField<T> extends React.Component<
     );
   }
 
-  _addToken = (token) => {
+  _addToken = (token: T) => {
     if (!token) {
       return;
     }
     this._addTokens([token]);
   };
 
-  _addTokens = (tokens) => {
+  _addTokens = (tokens: T[]) => {
     this.props.onAdd(tokens);
     // It's possible for `_addTokens` to be fired by the menu
     // asynchronously. When the tokenizing text field is in a popover it's
@@ -770,7 +770,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _removeTokens = (tokensToDelete) => {
+  _removeTokens = (tokensToDelete: T[]) => {
     const { inputValue, selectedKeys } = this.state;
     const { onEmptied, onRemove, tokens, tokenKey } = this.props;
 
@@ -795,7 +795,7 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _showDefaultTokenMenu = (token) => {
+  _showDefaultTokenMenu = (token: T) => {
     const menu = require('@electron/remote').Menu();
     menu.append(
       require('@electron/remote').MenuItem({
@@ -817,7 +817,7 @@ export class TokenizingTextField<T> extends React.Component<
 
   // Copy and Paste
 
-  _onCut = (event) => {
+  _onCut = (event: React.ClipboardEvent<HTMLDivElement>) => {
     if (this.state.selectedKeys.length) {
       this._onAttachToClipboard(event);
       // clear the tokens which were selected
@@ -827,14 +827,14 @@ export class TokenizingTextField<T> extends React.Component<
     }
   };
 
-  _onCopy = (event) => {
+  _onCopy = (event: React.ClipboardEvent<HTMLDivElement>) => {
     if (this.state.selectedKeys.length) {
       this._onAttachToClipboard(event);
       event.preventDefault();
     }
   };
 
-  _onAttachToClipboard = (event) => {
+  _onAttachToClipboard = (event: React.ClipboardEvent<HTMLDivElement>) => {
     const text = this.state.selectedKeys.join(', ');
     if (event.clipboardData) {
       const json = JSON.stringify(this._selectedTokens());
@@ -852,7 +852,7 @@ export class TokenizingTextField<T> extends React.Component<
     event.preventDefault();
   };
 
-  _onPaste = (event) => {
+  _onPaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
     const json = event.clipboardData.getData('mailspring-token-items');
     const inputValue = event.clipboardData.getData('mailspring-token-input');
     if (json) {

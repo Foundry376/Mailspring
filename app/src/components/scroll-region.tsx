@@ -176,7 +176,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     };
   };
 
-  _onHandleDown = (event) => {
+  _onHandleDown = (event: React.MouseEvent<HTMLDivElement>) => {
     const trackNode = ReactDOM.findDOMNode(this.refs.track) as HTMLElement;
     const handleNode = ReactDOM.findDOMNode(this.refs.handle) as HTMLElement;
     this._trackOffset = trackNode.getBoundingClientRect().top;
@@ -187,7 +187,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     event.preventDefault();
   };
 
-  _onHandleMove = (event) => {
+  _onHandleMove = (event: MouseEvent) => {
     const trackY = event.pageY - this._trackOffset - this._mouseOffsetWithinHandle;
     const trackPxToViewportPx =
       (this.state.totalHeight - this.state.viewportHeight) /
@@ -196,19 +196,19 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     event.preventDefault();
   };
 
-  _onHandleUp = (event) => {
+  _onHandleUp = (event: MouseEvent | { preventDefault(): void }) => {
     window.removeEventListener('mousemove', this._onHandleMove);
     window.removeEventListener('mouseup', this._onHandleUp);
     this.setState({ dragging: false });
     event.preventDefault();
   };
 
-  _onHandleClick = (event) => {
+  _onHandleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // Avoid event propogating up to track
     event.stopPropagation();
   };
 
-  _onScrollJump = (event) => {
+  _onScrollJump = (event: React.MouseEvent<HTMLDivElement>) => {
     const handleNode = ReactDOM.findDOMNode(this.refs.handle) as HTMLElement;
     const direction = event.pageY < handleNode.getBoundingClientRect().top ? -1 : 1;
     this.props.getScrollRegion().scrollTop += direction * this.state.viewportHeight;
@@ -530,7 +530,7 @@ export class ScrollRegion extends React.Component<
     this.setState(state as any);
   }
 
-  _onScroll = (event) => {
+  _onScroll = (event: React.UIEvent<HTMLDivElement>) => {
     // onScroll events propogate, which is a bit strange. We could actually be
     // receiving a scroll event for a textarea inside the scroll region.
     // See Preferences > Signatures > textarea
@@ -538,7 +538,7 @@ export class ScrollRegion extends React.Component<
       return;
     }
 
-    this._setSharedState({ scrolling: true, viewportScrollTop: event.target.scrollTop });
+    this._setSharedState({ scrolling: true, viewportScrollTop: (event.target as HTMLElement).scrollTop });
 
     if (typeof this.props.onScroll === 'function') {
       this.props.onScroll(event);

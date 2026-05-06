@@ -29,12 +29,12 @@ interface SignatureEditorProps {
 interface SignatureEditorState {}
 
 class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEditorState> {
-  _onTitleChange = (event) => {
+  _onTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const sig = this.props.signature;
     Actions.upsertSignature({ ...sig, title: event.target.value }, sig.id);
   };
 
-  _onRawBodyChange = async (event) => {
+  _onRawBodyChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const sig = this.props.signature;
     let body = event.target.value;
     try {
@@ -45,7 +45,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     Actions.upsertSignature({ ...sig, body }, sig.id);
   };
 
-  _onDataFieldChange = (event) => {
+  _onDataFieldChange = (event: { target: { id: string; value: string } }) => {
     const { id, value } = event.target;
     const sig = this.props.signature;
 
@@ -242,16 +242,16 @@ export default class PreferencesSignatures extends React.Component<
     Actions.selectSignature(id);
   };
 
-  _onDeleteSignature = (signature) => {
+  _onDeleteSignature = (signature: ISignature) => {
     Actions.removeSignature(signature);
   };
 
-  _onEditSignatureTitle = (nextTitle) => {
+  _onEditSignatureTitle = (nextTitle: string) => {
     const { title, ...rest } = this.state.selectedSignature;
     Actions.upsertSignature({ title: nextTitle, ...rest }, rest.id);
   };
 
-  _onSelectSignature = (sig) => {
+  _onSelectSignature = (sig: ISignature) => {
     Actions.selectSignature(sig.id);
   };
 

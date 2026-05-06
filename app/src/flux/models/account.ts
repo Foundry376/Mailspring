@@ -1,6 +1,7 @@
 /* eslint global-require:0 */
 import * as Attributes from '../attributes';
 import { ModelWithMetadata } from './model-with-metadata';
+import { AttributeValues } from './model';
 import { MailsyncProcessExit } from 'mailspring-exports';
 
 let CategoryStore = null;
@@ -116,7 +117,7 @@ export class Account extends ModelWithMetadata {
   public syncError: MailsyncProcessExit | null;
   public color: string;
 
-  constructor(args) {
+  constructor(args: AttributeValues<typeof Account.attributes>) {
     super(args);
     this.aliases = this.aliases || [];
     this.label = this.label || this.emailAddress;
@@ -136,7 +137,7 @@ export class Account extends ModelWithMetadata {
     return json;
   }
 
-  fromJSON(json) {
+  fromJSON(json: any) {
     super.fromJSON(json);
     if (!this.label) {
       this.label = this.emailAddress;

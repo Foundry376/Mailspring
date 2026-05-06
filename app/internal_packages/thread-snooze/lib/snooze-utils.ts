@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import {
   localized,
   Actions,
@@ -10,9 +10,10 @@ import {
   ChangeFolderTask,
   DraftFactory,
   SendDraftTask,
+  Thread,
 } from 'mailspring-exports';
 
-export function snoozedUntilMessage(snoozeDate, now = moment()) {
+export function snoozedUntilMessage(snoozeDate: string | null, now: Moment = moment()) {
   let message = localized('Snoozed');
   if (snoozeDate) {
     const dateFormat = DateUtils.DATE_FORMAT_SHORT;
@@ -25,7 +26,7 @@ export function snoozedUntilMessage(snoozeDate, now = moment()) {
 }
 
 export function moveThreads(
-  threads,
+  threads: Thread[],
   { snooze, description }: { snooze?: boolean; description?: string } = {}
 ) {
   const tasks = TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
@@ -54,7 +55,7 @@ export function moveThreads(
   Actions.queueTasks(tasks);
 }
 
-export async function markUnreadOrResurfaceThreads(threads, source) {
+export async function markUnreadOrResurfaceThreads(threads: Thread[], source: string) {
   if (AppEnv.config.get('core.notifications.unsnoozeToTop')) {
     // send a hidden email that will mark the thread as unread and bring it
     // to the top of your inbox in any mail client

@@ -458,7 +458,7 @@ export class Contact extends Model {
     return this.name && this.name !== this.email ? `${this.name} <${this.email}>` : this.email;
   }
 
-  fromJSON(json) {
+  fromJSON(json: any) {
     // to ensure that old contact data is inflated properly
     // and we can compare hidden === false.
     if (json && !('s' in json)) {

@@ -54,7 +54,7 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
     return msgs;
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: { thread: ThreadWithMessagesMetadata }) {
     if (nextProps.thread === this.props.thread) {
       return false;
     }
@@ -85,7 +85,7 @@ class ThreadListIcon extends React.Component<{ thread: ThreadWithMessagesMetadat
     }
   };
 
-  _onToggleStar = (event) => {
+  _onToggleStar = (event: React.MouseEvent | React.KeyboardEvent) => {
     Actions.queueTask(
       TaskFactory.taskForInvertingStarred({
         threads: [this.props.thread],

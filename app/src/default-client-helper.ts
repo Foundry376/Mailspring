@@ -121,12 +121,12 @@ export class DefaultClientHelperLinux implements DCH {
   }
 
   resetURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    exec(`xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`, (err) =>
+    exec(`xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`, (err: Error | null) =>
       err ? callback(err) : callback(null)
     );
   }
   registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    exec(`xdg-mime default Mailspring.desktop x-scheme-handler/${scheme}`, (err) =>
+    exec(`xdg-mime default Mailspring.desktop x-scheme-handler/${scheme}`, (err: Error | null) =>
       err ? callback(err) : callback(null)
     );
   }

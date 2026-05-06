@@ -69,7 +69,10 @@ class ThreadList extends React.Component<
     this._onResize();
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(
+    nextProps: Record<string, unknown>,
+    nextState: { style: string; syncing: boolean }
+  ) {
     return !Utils.isEqualReact(this.props, nextProps) || !Utils.isEqualReact(this.state, nextState);
   }
 
@@ -195,7 +198,7 @@ class ThreadList extends React.Component<
       props.onSwipeCenter = () => {
         Actions.closePopover();
       };
-      props.onSwipeLeft = (callback) => {
+      props.onSwipeLeft = (callback: (success: boolean) => void) => {
         // TODO this should be grabbed from elsewhere
         const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
 

@@ -78,7 +78,7 @@ export function convertToModel(json: any) {
   return DatabaseObjectRegistry.deserialize(json.__cls, json);
 }
 
-export function fastOmit(props, without) {
+export function fastOmit(props: Record<string, any>, without: string[]) {
   const otherProps = Object.assign({}, props);
   for (const w of without) {
     delete otherProps[w];
@@ -370,7 +370,10 @@ export function emailIsEquivalent(email1: string, email2: string) {
   return email1 === email2;
 }
 
-export function rectVisibleInRect(r1, r2) {
+export function rectVisibleInRect(
+  r1: { left: number; right: number; top: number; bottom: number },
+  r2: { left: number; right: number; top: number; bottom: number }
+) {
   return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
 }
 
@@ -811,6 +814,9 @@ export function likelyNonHumanEmail(email: string) {
 // Does the several tests you need to determine if a test range is within
 // a bounds. Expects both objects to have `start` and `end` keys.
 // Compares any values with <= and >=.
-export function overlapsBounds(bounds, test) {
+export function overlapsBounds(
+  bounds: { start: number; end: number },
+  test: { start: number; end: number }
+) {
   return test.start <= bounds.end && test.end >= bounds.start;
 }

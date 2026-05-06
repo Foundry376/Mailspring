@@ -372,7 +372,7 @@ class DraftStore extends MailspringStore {
     await this._onPopoutDraft(headerMessageId, { newDraft: true });
   };
 
-  _onPopoutDraft = async (headerMessageId, options: { newDraft?: boolean } = {}) => {
+  _onPopoutDraft = async (headerMessageId: string, options: { newDraft?: boolean } = {}) => {
     if (headerMessageId == null) {
       throw new Error('DraftStore::onPopoutDraftId - You must provide a headerMessageId');
     }
@@ -464,7 +464,7 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onSendDraft = async (headerMessageId, options: { delay?: number; actionKey?: string } = {}) => {
+  _onSendDraft = async (headerMessageId: string, options: { delay?: number; actionKey?: string } = {}) => {
     const { delay = AppEnv.config.get('core.sending.undoSend'), actionKey = DefaultSendActionKey } =
       options;
 

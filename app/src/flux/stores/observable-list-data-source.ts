@@ -93,7 +93,7 @@ export class ObservableListDataSource extends ListTabular.DataSource {
     return this._resultSet.offsetOfId(id);
   }
 
-  itemsCurrentlyInViewMatching(matchFn) {
+  itemsCurrentlyInViewMatching(matchFn: (item: any) => boolean) {
     if (!this._resultSet) {
       return [];
     }

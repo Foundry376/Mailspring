@@ -200,11 +200,11 @@ export default class AppEnvConstructor {
       return this.reportError(originalError, { url, line: newLine, column: newColumn });
     };
 
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', (error: Error) => {
       this.reportError(error);
     });
 
-    process.on('unhandledRejection', (error) => {
+    process.on('unhandledRejection', (error: Error) => {
       this.reportError(error);
     });
 

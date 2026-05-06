@@ -32,7 +32,7 @@ class _SnoozeStore extends MailspringStore {
     this.unsubscribers.forEach((unsub) => unsub());
   }
 
-  _onSnoozeThreads = async (threads, snoozeDate, label) => {
+  _onSnoozeThreads = async (threads: Thread[], snoozeDate: string, label: string) => {
     try {
       // ensure the user is authorized to use this feature
       await FeatureUsageStore.markUsedOrUpgrade('snooze', {
@@ -74,7 +74,7 @@ class _SnoozeStore extends MailspringStore {
     }
   };
 
-  _onUnsnoozeThreads = (threads) => {
+  _onUnsnoozeThreads = (threads: Thread[]) => {
     // move the threads back to the inbox
     moveThreads(threads, { snooze: false, description: 'Unsnoozed' });
 
@@ -82,7 +82,7 @@ class _SnoozeStore extends MailspringStore {
     markUnreadOrResurfaceThreads(threads, localized('Unsnoozed message'));
   };
 
-  _onMetadataExpired = (threads) => {
+  _onMetadataExpired = (threads: Thread[]) => {
     if (!AppEnv.isMainWindow()) {
       return;
     }

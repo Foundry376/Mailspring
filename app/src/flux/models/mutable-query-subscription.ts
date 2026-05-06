@@ -1,8 +1,9 @@
 import { QuerySubscription } from './query-subscription';
 import { Model } from './model';
+import ModelQuery from './query';
 
 export class MutableQuerySubscription<T extends Model> extends QuerySubscription<T> {
-  replaceQuery(nextQuery) {
+  replaceQuery(nextQuery: ModelQuery<T> | ModelQuery<T[]>) {
     if (this._query && this._query.sql() === nextQuery.sql()) {
       return;
     }

@@ -56,7 +56,7 @@ class TaskQueue extends MailspringStore {
     );
   }
 
-  _onQueueChangedDebounced = _.throttle((tasks) => {
+  _onQueueChangedDebounced = _.throttle((tasks: Task[]) => {
     const finished = [Task.Status.Complete, Task.Status.Cancelled];
     this._queue = tasks.filter((t) => !finished.includes(t.status));
     this._completed = tasks.filter((t) => finished.includes(t.status));

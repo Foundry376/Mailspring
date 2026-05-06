@@ -296,8 +296,8 @@ export default class SidebarParticipantProfile extends React.Component<
     });
   };
 
-  _onSelect = (event) => {
-    const el = event.target;
+  _onSelect = (event: React.MouseEvent<HTMLElement>) => {
+    const el = event.target as HTMLElement;
     const sel = document.getSelection();
     if (el.contains(sel.anchorNode) && !sel.isCollapsed) {
       return;

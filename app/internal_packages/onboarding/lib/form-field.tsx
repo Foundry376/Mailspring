@@ -1,7 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const FormField = (props) => {
+const FormField = (props: {
+  field: string;
+  title: string;
+  type?: string;
+  style?: React.CSSProperties;
+  submitting?: boolean;
+  onFieldKeyPress?: (e: React.KeyboardEvent) => void;
+  onFieldChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errorFieldNames?: string[];
+  account: Record<string, any>;
+}) => {
   const field = props.field;
   let val = props.account[field];
   if (props.field.includes('.')) {

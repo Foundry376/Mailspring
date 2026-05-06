@@ -3,7 +3,7 @@ export class QueryRange {
     return new QueryRange({ limit: null, offset: null });
   }
 
-  static rangeWithUnion(a, b) {
+  static rangeWithUnion(a: QueryRange, b: QueryRange) {
     if (a.isInfinite() || b.isInfinite()) {
       return QueryRange.infinite();
     }
@@ -17,7 +17,7 @@ export class QueryRange {
     });
   }
 
-  static rangesBySubtracting(a, b) {
+  static rangesBySubtracting(a: QueryRange, b: QueryRange) {
     if (!b) {
       return [];
     }
@@ -80,13 +80,13 @@ export class QueryRange {
     return this.limit === null && this.offset === null;
   }
 
-  isEqual(b) {
+  isEqual(b: QueryRange) {
     return this.start === b.start && this.end === b.end;
   }
 
   // Returns true if joining the two ranges would not result in empty space.
   // ie: they intersect or touch
-  isContiguousWith(b) {
+  isContiguousWith(b: QueryRange) {
     if (this.isInfinite() || b.isInfinite()) {
       return true;
     }

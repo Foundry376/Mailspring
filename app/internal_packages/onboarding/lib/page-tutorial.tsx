@@ -101,8 +101,8 @@ export default class TutorialPage extends React.Component<
     }
   };
 
-  _onMouseOverOverlay = (event) => {
-    const item = Steps.find((i) => i.id === event.target.id);
+  _onMouseOverOverlay = (event: React.MouseEvent<HTMLElement>) => {
+    const item = Steps.find((i) => i.id === (event.target as HTMLElement).id);
     if (item) {
       if (!this.state.seen.includes(item)) {
         this.state.seen.push(item);

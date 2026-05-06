@@ -19,14 +19,14 @@ export const TokenAndTermRegexp = () =>
 export const LearnMoreURL =
   'https://community.getmailspring.com/t/search-with-advanced-gmail-style-queries/153';
 
-export const rankOfRole = (role) => {
+export const rankOfRole = (role: string) => {
   const rank = ['inbox', 'important', 'snoozed', 'sent', 'all', 'spam', 'trash'].indexOf(role);
   return rank !== -1 ? 20 - rank : -1000;
 };
 
-export const wrapInQuotes = (s) => `"${s.replace(/"/g, '')}"`;
+export const wrapInQuotes = (s: string) => `"${s.replace(/"/g, '')}"`;
 
-export const getThreadSuggestions = async (term, accountIds) => {
+export const getThreadSuggestions = async (term: string, accountIds: string[]) => {
   let dbQuery = DatabaseStore.findAll<Thread>(Thread)
     .structuredSearch(
       SearchQueryParser.parse(`subject:${wrapInQuotes(term)} NOT (in:trash OR in:spam)`)
@@ -41,7 +41,7 @@ export const getThreadSuggestions = async (term, accountIds) => {
   return dbQuery.background().then((results) => results);
 };
 
-export const getContactSuggestions = async (term, accountIds) => {
+export const getContactSuggestions = async (term: string, accountIds: string[]) => {
   const results = [];
   const contacts = term
     ? await ContactStore.searchContacts(term, { limit: 5 })
@@ -52,7 +52,7 @@ export const getContactSuggestions = async (term, accountIds) => {
   return [...new Set(results)].filter((r) => r.toLowerCase().startsWith(term));
 };
 
-export const getCategorySuggestions = async (term, accountIds) =>
+export const getCategorySuggestions = async (term: string, accountIds: string[]) =>
   [
     ...new Set(
       CategoryStore.categories()
@@ -130,7 +130,7 @@ export const TokenSuggestions = [
 
 export const TokenSuggestionsForEmpty = TokenSuggestions.filter((t) => !t.hidden);
 
-export function getCurrentTokenAndTerm(query, insertionIndex) {
+export function getCurrentTokenAndTerm(query: string, insertionIndex: number) {
   const regexp = TokenAndTermRegexp();
   const queryWithSpaces = query.replace(/\s/g, ' ');
 

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Thread } from 'mailspring-exports';
 import PropTypes from 'prop-types';
 import { ListensToObservable, InjectedComponentSet } from 'mailspring-component-kit';
 import ThreadListStore from './thread-list-store';
@@ -46,7 +47,7 @@ function InjectsToolbarButtons(
     }
   }
 
-  const getStateFromObservable = (items) => {
+  const getStateFromObservable = (items: Thread[]) => {
     if (!items) {
       return { items: [] };
     }

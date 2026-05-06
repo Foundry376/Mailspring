@@ -10,7 +10,7 @@ interface MessageTimestampProps {
 class MessageTimestamp extends React.Component<MessageTimestampProps> {
   static displayName = 'MessageTimestamp';
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: MessageTimestampProps) {
     return nextProps.date !== this.props.date || nextProps.isDetailed !== this.props.isDetailed;
   }
 

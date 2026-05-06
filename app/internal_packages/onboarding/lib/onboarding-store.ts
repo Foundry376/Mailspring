@@ -80,7 +80,7 @@ class OnboardingStore extends MailspringStore {
     }, 100);
   };
 
-  _onChooseAccountProvider = (provider) => {
+  _onChooseAccountProvider = (provider: string) => {
     const nextPage =
       provider === 'gmail'
         ? 'account-settings-gmail'
@@ -103,7 +103,7 @@ class OnboardingStore extends MailspringStore {
     this._onMoveToPage(nextPage);
   };
 
-  _onSetAccount = (acct) => {
+  _onSetAccount = (acct: Account) => {
     if (!(acct instanceof Account)) {
       throw new Error('OnboardingActions.setAccount expects an Account instance.');
     }
@@ -116,7 +116,7 @@ class OnboardingStore extends MailspringStore {
     this.trigger();
   };
 
-  _onMoveToPage = (page) => {
+  _onMoveToPage = (page: string) => {
     this._pageStack.push(page);
     this.trigger();
   };
@@ -144,7 +144,7 @@ class OnboardingStore extends MailspringStore {
     }, 1000);
   };
 
-  _onFinishAndAddAccount = async (account) => {
+  _onFinishAndAddAccount = async (account: Account) => {
     const isFirstAccount = AccountStore.accounts().length === 0;
 
     try {

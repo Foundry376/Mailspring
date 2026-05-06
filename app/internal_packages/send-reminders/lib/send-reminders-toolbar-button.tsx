@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { localized } from 'mailspring-exports';
+import { localized, Thread } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 import SendRemindersPopoverButton from './send-reminders-popover-button';
 
@@ -11,7 +11,7 @@ const SendRemindersPopoverButtonWithTip = HasTutorialTip(SendRemindersPopoverBut
   ),
 });
 
-export default function SendRemindersToolbarButton(props) {
+export default function SendRemindersToolbarButton(props: { items: Thread[] }) {
   const threads = props.items;
   if (threads.length > 1) {
     return <span />;

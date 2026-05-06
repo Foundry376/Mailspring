@@ -3,7 +3,7 @@ import SendRemindersMailboxPerspective from './send-reminders-mailbox-perspectiv
 
 export const name = 'SendRemindersAccountSidebarExtension';
 
-export function sidebarItem(accountIds) {
+export function sidebarItem(accountIds: string[]) {
   return {
     id: 'Reminders',
     name: localized('Reminders'),

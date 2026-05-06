@@ -8,7 +8,7 @@ export const EventTimerangePicker: React.FunctionComponent<{
   end: number;
   onChange: ({ start, end }) => void;
 }> = ({ start, end, onChange }) => {
-  const onChangeStartTime = (newTimestamp) => {
+  const onChangeStartTime = (newTimestamp: number) => {
     const newStart = moment(newTimestamp);
     let newEnd = moment(end);
     if (newEnd.isSameOrBefore(newStart)) {

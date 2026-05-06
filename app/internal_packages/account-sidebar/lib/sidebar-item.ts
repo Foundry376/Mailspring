@@ -17,7 +17,7 @@ import {
 import * as SidebarActions from './sidebar-actions';
 import { ISidebarItem } from './types';
 
-const idForCategories = (categories) => categories.map((c) => c.id).join('-');
+const idForCategories = (categories: { id: string }[]) => categories.map((c) => c.id).join('-');
 
 const countForItem = function (perspective: MailboxPerspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
@@ -90,7 +90,7 @@ const onExportFolder = function (item: ISidebarItem) {
       buttonLabel: localized('Export'),
       properties: ['openDirectory', 'createDirectory'],
     },
-    (selected) => {
+    (selected: string[]) => {
       if (!selected || selected.length === 0) {
         return;
       }
@@ -253,7 +253,7 @@ export default class SidebarItem {
           return target.canReceiveThreadsFromAccountIds(accountIds);
         },
 
-        onSelect(item) {
+        onSelect(item: ISidebarItem) {
           Actions.focusMailboxPerspective(item.perspective);
         },
       },

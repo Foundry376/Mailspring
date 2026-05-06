@@ -39,7 +39,7 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     models.forEach((m) => this.updateModel(m));
   }
 
-  addModelsInRange(rangeModels: T[], range) {
+  addModelsInRange(rangeModels: T[], range: QueryRange) {
     this.addIdsInRange(
       rangeModels.map((m) => m.id),
       range
@@ -47,7 +47,7 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     rangeModels.forEach((m) => this.updateModel(m));
   }
 
-  addIdsInRange(rangeIds: string[], range) {
+  addIdsInRange(rangeIds: string[], range: QueryRange) {
     if (this._offset === null || range.isInfinite()) {
       this._ids = rangeIds;
       this._idToIndexHash = null;

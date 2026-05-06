@@ -230,7 +230,7 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
       return (
         <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()} className={className}>
           <ListTabular
-            ref={this.listRef}
+            ref={this.listRef as any}
             columns={this.state.computedColumns}
             dataSource={this.props.dataSource}
             itemPropsProvider={this._getItemPropsProvider()}

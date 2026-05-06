@@ -18,7 +18,7 @@ class QuerySubscriptionPool {
     this._setup();
   }
 
-  add(query: ModelQuery<any>, callback) {
+  add(query: ModelQuery<any>, callback: ((result: any) => void) & { _registrationPoint?: string }) {
     if (AppEnv.inDevMode()) {
       callback._registrationPoint = this._formatRegistrationPoint(new Error().stack);
     }
@@ -37,7 +37,11 @@ class QuerySubscriptionPool {
     };
   }
 
-  addPrivateSubscription(key: string, subscription: QuerySubscription<any>, callback) {
+  addPrivateSubscription(
+    key: string,
+    subscription: QuerySubscription<any>,
+    callback: ((result: any) => void) & { _registrationPoint?: string }
+  ) {
     this._subscriptions[key] = subscription;
     subscription.addCallback(callback);
     return () => {

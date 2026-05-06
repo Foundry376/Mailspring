@@ -62,7 +62,7 @@ export default class CategorySelection extends React.Component<
       });
   }
 
-  _onSearchValueChange = (event) => {
+  _onSearchValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ searchValue: event.target.value });
   };
 

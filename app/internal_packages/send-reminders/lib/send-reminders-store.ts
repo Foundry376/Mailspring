@@ -31,7 +31,7 @@ class SendRemindersStore extends MailspringStore {
     this._unsubscribers.forEach((unsub) => unsub());
   }
 
-  _sendReminderEmail = async (thread, sentHeaderMessageId) => {
+  _sendReminderEmail = async (thread: Thread, sentHeaderMessageId: string) => {
     const body = `
       <strong>Mailspring Reminder:</strong> This thread has been moved to the top of
       your inbox by Mailspring because no one has replied to your message.</p>

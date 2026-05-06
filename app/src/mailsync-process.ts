@@ -211,12 +211,12 @@ export class MailsyncProcess extends EventEmitter {
         });
       }
 
-      this._proc.on('error', (err) => {
+      this._proc.on('error', (err: Error) => {
         reject(err);
       });
 
       this._proc.on('close', (code) => {
-        const stripSecrets = (text) => {
+        const stripSecrets = (text: string) => {
           const settings = (this.account && this.account.settings) || {
             refresh_token: undefined,
             imap_password: undefined,
@@ -224,7 +224,7 @@ export class MailsyncProcess extends EventEmitter {
           };
           const { refresh_token, imap_password, smtp_password } = settings;
 
-          const escape = (string) => string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+          const escape = (string: string) => string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
           return (text || '')
             .replace(new RegExp(escape(refresh_token || 'not-present'), 'g'), '*********')
             .replace(new RegExp(escape(imap_password || 'not-present'), 'g'), '*********')
@@ -314,7 +314,7 @@ export class MailsyncProcess extends EventEmitter {
         }
       });
     }
-    this._proc.on('error', (err) => {
+    this._proc.on('error', (err: Error) => {
       console.log(`Sync worker exited with ${err}`);
       this.emit('error', err);
     });
@@ -326,7 +326,7 @@ export class MailsyncProcess extends EventEmitter {
     // asynchronously as 'error' events on stdin rather than thrown from write(),
     // so the try/catch in sendMessage() does not catch them.
     if (this._proc.stdin) {
-      this._proc.stdin.on('error', (err) => {
+      this._proc.stdin.on('error', (err: Error) => {
         if (cleanedUp) return;
         cleanedUp = true;
         this._proc.kill();

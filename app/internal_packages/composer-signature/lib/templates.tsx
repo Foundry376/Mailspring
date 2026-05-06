@@ -232,7 +232,7 @@ function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
 Do not rename these methods after shipping a release with them */
 
 const Templates = [
-  function SignatureA(props) {
+  function SignatureA(props: Record<string, string>) {
     return (
       <table cellPadding={0} cellSpacing={0}>
         <tbody>
@@ -270,7 +270,7 @@ const Templates = [
     );
   },
 
-  function SignatureB(props) {
+  function SignatureB(props: Record<string, string>) {
     return (
       <div>
         <table cellPadding={0} cellSpacing={0}>
@@ -319,7 +319,7 @@ const Templates = [
     );
   },
 
-  function SignatureC(props) {
+  function SignatureC(props: Record<string, string>) {
     return (
       <table cellPadding={0} cellSpacing={0}>
         <tbody>
@@ -365,7 +365,7 @@ const Templates = [
     );
   },
 
-  function SignatureD(props) {
+  function SignatureD(props: Record<string, string>) {
     return (
       <table cellPadding={0} cellSpacing={0}>
         <tbody>
@@ -416,7 +416,7 @@ const Templates = [
     );
   },
 
-  function SignatureE(props) {
+  function SignatureE(props: Record<string, string>) {
     return (
       <table cellPadding={0} cellSpacing={0}>
         <tbody>

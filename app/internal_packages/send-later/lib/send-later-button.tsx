@@ -72,7 +72,7 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
     this.mounted = false;
   }
 
-  onAssignSendLaterDate = async (sendLaterDate: Date, dateLabel: string) => {
+  onAssignSendLaterDate = async (sendLaterDate: Date, dateLabel?: string) => {
     if (!this.props.isValidDraft()) {
       return;
     }

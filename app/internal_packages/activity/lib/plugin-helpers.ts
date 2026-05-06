@@ -3,7 +3,7 @@ import { localized } from 'mailspring-exports';
 export const OPEN_TRACKING_ID = 'open-tracking';
 export const LINK_TRACKING_ID = 'link-tracking';
 
-export function configForPluginId(id) {
+export function configForPluginId(id: string) {
   if (id === OPEN_TRACKING_ID) {
     return {
       name: 'open',

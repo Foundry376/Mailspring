@@ -62,7 +62,7 @@ export default class WindowEventHandler {
       AppEnv.commands.dispatch(command, args[0]);
     });
 
-    window.onbeforeunload = (e) => {
+    window.onbeforeunload = (e: BeforeUnloadEvent) => {
       if (AppEnv.inSpecMode()) {
         return undefined;
       }
@@ -132,13 +132,17 @@ export default class WindowEventHandler {
     };
 
     AppEnv.commands.add(document.body, {
-      'core:copy': (e) => (isIFrame(e.target) ? webContents.copy() : document.execCommand('copy')),
-      'core:cut': (e) => (isIFrame(e.target) ? webContents.cut() : document.execCommand('cut')),
+      'core:copy': (e: CustomEvent) =>
+        isIFrame(e.target) ? webContents.copy() : document.execCommand('copy'),
+      'core:cut': (e: CustomEvent) =>
+        isIFrame(e.target) ? webContents.cut() : document.execCommand('cut'),
       'core:paste': () => webContents.paste(),
       'core:paste-and-match-style': () => webContents.pasteAndMatchStyle(),
-      'core:undo': (e) => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
-      'core:redo': (e) => (isTextInput(e.target) ? webContents.redo() : getUndoStore().redo()),
-      'core:select-all': (e) =>
+      'core:undo': (e: CustomEvent) =>
+        isTextInput(e.target) ? webContents.undo() : getUndoStore().undo(),
+      'core:redo': (e: CustomEvent) =>
+        isTextInput(e.target) ? webContents.redo() : getUndoStore().redo(),
+      'core:select-all': (e: CustomEvent) =>
         isIFrame(e.target) || isTextInput(e.target)
           ? webContents.selectAll()
           : AppEnv.commands.dispatch('multiselect-list:select-all'),
@@ -363,7 +367,7 @@ export default class WindowEventHandler {
       const sanitized = encodeURI(decodeURI(resolved));
       require('@electron/remote').getGlobal('application').openUrl(sanitized);
     } else if (['http:', 'https:', 'tel:'].includes(protocol)) {
-      shell.openExternal(resolved, { activate: !metaKey }).catch((err) => {
+      shell.openExternal(resolved, { activate: !metaKey }).catch((err: Error) => {
         if (!this._openExternalErrorShown) {
           this._openExternalErrorShown = true;
           AppEnv.showErrorDialog({

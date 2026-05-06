@@ -83,13 +83,13 @@ class ContactListWithData extends React.Component<ContactListProps, ContactListS
     new ContactListContextMenu(contacts).displayMenu();
   };
 
-  _onDragItems = (event, items) => {
+  _onDragItems = (event: React.DragEvent, items: Contact[]) => {
     const data = {
       ids: items.map((c) => c.id),
       accountIds: [...new Set(items.map((t) => t.accountId))],
     };
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.dragEffect = 'move';
+    event.dataTransfer.dropEffect = 'move';
 
     const canvas = CanvasUtils.canvasForDragging('contacts', data.ids.length);
     event.dataTransfer.setDragImage(canvas, 10, 10);

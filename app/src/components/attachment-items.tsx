@@ -106,7 +106,7 @@ function AttachmentActionIcon(props) {
   const isDownloading = download ? download.state === 'downloading' : false;
   const actionIconName = isRemovable || isDownloading ? removeIcon : downloadIcon;
 
-  const onClickActionIcon = (event) => {
+  const onClickActionIcon = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation(); // Prevent 'onOpenAttachment'
     if (isRemovable) {
       onRemoveAttachment();
@@ -158,7 +158,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
 
   _fileIconComponent: RetinaImg;
 
-  _onDragStart = (event) => {
+  _onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     const { contentType, filePath } = this.props;
     if (fs.existsSync(filePath)) {
       // Note: From trial and error, it appears that the second param /MUST/ be the
@@ -176,7 +176,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
     }
   };
 
-  _onAttachmentKeyDown = (event) => {
+  _onAttachmentKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === SPACE && this.props.filePreviewPath) {
       event.preventDefault();
       event.stopPropagation();

@@ -64,7 +64,7 @@ class AppearanceScaleSlider extends React.Component<
 class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.menubarStyle';
 
-  onChangeMenubarStyle = (e) => {
+  onChangeMenubarStyle = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.props.config.set(this.kp, e.target.value);
   };
 
@@ -197,7 +197,7 @@ class AppearanceModeSwitch extends React.Component<
 class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.trayIconStyle';
 
-  onChangeTrayIconStyle = (e) => {
+  onChangeTrayIconStyle = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.props.config.set(this.kp, e.target.value);
   };
 
@@ -260,7 +260,7 @@ class TrayIconStylePicker extends React.Component<{ config: ConfigLike }> {
 class TrayIconThemePicker extends React.Component<{ config: ConfigLike }> {
   kp = 'core.workspace.traySystemTheme';
 
-  onChangeTrayIconTheme = (e) => {
+  onChangeTrayIconTheme = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.props.config.set(this.kp, e.target.value);
   };
 

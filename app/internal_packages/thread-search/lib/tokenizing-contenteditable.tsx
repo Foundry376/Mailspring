@@ -16,7 +16,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
   _textEl: HTMLDivElement;
   _tokensEl: HTMLDivElement;
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: TokenizingContenteditableProps) {
     if (nextProps.value !== this._textEl.innerText.replace(/\s/g, ' ')) {
       this._textEl.innerHTML = nextProps.value.replace(/\s/g, '&nbsp;');
       this._tokensEl.innerHTML = this.valueToHTML(nextProps.value);
@@ -65,7 +65,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
     return -1;
   };
 
-  valueToHTML = (text) => {
+  valueToHTML = (text: string) => {
     const tokens = [];
     let m = null;
     let lastIndex = 0;
@@ -95,7 +95,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
     return tokens.join('');
   };
 
-  onPaste = (e) => {
+  onPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     const text = e.clipboardData
@@ -116,8 +116,8 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
     }
   };
 
-  onChange = (e) => {
-    const value = e.target.innerText.replace(/\s/g, ' ');
+  onChange = (e: React.FormEvent<HTMLDivElement>) => {
+    const value = (e.target as HTMLDivElement).innerText.replace(/\s/g, ' ');
     this._tokensEl.innerHTML = this.valueToHTML(value);
     this.props.onChange(value);
   };

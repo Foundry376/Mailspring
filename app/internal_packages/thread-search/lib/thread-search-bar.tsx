@@ -120,7 +120,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
 
       if (suggestions.length && suggestions[0].token === token) {
         const { termSuggestions } = suggestions[0];
-        const textToSuggestion = (term) => ({
+        const textToSuggestion = (term: string) => ({
           term: wrapInQuotes(term),
           description: term.includes(' ') ? wrapInQuotes(term) : term,
           token,

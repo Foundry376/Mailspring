@@ -42,7 +42,7 @@ export function currentSignatureId(body: string) {
   return signatureMatch && signatureMatch[1];
 }
 
-export function applySignature(body, signature) {
+export function applySignature(body: string, signature: { id: string; body: string } | null | undefined) {
   // Remove any existing signature in the body
   let additionalWhitespace = '<br/>';
 

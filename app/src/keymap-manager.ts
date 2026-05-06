@@ -12,16 +12,17 @@ By default, Mousetrap stops all hotkeys within text inputs. Override this to
 more specifically block only hotkeys that have no modifier keys (things like
 Gmail's "x", while allowing standard hotkeys.)
 */
-mousetrap.prototype.stopCallback = (e, element, combo) => {
+mousetrap.prototype.stopCallback = (e: KeyboardEvent, element: HTMLElement, combo: string) => {
   if (suspended) {
     return true;
   }
 
   // Slate handles undo/redo itself in slate-react's `after` plugin but doesn't stop
   // propagation. Because of this, we need to make sure we do not fire core:undo or core:redo.
+  const target = e.target as HTMLElement;
   const withinSlateEditor =
-    e.target.isContentEditable &&
-    (e.target.hasAttribute('data-slate-editor') || e.target.closest('[data-slate-editor]'));
+    target.isContentEditable &&
+    (target.hasAttribute('data-slate-editor') || target.closest('[data-slate-editor]'));
   if (withinSlateEditor && /(mod|command|ctrl)\+(z|y)/.test(combo)) {
     return true;
   }
@@ -31,7 +32,7 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
     return true;
   }
 
-  if (e.isPropagationStopped()) {
+  if ((e as any).isPropagationStopped()) {
     return true;
   }
   // Also treat anything inside an open composer as text input so that focus

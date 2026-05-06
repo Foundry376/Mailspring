@@ -149,13 +149,13 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
     webview.reload();
   };
 
-  _onNewWindow = (e) => {
+  _onNewWindow = (e: { url: string }) => {
     if (/^https?:\/\/.+/i.test(e.url)) {
       shell.openExternal(e.url);
     }
   };
 
-  _onConsoleMessage = (e) => {
+  _onConsoleMessage = (e: Electron.ConsoleMessageEvent) => {
     if (/^https?:\/\/.+/i.test(e.message)) {
       shell.openExternal(e.message);
     }

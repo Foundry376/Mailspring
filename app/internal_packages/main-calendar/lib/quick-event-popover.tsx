@@ -26,11 +26,9 @@ export class QuickEventPopover extends React.Component<
     };
   }
 
-  onInputKeyDown = (event) => {
-    const {
-      key,
-      target: { value },
-    } = event;
+  onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const { key } = event;
+    const { value } = event.target as HTMLInputElement;
     if (value.length > 0 && ['Enter', 'Return'].includes(key)) {
       // This prevents onInputChange from being fired
       event.stopPropagation();
@@ -39,7 +37,7 @@ export class QuickEventPopover extends React.Component<
     }
   };
 
-  onInputChange = (event) => {
+  onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState(DateUtils.parseDateString(event.target.value));
   };
 

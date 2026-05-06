@@ -37,12 +37,12 @@ class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
     return false;
   }
 
-  _onChangeChecked = (event) => {
+  _onChangeChecked = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.props.config.toggle(this.props.keyPath);
     event.target.blur();
   };
 
-  _onChangeValue = (event) => {
+  _onChangeValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
     this.props.config.set(this.props.keyPath, event.target.value);
     event.target.blur();
   };

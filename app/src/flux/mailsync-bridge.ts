@@ -479,7 +479,7 @@ export default class MailsyncBridge {
   };
 
   _onFetchBodies(messages: { id: string; accountId: string }[]) {
-    const byAccountId = {};
+    const byAccountId: { [accountId: string]: string[] } = {};
     for (const msg of messages) {
       byAccountId[msg.accountId] = byAccountId[msg.accountId] || [];
       byAccountId[msg.accountId].push(msg.id);

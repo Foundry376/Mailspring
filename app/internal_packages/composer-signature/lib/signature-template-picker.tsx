@@ -13,7 +13,7 @@ export default class SignatureTemplatePicker extends React.Component<{
 
   _el: HTMLElement;
 
-  _onClickItem = (event) => {
+  _onClickItem = (event: React.MouseEvent<HTMLDivElement>) => {
     const value = event.currentTarget.dataset.value;
     this.props.onChange({ target: { id: 'templateName', value } });
   };

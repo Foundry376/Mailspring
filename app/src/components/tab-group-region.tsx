@@ -20,7 +20,7 @@ document.addEventListener('compositionend', () => {
 export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivElement>> {
   static childContextTypes = { parentTabGroup: PropTypes.object };
 
-  _onKeyDown = (event) => {
+  _onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Tab' || event.defaultPrevented) return;
     if (compositionActive) return;
     const dir = event.shiftKey ? -1 : 1;
@@ -61,7 +61,7 @@ export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivEleme
     }
   };
 
-  _shouldSelectEnd = (node) => {
+  _shouldSelectEnd = (node: HTMLInputElement) => {
     return (
       node.nodeName === 'INPUT' && node.type === 'text' && !node.classList.contains('no-select-end')
     );

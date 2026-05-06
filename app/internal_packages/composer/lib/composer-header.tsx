@@ -72,7 +72,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     }
   }
 
-  showAndFocusField = (fieldName) => {
+  showAndFocusField = (fieldName: string) => {
     this.setState(
       {
         enabledFields: this.state.enabledFields.filter((f) => f !== fieldName).concat([fieldName]),
@@ -83,7 +83,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     );
   };
 
-  hideField = (fieldName) => {
+  hideField = (fieldName: string) => {
     if (ReactDOM.findDOMNode(this._els[fieldName]).contains(document.activeElement)) {
       this.context.parentTabGroup.shiftFocus(-1);
     }
@@ -135,7 +135,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
     return true;
   };
 
-  _onChangeParticipants = (changes) => {
+  _onChangeParticipants = (changes: Partial<Message>) => {
     this.props.session.changes.add(changes);
     Actions.draftParticipantsChanged(this.props.draft.id, changes);
   };

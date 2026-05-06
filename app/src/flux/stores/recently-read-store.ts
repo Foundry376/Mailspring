@@ -2,6 +2,7 @@ import MailspringStore from 'mailspring-store';
 import { ChangeUnreadTask } from '../tasks/change-unread-task';
 import { ChangeLabelsTask } from '../tasks/change-labels-task';
 import { ChangeFolderTask } from '../tasks/change-folder-task';
+import { Task } from '../tasks/task';
 import * as Actions from '../actions';
 
 // The "Unread" view shows all threads which are unread. When you read a thread,
@@ -26,7 +27,7 @@ class RecentlyReadStore extends MailspringStore {
     });
   }
 
-  tasksQueued(tasks) {
+  tasksQueued(tasks: Task[]) {
     let changed = false;
 
     tasks

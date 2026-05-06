@@ -336,7 +336,7 @@ export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
     items: PropTypes.array.isRequired,
   };
 
-  _onClick = (event) => {
+  _onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const targetUnread = this.props.items.every((t) => t.unread === false);
     this._onChangeUnread(targetUnread);
     event.stopPropagation();

@@ -532,7 +532,7 @@ class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespa
     };
   }
 
-  _onChangeTimespan = (timespanId) => {
+  _onChangeTimespan = (timespanId: string) => {
     this.setState(this.getStateForTimespanId(timespanId));
   };
 

@@ -34,16 +34,16 @@ export default class MultiselectListInteractionHandler {
     return true;
   }
 
-  onClick = (item) => {
+  onClick = (item: any) => {
     this.onFocusItem(item);
   };
 
-  onMetaClick = (item) => {
+  onMetaClick = (item: any) => {
     this.props.dataSource.selection.toggle(item);
     this.onSetCursorPosition(item);
   };
 
-  onShiftClick = (item) => {
+  onShiftClick = (item: any) => {
     this.props.dataSource.selection.expandTo(item);
     this.onSetCursorPosition(item);
   };
@@ -60,7 +60,7 @@ export default class MultiselectListInteractionHandler {
     this.props.dataSource.selection.clear();
   };
 
-  onSelect = (items) => {
+  onSelect = (items: any[]) => {
     this.props.dataSource.selection.set(items);
   };
 
@@ -72,7 +72,7 @@ export default class MultiselectListInteractionHandler {
     this.props.dataSource.selection.toggle(this.props.dataSource.getById(id));
   };
 
-  onShift = (delta, options: { select?: boolean } = {}) => {
+  onShift = (delta: number, options: { select?: boolean } = {}) => {
     const { id, action } = this._keyboardContext();
 
     const current = this.props.dataSource.getById(id);

@@ -42,11 +42,11 @@ class TemplatePopover extends React.Component<{ headerMessageId: string }> {
     });
   }
 
-  _onSearchValueChange = (event) => {
+  _onSearchValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ searchValue: event.target.value });
   };
 
-  _onChooseTemplate = (template) => {
+  _onChooseTemplate = (template: ReturnType<typeof TemplateStore.items>[0]) => {
     Actions.insertTemplateId({
       templateId: template.id,
       headerMessageId: this.props.headerMessageId,

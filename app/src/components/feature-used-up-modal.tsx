@@ -30,7 +30,7 @@ export default class FeatureUsedUpModal extends React.Component<{
     shell.openExternal('https://getmailspring.com/pro');
   };
 
-  onUpgrade = async (e) => {
+  onUpgrade = async (e: React.MouseEvent<HTMLElement>) => {
     // Retrieve the SSO URL for the billing modal or wait for it to be retrieved
     // before opening the modal.
     const upgradeUrl = await this._fetchPromise;

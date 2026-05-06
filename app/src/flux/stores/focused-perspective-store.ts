@@ -63,7 +63,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     return ids.every((a) => accountIds.includes(a));
   }
 
-  _isValidPerspective(perspective) {
+  _isValidPerspective(perspective: MailboxPerspective) {
     // Ensure all the accountIds referenced in the perspective still exist
     if (!this._isValidAccountSet(perspective.accountIds)) {
       return false;
@@ -117,7 +117,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     }
   };
 
-  _onFocusPerspective = (perspective) => {
+  _onFocusPerspective = (perspective: MailboxPerspective) => {
     // If looking at unified inbox, don't attempt to change the sidebar accounts
     const sidebarIsUnifiedInbox = this.sidebarAccountIds().length > 1;
     if (sidebarIsUnifiedInbox) {

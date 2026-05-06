@@ -210,8 +210,8 @@ export class KeyCommandsRegion extends React.Component<
     this.setState({ focused: false });
   };
 
-  _onFocusIn = (event) => {
-    this._lastFocusElement = event.target;
+  _onFocusIn = (event: FocusEvent) => {
+    this._lastFocusElement = event.target as HTMLElement;
     this._losingFocusToElement = null;
     if (this.state.focused === false) {
       this.props.onFocusIn(event);
@@ -219,9 +219,9 @@ export class KeyCommandsRegion extends React.Component<
     this.setState({ focused: true });
   };
 
-  _onFocusOut = (event) => {
-    this._lastFocusElement = event.target;
-    this._losingFocusToElement = event.relatedTarget;
+  _onFocusOut = (event: FocusEvent) => {
+    this._lastFocusElement = event.target as HTMLElement;
+    this._losingFocusToElement = event.relatedTarget as HTMLElement;
 
     // Focus could be lost for a moment and programatically restored. To support
     // old machines with slow CPUs, it's important we wait N frames rather than X

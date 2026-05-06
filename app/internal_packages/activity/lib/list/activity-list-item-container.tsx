@@ -20,11 +20,11 @@ class ActivityListItemContainer extends React.Component<{ group: any }, { collap
     };
   }
 
-  _onClick(threadId) {
+  _onClick(threadId: string) {
     ActivityEventStore.focusThread(threadId);
   }
 
-  _onCollapseToggled = (event) => {
+  _onCollapseToggled = (event: React.MouseEvent) => {
     event.stopPropagation();
     this.setState({ collapsed: !this.state.collapsed });
   };

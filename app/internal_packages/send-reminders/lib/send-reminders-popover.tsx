@@ -14,7 +14,11 @@ const SendRemindersOptions = {
   [localized('In a Month')]: () => DateUtils.monthsFromNow(1),
 };
 
-function SendRemindersPopover(props) {
+function SendRemindersPopover(props: {
+  reminderDate?: Date;
+  onRemind: (date: Date) => void;
+  onCancelReminder: () => void;
+}) {
   const { reminderDate, onRemind, onCancelReminder } = props;
   const header = <span key="reminders-header">{localized('Remind me if no one replies')}:</span>;
   const footer = [];

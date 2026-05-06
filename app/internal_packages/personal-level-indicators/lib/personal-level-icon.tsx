@@ -13,7 +13,7 @@ export default class PersonalLevelIcon extends React.Component<{ thread: Thread 
     thread: PropTypes.object.isRequired,
   };
 
-  renderIndicator(level) {
+  renderIndicator(level: number) {
     return (
       <div className="personal-level-icon">
         <RetinaImg

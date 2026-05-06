@@ -139,7 +139,7 @@ class MailRulesStore extends MailspringStore {
     this.trigger();
   };
 
-  _onAddMailRule = (properties) => {
+  _onAddMailRule = (properties: Partial<MailRule> & { accountId: string }) => {
     const defaults = {
       id: Utils.generateTempId(),
       name: localized('Untitled Rule'),
@@ -153,7 +153,7 @@ class MailRulesStore extends MailspringStore {
       throw new Error('AddMailRule: you must provide an account id.');
     }
 
-    this._rules.push(Object.assign(defaults, properties));
+    this._rules.push(Object.assign(defaults, properties) as MailRule);
     this._saveMailRules();
     this.trigger();
   };

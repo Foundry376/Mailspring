@@ -33,7 +33,7 @@ export default class AccountContactField extends React.Component<AccountContactF
 
   _dropdownComponent: ButtonDropdown;
 
-  _onChooseContact = async (contact) => {
+  _onChooseContact = async (contact: Contact) => {
     const { draft, session, onChange } = this.props;
     const { autoaddress } = AccountStore.accountForEmail(contact.email);
 
@@ -86,7 +86,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     return this._renderAccountSpan(label, style);
   }
 
-  _renderAccountSpan = (label, style) => {
+  _renderAccountSpan = (label: string, style: React.CSSProperties) => {
     style = {
       ...style,
       position: 'relative',
@@ -101,7 +101,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     );
   };
 
-  _renderMenuItem = (contact) => {
+  _renderMenuItem = (contact: Contact & { isAlias?: boolean }) => {
     const account = AccountStore.accountForId(contact.accountId);
     let style: CSSProperties = {};
     if (account && account.color) {
@@ -124,7 +124,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     );
   };
 
-  _renderAccounts(accounts) {
+  _renderAccounts(accounts: Account[]) {
     const items = AccountStore.aliasesFor(accounts);
     return (
       <Menu

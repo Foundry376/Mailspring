@@ -47,7 +47,7 @@ const _findCorrespondingThread = (
   ]);
 };
 
-const _onOpenThreadFromWeb = (event, mailspringUrl: string) => {
+const _onOpenThreadFromWeb = (event: Electron.IpcRendererEvent, mailspringUrl: string) => {
   const params = _parseOpenThreadUrl(mailspringUrl);
 
   _findCorrespondingThread(params)

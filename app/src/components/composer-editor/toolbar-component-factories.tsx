@@ -111,7 +111,7 @@ export function BuildToggleButton({
 }: IEditorToolbarConfigItem) {
   return ({ editor, className, value }: ComposerEditorPluginToolbarComponentProps) => {
     const active = isActive(value);
-    const onMouseDown = (e) => {
+    const onMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
       onToggle(editor, active);
       e.preventDefault();
     };

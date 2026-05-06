@@ -41,7 +41,8 @@ class ActionBridge {
 
     // Observe all global actions and re-broadcast them to other windows
     Actions.globalActions.forEach((action) => {
-      const callback = (...args) => this.onRebroadcast(TargetWindows.ALL, action.actionName, args);
+      const callback = (...args: unknown[]) =>
+        this.onRebroadcast(TargetWindows.ALL, action.actionName, args);
       return action.listen(callback, this);
     });
 
@@ -49,7 +50,7 @@ class ActionBridge {
       // Observe actions for the main window fired in this window and re-broadcast
       // them to the main window.
       Actions.mainWindowActions.forEach((action) => {
-        const callback = (...args) =>
+        const callback = (...args: unknown[]) =>
           this.onRebroadcast(TargetWindows.MAIN, action.actionName, args);
         return action.listen(callback, this);
       });
@@ -95,7 +96,7 @@ class ActionBridge {
       return;
     }
 
-    const params = [];
+    const params: unknown[] = [];
     args.forEach((arg) => {
       if (arg instanceof Function) {
         throw new Error(

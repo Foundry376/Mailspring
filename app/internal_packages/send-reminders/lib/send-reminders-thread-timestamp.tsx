@@ -22,7 +22,7 @@ class SendRemindersThreadTimestamp extends Component<SendRemindersThreadTimestam
 
   static containerRequired = false;
 
-  onRemoveReminder(thread) {
+  onRemoveReminder(thread: Thread) {
     updateReminderMetadata(thread, {});
   }
 

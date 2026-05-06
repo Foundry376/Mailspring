@@ -85,7 +85,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
   const mxRecords = await mxRecordsForDomain(domain);
   const populated = account.clone();
 
-  const usernameWithFormat = (format) => {
+  const usernameWithFormat = (format: string) => {
     if (format === 'email') return account.emailAddress;
     if (format === 'email-without-domain') return account.emailAddress.split('@').shift();
     return undefined;

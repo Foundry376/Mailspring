@@ -165,7 +165,7 @@ export class Thread extends ModelWithMetadata {
     return [].concat(this.folders || [], this.labels || []);
   }
 
-  set categories(c) {
+  set categories(c: Category[]) {
     // noop
   }
 
@@ -176,7 +176,7 @@ export class Thread extends ModelWithMetadata {
    * When loading data from the API, there are `folders` AND `labels` but
    * no `categories` yet.
    */
-  fromJSON(json) {
+  fromJSON(json: any) {
     super.fromJSON(json);
 
     if (this.participants && this.participants instanceof Array) {

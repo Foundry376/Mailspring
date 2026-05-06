@@ -33,7 +33,7 @@ export default class AccountErrorNotification extends React.Component<
     this.unlisten();
   }
 
-  _onContactSupport = (erroredAccount) => {
+  _onContactSupport = (erroredAccount: Account) => {
     let url = 'https://support.getmailspring.com/hc/en-us/requests/new';
     if (erroredAccount) {
       url += `?email=${encodeURIComponent(erroredAccount.emailAddress)}`;
@@ -49,7 +49,7 @@ export default class AccountErrorNotification extends React.Component<
     shell.openExternal(url);
   };
 
-  _onReconnect = async (account) => {
+  _onReconnect = async (account: Account) => {
     ipcRenderer.send('command', 'application:add-account', {
       existingAccountJSON: await KeyManager.insertAccountSecrets(account),
     });

@@ -32,7 +32,7 @@ export class DropZone extends React.Component<DropZoneProps> {
 
   // Alternative solution *maybe* is to set pointer-events:none; during drag.
 
-  _onDragEnter = (e) => {
+  _onDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     if (!this.props.shouldAcceptDrop(e)) {
       return;
     }
@@ -44,7 +44,7 @@ export class DropZone extends React.Component<DropZoneProps> {
     return;
   };
 
-  _onDragLeave = (e) => {
+  _onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     if (!this.props.shouldAcceptDrop(e)) {
       return;
     }
@@ -56,7 +56,7 @@ export class DropZone extends React.Component<DropZoneProps> {
     return;
   };
 
-  _onDrop = (e) => {
+  _onDrop = (e: React.DragEvent<HTMLDivElement>) => {
     if (!this.props.shouldAcceptDrop(e)) {
       return;
     }

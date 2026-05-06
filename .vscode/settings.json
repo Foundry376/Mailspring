@@ -31,5 +31,6 @@
     "**/*.dll": true
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "prettier.prettierPath": "./node_modules/prettier"
+  "prettier.prettierPath": "./node_modules/prettier",
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
 }

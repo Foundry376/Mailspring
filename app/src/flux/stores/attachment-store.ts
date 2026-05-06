@@ -176,7 +176,7 @@ class AttachmentStore extends MailspringStore {
     });
   };
 
-  _fetchAndSave = (file) => {
+  _fetchAndSave = (file: File) => {
     const defaultPath = this._defaultSavePath(file);
     const defaultExtension = path.extname(defaultPath);
 
@@ -400,7 +400,7 @@ class AttachmentStore extends MailspringStore {
     }
   }
 
-  async _applySessionChanges(headerMessageId: string, changeFunction) {
+  async _applySessionChanges(headerMessageId: string, changeFunction: (files: File[]) => File[]) {
     const session = await DraftStore.sessionForClientId(headerMessageId);
     const files = changeFunction(session.draft().files);
     session.changes.add({ files });

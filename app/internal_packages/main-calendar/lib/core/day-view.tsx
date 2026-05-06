@@ -64,7 +64,7 @@ export class DayView extends React.Component<
     this._setIntervalHeight();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: MailspringCalendarViewProps) {
     if (this._waitingForShift) {
       const wrap = this._calendarWrapEl.current;
       wrap.scrollLeft += this._waitingForShift;

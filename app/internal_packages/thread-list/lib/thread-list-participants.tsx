@@ -42,7 +42,7 @@ class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessage
       accumulatedUnread = false;
     };
 
-    const accumulate = function (text, unread?: boolean) {
+    const accumulate = function (text: string, unread?: boolean) {
       if (accumulated && unread && accumulatedUnread !== unread) {
         flush();
       }

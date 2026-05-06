@@ -34,7 +34,7 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
     return localized('Complete the IMAP and SMTP settings below to connect your account.');
   };
 
-  static validateAccount = (account) => {
+  static validateAccount = (account: Account) => {
     let errorMessage = null;
     const errorFieldNames = [];
 
@@ -81,8 +81,8 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
     // When you change the port, automatically switch the security setting to
     // the standard for that port. Lots of people don't update that field and
     // are getting confused.
-    const onPortChange = (event) => {
-      const port = event.target.value / 1;
+    const onPortChange = (event: { target: { value: string; id: string } }) => {
+      const port = Number(event.target.value);
 
       onFieldChange(
         { target: { value: port, id: event.target.id } },

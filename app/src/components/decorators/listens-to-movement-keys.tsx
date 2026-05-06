@@ -9,28 +9,28 @@ function ListensToMovementKeys(ComposedComponent) {
 
     localKeyHandlers() {
       return {
-        'core:previous-item': (event) => {
+        'core:previous-item': (event: CustomEvent) => {
           if (!(this._component || {}).onArrowUp) {
             return;
           }
           event.stopPropagation();
           this._component.onArrowUp(event);
         },
-        'core:next-item': (event) => {
+        'core:next-item': (event: CustomEvent) => {
           if (!(this._component || {}).onArrowDown) {
             return;
           }
           event.stopPropagation();
           this._component.onArrowDown(event);
         },
-        'core:move-left': (event) => {
+        'core:move-left': (event: CustomEvent) => {
           if (!(this._component || {}).onArrowDown) {
             return;
           }
           event.stopPropagation();
           this._component.onArrowLeft(event);
         },
-        'core:move-right': (event) => {
+        'core:move-right': (event: CustomEvent) => {
           if (!(this._component || {}).onArrowDown) {
             return;
           }
@@ -40,7 +40,7 @@ function ListensToMovementKeys(ComposedComponent) {
       };
     }
 
-    onKeyDown = (event) => {
+    onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (['Enter', 'Return'].includes(event.key)) {
         if (!(this._component || {}).onEnter) {
           return;

@@ -42,11 +42,11 @@ export default class SendRemindersComposerButton extends Component<
     }
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps: SendRemindersComposerButtonProps) {
     return reminderDateFor(nextProps.draft) !== reminderDateFor(this.props.draft);
   }
 
-  onSetReminder = (reminderDate) => {
+  onSetReminder = (reminderDate: Date | null) => {
     const { draft, session } = this.props;
     this.setState({ saving: true });
 
