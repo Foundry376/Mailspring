@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
+    "noImplicitAny": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "removeComments": true,
     "resolveJsonModule": true,
