@@ -9,7 +9,7 @@ console.inspect = function consoleInspect(val) {
   console.log(util.inspect(val, true, 7, true));
 };
 
-const { app, session } = require('electron');
+const { app, session, protocol } = require('electron');
 const path = require('path');
 
 if (typeof process.setFdLimit === 'function') {
@@ -263,6 +263,18 @@ const start = () => {
   if (process.platform === 'linux') {
     app.setName('Mailspring');
   }
+
+
+  protocol.registerSchemesAsPrivileged([
+    {
+      scheme: 'mailspring',
+      privileges: {
+        secure: true,
+        supportFetchAPI: true,
+        corsEnabled: true,
+      }
+    }
+  ])
 
   if (handleStartupEventWithSquirrel()) {
     return;
