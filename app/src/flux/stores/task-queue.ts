@@ -117,6 +117,12 @@ class TaskQueue extends MailspringStore {
   }
 
   waitForPerformLocal = <T extends Task>(task: T) => {
+    // In Playwright E2E tests, mailsync is not running so tasks are never
+    // executed. Resolve immediately to unblock draft creation and other flows.
+    if (process.env.PLAYWRIGHT) {
+      return Promise.resolve(task);
+    }
+
     const upToDateTask = [...this._queue, ...this._completed].find((t) => t.id === task.id);
     if (upToDateTask && upToDateTask.hasRunLocally()) {
       return Promise.resolve(upToDateTask as T);

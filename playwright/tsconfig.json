@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "sourceMap": true
+  },
+  "include": ["tests/**/*.ts", "*.ts"]
+}

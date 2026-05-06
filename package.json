@@ -75,6 +75,7 @@
     "typecheck": "./node_modules/.bin/tsc -p app/tsconfig.json --noEmit",
     "test": "electron ./app --enable-logging --test",
     "test-window": "electron ./app --enable-logging --test=window",
+    "test:e2e": "npx playwright test --config playwright/playwright.config.ts",
     "tsc-watch": "tsc -w -p ./app --noEmit",
     "build": "node app/build/build.js"
   },
