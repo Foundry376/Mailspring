@@ -17,7 +17,7 @@ describe('ComposerHeader', function composerHeader() {
         },
       };
       this.component = ReactTestUtils.renderIntoDocument(
-        <ComposerHeader draft={draft} session={session} />
+        <ComposerHeader draft={draft} session={session as any} />
       );
     };
     advanceClock();
@@ -60,7 +60,7 @@ describe('ComposerHeader', function composerHeader() {
     });
 
     it('should remove the field from enabledFields', () => {
-      const $el = ReactDOM.findDOMNode(this.component);
+      const $el = ReactDOM.findDOMNode(this.component) as HTMLElement;
 
       this.component.showAndFocusField(Fields.Bcc);
       advanceClock();

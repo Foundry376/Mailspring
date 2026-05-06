@@ -4,8 +4,8 @@ import { Account } from 'mailspring-exports';
 
 import PreferencesAccountDetails from '../lib/tabs/preferences-account-details';
 
-const makeComponent = (props = {}) => {
-  return renderIntoDocument(<PreferencesAccountDetails {...props} />);
+const makeComponent = (props: any = {}) => {
+  return renderIntoDocument(<PreferencesAccountDetails {...(props as any)} />) as any;
 };
 
 const account = new Account({

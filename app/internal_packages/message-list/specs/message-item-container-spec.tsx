@@ -44,7 +44,7 @@ xdescribe('MessageItemContainer', function() {
   const renderContainer = message =>
     ReactTestUtils.renderIntoDocument(
       <MessageItemContainer thread={testThread} message={message} headerMessageId={testClientId} />
-    );
+    ) as any;
 
   it("shows composer if it's a draft", function() {
     this.isSendingDraft = false;
@@ -58,7 +58,7 @@ xdescribe('MessageItemContainer', function() {
     const doc = renderContainer(testDraft);
     const items = ReactTestUtils.scryRenderedComponentsWithType(doc, StubMessageItem);
     expect(items.length).toBe(1);
-    return expect(items[0].props.pending).toBe(true);
+    return expect((items[0].props as any).pending).toBe(true);
   });
 
   return it("renders a message if it's not a draft", function() {

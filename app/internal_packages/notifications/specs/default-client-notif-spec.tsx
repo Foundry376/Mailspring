@@ -3,16 +3,16 @@ import proxyquire from 'proxyquire';
 import React from 'react';
 
 let stubIsRegistered = null;
-let stubRegister = () => {};
+let stubRegister: (...args: any[]) => void = () => {};
 const patched = proxyquire('../lib/items/default-client-notif', {
   'mailspring-exports': {
     DefaultClientHelper: class {
       constructor() {
-        this.isRegisteredForURLScheme = (urlScheme, callback) => {
+        (this as any).isRegisteredForURLScheme = (urlScheme, callback) => {
           callback(stubIsRegistered);
         };
-        this.registerForURLScheme = urlScheme => {
-          stubRegister(urlScheme);
+        (this as any).registerForURLScheme = urlScheme => {
+          (stubRegister as any)(urlScheme);
         };
       }
     },

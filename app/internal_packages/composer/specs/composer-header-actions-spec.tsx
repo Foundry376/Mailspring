@@ -62,28 +62,28 @@ describe('ComposerHeaderActions', function() {
     spyOn(Actions, 'composePopoutDraft');
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-popout');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(Actions.composePopoutDraft).toHaveBeenCalled();
   });
 
   it('shows and focuses cc when clicked', function() {
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-cc');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(this.onShowAndFocusField).toHaveBeenCalledWith(Fields.Cc);
   });
 
   it('shows and focuses bcc when clicked', function() {
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-bcc');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(this.onShowAndFocusField).toHaveBeenCalledWith(Fields.Bcc);
   });
 
   it('shows subject when clicked', function() {
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-subject');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(this.onShowAndFocusField).toHaveBeenCalledWith(Fields.Subject);
   });
 });

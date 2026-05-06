@@ -38,7 +38,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
       fireEvent.click(container.querySelector('#action-1'));
 
       waitsFor(() => {
-        return ipcRenderer.send.callCount > 0;
+        return (ipcRenderer.send as any).callCount > 0;
       });
       runs(() => {
         expect(ipcRenderer.send).toHaveBeenCalledWith('command', 'application:add-account', {

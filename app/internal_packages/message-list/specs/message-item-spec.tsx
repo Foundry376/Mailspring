@@ -212,7 +212,7 @@ xdescribe('MessageItem', function() {
     });
 
     it('should not have the `collapsed` class', function() {
-      expect(ReactDOM.findDOMNode(this.component).className.indexOf('collapsed') >= 0).toBe(false);
+      expect((ReactDOM.findDOMNode(this.component) as HTMLElement).className.indexOf('collapsed') >= 0).toBe(false);
     });
   });
 

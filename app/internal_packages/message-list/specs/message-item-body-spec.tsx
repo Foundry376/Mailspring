@@ -170,22 +170,22 @@ Hello world!\
         this.createComponent();
         waitsFor(() => {
           return ReactTestUtils.scryRenderedComponentsWithType(this.component, EmailFrameStub)
-            .length;
+            .length > 0;
         });
       });
 
       it('should never leave src=cid: in the message body', function() {
         runs(() => {
-          const body = ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
-            .props.content;
+          const body = (ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
+            .props as any).content;
           expect(body.indexOf('cid')).toEqual(-1);
         });
       });
 
       it("should replace cid:<file.contentId> with the AttachmentStore's path for the file", function() {
         runs(() => {
-          const body = ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
-            .props.content;
+          const body = (ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
+            .props as any).content;
           expect(body.indexOf('alt="A" src="file:///fake/path-inline.png"')).toEqual(
             this.message.body.indexOf('alt="A"')
           );
@@ -194,8 +194,8 @@ Hello world!\
 
       it("should not replace cid:<file.contentId> with the AttachmentStore's path if the download is in progress", function() {
         runs(() => {
-          const body = ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
-            .props.content;
+          const body = (ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
+            .props as any).content;
           expect(body.indexOf('/fake/path-downloading.png')).toEqual(-1);
         });
       });
@@ -284,7 +284,7 @@ Message
         this.component.state.showQuotedText = true;
         waitsFor(() => {
           return ReactTestUtils.scryRenderedComponentsWithType(this.component, EmailFrameStub)
-            .length;
+            .length > 0;
         });
       });
 
@@ -307,7 +307,7 @@ Message
             this.component,
             EmailFrameStub
           );
-          expect(frame.props.showQuotedText).toBe(true);
+          expect((frame.props as any).showQuotedText).toBe(true);
         });
       });
     });

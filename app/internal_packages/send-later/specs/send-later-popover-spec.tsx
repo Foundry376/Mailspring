@@ -5,11 +5,13 @@ import SendLaterPopover from '../lib/send-later-popover';
 const makePopover = (props = {}) => {
   const { container } = render(
     <SendLaterPopover
-      sendLaterDate={null}
-      onSendLater={() => {}}
-      onAssignSendLaterDate={() => {}}
-      onCancelSendLater={() => {}}
-      {...props}
+      {...({
+        sendLaterDate: null,
+        onSendLater: () => {},
+        onAssignSendLaterDate: () => {},
+        onCancelSendLater: () => {},
+        ...props,
+      } as any)}
     />
   );
   return container;

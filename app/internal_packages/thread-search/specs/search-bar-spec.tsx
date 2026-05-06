@@ -14,13 +14,13 @@ describe('ThreadSearchBar', function() {
   beforeEach(function() {
     spyOn(AppEnv, 'isMainWindow').andReturn(true);
     this.searchBar = ReactTestUtils.renderIntoDocument(<ThreadSearchBar />);
-    this.input = ReactDOM.findDOMNode(this.searchBar).querySelector('[contenteditable]');
+    this.input = (ReactDOM.findDOMNode(this.searchBar) as HTMLElement).querySelector('[contenteditable]');
   });
 
   it('preserves capitalization on searches', function() {
     spyOn(Actions, 'searchQueryChanged');
     const test = 'HeLlO wOrLd';
-    ReactTestUtils.Simulate.input(this.input, { target: { innerText: test } });
+    ReactTestUtils.Simulate.input(this.input, { target: { innerText: test } as any });
     expect(Actions.searchQueryChanged).toHaveBeenCalledWith(test);
   });
 });

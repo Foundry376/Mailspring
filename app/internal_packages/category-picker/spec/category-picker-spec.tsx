@@ -48,12 +48,11 @@ describe('MovePickerPopover', function() {
       accountId: TEST_ACCOUNT_ID,
     });
 
-    const observable = MailspringTestUtils.mockObservable([
-      this.inboxCategory,
-      this.archiveCategory,
-      this.userCategory,
-    ]);
-    observable.sort = () => observable;
+    const observable = MailspringTestUtils.mockObservable(
+      [this.inboxCategory, this.archiveCategory, this.userCategory],
+      {}
+    );
+    (observable as any).sort = () => observable;
 
     spyOn(Categories, 'forAccount').andReturn(observable);
     spyOn(CategoryStore, 'getCategoryByRole').andReturn(this.inboxCategory);
@@ -132,7 +131,7 @@ describe('MovePickerPopover', function() {
       const inputNode = ReactDOM.findDOMNode(
         ReactTestUtils.scryRenderedDOMComponentsWithTag(this.picker, 'input')[0]
       );
-      ReactTestUtils.Simulate.change(inputNode, { target: { value: 'calendar' } });
+      ReactTestUtils.Simulate.change(inputNode as Element, { target: { value: 'calendar' } } as any);
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new'
@@ -144,7 +143,7 @@ describe('MovePickerPopover', function() {
       const inputNode = ReactDOM.findDOMNode(
         ReactTestUtils.scryRenderedDOMComponentsWithTag(this.picker, 'input')[0]
       );
-      ReactTestUtils.Simulate.change(inputNode, { target: { value: 'calendar' } });
+      ReactTestUtils.Simulate.change(inputNode as Element, { target: { value: 'calendar' } } as any);
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new-folder'
@@ -156,8 +155,8 @@ describe('MovePickerPopover', function() {
   describe('_onSelectCategory', function() {
     beforeEach(function() {
       setupForCreateNew.call(this);
-      spyOn(TaskFactory, 'taskForRemovingCategory').andCallThrough();
-      spyOn(TaskFactory, 'tasK').andCallThrough();
+      spyOn(TaskFactory as any, 'taskForRemovingCategory').andCallThrough();
+      spyOn(TaskFactory as any, 'tasK').andCallThrough();
       spyOn(Actions, 'queueTask');
     });
 
@@ -174,7 +173,7 @@ describe('MovePickerPopover', function() {
         };
 
         this.picker._onSelectCategory(input);
-        expect(TaskFactory.taskForRemovingCategory).toHaveBeenCalledWith({
+        expect((TaskFactory as any).taskForRemovingCategory).toHaveBeenCalledWith({
           threads: [this.testThread],
           category: 'asdf',
         });
@@ -189,7 +188,7 @@ describe('MovePickerPopover', function() {
         };
 
         this.picker._onSelectCategory(input);
-        expect(TaskFactory.taskForApplyingCategory).toHaveBeenCalledWith({
+        expect((TaskFactory as any).taskForApplyingCategory).toHaveBeenCalledWith({
           threads: [this.testThread],
           category: 'asdf',
         });
@@ -205,7 +204,7 @@ describe('MovePickerPopover', function() {
       it('queues a new syncback task for creating a category', function() {
         this.picker._onSelectCategory(this.input);
         expect(Actions.queueTask).toHaveBeenCalled();
-        const syncbackTask = Actions.queueTask.calls[0].args[0];
+        const syncbackTask = (Actions.queueTask as any).calls[0].args[0];
         const newCategory = syncbackTask.category;
         expect(newCategory instanceof Category).toBe(true);
         expect(newCategory.displayName).toBe('teSTing!');
@@ -213,8 +212,8 @@ describe('MovePickerPopover', function() {
       });
 
       it('queues a task for applying the category after it has saved', function() {
-        let category = false;
-        let resolveSave = false;
+        let category: any = false;
+        let resolveSave: any = false;
         spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(function(task) {
           expect(task instanceof SyncbackCategoryTask).toBe(true);
           return new Promise(function(resolve, reject) {
@@ -230,17 +229,17 @@ describe('MovePickerPopover', function() {
 
         this.picker._onSelectCategory(this.input);
 
-        waitsFor(() => Actions.queueTask.callCount > 0);
+        waitsFor(() => (Actions.queueTask as any).callCount > 0);
 
         runs(function() {
-          ({ category } = Actions.queueTask.calls[0].args[0]);
+          ({ category } = (Actions.queueTask as any).calls[0].args[0]);
           resolveSave();
         });
 
-        waitsFor(() => TaskFactory.taskForApplyingCategory.calls.length === 1);
+        waitsFor(() => (TaskFactory as any).taskForApplyingCategory.calls.length === 1);
 
         runs(function() {
-          expect(TaskFactory.taskForApplyingCategory).toHaveBeenCalledWith({
+          expect((TaskFactory as any).taskForApplyingCategory).toHaveBeenCalledWith({
             threads: [this.testThread],
             category,
           });

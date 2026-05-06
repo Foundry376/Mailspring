@@ -21,9 +21,9 @@ const makeButton = (initialState, metadataValue) => {
     },
   };
   const button = ReactDOM.render(
-    <SendLaterButton draft={draft} session={session} isValidDraft={() => true} />,
+    <SendLaterButton {...({ draft, session, isValidDraft: () => true } as any)} />,
     node
-  );
+  ) as any;
   if (initialState) {
     button.setState(initialState);
   }
@@ -77,7 +77,7 @@ xdescribe('SendLaterButton', function sendLaterButton() {
 
   describe('render', () => {
     it('renders spinner if saving', () => {
-      const button = ReactDOM.findDOMNode(makeButton({ saving: true }, null));
+      const button = ReactDOM.findDOMNode(makeButton({ saving: true }, null)) as HTMLElement;
       expect(button.title).toEqual('Saving send date...');
     });
 

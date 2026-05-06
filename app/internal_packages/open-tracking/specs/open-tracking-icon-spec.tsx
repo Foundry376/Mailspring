@@ -13,7 +13,7 @@ function makeIcon(thread, props = {}) {
 }
 
 function find(component, className) {
-  return ReactDOM.findDOMNode(findRenderedDOMComponentWithClass(component, className));
+  return ReactDOM.findDOMNode(findRenderedDOMComponentWithClass(component, className)) as HTMLElement;
 }
 
 function addOpenMetadata(obj, openCount) {
@@ -26,26 +26,26 @@ describe('Open tracking icon', function openTrackingIcon() {
   });
 
   it('shows no icon if the thread has no messages', () => {
-    const icon = ReactDOM.findDOMNode(makeIcon(this.thread));
+    const icon = ReactDOM.findDOMNode(makeIcon(this.thread)) as HTMLElement;
     expect(icon.children.length).toEqual(0);
   });
 
   it('shows no icon if the thread messages have no metadata', () => {
-    this.thread.__messages.push(new Message());
-    this.thread.__messages.push(new Message());
-    const icon = ReactDOM.findDOMNode(makeIcon(this.thread));
+    this.thread.__messages.push(new Message({}));
+    this.thread.__messages.push(new Message({}));
+    const icon = ReactDOM.findDOMNode(makeIcon(this.thread)) as HTMLElement;
     expect(icon.children.length).toEqual(0);
   });
 
   describe('With messages and metadata', () => {
     beforeEach(() => {
-      this.messages = [new Message(), new Message(), new Message({ draft: true })];
+      this.messages = [new Message({}), new Message({}), new Message({ draft: true })];
       this.thread.__messages.push(...this.messages);
     });
 
     it('shows no icon if metadata is malformed', () => {
       this.messages[0].directlyAttachMetadata(PLUGIN_ID, { gar: 'bage' });
-      const icon = ReactDOM.findDOMNode(makeIcon(this.thread));
+      const icon = ReactDOM.findDOMNode(makeIcon(this.thread)) as HTMLElement;
       expect(icon.children.length).toEqual(0);
     });
 

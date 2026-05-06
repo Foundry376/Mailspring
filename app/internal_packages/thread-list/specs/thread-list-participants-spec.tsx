@@ -12,12 +12,12 @@ describe('ThreadListParticipants', function() {
 
   it('renders unread contacts with .unread-true', function() {
     const ben = new Contact({ email: 'ben@nylas.com', name: 'ben' });
-    ben.unread = true;
-    const thread = new Thread();
-    thread.__messages = [new Message({ from: [ben], unread: true })];
+    (ben as any).unread = true;
+    const thread = new Thread({});
+    (thread as any).__messages = [new Message({ from: [ben], unread: true })];
 
     this.participants = ReactTestUtils.renderIntoDocument(
-      <ThreadListParticipants thread={thread} />
+      <ThreadListParticipants thread={thread as any} />
     );
     const unread = ReactTestUtils.scryRenderedDOMComponentsWithClass(
       this.participants,
@@ -192,11 +192,11 @@ describe('ThreadListParticipants', function() {
         ];
 
         for (const scenario of scenarios) {
-          const thread = new Thread();
-          thread.__messages = scenario.in;
+          const thread = new Thread({});
+          (thread as any).__messages = scenario.in;
           const participants = ReactTestUtils.renderIntoDocument(
-            <ThreadListParticipants thread={thread} />
-          );
+            <ThreadListParticipants thread={thread as any} />
+          ) as any;
 
           expect(participants.getTokens()).toEqual(scenario.out);
 
@@ -218,11 +218,11 @@ describe('ThreadListParticipants', function() {
       });
 
       const getTokens = function(threadMessages) {
-        const thread = new Thread();
-        thread.__messages = threadMessages;
+        const thread = new Thread({});
+        (thread as any).__messages = threadMessages;
         const participants = ReactTestUtils.renderIntoDocument(
-          <ThreadListParticipants thread={thread} />
-        );
+          <ThreadListParticipants thread={thread as any} />
+        ) as any;
         return participants.getTokens();
       };
 

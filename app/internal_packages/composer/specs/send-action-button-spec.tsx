@@ -38,7 +38,7 @@ describe('SendActionButton', function describeBlock() {
   const renderButton = (draft, { isValid = true } = {}) => {
     this.isValidDraft.andReturn(isValid);
     const { container } = render(
-      <SendActionButton draft={draft} isValidDraft={this.isValidDraft} />
+      <SendActionButton {...({ draft, isValidDraft: this.isValidDraft } as any)} />
     );
     return container;
   };

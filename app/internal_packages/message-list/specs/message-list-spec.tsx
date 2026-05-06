@@ -159,7 +159,7 @@ const testThread = new Thread({
 describe('MessageList', function() {
   beforeEach(function() {
     MessageStore._items = [];
-    MessageStore._threadId = null;
+    (MessageStore as any)._threadId = null;
     spyOn(MessageStore, 'itemsLoading').andCallFake(() => false);
 
     this.messageList = ReactTestUtils.renderIntoDocument(<MessageList />);
