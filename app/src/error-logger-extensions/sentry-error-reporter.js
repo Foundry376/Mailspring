@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const https = require('https');
 const { URL } = require('url');
 
-const DSN = 'https://2c54d9a7349ab0fa781878a84744f7fc@o70907.ingest.us.sentry.io/4508712413233152';
+const DSN = 'https://b4e04d8ca1e8f1206aa79db0dee2da16@o70907.ingest.us.sentry.io/4511340571000832';
 
 function parseDSN(dsn) {
   const u = new URL(dsn);
