@@ -1,5 +1,75 @@
 # Mailspring Changelog
 
+## 1.21.0 (5/5/2026)
+
+Features:
+
+- Added Reply-To field to the composer header, allowing you to specify a different reply address when composing messages. (#2691) Thanks @Argjend12345!
+
+- Added bulk RFC2822 message export functionality to the sync engine. (#107)
+
+Bug Fixes:
+
+- Fixed HTTP/2 framing errors that could crash the sync engine during metadata streaming. (#103)
+
+- Prevented global keyboard shortcuts from firing when focus is in the composer. (#2693)
+
+- Strictly validate accent color hex values from system preferences to prevent errors. (#2692)
+
+Claude Security Audit:
+
+- Tightened validation to prevent file:// URIs in email content. (#2699)
+
+- Limited path traversal in protocol handler. (#2700)
+
+- Added allowlist validation for IPC window and webcontents methods. (#2701)
+
+- Improved HTML sanitization in the composer when pasting content. (#2702)
+
+- mailto links no longer support the ?attach= query parameter. (#2703)
+
+- Improved attachment name sanitization for security and compatibility. (#2705)
+
+- Improved email sanitization to block CSS @import tracking vectors. (#2706)
+
+- Added package name validation to prevent path traversal attacks. (#2698)
+
+- Added URL validation to the autoupdate handler. (#2697)
+
+- Show a notice about plugin trust when installing third-party plugins.
+
+Improvements:
+
+- When a detailed error log is available during OAuth sign-in, it is now displayed to help with troubleshooting.
+
+- Used `exec` in mailsync wrapper script for direct signal delivery. (#105)
+
+Developer:
+
+- Migrated build system from Grunt to a standalone Node.js script. (#2704)
+
+- Added option to skip installer creation in the build script. (#2707) Thanks @LinusDierheimer!
+
+- Dropped .map files from distribution packages. (#2686) Thanks @ReillyBrogan!
+
+- Replaced long-deprecated Raven with native Sentry envelope implementation and send sourcemaps during build. (#2694)
+
+- Upgraded TypeScript target from es2017 to es2024.
+
+- Refactored TypeScript compilation cache and only enable in dev mode. (#2695)
+
+- Removed macOS Touch Bar support. (#2696)
+
+- Updated ESLint and Prettier, and reference local versions in VS Code settings.
+
+- Added missing TypeScript types to function declarations across many files.
+
+- Upgraded Electron 41.2.1 to Electron 41.5.0.
+
+- Added Playwright tests for pre-release verification.
+
+- Added tests covering VCF/EML business logic and other utilities.
+
 ## 1.20.1 (4/20/2026)
 
 Fixes:

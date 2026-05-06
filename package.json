@@ -66,7 +66,10 @@
     "targz": "^1.0.1",
     "temp": "0.8.x",
     "typescript": "5.7.3",
-    "underscore": "^1.13.1"
+    "underscore": "^1.13.1",
+    "@playwright/test": "^1.59.1",
+    "electron-playwright-helpers": "^2.1.0",
+    "better-sqlite3": "^12.8.0"
   },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
@@ -78,9 +81,5 @@
     "test:e2e": "npx playwright test --config playwright/playwright.config.ts",
     "tsc-watch": "tsc -w -p ./app --noEmit",
     "build": "node app/build/build.js"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.59.1",
-    "electron-playwright-helpers": "^2.1.0"
   }
 }
