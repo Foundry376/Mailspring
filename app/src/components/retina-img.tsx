@@ -90,16 +90,7 @@ type RetinaImgProps = {
   active?: boolean;
 };
 
-const ownPropKeys = [
-  'mode',
-  'name',
-  'url',
-  'className',
-  'style',
-  'fallback',
-  'selected',
-  'active',
-];
+const ownPropKeys = ['mode', 'name', 'url', 'className', 'style', 'fallback', 'selected', 'active'];
 
 type RetinaImgFullProps = RetinaImgProps & React.HTMLProps<HTMLImageElement>;
 

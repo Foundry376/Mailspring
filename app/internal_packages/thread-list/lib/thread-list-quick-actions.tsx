@@ -7,10 +7,8 @@ import {
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
-const sameThreadId = (
-  prev: { thread: Thread },
-  next: { thread: Thread }
-) => prev.thread.id === next.thread.id;
+const sameThreadId = (prev: { thread: Thread }, next: { thread: Thread }) =>
+  prev.thread.id === next.thread.id;
 
 export const ThreadArchiveQuickAction: React.FC<{ thread: Thread }> = React.memo(({ thread }) => {
   const allowed = FocusedPerspectiveStore.current().canArchiveThreads([thread]);
@@ -37,7 +35,7 @@ export const ThreadArchiveQuickAction: React.FC<{ thread: Thread }> = React.memo
       style={{ order: 100 }}
       className="btn action action-archive"
       onClick={onArchive}
-      onKeyDown={e => {
+      onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onArchive(e);
@@ -73,7 +71,7 @@ export const ThreadTrashQuickAction: React.FC<{ thread: Thread }> = React.memo((
       style={{ order: 110 }}
       className="btn action action-trash"
       onClick={onRemove}
-      onKeyDown={e => {
+      onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onRemove(e);

@@ -39,8 +39,8 @@ const TranslateComposerButtonInner: React.FC<Props> = ({ draft, session }) => {
       <Menu
         className="translate-language-picker"
         items={Object.keys(TranslatePopupOptions)}
-        itemKey={item => item}
-        itemContent={item => item}
+        itemKey={(item) => item}
+        itemContent={(item) => item}
         headerComponents={[<span key="header">{localized('Translate')}:</span>]}
         defaultSelectedIndex={-1}
         onSelect={onTranslate}

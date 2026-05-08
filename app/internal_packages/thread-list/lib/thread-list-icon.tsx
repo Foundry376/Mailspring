@@ -7,7 +7,7 @@ function nonDraftMessages(thread: ThreadWithMessagesMetadata) {
   if (!msgs || !(msgs instanceof Array)) {
     return [];
   }
-  return msgs.filter(m => m.id && !m.draft);
+  return msgs.filter((m) => m.id && !m.draft);
 }
 
 function iconClassNames(thread: ThreadWithMessagesMetadata) {
@@ -16,7 +16,7 @@ function iconClassNames(thread: ThreadWithMessagesMetadata) {
   }
 
   const extensionIconClassNames = ExtensionRegistry.ThreadList.extensions()
-    .filter(ext => ext.cssClassNamesForThreadListIcon != null)
+    .filter((ext) => ext.cssClassNamesForThreadListIcon != null)
     .reduce((prev, ext) => prev + ' ' + ext.cssClassNamesForThreadListIcon(thread), '')
     .trim();
   if (extensionIconClassNames.length > 0) {
