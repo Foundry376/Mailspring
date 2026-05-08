@@ -50,7 +50,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint:check
 
       - name: Build
         run: DEBUG=electron-packager npm run build

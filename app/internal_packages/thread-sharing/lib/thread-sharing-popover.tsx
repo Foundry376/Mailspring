@@ -1,12 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {
-  Rx,
-  Thread,
-  DatabaseStore,
-  localized,
-  FeatureUsageStore,
-} from 'mailspring-exports';
+import { Rx, Thread, DatabaseStore, localized, FeatureUsageStore } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 import CopyButton from './copy-button';

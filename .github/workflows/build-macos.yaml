@@ -57,7 +57,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint:check
 
       - name: Build
         run: SIGN_BUILD=true DEBUG=electron-packager,electron-osx-sign,electron-notarize* npm run build
