@@ -28,12 +28,16 @@ class ThreadListScrollTooltip extends React.Component<
     newProps: ScrollRegionTooltipComponentProps,
     newState: { item?: Thread; idx: number }
   ) {
-    return (this.state != null ? this.state.idx : undefined) !== newState.idx;
+    return (
+      this.state.idx !== newState.idx ||
+      this.props.viewportCenter !== newProps.viewportCenter ||
+      this.props.totalHeight !== newProps.totalHeight
+    );
   }
 
   setupForProps(props: ScrollRegionTooltipComponentProps) {
     const idx = Math.floor(
-      (ThreadListStore.dataSource().count() / this.props.totalHeight) * this.props.viewportCenter
+      (ThreadListStore.dataSource().count() / props.totalHeight) * props.viewportCenter
     );
     this.setState({
       idx,
