@@ -55,73 +55,58 @@ type ListTabularRowsProps = {
   onDragEnd?: (...args: any[]) => any;
 };
 
-export class ListTabularRows extends Component<ListTabularRowsProps> {
-  static displayName = 'ListTabularRows';
-
-  shouldComponentUpdate(nextProps: ListTabularRowsProps, nextState: Record<string, unknown>) {
-    return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
-  }
-
-  renderRow({
-    item,
-    idx,
-    itemProps = {},
-  }: {
-    item: Model;
-    idx: number;
-    itemProps?: { [key: string]: any };
-  }) {
-    if (!item) {
-      return false;
-    }
-    const { columns, itemHeight, onClick, onSelect, onDoubleClick } = this.props;
-    return (
-      <ListTabularItem
-        key={item.id || idx}
-        item={item}
-        itemProps={itemProps}
-        metrics={{ top: idx * itemHeight, height: itemHeight }}
-        columns={columns}
-        onSelect={onSelect}
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-      />
-    );
-  }
-
-  render() {
-    const {
-      rows,
-      innerStyles,
-      draggable,
-      role,
-      ariaLabel,
-      ariaMultiselectable,
-      tabIndex,
-      ariaActiveDescendant,
-      domRef,
-      onDragStart,
-      onDragEnd,
-    } = this.props;
-    return (
-      <div
-        ref={domRef}
-        className="list-rows"
-        style={innerStyles}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        draggable={draggable}
-        role={role}
-        aria-label={ariaLabel}
-        aria-multiselectable={ariaMultiselectable}
-        tabIndex={tabIndex}
-        aria-activedescendant={ariaActiveDescendant}
-      >
-        {rows.map((r) => this.renderRow(r))}
-      </div>
-    );
-  }
-}
+export const ListTabularRows: React.FC<ListTabularRowsProps> = React.memo(
+  ({
+    rows,
+    columns,
+    itemHeight,
+    innerStyles,
+    draggable,
+    role,
+    ariaLabel,
+    ariaMultiselectable,
+    tabIndex,
+    ariaActiveDescendant,
+    domRef,
+    onClick,
+    onSelect,
+    onDoubleClick,
+    onDragStart,
+    onDragEnd,
+  }) => (
+    <div
+      ref={domRef}
+      className="list-rows"
+      style={innerStyles}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      draggable={draggable}
+      role={role}
+      aria-label={ariaLabel}
+      aria-multiselectable={ariaMultiselectable}
+      tabIndex={tabIndex}
+      aria-activedescendant={ariaActiveDescendant}
+    >
+      {rows.map(({ item, idx, itemProps = {} }) => {
+        if (!item) return null;
+        return (
+          <ListTabularItem
+            key={item.id || idx}
+            item={item}
+            itemProps={itemProps}
+            metrics={{ top: idx * itemHeight, height: itemHeight }}
+            columns={columns}
+            onSelect={onSelect}
+            onClick={onClick}
+            onDoubleClick={onDoubleClick}
+          />
+        );
+      })}
+    </div>
+  ),
+  (prev, next) => Utils.isEqualReact(prev, next)
+);
+ListTabularRows.displayName = 'ListTabularRows';
 
 export interface ListTabularProps extends ScrollRegionProps {
   footer?: React.ReactNode;

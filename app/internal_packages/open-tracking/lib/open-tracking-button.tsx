@@ -9,55 +9,48 @@ import {
 import { MetadataComposerToggleButton } from 'mailspring-component-kit';
 import { PLUGIN_ID, PLUGIN_NAME } from './open-tracking-constants';
 
-export default class OpenTrackingButton extends React.Component<{
-  draft: Message;
-  session: DraftEditingSession;
-}> {
-  static displayName = 'OpenTrackingButton';
+type Props = { draft: Message; session: DraftEditingSession };
 
-  static containerRequired = false;
-
-  shouldComponentUpdate(nextProps: { draft: Message; session: DraftEditingSession }) {
-    return (
-      nextProps.draft.metadataForPluginId(PLUGIN_ID) !==
-      this.props.draft.metadataForPluginId(PLUGIN_ID)
-    );
-  }
-
-  _errorMessage(error: Error) {
-    if (
-      error instanceof APIError &&
-      MailspringAPIRequest.TimeoutErrorCodes.includes(error.statusCode)
-    ) {
-      return localized(
-        `Open tracking does not work offline. Please re-enable when you come back online.`
-      );
-    }
+function errorMessage(error: Error) {
+  if (
+    error instanceof APIError &&
+    MailspringAPIRequest.TimeoutErrorCodes.includes(error.statusCode)
+  ) {
     return localized(
-      `Unfortunately, open tracking is currently not available. Please try again later. Error: %@`,
-      error.message
+      `Open tracking does not work offline. Please re-enable when you come back online.`
     );
   }
-
-  render() {
-    if (this.props.draft.plaintext) {
-      return <span />;
-    }
-    const enabledValue = {
-      open_count: 0,
-      open_data: [],
-    };
-
-    return (
-      <MetadataComposerToggleButton
-        iconUrl="mailspring://open-tracking/assets/icon-composer-eye@2x.png"
-        pluginId={PLUGIN_ID}
-        pluginName={PLUGIN_NAME}
-        metadataEnabledValue={enabledValue}
-        errorMessage={this._errorMessage}
-        draft={this.props.draft}
-        session={this.props.session}
-      />
-    );
-  }
+  return localized(
+    `Unfortunately, open tracking is currently not available. Please try again later. Error: %@`,
+    error.message
+  );
 }
+
+const OpenTrackingButtonInner: React.FC<Props> = ({ draft, session }) => {
+  if (draft.plaintext) {
+    return <span />;
+  }
+  return (
+    <MetadataComposerToggleButton
+      iconUrl="mailspring://open-tracking/assets/icon-composer-eye@2x.png"
+      pluginId={PLUGIN_ID}
+      pluginName={PLUGIN_NAME}
+      metadataEnabledValue={{ open_count: 0, open_data: [] }}
+      errorMessage={errorMessage}
+      draft={draft}
+      session={session}
+    />
+  );
+};
+OpenTrackingButtonInner.displayName = 'OpenTrackingButton';
+
+const OpenTrackingButton = Object.assign(
+  React.memo(
+    OpenTrackingButtonInner,
+    (prev, next) =>
+      prev.draft.metadataForPluginId(PLUGIN_ID) === next.draft.metadataForPluginId(PLUGIN_ID)
+  ),
+  { containerRequired: false as const }
+);
+
+export default OpenTrackingButton;

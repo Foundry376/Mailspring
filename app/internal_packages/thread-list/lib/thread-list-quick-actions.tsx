@@ -7,95 +7,79 @@ import {
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
-export class ThreadArchiveQuickAction extends React.Component<{ thread: Thread }> {
-  static displayName = 'ThreadArchiveQuickAction';
+const sameThreadId = (
+  prev: { thread: Thread },
+  next: { thread: Thread }
+) => prev.thread.id === next.thread.id;
 
-  render() {
-    const allowed = FocusedPerspectiveStore.current().canArchiveThreads([this.props.thread]);
-    if (!allowed) {
-      return <span />;
-    }
-
-    return (
-      <div
-        key="archive"
-        role="button"
-        tabIndex={0}
-        title={localized('Archive')}
-        aria-label={localized('Archive')}
-        style={{ order: 100 }}
-        className="btn action action-archive"
-        onClick={this._onArchive}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            this._onArchive(e as any);
-          }
-        }}
-      />
-    );
+export const ThreadArchiveQuickAction: React.FC<{ thread: Thread }> = React.memo(({ thread }) => {
+  const allowed = FocusedPerspectiveStore.current().canArchiveThreads([thread]);
+  if (!allowed) {
+    return <span />;
   }
 
-  shouldComponentUpdate(newProps: { thread: Thread }, newState) {
-    return newProps.thread.id !== (this.props != null ? this.props.thread.id : undefined);
-  }
-
-  _onArchive = (event: React.MouseEvent) => {
+  const onArchive = (event: React.MouseEvent | React.KeyboardEvent) => {
     const tasks = TaskFactory.tasksForArchiving({
       source: 'Quick Actions: Thread List',
-      threads: [this.props.thread],
+      threads: [thread],
     });
     Actions.queueTasks(tasks);
-
-    // Don't trigger the thread row click
     event.stopPropagation();
   };
-}
 
-export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> {
-  static displayName = 'ThreadTrashQuickAction';
+  return (
+    <div
+      key="archive"
+      role="button"
+      tabIndex={0}
+      title={localized('Archive')}
+      aria-label={localized('Archive')}
+      style={{ order: 100 }}
+      className="btn action action-archive"
+      onClick={onArchive}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onArchive(e);
+        }
+      }}
+    />
+  );
+}, sameThreadId);
+ThreadArchiveQuickAction.displayName = 'ThreadArchiveQuickAction';
 
-  render() {
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
-      [this.props.thread],
-      'trash'
-    );
-    if (!allowed) {
-      return <span />;
-    }
-
-    return (
-      <div
-        key="remove"
-        role="button"
-        tabIndex={0}
-        title={localized('Trash')}
-        aria-label={localized('Trash')}
-        style={{ order: 110 }}
-        className="btn action action-trash"
-        onClick={this._onRemove}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            this._onRemove(e as any);
-          }
-        }}
-      />
-    );
+export const ThreadTrashQuickAction: React.FC<{ thread: Thread }> = React.memo(({ thread }) => {
+  const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo([thread], 'trash');
+  if (!allowed) {
+    return <span />;
   }
 
-  shouldComponentUpdate(newProps: { thread: Thread }, newState) {
-    return newProps.thread.id !== (this.props != null ? this.props.thread.id : undefined);
-  }
-
-  _onRemove = (event: React.MouseEvent) => {
+  const onRemove = (event: React.MouseEvent | React.KeyboardEvent) => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       source: 'Quick Actions: Thread List',
-      threads: [this.props.thread],
+      threads: [thread],
     });
     Actions.queueTasks(tasks);
-
-    // Don't trigger the thread row click
     event.stopPropagation();
   };
-}
+
+  return (
+    <div
+      key="remove"
+      role="button"
+      tabIndex={0}
+      title={localized('Trash')}
+      aria-label={localized('Trash')}
+      style={{ order: 110 }}
+      className="btn action action-trash"
+      onClick={onRemove}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onRemove(e);
+        }
+      }}
+    />
+  );
+}, sameThreadId);
+ThreadTrashQuickAction.displayName = 'ThreadTrashQuickAction';

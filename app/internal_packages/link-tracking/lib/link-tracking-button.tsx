@@ -9,51 +9,45 @@ import {
 import { MetadataComposerToggleButton } from 'mailspring-component-kit';
 import { PLUGIN_ID, PLUGIN_NAME } from './link-tracking-constants';
 
-export default class LinkTrackingButton extends React.Component<{
-  draft: Message;
-  session: DraftEditingSession;
-}> {
-  static displayName = 'LinkTrackingButton';
+type Props = { draft: Message; session: DraftEditingSession };
 
-  static containersRequired: false;
-
-  shouldComponentUpdate(nextProps: { draft: Message; session: DraftEditingSession }) {
-    return (
-      nextProps.draft.metadataForPluginId(PLUGIN_ID) !==
-      this.props.draft.metadataForPluginId(PLUGIN_ID)
-    );
-  }
-
-  _errorMessage(error: Error) {
-    if (
-      error instanceof APIError &&
-      MailspringAPIRequest.TimeoutErrorCodes.includes(error.statusCode)
-    ) {
-      return localized(
-        `Link tracking does not work offline. Please re-enable when you come back online.`
-      );
-    }
+function errorMessage(error: Error) {
+  if (
+    error instanceof APIError &&
+    MailspringAPIRequest.TimeoutErrorCodes.includes(error.statusCode)
+  ) {
     return localized(
-      `Unfortunately, link tracking servers are currently not available. Please try again later. Error: %@`,
-      error.message
+      `Link tracking does not work offline. Please re-enable when you come back online.`
     );
   }
-
-  render() {
-    if (this.props.draft.plaintext) {
-      return <span />;
-    }
-
-    return (
-      <MetadataComposerToggleButton
-        iconName="icon-composer-linktracking.png"
-        pluginId={PLUGIN_ID}
-        pluginName={PLUGIN_NAME}
-        metadataEnabledValue={{ tracked: true }}
-        errorMessage={this._errorMessage}
-        draft={this.props.draft}
-        session={this.props.session}
-      />
-    );
-  }
+  return localized(
+    `Unfortunately, link tracking servers are currently not available. Please try again later. Error: %@`,
+    error.message
+  );
 }
+
+const LinkTrackingButtonInner: React.FC<Props> = ({ draft, session }) => {
+  if (draft.plaintext) {
+    return <span />;
+  }
+  return (
+    <MetadataComposerToggleButton
+      iconName="icon-composer-linktracking.png"
+      pluginId={PLUGIN_ID}
+      pluginName={PLUGIN_NAME}
+      metadataEnabledValue={{ tracked: true }}
+      errorMessage={errorMessage}
+      draft={draft}
+      session={session}
+    />
+  );
+};
+LinkTrackingButtonInner.displayName = 'LinkTrackingButton';
+
+const LinkTrackingButton = React.memo(
+  LinkTrackingButtonInner,
+  (prev, next) =>
+    prev.draft.metadataForPluginId(PLUGIN_ID) === next.draft.metadataForPluginId(PLUGIN_ID)
+);
+
+export default LinkTrackingButton;
