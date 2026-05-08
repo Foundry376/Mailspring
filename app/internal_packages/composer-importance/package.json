@@ -1,0 +1,16 @@
+{
+  "name": "composer-importance",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "Lets the user mark outgoing mail as high or low importance.",
+  "license": "GPL-3.0",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "default": true,
+    "composer": true,
+    "thread-popout": true
+  }
+}

@@ -187,6 +187,11 @@ export class Message extends ModelWithMetadata {
       modelKey: 'listUnsubscribePost',
       jsonKey: 'hListUnsubPost',
     }),
+
+    importance: Attributes.String({
+      modelKey: 'importance',
+      jsonKey: 'hImportance',
+    }),
   };
 
   public subject: string;
@@ -210,6 +215,7 @@ export class Message extends ModelWithMetadata {
   public folder: Folder;
   public listUnsubscribe: string;
   public listUnsubscribePost: string;
+  public importance: string;
 
   /** indicates that "body" is plain text, not HTML */
   public plaintext: boolean;

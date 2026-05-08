@@ -13,6 +13,7 @@ import { localized, FocusedPerspectiveStore, Utils, DateUtils, Thread } from 'ma
 import { ThreadArchiveQuickAction, ThreadTrashQuickAction } from './thread-list-quick-actions';
 import ThreadListParticipants from './thread-list-participants';
 import ThreadListIcon from './thread-list-icon';
+import ThreadListImportanceIcon from './thread-list-importance-icon';
 import { ThreadWithMessagesMetadata } from './types';
 
 // Get and format either last sent or last received timestamp depending on thread-list being viewed
@@ -66,6 +67,7 @@ const c1 = new ListTabular.Column({
   resolver: (thread: ThreadWithMessagesMetadata) => {
     return [
       <ThreadListIcon key="thread-list-icon" thread={thread} />,
+      <ThreadListImportanceIcon key="thread-list-importance-icon" thread={thread} />,
       <MailImportantIcon
         key="mail-important-icon"
         thread={thread}
@@ -200,6 +202,7 @@ const cNarrow = new ListTabular.Column({
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div className="icons-column">
           <ThreadListIcon thread={thread} />
+          <ThreadListImportanceIcon thread={thread} />
           <InjectedComponentSet
             inline={true}
             matchLimit={1}

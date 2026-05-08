@@ -1,0 +1,32 @@
+.importance-button-dropdown {
+  display: inline-block;
+  vertical-align: top;
+
+  .importance-button {
+    display: block;
+    margin: 0 4px;
+  }
+
+  // When the user has explicitly chosen high importance, brighten the icon a bit.
+  &.importance-high .importance-button {
+    opacity: 1;
+  }
+
+  // Normal/low: a quieter look so it doesn't compete with the signature picker.
+  &.importance-normal .importance-button,
+  &.importance-low .importance-button {
+    opacity: 0.7;
+  }
+}
+
+.importance-option {
+  display: inline-block;
+
+  &.importance-option-high {
+    font-weight: 600;
+    color: #d33b2f;
+  }
+  &.importance-option-low {
+    opacity: 0.75;
+  }
+}
