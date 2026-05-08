@@ -13,9 +13,7 @@ import MovePickerPopover from './move-picker-popover';
 import LabelPickerPopover from './label-picker-popover';
 
 // This sets the folder / label on one or more threads.
-const MovePicker: React.FC<{ items: Thread[] }> & { containerRequired?: boolean } = ({
-  items,
-}) => {
+const MovePicker: React.FC<{ items: Thread[] }> & { containerRequired?: boolean } = ({ items }) => {
   const sheetDepth = useContext(SheetDepthContext);
   const moveEl = useRef<HTMLButtonElement>(null);
   const labelEl = useRef<HTMLButtonElement>(null);
