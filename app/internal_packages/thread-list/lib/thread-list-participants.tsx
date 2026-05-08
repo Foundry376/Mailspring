@@ -47,7 +47,7 @@ function getTokensFromParticipants(thread: ThreadWithMessagesMetadata) {
   return contacts.map((contact) => ({ contact, unread: false }));
 }
 
-function getTokens(thread: ThreadWithMessagesMetadata) {
+export function getTokens(thread: ThreadWithMessagesMetadata) {
   let list;
   if (thread.__messages instanceof Array) {
     list = getTokensFromMessages(thread);
