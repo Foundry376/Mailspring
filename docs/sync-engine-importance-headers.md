@@ -5,6 +5,26 @@ side (this repo) has been wired up to display and edit a per-message
 `importance` value; the sync engine is the missing half. Once these changes
 land, the feature ships end-to-end.
 
+## Existing state in the sync engine
+
+The engine already emits two JSON keys on inbound message rows:
+**`hImportance`** and **`hXPriority`**. We have confirmed (with `git log -S`
+across the entire Electron repo's history) that **neither key has ever been
+read by the front-end** — they were plumbed through in preparation but never
+wired up. So:
+
+- We are reusing the existing `hImportance` key but **changing its contract**:
+  it must now carry one of `"high"` / `"normal"` / `"low"` (coerced from
+  whichever raw header was present), not the raw header value.
+- `hXPriority` should be **removed** (stop emitting it). The Electron side
+  doesn't need both — a single coerced field is the whole feature. If
+  removing it cleanly is awkward (e.g. it's tied to schema), it's acceptable
+  to leave the column in place and just stop populating/emitting it; the
+  Electron side ignores unknown keys.
+- Whatever raw-string parsing exists today is the starting point — the work
+  below is mostly tightening it (header precedence, numeric `X-Priority`
+  mapping, fallback to `X-MSMail-Priority`) and normalizing the output.
+
 ## What's already done on the TypeScript side
 
 - `Message` gained a new attribute (`app/src/flux/models/message.ts`):
@@ -43,18 +63,25 @@ so we don't have to break the schema later if we add a "low" indicator.
 
 ### 1. Database schema
 
-Add a new column on the messages table — likely `importance TEXT` (or an
-enum/int if that's the convention; `listUnsubscribe` uses TEXT). Default
-empty string / NULL.
+A schema column for importance/priority **probably already exists** (since
+`hImportance` and `hXPriority` are already being emitted). Investigate
+first:
 
-**Strong precedent to follow:** `listUnsubscribe` and `listUnsubscribePost`.
-On the TypeScript side these only exist as model attributes (see
-`app/src/flux/models/message.ts:181-189`); the entire round-trip — DB
-column, MIME header parsing, JSON serialization in deltas — lives in the
-C++ engine. Find where `hListUnsub` / `listUnsubscribe` are read and
-written in the C++ code and mirror that pattern for `hImportance`.
+- If a single column exists that holds the coerced value: reuse it, just
+  update the parsing/normalization logic that populates it.
+- If the column today stores a raw header string: a one-time migration
+  coercing existing rows to `"high"` / `"normal"` / `"low"` is ideal,
+  but acceptable to skip — at worst, old rows render as if they had no
+  importance set until they're re-synced.
+- If two columns exist (one for `Importance`, one for `X-Priority`):
+  consolidate to one. Stop populating the second; you can drop the column
+  later.
 
-A schema migration will be needed for existing user databases.
+**Precedent to follow** for the read/serialize/write pattern:
+`listUnsubscribe` (TS attribute at `app/src/flux/models/message.ts:181-189`,
+JSON key `hListUnsub`). It has no other TS-side references — the entire
+round-trip lives in the C++ engine, which is exactly the shape we want for
+`hImportance` too.
 
 ### 2. Inbound: parse priority headers when fetching/syncing messages
 
@@ -161,13 +188,16 @@ Schema:
 
 ## How to find the relevant C++ code quickly
 
-`listUnsubscribe` is the closest existing analogue: a single string
-column on the messages table, populated from a MIME header on inbound,
-serialized to Electron via the `hListUnsub` JSON key. Grepping the C++
-tree for `hListUnsub`, `listUnsubscribe`, and `List-Unsubscribe` should
-land you on every file you need to touch (schema, parser, serializer).
-The new `hImportance` plumbing should sit right next to it in each of
-those files.
+**Start here, since the plumbing already partly exists:** grep the C++
+tree for `hImportance`, `hXPriority`, and `XPriority`. Those will land
+you on the existing emit/parse code — that's the code to refactor. Also
+grep for the raw header names (`Importance`, `X-Priority`,
+`X-MSMail-Priority`) in case one is parsed but not yet emitted.
+
+If you need a structural reference for "single string column populated
+from a MIME header and emitted in the JSON delta," look at
+`listUnsubscribe`: grep for `hListUnsub`, `listUnsubscribe`, and
+`List-Unsubscribe`. That's the shape `hImportance` should end up matching.
 
 For outbound MIME composition, look for where `In-Reply-To` or
 `References` headers are written when sending — that's the same spot
