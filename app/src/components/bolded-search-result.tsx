@@ -9,12 +9,14 @@ export default function BoldedSearchResult({
 
   if (searchTerm.length === 0) return <span>{value}</span>;
 
-  const re = Utils.wordSearchRegExp(searchTerm);
-  const parts = value.split(re).map((part, idx) => {
+  const splitRe = Utils.wordSearchRegExp(searchTerm);
+  // Use a non-global copy for .test() so lastIndex doesn't persist between parts
+  const testRe = new RegExp(splitRe.source, splitRe.flags.replace('g', ''));
+  const parts = value.split(splitRe).map((part, idx) => {
     // The wordSearchRegExp looks for a leading non-word character to
     // deterine if it's a valid place to search. As such, we need to not
     // include that leading character as part of our match.
-    if (re.test(part)) {
+    if (testRe.test(part)) {
       if (/\W/.test(part[0])) {
         return (
           <span key={idx}>

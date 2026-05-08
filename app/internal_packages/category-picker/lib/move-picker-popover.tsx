@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, { Component } from 'react';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
 import {
@@ -56,6 +57,7 @@ export default class MovePickerPopover extends Component<
 
   componentWillUnmount() {
     this._unregisterObservables();
+    this._scheduleRecalculate.cancel();
   }
 
   _registerObservables = (props = this.props) => {
@@ -86,6 +88,10 @@ export default class MovePickerPopover extends Component<
       hidden.push('all');
     }
 
+    // Compile the search regex once (without the /g flag so .test() is stateless
+    // and safe to reuse across every category in the .filter below).
+    const searchReG = Utils.wordSearchRegExp(searchValue);
+    const searchRe = new RegExp(searchReG.source, searchReG.flags.replace('g', ''));
     const categoryData = []
       .concat(this._standardFolders)
       .concat([{ divider: true, id: 'category-divider' }])
@@ -95,7 +101,7 @@ export default class MovePickerPopover extends Component<
           // remove categories that are part of the current perspective or locked
           !hidden.includes(cat.role) && !currentCategoryIds.includes(cat.id)
       )
-      .filter((cat) => Utils.wordSearchRegExp(searchValue).test(cat.displayName))
+      .filter((cat) => searchRe.test(cat.displayName))
       .map((cat) => {
         if (cat.divider) {
           return cat;
@@ -193,8 +199,17 @@ export default class MovePickerPopover extends Component<
   };
 
   _onSearchValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState(this._recalculateState(this.props, { searchValue: event.target.value }));
+    // Update searchValue immediately so the input stays responsive,
+    // but defer the expensive filter + Menu re-render.
+    this.setState({ searchValue: event.target.value });
+    this._scheduleRecalculate();
   };
+
+  _scheduleRecalculate = _.debounce(() => {
+    this.setState((prevState) =>
+      this._recalculateState(this.props, { searchValue: prevState.searchValue })
+    );
+  }, 100);
 
   _renderCreateNewItem = ({ searchValue }: CategoryData) => {
     const icon =

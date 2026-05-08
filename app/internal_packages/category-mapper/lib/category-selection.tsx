@@ -36,6 +36,9 @@ export default class CategorySelection extends React.Component<
   };
 
   _itemsForCategories(): CategoryItem[] {
+    // Compile the search regex once (without /g so .test() is stateless across items).
+    const searchReG = Utils.wordSearchRegExp(this.state.searchValue);
+    const searchRe = new RegExp(searchReG.source, searchReG.flags.replace('g', ''));
     return this.props.all
       .sort((a, b) => {
         const pathA = imapUtf7.decode(a.path).toUpperCase();
@@ -48,7 +51,7 @@ export default class CategorySelection extends React.Component<
         }
         return 0;
       })
-      .filter((c) => Utils.wordSearchRegExp(this.state.searchValue).test(imapUtf7.decode(c.path)))
+      .filter((c) => searchRe.test(imapUtf7.decode(c.path)))
       .map((c) => {
         c.backgroundColor = LabelColorizer.backgroundColorDark(c);
         return c;
