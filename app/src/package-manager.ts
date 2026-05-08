@@ -251,7 +251,7 @@ export default class PackageManager {
       return callback(
         new Error(
           localized(
-            `The plugin or theme you selected has an invalid or missing "name" field in its package.json. Names must match /^[a-z0-9._-]+$/.`
+            `The plugin or theme you selected has an invalid or missing "name" field in its package.json. Names must match /^[a-zA-Z0-9._-]+$/.`
           )
         )
       );

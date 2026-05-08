@@ -4,7 +4,7 @@ import fs from 'fs';
 class NoPackageJSONError extends Error {}
 class InvalidPackageNameError extends Error {}
 
-const VALID_PACKAGE_NAME = /^[a-z0-9._-]+$/;
+const VALID_PACKAGE_NAME = /^[a-zA-Z0-9._-]+$/;
 
 export function isValidPackageName(name: unknown): name is string {
   return (
@@ -44,7 +44,7 @@ export default class Package {
     this.json = JSON.parse(jsonString);
     if (!isValidPackageName(this.json.name)) {
       throw new InvalidPackageNameError(
-        `Plugin in ${dir} has an invalid or missing "name" field. Names must match /^[a-z0-9._-]+$/.`
+        `Plugin in ${dir} has an invalid or missing "name" field. Names must match /^[a-zA-Z0-9._-]+$/.`
       );
     }
     this.name = this.json.name;
