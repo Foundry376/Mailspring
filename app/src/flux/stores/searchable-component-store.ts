@@ -144,7 +144,7 @@ class SearchableComponentStore extends MailspringStore {
       }
 
       const parentFilter = (node: Element) => {
-        return node.classList.contains('scroll-region-content');
+        return !!node.classList && node.classList.contains('scroll-region-content');
       };
       this.scrollAncestor = DOMUtils.commonAncestor(searchNodes, parentFilter);
       this.scrollAncestor =
