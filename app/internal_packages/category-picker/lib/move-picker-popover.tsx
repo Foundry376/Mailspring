@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, { Component } from 'react';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
 import {
@@ -57,7 +56,6 @@ export default class MovePickerPopover extends Component<
 
   componentWillUnmount() {
     this._unregisterObservables();
-    this._scheduleRecalculate.cancel();
   }
 
   _registerObservables = (props = this.props) => {
@@ -199,17 +197,8 @@ export default class MovePickerPopover extends Component<
   };
 
   _onSearchValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Update searchValue immediately so the input stays responsive,
-    // but defer the expensive filter + Menu re-render.
-    this.setState({ searchValue: event.target.value });
-    this._scheduleRecalculate();
+    this.setState(this._recalculateState(this.props, { searchValue: event.target.value }));
   };
-
-  _scheduleRecalculate = _.debounce(() => {
-    this.setState((prevState) =>
-      this._recalculateState(this.props, { searchValue: prevState.searchValue })
-    );
-  }, 100);
 
   _renderCreateNewItem = ({ searchValue }: CategoryData) => {
     const icon =

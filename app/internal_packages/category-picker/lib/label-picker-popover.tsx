@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, { Component, CSSProperties } from 'react';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
 import {
@@ -53,7 +52,6 @@ export default class LabelPickerPopover extends Component<
 
   componentWillUnmount() {
     this._unregisterObservables();
-    this._scheduleRecalculate.cancel();
   }
 
   _registerObservables = (props = this.props) => {
@@ -165,15 +163,8 @@ export default class LabelPickerPopover extends Component<
   };
 
   _onSearchValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ searchValue: event.target.value });
-    this._scheduleRecalculate();
+    this.setState(this._recalculateState(this.props, { searchValue: event.target.value }));
   };
-
-  _scheduleRecalculate = _.debounce(() => {
-    this.setState((prevState) =>
-      this._recalculateState(this.props, { searchValue: prevState.searchValue })
-    );
-  }, 100);
 
   _renderCheckbox = (item: CategoryData) => {
     const styles: CSSProperties = {};
