@@ -4,17 +4,12 @@ import ReactTestUtils from 'react-dom/test-utils';
 import MovePickerPopover from '../lib/move-picker-popover';
 
 import {
-  Category,
   Folder,
   Label,
   Thread,
   Actions,
   AccountStore,
   CategoryStore,
-  DatabaseStore,
-  ChangeFolderTask,
-  ChangeLabelsTask,
-  SyncbackCategoryTask,
   FocusedPerspectiveStore,
   MailboxPerspective,
   MailspringTestUtils,
@@ -76,6 +71,8 @@ describe('MovePickerPopover', function () {
       subject: 'fake',
       accountId: TEST_ACCOUNT_ID,
       categories: [],
+      folders: [],
+      labels: [],
     });
     this.picker = ReactTestUtils.renderIntoDocument(
       <MovePickerPopover threads={[this.testThread]} account={this.account} />
@@ -91,6 +88,8 @@ describe('MovePickerPopover', function () {
         subject: 'fake',
         accountId: TEST_ACCOUNT_ID,
         categories: [],
+        folders: [],
+        labels: [],
       });
       this.picker = ReactTestUtils.renderIntoDocument(
         <MovePickerPopover threads={[this.testThread]} account={this.account} />
@@ -176,9 +175,9 @@ describe('MovePickerPopover', function () {
         this.picker._onSelectCategory({ category: this.archiveCategory });
         expect(Actions.queueTask).toHaveBeenCalled();
         const task = (Actions.queueTask as any).calls[0].args[0];
-        expect(task instanceof ChangeFolderTask).toBe(true);
+        expect(task.constructor.name).toBe('ChangeFolderTask');
         expect(task.folder).toBe(this.archiveCategory);
-        expect(task.threads).toEqual([this.testThread]);
+        expect(task.threadIds).toEqual([this.testThread.id]);
       }));
 
     describe('when selecting a label', () =>
@@ -188,13 +187,12 @@ describe('MovePickerPopover', function () {
           path: 'MyLabel',
           accountId: TEST_ACCOUNT_ID,
         });
-        this.testThread.labels = [];
         this.picker._onSelectCategory({ category: labelCategory });
         expect(Actions.queueTask).toHaveBeenCalled();
         const task = (Actions.queueTask as any).calls[0].args[0];
-        expect(task instanceof ChangeLabelsTask).toBe(true);
+        expect(task.constructor.name).toBe('ChangeLabelsTask');
         expect(task.labelsToAdd).toEqual([labelCategory]);
-        expect(task.threads).toEqual([this.testThread]);
+        expect(task.threadIds).toEqual([this.testThread.id]);
       }));
 
     describe('when selecting a new category', function () {
@@ -207,11 +205,9 @@ describe('MovePickerPopover', function () {
         this.picker._onSelectCategory(this.input);
         expect(Actions.queueTask).toHaveBeenCalled();
         const syncbackTask = (Actions.queueTask as any).calls[0].args[0];
-        expect(syncbackTask instanceof SyncbackCategoryTask).toBe(true);
-        const newCategory = syncbackTask.category;
-        expect(newCategory instanceof Category).toBe(true);
-        expect(newCategory.displayName).toBe('teSTing!');
-        expect(newCategory.accountId).toBe(TEST_ACCOUNT_ID);
+        expect(syncbackTask.constructor.name).toBe('SyncbackCategoryTask');
+        expect(syncbackTask.path).toBe('teSTing!');
+        expect(syncbackTask.accountId).toBe(TEST_ACCOUNT_ID);
       });
 
       it('queues a move task after the new category is saved', function () {
@@ -222,7 +218,7 @@ describe('MovePickerPopover', function () {
         });
         let resolveSave: any = null;
         spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(function (task) {
-          expect(task instanceof SyncbackCategoryTask).toBe(true);
+          expect(task.constructor.name).toBe('SyncbackCategoryTask');
           return new Promise(function (resolve) {
             resolveSave = resolve;
           });
@@ -241,9 +237,9 @@ describe('MovePickerPopover', function () {
 
         runs(function () {
           const moveTask = (Actions.queueTask as any).calls[1].args[0];
-          expect(moveTask instanceof ChangeFolderTask).toBe(true);
+          expect(moveTask.constructor.name).toBe('ChangeFolderTask');
           expect(moveTask.folder).toBe(createdFolder);
-          expect(moveTask.threads).toEqual([this.testThread]);
+          expect(moveTask.threadIds).toEqual([this.testThread.id]);
         });
       });
     });
