@@ -174,6 +174,7 @@ export const PropTypes: PropTypes;
 // React Components
 export type ComponentRegistry = typeof import('../registries/component-registry').default;
 export const ComponentRegistry: ComponentRegistry;
+export const SheetDepthContext: typeof import('../sheet-context').SheetDepthContext;
 
 // Utils
 export type Utils = typeof import('../flux/models/utils');
