@@ -103,7 +103,7 @@ const ownPropKeys = [
 
 type RetinaImgFullProps = RetinaImgProps & React.HTMLProps<HTMLImageElement>;
 
-const RetinaImgInner: React.FC<RetinaImgFullProps> = props => {
+const RetinaImgInner = React.forwardRef<HTMLImageElement, RetinaImgFullProps>((props, ref) => {
   const pathFor = (name: string | undefined) => {
     if (!name || typeof name !== 'string') return null;
     let pathName = name;
@@ -146,8 +146,8 @@ const RetinaImgInner: React.FC<RetinaImgFullProps> = props => {
   }
 
   const otherProps = Utils.fastOmit(props, ownPropKeys);
-  return <img alt={''} className={className} src={path} style={style} {...otherProps} />;
-};
+  return <img ref={ref} alt={''} className={className} src={path} style={style} {...otherProps} />;
+});
 RetinaImgInner.displayName = 'RetinaImg';
 
 export const RetinaImg = Object.assign(

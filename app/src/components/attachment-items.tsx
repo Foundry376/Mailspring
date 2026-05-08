@@ -135,7 +135,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
 
   static defaultProps = defaultProps;
 
-  _fileIconComponent: RetinaImg;
+  _fileIconComponent: HTMLImageElement | null = null;
 
   _onDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     const { contentType, filePath } = this.props;
@@ -145,7 +145,8 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
       const downloadURL = `${contentType}:${path.basename(filePath)}:file://${filePath}`;
       event.dataTransfer.setData('DownloadURL', downloadURL);
       event.dataTransfer.setData('text/mailspring-file-url', downloadURL);
-      const el = ReactDOM.findDOMNode(this._fileIconComponent) as HTMLElement;
+      const el = this._fileIconComponent;
+      if (!el) return;
       const rect = el.getBoundingClientRect();
       const x = window.devicePixelRatio === 2 ? rect.height / 2 : rect.height;
       const y = window.devicePixelRatio === 2 ? rect.width / 2 : rect.width;
