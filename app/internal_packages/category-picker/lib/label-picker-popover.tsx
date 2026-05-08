@@ -74,9 +74,8 @@ export default class LabelPickerPopover extends Component<
       return { categoryData: [], searchValue };
     }
 
-    // Compile the search regex once (without /g so .test() is stateless across items).
-    const searchReG = Utils.wordSearchRegExp(searchValue);
-    const searchRe = new RegExp(searchReG.source, searchReG.flags.replace('g', ''));
+    // Compile the search regex once and reuse it across the .filter below.
+    const searchRe = Utils.wordSearchRegExp(searchValue);
     const categoryData = this._labels
       .filter((label) => searchRe.test(label.displayName))
       .map<CategoryData>((label) => {

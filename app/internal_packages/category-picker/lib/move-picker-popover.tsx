@@ -86,10 +86,8 @@ export default class MovePickerPopover extends Component<
       hidden.push('all');
     }
 
-    // Compile the search regex once (without the /g flag so .test() is stateless
-    // and safe to reuse across every category in the .filter below).
-    const searchReG = Utils.wordSearchRegExp(searchValue);
-    const searchRe = new RegExp(searchReG.source, searchReG.flags.replace('g', ''));
+    // Compile the search regex once and reuse it across the .filter below.
+    const searchRe = Utils.wordSearchRegExp(searchValue);
     const categoryData = []
       .concat(this._standardFolders)
       .concat([{ divider: true, id: 'category-divider' }])

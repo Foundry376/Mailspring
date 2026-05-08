@@ -36,9 +36,8 @@ export default class CategorySelection extends React.Component<
   };
 
   _itemsForCategories(): CategoryItem[] {
-    // Compile the search regex once (without /g so .test() is stateless across items).
-    const searchReG = Utils.wordSearchRegExp(this.state.searchValue);
-    const searchRe = new RegExp(searchReG.source, searchReG.flags.replace('g', ''));
+    // Compile the search regex once and reuse it across the .filter below.
+    const searchRe = Utils.wordSearchRegExp(this.state.searchValue);
     return this.props.all
       .sort((a, b) => {
         const pathA = imapUtf7.decode(a.path).toUpperCase();
