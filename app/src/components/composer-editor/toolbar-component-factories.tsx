@@ -13,11 +13,11 @@ import { ComposerEditorPluginToolbarComponentProps } from './types';
 // to an empty list. `.find` / `.some` work the same on arrays as on the
 // Immutable.Set Slate normally returns, and the next render picks up the
 // correct state once Slate re-normalizes.
-export function safeActiveMarks(value: Value): { find: any; some: any; [key: string]: any } {
+export function safeActiveMarks(value: Value): Mark[] {
   try {
-    return value.activeMarks as any;
+    return [...value.activeMarks];
   } catch (err) {
-    return [] as any;
+    return [];
   }
 }
 
