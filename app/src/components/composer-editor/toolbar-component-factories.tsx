@@ -15,7 +15,7 @@ import { ComposerEditorPluginToolbarComponentProps } from './types';
 // correct state once Slate re-normalizes.
 export function safeActiveMarks(value: Value): Mark[] {
   try {
-    return [...value.activeMarks];
+    return value.activeMarks.toArray();
   } catch (err) {
     return [];
   }
