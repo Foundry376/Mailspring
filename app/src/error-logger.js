@@ -79,8 +79,16 @@ module.exports = ErrorLogger = (function () {
       }
       var wrapped = new Error('Empty error reported (' + description + ')');
       if (error && typeof error === 'object') {
+        // Copy any other useful fields from the original, but never let an
+        // empty `message`/`stack` on the input clobber the wrap's real values
+        // — that would defeat the whole purpose of wrapping.
         try {
-          Object.assign(wrapped, error);
+          var keys = Object.getOwnPropertyNames(error);
+          for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            if (key === 'message' || key === 'stack') continue;
+            wrapped[key] = error[key];
+          }
         } catch (e) {
           // ignore non-assignable inputs
         }
