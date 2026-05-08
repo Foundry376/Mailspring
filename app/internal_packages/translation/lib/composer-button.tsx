@@ -69,11 +69,10 @@ const TranslateComposerButtonInner: React.FC<Props> = ({ draft, session }) => {
     </button>
   );
 };
-TranslateComposerButtonInner.displayName = 'TranslateComposerButton';
-
 // Our render method doesn't use the provided `draft`, and the draft changes
 // constantly (on every keystroke!). Memoizing on `session` keeps Mailspring fast.
 export const TranslateComposerButton = React.memo(
   TranslateComposerButtonInner,
   (prev, next) => prev.session === next.session
 );
+TranslateComposerButton.displayName = 'TranslateComposerButton';

@@ -42,8 +42,6 @@ const OpenTrackingButtonInner: React.FC<Props> = ({ draft, session }) => {
     />
   );
 };
-OpenTrackingButtonInner.displayName = 'OpenTrackingButton';
-
 const OpenTrackingButton = Object.assign(
   React.memo(
     OpenTrackingButtonInner,
@@ -52,5 +50,6 @@ const OpenTrackingButton = Object.assign(
   ),
   { containerRequired: false as const }
 );
+OpenTrackingButton.displayName = 'OpenTrackingButton';
 
 export default OpenTrackingButton;

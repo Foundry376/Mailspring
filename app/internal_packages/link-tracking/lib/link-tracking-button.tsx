@@ -42,12 +42,11 @@ const LinkTrackingButtonInner: React.FC<Props> = ({ draft, session }) => {
     />
   );
 };
-LinkTrackingButtonInner.displayName = 'LinkTrackingButton';
-
 const LinkTrackingButton = React.memo(
   LinkTrackingButtonInner,
   (prev, next) =>
     prev.draft.metadataForPluginId(PLUGIN_ID) === next.draft.metadataForPluginId(PLUGIN_ID)
 );
+LinkTrackingButton.displayName = 'LinkTrackingButton';
 
 export default LinkTrackingButton;

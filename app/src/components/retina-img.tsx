@@ -148,9 +148,8 @@ const RetinaImgInner = React.forwardRef<HTMLImageElement, RetinaImgFullProps>((p
   const otherProps = Utils.fastOmit(props, ownPropKeys);
   return <img ref={ref} alt={''} className={className} src={path} style={style} {...otherProps} />;
 });
-RetinaImgInner.displayName = 'RetinaImg';
-
 export const RetinaImg = Object.assign(
   React.memo(RetinaImgInner, (prev, next) => _.isEqual(prev, next)),
   { Mode }
 );
+RetinaImg.displayName = 'RetinaImg';

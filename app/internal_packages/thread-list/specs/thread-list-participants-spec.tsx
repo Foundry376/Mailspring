@@ -1,6 +1,5 @@
 import React from 'react';
-import ReactTestUtils from 'react-dom/test-utils';
-
+import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import { AccountStore, Thread, Contact, Message } from 'mailspring-exports';
 import ThreadListParticipants, { getTokens } from '../lib/thread-list-participants';
@@ -16,13 +15,9 @@ describe('ThreadListParticipants', function () {
     const thread = new Thread({});
     (thread as any).__messages = [new Message({ from: [ben], unread: true })];
 
-    this.participants = ReactTestUtils.renderIntoDocument(
-      <ThreadListParticipants thread={thread as any} />
-    );
-    const unread = ReactTestUtils.scryRenderedDOMComponentsWithClass(
-      this.participants,
-      'unread-true'
-    );
+    const container = document.createElement('div');
+    ReactDOM.render(<ThreadListParticipants thread={thread as any} />, container);
+    const unread = container.getElementsByClassName('unread-true');
     expect(unread.length).toBe(1);
   });
 
