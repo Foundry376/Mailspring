@@ -225,9 +225,8 @@ export class MailsyncProcess extends EventEmitter {
       cachedSettings.smtp_password,
     ].filter((v): v is string => typeof v === 'string' && v.length > 0);
 
-    const escape = (s: string) => s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     for (const v of cachedValues) {
-      out = out.replace(new RegExp(escape(v), 'g'), '*********');
+      out = out.replaceAll(v, '*********');
     }
 
     return out;
