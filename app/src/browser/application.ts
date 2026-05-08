@@ -835,9 +835,21 @@ export default class Application extends EventEmitter {
         // correctly to error reporting tools like Sentry/Raven.
         const message =
           errorParams && typeof errorParams === 'object' ? errorParams.message : undefined;
+        const stack =
+          errorParams && typeof errorParams === 'object' ? errorParams.stack : undefined;
+
+        // Drop reports with neither a message nor a stack: they would surface
+        // in Sentry as "Unknown error" with only this IPC handler frame,
+        // which is unactionable. The renderer wraps inputs before sending so
+        // this is defense-in-depth for any path that bypasses that wrapping.
+        if (!message && !stack) {
+          event.returnValue = true;
+          return;
+        }
+
         const err = new Error(message || undefined);
-        if (errorParams && typeof errorParams === 'object' && errorParams.stack) {
-          err.stack = errorParams.stack;
+        if (stack) {
+          err.stack = stack;
         }
         Object.assign(err, errorParams);
         global.errorLogger.reportError(err, extra);
