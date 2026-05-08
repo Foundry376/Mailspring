@@ -86,6 +86,8 @@ export default class MovePickerPopover extends Component<
       hidden.push('all');
     }
 
+    // Compile the search regex once and reuse it across the .filter below.
+    const searchRe = Utils.wordSearchRegExp(searchValue);
     const categoryData = []
       .concat(this._standardFolders)
       .concat([{ divider: true, id: 'category-divider' }])
@@ -95,7 +97,7 @@ export default class MovePickerPopover extends Component<
           // remove categories that are part of the current perspective or locked
           !hidden.includes(cat.role) && !currentCategoryIds.includes(cat.id)
       )
-      .filter((cat) => Utils.wordSearchRegExp(searchValue).test(cat.displayName))
+      .filter((cat) => searchRe.test(cat.displayName))
       .map((cat) => {
         if (cat.divider) {
           return cat;

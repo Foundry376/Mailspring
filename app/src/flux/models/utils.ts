@@ -105,12 +105,19 @@ export function range(left, right, inclusive = true) {
 }
 
 // Generates a new RegExp that is great for basic search fields. It
-// checks if the test string is at the start of words
+// checks if the test string is at the start of words.
+//
+// Note: the `g` flag is intentionally NOT set. Callers use this regex
+// with `.test()` (which mutates `lastIndex` on global regexes, leading
+// to subtle bugs when a single instance is reused across items) and
+// with `String.prototype.split()` (which does not require `g` to split
+// on every occurrence). Adding `g` here would silently re-introduce
+// the lastIndex hazard for future callers.
 //
 // See regex explanation and test here:
 // https://regex101.com/r/zG7aW4/2
 export function wordSearchRegExp(str = '') {
-  return new RegExp(`((?:^|\\W|$)${escapeRegExp(str.trim())})`, 'ig');
+  return new RegExp(`((?:^|\\W|$)${escapeRegExp(str.trim())})`, 'i');
 }
 
 // Takes an optional customizer. The customizer is passed the key and the
