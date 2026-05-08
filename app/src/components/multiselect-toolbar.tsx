@@ -1,5 +1,5 @@
 import { Utils, localized } from 'mailspring-exports';
-import React, { Component } from 'react';
+import React from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 
 type MultiselectToolbarProps = {
@@ -16,61 +16,44 @@ type MultiselectToolbarProps = {
  * The toolbar, or set of buttons, must be passed in as props.toolbarElement
  *
  * It will also animate its mounting and unmounting
- * @class MultiselectToolbar
  */
-class MultiselectToolbar extends Component<MultiselectToolbarProps> {
-  static displayName = 'MultiselectToolbar';
-
-  shouldComponentUpdate(nextProps: MultiselectToolbarProps, nextState: Record<string, unknown>) {
-    return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
+function selectionLabel(selectionCount: number, collection: string) {
+  if (selectionCount === 0) {
+    return '';
   }
-
-  selectionLabel = () => {
-    const { selectionCount, collection } = this.props;
-    if (selectionCount === 0) {
-      return '';
-    }
-
-    let noun = '';
-    if (collection === 'thread') {
-      noun = selectionCount > 1 ? localized('Threads') : localized('Thread');
-    } else if (collection === 'draft') {
-      noun = selectionCount > 1 ? localized('Drafts') : localized('Draft');
-    }
-
-    return `${selectionCount} ${noun.toLocaleLowerCase()} ${localized(`selected`)}`;
-  };
-
-  renderToolbar() {
-    const { toolbarElement, onClearSelection } = this.props;
-    return (
-      <div className="absolute" key="absolute">
-        <div className="inner">
-          {toolbarElement}
-          <div className="centered">{this.selectionLabel()}</div>
-
-          <button style={{ order: 100 }} className="btn btn-toolbar" onClick={onClearSelection}>
-            {localized('Clear Selection')}
-          </button>
-        </div>
-      </div>
-    );
+  let noun = '';
+  if (collection === 'thread') {
+    noun = selectionCount > 1 ? localized('Threads') : localized('Thread');
+  } else if (collection === 'draft') {
+    noun = selectionCount > 1 ? localized('Drafts') : localized('Draft');
   }
-
-  render() {
-    const { selectionCount } = this.props;
-    return (
-      <CSSTransitionGroup
-        className={'selection-bar'}
-        transitionName="selection-bar-absolute"
-        component="div"
-        transitionLeaveTimeout={200}
-        transitionEnterTimeout={200}
-      >
-        {selectionCount > 0 ? this.renderToolbar() : undefined}
-      </CSSTransitionGroup>
-    );
-  }
+  return `${selectionCount} ${noun.toLocaleLowerCase()} ${localized(`selected`)}`;
 }
+
+const MultiselectToolbar: React.FC<MultiselectToolbarProps> = React.memo(
+  ({ toolbarElement, collection, onClearSelection, selectionCount }) => (
+    <CSSTransitionGroup
+      className={'selection-bar'}
+      transitionName="selection-bar-absolute"
+      component="div"
+      transitionLeaveTimeout={200}
+      transitionEnterTimeout={200}
+    >
+      {selectionCount > 0 ? (
+        <div className="absolute" key="absolute">
+          <div className="inner">
+            {toolbarElement}
+            <div className="centered">{selectionLabel(selectionCount, collection)}</div>
+            <button style={{ order: 100 }} className="btn btn-toolbar" onClick={onClearSelection}>
+              {localized('Clear Selection')}
+            </button>
+          </div>
+        </div>
+      ) : undefined}
+    </CSSTransitionGroup>
+  ),
+  (prev, next) => Utils.isEqualReact(prev, next)
+);
+MultiselectToolbar.displayName = 'MultiselectToolbar';
 
 export default MultiselectToolbar;

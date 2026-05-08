@@ -38,42 +38,34 @@ export const LabelColorizer = {
   },
 };
 
-export class MailLabel extends React.Component<MailLabelProps> {
-  shouldComponentUpdate(nextProps) {
-    if (nextProps.label.id === this.props.label.id) {
-      return false;
-    }
-    return true;
-  }
-
-  _removable() {
-    return this.props.onRemove && !this.props.label.isLockedCategory();
-  }
-
-  render() {
+export const MailLabel: React.FC<MailLabelProps> = React.memo(
+  ({ label, onRemove }) => {
+    const removable = onRemove && !label.isLockedCategory();
     let classname = 'mail-label';
-    let content: JSX.Element | string = this.props.label.displayName;
+    let content: JSX.Element | string = label.displayName;
 
-    let x = null;
-    if (this._removable()) {
+    let x: JSX.Element | null = null;
+    if (removable) {
       classname += ' removable';
       content = <span className="inner">{content}</span>;
       x = (
         <RetinaImg
           className="x"
           name="label-x.png"
-          style={{ backgroundColor: LabelColorizer.color(this.props.label) }}
+          style={{ backgroundColor: LabelColorizer.color(label) }}
           mode={RetinaImg.Mode.ContentIsMask}
-          onClick={this.props.onRemove}
+          onClick={onRemove}
         />
       );
     }
 
     return (
-      <div className={classname} style={LabelColorizer.styles(this.props.label)}>
+      <div className={classname} style={LabelColorizer.styles(label)}>
         {content}
         {x}
       </div>
     );
-  }
-}
+  },
+  (prev, next) => prev.label.id === next.label.id
+);
+MailLabel.displayName = 'MailLabel';

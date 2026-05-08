@@ -90,71 +90,57 @@ type RetinaImgProps = {
   active?: boolean;
 };
 
-export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<HTMLImageElement>> {
-  static displayName = 'RetinaImg';
-  static Mode = Mode;
+const ownPropKeys = ['mode', 'name', 'url', 'className', 'style', 'fallback', 'selected', 'active'];
 
-  static ownPropKeys = [
-    'mode',
-    'name',
-    'url',
-    'className',
-    'style',
-    'fallback',
-    'selected',
-    'active',
-  ];
+type RetinaImgFullProps = RetinaImgProps & React.HTMLProps<HTMLImageElement>;
 
-  shouldComponentUpdate = (nextProps) => {
-    return !_.isEqual(this.props, nextProps);
-  };
-
-  _pathFor = (name) => {
+const RetinaImgInner = React.forwardRef<HTMLImageElement, RetinaImgFullProps>((props, ref) => {
+  const pathFor = (name: string | undefined) => {
     if (!name || typeof name !== 'string') return null;
     let pathName = name;
-
     const [basename, ext] = name.split('.');
-    if (this.props.active === true) {
+    if (props.active === true) {
       pathName = `${basename}-active.${ext}`;
     }
-    if (this.props.selected === true) {
+    if (props.selected === true) {
       pathName = `${basename}-selected.${ext}`;
     }
-
     return Utils.imageNamed(pathName);
   };
 
-  render() {
-    const path =
-      this.props.url || this._pathFor(this.props.name) || this._pathFor(this.props.fallback) || '';
-    const pathIsRetina = path.indexOf('@2x') > 0;
-    let className = this.props.className || '';
+  const path = props.url || pathFor(props.name) || pathFor(props.fallback) || '';
+  const pathIsRetina = path.indexOf('@2x') > 0;
+  let className = props.className || '';
 
-    const style = this.props.style || {};
-    (style as any).WebkitUserDrag = 'none';
-    style.zoom = pathIsRetina ? 0.5 : 1;
-    if (style.width) style.width = Number(style.width) / style.zoom;
-    if (style.height) style.height = Number(style.height) / style.zoom;
+  const style = props.style || {};
+  (style as any).WebkitUserDrag = 'none';
+  style.zoom = pathIsRetina ? 0.5 : 1;
+  if (style.width) style.width = Number(style.width) / style.zoom;
+  if (style.height) style.height = Number(style.height) / style.zoom;
 
-    if (this.props.mode === Mode.ContentIsMask) {
-      style.WebkitMaskImage = `url('${path}')`;
-      style.WebkitMaskRepeat = 'no-repeat';
-      style.objectPosition = '10000px';
-      className += ' content-mask';
-    } else if (this.props.mode === Mode.ContentDark) {
-      className += ' content-dark';
-    } else if (this.props.mode === Mode.ContentLight) {
-      className += ' content-light';
-    }
-
-    for (const key of Object.keys(style)) {
-      const val = style[key].toString();
-      if (StylesImpactedByZoom.indexOf(key) !== -1 && val.indexOf('%') === -1) {
-        style[key] = val.replace('px', '') / style.zoom;
-      }
-    }
-
-    const otherProps = Utils.fastOmit(this.props, RetinaImg.ownPropKeys);
-    return <img alt={''} className={className} src={path} style={style} {...otherProps} />;
+  if (props.mode === Mode.ContentIsMask) {
+    style.WebkitMaskImage = `url('${path}')`;
+    style.WebkitMaskRepeat = 'no-repeat';
+    style.objectPosition = '10000px';
+    className += ' content-mask';
+  } else if (props.mode === Mode.ContentDark) {
+    className += ' content-dark';
+  } else if (props.mode === Mode.ContentLight) {
+    className += ' content-light';
   }
-}
+
+  for (const key of Object.keys(style)) {
+    const val = style[key].toString();
+    if (StylesImpactedByZoom.indexOf(key) !== -1 && val.indexOf('%') === -1) {
+      style[key] = val.replace('px', '') / style.zoom;
+    }
+  }
+
+  const otherProps = Utils.fastOmit(props, ownPropKeys);
+  return <img ref={ref} alt={''} className={className} src={path} style={style} {...otherProps} />;
+});
+export const RetinaImg = Object.assign(
+  React.memo(RetinaImgInner, (prev, next) => _.isEqual(prev, next)),
+  { Mode }
+);
+RetinaImg.displayName = 'RetinaImg';

@@ -196,7 +196,10 @@ xdescribe('MessageItem', function () {
     });
 
     it('correctly sets the timestamp', function () {
-      const ts = ReactTestUtils.findRenderedComponentWithType(this.component, MessageTimestamp);
+      const ts = ReactTestUtils.findRenderedComponentWithType(
+        this.component,
+        MessageTimestamp as any
+      );
       expect(ts.props.isDetailed).toBe(true);
     });
   });

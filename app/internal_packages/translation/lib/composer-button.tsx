@@ -1,5 +1,4 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { useRef } from 'react';
 import {
   localized,
   Actions,
@@ -11,20 +10,12 @@ import {
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 import { TranslatePopupOptions, translateMessageBody, TranslationsUsedLexicon } from './service';
 
-export class TranslateComposerButton extends React.Component<{
-  draft: Message;
-  session: DraftEditingSession;
-}> {
-  // Adding a `displayName` makes debugging React easier
-  static displayName = 'TranslateComposerButton';
+type Props = { draft: Message; session: DraftEditingSession };
 
-  shouldComponentUpdate(nextProps: { draft: Message; session: DraftEditingSession }) {
-    // Our render method doesn't use the provided `draft`, and the draft changes
-    // constantly (on every keystroke!) `shouldComponentUpdate` helps keep Mailspring fast.
-    return nextProps.session !== this.props.session;
-  }
+const TranslateComposerButtonInner: React.FC<Props> = ({ draft, session }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  _onTranslate = async (langName: string) => {
+  const onTranslate = async (langName: string) => {
     Actions.closePopover();
 
     try {
@@ -34,71 +25,54 @@ export class TranslateComposerButton extends React.Component<{
       return;
     }
 
-    // Obtain the session for the current draft. The draft session provides us
-    // the draft object and also manages saving changes to the local cache and
-    // Nilas API as multiple parts of the application touch the draft.
     const langCode = TranslatePopupOptions[langName];
-    const translated = await translateMessageBody(this.props.draft.body, langCode);
+    const translated = await translateMessageBody(draft.body, langCode);
 
-    // To update the draft, we add the new body to it's session. The session object
-    // automatically marshalls changes to the database and ensures that others accessing
-    // the same draft are notified of changes.
-    this.props.session.changes.add({ body: translated });
-    this.props.session.changes.commit();
+    session.changes.add({ body: translated });
+    session.changes.commit();
   };
 
-  _onClickTranslateButton = () => {
-    const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
-    Actions.openPopover(this._renderPopover(), { originRect: buttonRect, direction: 'up' });
-  };
-
-  // Helper method that will render the contents of our popover.
-  _renderPopover() {
-    const headerComponents = [<span key="header">{localized('Translate')}:</span>];
-    return (
+  const onClickTranslateButton = () => {
+    if (!buttonRef.current) return;
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    Actions.openPopover(
       <Menu
         className="translate-language-picker"
         items={Object.keys(TranslatePopupOptions)}
         itemKey={(item) => item}
         itemContent={(item) => item}
-        headerComponents={headerComponents}
+        headerComponents={[<span key="header">{localized('Translate')}:</span>]}
         defaultSelectedIndex={-1}
-        onSelect={this._onTranslate}
+        onSelect={onTranslate}
+      />,
+      { originRect: buttonRect, direction: 'up' }
+    );
+  };
+
+  if (draft.plaintext) {
+    return <span />;
+  }
+  return (
+    <button
+      ref={buttonRef}
+      tabIndex={-1}
+      className="btn btn-toolbar btn-translate pull-right"
+      onClick={onClickTranslateButton}
+      title={localized('Translate email body…')}
+    >
+      <RetinaImg
+        mode={RetinaImg.Mode.ContentIsMask}
+        url="mailspring://translation/assets/icon-composer-translate@2x.png"
       />
-    );
-  }
-
-  // The `render` method returns a React Virtual DOM element. This code looks
-  // like HTML, but don't be fooled. The JSX preprocessor converts
-  // `<a href="http://facebook.github.io/react/">Hello!</a>`
-  // into Javascript objects which describe the HTML you want:
-  // `React.createElement('a', {href: 'http://facebook.github.io/react/'}, 'Hello!')`
-
-  // We're rendering a `Menu` inside our Popover, and using a `RetinaImg` for the button.
-  // These components are part of N1's standard `mailspring-component-kit` library,
-  // and make it easy to build interfaces that match the rest of N1's UI.
-  //
-  // For example, using the `RetinaImg` component makes it easy to display an
-  // image from our package. `RetinaImg` will automatically chose the best image
-  // format for our display.
-  render() {
-    if (this.props.draft.plaintext) {
-      return <span />;
-    }
-    return (
-      <button
-        tabIndex={-1}
-        className="btn btn-toolbar btn-translate pull-right"
-        onClick={this._onClickTranslateButton}
-        title={localized('Translate email body…')}
-      >
-        <RetinaImg
-          mode={RetinaImg.Mode.ContentIsMask}
-          url="mailspring://translation/assets/icon-composer-translate@2x.png"
-        />
-        &nbsp;
-        <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />
-      </button>
-    );
-  }
-}
+      &nbsp;
+      <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />
+    </button>
+  );
+};
+// Our render method doesn't use the provided `draft`, and the draft changes
+// constantly (on every keystroke!). Memoizing on `session` keeps Mailspring fast.
+export const TranslateComposerButton = React.memo(
+  TranslateComposerButtonInner,
+  (prev, next) => prev.session === next.session
+);
+TranslateComposerButton.displayName = 'TranslateComposerButton';
