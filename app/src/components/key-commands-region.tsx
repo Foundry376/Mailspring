@@ -103,13 +103,7 @@ export class KeyCommandsRegion extends React.Component<
 > {
   static displayName = 'KeyCommandsRegion';
 
-  static ownPropKeys = [
-    'className',
-    'localHandlers',
-    'globalHandlers',
-    'onFocusIn',
-    'onFocusOut',
-  ];
+  static ownPropKeys = ['className', 'localHandlers', 'globalHandlers', 'onFocusIn', 'onFocusOut'];
 
   static defaultProps = {
     className: '',

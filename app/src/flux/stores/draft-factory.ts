@@ -185,7 +185,15 @@ class DraftFactory {
     return this.createDraftForReply({ message, thread, type });
   }
 
-  async createDraftForReply({ message, thread, type }: { message: Message; thread: Thread; type: ReplyType }) {
+  async createDraftForReply({
+    message,
+    thread,
+    type,
+  }: {
+    message: Message;
+    thread: Thread;
+    type: ReplyType;
+  }) {
     const prevBody = await this.prepareBodyForQuoting(message);
     let participants = { to: [], cc: [] };
     if (type === 'reply') {

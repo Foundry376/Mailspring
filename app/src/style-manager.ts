@@ -13,7 +13,10 @@ export default class StyleManager {
     return Array.from(this.el.children);
   }
 
-  addStyleSheet(source: string, { sourcePath, priority }: { sourcePath: string; priority: number }) {
+  addStyleSheet(
+    source: string,
+    { sourcePath, priority }: { sourcePath: string; priority: number }
+  ) {
     let styleElement = sourcePath ? this.styleElementsBySourcePath[sourcePath] : null;
 
     if (styleElement) {

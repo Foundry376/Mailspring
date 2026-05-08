@@ -7,7 +7,7 @@ function indexFor({ viewportCenter, totalHeight }: ScrollRegionTooltipComponentP
   return Math.floor((ThreadListStore.dataSource().count() / totalHeight) * viewportCenter);
 }
 
-const ThreadListScrollTooltip: React.FC<ScrollRegionTooltipComponentProps> = props => {
+const ThreadListScrollTooltip: React.FC<ScrollRegionTooltipComponentProps> = (props) => {
   const idx = indexFor(props);
   const item = ThreadListStore.dataSource().get(idx) as Thread | undefined;
   const content = item
@@ -18,4 +18,7 @@ const ThreadListScrollTooltip: React.FC<ScrollRegionTooltipComponentProps> = pro
 
 ThreadListScrollTooltip.displayName = 'ThreadListScrollTooltip';
 
-export default React.memo(ThreadListScrollTooltip, (prev, next) => indexFor(prev) === indexFor(next));
+export default React.memo(
+  ThreadListScrollTooltip,
+  (prev, next) => indexFor(prev) === indexFor(next)
+);

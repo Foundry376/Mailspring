@@ -12,8 +12,7 @@ import {
 describe('parseListUnsubscribeHeader', function () {
   describe('standard valid headers', () => {
     it('parses a header with both mailto and https URIs', () => {
-      const header =
-        '<mailto:unsubscribe@example.com>, <https://example.com/unsub>';
+      const header = '<mailto:unsubscribe@example.com>, <https://example.com/unsub>';
       const result = parseListUnsubscribeHeader(header);
       expect(result.length).toBe(2);
       expect(result[0]).toEqual({ type: 'mailto', uri: 'mailto:unsubscribe@example.com' });
@@ -35,9 +34,7 @@ describe('parseListUnsubscribeHeader', function () {
       const result = parseListUnsubscribeHeader(header);
       expect(result.length).toBe(1);
       expect(result[0].type).toBe('mailto');
-      expect(result[0].uri).toBe(
-        'mailto:list-unsub@newsletter.example.com?subject=unsubscribe'
-      );
+      expect(result[0].uri).toBe('mailto:list-unsub@newsletter.example.com?subject=unsubscribe');
     });
 
     it('parses a header with an http URI', () => {

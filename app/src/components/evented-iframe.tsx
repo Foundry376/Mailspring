@@ -363,21 +363,24 @@ export class EventedIFrame extends React.Component<
         new MenuItem({
           label: localized('Save Image') + '...',
           click() {
-            AppEnv.showSaveDialog({ defaultPath: srcFilename }, function (path: string | undefined) {
-              if (!path) {
-                return;
+            AppEnv.showSaveDialog(
+              { defaultPath: srcFilename },
+              function (path: string | undefined) {
+                if (!path) {
+                  return;
+                }
+                const oReq = new XMLHttpRequest();
+                oReq.open('GET', src, true);
+                oReq.responseType = 'arraybuffer';
+                oReq.onload = function () {
+                  const buffer = Buffer.from(new Uint8Array(oReq.response));
+                  fs.writeFile(path, buffer, (err) => {
+                    require('@electron/remote').shell.showItemInFolder(path);
+                  });
+                };
+                oReq.send();
               }
-              const oReq = new XMLHttpRequest();
-              oReq.open('GET', src, true);
-              oReq.responseType = 'arraybuffer';
-              oReq.onload = function () {
-                const buffer = Buffer.from(new Uint8Array(oReq.response));
-                fs.writeFile(path, buffer, (err) => {
-                  require('@electron/remote').shell.showItemInFolder(path);
-                });
-              };
-              oReq.send();
-            });
+            );
           },
         })
       );

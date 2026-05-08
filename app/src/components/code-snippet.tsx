@@ -1,10 +1,6 @@
 import React from 'react';
 
-export default function CodeSnippet(props: {
-  intro?: string;
-  code?: string;
-  className?: string;
-}) {
+export default function CodeSnippet(props: { intro?: string; code?: string; className?: string }) {
   return (
     <div className={props.className}>
       {props.intro}

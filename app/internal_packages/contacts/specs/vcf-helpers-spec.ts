@@ -410,9 +410,7 @@ describe('parseName', function () {
 
 describe('formatDisplayName', function () {
   it('concatenates givenName and familyName with a space', () => {
-    expect(formatDisplayName({ givenName: 'John', familyName: 'Smith' } as any)).toBe(
-      'John Smith'
-    );
+    expect(formatDisplayName({ givenName: 'John', familyName: 'Smith' } as any)).toBe('John Smith');
   });
 
   it('returns only familyName when givenName is empty', () => {

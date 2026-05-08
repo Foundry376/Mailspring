@@ -525,7 +525,10 @@ export class ScrollRegion extends React.Component<
       return;
     }
 
-    this._setSharedState({ scrolling: true, viewportScrollTop: (event.target as HTMLElement).scrollTop });
+    this._setSharedState({
+      scrolling: true,
+      viewportScrollTop: (event.target as HTMLElement).scrollTop,
+    });
 
     if (typeof this.props.onScroll === 'function') {
       this.props.onScroll(event);

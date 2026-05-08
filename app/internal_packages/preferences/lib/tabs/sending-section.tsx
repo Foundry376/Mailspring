@@ -28,11 +28,7 @@ function getExtendedSendingSchema(configSchema) {
   return configSchema.properties.sending;
 }
 
-function SendingSection(props: {
-  config?: any;
-  configSchema?: any;
-  sendingConfigSchema?: any;
-}) {
+function SendingSection(props: { config?: any; configSchema?: any; sendingConfigSchema?: any }) {
   const { config, sendingConfigSchema } = props;
 
   return (

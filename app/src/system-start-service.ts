@@ -119,13 +119,17 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
 
   doesLaunchOnSystemStart() {
     return new Promise<boolean>((resolve) => {
-      fs.access(this._shortcutPath(), fs.constants.R_OK | fs.constants.W_OK, (err: NodeJS.ErrnoException | null) => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
+      fs.access(
+        this._shortcutPath(),
+        fs.constants.R_OK | fs.constants.W_OK,
+        (err: NodeJS.ErrnoException | null) => {
+          if (err) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
         }
-      });
+      );
     });
   }
 

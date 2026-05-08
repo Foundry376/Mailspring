@@ -93,7 +93,10 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
 
   _onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     this.setState({ focused: false });
-    if (event.relatedTarget && Array.from((event.relatedTarget as Element).classList).includes('time-options')) {
+    if (
+      event.relatedTarget &&
+      Array.from((event.relatedTarget as Element).classList).includes('time-options')
+    ) {
       return;
     }
     this._saveIfValid(this.state.rawText);

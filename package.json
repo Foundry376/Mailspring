@@ -74,7 +74,8 @@
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "start": "electron ./app --enable-logging --dev",
-    "lint": "eslint --fix -c .eslintrc app/src/**/*.ts app/internal_packages/**/*.tsx",
+    "lint": "eslint --fix -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
+    "lint:check": "eslint -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
     "typecheck": "./node_modules/.bin/tsc -p app/tsconfig.json --noEmit",
     "test": "electron ./app --enable-logging --test",
     "test-window": "electron ./app --enable-logging --test=window",
