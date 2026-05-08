@@ -6,6 +6,7 @@ import {
   BuildToggleButton,
   BuildColorPicker,
   BuildFontPicker,
+  safeActiveMarks,
 } from './toolbar-component-factories';
 
 import BaseBlockPlugins from './base-block-plugins';
@@ -64,7 +65,7 @@ export const MARK_CONFIG: {
     tagNames: ['b', 'strong'],
     render: (props) => <strong>{props.children}</strong>,
     button: {
-      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.bold.type),
+      isActive: (value) => safeActiveMarks(value).some((m) => m.type === MARK_CONFIG.bold.type),
       onToggle: (editor) => editor.toggleMark(MARK_CONFIG.bold.type),
       iconClass: 'fa fa-bold',
     },
@@ -74,7 +75,7 @@ export const MARK_CONFIG: {
     tagNames: ['em', 'i'],
     render: (props) => <em>{props.children}</em>,
     button: {
-      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.italic.type),
+      isActive: (value) => safeActiveMarks(value).some((m) => m.type === MARK_CONFIG.italic.type),
       onToggle: (editor) => editor.toggleMark(MARK_CONFIG.italic.type),
       iconClass: 'fa fa-italic',
     },
@@ -84,7 +85,8 @@ export const MARK_CONFIG: {
     tagNames: ['u'],
     render: (props) => <u>{props.children}</u>,
     button: {
-      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.underline.type),
+      isActive: (value) =>
+        safeActiveMarks(value).some((m) => m.type === MARK_CONFIG.underline.type),
       onToggle: (editor) => editor.toggleMark(MARK_CONFIG.underline.type),
       iconClass: 'fa fa-underline',
     },
@@ -95,7 +97,7 @@ export const MARK_CONFIG: {
     tagNames: ['strike', 's', 'del'],
     render: (props) => <strike>{props.children}</strike>,
     button: {
-      isActive: (value) => value.activeMarks.some((m) => m.type === MARK_CONFIG.strike.type),
+      isActive: (value) => safeActiveMarks(value).some((m) => m.type === MARK_CONFIG.strike.type),
       onToggle: (editor) => editor.toggleMark(MARK_CONFIG.strike.type),
       iconClass: 'fa fa-strikethrough',
     },

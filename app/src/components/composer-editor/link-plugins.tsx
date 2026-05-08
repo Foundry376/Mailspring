@@ -4,7 +4,7 @@ import { Mark, Editor } from 'slate';
 import AutoReplace from 'slate-auto-replace';
 import { RegExpUtils } from 'mailspring-exports';
 
-import { BuildMarkButtonWithValuePicker } from './toolbar-component-factories';
+import { BuildMarkButtonWithValuePicker, safeActiveMarks } from './toolbar-component-factories';
 import { ComposerEditorPlugin } from './types';
 
 export const LINK_TYPE = 'link';
@@ -23,7 +23,7 @@ function onPaste(event: React.ClipboardEvent, editor: Editor, next: () => void) 
 
 function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
   return function (editor: Editor, e, matches) {
-    if (editor.value.activeMarks.find((m) => m.type === LINK_TYPE))
+    if (safeActiveMarks(editor.value).find((m) => m.type === LINK_TYPE))
       return editor.insertText(TriggerKeyValues[e.key]);
 
     const link = matches.before[0];
@@ -109,7 +109,7 @@ const BaseLinkPlugin: ComposerEditorPlugin = {
     if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {
       return next();
     }
-    const mark = editor.value.activeMarks.find((m) => m.type === LINK_TYPE);
+    const mark = safeActiveMarks(editor.value).find((m) => m.type === LINK_TYPE);
     if (mark) {
       editor.removeMark(mark);
     }

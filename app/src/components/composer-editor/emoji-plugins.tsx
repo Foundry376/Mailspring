@@ -9,6 +9,7 @@ import {
   ComposerEditorPluginToolbarComponentProps,
 } from './types';
 import EmojiToolbarPopover from './emoji-toolbar-popover';
+import { safeActiveMarks } from './toolbar-component-factories';
 
 let EmojiNameToImageTable = null;
 
@@ -90,7 +91,7 @@ function FloatingEmojiPicker({ editor, value }: ComposerEditorPluginTopLevelComp
   if (!sel.rangeCount) return null;
   const range = sel.getRangeAt(0);
 
-  const emoji = value.activeMarks.find((i) => i.type === EMOJI_TYPING_TYPE);
+  const emoji = safeActiveMarks(value).find((i) => i.type === EMOJI_TYPING_TYPE);
   if (!emoji) return null;
 
   const picked = emoji.data.get('picked');
