@@ -32,7 +32,7 @@ describe('SignatureComposerDropdown', function signatureComposerDropdown() {
       body: 'draft body',
     };
     this.button = MTestUtils.renderIntoDocument(
-      <SignatureComposerDropdown draft={this.draft} session={this.session} />
+      <SignatureComposerDropdown {...({ draft: this.draft, session: this.session } as any)} />
     );
   });
   describe('the button dropdown', () => {

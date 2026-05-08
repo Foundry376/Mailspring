@@ -33,12 +33,12 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
     it('allows the user to reconnect the account', () => {
       const { container } = render(<AccountErrorNotification />);
-      spyOn(KeyManager, 'insertAccountSecrets').andCallFake(acct => acct);
+      spyOn(KeyManager, 'insertAccountSecrets').andCallFake((acct) => acct);
       spyOn(ipcRenderer, 'send');
       fireEvent.click(container.querySelector('#action-1'));
 
       waitsFor(() => {
-        return ipcRenderer.send.callCount > 0;
+        return (ipcRenderer.send as any).callCount > 0;
       });
       runs(() => {
         expect(ipcRenderer.send).toHaveBeenCalledWith('command', 'application:add-account', {

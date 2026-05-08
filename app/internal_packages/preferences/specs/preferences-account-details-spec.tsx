@@ -4,8 +4,8 @@ import { Account } from 'mailspring-exports';
 
 import PreferencesAccountDetails from '../lib/tabs/preferences-account-details';
 
-const makeComponent = (props = {}) => {
-  return renderIntoDocument(<PreferencesAccountDetails {...props} />);
+const makeComponent = (props: any = {}) => {
+  return renderIntoDocument(<PreferencesAccountDetails {...(props as any)} />) as any;
 };
 
 const account = new Account({
@@ -85,7 +85,7 @@ describe('PreferencesAccountDetails', function preferencesAccountDetails() {
         account: this.account,
         onAccountUpdated: this.onAccountUpdated,
       });
-      spyOn(this.component, '_makeAlias').andCallFake(alias => alias);
+      spyOn(this.component, '_makeAlias').andCallFake((alias) => alias);
       spyOn(this.component, 'setState');
     });
     describe('_onAccountAliasCreated', () => {
@@ -109,7 +109,7 @@ describe('PreferencesAccountDetails', function preferencesAccountDetails() {
           account: this.account,
           onAccountUpdated: this.onAccountUpdated,
         });
-        spyOn(this.component, '_makeAlias').andCallFake(alias => alias);
+        spyOn(this.component, '_makeAlias').andCallFake((alias) => alias);
         spyOn(this.component, 'setState');
 
         this.component._onAccountAliasUpdated(this.newAlias, this.currentAlias, 0);
@@ -126,7 +126,7 @@ describe('PreferencesAccountDetails', function preferencesAccountDetails() {
           account: this.account,
           onAccountUpdated: this.onAccountUpdated,
         });
-        spyOn(this.component, '_makeAlias').andCallFake(alias => alias);
+        spyOn(this.component, '_makeAlias').andCallFake((alias) => alias);
         spyOn(this.component, 'setState');
 
         this.component._onAccountAliasUpdated(this.newAlias, 'otheralias', 1);
@@ -149,7 +149,7 @@ describe('PreferencesAccountDetails', function preferencesAccountDetails() {
           account: this.account,
           onAccountUpdated: this.onAccountUpdated,
         });
-        spyOn(this.component, '_makeAlias').andCallFake(alias => alias);
+        spyOn(this.component, '_makeAlias').andCallFake((alias) => alias);
         spyOn(this.component, 'setState');
 
         this.component._onAccountAliasRemoved(this.currentAlias, 0);
@@ -166,7 +166,7 @@ describe('PreferencesAccountDetails', function preferencesAccountDetails() {
           account: this.account,
           onAccountUpdated: this.onAccountUpdated,
         });
-        spyOn(this.component, '_makeAlias').andCallFake(alias => alias);
+        spyOn(this.component, '_makeAlias').andCallFake((alias) => alias);
         spyOn(this.component, 'setState');
 
         this.component._onAccountAliasRemoved('otheralias', 1);

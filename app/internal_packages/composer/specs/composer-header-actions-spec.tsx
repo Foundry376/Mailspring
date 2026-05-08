@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom';
 import ComposerHeaderActions from '../lib/composer-header-actions';
 import Fields from '../lib/fields';
 import ReactTestUtils from 'react-dom/test-utils';
-import { Actions } from 'mailspring-exports';;
+import { Actions } from 'mailspring-exports';
 
-describe('ComposerHeaderActions', function() {
-  const makeField = function(props) {
+describe('ComposerHeaderActions', function () {
+  const makeField = function (props) {
     if (props == null) {
       props = {};
     }
@@ -19,7 +19,7 @@ describe('ComposerHeaderActions', function() {
     this.component = ReactTestUtils.renderIntoDocument(<ComposerHeaderActions {...props} />);
   };
 
-  it("renders the 'show' buttons for 'cc', 'bcc'", function() {
+  it("renders the 'show' buttons for 'cc', 'bcc'", function () {
     makeField.call(this, { enabledFields: [Fields.To] });
     const showCc = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-cc');
     const showBcc = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-bcc');
@@ -27,63 +27,63 @@ describe('ComposerHeaderActions', function() {
     expect(showBcc).toBeDefined();
   });
 
-  it("hides show cc if it's enabled", function() {
+  it("hides show cc if it's enabled", function () {
     makeField.call(this, { enabledFields: [Fields.To, Fields.Cc] });
     const els = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'show-cc');
     expect(els.length).toBe(0);
   });
 
-  it("hides show bcc if it's enabled", function() {
+  it("hides show bcc if it's enabled", function () {
     makeField.call(this, { enabledFields: [Fields.To, Fields.Bcc] });
     const els = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'show-bcc');
     expect(els.length).toBe(0);
   });
 
-  it("hides show subject if it's enabled", function() {
+  it("hides show subject if it's enabled", function () {
     makeField.call(this, { enabledFields: [Fields.To, Fields.Subject] });
     const els = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'show-subject');
     expect(els.length).toBe(0);
   });
 
-  it("renders 'popout composer' in the inline mode", function() {
+  it("renders 'popout composer' in the inline mode", function () {
     makeField.call(this, { enabledFields: [Fields.To] });
     const els = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'show-popout');
     expect(els.length).toBe(1);
   });
 
-  it("doesn't render 'popout composer' if in a composer window", function() {
+  it("doesn't render 'popout composer' if in a composer window", function () {
     spyOn(AppEnv, 'isComposerWindow').andReturn(true);
     makeField.call(this, { enabledFields: [Fields.To] });
     const els = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'show-popout');
     expect(els.length).toBe(0);
   });
 
-  it('pops out the composer when clicked', function() {
+  it('pops out the composer when clicked', function () {
     spyOn(Actions, 'composePopoutDraft');
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-popout');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(Actions.composePopoutDraft).toHaveBeenCalled();
   });
 
-  it('shows and focuses cc when clicked', function() {
+  it('shows and focuses cc when clicked', function () {
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-cc');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(this.onShowAndFocusField).toHaveBeenCalledWith(Fields.Cc);
   });
 
-  it('shows and focuses bcc when clicked', function() {
+  it('shows and focuses bcc when clicked', function () {
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-bcc');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(this.onShowAndFocusField).toHaveBeenCalledWith(Fields.Bcc);
   });
 
-  it('shows subject when clicked', function() {
+  it('shows subject when clicked', function () {
     makeField.call(this, { enabledFields: [Fields.To] });
     const el = ReactTestUtils.findRenderedDOMComponentWithClass(this.component, 'show-subject');
-    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el));
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(el) as Element);
     expect(this.onShowAndFocusField).toHaveBeenCalledWith(Fields.Subject);
   });
 });

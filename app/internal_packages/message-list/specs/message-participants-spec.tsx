@@ -33,12 +33,12 @@ const test_message = new Message({}).fromJSON({
   bcc: [user_5],
 });
 
-describe('MessageParticipants', function() {
-  describe('when collapsed', function() {
-    const makeParticipants = props =>
-      ReactTestUtils.renderIntoDocument(<MessageParticipants {...props} />);
+describe('MessageParticipants', function () {
+  describe('when collapsed', function () {
+    const makeParticipants = (props, ..._rest: any[]) =>
+      ReactTestUtils.renderIntoDocument(<MessageParticipants {...props} />) as any;
 
-    it('renders into the document', function() {
+    it('renders into the document', function () {
       const participants = makeParticipants(
         { to: test_message.to, cc: test_message.cc },
         { from: test_message.from, message_participants: test_message.participants() }
@@ -46,27 +46,29 @@ describe('MessageParticipants', function() {
       expect(participants).toBeDefined();
     });
 
-    it('uses short names', function() {
+    it('uses short names', function () {
       const actualOut = makeParticipants({ to: test_message.to });
       const to = ReactTestUtils.findRenderedDOMComponentWithClass(actualOut, 'to-contact');
-      expect(ReactDOM.findDOMNode(to).innerHTML).toBe('<span><span>User</span></span>');
+      expect((ReactDOM.findDOMNode(to) as HTMLElement).innerHTML).toBe(
+        '<span><span>User</span></span>'
+      );
     });
 
-    it("doesn't render any To nodes if To array is empty", function() {
+    it("doesn't render any To nodes if To array is empty", function () {
       const actualOut = makeParticipants({ to: [] });
       const findToField = () =>
         ReactTestUtils.findRenderedDOMComponentWithClass(actualOut, 'to-contact');
       expect(findToField).toThrow();
     });
 
-    it("doesn't render any Cc nodes if Cc array is empty", function() {
+    it("doesn't render any Cc nodes if Cc array is empty", function () {
       const actualOut = makeParticipants({ cc: [] });
       const findCcField = () =>
         ReactTestUtils.findRenderedDOMComponentWithClass(actualOut, 'cc-contact');
       expect(findCcField).toThrow();
     });
 
-    it("doesn't render any Bcc nodes if Bcc array is empty", function() {
+    it("doesn't render any Bcc nodes if Bcc array is empty", function () {
       const actualOut = makeParticipants({ bcc: [] });
       const findBccField = () =>
         ReactTestUtils.findRenderedDOMComponentWithClass(actualOut, 'bcc-contact');
@@ -74,21 +76,23 @@ describe('MessageParticipants', function() {
     });
   });
 
-  describe('when expanded', function() {
-    beforeEach(function() {
+  describe('when expanded', function () {
+    beforeEach(function () {
       this.participants = ReactTestUtils.renderIntoDocument(
         <MessageParticipants
-          to={test_message.to}
-          cc={test_message.cc}
-          from={test_message.from}
-          replyTo={test_message.replyTo}
-          isDetailed={true}
-          message_participants={test_message.participants()}
+          {...({
+            to: test_message.to,
+            cc: test_message.cc,
+            from: test_message.from,
+            replyTo: test_message.replyTo,
+            isDetailed: true,
+            message_participants: test_message.participants(),
+          } as any)}
         />
       );
     });
 
-    it('renders into the document', function() {
+    it('renders into the document', function () {
       const participants = ReactTestUtils.findRenderedDOMComponentWithClass(
         this.participants,
         'expanded-participants'
@@ -96,9 +100,11 @@ describe('MessageParticipants', function() {
       expect(participants).toBeDefined();
     });
 
-    it('uses full names', function() {
+    it('uses full names', function () {
       const to = ReactTestUtils.findRenderedDOMComponentWithClass(this.participants, 'to-contact');
-      expect(ReactDOM.findDOMNode(to).innerText.trim()).toEqual('User Two <user2@nylas.com>');
+      expect((ReactDOM.findDOMNode(to) as HTMLElement).innerText.trim()).toEqual(
+        'User Two <user2@nylas.com>'
+      );
     });
   });
 });

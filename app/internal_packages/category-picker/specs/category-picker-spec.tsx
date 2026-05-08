@@ -4,15 +4,12 @@ import ReactTestUtils from 'react-dom/test-utils';
 import MovePickerPopover from '../lib/move-picker-popover';
 
 import {
-  Category,
   Folder,
+  Label,
   Thread,
   Actions,
   AccountStore,
   CategoryStore,
-  DatabaseStore,
-  TaskFactory,
-  SyncbackCategoryTask,
   FocusedPerspectiveStore,
   MailboxPerspective,
   MailspringTestUtils,
@@ -21,10 +18,10 @@ import {
 
 import { Categories } from 'mailspring-observables';
 
-describe('MovePickerPopover', function() {
+describe('MovePickerPopover', function () {
   beforeEach(() => (CategoryStore._categoryCache = {}));
 
-  const setupFor = function() {
+  const setupFor = function () {
     this.account = {
       id: TEST_ACCOUNT_ID,
     };
@@ -48,12 +45,11 @@ describe('MovePickerPopover', function() {
       accountId: TEST_ACCOUNT_ID,
     });
 
-    const observable = MailspringTestUtils.mockObservable([
-      this.inboxCategory,
-      this.archiveCategory,
-      this.userCategory,
-    ]);
-    observable.sort = () => observable;
+    const observable = MailspringTestUtils.mockObservable(
+      [this.inboxCategory, this.archiveCategory, this.userCategory],
+      {}
+    );
+    (observable as any).sort = () => observable;
 
     spyOn(Categories, 'forAccount').andReturn(observable);
     spyOn(CategoryStore, 'getCategoryByRole').andReturn(this.inboxCategory);
@@ -67,7 +63,7 @@ describe('MovePickerPopover', function() {
     });
   };
 
-  const setupForCreateNew = function() {
+  const setupForCreateNew = function () {
     setupFor.call(this);
 
     this.testThread = new Thread({
@@ -75,14 +71,18 @@ describe('MovePickerPopover', function() {
       subject: 'fake',
       accountId: TEST_ACCOUNT_ID,
       categories: [],
+      // ChangeFolderTask derives previousFolder from the thread's folders,
+      // so the fixture needs at least one starting folder.
+      folders: [this.inboxCategory],
+      labels: [],
     });
     this.picker = ReactTestUtils.renderIntoDocument(
       <MovePickerPopover threads={[this.testThread]} account={this.account} />
     );
   };
 
-  describe('when using folders', function() {
-    beforeEach(function() {
+  describe('when using folders', function () {
+    beforeEach(function () {
       setupFor.call(this);
 
       this.testThread = new Thread({
@@ -90,37 +90,39 @@ describe('MovePickerPopover', function() {
         subject: 'fake',
         accountId: TEST_ACCOUNT_ID,
         categories: [],
+        folders: [],
+        labels: [],
       });
       this.picker = ReactTestUtils.renderIntoDocument(
         <MovePickerPopover threads={[this.testThread]} account={this.account} />
       );
     });
 
-    it('lists the desired categories', function() {
+    it('lists the desired categories', function () {
       const data = this.picker.state.categoryData;
       // NOTE: The inbox category is not included here because it's the
       // currently focused category, which gets filtered out of the list.
       expect(data.length).toBe(3);
 
       expect(data[0].id).toBe('id-456');
-      expect(data[0].name).toBe('archive');
+      expect(data[0].category.role).toBe('archive');
       expect(data[0].category).toBe(this.archiveCategory);
 
       expect(data[1].divider).toBe(true);
       expect(data[1].id).toBe('category-divider');
 
       expect(data[2].id).toBe('id-789');
-      expect(data[2].name).toBeUndefined();
+      expect(data[2].category.role).toBeNull();
       expect(data[2].category).toBe(this.userCategory);
     });
   });
 
-  describe("'create new' item", function() {
-    beforeEach(function() {
+  describe("'create new' item", function () {
+    beforeEach(function () {
       setupForCreateNew.call(this);
     });
 
-    it('is not visible when the search box is empty', function() {
+    it('is not visible when the search box is empty', function () {
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new'
@@ -128,11 +130,14 @@ describe('MovePickerPopover', function() {
       expect(count).toBe(0);
     });
 
-    it('is visible when the search box has text', function() {
+    it('is visible when the search box has text', function () {
       const inputNode = ReactDOM.findDOMNode(
         ReactTestUtils.scryRenderedDOMComponentsWithTag(this.picker, 'input')[0]
       );
-      ReactTestUtils.Simulate.change(inputNode, { target: { value: 'calendar' } });
+      ReactTestUtils.Simulate.change(
+        inputNode as Element,
+        { target: { value: 'calendar' } } as any
+      );
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new'
@@ -140,11 +145,14 @@ describe('MovePickerPopover', function() {
       expect(count).toBe(1);
     });
 
-    it("shows folder icon if we're using exchange", function() {
+    it("shows folder icon if we're using exchange", function () {
       const inputNode = ReactDOM.findDOMNode(
         ReactTestUtils.scryRenderedDOMComponentsWithTag(this.picker, 'input')[0]
       );
-      ReactTestUtils.Simulate.change(inputNode, { target: { value: 'calendar' } });
+      ReactTestUtils.Simulate.change(
+        inputNode as Element,
+        { target: { value: 'calendar' } } as any
+      );
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new-folder'
@@ -153,97 +161,87 @@ describe('MovePickerPopover', function() {
     });
   });
 
-  describe('_onSelectCategory', function() {
-    beforeEach(function() {
+  describe('_onSelectCategory', function () {
+    beforeEach(function () {
       setupForCreateNew.call(this);
-      spyOn(TaskFactory, 'taskForRemovingCategory').andCallThrough();
-      spyOn(TaskFactory, 'tasK').andCallThrough();
       spyOn(Actions, 'queueTask');
     });
 
-    it('closes the popover', function() {
-      this.picker._onSelectCategory({ usage: 0, category: 'asdf' });
+    it('closes the popover', function () {
+      this.picker._onSelectCategory({ category: this.archiveCategory });
       expect(Actions.closePopover).toHaveBeenCalled();
     });
 
-    describe('when selecting a category currently on all the selected items', () =>
-      it('fires a task to remove the category', function() {
-        const input = {
-          category: 'asdf',
-          usage: 1,
-        };
-
-        this.picker._onSelectCategory(input);
-        expect(TaskFactory.taskForRemovingCategory).toHaveBeenCalledWith({
-          threads: [this.testThread],
-          category: 'asdf',
-        });
+    describe('when selecting a folder', () =>
+      it('queues a ChangeFolderTask to move the threads', function () {
+        this.picker._onSelectCategory({ category: this.archiveCategory });
         expect(Actions.queueTask).toHaveBeenCalled();
+        const task = (Actions.queueTask as any).calls[0].args[0];
+        expect(task.constructor.name).toBe('ChangeFolderTask');
+        expect(task.folder).toBe(this.archiveCategory);
+        expect(task.threadIds).toEqual([this.testThread.id]);
       }));
 
-    describe('when selecting a category not on all the selected items', () =>
-      it('fires a task to add the category', function() {
-        const input = {
-          category: 'asdf',
-          usage: 0,
-        };
-
-        this.picker._onSelectCategory(input);
-        expect(TaskFactory.taskForApplyingCategory).toHaveBeenCalledWith({
-          threads: [this.testThread],
-          category: 'asdf',
+    describe('when selecting a label', () =>
+      it('queues a ChangeLabelsTask to apply the label', function () {
+        const labelCategory = new Label({
+          id: 'lbl-1',
+          path: 'MyLabel',
+          accountId: TEST_ACCOUNT_ID,
         });
+        this.picker._onSelectCategory({ category: labelCategory });
         expect(Actions.queueTask).toHaveBeenCalled();
+        const task = (Actions.queueTask as any).calls[0].args[0];
+        expect(task.constructor.name).toBe('ChangeLabelsTask');
+        expect(task.labelsToAdd).toEqual([labelCategory]);
+        expect(task.threadIds).toEqual([this.testThread.id]);
       }));
 
-    describe('when selecting a new category', function() {
-      beforeEach(function() {
+    describe('when selecting a new category', function () {
+      beforeEach(function () {
         this.input = { newCategoryItem: true };
         this.picker.setState({ searchValue: 'teSTing!' });
       });
 
-      it('queues a new syncback task for creating a category', function() {
+      it('queues a new syncback task for creating a category', function () {
         this.picker._onSelectCategory(this.input);
         expect(Actions.queueTask).toHaveBeenCalled();
-        const syncbackTask = Actions.queueTask.calls[0].args[0];
-        const newCategory = syncbackTask.category;
-        expect(newCategory instanceof Category).toBe(true);
-        expect(newCategory.displayName).toBe('teSTing!');
-        expect(newCategory.accountId).toBe(TEST_ACCOUNT_ID);
+        const syncbackTask = (Actions.queueTask as any).calls[0].args[0];
+        expect(syncbackTask.constructor.name).toBe('SyncbackCategoryTask');
+        expect(syncbackTask.path).toBe('teSTing!');
+        expect(syncbackTask.accountId).toBe(TEST_ACCOUNT_ID);
       });
 
-      it('queues a task for applying the category after it has saved', function() {
-        let category = false;
-        let resolveSave = false;
-        spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(function(task) {
-          expect(task instanceof SyncbackCategoryTask).toBe(true);
-          return new Promise(function(resolve, reject) {
+      it('queues a move task after the new category is saved', function () {
+        const createdFolder = new Folder({
+          id: 'created-1',
+          path: 'teSTing!',
+          accountId: TEST_ACCOUNT_ID,
+        });
+        let resolveSave: any = null;
+        spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(function (task) {
+          expect(task.constructor.name).toBe('SyncbackCategoryTask');
+          return new Promise(function (resolve) {
             resolveSave = resolve;
           });
         });
 
-        spyOn(DatabaseStore, 'findBy').andCallFake(function(klass, { id }) {
-          expect(klass).toBe(Category);
-          expect(typeof id).toBe('string');
-          Promise.resolve(category);
-        });
-
         this.picker._onSelectCategory(this.input);
 
-        waitsFor(() => Actions.queueTask.callCount > 0);
+        waitsFor(() => (Actions.queueTask as any).callCount > 0);
 
-        runs(function() {
-          ({ category } = Actions.queueTask.calls[0].args[0]);
-          resolveSave();
+        runs(function () {
+          // Simulate the syncback task completing with the created folder.
+          resolveSave({ created: createdFolder });
         });
 
-        waitsFor(() => TaskFactory.taskForApplyingCategory.calls.length === 1);
+        waitsFor(() => (Actions.queueTask as any).callCount > 1);
 
-        runs(function() {
-          expect(TaskFactory.taskForApplyingCategory).toHaveBeenCalledWith({
-            threads: [this.testThread],
-            category,
-          });
+        runs(function () {
+          const moveTask = (Actions.queueTask as any).calls[1].args[0];
+          expect(moveTask.constructor.name).toBe('ChangeFolderTask');
+          expect(moveTask.folder).toBe(createdFolder);
+          expect(moveTask.threadIds).toEqual([this.testThread.id]);
         });
       });
     });

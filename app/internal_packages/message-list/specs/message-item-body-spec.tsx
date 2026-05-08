@@ -87,9 +87,9 @@ const MessageItemBody = proxyquire('../lib/message-item-body', {
   './email-frame': { default: EmailFrameStub },
 });
 
-xdescribe('MessageItem', function() {
-  beforeEach(function() {
-    spyOn(AttachmentStore, 'pathForFile').andCallFake(function(f) {
+xdescribe('MessageItem', function () {
+  beforeEach(function () {
+    spyOn(AttachmentStore, 'pathForFile').andCallFake(function (f) {
       if (f.id === file.id) {
         return '/fake/path.png';
       }
@@ -101,7 +101,7 @@ xdescribe('MessageItem', function() {
       }
       return null;
     });
-    spyOn(MessageBodyProcessor, '_addToCache').andCallFake(function() {});
+    spyOn(MessageBodyProcessor, '_addToCache').andCallFake(function () {});
 
     this.downloads = {
       file_1_id: download,
@@ -128,7 +128,7 @@ xdescribe('MessageItem', function() {
     // Generate the test component. Should be called after @message is configured
     // for the test, since MessageItem assumes attributes of the message will not
     // change after getInitialState runs.
-    this.createComponent = param => {
+    this.createComponent = (param) => {
       if (param == null) {
         param = {};
       }
@@ -143,8 +143,8 @@ xdescribe('MessageItem', function() {
     };
   });
 
-  describe('when the message contains attachments', function() {
-    beforeEach(function() {
+  describe('when the message contains attachments', function () {
+    beforeEach(function () {
       this.message.files = [
         file,
         file_not_downloaded,
@@ -158,8 +158,8 @@ xdescribe('MessageItem', function() {
       ];
     });
 
-    describe('inline', function() {
-      beforeEach(function() {
+    describe('inline', function () {
+      beforeEach(function () {
         this.message.body = `\
 <img alt="A" src="cid:${file_inline.contentId}"/>
 <img alt="B" src="cid:${file_inline_downloading.contentId}"/>
@@ -169,46 +169,53 @@ Hello world!\
 `;
         this.createComponent();
         waitsFor(() => {
-          return ReactTestUtils.scryRenderedComponentsWithType(this.component, EmailFrameStub)
-            .length;
+          return (
+            ReactTestUtils.scryRenderedComponentsWithType(this.component, EmailFrameStub).length > 0
+          );
         });
       });
 
-      it('should never leave src=cid: in the message body', function() {
+      it('should never leave src=cid: in the message body', function () {
         runs(() => {
-          const body = ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
-            .props.content;
+          const body = (
+            ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
+              .props as any
+          ).content;
           expect(body.indexOf('cid')).toEqual(-1);
         });
       });
 
-      it("should replace cid:<file.contentId> with the AttachmentStore's path for the file", function() {
+      it("should replace cid:<file.contentId> with the AttachmentStore's path for the file", function () {
         runs(() => {
-          const body = ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
-            .props.content;
+          const body = (
+            ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
+              .props as any
+          ).content;
           expect(body.indexOf('alt="A" src="file:///fake/path-inline.png"')).toEqual(
             this.message.body.indexOf('alt="A"')
           );
         });
       });
 
-      it("should not replace cid:<file.contentId> with the AttachmentStore's path if the download is in progress", function() {
+      it("should not replace cid:<file.contentId> with the AttachmentStore's path if the download is in progress", function () {
         runs(() => {
-          const body = ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
-            .props.content;
+          const body = (
+            ReactTestUtils.findRenderedComponentWithType(this.component, EmailFrameStub)
+              .props as any
+          ).content;
           expect(body.indexOf('/fake/path-downloading.png')).toEqual(-1);
         });
       });
     });
   });
 
-  describe('showQuotedText', function() {
-    it('should be initialized to false', function() {
+  describe('showQuotedText', function () {
+    it('should be initialized to false', function () {
       this.createComponent();
       expect(this.component.state.showQuotedText).toBe(false);
     });
 
-    it("shouldn't render the quoted text control if there's no quoted text", function() {
+    it("shouldn't render the quoted text control if there's no quoted text", function () {
       this.message.body = 'no quotes here!';
       this.createComponent();
       const toggles = ReactTestUtils.scryRenderedDOMComponentsWithClass(
@@ -218,8 +225,8 @@ Hello world!\
       expect(toggles.length).toBe(0);
     });
 
-    describe('quoted text control toggle button', function() {
-      beforeEach(function() {
+    describe('quoted text control toggle button', function () {
+      beforeEach(function () {
         this.message.body = `\
 Message
 <blockquote class="gmail_quote">
@@ -233,12 +240,12 @@ Message
         );
       });
 
-      it('should be rendered', function() {
+      it('should be rendered', function () {
         expect(this.toggle).toBeDefined();
       });
     });
 
-    it('should be initialized to true if the message contains `Forwarded`...', function() {
+    it('should be initialized to true if the message contains `Forwarded`...', function () {
       this.message.body = `\
 Hi guys, take a look at this. Very relevant. -mg
 <br>
@@ -252,7 +259,7 @@ Hi guys, take a look at this. Very relevant. -mg
       expect(this.component.state.showQuotedText).toBe(true);
     });
 
-    it('should be initialized to false if the message is a response to a Forwarded message', function() {
+    it('should be initialized to false if the message is a response to a Forwarded message', function () {
       this.message.body = `\
 Thanks mg, that indeed looks very relevant. Will bring it up
 with the rest of the team.
@@ -272,8 +279,8 @@ On Sunday, March 4th at 12:32AM, Michael Grinich Wrote:
       expect(this.component.state.showQuotedText).toBe(false);
     });
 
-    describe('when showQuotedText is true', function() {
-      beforeEach(function() {
+    describe('when showQuotedText is true', function () {
+      beforeEach(function () {
         this.message.body = `\
 Message
 <blockquote class="gmail_quote">
@@ -283,31 +290,32 @@ Message
         this.createComponent();
         this.component.state.showQuotedText = true;
         waitsFor(() => {
-          return ReactTestUtils.scryRenderedComponentsWithType(this.component, EmailFrameStub)
-            .length;
+          return (
+            ReactTestUtils.scryRenderedComponentsWithType(this.component, EmailFrameStub).length > 0
+          );
         });
       });
 
-      describe('quoted text control toggle button', function() {
-        beforeEach(function() {
+      describe('quoted text control toggle button', function () {
+        beforeEach(function () {
           this.toggle = ReactTestUtils.findRenderedDOMComponentWithClass(
             this.component,
             'quoted-text-control'
           );
         });
 
-        it('should be rendered', function() {
+        it('should be rendered', function () {
           expect(this.toggle).toBeDefined();
         });
       });
 
-      it('should pass the value into the EmailFrame', function() {
+      it('should pass the value into the EmailFrame', function () {
         runs(() => {
           const frame = ReactTestUtils.findRenderedComponentWithType(
             this.component,
             EmailFrameStub
           );
-          expect(frame.props.showQuotedText).toBe(true);
+          expect((frame.props as any).showQuotedText).toBe(true);
         });
       });
     });

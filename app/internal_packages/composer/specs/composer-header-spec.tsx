@@ -10,14 +10,14 @@ const DRAFT_HEADER_MSG_ID = 'DRAFT_HEADER_MSG_ID';
 
 describe('ComposerHeader', function composerHeader() {
   beforeEach(() => {
-    this.createWithDraft = draft => {
+    this.createWithDraft = (draft) => {
       const session = {
         changes: {
           add: jasmine.createSpy('changes.add'),
         },
       };
       this.component = ReactTestUtils.renderIntoDocument(
-        <ComposerHeader draft={draft} session={session} />
+        <ComposerHeader draft={draft} session={session as any} />
       );
     };
     advanceClock();
@@ -60,7 +60,7 @@ describe('ComposerHeader', function composerHeader() {
     });
 
     it('should remove the field from enabledFields', () => {
-      const $el = ReactDOM.findDOMNode(this.component);
+      const $el = ReactDOM.findDOMNode(this.component) as HTMLElement;
 
       this.component.showAndFocusField(Fields.Bcc);
       advanceClock();

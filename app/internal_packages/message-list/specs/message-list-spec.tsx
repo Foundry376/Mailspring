@@ -156,21 +156,21 @@ const testThread = new Thread({
   accountId: TEST_ACCOUNT_ID,
 });
 
-describe('MessageList', function() {
-  beforeEach(function() {
+describe('MessageList', function () {
+  beforeEach(function () {
     MessageStore._items = [];
-    MessageStore._threadId = null;
+    (MessageStore as any)._threadId = null;
     spyOn(MessageStore, 'itemsLoading').andCallFake(() => false);
 
     this.messageList = ReactTestUtils.renderIntoDocument(<MessageList />);
     this.messageList_node = ReactDOM.findDOMNode(this.messageList);
   });
 
-  it('renders into the document', function() {
+  it('renders into the document', function () {
     expect(ReactTestUtils.isCompositeComponentWithType(this.messageList, MessageList)).toBe(true);
   });
 
-  it('by default has zero children', function() {
+  it('by default has zero children', function () {
     const items = ReactTestUtils.scryRenderedComponentsWithType(
       this.messageList,
       MessageItemContainer
@@ -179,8 +179,8 @@ describe('MessageList', function() {
     expect(items.length).toBe(0);
   });
 
-  describe('Populated Message list', function() {
-    beforeEach(function() {
+  describe('Populated Message list', function () {
+    beforeEach(function () {
       MessageStore._items = testMessages;
       MessageStore._expandItemsToDefault();
       MessageStore.trigger(MessageStore);
@@ -188,7 +188,7 @@ describe('MessageList', function() {
       MailspringTestUtils.loadKeymap('keymaps/base');
     });
 
-    it('renders all the correct number of messages', function() {
+    it('renders all the correct number of messages', function () {
       const items = ReactTestUtils.scryRenderedComponentsWithType(
         this.messageList,
         MessageItemContainer
@@ -196,7 +196,7 @@ describe('MessageList', function() {
       expect(items.length).toBe(5);
     });
 
-    it('renders the correct number of expanded messages', function() {
+    it('renders the correct number of expanded messages', function () {
       const msgs = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.messageList,
         'collapsed message-item-wrap'
@@ -204,7 +204,7 @@ describe('MessageList', function() {
       expect(msgs.length).toBe(4);
     });
 
-    it('displays lists of participants on the page', function() {
+    it('displays lists of participants on the page', function () {
       const items = ReactTestUtils.scryRenderedComponentsWithType(
         this.messageList,
         MessageParticipants
@@ -212,7 +212,7 @@ describe('MessageList', function() {
       expect(items.length).toBe(2);
     });
 
-    it('includes drafts as message item containers', function() {
+    it('includes drafts as message item containers', function () {
       const msgs = this.messageList.state.messages;
       this.messageList.setState({
         messages: msgs.concat(draftMessages),
@@ -225,8 +225,8 @@ describe('MessageList', function() {
     });
   });
 
-  describe('reply type', function() {
-    it("prompts for a reply when there's only one participant", function() {
+  describe('reply type', function () {
+    it("prompts for a reply when there's only one participant", function () {
       MessageStore._items = [m3, m5];
       MessageStore._thread = testThread;
       MessageStore.trigger();
@@ -238,7 +238,7 @@ describe('MessageList', function() {
       expect(cs.length).toBe(1);
     });
 
-    it("prompts for a reply-all when there's more than one participant and the default is reply-all", function() {
+    it("prompts for a reply-all when there's more than one participant and the default is reply-all", function () {
       spyOn(AppEnv.config, 'get').andReturn('reply-all');
       MessageStore._items = [m5, m3];
       MessageStore._thread = testThread;
@@ -251,7 +251,7 @@ describe('MessageList', function() {
       expect(cs.length).toBe(1);
     });
 
-    it("prompts for a reply-all when there's more than one participant and the default is reply", function() {
+    it("prompts for a reply-all when there's more than one participant and the default is reply", function () {
       spyOn(AppEnv.config, 'get').andReturn('reply');
       MessageStore._items = [m5, m3];
       MessageStore._thread = testThread;
@@ -264,7 +264,7 @@ describe('MessageList', function() {
       expect(cs.length).toBe(1);
     });
 
-    it('hides the reply type if the last message is a draft', function() {
+    it('hides the reply type if the last message is a draft', function () {
       MessageStore._items = [m5, m3, draftMessages[0]];
       MessageStore._thread = testThread;
       MessageStore.trigger();
@@ -276,8 +276,8 @@ describe('MessageList', function() {
     });
   });
 
-  describe('Message minification', function() {
-    beforeEach(function() {
+  describe('Message minification', function () {
+    beforeEach(function () {
       this.messageList.MINIFY_THRESHOLD = 3;
       this.messageList.setState({ minified: true });
       this.messages = [
@@ -291,7 +291,7 @@ describe('MessageList', function() {
       ];
     });
 
-    it("ignores the first message if it's collapsed", function() {
+    it("ignores the first message if it's collapsed", function () {
       this.messageList.setState({
         messagesExpandedState: {
           a: false,
@@ -316,7 +316,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it("ignores the first message if it's expanded", function() {
+    it("ignores the first message if it's expanded", function () {
       this.messageList.setState({
         messagesExpandedState: {
           a: 'default',
@@ -341,7 +341,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it("doesn't minify the last collapsed message", function() {
+    it("doesn't minify the last collapsed message", function () {
       this.messageList.setState({
         messagesExpandedState: {
           a: false,
@@ -367,7 +367,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it('allows explicitly expanded messages', function() {
+    it('allows explicitly expanded messages', function () {
       this.messageList.setState({
         messagesExpandedState: {
           a: false,
@@ -392,7 +392,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it("doesn't minify if the threshold isn't reached", function() {
+    it("doesn't minify if the threshold isn't reached", function () {
       this.messageList.setState({
         messagesExpandedState: {
           a: false,
@@ -417,7 +417,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it("doesn't minify if the threshold isn't reached due to the rule about not minifying the last collapsed messages", function() {
+    it("doesn't minify if the threshold isn't reached due to the rule about not minifying the last collapsed messages", function () {
       this.messageList.setState({
         messagesExpandedState: {
           a: false,
@@ -442,7 +442,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it('minifies at the threshold if the message is explicitly expanded', function() {
+    it('minifies at the threshold if the message is explicitly expanded', function () {
       this.messageList.setState({
         messagesExpandedState: {
           a: false,
@@ -468,7 +468,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it('can have multiple minification blocks', function() {
+    it('can have multiple minification blocks', function () {
       const messages = [
         { id: 'a' },
         { id: 'b' },
@@ -519,7 +519,7 @@ describe('MessageList', function() {
       ]);
     });
 
-    it('can have multiple minification blocks next to explicitly expanded messages', function() {
+    it('can have multiple minification blocks next to explicitly expanded messages', function () {
       const messages = [
         { id: 'a' },
         { id: 'b' },

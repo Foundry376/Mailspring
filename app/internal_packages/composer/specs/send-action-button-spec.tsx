@@ -38,7 +38,7 @@ describe('SendActionButton', function describeBlock() {
   const renderButton = (draft, { isValid = true } = {}) => {
     this.isValidDraft.andReturn(isValid);
     const { container } = render(
-      <SendActionButton draft={draft} isValidDraft={this.isValidDraft} />
+      <SendActionButton {...({ draft, isValidDraft: this.isValidDraft } as any)} />
     );
     return container;
   };
@@ -66,7 +66,9 @@ describe('SendActionButton', function describeBlock() {
       GoodSendAction,
     ]);
     const container = renderButton(this.draft);
-    expect(container.querySelector('.primary-item').getAttribute('title')).toBe('Second Send Action');
+    expect(container.querySelector('.primary-item').getAttribute('title')).toBe(
+      'Second Send Action'
+    );
   });
 
   it("still renders with a null iconUrl and doesn't show the image", () => {

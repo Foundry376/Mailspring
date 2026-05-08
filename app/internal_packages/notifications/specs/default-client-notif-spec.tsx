@@ -3,16 +3,19 @@ import proxyquire from 'proxyquire';
 import React from 'react';
 
 let stubIsRegistered = null;
-let stubRegister = () => {};
+let stubRegister: (...args: any[]) => void = () => {};
 const patched = proxyquire('../lib/items/default-client-notif', {
   'mailspring-exports': {
     DefaultClientHelper: class {
       constructor() {
-        this.isRegisteredForURLScheme = (urlScheme, callback) => {
+        // The methods are assigned in the constructor (rather than declared as
+        // class fields), so TypeScript doesn't see them on this empty stub
+        // class — hence the `as any` casts.
+        (this as any).isRegisteredForURLScheme = (urlScheme, callback) => {
           callback(stubIsRegistered);
         };
-        this.registerForURLScheme = urlScheme => {
-          stubRegister(urlScheme);
+        (this as any).registerForURLScheme = (urlScheme) => {
+          (stubRegister as any)(urlScheme);
         };
       }
     },
@@ -54,7 +57,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
 
       it('allows the user to set Mailspring as the default client', () => {
         let scheme = null;
-        stubRegister = urlScheme => {
+        stubRegister = (urlScheme) => {
           scheme = urlScheme;
         };
         fireEvent.click(container.querySelector('#action-0'));
