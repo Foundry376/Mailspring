@@ -60,8 +60,32 @@ module.exports = ErrorLogger = (function () {
     if (this.inSpecMode) {
       return;
     }
-    if (!error) {
-      error = { stack: '' };
+    // Without a message and a stack, an error logged to Sentry shows up as
+    // "Unknown error" with only the IPC handler frame, which is unactionable.
+    // Wrap such inputs in a real Error here so we capture the call site as
+    // the stack and describe the original input in the message.
+    var hasMessage =
+      error && typeof error.message === 'string' && error.message.length > 0;
+    var hasStack = error && typeof error.stack === 'string' && error.stack.length > 0;
+    if (!hasMessage && !hasStack) {
+      var description;
+      try {
+        if (error === undefined) description = 'undefined';
+        else if (error === null) description = 'null';
+        else if (typeof error === 'object') description = JSON.stringify(error);
+        else description = String(error);
+      } catch (e) {
+        description = Object.prototype.toString.call(error);
+      }
+      var wrapped = new Error('Empty error reported (' + description + ')');
+      if (error && typeof error === 'object') {
+        try {
+          Object.assign(wrapped, error);
+        } catch (e) {
+          // ignore non-assignable inputs
+        }
+      }
+      error = wrapped;
     }
     if (process.type === 'renderer') {
       var errorJSON = '{}';
