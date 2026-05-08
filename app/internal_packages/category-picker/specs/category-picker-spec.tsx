@@ -71,7 +71,9 @@ describe('MovePickerPopover', function () {
       subject: 'fake',
       accountId: TEST_ACCOUNT_ID,
       categories: [],
-      folders: [],
+      // ChangeFolderTask derives previousFolder from the thread's folders,
+      // so the fixture needs at least one starting folder.
+      folders: [this.inboxCategory],
       labels: [],
     });
     this.picker = ReactTestUtils.renderIntoDocument(
