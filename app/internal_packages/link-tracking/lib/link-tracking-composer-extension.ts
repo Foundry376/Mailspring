@@ -1,7 +1,16 @@
-import { ComposerExtension, RegExpUtils, FeatureUsageStore, Message, Contact } from 'mailspring-exports';
+import {
+  ComposerExtension,
+  RegExpUtils,
+  FeatureUsageStore,
+  Message,
+  Contact,
+} from 'mailspring-exports';
 import { PLUGIN_ID, PLUGIN_URL } from './link-tracking-constants';
 
-function forEachATagInBody(draftBodyRootNode: HTMLElement, callback: (el: HTMLAnchorElement) => void) {
+function forEachATagInBody(
+  draftBodyRootNode: HTMLElement,
+  callback: (el: HTMLAnchorElement) => void
+) {
   const treeWalker = document.createTreeWalker(draftBodyRootNode, NodeFilter.SHOW_ELEMENT, {
     acceptNode: (node: HTMLElement) => {
       if (node.classList.contains('gmail_quote')) {
@@ -38,7 +47,15 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
     return !draft.plaintext && !!draft.metadataForPluginId(PLUGIN_ID);
   }
 
-  static applyTransformsForSending({ draftBodyRootNode, draft, recipient }: { draftBodyRootNode: HTMLElement; draft: Message; recipient?: Contact }) {
+  static applyTransformsForSending({
+    draftBodyRootNode,
+    draft,
+    recipient,
+  }: {
+    draftBodyRootNode: HTMLElement;
+    draft: Message;
+    recipient?: Contact;
+  }) {
     if (draft.plaintext) {
       return;
     }

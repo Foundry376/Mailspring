@@ -40,7 +40,10 @@ function midnight(momentDate: Moment, midnightHour = Hours.Midnight) {
   return oclock(momentDate.hour(midnightHour));
 }
 
-function isPastDate(inputDateObj: { month: number; [key: string]: unknown }, currentDate: Date | Moment | string) {
+function isPastDate(
+  inputDateObj: { month: number; [key: string]: unknown },
+  currentDate: Date | Moment | string
+) {
   const inputMoment = moment({ ...inputDateObj, month: inputDateObj.month - 1 });
   const currentMoment = moment(currentDate);
 

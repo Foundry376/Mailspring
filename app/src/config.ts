@@ -623,7 +623,10 @@ export default class Config {
     return value;
   }
 
-  onDidChangeKeyPath(keyPath: string, callback: (event: { oldValue: unknown; newValue: unknown }) => void) {
+  onDidChangeKeyPath(
+    keyPath: string,
+    callback: (event: { oldValue: unknown; newValue: unknown }) => void
+  ) {
     let oldValue = this.get(keyPath);
     return this.emitter.on('did-change', () => {
       const newValue = this.get(keyPath);

@@ -48,7 +48,7 @@ export default class ThemeManager {
 
   private _systemAccentColor: string | null = null;
   private _systemAccentDisposable: Disposable | null = null;
-  private _systemDarkMode: boolean = false;
+  private _systemDarkMode = false;
 
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;

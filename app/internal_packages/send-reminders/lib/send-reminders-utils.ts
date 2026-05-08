@@ -54,7 +54,10 @@ function assertMetadataShape(value: Record<string, unknown>) {
   }
 }
 
-export async function updateReminderMetadata(thread: Thread, metadataValue: Record<string, unknown>) {
+export async function updateReminderMetadata(
+  thread: Thread,
+  metadataValue: Record<string, unknown>
+) {
   assertMetadataShape(metadataValue);
 
   if (!(await incrementMetadataUse(thread, metadataValue.expiration as Date | null))) {
@@ -69,10 +72,15 @@ export async function updateReminderMetadata(thread: Thread, metadataValue: Reco
   );
 }
 
-export async function updateDraftReminderMetadata(draftSession: DraftEditingSession, metadataValue: Record<string, unknown>) {
+export async function updateDraftReminderMetadata(
+  draftSession: DraftEditingSession,
+  metadataValue: Record<string, unknown>
+) {
   assertMetadataShape(metadataValue);
 
-  if (!(await incrementMetadataUse(draftSession.draft(), metadataValue.expiration as Date | null))) {
+  if (
+    !(await incrementMetadataUse(draftSession.draft(), metadataValue.expiration as Date | null))
+  ) {
     return;
   }
   draftSession.changes.add({ pristine: false });

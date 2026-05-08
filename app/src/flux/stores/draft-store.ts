@@ -464,7 +464,10 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onSendDraft = async (headerMessageId: string, options: { delay?: number; actionKey?: string } = {}) => {
+  _onSendDraft = async (
+    headerMessageId: string,
+    options: { delay?: number; actionKey?: string } = {}
+  ) => {
     const { delay = AppEnv.config.get('core.sending.undoSend'), actionKey = DefaultSendActionKey } =
       options;
 

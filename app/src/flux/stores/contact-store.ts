@@ -92,7 +92,10 @@ class ContactStore extends MailspringStore {
     return contact instanceof Contact ? contact.isValid() : false;
   }
 
-  parseContactsInString(contactString: string, { skipNameLookup }: { skipNameLookup?: boolean } = {}) {
+  parseContactsInString(
+    contactString: string,
+    { skipNameLookup }: { skipNameLookup?: boolean } = {}
+  ) {
     const detected: Contact[] = [];
     const emailRegex = RegExpUtils.emailRegex();
     let lastMatchEnd = 0;

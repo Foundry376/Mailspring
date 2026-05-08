@@ -424,7 +424,11 @@ export class TokenizingTextField<T> extends React.Component<
   _onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // Don't focus if the focus is already on an input within our field,
     // like an editable token's input
-    if (event.target instanceof HTMLElement && event.target.tagName === 'INPUT' && ReactDOM.findDOMNode(this).contains(event.target)) {
+    if (
+      event.target instanceof HTMLElement &&
+      event.target.tagName === 'INPUT' &&
+      ReactDOM.findDOMNode(this).contains(event.target)
+    ) {
       return;
     }
 

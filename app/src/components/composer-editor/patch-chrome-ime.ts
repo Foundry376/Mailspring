@@ -28,7 +28,11 @@ dispatch a TextEvent into the editor manually.
 
 let lastTextInputEvent = null;
 document.addEventListener('textInput', (e: Event) => (lastTextInputEvent = e), true);
-document.addEventListener('compositionstart', (_e: CompositionEvent) => (lastTextInputEvent = null), true);
+document.addEventListener(
+  'compositionstart',
+  (_e: CompositionEvent) => (lastTextInputEvent = null),
+  true
+);
 document.addEventListener(
   'compositionend',
   (e: CompositionEvent) => {

@@ -283,7 +283,7 @@ class WorkspaceStore extends MailspringStore {
 
   // Public: Returns a {Boolean} indicating whether the location provided is hidden.
   // You should provide one of the WorkspaceStore.Location constant values.
-  isLocationHidden(loc: {id: string} | null) {
+  isLocationHidden(loc: { id: string } | null) {
     if (!loc) {
       return false;
     }
