@@ -8,13 +8,13 @@ const patched = proxyquire('../lib/items/default-client-notif', {
   'mailspring-exports': {
     DefaultClientHelper: class {
       constructor() {
-        // TODO: `isRegisteredForURLScheme` and `registerForURLScheme` no longer
-        // exist on the real DefaultClientHelper; the `as any` casts preserve the
-        // stub but the spec may not be exercising current production behavior.
+        // The methods are assigned in the constructor (rather than declared as
+        // class fields), so TypeScript doesn't see them on this empty stub
+        // class — hence the `as any` casts.
         (this as any).isRegisteredForURLScheme = (urlScheme, callback) => {
           callback(stubIsRegistered);
         };
-        (this as any).registerForURLScheme = urlScheme => {
+        (this as any).registerForURLScheme = (urlScheme) => {
           (stubRegister as any)(urlScheme);
         };
       }
@@ -57,7 +57,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
 
       it('allows the user to set Mailspring as the default client', () => {
         let scheme = null;
-        stubRegister = urlScheme => {
+        stubRegister = (urlScheme) => {
           scheme = urlScheme;
         };
         fireEvent.click(container.querySelector('#action-0'));

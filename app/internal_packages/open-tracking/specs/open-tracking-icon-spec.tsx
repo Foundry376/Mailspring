@@ -13,7 +13,9 @@ function makeIcon(thread, props = {}) {
 }
 
 function find(component, className) {
-  return ReactDOM.findDOMNode(findRenderedDOMComponentWithClass(component, className)) as HTMLElement;
+  return ReactDOM.findDOMNode(
+    findRenderedDOMComponentWithClass(component, className)
+  ) as HTMLElement;
 }
 
 function addOpenMetadata(obj, openCount) {

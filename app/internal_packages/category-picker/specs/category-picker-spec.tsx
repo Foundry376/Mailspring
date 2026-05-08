@@ -6,12 +6,14 @@ import MovePickerPopover from '../lib/move-picker-popover';
 import {
   Category,
   Folder,
+  Label,
   Thread,
   Actions,
   AccountStore,
   CategoryStore,
   DatabaseStore,
-  TaskFactory,
+  ChangeFolderTask,
+  ChangeLabelsTask,
   SyncbackCategoryTask,
   FocusedPerspectiveStore,
   MailboxPerspective,
@@ -21,10 +23,10 @@ import {
 
 import { Categories } from 'mailspring-observables';
 
-describe('MovePickerPopover', function() {
+describe('MovePickerPopover', function () {
   beforeEach(() => (CategoryStore._categoryCache = {}));
 
-  const setupFor = function() {
+  const setupFor = function () {
     this.account = {
       id: TEST_ACCOUNT_ID,
     };
@@ -66,7 +68,7 @@ describe('MovePickerPopover', function() {
     });
   };
 
-  const setupForCreateNew = function() {
+  const setupForCreateNew = function () {
     setupFor.call(this);
 
     this.testThread = new Thread({
@@ -80,8 +82,8 @@ describe('MovePickerPopover', function() {
     );
   };
 
-  describe('when using folders', function() {
-    beforeEach(function() {
+  describe('when using folders', function () {
+    beforeEach(function () {
       setupFor.call(this);
 
       this.testThread = new Thread({
@@ -95,31 +97,31 @@ describe('MovePickerPopover', function() {
       );
     });
 
-    it('lists the desired categories', function() {
+    it('lists the desired categories', function () {
       const data = this.picker.state.categoryData;
       // NOTE: The inbox category is not included here because it's the
       // currently focused category, which gets filtered out of the list.
       expect(data.length).toBe(3);
 
       expect(data[0].id).toBe('id-456');
-      expect(data[0].name).toBe('archive');
+      expect(data[0].category.role).toBe('archive');
       expect(data[0].category).toBe(this.archiveCategory);
 
       expect(data[1].divider).toBe(true);
       expect(data[1].id).toBe('category-divider');
 
       expect(data[2].id).toBe('id-789');
-      expect(data[2].name).toBeUndefined();
+      expect(data[2].category.role).toBeNull();
       expect(data[2].category).toBe(this.userCategory);
     });
   });
 
-  describe("'create new' item", function() {
-    beforeEach(function() {
+  describe("'create new' item", function () {
+    beforeEach(function () {
       setupForCreateNew.call(this);
     });
 
-    it('is not visible when the search box is empty', function() {
+    it('is not visible when the search box is empty', function () {
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new'
@@ -127,11 +129,14 @@ describe('MovePickerPopover', function() {
       expect(count).toBe(0);
     });
 
-    it('is visible when the search box has text', function() {
+    it('is visible when the search box has text', function () {
       const inputNode = ReactDOM.findDOMNode(
         ReactTestUtils.scryRenderedDOMComponentsWithTag(this.picker, 'input')[0]
       );
-      ReactTestUtils.Simulate.change(inputNode as Element, { target: { value: 'calendar' } } as any);
+      ReactTestUtils.Simulate.change(
+        inputNode as Element,
+        { target: { value: 'calendar' } } as any
+      );
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new'
@@ -139,11 +144,14 @@ describe('MovePickerPopover', function() {
       expect(count).toBe(1);
     });
 
-    it("shows folder icon if we're using exchange", function() {
+    it("shows folder icon if we're using exchange", function () {
       const inputNode = ReactDOM.findDOMNode(
         ReactTestUtils.scryRenderedDOMComponentsWithTag(this.picker, 'input')[0]
       );
-      ReactTestUtils.Simulate.change(inputNode as Element, { target: { value: 'calendar' } } as any);
+      ReactTestUtils.Simulate.change(
+        inputNode as Element,
+        { target: { value: 'calendar' } } as any
+      );
       const count = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.picker,
         'category-create-new-folder'
@@ -152,102 +160,90 @@ describe('MovePickerPopover', function() {
     });
   });
 
-  describe('_onSelectCategory', function() {
-    beforeEach(function() {
+  describe('_onSelectCategory', function () {
+    beforeEach(function () {
       setupForCreateNew.call(this);
-      // TODO: `taskForRemovingCategory` and `taskForApplyingCategory` were removed
-      // from TaskFactory; the spec was already broken before being typechecked.
-      // The `as any` cast preserves prior behavior — clean up alongside the spec.
-      spyOn(TaskFactory as any, 'taskForRemovingCategory').andCallThrough();
-      // TODO: `tasK` is a typo (capital K) preserved from the original .jsx; the
-      // spy targets a property that does not exist on TaskFactory.
-      spyOn(TaskFactory as any, 'tasK').andCallThrough();
       spyOn(Actions, 'queueTask');
     });
 
-    it('closes the popover', function() {
-      this.picker._onSelectCategory({ usage: 0, category: 'asdf' });
+    it('closes the popover', function () {
+      this.picker._onSelectCategory({ category: this.archiveCategory });
       expect(Actions.closePopover).toHaveBeenCalled();
     });
 
-    describe('when selecting a category currently on all the selected items', () =>
-      it('fires a task to remove the category', function() {
-        const input = {
-          category: 'asdf',
-          usage: 1,
-        };
-
-        this.picker._onSelectCategory(input);
-        expect((TaskFactory as any).taskForRemovingCategory).toHaveBeenCalledWith({
-          threads: [this.testThread],
-          category: 'asdf',
-        });
+    describe('when selecting a folder', () =>
+      it('queues a ChangeFolderTask to move the threads', function () {
+        this.picker._onSelectCategory({ category: this.archiveCategory });
         expect(Actions.queueTask).toHaveBeenCalled();
+        const task = (Actions.queueTask as any).calls[0].args[0];
+        expect(task instanceof ChangeFolderTask).toBe(true);
+        expect(task.folder).toBe(this.archiveCategory);
+        expect(task.threads).toEqual([this.testThread]);
       }));
 
-    describe('when selecting a category not on all the selected items', () =>
-      it('fires a task to add the category', function() {
-        const input = {
-          category: 'asdf',
-          usage: 0,
-        };
-
-        this.picker._onSelectCategory(input);
-        expect((TaskFactory as any).taskForApplyingCategory).toHaveBeenCalledWith({
-          threads: [this.testThread],
-          category: 'asdf',
+    describe('when selecting a label', () =>
+      it('queues a ChangeLabelsTask to apply the label', function () {
+        const labelCategory = new Label({
+          id: 'lbl-1',
+          path: 'MyLabel',
+          accountId: TEST_ACCOUNT_ID,
         });
+        this.testThread.labels = [];
+        this.picker._onSelectCategory({ category: labelCategory });
         expect(Actions.queueTask).toHaveBeenCalled();
+        const task = (Actions.queueTask as any).calls[0].args[0];
+        expect(task instanceof ChangeLabelsTask).toBe(true);
+        expect(task.labelsToAdd).toEqual([labelCategory]);
+        expect(task.threads).toEqual([this.testThread]);
       }));
 
-    describe('when selecting a new category', function() {
-      beforeEach(function() {
+    describe('when selecting a new category', function () {
+      beforeEach(function () {
         this.input = { newCategoryItem: true };
         this.picker.setState({ searchValue: 'teSTing!' });
       });
 
-      it('queues a new syncback task for creating a category', function() {
+      it('queues a new syncback task for creating a category', function () {
         this.picker._onSelectCategory(this.input);
         expect(Actions.queueTask).toHaveBeenCalled();
         const syncbackTask = (Actions.queueTask as any).calls[0].args[0];
+        expect(syncbackTask instanceof SyncbackCategoryTask).toBe(true);
         const newCategory = syncbackTask.category;
         expect(newCategory instanceof Category).toBe(true);
         expect(newCategory.displayName).toBe('teSTing!');
         expect(newCategory.accountId).toBe(TEST_ACCOUNT_ID);
       });
 
-      it('queues a task for applying the category after it has saved', function() {
-        let category: any = false;
-        let resolveSave: any = false;
-        spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(function(task) {
+      it('queues a move task after the new category is saved', function () {
+        const createdFolder = new Folder({
+          id: 'created-1',
+          path: 'teSTing!',
+          accountId: TEST_ACCOUNT_ID,
+        });
+        let resolveSave: any = null;
+        spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(function (task) {
           expect(task instanceof SyncbackCategoryTask).toBe(true);
-          return new Promise(function(resolve, reject) {
+          return new Promise(function (resolve) {
             resolveSave = resolve;
           });
-        });
-
-        spyOn(DatabaseStore, 'findBy').andCallFake(function(klass, { id }) {
-          expect(klass).toBe(Category);
-          expect(typeof id).toBe('string');
-          Promise.resolve(category);
         });
 
         this.picker._onSelectCategory(this.input);
 
         waitsFor(() => (Actions.queueTask as any).callCount > 0);
 
-        runs(function() {
-          ({ category } = (Actions.queueTask as any).calls[0].args[0]);
-          resolveSave();
+        runs(function () {
+          // Simulate the syncback task completing with the created folder.
+          resolveSave({ created: createdFolder });
         });
 
-        waitsFor(() => (TaskFactory as any).taskForApplyingCategory.calls.length === 1);
+        waitsFor(() => (Actions.queueTask as any).callCount > 1);
 
-        runs(function() {
-          expect((TaskFactory as any).taskForApplyingCategory).toHaveBeenCalledWith({
-            threads: [this.testThread],
-            category,
-          });
+        runs(function () {
+          const moveTask = (Actions.queueTask as any).calls[1].args[0];
+          expect(moveTask instanceof ChangeFolderTask).toBe(true);
+          expect(moveTask.folder).toBe(createdFolder);
+          expect(moveTask.threads).toEqual([this.testThread]);
         });
       });
     });

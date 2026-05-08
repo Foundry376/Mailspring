@@ -10,7 +10,7 @@ const DRAFT_HEADER_MSG_ID = 'DRAFT_HEADER_MSG_ID';
 
 describe('ComposerHeader', function composerHeader() {
   beforeEach(() => {
-    this.createWithDraft = draft => {
+    this.createWithDraft = (draft) => {
       const session = {
         changes: {
           add: jasmine.createSpy('changes.add'),

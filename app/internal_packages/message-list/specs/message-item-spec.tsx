@@ -97,9 +97,9 @@ const MessageItem = proxyquire('../lib/message-item', { './message-item-body': M
 
 import MessageTimestamp from '../lib/message-timestamp';
 
-xdescribe('MessageItem', function() {
-  beforeEach(function() {
-    spyOn(AttachmentStore, 'pathForFile').andCallFake(function(f) {
+xdescribe('MessageItem', function () {
+  beforeEach(function () {
+    spyOn(AttachmentStore, 'pathForFile').andCallFake(function (f) {
       if (f.id === file.id) {
         return '/fake/path.png';
       }
@@ -111,12 +111,12 @@ xdescribe('MessageItem', function() {
       }
       return null;
     });
-    spyOn(AttachmentStore, 'getDownloadDataForFiles').andCallFake(ids => ({
+    spyOn(AttachmentStore, 'getDownloadDataForFiles').andCallFake((ids) => ({
       file_1_id: download,
       file_inline_downloading_id: download_inline,
     }));
 
-    spyOn(MessageBodyProcessor, '_addToCache').andCallFake(function() {});
+    spyOn(MessageBodyProcessor, '_addToCache').andCallFake(function () {});
 
     this.message = new Message({
       id: '111',
@@ -145,7 +145,7 @@ xdescribe('MessageItem', function() {
     // Generate the test component. Should be called after @message is configured
     // for the test, since MessageItem assumes attributes of the message will not
     // change after getInitialState runs.
-    this.createComponent = param => {
+    this.createComponent = (param) => {
       if (param == null) {
         param = {};
       }
@@ -175,19 +175,19 @@ xdescribe('MessageItem', function() {
   //   it "should have the `collapsed` class", ->
   //     expect(ReactDOM.findDOMNode(@component).className.indexOf('collapsed') >= 0).toBe(true)
 
-  describe('when displaying detailed headers', function() {
-    beforeEach(function() {
+  describe('when displaying detailed headers', function () {
+    beforeEach(function () {
       this.createComponent({ collapsed: false });
       this.component.setState({ detailedHeaders: true });
     });
 
-    it('correctly sets the participant states', function() {
+    it('correctly sets the participant states', function () {
       const participants = ReactTestUtils.scryRenderedDOMComponentsWithClass(
         this.component,
         'expanded-participants'
       );
       expect(participants.length).toBe(2);
-      expect(function() {
+      expect(function () {
         return ReactTestUtils.findRenderedDOMComponentWithClass(
           this.component,
           'collapsed-participants'
@@ -195,29 +195,31 @@ xdescribe('MessageItem', function() {
       }).toThrow();
     });
 
-    it('correctly sets the timestamp', function() {
+    it('correctly sets the timestamp', function () {
       const ts = ReactTestUtils.findRenderedComponentWithType(this.component, MessageTimestamp);
       expect(ts.props.isDetailed).toBe(true);
     });
   });
 
-  describe('when not collapsed', function() {
-    beforeEach(function() {
+  describe('when not collapsed', function () {
+    beforeEach(function () {
       this.createComponent({ collapsed: false });
     });
 
-    it('should render the MessageItemBody', function() {
+    it('should render the MessageItemBody', function () {
       const frame = ReactTestUtils.findRenderedComponentWithType(this.component, MessageItemBody);
       expect(frame).toBeDefined();
     });
 
-    it('should not have the `collapsed` class', function() {
-      expect((ReactDOM.findDOMNode(this.component) as HTMLElement).className.indexOf('collapsed') >= 0).toBe(false);
+    it('should not have the `collapsed` class', function () {
+      expect(
+        (ReactDOM.findDOMNode(this.component) as HTMLElement).className.indexOf('collapsed') >= 0
+      ).toBe(false);
     });
   });
 
-  xdescribe('when the message contains attachments', function() {
-    beforeEach(function() {
+  xdescribe('when the message contains attachments', function () {
+    beforeEach(function () {
       this.message.files = [
         file,
         file_not_downloaded,
@@ -238,7 +240,7 @@ xdescribe('MessageItem', function() {
       this.createComponent();
     });
 
-    it('should include the attachments area', function() {
+    it('should include the attachments area', function () {
       const attachments = ReactTestUtils.findRenderedDOMComponentWithClass(
         this.component,
         'attachments-area'
@@ -246,7 +248,7 @@ xdescribe('MessageItem', function() {
       expect(attachments).toBeDefined();
     });
 
-    it('injects a MessageAttachments component for any present attachments', function() {
+    it('injects a MessageAttachments component for any present attachments', function () {
       const els = ReactTestUtils.scryRenderedComponentsWithTypeAndProps(
         this.component,
         InjectedComponent,
@@ -255,7 +257,7 @@ xdescribe('MessageItem', function() {
       expect(els.length).toBe(1);
     });
 
-    it('should list attachments that are not mentioned in the body via cid', function() {
+    it('should list attachments that are not mentioned in the body via cid', function () {
       const els = ReactTestUtils.scryRenderedComponentsWithTypeAndProps(
         this.component,
         InjectedComponent,
@@ -269,7 +271,7 @@ xdescribe('MessageItem', function() {
       expect(attachments[3]).toBe(file_cid_but_not_referenced_or_image);
     });
 
-    it('should provide the correct file download state for each attachment', function() {
+    it('should provide the correct file download state for each attachment', function () {
       const els = ReactTestUtils.scryRenderedComponentsWithTypeAndProps(
         this.component,
         InjectedComponent,
@@ -280,7 +282,7 @@ xdescribe('MessageItem', function() {
       expect(downloads['file_not_downloaded']).toBe(undefined);
     });
 
-    it('should still list attachments when the message has no body', function() {
+    it('should still list attachments when the message has no body', function () {
       this.message.body = '';
       this.createComponent();
       const els = ReactTestUtils.scryRenderedComponentsWithTypeAndProps(

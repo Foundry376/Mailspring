@@ -5,12 +5,12 @@ import _ from 'underscore';
 import { AccountStore, Thread, Contact, Message } from 'mailspring-exports';
 import ThreadListParticipants from '../lib/thread-list-participants';
 
-describe('ThreadListParticipants', function() {
-  beforeEach(function() {
+describe('ThreadListParticipants', function () {
+  beforeEach(function () {
     this.account = AccountStore.accounts()[0];
   });
 
-  it('renders unread contacts with .unread-true', function() {
+  it('renders unread contacts with .unread-true', function () {
     const ben = new Contact({ email: 'ben@nylas.com', name: 'ben' });
     (ben as any).unread = true;
     const thread = new Thread({});
@@ -26,8 +26,8 @@ describe('ThreadListParticipants', function() {
     expect(unread.length).toBe(1);
   });
 
-  describe('getTokens', function() {
-    beforeEach(function() {
+  describe('getTokens', function () {
+    beforeEach(function () {
       this.ben = new Contact({ email: 'ben@nylas.com', name: 'ben' });
       this.evan = new Contact({ email: 'evan@nylas.com', name: 'evan' });
       this.evanAgain = new Contact({ email: 'evan@nylas.com', name: 'evan' });
@@ -38,7 +38,7 @@ describe('ThreadListParticipants', function() {
     });
 
     describe('when thread.messages is available', () =>
-      it('correctly produces items for display in a wide range of scenarios', function() {
+      it('correctly produces items for display in a wide range of scenarios', function () {
         const scenarios = [
           {
             name: 'single read email',
@@ -64,7 +64,10 @@ describe('ThreadListParticipants', function() {
               new Message({ unread: false, from: [this.ben] }),
               new Message({ unread: true, from: [this.evan] }),
             ],
-            out: [{ contact: this.ben, unread: false }, { contact: this.evan, unread: true }],
+            out: [
+              { contact: this.ben, unread: false },
+              { contact: this.evan, unread: true },
+            ],
           },
           {
             name: 'two unread responses',
@@ -86,7 +89,10 @@ describe('ThreadListParticipants', function() {
               new Message({ unread: true, from: [this.evan] }),
               new Message({ unread: true, from: [this.evanAgain] }),
             ],
-            out: [{ contact: this.ben, unread: false }, { contact: this.evan, unread: true }],
+            out: [
+              { contact: this.ben, unread: false },
+              { contact: this.evan, unread: true },
+            ],
           },
           {
             name: 'three unread responses (repeated participants)',
@@ -187,7 +193,10 @@ describe('ThreadListParticipants', function() {
               new Message({ unread: false, from: [this.phab1] }),
               new Message({ unread: false, from: [this.phab2] }),
             ],
-            out: [{ contact: this.phab1, unread: false }, { contact: this.phab2, unread: false }],
+            out: [
+              { contact: this.phab1, unread: false },
+              { contact: this.phab2, unread: false },
+            ],
           },
         ];
 
@@ -207,8 +216,8 @@ describe('ThreadListParticipants', function() {
         }
       }));
 
-    describe('when getTokens() called and current user is only sender', function() {
-      beforeEach(function() {
+    describe('when getTokens() called and current user is only sender', function () {
+      beforeEach(function () {
         this.me = this.account.me();
         this.ben = new Contact({ email: 'ben@nylas.com', name: 'ben' });
         this.evan = new Contact({ email: 'evan@nylas.com', name: 'evan' });
@@ -217,7 +226,7 @@ describe('ThreadListParticipants', function() {
         this.kavya = new Contact({ email: 'kavya@nylas.com', name: 'kavya' });
       });
 
-      const getTokens = function(threadMessages) {
+      const getTokens = function (threadMessages) {
         const thread = new Thread({});
         (thread as any).__messages = threadMessages;
         const participants = ReactTestUtils.renderIntoDocument(
@@ -226,7 +235,7 @@ describe('ThreadListParticipants', function() {
         return participants.getTokens();
       };
 
-      it('shows only recipients for emails sent from me to different recipients', function() {
+      it('shows only recipients for emails sent from me to different recipients', function () {
         const input = [
           new Message({ unread: false, from: [this.me], to: [this.ben] }),
           new Message({ unread: false, from: [this.me], to: [this.evan] }),
@@ -241,7 +250,7 @@ describe('ThreadListParticipants', function() {
         expect(actualOut).toEqual(expectedOut);
       });
 
-      it('is case insensitive', function() {
+      it('is case insensitive', function () {
         const input = [
           new Message({ unread: false, from: [this.me], to: [this.evan] }),
           new Message({ unread: false, from: [this.me], to: [this.evanCapitalized] }),
@@ -251,7 +260,7 @@ describe('ThreadListParticipants', function() {
         expect(actualOut).toEqual(expectedOut);
       });
 
-      it('shows only first, spacer, second to last, and last recipients if recipients count > 3', function() {
+      it('shows only first, spacer, second to last, and last recipients if recipients count > 3', function () {
         const input = [
           new Message({ unread: false, from: [this.me], to: [this.ben] }),
           new Message({ unread: false, from: [this.me], to: [this.evan] }),
@@ -268,7 +277,7 @@ describe('ThreadListParticipants', function() {
         expect(actualOut).toEqual(expectedOut);
       });
 
-      it('shows correct recipients even if only one email', function() {
+      it('shows correct recipients even if only one email', function () {
         const input = [
           new Message({
             unread: false,
@@ -286,7 +295,7 @@ describe('ThreadListParticipants', function() {
         expect(actualOut).toEqual(expectedOut);
       });
 
-      it('shows only one recipient if the sender only sent to one recipient', function() {
+      it('shows only one recipient if the sender only sent to one recipient', function () {
         const input = [
           new Message({ unread: false, from: [this.me], to: [this.evan] }),
           new Message({ unread: false, from: [this.me], to: [this.evan] }),
@@ -298,14 +307,14 @@ describe('ThreadListParticipants', function() {
         expect(actualOut).toEqual(expectedOut);
       });
 
-      it('shows only the recipient for one sent email', function() {
+      it('shows only the recipient for one sent email', function () {
         const input = [new Message({ unread: false, from: [this.me], to: [this.evan] })];
         const actualOut = getTokens(input);
         const expectedOut = [{ contact: this.evan, unread: false }];
         expect(actualOut).toEqual(expectedOut);
       });
 
-      it('shows unread email as well', function() {
+      it('shows unread email as well', function () {
         const input = [
           new Message({ unread: false, from: [this.me], to: [this.evan] }),
           new Message({ unread: false, from: [this.me], to: [this.ben] }),

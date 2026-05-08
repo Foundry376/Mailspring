@@ -22,12 +22,12 @@ const DEFAULTS = {
 
 describe('SignatureStore', function signatureStore() {
   beforeEach(() => {
-    spyOn(AppEnv.config, 'get').andCallFake(key => (key === 'signatures' ? SIGNATURES : null));
+    spyOn(AppEnv.config, 'get').andCallFake((key) => (key === 'signatures' ? SIGNATURES : null));
 
     spyOn(SignatureStore, '_saveSignatures').andCallFake(() => {
       AppEnv.config.set(`signatures`, SignatureStore.signatures);
     });
-    spyOn(SignatureStore, 'signatureForEmail').andCallFake(email => SIGNATURES[DEFAULTS[email]]);
+    spyOn(SignatureStore, 'signatureForEmail').andCallFake((email) => SIGNATURES[DEFAULTS[email]]);
     spyOn(SignatureStore, 'selectedSignature').andCallFake(() => SIGNATURES['1']);
     SignatureStore.activate();
   });

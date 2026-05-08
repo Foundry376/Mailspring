@@ -179,7 +179,9 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                   propsForPlugins={{ draft, session }}
                   onFileReceived={this._onFileReceived}
                   onUpdatedSlateEditor={(editor) => session.setMountedEditor(editor)}
-                  onDrop={(e) => this.dropzone.current._onDrop(e as React.DragEvent<HTMLDivElement>)}
+                  onDrop={(e) =>
+                    this.dropzone.current._onDrop(e as React.DragEvent<HTMLDivElement>)
+                  }
                   onChange={(change) => {
                     // We minimize thrashing and support editors in multiple windows by ensuring
                     // non-value changes (eg focus) to the editorState don't trigger database saves
@@ -248,7 +250,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   }
 
   _onMouseUpComposerBody = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === this._mouseDownTarget && !this._inFooterRegion(event.target as HTMLElement)) {
+    if (
+      event.target === this._mouseDownTarget &&
+      !this._inFooterRegion(event.target as HTMLElement)
+    ) {
       // We don't set state directly here because we want the native
       // contenteditable focus behavior. When the contenteditable gets focused
       const bodyRect = (

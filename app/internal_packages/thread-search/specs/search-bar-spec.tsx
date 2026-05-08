@@ -10,14 +10,16 @@ import { Actions } from 'mailspring-exports';
 
 import ThreadSearchBar from '../lib/thread-search-bar';
 
-describe('ThreadSearchBar', function() {
-  beforeEach(function() {
+describe('ThreadSearchBar', function () {
+  beforeEach(function () {
     spyOn(AppEnv, 'isMainWindow').andReturn(true);
     this.searchBar = ReactTestUtils.renderIntoDocument(<ThreadSearchBar />);
-    this.input = (ReactDOM.findDOMNode(this.searchBar) as HTMLElement).querySelector('[contenteditable]');
+    this.input = (ReactDOM.findDOMNode(this.searchBar) as HTMLElement).querySelector(
+      '[contenteditable]'
+    );
   });
 
-  it('preserves capitalization on searches', function() {
+  it('preserves capitalization on searches', function () {
     spyOn(Actions, 'searchQueryChanged');
     const test = 'HeLlO wOrLd';
     ReactTestUtils.Simulate.input(this.input, { target: { innerText: test } as any });
