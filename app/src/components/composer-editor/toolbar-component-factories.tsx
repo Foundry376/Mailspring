@@ -5,6 +5,22 @@ import { ComposerEditorPluginToolbarComponentProps } from './types';
 
 // Helper Functions
 
+// Slate's `value.activeMarks` getter calls `Document.getActiveMarksAtRange`,
+// which can throw "Invalid attempt to destructure non-iterable instance" when
+// the value's selection references a node the document no longer contains
+// (e.g. mid-edit, after a paste, or when a stale value is rendered). We can't
+// fix Slate, so funnel every access through this helper: on throw, fall back
+// to an empty list. `.find` / `.some` work the same on arrays as on the
+// Immutable.Set Slate normally returns, and the next render picks up the
+// correct state once Slate re-normalizes.
+export function safeActiveMarks(value: Value): { find: any; some: any; [key: string]: any } {
+  try {
+    return value.activeMarks as any;
+  } catch (err) {
+    return [] as any;
+  }
+}
+
 export interface IEditorToolbarConfigItem {
   type: string;
   tagNames?: string[];
@@ -24,7 +40,7 @@ export interface IEditorToolbarConfigItem {
 
 function removeMarksOfTypeInRange(editor: Editor, range: Range | Selection, type: string) {
   if (range.isCollapsed) {
-    const active = editor.value.activeMarks.find((m) => m.type === type);
+    const active = safeActiveMarks(editor.value).find((m) => m.type === type);
     if (active) {
       editor.removeMark(active);
     }
@@ -79,14 +95,8 @@ export function expandSelectionToRangeOfMark(editor: Editor, type: string) {
 }
 
 export function getActiveValueForMark(value: Value, type: string) {
-  try {
-    // https://sentry.io/organizations/foundry-376-llc/issues/1076378703
-    // This rarely throws "Invalid attempt to destructure non-iterable instance"
-    const active = value.activeMarks.find((m) => m.type === type);
-    return (active && active.data.get('value')) || '';
-  } catch (err) {
-    return '';
-  }
+  const active = safeActiveMarks(value).find((m) => m.type === type);
+  return (active && active.data.get('value')) || '';
 }
 
 export function applyValueForMark(editor: Editor, type: string, markValue: any) {
@@ -138,7 +148,7 @@ export function BuildMarkButtonWithValuePicker(config) {
 
     onPrompt = (e: React.MouseEvent) => {
       e.preventDefault();
-      const active = this.props.value.activeMarks.find((m) => m.type === config.type);
+      const active = safeActiveMarks(this.props.value).find((m) => m.type === config.type);
       const fieldValue = (active && active.data.get(config.field)) || '';
       this.setState({ expanded: true, fieldValue: fieldValue }, () => {
         setTimeout(() => {
@@ -167,7 +177,7 @@ export function BuildMarkButtonWithValuePicker(config) {
           [config.field]: fieldValue,
         },
       });
-      const active = value.activeMarks.find((m) => m.type === config.type);
+      const active = safeActiveMarks(value).find((m) => m.type === config.type);
       if (active) {
         // update the active mark
         expandSelectionToRangeOfMark(editor, config.type);
@@ -190,7 +200,7 @@ export function BuildMarkButtonWithValuePicker(config) {
     onRemove = (e: React.MouseEvent) => {
       e.preventDefault();
       const { value, editor } = this.props;
-      const active = value.activeMarks.find((m) => m.type === config.type);
+      const active = safeActiveMarks(value).find((m) => m.type === config.type);
       if (value.selection.isCollapsed) {
         const anchorNode = value.document.getNode(value.selection.anchor.key);
         const expanded = value.selection.moveToRangeOfNode(anchorNode);
@@ -210,7 +220,7 @@ export function BuildMarkButtonWithValuePicker(config) {
       const { value, className } = this.props;
       const { expanded } = this.state;
 
-      const active = value.activeMarks.find((m) => m.type === config.type);
+      const active = safeActiveMarks(value).find((m) => m.type === config.type);
       return (
         <div
           className={`${className} link-picker`}
