@@ -70,10 +70,7 @@ module.exports = ErrorLogger = (function () {
     if (!hasMessage && !hasStack) {
       var description;
       try {
-        if (error === undefined) description = 'undefined';
-        else if (error === null) description = 'null';
-        else if (typeof error === 'object') description = JSON.stringify(error);
-        else description = String(error);
+        description = JSON.stringify(error);
       } catch (e) {
         description = Object.prototype.toString.call(error);
       }
