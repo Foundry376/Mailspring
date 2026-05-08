@@ -369,13 +369,13 @@ export class MailsyncProcess extends EventEmitter {
         if (outBuffer.length) {
           // Skip debug output that starts with 'dbg::' prefix
           if (outBuffer.startsWith('dbg::')) {
-            console.log('Skipping debug output from mailsync:', outBuffer);
+            console.log('Skipping debug output from mailsync:', this._stripSecrets(outBuffer));
           } else {
             lastJSON = JSON.parse(outBuffer);
           }
         }
       } catch (parseError) {
-        console.warn('Failed to parse mailsync output as JSON:', outBuffer);
+        console.warn('Failed to parse mailsync output as JSON:', this._stripSecrets(outBuffer));
       } finally {
         if (lastJSON) {
           if (lastJSON.error) {
@@ -434,7 +434,7 @@ export class MailsyncProcess extends EventEmitter {
           if (str.includes('running vacuum')) this._showStatusWindow('vacuum');
         },
       });
-      console.log(buffer.toString());
+      console.log(this._stripSecrets(buffer.toString()));
       this._closeStatusWindow();
     } catch (err) {
       this._closeStatusWindow();
