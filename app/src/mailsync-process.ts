@@ -193,6 +193,46 @@ export class MailsyncProcess extends EventEmitter {
     }
   }
 
+  // Redacts known secrets from a log/error string before it's surfaced to
+  // the UI, error reporting, or thrown errors. Two strategies are combined:
+  //
+  // 1. Key-based: replace the value of any known sensitive JSON key (e.g.
+  //    "refresh_token":"abc"). This catches secrets the engine has rotated
+  //    and not yet pushed back to us (e.g. ProcessAccountSecretsUpdated),
+  //    where the new value is not present in this.account.
+  // 2. Value-based: replace literal occurrences of the secrets currently
+  //    cached on this.account, in case they appear outside JSON form.
+  _stripSecrets(text: string) {
+    if (!text) return text;
+    let out = text;
+
+    const SENSITIVE_JSON_KEYS = [
+      'refresh_token',
+      'access_token',
+      'imap_password',
+      'smtp_password',
+    ];
+    for (const key of SENSITIVE_JSON_KEYS) {
+      // Match "key":"<anything-but-unescaped-quote>" allowing escaped quotes inside.
+      const re = new RegExp(`("${key}"\\s*:\\s*")(?:\\\\.|[^"\\\\])*(")`, 'g');
+      out = out.replace(re, '$1*********$2');
+    }
+
+    const cachedSettings = (this.account && this.account.settings) || ({} as any);
+    const cachedValues = [
+      cachedSettings.refresh_token,
+      cachedSettings.imap_password,
+      cachedSettings.smtp_password,
+    ].filter((v): v is string => typeof v === 'string' && v.length > 0);
+
+    const escape = (s: string) => s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    for (const v of cachedValues) {
+      out = out.replace(new RegExp(escape(v), 'g'), '*********');
+    }
+
+    return out;
+  }
+
   _spawnAndWait(mode, { onData }: { onData?: (data: any) => void } = {}) {
     return new Promise<{ response: any; buffer: Buffer }>((resolve, reject) => {
       this._spawnProcess(mode);
@@ -216,21 +256,6 @@ export class MailsyncProcess extends EventEmitter {
       });
 
       this._proc.on('close', (code) => {
-        const stripSecrets = (text: string) => {
-          const settings = (this.account && this.account.settings) || {
-            refresh_token: undefined,
-            imap_password: undefined,
-            smtp_password: undefined,
-          };
-          const { refresh_token, imap_password, smtp_password } = settings;
-
-          const escape = (string: string) => string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-          return (text || '')
-            .replace(new RegExp(escape(refresh_token || 'not-present'), 'g'), '*********')
-            .replace(new RegExp(escape(imap_password || 'not-present'), 'g'), '*********')
-            .replace(new RegExp(escape(smtp_password || 'not-present'), 'g'), '*********');
-        };
-
         try {
           const lastLine = buffer.toString('utf-8').split('\n').pop();
 
@@ -241,7 +266,7 @@ export class MailsyncProcess extends EventEmitter {
             // If the Mailsync executable itself failed to run, the logs are not JSON
             // and may contain system errors (shared library issues, etc). Include this
             // in the logs so users can fix on their own or report detailed bugs.
-            const rawLog = stripSecrets(buffer.toString());
+            const rawLog = this._stripSecrets(buffer.toString());
             const error = new Error(
               `${localized(`An unknown error has occurred`)} mailsync: ${code}. ${rawLog}`
             );
@@ -258,11 +283,11 @@ export class MailsyncProcess extends EventEmitter {
               msg = `${msg} (${response.error_service.toUpperCase()})`;
             }
             const error = new Error(msg);
-            (error as any).rawLog = stripSecrets(response.log);
+            (error as any).rawLog = this._stripSecrets(response.log);
             return reject(error);
           }
         } catch (err) {
-          const rawLog = stripSecrets(buffer.toString());
+          const rawLog = this._stripSecrets(buffer.toString());
           const error = new Error(
             `${localized(`An unknown error has occurred`)} (mailsync: ${code})`
           );
@@ -355,7 +380,7 @@ export class MailsyncProcess extends EventEmitter {
       } finally {
         if (lastJSON) {
           if (lastJSON.error) {
-            error = new Error(lastJSON.error);
+            error = new Error(this._stripSecrets(lastJSON.error));
           } else {
             this.emit('deltas', [outBuffer]);
           }
@@ -363,7 +388,7 @@ export class MailsyncProcess extends EventEmitter {
       }
 
       if (errBuffer) {
-        error = new Error(errBuffer);
+        error = new Error(this._stripSecrets(errBuffer));
       }
 
       cleanedUp = true;
