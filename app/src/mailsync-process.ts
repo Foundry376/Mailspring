@@ -214,7 +214,7 @@ export class MailsyncProcess extends EventEmitter {
     ];
     for (const key of SENSITIVE_JSON_KEYS) {
       // Match "key":"<anything-but-unescaped-quote>" allowing escaped quotes inside.
-      const re = new RegExp(`("${key}"\\s*:\\s*")(?:\\\\.|[^"\\\\])*(")`, 'g');
+      const re = new RegExp(`("${key}"\\s*:\\s*")(?:\\\\.|[^"\\\\])+(")`, 'g');
       out = out.replace(re, '$1*********$2');
     }
 
