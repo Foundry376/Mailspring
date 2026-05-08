@@ -176,6 +176,7 @@ lazyLoadWithGetter(`PropTypes`, () => require('prop-types'));
 
 // React Components
 lazyLoad(`ComponentRegistry`, 'registries/component-registry');
+lazyLoadWithGetter(`SheetDepthContext`, () => require('../sheet-context').SheetDepthContext);
 
 // Utils
 lazyLoad(`Utils`, 'flux/models/utils');

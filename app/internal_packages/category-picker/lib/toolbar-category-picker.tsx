@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useContext, useMemo, useRef, useCallback } from 'react';
 import {
   localized,
   Actions,
-  Account,
-  PropTypes,
   AccountStore,
   WorkspaceStore,
+  SheetDepthContext,
   Thread,
 } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion, RovingTabIndexToolbar } from 'mailspring-component-kit';
@@ -14,112 +13,87 @@ import MovePickerPopover from './move-picker-popover';
 import LabelPickerPopover from './label-picker-popover';
 
 // This sets the folder / label on one or more threads.
-class MovePicker extends React.Component<{ items: Thread[] }> {
-  static displayName = 'MovePicker';
-  static containerRequired = false;
-
-  static contextTypes = { sheetDepth: PropTypes.number };
-
-  _account: Account;
-  _labelEl: HTMLElement;
-  _moveEl: HTMLButtonElement;
-
-  constructor(props) {
-    super(props);
-
-    this._account = AccountStore.accountForItems(this.props.items);
-  }
+const MovePicker: React.FC<{ items: Thread[] }> & { containerRequired?: boolean } = ({ items }) => {
+  const sheetDepth = useContext(SheetDepthContext);
+  const moveEl = useRef<HTMLButtonElement>(null);
+  const labelEl = useRef<HTMLButtonElement>(null);
 
   // If the threads we're picking categories for change, (like when they
   // get their categories updated), we expect our parents to pass us new
   // props. We don't listen to the DatabaseStore ourselves.
-  componentDidUpdate(prevProps: { items: Thread[] }) {
-    if (prevProps.items !== this.props.items) {
-      this._account = AccountStore.accountForItems(this.props.items);
-    }
+  const account = useMemo(() => AccountStore.accountForItems(items), [items]);
+
+  const onOpenMovePopover = useCallback(() => {
+    if (items.length === 0) return;
+    if (sheetDepth !== WorkspaceStore.sheetStack().length - 1) return;
+    Actions.openPopover(<MovePickerPopover threads={items} account={account} />, {
+      originRect: moveEl.current.getBoundingClientRect(),
+      direction: 'down',
+    });
+  }, [items, account, sheetDepth]);
+
+  const onOpenLabelsPopover = useCallback(() => {
+    if (items.length === 0) return;
+    if (sheetDepth !== WorkspaceStore.sheetStack().length - 1) return;
+    Actions.openPopover(<LabelPickerPopover threads={items} account={account} />, {
+      originRect: labelEl.current.getBoundingClientRect(),
+      direction: 'down',
+    });
+  }, [items, account, sheetDepth]);
+
+  if (!account) {
+    return <span />;
   }
 
-  _onOpenLabelsPopover = () => {
-    if (!(this.props.items.length > 0)) {
-      return;
-    }
-    if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
-      return;
-    }
-    Actions.openPopover(<LabelPickerPopover threads={this.props.items} account={this._account} />, {
-      originRect: this._labelEl.getBoundingClientRect(),
-      direction: 'down',
-    });
+  const handlers: Record<string, () => void> = {
+    'core:change-folders': onOpenMovePopover,
   };
+  if (account.usesLabels()) {
+    handlers['core:change-labels'] = onOpenLabelsPopover;
+  }
 
-  _onOpenMovePopover = () => {
-    if (!(this.props.items.length > 0)) {
-      return;
-    }
-    if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
-      return;
-    }
-    Actions.openPopover(<MovePickerPopover threads={this.props.items} account={this._account} />, {
-      originRect: this._moveEl.getBoundingClientRect(),
-      direction: 'down',
-    });
-  };
-
-  render() {
-    if (!this._account) {
-      return <span />;
-    }
-
-    const handlers = {
-      'core:change-folders': this._onOpenMovePopover,
-    };
-    if (this._account.usesLabels()) {
-      Object.assign(handlers, {
-        'core:change-labels': this._onOpenLabelsPopover,
-      });
-    }
-
-    return (
-      <RovingTabIndexToolbar
-        label={localized('Category Actions')}
-        className="button-group"
-        style={{ order: -103 }}
-      >
-        <KeyCommandsRegion globalHandlers={handlers}>
+  return (
+    <RovingTabIndexToolbar
+      label={localized('Category Actions')}
+      className="button-group"
+      style={{ order: -103 }}
+    >
+      <KeyCommandsRegion globalHandlers={handlers}>
+        <button
+          tabIndex={-1}
+          ref={moveEl}
+          title={localized('Move to Folder')}
+          aria-label={localized('Move to Folder')}
+          onClick={onOpenMovePopover}
+          className={'btn btn-toolbar btn-category-picker'}
+        >
+          <RetinaImg
+            name={'toolbar-movetofolder.png'}
+            mode={RetinaImg.Mode.ContentIsMask}
+            aria-hidden="true"
+          />
+        </button>
+        {account.usesLabels() && (
           <button
             tabIndex={-1}
-            ref={(el) => (this._moveEl = el)}
-            title={localized('Move to Folder')}
-            aria-label={localized('Move to Folder')}
-            onClick={this._onOpenMovePopover}
+            ref={labelEl}
+            title={localized('Apply Label')}
+            aria-label={localized('Apply Label')}
+            onClick={onOpenLabelsPopover}
             className={'btn btn-toolbar btn-category-picker'}
           >
             <RetinaImg
-              name={'toolbar-movetofolder.png'}
+              name={'toolbar-tag.png'}
               mode={RetinaImg.Mode.ContentIsMask}
               aria-hidden="true"
             />
           </button>
-          {this._account.usesLabels() && (
-            <button
-              tabIndex={-1}
-              ref={(el) => (this._labelEl = el)}
-              title={localized('Apply Label')}
-              aria-label={localized('Apply Label')}
-              onClick={this._onOpenLabelsPopover}
-              className={'btn btn-toolbar btn-category-picker'}
-            >
-              <RetinaImg
-                name={'toolbar-tag.png'}
-                mode={RetinaImg.Mode.ContentIsMask}
-                aria-hidden="true"
-              />
-            </button>
-          )}
-        </KeyCommandsRegion>
-      </RovingTabIndexToolbar>
-    );
-  }
-}
+        )}
+      </KeyCommandsRegion>
+    </RovingTabIndexToolbar>
+  );
+};
+MovePicker.displayName = 'MovePicker';
+MovePicker.containerRequired = false;
 
 export default MovePicker;

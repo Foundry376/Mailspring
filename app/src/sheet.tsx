@@ -1,11 +1,11 @@
 import React, { CSSProperties } from 'react';
-import PropTypes from 'prop-types';
 
 import { localized, Utils, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import { InjectedComponentSet } from './components/injected-component-set';
 import { ResizableRegion } from './components/resizable-region';
 import { Flexbox } from './components/flexbox';
 import { SheetDeclaration } from './flux/stores/workspace-store';
+import { SheetDepthContext } from './sheet-context';
 
 const FLEX = 10000;
 
@@ -46,21 +46,11 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
     onColumnSizeChanged: () => {},
   };
 
-  static childContextTypes = {
-    sheetDepth: PropTypes.number,
-  };
-
   private unlisteners = [];
 
   constructor(props) {
     super(props);
     this.state = this._buildState();
-  }
-
-  getChildContext() {
-    return {
-      sheetDepth: this.props.depth,
-    };
   }
 
   componentDidMount() {
@@ -238,16 +228,18 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
     // http://philipwalton.com/articles/what-no-one-told-you-about-z-index/
 
     return (
-      <div
-        data-role="Sheet"
-        style={style}
-        className={`sheet mode-${this.state.mode}`}
-        data-id={this.props.data.id}
-      >
-        <Flexbox direction="row" style={{ overflow: 'hidden' }}>
-          {this._columnFlexboxElements()}
-        </Flexbox>
-      </div>
+      <SheetDepthContext.Provider value={this.props.depth}>
+        <div
+          data-role="Sheet"
+          style={style}
+          className={`sheet mode-${this.state.mode}`}
+          data-id={this.props.data.id}
+        >
+          <Flexbox direction="row" style={{ overflow: 'hidden' }}>
+            {this._columnFlexboxElements()}
+          </Flexbox>
+        </div>
+      </SheetDepthContext.Provider>
     );
   }
 }
