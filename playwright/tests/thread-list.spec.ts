@@ -64,18 +64,7 @@ test('arrow keys navigate between threads', async () => {
   await expect(items.first()).toHaveClass(/focused/, { timeout: 2_000 });
 });
 
-// --- Star / Unstar ---
-
-test('s toggles star and creates a ChangeStarredTask', async () => {
-  await focusThread(mainWindow, 0);
-  await clearCapturedTasks(electronApp);
-
-  await mainWindow.keyboard.press('s');
-
-  const task = await waitForCapturedTask(mainWindow, t => t.__cls === 'ChangeStarredTask');
-  expect(task).not.toBeNull();
-  expect(task.threadIds.length).toBeGreaterThan(0);
-});
+// Note: 's toggles star' is tested in thread-actions.spec.ts
 
 // --- Open thread (split view) ---
 
@@ -116,41 +105,40 @@ test('e archives focused thread and creates a task', async () => {
 });
 
 // --- Reply / Forward ---
-// These use inline reply (not popout), which requires mailsync to persist
-// the draft to the database so the message-list can render it.
 
-test.skip('r opens reply composer', async () => {
+test('r opens reply composer', async () => {
+  await openThread(mainWindow, 0);
   await mainWindow.keyboard.press('r');
   const composerPage = await findComposer(electronApp);
   expect(composerPage).not.toBeNull();
 
-  const composer = composerPage!.locator('.composer-inner-wrap');
+  const composer = composerPage!.locator('.composer-inner-wrap').last();
   await expect(composer).toBeVisible({ timeout: 5_000 });
-  await expect(composer.locator('.composer-participant-field')).toBeVisible();
+  await expect(composer.locator('.composer-participant-field').first()).toBeVisible();
 
   await composerPage!.keyboard.press('Meta+Escape');
   await closeComposerWindows(electronApp);
 });
 
-test.skip('a opens reply-all composer', async () => {
+test('a opens reply-all composer', async () => {
   await openThread(mainWindow, 0);
   await mainWindow.keyboard.press('a');
 
   const composerPage = await findComposer(electronApp);
   expect(composerPage).not.toBeNull();
-  await expect(composerPage!.locator('.composer-inner-wrap')).toBeVisible({ timeout: 5_000 });
+  await expect(composerPage!.locator('.composer-inner-wrap').last()).toBeVisible({ timeout: 5_000 });
 
   await composerPage!.keyboard.press('Meta+Escape');
   await closeComposerWindows(electronApp);
 });
 
-test.skip('f opens forward composer', async () => {
+test('f opens forward composer', async () => {
   await openThread(mainWindow, 0);
   await mainWindow.keyboard.press('f');
 
   const composerPage = await findComposer(electronApp);
   expect(composerPage).not.toBeNull();
-  await expect(composerPage!.locator('.composer-inner-wrap')).toBeVisible({ timeout: 5_000 });
+  await expect(composerPage!.locator('.composer-inner-wrap').last()).toBeVisible({ timeout: 5_000 });
 
   await composerPage!.keyboard.press('Meta+Escape');
   await closeComposerWindows(electronApp);

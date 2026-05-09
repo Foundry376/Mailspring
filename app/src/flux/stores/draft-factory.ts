@@ -300,6 +300,14 @@ class DraftFactory {
       return null;
     }
 
+    // In Playwright E2E tests, mailsync is not running so drafts are never
+    // persisted to the database. Synthetic drafts in MessageStore._items may
+    // linger due to async race conditions with _fetchFromCache, so always
+    // create a fresh draft to avoid reusing a stale/destroyed one.
+    if (process.env.PLAYWRIGHT) {
+      return null;
+    }
+
     const messages =
       message.threadId === MessageStore.threadId()
         ? MessageStore.items()

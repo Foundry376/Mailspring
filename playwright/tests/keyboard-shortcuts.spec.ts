@@ -43,18 +43,6 @@ test('clicking back arrow closes preferences', async () => {
   await expect(mainWindow.locator('.preferences-wrap')).not.toBeVisible({ timeout: 5_000 });
 });
 
-// --- Gmail single-key shortcuts (focus-sensitive) ---
-
-test('/ focuses the search bar', async () => {
-  await mainWindow.locator('#sheet-container').click();
-  await mainWindow.keyboard.press('/');
-
-  // When focused, the search bar should lose the placeholder class
-  const searchBar = mainWindow.locator('.thread-search-bar:not(.placeholder)');
-  await expect(searchBar).toBeVisible({ timeout: 3_000 });
-
-  await mainWindow.keyboard.press('Escape');
-});
-
+// Note: '/ focuses the search bar' is tested in search.spec.ts
 // Note: ? (Shift+/) is mapped to application:open-help in Gmail template,
 // but this command has no handler in the codebase — it's a dead binding.

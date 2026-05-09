@@ -245,7 +245,7 @@ export async function clickSidebarFolder(page: Page, name: string) {
  * webContents.executeJavaScript(), bypassing Mailspring's
  * window.eval() security restriction.
  */
-async function executeInRenderer(electronApp: ElectronApplication, code: string): Promise<any> {
+export async function executeInRenderer(electronApp: ElectronApplication, code: string): Promise<any> {
   return electronApp.evaluate(async ({ BrowserWindow }, js) => {
     for (const win of BrowserWindow.getAllWindows()) {
       if (win.webContents.getURL().includes('windowType%22%3A%22default')) {

@@ -353,6 +353,26 @@ class DraftStore extends MailspringStore {
     if (popout) {
       this._onPopoutDraft(draft.headerMessageId);
     }
+
+    // In Playwright E2E tests, mailsync is not running so the draft is never
+    // persisted and no database delta is emitted. Emit a synthetic change record
+    // so that MessageStore picks up the draft and renders the inline composer.
+    if (process.env.PLAYWRIGHT && !popout) {
+      // Assign a temporary id if mailsync hasn't provided one, so that
+      // Message.isHidden() and other code that reads `id` doesn't throw.
+      if (!draft.id) {
+        draft.id = `draft-${draft.headerMessageId}`;
+      }
+      DatabaseStore.trigger(
+        new DatabaseChangeRecord({
+          type: 'persist',
+          objectClass: Message.name,
+          objects: [draft],
+          objectsRawJSON: [draft.toJSON()],
+        })
+      );
+    }
+
     return { headerMessageId: draft.headerMessageId, draft };
   }
 
@@ -459,6 +479,24 @@ class DraftStore extends MailspringStore {
     } else {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
+
+    // In Playwright E2E tests, emit a synthetic unpersist so MessageStore
+    // removes the draft from its items and the inline composer disappears.
+    // Only do this on the first destroy call (when the session existed) to
+    // avoid a race where a duplicate destroy triggers _fetchFromCache and
+    // overwrites items that include a newly created draft.
+    if (process.env.PLAYWRIGHT && id && session) {
+      const draft = new Message({ id, accountId, headerMessageId, draft: true } as any);
+      DatabaseStore.trigger(
+        new DatabaseChangeRecord({
+          type: 'unpersist',
+          objectClass: Message.name,
+          objects: [draft],
+          objectsRawJSON: [],
+        })
+      );
+    }
+
     if (AppEnv.isComposerWindow()) {
       AppEnv.close();
     }

@@ -96,23 +96,8 @@ test('clicking + button creates a folder and queues SyncbackCategoryTask', async
 
 // ─── Rename folder via double-click ───────────────────────────────────────
 
-test('double-clicking a folder enters edit mode', async () => {
-  // Ensure no lingering input from previous test
-  await mainWindow.keyboard.press('Escape');
-  await mainWindow.waitForTimeout(300);
-
-  const archived = folderItem(mainWindow, 'Archived');
-  await expect(archived).toBeVisible();
-
-  // Double-click the item container to enter edit mode
-  await archived.locator('.item-container .item').first().dblclick();
-
-  // When editing, .name is replaced by input.item-input so the folderItem
-  // locator no longer matches. Look for the input in the Folders section.
-  const input = foldersSection(mainWindow).locator('input.item-input');
-  await expect(input).toBeVisible({ timeout: 3_000 });
-  await expect(input).toHaveValue('Archived');
-});
+// Note: 'double-clicking a folder enters edit mode' is covered by the rename test below
+// which double-clicks, edits, and verifies the SyncbackCategoryTask.
 
 test('pressing Escape cancels rename', async () => {
   const input = foldersSection(mainWindow).locator('input.item-input');
