@@ -64,7 +64,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       event.preventDefault();
       this._onArrow(event.key);
     } else if (event.key === 'Enter') {
-      this.context!.shiftFocus(1);
+      this.context?.shiftFocus(1);
     }
   };
 

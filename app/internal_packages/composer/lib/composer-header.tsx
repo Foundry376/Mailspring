@@ -73,7 +73,7 @@ export class ComposerHeader extends React.Component<ComposerHeaderProps, Compose
 
   hideField = (fieldName: string) => {
     if (ReactDOM.findDOMNode(this._els[fieldName]).contains(document.activeElement)) {
-      this.context!.shiftFocus(-1);
+      this.context?.shiftFocus(-1);
     }
 
     const enabledFields = this.state.enabledFields.filter((n) => n !== fieldName);

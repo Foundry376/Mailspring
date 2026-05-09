@@ -56,7 +56,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     } else if (event.key === 'ArrowDown') {
       this._moveDay(7);
     } else if (event.key === 'Enter') {
-      this.context!.shiftFocus(1);
+      this.context?.shiftFocus(1);
     }
   };
 
@@ -70,7 +70,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
 
   _onSelectDay = (newTimestamp) => {
     this._onChange(moment(newTimestamp));
-    this.context!.shiftFocus(1);
+    this.context?.shiftFocus(1);
   };
 
   _renderMiniMonthView() {
