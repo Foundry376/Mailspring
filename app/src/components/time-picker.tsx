@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
 import classnames from 'classnames';
-import { TabGroupContext } from './tab-group-region';
+import { TabGroupContext } from 'mailspring-component-kit';
 
 require('moment-round'); // overrides moment
 
@@ -64,7 +64,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       event.preventDefault();
       this._onArrow(event.key);
     } else if (event.key === 'Enter') {
-      this.context?.shiftFocus(1);
+      this.context!.shiftFocus(1);
     }
   };
 
