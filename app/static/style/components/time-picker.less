@@ -14,7 +14,7 @@
   .time-options {
     max-height: 158px;
     overflow: auto;
-    border: 1px solid #eee;
+    border: 1px solid @border-color-divider;
     position: absolute;
     width: 100%;
     text-align: center;
@@ -42,7 +42,7 @@
       }
       &.focused,
       &:hover {
-        background: rgba(0, 0, 0, 0.05);
+        background: fade(@text-color, 5%);
       }
       .rel-text {
         font-size: 0.8em;

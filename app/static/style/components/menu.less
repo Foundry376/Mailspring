@@ -22,6 +22,23 @@
     width: 100%;
     margin-top: -1px;
     overflow: auto;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: fade(@text-color, 20%);
+      border-radius: 4px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      &:hover {
+        background: fade(@text-color, 35%);
+        background-clip: padding-box;
+      }
+    }
   }
 
   .item {
@@ -84,7 +101,7 @@
 
   .item:not(.active):not(.selected):hover {
     text-decoration: none;
-    background-color: fade(@black, 3%);
+    background-color: fade(@text-color, 5%);
   }
 }
 body.platform-win32 {
