@@ -1,13 +1,5 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS202: Simplify dynamic range loops
- * DS206: Consider reworking classes to avoid initClass
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 
 let compositionActive = false;
 document.addEventListener('compositionstart', () => {
@@ -17,9 +9,9 @@ document.addEventListener('compositionend', () => {
   compositionActive = false;
 });
 
-export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivElement>> {
-  static childContextTypes = { parentTabGroup: PropTypes.object };
+export const TabGroupContext = React.createContext<TabGroupRegion | null>(null);
 
+export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivElement>> {
   _onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Tab' || event.defaultPrevented) return;
     if (compositionActive) return;
@@ -67,14 +59,10 @@ export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivEleme
     );
   };
 
-  getChildContext() {
-    return { parentTabGroup: this };
-  }
-
   render() {
     return (
       <div {...this.props} onKeyDown={this._onKeyDown}>
-        {this.props.children}
+        <TabGroupContext.Provider value={this}>{this.props.children}</TabGroupContext.Provider>
       </div>
     );
   }
