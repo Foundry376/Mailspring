@@ -39,9 +39,7 @@ class _MessageStore extends MailspringStore {
     const viewingHiddenCategory = FolderNamesHiddenByDefault.includes(viewing);
 
     return this._items.filter((item) => {
-      const inHidden = item.folder
-        ? FolderNamesHiddenByDefault.includes(item.folder.role)
-        : false;
+      const inHidden = item.folder ? FolderNamesHiddenByDefault.includes(item.folder.role) : false;
       return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
     });
   }
