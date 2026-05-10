@@ -1,4 +1,6 @@
 import { test, expect, ElectronApplication, Page } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 import {
   launchApp,
   closeApp,
@@ -107,10 +109,125 @@ test('Cmd+Shift+C shows CC field', async () => {
   await expect(composer).toBeVisible({ timeout: 5_000 });
 
   await composerPage!.keyboard.press('Meta+Shift+c');
-  await expect(composer.locator('.composer-participant-field:has-text("Cc")')).toBeVisible({ timeout: 3_000 });
+  await expect(composer.locator('.composer-participant-field:has-text("Cc")')).toBeVisible({
+    timeout: 3_000,
+  });
 
   await composerPage!.keyboard.press('Meta+Shift+b');
-  await expect(composer.locator('.composer-participant-field:has-text("Bcc")')).toBeVisible({ timeout: 3_000 });
+  await expect(composer.locator('.composer-participant-field:has-text("Bcc")')).toBeVisible({
+    timeout: 3_000,
+  });
+
+  await composerPage!.keyboard.press('Meta+Escape');
+});
+
+test('CC/BCC: show via buttons, add tokens, cut/copy/paste between fields, delete with backspace', async () => {
+  await openThread(mainWindow, 0);
+  await mainWindow.keyboard.press('r');
+
+  const composerPage = await findComposer(electronApp);
+  expect(composerPage).not.toBeNull();
+
+  const composer = composerPage!.locator('.composer-inner-wrap').last();
+  await expect(composer).toBeVisible({ timeout: 5_000 });
+
+  // --- Show CC and BCC via the header action buttons ---
+
+  const ccButton = composer.locator('.composer-header-actions .action.show-cc');
+  await expect(ccButton).toBeVisible({ timeout: 3_000 });
+  await ccButton.click();
+
+  const ccField = composer.locator('.cc-field');
+  await expect(ccField).toBeVisible({ timeout: 3_000 });
+
+  const bccButton = composer.locator('.composer-header-actions .action.show-bcc');
+  await expect(bccButton).toBeVisible({ timeout: 3_000 });
+  await bccButton.click();
+
+  const bccField = composer.locator('.bcc-field');
+  await expect(bccField).toBeVisible({ timeout: 3_000 });
+
+  // Toggle buttons should disappear once their field is shown
+  await expect(ccButton).not.toBeVisible();
+  await expect(bccButton).not.toBeVisible();
+
+  // --- Add two tokens to CC ---
+
+  const ccInput = ccField.locator('input');
+  await ccInput.click();
+  await composerPage!.keyboard.type('alice@example.com');
+  await composerPage!.keyboard.press('Comma');
+  await composerPage!.waitForTimeout(500);
+
+  await composerPage!.keyboard.type('bob@example.com');
+  await composerPage!.keyboard.press('Comma');
+  await composerPage!.waitForTimeout(500);
+
+  const ccTokens = ccField.locator('.token');
+  expect(await ccTokens.count()).toBe(2);
+
+  // --- Add one token to BCC ---
+
+  const bccInput = bccField.locator('input');
+  await bccInput.click();
+  await composerPage!.keyboard.type('secret@example.com');
+  await composerPage!.keyboard.press('Comma');
+  await composerPage!.waitForTimeout(500);
+
+  const bccTokens = bccField.locator('.token');
+  expect(await bccTokens.count()).toBe(1);
+
+  // --- Click a token to select it ---
+
+  const aliceToken = ccTokens.first();
+  await aliceToken.click();
+  await composerPage!.waitForTimeout(300);
+  await expect(aliceToken).toHaveClass(/selected/);
+
+  // --- Cut the selected token from CC (Cmd+X) ---
+
+  await composerPage!.keyboard.press('Meta+x');
+  await composerPage!.waitForTimeout(500);
+  // alice should be removed from CC, leaving only bob
+  expect(await ccTokens.count()).toBe(1);
+
+  // --- Paste into BCC (Cmd+V) ---
+
+  await bccInput.click();
+  await composerPage!.keyboard.press('Meta+v');
+  await composerPage!.waitForTimeout(500);
+  // BCC should now have 2 tokens: secret + alice
+  expect(await bccTokens.count()).toBe(2);
+
+  // --- Copy does NOT remove the token (Cmd+C) ---
+
+  const secretToken = bccTokens.first();
+  await secretToken.click();
+  await composerPage!.waitForTimeout(300);
+  await expect(secretToken).toHaveClass(/selected/);
+
+  await composerPage!.keyboard.press('Meta+c');
+  await composerPage!.waitForTimeout(300);
+  // Copy should leave the token in place
+  expect(await bccTokens.count()).toBe(2);
+
+  // --- Backspace: first press selects last token, second removes it ---
+
+  await bccInput.click();
+  await composerPage!.waitForTimeout(200);
+  await composerPage!.keyboard.press('Backspace');
+  await composerPage!.waitForTimeout(300);
+  // Last token in BCC should now be selected
+  await expect(bccTokens.last()).toHaveClass(/selected/);
+
+  // Second backspace removes the selected token
+  await composerPage!.keyboard.press('Backspace');
+  await composerPage!.waitForTimeout(500);
+  expect(await bccTokens.count()).toBe(1);
+
+  // --- Final state: CC has bob, BCC has secret ---
+  expect(await ccTokens.count()).toBe(1);
+  expect(await bccTokens.count()).toBe(1);
 
   await composerPage!.keyboard.press('Meta+Escape');
 });
@@ -359,7 +476,7 @@ test('backspace in composer deletes text, does NOT archive thread', async () => 
   // No archive/trash/move tasks should have been created
   const tasks = await getCapturedTasks(mainWindow);
   const dangerousTasks = tasks.filter(
-    t =>
+    (t) =>
       t.__cls === 'ChangeFolderTask' ||
       t.__cls === 'ChangeLabelsTask' ||
       t.__cls === 'ChangeStarredTask'
@@ -425,7 +542,7 @@ test('all dangerous single-key shortcuts are suppressed in composer body', async
   // No thread-action tasks should have been created
   const tasks = await getCapturedTasks(mainWindow);
   const dangerousTasks = tasks.filter(
-    t =>
+    (t) =>
       t.__cls === 'ChangeFolderTask' ||
       t.__cls === 'ChangeLabelsTask' ||
       t.__cls === 'ChangeStarredTask' ||
@@ -488,6 +605,86 @@ test('reply-all includes original recipients in To/Cc fields', async () => {
     // CC should have at least one recipient if the original had CC
     expect(ccCount).toBeGreaterThanOrEqual(0);
   }
+
+  await composerPage!.keyboard.press('Meta+Escape');
+});
+
+// --- Template variable Tab navigation ---
+
+test('Tab key cycles through template variables and typing replaces them', async () => {
+  // Write a test template with two template variables to the templates directory
+  const templatesDir = path.join(configDir, 'templates');
+  if (!fs.existsSync(templatesDir)) {
+    fs.mkdirSync(templatesDir, { recursive: true });
+  }
+  fs.writeFileSync(
+    path.join(templatesDir, 'Tab Test.html'),
+    '<div>Hello <span data-tvar="name" class="template-variable" title="name">Name</span>, ' +
+      'welcome to <span data-tvar="company" class="template-variable" title="company">Company</span>!</div>'
+  );
+
+  // Open new compose window (pristine draft avoids "replace contents?" dialog)
+  await mainWindow.locator('#sheet-container').click();
+  await mainWindow.keyboard.press('c');
+  const composerPage = await findComposer(electronApp);
+  expect(composerPage).not.toBeNull();
+
+  const composer = composerPage!.locator('.composer-inner-wrap').first();
+  await expect(composer).toBeVisible({ timeout: 5_000 });
+
+  // Click the template picker button in the composer action bar
+  const templateButton = composer.locator('.btn-templates');
+  await expect(templateButton).toBeVisible({ timeout: 5_000 });
+  await templateButton.click();
+
+  // The template picker popover should appear with available templates
+  const popover = composerPage!.locator('.template-picker');
+  await expect(popover).toBeVisible({ timeout: 5_000 });
+
+  // Select the "Tab Test" template (fall back to first available)
+  let templateItem = popover.locator('.content-container .item:has-text("Tab Test")');
+  if ((await templateItem.count()) === 0) {
+    templateItem = popover.locator('.content-container .item').first();
+  }
+  await expect(templateItem).toBeVisible({ timeout: 3_000 });
+  await templateItem.click();
+  await composerPage!.waitForTimeout(1_000);
+
+  // Template variables should be present in the composer body
+  const bodyEditable = composer.locator('[contenteditable="true"]').first();
+  const templateVars = bodyEditable.locator('.template-variable');
+  const varCount = await templateVars.count();
+  expect(varCount).toBeGreaterThanOrEqual(2);
+
+  // Click into the body to ensure focus
+  await bodyEditable.click();
+  await composerPage!.waitForTimeout(300);
+
+  // Press Tab to select the first template variable
+  await composerPage!.keyboard.press('Tab');
+  await composerPage!.waitForTimeout(500);
+
+  // A template variable should now show as selected
+  const selectedVar = bodyEditable.locator('.template-variable.selected');
+  await expect(selectedVar).toBeVisible({ timeout: 3_000 });
+
+  // Type to replace the first variable — it should be removed and text inserted
+  await composerPage!.keyboard.type('John');
+  await composerPage!.waitForTimeout(500);
+  await expect(bodyEditable).toContainText('John');
+  expect(await templateVars.count()).toBe(varCount - 1);
+
+  // Press Tab to select the next template variable
+  await composerPage!.keyboard.press('Tab');
+  await composerPage!.waitForTimeout(500);
+  await expect(selectedVar).toBeVisible({ timeout: 3_000 });
+
+  // Type to replace the second variable
+  await composerPage!.keyboard.type('Acme Corp');
+  await composerPage!.waitForTimeout(500);
+  await expect(bodyEditable).toContainText('John');
+  await expect(bodyEditable).toContainText('Acme Corp');
+  expect(await templateVars.count()).toBe(varCount - 2);
 
   await composerPage!.keyboard.press('Meta+Escape');
 });

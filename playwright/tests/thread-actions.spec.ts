@@ -31,7 +31,7 @@ test('s creates a ChangeStarredTask', async () => {
 
   await mainWindow.keyboard.press('s');
 
-  const task = await waitForCapturedTask(mainWindow, t => t.__cls === 'ChangeStarredTask');
+  const task = await waitForCapturedTask(mainWindow, (t) => t.__cls === 'ChangeStarredTask');
   expect(task).not.toBeNull();
   expect(task.threadIds).toBeTruthy();
   expect(task.threadIds.length).toBeGreaterThan(0);
@@ -45,7 +45,7 @@ test('Shift+u creates a ChangeUnreadTask', async () => {
 
   await mainWindow.keyboard.press('Shift+u');
 
-  const task = await waitForCapturedTask(mainWindow, t => t.__cls === 'ChangeUnreadTask');
+  const task = await waitForCapturedTask(mainWindow, (t) => t.__cls === 'ChangeUnreadTask');
   expect(task).not.toBeNull();
   expect(task.threadIds).toBeTruthy();
 });
@@ -62,7 +62,7 @@ test('e creates a ChangeFolderTask or ChangeLabelsTask for archive', async () =>
 
   const task = await waitForCapturedTask(
     mainWindow,
-    t => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
+    (t) => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
   );
   expect(task).not.toBeNull();
 });
@@ -78,7 +78,7 @@ test('# moves to trash and creates a ChangeFolderTask', async () => {
   // Type '#' directly rather than Shift+3 to ensure the keybinding matches
   await mainWindow.keyboard.type('#');
 
-  const task = await waitForCapturedTask(mainWindow, t => t.__cls === 'ChangeFolderTask');
+  const task = await waitForCapturedTask(mainWindow, (t) => t.__cls === 'ChangeFolderTask');
   expect(task).not.toBeNull();
   if (task.folder) {
     expect(task.folder.role).toBe('trash');
@@ -98,7 +98,7 @@ test('! marks as spam and creates a task', async () => {
 
   const task = await waitForCapturedTask(
     mainWindow,
-    t => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
+    (t) => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
   );
   expect(task).not.toBeNull();
 });
@@ -125,7 +125,7 @@ test('archive shows undo toast and clicking Undo creates an undo task', async ()
   // Should create an undo task (reverse the archive)
   const undoTask = await waitForCapturedTask(
     mainWindow,
-    t => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
+    (t) => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
   );
   expect(undoTask).not.toBeNull();
 });
@@ -142,7 +142,7 @@ test('Cmd+Z after trash creates a reverse ChangeFolderTask', async () => {
 
   // Trash the thread
   await mainWindow.keyboard.type('#');
-  const trashTask = await waitForCapturedTask(mainWindow, t => t.__cls === 'ChangeFolderTask');
+  const trashTask = await waitForCapturedTask(mainWindow, (t) => t.__cls === 'ChangeFolderTask');
   expect(trashTask).not.toBeNull();
 
   // Now press Cmd+Z to undo (focus must NOT be in a text input)
@@ -154,7 +154,7 @@ test('Cmd+Z after trash creates a reverse ChangeFolderTask', async () => {
 
   const undoTask = await waitForCapturedTask(
     mainWindow,
-    t => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
+    (t) => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
   );
   expect(undoTask).not.toBeNull();
 });
@@ -190,7 +190,7 @@ test('Shift+I creates a ChangeUnreadTask with unread: false', async () => {
 
   await mainWindow.keyboard.press('Shift+i');
 
-  const task = await waitForCapturedTask(mainWindow, t => t.__cls === 'ChangeUnreadTask');
+  const task = await waitForCapturedTask(mainWindow, (t) => t.__cls === 'ChangeUnreadTask');
   expect(task).not.toBeNull();
   expect(task.unread).toBe(false);
 });
@@ -220,15 +220,67 @@ test('v opens popover, type to filter, Escape closes it', async () => {
   await searchInput.fill('Trash');
   await mainWindow.waitForTimeout(500);
 
-  // Filtered list should be shorter
-  const filteredCount = await popover.locator('.category-item').count();
+  // Filtered list should be shorter and every visible item should match the filter
+  const filteredItems = popover.locator('.category-item');
+  const filteredCount = await filteredItems.count();
   expect(filteredCount).toBeLessThanOrEqual(folderCount);
   expect(filteredCount).toBeGreaterThan(0);
+
+  for (let i = 0; i < filteredCount; i++) {
+    const item = filteredItems.nth(i);
+    const displayName = await item.locator('.category-display-name').textContent();
+    // Skip "Create new" items that show the search term in quotes
+    if (displayName && !displayName.includes('create')) {
+      expect(displayName.toLowerCase()).toContain('trash');
+    }
+  }
 
   // Press Escape to close the popover
   await mainWindow.keyboard.press('Escape');
   await mainWindow.waitForTimeout(500);
   await expect(popover).not.toBeVisible({ timeout: 3_000 });
+});
+
+test('v popover: filtering and pressing Enter moves to the matched folder', async () => {
+  await clickSidebarFolder(mainWindow, 'Inbox');
+  await mainWindow.waitForTimeout(1_000);
+  await focusThread(mainWindow, 0);
+  await clearCapturedTasks(electronApp);
+
+  try {
+    await mainWindow.keyboard.press('v');
+  } catch (e) {
+    if (!`${e}`.includes('handleJavaScriptDialog')) throw e;
+  }
+
+  const popover = mainWindow.locator('.category-picker-popover');
+  await expect(popover).toBeVisible({ timeout: 10_000 });
+
+  // Filter to "Trash" — should match a single standard folder
+  const searchInput = popover.locator('input.search');
+  await searchInput.fill('Trash');
+  await mainWindow.waitForTimeout(500);
+
+  // Verify the first visible category item is the Trash folder
+  const firstItem = popover.locator('.category-item').first();
+  const displayName = await firstItem.locator('.category-display-name').textContent();
+  expect(displayName).toContain('Trash');
+
+  // Press Enter to select the auto-highlighted first item
+  await mainWindow.keyboard.press('Enter');
+  await mainWindow.waitForTimeout(500);
+
+  // Popover should close and a ChangeFolderTask should be created for Trash
+  await expect(popover).not.toBeVisible({ timeout: 3_000 });
+
+  const task = await waitForCapturedTask(
+    mainWindow,
+    (t) => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
+  );
+  expect(task).not.toBeNull();
+  if (task.folder) {
+    expect(task.folder.role).toBe('trash');
+  }
 });
 
 test('v popover: clicking a folder creates a ChangeFolderTask', async () => {
@@ -246,16 +298,23 @@ test('v popover: clicking a folder creates a ChangeFolderTask', async () => {
   const popover = mainWindow.locator('.category-picker-popover');
   await expect(popover).toBeVisible({ timeout: 10_000 });
 
-  // Click the first folder item to move the thread
+  // Capture the name of the first folder item before clicking
   const firstItem = popover.locator('.category-item').first();
+  const folderName = await firstItem.locator('.category-display-name').textContent();
+  expect(folderName).toBeTruthy();
+
   await firstItem.click();
   await mainWindow.waitForTimeout(500);
 
   const task = await waitForCapturedTask(
     mainWindow,
-    t => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
+    (t) => t.__cls === 'ChangeFolderTask' || t.__cls === 'ChangeLabelsTask'
   );
   expect(task).not.toBeNull();
+  // Verify the task targets the folder we clicked
+  if (task.folder) {
+    expect(folderName).toContain(task.folder.displayName);
+  }
 });
 
 // --- Snooze popover ---
