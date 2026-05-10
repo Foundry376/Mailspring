@@ -1,7 +1,7 @@
 @import 'ui-variables';
 @import 'ui-mixins';
-@file-icon-color: #c7c7c7;
-@attachment-border-color: rgba(0, 0, 0, 0.09);
+@file-icon-color: @text-color;
+@attachment-border-color: @btn-border-color;
 
 .nylas-attachment-item {
   cursor: default;
@@ -62,7 +62,8 @@
     flex-grow: 2;
     min-width: 65%;
     padding: 10px;
-    height: 105%;
+    height: 39px;
+    background-color: @btn-default-bg-color;
     border: solid 1px @attachment-border-color;
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
@@ -98,12 +99,12 @@
     flex-basis: 38px;
     margin-left: auto;
     padding: 10px;
-    height: 105%;
+    height: 39px;
     width: 38px;
     border: solid 1px @attachment-border-color;
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
-    // box-shadow: inset 0 0 0 1px @attachment-border-color;
+    background-color: @btn-default-bg-color;
 
     img {
       background-color: @file-icon-color;
@@ -113,11 +114,11 @@
       border-radius: 0;
       border-right: none;
     }
-    &:hover img {
-      background-color: darken(@file-icon-color, 20%);
+    &:hover {
+        background-color: darken(@btn-default-bg-color, 5%);
     }
     &:active {
-      background-color: darken(@btn-default-bg-color, 5%);
+        background-color: darken(@btn-default-bg-color, 8%);
     }
   }
 

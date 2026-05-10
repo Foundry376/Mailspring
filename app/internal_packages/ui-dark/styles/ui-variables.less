@@ -30,12 +30,14 @@
 @text-color-inverse-subtle: fadeout(@text-color-inverse, 20%);
 @text-color-inverse-very-subtle: fadeout(@text-color-inverse, 50%);
 @text-color-heading: #fff;
+@component-active-bg: @text-color;
 
 @text-color-link: @accent-primary;
 @text-color-link-hover: @accent-primary-dark;
 @text-color-link-active: @accent-primary-dark;
 
 @btn-default-bg-color: lighten(@background-primary, 5%);
+@btn-border-color: fadeout(@text-color, 65%);
 @dropdown-default-bg-color: #404040;
 
 @input-bg: #2e2e2e;
@@ -48,11 +50,6 @@
 
 @toolbar-background-color: #121212;
 @panel-background-color: #121212;
-
-.sheet-toolbar {
-  border-bottom: 1px solid @border-color-divider;
-  box-shadow: none;
-}
 
 .thread-icon:not(.thread-icon-unread):not(.thread-icon-star) {
   filter: invert(100%);
@@ -91,4 +88,15 @@ img.content-light {
   color: #7d5bef;
   background: #312856;
   border-bottom: 1px solid #4d3b8a;
+}
+
+.sheet-toolbar {
+  box-shadow: none;
+  border-bottom: none;
+}
+.sheet-toolbar-container {
+  background: @panel-background-color;
+}
+body.is-blurred .sheet-toolbar-container {
+  background: #000;
 }

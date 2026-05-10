@@ -273,7 +273,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
   }
 
   shouldComponentUpdate(nextProps: ToolbarProps, nextState: ToolbarState) {
-    // This is very important. Because toolbar uses CSSTransitionGroup,
+    // This is very important. Because toolbar uses TransitionGroup,
     // repetitive unnecessary updates can break animations and cause performance issues.
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }

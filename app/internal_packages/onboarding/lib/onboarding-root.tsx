@@ -1,5 +1,5 @@
 import React from 'react';
-import { CSSTransitionGroup } from 'react-transition-group';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { Account } from 'mailspring-exports';
 import OnboardingStore from './onboarding-store';
 import PageTopBar from './page-top-bar';
@@ -88,15 +88,13 @@ export default class OnboardingRoot extends React.Component<
           pageDepth={this.state.pageDepth}
           allowMoveBack={!['initial-preferences', 'account-choose'].includes(this.state.page)}
         />
-        <CSSTransitionGroup
-          transitionName="alpha-fade"
-          transitionLeaveTimeout={150}
-          transitionEnterTimeout={150}
-        >
-          <div key={this.state.page} className="page-container">
-            <Component account={this.state.account} />
-          </div>
-        </CSSTransitionGroup>
+        <TransitionGroup component={null}>
+          <CSSTransition key={this.state.page} classNames="alpha-fade" timeout={150}>
+            <div className="page-container">
+              <Component account={this.state.account} />
+            </div>
+          </CSSTransition>
+        </TransitionGroup>
       </div>
     );
   }

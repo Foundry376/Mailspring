@@ -8,7 +8,7 @@ import {
   Actions,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-import { CSSTransitionGroup } from 'react-transition-group';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { PLUGIN_ID } from '../../../internal_packages/send-later/lib/send-later-constants';
 
 function isUndoSend(block) {
@@ -209,20 +209,17 @@ export default class UndoRedoToast extends React.Component<
     const Component = block && (isUndoSend(block) ? UndoSendContent : BasicContent);
 
     return (
-      <CSSTransitionGroup
-        className="undo-redo-toast"
-        transitionLeaveTimeout={150}
-        transitionEnterTimeout={150}
-        transitionName="undo-redo-toast-fade"
-      >
+      <TransitionGroup className="undo-redo-toast" component="div">
         {block ? (
-          <Component
-            block={block}
-            onMouseEnter={this._onMouseEnter}
-            onMouseLeave={this._onMouseLeave}
-          />
+          <CSSTransition key={block.id || 'toast'} classNames="undo-redo-toast-fade" timeout={150}>
+            <Component
+              block={block}
+              onMouseEnter={this._onMouseEnter}
+              onMouseLeave={this._onMouseLeave}
+            />
+          </CSSTransition>
         ) : null}
-      </CSSTransitionGroup>
+      </TransitionGroup>
     );
   }
 }

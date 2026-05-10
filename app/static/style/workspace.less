@@ -48,13 +48,13 @@ mailspring-workspace {
   opacity: 1;
 }
 
-.sheet-stack-leave {
+.sheet-stack-exit {
   left: 0;
   opacity: 1;
   transition: all 0.125s ease-in;
 }
 
-.sheet-stack-leave.sheet-stack-leave-active {
+.sheet-stack-exit.sheet-stack-exit-active {
   left: 30px;
   opacity: 0;
 }
@@ -144,8 +144,8 @@ body.is-blurred {
 
     .btn.btn-toolbar {
       background: none;
-      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
-        0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15);
+      box-shadow: 0 0.5px 0 @btn-border-color, 0 -0.5px 0 @btn-border-color,
+        0.5px 0 0 @btn-border-color, -0.5px 0 0 @btn-border-color;
       img {
         opacity: 0.5;
       }
@@ -293,12 +293,12 @@ body.is-blurred {
   opacity: 1;
 }
 
-.opacity-125ms-leave {
+.opacity-125ms-exit {
   opacity: 1;
   transition: opacity 0.125s ease-in;
 }
 
-.opacity-125ms-leave.opacity-125ms-leave-active {
+.opacity-125ms-exit.opacity-125ms-exit-active {
   opacity: 0;
 }
 

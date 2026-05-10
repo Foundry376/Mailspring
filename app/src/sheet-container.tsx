@@ -1,5 +1,5 @@
 import React from 'react';
-import { CSSTransitionGroup } from 'react-transition-group';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { localized, WorkspaceStore } from 'mailspring-exports';
 
 import Sheet from './sheet';
@@ -110,13 +110,13 @@ export default class SheetContainer extends React.Component<
         onClick={this._onToolbarDoubleClick}
       >
         <div inert={this.state.stack.length > 1 ? '' : undefined}>{components[0]}</div>
-        <CSSTransitionGroup
-          transitionLeaveTimeout={125}
-          transitionEnterTimeout={125}
-          transitionName="opacity-125ms"
-        >
-          {components.slice(1)}
-        </CSSTransitionGroup>
+        <TransitionGroup component={null}>
+          {components.slice(1).map((comp) => (
+            <CSSTransition key={comp.key} classNames="opacity-125ms" timeout={125}>
+              {comp}
+            </CSSTransition>
+          ))}
+        </TransitionGroup>
       </header>
     );
   }
@@ -159,13 +159,13 @@ export default class SheetContainer extends React.Component<
           aria-label={localized('Email workspace')}
         >
           <div inert={totalSheets > 1 ? '' : undefined}>{sheetComponents[0]}</div>
-          <CSSTransitionGroup
-            transitionLeaveTimeout={125}
-            transitionEnterTimeout={125}
-            transitionName="sheet-stack"
-          >
-            {sheetComponents.slice(1)}
-          </CSSTransitionGroup>
+          <TransitionGroup component={null}>
+            {sheetComponents.slice(1).map((comp) => (
+              <CSSTransition key={comp.key} classNames="sheet-stack" timeout={125}>
+                {comp}
+              </CSSTransition>
+            ))}
+          </TransitionGroup>
         </main>
 
         <footer style={{ order: 3, zIndex: 4 }}>

@@ -1,6 +1,6 @@
 import { Utils, localized } from 'mailspring-exports';
 import React from 'react';
-import { CSSTransitionGroup } from 'react-transition-group';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 type MultiselectToolbarProps = {
   toolbarElement: JSX.Element;
@@ -32,25 +32,21 @@ function selectionLabel(selectionCount: number, collection: string) {
 
 const MultiselectToolbar: React.FC<MultiselectToolbarProps> = React.memo(
   ({ toolbarElement, collection, onClearSelection, selectionCount }) => (
-    <CSSTransitionGroup
-      className={'selection-bar'}
-      transitionName="selection-bar-absolute"
-      component="div"
-      transitionLeaveTimeout={200}
-      transitionEnterTimeout={200}
-    >
+    <TransitionGroup className={'selection-bar'} component="div">
       {selectionCount > 0 ? (
-        <div className="absolute" key="absolute">
-          <div className="inner">
-            {toolbarElement}
-            <div className="centered">{selectionLabel(selectionCount, collection)}</div>
-            <button style={{ order: 100 }} className="btn btn-toolbar" onClick={onClearSelection}>
-              {localized('Clear Selection')}
-            </button>
+        <CSSTransition key="absolute" classNames="selection-bar-absolute" timeout={200}>
+          <div className="absolute">
+            <div className="inner">
+              {toolbarElement}
+              <div className="centered">{selectionLabel(selectionCount, collection)}</div>
+              <button style={{ order: 100 }} className="btn btn-toolbar" onClick={onClearSelection}>
+                {localized('Clear Selection')}
+              </button>
+            </div>
           </div>
-        </div>
+        </CSSTransition>
       ) : undefined}
-    </CSSTransitionGroup>
+    </TransitionGroup>
   ),
   (prev, next) => Utils.isEqualReact(prev, next)
 );

@@ -32,7 +32,7 @@
     "@types/react-color": "^2.14.1",
     "@types/react-dom": "^17.0.0",
     "@types/react-test-renderer": "^17.0.0",
-    "@types/react-transition-group": "^1.1.6",
+    "@types/react-transition-group": "4.4.12",
     "@types/reflux": "^6.4.2",
     "@types/rx-lite": "^4.0.6",
     "@types/slate": "^0.44.10",

@@ -17,12 +17,12 @@
 .alpha-fade-enter.alpha-fade-enter-active {
   opacity: 1;
 }
-.alpha-fade-leave {
+.alpha-fade-exit {
   opacity: 1;
   transition: all 0.15s ease-in;
 }
 
-.alpha-fade-leave.alpha-fade-leave-active {
+.alpha-fade-exit.alpha-fade-exit-active {
   opacity: 0.01;
 }
 
@@ -557,7 +557,7 @@ body.platform-win32 {
     .alpha-fade-enter {
       transition: all 0.01s ease-out;
     }
-    .alpha-fade-leave {
+    .alpha-fade-exit {
       transition: opacity 0.01s ease-in;
     }
   }
