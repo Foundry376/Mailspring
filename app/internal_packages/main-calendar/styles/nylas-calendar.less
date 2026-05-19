@@ -14,6 +14,7 @@ body.platform-win32 {
 .mailspring-calendar {
   height: 100%;
   display: flex;
+  color: @text-color;
 
   .calendar-source-list {
     display: flex;
@@ -288,8 +289,8 @@ body.platform-win32 {
     // Drag preview - synthetic event styling
     &.drag-preview {
       opacity: 0.7;
-      border: 2px dashed;
-      border-color: var(--event-band-color, inherit);
+      outline: 2px dashed var(--event-band-color, inherit);
+      outline-offset: -2px;
       pointer-events: none;
       z-index: 1000;
 
@@ -455,6 +456,9 @@ body.platform-win32 {
       z-index: 2;
     }
     .event-grid-bg-wrap {
+      --grid-line-minor: fade(@text-color, 5%);
+      --grid-line-major: fade(@text-color, 12%);
+
       .event-grid-bg {
         position: absolute;
         top: 0;
@@ -680,20 +684,14 @@ body.platform-win32 {
 
       // Tentative/pending events: hatched diagonal stripes pattern
       &.pending {
-        background-image: repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 3px,
-          var(--event-band-color, rgba(0, 0, 0, 0.1)) 3px,
-          var(--event-band-color, rgba(0, 0, 0, 0.1)) 4px
-        );
+        background-image: ~"repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)";
         background-size: auto;
       }
 
       &.drag-preview {
         opacity: 0.7;
-        border: 2px dashed;
-        border-color: var(--event-band-color, inherit);
+        outline: 2px dashed var(--event-band-color, inherit);
+        outline-offset: -2px;
         pointer-events: none;
         position: relative;
 

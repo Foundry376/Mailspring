@@ -33,6 +33,7 @@ import {
   getColorCacheVersion,
   getEditableCalendars,
   showNoEditableCalendarsError,
+  invalidateThemeTextColorCache,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -113,6 +114,7 @@ interface MailspringCalendarState {
   dragState: DragState | null;
   calendarListVisible: boolean;
   readOnlyCalendarIds: Set<string>;
+  themeVersion: number;
 }
 
 export class MailspringCalendar extends React.Component<
@@ -129,6 +131,7 @@ export class MailspringCalendar extends React.Component<
   };
 
   _disposable?: Disposable;
+  _themeDisposable?: { dispose(): void };
   _unlisten?: () => void;
   _dataSource = new CalendarDataSource();
 
@@ -145,17 +148,23 @@ export class MailspringCalendar extends React.Component<
       dragState: null,
       calendarListVisible: AppEnv.config.get(CALENDAR_LIST_VISIBLE) !== false,
       readOnlyCalendarIds: new Set<string>(),
+      themeVersion: 0,
     };
   }
 
   componentDidMount() {
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
+    this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
+      invalidateThemeTextColorCache();
+      this.setState(s => ({ themeVersion: s.themeVersion + 1 }));
+    });
   }
 
   componentWillUnmount() {
     // The component is unmounting, dispose subscriptions
     this._disposable.dispose();
+    this._themeDisposable?.dispose();
     if (this._unlisten) {
       this._unlisten();
     }
@@ -807,7 +816,7 @@ export class MailspringCalendar extends React.Component<
     const CurrentView = VIEWS[this.state.view];
     return (
       <CurrentView
-        key={`view-colors-${getColorCacheVersion()}`}
+        key={`view-colors-${getColorCacheVersion()}-theme-${this.state.themeVersion}`}
         dataSource={this._dataSource}
         focusedMoment={this.state.focusedMoment}
         focusedEvent={this.state.focusedEvent}

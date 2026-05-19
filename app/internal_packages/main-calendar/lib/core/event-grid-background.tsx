@@ -33,6 +33,7 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
     const height = this.props.height;
     canvas.height = height;
 
+    const wrapStyle = getComputedStyle(canvas.parentElement);
     const doStroke = (type: 'major' | 'minor', strokeStyle: string) => {
       ctx.strokeStyle = strokeStyle;
       ctx.beginPath();
@@ -43,8 +44,8 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
       ctx.stroke();
     };
 
-    doStroke('minor', '#f1f1f1'); // Minor Ticks
-    doStroke('major', '#e0e0e0'); // Major ticks
+    doStroke('minor', wrapStyle.getPropertyValue('--grid-line-minor').trim() || '#f1f1f1');
+    doStroke('major', wrapStyle.getPropertyValue('--grid-line-major').trim() || '#e0e0e0');
   }
 
   onMouseMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
