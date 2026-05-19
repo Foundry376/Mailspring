@@ -14,6 +14,14 @@ class EmailFrameStylesStore extends MailspringStore {
 
   _findStyles = () => {
     this._styles = '';
+
+    // Include the system accent CSS variables so that var(--system-accent, ...)
+    // resolves correctly inside email iframes (which have their own document).
+    const accentSheet = document.querySelector('[source-path="system-accent:dynamic"]');
+    if (accentSheet) {
+      this._styles += `\n${(accentSheet as HTMLElement).innerText}`;
+    }
+
     for (const sheet of Array.from(
       document.querySelectorAll('[source-path*="email-frame.less"]')
     )) {
