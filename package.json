@@ -47,7 +47,7 @@
     "@typescript-eslint/parser": "^5.62.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "41.5.0",
+    "electron": "41.6.1",
     "electron-winstaller": "5.4.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
