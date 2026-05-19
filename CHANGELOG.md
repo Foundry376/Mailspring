@@ -1,5 +1,41 @@
 # Mailspring Changelog
 
+## 1.21.1 (5/19/2026)
+
+Bug Fixes:
+
+- Fixed dark mode visual issues with transitions and small CSS nits.
+- Fixed `activeMarks` access errors in the composer editor. (#2714)
+- Fixed thread list scroll indicator not sliding through time when dragging the scroll handle. (#2716)
+- Fixed `contains` error when parentFilter receives a non-Element node. (#2712)
+- Fixed secrets potentially appearing in the connection error detail modal. (#2717)
+- Fixed package name validation rejecting names with uppercase letters. (#2718)
+- Fixed sync engine crash during many-account sync by increasing SQLite busy timeout.
+- Fixed message importance headers not normalized for compatibility with some providers. (mailsync#113)
+
+Improvements:
+
+- Improved error logging for empty or malformed error objects. (#2713)
+- Optimized search regex compilation in category and label pickers. (#2715)
+- Improved sync engine performance by reducing unnecessary SQLite writes and moving parsing outside transactions.
+
+Developer:
+
+- Upgraded Electron from 41.5.0 to 41.6.1.
+- Upgraded React and React DOM to v17. (#2725)
+- Upgraded react-transition-group from 1.2 to 4.4.5.
+- Replaced deprecated `componentWillMount` with `componentDidMount`. (#2724)
+- Replaced legacy context API with React Context. (#2722, #2723)
+- Refactored class components to functional components with React.memo. (#2720)
+- Removed PropTypes, replaced with TypeScript types. (#2710)
+- Added missing TypeScript types to function declarations across many files.
+- Renamed remaining package spec directories to `specs`, converted JSX to TSX. (#2711)
+- Added Playwright tests for composer interactions.
+- Fixed lint CI step that was performing fixes instead of validation. (#2719)
+- Removed unused CircleCI configuration.
+- Set C++ standard to C++17 across all platforms. (mailsync#114)
+- Various CMake and build improvements for mailsync. (mailsync#108, mailsync#109, mailsync#110, mailsync#111, mailsync#112) Thanks @LinusDierheimer!
+
 ## 1.21.0 (5/5/2026)
 
 Features:
