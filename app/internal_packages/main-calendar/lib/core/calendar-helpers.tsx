@@ -191,15 +191,9 @@ export function calcEventColors(calendarId: string): {
 
   const textParsed = getThemeTextColor();
   const mix = 0.4; // 40% calendar color, 60% theme text color
-  const tr = textParsed
-    ? Math.round(r * mix + textParsed.r * (1 - mix))
-    : Math.round(r * 0.7);
-  const tg = textParsed
-    ? Math.round(g * mix + textParsed.g * (1 - mix))
-    : Math.round(g * 0.7);
-  const tb = textParsed
-    ? Math.round(b * mix + textParsed.b * (1 - mix))
-    : Math.round(b * 0.7);
+  const tr = textParsed ? Math.round(r * mix + textParsed.r * (1 - mix)) : Math.round(r * 0.7);
+  const tg = textParsed ? Math.round(g * mix + textParsed.g * (1 - mix)) : Math.round(g * 0.7);
+  const tb = textParsed ? Math.round(b * mix + textParsed.b * (1 - mix)) : Math.round(b * 0.7);
 
   return {
     // Light pastel background (15% opacity)
