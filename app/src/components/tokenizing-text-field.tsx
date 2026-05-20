@@ -435,8 +435,7 @@ export class TokenizingTextField<T> extends React.Component<
 
     // Clicking a token is handled by _onClickToken which manages selectedKeys.
     // For clicks on empty space, clear the token selection.
-    const isTokenClick =
-      event.target instanceof HTMLElement && event.target.closest('.token');
+    const isTokenClick = event.target instanceof HTMLElement && event.target.closest('.token');
     if (!isTokenClick) {
       this.setState({ selectedKeys: [] });
     }
