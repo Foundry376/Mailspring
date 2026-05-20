@@ -623,13 +623,41 @@ test('Tab key cycles through template variables and typing replaces them', async
       'welcome to <span data-tvar="company" class="template-variable" title="company">Company</span>!</div>'
   );
 
-  // Open new compose window (pristine draft avoids "replace contents?" dialog)
-  await mainWindow.locator('#sheet-container').click();
-  await mainWindow.keyboard.press('c');
-  const composerPage = await findComposer(electronApp);
-  expect(composerPage).not.toBeNull();
+  // Open new compose via the sidebar button — more reliable than 'c' key after
+  // many tests because keyboard focus may be in an unexpected state. We wait
+  // for a new popout window or an increased inline composer count.
+  await mainWindow.keyboard.press('Escape');
+  await mainWindow.waitForTimeout(300);
 
-  const composer = composerPage!.locator('.composer-inner-wrap').first();
+  const countBefore = await mainWindow.locator('.composer-inner-wrap').count();
+  await mainWindow.locator('.item-compose').click();
+
+  let composerPage: Page | null = null;
+  let composer: ReturnType<Page['locator']> | null = null;
+  const findStart = Date.now();
+  while (Date.now() - findStart < 15_000) {
+    for (const page of electronApp.windows()) {
+      if (page === mainWindow) continue;
+      try {
+        const n = await page.locator('.composer-inner-wrap').count();
+        if (n > 0) {
+          composerPage = page;
+          composer = page.locator('.composer-inner-wrap').first();
+          break;
+        }
+      } catch { /* window may be loading */ }
+    }
+    if (composerPage) break;
+
+    const countAfter = await mainWindow.locator('.composer-inner-wrap').count();
+    if (countAfter > countBefore) {
+      composerPage = mainWindow;
+      composer = mainWindow.locator('.composer-inner-wrap').last();
+      break;
+    }
+    await new Promise(r => setTimeout(r, 500));
+  }
+  expect(composerPage).not.toBeNull();
   await expect(composer).toBeVisible({ timeout: 5_000 });
 
   // Click the template picker button in the composer action bar
@@ -656,8 +684,10 @@ test('Tab key cycles through template variables and typing replaces them', async
   const varCount = await templateVars.count();
   expect(varCount).toBeGreaterThanOrEqual(2);
 
-  // Click into the body to ensure focus
-  await bodyEditable.click();
+  // Click near the top-left of the body to place the cursor before the template
+  // variables, then press Home to ensure we're at position 0.
+  await bodyEditable.click({ position: { x: 5, y: 5 } });
+  await composerPage!.keyboard.press('Home');
   await composerPage!.waitForTimeout(300);
 
   // Press Tab to select the first template variable
@@ -668,7 +698,9 @@ test('Tab key cycles through template variables and typing replaces them', async
   const selectedVar = bodyEditable.locator('.template-variable.selected');
   await expect(selectedVar).toBeVisible({ timeout: 3_000 });
 
-  // Type to replace the first variable — it should be removed and text inserted
+  // Type to replace the first variable — it should be removed and text inserted.
+  // Re-focus the contenteditable because Tab may have shifted DOM focus.
+  await bodyEditable.focus();
   await composerPage!.keyboard.type('John');
   await composerPage!.waitForTimeout(500);
   await expect(bodyEditable).toContainText('John');
@@ -680,11 +712,14 @@ test('Tab key cycles through template variables and typing replaces them', async
   await expect(selectedVar).toBeVisible({ timeout: 3_000 });
 
   // Type to replace the second variable
+  await bodyEditable.focus();
   await composerPage!.keyboard.type('Acme Corp');
   await composerPage!.waitForTimeout(500);
-  await expect(bodyEditable).toContainText('John');
-  await expect(bodyEditable).toContainText('Acme Corp');
-  expect(await templateVars.count()).toBe(varCount - 2);
+
+  // Verify the final draft body is a complete email with variables replaced —
+  // the template text should be intact with the typed values substituted in.
+  await expect(bodyEditable).toContainText('Hello John, welcome to Acme Corp!');
+  expect(await templateVars.count()).toBe(0);
 
   await composerPage!.keyboard.press('Meta+Escape');
 });
