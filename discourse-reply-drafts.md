@@ -26,7 +26,7 @@ These threads describe issues that have been fixed. Reply and close/resolve them
 **Fixed in:** v1.21.1 (root cause same as #14433)
 **Action:** Reply + mark Resolved
 
-> This was caused by a package name validation change in v1.21.0 that was stricter than intended — it rejected any package name containing uppercase letters, which broke many existing themes. **This is fixed in v1.21.1** (released May 19, 2026). Please update and your themes should load again without any renaming needed.
+> This was caused by a package name validation change in v1.21.0 that was stricter to prevent path injection attacks — it rejected any package name containing uppercase letters, which broke some existing themes. **This is fixed in v1.21.1** (released May 19, 2026). Please update and your themes should load again without any renaming needed.
 
 ---
 
@@ -47,7 +47,7 @@ The following threads all describe the same regression where typing in the compo
 
 **Reply for primary thread #14400:**
 
-> This was a regression introduced in v1.20.0 that caused keyboard events to leak through from the composer into the global keymap. It has been fixed — please update to **v1.21.1** (the latest as of May 19, 2026) and all keyboard behavior should be back to normal. Apologies for the disruption!
+> This was a regression introduced in v1.20.0 that caused keyboard events to leak through from the composer into the global keymap. It has been fixed — please update to **v1.21.0** or **v1.21.1** (the latest release as of May 19, 2026) and all keyboard behavior should be back to normal. Apologies for the disruption!
 
 **Reply for duplicate threads (link to #14400):**
 
@@ -62,7 +62,7 @@ The following threads all describe the same regression where typing in the compo
 
 > Two things that likely address this:
 >
-> 1. **Update to v1.21.1**: The v1.20.0–v1.21.0 cycle included fixes preventing global keyboard shortcuts from firing inside the composer. It's possible the Enter key (or another shortcut) was triggering send. Please update to **v1.21.1** (released May 19, 2026) and see if the issue recurs.
+> 1. **Update to v1.21.1**: The v1.20.0–v1.21.0 updates included fixes preventing global keyboard shortcuts from firing inside the composer. It's possible the Enter key (or another shortcut) was triggering send. Please update to **v1.21.1** (released May 19, 2026) and see if the issue recurs.
 >
 > 2. **Check your send shortcut**: Go to Preferences > Shortcuts and confirm the send shortcut is set to Ctrl+Enter (not just Enter). If "Enter" alone is mapped to send, that could explain accidental sends while typing.
 >
@@ -75,7 +75,7 @@ The following threads all describe the same regression where typing in the compo
 **Fixed in:** v1.21.1 (SQLite busy timeout significantly increased)
 **Action:** Reply + mark Resolved
 
-> The SQLite busy timeout has been significantly increased in **v1.21.1** (released May 19, 2026), specifically to prevent "database is locked" errors during IMAP sync. Please update and let us know if the issue persists.
+> The SQLite busy timeout has been significantly increased in **v1.21.1** (released May 19, 2026), specifically to prevent "database is locked" errors during IMAP sync, especially when using many accounts at the same time. Please update and let us know if the issue persists.
 
 ---
 
@@ -84,7 +84,7 @@ The following threads all describe the same regression where typing in the compo
 **Fixed in:** v1.21.1
 **Action:** Reply + offer to reinstate Pro
 
-> Sorry you hit this and ended up cancelling — the underlying cause (SQLite lock timeouts during heavy sync) has been fixed in **v1.21.1** (released May 19, 2026). If you're willing to give it another try, please email us and we'll reinstate your subscription. We'd be glad to have you back.
+> Sorry you hit this and ended up cancelling — the underlying cause (SQLite lock timeouts during heavy sync) has been greatly improved in **v1.21.1** (released May 19, 2026). We've adjusted how the sync engine writes to the database, and also adjusted retires to account for heavy multi-account use cases. If you're willing to give it another try, please email us and we'll reinstate your subscription. We'd be glad to have you back.
 
 ---
 
@@ -102,11 +102,11 @@ The following threads all describe the same regression where typing in the compo
 **Fixed in:** v1.20.1 (keyboard); v1.20.0 explains blue accent color
 **Action:** Reply + close
 
-> Two separate things happening here:
+> Thanks for reporting this, I think two separate things are happening here:
 >
 > **Keyboard issue**: The problem where keys triggered shortcuts instead of typing was a v1.20.0 regression, fixed in **v1.20.1**. Please update to **v1.21.1** (the latest) to get all fixes.
 >
-> **Blue font/accent**: This is likely the new system accent color feature added in v1.20.0. Mailspring now follows your OS accent color by default — if Windows is set to a blue accent, the app UI adopts it. To revert: go to **Preferences > Appearance** and uncheck "Use system accent color", or change your Windows accent in Settings > Personalization > Colors.
+> **Blue font/accent**: This is likely the new system accent color feature added in v1.20.0. Mailspring now follows your OS accent color by default — if Windows is set to a blue accent, the app UI adopts it. To revert to the previous behavior (our green accent color): go to **Preferences > Appearance** and uncheck "Use system accent color", or change your Windows accent in Settings > Personalization > Colors.
 >
 > If the blue font appears and disappears randomly (not correlated with the accent color setting), please let us know — that would point to a different issue.
 
@@ -171,7 +171,7 @@ All of the following describe the same SMTP authentication regression from v1.17
 ### 14. New Mail Notification Click Doesn't Open App — Windows (Fixed in v1.19.1)
 **Thread:** https://community.getmailspring.com/t/14326
 
-> This was fixed in **v1.19.1**. Please update to v1.21.1 and Windows notification clicks should open the app correctly.
+> This was fixed in **v1.19.1** earlier this year. Please update to v1.21.1 and Windows notification clicks should open the app correctly.
 
 ---
 
@@ -190,7 +190,7 @@ All of the following describe the same SMTP authentication regression from v1.17
 **Thread:** https://community.getmailspring.com/t/external-link-clicks-not-working-after-1-21-0-update/14438
 **Action:** Reply + investigate
 
-> The v1.21.0 security update only blocked `file://` URIs in email content — standard `http://` and `https://` links are not affected by that change. A few things to try:
+> The v1.21.0 security update tightened restrictions on `file://` URIs in email content — standard `http://` and `https://` links are not affected by that change. A few things to try:
 >
 > 1. **Check your macOS default browser**: Go to System Settings > Desktop & Dock > Default web browser and confirm Chrome is selected. If no default is set, `shell.openExternal` can fail silently on macOS.
 >
@@ -213,7 +213,7 @@ All of the following describe the same SMTP authentication regression from v1.17
 
 **Reply for #14431 (most detailed):**
 
-> A few things to check:
+> Thanks for reporting this! A few things to check:
 >
 > 1. **It's a per-email toggle**: Read receipts are enabled individually for each email you send. Look for the **eye icon** in the composer toolbar when composing — click it so it turns blue/active before sending. If it's grey, tracking is off for that email.
 >
@@ -221,9 +221,9 @@ All of the following describe the same SMTP authentication regression from v1.17
 >
 > 3. **HTML emails only**: The feature injects a tracking pixel, so it won't work if you're composing in plain text mode.
 >
-> 4. **Recipient filtering**: Many corporate mail servers and clients automatically strip tracking pixels, so even with everything set up correctly, the receipt may not fire depending on who you're emailing.
+> 4. **Recipient filtering**: Many corporate mail servers and clients strip tracking pixels, so even with everything set up correctly, the receipt may not fire depending on who you're emailing. In Gmail, recipients may need to have "Allow images from this sender" enabled. It's often nice to use read receipts in conjunction with link tracking because link tracking is harder to circumbent and very reliable across email apps.
 >
-> If the eye icon turns blue when you click it but receipts never arrive, please share your Mailspring version, OS, and what type of email provider your recipients use — we'll dig deeper.
+> If the eye icon turns blue when you click it but receipts never arrive, try emailing yourself and verify that you receive a notification when you open the email.
 
 **Reply for #14042 (close as duplicate):**
 
@@ -242,14 +242,7 @@ All of the following describe the same SMTP authentication regression from v1.17
 ### 18. Window Size Not Remembered on Linux
 **Thread:** https://community.getmailspring.com/t/mailspring-doesnt-remember-window-size-linux/14229
 
-> This is a known issue on Linux, particularly under Wayland — compositors don't always honor window position/size hints consistently, and Electron's window state save/restore can behave differently across desktop environments.
->
-> A few things to try:
->
-> 1. **Use X11 mode**: Launch with `--ozone-platform=x11` to see if window state persistence works there (add to your `.desktop` launcher args)
-> 2. **Check your desktop environment**: Are you on GNOME, KDE, or something else? And Wayland or X11?
->
-> Could you also share which version you're currently running? We're tracking this and more details about your setup will help.
+> This is a known issue on Linux under Wayland, unfortunately — the compositor doesn't honor window position/size hints consistently, and doesn't allow the application to move its own windows. (Though it can resize them, go figure...) I'm hoping improvements in Wayland and in Electron's Wayland support get us closer to full window state save/restore behavior in future releases.
 
 ---
 
@@ -293,7 +286,6 @@ All of the following describe the same SMTP authentication regression from v1.17
 >
 > 1. **Scroll to the top of the email**: The translation replaces the email body and the scroll position sometimes stays at the bottom after it renders
 > 2. **Toggle the translation off and on**: Click the translation button to dismiss, then click again to re-translate
-> 3. **Is the email already in English?**: If so, the translation service may return an empty result since no translation is needed
 >
 > If none of those help, please share what language the original email is in — this will help us determine if it's a specific language pair issue or a rendering bug.
 
@@ -306,7 +298,7 @@ All of the following describe the same SMTP authentication regression from v1.17
 >
 > If they persist, these kinds of artifacts are sometimes GPU-related. Try launching with `--disable-gpu` to rule out GPU acceleration as the cause. On Windows: right-click your Mailspring shortcut > Properties and add `--disable-gpu` to the Target field.
 >
-> Could you also share your OS, GPU model, and display setup (resolution, HiDPI/scaling)? That will help narrow it down.
+> Could you also share your OS and display setup (resolution, HiDPI/scaling)? That will help narrow it down.
 
 ---
 
@@ -316,19 +308,6 @@ All of the following describe the same SMTP authentication regression from v1.17
 > This is usually a folder mapping issue. Go to **Preferences > Accounts > [your account] > Folder Settings** and verify the "Sent" role is mapped to the correct server-side folder. For Gmail it should be `[Gmail]/Sent Mail`; for Outlook it's typically `Sent Items`.
 >
 > If the mapping looks correct, try **Preferences > General > Reset Cache** — this forces a full re-sync from the server and often resolves folder display gaps.
-
----
-
-### 25. Dark Email Backgrounds / White Text Invisible (Linux)
-**Thread:** https://community.getmailspring.com/t/dark-email-backgrounds-display-incorrectly-linux/14245
-
-> This is a known rendering challenge. Emails that use dark/black CSS backgrounds with white text depend on the email client rendering their styles exactly. Workarounds:
->
-> 1. **Switch Mailspring to dark mode** (Preferences > Appearance > Dark) — dark-background emails often become readable since the email frame blends with the app theme
-> 2. **Select all text** in the email (Ctrl+A) to highlight it — this makes white text visible against the selection color
-> 3. **Use print view** (File > Print) which usually forces a light background
->
-> We're tracking this for a proper fix.
 
 ---
 
@@ -342,35 +321,6 @@ All of the following describe the same SMTP authentication regression from v1.17
 > 3. Add `--background` to the shortcut's target so it starts minimized to the system tray
 >
 > This persists across updates and is more reliable than the built-in setting on Windows.
-
----
-
-### 27. Gmail Account Not Showing / Not Syncing
-**Threads:** https://community.getmailspring.com/t/14265, /t/14395, /t/14025, /t/14026
-
-> A few things to try:
->
-> 1. **Remove and re-add**: Preferences > Accounts > remove the Gmail account, then re-add via OAuth
-> 2. **"This app is blocked" error**: If Google is blocking Mailspring's OAuth, use IMAP + App Password instead (see [this guide](https://community.getmailspring.com/t/resolved-gmail-this-app-is-blocked/8520))
-> 3. **Reset cache**: Preferences > General > Reset Cache if the account shows in settings but not in the sidebar
-> 4. **Google Workspace**: If this is a work account, your admin may need to allowlist Mailspring's OAuth client ID in the Google Admin console
-
----
-
-### 28. Gmail "This App is Blocked" (Ongoing — App Password workaround)
-**Thread:** https://community.getmailspring.com/t/resolved-gmail-this-app-is-blocked/8520
-
-> **Update for 2026**: The most reliable workaround for Google blocking Mailspring's OAuth remains using an **App Password with IMAP**:
->
-> 1. Enable 2-Step Verification on your Google account (required for App Passwords)
-> 2. Go to myaccount.google.com > Security > App passwords
-> 3. Create an app password for "Mail"
-> 4. In Mailspring, add Gmail via **Manual (IMAP/SMTP)**:
->    - IMAP: `imap.gmail.com`, port 993, SSL
->    - SMTP: `smtp.gmail.com`, port 587, STARTTLS
->    - Password: the app password you generated
->
-> Also, as of v1.21.0, OAuth sign-in errors are now displayed more clearly during setup, so you'll see a more descriptive error if something goes wrong.
 
 ---
 
@@ -393,8 +343,7 @@ All of the following describe the same SMTP authentication regression from v1.17
 > Office 365 account setup guidance was improved in **v1.20.0** with updated documentation and prompts. The key things for O365 accounts:
 >
 > 1. **Use OAuth (recommended)**: In account setup, select "Office 365 / Outlook" and complete the OAuth flow — this is the most reliable method
-> 2. **If OAuth fails**: Your organization may need to grant consent for Mailspring in the Azure portal (Azure AD > Enterprise Applications > Grant admin consent)
-> 3. **Basic auth alternative**: If your org still allows it, you can use manual IMAP with `outlook.office365.com:993` and SMTP `smtp.office365.com:587` with your O365 username and password (or an app password if MFA is enabled)
+> 2. **Enable IMAP**: Make sure that you've enabled IMAP and SMTP in your Outlook settings. If you don't see the SMTP option, Outlook may be entirely blocking you from using third-party email clients to send mail.
 >
 > Note: Microsoft has deprecated basic authentication for Exchange, so OAuth is the preferred path going forward.
 
@@ -409,22 +358,10 @@ All of the following describe the same SMTP authentication regression from v1.17
 
 ---
 
-### 32. Ctrl+Z Not Working for Deleted Email
-**Thread:** https://community.getmailspring.com/t/ctrl-z-not-working-anymore/14213
-
-> Ctrl+Z in Mailspring works differently depending on context:
->
-> - **Inside the composer**: Ctrl+Z undoes text edits (standard undo)
-> - **For folder operations** (delete, archive, move): An **undo banner** appears at the bottom of the screen immediately after the action, giving you a few seconds to cancel. Once it disappears, the operation can't be reversed through the UI — you'd need to go to Trash and move the email back manually.
->
-> If the undo banner isn't appearing at all after you delete emails, please share your Mailspring version and OS — there may be a display issue with it.
-
----
-
 ### 33. Undo Send Banner Not Appearing
 **Thread:** https://community.getmailspring.com/t/undo-pop-up-banner-gone-when-sending/14283
 
-> Please check **Preferences > Sending** and confirm "Undo Send" is enabled with a delay (e.g., 10 seconds). If it's enabled but the banner doesn't appear, could you share your OS and Mailspring version? That'll help us figure out if it's a display rendering issue.
+> Please check **Preferences > Sending** and confirm "Undo Send" is enabled with a delay (e.g., 10 seconds). If it's enabled but the banner doesn't appear, could you share your OS and Mailspring version? Is this specific to the inline composer or the pop-out (full window) composer? That'll help us figure out if it's a display rendering issue.
 
 ---
 
@@ -470,9 +407,7 @@ All of the following describe the same SMTP authentication regression from v1.17
 ### 38. Spell Check Not Working on Windows
 **Threads:** https://community.getmailspring.com/t/spell-check-not-working/4762, /t/14046
 
-> Spellcheck in the rich text composer on Windows has had issues due to an Electron spellcheck API change. A workaround that helps many users: **click in the Subject field first** before typing in the message body — this activates the spellchecker session.
->
-> We have a fix PR filed for this — it will be included in an upcoming release. In the meantime, switching to plain text mode (Format > Plain Text) makes spellcheck more reliable on Windows.
+> Spellcheck in the rich text composer on Windows was overhauled in a release earlier this year to use the system spellcheck system. If you're still encountering spellcheck issues, try updating to the latest version, 1.21.1!
 
 ---
 
@@ -518,35 +453,25 @@ All of the following describe the same SMTP authentication regression from v1.17
 ### 43. Duplicate Sent Mail (Outlook/Microsoft)
 **Thread:** https://community.getmailspring.com/t/duplication-of-sent-mail/275
 
-> This is a long-standing known issue with Microsoft/Outlook accounts — Outlook's server automatically saves sent messages to Sent, and Mailspring also saves a copy, resulting in duplicates.
+> This is a long-standing known issue with Microsoft/Outlook accounts — Outlook's server automatically saves sent messages to Sent, but often does it very slowly. Mailspring thinks the server will not save a copy, and saves its own to ensure the sent message is not lost, resulting in duplicates.
 >
 > **Workaround**: Go to outlook.live.com (or Outlook on the web for work accounts) > Settings > Mail > Compose and reply > disable **"Save copies of messages in the Sent Items folder"**. This lets Mailspring manage the sent copy exclusively.
 >
-> We have a proper fix tracked on GitHub — the root cause is an off-by-one in the sync engine's task processor.
+> I'll see if we can include a broader fix for this in an upcoming relase.
 
 ---
 
 ### 44. Gmail Signatures Not Showing in Message View
 **Threads:** https://community.getmailspring.com/t/gmail-signatures-not-showing-in-message-view/682, /t/14380
 
-> Gmail's server-side signatures (set in Gmail web settings) are appended to emails by Gmail's servers, so they *should* appear in Mailspring. If they're not showing:
->
-> 1. Check if the signature is set in Gmail web (Settings > General > Signature) vs. in Mailspring (Preferences > Signatures) — these are separate
-> 2. If you're reading emails that were sent before the signature was set, they won't have it
-> 3. Try **Preferences > General > Reset Cache** to force a re-fetch of affected messages
->
-> Note: Mailspring's own signature system (Preferences > Signatures) is independent of Gmail's server-side signature.
+> Gmail's server-side signatures (set in Gmail web settings) are appended to emails by Gmail's servers, Mailspring's own signature system (Preferences > Signatures) is independent of Gmail's server-side signature. I'll see if we can support reading and displaying your Gmail-configured signature in the composer in future releases.
 
 ---
 
 ### 45. Windows Notification Click Doesn't Open App
 **Thread:** https://community.getmailspring.com/t/new-mail-notification-open-directly-by-clicking-on-the-notification/8079
 
-> This is a known Windows limitation with how Electron integrates with Windows notification actions. The notification click behavior is controlled by the OS notification system.
->
-> **Workaround**: Click the Mailspring icon in the system tray after the notification appears — this reliably brings the window to focus.
->
-> This is on our to-do list. Progress can be tracked at https://github.com/foundry376/mailspring/issues.
+> This should be fixed in the 1.21.0 release thanks to an upstream fix in the Electron projct. Please download the latest version and let me know if you're still running into issues!
 
 ---
 
@@ -583,49 +508,24 @@ All of the following describe the same SMTP authentication regression from v1.17
 
 ---
 
-### 49. Emails Only Showing Less Than 1 Year Old
-**Thread:** https://community.getmailspring.com/t/mailspring-only-displays-emails-less-than-one-year-old/14193
-
-> This is not a free-tier limitation — Mailspring syncs all email regardless of plan. What you're seeing is the **sync window** setting. Go to **Preferences > Accounts > [your account]** and look for a "Sync older messages" option or a sync window duration — expand it and Mailspring will start pulling in older messages. This may take a while for large mailboxes.
-
----
-
 ### 50. Cannot Find How to Delete an IMAP Account
 **Thread:** https://community.getmailspring.com/t/deleting-an-imap-account/14090
 
-> Go to **Preferences > Accounts**, click on the account you want to remove, and look for a **Remove Account** button at the bottom of the account detail panel. This removes it from Mailspring without affecting mail on the server.
-
----
-
-### 51. How to Change Label Colors
-**Thread:** https://community.getmailspring.com/t/change-label-colors/14073
-
-> For **Gmail labels**: right-click the label in the left sidebar > "Edit Label" > pick a color. The color syncs back to Gmail.
->
-> For **IMAP folders**: folder colors aren't supported since standard IMAP has no color concept. You can use Mailspring's label/tag system on top of folders for color-coded organization.
+> Go to **Preferences > Accounts**, click on the account you want to remove, and look for a **-** button in the bottom left of the account list. This removes it from Mailspring without affecting mail on the server.
 
 ---
 
 ### 52. How to Set Per-Account Signatures
 **Thread:** https://community.getmailspring.com/t/how-to-set-different-signatures-for-each-email-account/14056
 
-> Go to **Preferences > Signatures**. Create a signature for each account, then use the account dropdown at the top of each signature editor to assign it. Mailspring will automatically use the assigned signature when composing from that account.
-
----
-
-### 53. Hiding IMAP/System Folders from Sidebar
-**Threads:** https://community.getmailspring.com/t/14068, /t/14280, /t/14055
-
-> Right-click any folder in the left sidebar and select **"Hide"** — it disappears from the sidebar but continues to sync and is accessible via search.
->
-> For Gmail system labels like "Important": manage them in Gmail web settings (Settings > Labels) where you can hide specific labels from IMAP entirely, which removes them from all mail clients including Mailspring.
+> Go to **Preferences > Signatures**. Create a signature for each account, then use the account dropdown at the top right of the signature editor to assign it. Mailspring will automatically use the assigned signature when composing from that account.
 
 ---
 
 ### 54. Mailing Groups / Mac Contacts Groups
 **Thread:** https://community.getmailspring.com/t/mailing-groups/14312
 
-> Mailspring doesn't currently import contact groups from macOS Contacts directly. The most practical workaround: in the Apple Contacts app, select all members of a group, then drag their cards (or copy their email addresses) into Mailspring's To field. Group import is on our roadmap.
+> Mailspring doesn't currently import contact groups from macOS Contacts directly. We support importing contact groups from Google Contacts for Gmail accounts, and from other CARDDAV compatible email providers. I'll see if we can support import from macOS contacts in the near future.
 
 ---
 
@@ -708,16 +608,6 @@ All of the following describe the same SMTP authentication regression from v1.17
 > - SMTP: `smtp.mail.me.com`, port 587, STARTTLS
 > - Username: your iCloud email (e.g. `yourname@icloud.com`)
 > - Password: the app-specific password you generated
-
----
-
-### 63. India Payment Verification Issue
-**Thread:** https://community.getmailspring.com/t/india-payment-verification-issue/7551
-
-> If the 3D Secure / OTP flow is timing out during checkout, a few options:
-> 1. Try a different browser or device for the payment page
-> 2. Try a UPI-enabled payment method or Rupay card
-> 3. Email us at support with your Mailspring ID and we can assist with the subscription manually
 
 ---
 
