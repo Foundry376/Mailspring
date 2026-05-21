@@ -20,7 +20,7 @@ export class AttributeDateTime extends Attribute {
   }
 
   fromJSON(val) {
-    if (!val || val instanceof Date) {
+    if (val == null || val instanceof Date) {
       return val;
     }
     return new Date(val * 1000);
