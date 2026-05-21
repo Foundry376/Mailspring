@@ -43,6 +43,7 @@ const RATE_LIMIT_MS = 1500;
 
 const IS_POST = process.argv.includes('--post');
 const IS_LIST = process.argv.includes('--list');
+const POSTED_IDS_FILE = path.join(__dirname, 'discourse-posted-ids.json');
 const FILE_ARG = (process.argv.find(a => a.startsWith('--file=')) || '').replace('--file=', '');
 const DRAFT_FILE = path.resolve(FILE_ARG || path.join(__dirname, 'discourse-reply-drafts.md'));
 const SKIP_IDS = new Set(
@@ -234,6 +235,16 @@ async function main() {
 
   if (IS_POST) {
     console.log(`\nDone. Posted: ${posted}, Tagged: ${tagged}, Errors: ${errors}`);
+    if (posted > 0) {
+      // Append newly posted IDs to discourse-posted-ids.json
+      let existing = { posted: [] };
+      if (fs.existsSync(POSTED_IDS_FILE)) {
+        try { existing = JSON.parse(fs.readFileSync(POSTED_IDS_FILE, 'utf8')); } catch {}
+      }
+      const merged = [...new Set([...existing.posted, ...ops.filter((_, i) => i < posted).map(o => o.topicId)])].sort((a, b) => a - b);
+      fs.writeFileSync(POSTED_IDS_FILE, JSON.stringify({ posted: merged }, null, 2));
+      console.log(`Updated ${POSTED_IDS_FILE} (${merged.length} total posted IDs)`);
+    }
   } else {
     console.log(`Dry run complete. Run with --post to execute.`);
   }
