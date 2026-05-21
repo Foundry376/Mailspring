@@ -172,6 +172,14 @@ DISCOURSE_API_KEY=your_key DISCOURSE_API_USERNAME=bengotow \
 
 After posting, `discourse-posted-ids.json` is automatically updated with all newly posted topic IDs.
 
+Then **immediately delete the draft file**:
+
+```bash
+rm discourse-replies-YYYY-MM-DD.md
+```
+
+Deleting the file after posting prevents any future run from accidentally re-posting the same replies. The posted-IDs list is the permanent record of what has been sent — the draft file is disposable once it has been used.
+
 ---
 
 ## Post-Session Checklist
@@ -179,8 +187,8 @@ After posting, `discourse-posted-ids.json` is automatically updated with all new
 After each weekly run:
 
 ```bash
-# 1. Commit the draft file and updated posted-IDs
-git add discourse-replies-*.md discourse-posted-ids.json
+# 1. Commit the updated posted-IDs (draft file has already been deleted)
+git add discourse-posted-ids.json
 git commit -m "Weekly discourse replies — $(date +%Y-%m-%d)"
 
 # 2. Push
