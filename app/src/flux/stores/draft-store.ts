@@ -532,7 +532,9 @@ class DraftStore extends MailspringStore {
 
     let draft: Message = session.draft();
     if (!draft) {
-      return this._onUnexpectedNotFoundDuringSend();
+      this._draftsSending[headerMessageId] = false;
+      this.trigger({ headerMessageId });
+      return this._onUnexpectedNotFoundDuringSend(headerMessageId);
     }
 
     // remove inline attachments that are no longer in the body
@@ -553,11 +555,24 @@ class DraftStore extends MailspringStore {
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
+    //
+    // Note: There is a potential race condition where the C++ sync engine updates
+    // the SyncbackDraftTask's status to "remote" (resolving waitForPerformLocal)
+    // in a separate SQLite transaction from writing the draft itself. We retry
+    // once with a short delay to handle this case.
     draft = await DatabaseStore.findBy<Message>(Message, { headerMessageId, draft: true }).include(
       Message.attributes.body
     );
     if (!draft) {
-      return this._onUnexpectedNotFoundDuringSend();
+      await new Promise<void>((resolve) => setTimeout(resolve, 150));
+      draft = await DatabaseStore.findBy<Message>(Message, { headerMessageId, draft: true }).include(
+        Message.attributes.body
+      );
+    }
+    if (!draft) {
+      this._draftsSending[headerMessageId] = false;
+      this.trigger({ headerMessageId });
+      return this._onUnexpectedNotFoundDuringSend(headerMessageId);
     }
 
     // Directly update the message body cache so the user immediately sees
@@ -591,12 +606,14 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onUnexpectedNotFoundDuringSend = () => {
+  _onUnexpectedNotFoundDuringSend = (headerMessageId?: string) => {
     const msg = localized(
       'Sorry, the draft you tried to send could not be found. Please try again.'
     );
     AppEnv.showErrorDialog(msg);
-    AppEnv.reportError(new Error('Could not find draft after finalizing session for sending.'));
+    const err = new Error('Could not find draft after finalizing session for sending.');
+    (err as any).headerMessageId = headerMessageId;
+    AppEnv.reportError(err);
   };
 
   _onSendDraftSuccess = ({ headerMessageId }) => {

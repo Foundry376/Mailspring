@@ -62,7 +62,7 @@ class TaskQueue extends MailspringStore {
     this._completed = tasks.filter((t) => finished.includes(t.status));
     const all = [...this._queue, ...this._completed];
 
-    this._waitingForLocal.filter(({ task, resolve }) => {
+    this._waitingForLocal = this._waitingForLocal.filter(({ task, resolve }) => {
       const match = all.find((t) => task.id === t.id);
       if (match && match.hasRunLocally()) {
         resolve(match);
@@ -71,7 +71,7 @@ class TaskQueue extends MailspringStore {
       return true;
     });
 
-    this._waitingForRemote.filter(({ task, resolve }) => {
+    this._waitingForRemote = this._waitingForRemote.filter(({ task, resolve }) => {
       const match = this._completed.find((t) => task.id === t.id);
       if (match) {
         resolve(match);
