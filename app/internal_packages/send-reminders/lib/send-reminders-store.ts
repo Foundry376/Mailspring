@@ -44,7 +44,13 @@ class SendRemindersStore extends MailspringStore {
   _onDraftDeliverySucceeded = ({ headerMessageId, accountId }) => {
     // when a draft is sent a thread may be created for it for the first time.
     // Move the metadata from the message to the thread for much easier book-keeping.
-    transferReminderMetadataFromDraftToThread({ headerMessageId, accountId });
+    transferReminderMetadataFromDraftToThread({ headerMessageId, accountId }).catch((err) => {
+      // This is a best-effort operation. The email was sent successfully; if the sync
+      // engine hasn't synced the Sent folder back within our retry window, we can't
+      // do anything further. Log a warning rather than letting this become an
+      // unhandled promise rejection that gets reported to Sentry.
+      console.warn(`SendReminders: ${err.message}`);
+    });
   };
 
   _onDatabaseChanged = ({ type, objects, objectClass }: DatabaseChangeRecord<Thread>) => {

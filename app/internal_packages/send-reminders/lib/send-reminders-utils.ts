@@ -110,7 +110,14 @@ export async function transferReminderMetadataFromDraftToThread({ accountId, hea
   }
 
   if (!message) {
-    throw new Error('SendReminders: Could not find message to update');
+    // The message was sent successfully but the sync engine has not yet synced it back
+    // from the server (even after our retry window). This is a transient condition we
+    // cannot recover from here — log a warning so it's still visible in local logs,
+    // but don't throw so callers don't end up with unhandled promise rejections.
+    console.warn(
+      `SendReminders: Could not find sent message (headerMessageId=${headerMessageId}, accountId=${accountId}) after multiple retries. The send-reminder for this draft may not have been transferred to the thread.`
+    );
+    return;
   }
 
   const metadata = message.metadataForPluginId(PLUGIN_ID) || {};
