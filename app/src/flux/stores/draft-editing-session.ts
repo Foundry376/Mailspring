@@ -66,11 +66,17 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
 
       _bodyHTMLValue = inHTML;
 
-      if (session._mountedEditor) {
+      // Capture the editor reference immediately. Between this check and the first use of
+      // the editor below (moveToStartOfDocument), convertFromHTML is called. In rare cases
+      // the composer can unmount during that call — or during the Slate change operations
+      // themselves — setting session._mountedEditor to null. Using a local snapshot prevents
+      // the null-reference crash at the point of use.
+      const mountedEditor = session._mountedEditor;
+      if (mountedEditor) {
         const inHTMLEditorValue = convertFromHTML(inHTML);
         try {
           // try to apply the new value to the existing document to preserve undo history.
-          let edits = session._mountedEditor.moveToStartOfDocument();
+          let edits = mountedEditor.moveToStartOfDocument();
 
           // remove all but the very first node in the document
           const [first, ...rest] = edits.value.document.nodes.toArray();
@@ -88,7 +94,7 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
           // occasionally inserting the fragment adds a new line at the beginning of the value.
           // It's unclear why this happens and it appears to be specific to replies.
           const firstBlock = edits.value.document.getBlocks().first();
-          if (firstBlock.text === '') {
+          if (firstBlock && firstBlock.text === '') {
             edits = edits.removeNodeByKey(firstBlock.key);
           }
 
@@ -107,8 +113,8 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
           // equivalent document of the same shape.
           AppEnv.reportError(new Error(`Unable to insert fragment into existing document.`), {
             underlyingError: err,
-            existingSlateShape: session._mountedEditor
-              ? convertToShapeWithoutContent(session._mountedEditor.value)
+            existingSlateShape: mountedEditor
+              ? convertToShapeWithoutContent(mountedEditor.value)
               : null,
             incomingSlateShape: convertToShapeWithoutContent(inHTMLEditorValue),
           });
