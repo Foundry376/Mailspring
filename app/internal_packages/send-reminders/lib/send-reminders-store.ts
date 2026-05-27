@@ -4,20 +4,27 @@ import {
   SendDraftTask,
   DatabaseStore,
   Thread,
+  Message,
   DraftFactory,
   DatabaseChangeRecord,
 } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 
 import { PLUGIN_ID } from './send-reminders-constants';
-import {
-  updateReminderMetadata,
-  transferReminderMetadataFromDraftToThread,
-} from './send-reminders-utils';
+import { updateReminderMetadata } from './send-reminders-utils';
 
 class SendRemindersStore extends MailspringStore {
   _lastFocusedThread = null;
   _unsubscribers: (() => void)[] = [];
+
+  // Tracks drafts that have been sent but whose sent message hasn't yet appeared
+  // in the local database. Keyed by headerMessageId → accountId.
+  //
+  // We intentionally keep this in memory only. If the app is restarted before the
+  // sync engine returns the sent message, the reminder will already be attached to
+  // the sent message itself (via pluginMetadata), so it isn't lost — it just won't
+  // have been promoted to the thread yet. That's the same behaviour as before.
+  _pendingMetadataTransfers: Map<string, string> = new Map();
 
   activate() {
     this._unsubscribers = [
@@ -41,35 +48,83 @@ class SendRemindersStore extends MailspringStore {
     Actions.queueTask(SendDraftTask.forSending(draft, { silent: true }));
   };
 
-  _onDraftDeliverySucceeded = ({ headerMessageId, accountId }) => {
-    // when a draft is sent a thread may be created for it for the first time.
-    // Move the metadata from the message to the thread for much easier book-keeping.
-    transferReminderMetadataFromDraftToThread({ headerMessageId, accountId }).catch((err) => {
-      // This is a best-effort operation. The email was sent successfully; if the sync
-      // engine hasn't synced the Sent folder back within our retry window, we can't
-      // do anything further. Log a warning rather than letting this become an
-      // unhandled promise rejection that gets reported to Sentry.
-      console.warn(`SendReminders: ${err.message}`);
-    });
+  _onDraftDeliverySucceeded = async ({ headerMessageId, accountId }) => {
+    // Register this headerMessageId as pending. _onDatabaseChanged will complete
+    // the transfer when the corresponding sent message appears in the local DB —
+    // however long that takes. No arbitrary timeouts needed.
+    this._pendingMetadataTransfers.set(headerMessageId, accountId);
+
+    // Optimistically check right now in case the message has already been synced
+    // (e.g. fast local/SMTP account, or a retry of a previously interrupted send).
+    const messages = await DatabaseStore.findAll<Message>(Message, { headerMessageId });
+    const message = messages.find((m) => m.accountId === accountId);
+    if (message) {
+      this._completePendingTransfer(message);
+    }
   };
 
-  _onDatabaseChanged = ({ type, objects, objectClass }: DatabaseChangeRecord<Thread>) => {
-    if (objectClass !== Thread.name) {
+  _completePendingTransfer = async (message: Message) => {
+    const { headerMessageId, accountId } = message;
+
+    if (this._pendingMetadataTransfers.get(headerMessageId) !== accountId) {
       return;
     }
 
+    // Remove from the pending map before any await so that a second change record
+    // arriving while we are awaiting the thread lookup doesn't trigger a duplicate.
+    this._pendingMetadataTransfers.delete(headerMessageId);
+
+    const metadata = message.metadataForPluginId(PLUGIN_ID) || {};
+    if (!metadata || !metadata.expiration) {
+      // No reminder was set on this draft — nothing to transfer.
+      return;
+    }
+
+    const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
+    if (!thread) {
+      // Very unlikely: the message arrived but the thread hasn't landed yet.
+      // Log and bail — the metadata stays on the message and won't be promoted.
+      console.warn(
+        `SendReminders: message ${headerMessageId} arrived but thread ${message.threadId} not yet in DB. Reminder will not be transferred to thread.`
+      );
+      return;
+    }
+
+    updateReminderMetadata(thread, {
+      expiration: metadata.expiration,
+      sentHeaderMessageId: metadata.sentHeaderMessageId,
+      lastReplyTimestamp: new Date(thread.lastMessageReceivedTimestamp).getTime() / 1000,
+      shouldNotify: false,
+    });
+  };
+
+  _onDatabaseChanged = ({ type, objects, objectClass }: DatabaseChangeRecord<Thread | Message>) => {
     if (!AppEnv.isMainWindow()) {
       return;
     }
 
-    // If threads with reminders were deleted, there's nothing to clean up — the
-    // metadata is gone with the thread. Just skip processing to avoid operating
-    // on deleted models.
     if (type === 'unpersist') {
       return;
     }
 
-    for (const thread of objects) {
+    // Check whether any newly-arrived messages complete a pending metadata transfer.
+    // This is the primary path that replaces the old polling-with-timeouts approach.
+    if (objectClass === Message.name) {
+      for (const message of objects as Message[]) {
+        if (this._pendingMetadataTransfers.has(message.headerMessageId)) {
+          this._completePendingTransfer(message);
+        }
+      }
+      return;
+    }
+
+    if (objectClass !== Thread.name) {
+      return;
+    }
+
+    // Thread-level reminder bookkeeping: clear reminders when a reply arrives,
+    // and fire reminder emails when metadata expires.
+    for (const thread of objects as Thread[]) {
       const metadata = thread.metadataForPluginId(PLUGIN_ID);
       if (!metadata || !metadata.expiration) {
         continue;
