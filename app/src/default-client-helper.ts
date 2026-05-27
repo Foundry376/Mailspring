@@ -147,11 +147,17 @@ export class DefaultClientHelperMac implements DCH {
   }
 
   resetURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    return callback(require('@electron/remote').app.removeAsDefaultProtocolClient(scheme));
+    const success = require('@electron/remote').app.removeAsDefaultProtocolClient(scheme);
+    return callback(
+      success ? null : new Error(`Failed to remove Mailspring as default handler for ${scheme}`)
+    );
   }
 
   registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    return callback(require('@electron/remote').app.setAsDefaultProtocolClient(scheme));
+    const success = require('@electron/remote').app.setAsDefaultProtocolClient(scheme);
+    return callback(
+      success ? null : new Error(`Failed to set Mailspring as default handler for ${scheme}`)
+    );
   }
 }
 
