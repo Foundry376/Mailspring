@@ -10,10 +10,7 @@ import {
 import MailspringStore from 'mailspring-store';
 
 import { PLUGIN_ID } from './send-reminders-constants';
-import {
-  updateReminderMetadata,
-  transferReminderMetadataFromDraftToThread,
-} from './send-reminders-utils';
+import { updateReminderMetadata } from './send-reminders-utils';
 
 class SendRemindersStore extends MailspringStore {
   _lastFocusedThread = null;
@@ -22,7 +19,6 @@ class SendRemindersStore extends MailspringStore {
   activate() {
     this._unsubscribers = [
       FocusedContentStore.listen(this._onFocusedContentChanged),
-      Actions.draftDeliverySucceeded.listen(this._onDraftDeliverySucceeded),
       DatabaseStore.listen(this._onDatabaseChanged),
     ];
   }
@@ -39,12 +35,6 @@ class SendRemindersStore extends MailspringStore {
 
     const draft = await DraftFactory.createDraftForResurfacing(thread, sentHeaderMessageId, body);
     Actions.queueTask(SendDraftTask.forSending(draft, { silent: true }));
-  };
-
-  _onDraftDeliverySucceeded = ({ headerMessageId, accountId }) => {
-    // when a draft is sent a thread may be created for it for the first time.
-    // Move the metadata from the message to the thread for much easier book-keeping.
-    transferReminderMetadataFromDraftToThread({ headerMessageId, accountId });
   };
 
   _onDatabaseChanged = ({ type, objects, objectClass }: DatabaseChangeRecord<Thread>) => {

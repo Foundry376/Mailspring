@@ -3,16 +3,23 @@ import {
   Message,
   Actions,
   localized,
-  DatabaseStore,
   FeatureUsageStore,
   SyncbackMetadataTask,
   DraftEditingSession,
 } from 'mailspring-exports';
 
-import { PLUGIN_ID } from './send-reminders-constants';
+import { PLUGIN_ID, THREAD_PLUGIN_ID } from './send-reminders-constants';
 
 export function reminderDateFor(draftOrThread: Thread | Message | null) {
-  return ((draftOrThread && draftOrThread.metadataForPluginId(PLUGIN_ID)) || {}).expiration;
+  if (!draftOrThread) return undefined;
+  // Check THREAD_PLUGIN_ID first: new drafts have reminder metadata stored
+  // under this key (written by updateDraftReminderMetadata) so the sync engine
+  // can promote it to the thread on send. Fall back to PLUGIN_ID for threads,
+  // sent messages, and drafts saved before this convention was introduced.
+  const meta = (draftOrThread.metadataForPluginId(THREAD_PLUGIN_ID) ||
+    draftOrThread.metadataForPluginId(PLUGIN_ID) ||
+    {}) as Record<string, unknown>;
+  return meta.expiration as Date | undefined;
 }
 
 async function incrementMetadataUse(model: Thread | Message, expiration: Date | null) {
@@ -84,48 +91,8 @@ export async function updateDraftReminderMetadata(
     return;
   }
   draftSession.changes.add({ pristine: false });
-  draftSession.changes.addPluginMetadata(PLUGIN_ID, metadataValue);
-}
-
-export async function findMessage({ accountId, headerMessageId }) {
-  // This is an unusual query (accountId + headerMessageId) we don't make in many places,
-  // on a message that is (no longer) a draft and could exist in more than one of your
-  // accounts if you sent it to yourself. To make this more performant, we do a find
-  // and then a filter in code.
-  return (await DatabaseStore.findAll<Message>(Message, { headerMessageId })).find(
-    (m) => m.accountId === accountId
-  );
-}
-
-export async function transferReminderMetadataFromDraftToThread({ accountId, headerMessageId }) {
-  let message = await findMessage({ accountId, headerMessageId });
-  const delay = [1500, 1500, 10000, 10000, 15000, 22000];
-
-  // The sent message should already be synced, but if the send taks was interrupted and completed
-  // without finalizing / cleaning up, we may need to go through a sync cycle. Do this before giving up.
-  let ms = 0;
-  while (!message && (ms = delay.shift())) {
-    await Promise.delay(ms);
-    message = await findMessage({ accountId, headerMessageId });
-  }
-
-  if (!message) {
-    throw new Error('SendReminders: Could not find message to update');
-  }
-
-  const metadata = message.metadataForPluginId(PLUGIN_ID) || {};
-  if (!metadata || !metadata.expiration) {
-    return;
-  }
-
-  const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
-  if (!thread) {
-    throw new Error('SendReminders: Could not find thread to update');
-  }
-  updateReminderMetadata(thread, {
-    expiration: metadata.expiration,
-    sentHeaderMessageId: metadata.sentHeaderMessageId,
-    lastReplyTimestamp: new Date(thread.lastMessageReceivedTimestamp).getTime() / 1000,
-    shouldNotify: false,
-  });
+  // Write using THREAD_PLUGIN_ID so the sync engine automatically promotes
+  // this metadata to the thread when the draft is sent — no client-side
+  // coordination required after send.
+  draftSession.changes.addPluginMetadata(THREAD_PLUGIN_ID, metadataValue);
 }
