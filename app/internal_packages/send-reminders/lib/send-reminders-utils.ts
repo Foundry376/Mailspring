@@ -8,10 +8,19 @@ import {
   DraftEditingSession,
 } from 'mailspring-exports';
 
-import { PLUGIN_ID } from './send-reminders-constants';
+import { PLUGIN_ID, THREAD_PLUGIN_ID } from './send-reminders-constants';
 
 export function reminderDateFor(draftOrThread: Thread | Message | null) {
-  return ((draftOrThread && draftOrThread.metadataForPluginId(PLUGIN_ID)) || {}).expiration;
+  if (!draftOrThread) return undefined;
+  // Threads and sent messages have reminder metadata under PLUGIN_ID (written
+  // by the sync engine when it promotes draft metadata on send).
+  // Drafts have it under THREAD_PLUGIN_ID (written by updateDraftReminderMetadata).
+  // Also check PLUGIN_ID on drafts for backward compatibility with drafts that
+  // had reminders set before this convention was introduced.
+  const meta = (draftOrThread.metadataForPluginId(PLUGIN_ID) ||
+    draftOrThread.metadataForPluginId(THREAD_PLUGIN_ID) ||
+    {}) as Record<string, unknown>;
+  return meta.expiration as Date | undefined;
 }
 
 async function incrementMetadataUse(model: Thread | Message, expiration: Date | null) {
@@ -83,5 +92,8 @@ export async function updateDraftReminderMetadata(
     return;
   }
   draftSession.changes.add({ pristine: false });
-  draftSession.changes.addPluginMetadata(PLUGIN_ID, metadataValue);
+  // Write using THREAD_PLUGIN_ID so the sync engine automatically promotes
+  // this metadata to the thread when the draft is sent — no client-side
+  // coordination required after send.
+  draftSession.changes.addPluginMetadata(THREAD_PLUGIN_ID, metadataValue);
 }
