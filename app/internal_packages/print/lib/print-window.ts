@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { pathToFileURL } from 'url';
 
 import { localized } from 'mailspring-exports';
 import { escapeHTML } from 'underscore.string';
@@ -35,7 +36,7 @@ export default class PrintWindow {
           <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; frame-src 'none'; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:; object-src none; media-src none; manifest-src none;">
           <meta charset="utf-8">
           ${styleTags}
-          <link rel="stylesheet" type="text/css" href="${stylesPath}">
+          <link rel="stylesheet" type="text/css" href="${pathToFileURL(stylesPath).href}">
         </head>
         <body>
           <div id="print-header">
@@ -68,8 +69,8 @@ export default class PrintWindow {
             </ul>
           </div>
           ${htmlContent}
-          <script type="text/javascript" src="${tmpMessagesPath}"></script>
-          <script type="text/javascript" src="${scriptPath}"></script>
+          <script type="text/javascript" src="${pathToFileURL(tmpMessagesPath).href}"></script>
+          <script type="text/javascript" src="${pathToFileURL(scriptPath).href}"></script>
         </body>
       </html>
     `;
@@ -124,6 +125,6 @@ export default class PrintWindow {
    * that script will pop out the print dialog.
    */
   load() {
-    this.browserWin.loadURL(`file://${this.tmpFile}`);
+    this.browserWin.loadURL(pathToFileURL(this.tmpFile).href);
   }
 }

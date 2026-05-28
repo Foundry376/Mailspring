@@ -253,7 +253,13 @@ export class QuerySubscription<T extends Model> {
         return;
       }
 
-      if (this._set && !this._set.range().isContiguousWith(range)) {
+      // Use actual results length for the contiguity check — the DB may return fewer
+      // results than range.limit (e.g. near the end of the list), and a check against
+      // the requested limit could incorrectly allow a non-adjacent addIdsInRange call.
+      const effectiveRange = range.isInfinite()
+        ? range
+        : new QueryRange({ offset: range.offset, limit: results.length });
+      if (this._set && !this._set.range().isContiguousWith(effectiveRange)) {
         this._set = null;
       }
       this._set = this._set || new MutableQueryResultSet();
