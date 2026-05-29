@@ -253,6 +253,57 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       }));
   });
 
+  describe('_fetchRange', () => {
+    it('should reset _set instead of throwing when actual results do not reach the existing set', () => {
+      // Regression test for MAILSPRING-CLIENT-1A / MAILSPRING-CLIENT-17:
+      // When _set covers {50,70} and a fetch for range {30,50} returns only 16
+      // results (rangeIdsEnd = 46 < _offset = 50), contiguity must be checked
+      // against the actual results length, not the requested limit. Otherwise
+      // isContiguousWith({50,70}, {30,50}) passes (they share endpoint 50) but
+      // addIdsInRange throws "You can only add adjacent values (46 < 50)".
+      const query = DatabaseStore.findAll<Thread>(Thread)
+        .where(Thread.attributes.accountId.equal('a'))
+        .limit(20)
+        .offset(30);
+
+      const threads50to70 = Array.from({ length: 20 }, (_, i) =>
+        new Thread({ id: `t${50 + i}`, accountId: 'a' })
+      );
+      const threads30to46 = Array.from({ length: 16 }, (_, i) =>
+        new Thread({ id: `t${30 + i}`, accountId: 'a' })
+      );
+
+      // Prevent the constructor's update() from issuing a real DB query
+      spyOn(QuerySubscription.prototype, 'update').andReturn(undefined);
+
+      const subscription = new QuerySubscription(query);
+      subscription._set = new MutableQueryResultSet();
+      subscription._set.addModelsInRange(threads50to70, new QueryRange({ offset: 50, limit: 20 }));
+
+      // DB returns 16 results for the requested range of 20 — actual end is 46, not 50
+      spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(threads30to46));
+
+      let completed = false;
+      spyOn(subscription, '_createResultAndTrigger').andCallFake(() => {
+        completed = true;
+      });
+
+      // _fetchRange requests range {30,50} but only 16 results come back
+      subscription._fetchRange(new QueryRange({ offset: 30, limit: 20 }), {
+        version: subscription._queryVersion,
+        fetchEntireModels: true,
+      });
+
+      waitsFor(() => completed, 'fetch to complete', 1000);
+
+      runs(() => {
+        // _set should be valid (reset and repopulated with the 16 partial results)
+        expect(subscription._set).not.toBe(null);
+        expect(subscription._set.ids()).toEqual(threads30to46.map(t => t.id));
+      });
+    });
+  });
+
   describe('update', () => {
     beforeEach(() =>
       spyOn(QuerySubscription.prototype, '_fetchRange').andCallFake(() => {
