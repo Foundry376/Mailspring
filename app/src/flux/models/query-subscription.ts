@@ -258,8 +258,12 @@ export class QuerySubscription<T extends Model> {
       // or items deleted since the scroll position was computed), the actual
       // data may not reach the existing set — treating the requested range as
       // contiguous would pass the check but then throw inside addIdsInRange.
-      const actualResultRange = new QueryRange({ offset: range.offset, limit: results.length });
-      if (this._set && !this._set.range().isContiguousWith(actualResultRange)) {
+      // For infinite ranges keep the original `range` so isContiguousWith can
+      // short-circuit with `return true` as it always did for infinite ranges.
+      const contiguityRange = range.isInfinite()
+        ? range
+        : new QueryRange({ offset: range.offset, limit: results.length });
+      if (this._set && !this._set.range().isContiguousWith(contiguityRange)) {
         this._set = null;
       }
       this._set = this._set || new MutableQueryResultSet();
