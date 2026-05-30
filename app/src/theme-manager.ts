@@ -8,10 +8,12 @@ import PackageManager from './package-manager';
 
 const CONFIG_THEME_KEY = 'core.theme';
 const CONFIG_USE_SYSTEM_ACCENT_KEY = 'core.appearance.useSystemAccent';
+const CONFIG_LIGHT_THEME_KEY = 'core.appearance.lightThemeName';
+const CONFIG_DARK_THEME_KEY = 'core.appearance.darkThemeName';
 const SYSTEM_ACCENT_SOURCE_PATH = 'system-accent:dynamic';
-const AUTOMATIC_THEME_NAME = 'ui-automatic';
-const LIGHT_THEME_NAME = 'ui-light';
-const DARK_THEME_NAME = 'ui-dark';
+export const AUTOMATIC_THEME_NAME = 'ui-automatic';
+export const LIGHT_THEME_NAME = 'ui-light';
+export const DARK_THEME_NAME = 'ui-dark';
 
 function buildSystemAccentCSS(color: string): string {
   return `:root {
@@ -69,6 +71,12 @@ export default class ThemeManager {
 
     AppEnv.config.onDidChange(CONFIG_THEME_KEY, () => this.updateThemePackageAndRecomputeLESS());
     AppEnv.config.onDidChange(CONFIG_USE_SYSTEM_ACCENT_KEY, () => this.applySystemAccent());
+    AppEnv.config.onDidChange(CONFIG_LIGHT_THEME_KEY, () => {
+      if (this.isAutomaticModeSelected()) this.updateThemePackageAndRecomputeLESS();
+    });
+    AppEnv.config.onDidChange(CONFIG_DARK_THEME_KEY, () => {
+      if (this.isAutomaticModeSelected()) this.updateThemePackageAndRecomputeLESS();
+    });
 
     ipcRenderer.on('system-accent-color-changed', (_event, color: string | null) => {
       this._systemAccentColor = color;
@@ -158,10 +166,28 @@ export default class ThemeManager {
     }
     const configured = this.getConfiguredThemeName();
     if (configured === AUTOMATIC_THEME_NAME) {
-      const resolvedName = this._systemDarkMode ? DARK_THEME_NAME : LIGHT_THEME_NAME;
+      const resolvedName = this._systemDarkMode
+        ? this.getConfiguredDarkThemeName()
+        : this.getConfiguredLightThemeName();
       return this.packageManager.getPackageNamed(resolvedName) || this.getBaseTheme();
     }
     return this.packageManager.getPackageNamed(configured) || this.getBaseTheme();
+  }
+
+  getConfiguredLightThemeName(): string {
+    return AppEnv.config.get(CONFIG_LIGHT_THEME_KEY) || LIGHT_THEME_NAME;
+  }
+
+  getConfiguredDarkThemeName(): string {
+    return AppEnv.config.get(CONFIG_DARK_THEME_KEY) || DARK_THEME_NAME;
+  }
+
+  setLightTheme(packageName: string) {
+    AppEnv.config.set(CONFIG_LIGHT_THEME_KEY, packageName);
+  }
+
+  setDarkTheme(packageName: string) {
+    AppEnv.config.set(CONFIG_DARK_THEME_KEY, packageName);
   }
 
   // Returns the theme the user selected, which may be "ui-automatic" (unresolved).

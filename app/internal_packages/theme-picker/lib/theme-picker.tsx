@@ -2,12 +2,34 @@ import React from 'react';
 
 import { Flexbox, ScrollRegion } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
+import {
+  AUTOMATIC_THEME_NAME,
+  LIGHT_THEME_NAME,
+  DARK_THEME_NAME,
+} from '../../../src/theme-manager';
 import ThemeOption, { toSelector } from './theme-option';
 import { Disposable } from 'event-kit';
 
+// Sort order for built-in themes; community themes not in this list sort last.
+const INTERNAL_THEME_ORDER = [
+  'ui-less-is-more',
+  'ui-ubuntu',
+  'ui-taiga',
+  'ui-darkside',
+  DARK_THEME_NAME,
+  LIGHT_THEME_NAME,
+  AUTOMATIC_THEME_NAME,
+];
+
+function sortThemes<T extends { name: string }>(themes: T[]): T[] {
+  return [...themes].sort(
+    (a, b) => (INTERNAL_THEME_ORDER.indexOf(a.name) - INTERNAL_THEME_ORDER.indexOf(b.name)) * -1
+  );
+}
+
 class ThemePicker extends React.Component<
   Record<string, unknown>,
-  { themes: any[]; activeTheme: string }
+  { themes: any[]; activeTheme: string; lightTheme: string; darkTheme: string }
 > {
   static displayName = 'ThemePicker';
 
@@ -33,6 +55,8 @@ class ThemePicker extends React.Component<
     return {
       themes: this.themes.getAvailableThemes(),
       activeTheme: this.themes.getActiveThemeSetting().name,
+      lightTheme: this.themes.getConfiguredLightThemeName(),
+      darkTheme: this.themes.getConfiguredDarkThemeName(),
     };
   }
 
@@ -40,6 +64,16 @@ class ThemePicker extends React.Component<
     const prevActiveTheme = this.state.activeTheme;
     this.themes.setActiveTheme(theme);
     this._rewriteIFrame(prevActiveTheme, theme);
+  }
+
+  _setLightTheme(themeName: string) {
+    this.themes.setLightTheme(themeName);
+    this.setState({ lightTheme: themeName });
+  }
+
+  _setDarkTheme(themeName: string) {
+    this.themes.setDarkTheme(themeName);
+    this.setState({ darkTheme: themeName });
   }
 
   _rewriteIFrame(prevActiveTheme: string, activeTheme: string) {
@@ -62,20 +96,7 @@ class ThemePicker extends React.Component<
   }
 
   _renderThemeOptions() {
-    const internalThemes = [
-      'ui-less-is-more',
-      'ui-ubuntu',
-      'ui-taiga',
-      'ui-darkside',
-      'ui-dark',
-      'ui-light',
-      'ui-automatic',
-    ];
-    const sortedThemes = [...this.state.themes];
-    sortedThemes.sort((a, b) => {
-      return (internalThemes.indexOf(a.name) - internalThemes.indexOf(b.name)) * -1;
-    });
-    return sortedThemes.map((theme) => (
+    return sortThemes(this.state.themes).map((theme) => (
       <ThemeOption
         key={theme.name}
         theme={theme}
@@ -83,6 +104,46 @@ class ThemePicker extends React.Component<
         onSelect={() => this._setActiveTheme(theme.name)}
       />
     ));
+  }
+
+  _renderAutoSlots() {
+    if (this.state.activeTheme !== AUTOMATIC_THEME_NAME) return null;
+
+    const sorted = sortThemes(this.state.themes.filter((t) => t.name !== AUTOMATIC_THEME_NAME));
+
+    return (
+      <div className="auto-theme-selectors">
+        <div className="auto-theme-selector">
+          <label>
+            <span className="auto-theme-icon">☀</span>
+            {localized('When light')}
+          </label>
+          <select
+            value={this.state.lightTheme}
+            onChange={(e) => this._setLightTheme(e.target.value)}
+          >
+            {sorted.map((t) => (
+              <option key={t.name} value={t.name}>
+                {t.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="auto-theme-selector">
+          <label>
+            <span className="auto-theme-icon">☾</span>
+            {localized('When dark')}
+          </label>
+          <select value={this.state.darkTheme} onChange={(e) => this._setDarkTheme(e.target.value)}>
+            {sorted.map((t) => (
+              <option key={t.name} value={t.name}>
+                {t.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    );
   }
 
   render() {
@@ -94,6 +155,7 @@ class ThemePicker extends React.Component<
             {localized('Click any theme to apply:')}
           </div>
           <ScrollRegion style={{ margin: '10px 5px 0 5px', height: '300px' }}>
+            {this._renderAutoSlots()}
             <Flexbox
               direction="row"
               height="auto"
