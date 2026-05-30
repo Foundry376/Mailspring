@@ -266,11 +266,13 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
         .limit(20)
         .offset(30);
 
-      const threads50to70 = Array.from({ length: 20 }, (_, i) =>
-        new Thread({ id: `t${50 + i}`, accountId: 'a' })
+      const threads50to70 = Array.from(
+        { length: 20 },
+        (_, i) => new Thread({ id: `t${50 + i}`, accountId: 'a' })
       );
-      const threads30to46 = Array.from({ length: 16 }, (_, i) =>
-        new Thread({ id: `t${30 + i}`, accountId: 'a' })
+      const threads30to46 = Array.from(
+        { length: 16 },
+        (_, i) => new Thread({ id: `t${30 + i}`, accountId: 'a' })
       );
 
       // Prevent the constructor's update() from issuing a real DB query
@@ -299,7 +301,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       runs(() => {
         // _set should be valid (reset and repopulated with the 16 partial results)
         expect(subscription._set).not.toBe(null);
-        expect(subscription._set.ids()).toEqual(threads30to46.map(t => t.id));
+        expect(subscription._set.ids()).toEqual(threads30to46.map((t) => t.id));
       });
     });
   });
