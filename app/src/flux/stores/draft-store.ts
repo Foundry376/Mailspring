@@ -527,12 +527,31 @@ class DraftStore extends MailspringStore {
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
 
+    // Collect diagnostic context as we proceed so we can attach it to any error
+    // report if the draft is not found at the end. This helps us understand which
+    // code path was taken without adding overhead to the happy path.
+    const diagnostics: Record<string, unknown> = {
+      sessionExisted: !!this._draftSessions[headerMessageId],
+      draftIdBeforeEnsure: session.draft()?.id,
+      draftAccountIdBeforeEnsure: session.draft()?.accountId,
+    };
+
     // move the draft to another account if necessary to match the from: field
+    const accountIdBeforeEnsure = session.draft()?.accountId;
     await session.ensureCorrectAccount();
+    diagnostics.ensureCorrectAccountChangedAccount =
+      session.draft()?.accountId !== accountIdBeforeEnsure;
+    diagnostics.draftIdAfterEnsure = session.draft()?.id;
+    diagnostics.draftAccountIdAfterEnsure = session.draft()?.accountId;
 
     let draft: Message = session.draft();
     if (!draft) {
-      return this._onUnexpectedNotFoundDuringSend();
+      this._draftsSending[headerMessageId] = false;
+      this.trigger({ headerMessageId });
+      return this._onUnexpectedNotFoundDuringSend(headerMessageId, {
+        ...diagnostics,
+        failedAt: 'session.draft() returned null after ensureCorrectAccount',
+      });
     }
 
     // remove inline attachments that are no longer in the body
@@ -548,7 +567,10 @@ class DraftStore extends MailspringStore {
       session.changes.addPluginMetadata('send-later', sendLaterMetadataValue);
     }
 
+    diagnostics.dirtyFieldsBeforeCommit = session.changes.dirtyFields();
+    diagnostics.commitPromiseInFlight = !!(session.changes as any)._commitPromise;
     await session.changes.commit();
+    diagnostics.dirtyFieldsAfterCommit = session.changes.dirtyFields();
     await session.teardown();
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
@@ -557,7 +579,12 @@ class DraftStore extends MailspringStore {
       Message.attributes.body
     );
     if (!draft) {
-      return this._onUnexpectedNotFoundDuringSend();
+      this._draftsSending[headerMessageId] = false;
+      this.trigger({ headerMessageId });
+      return this._onUnexpectedNotFoundDuringSend(headerMessageId, {
+        ...diagnostics,
+        failedAt: 'DatabaseStore.findBy returned null after commit',
+      });
     }
 
     // Directly update the message body cache so the user immediately sees
@@ -591,12 +618,18 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onUnexpectedNotFoundDuringSend = () => {
+  _onUnexpectedNotFoundDuringSend = (
+    headerMessageId?: string,
+    diagnostics?: Record<string, unknown>
+  ) => {
     const msg = localized(
       'Sorry, the draft you tried to send could not be found. Please try again.'
     );
     AppEnv.showErrorDialog(msg);
-    AppEnv.reportError(new Error('Could not find draft after finalizing session for sending.'));
+    const err = new Error('Could not find draft after finalizing session for sending.');
+    // Pass diagnostics as `extra` — that's what buildEvent() in sentry-error-reporter.js
+    // reads and puts into event.extra. Own properties on the error object are not forwarded.
+    AppEnv.reportError(err, { headerMessageId, ...diagnostics });
   };
 
   _onSendDraftSuccess = ({ headerMessageId }) => {
