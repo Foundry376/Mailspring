@@ -291,14 +291,15 @@ export async function buildMicrosoftAccountFromAuthResponse(
       `O365 profile request returned ${meResp.status} ${meResp.statusText}: ${JSON.stringify(me)}`
     );
   }
-  if (!me.mail) {
+  const emailAddress = me.mail || me.userPrincipalName;
+  if (!emailAddress) {
     throw new Error(localized(`There is no email mailbox associated with this account.`));
   }
 
   const account = await expandAccountWithCommonSettings(
     new Account({
       name: me.displayName,
-      emailAddress: me.mail,
+      emailAddress: emailAddress,
       provider: provider,
       settings: {
         refresh_client_id: O365_CLIENT_ID,
@@ -307,7 +308,7 @@ export async function buildMicrosoftAccountFromAuthResponse(
     })
   );
 
-  account.id = idForAccount(me.email, account.settings);
+  account.id = idForAccount(emailAddress, account.settings);
 
   // test the account locally to ensure the refresh token can be exchanged for an account token.
   await finalizeAndValidateAccount(account);
