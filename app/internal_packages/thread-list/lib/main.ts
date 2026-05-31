@@ -8,7 +8,13 @@ import MessageListToolbar from './message-list-toolbar';
 import SelectedItemsStack from './selected-items-stack';
 import * as ThreadPermalinkHandler from './thread-permalink-handler';
 
-import { UpButton, DownButton, MoveButtons, FlagButtons } from './thread-toolbar-buttons';
+import {
+  UpButton,
+  DownButton,
+  MoveButtons,
+  FlagButtons,
+  ToggleEmailRenderModeButton,
+} from './thread-toolbar-buttons';
 
 export function activate() {
   ThreadPermalinkHandler.activate();
@@ -60,6 +66,10 @@ export function activate() {
   ComponentRegistry.register(FlagButtons, {
     role: 'ThreadActionsToolbarButton',
   });
+
+  ComponentRegistry.register(ToggleEmailRenderModeButton, {
+    role: 'MessageList:ThreadActionsToolbarButton',
+  });
 }
 
 export function deactivate() {
@@ -69,6 +79,7 @@ export function deactivate() {
   ComponentRegistry.unregister(MessageListToolbar);
   ComponentRegistry.unregister(MoveButtons);
   ComponentRegistry.unregister(FlagButtons);
+  ComponentRegistry.unregister(ToggleEmailRenderModeButton);
   ComponentRegistry.unregister(UpButton);
   ComponentRegistry.unregister(DownButton);
 }

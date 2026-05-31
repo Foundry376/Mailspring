@@ -474,6 +474,81 @@ export const MoveButtons = (props: { items: Thread[] }) => (
 MoveButtons.displayName = 'MoveButtons';
 (MoveButtons as any).containerRequired = false;
 
+const EMAIL_RENDER_MODE_KEY = 'core.reading.emailRenderMode';
+
+export class ToggleEmailRenderModeButton extends React.Component<
+  { items: Thread[] },
+  { mode: string }
+> {
+  static displayName = 'ToggleEmailRenderModeButton';
+  static containerRequired = false;
+
+  _configDisposable?: { dispose: () => void };
+
+  constructor(props: { items: Thread[] }) {
+    super(props);
+    this.state = { mode: this._mode() };
+  }
+
+  componentDidMount() {
+    this._configDisposable = AppEnv.config.onDidChange(EMAIL_RENDER_MODE_KEY, () => {
+      this.setState({ mode: this._mode() });
+    });
+  }
+
+  componentWillUnmount() {
+    if (this._configDisposable) {
+      this._configDisposable.dispose();
+    }
+  }
+
+  _mode = () => AppEnv.config.get(EMAIL_RENDER_MODE_KEY) || 'theme';
+
+  _isDark = () => {
+    const mode = this.state.mode;
+    if (mode === 'dark') return true;
+    if (mode === 'light') return false;
+    return document.body.classList.contains('theme-ui-dark');
+  };
+
+  _onToggle = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    const nextMode = this._isDark() ? 'light' : 'dark';
+    AppEnv.config.set(EMAIL_RENDER_MODE_KEY, nextMode);
+    if (event) {
+      event.stopPropagation();
+    }
+  };
+
+  render() {
+    if (this.props.items.length !== 1) {
+      return false;
+    }
+
+    const isDark = this._isDark();
+    const title = isDark
+      ? localized('Switch email view to light mode')
+      : localized('Switch email view to dark mode');
+    const imageName = isDark ? 'toolbar-bulb-on.png' : 'toolbar-bulb-off.png';
+
+    return (
+      <button
+        tabIndex={-1}
+        className="btn btn-toolbar"
+        title={title}
+        aria-label={title}
+        onClick={this._onToggle}
+      >
+        <RetinaImg
+          name={imageName}
+          mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 16, height: 16 }}
+          aria-hidden="true"
+        />
+      </button>
+    );
+  }
+}
+
 export const DownButton = () => {
   const getStateFromStores = () => {
     const selectedId = FocusedContentStore.focusedId('thread');
