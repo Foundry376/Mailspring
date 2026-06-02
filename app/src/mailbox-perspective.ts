@@ -553,6 +553,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const acct = AccountStore.accountForId(accountId);
       const preferred = acct.preferredRemovalDestination();
+      if (!preferred) return null;
       const cat = this.categories().find((c) => c.accountId === accountId);
       if (cat instanceof Label && preferred.role !== 'trash') {
         const inboxCat = CategoryStore.getInboxCategory(accountId);
