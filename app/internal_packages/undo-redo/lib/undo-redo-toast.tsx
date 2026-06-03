@@ -27,6 +27,12 @@ async function sendMessageNow(block) {
       ),
       newExpiry = Math.floor(Date.now() / 1000);
 
+    // Message may be null if the sync engine already processed/sent it before
+    // the user clicked "Send now". In that case there's nothing to do.
+    if (!message) {
+      return true;
+    }
+
     Actions.queueTask(
       SyncbackMetadataTask.forSaving({
         model: message,
