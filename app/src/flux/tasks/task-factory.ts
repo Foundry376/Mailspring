@@ -38,6 +38,18 @@ export const TaskFactory = {
 
   tasksForMarkingAsSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      const inbox = CategoryStore.getInboxCategory(accountId);
+      if (inbox instanceof Label) {
+        // Gmail: categories are labels, so use ChangeLabelsTask
+        const spam = CategoryStore.getSpamCategory(accountId);
+        if (!spam) return null;
+        return new ChangeLabelsTask({
+          labelsToAdd: [spam as Label],
+          labelsToRemove: [inbox],
+          threads: accountThreads,
+          source,
+        });
+      }
       const folder = CategoryStore.getSpamCategory(accountId);
       if (!folder) return null;
       return new ChangeFolderTask({ folder, source, threads: accountThreads });
@@ -49,9 +61,14 @@ export const TaskFactory = {
       const inbox = CategoryStore.getInboxCategory(accountId);
 
       if (inbox instanceof Label) {
-        const all = CategoryStore.getAllMailCategory(accountId) as any;
-        if (!all) return null;
-        return new ChangeFolderTask({ folder: all, threads: accountThreads, source });
+        // Gmail: remove spam label (moves thread to All Mail)
+        const spam = CategoryStore.getSpamCategory(accountId);
+        return new ChangeLabelsTask({
+          labelsToAdd: [],
+          labelsToRemove: spam ? [spam as Label] : [],
+          threads: accountThreads,
+          source,
+        });
       }
 
       if (!inbox) return null;
@@ -79,7 +96,19 @@ export const TaskFactory = {
 
   tasksForMovingToTrash({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      const trash = CategoryStore.getTrashCategory(accountId) as any;
+      const inbox = CategoryStore.getInboxCategory(accountId);
+      if (inbox instanceof Label) {
+        // Gmail: categories are labels, so use ChangeLabelsTask
+        const trash = CategoryStore.getTrashCategory(accountId);
+        if (!trash) return null;
+        return new ChangeLabelsTask({
+          labelsToAdd: [trash as Label],
+          labelsToRemove: [inbox],
+          threads: accountThreads,
+          source,
+        });
+      }
+      const trash = CategoryStore.getTrashCategory(accountId);
       if (!trash) return null;
       return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
     });
