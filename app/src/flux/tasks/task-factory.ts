@@ -63,9 +63,10 @@ export const TaskFactory = {
       if (inbox instanceof Label) {
         // Gmail: remove spam label (moves thread to All Mail)
         const spam = CategoryStore.getSpamCategory(accountId);
+        if (!spam) return null;
         return new ChangeLabelsTask({
           labelsToAdd: [],
-          labelsToRemove: spam ? [spam as Label] : [],
+          labelsToRemove: [spam as Label],
           threads: accountThreads,
           source,
         });
@@ -97,10 +98,10 @@ export const TaskFactory = {
   tasksForMovingToTrash({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
+      const trash = CategoryStore.getTrashCategory(accountId);
+      if (!trash) return null;
       if (inbox instanceof Label) {
         // Gmail: categories are labels, so use ChangeLabelsTask
-        const trash = CategoryStore.getTrashCategory(accountId);
-        if (!trash) return null;
         return new ChangeLabelsTask({
           labelsToAdd: [trash as Label],
           labelsToRemove: [inbox],
@@ -108,8 +109,6 @@ export const TaskFactory = {
           source,
         });
       }
-      const trash = CategoryStore.getTrashCategory(accountId);
-      if (!trash) return null;
       return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
     });
   },
