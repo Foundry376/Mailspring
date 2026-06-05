@@ -35,7 +35,8 @@ export default class ThreadListContextMenu {
   menuItemTemplate() {
     return DatabaseStore.modelify<Thread>(Thread, this.threadIds)
       .then((threads) => {
-        this.threads = threads;
+        // modelify returns undefined for IDs not found in the DB (e.g. deleted threads)
+        this.threads = threads.filter(Boolean);
 
         return Promise.all<TemplateItem>([
           this.findWithFrom(),

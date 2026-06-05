@@ -424,7 +424,8 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
     autoConfig = await getThunderbirdAutoconfig(url);
   }
   // emailProvider could potentially be an array
-  if (autoConfig !== false && autoConfig.emailProvider) {
+  // autoConfig can be null if the server returns 200 with an empty/unparseable XML body
+  if (autoConfig && autoConfig.emailProvider) {
     let provider = autoConfig.emailProvider;
     if (Array.isArray(provider)) {
       provider = provider.find((p) => p.$.id === domain);
