@@ -668,7 +668,9 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('update-application-menu', (event, template, keystrokesByCommand) => {
       const win = BrowserWindow.fromWebContents(event.sender);
-      this.applicationMenu.update(win, template, keystrokesByCommand);
+      if (win) {
+        this.applicationMenu.update(win, template, keystrokesByCommand);
+      }
     });
 
     ipcMain.on('command', (event, command, ...args) => {
