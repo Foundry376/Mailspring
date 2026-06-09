@@ -385,6 +385,11 @@ export class DraftEditingSession extends MailspringStore {
   //
   async ensureCorrectAccount() {
     const draft = this.draft();
+    if (!draft.from || !draft.from.length) {
+      throw new Error(
+        'DraftEditingSession::ensureCorrectAccount - draft has no from address.'
+      );
+    }
     const account = AccountStore.accountForEmail(draft.from[0].email);
     if (!account) {
       throw new Error(

@@ -538,7 +538,18 @@ class DraftStore extends MailspringStore {
 
     // move the draft to another account if necessary to match the from: field
     const accountIdBeforeEnsure = session.draft()?.accountId;
-    await session.ensureCorrectAccount();
+    try {
+      await session.ensureCorrectAccount();
+    } catch (ensureErr) {
+      this._draftsSending[headerMessageId] = false;
+      this.trigger({ headerMessageId });
+      AppEnv.showErrorDialog(
+        localized(
+          "This message can't be sent because the 'From' address is not a configured account. Please add the account back in Preferences or change the 'From' address before sending."
+        )
+      );
+      return;
+    }
     diagnostics.ensureCorrectAccountChangedAccount =
       session.draft()?.accountId !== accountIdBeforeEnsure;
     diagnostics.draftIdAfterEnsure = session.draft()?.id;
