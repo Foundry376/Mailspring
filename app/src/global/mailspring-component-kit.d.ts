@@ -8,7 +8,6 @@ export const DatePickerPopover: typeof import('../components/date-picker-popover
 export const Modal: typeof import('../components/modal').default;
 export const Webview: typeof import('../components/webview').default;
 export const FeatureUsedUpModal: typeof import('../components/feature-used-up-modal').default;
-export const BillingModal: typeof import('../components/billing-modal').default;
 export const OpenIdentityPageButton: typeof import('../components/open-identity-page-button').default;
 export * from '../components/flexbox';
 

@@ -42,9 +42,13 @@ export default class OpenIdentityPageButton extends React.Component<
   };
 
   render() {
+    const cls = classnames({
+      btn: true,
+      'btn-emphasis': this.props.isCTA,
+    });
     if (this.state.loading) {
       return (
-        <div className="btn btn-disabled">
+        <div className={`${cls} btn-disabled`}>
           <RetinaImg
             name="sending-spinner.gif"
             width={15}
@@ -57,16 +61,15 @@ export default class OpenIdentityPageButton extends React.Component<
     }
     if (this.props.img) {
       return (
-        <div className="btn" onClick={this._onClick}>
-          <RetinaImg name={this.props.img} mode={RetinaImg.Mode.ContentPreserve} />
+        <div className={cls} onClick={this._onClick}>
+          <RetinaImg
+            name={this.props.img}
+            mode={this.props.isCTA ? RetinaImg.Mode.ContentIsMask : RetinaImg.Mode.ContentPreserve}
+          />
           &nbsp;&nbsp;{this.props.label}
         </div>
       );
     }
-    const cls = classnames({
-      btn: true,
-      'btn-emphasis': this.props.isCTA,
-    });
     return (
       <div className={cls} onClick={this._onClick}>
         {this.props.label}

@@ -429,6 +429,11 @@ export default class MailsyncBridge {
         continue;
       }
 
+      if (modelClass === 'ProcessIdentityRefreshNeeded') {
+        IdentityStore.fetchIdentitySoon();
+        continue;
+      }
+
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);
 

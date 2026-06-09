@@ -6,7 +6,7 @@ import {
   localizedReactFragment,
   IIdentity,
 } from 'mailspring-exports';
-import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
+import { OpenIdentityPageButton, RetinaImg } from 'mailspring-component-kit';
 import { shell, ipcRenderer } from 'electron';
 
 class RefreshButton extends React.Component<Record<string, unknown>, { refreshing: boolean }> {
@@ -157,14 +157,6 @@ class PreferencesIdentity extends React.Component<
     };
   }
 
-  _onUpgrade = () => {
-    Actions.openModal({
-      component: <BillingModal source="preferences" />,
-      width: BillingModal.IntrinsicWidth,
-      height: BillingModal.IntrinsicHeight,
-    });
-  };
-
   _onLinkIdentity = () => {
     ipcRenderer.send('command', 'application:add-identity');
   };
@@ -228,14 +220,14 @@ class PreferencesIdentity extends React.Component<
               <div className="price">$8</div>
               <div className="period">{localized('Monthly')}</div>
             </div>
-            <div
-              className="btn btn-emphasis"
-              onClick={this._onUpgrade}
-              style={{ verticalAlign: 'top' }}
-            >
-              <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} />{' '}
-              {localized(`Get Mailspring Pro`)}
-            </div>
+            <OpenIdentityPageButton
+              label={localized('Get Mailspring Pro')}
+              path="/payment"
+              source="Preferences Billing"
+              campaign="Dashboard"
+              img="ic-upgrade.png"
+              isCTA={true}
+            />
           </div>
         </div>
         <ExploreMailspringPro />
