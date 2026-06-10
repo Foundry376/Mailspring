@@ -44,8 +44,8 @@ export class ChangeFolderTask extends ChangeMailTask {
       const folders = [];
       const seenFolderIds = new Set<string>();
       for (const t of data.threads || []) {
-        const f = t.folders.find((f) => f.id !== data.folder?.id) || t.folders[0];
-        if (!seenFolderIds.has(f.id)) {
+        const f = t.folders?.find((f) => f?.id !== data.folder?.id) || t.folders?.[0];
+        if (f && !seenFolderIds.has(f.id)) {
           seenFolderIds.add(f.id);
           folders.push(f);
         }

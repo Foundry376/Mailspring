@@ -98,15 +98,13 @@ class SearchMailboxPerspective extends MailboxPerspective {
           folder: dest,
         });
       }
-      if (dest.role === 'all') {
-        // if you're searching and archive something, it really just removes the inbox label
-        return new ChangeLabelsTask({
-          threads: accountThreads,
-          source: 'Dragged out of list',
-          labelsToRemove: [CategoryStore.getInboxCategory(accountId)],
-        });
-      }
-      throw new Error('Unexpected destination returned from preferredRemovalDestination()');
+      // dest is a Label (e.g. Gmail "All Mail" with role 'all', or an 'archive' label on some
+      // providers). In all label-based cases, archiving means removing from inbox.
+      return new ChangeLabelsTask({
+        threads: accountThreads,
+        source: 'Dragged out of list',
+        labelsToRemove: [CategoryStore.getInboxCategory(accountId)],
+      });
     });
   }
 }
