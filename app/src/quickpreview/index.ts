@@ -13,6 +13,12 @@ function cleanupPreviewToken(token: string): void {
   ipcRenderer.invoke('quickpreview:cleanupToken', token);
 }
 
+// Quickpreview windows use a dedicated in-memory session partition so the strict
+// CSP below can be applied via onHeadersReceived without replacing the listener
+// on the default session — Electron keeps only one onHeadersReceived listener per
+// session, and the default session's listener (main.js) injects the app-wide CSP.
+const QuickPreviewPartition = 'quickpreview';
+
 // Content Security Policy for quickpreview windows
 // Restricts script execution while allowing external images
 const QuickPreviewCSP = [
@@ -227,10 +233,11 @@ export function displayQuickPreviewWindow(filePath: string) {
         preload: path.join(filesRoot, 'preload.js'),
         nodeIntegration: false,
         contextIsolation: true,
+        partition: QuickPreviewPartition,
       },
     });
 
-    // Apply Content Security Policy
+    // Apply Content Security Policy to the quickpreview partition only
     quickPreviewWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
       callback({
         responseHeaders: {
@@ -325,10 +332,11 @@ function _createCaptureWindow() {
       preload: path.join(filesRoot, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      partition: QuickPreviewPartition,
     },
   });
 
-  // Apply Content Security Policy
+  // Apply Content Security Policy to the quickpreview partition only
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
