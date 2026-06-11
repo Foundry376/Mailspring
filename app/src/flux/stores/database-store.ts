@@ -375,7 +375,9 @@ class DatabaseStore extends MailspringStore {
         // On Windows, security software (antivirus / AppLocker) can deny the
         // fork() call with EPERM. Fall back to in-process queries rather than
         // crashing — the promise below already handles a null agent.
-        console.error(`Query Agent: failed to spawn (${err.toString()}), falling back to local execution`);
+        console.error(
+          `Query Agent: failed to spawn (${err.toString()}), falling back to local execution`
+        );
         this._agent = null;
       }
     }
