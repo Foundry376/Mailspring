@@ -344,10 +344,11 @@ class DatabaseStore extends MailspringStore {
   }
 
   _agent?: ChildProcess;
+  _agentSpawnFailed = false;
   _agentOpenQueries: { [id: string]: (args: AgentResponse) => void };
 
   _executeInBackground(query: SQLString, values: SQLValue[]) {
-    if (!this._agent) {
+    if (!this._agent && !this._agentSpawnFailed) {
       this._agentOpenQueries = {};
       try {
         this._agent = childProcess.fork(AGENT_PATH, [], { silent: true });
@@ -375,10 +376,13 @@ class DatabaseStore extends MailspringStore {
         // On Windows, security software (antivirus / AppLocker) can deny the
         // fork() call with EPERM. Fall back to in-process queries rather than
         // crashing — the promise below already handles a null agent.
+        // Set _agentSpawnFailed so we skip the fork on every subsequent query
+        // rather than re-attempting and spamming the console.
         console.error(
           `Query Agent: failed to spawn (${err.toString()}), falling back to local execution`
         );
         this._agent = null;
+        this._agentSpawnFailed = true;
       }
     }
 
