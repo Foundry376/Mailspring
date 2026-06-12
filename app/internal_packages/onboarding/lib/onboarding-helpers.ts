@@ -304,9 +304,7 @@ export async function buildMicrosoftAccountFromAuthResponse(
   if (!emailAddress && id_token) {
     try {
       // Decode id_token JWT payload (base64url encoded) to extract email claims
-      const payload = JSON.parse(
-        Buffer.from(id_token.split('.')[1], 'base64').toString('utf8')
-      );
+      const payload = JSON.parse(Buffer.from(id_token.split('.')[1], 'base64').toString('utf8'));
       const candidate: string = payload.email || payload.preferred_username || payload.unique_name;
       // Only accept values that look like real email addresses (not GUID-based UPNs)
       if (candidate && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(candidate)) {
