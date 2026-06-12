@@ -298,8 +298,8 @@ export async function buildMicrosoftAccountFromAuthResponse(
 
   // Try multiple sources to find the email address. For most work accounts `mail` or
   // `userPrincipalName` is set. For personal MSA accounts or accounts without Exchange
-  // Online licenses, fall back to `otherMails` or the id_token claims.
-  let emailAddress: string | null = me.mail || me.userPrincipalName || me.otherMails?.[0] || null;
+  // Online licenses, fall back to the id_token claims (requires openid+email scopes).
+  let emailAddress: string | null = me.mail || me.userPrincipalName || null;
 
   if (!emailAddress && id_token) {
     try {
