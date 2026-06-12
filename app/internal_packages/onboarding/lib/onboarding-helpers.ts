@@ -269,7 +269,7 @@ export async function buildMicrosoftAccountFromAuthResponse(
   provider: 'outlook' | 'office365'
 ) {
   /// Exchange code for an access token
-  const { access_token, refresh_token } = await fetchPostWithFormBody<TokenResponse>(
+  const { access_token, refresh_token, id_token } = await fetchPostWithFormBody<TokenResponse>(
     `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
     {
       code: code,
@@ -291,9 +291,38 @@ export async function buildMicrosoftAccountFromAuthResponse(
       `O365 profile request returned ${meResp.status} ${meResp.statusText}: ${JSON.stringify(me)}`
     );
   }
-  const emailAddress = me.mail || me.userPrincipalName;
+  // The Graph API can return 200 OK with an error body in some edge cases
+  if (me.error) {
+    throw new Error(`O365 profile request failed: ${me.error.code}: ${me.error.message}`);
+  }
+
+  // Try multiple sources to find the email address. For most work accounts `mail` or
+  // `userPrincipalName` is set. For personal MSA accounts or accounts without Exchange
+  // Online licenses, fall back to `otherMails` or the id_token claims.
+  let emailAddress: string | null = me.mail || me.userPrincipalName || me.otherMails?.[0] || null;
+
+  if (!emailAddress && id_token) {
+    try {
+      // Decode id_token JWT payload (base64url encoded) to extract email claims
+      const payload = JSON.parse(
+        Buffer.from(id_token.split('.')[1], 'base64').toString('utf8')
+      );
+      const candidate: string = payload.email || payload.preferred_username || payload.unique_name;
+      // Only accept values that look like real email addresses (not GUID-based UPNs)
+      if (candidate && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(candidate)) {
+        emailAddress = candidate;
+      }
+    } catch {
+      // ignore token parsing errors
+    }
+  }
+
   if (!emailAddress) {
-    throw new Error(localized(`There is no email mailbox associated with this account.`));
+    // This is a user-configuration issue (account has no associated email mailbox),
+    // not a code bug. Tag it so the error reporter can skip Sentry for this case.
+    const err = new Error(localized(`There is no email mailbox associated with this account.`));
+    (err as any).isUserError = true;
+    throw err;
   }
 
   const account = await expandAccountWithCommonSettings(
