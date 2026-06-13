@@ -344,31 +344,46 @@ class DatabaseStore extends MailspringStore {
   }
 
   _agent?: ChildProcess;
+  _agentSpawnFailed = false;
   _agentOpenQueries: { [id: string]: (args: AgentResponse) => void };
 
   _executeInBackground(query: SQLString, values: SQLValue[]) {
-    if (!this._agent) {
+    if (!this._agent && !this._agentSpawnFailed) {
       this._agentOpenQueries = {};
-      this._agent = childProcess.fork(AGENT_PATH, [], { silent: true });
-      if (this._agent.stdout) this._agent.stdout.on('data', (data) => console.log(data.toString()));
-      if (this._agent.stderr)
-        this._agent.stderr.on('data', (data) => console.error(data.toString()));
-      this._agent.on('close', (code) => {
-        debug(`Query Agent: exited with code ${code}`);
+      try {
+        this._agent = childProcess.fork(AGENT_PATH, [], { silent: true });
+        if (this._agent.stdout)
+          this._agent.stdout.on('data', (data) => console.log(data.toString()));
+        if (this._agent.stderr)
+          this._agent.stderr.on('data', (data) => console.error(data.toString()));
+        this._agent.on('close', (code) => {
+          debug(`Query Agent: exited with code ${code}`);
+          this._agent = null;
+        });
+        this._agent.on('error', (err) => {
+          console.error(`Query Agent: failed to start or receive message: ${err.toString()}`);
+          if (this._agent) this._agent.kill('SIGTERM');
+          this._agent = null;
+        });
+        this._agent.on('message', (message: Record<string, any>) => {
+          const { type, id, results, agentTime } = message;
+          if (type === 'results' && this._agentOpenQueries[id]) {
+            this._agentOpenQueries[id]({ results, agentTime });
+            delete this._agentOpenQueries[id];
+          }
+        });
+      } catch (err) {
+        // On Windows, security software (antivirus / AppLocker) can deny the
+        // fork() call with EPERM. Fall back to in-process queries rather than
+        // crashing — the promise below already handles a null agent.
+        // Set _agentSpawnFailed so we skip the fork on every subsequent query
+        // rather than re-attempting and spamming the console.
+        console.error(
+          `Query Agent: failed to spawn (${err.toString()}), falling back to local execution`
+        );
         this._agent = null;
-      });
-      this._agent.on('error', (err) => {
-        console.error(`Query Agent: failed to start or receive message: ${err.toString()}`);
-        if (this._agent) this._agent.kill('SIGTERM');
-        this._agent = null;
-      });
-      this._agent.on('message', (message: Record<string, any>) => {
-        const { type, id, results, agentTime } = message;
-        if (type === 'results' && this._agentOpenQueries[id]) {
-          this._agentOpenQueries[id]({ results, agentTime });
-          delete this._agentOpenQueries[id];
-        }
-      });
+        this._agentSpawnFailed = true;
+      }
     }
 
     // eslint-disable-next-line no-async-promise-executor
