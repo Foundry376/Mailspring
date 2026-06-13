@@ -72,7 +72,9 @@ export class ChangeFolderTask extends ChangeMailTask {
     super(data);
 
     if (this.folder && !(this.folder instanceof Folder)) {
-      throw new Error('ChangeFolderTask: You must provide a single folder.');
+      throw new Error(
+        `ChangeFolderTask: You must provide a single folder. Got ${typeof this.folder}: ${JSON.stringify(this.folder)}`
+      );
     }
   }
 
