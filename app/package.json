@@ -2,7 +2,7 @@
   "name": "mailspring",
   "productName": "Mailspring",
   "desktopName": "Mailspring.desktop",
-  "version": "1.21.1",
+  "version": "1.22.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/foundry376/mailspring.git"
@@ -73,7 +73,7 @@
     "xml2js": "^0.6.2"
   },
   "resolutions": {
-    "electron": "41.3.0",
+    "electron": "41.7.2",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0"
   },

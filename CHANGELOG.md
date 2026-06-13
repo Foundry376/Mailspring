@@ -1,5 +1,36 @@
 # Mailspring Changelog
 
+## 1.22.0 (6/13/2026)
+
+Features:
+
+- Added the ability to choose which themes apply in automatic light/dark mode. (#2732) Thanks @Jayphen!
+
+Bug Fixes:
+
+- Fixed null crash when clicking "Send now" on undo-send toast after the message had already been sent. (#2738)
+- Fixed two null-access crashes reported in Sentry (MAILSPRING-CLIENT-1G, MAILSPRING-CLIENT-18, MAILSPRING-CLIENT-2V). (#2740)
+- Fixed two Sentry crashes: null account in preferences and null window in app menu IPC. (#2741)
+- Fixed crash when archiving from search with label-based archive categories. (#2743)
+- Fixed null crash when removing threads with unsynced trash/archive category. (#2736)
+- Fixed Outlook account setup. (#2735) Thanks @Suchiman!
+- Fixed Windows print crash caused by invalid file URL. (#2733)
+- Fixed TOCTOU null-reference crash in draft body setter (MAILSPRING-CLIENT-S). (#2728)
+- Fixed `DefaultClientHelperMac` passing boolean to error callback, causing false Sentry reports. (#2731)
+- Fixed `AttributeDateTime.fromJSON` treating 0/falsy values as missing. (#2730)
+- Fixed quickpreview CSP clobbering the default session's app-wide CSP. (#2744) Thanks @dansleboby!
+- Fixed `QuerySubscription._fetchRange` contiguity check using actual result length. (#2734)
+- On Windows, fixed EPERM crash when forking background query agent. (#2745)
+
+Improvements:
+
+- Improved Microsoft OAuth: better email resolution and suppressed no-mailbox errors from Sentry. (#2746)
+- Added diagnostics around "draft not found" error on send and cleaned up waiting queues. (#2727)
+- Moved payment flow out of modal to launch on the web for newer Stripe integration.
+- Richer exceptions when account has no from address or when label is provided to ChangeFolderTask.
+- Draft reminders now use `thread:` metadata prefix so sync engine promotes them to thread on send. (#2729)
+- Sync engine now forwards identity-level refresh events from delta stream. (mailsync#115)
+
 ## 1.21.1 (5/19/2026)
 
 Bug Fixes:
