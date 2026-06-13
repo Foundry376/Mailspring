@@ -94,17 +94,19 @@ export default class MetadataComposerToggleButton extends React.Component<
     this.setState({ pending: false });
   }
 
-  _onClick = async () => {
+  _onClick = async (e) => {
     const { pluginId } = this.props;
     let nextEnabled = !this._isEnabled();
     if (this.state.pending) {
       return;
     }
 
+    const simulateUsedUp = e.shiftKey && e.altKey;
+
     // note: we don't actually increment the usage counters until you /send/
     // the message with link and open tracking, we just display the notice
 
-    if (nextEnabled && !FeatureUsageStore.isUsable(pluginId)) {
+    if (nextEnabled && (!FeatureUsageStore.isUsable(pluginId) || simulateUsedUp)) {
       try {
         await FeatureUsageStore.displayUpgradeModal(pluginId, {
           headerText: localized(`All used up!`),

@@ -1,5 +1,8 @@
 @import 'ui-variables';
 
+/** Note: The theme picker is in a modal and they currently don't follow theme changes,
+ so we don't use theme color variables here.  We should theme the apps few modals soon.
+*/
 .theme-picker {
   text-align: center;
   cursor: default;
@@ -7,6 +10,9 @@
     font-size: 14.5px;
     margin-top: -10px;
     margin-bottom: 5px;
+  }
+  .scroll-region-content {
+    background: none;
   }
   .clickable-theme-option {
     width: 115px;
@@ -39,13 +45,17 @@
         align-items: center;
         gap: 4px;
         font-size: 11px;
-        color: @text-color-very-subtle;
+        color: #111;
         cursor: default;
       }
 
       select {
         width: 100%;
         font-size: @font-size-smaller;
+        background:white;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        color: #111;
       }
     }
   }
