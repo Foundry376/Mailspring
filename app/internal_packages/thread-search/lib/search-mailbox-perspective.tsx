@@ -2,6 +2,7 @@ import React from 'react';
 import {
   localized,
   Folder,
+  Label,
   ChangeLabelsTask,
   ChangeFolderTask,
   AccountStore,
@@ -98,13 +99,18 @@ class SearchMailboxPerspective extends MailboxPerspective {
           folder: dest,
         });
       }
-      // dest is a Label (e.g. Gmail "All Mail" with role 'all', or an 'archive' label on some
-      // providers). In all label-based cases, archiving means removing from inbox.
-      return new ChangeLabelsTask({
-        threads: accountThreads,
-        source: 'Dragged out of list',
-        labelsToRemove: [CategoryStore.getInboxCategory(accountId)],
-      });
+      if (dest instanceof Label) {
+        // Label-based archive (e.g. Gmail "All Mail" role='all', or role='archive' on some
+        // providers). Archiving via label means removing the thread from the inbox label.
+        return new ChangeLabelsTask({
+          threads: accountThreads,
+          source: 'Dragged out of list',
+          labelsToRemove: [CategoryStore.getInboxCategory(accountId)],
+        });
+      }
+      throw new Error(
+        `Unexpected type returned from preferredRemovalDestination(): ${dest.constructor.name}`
+      );
     });
   }
 }
