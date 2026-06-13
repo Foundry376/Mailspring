@@ -87,10 +87,12 @@ class PreferencesAccounts extends React.Component<
             onSelectAccount={this._onSelectAccount}
             onRemoveAccount={this._onRemoveAccount}
           />
-          <PreferencesAccountDetails
-            account={this.state.selected}
-            onAccountUpdated={this._onAccountUpdated}
-          />
+          {this.state.selected && (
+            <PreferencesAccountDetails
+              account={this.state.selected}
+              onAccountUpdated={this._onAccountUpdated}
+            />
+          )}
         </div>
       </div>
     );
