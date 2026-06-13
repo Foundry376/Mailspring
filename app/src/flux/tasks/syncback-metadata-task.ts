@@ -17,6 +17,9 @@ export class SyncbackMetadataTask extends Task {
     if (!pluginId) {
       throw new Error('SyncbackMetadataTask.forSaving: You must specify a pluginId.');
     }
+    if (!model) {
+      throw new Error('SyncbackMetadataTask.forSaving: model is null or undefined.');
+    }
     const task = new SyncbackMetadataTask({
       modelId: model.id,
       pluginId: pluginId,
