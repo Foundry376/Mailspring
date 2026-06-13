@@ -115,7 +115,9 @@ export default class OAuthSignInPage extends React.Component<
         : err.message,
       errorLog: err.rawLog,
     });
-    if (!isNetworkError) {
+    // Don't report network errors or user-configuration errors (e.g. account has no mailbox)
+    // to Sentry — they are expected and shown directly to the user.
+    if (!isNetworkError && !err.isUserError) {
       AppEnv.reportError(err);
     }
   }

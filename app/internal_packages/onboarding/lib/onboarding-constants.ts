@@ -39,7 +39,10 @@ export const O365_CLIENT_ID =
   process.env.MS_O365_CLIENT_ID || '8787a430-6eee-41e1-b914-681d90d35625';
 
 export const O365_SCOPES = [
-  'user.read', // email address
+  'openid', // required for id_token to be returned
+  'email', // email claim in id_token
+  'profile', // displayName / name claims in id_token
+  'user.read', // email address via Graph /me
   'offline_access',
   'Contacts.ReadWrite', // contacts
   'Contacts.ReadWrite.Shared', // contacts
