@@ -24,7 +24,8 @@
   <url type="bugtracker">https://community.getmailspring.com/c/bugs</url>
   <url type="help">http://support.getmailspring.com/</url>
   <url type="vcs-browser">https://github.com/Foundry376/Mailspring</url>
-  <launchable type="desktop-id"><%= productName %>.desktop</launchable>
+  
+  <launchable type="desktop-id"><%= desktopName %></launchable>
 
   <developer id="com.getmailspring">
     <name>Mailspring</name>
