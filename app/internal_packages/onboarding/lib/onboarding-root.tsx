@@ -1,6 +1,6 @@
 import React from 'react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { Account } from 'mailspring-exports';
+import { Account, AccountStore } from 'mailspring-exports';
 import OnboardingStore from './onboarding-store';
 import PageTopBar from './page-top-bar';
 
@@ -79,7 +79,14 @@ export default class OnboardingRoot extends React.Component<
   render() {
     const Component = PageComponents[this.state.page];
     if (!Component) {
-      throw new Error(`Cannot find component for page: ${this.state.page}`);
+      // Guard against empty page stack (e.g. rapid back-button clicks draining the stack).
+      // Close or quit rather than throwing an unhandled error.
+      if (AccountStore.accounts().length === 0) {
+        AppEnv.quit();
+      } else {
+        AppEnv.close();
+      }
+      return null;
     }
 
     return (
