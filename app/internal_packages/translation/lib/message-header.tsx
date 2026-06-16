@@ -135,7 +135,7 @@ export class TranslateMessageHeader extends React.Component<
     const el = ReactDOM.findDOMNode(this) as Element;
     const messageEl = el && el.closest('.message-item-area');
     const iframeEl = messageEl && messageEl.querySelector('iframe');
-    if (!iframeEl || !this.props.message.body) return;
+    if (!iframeEl || !iframeEl.contentDocument?.body || !this.props.message.body) return;
 
     let text = iframeEl.contentDocument.body.innerText;
     if (text.length > 1000) text = text.slice(0, 1000);
