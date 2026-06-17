@@ -25,6 +25,7 @@ Current / Intended Behavior:
 class SystemTrayIconStore {
   _windowBackgrounded = false;
   _unsubscribers: (() => void)[];
+  _onNativeThemeUpdated = () => this._updateIcon();
 
   activate() {
     this._updateIcon();
@@ -40,12 +41,11 @@ class SystemTrayIconStore {
       window.removeEventListener('browser-window-focus', this._onWindowFocus);
       window.removeEventListener('browser-window-hide', this._onWindowBackgrounded);
       window.removeEventListener('browser-window-blur', this._onWindowBackgrounded);
+      nativeTheme.removeListener('updated', this._onNativeThemeUpdated);
     });
 
     // If the theme changes from bright to dark mode or vice versa, we need to update the tray icon
-    nativeTheme.on('updated', () => {
-      this._updateIcon();
-    });
+    nativeTheme.on('updated', this._onNativeThemeUpdated);
   }
 
   deactivate() {
@@ -70,7 +70,13 @@ class SystemTrayIconStore {
   // Returns '-dark' when we need a light icon (for dark backgrounds).
   _dark = () => {
     if (process.platform === 'win32') {
-      return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+      // nativeTheme is accessed via @electron/remote; guard against the remote
+      // object being GC'd during window teardown (Sentry MAILSPRING-CLIENT-49).
+      try {
+        return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+      } catch {
+        return '';
+      }
     }
     if (process.platform === 'linux') {
       const traySystemTheme = AppEnv.config.get('core.workspace.traySystemTheme') || 'automatic';
@@ -87,7 +93,11 @@ class SystemTrayIconStore {
       if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
         return '-dark';
       }
-      return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+      try {
+        return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+      } catch {
+        return '';
+      }
     }
     return '';
   };
