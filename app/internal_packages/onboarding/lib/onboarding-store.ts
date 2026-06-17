@@ -112,6 +112,7 @@ class OnboardingStore extends MailspringStore {
   };
 
   _onMoveToPreviousPage = () => {
+    if (this._pageStack.length <= 1) return;
     this._pageStack.pop();
     this.trigger();
   };
