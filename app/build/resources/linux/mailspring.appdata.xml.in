@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
+<component type="desktop-application">
   <id><%= name %></id>
   <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
   <name><%= productName %></name>
   <summary><%= description %></summary>
   <description>
@@ -20,16 +21,26 @@
       Mailspring does not send your email credentials to the cloud.
     </p>
   </description>
+
   <url type="homepage">https://getmailspring.com/</url>
   <url type="bugtracker">https://community.getmailspring.com/c/bugs</url>
+  <url type="contact">https://community.getmailspring.com/c/help</url>
   <url type="help">http://support.getmailspring.com/</url>
+  <url type="faq">https://foundry376.zendesk.com/hc/en-us/sections/115000521892-Frequently-Asked-Questions</url>
+  <url type="donation">https://www.getmailspring.com/pro</url>
+  <url type="contribute">https://github.com/Foundry376/Mailspring/blob/master/CONTRIBUTING.md</url>
   <url type="vcs-browser">https://github.com/Foundry376/Mailspring</url>
-  <launchable type="desktop-id"><%= productName %>.desktop</launchable>
+
+  <launchable type="desktop-id"><%= desktopName %></launchable>
 
   <developer id="com.getmailspring">
     <name>Mailspring</name>
   </developer>
-  <project_license>GPL-3.0+</project_license>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#d7f0f8</color>
+    <color type="primary" scheme_preference="dark">#152330</color>
+  </branding>
 
   <screenshots>
     <screenshot type="default">
@@ -37,6 +48,8 @@
       <image type="source">https://getmailspring.com/static/img/hero_graphic_linux@2x.png</image>
     </screenshot>
   </screenshots>
+
+  <content_rating type="oars-1.1" />
 
   <releases>
     <release version="1.22.0" date="2026-06-13" />
@@ -76,5 +89,4 @@
     <release version="1.9.0" date="2021-04-14" />
     <release version="1.8.0" date="2021-01-20" />
   </releases>
-  <content_rating type="oars-1.0" />
 </component>
