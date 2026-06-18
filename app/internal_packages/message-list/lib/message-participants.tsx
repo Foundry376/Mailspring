@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import React from 'react';
 import { localized, Actions, Contact } from 'mailspring-exports';
 
-const { Menu, MenuItem } = require('@electron/remote');
+const { Menu, MenuItem, clipboard } = require('@electron/remote');
 const MAX_COLLAPSED = 5;
 
 interface MessageParticipantsProps {
@@ -74,7 +74,7 @@ export default class MessageParticipants extends React.Component<MessageParticip
         ? new MenuItem({ role: 'copy' })
         : new MenuItem({
             label: `${localized(`Copy`)} "${contact.email}"`,
-            click: () => navigator.clipboard.writeText(contact.email),
+            click: () => clipboard.writeText(contact.email),
           })
     );
     menu.append(
