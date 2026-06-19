@@ -150,11 +150,20 @@ export default class PackageManager {
         d.dispose();
       }
       pkg.disposables = [];
-      AppEnv.reportError(
-        new Error(
-          localized(`Failed to activate plugin %@: %@`, pkg.name, err.message || err.toString())
-        )
+      const message = localized(
+        `Failed to activate plugin %@: %@`,
+        pkg.name,
+        err.message || err.toString()
       );
+      // Only report activation failures for built-in packages. User-installed
+      // third-party plugins can fail for many reasons outside our control
+      // (stale APIs, missing deps, etc.) and reporting them to Sentry creates
+      // noise that we cannot act on.
+      if (pkg.directory.startsWith(this.resourcePath)) {
+        AppEnv.reportError(new Error(message));
+      } else {
+        console.error(message, err);
+      }
     }
   }
 
