@@ -2,6 +2,7 @@ import fs from 'fs';
 import { exec } from 'child_process';
 import { shell } from 'electron';
 import { localized } from './intl';
+import pkg from './utils/package';
 
 const bundleIdentifier = 'com.mailspring.mailspring';
 
@@ -116,7 +117,7 @@ export class DefaultClientHelperLinux implements DCH {
       throw new Error('isRegisteredForURLScheme is async, provide a callback');
     }
     exec(`xdg-mime query default x-scheme-handler/${scheme}`, (err, stdout) =>
-      err ? callback(err) : callback(stdout.trim() === 'Mailspring.desktop')
+      err ? callback(err) : callback(stdout.trim() === pkg.desktopName)
     );
   }
 
@@ -126,7 +127,7 @@ export class DefaultClientHelperLinux implements DCH {
     );
   }
   registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
-    exec(`xdg-mime default Mailspring.desktop x-scheme-handler/${scheme}`, (err: Error | null) =>
+    exec(`xdg-mime default ${pkg.desktopName} x-scheme-handler/${scheme}`, (err: Error | null) =>
       err ? callback(err) : callback(null)
     );
   }

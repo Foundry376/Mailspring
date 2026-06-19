@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import pkg from './utils/package';
 
 class SystemStartServiceBase {
   checkAvailability(): Promise<boolean> {
@@ -147,12 +148,12 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
   }
 
   _launcherPath() {
-    return path.join('/', 'usr', 'share', 'applications', 'Mailspring.desktop');
+    return path.join('/', 'usr', 'share', 'applications', pkg.desktopName);
   }
 
   _shortcutPath() {
     const configDir = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
-    return path.join(configDir, 'autostart', 'Mailspring.desktop');
+    return path.join(configDir, 'autostart', pkg.desktopName);
   }
 }
 
