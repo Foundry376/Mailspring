@@ -222,10 +222,14 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
   };
 
   onCut = (event, editor: Editor, next: () => void) => {
-    this.onCopy(event, editor, next);
+    // Run our clipboard setup without advancing the slate plugin chain.
+    // We must call next() exactly once below — onCopy would call it a second
+    // time if we passed the real next, causing cloneFragment to run twice and
+    // crash with "Cannot read properties of undefined (reading 'firstChild')".
+    this.onCopy(event, editor, () => {});
 
-    // Allow slate to attach it's own data, which it can use to paste nicely
-    // if the paste target is the editor. Note: Slate also cuts the selection.
+    // Advance the chain once so Slate can attach its fragment data and delete
+    // the selected text (the actual "cut" behavior).
     next();
   };
 
