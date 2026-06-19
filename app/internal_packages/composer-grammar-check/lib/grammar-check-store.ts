@@ -101,7 +101,7 @@ class _GrammarCheckStore extends MailspringStore {
   }
 
   markDirty(draftId: string, blockKey: string, blockText: string) {
-    if (!this._enabled || !FeatureUsageStore.isUsable(GRAMMAR_CHECK_FEATURE_ID)) {
+    if (!this._enabled || !FeatureUsageStore.isUsable(GRAMMAR_CHECK_FEATURE_ID) || !IdentityStore.identity()) {
       return;
     }
     let draftDirty = this._dirtyBlocks.get(draftId);
@@ -157,6 +157,9 @@ class _GrammarCheckStore extends MailspringStore {
   // because a newer check is already in-flight and will apply its own results.
   async checkDirtyBlocks(draftId: string): Promise<boolean> {
     if (!this._enabled || !FeatureUsageStore.isUsable(GRAMMAR_CHECK_FEATURE_ID)) {
+      return false;
+    }
+    if (!IdentityStore.identity()) {
       return false;
     }
 
