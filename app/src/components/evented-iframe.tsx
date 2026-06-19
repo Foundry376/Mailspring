@@ -305,7 +305,7 @@ export class EventedIFrame extends React.Component<
     event.preventDefault();
 
     const { shell, ipcRenderer } = require('electron');
-    const { Menu, MenuItem } = require('@electron/remote');
+    const { Menu, MenuItem, clipboard } = require('@electron/remote');
     const menu = new Menu();
 
     // Menu actions for links
@@ -325,9 +325,7 @@ export class EventedIFrame extends React.Component<
           new MenuItem({
             label: localized('Copy Email Address'),
             click() {
-              navigator.clipboard
-                .writeText(href.split('mailto:').pop())
-                .catch((err) => console.error('Failed to copy to clipboard:', err));
+              clipboard.writeText(href.split('mailto:').pop());
             },
           })
         );
@@ -344,9 +342,7 @@ export class EventedIFrame extends React.Component<
           new MenuItem({
             label: localized('Copy Link Address'),
             click() {
-              navigator.clipboard
-                .writeText(href)
-                .catch((err) => console.error('Failed to copy to clipboard:', err));
+              clipboard.writeText(href);
             },
           })
         );
@@ -433,9 +429,7 @@ export class EventedIFrame extends React.Component<
         new MenuItem({
           label: localized('Copy'),
           click() {
-            navigator.clipboard
-              .writeText(text)
-              .catch((err) => console.error('Failed to copy to clipboard:', err));
+            clipboard.writeText(text);
           },
         })
       );

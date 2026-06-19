@@ -325,9 +325,7 @@ export default class ThreadListContextMenu {
         const id = this.threadIds[0];
         const thread = await DatabaseStore.findBy<Thread>(Thread, { id }).limit(1);
         if (!thread) return;
-        navigator.clipboard
-          .writeText(thread.getMailboxPermalink())
-          .catch((err) => console.error('Failed to copy to clipboard:', err));
+        require('@electron/remote').clipboard.writeText(thread.getMailboxPermalink());
       },
     };
   }

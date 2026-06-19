@@ -175,15 +175,13 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     // Warning: Menu is already initialized as Menu.ts!
     const MenuClass = require('@electron/remote').Menu;
     const MenuItem = require('@electron/remote').MenuItem;
+    const clipboard = require('@electron/remote').clipboard;
 
     const menu = new MenuClass();
     menu.append(
       new MenuItem({
         label: `${localized(`Copy`)} ${participant.email}`,
-        click: () =>
-          navigator.clipboard
-            .writeText(participant.email)
-            .catch((err) => console.error('Failed to copy to clipboard:', err)),
+        click: () => clipboard.writeText(participant.email),
       })
     );
     menu.append(
