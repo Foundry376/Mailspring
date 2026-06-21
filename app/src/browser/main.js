@@ -306,6 +306,33 @@ const start = () => {
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch('js-flags', '--harmony');
 
+  // On Linux, Electron may fail to detect the correct password storage backend
+  // on non-GNOME/KDE desktops (e.g. Hyprland, Sway, i3). If the user hasn't
+  // explicitly set --password-store, check if a Secret Service provider is
+  // available on D-Bus and use gnome-libsecret.
+  if (
+    process.platform === 'linux' &&
+    !process.argv.some(arg => arg.startsWith('--password-store'))
+  ) {
+    try {
+      const { execFileSync } = require('child_process');
+      const output = execFileSync('dbus-send', [
+        '--session',
+        '--dest=org.freedesktop.DBus',
+        '--type=method_call',
+        '--print-reply',
+        '/org/freedesktop/DBus',
+        'org.freedesktop.DBus.NameHasOwner',
+        'string:org.freedesktop.secrets',
+      ], { timeout: 2000, encoding: 'utf8' });
+      if (output.includes('boolean true')) {
+        app.commandLine.appendSwitch('password-store', 'gnome-libsecret');
+      }
+    } catch (e) {
+      // D-Bus query failed — let Electron use its default backend
+    }
+  }
+
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);
   const configDirPath = setupConfigDir(options);
