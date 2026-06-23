@@ -44,6 +44,7 @@ export function sharingURLForThread(thread: Thread) {
     return null;
   }
   const identity = IdentityStore.identity();
+  if (!identity) return null;
   return `https://shared.getmailspring.com/thread/${identity.id}/${metadata.key}`;
 }
 
@@ -112,7 +113,9 @@ export const syncThreadToWeb = async (thread: Thread) => {
     }
   }
 
-  const { firstName, lastName, emailAddress } = IdentityStore.identity();
+  const identity = IdentityStore.identity();
+  if (!identity) return;
+  const { firstName, lastName, emailAddress } = identity;
 
   // next, post the JSON for the entire thread
   await MailspringAPIRequest.postStaticAsset({
