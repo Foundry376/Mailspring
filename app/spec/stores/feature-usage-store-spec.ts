@@ -37,9 +37,9 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
     });
 
     it('returns true if no quota is present for the feature', () => {
-      spyOn(AppEnv, 'reportError');
+      spyOn(console, 'warn');
       expect(FeatureUsageStore.isUsable('unsupported')).toBe(true);
-      expect(AppEnv.reportError).toHaveBeenCalled();
+      expect(console.warn).toHaveBeenCalled();
     });
   });
 
