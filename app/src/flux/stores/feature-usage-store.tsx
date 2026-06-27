@@ -157,7 +157,11 @@ class _FeatureUsageStore extends MailspringStore {
 
     const usage = identity.featureUsage || {};
     if (!usage[feature]) {
-      AppEnv.reportError(new Error(`Warning: No usage information available for ${feature}`));
+      // Feature not yet in server identity (expected during new-feature rollout). Do
+      // not report to Sentry — this is a transient state, not an application error.
+      console.warn(
+        `FeatureUsageStore: no usage data for feature "${feature}", defaulting to allowed`
+      );
       return EMPTY_FEATURE_USAGE;
     }
     return usage[feature];
