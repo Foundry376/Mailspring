@@ -679,6 +679,7 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('window-command', (event, command, ...args) => {
       const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) return;
       win.emit(command, ...args);
     });
 
@@ -701,6 +702,7 @@ export default class Application extends EventEmitter {
         return;
       }
       const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) return;
       if (!win[method]) {
         console.error(`Method ${method} does not exist on BrowserWindow!`);
         return;
@@ -864,6 +866,7 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('resize-window', (event, params) => {
       const sourceWindow = BrowserWindow.fromWebContents(event.sender);
+      if (!sourceWindow) return;
       sourceWindow.setSize(params.width, params.height);
     });
 
