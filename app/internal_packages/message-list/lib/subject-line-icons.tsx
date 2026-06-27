@@ -2,6 +2,8 @@ import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 
+const EMAIL_RENDER_MODE_KEY = 'core.reading.emailRenderMode';
+
 interface SubjectLineIconsProps {
   canCollapse: boolean;
   hasCollapsedItems: boolean;
@@ -10,6 +12,72 @@ interface SubjectLineIconsProps {
   onPopIn: () => void;
   onPopOut: () => void;
   onToggleAllExpanded: () => void;
+}
+
+class EmailRenderModeToggle extends React.Component<{}, { mode: string }> {
+  _configDisposable?: { dispose: () => void };
+
+  constructor(props: {}) {
+    super(props);
+    this.state = { mode: this._mode() };
+  }
+
+  componentDidMount() {
+    this._configDisposable = AppEnv.config.onDidChange(EMAIL_RENDER_MODE_KEY, () => {
+      this.setState({ mode: this._mode() });
+    });
+  }
+
+  componentWillUnmount() {
+    if (this._configDisposable) {
+      this._configDisposable.dispose();
+    }
+  }
+
+  _mode = () => AppEnv.config.get(EMAIL_RENDER_MODE_KEY) || 'theme';
+
+  _isDark = () => {
+    const mode = this.state.mode;
+    if (mode === 'dark') return true;
+    if (mode === 'light') return false;
+    return document.body.classList.contains('theme-ui-dark');
+  };
+
+  _onToggle = () => {
+    const nextMode = this._isDark() ? 'light' : 'dark';
+    AppEnv.config.set(EMAIL_RENDER_MODE_KEY, nextMode);
+  };
+
+  render() {
+    const isDark = this._isDark();
+    const title = isDark
+      ? localized('Switch email view to light mode')
+      : localized('Switch email view to dark mode');
+    const imageName = isDark ? 'toolbar-bulb-on.png' : 'toolbar-bulb-off.png';
+
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={title}
+        title={title}
+        onClick={this._onToggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this._onToggle();
+          }
+        }}
+      >
+        <RetinaImg
+          name={imageName}
+          mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 16, height: 16 }}
+          aria-hidden="true"
+        />
+      </div>
+    );
+  }
 }
 
 export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = (props) => (
@@ -50,6 +118,7 @@ export const SubjectLineIcons: React.FunctionComponent<SubjectLineIconsProps> = 
     >
       <RetinaImg name="print.png" mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
     </div>
+    <EmailRenderModeToggle />
     {AppEnv.isThreadWindow() ? (
       <div
         role="button"

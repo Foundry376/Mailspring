@@ -1,8 +1,16 @@
 import MailspringStore from 'mailspring-store';
 
+const EMAIL_RENDER_MODE_KEY = 'core.reading.emailRenderMode';
+
 class EmailFrameStylesStore extends MailspringStore {
   _styles?: string;
   _mutationObserver: MutationObserver;
+  _configDisposable?: { dispose: () => void };
+
+  constructor() {
+    super();
+    this._configDisposable = AppEnv.config.onDidChange(EMAIL_RENDER_MODE_KEY, this._findStyles);
+  }
 
   styles() {
     if (!this._styles) {
@@ -28,8 +36,23 @@ class EmailFrameStylesStore extends MailspringStore {
       this._styles += `\n${(sheet as HTMLElement).innerText}`;
     }
     this._styles = this._styles.replace(/.ignore-in-parent-frame/g, '');
+    this._styles += this._emailRenderModeOverrideStyles();
     this.trigger();
   };
+
+  _emailRenderModeOverrideStyles() {
+    const mode = AppEnv.config.get(EMAIL_RENDER_MODE_KEY) || 'theme';
+    if (mode === 'light') {
+      return '\nbody, img { filter: none !important; }';
+    }
+    if (mode === 'dark') {
+      return (
+        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; color: #111 !important; }' +
+        '\nimg { filter: invert(100%) hue-rotate(180deg) !important; }'
+      );
+    }
+    return '';
+  }
 
   _listenToStyles() {
     const target = document.getElementsByTagName('managed-styles')[0];
@@ -40,6 +63,10 @@ class EmailFrameStylesStore extends MailspringStore {
   _unlistenToStyles() {
     if (this._mutationObserver) {
       this._mutationObserver.disconnect();
+    }
+    if (this._configDisposable) {
+      this._configDisposable.dispose();
+      this._configDisposable = undefined;
     }
   }
 }

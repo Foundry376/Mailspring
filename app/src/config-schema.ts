@@ -174,6 +174,17 @@ export default {
             default: false,
             title: localized('Display conversations in descending chronological order'),
           },
+          emailRenderMode: {
+            type: 'string',
+            default: 'theme',
+            enum: ['theme', 'light', 'dark'],
+            enumLabels: [
+              localized('Match app theme'),
+              localized('Light email mode'),
+              localized('Dark email mode'),
+            ],
+            title: localized('Email body appearance'),
+          },
         },
       },
       composing: {
