@@ -203,9 +203,16 @@ export class MailboxPerspective {
 
   receiveThreadIds(threadIds: Array<Thread | string>) {
     DatabaseStore.modelify<Thread>(Thread, threadIds).then((threads) => {
-      const tasks = TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-        return this.actionsForReceivingThreads(accountThreads, accountId);
-      });
+      // modelify returns undefined for IDs not found in the DB (e.g. thread deleted between
+      // drag start and drop). Filter before passing to tasksForThreadsByAccountId, which
+      // throws on non-Thread inputs.
+      const validThreads = threads.filter(Boolean) as Thread[];
+      const tasks = TaskFactory.tasksForThreadsByAccountId(
+        validThreads,
+        (accountThreads, accountId) => {
+          return this.actionsForReceivingThreads(accountThreads, accountId);
+        }
+      );
       if (tasks.length > 0) {
         Actions.queueTasks(tasks);
       }
