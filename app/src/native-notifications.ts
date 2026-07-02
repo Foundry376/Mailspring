@@ -8,6 +8,7 @@ import pkg from './utils/package';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { XDG_DATA_PATHS } from './utils/xdg-paths';
 
 const platform = process.platform;
 const DEFAULT_ICON = path.resolve(
@@ -143,13 +144,9 @@ class NativeNotifications {
     if (platform !== 'linux') {
       return undefined;
     }
-    const desktopBaseDirs = [
-      os.homedir() + '/.local/share/applications/',
-      '/usr/share/applications/',
-    ];
-    // check the applications directories, the user directory has a higher priority
-    for (const baseDir of desktopBaseDirs) {
-      const filePath = path.join(baseDir, pkg.desktopName);
+
+    const filePaths = XDG_DATA_PATHS.map((dir) => path.join(dir, 'applications', pkg.desktopName));
+    for (const filePath of filePaths) {
       const desktopIcon = this.readIconFromDesktopFile(filePath);
       if (!desktopIcon) {
         continue;

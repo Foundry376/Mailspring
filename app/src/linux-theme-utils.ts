@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import ini from 'ini';
+import { XDG_DATA_PATHS } from './utils/xdg-paths';
 
 const Context = {
   ACTIONS: 'actions',
@@ -19,14 +20,7 @@ const Context = {
   STATUS: 'status',
 };
 
-const HOME = os.homedir();
-
-const ICON_THEME_PATHS = [
-  path.join(HOME, '.local/share/icons'),
-  path.join(HOME, '.icons'),
-  '/usr/share/icons',
-  '/usr/local/share/icons',
-];
+const ICON_THEME_PATHS = XDG_DATA_PATHS.map((dataPath) => path.join(dataPath, 'icons'));
 
 const DESKTOP = process.env.XDG_CURRENT_DESKTOP;
 

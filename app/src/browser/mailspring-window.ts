@@ -4,6 +4,7 @@ import fs from 'fs';
 import url from 'url';
 import { EventEmitter } from 'events';
 import { isWaylandSession } from './is-wayland';
+import { XDG_DATA_PATHS, getFirstExistingPath } from '../utils/xdg-paths';
 
 let WindowIconPath = null;
 let idNum = 0;
@@ -126,8 +127,11 @@ export default class MailspringWindow extends EventEmitter {
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if (process.platform === 'linux') {
       if (!WindowIconPath) {
-        WindowIconPath = path.resolve('/usr', 'share', 'pixmaps', 'mailspring.png');
-        if (!fs.existsSync(WindowIconPath)) {
+        WindowIconPath = getFirstExistingPath(
+          XDG_DATA_PATHS,
+          path.join('pixmaps', 'mailspring.png')
+        );
+        if (!WindowIconPath) {
           WindowIconPath = path.resolve(this.resourcePath, 'static', 'images', 'mailspring.png');
         }
       }
