@@ -82,6 +82,13 @@ export const LocalizedErrorStrings = {
   ),
 };
 
+// LocalizedErrorStrings codes that, despite being "classified" by mailsync,
+// can also indicate a genuine Mailspring defect rather than a server/user
+// condition - a malformed-response parser regression, or corrupted local
+// identity state. These should keep reaching error reporting instead of
+// being treated as expected, user-actionable failures.
+const AMBIGUOUS_MAILSYNC_ERRORS = new Set(['ErrorParse', 'ErrorIdentityMissingFields']);
+
 export class MailsyncProcess extends EventEmitter {
   _proc: ChildProcess = null;
   _win = null;
@@ -272,11 +279,11 @@ export class MailsyncProcess extends EventEmitter {
             resolve({ response, buffer });
           } else {
             // Mailsync executed fine, and this is an mailsync error in JSON format
-            const isKnownMailsyncError = Object.prototype.hasOwnProperty.call(
+            const isRecognizedMailsyncError = Object.prototype.hasOwnProperty.call(
               LocalizedErrorStrings,
               response.error
             );
-            let msg = LocalizedErrorStrings[response.error] || response.error;
+            let msg = isRecognizedMailsyncError ? LocalizedErrorStrings[response.error] : response.error;
             if (response.error_service) {
               msg = `${msg} (${response.error_service.toUpperCase()})`;
             }
@@ -285,10 +292,13 @@ export class MailsyncProcess extends EventEmitter {
             // Errors mailsync explicitly classified (bad credentials, unreachable
             // server, TLS/certificate problems, provider-side rate limits, etc.)
             // describe the mail server or the user's settings, not a bug in
-            // Mailspring. Callers that report unexpected errors to Sentry (e.g.
-            // oauth-signin-page's error handler) check this flag to avoid
-            // flooding error tracking with expected, user-actionable failures.
-            (error as any).isUserError = isKnownMailsyncError;
+            // Mailspring - except for the ambiguous codes above, which we still
+            // want reported if they occur. Callers that report unexpected errors
+            // to Sentry (e.g. oauth-signin-page's error handler) check this flag
+            // to avoid flooding error tracking with expected, user-actionable
+            // failures.
+            (error as any).isUserError =
+              isRecognizedMailsyncError && !AMBIGUOUS_MAILSYNC_ERRORS.has(response.error);
             return reject(error);
           }
         } catch (err) {
