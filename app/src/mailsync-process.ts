@@ -283,7 +283,9 @@ export class MailsyncProcess extends EventEmitter {
               LocalizedErrorStrings,
               response.error
             );
-            let msg = isRecognizedMailsyncError ? LocalizedErrorStrings[response.error] : response.error;
+            let msg = isRecognizedMailsyncError
+              ? LocalizedErrorStrings[response.error]
+              : response.error;
             if (response.error_service) {
               msg = `${msg} (${response.error_service.toUpperCase()})`;
             }
