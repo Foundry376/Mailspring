@@ -166,6 +166,15 @@ class PreferencesAccountDetails extends Component<
     AppEnv.mailsyncBridge.resetCacheForAccount(this.state.account);
   };
 
+  _onAddSharedMailbox = () => {
+    // Intentionally omits account secrets — the shared mailbox flow runs a fresh
+    // OAuth sign-in and only needs the provider to route to the right settings page.
+    ipcRenderer.send('command', 'application:add-account', {
+      existingAccountJSON: this.state.account.toJSON(),
+      o365SharedMailbox: true,
+    });
+  };
+
   _onManageContacts = () => {
     ipcRenderer.send('command', 'application:show-contacts', {});
   };
@@ -355,13 +364,20 @@ class PreferencesAccountDetails extends Component<
           </div>
         </div>
         <h6>{localized('Account Settings')}</h6>
-        <div className="btn" onClick={this._onManageContacts}>
-          {localized('Manage Contacts')}
-        </div>
-        <div className="btn" style={{ marginLeft: 6 }} onClick={this._onReconnect}>
-          {account.provider === 'gmail'
-            ? localized('Re-authenticate...')
-            : localized('Update Connection Settings...')}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div className="btn" onClick={this._onManageContacts}>
+            {localized('Manage Contacts')}
+          </div>
+          <div className="btn" onClick={this._onReconnect}>
+            {account.provider === 'gmail'
+              ? localized('Re-authenticate...')
+              : localized('Update Connection Settings...')}
+          </div>
+          {account.provider === 'office365' && (
+            <div className="btn" onClick={this._onAddSharedMailbox}>
+              {localized('Add Shared Mailbox...')}
+            </div>
+          )}
         </div>
         <h6>{localized('Local Data')}</h6>
         <div className="btn" onClick={this._onResetCache}>

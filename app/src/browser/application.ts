@@ -401,14 +401,14 @@ export default class Application extends EventEmitter {
       }
     });
 
-    this.on('application:add-account', ({ existingAccountJSON } = {}) => {
+    this.on('application:add-account', ({ existingAccountJSON, o365SharedMailbox } = {}) => {
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
       if (onboarding) {
         onboarding.show();
         onboarding.focus();
       } else {
         this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
-          windowProps: { addingAccount: true, existingAccountJSON },
+          windowProps: { addingAccount: true, existingAccountJSON, o365SharedMailbox },
           title: localized('Add Account'),
         });
       }

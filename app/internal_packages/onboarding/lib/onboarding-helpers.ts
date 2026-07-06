@@ -256,8 +256,11 @@ export async function buildGmailAccountFromAuthResponse(code: string) {
   return account;
 }
 
-export async function buildO365AccountFromAuthResponse(code: string) {
-  return buildMicrosoftAccountFromAuthResponse(code, 'office365');
+export async function buildO365AccountFromAuthResponse(
+  code: string,
+  sharedMailboxAddress?: string
+) {
+  return buildMicrosoftAccountFromAuthResponse(code, 'office365', sharedMailboxAddress);
 }
 
 export async function buildOutlookAccountFromAuthResponse(code: string) {
@@ -266,7 +269,8 @@ export async function buildOutlookAccountFromAuthResponse(code: string) {
 
 export async function buildMicrosoftAccountFromAuthResponse(
   code: string,
-  provider: 'outlook' | 'office365'
+  provider: 'outlook' | 'office365',
+  sharedMailboxAddress?: string
 ) {
   /// Exchange code for an access token
   const { access_token, refresh_token, id_token } = await fetchPostWithFormBody<TokenResponse>(
@@ -323,15 +327,33 @@ export async function buildMicrosoftAccountFromAuthResponse(
     throw err;
   }
 
+  // A shared mailbox has no credentials of its own — it is accessed with the signed-in
+  // user's OAuth refresh token. IMAP accepts the shared mailbox as the XOAUTH2 identity
+  // (requires "Full Access"), but SMTP AUTH only accepts the signed-in user, who then
+  // submits mail as the shared address (requires "Send As"). So the shared address
+  // becomes the account email / IMAP username, while smtp_username stays the owner.
+  // smtp_verification: 'login' keeps the account-add test from sending a test email:
+  // reading a shared mailbox must not require send rights, and the test email would be
+  // visible to every member of the mailbox. create_helper_folders: false keeps the
+  // sync engine from provisioning "Mailspring/Snoozed" in the shared mailbox, which
+  // would also be visible to every member (snoozing is unavailable in that account).
+  const settings: any = {
+    refresh_client_id: O365_CLIENT_ID,
+    refresh_token: refresh_token,
+  };
+  if (sharedMailboxAddress) {
+    settings.smtp_username = emailAddress;
+    settings.smtp_verification = 'login';
+    settings.create_helper_folders = false;
+    emailAddress = sharedMailboxAddress;
+  }
+
   const account = await expandAccountWithCommonSettings(
     new Account({
       name: me.displayName,
       emailAddress: emailAddress,
       provider: provider,
-      settings: {
-        refresh_client_id: O365_CLIENT_ID,
-        refresh_token: refresh_token,
-      },
+      settings,
     })
   );
 

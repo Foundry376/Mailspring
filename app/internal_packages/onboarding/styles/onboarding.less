@@ -307,6 +307,22 @@
     padding-top: 20px;
     margin: auto;
   }
+  .shared-mailbox-confirmation {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 7px 16px;
+    background: rgba(0, 0, 0, 0.035);
+    border: 1px solid #d8d8d8;
+    border-radius: 15px;
+    color: #555;
+    strong {
+      font-weight: 500;
+      color: #333;
+    }
+    a {
+      margin-left: 10px;
+    }
+  }
   .twocol {
     display: flex;
     flex-direction: row;
@@ -368,6 +384,15 @@
 .page.account-setup.AccountOnboardingSuccess {
   .logo-container {
     padding-top: 160px;
+  }
+}
+
+// The Office 365 pages stack more content (the IMAP/SMTP requirements note, the
+// shared mailbox confirmation / form) than the other OAuth pages — with the full
+// 160px the "Page didn't open?" fallback gets pushed past the fixed window height.
+.page.account-setup.office {
+  .logo-container {
+    padding-top: 70px;
   }
 }
 
