@@ -209,6 +209,8 @@ export type MenuHelpers = typeof import('../menu-helpers');
 export const MenuHelpers: MenuHelpers;
 export type EmlUtils = typeof import('../services/eml-utils');
 export const EmlUtils: EmlUtils;
+export type MboxUtils = typeof import('../services/mbox-utils');
+export const MboxUtils: MboxUtils;
 export type VirtualDOMUtils = typeof import('../virtual-dom-utils').default;
 export const VirtualDOMUtils: VirtualDOMUtils;
 export type Spellchecker = typeof import('../spellchecker').default;

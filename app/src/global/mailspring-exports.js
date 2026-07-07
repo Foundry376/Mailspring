@@ -195,6 +195,7 @@ lazyLoad(`MessageUtils`, 'flux/models/message-utils');
 
 // Services
 lazyLoad(`EmlUtils`, 'services/eml-utils');
+lazyLoad(`MboxUtils`, 'services/mbox-utils');
 lazyLoad(`KeyManager`, 'key-manager');
 lazyLoad(`SoundRegistry`, 'registries/sound-registry');
 lazyLoad(`MailRulesTemplates`, 'mail-rules-templates');

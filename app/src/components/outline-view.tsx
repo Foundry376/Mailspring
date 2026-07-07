@@ -27,6 +27,7 @@ export interface IOutlineViewItem {
   onDelete?: (...args: any[]) => any;
   onEdited?: (...args: any[]) => any;
   onExport?: (...args: any[]) => any;
+  onExportMbox?: (...args: any[]) => any;
   onCreateChild?: (...args: any[]) => any;
 }
 

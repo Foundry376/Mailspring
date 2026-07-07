@@ -175,6 +175,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
       this.props.item.onDelete != null ||
       this.props.item.onEdited != null ||
       this.props.item.onExport != null ||
+      this.props.item.onExportMbox != null ||
       this.props.item.onCreateChild != null
     );
   };
@@ -305,6 +306,15 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
         new MenuItem({
           label: localized(`Export folder as .eml files...`),
           click: () => this._runCallback('onExport'),
+        })
+      );
+    }
+
+    if (this.props.item.onExportMbox) {
+      menu.append(
+        new MenuItem({
+          label: localized(`Export folder as .mbox file...`),
+          click: () => this._runCallback('onExportMbox'),
         })
       );
     }
