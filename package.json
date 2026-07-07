@@ -17,7 +17,7 @@
     "@types/react-dom": "^17.0.0"
   },
   "dependencies": {
-    "@electron/packager": "18.3.6",
+    "@electron/packager": "^20.0.1",
     "@sentry/cli": "^2.43.0",
     "@types/better-sqlite3": "^7.6.3",
     "@types/debug": "^4.1.2",
