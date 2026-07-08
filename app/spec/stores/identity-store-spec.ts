@@ -104,5 +104,15 @@ describe('IdentityStore', function identityStoreSpec() {
       expect(AppEnv.reportError).toHaveBeenCalled();
       expect(IdentityStore.saveIdentity).not.toHaveBeenCalled();
     });
+
+    it('resolves with the current identity and does not report an error if the request rejects', async () => {
+      spyOn(MailspringAPIRequest, 'makeRequest').andCallFake(() => {
+        return Promise.reject(new Error('Failed to fetch'));
+      });
+      const result = await IdentityStore.fetchIdentity();
+      expect(result).toEqual(this.identityJSON);
+      expect(AppEnv.reportError).not.toHaveBeenCalled();
+      expect(IdentityStore.saveIdentity).not.toHaveBeenCalled();
+    });
   });
 });
