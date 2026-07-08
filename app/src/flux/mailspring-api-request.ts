@@ -138,7 +138,7 @@ export async function makeRequest({
     throw error;
   }
   try {
-    return resp.json();
+    return await resp.json();
   } catch (invalidJSONError) {
     // We need to wrap this generic JSON error into our APIError class to attach the request
     // description and also to prevent it from being reported to Sentry 7,000 times a month.

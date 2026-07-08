@@ -228,11 +228,20 @@ class _IdentityStore extends MailspringStore {
       return null;
     }
 
-    const json = await makeRequest({
-      server: 'identity',
-      path: '/api/me',
-      method: 'GET',
-    });
+    let json;
+    try {
+      json = await makeRequest({
+        server: 'identity',
+        path: '/api/me',
+        method: 'GET',
+      });
+    } catch (err) {
+      // Network failures here are routine (offline, timeouts, dropped connections)
+      // and will be retried by the next poll - don't let them reject and become
+      // unhandled promise rejections that get reported to Sentry.
+      console.warn('IdentityStore.fetchIdentity failed:', err);
+      return this._identity;
+    }
 
     if (!json || !json.id) {
       AppEnv.reportError(new Error('/api/me returned invalid json'), json || {});
