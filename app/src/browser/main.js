@@ -5,6 +5,25 @@ const util = require('util');
 
 const fs = require('fs');
 
+// On Linux, writes to process.stdout/stderr use a synchronous fast path when
+// the fd is a pipe. If the reader end of that pipe has gone away (eg. the
+// terminal or launcher that started Mailspring has exited), the write fails
+// with EPIPE and — because there's no 'error' listener on the stream — Node
+// throws it synchronously instead of emitting it. When this happens inside
+// our `uncaughtException` handler (which itself logs via console.error), the
+// thrown EPIPE re-enters the same handler, producing an infinite crash loop.
+// Swallowing EPIPE here lets writes to a dead stdout/stderr silently no-op.
+for (const stream of [process.stdout, process.stderr]) {
+  if (stream) {
+    stream.on('error', error => {
+      if (error && error.code === 'EPIPE') {
+        return;
+      }
+      throw error;
+    });
+  }
+}
+
 console.inspect = function consoleInspect(val) {
   console.log(util.inspect(val, true, 7, true));
 };
