@@ -102,6 +102,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         try {
           this.setState({
             icsEvent: CalendarUtils.parseICSString(calEvent.ics).event,
+            icsOriginalData: calEvent.ics,
           });
         } catch (e) {
           console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
@@ -277,6 +278,24 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         localized(
           "Sorry, this event does not have an organizer or the organizer's address is not a valid email address: %@",
           icsEvent.organizer || '(none)'
+        )
+      );
+      return;
+    }
+
+    // Guard against stale/mismatched ICS data: the attendee list in `icsOriginalData`
+    // (the emailed .ics attachment) can differ from the one used to decide whether to
+    // show these buttons if a synced calendar Event later replaced `icsEvent`. If we
+    // can't find ourselves as an attendee in the data we're actually about to send,
+    // bail out with a clear message instead of crashing inside EventRSVPTask.
+    const me = CalendarUtils.selfParticipant(
+      CalendarUtils.parseICSString(icsOriginalData).event,
+      this.props.message.accountId
+    );
+    if (!me) {
+      AppEnv.showErrorDialog(
+        localized(
+          "Sorry, we couldn't find your email address in this event's attendee list, so an RSVP reply could not be sent."
         )
       );
       return;
