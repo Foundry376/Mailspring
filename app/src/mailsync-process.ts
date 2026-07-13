@@ -249,7 +249,7 @@ export class MailsyncProcess extends EventEmitter {
         reject(err);
       });
 
-      this._proc.on('close', (code) => {
+      this._proc.on('close', (code, signal) => {
         try {
           const lastLine = buffer.toString('utf-8').split('\n').pop();
 
@@ -261,11 +261,7 @@ export class MailsyncProcess extends EventEmitter {
             // and may contain system errors (shared library issues, etc). Include this
             // in the logs so users can fix on their own or report detailed bugs.
             const rawLog = this._stripSecrets(buffer.toString());
-            const error = new Error(
-              `${localized(`An unknown error has occurred`)} mailsync: ${code}. ${rawLog}`
-            );
-            (error as any).rawLog = rawLog;
-            return reject(error);
+            return reject(this._buildCrashError(code, signal, rawLog));
           }
 
           if (code === 0) {
@@ -282,14 +278,33 @@ export class MailsyncProcess extends EventEmitter {
           }
         } catch (err) {
           const rawLog = this._stripSecrets(buffer.toString());
-          const error = new Error(
-            `${localized(`An unknown error has occurred`)} (mailsync: ${code})`
-          );
-          (error as any).rawLog = rawLog;
-          return reject(error);
+          return reject(this._buildCrashError(code, signal, rawLog));
         }
       });
     });
+  }
+
+  // Called when the mailsync child process exits without producing a well-formed
+  // JSON response - either it crashed outright, or was terminated by a signal
+  // (in which case `code` is null and the message would otherwise be a useless
+  // "mailsync: null"). One common cause is an uncaught C++ exception while making
+  // an HTTPS request (e.g. refreshing an OAuth token): mailsync logs a
+  // `"offline":true,"retryable":true` marker for these before crashing, since
+  // they're almost always a local network/TLS interception issue rather than a
+  // bug we can act on. Detect that signature and surface a friendly, localized,
+  // network-flagged error instead so callers can avoid reporting it to Sentry.
+  _buildCrashError(code: number, signal: string, rawLog: string) {
+    const isNetworkFailure = /"offline"\s*:\s*true/.test(rawLog);
+    const error = isNetworkFailure
+      ? new Error(LocalizedErrorStrings.ErrorConnection)
+      : new Error(
+          `${localized(
+            `An unknown error has occurred`
+          )} mailsync: ${code} (signal: ${signal}). ${rawLog}`
+        );
+    (error as any).rawLog = rawLog;
+    (error as any).isNetworkError = isNetworkFailure;
+    return error;
   }
 
   kill() {
