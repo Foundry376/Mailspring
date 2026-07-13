@@ -307,9 +307,7 @@ export class MailsyncProcess extends EventEmitter {
     const error = isNetworkFailure
       ? new Error(LocalizedErrorStrings.ErrorConnection)
       : new Error(
-          `${localized(
-            `An unknown error has occurred`
-          )} mailsync: ${exitDescription}. ${rawLog}`
+          `${localized(`An unknown error has occurred`)} mailsync: ${exitDescription}. ${rawLog}`
         );
     (error as any).rawLog = rawLog;
     (error as any).isNetworkError = isNetworkFailure;
