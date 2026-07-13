@@ -296,7 +296,12 @@ export class MailsyncProcess extends EventEmitter {
   // requests and shouldn't have unrelated crashes reclassified this way - and
   // surface a friendly, localized, network-flagged error so callers can avoid
   // reporting it to Sentry.
-  _buildCrashError(mode: string, code: number | null, signal: NodeJS.Signals | null, rawLog: string) {
+  _buildCrashError(
+    mode: string,
+    code: number | null,
+    signal: NodeJS.Signals | null,
+    rawLog: string
+  ) {
     const isNetworkFailure = mode === 'test' && /"offline"\s*:\s*true/.test(rawLog);
     const exitDescription = signal ? `signal ${signal}` : `${code}`;
     const error = isNetworkFailure
