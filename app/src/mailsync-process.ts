@@ -333,9 +333,17 @@ export class MailsyncProcess extends EventEmitter {
         }
       });
     }
+    // Note: we intentionally do not re-emit this as an 'error' event on `this`.
+    // Nothing in the codebase attaches an 'error' listener to a MailsyncProcess
+    // instance, and Node's EventEmitter throws synchronously when an 'error'
+    // event has no listeners. That throw happened inside this same 'error'
+    // callback on `_proc`, which aborted the remaining `_proc.on('error', ...)`
+    // listener below (the one that actually cleans up and reports failure via
+    // 'close') before it could run — so a transient spawn failure (e.g. EIO)
+    // both crashed the app and prevented MailsyncBridge from ever marking the
+    // account as errored or retrying.
     this._proc.on('error', (err: Error) => {
       console.log(`Sync worker exited with ${err}`);
-      this.emit('error', err);
     });
 
     let cleanedUp = false;
