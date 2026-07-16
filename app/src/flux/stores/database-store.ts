@@ -486,6 +486,10 @@ class DatabaseStore extends MailspringStore {
   // Modelify is efficient and uses a single database query. It resolves Immediately
   // if no query is necessary.
   //
+  // IDs that are not found in the database (e.g. threads deleted between when an
+  // ID was obtained and when modelify is called) are silently omitted from the
+  // result. The result array may therefore be shorter than the input array.
+  //
   // - \`class\` The {Model} class desired.
   // - 'arr' An {Array} with a mix of string model IDs and/or models.
   //
