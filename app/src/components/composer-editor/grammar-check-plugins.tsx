@@ -613,10 +613,13 @@ const plugins: ComposerEditorPlugin[] = [
         const draft = (editor as any).props?.propsForPlugins?.draft ?? null;
         if (draft && pendingApplyByDraft.has(draft.headerMessageId)) {
           pendingApplyByDraft.delete(draft.headerMessageId);
-          // Defer to a microtask so this runs after slate-react's own
-          // compositionend reconciliation for this event has fully settled,
-          // rather than in the same synchronous dispatch.
-          queueMicrotask(() => {
+          // Defer to the next animation frame — slate-react's own
+          // compositionend DOM/model reconciliation is itself scheduled via
+          // requestAnimationFrame, and a microtask would still run before
+          // that, i.e. before reconciliation actually settles. next() above
+          // registers slate-react's rAF first, so ours runs after it within
+          // the same frame.
+          requestAnimationFrame(() => {
             try {
               applyGrammarDecorations(editor as any, draft.headerMessageId);
             } catch (err) {
