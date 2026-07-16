@@ -102,6 +102,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         try {
           this.setState({
             icsEvent: CalendarUtils.parseICSString(calEvent.ics).event,
+            icsOriginalData: calEvent.ics,
           });
         } catch (e) {
           console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
@@ -282,17 +283,32 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       return;
     }
 
-    this.setState({ inflight: status });
-
-    Actions.queueTask(
-      EventRSVPTask.forReplying({
+    // The attendee list in `icsOriginalData` (the emailed .ics attachment) can differ
+    // from the one used to decide whether to show these buttons if a synced calendar
+    // Event later replaced `icsEvent`. EventRSVPTask.forReplying throws if it can't
+    // find us as an attendee in the data it's actually replying with; catch that here
+    // instead of letting it crash the click handler.
+    let task: EventRSVPTask;
+    try {
+      task = EventRSVPTask.forReplying({
         accountId: this.props.message.accountId,
         messageId: this.props.message.id,
         icsOriginalData,
         icsRSVPStatus: status,
         to: organizerEmail,
-      })
-    );
+      });
+    } catch (e) {
+      console.warn(`EventHeader: Could not build RSVP reply: ${e.message}`);
+      AppEnv.showErrorDialog(
+        localized(
+          "Sorry, we couldn't find your email address in this event's attendee list, so an RSVP reply could not be sent."
+        )
+      );
+      return;
+    }
+
+    this.setState({ inflight: status });
+    Actions.queueTask(task);
   };
 }
 

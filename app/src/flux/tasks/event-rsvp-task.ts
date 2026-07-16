@@ -57,6 +57,11 @@ export class EventRSVPTask extends Task {
   }) {
     const { event, root } = CalendarUtils.parseICSString(icsOriginalData);
     const me = CalendarUtils.selfParticipant(event, accountId);
+    if (!me) {
+      throw new Error(
+        `EventRSVPTask.forReplying: could not find an attendee matching account ${accountId} in this event's ICS data.`
+      );
+    }
 
     // Update the replying attendee's participation status
     me.component.setParameter('partstat', icsRSVPStatus);
