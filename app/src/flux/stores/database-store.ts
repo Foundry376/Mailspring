@@ -517,7 +517,9 @@ class DatabaseStore extends MailspringStore {
           modelsByString[model.id] = model;
         }
         return Promise.resolve(
-          arr.map((item) => (item instanceof klass ? item : modelsByString[item as any]))
+          arr
+            .map((item) => (item instanceof klass ? item : modelsByString[item as any]))
+            .filter(Boolean)
         ) as any;
       });
   }

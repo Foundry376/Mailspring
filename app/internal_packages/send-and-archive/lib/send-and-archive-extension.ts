@@ -15,7 +15,7 @@ export function sendActions() {
 
         if (!draft.threadId) return;
 
-        const threads = (await DatabaseStore.modelify(Thread, [draft.threadId])).filter(Boolean);
+        const threads = await DatabaseStore.modelify(Thread, [draft.threadId]);
         const tasks = TaskFactory.tasksForArchiving({
           source: 'Send and Archive',
           threads: threads,
