@@ -125,7 +125,15 @@ module.exports = ErrorLogger = (function () {
     } else {
       this._notifyExtensions('reportError', error, extra);
     }
-    console.error(error, extra);
+    // console.error can itself throw (eg. EPIPE writing to a closed
+    // stdout/stderr pipe on Linux). Since reportError is called from our
+    // top-level uncaughtException handler, an uncaught throw here would
+    // re-enter that same handler and loop forever. Never let this fail.
+    try {
+      console.error(error, extra);
+    } catch (loggingError) {
+      // ignore
+    }
   };
 
   /////////////////////////////////////////////////////////////////////
