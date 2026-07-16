@@ -89,15 +89,16 @@ class _IdentityStore extends MailspringStore {
 
   _fetchAndPollRemoteIdentity() {
     if (!AppEnv.isMainWindow()) return;
-    setTimeout(() => {
-      this.fetchIdentity();
-    }, 1000);
-    setInterval(
-      () => {
-        this.fetchIdentity();
-      },
-      1000 * 60 * 10
-    ); // 10 minutes
+    const poll = () => {
+      // fetchIdentity can still reject for reasons other than the network request
+      // itself (eg saveIdentity's keychain/config writes) - catch here too so a
+      // background poll never produces an unhandled promise rejection.
+      this.fetchIdentity().catch((err) => {
+        console.warn('IdentityStore: background identity poll failed:', err);
+      });
+    };
+    setTimeout(poll, 1000);
+    setInterval(poll, 1000 * 60 * 10); // 10 minutes
   }
 
   async saveIdentity(identity: IIdentity | null) {
@@ -221,18 +222,35 @@ class _IdentityStore extends MailspringStore {
     }
   }
 
-  fetchIdentitySoon = debounce(() => this.fetchIdentity(), 5000, true);
+  fetchIdentitySoon = debounce(
+    () => {
+      this.fetchIdentity().catch((err) => {
+        console.warn('IdentityStore: fetchIdentitySoon failed:', err);
+      });
+    },
+    5000,
+    true
+  );
 
   async fetchIdentity() {
     if (!this._identity || !this._identity.token) {
       return null;
     }
 
-    const json = await makeRequest({
-      server: 'identity',
-      path: '/api/me',
-      method: 'GET',
-    });
+    let json;
+    try {
+      json = await makeRequest({
+        server: 'identity',
+        path: '/api/me',
+        method: 'GET',
+      });
+    } catch (err) {
+      // Network failures here are routine (offline, timeouts, dropped connections)
+      // and will be retried by the next poll - don't let them reject and become
+      // unhandled promise rejections that get reported to Sentry.
+      console.warn('IdentityStore.fetchIdentity failed:', err);
+      return this._identity;
+    }
 
     if (!json || !json.id) {
       AppEnv.reportError(new Error('/api/me returned invalid json'), json || {});
