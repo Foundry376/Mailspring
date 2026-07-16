@@ -47,6 +47,7 @@ export function clearGrammarCheckStore() {
 export function cleanupDraft(draftId: string) {
   previousDocumentByDraft.delete(draftId);
   latestEditorByDraft.delete(draftId);
+  pendingApplyByDraft.delete(draftId);
   const entry = debounceTimers.get(draftId);
   if (entry) {
     clearTimeout(entry.timer);
@@ -84,6 +85,15 @@ function _scheduleCheck(draftId: string, editor: Editor, delayMs: number, start 
     if (!grammarCheckStore) return;
     grammarCheckStore.checkDirtyBlocks(draftId).then((completed) => {
       if (!completed) return; // superseded by a newer check — it will apply its own decorations
+      if (composingWeakmap.get(editor)) {
+        // The user is mid-composition (e.g. composing an accented character via a
+        // dead key/compose sequence). Applying decorations now would change the
+        // document's text-node structure while Slate's DOM reconciliation is still
+        // tracking the live, uncommitted composition — that mismatch is what causes
+        // `Node.assertPath` to crash on a stale key. Defer until composition ends.
+        pendingApplyByDraft.add(draftId);
+        return;
+      }
       try {
         applyGrammarDecorations(editor, draftId);
       } catch (err) {
@@ -118,6 +128,9 @@ const composingWeakmap = new WeakMap<object, number>();
 const previousDocumentByDraft = new Map<string, any>();
 const debounceTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; start: number }>();
 const latestEditorByDraft = new Map<string, Editor>();
+// Drafts whose decorations finished computing while composition was in progress —
+// applied once composition ends (see onCompositionEnd below).
+const pendingApplyByDraft = new Set<string>();
 
 // --- Category to underline color mapping ---
 function underlineColorForCategory(category: string): string {
@@ -592,7 +605,20 @@ const plugins: ComposerEditorPlugin[] = [
       next();
     },
     onCompositionEnd: (event, editor, next) => {
-      composingWeakmap.set(editor, Math.max(0, (composingWeakmap.get(editor) || 0) - 1));
+      const remaining = Math.max(0, (composingWeakmap.get(editor) || 0) - 1);
+      composingWeakmap.set(editor, remaining);
+
+      if (remaining === 0) {
+        const draft = (editor as any).props?.propsForPlugins?.draft ?? null;
+        if (draft && pendingApplyByDraft.has(draft.headerMessageId)) {
+          pendingApplyByDraft.delete(draft.headerMessageId);
+          try {
+            applyGrammarDecorations(editor as any, draft.headerMessageId);
+          } catch (err) {
+            console.warn('Grammar check: failed to apply decorations', err);
+          }
+        }
+      }
       next();
     },
   },
