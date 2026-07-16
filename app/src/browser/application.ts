@@ -117,6 +117,16 @@ export default class Application extends EventEmitter {
     const config = new Config();
     this.config = config;
     this.configPersistenceManager = new ConfigPersistenceManager({ configDirPath, resourcePath });
+
+    // If the user's config.json could not be read (eg: corrupted / truncated on disk)
+    // and they chose to quit from the error dialog, ConfigPersistenceManager has
+    // already called app.quit() and left `settings` empty. app.quit() does not halt
+    // synchronous execution, so without this check we'd continue on to config.load(),
+    // which throws because there are no settings to load, reporting a confusing
+    // "this.settings is empty" error on our way out the door. Stop here instead.
+    if (this.configPersistenceManager.userWantsToPreserveErrors) {
+      return;
+    }
     config.load();
 
     this.configMigrator = new ConfigMigrator(this.config);
