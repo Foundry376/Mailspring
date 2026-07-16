@@ -125,6 +125,17 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
           });
         });
       }));
+
+    describe('when the input contains IDs not present in the database', () =>
+      it('omits missing entries rather than returning undefined', () => {
+        const input = ['local-A', 'does-not-exist', 'local-C'];
+        const expectedOutput = [this.models[0], this.models[2]];
+        return waitsForPromise(() => {
+          return DatabaseStore.modelify(Thread, input).then((output) => {
+            expect(output).toEqual(expectedOutput);
+          });
+        });
+      }));
   });
 
   describe('count', () => {
