@@ -607,19 +607,24 @@ const plugins: ComposerEditorPlugin[] = [
     onCompositionEnd: (event, editor, next) => {
       const remaining = Math.max(0, (composingWeakmap.get(editor) || 0) - 1);
       composingWeakmap.set(editor, remaining);
+      next();
 
       if (remaining === 0) {
         const draft = (editor as any).props?.propsForPlugins?.draft ?? null;
         if (draft && pendingApplyByDraft.has(draft.headerMessageId)) {
           pendingApplyByDraft.delete(draft.headerMessageId);
-          try {
-            applyGrammarDecorations(editor as any, draft.headerMessageId);
-          } catch (err) {
-            console.warn('Grammar check: failed to apply decorations', err);
-          }
+          // Defer to a microtask so this runs after slate-react's own
+          // compositionend reconciliation for this event has fully settled,
+          // rather than in the same synchronous dispatch.
+          queueMicrotask(() => {
+            try {
+              applyGrammarDecorations(editor as any, draft.headerMessageId);
+            } catch (err) {
+              console.warn('Grammar check: failed to apply decorations', err);
+            }
+          });
         }
       }
-      next();
     },
   },
 ];
