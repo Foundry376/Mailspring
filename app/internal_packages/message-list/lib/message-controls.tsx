@@ -151,6 +151,17 @@ export default class MessageControls extends React.Component<MessageControlsProp
     });
     Actions.queueTask(task);
     await TaskQueue.waitForPerformRemote(task);
+
+    // The task can reach "complete" status even when it failed remotely (eg.
+    // the message could not be fetched from the server), in which case the
+    // file is never written. Verify it exists before trying to display it.
+    if (!require('fs').existsSync(filepath)) {
+      AppEnv.showErrorDialog(
+        localized('Could not retrieve the original message. Please try again.')
+      );
+      return;
+    }
+
     const { BrowserWindow } = require('@electron/remote');
     const win = new BrowserWindow({
       width: 800,
@@ -161,7 +172,9 @@ export default class MessageControls extends React.Component<MessageControlsProp
         nodeIntegration: false,
       },
     });
-    win.loadURL(`file://${filepath}`);
+    win.loadURL(`file://${filepath}`).catch((err: Error) => {
+      console.error('Show Original window failed to load:', err);
+    });
   };
 
   _onLogData = () => {
