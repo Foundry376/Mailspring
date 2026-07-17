@@ -70,6 +70,7 @@ class TemplateEditor extends React.Component<
             id="template-title"
             placeholder={localized('Name')}
             style={{ maxWidth: 400 }}
+            disabled={readOnly}
             defaultValue={template ? template.name : ''}
             onBlur={(e) => onEditTitle(e.target.value)}
           />
@@ -78,6 +79,7 @@ class TemplateEditor extends React.Component<
           <ComposerEditor
             ref={(c) => (this._composer = c)}
             value={editorState}
+            readOnly={readOnly}
             propsForPlugins={{ inTemplateEditor: true }}
             onChange={(change) => this.setState({ editorState: change.value })}
             onBlur={this._onSave}

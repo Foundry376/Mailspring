@@ -1,0 +1,292 @@
+@import 'ui-variables';
+
+.container-mcp {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+
+  section {
+    margin-bottom: 20px;
+  }
+
+  .mcp-columns {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+  }
+
+  .mcp-column {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mcp-description {
+    color: @text-color-subtle;
+    font-size: 0.95em;
+    margin-bottom: 10px;
+  }
+
+  .mcp-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mcp-toggle-label {
+    cursor: default;
+  }
+
+  .mcp-status {
+    font-size: 0.85em;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 12px;
+
+    &.running {
+      background: fadeout(@color-success, 80%);
+      color: @color-success;
+    }
+    &.stopped {
+      background: fadeout(@text-color-subtle, 80%);
+      color: @text-color-subtle;
+    }
+  }
+
+  .mcp-error {
+    background: fadeout(@color-error, 85%);
+    color: @color-error;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 0.9em;
+  }
+
+  .mcp-field-row {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 8px;
+    gap: 10px;
+
+    > label {
+      min-width: 100px;
+      text-align: right;
+      color: @text-color-subtle;
+      font-size: 0.9em;
+    }
+
+    select,
+    input[type='number'] {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid @border-color-divider;
+      background: @input-bg;
+      color: @text-color;
+    }
+  }
+
+  .mcp-port-input {
+    width: 80px;
+  }
+
+  .mcp-endpoint {
+    background: @background-secondary;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    user-select: all;
+  }
+
+  .mcp-token-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+
+    .btn-icon {
+      padding: 5px 7px;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .mcp-token {
+    background: @background-secondary;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    word-break: break-all;
+    user-select: all;
+    max-width: 260px;
+  }
+
+  // Quick Setup
+  .mcp-quick-setup {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  // Fixed width so the label swapping to "Adding…"/"Added!" doesn't resize
+  // the button. Sized to fit the longest label ("Add to ChatGPT Desktop").
+  .mcp-quick-setup-btn {
+    width: 190px;
+    text-align: center;
+  }
+
+  .mcp-try-it {
+    margin-top: 16px;
+  }
+
+  .mcp-try-it-prompt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: @background-secondary;
+    padding: 8px 10px;
+    border-radius: 4px;
+
+    code {
+      flex: 1;
+      font-size: 0.85em;
+      user-select: all;
+    }
+
+    .btn-icon {
+      padding: 5px 7px;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  // Account Access
+  .mcp-accounts-list {
+    border: 1px solid @border-color-divider;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .mcp-account-item {
+    &:not(:last-child) {
+      border-bottom: 1px solid @border-color-divider;
+    }
+  }
+
+  .mcp-account-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+
+    &:hover {
+      background: @background-secondary;
+    }
+
+    input[type='checkbox'] {
+      cursor: pointer;
+    }
+  }
+
+  .mcp-account-header .disclosure-triangle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    padding-top: 0;
+    width: 14px;
+    height: 14px;
+    visibility: visible;
+  }
+
+  .mcp-account-name {
+    font-weight: 500;
+  }
+
+  .mcp-account-email {
+    color: @text-color-subtle;
+    font-size: 0.9em;
+  }
+
+  .mcp-folder-list {
+    padding: 4px 12px 8px 48px;
+    background: @background-secondary;
+    border-top: 1px solid @border-color-divider;
+  }
+
+  .mcp-folder-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+
+  .mcp-folder-empty {
+    color: @text-color-subtle;
+    font-size: 0.9em;
+    padding: 4px 0;
+  }
+
+  // Audit Log
+  .mcp-audit {
+    .mcp-audit-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+
+      h6 {
+        margin: 0;
+      }
+    }
+  }
+
+  .mcp-audit-empty {
+    color: @text-color-subtle;
+    font-size: 0.9em;
+    padding: 12px 0;
+  }
+
+  .mcp-audit-table {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid @border-color-divider;
+    border-radius: 4px;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85em;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: @background-primary;
+      border-bottom: 1px solid @border-color-divider;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    tbody td {
+      padding: 4px 8px;
+      border-bottom: 1px solid fadeout(@border-color-divider, 50%);
+      vertical-align: top;
+    }
+
+    .mcp-audit-params {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+  }
+}

@@ -15,6 +15,7 @@
     "dbus-next": "^0.10.2",
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
     "@electron/remote": "^2.1.2",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@testing-library/react": "^12.1.5",
     "app-module-path": "^2.2.0",
     "better-sqlite3": "^12.8.0",
