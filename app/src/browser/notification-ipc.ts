@@ -1,6 +1,5 @@
 import { Notification, IpcMain, IpcMainInvokeEvent, nativeImage } from 'electron';
 import path from 'path';
-import os from 'os';
 import { UrlWithParsedQuery } from 'url';
 import { ICON_PATHS } from '../utils/xdg-paths';
 

@@ -27,14 +27,14 @@ function buildPathsArray(
 
 export const XDG_CONFIG_PATHS = buildPathsArray(
   'XDG_CONFIG_HOME',
-  `${HOME}/.config`,
+  path.join(HOME, '.config'),
   'XDG_CONFIG_DIRS',
   '/etc/xdg'
 );
 
 export const XDG_DATA_PATHS = buildPathsArray(
   'XDG_DATA_HOME',
-  `${HOME}/.local/share`,
+  path.join(HOME, '.local/share'),
   'XDG_DATA_DIRS',
   '/usr/local/share:/usr/share'
 );
@@ -50,6 +50,6 @@ export function getFirstExistingPath(baseDirs: string[], subPath: fs.PathLike): 
 }
 
 export const ICON_PATHS = XDG_DATA_PATHS.flatMap((dataPath) => [
-  `${dataPath}/icons`,
-  `${dataPath}/pixmaps`,
-]).concat([`${HOME}/.icons`, os.tmpdir()]);
+  path.join(dataPath, 'icons'),
+  path.join(dataPath, 'pixmaps'),
+]).concat([path.join(HOME, '.icons'), os.tmpdir()]);
