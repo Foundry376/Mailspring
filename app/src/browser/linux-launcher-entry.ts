@@ -16,10 +16,11 @@
  * Wire format reference: https://dbus.freedesktop.org/doc/dbus-specification.html
  */
 import * as net from 'net';
+import pkg from '../utils/package';
 
-export const APP_URI = 'application://Mailspring.desktop';
+export const APP_URI = `application://${pkg.desktopName}`;
 
-const OBJECT_PATH = '/com/canonical/unity/launcherentry/mailspring';
+const OBJECT_PATH = `/com/canonical/unity/launcherentry/${pkg.name.replace(/\./g, '/')}`;
 const IFACE = 'com.canonical.Unity.LauncherEntry';
 const MEMBER = 'Update';
 const BODY_SIG = 'sa{sv}';
