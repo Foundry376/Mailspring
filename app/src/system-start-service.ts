@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import pkg from './utils/package';
+import { getFirstExistingPath, XDG_CONFIG_PATHS, XDG_DATA_PATHS } from './utils/xdg-paths';
 
 class SystemStartServiceBase {
   checkAvailability(): Promise<boolean> {
@@ -106,53 +106,50 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
 }
 
 class SystemStartServiceLinux extends SystemStartServiceBase {
-  checkAvailability() {
-    return new Promise<boolean>((resolve) => {
-      fs.access(this._launcherPath(), fs.constants.R_OK, (err: NodeJS.ErrnoException | null) => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
-    });
+  async checkAvailability(): Promise<boolean> {
+    return this._launcherPath() !== null;
   }
 
-  doesLaunchOnSystemStart() {
-    return new Promise<boolean>((resolve) => {
-      fs.access(
-        this._shortcutPath(),
-        fs.constants.R_OK | fs.constants.W_OK,
-        (err: NodeJS.ErrnoException | null) => {
-          if (err) {
-            resolve(false);
-          } else {
-            resolve(true);
-          }
-        }
-      );
-    });
+  async doesLaunchOnSystemStart(): Promise<boolean> {
+    const shortcutPath = this._shortcutPath();
+    try {
+      await fs.promises.access(shortcutPath, fs.constants.R_OK);
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
   configureToLaunchOnSystemStart() {
-    fs.readFile(this._launcherPath(), 'utf8', (error, data) => {
-      // Append the --background flag before the Exec key
-      const parsedData = data.replace('%U', '--background %U');
+    (async () => {
+      try {
+        const launcherPath = this._launcherPath();
+        if (!launcherPath) {
+          throw new Error('Launcher path not found');
+        }
 
-      fs.writeFile(this._shortcutPath(), parsedData, () => {});
-    });
+        const data = await fs.promises.readFile(launcherPath, 'utf8');
+        const parsedData = data.replace('%U', '--background %U');
+
+        const shortcutPath = this._shortcutPath();
+        await fs.promises.mkdir(path.dirname(shortcutPath), { recursive: true });
+        await fs.promises.writeFile(shortcutPath, parsedData, 'utf8');
+      } catch (error) {
+        console.error('Error configuring to launch on system start:', error);
+      }
+    })();
   }
 
   dontLaunchOnSystemStart() {
-    return fs.unlink(this._shortcutPath(), () => {});
+    fs.unlink(this._shortcutPath(), () => {});
   }
 
-  _launcherPath() {
-    return path.join('/', 'usr', 'share', 'applications', pkg.desktopName);
+  _launcherPath(): string | null {
+    return getFirstExistingPath(XDG_DATA_PATHS, path.join('applications', pkg.desktopName));
   }
 
-  _shortcutPath() {
-    const configDir = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
+  _shortcutPath(): string {
+    const configDir = XDG_CONFIG_PATHS[0];
     return path.join(configDir, 'autostart', pkg.desktopName);
   }
 }

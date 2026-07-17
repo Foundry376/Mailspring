@@ -1,7 +1,7 @@
 import { Notification, IpcMain, IpcMainInvokeEvent, nativeImage } from 'electron';
 import path from 'path';
-import os from 'os';
 import { UrlWithParsedQuery } from 'url';
+import { ICON_PATHS } from '../utils/xdg-paths';
 
 interface NotificationOptions {
   id: string;
@@ -57,17 +57,8 @@ const validateIconPath = (iconPath: string | undefined): string | null => {
 
   // On Linux, also allow system icon directories and temp directory
   if (platform === 'linux') {
-    const allowedLinuxPaths = [
-      '/usr/share/icons',
-      '/usr/share/pixmaps',
-      path.join(os.homedir(), '.local', 'share', 'icons'),
-      path.join(os.homedir(), '.icons'),
-      os.tmpdir(),
-    ];
-
-    for (const allowedPath of allowedLinuxPaths) {
-      const resolvedAllowed = path.resolve(allowedPath);
-      if (resolvedIcon.startsWith(resolvedAllowed + path.sep)) {
+    for (const allowedPath of ICON_PATHS) {
+      if (resolvedIcon.startsWith(allowedPath + path.sep)) {
         return resolvedIcon;
       }
     }
