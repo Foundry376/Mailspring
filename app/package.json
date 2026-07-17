@@ -12,6 +12,7 @@
   "license": "GPL-3.0",
   "main": "./src/browser/main.js",
   "dependencies": {
+    "dbus-next": "^0.10.2",
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
     "@electron/remote": "^2.1.2",
     "@testing-library/react": "^12.1.5",

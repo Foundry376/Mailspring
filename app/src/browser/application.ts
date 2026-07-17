@@ -586,6 +586,14 @@ export default class Application extends EventEmitter {
       } else if (app.setBadgeCount) {
         app.setBadgeCount(value.length ? value.replace('+', '') / 1 : 0);
       }
+      // app.setBadgeCount relies on libunity, which is absent on KDE/Fedora and
+      // many non-Ubuntu desktops (the badge silently no-ops there). Emit the raw
+      // Unity LauncherEntry signal so the taskbar badge works on those too.
+      if (process.platform === 'linux') {
+        const count =
+          value && value.length ? parseInt(value.replace('+', ''), 10) || 0 : 0;
+        require('./linux-launcher-entry').emitLauncherEntryBadge(count);
+      }
     });
 
     const dockMenu = Menu.buildFromTemplate([
