@@ -7,7 +7,6 @@ import { getDoNotDisturb as getWindowsDoNotDisturb } from './dnd-utils-windows';
 import pkg from './utils/package';
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import { XDG_DATA_PATHS } from './utils/xdg-paths';
 
 const platform = process.platform;
