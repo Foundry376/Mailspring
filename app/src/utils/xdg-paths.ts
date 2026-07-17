@@ -48,3 +48,8 @@ export function getFirstExistingPath(baseDirs: string[], subPath: fs.PathLike): 
   }
   return null;
 }
+
+export const ICON_PATHS = XDG_DATA_PATHS.flatMap((dataPath) => [
+  `${dataPath}/icons`,
+  `${dataPath}/pixmaps`,
+]).concat([`${HOME}/.icons`, os.tmpdir()]);

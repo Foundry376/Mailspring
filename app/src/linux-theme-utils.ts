@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import ini from 'ini';
-import { XDG_DATA_PATHS } from './utils/xdg-paths';
+import { ICON_PATHS } from './utils/xdg-paths';
 
 const Context = {
   ACTIONS: 'actions',
@@ -19,8 +19,6 @@ const Context = {
   PLACES: 'places',
   STATUS: 'status',
 };
-
-const ICON_THEME_PATHS = XDG_DATA_PATHS.map((dataPath) => path.join(dataPath, 'icons'));
 
 const DESKTOP = process.env.XDG_CURRENT_DESKTOP;
 
@@ -126,7 +124,7 @@ function __parseIconTheme(themePath: string): IconThemeData | null {
 function getIconTheme(themeName: string): IconTheme {
   if (!themeName) return null;
 
-  for (const themesPath of ICON_THEME_PATHS) {
+  for (const themesPath of ICON_PATHS) {
     const themePath = path.join(themesPath, themeName);
     const parsed = __parseIconTheme(themePath);
     if (parsed != null) {
