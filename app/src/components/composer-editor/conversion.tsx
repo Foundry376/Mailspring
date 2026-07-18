@@ -370,7 +370,11 @@ export function convertFromHTML(html: string) {
   - Ensure `block` elements have an empty text node child.
   */
   const optimizeTextNodesForNormalization = (node: DocumentJSON | NodeJSON) => {
-    if (!('nodes' in node)) return;
+    if (node.object === 'text') return;
+    // Void inlines (eg: emoji, template variables) are sometimes deserialized
+    // without a `nodes` array at all rather than an explicit empty one - treat
+    // both the same so the empty-text-child fix below always applies to them.
+    if (!('nodes' in node) || !node.nodes) node.nodes = [];
     node.nodes.forEach(optimizeTextNodesForNormalization);
 
     // Convert adjacent text nodes into a single text node with all the leaves
@@ -389,8 +393,12 @@ export function convertFromHTML(html: string) {
     }
     node.nodes = cleanChildren;
 
-    // Ensure `block` elements have an empty text node child
-    if (node.object === 'block' && node.nodes.length === 0) {
+    // Ensure `block` and `inline` elements have an empty text node child.
+    // This matters most for void inlines (eg: inline `cid:` images, which are
+    // deserialized with `nodes: []`) - Slate's Void.renderText reads
+    // `node.getFirstText().key` and throws if the void node has no text
+    // descendant at all.
+    if ((node.object === 'block' || node.object === 'inline') && node.nodes.length === 0) {
       node.nodes = [
         {
           object: 'text',
