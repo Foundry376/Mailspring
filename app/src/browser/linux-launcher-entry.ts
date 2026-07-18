@@ -167,6 +167,65 @@ export function marshalMessage(
   return buf.subarray(0, o);
 }
 
+/**
+ * Marshal the org.freedesktop.DBus.Hello METHOD_CALL.
+ *
+ * REQUIRED by the D-Bus spec: a client MUST send Hello and receive a unique
+ * connection name before it may send any other message; the bus disconnects
+ * clients that skip it. dbus-next performed this inside sessionBus(), so the
+ * requirement became invisible once that dependency was removed.
+ *
+ * Same layout as marshalMessage but type=METHOD_CALL, empty body, plus a
+ * DESTINATION header field (id 6) addressed to the bus itself.
+ */
+export function marshalHello(serial: number): Buffer {
+  const buf = Buffer.alloc(256);
+  let o = 0;
+
+  buf[o++] = 0x6c; // 'l' = little-endian
+  buf[o++] = 1; // METHOD_CALL
+  buf[o++] = 0; // flags
+  buf[o++] = 1; // protocol version
+  buf.writeUInt32LE(0, o); // body length = 0
+  o += 4;
+  buf.writeUInt32LE(serial, o);
+  o += 4;
+
+  const writeStr = (str: string) => {
+    o += pad(o, 4);
+    const b = Buffer.from(str, 'utf8');
+    buf.writeUInt32LE(b.length, o);
+    o += 4;
+    b.copy(buf, o);
+    o += b.length;
+    buf[o++] = 0;
+  };
+
+  const writeField = (id: number, typeSig: string, writeValue: () => void) => {
+    o += pad(o, 8);
+    buf[o++] = id;
+    buf[o++] = 1;
+    buf[o++] = typeSig.charCodeAt(0);
+    buf[o++] = 0;
+    writeValue();
+  };
+
+  const arrLenOff = o;
+  o += 4;
+  o += pad(o, 8);
+  const arrStart = o;
+
+  writeField(1, 'o', () => writeStr('/org/freedesktop/DBus')); // PATH
+  writeField(2, 's', () => writeStr('org.freedesktop.DBus')); // INTERFACE
+  writeField(3, 's', () => writeStr('Hello')); // MEMBER
+  writeField(6, 's', () => writeStr('org.freedesktop.DBus')); // DESTINATION
+
+  buf.writeUInt32LE(o - arrStart, arrLenOff);
+  o += pad(o, 8);
+
+  return buf.subarray(0, o);
+}
+
 // ---------------------------------------------------------------------------
 // Connection management
 // ---------------------------------------------------------------------------
@@ -244,6 +303,9 @@ function sendRaw(msg: Buffer): void {
     for (const line of lines) {
       if (line.startsWith('OK')) {
         socket.write('BEGIN\r\n');
+        // REQUIRED: obtain a unique connection name before any other
+        // message, or the bus disconnects us and the signal is lost.
+        socket.write(marshalHello(++_serial));
         conn.ready = true;
         for (const pending of conn.pending) socket.write(pending);
         conn.pending = [];
