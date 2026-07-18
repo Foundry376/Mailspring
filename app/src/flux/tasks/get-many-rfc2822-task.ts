@@ -7,6 +7,11 @@ export interface ExportResult {
   exported?: number;
   failed?: number;
   outputDir?: string;
+  // Set by the sync engine when the export stopped on a cancel request. The
+  // task's status still ends up "complete" in that case (performRemote only
+  // maps shouldCancel to the cancelled status before the export starts), so
+  // consumers must check this flag to distinguish a cancelled export.
+  cancelled?: boolean;
   errors?: Array<{ messageId: string; subject: string; error: string }>;
 }
 
@@ -23,6 +28,16 @@ export class GetManyRFC2822Task extends Task {
     outputDir: Attributes.String({
       modelKey: 'outputDir',
     }),
+    // 'eml' (default) or 'mbox'. Only read by the client — the sync engine
+    // always writes individual .eml files to outputDir, and for mbox exports
+    // the client incrementally assembles them into mboxPath as the export
+    // progresses (see mbox-export-runner in the account-sidebar package).
+    format: Attributes.String({
+      modelKey: 'format',
+    }),
+    mboxPath: Attributes.String({
+      modelKey: 'mboxPath',
+    }),
     progress: Attributes.Obj({
       modelKey: 'progress',
     }),
@@ -34,6 +49,8 @@ export class GetManyRFC2822Task extends Task {
   folderId: string;
   folderPath: string;
   outputDir: string;
+  format: 'eml' | 'mbox';
+  mboxPath: string;
   progress: ExportResult;
   result: ExportResult;
 
@@ -49,6 +66,6 @@ export class GetManyRFC2822Task extends Task {
       }
       return `Exporting ${exported || 0} / ${total}`;
     }
-    return 'Exporting folder as .eml files';
+    return this.format === 'mbox' ? 'Exporting folder as mbox' : 'Exporting folder as .eml files';
   }
 }

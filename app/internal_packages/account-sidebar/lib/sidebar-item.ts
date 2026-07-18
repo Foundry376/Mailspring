@@ -1,5 +1,6 @@
 import { imapUtf7 } from 'mailspring-exports';
 
+import fs from 'fs';
 import _str from 'underscore.string';
 import { OutlineViewItem } from 'mailspring-component-kit';
 import {
@@ -12,6 +13,7 @@ import {
   Actions,
   RegExpUtils,
   localized,
+  TaskQueue,
 } from 'mailspring-exports';
 
 import * as SidebarActions from './sidebar-actions';
@@ -101,6 +103,63 @@ const onExportFolder = function (item: ISidebarItem) {
           folderId: category.id,
           folderPath: category.path,
           outputDir,
+        })
+      );
+    }
+  );
+};
+
+const onExportMboxFolder = function (item: ISidebarItem) {
+  const category = item.perspective.category();
+  if (!category) {
+    return;
+  }
+
+  const defaultName = `${(category.displayName || 'folder').replace(/[/?<>\\:*|"]/g, '_')}.mbox`;
+
+  AppEnv.showSaveDialog(
+    {
+      title: localized('Export folder as .mbox file'),
+      buttonLabel: localized('Export'),
+      defaultPath: defaultName,
+      filters: [{ name: 'mbox', extensions: ['mbox'] }],
+    },
+    (mboxPath: string) => {
+      if (!mboxPath) {
+        return;
+      }
+
+      // Two exports feeding one destination would fight over the staging
+      // directory and interleave appends into the same file.
+      const running = TaskQueue.findTasks(GetManyRFC2822Task, (t: GetManyRFC2822Task) => {
+        return t.format === 'mbox' && t.mboxPath === mboxPath;
+      });
+      if (running.length > 0) {
+        AppEnv.showErrorDialog(localized('An mbox export to this file is already in progress.'));
+        return;
+      }
+
+      // The sync engine writes one .eml file per message into a staging
+      // directory beside the destination file (same volume as the export the
+      // user sized, and discoverable if something goes wrong); the mbox
+      // export runner incrementally assembles it into the mbox as the export
+      // progresses — including across app restarts. The staging path carries a
+      // per-export token so a new export never shares a directory (or working
+      // file) with an earlier, still-lingering completed task for the same
+      // destination — that collision would let the old task finalize against
+      // the new export's staging and overwrite the destination.
+      const token = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      const stagingDir = `${mboxPath}.${token}.partial`;
+      fs.mkdirSync(stagingDir, { recursive: true });
+
+      Actions.queueTask(
+        new GetManyRFC2822Task({
+          accountId: category.accountId,
+          folderId: category.id,
+          folderPath: category.path,
+          outputDir: stagingDir,
+          format: 'mbox',
+          mboxPath,
         })
       );
     }
@@ -217,6 +276,7 @@ export default class SidebarItem {
         onDelete: opts.deletable ? onDeleteItem : undefined,
         onEdited: opts.editable ? onEditItem : undefined,
         onExport: opts.exportable ? onExportFolder : undefined,
+        onExportMbox: opts.exportable ? onExportMboxFolder : undefined,
         onCreateChild: opts.editable ? onCreateChild : undefined,
         onCollapseToggled: toggleItemCollapsed,
 
