@@ -1,5 +1,6 @@
 import {
   marshalMessage,
+  marshalHello,
   sanitizeCount,
   emitLauncherEntryBadge,
   _resetLauncherBusForSpec,
@@ -105,5 +106,47 @@ describe('emitLauncherEntryBadge', () => {
     expect(() => emitLauncherEntryBadge(0)).not.toThrow();
     if (saved !== undefined) process.env.DBUS_SESSION_BUS_ADDRESS = saved;
     else delete process.env.DBUS_SESSION_BUS_ADDRESS;
+  });
+});
+
+describe('marshalHello', () => {
+  // The D-Bus spec requires a client to obtain a unique connection name via
+  // org.freedesktop.DBus.Hello before sending any other message; a client that
+  // skips it is disconnected from the bus.
+  // https://dbus.freedesktop.org/doc/dbus-specification.html#bus-messages-hello
+
+  it('writes a valid fixed header (little-endian METHOD_CALL, v1) with the serial', () => {
+    const buf = marshalHello(3);
+    expect(buf[0]).toBe(0x6c); // 'l' - little-endian
+    expect(buf[1]).toBe(1); // message type METHOD_CALL
+    expect(buf[2]).toBe(0); // flags
+    expect(buf[3]).toBe(1); // protocol version
+    expect(buf.readUInt32LE(4)).toBe(0); // body length - Hello takes no arguments
+    expect(buf.readUInt32LE(8)).toBe(3); // serial
+  });
+
+  // Golden fixture: Hello takes no arguments, so its bytes are fully
+  // deterministic. Byte-for-byte comparison is what actually catches a
+  // marshalling regression (alignment, padding, or a wrong field-array length).
+  const HELLO_SERIAL_1_HEX =
+    '6c01000100000000010000006d00000001016f00150000002f6f72672f667265' +
+    '656465736b746f702f4442757300000002017300140000006f72672e66726565' +
+    '6465736b746f702e4442757300000000030173000500000048656c6c6f000000' +
+    '06017300140000006f72672e667265656465736b746f702e4442757300000000';
+
+  it('marshals byte-for-byte correctly', () => {
+    expect(marshalHello(1).toString('hex')).toBe(HELLO_SERIAL_1_HEX);
+  });
+
+  it('declares a header-field array length that spans exactly the fields', () => {
+    const buf = marshalHello(1);
+    // fields start at 16 (after the 4-byte length at 12, already 8-aligned);
+    // the declared length must exclude the trailing pad-to-8 only.
+    expect(buf.readUInt32LE(12)).toBe(109);
+    expect(buf.length).toBe(128);
+  });
+
+  it('pads the message to an 8-byte boundary', () => {
+    expect(marshalHello(1).length % 8).toBe(0);
   });
 });
