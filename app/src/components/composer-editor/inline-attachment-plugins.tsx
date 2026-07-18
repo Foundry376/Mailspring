@@ -23,7 +23,7 @@ function ImageNode(props) {
   const { draft } = editor.props.propsForPlugins;
   const file = draft.files.find((f) => contentId === f.contentId);
   if (!file) {
-    return <span />;
+    return <span {...attributes} />;
   }
 
   return (
