@@ -34,6 +34,7 @@ interface OAuthSignInPageProps {
   onTryAgain: () => void;
   providerConfig: (typeof AccountProviders)[0];
   serviceName: string;
+  children?: React.ReactNode;
 }
 
 interface OAuthSignInPageState {
@@ -238,6 +239,7 @@ export default class OAuthSignInPage extends React.Component<
         </div>
         {this._renderHeader()}
         {this._renderNote()}
+        {this.state.authStage === 'initial' && this.props.children}
         {this._renderAlternative()}
       </div>
     );
