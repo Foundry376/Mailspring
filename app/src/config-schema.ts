@@ -382,6 +382,13 @@ export default {
             ],
             title: localized('Show badge on the app icon'),
           },
+          countBadgeAllAccounts: {
+            type: 'boolean',
+            default: false,
+            title: localized(
+              'Count unread messages in all accounts, not just the selected folder'
+            ),
+          },
         },
       },
     },
