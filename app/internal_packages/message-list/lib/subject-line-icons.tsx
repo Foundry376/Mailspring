@@ -14,10 +14,10 @@ interface SubjectLineIconsProps {
   onToggleAllExpanded: () => void;
 }
 
-class EmailRenderModeToggle extends React.Component<{}, { mode: string }> {
+class EmailRenderModeToggle extends React.Component<Record<string, never>, { mode: string }> {
   _configDisposable?: { dispose: () => void };
 
-  constructor(props: {}) {
+  constructor(props: Record<string, never>) {
     super(props);
     this.state = { mode: this._mode() };
   }

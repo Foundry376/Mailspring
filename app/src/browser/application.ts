@@ -590,8 +590,7 @@ export default class Application extends EventEmitter {
       // many non-Ubuntu desktops (the badge silently no-ops there). Emit the raw
       // Unity LauncherEntry signal so the taskbar badge works on those too.
       if (process.platform === 'linux') {
-        const count =
-          value && value.length ? parseInt(value.replace('+', ''), 10) || 0 : 0;
+        const count = value && value.length ? parseInt(value.replace('+', ''), 10) || 0 : 0;
         require('./linux-launcher-entry').emitLauncherEntryBadge(count);
       }
     });

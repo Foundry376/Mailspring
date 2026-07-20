@@ -385,9 +385,7 @@ export default {
           countBadgeAllAccounts: {
             type: 'boolean',
             default: false,
-            title: localized(
-              'Count unread messages in all accounts, not just the selected folder'
-            ),
+            title: localized('Count unread messages in all accounts, not just the selected folder'),
           },
         },
       },
