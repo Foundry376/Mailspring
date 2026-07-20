@@ -24,7 +24,7 @@ parts:
         $CRAFT_PART_INSTALL/usr/share/applications/Mailspring.desktop
     prime:
       - -usr/share/mailspring/chrome-sandbox
-    parse-info: [usr/share/metainfo/mailspring.appdata.xml]
+    parse-info: [usr/share/metainfo/mailspring.metainfo.xml]
     stage-packages:
       - libxkbfile1
       - libsasl2-2
