@@ -72,7 +72,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
       - name: Rename artifacts
-        if: matrix.os == 'macos-latest'
+        if: matrix.arch == 'arm64'
         run: |
           mv app/dist/Mailspring.zip app/dist/Mailspring-AppleSilicon.zip
 
