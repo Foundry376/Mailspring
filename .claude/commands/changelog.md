@@ -31,7 +31,7 @@ Build a changelog entry for a new Mailspring release by analyzing git history.
    - `app/package.json` — the `"version"` field.
    - `app/package-lock.json` — the two top-of-file `"version"` fields (the root `"version"` on line ~3 and the `packages[""]."version"` on line ~9). Both must match.
 
-7. **Add a release entry** to the top of the `<releases>` list in `app/build/resources/linux/mailspring.appdata.xml.in`, without reformatting the rest of the file:
+7. **Add a release entry** to the top of the `<releases>` list in `app/build/resources/linux/mailspring.metainfo.xml.in`, without reformatting the rest of the file:
    ```xml
    <release version="1.X.Y" date="YYYY-MM-DD">
      <url type="details">https://github.com/Foundry376/Mailspring/releases/tag/1.X.Y</url>

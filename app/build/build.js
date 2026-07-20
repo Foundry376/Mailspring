@@ -412,7 +412,7 @@ async function createDebInstaller() {
   };
   writeFromTemplate(path.join(linuxAssetsDir, 'debian', 'control.in'), data);
   writeFromTemplate(path.join(linuxAssetsDir, 'Mailspring.desktop.in'), data);
-  writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.appdata.xml.in'), data);
+  writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.metainfo.xml.in'), data);
 
   const icon = path.join(appDir, 'build', 'resources', 'linux', 'icons', '512.png');
   await spawn({
@@ -445,7 +445,7 @@ async function createRpmInstaller() {
 
   writeFromTemplate(path.join(linuxAssetsDir, 'redhat', 'mailspring.spec.in'), templateData);
   writeFromTemplate(path.join(linuxAssetsDir, 'Mailspring.desktop.in'), templateData);
-  writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.appdata.xml.in'), templateData);
+  writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.metainfo.xml.in'), templateData);
 
   await spawn({
     cmd: path.join(appDir, 'script', 'mkrpm'),
