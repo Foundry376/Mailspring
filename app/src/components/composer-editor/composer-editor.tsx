@@ -49,6 +49,7 @@ interface ComposerEditorProps {
   propsForPlugins: any;
   onChange: (change: { operations: Immutable.List<Operation>; value: Value }) => void;
   className?: string;
+  readOnly?: boolean;
   onBlur?: (e: React.FocusEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
   onFileReceived?: (path: string) => void;
@@ -309,7 +310,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
 
   // Event Handlers
   render() {
-    const { className, onBlur, onDrop, value, propsForPlugins } = this.props;
+    const { className, onBlur, onDrop, value, propsForPlugins, readOnly } = this.props;
 
     const PluginTopComponents = this.editor ? plugins.filter((p) => p.topLevelComponent) : [];
 
@@ -329,6 +330,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
           <AEditor
             ref={(editor) => (this.editor = editor)}
             schema={schema}
+            readOnly={readOnly}
             value={value}
             onChange={this.onChange}
             onBlur={(e: any, editor, next) => {
