@@ -19,6 +19,22 @@ function makeEventId() {
   return crypto.randomBytes(16).toString('hex');
 }
 
+// console.log can itself throw (eg. EPIPE writing to a closed stdout/stderr
+// pipe on Linux, when the terminal or launcher that started Mailspring has
+// exited). These calls run inside network callbacks rather than the
+// top-level uncaughtException handler, so a stray throw here escapes as an
+// unrelated "write EPIPE" crash reported from this file (Sentry:
+// MAILSPRING-CLIENT-2N) instead of whatever actually went wrong. main.js
+// already swallows EPIPE at the stream level, but never let a logging call
+// in here fail regardless.
+function safeLog(message) {
+  try {
+    console.log(message);
+  } catch (e) {
+    // ignore
+  }
+}
+
 // Filenames Sentry should not classify as "in_app": Node internals,
 // chrome-extension URLs, anonymous/eval pseudo-files, and anything that
 // isn't an absolute path. Mirrors what raven-node did in utils.js.
@@ -114,7 +130,7 @@ function sendEnvelope(event, release) {
     },
   });
   req.on('error', e => {
-    console.log(`Sentry: ${e.message}`);
+    safeLog(`Sentry: ${e.message}`);
   });
   req.on('response', res => {
     // Drain the response so the socket can be released back to the agent
@@ -122,7 +138,7 @@ function sendEnvelope(event, release) {
     res.on('data', () => {});
     res.on('end', () => {
       if (res.statusCode < 200 || res.statusCode >= 300) {
-        console.log(`Sentry: ${res.statusCode} - ${res.statusMessage}`);
+        safeLog(`Sentry: ${res.statusCode} - ${res.statusMessage}`);
       }
     });
   });
@@ -193,7 +209,7 @@ module.exports = class SentryErrorReporter {
     try {
       sendEnvelope(event, release);
     } catch (e) {
-      console.log(`Sentry: ${e.message}`);
+      safeLog(`Sentry: ${e.message}`);
     }
   }
 };
