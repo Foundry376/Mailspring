@@ -166,7 +166,7 @@ module.exports = class SentryErrorReporter {
           }
         });
       } catch (err) {
-        console.error(err);
+        safeLog(err);
       }
     }
   }
