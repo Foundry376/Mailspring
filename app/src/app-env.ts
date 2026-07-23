@@ -263,7 +263,21 @@ export default class AppEnvConstructor {
     }
 
     try {
-      extra.pluginIds = this._findPluginsFromError(error);
+      const matchedPackages = this._findPluginsFromError(error);
+      extra.pluginIds = matchedPackages.map((pkg) => pkg.name);
+
+      // Errors thrown from user-installed third-party (community) plugins are
+      // outside our control (stale APIs, missing deps, plugin bugs) and
+      // reporting them to Sentry creates noise we cannot act on — mirrors the
+      // reasoning in PackageManager.activatePackage for activation failures.
+      // Only skip when every implicated package is a community plugin, so
+      // bugs that also touch bundled packages still get reported.
+      if (
+        matchedPackages.length > 0 &&
+        matchedPackages.every((pkg) => !pkg.directory.startsWith(this.packages.resourcePath))
+      ) {
+        return;
+      }
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];
@@ -307,13 +321,9 @@ export default class AppEnvConstructor {
     const stackPaths = error.stack.match(/((?:\/[\w-_]+)+)/g) || [];
     const stackPathComponents = [...new Set(stackPaths.flatMap((p) => p.split('/')))];
 
-    const names = [];
-    for (const pkg of this.packages.getActivePackages()) {
-      if (stackPathComponents.includes(path.basename(pkg.directory))) {
-        names.push(pkg.name);
-      }
-    }
-    return names;
+    return this.packages
+      .getActivePackages()
+      .filter((pkg) => stackPathComponents.includes(path.basename(pkg.directory)));
   }
 
   /*
