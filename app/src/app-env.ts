@@ -270,11 +270,15 @@ export default class AppEnvConstructor {
       // outside our control (stale APIs, missing deps, plugin bugs) and
       // reporting them to Sentry creates noise we cannot act on — mirrors the
       // reasoning in PackageManager.activatePackage for activation failures.
-      // Only skip when every implicated package is a community plugin, so
-      // bugs that also touch bundled packages still get reported.
+      // Only skip when the crash's culprit frame (the top of the stack,
+      // i.e. where it was actually thrown) is inside a community plugin —
+      // not merely because some plugin frame appears elsewhere in the call
+      // chain. That keeps a core regression reachable through a plugin's
+      // callback from being silently swallowed.
+      const culpritPackages = this._culpritPackagesFromError(error);
       if (
-        matchedPackages.length > 0 &&
-        matchedPackages.every((pkg) => !pkg.directory.startsWith(this.packages.resourcePath))
+        culpritPackages.length > 0 &&
+        culpritPackages.every((pkg) => !pkg.directory.startsWith(this.packages.resourcePath))
       ) {
         return;
       }
@@ -319,6 +323,23 @@ export default class AppEnvConstructor {
       return [];
     }
     const stackPaths = error.stack.match(/((?:\/[\w-_]+)+)/g) || [];
+    const stackPathComponents = [...new Set(stackPaths.flatMap((p) => p.split('/')))];
+
+    return this.packages
+      .getActivePackages()
+      .filter((pkg) => stackPathComponents.includes(path.basename(pkg.directory)));
+  }
+
+  // Like `_findPluginsFromError`, but only considers the top frame of the
+  // stack (the culprit — where the error was actually thrown), not every
+  // frame in the call chain. V8 stacks are newest-first, so that's the
+  // first "at ..." line after the message.
+  _culpritPackagesFromError(error) {
+    if (!error.stack || typeof error.stack !== 'string') {
+      return [];
+    }
+    const topFrame = error.stack.split('\n')[1] || '';
+    const stackPaths = topFrame.match(/((?:\/[\w-_]+)+)/g) || [];
     const stackPathComponents = [...new Set(stackPaths.flatMap((p) => p.split('/')))];
 
     return this.packages
