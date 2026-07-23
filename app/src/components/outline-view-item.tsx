@@ -176,7 +176,8 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
       this.props.item.onEdited != null ||
       this.props.item.onExport != null ||
       this.props.item.onExportMbox != null ||
-      this.props.item.onCreateChild != null
+      this.props.item.onCreateChild != null ||
+      this.props.item.onMarkAllAsRead != null
     );
   };
 
@@ -272,6 +273,15 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     const contextMenuLabel = item.contextMenuLabel || item.name;
     const { Menu, MenuItem } = require('@electron/remote');
     const menu = new Menu();
+
+    if (this.props.item.onMarkAllAsRead) {
+      menu.append(
+        new MenuItem({
+          label: localized('Mark All as Read'),
+          click: () => this._runCallback('onMarkAllAsRead'),
+        })
+      );
+    }
 
     if (this.props.item.onEdited) {
       menu.append(

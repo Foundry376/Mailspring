@@ -70,7 +70,7 @@ export default {
           },
           showUnreadForAllCategories: {
             type: 'boolean',
-            default: false,
+            default: true,
             title: localized('Show unread counts for all folders / labels'),
           },
           use24HourClock: {
