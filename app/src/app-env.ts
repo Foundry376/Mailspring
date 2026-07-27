@@ -44,6 +44,14 @@ export default class AppEnvConstructor {
   savedState: any;
   isReloading: boolean;
 
+  // Flipped to true once the constructor finishes running. Config change
+  // notifications can arrive re-entrantly mid-construction (see the
+  // `identity` listener in PackageManager), so anything that reacts to a
+  // config change and touches AppEnv's other singletons should check this
+  // first rather than probing whichever singleton happens to be the one
+  // that crashes today.
+  bootComplete = false;
+
   /*
   Section: Construction and Destruction
   */
@@ -142,6 +150,8 @@ export default class AppEnvConstructor {
         this.fixStaleWin32LaunchOnSystemStart();
       }, 1000);
     }
+
+    this.bootComplete = true;
   }
 
   fixStaleWin32LaunchOnSystemStart() {
