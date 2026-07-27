@@ -54,7 +54,19 @@ export default class PackageManager {
     AppEnv.config.onDidChange('identity', () => {
       if (!this.identityPresent && !!AppEnv.config.get('identity')) {
         this.identityPresent = true;
-        this.activatePackages(AppEnv.getLoadSettings().windowType);
+        // AppEnv.config's 'on-config-reloaded' IPC listener is wired up before
+        // AppEnv.themes is constructed, and ThemeManager's constructor makes a
+        // synchronous ipcRenderer.sendSync() call, which lets Electron deliver a
+        // queued 'on-config-reloaded' message (broadcast whenever any window
+        // changes a setting) re-entrantly while we're still mid-boot. If that
+        // happens here, AppEnv.themes is still undefined and activating a
+        // syncInit package (e.g. custom-fonts) would crash in loadStylesheets().
+        // Skip for now — startWindow()/populateHotWindow() always call
+        // activatePackages() again once boot completes, and identityPresent is
+        // already flipped so nothing is missed.
+        if (AppEnv.themes) {
+          this.activatePackages(AppEnv.getLoadSettings().windowType);
+        }
       }
     });
   }
