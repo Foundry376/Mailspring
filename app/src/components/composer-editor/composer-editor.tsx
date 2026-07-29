@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import * as Immutable from 'immutable';
-import { Editor, Value, Operation, Range, Block, Text } from 'slate';
+import { Editor, Value, Operation, Range, Block, Text, Point } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps, Plugin } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 import { InlineStyleTransformer, SanitizeTransformer } from 'mailspring-exports';
@@ -38,6 +38,20 @@ function getDocumentBrokenReason(value: Value): string | null {
   }
 
   return null;
+}
+
+// Returns true if the value's selection anchor or focus point has become "unset"
+// (key === null). This happens when a plugin calls `editor.removeNodeByKey` on the
+// exact node the selection anchor/focus was pointing into — eg. removing a template
+// variable, toggling quoted text, or removing an attachment/uneditable block — without
+// explicitly moving the selection somewhere else afterwards. Slate's own point
+// normalization intentionally leaves a fully-unset point alone rather than guessing a
+// replacement, so if we don't repair it here, the very next keystroke crashes deep
+// inside Slate's `deleteExpandedAtRange` (`Point.moveTo` calling `.equals` on a null
+// path) with "Cannot read properties of null (reading 'equals')" (MAILSPRING-CLIENT-1E).
+function isSelectionBroken(value: Value): boolean {
+  const { anchor, focus } = value.selection;
+  return anchor.key == null || focus.key == null;
 }
 
 const AEditor = SlateEditorComponent as any as React.ComponentType<
@@ -301,6 +315,22 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
       this.props.onChange({
         operations: change.operations.push(op),
         value: op.apply(change.value),
+      });
+      return;
+    }
+
+    // Same idea as above, but for a broken selection rather than a broken document:
+    // move the dangling anchor/focus back to the start of the document so the next
+    // keystroke doesn't crash inside Slate.
+    if (isSelectionBroken(change.value)) {
+      console.warn(
+        `ComposerEditor: selection has an unset anchor or focus, moving to the start of the document to recover.`
+      );
+      const firstText = change.value.document.getFirstText();
+      const point = Point.create({ key: firstText.key, offset: 0 });
+      this.props.onChange({
+        operations: change.operations,
+        value: change.value.setSelection({ anchor: point, focus: point }),
       });
       return;
     }
