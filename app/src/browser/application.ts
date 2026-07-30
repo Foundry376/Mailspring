@@ -1,5 +1,6 @@
 /* eslint global-require: "off" */
 
+import '../safe-shell';
 import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell } from 'electron';
 
 import fs from 'fs';
