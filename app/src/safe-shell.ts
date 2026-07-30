@@ -20,10 +20,17 @@ shell.openExternal = (url: string, options?: Electron.OpenExternalOptions) => {
 
   return originalOpenExternal(url, options).catch((err: Error) => {
     if (!err.stack) {
-      const frames = (callSite.stack || '').split('\n').slice(1).join('\n');
-      err.stack = `${err.name || 'Error'}: ${err.message}\n${frames}`;
+      try {
+        const frames = (callSite.stack || '').split('\n').slice(1).join('\n');
+        err.stack = `${err.name || 'Error'}: ${err.message}\n${frames}`;
+      } catch {
+        // err.stack isn't writable on this particular error; leave it as-is
+        // rather than let this diagnostic path mask the original rejection.
+      }
     }
-    console.error(`shell.openExternal could not open "${url}":`, err);
+    // Re-throw unchanged: existing `.catch` handlers (eg. the link-open
+    // error dialog) already report this; the global unhandled-rejection
+    // handler logs/reports anything nobody else catches, now with a stack.
     throw err;
   });
 };
