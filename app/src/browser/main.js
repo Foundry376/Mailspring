@@ -6,17 +6,22 @@ const util = require('util');
 const fs = require('fs');
 
 // On Linux, writes to process.stdout/stderr use a synchronous fast path when
-// the fd is a pipe. If the reader end of that pipe has gone away (eg. the
-// terminal or launcher that started Mailspring has exited), the write fails
-// with EPIPE and — because there's no 'error' listener on the stream — Node
-// throws it synchronously instead of emitting it. When this happens inside
-// our `uncaughtException` handler (which itself logs via console.error), the
-// thrown EPIPE re-enters the same handler, producing an infinite crash loop.
-// Swallowing EPIPE here lets writes to a dead stdout/stderr silently no-op.
+// the fd is a pipe or a plain file. If the destination goes away or becomes
+// unwritable — the reader end of a pipe exits (EPIPE), or the fd is backed by
+// a filesystem that's read-only or gone (EROFS, seen eg. under snap when a
+// revision's squashfs mount is swapped out from under a running process, or
+// EIO/ENOSPC/EBADF for similar reasons) — the write throws synchronously
+// instead of emitting an event, because there's no 'error' listener on the
+// stream. When this happens inside our `uncaughtException` handler (which
+// itself logs via console.error), the thrown error re-enters the same
+// handler, producing a crash loop. None of these codes are actionable by the
+// app, so swallow them all here and let writes to a dead stdout/stderr
+// silently no-op.
+const IGNORABLE_STREAM_ERROR_CODES = new Set(['EPIPE', 'EROFS', 'EIO', 'ENOSPC', 'EBADF']);
 for (const stream of [process.stdout, process.stderr]) {
   if (stream) {
     stream.on('error', error => {
-      if (error && error.code === 'EPIPE') {
+      if (error && IGNORABLE_STREAM_ERROR_CODES.has(error.code)) {
         return;
       }
       throw error;
