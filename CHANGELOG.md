@@ -28,6 +28,7 @@ Bug Fixes:
 - Fixed cancellation of `GetManyRFC2822Task` (folder export). (#118) Thanks @Kevin-Hamilton!
 - Fixed handling of XDG paths. (#2761) Thanks @LinusDierheimer!
 - On Linux, fixed an EPIPE crash loop in the uncaughtException handler. (#2769)
+- On Linux, fixed an EROFS/EIO/ENOSPC/EBADF crash loop in the uncaughtException handler that the EPIPE fix didn't cover. (#2789)
 - On Linux, send `org.freedesktop.DBus.Hello` before emitting the badge signal. (#2778) Thanks @WebDevBar!
 - Stopped startup after a fatal `config.json` load failure. (#2764)
 - Guarded `nativeTheme` remote object access in `SystemTrayIconStore`. (#2753)
