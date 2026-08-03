@@ -54,7 +54,12 @@ export default class PackageManager {
     AppEnv.config.onDidChange('identity', () => {
       if (!this.identityPresent && !!AppEnv.config.get('identity')) {
         this.identityPresent = true;
-        this.activatePackages(AppEnv.getLoadSettings().windowType);
+        // Config IPC can arrive re-entrantly mid-boot; skip until AppEnv is
+        // ready. startWindow()/populateHotWindow() will activate packages
+        // again once boot finishes.
+        if (AppEnv.bootComplete) {
+          this.activatePackages(AppEnv.getLoadSettings().windowType);
+        }
       }
     });
   }

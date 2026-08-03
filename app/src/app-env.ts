@@ -44,6 +44,10 @@ export default class AppEnvConstructor {
   savedState: any;
   isReloading: boolean;
 
+  // True once the constructor finishes. Guards against config IPC arriving
+  // re-entrantly mid-boot, before our other singletons are assigned.
+  bootComplete = false;
+
   /*
   Section: Construction and Destruction
   */
@@ -142,6 +146,8 @@ export default class AppEnvConstructor {
         this.fixStaleWin32LaunchOnSystemStart();
       }, 1000);
     }
+
+    this.bootComplete = true;
   }
 
   fixStaleWin32LaunchOnSystemStart() {
