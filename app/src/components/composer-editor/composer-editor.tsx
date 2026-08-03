@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import * as Immutable from 'immutable';
-import { Editor, Value, Operation, Range, Block, Text } from 'slate';
+import { Editor, Value, Operation, Range, Block, Text, Point } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps, Plugin } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 import { InlineStyleTransformer, SanitizeTransformer } from 'mailspring-exports';
@@ -38,6 +38,32 @@ function getDocumentBrokenReason(value: Value): string | null {
   }
 
   return null;
+}
+
+// Returns true if the value's selection anchor or focus point has become "unset"
+// (key === null). This happens when a plugin calls `editor.removeNodeByKey` on the
+// exact node the selection anchor/focus was pointing into — eg. removing a template
+// variable, toggling quoted text, or removing an attachment/uneditable block — without
+// explicitly moving the selection somewhere else afterwards. Slate's `Value#removeNode`
+// unsets any point in the removed subtree that has no previous/next text to fall back
+// on, and Slate's point normalization then intentionally leaves that unset point alone
+// rather than guessing a replacement. If we don't repair it here, the very next
+// keystroke crashes deep inside Slate's `deleteExpandedAtRange` (`Point.moveTo` calling
+// `.equals` on a null path) with "Cannot read properties of null (reading 'equals')"
+// (MAILSPRING-CLIENT-1E).
+//
+// NOTE: a fully-unset-but-focused selection isn't unique to this bug — slate-react's
+// own `AfterPlugin.onFocus` intentionally calls `editor.deselect().focus()` on every
+// mouse-down focus (to stop a stale selection from blocking the upcoming native
+// `selectionchange`), which produces the exact same unset shape. That transient state
+// is harmless and self-corrects once the native selection lands, so we must not treat
+// every unset selection as broken — only recover when `operations` shows a `remove_node`
+// actually ran, since that's the only operation whose point clean-up (`Value#removeNode`)
+// can leave a point permanently unset instead of re-anchoring it.
+function isSelectionBroken(value: Value, operations: Immutable.List<Operation>): boolean {
+  const { anchor, focus } = value.selection;
+  const isUnset = anchor.key == null || focus.key == null;
+  return isUnset && operations.some((op) => op.type === 'remove_node');
 }
 
 const AEditor = SlateEditorComponent as any as React.ComponentType<
@@ -283,14 +309,16 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     // (like spellcheck and the context menu).
     if (!this._mounted) return;
 
-    // If the incoming value is broken, apply the recovery operation directly to
-    // change.value before forwarding to the parent. This emits a single onChange with
-    // the already-corrected value rather than emitting the broken value and then a
-    // second onChange from a deferred microtask (which is what would happen if we called
-    // editor.insertNodeByPath here). The parent therefore never sees the broken state,
-    // and the insert_node operation is included in the operations list so the parent
-    // knows the document changed and doesn't skip saving.
-    const reason = getDocumentBrokenReason(change.value);
+    // If the incoming value is broken, apply recovery operations directly to `value`
+    // before forwarding to the parent. This emits a single onChange with the already-
+    // corrected value rather than emitting the broken value and then a second onChange
+    // from a deferred microtask (which is what would happen if we called editor commands
+    // here). The parent therefore never sees the broken state, and any recovery operation
+    // that changes the document is included in the operations list so the parent knows
+    // the document changed and doesn't skip saving.
+    let { operations, value } = change;
+
+    const reason = getDocumentBrokenReason(value);
     if (reason) {
       console.warn(`ComposerEditor: ${reason}, inserting empty paragraph to recover.`);
       const op = require('slate').Operation.create({
@@ -298,10 +326,28 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
         path: Immutable.List([0]),
         node: Block.create({ type: 'div', nodes: Immutable.List([Text.create('')]) }),
       });
-      this.props.onChange({
-        operations: change.operations.push(op),
-        value: op.apply(change.value),
-      });
+      operations = operations.push(op);
+      value = op.apply(value);
+    }
+
+    // Same idea as above, but for a broken selection rather than a broken document: move
+    // the dangling anchor/focus back to the start of the document so the next keystroke
+    // doesn't crash inside Slate. This check must run on `value` (which may have just been
+    // repaired above), not the original `change.value` — removing the last text-carrying
+    // node from the document unsets the selection *and* triggers the document-broken repair
+    // in the same change, and inserting the recovery paragraph does not re-anchor a
+    // previously-unset selection point, so the selection would still be broken afterwards.
+    if (isSelectionBroken(value, change.operations)) {
+      console.warn(
+        `ComposerEditor: selection has an unset anchor or focus, moving to the start of the document to recover.`
+      );
+      const firstText = value.document.getFirstText();
+      const point = Point.create({ key: firstText.key, offset: 0 });
+      value = value.setSelection({ anchor: point, focus: point });
+    }
+
+    if (value !== change.value) {
+      this.props.onChange({ operations, value });
       return;
     }
 
