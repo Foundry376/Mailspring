@@ -263,7 +263,25 @@ export default class AppEnvConstructor {
     }
 
     try {
-      extra.pluginIds = this._findPluginsFromError(error);
+      const matchedPackages = this._findPluginsFromError(error);
+      extra.pluginIds = matchedPackages.map((pkg) => pkg.name);
+
+      // Errors thrown from user-installed third-party (community) plugins are
+      // outside our control (stale APIs, missing deps, plugin bugs) and
+      // reporting them to Sentry creates noise we cannot act on — mirrors the
+      // reasoning in PackageManager.activatePackage for activation failures.
+      // Only skip when the crash's culprit frame (the top of the stack,
+      // i.e. where it was actually thrown) is inside a community plugin —
+      // not merely because some plugin frame appears elsewhere in the call
+      // chain. That keeps a core regression reachable through a plugin's
+      // callback from being silently swallowed.
+      const culpritPackages = this._culpritPackagesFromError(error);
+      if (
+        culpritPackages.length > 0 &&
+        culpritPackages.every((pkg) => !pkg.directory.startsWith(this.packages.resourcePath))
+      ) {
+        return;
+      }
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];
@@ -307,13 +325,26 @@ export default class AppEnvConstructor {
     const stackPaths = error.stack.match(/((?:\/[\w-_]+)+)/g) || [];
     const stackPathComponents = [...new Set(stackPaths.flatMap((p) => p.split('/')))];
 
-    const names = [];
-    for (const pkg of this.packages.getActivePackages()) {
-      if (stackPathComponents.includes(path.basename(pkg.directory))) {
-        names.push(pkg.name);
-      }
+    return this.packages
+      .getActivePackages()
+      .filter((pkg) => stackPathComponents.includes(path.basename(pkg.directory)));
+  }
+
+  // Like `_findPluginsFromError`, but only considers the top frame of the
+  // stack (the culprit — where the error was actually thrown), not every
+  // frame in the call chain. V8 stacks are newest-first, so that's the
+  // first "at ..." line after the message.
+  _culpritPackagesFromError(error) {
+    if (!error.stack || typeof error.stack !== 'string') {
+      return [];
     }
-    return names;
+    const topFrame = error.stack.split('\n')[1] || '';
+    const stackPaths = topFrame.match(/((?:\/[\w-_]+)+)/g) || [];
+    const stackPathComponents = [...new Set(stackPaths.flatMap((p) => p.split('/')))];
+
+    return this.packages
+      .getActivePackages()
+      .filter((pkg) => stackPathComponents.includes(path.basename(pkg.directory)));
   }
 
   /*
