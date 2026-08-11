@@ -127,6 +127,31 @@ test('creating a template persists it as an HTML file and renaming updates the f
   await expect(renamedItem).toBeVisible({ timeout: 3_000 });
 });
 
+test("a template's subject line is saved into the template file", async () => {
+  const templatesContainer = mainWindow.locator('.preferences-templates-container');
+  await expect(templatesContainer).toBeVisible({ timeout: 3_000 });
+
+  // The template renamed above is still selected - give it a subject line.
+  const subjectInput = templatesContainer.locator('#template-subject');
+  await expect(subjectInput).toBeVisible({ timeout: 3_000 });
+  await subjectInput.fill('Following up on our call');
+
+  // The editor saves on blur.
+  await subjectInput.press('Tab');
+
+  const templatePath = path.join(configDir, 'templates', 'My Test Template.html');
+  const deadline = Date.now() + 5_000;
+  let contents = '';
+  while (Date.now() < deadline) {
+    contents = fs.readFileSync(templatePath, 'utf-8');
+    if (contents.includes('name="subject"')) {
+      break;
+    }
+    await mainWindow.waitForTimeout(300);
+  }
+  expect(contents).toContain('<meta name="subject" content="Following up on our call"/>');
+});
+
 // --- Mail Rules ---
 
 test('creating a mail rule persists it to localStorage', async () => {

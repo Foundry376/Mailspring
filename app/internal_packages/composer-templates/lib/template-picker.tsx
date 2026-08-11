@@ -33,8 +33,11 @@ class TemplatePopover extends React.Component<{ headerMessageId: string }> {
       return templates;
     }
 
+    const query = searchValue.toLowerCase();
     return templates.filter((t) => {
-      return t.name.toLowerCase().indexOf(searchValue.toLowerCase()) === 0;
+      return (
+        t.name.toLowerCase().indexOf(query) === 0 || (t.subject || '').toLowerCase().includes(query)
+      );
     });
   }
 
@@ -89,7 +92,12 @@ class TemplatePopover extends React.Component<{ headerMessageId: string }> {
         footerComponents={footerComponents}
         items={filteredTemplates}
         itemKey={(item) => item.id}
-        itemContent={(item) => item.name}
+        itemContent={(item) => (
+          <div className="template">
+            <div className="name">{item.name}</div>
+            {item.subject ? <div className="subject">{item.subject}</div> : null}
+          </div>
+        )}
         onSelect={this._onChooseTemplate}
       />
     );

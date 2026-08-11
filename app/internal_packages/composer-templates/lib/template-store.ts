@@ -12,18 +12,21 @@ import MailspringStore from 'mailspring-store';
 import path from 'path';
 import fs from 'fs';
 
+import { parseTemplate, stringifyTemplate, ParsedTemplate } from './template-file';
+
 // Support accented characters in template names
 // https://regex101.com/r/nD3eY8/1
 const INVALID_TEMPLATE_NAME_REGEX = /[^a-zA-Z\u00C0-\u017F0-9_\- ]+/g;
 
-interface TemplateItem {
+export interface TemplateItem {
   id: string;
   name: string;
   path: string;
+  subject: string;
 }
 
 class TemplateStore extends MailspringStore {
-  private _items = [];
+  private _items: TemplateItem[] = [];
   private _templatesDir = path.join(AppEnv.getConfigDirPath(), 'templates');
   private _watcher = null;
 
@@ -82,57 +85,76 @@ class TemplateStore extends MailspringStore {
     return this._items;
   }
 
-  _populate() {
-    fs.readdir(this._templatesDir, (err, filenames) => {
-      if (err) {
-        AppEnv.showErrorDialog({
-          title: localized('Cannot scan templates directory'),
-          message: localized(
-            'Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.',
-            this._templatesDir
-          ),
-        });
-        return;
-      }
-      this._items = [];
-      for (let i = 0, filename; i < filenames.length; i++) {
-        filename = filenames[i];
-        if (filename[0] === '.') {
-          continue;
-        }
-        const displayname = path.basename(filename, path.extname(filename));
-        this._items.push({
-          id: filename,
-          name: displayname,
-          path: path.join(this._templatesDir, filename),
-        });
-      }
-      this.trigger(this);
-    });
+  async _populate() {
+    let filenames = [];
+    try {
+      filenames = await fs.promises.readdir(this._templatesDir);
+    } catch (err) {
+      AppEnv.showErrorDialog({
+        title: localized('Cannot scan templates directory'),
+        message: localized(
+          'Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.',
+          this._templatesDir
+        ),
+      });
+      return;
+    }
+
+    // Read each template so we know its subject line - they're small HTML files
+    // and we want to show / search subjects alongside template names.
+    this._items = await Promise.all(
+      filenames
+        .filter((filename) => filename[0] !== '.')
+        .map(async (filename) => {
+          const templatePath = path.join(this._templatesDir, filename);
+          let subject = '';
+          try {
+            subject = parseTemplate(await fs.promises.readFile(templatePath, 'utf8')).subject;
+          } catch (err) {
+            // an unreadable file or a subdirectory - list it without a subject
+          }
+          return {
+            id: filename,
+            name: path.basename(filename, path.extname(filename)),
+            path: templatePath,
+            subject,
+          };
+        })
+    );
+    this.trigger(this);
   }
 
   _onCreateTemplate({
     headerMessageId,
     name,
     contents,
-  }: { headerMessageId?: string; name?: string; contents?: string } = {}) {
+    subject,
+  }: {
+    headerMessageId?: string;
+    name?: string;
+    contents?: string;
+    subject?: string;
+  } = {}) {
     if (headerMessageId) {
       this._onCreateTemplateFromDraft(headerMessageId);
       return;
     }
     if (!name || name.length === 0) {
       this._displayError(localized('You must provide a name for your template.'));
+      return;
     }
     if (!contents || contents.length === 0) {
       this._displayError(localized('You must provide contents for your template.'));
+      return;
     }
-    this.saveNewTemplate(name, contents, this._onShowTemplates);
+    this.saveNewTemplate(name, { subject: subject || '', body: contents }, this._onShowTemplates);
   }
 
   async _onCreateTemplateFromDraft(headerMessageId: string) {
     const session = await DraftStore.sessionForClientId(headerMessageId);
     const draft = session.draft();
-    const draftName = draft.subject.replace(INVALID_TEMPLATE_NAME_REGEX, '');
+    const draftSubject = (draft.subject || '').trim();
+    const draftName = draftSubject.replace(INVALID_TEMPLATE_NAME_REGEX, '');
 
     let draftContents = QuotedHTMLTransformer.removeQuotedHTML(draft.body);
     const sigIndex = draftContents.search(RegExpUtils.mailspringSignatureRegex());
@@ -140,13 +162,22 @@ class TemplateStore extends MailspringStore {
 
     if (!draftName || draftName.length === 0) {
       this._displayError(localized('Give your draft a subject to name your template.'));
+      return;
     }
     if (!draftContents || draftContents.length === 0) {
       this._displayError(
         localized('To create a template you need to fill the body of the current draft.')
       );
+      return;
     }
-    this.saveNewTemplate(draftName, draftContents, this._onShowTemplates);
+
+    // The draft's subject becomes both the template's name and its subject line,
+    // so using the template later fills the subject back in.
+    this.saveNewTemplate(
+      draftName,
+      { subject: draftSubject, body: draftContents },
+      this._onShowTemplates
+    );
   }
 
   _onShowTemplates() {
@@ -170,7 +201,11 @@ class TemplateStore extends MailspringStore {
     );
   }
 
-  saveNewTemplate(name: string, contents: string, callback: (template: TemplateItem) => void) {
+  saveNewTemplate(
+    name: string,
+    template: ParsedTemplate,
+    callback: (template: TemplateItem) => void
+  ) {
     if (!name || name.length === 0) {
       this._displayError(localized('You must provide a template name.'));
       return;
@@ -192,17 +227,21 @@ class TemplateStore extends MailspringStore {
       resolvedName = `${name} ${number}`;
       number += 1;
     }
-    this.saveTemplate(resolvedName, contents, callback);
+    this.saveTemplate(resolvedName, template, callback);
     this.trigger(this);
   }
 
-  saveTemplate(name: string, contents: string, callback: (template: TemplateItem) => void) {
+  saveTemplate(
+    name: string,
+    { subject, body }: ParsedTemplate,
+    callback: (template: TemplateItem) => void
+  ) {
     const filename = `${name}.html`;
     const templatePath = path.join(this._templatesDir, filename);
     let template = this._items.find((t) => t.name === name);
 
     this.unwatch();
-    fs.writeFile(templatePath, contents, (err) => {
+    fs.writeFile(templatePath, stringifyTemplate({ subject, body }), (err) => {
       this.watch();
       if (err) {
         this._displayError(err.message);
@@ -212,8 +251,11 @@ class TemplateStore extends MailspringStore {
           id: filename,
           name: name,
           path: templatePath,
+          subject: (subject || '').trim(),
         };
         this._items.unshift(template);
+      } else {
+        template.subject = (subject || '').trim();
       }
       if (callback) {
         callback(template);
@@ -275,22 +317,45 @@ class TemplateStore extends MailspringStore {
     headerMessageId,
   }: { templateId?: string; headerMessageId?: string } = {}) {
     const template = this._items.find((t) => t.id === templateId);
-    const templateBody = fs.readFileSync(template.path).toString();
+    const { subject: templateSubject, body: templateBody } = parseTemplate(
+      fs.readFileSync(template.path).toString()
+    );
     const session = await DraftStore.sessionForClientId(headerMessageId);
+    const draft = session.draft();
+
+    // Never touch the subject of a reply - it's tied to the thread the user is
+    // replying to (and the composer doesn't even show the field.)
+    const canApplySubject = !!templateSubject && !draft.replyToHeaderMessageId;
+    const draftSubject = (draft.subject || '').trim();
+
+    const bodyWouldBeReplaced = !draft.pristine && !draft.hasEmptyBody();
+    const subjectWouldBeReplaced =
+      canApplySubject && draftSubject.length > 0 && draftSubject !== templateSubject;
 
     let proceed = true;
-    if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
-      proceed = this._displayDialog(
-        localized('Replace draft contents?'),
-        localized(
+    if (bodyWouldBeReplaced || subjectWouldBeReplaced) {
+      let message;
+      if (bodyWouldBeReplaced && subjectWouldBeReplaced) {
+        message = localized(
+          'It looks like your draft already has a subject and some content. Loading this template will overwrite the subject line and all draft contents.'
+        );
+      } else if (subjectWouldBeReplaced) {
+        message = localized(
+          'It looks like your draft already has a subject. Loading this template will replace it.'
+        );
+      } else {
+        message = localized(
           'It looks like your draft already has some content. Loading this template will overwrite all draft contents.'
-        ),
-        [localized('Replace contents'), localized('Cancel')]
-      );
+        );
+      }
+      proceed = this._displayDialog(localized('Replace draft contents?'), message, [
+        localized('Replace contents'),
+        localized('Cancel'),
+      ]);
     }
 
     if (proceed) {
-      const current = session.draft().body;
+      const current = draft.body;
       let insertion = current.length;
       for (const s of [
         '<signature',
@@ -302,7 +367,13 @@ class TemplateStore extends MailspringStore {
           insertion = Math.min(insertion, i);
         }
       }
-      session.changes.add({ body: `${templateBody}${current.substr(insertion)}` });
+      const changes: { body: string; subject?: string } = {
+        body: `${templateBody}${current.substr(insertion)}`,
+      };
+      if (canApplySubject) {
+        changes.subject = templateSubject;
+      }
+      session.changes.add(changes);
     }
   }
 
