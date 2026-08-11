@@ -1,17 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import {
-  localized,
-  Message,
-  MessageViewExtension,
-  getCurrentLocale,
-  MessageBodyProcessor,
-  IdentityStore,
-  FeatureUsageStore,
-} from 'mailspring-exports';
+import { localized, Message, MessageViewExtension, MessageBodyProcessor } from 'mailspring-exports';
 
-import { translateMessageBody, AllLanguages, TranslationsUsedLexicon } from './service';
+import {
+  clearTranslationCache,
+  getLMStudioSettings,
+  translateMessageBody,
+  translateText,
+  AllLanguages,
+} from './service';
 import { Menu, ButtonDropdown, RetinaImg } from 'mailspring-component-kit';
 
 interface TranslateMessageHeaderProps {
@@ -31,7 +29,7 @@ let RecentlyTranslatedBodies: {
 }[] = [];
 
 try {
-  RecentlyTranslatedBodies = JSON.parse(window.localStorage.getItem('translated-index') || '[]');
+  RecentlyTranslatedBodies = JSON.parse(window.localStorage.getItem('translated-index-v2') || '[]');
 } catch (err) {
   // no saved translations
 }
@@ -59,7 +57,18 @@ export class TranslateMessageExtension extends MessageViewExtension {
     RecentlyTranslatedBodies.push(result);
 
     if (result.enabled) {
-      message.body = window.localStorage.getItem(`translated-${message.id}`);
+      const translated = window.localStorage.getItem(`translated-${message.id}`);
+      if (translated) {
+        message.body = translated;
+      } else {
+        // The cache may have been cleared while this message view was
+        // unmounted. Reconcile the in-memory index before rendering the header.
+        result.enabled = false;
+        window.localStorage.setItem(
+          'translated-index-v2',
+          JSON.stringify(RecentlyTranslatedBodies)
+        );
+      }
     }
   };
 }
@@ -99,6 +108,8 @@ export class TranslateMessageHeader extends React.Component<
 
   componentDidMount() {
     this._mounted = true;
+    window.addEventListener('mailspring-translation-requested', this._onTranslationRequested);
+    window.addEventListener('mailspring-translation-updated', this._onTranslationCacheUpdated);
     this._detectLanguageIfReady();
   }
 
@@ -108,7 +119,81 @@ export class TranslateMessageHeader extends React.Component<
 
   componentWillUnmount() {
     this._mounted = false;
+    window.removeEventListener('mailspring-translation-requested', this._onTranslationRequested);
+    window.removeEventListener('mailspring-translation-updated', this._onTranslationCacheUpdated);
   }
+
+  _onTranslationRequested = (event: Event) => {
+    const detail = (event as CustomEvent).detail;
+    if (detail?.id !== this.props.message.id) return;
+    const result = RecentlyTranslatedBodies.find((item) => item.id === detail.id);
+    if (result?.enabled) this._onTranslateAgain();
+    else this._onTranslateManually();
+  };
+
+  _onTranslateManually = () => {
+    if (this.state.detected) {
+      this._onTranslate('manual');
+      return;
+    }
+
+    this._detectionStarted = true;
+    this.setState({ translating: 'manual' });
+
+    const el = ReactDOM.findDOMNode(this) as Element;
+    const messageEl = el && el.closest('.message-item-area');
+    const iframeEl = messageEl && messageEl.querySelector('iframe');
+    const text = iframeEl?.contentDocument?.body?.innerText?.slice(0, 1000);
+
+    if (!text || text.length < 50) {
+      this._onTranslate('manual');
+      return;
+    }
+
+    let completed = false;
+    const finish = (detected?: string) => {
+      if (completed || !this._mounted) return;
+      completed = true;
+
+      if (detected && AllLanguages[detected]) {
+        this.setState({ detected }, () => this._onTranslate('manual'));
+      } else {
+        this._onTranslate('manual');
+      }
+    };
+
+    callCldViaExtension(text, (err, result) => {
+      if (err || !result || !result.languages?.length) {
+        finish();
+        return;
+      }
+      finish(result.languages[0].language);
+    });
+
+    // Do not leave the progress banner hanging if the language detector does
+    // not respond. Translation can still proceed without a detected source.
+    window.setTimeout(() => finish(), 3000);
+  };
+
+  _onTranslationCacheUpdated = (event: Event) => {
+    const detail = (event as CustomEvent).detail;
+    if (!detail?.cleared || (!detail.all && detail.id !== this.props.message.id)) return;
+
+    if (detail.all) {
+      RecentlyTranslatedBodies = RecentlyTranslatedBodies.map((item) => ({
+        ...item,
+        enabled: false,
+      }));
+    } else {
+      RecentlyTranslatedBodies = RecentlyTranslatedBodies.map((item) =>
+        item.id === this.props.message.id ? { ...item, enabled: false } : item
+      );
+    }
+    // Keep the detected language so the normal translation prompt remains
+    // available after clearing the saved result.
+    this.setState({ translating: false });
+    MessageBodyProcessor.updateCacheForMessage(this.props.message);
+  };
 
   _detectLanguageIfReady = async () => {
     if (this._detectionStarted) return;
@@ -118,7 +203,7 @@ export class TranslateMessageHeader extends React.Component<
 
     // load the previous translation result if this message is already translated
     const result = RecentlyTranslatedBodies.find((o) => o.id === this.props.message.id);
-    if (result) {
+    if (result?.fromLang) {
       this._detectionStarted = true;
       this.setState({ detected: result.fromLang });
       return;
@@ -159,16 +244,16 @@ export class TranslateMessageHeader extends React.Component<
 
       // no-op if the current and detected language are the same
       const detected = result.languages[0].language;
-      const current = getCurrentLocale().split('-')[0];
-      if (current === detected) return;
+      const target = getLMStudioSettings().targetLanguage;
+      if (target === detected) return;
 
       // no-op if we don't know how to translate this language pair
-      if (!AllLanguages[current] || !AllLanguages[detected]) return;
+      if (!AllLanguages[target] || !AllLanguages[detected]) return;
 
       const prefs = getPrefs();
       if (prefs.disabled.includes(detected)) return;
       this.setState({ detected });
-      if (prefs.automatic.includes(detected) && IdentityStore.hasProFeatures()) {
+      if (prefs.automatic.includes(detected)) {
         this._onTranslate('auto');
       }
     });
@@ -179,46 +264,65 @@ export class TranslateMessageHeader extends React.Component<
 
     const result = RecentlyTranslatedBodies.find((o) => o.id === message.id);
     if (result) {
-      if (!result.enabled) this._onToggleTranslate();
-      return;
-    }
-
-    if (!IdentityStore.hasProFeatures()) {
-      try {
-        await FeatureUsageStore.markUsedOrUpgrade('translation', TranslationsUsedLexicon);
-      } catch (err) {
-        // user does not have access to this feature
-        return;
-      }
+      if (result.enabled) return;
     }
 
     this.setState({ translating: mode });
-    const targetLanguage = getCurrentLocale().split('-')[0];
-    const translated = await translateMessageBody(message.body, targetLanguage, mode === 'auto');
+    const targetLanguage = getLMStudioSettings().targetLanguage;
+    let translated: string | false = false;
+    let translatedSubject = '';
+    try {
+      // Keep these requests sequential. LM Studio may need to load the model on
+      // the first request and some models do not support concurrent context setup.
+      translated = await translateMessageBody(message.body, targetLanguage, mode === 'auto');
+      if (message.subject) {
+        translatedSubject = await translateText(message.subject, targetLanguage);
+      }
+    } catch (err) {
+      if (mode === 'manual') {
+        AppEnv.showErrorDialog({
+          title: localized('Language Conversion Failed'),
+          message: err.toString(),
+        });
+      }
+    }
     if (this._mounted) {
       this.setState({ translating: false });
     }
     if (translated) {
-      this._onPersistTranslation(targetLanguage, translated);
+      this._onPersistTranslation(targetLanguage, translated, translatedSubject);
     }
   };
 
-  _onPersistTranslation = (targetLanguage: string, translated: string) => {
+  _onPersistTranslation = (
+    targetLanguage: string,
+    translated: string,
+    translatedSubject: string
+  ) => {
     const { message } = this.props;
 
     if (RecentlyTranslatedBodies.length > 150) {
       const element = RecentlyTranslatedBodies.shift();
       localStorage.removeItem(`translated-${element.id}`);
+      localStorage.removeItem(`translated-subject-${element.id}`);
     }
 
+    RecentlyTranslatedBodies = RecentlyTranslatedBodies.filter((item) => item.id !== message.id);
     RecentlyTranslatedBodies.push({
       id: message.id,
       enabled: true,
-      fromLang: this.state.detected,
+      fromLang: this.state.detected || '',
       toLang: targetLanguage,
     });
     localStorage.setItem(`translated-${message.id}`, translated);
-    localStorage.setItem(`translated-index`, JSON.stringify(RecentlyTranslatedBodies));
+    if (translatedSubject) {
+      localStorage.setItem(`translated-subject-${message.id}`, translatedSubject);
+    }
+    localStorage.setItem(`translated-index-v2`, JSON.stringify(RecentlyTranslatedBodies));
+
+    window.dispatchEvent(
+      new CustomEvent('mailspring-translation-updated', { detail: { id: message.id } })
+    );
 
     MessageBodyProcessor.updateCacheForMessage(message);
   };
@@ -227,6 +331,16 @@ export class TranslateMessageHeader extends React.Component<
     const result = RecentlyTranslatedBodies.find((o) => o.id === this.props.message.id);
     result.enabled = !result.enabled;
     MessageBodyProcessor.updateCacheForMessage(this.props.message);
+    window.dispatchEvent(
+      new CustomEvent('mailspring-translation-updated', { detail: { id: this.props.message.id } })
+    );
+  };
+
+  _onTranslateAgain = async () => {
+    clearTranslationCache(this.props.message.id);
+    MessageBodyProcessor.updateCacheForMessage(this.props.message);
+    await Promise.delay(0);
+    this._onTranslateManually();
   };
 
   _onDisableAlwaysForLanguage = () => {
@@ -237,20 +351,6 @@ export class TranslateMessageHeader extends React.Component<
   };
 
   _onAlwaysForLanguage = async () => {
-    if (!IdentityStore.hasProFeatures()) {
-      try {
-        await FeatureUsageStore.displayUpgradeModal('translation', {
-          headerText: localized('Translate automatically with Mailspring Pro'),
-          rechargeText: `${localized(
-            "Unfortunately, translation services bill per character and we can't offer this feature for free."
-          )} ${localized('Upgrade to Pro today!')}`,
-          iconUrl: 'mailspring://translation/assets/ic-translation-modal@2x.png',
-        });
-      } catch (err) {
-        return;
-      }
-    }
-
     const prefs = getPrefs();
     prefs.disabled = prefs.disabled.filter((p) => p !== this.state.detected);
     prefs.automatic = prefs.automatic.concat([this.state.detected]);
@@ -304,18 +404,15 @@ export class TranslateMessageHeader extends React.Component<
             <button className="action" tabIndex={0} onClick={this._onToggleTranslate}>
               <span>{localized('Show Original')}</span>
             </button>
+            <button className="action" tabIndex={0} onClick={this._onTranslateAgain}>
+              <span>{localized('Translate again')}</span>
+            </button>
           </div>
         </div>
       );
     }
 
-    if (!this.state.detected) {
-      return <span />;
-    }
-
-    const fromLanguage = AllLanguages[this.state.detected];
-    const toLanguage = AllLanguages[getCurrentLocale().split('-')[0]];
-    const prefs = getPrefs();
+    const toLanguage = AllLanguages[getLMStudioSettings().targetLanguage];
 
     const spinner = (
       <RetinaImg
@@ -325,12 +422,15 @@ export class TranslateMessageHeader extends React.Component<
       />
     );
 
-    if (this.state.translating === 'auto') {
+    if (this.state.translating) {
+      const fromLanguage = this.state.detected && AllLanguages[this.state.detected];
       return (
         <div className="translate-message-header">
           <div className="message">
             <div className="message-centered">
-              {localized('Translating from %1$@ to %2$@.', fromLanguage, toLanguage)}
+              {fromLanguage
+                ? localized('Translating from %1$@ to %2$@.', fromLanguage, toLanguage)
+                : localized('Translating to %@.', toLanguage)}
             </div>
             <div style={{ flex: 1 }} />
             <RetinaImg
@@ -342,18 +442,27 @@ export class TranslateMessageHeader extends React.Component<
         </div>
       );
     }
+
+    if (!this.state.detected) {
+      return <span />;
+    }
+
+    const fromLanguage = AllLanguages[this.state.detected];
+    const prefs = getPrefs();
     return (
       <div className="translate-message-header">
         <div className="message with-actions">
           <div className="message-centered">
             {localized('Translate from %1$@ to %2$@?', fromLanguage, toLanguage)}
             <div className="note">
-              {localized('Privacy note: text below will be sent to an online translation service.')}
+              {localized(
+                'Privacy note: text below will be sent only to your configured LM Studio server.'
+              )}
             </div>
           </div>
         </div>
         <div className="actions">
-          <button className="action" tabIndex={0} onClick={() => this._onTranslate('manual')}>
+          <button className="action" tabIndex={0} onClick={this._onTranslateManually}>
             {this.state.translating === 'manual' ? spinner : <span>{localized('Translate')}</span>}
           </button>
           <ButtonDropdown
@@ -373,7 +482,7 @@ export class TranslateMessageHeader extends React.Component<
                       }
                     : {
                         key: 'always',
-                        label: localized('Always translate %@', fromLanguage) + ` (Pro)`,
+                        label: localized('Always translate %@', fromLanguage),
                         select: this._onAlwaysForLanguage,
                       },
                   {

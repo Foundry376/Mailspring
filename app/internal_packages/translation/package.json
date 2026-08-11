@@ -4,10 +4,10 @@
   "main": "./lib/main",
 
   "isOptional": true,
-  "isIdentityRequired": true,
+  "isIdentityRequired": false,
 
   "title": "Translation",
-  "description": "Translate your drafts in the composer into other languages using the Yandex Translation API.",
+  "description": "Translate messages locally using an OpenAI-compatible LM Studio server.",
   "icon": "./icon.png",
 
   "license": "GPL-3.0",

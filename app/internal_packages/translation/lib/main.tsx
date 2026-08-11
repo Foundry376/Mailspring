@@ -6,9 +6,10 @@
 // TranslateButton is a simple React component that allows you to select
 // a language from a popup menu and translates draft text into that language.
 
-import { ComponentRegistry, ExtensionRegistry } from 'mailspring-exports';
+import { ComponentRegistry, ExtensionRegistry, PreferencesUIStore } from 'mailspring-exports';
 import { TranslateComposerButton } from './composer-button';
 import { TranslateMessageHeader, TranslateMessageExtension } from './message-header';
+import PreferencesLMStudio from './preferences-lm-studio';
 /*
 All packages must export a basic object that has at least the following 3
 methods:
@@ -22,6 +23,14 @@ happen when a user manually disables a package.
 */
 
 export function activate() {
+  this.preferencesTab = new PreferencesUIStore.TabItem({
+    tabId: 'LM Studio',
+    displayName: 'LM Studio',
+    componentClassFn: () => PreferencesLMStudio,
+    order: 7,
+  });
+  PreferencesUIStore.registerPreferencesTab(this.preferencesTab);
+
   ExtensionRegistry.MessageView.register(TranslateMessageExtension);
 
   ComponentRegistry.register(TranslateComposerButton, {
@@ -33,6 +42,7 @@ export function activate() {
 }
 
 export function deactivate() {
+  PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab);
   ExtensionRegistry.MessageView.unregister(TranslateMessageExtension);
   ComponentRegistry.unregister(TranslateComposerButton);
   ComponentRegistry.unregister(TranslateMessageHeader);

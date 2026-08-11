@@ -52,6 +52,7 @@ interface MessageListState {
   loading: boolean;
   minified: boolean;
   focusedMessageIndex: number;
+  translationVersion: number;
 }
 
 const { Menu, MenuItem } = require('@electron/remote');
@@ -78,12 +79,14 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     this.state = Object.assign(this._getStateFromStores(), {
       minified: true,
       focusedMessageIndex: 0,
+      translationVersion: 0,
     });
   }
 
   componentDidMount() {
     this._unsubscribers = [];
     this._unsubscribers.push(MessageStore.listen(this._onChange));
+    window.addEventListener('mailspring-translation-updated', this._onTranslationUpdated);
   }
 
   shouldComponentUpdate(nextProps: Record<string, unknown>, nextState: MessageListState) {
@@ -98,7 +101,18 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     for (const unsubscribe of this._unsubscribers) {
       unsubscribe();
     }
+    window.removeEventListener('mailspring-translation-updated', this._onTranslationUpdated);
   }
+
+  _onTranslationUpdated = (event: Event) => {
+    const id = (event as CustomEvent).detail?.id;
+    if (
+      (event as CustomEvent).detail?.all ||
+      this.state.messages.some((message) => message.id === id)
+    ) {
+      this.setState({ translationVersion: this.state.translationVersion + 1 });
+    }
+  };
 
   _globalKeymapHandlers() {
     const handlers = {
@@ -518,6 +532,19 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
 
   _renderSubject() {
     let subject = this.state.currentThread.subject;
+    try {
+      const translations = JSON.parse(localStorage.getItem('translated-index-v2') || '[]');
+      for (let i = this.state.messages.length - 1; i >= 0; i--) {
+        const message = this.state.messages[i];
+        const translation = translations.find((item) => item.id === message.id && item.enabled);
+        if (translation) {
+          subject = localStorage.getItem(`translated-subject-${message.id}`) || subject;
+          break;
+        }
+      }
+    } catch (_) {
+      // Ignore stale or malformed translation cache data.
+    }
     if (!subject || subject.length === 0) {
       subject = localized('(No Subject)');
     }

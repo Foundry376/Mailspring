@@ -3,10 +3,151 @@ import {
   QuotedHTMLTransformer,
   localized,
   Actions,
-  MailspringAPIRequest,
   RegExpUtils,
-  FeatureLexicon,
+  getCurrentLocale,
 } from 'mailspring-exports';
+
+export const LMStudioDefaults = {
+  url: 'http://127.0.0.1:1234/v1',
+  model: '',
+  apiKey: '',
+  targetLanguage: 'en',
+};
+
+export const LMStudioConfigKeys = {
+  url: 'core.translation.lmStudio.url',
+  model: 'core.translation.lmStudio.model',
+  apiKey: 'core.translation.lmStudio.apiKey',
+  targetLanguage: 'core.translation.lmStudio.targetLanguage',
+};
+
+export function getLMStudioSettings() {
+  return {
+    url: AppEnv.config.get(LMStudioConfigKeys.url) || LMStudioDefaults.url,
+    model: AppEnv.config.get(LMStudioConfigKeys.model) || LMStudioDefaults.model,
+    apiKey: AppEnv.config.get(LMStudioConfigKeys.apiKey) || LMStudioDefaults.apiKey,
+    targetLanguage:
+      AppEnv.config.get(LMStudioConfigKeys.targetLanguage) ||
+      getCurrentLocale().split('-')[0] ||
+      LMStudioDefaults.targetLanguage,
+  };
+}
+
+export function clearTranslationCache(messageId?: string) {
+  let index = [];
+  try {
+    index = JSON.parse(localStorage.getItem('translated-index-v2') || '[]');
+  } catch (_) {
+    // Rebuild an empty index if the cache was corrupted.
+  }
+
+  if (messageId) {
+    localStorage.removeItem(`translated-${messageId}`);
+    localStorage.removeItem(`translated-subject-${messageId}`);
+    index = index.map((item) => (item.id === messageId ? { ...item, enabled: false } : item));
+  } else {
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith('translated-') && key !== 'translated-index-v2')
+      .forEach((key) => localStorage.removeItem(key));
+    index = index.map((item) => ({ ...item, enabled: false }));
+  }
+
+  localStorage.setItem('translated-index-v2', JSON.stringify(index));
+  window.dispatchEvent(
+    new CustomEvent('mailspring-translation-updated', {
+      detail: messageId ? { id: messageId, cleared: true } : { all: true, cleared: true },
+    })
+  );
+}
+
+function normalizeLMStudioUrl(url: string) {
+  const base = (url || LMStudioDefaults.url).replace(/\/+$/, '');
+  return /\/v1$/i.test(base) ? base : `${base}/v1`;
+}
+
+function extractLMStudioText(data: any) {
+  const content = data?.choices?.[0]?.message?.content;
+  if (typeof content === 'string') return content.trim();
+  if (Array.isArray(content)) {
+    const text = content
+      .filter((part) => part?.type === 'text' && typeof part.text === 'string')
+      .map((part) => part.text)
+      .join('')
+      .trim();
+    if (text) return text;
+  }
+  throw new Error('LM Studio вернул ответ без текста');
+}
+
+function lmStudioError(data: any, status: string) {
+  const error = data?.error;
+  if (typeof error === 'string') return error;
+  if (error?.message) return error.message;
+  return `LM Studio: ${status}`;
+}
+
+async function callLMStudio(prompt: string, system: string) {
+  const settings = getLMStudioSettings();
+  if (!settings.model) {
+    throw new Error('Не выбрана модель LM Studio. Откройте Preferences → LM Studio.');
+  }
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`;
+
+  const response = await fetch(`${normalizeLMStudioUrl(settings.url)}/chat/completions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: settings.model,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0,
+      stream: false,
+    }),
+  });
+
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch (_) {
+    // Keep the useful HTTP error below.
+  }
+  if (!response.ok)
+    throw new Error(lmStudioError(data, `${response.status} ${response.statusText}`));
+  return extractLMStudioText(data);
+}
+
+export async function testLMStudioConnection() {
+  const settings = getLMStudioSettings();
+  const headers: Record<string, string> = {};
+  if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`;
+  const response = await fetch(`${normalizeLMStudioUrl(settings.url)}/models`, { headers });
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch (_) {
+    // The status error below is more useful than a JSON parsing error.
+  }
+  if (!response.ok)
+    throw new Error(lmStudioError(data, `${response.status} ${response.statusText}`));
+  return (data?.data || []).map((model) => model.id).filter(Boolean);
+}
+
+const TRANSLATE_SYSTEM_PROMPT =
+  'You are a professional translator. Accurately translate the text while preserving its meaning, names, numbers, dates, URLs, email addresses, and formatting. Produce only the translation, without labels, explanations, or commentary.';
+
+export async function translateText(text: string, targetLang: string, isHtml = false) {
+  // TranslateGemma responds more reliably to the <text> protocol used by the
+  // Thunderbird extension than to a verbose instruction wrapped around HTML.
+  const targetName = AllLanguages[targetLang] || targetLang;
+  return callLMStudio(
+    `You are a professional translator from any source language to ${targetName} (${targetLang}).\nProduce only the ${targetName} translation, without labels or commentary. Translate the text inside the <text> tags:\n\n<text>${text}</text>`,
+    TRANSLATE_SYSTEM_PROMPT
+  );
+}
 
 export const TranslatePopupOptions = {
   English: 'en',
@@ -119,14 +260,6 @@ export const AllLanguages = {
   ms: 'Malay',
 };
 
-export const TranslationsUsedLexicon: FeatureLexicon = {
-  headerText: localized('All Translations Used'),
-  rechargeText: `${localized(
-    'You can translate up to %1$@ emails each %2$@ with Mailspring Basic.'
-  )} ${localized('Upgrade to Pro today!')}`,
-  iconUrl: 'mailspring://translation/assets/ic-translation-modal@2x.png',
-};
-
 function forEachTranslatableText(doc: Document, callback: (el: Node, text: string) => void) {
   const textWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
   const urlRegexp = RegExpUtils.urlRegex({ matchStartOfString: true, matchTailOfString: true });
@@ -205,45 +338,28 @@ export async function translateMessageBody(
   // <style> tag counts.
   const domParser = new DOMParser();
   const doc = domParser.parseFromString(replyHtml, 'text/html');
-  const translationDoc = document.createElement('div');
-
-  // Iterate over the HTML document and pull out text blocks we need to translate via the API
-
-  // because LRU cache can change while the req is in flight
-  const skipped: { [text: string]: string } = {};
-  let totalChars = 0;
+  // Collect text nodes first. LLM translation backends generally return plain
+  // text and may discard wrapper tags such as <b>, so translating one node at
+  // a time is more reliable than trying to align a batch of HTML blocks.
+  const nodes: { node: Node; text: string }[] = [];
 
   forEachTranslatableText(doc, (node, text) => {
-    const t = translatedSnippetCache.get(text);
-    if (t) {
-      skipped[text] = t;
-      return;
-    }
-    if (totalChars > 5000) {
-      return;
-    }
-    const b = document.createElement('b');
-    b.textContent = text;
-    totalChars += text.length + 7; // <b></b>;
-    translationDoc.appendChild(b);
+    nodes.push({ node, text });
   });
 
-  let resultElements = [];
+  // Translate each text node independently so the result can never be lost
+  // because the model removed or reordered HTML tags.
+  for (const { node, text } of nodes) {
+    const cached = translatedSnippetCache.get(text);
+    if (cached) {
+      node.textContent = cached;
+      continue;
+    }
 
-  // Make the translation request
-  if (translationDoc.childElementCount > 0) {
-    const translationHTML = translationDoc.innerHTML.replace(/&nbsp;/g, ' '); // nbsp char
-
-    let response = null;
     try {
-      response = await MailspringAPIRequest.makeRequest({
-        server: 'identity',
-        method: 'POST',
-        path: `/api/translate`,
-        json: true,
-        body: { lang: targetLang, text: translationHTML, format: 'html' },
-        timeout: 5000,
-      });
+      const translated = await translateText(text, targetLang);
+      node.textContent = translated;
+      translatedSnippetCache.set(text, translated);
     } catch (error) {
       Actions.closePopover();
       if (!silent) {
@@ -254,29 +370,7 @@ export async function translateMessageBody(
       }
       return false;
     }
-
-    const resultDoc = domParser.parseFromString(response.result, 'text/html');
-    resultElements = Array.from(resultDoc.querySelectorAll('b'));
   }
-
-  // Merge the results back in to the original document by traversing it in the same order
-  // and inserting the result back in. Note that we have saved our cache hits into `skipped`
-  // and read them from there to be 100% sure the translation indexes still align with the doc.
-  forEachTranslatableText(doc, (node, text) => {
-    if (skipped[text]) {
-      node.textContent = skipped[text];
-    } else {
-      const resultElement = resultElements.shift();
-      if (resultElement) {
-        const translated = resultElement.textContent;
-        node.textContent = translated;
-        translatedSnippetCache.set(text, translated);
-      } else {
-        // we may have hit the `totalChars` per-email translation limit.
-        // nothing more to do here!
-      }
-    }
-  });
 
   // Put the quoted text back in!
   return QuotedHTMLTransformer.appendQuotedHTML(doc.body.innerHTML, html);

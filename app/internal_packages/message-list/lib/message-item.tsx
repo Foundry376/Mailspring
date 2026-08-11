@@ -31,6 +31,7 @@ interface MessageItemState {
     [fileId: string]: null;
   };
   detailedHeaders: boolean;
+  translationVersion: number;
 }
 
 export default class MessageItem extends React.Component<MessageItemProps, MessageItemState> {
@@ -48,6 +49,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       downloads: AttachmentStore.getDownloadDataForFiles(fileIds),
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: AppEnv.config.get('core.reading.detailedHeaders'),
+      translationVersion: 0,
     };
   }
 
@@ -55,6 +57,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
 
   componentDidMount() {
     this._storeUnlisten = AttachmentStore.listen(this._onDownloadStoreChange);
+    window.addEventListener('mailspring-translation-updated', this._onTranslationUpdated);
   }
 
   shouldComponentUpdate(nextProps: MessageItemProps, nextState: MessageItemState) {
@@ -65,7 +68,15 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     if (this._storeUnlisten) {
       this._storeUnlisten();
     }
+    window.removeEventListener('mailspring-translation-updated', this._onTranslationUpdated);
   }
+
+  _onTranslationUpdated = (event: Event) => {
+    const id = (event as CustomEvent).detail?.id;
+    if (id === this.props.message.id || (event as CustomEvent).detail?.all) {
+      this.setState({ translationVersion: this.state.translationVersion + 1 });
+    }
+  };
 
   _onClickParticipants = (e: React.MouseEvent<any>) => {
     let el = e.target as HTMLElement;
@@ -263,7 +274,18 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       return false;
     }
 
-    const subject = this.props.message.subject;
+    let translationEnabled = false;
+    try {
+      translationEnabled = JSON.parse(localStorage.getItem('translated-index-v2') || '[]').some(
+        (item) => item.id === this.props.message.id && item.enabled
+      );
+    } catch (_) {
+      // A stale or manually edited translation cache is ignored.
+    }
+    const translatedSubject = translationEnabled
+      ? localStorage.getItem(`translated-subject-${this.props.message.id}`)
+      : null;
+    const subject = translatedSubject || this.props.message.subject;
 
     return (
       <div className="header-row">

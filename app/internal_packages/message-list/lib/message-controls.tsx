@@ -42,14 +42,19 @@ export default class MessageControls extends React.Component<MessageControlsProp
       image: 'ic-dropdown-whitespace.png',
       select: this._onShowOriginal,
     };
+    const translate = {
+      name: localized('Translate'),
+      image: 'ic-dropdown-whitespace.png',
+      select: this._onTranslate,
+    };
 
     if (!this.props.message.canReplyAll()) {
-      return [reply, forward, showOriginal];
+      return [reply, forward, translate, showOriginal];
     }
     const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
     return defaultReplyType === 'reply-all'
-      ? [replyAll, reply, forward, showOriginal]
-      : [reply, replyAll, forward, showOriginal];
+      ? [replyAll, reply, forward, translate, showOriginal]
+      : [reply, replyAll, forward, translate, showOriginal];
   }
 
   _dropdownMenu(items: Array<{ name: string; image: string; select: () => void }>) {
@@ -95,6 +100,12 @@ export default class MessageControls extends React.Component<MessageControlsProp
     Actions.composeForward({ thread, message });
   };
 
+  _onTranslate = () => {
+    window.dispatchEvent(
+      new CustomEvent('mailspring-translation-requested', { detail: { id: this.props.message.id } })
+    );
+  };
+
   _onDownloadEml = () => {
     const { message } = this.props;
     const defaultFilename = EmlUtils.defaultEmlFilename(message.subject);
@@ -125,6 +136,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
     menu.append(
       new SystemMenuItem({ label: localized('Show Original'), click: this._onShowOriginal })
     );
+    menu.append(new SystemMenuItem({ label: localized('Translate'), click: this._onTranslate }));
     menu.append(
       new SystemMenuItem({
         label: localized('Copy Debug Info to Clipboard'),
