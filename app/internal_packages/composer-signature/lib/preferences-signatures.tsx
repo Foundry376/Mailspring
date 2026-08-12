@@ -11,6 +11,7 @@ import {
   IDefaultSignatures,
   IAliasSet,
   InlineStyleTransformer,
+  SanitizeTransformer,
 } from 'mailspring-exports';
 import { Flexbox, EditableList } from 'mailspring-component-kit';
 
@@ -34,9 +35,50 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     Actions.upsertSignature({ ...sig, title: event.target.value }, sig.id);
   };
 
-  _onRawBodyChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  _onRawBodyChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    this._saveRawBody(event.target.value);
+  };
+
+  // The raw source field is a plain <textarea>, so pasting rich content would normally
+  // insert only the text/plain flavor of the clipboard. When the clipboard also carries
+  // HTML (eg: copying a signature out of a webmail client), insert the markup itself so
+  // the user gets the formatting they copied rather than a wall of unstyled text.
+  _onRawBodyPaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const plain = event.clipboardData.getData('text/plain');
+
+    // If the plain text flavor already looks like markup, the user is copying HTML
+    // source (from an editor, view-source, another signature) and expects it verbatim.
+    if (/<[a-z!/][\s\S]*>/i.test(plain)) {
+      return;
+    }
+
+    // Sanitize with the same rules we apply to pasted content in the composer — this
+    // strips scripts, event handlers and unsafe URI schemes before the markup can be
+    // saved and rendered into the preview / composer.
+    const html = SanitizeTransformer.runSync(event.clipboardData.getData('text/html')).trim();
+    if (!html) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const el = event.currentTarget;
+
+    // Prefer execCommand so the paste joins the textarea's native undo stack. It emits
+    // an `input` event, which React surfaces as our onChange handler.
+    if (document.execCommand('insertText', false, html)) {
+      return;
+    }
+
+    const { selectionStart, selectionEnd, value } = el;
+    el.value = `${value.slice(0, selectionStart)}${html}${value.slice(selectionEnd)}`;
+    el.selectionStart = el.selectionEnd = selectionStart + html.length;
+    this._saveRawBody(el.value);
+  };
+
+  _saveRawBody = async (value: string) => {
     const sig = this.props.signature;
-    let body = event.target.value;
+    let body = value;
     try {
       body = await InlineStyleTransformer.run(body);
     } catch (err) {
@@ -145,8 +187,14 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
                 className="section raw-html"
                 spellCheck={false}
                 onChange={this._onRawBodyChange}
+                onPaste={this._onRawBodyPaste}
                 defaultValue={signature.body || ''}
               />,
+              <div key="body-note" className="section-note">
+                {localized(
+                  'Moving from another mail app? Select your existing signature in an email and copy-paste it into the box above.'
+                )}
+              </div>,
             ]
           : [
               <div key="header" className="section-header">
