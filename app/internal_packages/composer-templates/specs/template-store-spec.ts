@@ -55,6 +55,15 @@ describe('TemplateStore', function templateStore() {
       expect((TemplateStore as any)._displayDialog).not.toHaveBeenCalled();
     });
 
+    it('never replaces the subject of a forward', async () => {
+      const changes = await insert({
+        subject: 'Fwd: Lunch tomorrow',
+        forwardedHeaderMessageId: 'other-message',
+      });
+      expect(changes.subject).toBe(undefined);
+      expect((TemplateStore as any)._displayDialog).not.toHaveBeenCalled();
+    });
+
     it('asks before replacing a subject the draft already has', async () => {
       const changes = await insert({ subject: 'Lunch tomorrow' });
       expect((TemplateStore as any)._displayDialog).toHaveBeenCalled();

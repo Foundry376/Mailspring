@@ -33,10 +33,12 @@ class TemplatePopover extends React.Component<{ headerMessageId: string }> {
       return templates;
     }
 
+    // Match both lines shown in each item the same way, so typing a word from
+    // the middle of a name finds it just like a word from the middle of a subject.
     const query = searchValue.toLowerCase();
     return templates.filter((t) => {
       return (
-        t.name.toLowerCase().indexOf(query) === 0 || (t.subject || '').toLowerCase().includes(query)
+        t.name.toLowerCase().includes(query) || (t.subject || '').toLowerCase().includes(query)
       );
     });
   }

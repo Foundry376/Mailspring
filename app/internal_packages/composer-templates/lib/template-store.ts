@@ -323,9 +323,11 @@ class TemplateStore extends MailspringStore {
     const session = await DraftStore.sessionForClientId(headerMessageId);
     const draft = session.draft();
 
-    // Never touch the subject of a reply - it's tied to the thread the user is
-    // replying to (and the composer doesn't even show the field.)
-    const canApplySubject = !!templateSubject && !draft.replyToHeaderMessageId;
+    // Never touch the subject of a reply or a forward - the "Re:" / "Fwd:" prefix
+    // and the original subject tie the message to the thread it came from. (The
+    // composer doesn't even show the subject field when you're replying.)
+    const canApplySubject =
+      !!templateSubject && !draft.replyToHeaderMessageId && !draft.forwardedHeaderMessageId;
     const draftSubject = (draft.subject || '').trim();
 
     const bodyWouldBeReplaced = !draft.pristine && !draft.hasEmptyBody();

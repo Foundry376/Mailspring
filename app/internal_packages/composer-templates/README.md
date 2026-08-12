@@ -15,9 +15,9 @@ very top of the file:
 ```
 
 When you insert the template, the subject is filled into your draft. Templates
-without the meta tag leave the draft's subject alone, and the subject of a reply
-is never overwritten. If your draft already has a subject, Mailspring asks before
-replacing it.
+without the meta tag leave the draft's subject alone, and the subject of a reply or
+a forward is never overwritten. If your draft already has a subject, Mailspring
+asks before replacing it.
 
 If you include HTML &lt;code&gt; tags in your template, you can create
 regions that you can jump between and fill easily.
