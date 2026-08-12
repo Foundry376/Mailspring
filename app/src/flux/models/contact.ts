@@ -412,18 +412,37 @@ export class Contact extends Model {
     return Contact.sortOrderAttribute().descending();
   };
 
-  static fromString(string, { accountId }: { accountId?: string } = {}) {
+  // Public: Parses a string like `Ben Gotow <ben@foundry376.com>` into a {Contact}.
+  //
+  // Note: This is called with user-provided values - account aliases in particular -
+  // which are often malformed. `ben@foundry376.com <ben@foundry376.com>` (the email
+  // used as the display name) and strings with no email address at all are both
+  // common. Parsing must never throw: a single bad alias is read by
+  // AccountStore.aliases(), and would otherwise take down every view that calls
+  // Contact#isMe, including the thread list.
+  //
+  // If no email address is present, the returned contact has an empty `email` and
+  // the entire string as its `name`.
+  static fromString(string: string, { accountId }: { accountId?: string } = {}) {
     const emailRegex = RegExpUtils.emailRegex();
-    const match = emailRegex.exec(string);
-    if (emailRegex.exec(string)) {
-      throw new Error(
-        'Error while calling Contact.fromString: string contains more than one email'
-      );
+    const matches: RegExpExecArray[] = [];
+    let match: RegExpExecArray = null;
+    while ((match = emailRegex.exec(string)) !== null) {
+      matches.push(match);
     }
-    const email = match[0];
-    let name = string.substr(0, match.index - 1);
+
+    // When the string contains more than one address, prefer the last one wrapped in
+    // angle brackets (`"a@b.com" <a@b.com>`), and otherwise the last one found, since
+    // the address trails the display name in the `Name <email>` format.
+    const bracketed = matches.filter(
+      (m) => string[m.index - 1] === '<' && string[m.index + m[0].length] === '>'
+    );
+    const chosen = bracketed[bracketed.length - 1] || matches[matches.length - 1];
+
+    const email = chosen ? chosen[0] : '';
+    let name = (chosen ? string.slice(0, chosen.index) : string).trim();
     if (name.endsWith('<') || name.endsWith('(')) {
-      name = name.substr(0, name.length - 1);
+      name = name.slice(0, name.length - 1).trim();
     }
     return new Contact({
       // used to give them random strings, let's try for something consistent

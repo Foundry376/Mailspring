@@ -146,6 +146,56 @@ describe('Contact', function () {
     expect(c1.displayName({ compact: true })).toBe('You');
   });
 
+  describe('fromString', function () {
+    it('parses a name and an email address', function () {
+      const c1 = Contact.fromString('Ben Gotow <ben@mailspring.com>');
+      expect(c1.name).toBe('Ben Gotow');
+      expect(c1.email).toBe('ben@mailspring.com');
+    });
+
+    it('parses a bare email address', function () {
+      const c1 = Contact.fromString('ben@mailspring.com');
+      expect(c1.name).toBe('');
+      expect(c1.email).toBe('ben@mailspring.com');
+    });
+
+    it('assigns the accountId and a deterministic id', function () {
+      const c1 = Contact.fromString('Ben <ben@mailspring.com>', { accountId: 'a1' });
+      expect(c1.accountId).toBe('a1');
+      expect(c1.id).toBe('local-a1-ben@mailspring.com');
+    });
+
+    it('prefers the address in angle brackets when the string contains several', function () {
+      const c1 = Contact.fromString('ben@mailspring.com <ben@mailspring.com>');
+      expect(c1.name).toBe('ben@mailspring.com');
+      expect(c1.email).toBe('ben@mailspring.com');
+
+      const c2 = Contact.fromString('Ben (old: ben@old.com) <ben@mailspring.com>');
+      expect(c2.name).toBe('Ben (old: ben@old.com)');
+      expect(c2.email).toBe('ben@mailspring.com');
+    });
+
+    it('uses the last address when several appear without angle brackets', function () {
+      const c1 = Contact.fromString('ben@old.com ben@mailspring.com');
+      expect(c1.name).toBe('ben@old.com');
+      expect(c1.email).toBe('ben@mailspring.com');
+    });
+
+    it('does not throw when the string contains no email address', function () {
+      const c1 = Contact.fromString('Ben Gotow');
+      expect(c1.name).toBe('Ben Gotow');
+      expect(c1.email).toBe('');
+
+      const c2 = Contact.fromString('Ben Gotow <>');
+      expect(c2.name).toBe('Ben Gotow <>');
+      expect(c2.email).toBe('');
+
+      const c3 = Contact.fromString('');
+      expect(c3.name).toBe('');
+      expect(c3.email).toBe('');
+    });
+  });
+
   describe('isMe', function () {
     it('returns true if the contact name matches the account email address', function () {
       let c1 = new Contact({ email: this.account.emailAddress });
