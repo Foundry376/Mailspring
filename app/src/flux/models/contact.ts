@@ -448,7 +448,7 @@ export class Contact extends Model {
       // used to give them random strings, let's try for something consistent
       id: `local-${accountId}-${email}`,
       accountId: accountId,
-      name: name.trim(),
+      name: name,
       email: email,
     });
   }
