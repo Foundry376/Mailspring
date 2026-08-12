@@ -55,7 +55,7 @@ export default class OAuthSignInPage extends React.Component<
   _startTimer: NodeJS.Timeout;
   _warnTimer: NodeJS.Timeout;
   _mounted = false;
-  _codeReceived = false;
+  _lastCodeReceived: string | null = null;
 
   state: OAuthSignInPageState = {
     authStage: 'initial',
@@ -81,11 +81,17 @@ export default class OAuthSignInPage extends React.Component<
       const code = extractOAuthCodeFromUrl(request.url);
       if (code) {
         // Browsers, security software, and link-preview tools can hit this URL more
-        // than once (retries, prefetching, back/forward replay). Authorization codes
-        // are single-use, so only the first request should trigger the code exchange —
-        // repeating it just fails with an "invalid_grant" error from the provider.
-        if (!this._codeReceived) {
-          this._codeReceived = true;
+        // than once for the *same* code (retries, prefetching, back/forward replay).
+        // Authorization codes are single-use, so re-submitting an identical code just
+        // fails with an "invalid_grant" error from the provider — ignore repeats of a
+        // code we've already started exchanging. But the user can also legitimately
+        // go back in their browser and complete sign-in again with a different
+        // account, producing a genuinely new code; only ignore that if we're already
+        // mid-exchange (or have already succeeded) for the previous one.
+        const isNewCode = code !== this._lastCodeReceived;
+        const isBusy = this.state.authStage === 'buildingAccount' || this.state.authStage === 'accountSuccess';
+        if (isNewCode && !isBusy) {
+          this._lastCodeReceived = code;
           this._onReceivedCode(code);
         }
         response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
