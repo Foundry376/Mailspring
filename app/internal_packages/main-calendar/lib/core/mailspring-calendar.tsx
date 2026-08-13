@@ -168,7 +168,7 @@ export class MailspringCalendar extends React.Component<
 
   componentWillUnmount() {
     // The component is unmounting, dispose subscriptions
-    this._disposable.dispose();
+    this._disposable?.dispose();
     this._themeDisposable?.dispose();
     if (this._unlisten) {
       this._unlisten();
@@ -379,23 +379,29 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    // Partition before prompting so the dialog describes what will actually happen
-    const deletable = this.state.selectedEvents.filter(
-      (o) => !this._isCalendarReadOnly(o.calendarId)
-    );
+    // Partition before prompting so the dialog can disclose a partial delete
+    const selected = this.state.selectedEvents;
+    const deletable = selected.filter((o) => !this._isCalendarReadOnly(o.calendarId));
     if (deletable.length === 0) {
       showReadOnlyCalendarError();
       return;
     }
+    const skipped = selected.length - deletable.length;
 
     // Show initial confirmation dialog
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
       message: localized('Delete or decline these events?'),
-      detail: localized(
-        `Are you sure you want to delete or decline invitations for the selected event(s)?`
-      ),
+      detail: skipped
+        ? localized(
+            "%1$@ of the %2$@ selected events will be deleted. The rest are on read-only calendars and can't be changed.",
+            deletable.length,
+            selected.length
+          )
+        : localized(
+            `Are you sure you want to delete or decline invitations for the selected event(s)?`
+          ),
     });
 
     if (response !== 0) {
