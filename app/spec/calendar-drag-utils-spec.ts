@@ -3,6 +3,7 @@
 import {
   isPastDate,
   canMoveEvent,
+  snapAllDayTimes,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
@@ -83,5 +84,43 @@ describe('canMoveEvent', function () {
       end: todayStartUnix - 1,
     });
     expect(canMoveEvent(yesterday)).toBe(false);
+  });
+});
+
+describe('snapAllDayTimes', function () {
+  // Local midnights: all-day times are built from local date components.
+  const day = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
+  const JUN22 = day(2026, 6, 22);
+  const JUN23 = day(2026, 6, 23);
+
+  it('snaps an inclusive end-of-day end to the next midnight', function () {
+    expect(snapAllDayTimes(JUN22 + 9 * 3600, JUN23 - 1)).toEqual({
+      start: JUN22,
+      end: JUN23,
+    });
+  });
+
+  it('leaves an already-exclusive end unchanged, so repeated drags do not grow the event', function () {
+    expect(snapAllDayTimes(JUN22, JUN23)).toEqual({ start: JUN22, end: JUN23 });
+    const once = snapAllDayTimes(JUN22, JUN23 - 1);
+    expect(snapAllDayTimes(once.start, once.end)).toEqual(once);
+  });
+
+  it('gives a degenerate end a full day rather than zero length', function () {
+    expect(snapAllDayTimes(JUN22, JUN22)).toEqual({ start: JUN22, end: JUN23 });
+  });
+
+  it('preserves a multi-day span', function () {
+    expect(snapAllDayTimes(day(2026, 6, 20), day(2026, 6, 23))).toEqual({
+      start: day(2026, 6, 20),
+      end: day(2026, 6, 23),
+    });
+  });
+
+  it('always returns at least one whole day', function () {
+    [JUN22 - 1, JUN22, JUN22 + 1, JUN23 - 1, JUN23].forEach((end) => {
+      const snapped = snapAllDayTimes(JUN22, end);
+      expect(snapped.end).toBeGreaterThan(snapped.start);
+    });
   });
 });

@@ -111,6 +111,24 @@ function createAllDayTime(date: Date, ical: ICAL): ICALTime {
 }
 
 /**
+ * Creates an ICAL.Time for an all-day event's DTEND, which RFC 5545 defines as exclusive:
+ * midnight of the day after the last day covered. Callers pass ends in several shapes
+ * (end-of-day from a drag, untouched wall-clock times from the all-day toggle), and
+ * truncating those to a DATE would land on the start's own day.
+ * @param start Event start; floors the result so a degenerate end can't precede it
+ * @param end Event end; one already at midnight is not pushed out another day
+ */
+function createAllDayEndTime(start: Date, end: Date, ical: ICAL): ICALTime {
+  const lastCovered = new Date(Math.max(end.getTime() - 1, start.getTime()));
+  const exclusiveEnd = new Date(
+    lastCovered.getFullYear(),
+    lastCovered.getMonth(),
+    lastCovered.getDate() + 1
+  );
+  return createAllDayTime(exclusiveEnd, ical);
+}
+
+/**
  * Creates an ICAL.Time from a Date, optionally preserving a specific timezone.
  * For timed events, this properly handles timezone conversion.
  *
@@ -370,7 +388,9 @@ export function createICSString(options: CreateEventOptions): string {
     // All-day or no-timezone: use existing path
     const eventTimezone: ICALTimezone | null = null;
     event.startDate = createICALTime(options.start, isAllDay, ical, eventTimezone);
-    event.endDate = createICALTime(options.end, isAllDay, ical, eventTimezone);
+    event.endDate = isAllDay
+      ? createAllDayEndTime(options.start, options.end, ical)
+      : createICALTime(options.end, false, ical, eventTimezone);
   }
 
   // Set optional properties
@@ -497,7 +517,9 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
     const originalStartZone = event.startDate?.zone;
     const originalEndZone = event.endDate?.zone;
     event.startDate = createICALTime(startDate, isAllDay, ical, originalStartZone);
-    event.endDate = createICALTime(endDate, isAllDay, ical, originalEndZone);
+    event.endDate = isAllDay
+      ? createAllDayEndTime(startDate, endDate, ical)
+      : createICALTime(endDate, false, ical, originalEndZone);
   }
 
   // Update DTSTAMP to indicate modification
@@ -597,7 +619,9 @@ export function createRecurrenceException(
   const newEndDate = new Date(newEnd * 1000);
   const exceptionICALEvent = new ical.Event(exceptionVevent);
   exceptionICALEvent.startDate = createICALTime(newStartDate, isAllDay, ical, originalStartZone);
-  exceptionICALEvent.endDate = createICALTime(newEndDate, isAllDay, ical, originalStartZone);
+  exceptionICALEvent.endDate = isAllDay
+    ? createAllDayEndTime(newStartDate, newEndDate, ical)
+    : createICALTime(newEndDate, false, ical, originalStartZone);
 
   // Update DTSTAMP and increment SEQUENCE on the exception
   const now = ical.Time.now();

@@ -19,18 +19,20 @@ export function snapToInterval(timestamp: number, intervalSeconds: number): numb
 }
 
 /**
- * Snap all-day event times to day boundaries
- * Start should be at the beginning of a day, end should be at end of day
+ * Snap all-day event times to day boundaries.
+ * The end is exclusive (midnight after the last day covered), matching RFC 5545 DTEND
+ * and the events the sync engine produces.
  * @param start Start timestamp
  * @param end End timestamp
  * @returns Snapped start and end times
  */
 export function snapAllDayTimes(start: number, end: number): { start: number; end: number } {
-  // Start at beginning of day
   const snappedStart = moment.unix(start).startOf('day').unix();
 
-  // End at end of day (23:59:59)
-  const snappedEnd = moment.unix(end).endOf('day').unix();
+  // Stepping back a second before truncating leaves an end already at midnight put,
+  // and flooring at the start keeps a degenerate end from producing a zero-length event.
+  const lastCovered = moment.unix(Math.max(end - 1, snappedStart));
+  const snappedEnd = lastCovered.startOf('day').add(1, 'day').unix();
 
   return { start: snappedStart, end: snappedEnd };
 }

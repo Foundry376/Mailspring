@@ -709,3 +709,118 @@ describe('ICSEventHelpers.isRecurringEvent', function () {
     expect(ICSEventHelpers.isRecurringEvent(SIMPLE_ICS)).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// All-day DTEND is exclusive (RFC 5545): midnight of the day AFTER the last day
+// covered. Timestamps below are local midnights, because all-day times are built
+// from local date components — a UTC midnight would land on the previous day in
+// any negative-offset zone.
+// ---------------------------------------------------------------------------
+
+const ALL_DAY_SIMPLE_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:all-day-simple@test
+DTSTART;VALUE=DATE:20260622
+DTEND;VALUE=DATE:20260623
+SUMMARY:Company Holiday
+DTSTAMP:20260101T000000Z
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`;
+
+/** Local midnight, as unix seconds */
+function localDay(year: number, month1Indexed: number, day: number): number {
+  return new Date(year, month1Indexed - 1, day).getTime() / 1000;
+}
+
+/** Extract the YYYYMMDD from a DATE-valued property */
+function getDateOnly(ics: string, propName: string): string | null {
+  const match = new RegExp(`^${propName.toUpperCase()}[^:]*:(\\d{8})\\s*$`, 'im').exec(ics);
+  return match ? match[1] : null;
+}
+
+describe('ICSEventHelpers.updateEventTimes with all-day events', function () {
+  it('keeps an already-exclusive end unchanged', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22),
+      end: localDay(2026, 6, 23),
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260622');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('converts an inclusive end-of-day end to the next day', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22),
+      end: localDay(2026, 6, 23) - 1, // 23:59:59 on the 22nd
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260622');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('gives a degenerate end (equal to start) a full day', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22),
+      end: localDay(2026, 6, 22),
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('gives a same-day timed range a full day, as the popover all-day toggle produces', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22) + 10 * 3600, // 10:00
+      end: localDay(2026, 6, 22) + 11 * 3600, // 11:00
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260622');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('preserves a multi-day span', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 20),
+      end: localDay(2026, 6, 23), // covers the 20th, 21st, 22nd
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260620');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('rolls over month and year boundaries', function () {
+    const endOfMonth = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 30),
+      end: localDay(2026, 6, 30),
+      isAllDay: true,
+    });
+    expect(getDateOnly(endOfMonth, 'DTEND')).toBe('20260701');
+
+    const endOfYear = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 12, 31),
+      end: localDay(2026, 12, 31),
+      isAllDay: true,
+    });
+    expect(getDateOnly(endOfYear, 'DTEND')).toBe('20270101');
+  });
+
+  it('never emits a zero-length all-day event', function () {
+    const ends = [
+      localDay(2026, 6, 22),
+      localDay(2026, 6, 22) + 1,
+      localDay(2026, 6, 23) - 1,
+      localDay(2026, 6, 23),
+    ];
+    ends.forEach((end) => {
+      const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+        start: localDay(2026, 6, 22),
+        end,
+        isAllDay: true,
+      });
+      expect(getDateOnly(result, 'DTSTART')).not.toBe(getDateOnly(result, 'DTEND'));
+    });
+  });
+});
