@@ -226,12 +226,18 @@ export class MailspringCalendar extends React.Component<
     const direction = isDayView ? 'down' : 'right';
     const fallbackDirection = isDayView ? 'up' : 'left';
 
-    Actions.openPopover(<CalendarEventPopover event={eventModel} />, {
-      originRect: eventEl.getBoundingClientRect(),
-      direction,
-      fallbackDirection,
-      closeOnAppBlur: false,
-    });
+    Actions.openPopover(
+      <CalendarEventPopover
+        event={eventModel}
+        isCalendarReadOnly={this.state.readOnlyCalendarIds.has(eventModel.calendarId)}
+      />,
+      {
+        originRect: eventEl.getBoundingClientRect(),
+        direction,
+        fallbackDirection,
+        closeOnAppBlur: false,
+      }
+    );
   }
 
   _onEventClick = (e: React.MouseEvent, event: EventOccurrence) => {
@@ -383,6 +389,11 @@ export class MailspringCalendar extends React.Component<
    * Delete a single event occurrence, handling recurring events appropriately
    */
   async _deleteEvent(occurrence: EventOccurrence) {
+    if (this.state.readOnlyCalendarIds.has(occurrence.calendarId)) {
+      console.warn('Cannot delete an event in a read-only calendar');
+      return;
+    }
+
     try {
       // Parse the event ID from the occurrence ID (handles recurring instance IDs)
       const eventId = parseEventIdFromOccurrence(occurrence.id);
@@ -692,9 +703,11 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Check if calendar is read-only (safety check)
+      // Check if calendar is read-only (safety check). Treat an unknown calendar as
+      // read-only — `state.calendars` is populated asynchronously, and defaulting to
+      // writable would let a drag through before the subscription first fires.
       const calendar = this.state.calendars.find((c) => c.id === event.calendarId);
-      if (calendar?.readOnly) {
+      if (!calendar || calendar.readOnly) {
         console.warn('Cannot modify event in read-only calendar');
         return;
       }

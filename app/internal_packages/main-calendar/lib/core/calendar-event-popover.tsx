@@ -82,6 +82,8 @@ interface CalendarEventPopoverProps {
   accounts?: Account[];
   /** Disabled calendar IDs (required when isNewEvent is true) */
   disabledCalendars?: string[];
+  /** When true, the event's calendar is read-only and the popover never enters edit mode */
+  isCalendarReadOnly?: boolean;
 }
 
 interface CalendarEventPopoverState {
@@ -207,6 +209,13 @@ export class CalendarEventPopover extends React.Component<
   }
 
   saveEdits = async (): Promise<void> => {
+    // Safety check: render() never shows the edit UI for a read-only calendar, but the
+    // save path is the one that actually queues a task, so it enforces this too.
+    if (this.props.isCalendarReadOnly) {
+      console.warn('Cannot save changes to an event in a read-only calendar');
+      return;
+    }
+
     if (this.props.isNewEvent) {
       await this._createNewEvent();
       return;
@@ -573,7 +582,7 @@ export class CalendarEventPopover extends React.Component<
   };
 
   render() {
-    if (this.state.editing || this.props.isNewEvent) {
+    if (!this.props.isCalendarReadOnly && (this.state.editing || this.props.isNewEvent)) {
       return this.renderEditable();
     }
     return <CalendarEventPopoverUnenditable {...this.props} onEdit={this.onEdit} />;
@@ -583,6 +592,7 @@ export class CalendarEventPopover extends React.Component<
 class CalendarEventPopoverUnenditable extends React.Component<{
   event: EventOccurrence;
   onEdit: () => void;
+  isCalendarReadOnly?: boolean;
 }> {
   descriptionRef = React.createRef<HTMLDivElement>();
 
@@ -617,7 +627,7 @@ class CalendarEventPopoverUnenditable extends React.Component<{
   }
 
   render() {
-    const { event, onEdit } = this.props;
+    const { event, onEdit, isCalendarReadOnly } = this.props;
     const { title, description, location, attendees } = event;
 
     const notes = extractNotesFromDescription(description);
@@ -626,13 +636,15 @@ class CalendarEventPopoverUnenditable extends React.Component<{
       <div className="calendar-event-popover" tabIndex={0}>
         <div className="title-wrapper">
           <div className="title">{title}</div>
-          <RetinaImg
-            className="edit-icon"
-            name="edit-icon.png"
-            title="Edit Item"
-            mode={RetinaImg.Mode.ContentIsMask}
-            onClick={onEdit}
-          />
+          {!isCalendarReadOnly && (
+            <RetinaImg
+              className="edit-icon"
+              name="edit-icon.png"
+              title="Edit Item"
+              mode={RetinaImg.Mode.ContentIsMask}
+              onClick={onEdit}
+            />
+          )}
         </div>
         {location && (
           <div className="location">

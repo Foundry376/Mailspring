@@ -150,12 +150,18 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
    */
   _onAgendaEventDoubleClick = (e: React.MouseEvent, event: EventOccurrence) => {
     const eventEl = e.currentTarget as HTMLElement;
-    Actions.openPopover(<CalendarEventPopover event={event} />, {
-      originRect: eventEl.getBoundingClientRect(),
-      direction: 'right',
-      fallbackDirection: 'left',
-      closeOnAppBlur: false,
-    });
+    Actions.openPopover(
+      <CalendarEventPopover
+        event={event}
+        isCalendarReadOnly={this.props.readOnlyCalendarIds.has(event.calendarId)}
+      />,
+      {
+        originRect: eventEl.getBoundingClientRect(),
+        direction: 'right',
+        fallbackDirection: 'left',
+        closeOnAppBlur: false,
+      }
+    );
   };
 
   _renderEvent(event: EventOccurrence, dayKey: string) {
