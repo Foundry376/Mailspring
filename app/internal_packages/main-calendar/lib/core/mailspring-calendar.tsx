@@ -33,6 +33,7 @@ import {
   getColorCacheVersion,
   getEditableCalendars,
   showNoEditableCalendarsError,
+  showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
@@ -49,7 +50,7 @@ import {
   updateDragState,
   parseEventIdFromOccurrence,
   snapAllDayTimes,
-  hasEnded,
+  canMoveEvent,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recurring-event-actions';
@@ -200,6 +201,15 @@ export class MailspringCalendar extends React.Component<
     );
   }
 
+  /**
+   * Single source of truth for whether an event's calendar may be written to.
+   * Fails closed until the calendar subscription first emits, since events render
+   * from an independent subscription and can paint before calendars resolve.
+   */
+  _isCalendarReadOnly(calendarId: string): boolean {
+    return !this.state.calendarsLoaded || this.state.readOnlyCalendarIds.has(calendarId);
+  }
+
   onChangeView = (view: CalendarView) => {
     // Clear any active drag state when changing views
     this.setState({ view, dragState: null });
@@ -230,7 +240,7 @@ export class MailspringCalendar extends React.Component<
     Actions.openPopover(
       <CalendarEventPopover
         event={eventModel}
-        isCalendarReadOnly={this.state.readOnlyCalendarIds.has(eventModel.calendarId)}
+        isCalendarReadOnly={this._isCalendarReadOnly(eventModel.calendarId)}
       />,
       {
         originRect: eventEl.getBoundingClientRect(),
@@ -366,6 +376,15 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
+    // Partition before prompting so the dialog describes what will actually happen
+    const deletable = this.state.selectedEvents.filter(
+      (o) => !this._isCalendarReadOnly(o.calendarId)
+    );
+    if (deletable.length === 0) {
+      showReadOnlyCalendarError();
+      return;
+    }
+
     // Show initial confirmation dialog
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
@@ -380,8 +399,7 @@ export class MailspringCalendar extends React.Component<
       return; // User cancelled
     }
 
-    // Process each selected event
-    for (const occurrence of this.state.selectedEvents) {
+    for (const occurrence of deletable) {
       await this._deleteEvent(occurrence);
     }
   };
@@ -390,11 +408,6 @@ export class MailspringCalendar extends React.Component<
    * Delete a single event occurrence, handling recurring events appropriately
    */
   async _deleteEvent(occurrence: EventOccurrence) {
-    if (this.state.readOnlyCalendarIds.has(occurrence.calendarId)) {
-      console.warn('Cannot delete an event in a read-only calendar');
-      return;
-    }
-
     try {
       // Parse the event ID from the occurrence ID (handles recurring instance IDs)
       const eventId = parseEventIdFromOccurrence(occurrence.id);
@@ -586,13 +599,7 @@ export class MailspringCalendar extends React.Component<
 
     const occurrence = this.state.selectedEvents[0];
 
-    // Check if event is in a read-only calendar
-    if (this.state.readOnlyCalendarIds.has(occurrence.calendarId)) {
-      return;
-    }
-
-    // Past events can't be moved or resized with the keyboard, matching drag behavior
-    if (hasEnded(occurrence.end)) {
+    if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
       return;
     }
 
@@ -709,20 +716,8 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Check if calendar is read-only (safety check). Treat an unknown calendar as
-      // read-only — `state.calendars` is populated asynchronously, and defaulting to
-      // writable would let a drag through before the subscription first fires.
-      const calendar = this.state.calendars.find((c) => c.id === event.calendarId);
-      if (!calendar || calendar.readOnly) {
+      if (this._isCalendarReadOnly(event.calendarId)) {
         console.warn('Cannot modify event in read-only calendar');
-        return;
-      }
-
-      // Safety check: the event must not already have ended. Tested against the
-      // event's original end, not the drop target, so dragging a future event back
-      // into a past slot is still allowed.
-      if (hasEnded(dragState.originalEnd)) {
-        console.warn('Cannot modify an event that has already ended');
         return;
       }
 

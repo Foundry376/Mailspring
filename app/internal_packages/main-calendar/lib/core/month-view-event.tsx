@@ -5,7 +5,7 @@ import { EventOccurrence } from './calendar-data-source';
 import { calcEventColors } from './calendar-helpers';
 import { RecurringIcon } from './calendar-icons';
 import { HitZone } from './calendar-drag-types';
-import { detectHitZone, canDragEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
 interface MonthViewEventProps {
   event: EventOccurrence;
@@ -83,7 +83,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       return false;
     }
     return (
-      canDragEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
+      canMoveEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
     );
   }
 

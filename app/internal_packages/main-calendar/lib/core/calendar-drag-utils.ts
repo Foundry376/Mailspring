@@ -319,34 +319,33 @@ export function updateDragState(
 }
 
 /**
- * Check whether an event's end time has already passed.
- * @param endUnix Event end time, in Unix seconds
+ * Check if a timestamp is in the past
+ * @param timestamp Unix timestamp to check
+ * @returns True if the timestamp has passed
  */
-export function hasEnded(endUnix: number): boolean {
-  return endUnix * 1000 < Date.now();
+export function isPastDate(timestamp: number): boolean {
+  return timestamp * 1000 < Date.now();
 }
 
 /**
- * Check if an event can be dragged (not read-only, not cancelled, etc.)
+ * Check if an event's time can be changed by drag, resize, or keyboard
  * @param event The event occurrence
  * @param isCalendarReadOnly Whether the calendar containing this event is read-only
- * @returns True if event can be dragged
+ * @returns True if the event can be moved
  */
-export function canDragEvent(event: EventOccurrence, isCalendarReadOnly = false): boolean {
-  // Don't allow dragging events in read-only calendars
+export function canMoveEvent(event: EventOccurrence, isCalendarReadOnly = false): boolean {
+  // Don't allow moving events in read-only calendars
   if (isCalendarReadOnly) {
     return false;
   }
 
-  // Don't allow dragging cancelled events
+  // Don't allow moving cancelled events
   if (event.isCancelled) {
     return false;
   }
 
-  // Don't allow dragging events that have already ended. An in-progress event is
-  // still draggable — only its end time being in the past locks it. Deliberate
-  // edits through the popover are still allowed.
-  if (hasEnded(event.end)) {
+  // An in-progress event can still be moved — only a past end time locks it
+  if (isPastDate(event.end)) {
     return false;
   }
 

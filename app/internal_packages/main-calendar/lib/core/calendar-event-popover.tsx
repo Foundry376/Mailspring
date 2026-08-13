@@ -82,7 +82,7 @@ interface CalendarEventPopoverProps {
   accounts?: Account[];
   /** Disabled calendar IDs (required when isNewEvent is true) */
   disabledCalendars?: string[];
-  /** When true, the event's calendar is read-only and the popover never enters edit mode */
+  /** Whether the calendar containing this event is read-only */
   isCalendarReadOnly?: boolean;
 }
 
@@ -209,13 +209,6 @@ export class CalendarEventPopover extends React.Component<
   }
 
   saveEdits = async (): Promise<void> => {
-    // Safety check: render() never shows the edit UI for a read-only calendar, but the
-    // save path is the one that actually queues a task, so it enforces this too.
-    if (this.props.isCalendarReadOnly) {
-      console.warn('Cannot save changes to an event in a read-only calendar');
-      return;
-    }
-
     if (this.props.isNewEvent) {
       await this._createNewEvent();
       return;
@@ -589,11 +582,9 @@ export class CalendarEventPopover extends React.Component<
   }
 }
 
-class CalendarEventPopoverUnenditable extends React.Component<{
-  event: EventOccurrence;
-  onEdit: () => void;
-  isCalendarReadOnly?: boolean;
-}> {
+class CalendarEventPopoverUnenditable extends React.Component<
+  CalendarEventPopoverProps & { onEdit: () => void }
+> {
   descriptionRef = React.createRef<HTMLDivElement>();
 
   renderTime() {
