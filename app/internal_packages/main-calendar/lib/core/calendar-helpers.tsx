@@ -325,6 +325,15 @@ export function showNoEditableCalendarsError(): void {
 }
 
 /**
+ * Show an error dialog when the user tries to change events on a read-only calendar.
+ */
+export function showReadOnlyCalendarError(): void {
+  AppEnv.showErrorDialog(
+    localized("This calendar is read-only, so its events can't be changed or deleted.")
+  );
+}
+
+/**
  * Options for creating a new calendar event.
  */
 export interface CreateCalendarEventOptions {

@@ -82,6 +82,8 @@ interface CalendarEventPopoverProps {
   accounts?: Account[];
   /** Disabled calendar IDs (required when isNewEvent is true) */
   disabledCalendars?: string[];
+  /** Whether the calendar containing this event is read-only */
+  isCalendarReadOnly?: boolean;
 }
 
 interface CalendarEventPopoverState {
@@ -573,17 +575,16 @@ export class CalendarEventPopover extends React.Component<
   };
 
   render() {
-    if (this.state.editing || this.props.isNewEvent) {
+    if (!this.props.isCalendarReadOnly && (this.state.editing || this.props.isNewEvent)) {
       return this.renderEditable();
     }
     return <CalendarEventPopoverUnenditable {...this.props} onEdit={this.onEdit} />;
   }
 }
 
-class CalendarEventPopoverUnenditable extends React.Component<{
-  event: EventOccurrence;
-  onEdit: () => void;
-}> {
+class CalendarEventPopoverUnenditable extends React.Component<
+  CalendarEventPopoverProps & { onEdit: () => void }
+> {
   descriptionRef = React.createRef<HTMLDivElement>();
 
   renderTime() {
@@ -617,7 +618,7 @@ class CalendarEventPopoverUnenditable extends React.Component<{
   }
 
   render() {
-    const { event, onEdit } = this.props;
+    const { event, onEdit, isCalendarReadOnly } = this.props;
     const { title, description, location, attendees } = event;
 
     const notes = extractNotesFromDescription(description);
@@ -626,13 +627,15 @@ class CalendarEventPopoverUnenditable extends React.Component<{
       <div className="calendar-event-popover" tabIndex={0}>
         <div className="title-wrapper">
           <div className="title">{title}</div>
-          <RetinaImg
-            className="edit-icon"
-            name="edit-icon.png"
-            title="Edit Item"
-            mode={RetinaImg.Mode.ContentIsMask}
-            onClick={onEdit}
-          />
+          {!isCalendarReadOnly && (
+            <RetinaImg
+              className="edit-icon"
+              name="edit-icon.png"
+              title="Edit Item"
+              mode={RetinaImg.Mode.ContentIsMask}
+              onClick={onEdit}
+            />
+          )}
         </div>
         {location && (
           <div className="location">

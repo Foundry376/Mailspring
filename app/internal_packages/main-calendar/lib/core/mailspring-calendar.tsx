@@ -8,7 +8,7 @@ import {
   Account,
   Actions,
   localized,
-  DestroyModelTask,
+  DestroyEventTask,
   Event,
   SyncbackEventTask,
   ICSEventHelpers,
@@ -33,6 +33,7 @@ import {
   getColorCacheVersion,
   getEditableCalendars,
   showNoEditableCalendarsError,
+  showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
@@ -49,6 +50,7 @@ import {
   updateDragState,
   parseEventIdFromOccurrence,
   snapAllDayTimes,
+  canMoveEvent,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recurring-event-actions';
@@ -95,6 +97,9 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 
   /** Set of calendar IDs that are read-only (events in these calendars cannot be dragged) */
   readOnlyCalendarIds: Set<string>;
+
+  /** Fail-closed read-only check; prefer this over readOnlyCalendarIds for write decisions */
+  isCalendarReadOnly: (calendarId: string) => boolean;
 }
 
 /*
@@ -163,7 +168,7 @@ export class MailspringCalendar extends React.Component<
 
   componentWillUnmount() {
     // The component is unmounting, dispose subscriptions
-    this._disposable.dispose();
+    this._disposable?.dispose();
     this._themeDisposable?.dispose();
     if (this._unlisten) {
       this._unlisten();
@@ -199,6 +204,15 @@ export class MailspringCalendar extends React.Component<
     );
   }
 
+  /**
+   * Single source of truth for whether an event's calendar may be written to.
+   * Fails closed until the calendar subscription first emits, since events render
+   * from an independent subscription and can paint before calendars resolve.
+   */
+  _isCalendarReadOnly = (calendarId: string): boolean => {
+    return !this.state.calendarsLoaded || this.state.readOnlyCalendarIds.has(calendarId);
+  };
+
   onChangeView = (view: CalendarView) => {
     // Clear any active drag state when changing views
     this.setState({ view, dragState: null });
@@ -226,12 +240,18 @@ export class MailspringCalendar extends React.Component<
     const direction = isDayView ? 'down' : 'right';
     const fallbackDirection = isDayView ? 'up' : 'left';
 
-    Actions.openPopover(<CalendarEventPopover event={eventModel} />, {
-      originRect: eventEl.getBoundingClientRect(),
-      direction,
-      fallbackDirection,
-      closeOnAppBlur: false,
-    });
+    Actions.openPopover(
+      <CalendarEventPopover
+        event={eventModel}
+        isCalendarReadOnly={this._isCalendarReadOnly(eventModel.calendarId)}
+      />,
+      {
+        originRect: eventEl.getBoundingClientRect(),
+        direction,
+        fallbackDirection,
+        closeOnAppBlur: false,
+      }
+    );
   }
 
   _onEventClick = (e: React.MouseEvent, event: EventOccurrence) => {
@@ -359,22 +379,36 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
+    // Partition before prompting so the dialog can disclose a partial delete
+    const selected = this.state.selectedEvents;
+    const deletable = selected.filter((o) => !this._isCalendarReadOnly(o.calendarId));
+    if (deletable.length === 0) {
+      showReadOnlyCalendarError();
+      return;
+    }
+    const skipped = selected.length - deletable.length;
+
     // Show initial confirmation dialog
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
       message: localized('Delete or decline these events?'),
-      detail: localized(
-        `Are you sure you want to delete or decline invitations for the selected event(s)?`
-      ),
+      detail: skipped
+        ? localized(
+            "%1$@ of the %2$@ selected events will be deleted. The rest are on read-only calendars and can't be changed.",
+            deletable.length,
+            selected.length
+          )
+        : localized(
+            `Are you sure you want to delete or decline invitations for the selected event(s)?`
+          ),
     });
 
     if (response !== 0) {
       return; // User cancelled
     }
 
-    // Process each selected event
-    for (const occurrence of this.state.selectedEvents) {
+    for (const occurrence of deletable) {
       await this._deleteEvent(occurrence);
     }
   };
@@ -457,13 +491,7 @@ export class MailspringCalendar extends React.Component<
    * Delete an entire event (or series)
    */
   async _deleteEntireEvent(event: Event) {
-    const task = new DestroyModelTask({
-      modelId: event.id,
-      modelName: event.constructor.name,
-      endpoint: '/events',
-      accountId: event.accountId,
-    });
-    Actions.queueTask(task);
+    Actions.queueTask(DestroyEventTask.forRemoving({ events: [event] }));
   }
 
   /**
@@ -574,8 +602,7 @@ export class MailspringCalendar extends React.Component<
 
     const occurrence = this.state.selectedEvents[0];
 
-    // Check if event is in a read-only calendar
-    if (this.state.readOnlyCalendarIds.has(occurrence.calendarId)) {
+    if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
       return;
     }
 
@@ -692,9 +719,7 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Check if calendar is read-only (safety check)
-      const calendar = this.state.calendars.find((c) => c.id === event.calendarId);
-      if (calendar?.readOnly) {
+      if (this._isCalendarReadOnly(event.calendarId)) {
         console.warn('Cannot modify event in read-only calendar');
         return;
       }
@@ -835,6 +860,7 @@ export class MailspringCalendar extends React.Component<
         dragState={this.state.dragState}
         onEventDragStart={this._onEventDragStart}
         readOnlyCalendarIds={this.state.readOnlyCalendarIds}
+        isCalendarReadOnly={this._isCalendarReadOnly}
       />
     );
   }
