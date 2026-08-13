@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import * as Immutable from 'immutable';
 import { Editor, Value, Operation, Range, Block, Text, Point } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps, Plugin } from 'slate-react';
+import Plain from 'slate-plain-serializer';
 import { clipboard as ElectronClipboard } from 'electron';
 import { InlineStyleTransformer, SanitizeTransformer } from 'mailspring-exports';
 import os from 'os';
@@ -69,6 +70,10 @@ function isSelectionBroken(value: Value, operations: Immutable.List<Operation>):
 const AEditor = SlateEditorComponent as any as React.ComponentType<
   EditorProps & { ref: any; propsForPlugins: any }
 >;
+
+export function normalizePlainTextForPaste(text: string) {
+  return text.replace(/\r\n?/g, '\n');
+}
 
 interface ComposerEditorProps {
   value: Value;
@@ -300,7 +305,29 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
       }
     }
 
-    // fall back to Slate's default behavior
+    // Slate's plain-text paste handler splits on `\n` without first normalizing Windows
+    // CRLF line endings. This leaves a stray `\r` in every block; a blank line becomes a
+    // block containing only `\r`, which our HTML serializer later emits as `&nbsp;`.
+    // Handle plain text here so the editor model, composer preview, and sent HTML all
+    // represent blank lines the same way.
+    const text = event.clipboardData.getData('text/plain');
+    if (text) {
+      const { document, selection, startBlock } = editor.value;
+      // Slate's runtime Editor includes isVoid, but the version's public TypeScript
+      // declaration omits it.
+      if (!startBlock || (editor as any).isVoid(startBlock)) return next();
+
+      const fragment = Plain.deserialize(normalizePlainTextForPaste(text), {
+        defaultBlock: startBlock as any,
+        defaultMarks: document.getInsertMarksAtRange(selection as any) as any,
+      }).document;
+
+      editor.insertFragment(fragment);
+      event.preventDefault();
+      return;
+    }
+
+    // Fall back to Slate for clipboard types we do not handle.
     return next();
   };
 
