@@ -13,7 +13,12 @@ import { debounce } from 'underscore';
 import { KeyCommandsRegion } from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
 import { schema, plugins, convertFromHTML, convertToHTML, convertToPlainText } from './conversion';
-import { lastUnquotedNode, removeQuotedText, isQuoteNode } from './base-block-plugins';
+import {
+  lastUnquotedNode,
+  removeQuotedText,
+  isQuoteNode,
+  recoverFromInterruptedSlateCommand,
+} from './base-block-plugins';
 import { UNEDITABLE_TYPE } from './uneditable-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
 
@@ -297,16 +302,11 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
         try {
           editor.insertFragment(value.document);
         } catch (err) {
-          // Slate's `insertFragment` (insertFragmentAtRange in slate/lib/slate.js) merges
-          // the pasted fragment's blocks into the surrounding document using node keys it
-          // captured before the merge/split steps that precede the merge. For certain
-          // multi-block fragments pasted into multi-block content, those keys can point at
-          // nodes that an earlier step in the same merge already relocated, and Slate's own
-          // `moveNodeByKey`/`assertPath` throws "could not find node with path or key"
-          // instead of recovering. This is a bug inside Slate's compound change function,
-          // not something we can fix from here, so we just drop the paste rather than let
-          // the exception escape mid-mutation. See MAILSPRING-CLIENT-2X.
+          // See the comment on `recoverFromInterruptedSlateCommand` (base-block-plugins.tsx)
+          // for why `insertFragment` can throw here and why the recovery call is needed, not
+          // just the catch. Fixes MAILSPRING-CLIENT-2X.
           console.warn('ComposerEditor: insertFragment failed, paste may be incomplete', err);
+          recoverFromInterruptedSlateCommand(editor);
         }
         event.preventDefault();
         return;
