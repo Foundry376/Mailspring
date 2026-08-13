@@ -85,41 +85,6 @@ function parseHtml(html: string) {
   const parsed = new DOMParser().parseFromString(html, 'text/html');
   const tree = parsed.body;
 
-  // Some web apps render copied plain text with CSS `white-space` rather than
-  // actual <br> elements. Convert those significant newlines before the general
-  // whitespace cleanup below, which intentionally collapses ordinary HTML
-  // whitespace. This is common when copying responses from AI chat applications.
-  const textWalker = document.createTreeWalker(tree, NodeFilter.SHOW_TEXT);
-  const newlineTextNodes: Text[] = [];
-  while (textWalker.nextNode()) {
-    const text = textWalker.currentNode as Text;
-    if (!/[\r\n]/.test(text.data)) continue;
-
-    let el = text.parentElement;
-    let whiteSpace = '';
-    while (el && el !== tree) {
-      if (el.style.whiteSpace) {
-        whiteSpace = el.style.whiteSpace;
-        break;
-      }
-      el = el.parentElement;
-    }
-
-    if (['pre', 'pre-line', 'pre-wrap', 'break-spaces'].includes(whiteSpace)) {
-      newlineTextNodes.push(text);
-    }
-  }
-
-  newlineTextNodes.forEach((text) => {
-    const lines = text.data.replace(/\r\n?/g, '\n').split('\n');
-    const fragment = document.createDocumentFragment();
-    lines.forEach((line, idx) => {
-      if (idx > 0) fragment.appendChild(document.createElement('br'));
-      fragment.appendChild(document.createTextNode(line));
-    });
-    text.parentNode.replaceChild(fragment, text);
-  });
-
   // whitespace /between/ HTML nodes really confuses the parser because
   // it doesn't know these `text` elements are meaningless. Strip them all.
   const collapse = require('collapse-whitespace');

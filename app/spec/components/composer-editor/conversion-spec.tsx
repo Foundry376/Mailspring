@@ -15,8 +15,34 @@ describe('Composer HTML conversion', () => {
       '<ol><li><span style="color: rgb(236, 236, 241)">Visible text</span></li></ol>'
     );
 
-    expect(convertToHTML(value)).not.toContain('color');
+    expect(convertToHTML(value)).not.toContain('rgb(236, 236, 241)');
     expect(convertToPlainText(value)).toContain('Visible text');
+  });
+
+  it('drops a near-white source text color without discarding the source font family', () => {
+    const value = convertFromHTML(
+      '<span style="color: rgb(240, 239, 236)">' +
+        '<font style="font-family: Example-Sans, system-ui, sans-serif">Visible text</font>' +
+        '</span>'
+    );
+    const html = convertToHTML(value);
+
+    expect(html).not.toContain('rgb(240, 239, 236)');
+    expect(html).toContain('Example-Sans');
+    expect(convertToPlainText(value)).toContain('Visible text');
+  });
+
+  it('drops near-black source text colors', () => {
+    const value = convertFromHTML('<span style="color: #1f1f1f">Dark text</span>');
+
+    expect(convertToHTML(value)).not.toContain('rgb(31, 31, 31)');
+    expect(convertToPlainText(value)).toContain('Dark text');
+  });
+
+  it('preserves a neutral color just outside the near-black threshold', () => {
+    const value = convertFromHTML('<span style="color: #222222">Dark text</span>');
+
+    expect(convertToHTML(value)).toContain('rgb(34, 34, 34)');
   });
 
   it('preserves intentional non-neutral text colors', () => {
@@ -25,12 +51,20 @@ describe('Composer HTML conversion', () => {
     expect(convertToHTML(value)).toContain('rgb(200, 20, 20)');
   });
 
-  it('preserves newlines represented by white-space: pre-wrap', () => {
+  it('classifies rgba source colors from their RGB channels, ignoring alpha', () => {
     const value = convertFromHTML(
-      '<div style="white-space: pre-wrap">First line\nSecond line</div>'
+      '<span style="color: rgba(255, 255, 255, 0.5)">Faded text</span>'
     );
 
-    expect(convertToPlainText(value)).toBe('First line\nSecond line');
+    expect(convertToHTML(value)).not.toContain('rgba(255, 255, 255, 0.5)');
+    expect(convertToPlainText(value)).toContain('Faded text');
+  });
+
+  it('drops transparent source text colors rather than sending invisible text', () => {
+    const value = convertFromHTML('<span style="color: transparent">Hidden text</span>');
+
+    expect(convertToHTML(value)).not.toContain('rgba(0, 0, 0, 0)');
+    expect(convertToPlainText(value)).toContain('Hidden text');
   });
 
   it('normalizes Windows line endings before plain-text paste', () => {
