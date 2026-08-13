@@ -319,6 +319,14 @@ export function updateDragState(
 }
 
 /**
+ * Check whether an event's end time has already passed.
+ * @param endUnix Event end time, in Unix seconds
+ */
+export function hasEnded(endUnix: number): boolean {
+  return endUnix * 1000 < Date.now();
+}
+
+/**
  * Check if an event can be dragged (not read-only, not cancelled, etc.)
  * @param event The event occurrence
  * @param isCalendarReadOnly Whether the calendar containing this event is read-only
@@ -332,6 +340,13 @@ export function canDragEvent(event: EventOccurrence, isCalendarReadOnly = false)
 
   // Don't allow dragging cancelled events
   if (event.isCancelled) {
+    return false;
+  }
+
+  // Don't allow dragging events that have already ended. An in-progress event is
+  // still draggable — only its end time being in the past locks it. Deliberate
+  // edits through the popover are still allowed.
+  if (hasEnded(event.end)) {
     return false;
   }
 

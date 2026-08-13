@@ -49,6 +49,7 @@ import {
   updateDragState,
   parseEventIdFromOccurrence,
   snapAllDayTimes,
+  hasEnded,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recurring-event-actions';
@@ -590,6 +591,11 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
+    // Past events can't be moved or resized with the keyboard, matching drag behavior
+    if (hasEnded(occurrence.end)) {
+      return;
+    }
+
     // Calculate time delta based on view and direction
     // Day/Week view: up/down changes time, left/right changes day
     // Month view: left/right changes day
@@ -709,6 +715,14 @@ export class MailspringCalendar extends React.Component<
       const calendar = this.state.calendars.find((c) => c.id === event.calendarId);
       if (!calendar || calendar.readOnly) {
         console.warn('Cannot modify event in read-only calendar');
+        return;
+      }
+
+      // Safety check: the event must not already have ended. Tested against the
+      // event's original end, not the drop target, so dragging a future event back
+      // into a past slot is still allowed.
+      if (hasEnded(dragState.originalEnd)) {
+        console.warn('Cannot modify an event that has already ended');
         return;
       }
 
