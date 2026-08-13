@@ -97,6 +97,9 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 
   /** Set of calendar IDs that are read-only (events in these calendars cannot be dragged) */
   readOnlyCalendarIds: Set<string>;
+
+  /** Fail-closed read-only check; prefer this over readOnlyCalendarIds for write decisions */
+  isCalendarReadOnly: (calendarId: string) => boolean;
 }
 
 /*
@@ -206,9 +209,9 @@ export class MailspringCalendar extends React.Component<
    * Fails closed until the calendar subscription first emits, since events render
    * from an independent subscription and can paint before calendars resolve.
    */
-  _isCalendarReadOnly(calendarId: string): boolean {
+  _isCalendarReadOnly = (calendarId: string): boolean => {
     return !this.state.calendarsLoaded || this.state.readOnlyCalendarIds.has(calendarId);
-  }
+  };
 
   onChangeView = (view: CalendarView) => {
     // Clear any active drag state when changing views
@@ -851,6 +854,7 @@ export class MailspringCalendar extends React.Component<
         dragState={this.state.dragState}
         onEventDragStart={this._onEventDragStart}
         readOnlyCalendarIds={this.state.readOnlyCalendarIds}
+        isCalendarReadOnly={this._isCalendarReadOnly}
       />
     );
   }

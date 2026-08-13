@@ -153,7 +153,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
     Actions.openPopover(
       <CalendarEventPopover
         event={event}
-        isCalendarReadOnly={this.props.readOnlyCalendarIds.has(event.calendarId)}
+        isCalendarReadOnly={this.props.isCalendarReadOnly(event.calendarId)}
       />,
       {
         originRect: eventEl.getBoundingClientRect(),
