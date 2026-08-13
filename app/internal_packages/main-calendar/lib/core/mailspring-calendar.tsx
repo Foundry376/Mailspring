@@ -8,7 +8,7 @@ import {
   Account,
   Actions,
   localized,
-  DestroyModelTask,
+  DestroyEventTask,
   Event,
   SyncbackEventTask,
   ICSEventHelpers,
@@ -482,13 +482,7 @@ export class MailspringCalendar extends React.Component<
    * Delete an entire event (or series)
    */
   async _deleteEntireEvent(event: Event) {
-    const task = new DestroyModelTask({
-      modelId: event.id,
-      modelName: event.constructor.name,
-      endpoint: '/events',
-      accountId: event.accountId,
-    });
-    Actions.queueTask(task);
+    Actions.queueTask(DestroyEventTask.forRemoving({ events: [event] }));
   }
 
   /**
