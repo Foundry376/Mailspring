@@ -294,7 +294,20 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
       }
       const value = convertFromHTML(html);
       if (value && value.document) {
-        editor.insertFragment(value.document);
+        try {
+          editor.insertFragment(value.document);
+        } catch (err) {
+          // Slate's `insertFragment` (insertFragmentAtRange in slate/lib/slate.js) merges
+          // the pasted fragment's blocks into the surrounding document using node keys it
+          // captured before the merge/split steps that precede the merge. For certain
+          // multi-block fragments pasted into multi-block content, those keys can point at
+          // nodes that an earlier step in the same merge already relocated, and Slate's own
+          // `moveNodeByKey`/`assertPath` throws "could not find node with path or key"
+          // instead of recovering. This is a bug inside Slate's compound change function,
+          // not something we can fix from here, so we just drop the paste rather than let
+          // the exception escape mid-mutation. See MAILSPRING-CLIENT-2X.
+          console.warn('ComposerEditor: insertFragment failed, paste may be incomplete', err);
+        }
         event.preventDefault();
         return;
       }

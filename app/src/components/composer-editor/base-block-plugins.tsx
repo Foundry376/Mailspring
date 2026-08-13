@@ -51,8 +51,23 @@ function toggleBlockTypeWithBreakout(editor: Editor, type: string) {
   if (idx !== -1) {
     const depth = ancestors.size - idx;
     if (depth > 0) {
-      editor.splitBlock(ancestors.size - idx);
-      for (let x = 0; x < depth; x++) editor.unwrapBlock({ type });
+      try {
+        editor.splitBlock(ancestors.size - idx);
+        for (let x = 0; x < depth; x++) editor.unwrapBlock({ type });
+      } catch (err) {
+        // Slate's `unwrapBlock` (unwrapBlockAtRange in slate/lib/slate.js) walks the
+        // ancestor's children and moves them out one at a time using node keys it
+        // collected before the split/unwind began. When breaking out of multiple levels
+        // of nested blocks in one go (eg. multi-level quoted replies), those keys can
+        // point at nodes that a prior split/unwrap already relocated or removed, and
+        // Slate's own `moveNodeByKey`/`assertPath` throws "could not find node with path
+        // or key" instead of recovering. This is a bug inside Slate's compound change
+        // function, not something we can fix from a plugin, so we just stop here rather
+        // than let the exception escape and abort the whole editor command mid-mutation.
+        // See MAILSPRING-CLIENT-2X.
+        console.warn('toggleBlockTypeWithBreakout: failed to break out of nested block', err);
+        return;
+      }
     }
     editor.setBlocks(BLOCK_CONFIG.div.type);
   } else {
