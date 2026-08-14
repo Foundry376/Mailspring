@@ -256,6 +256,28 @@ export function extractMeetingDomain(location: string, description: string): str
 }
 
 /**
+ * All-day events store an exclusive end — midnight after the last day covered — so a
+ * date picker showing it raw reads a day later than the event actually runs.
+ * @returns The last day the event covers, at local midnight
+ */
+export function inclusiveAllDayEnd(end: number): number {
+  const lastCovered = new Date((end - 1) * 1000);
+  return (
+    new Date(lastCovered.getFullYear(), lastCovered.getMonth(), lastCovered.getDate()).getTime() /
+    1000
+  );
+}
+
+/**
+ * Inverse of inclusiveAllDayEnd: turns a picked last-covered day back into the
+ * exclusive end that gets stored.
+ */
+export function exclusiveAllDayEnd(lastDay: number): number {
+  const day = new Date(lastDay * 1000);
+  return new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1).getTime() / 1000;
+}
+
+/**
  * Format an event's time range for display (e.g., "12 – 1PM").
  * Only returns a string for events that are 1 hour or longer.
  * Returns null for shorter events or all-day events.

@@ -23,7 +23,7 @@ import {
 import { EventAttendeesInput } from './event-attendees-input';
 import { EventOccurrence, EventAttendee } from './calendar-data-source';
 import { EventPropertyRow } from './event-property-row';
-import { createCalendarEvent } from './calendar-helpers';
+import { createCalendarEvent, inclusiveAllDayEnd, exclusiveAllDayEnd } from './calendar-helpers';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
@@ -495,7 +495,12 @@ export class CalendarEventPopover extends React.Component<
           </EventPropertyRow>
 
           <EventPropertyRow label={localized('ends:')}>
-            <DatePicker value={end * 1000} onChange={(ts) => this.updateField('end', ts / 1000)} />
+            <DatePicker
+              value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
+              onChange={(ts) =>
+                this.updateField('end', allDay ? exclusiveAllDayEnd(ts / 1000) : ts / 1000)
+              }
+            />
             {!allDay && (
               <TimePicker
                 value={end * 1000}
@@ -588,9 +593,22 @@ class CalendarEventPopoverUnenditable extends React.Component<
   descriptionRef = React.createRef<HTMLDivElement>();
 
   renderTime() {
-    const startMoment = moment(this.props.event.start * 1000);
-    const endMoment = moment(this.props.event.end * 1000);
+    const { event } = this.props;
+    const startMoment = moment(event.start * 1000);
     const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
+
+    if (event.isAllDay) {
+      const lastDay = moment(inclusiveAllDayEnd(event.end) * 1000);
+      return (
+        <div>
+          {lastDay.isSame(startMoment, 'day') ? date : `${date} – ${lastDay.format('MMMM D')}`}
+          <br />
+          {localized('All day')}
+        </div>
+      );
+    }
+
+    const endMoment = moment(event.end * 1000);
     const timeRange = `${formatTime(startMoment)} - ${formatTime(endMoment)}`;
     return (
       <div>
