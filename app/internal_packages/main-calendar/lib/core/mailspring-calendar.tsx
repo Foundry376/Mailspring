@@ -694,6 +694,13 @@ export class MailspringCalendar extends React.Component<
         newEnd = occurrence.end + timeDelta;
       }
 
+      // Resizing at the minimum duration clamps back to the current end, so the change can
+      // be a no-op. Bail like the mouse-up path does, rather than queueing a syncback and an
+      // undo toast for an identical event — or prompting for a recurring series that won't move.
+      if (newStart === occurrence.start && newEnd === occurrence.end) {
+        return;
+      }
+
       // Use shared utility for recurring event support (shows dialog if needed)
       const options: EventTimeChangeOptions = {
         event,

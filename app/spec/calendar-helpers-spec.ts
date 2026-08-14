@@ -134,6 +134,25 @@ describe('clampEnd', function () {
     expect(clampEnd(start, start, true)).toBe(localDay(2026, 6, 23));
   });
 
+  // Shrinking a one-day event returns its own end untouched. Callers must treat that as a
+  // no-op rather than a change, or they persist an identical event; see the guard in
+  // _applyKeyboardEventChange.
+  it('returns the end unchanged when a one-day event is shrunk', function () {
+    const start = localDay(2026, 6, 22);
+    const end = localDay(2026, 6, 23);
+    expect(clampEnd(start, addCalendarDays(end, -1), true)).toBe(end);
+    // a longer span really does shrink
+    expect(clampEnd(start, addCalendarDays(localDay(2026, 6, 25), -1), true)).toBe(
+      localDay(2026, 6, 24)
+    );
+  });
+
+  it('returns the end unchanged when a minimum-length timed event is shrunk', function () {
+    const start = localDay(2026, 6, 22);
+    const end = start + 900;
+    expect(clampEnd(start, end - 900, false)).toBe(end);
+  });
+
   it('floors an all-day end at one day even when the start is mid-day', function () {
     // the all-day toggle leaves the original wall-clock start in place
     expect(clampEnd(localDay(2026, 6, 22) + 10 * 3600, localDay(2026, 6, 21), true)).toBe(
