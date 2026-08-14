@@ -64,20 +64,6 @@ export interface EventOccurrence {
 // Minimal type for focusing/highlighting an event on the calendar
 export type FocusedEventInfo = Pick<EventOccurrence, 'start' | 'id'>;
 
-/**
- * Whether a VEVENT is all-day. The DATE type is the RFC 5545 signal, but Exchange emits
- * all-day events as midnight-to-midnight DATE-TIME and marks them with an X- property.
- * Deliberately not inferred from duration: a one-day event is 82800s across a DST
- * transition, and a long timed event is not all-day however long it runs.
- */
-function isAllDayEvent(startDate: { isDate?: boolean }, component?: any): boolean {
-  if (startDate.isDate) {
-    return true;
-  }
-  const msFlag = component?.getFirstPropertyValue('x-microsoft-cdo-alldayevent');
-  return typeof msFlag === 'string' && msFlag.toUpperCase() === 'TRUE';
-}
-
 /** Strip mailto: prefix from email addresses (common in iCalendar data) */
 function normalizeEmail(email: string): string {
   return email.replace(/^mailto:/i, '');
@@ -187,7 +173,7 @@ export function occurrencesForEvents(
             title: item.summary || '',
             location: item.location || '',
             description: item.description || '',
-            isAllDay: isAllDayEvent(e.startDate, item.component),
+            isAllDay: !!e.startDate.isDate,
             isCancelled: status.toUpperCase() === 'CANCELLED',
             isPending: isTentativeStatus || isAwaitingMyResponse,
             isException: !!item.component?.getFirstPropertyValue('recurrence-id'),
@@ -275,7 +261,7 @@ export function occurrencesForEvents(
           title: icsEvent.summary || '',
           location: icsEvent.location || '',
           description: icsEvent.description || '',
-          isAllDay: isAllDayEvent(icsEvent.startDate, vevent),
+          isAllDay: !!icsEvent.startDate.isDate,
           isCancelled: status.toUpperCase() === 'CANCELLED',
           isPending: isTentativeStatus || isAwaitingMyResponse,
           isException: true,

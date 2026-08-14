@@ -60,9 +60,12 @@ describe('exclusiveAllDayEnd', function () {
   });
 });
 
+// Calendar-day arithmetic vs a naive +86400 only differs on a DST transition day, which
+// no assertion here can reach: CI runs in UTC and the zone can't be pinned per-spec. These
+// cover the ordinary cases; the DST behavior is unverified. See calendar-helpers.tsx.
 describe('addCalendarDays', function () {
   it('shifts backwards', function () {
-    expect(addCalendarDays(localDay(2026, 3, 9), -2)).toBe(localDay(2026, 3, 7));
+    expect(addCalendarDays(localDay(2026, 6, 24), -2)).toBe(localDay(2026, 6, 22));
   });
 
   it('crosses month and year boundaries', function () {
@@ -73,13 +76,13 @@ describe('addCalendarDays', function () {
 
 describe('calendarDaysBetween', function () {
   it('is zero for the same day and negative going backwards', function () {
-    expect(calendarDaysBetween(localDay(2026, 3, 8), localDay(2026, 3, 8))).toBe(0);
-    expect(calendarDaysBetween(localDay(2026, 3, 9), localDay(2026, 3, 7))).toBe(-2);
+    expect(calendarDaysBetween(localDay(2026, 6, 22), localDay(2026, 6, 22))).toBe(0);
+    expect(calendarDaysBetween(localDay(2026, 6, 24), localDay(2026, 6, 22))).toBe(-2);
   });
 
   it('round-trips with addCalendarDays', function () {
     [-3, -1, 0, 1, 5, 40].forEach((days) => {
-      const from = localDay(2026, 3, 7);
+      const from = localDay(2026, 6, 22);
       expect(calendarDaysBetween(from, addCalendarDays(from, days))).toBe(days);
     });
   });

@@ -3,9 +3,7 @@
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { occurrencesForEvents } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
-// All-day-ness comes from the ICS DATE type, not from duration — a one-day all-day event
-// is only 82800 seconds long across a spring-forward transition, which a duration test
-// reads as timed. Only the long-timed-event case below can show that in any timezone.
+// All-day-ness comes from the ICS DATE type, never from duration.
 function makeEvent(ics: string, overrides: Partial<MailspringEvent> = {}): MailspringEvent {
   return new MailspringEvent({
     id: 'event-1',
@@ -64,7 +62,6 @@ describe('occurrencesForEvents isAllDay classification', function () {
   });
 
   it('classifies every occurrence of a recurring all-day series', function () {
-    // Weekly from Mar 1 covers Mar 8, the 23-hour day
     const occurrences = expand(
       makeEvent(
         icsFor(
