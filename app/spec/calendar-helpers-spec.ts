@@ -7,6 +7,7 @@ import {
   shiftEndWithStart,
   clampEnd,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
+import { pinTimezone } from './pin-timezone';
 
 /** Local midnight, as unix seconds — all-day times are built from local date components */
 function localDay(year: number, month1Indexed: number, day: number): number {
@@ -63,16 +64,6 @@ describe('exclusiveAllDayEnd', function () {
 // These exercise DST transitions using 2026 US dates: March 8 is a 23-hour day and
 // November 1 a 25-hour day. TZ is pinned per-block so they stay meaningful on a UTC
 // CI runner, where every day is 24 hours and the assertions would hold vacuously.
-function pinTimezone(tz: string) {
-  let original: string | undefined;
-  beforeEach(function () {
-    original = process.env.TZ;
-    process.env.TZ = tz;
-  });
-  afterEach(function () {
-    process.env.TZ = original;
-  });
-}
 describe('addCalendarDays', function () {
   pinTimezone('America/Chicago');
 

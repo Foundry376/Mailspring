@@ -8,6 +8,7 @@ import {
   updateDragState,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import { MONTH_VIEW_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
+import { pinTimezone } from './pin-timezone';
 import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const HOUR = 60 * 60;
@@ -144,14 +145,7 @@ describe('snapAllDayTimes', function () {
 
 describe('updateDragState with day snapping', function () {
   // Pinned so the spring-forward case is real on a UTC runner
-  let originalTz: string | undefined;
-  beforeEach(function () {
-    originalTz = process.env.TZ;
-    process.env.TZ = 'America/Chicago';
-  });
-  afterEach(function () {
-    process.env.TZ = originalTz;
-  });
+  pinTimezone('America/Chicago');
 
   const day = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
 
