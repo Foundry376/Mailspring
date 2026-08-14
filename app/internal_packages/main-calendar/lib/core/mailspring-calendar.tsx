@@ -606,6 +606,11 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
+    // All-day events have no time of day, so up/down has nothing to move
+    if (occurrence.isAllDay && (direction === 'up' || direction === 'down')) {
+      return;
+    }
+
     // Calculate time delta based on view and direction
     // Day/Week view: up/down changes time, left/right changes day
     // Month view: left/right changes day
@@ -674,6 +679,12 @@ export class MailspringCalendar extends React.Component<
         // Arrow: move the event (change both start and end)
         newStart = occurrence.start + timeDelta;
         newEnd = occurrence.end + timeDelta;
+      }
+
+      if (occurrence.isAllDay) {
+        const snapped = snapAllDayTimes(newStart, newEnd);
+        newStart = snapped.start;
+        newEnd = snapped.end;
       }
 
       // Use shared utility for recurring event support (shows dialog if needed)

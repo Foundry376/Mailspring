@@ -23,7 +23,13 @@ import {
 import { EventAttendeesInput } from './event-attendees-input';
 import { EventOccurrence, EventAttendee } from './calendar-data-source';
 import { EventPropertyRow } from './event-property-row';
-import { createCalendarEvent, inclusiveAllDayEnd, exclusiveAllDayEnd } from './calendar-helpers';
+import {
+  createCalendarEvent,
+  inclusiveAllDayEnd,
+  exclusiveAllDayEnd,
+  addCalendarDays,
+  calendarDaysBetween,
+} from './calendar-helpers';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
@@ -418,8 +424,18 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ [key]: value } as Pick<CalendarEventPopoverState, K>);
   };
 
-  /** Moving the start carries the end with it, so the duration is preserved. */
+  /**
+   * Moving the start carries the end with it, so the duration is preserved. All-day
+   * events shift in whole days: a seconds delta across a DST transition would land the
+   * end off midnight and gain or lose a day once serialized.
+   */
   updateStart = (start: number): void => {
+    if (this.state.allDay) {
+      const days = calendarDaysBetween(this.state.start, start);
+      const lastDay = addCalendarDays(inclusiveAllDayEnd(this.state.end), days);
+      this.setState({ start, end: exclusiveAllDayEnd(lastDay) });
+      return;
+    }
     this.setState({ start, end: this.state.end + (start - this.state.start) });
   };
 

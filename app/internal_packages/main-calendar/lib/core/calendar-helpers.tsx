@@ -269,6 +269,33 @@ export function inclusiveAllDayEnd(end: number): number {
 }
 
 /**
+ * Shift a timestamp by whole calendar days, preserving the time of day across a DST
+ * transition — adding 86400 seconds would move it by an hour on those days.
+ */
+export function addCalendarDays(unix: number, days: number): number {
+  const d = new Date(unix * 1000);
+  return (
+    new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      d.getDate() + days,
+      d.getHours(),
+      d.getMinutes(),
+      d.getSeconds()
+    ).getTime() / 1000
+  );
+}
+
+/** Whole calendar days from one timestamp to another, ignoring the time of day. */
+export function calendarDaysBetween(from: number, to: number): number {
+  const a = new Date(from * 1000);
+  const b = new Date(to * 1000);
+  const startOfA = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
+  const startOfB = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
+  return Math.round((startOfB - startOfA) / 86400000);
+}
+
+/**
  * Inverse of inclusiveAllDayEnd: turns a picked last-covered day back into the
  * exclusive end that gets stored.
  */

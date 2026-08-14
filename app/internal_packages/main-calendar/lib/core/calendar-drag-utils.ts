@@ -28,13 +28,22 @@ export function snapToInterval(timestamp: number, intervalSeconds: number): numb
  */
 export function snapAllDayTimes(start: number, end: number): { start: number; end: number } {
   const snappedStart = moment.unix(start).startOf('day').unix();
+  return { start: snappedStart, end: exclusiveDayEnd(end, snappedStart) };
+}
 
-  // Stepping back a second before truncating leaves an end already at midnight put,
-  // and flooring at the start keeps a degenerate end from producing a zero-length event.
-  const lastCovered = moment.unix(Math.max(end - 1, snappedStart));
-  const snappedEnd = lastCovered.startOf('day').add(1, 'day').unix();
-
-  return { start: snappedStart, end: snappedEnd };
+/**
+ * Midnight after the last day a range covers. Stepping back a second before truncating
+ * keeps an end already at midnight from being pushed out another day.
+ * @param end End timestamp
+ * @param floor Earliest day that may be treated as covered
+ * @returns Exclusive end, as a unix timestamp
+ */
+function exclusiveDayEnd(end: number, floor: number): number {
+  return moment
+    .unix(Math.max(end - 1, floor))
+    .startOf('day')
+    .add(1, 'day')
+    .unix();
 }
 
 /**
@@ -247,15 +256,10 @@ export function updateDragState(
       // For day-based snapping, ignore click offset since we snap to day boundaries
       const newStart = usesDaySnap ? mouseTime : mouseTime - state.clickOffset;
       if (usesDaySnap) {
-        // For day-based moves, snap start to beginning of day and end to end of day
-        // Calculate how many days the event spans (minimum 1)
+        // Day-based move: snap the start, then span the same number of whole days
         const numDays = Math.max(1, Math.round(eventDuration / 86400));
         previewStart = moment.unix(newStart).startOf('day').unix();
-        previewEnd = moment
-          .unix(previewStart)
-          .add(numDays - 1, 'days')
-          .endOf('day')
-          .unix();
+        previewEnd = moment.unix(previewStart).add(numDays, 'days').unix();
       } else {
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = previewStart + eventDuration;
@@ -268,8 +272,7 @@ export function updateDragState(
       const newStart = Math.min(mouseTime, state.originalEnd - minDuration);
       if (usesDaySnap) {
         previewStart = moment.unix(newStart).startOf('day').unix();
-        // Ensure end is at end of day (in case original wasn't properly aligned)
-        previewEnd = moment.unix(state.originalEnd).endOf('day').unix();
+        previewEnd = exclusiveDayEnd(state.originalEnd, previewStart);
       } else {
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = state.originalEnd;
@@ -288,9 +291,8 @@ export function updateDragState(
         ? mouseTime
         : Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
       if (usesDaySnap) {
-        // Ensure start is at start of day (in case original wasn't properly aligned)
         previewStart = moment.unix(state.originalStart).startOf('day').unix();
-        previewEnd = moment.unix(newEnd).endOf('day').unix();
+        previewEnd = exclusiveDayEnd(newEnd, previewStart);
       } else {
         previewStart = state.originalStart;
         previewEnd = snapToInterval(newEnd, snapInterval);
@@ -364,7 +366,7 @@ export function canMoveEvent(event: EventOccurrence, isCalendarReadOnly = false)
 export function formatDragPreviewTime(start: number, end: number, isAllDay: boolean): string {
   if (isAllDay) {
     const startDate = moment.unix(start).format('MMM D');
-    const endDate = moment.unix(end).format('MMM D');
+    const endDate = moment.unix(end - 1).format('MMM D');
     if (startDate === endDate) {
       return startDate;
     }

@@ -117,6 +117,20 @@ describe('snapAllDayTimes', function () {
     });
   });
 
+  it('stays idempotent across DST transitions', function () {
+    // March 8 2026 is a 23-hour day and November 1 a 25-hour day in DST zones
+    [
+      [day(2026, 3, 7), day(2026, 3, 8)],
+      [day(2026, 3, 8), day(2026, 3, 9)],
+      [day(2026, 10, 31), day(2026, 11, 1)],
+      [day(2026, 11, 1), day(2026, 11, 2)],
+    ].forEach(([start, end]) => {
+      const once = snapAllDayTimes(start, end);
+      expect(once).toEqual({ start, end });
+      expect(snapAllDayTimes(once.start, once.end)).toEqual(once);
+    });
+  });
+
   it('always returns at least one whole day', function () {
     [JUN22 - 1, JUN22, JUN22 + 1, JUN23 - 1, JUN23].forEach((end) => {
       const snapped = snapAllDayTimes(JUN22, end);
