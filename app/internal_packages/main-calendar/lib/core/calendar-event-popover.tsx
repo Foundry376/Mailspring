@@ -215,46 +215,55 @@ export class CalendarEventPopover extends React.Component<
   }
 
   saveEdits = async (): Promise<void> => {
-    if (this.props.isNewEvent) {
-      await this._createNewEvent();
-      return;
-    }
-
-    // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
-    const eventId = parseEventIdFromOccurrence(this.props.event.id);
-
-    // Fetch the actual Event from the database
-    const event = await DatabaseStore.find<Event>(Event, eventId);
-    if (!event) {
-      console.error(`Could not find event with id ${eventId} to update`);
-      this.setState({ editing: false });
-      return;
-    }
-
-    const isRecurring =
-      ICSEventHelpers.isRecurringEvent(event.ics) && !event.isRecurrenceException();
-
-    if (this.props.event.isException) {
-      // This occurrence already has an exception — always edit the exception directly.
-      // The user already chose "this occurrence only" when the exception was created;
-      // asking again would be confusing and risks creating duplicate exception VEVENTs.
-      await this._saveOccurrenceException(event);
-    } else if (isRecurring) {
-      const choice = await showRecurringEventDialog('edit', this.props.event.title);
-      if (choice === 'cancel') {
+    try {
+      if (this.props.isNewEvent) {
+        await this._createNewEvent();
         return;
       }
-      if (choice === 'this-occurrence') {
+
+      // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
+      const eventId = parseEventIdFromOccurrence(this.props.event.id);
+
+      // Fetch the actual Event from the database
+      const event = await DatabaseStore.find<Event>(Event, eventId);
+      if (!event) {
+        console.error(`Could not find event with id ${eventId} to update`);
+        this.setState({ editing: false });
+        return;
+      }
+
+      const isRecurring =
+        ICSEventHelpers.isRecurringEvent(event.ics) && !event.isRecurrenceException();
+
+      if (this.props.event.isException) {
+        // This occurrence already has an exception — always edit the exception directly.
+        // The user already chose "this occurrence only" when the exception was created;
+        // asking again would be confusing and risks creating duplicate exception VEVENTs.
         await this._saveOccurrenceException(event);
+      } else if (isRecurring) {
+        const choice = await showRecurringEventDialog('edit', this.props.event.title);
+        if (choice === 'cancel') {
+          return;
+        }
+        if (choice === 'this-occurrence') {
+          await this._saveOccurrenceException(event);
+        } else {
+          this._saveAllOccurrences(event);
+        }
       } else {
         this._saveAllOccurrences(event);
       }
-    } else {
-      this._saveAllOccurrences(event);
-    }
 
-    this.setState({ editing: false });
-    Actions.closePopover();
+      this.setState({ editing: false });
+      Actions.closePopover();
+    } catch (error) {
+      // Stay in edit mode so a failed save doesn't discard what the user typed
+      console.error('Failed to save event edits:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Update Failed'),
+        message: localized('Failed to update the event. Please try again.'),
+      });
+    }
   };
 
   /**
