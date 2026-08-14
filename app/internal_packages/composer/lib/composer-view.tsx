@@ -340,11 +340,6 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     } catch (err) {
       return;
     }
-
-    // Dropping a thread onto a reply being written inside that same thread is
-    // almost always an accident, and attaching a copy of the conversation to
-    // itself isn't useful. Ignore it rather than surfacing an error.
-    threadIds = threadIds.filter((id) => id !== this.props.draft.threadId);
     if (!threadIds.length) {
       return;
     }
@@ -355,8 +350,9 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     this.setState((state) => ({ attachingThreadCount: state.attachingThreadCount + dropCount }));
 
     let staged: Array<{ filePath: string }> = [];
+    let unavailableThreadIds: string[] = [];
     try {
-      staged = await EmlUtils.stageThreadsAsEml(threadIds);
+      ({ staged, unavailableThreadIds } = await EmlUtils.stageThreadsAsEml(threadIds));
     } catch (err) {
       AppEnv.reportError(err);
     } finally {
@@ -371,15 +367,36 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       return;
     }
     for (const { filePath } of staged) {
-      this._onFileReceived(filePath);
+      Actions.addAttachment({
+        filePath,
+        headerMessageId: this.props.draft.headerMessageId,
+        // The attachment store copies the file into its own directory before
+        // this fires, so the staged copy is free to go.
+        onCreated: () => EmlUtils.discardStagedEml(filePath),
+      });
     }
-    if (staged.length < threadIds.length) {
+
+    // A thread with nothing exportable in it and a fetch that failed are
+    // different problems, and only the second one is worth retrying.
+    if (unavailableThreadIds.length) {
       AppEnv.showErrorDialog(
-        threadIds.length === 1
+        unavailableThreadIds.length === 1
+          ? localized('This conversation has no message that can be attached.')
+          : localized(
+              '%1$@ of the conversations have no message that can be attached.',
+              unavailableThreadIds.length
+            )
+      );
+    }
+
+    const failedCount = threadIds.length - unavailableThreadIds.length - staged.length;
+    if (failedCount > 0) {
+      AppEnv.showErrorDialog(
+        failedCount === 1
           ? localized('Could not download the original message. Please try again.')
           : localized(
               'Could not download %1$@ of the original messages. Please try again.',
-              threadIds.length - staged.length
+              failedCount
             )
       );
     }

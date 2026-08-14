@@ -177,6 +177,7 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
       filePath: staged[0].filePath,
       headerMessageId: draft.headerMessageId,
       onCreated: () => {
+        EmlUtils.discardStagedEml(staged[0].filePath);
         Actions.composePopoutDraft(draft.headerMessageId);
       },
     });

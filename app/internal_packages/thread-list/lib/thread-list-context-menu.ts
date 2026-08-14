@@ -195,6 +195,7 @@ export default class ThreadListContextMenu {
           filePath: staged[0].filePath,
           headerMessageId: draft.headerMessageId,
           onCreated: () => {
+            EmlUtils.discardStagedEml(staged[0].filePath);
             Actions.composePopoutDraft(draft.headerMessageId);
           },
         });

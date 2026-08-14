@@ -112,19 +112,67 @@ export async function stageMessagesAsEml(
 
   await Promise.all(tasks.map((task) => TaskQueue.waitForPerformRemote(task)));
 
-  return staged
-    .filter(({ filePath }) => fs.existsSync(filePath))
-    .map(({ message, filePath }) => ({ message, filePath }));
+  // Directories whose file never arrived are dead weight — drop them now, and
+  // leave the rest to discardStagedEml once the caller is done with the file.
+  const [written, missing] = partition(staged, ({ filePath }) => fs.existsSync(filePath));
+  missing.forEach(({ dir }) => removeStagingDirectory(dir));
+
+  return written.map(({ message, filePath }) => ({ message, filePath }));
+}
+
+/**
+ * Delete a file produced by stageMessagesAsEml, along with the staging
+ * directory it lives in.
+ *
+ * Staged files are consumed by copying them somewhere permanent — attaching
+ * one to a draft copies it into the attachment store — so the temporary copy
+ * is garbage the moment the caller is finished with it. Callers should invoke
+ * this once that's true (for attachments, from `addAttachment`'s `onCreated`).
+ * Failures are ignored: leaving a file behind in the temp directory is not
+ * worth interrupting the user over.
+ */
+export function discardStagedEml(filePath: string) {
+  removeStagingDirectory(path.dirname(filePath));
+}
+
+const STAGING_DIR_PREFIX = 'mailspring-eml-';
+
+function removeStagingDirectory(dir: string) {
+  // Guard against deleting anything we didn't create ourselves — callers hand
+  // us paths, and a wrong one shouldn't take a real directory with it.
+  if (!path.basename(dir).startsWith(STAGING_DIR_PREFIX)) {
+    return;
+  }
+  try {
+    fs.rmSync(dir, { recursive: true, force: true });
+  } catch (err) {
+    // best effort
+  }
+}
+
+function partition<T>(items: T[], predicate: (item: T) => boolean): [T[], T[]] {
+  const yes: T[] = [];
+  const no: T[] = [];
+  items.forEach((item) => (predicate(item) ? yes : no).push(item));
+  return [yes, no];
+}
+
+export interface StagedThreads {
+  staged: StagedEml[];
+  /**
+   * Threads that hold nothing exportable — a conversation containing only
+   * unsent drafts, say. Nothing was fetched for these, so they're a distinct
+   * outcome from a fetch that was attempted and failed.
+   */
+  unavailableThreadIds: string[];
 }
 
 /**
  * Convenience wrapper over the two steps above: turn a set of thread ids into
  * staged .eml files ready to be attached to a draft.
  */
-export async function stageThreadsAsEml(threadIds: string[]): Promise<StagedEml[]> {
+export async function stageThreadsAsEml(threadIds: string[]): Promise<StagedThreads> {
   const messages = await newestExportableMessagesForThreadIds(threadIds);
-  if (!messages.length) {
-    return [];
-  }
-  return stageMessagesAsEml(messages);
+  const unavailableThreadIds = threadIds.filter((id) => !messages.some((m) => m.threadId === id));
+  return { staged: await stageMessagesAsEml(messages), unavailableThreadIds };
 }

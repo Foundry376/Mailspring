@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import {
   Actions,
@@ -9,8 +10,10 @@ import {
 } from 'mailspring-exports';
 import {
   defaultEmlFilename,
+  discardStagedEml,
   newestExportableMessagesForThreadIds,
   stageMessagesAsEml,
+  stageThreadsAsEml,
 } from '../../src/services/eml-utils';
 
 describe('defaultEmlFilename', function () {
@@ -298,5 +301,80 @@ describe('stageMessagesAsEml', function () {
   it('does nothing when given no messages', async () => {
     expect(await stageMessagesAsEml([])).toEqual([]);
     expect(Actions.queueTask).not.toHaveBeenCalled();
+  });
+
+  it('removes the staging directory of a message whose file never arrived', async () => {
+    engineWrites(() => false);
+    await stageMessagesAsEml([new Message({ id: 'm1', accountId: 'a1', subject: 'Missing' })]);
+    expect(fs.existsSync(path.dirname(queued[0].filepath))).toBe(false);
+  });
+
+  it('leaves the staging directory of a written file in place for the caller', async () => {
+    engineWrites(() => true);
+    const staged = await stageMessagesAsEml([
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Written' }),
+    ]);
+    expect(fs.existsSync(staged[0].filePath)).toBe(true);
+  });
+});
+
+describe('discardStagedEml', function () {
+  it('removes the file and the staging directory around it', () => {
+    const dir = path.join(os.tmpdir(), 'mailspring-eml-spec-discard');
+    const filePath = path.join(dir, 'Hello.eml');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, 'raw');
+
+    discardStagedEml(filePath);
+    expect(fs.existsSync(dir)).toBe(false);
+  });
+
+  it('refuses to touch a directory it did not create', () => {
+    const dir = path.join(os.tmpdir(), 'mailspring-spec-not-staging');
+    const filePath = path.join(dir, 'Hello.eml');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, 'raw');
+
+    discardStagedEml(filePath);
+    expect(fs.existsSync(filePath)).toBe(true);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('does not throw when the file is already gone', () => {
+    expect(() =>
+      discardStagedEml(path.join(os.tmpdir(), 'mailspring-eml-spec-absent', 'Hello.eml'))
+    ).not.toThrow();
+  });
+});
+
+describe('stageThreadsAsEml', function () {
+  beforeEach(() => {
+    spyOn(Actions, 'queueTask');
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(() => Promise.resolve());
+  });
+
+  it('reports threads with no exportable message separately from failed fetches', async () => {
+    const a = new Message({ id: 'a', threadId: 't1', accountId: 'a1', subject: 'Hello' });
+    spyOn(DatabaseStore, 'findAll').andCallFake((klass, where) => {
+      const results = where.threadId === 't1' ? [a] : [];
+      const query: any = {
+        order() {
+          return this;
+        },
+        limit() {
+          return this;
+        },
+        then(callback) {
+          return Promise.resolve(results).then(callback);
+        },
+      };
+      return query;
+    });
+
+    // Nothing is written, so t1 counts as a failed fetch rather than an
+    // unavailable thread — the two must not be conflated.
+    const { staged, unavailableThreadIds } = await stageThreadsAsEml(['t1', 't2']);
+    expect(staged).toEqual([]);
+    expect(unavailableThreadIds).toEqual(['t2']);
   });
 });
