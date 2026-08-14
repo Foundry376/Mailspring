@@ -759,11 +759,18 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
     if (!ridValue || typeof ridValue.toJSDate !== 'function') continue;
 
     const ridDate = ridValue.toJSDate();
-    const newRidDate = new Date(ridDate.getTime() + deltaMs);
 
+    // A DATE-valued RECURRENCE-ID has to move in whole days, matching how the master shifts.
+    // deltaMs is 23h or 25h across a DST transition, and adding that to a date lands inside
+    // the same day, so createAllDayTime would truncate it back and detach the exception.
+    // An all-day delta is always whole days give or take the transition hour, so round it.
     const newRidTime = (ridValue.isDate as boolean)
-      ? createAllDayTime(newRidDate, ical)
-      : ical.Time.fromJSDate(newRidDate, true); // Keep as UTC (same format as createRecurrenceException)
+      ? createAllDayTime(
+          new Date(addCalendarDays(ridDate.getTime(), Math.round(deltaMs / 86400000)) * 1000),
+          ical
+        )
+      : // Keep as UTC (same format as createRecurrenceException)
+        ical.Time.fromJSDate(new Date(ridDate.getTime() + deltaMs), true);
 
     vevent.updatePropertyWithValue('recurrence-id', newRidTime);
     vevent.updatePropertyWithValue('dtstamp', ical.Time.now());

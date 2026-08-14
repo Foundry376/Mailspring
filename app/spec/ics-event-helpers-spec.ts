@@ -516,6 +516,64 @@ describe('ICSEventHelpers.shiftInlineExceptions', function () {
     expect(result).toBe(masterIcsWithException);
   });
 
+  describe('with a DATE-valued RECURRENCE-ID', function () {
+    // A daily all-day series with one inline exception on the 15th
+    const ALLDAY_WITH_EXCEPTION = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'BEGIN:VEVENT',
+      'UID:allday-series',
+      'SUMMARY:Standup',
+      'DTSTART;VALUE=DATE:20260310',
+      'DTEND;VALUE=DATE:20260311',
+      'RRULE:FREQ=DAILY',
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:allday-series',
+      'SUMMARY:Standup (moved)',
+      'RECURRENCE-ID;VALUE=DATE:20260315',
+      'DTSTART;VALUE=DATE:20260318',
+      'DTEND;VALUE=DATE:20260319',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const HOUR_MS = 3600000;
+
+    // The master shifts by whole calendar days, so the RECURRENCE-ID must too. Adding a
+    // 23h delta to a date would land inside the same day and detach the exception.
+    it('moves a whole day on a 23-hour (spring-forward) delta', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 23 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
+      expect(shifted).not.toContain('RECURRENCE-ID;VALUE=DATE:20260315');
+    });
+
+    it('moves a whole day on a 25-hour (fall-back) delta', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 25 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
+    });
+
+    it('moves a whole day on an exact 24-hour delta', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 24 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
+    });
+
+    it('moves backward a whole day on a negative 23-hour delta', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, -23 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260314');
+    });
+
+    it('keeps the RECURRENCE-ID DATE-typed rather than adding a time', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 23 * HOUR_MS);
+      expect(shifted).not.toMatch(/RECURRENCE-ID(?!;VALUE=DATE)/);
+    });
+
+    it("leaves the exception's own DTSTART alone", function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 23 * HOUR_MS);
+      expect(shifted).toContain('DTSTART;VALUE=DATE:20260318');
+    });
+  });
+
   it('shifts the RECURRENCE-ID forward by the given delta', function () {
     // Shift forward 1 day = 86400000 ms
     const shifted = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, 86400000);
