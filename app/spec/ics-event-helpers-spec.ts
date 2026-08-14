@@ -694,6 +694,101 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function () {
     // Master DTSTART was 20260301T060000Z → -2h → 20260301T040000Z
     expect(result).toContain('20260301T040000Z');
   });
+
+  describe('for an all-day series', function () {
+    // A yearly all-day holiday. DTEND is exclusive, so 21st→22nd is a single day.
+    const YEARLY_ALLDAY_ICS = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'BEGIN:VEVENT',
+      'UID:holiday-1',
+      'SUMMARY:Midsummer',
+      'DTSTART;VALUE=DATE:20260621',
+      'DTEND;VALUE=DATE:20260622',
+      'RRULE:FREQ=YEARLY',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    // All-day occurrence times are local midnights, the way the calendar produces them
+    const localMidnight = (y: number, m: number, d: number) =>
+      new Date(y, m - 1, d).getTime() / 1000;
+
+    it('moves the master forward by whole days, keeping DATE values', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 22),
+        localMidnight(2026, 6, 23),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260622');
+      expect(result).toContain('DTEND;VALUE=DATE:20260623');
+    });
+
+    it('moves the master backward by whole days', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 19),
+        localMidnight(2026, 6, 20),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260619');
+      expect(result).toContain('DTEND;VALUE=DATE:20260620');
+    });
+
+    it('leaves a zero-day move alone rather than drifting the dates', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 22),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260621');
+      expect(result).toContain('DTEND;VALUE=DATE:20260622');
+    });
+
+    it('carries the move across a month boundary', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 7, 1),
+        localMidnight(2026, 7, 2),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260701');
+      expect(result).toContain('DTEND;VALUE=DATE:20260702');
+    });
+
+    it('preserves the RRULE', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 22),
+        localMidnight(2026, 6, 23),
+        true
+      );
+      expect(result).toContain('FREQ=YEARLY');
+    });
+
+    it('keeps a multi-day span the same length', function () {
+      const THREE_DAY_ICS = YEARLY_ALLDAY_ICS.replace(
+        'DTEND;VALUE=DATE:20260622',
+        'DTEND;VALUE=DATE:20260624'
+      );
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        THREE_DAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 28),
+        localMidnight(2026, 7, 1),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260628');
+      expect(result).toContain('DTEND;VALUE=DATE:20260701');
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

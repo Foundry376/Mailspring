@@ -284,10 +284,12 @@ export function updateDragState(
     }
     case 'resize-end': {
       if (usesDaySnap) {
-        // Snap to midnight after the day the cursor is in; the floor in exclusiveDayEnd
-        // already keeps at least one whole day, so no seconds correction applies here.
+        // mouseTime is the day under the cursor, not an end, so it must not go through
+        // inclusiveAllDayEnd — containers hand over an exact midnight and the -1s there
+        // would drop the cursor's own day. Include that day, then take the next midnight.
         previewStart = moment.unix(state.originalStart).startOf('day').unix();
-        previewEnd = exclusiveDayEnd(mouseTime, previewStart);
+        const lastDay = Math.max(moment.unix(mouseTime).startOf('day').unix(), previewStart);
+        previewEnd = exclusiveAllDayEnd(lastDay);
       } else {
         const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
         previewStart = state.originalStart;

@@ -270,11 +270,12 @@ export function inclusiveAllDayEnd(end: number): number {
 }
 
 /**
- * Shift a timestamp by whole calendar days, preserving the time of day across a DST
- * transition — adding 86400 seconds would move it by an hour on those days.
+ * Shift a timestamp by whole calendar days, landing on the target day's start. Adding 86400
+ * seconds would move by an hour on a transition day; add() alone leaves an instant on the
+ * previous day where the target midnight doesn't exist, which collapses a one-day event.
  */
 export function addCalendarDays(unix: number, days: number): number {
-  return moment.unix(unix).add(days, 'days').unix();
+  return moment.unix(unix).add(days, 'days').startOf('day').unix();
 }
 
 /**

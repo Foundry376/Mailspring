@@ -112,9 +112,9 @@ function createAllDayTime(date: Date, ical: ICAL): ICALTime {
 
 /**
  * Creates an ICAL.Time for an all-day event's DTEND, which RFC 5545 defines as exclusive:
- * midnight of the day after the last day covered. Callers pass ends in several shapes
- * (end-of-day from a drag, untouched wall-clock times from the all-day toggle), and
- * truncating those to a DATE would land on the start's own day.
+ * midnight of the day after the last day covered. Ends don't always arrive on midnight —
+ * the all-day toggle passes the event's untouched wall-clock time — and truncating those
+ * to a DATE would land on the start's own day.
  * @param start Event start; floors the result so a degenerate end can't precede it
  * @param end Event end; one already at midnight is not pushed out another day
  */
@@ -792,21 +792,49 @@ export function updateRecurringEventTimes(
 ): string {
   const { event } = parseICSString(ics);
 
-  // Calculate the time delta (how much the occurrence was moved)
-  const deltaMs = (newStart - originalOccurrenceStart) * 1000;
-
-  // Get current master event times and apply delta
   const currentStart = event.startDate.toJSDate().getTime();
   const currentEnd = event.endDate.toJSDate().getTime();
 
-  const adjustedStart = (currentStart + deltaMs) / 1000;
-  const adjustedEnd = (currentEnd + deltaMs) / 1000;
+  if (isAllDay) {
+    // A raw millisecond delta is wrong here: moving an occurrence across a spring-forward
+    // day yields 23h, and shifting the master by 23h leaves its date unchanged, so the
+    // series silently doesn't move. Shift the dates themselves instead.
+    const days = calendarDaysBetween(originalOccurrenceStart, newStart);
+    return updateEventTimes(ics, {
+      start: addCalendarDays(currentStart, days),
+      end: addCalendarDays(currentEnd, days),
+      isAllDay,
+    });
+  }
 
+  // Timed events keep their wall-clock offset from the occurrence that was moved
+  const deltaMs = (newStart - originalOccurrenceStart) * 1000;
   return updateEventTimes(ics, {
-    start: adjustedStart,
-    end: adjustedEnd,
+    start: (currentStart + deltaMs) / 1000,
+    end: (currentEnd + deltaMs) / 1000,
     isAllDay,
   });
+}
+
+/**
+ * Whole calendar days from one timestamp's local date to another's. Compared in UTC, which
+ * has no transitions, so a DST change between the two can't skew the count.
+ *
+ * Duplicated from calendar-helpers.ts because that module lives in an internal package and
+ * this one can't import upwards. Both go away once all-day events are modelled as dates.
+ */
+function calendarDaysBetween(fromUnix: number, toUnix: number): number {
+  const utcMidnight = (unix: number) => {
+    const d = new Date(unix * 1000);
+    return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+  return Math.round((utcMidnight(toUnix) - utcMidnight(fromUnix)) / 86400000);
+}
+
+/** Shifts a timestamp's local date by whole days, landing on that date's local midnight. */
+function addCalendarDays(ms: number, days: number): number {
+  const d = new Date(ms);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days).getTime() / 1000;
 }
 
 /**

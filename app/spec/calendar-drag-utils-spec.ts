@@ -162,17 +162,31 @@ describe('updateDragState with day snapping', function () {
   it('never previews less than one whole day', function () {
     // resize-end dragged back before the start
     expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-end', day(2026, 8, 12) + 3600)
+      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-end', day(2026, 8, 12))
     ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 15) });
     // resize-start dragged past the end
     expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-start', day(2026, 8, 20) + 3600)
+      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-start', day(2026, 8, 20))
     ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 15) });
   });
 
   it('extends a multi-day span to the day the cursor is in', function () {
     expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 16), 'resize-end', day(2026, 8, 18) + 3600)
+      dragEdge(day(2026, 8, 14), day(2026, 8, 16), 'resize-end', day(2026, 8, 18))
     ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 19) });
+  });
+
+  it('keeps the last day when the right edge is grabbed without moving', function () {
+    // Containers hand over the day's exact midnight, so a jiggle inside the last cell
+    // must not shrink the event. Aug 14 -> Aug 17 covers 14-16; cursor sits on the 16th.
+    expect(
+      dragEdge(day(2026, 8, 14), day(2026, 8, 17), 'resize-end', day(2026, 8, 16))
+    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 17) });
+  });
+
+  it('shrinks a span to the cursor day rather than one short of it', function () {
+    expect(
+      dragEdge(day(2026, 8, 14), day(2026, 8, 20), 'resize-end', day(2026, 8, 16))
+    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 17) });
   });
 });

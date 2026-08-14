@@ -198,8 +198,9 @@ export function occurrencesForEvents(
           title: '(Error expanding event)',
           location: '',
           description: '',
-          // No parsed ICS here, so fall back on duration. recurrenceEnd holds the series end
-          // (RRULE UNTIL, or a 2037 sentinel), so this only decides non-recurring events.
+          // Expansion failed, so there's no DATE flag to read — fall back on duration. A
+          // recurring master's columns can hold one occurrence's span, so a series can
+          // misread as all-day here.
           isAllDay: master.recurrenceEnd - master.recurrenceStart >= 82800,
           isCancelled: false,
           isPending: false,
