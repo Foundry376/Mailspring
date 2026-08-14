@@ -7,6 +7,7 @@ import {
   ViewDirection,
 } from './calendar-drag-types';
 import { EventOccurrence } from './calendar-data-source';
+import { inclusiveAllDayEnd, exclusiveAllDayEnd } from './calendar-helpers';
 
 /**
  * Snap a timestamp to the nearest interval
@@ -32,18 +33,15 @@ export function snapAllDayTimes(start: number, end: number): { start: number; en
 }
 
 /**
- * Midnight after the last day a range covers. Stepping back a second before truncating
- * keeps an end already at midnight from being pushed out another day.
+ * Midnight after the last day a range covers, floored so a degenerate end still yields
+ * one whole day. Uses calendar-day arithmetic rather than adding 24 hours, which drifts
+ * in zones whose DST transition falls at midnight.
  * @param end End timestamp
  * @param floor Earliest day that may be treated as covered
  * @returns Exclusive end, as a unix timestamp
  */
 function exclusiveDayEnd(end: number, floor: number): number {
-  return moment
-    .unix(Math.max(end - 1, floor))
-    .startOf('day')
-    .add(1, 'day')
-    .unix();
+  return exclusiveAllDayEnd(Math.max(inclusiveAllDayEnd(end), floor));
 }
 
 /**

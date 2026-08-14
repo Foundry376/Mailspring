@@ -9,6 +9,7 @@ import {
   TaskQueue,
   localized,
 } from 'mailspring-exports';
+import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 
 // Cache of calendar colors synced from CalDAV servers
 const calendarColorCache: Map<string, string> = new Map();
@@ -302,6 +303,35 @@ export function calendarDaysBetween(from: number, to: number): number {
 export function exclusiveAllDayEnd(lastDay: number): number {
   const day = new Date(lastDay * 1000);
   return new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1).getTime() / 1000;
+}
+
+/**
+ * The end an event should take when its start moves, preserving the duration.
+ * All-day events shift in whole days: a seconds delta across a DST transition would
+ * land the end off midnight and gain or lose a day once serialized.
+ * @returns The new end, as a unix timestamp
+ */
+export function shiftEndWithStart(
+  startUnix: number,
+  endUnix: number,
+  newStartUnix: number,
+  isAllDay: boolean
+): number {
+  if (!isAllDay) {
+    return endUnix + (newStartUnix - startUnix);
+  }
+  const days = calendarDaysBetween(startUnix, newStartUnix);
+  return exclusiveAllDayEnd(addCalendarDays(inclusiveAllDayEnd(endUnix), days));
+}
+
+/**
+ * Clamp a proposed end so it can never precede the start — one whole day for an all-day
+ * event, MIN_EVENT_DURATION_SECONDS for a timed one.
+ * @returns The clamped end, as a unix timestamp
+ */
+export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean): number {
+  const floor = isAllDay ? exclusiveAllDayEnd(startUnix) : startUnix + MIN_EVENT_DURATION_SECONDS;
+  return Math.max(endUnix, floor);
 }
 
 /**

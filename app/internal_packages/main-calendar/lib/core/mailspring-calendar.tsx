@@ -26,7 +26,7 @@ import { MonthView } from './month-view';
 import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
-import { CalendarView, MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
+import { CalendarView } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
   setCalendarColors,
@@ -35,6 +35,9 @@ import {
   showNoEditableCalendarsError,
   showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
+  addCalendarDays,
+  shiftEndWithStart,
+  clampEnd,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -668,23 +671,26 @@ export class MailspringCalendar extends React.Component<
       let newStart: number;
       let newEnd: number;
 
-      if (isResize) {
+      if (occurrence.isAllDay) {
+        // Only left/right reaches here, so the delta is a day in either direction. Shifting
+        // by calendar days rather than 86400 seconds keeps the times on midnight across a
+        // DST transition, where a seconds shift overshoots and snaps up an extra day.
+        const days = Math.sign(timeDelta);
+        newStart = isResize ? occurrence.start : addCalendarDays(occurrence.start, days);
+        newEnd = isResize
+          ? clampEnd(newStart, addCalendarDays(occurrence.end, days), true)
+          : shiftEndWithStart(occurrence.start, occurrence.end, newStart, true);
+        const snapped = snapAllDayTimes(newStart, newEnd);
+        newStart = snapped.start;
+        newEnd = snapped.end;
+      } else if (isResize) {
         // Shift+Arrow: resize the event (change end time only)
         newStart = occurrence.start;
-        newEnd = Math.max(
-          occurrence.end + timeDelta,
-          occurrence.start + MIN_EVENT_DURATION_SECONDS
-        );
+        newEnd = clampEnd(newStart, occurrence.end + timeDelta, false);
       } else {
         // Arrow: move the event (change both start and end)
         newStart = occurrence.start + timeDelta;
         newEnd = occurrence.end + timeDelta;
-      }
-
-      if (occurrence.isAllDay) {
-        const snapped = snapAllDayTimes(newStart, newEnd);
-        newStart = snapped.start;
-        newEnd = snapped.end;
       }
 
       // Use shared utility for recurring event support (shows dialog if needed)

@@ -1,3 +1,5 @@
+import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
+
 import { EventOccurrence } from './calendar-data-source';
 
 /**
@@ -99,7 +101,7 @@ export const DEFAULT_DRAG_CONFIG: DragConfig = {
   dragThreshold: 5,
   snapInterval: 900, // 15 minutes
   edgeZoneSize: 12, // Larger zone for easier grab
-  minDuration: 900, // 15 minutes
+  minDuration: MIN_EVENT_DURATION_SECONDS,
   direction: 'vertical',
 };
 

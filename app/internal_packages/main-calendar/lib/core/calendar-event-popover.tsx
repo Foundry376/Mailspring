@@ -27,8 +27,8 @@ import {
   createCalendarEvent,
   inclusiveAllDayEnd,
   exclusiveAllDayEnd,
-  addCalendarDays,
-  calendarDaysBetween,
+  shiftEndWithStart,
+  clampEnd,
 } from './calendar-helpers';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
@@ -41,7 +41,6 @@ import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
 import { parseEventIdFromOccurrence } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
-import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 
 /**
  * Convert a RepeatOption UI value to an RRULE string (or null for 'none').
@@ -424,27 +423,13 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ [key]: value } as Pick<CalendarEventPopoverState, K>);
   };
 
-  /**
-   * Moving the start carries the end with it, so the duration is preserved. All-day
-   * events shift in whole days: a seconds delta across a DST transition would land the
-   * end off midnight and gain or lose a day once serialized.
-   */
   updateStart = (start: number): void => {
-    if (this.state.allDay) {
-      const days = calendarDaysBetween(this.state.start, start);
-      const lastDay = addCalendarDays(inclusiveAllDayEnd(this.state.end), days);
-      this.setState({ start, end: exclusiveAllDayEnd(lastDay) });
-      return;
-    }
-    this.setState({ start, end: this.state.end + (start - this.state.start) });
+    const { start: oldStart, end, allDay } = this.state;
+    this.setState({ start, end: shiftEndWithStart(oldStart, end, start, allDay) });
   };
 
-  /** The end can never land before the start; an all-day event keeps at least one whole day. */
   updateEnd = (end: number): void => {
-    const floor = this.state.allDay
-      ? exclusiveAllDayEnd(this.state.start)
-      : this.state.start + MIN_EVENT_DURATION_SECONDS;
-    this.setState({ end: Math.max(end, floor) });
+    this.setState({ end: clampEnd(this.state.start, end, this.state.allDay) });
   };
 
   renderEditable = () => {
