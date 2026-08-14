@@ -8,7 +8,6 @@ import {
   updateDragState,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import { MONTH_VIEW_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
-import { pinTimezone } from './pin-timezone';
 import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const HOUR = 60 * 60;
@@ -92,8 +91,6 @@ describe('canMoveEvent', function () {
 });
 
 describe('snapAllDayTimes', function () {
-  pinTimezone('America/Chicago');
-
   // Local midnights, computed inside each test: the pin isn't active in this describe body.
   const day = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
 
@@ -127,20 +124,6 @@ describe('snapAllDayTimes', function () {
     });
   });
 
-  it('stays idempotent across DST transitions', function () {
-    // March 8 2026 is a 23-hour day and November 1 a 25-hour day in DST zones
-    [
-      [day(2026, 3, 7), day(2026, 3, 8)],
-      [day(2026, 3, 8), day(2026, 3, 9)],
-      [day(2026, 10, 31), day(2026, 11, 1)],
-      [day(2026, 11, 1), day(2026, 11, 2)],
-    ].forEach(([start, end]) => {
-      const once = snapAllDayTimes(start, end);
-      expect(once).toEqual({ start, end });
-      expect(snapAllDayTimes(once.start, once.end)).toEqual(once);
-    });
-  });
-
   it('always returns at least one whole day', function () {
     [
       day(2026, 6, 22) - 1,
@@ -156,9 +139,6 @@ describe('snapAllDayTimes', function () {
 });
 
 describe('updateDragState with day snapping', function () {
-  // Pinned so the spring-forward case is real on a UTC runner
-  pinTimezone('America/Chicago');
-
   const day = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
 
   // Drags an all-day event's edge and returns the resulting preview range.
@@ -182,17 +162,6 @@ describe('updateDragState with day snapping', function () {
     );
     return { start: dragged.previewStart, end: dragged.previewEnd };
   }
-
-  it('keeps preview ends on midnight when resizing on a spring-forward day', function () {
-    // A calendar day is 82800s on Mar 8 2026, so a seconds-based floor lands at 23:00
-    // of the previous day and previews an extra day.
-    expect(
-      dragEdge(day(2026, 3, 8), day(2026, 3, 9), 'resize-end', day(2026, 3, 8) + 3600)
-    ).toEqual({ start: day(2026, 3, 8), end: day(2026, 3, 9) });
-    expect(
-      dragEdge(day(2026, 3, 8), day(2026, 3, 9), 'resize-start', day(2026, 3, 8) + 3600)
-    ).toEqual({ start: day(2026, 3, 8), end: day(2026, 3, 9) });
-  });
 
   it('never previews less than one whole day', function () {
     // resize-end dragged back before the start

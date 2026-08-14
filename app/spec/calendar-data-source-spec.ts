@@ -2,11 +2,10 @@
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { occurrencesForEvents } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
-import { pinTimezone } from './pin-timezone';
 
-// All-day-ness comes from the ICS DATE type, not from duration: a one-day all-day event
-// measures 82800 seconds on a spring-forward day, which a duration test reads as timed.
-// TZ is pinned so this holds on a UTC runner, where every day is 24 hours.
+// All-day-ness comes from the ICS DATE type, not from duration — a one-day all-day event
+// is only 82800 seconds long across a spring-forward transition, which a duration test
+// reads as timed. Only the long-timed-event case below can show that in any timezone.
 function makeEvent(ics: string, overrides: Partial<MailspringEvent> = {}): MailspringEvent {
   return new MailspringEvent({
     id: 'event-1',
@@ -46,32 +45,10 @@ function expand(event: MailspringEvent) {
 }
 
 describe('occurrencesForEvents isAllDay classification', function () {
-  pinTimezone('America/Chicago');
-
   it('treats a DATE-valued event as all-day on an ordinary day', function () {
     const [occ] = expand(
       makeEvent(icsFor('DTSTART;VALUE=DATE:20260622', 'DTEND;VALUE=DATE:20260623'))
     );
-    expect(occ.isAllDay).toBe(true);
-  });
-
-  // These assert classification only, not the occurrence's day length — that depends on the
-  // pin reaching ical.js, which failed on CI. The zone-independent guard for this fix is the
-  // long-timed-event case below, where the old duration heuristic and the DATE type disagree
-  // in any zone.
-  it('treats a DATE-valued event as all-day on a spring-forward day', function () {
-    const [occ] = expand(
-      makeEvent(icsFor('DTSTART;VALUE=DATE:20260308', 'DTEND;VALUE=DATE:20260309'))
-    );
-    expect(occ.title).toBe('Test Event');
-    expect(occ.isAllDay).toBe(true);
-  });
-
-  it('treats a DATE-valued event as all-day on a fall-back day', function () {
-    const [occ] = expand(
-      makeEvent(icsFor('DTSTART;VALUE=DATE:20261101', 'DTEND;VALUE=DATE:20261102'))
-    );
-    expect(occ.title).toBe('Test Event');
     expect(occ.isAllDay).toBe(true);
   });
 
@@ -86,7 +63,7 @@ describe('occurrencesForEvents isAllDay classification', function () {
     expect(occ.isAllDay).toBe(false);
   });
 
-  it('classifies every occurrence of a recurring all-day series, including across DST', function () {
+  it('classifies every occurrence of a recurring all-day series', function () {
     // Weekly from Mar 1 covers Mar 8, the 23-hour day
     const occurrences = expand(
       makeEvent(

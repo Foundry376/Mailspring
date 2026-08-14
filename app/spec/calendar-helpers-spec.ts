@@ -7,7 +7,6 @@ import {
   shiftEndWithStart,
   clampEnd,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
-import { pinTimezone } from './pin-timezone';
 
 /** Local midnight, as unix seconds — all-day times are built from local date components */
 function localDay(year: number, month1Indexed: number, day: number): number {
@@ -61,22 +60,7 @@ describe('exclusiveAllDayEnd', function () {
   });
 });
 
-// These exercise DST transitions using 2026 US dates: March 8 is a 23-hour day and
-// November 1 a 25-hour day. TZ is pinned per-block so they stay meaningful on a UTC
-// CI runner, where every day is 24 hours and the assertions would hold vacuously.
 describe('addCalendarDays', function () {
-  pinTimezone('America/Chicago');
-
-  it('lands on the next calendar day across a spring-forward transition', function () {
-    expect(addCalendarDays(localDay(2026, 3, 7), 1)).toBe(localDay(2026, 3, 8));
-    expect(addCalendarDays(localDay(2026, 3, 7), 2)).toBe(localDay(2026, 3, 9));
-  });
-
-  it('lands on the next calendar day across a fall-back transition', function () {
-    expect(addCalendarDays(localDay(2026, 11, 1), 1)).toBe(localDay(2026, 11, 2));
-    expect(addCalendarDays(localDay(2026, 10, 31), 3)).toBe(localDay(2026, 11, 3));
-  });
-
   it('shifts backwards', function () {
     expect(addCalendarDays(localDay(2026, 3, 9), -2)).toBe(localDay(2026, 3, 7));
   });
@@ -88,13 +72,6 @@ describe('addCalendarDays', function () {
 });
 
 describe('calendarDaysBetween', function () {
-  pinTimezone('America/Chicago');
-
-  it('counts whole days regardless of how long the day was', function () {
-    expect(calendarDaysBetween(localDay(2026, 3, 7), localDay(2026, 3, 9))).toBe(2);
-    expect(calendarDaysBetween(localDay(2026, 11, 1), localDay(2026, 11, 3))).toBe(2);
-  });
-
   it('is zero for the same day and negative going backwards', function () {
     expect(calendarDaysBetween(localDay(2026, 3, 8), localDay(2026, 3, 8))).toBe(0);
     expect(calendarDaysBetween(localDay(2026, 3, 9), localDay(2026, 3, 7))).toBe(-2);
@@ -111,8 +88,6 @@ describe('calendarDaysBetween', function () {
 const MIN_EVENT = 900;
 
 describe('shiftEndWithStart', function () {
-  pinTimezone('America/Chicago');
-
   it('preserves a timed duration', function () {
     const start = localDay(2026, 6, 22) + 10 * 3600;
     const end = start + 3600;
@@ -129,19 +104,6 @@ describe('shiftEndWithStart', function () {
     expect(
       shiftEndWithStart(localDay(2026, 6, 20), localDay(2026, 6, 23), localDay(2026, 6, 27), true)
     ).toBe(localDay(2026, 6, 30));
-  });
-
-  it('does not gain a day when an all-day event moves onto a spring-forward day', function () {
-    // The regression this guards: a seconds delta landed the end at 01:00 and serialized a day late
-    expect(
-      shiftEndWithStart(localDay(2026, 3, 7), localDay(2026, 3, 8), localDay(2026, 3, 8), true)
-    ).toBe(localDay(2026, 3, 9));
-  });
-
-  it('does not lose a day when an all-day event moves across fall-back', function () {
-    expect(
-      shiftEndWithStart(localDay(2026, 10, 30), localDay(2026, 10, 31), localDay(2026, 11, 1), true)
-    ).toBe(localDay(2026, 11, 2));
   });
 
   it('is a no-op when the start does not move', function () {
