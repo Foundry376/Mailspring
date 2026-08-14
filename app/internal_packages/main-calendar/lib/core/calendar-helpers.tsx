@@ -279,8 +279,8 @@ export function addCalendarDays(unix: number, days: number): number {
 
 /**
  * Whole calendar days from one timestamp to another, ignoring the time of day.
- * Rounds because diff() truncates, and in zones whose DST transition falls at midnight
- * the normalized start-of-day is an hour off, dragging the quotient below the integer.
+ * Rounds because in zones whose DST transition falls at midnight, startOf('day') normalizes
+ * to 01:00, leaving a sub-hour residual on an otherwise exact day count.
  */
 export function calendarDaysBetween(from: number, to: number): number {
   return Math.round(

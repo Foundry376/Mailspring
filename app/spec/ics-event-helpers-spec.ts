@@ -820,7 +820,11 @@ describe('ICSEventHelpers.updateEventTimes with all-day events', function () {
         end,
         isAllDay: true,
       });
-      expect(getDateOnly(result, 'DTSTART')).not.toBe(getDateOnly(result, 'DTEND'));
+      const dtstart = getDateOnly(result, 'DTSTART');
+      const dtend = getDateOnly(result, 'DTEND');
+      // Assert both parsed, or a DATE-TIME regression on one side would pass
+      expect(dtstart).toBe('20260622');
+      expect(dtend).toBe('20260623');
     });
   });
 });
