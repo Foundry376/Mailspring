@@ -7,7 +7,7 @@ import {
   ViewDirection,
 } from './calendar-drag-types';
 import { EventOccurrence } from './calendar-data-source';
-import { inclusiveAllDayEnd, exclusiveAllDayEnd } from './calendar-helpers';
+import { inclusiveAllDayEnd, exclusiveAllDayEnd, addCalendarDays } from './calendar-helpers';
 
 /**
  * Snap a timestamp to the nearest interval
@@ -257,7 +257,9 @@ export function updateDragState(
         // Day-based move: snap the start, then span the same number of whole days
         const numDays = Math.max(1, Math.round(eventDuration / 86400));
         previewStart = moment.unix(newStart).startOf('day').unix();
-        previewEnd = moment.unix(previewStart).add(numDays, 'days').unix();
+        // Via the helpers, not a raw add: where the drop day's midnight doesn't exist, add()
+        // keeps the 01:00 wall clock and snapAllDayTimes then rounds it up an extra day.
+        previewEnd = exclusiveAllDayEnd(addCalendarDays(previewStart, numDays - 1));
       } else {
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = previewStart + eventDuration;

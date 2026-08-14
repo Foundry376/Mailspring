@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 // Import the functions under test directly from the source file.
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import {
@@ -188,5 +189,69 @@ describe('updateDragState with day snapping', function () {
     expect(
       dragEdge(day(2026, 8, 14), day(2026, 8, 20), 'resize-end', day(2026, 8, 16))
     ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 17) });
+  });
+});
+
+describe('updateDragState move with day snapping', function () {
+  const localDay = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
+
+  // Drops an all-day event on the day containing mouseTime and returns the preview range.
+  function dragMove(start: number, end: number, mouseTime: number) {
+    const event = makeOccurrence({ isAllDay: true, start, end });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'move' },
+      mouseTime,
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      mouseTime,
+      100,
+      100,
+      'month-cell',
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    return { start: dragged.previewStart, end: dragged.previewEnd };
+  }
+
+  it('moves a one-day event to the drop day, ending on the next midnight', function () {
+    expect(
+      dragMove(localDay(2026, 8, 14), localDay(2026, 8, 15), localDay(2026, 8, 20))
+    ).toEqual({ start: localDay(2026, 8, 20), end: localDay(2026, 8, 21) });
+  });
+
+  it('preserves the span of a multi-day event', function () {
+    expect(
+      dragMove(localDay(2026, 8, 14), localDay(2026, 8, 17), localDay(2026, 8, 20))
+    ).toEqual({ start: localDay(2026, 8, 20), end: localDay(2026, 8, 23) });
+  });
+
+  describe('onto a day whose local midnight does not exist', function () {
+    const ZONE = 'America/Santiago';
+    const dayStart = (iso: string) => moment.tz(iso, ZONE).unix();
+
+    afterEach(function () {
+      moment.tz.setDefault();
+    });
+
+    // A raw add() keeps the 01:00 wall clock the missing midnight forces, and snapAllDayTimes
+    // then rounds it up, so a one-day event lands as two.
+    it('still previews exactly one day', function () {
+      moment.tz.setDefault(ZONE);
+      const start = dayStart('2026-01-10');
+      const moved = dragMove(start, dayStart('2026-01-11'), dayStart('2026-09-06'));
+      expect(moved.start).toBe(dayStart('2026-09-06'));
+      expect(moved.end).toBe(dayStart('2026-09-07'));
+    });
+
+    it('still previews exactly three days for a three-day event', function () {
+      moment.tz.setDefault(ZONE);
+      const start = dayStart('2026-01-10');
+      const moved = dragMove(start, dayStart('2026-01-13'), dayStart('2026-09-06'));
+      expect(moved.end).toBe(dayStart('2026-09-09'));
+    });
   });
 });

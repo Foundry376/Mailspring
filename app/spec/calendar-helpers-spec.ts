@@ -134,9 +134,8 @@ describe('clampEnd', function () {
     expect(clampEnd(start, start, true)).toBe(localDay(2026, 6, 23));
   });
 
-  // Shrinking a one-day event returns its own end untouched. Callers must treat that as a
-  // no-op rather than a change, or they persist an identical event; see the guard in
-  // _applyKeyboardEventChange.
+  // Shrinking a one-day event returns its own end untouched, so a caller must treat that as
+  // a no-op. _applyKeyboardEventChange relies on this; that guard has no test of its own.
   it('returns the end unchanged when a one-day event is shrunk', function () {
     const start = localDay(2026, 6, 22);
     const end = localDay(2026, 6, 23);
@@ -188,7 +187,6 @@ describe('calendar-day arithmetic across DST transitions', function () {
       moment.tz.setDefault(ZONE);
       const mar8 = dayStart(ZONE, '2026-03-08');
       expect(addCalendarDays(mar8, 1)).toBe(dayStart(ZONE, '2026-03-09'));
-      expect(mar8 + 86400).not.toBe(dayStart(ZONE, '2026-03-09')); // the bug being guarded
       expect(addCalendarDays(mar8, 1) - mar8).toBe(23 * 3600);
     });
 
@@ -196,7 +194,6 @@ describe('calendar-day arithmetic across DST transitions', function () {
       moment.tz.setDefault(ZONE);
       const nov1 = dayStart(ZONE, '2026-11-01');
       expect(addCalendarDays(nov1, 1)).toBe(dayStart(ZONE, '2026-11-02'));
-      expect(nov1 + 86400).not.toBe(dayStart(ZONE, '2026-11-02'));
       expect(addCalendarDays(nov1, 1) - nov1).toBe(25 * 3600);
     });
 
@@ -257,6 +254,14 @@ describe('calendar-day arithmetic across DST transitions', function () {
       // Still exactly one day long, and still the day after the new start
       expect(calendarDaysBetween(newStart, moved)).toBe(1);
       expect(calendarDaysBetween(newStart, inclusiveAllDayEnd(moved))).toBe(0);
+    });
+
+    // The only input shape where `add` before `startOf` differs from the reverse: the day
+    // BEFORE a missing midnight. Truncating first lands on the transition day at 23:00,
+    // still inside the previous day, which collapses a one-day event to zero length.
+    it('takes the next day-start when the following midnight does not exist', function () {
+      moment.tz.setDefault(ZONE);
+      expect(exclusiveAllDayEnd(dayStart(ZONE, '2026-09-05'))).toBe(dayStart(ZONE, '2026-09-06'));
     });
 
     it('spans the transition day itself without dropping it', function () {

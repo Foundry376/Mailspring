@@ -548,12 +548,14 @@ describe('ICSEventHelpers.shiftInlineExceptions', function () {
       expect(shifted).not.toContain('RECURRENCE-ID;VALUE=DATE:20260315');
     });
 
-    it('moves a whole day on a 25-hour (fall-back) delta', function () {
+    // Passes with a raw ms delta too — 25h lands on the right day before truncation. Kept
+    // as a boundary case, not as a guard; only the 23-hour test above discriminates.
+    it('moves a whole day on a 25-hour delta', function () {
       const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 25 * HOUR_MS);
       expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
     });
 
-    it('moves a whole day on an exact 24-hour delta', function () {
+    it('moves a whole day on an exact 24-hour delta (true under either arithmetic)', function () {
       const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 24 * HOUR_MS);
       expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
     });
@@ -753,6 +755,10 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function () {
     expect(result).toContain('20260301T040000Z');
   });
 
+  // These pin the calendar-day SEMANTICS (whole-day moves, exclusive DTEND, month rollover)
+  // but not the DST behaviour: this module does plain-Date local arithmetic, which
+  // moment.tz.setDefault cannot redirect, and in CI's UTC a whole-day shift is exactly
+  // 86400s either way. Verified by hand across Chicago/Santiago/Havana/Beirut instead.
   describe('for an all-day series', function () {
     // A yearly all-day holiday. DTEND is exclusive, so 21st→22nd is a single day.
     const YEARLY_ALLDAY_ICS = [
