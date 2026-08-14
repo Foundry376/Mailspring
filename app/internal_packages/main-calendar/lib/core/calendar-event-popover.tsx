@@ -23,7 +23,13 @@ import {
 import { EventAttendeesInput } from './event-attendees-input';
 import { EventOccurrence, EventAttendee } from './calendar-data-source';
 import { EventPropertyRow } from './event-property-row';
-import { createCalendarEvent } from './calendar-helpers';
+import {
+  createCalendarEvent,
+  inclusiveAllDayEnd,
+  exclusiveAllDayEnd,
+  shiftEndWithStart,
+  clampEnd,
+} from './calendar-helpers';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
@@ -209,46 +215,55 @@ export class CalendarEventPopover extends React.Component<
   }
 
   saveEdits = async (): Promise<void> => {
-    if (this.props.isNewEvent) {
-      await this._createNewEvent();
-      return;
-    }
-
-    // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
-    const eventId = parseEventIdFromOccurrence(this.props.event.id);
-
-    // Fetch the actual Event from the database
-    const event = await DatabaseStore.find<Event>(Event, eventId);
-    if (!event) {
-      console.error(`Could not find event with id ${eventId} to update`);
-      this.setState({ editing: false });
-      return;
-    }
-
-    const isRecurring =
-      ICSEventHelpers.isRecurringEvent(event.ics) && !event.isRecurrenceException();
-
-    if (this.props.event.isException) {
-      // This occurrence already has an exception — always edit the exception directly.
-      // The user already chose "this occurrence only" when the exception was created;
-      // asking again would be confusing and risks creating duplicate exception VEVENTs.
-      await this._saveOccurrenceException(event);
-    } else if (isRecurring) {
-      const choice = await showRecurringEventDialog('edit', this.props.event.title);
-      if (choice === 'cancel') {
+    try {
+      if (this.props.isNewEvent) {
+        await this._createNewEvent();
         return;
       }
-      if (choice === 'this-occurrence') {
+
+      // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
+      const eventId = parseEventIdFromOccurrence(this.props.event.id);
+
+      // Fetch the actual Event from the database
+      const event = await DatabaseStore.find<Event>(Event, eventId);
+      if (!event) {
+        console.error(`Could not find event with id ${eventId} to update`);
+        this.setState({ editing: false });
+        return;
+      }
+
+      const isRecurring =
+        ICSEventHelpers.isRecurringEvent(event.ics) && !event.isRecurrenceException();
+
+      if (this.props.event.isException) {
+        // This occurrence already has an exception — always edit the exception directly.
+        // The user already chose "this occurrence only" when the exception was created;
+        // asking again would be confusing and risks creating duplicate exception VEVENTs.
         await this._saveOccurrenceException(event);
+      } else if (isRecurring) {
+        const choice = await showRecurringEventDialog('edit', this.props.event.title);
+        if (choice === 'cancel') {
+          return;
+        }
+        if (choice === 'this-occurrence') {
+          await this._saveOccurrenceException(event);
+        } else {
+          this._saveAllOccurrences(event);
+        }
       } else {
         this._saveAllOccurrences(event);
       }
-    } else {
-      this._saveAllOccurrences(event);
-    }
 
-    this.setState({ editing: false });
-    Actions.closePopover();
+      this.setState({ editing: false });
+      Actions.closePopover();
+    } catch (error) {
+      // Stay in edit mode so a failed save doesn't discard what the user typed
+      console.error('Failed to save event edits:', error);
+      AppEnv.showErrorDialog({
+        title: localized('Update Failed'),
+        message: localized('Failed to update the event. Please try again.'),
+      });
+    }
   };
 
   /**
@@ -417,6 +432,15 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ [key]: value } as Pick<CalendarEventPopoverState, K>);
   };
 
+  updateStart = (start: number): void => {
+    const { start: oldStart, end, allDay } = this.state;
+    this.setState({ start, end: shiftEndWithStart(oldStart, end, start, allDay) });
+  };
+
+  updateEnd = (end: number): void => {
+    this.setState({ end: clampEnd(this.state.start, end, this.state.allDay) });
+  };
+
   renderEditable = () => {
     const {
       title,
@@ -482,25 +506,19 @@ export class CalendarEventPopover extends React.Component<
 
           {/* Start/End times using property rows */}
           <EventPropertyRow label={localized('starts:')}>
-            <DatePicker
-              value={start * 1000}
-              onChange={(ts) => this.updateField('start', ts / 1000)}
-            />
+            <DatePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
             {!allDay && (
-              <TimePicker
-                value={start * 1000}
-                onChange={(ts) => this.updateField('start', ts / 1000)}
-              />
+              <TimePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
             )}
           </EventPropertyRow>
 
           <EventPropertyRow label={localized('ends:')}>
-            <DatePicker value={end * 1000} onChange={(ts) => this.updateField('end', ts / 1000)} />
+            <DatePicker
+              value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
+              onChange={(ts) => this.updateEnd(allDay ? exclusiveAllDayEnd(ts / 1000) : ts / 1000)}
+            />
             {!allDay && (
-              <TimePicker
-                value={end * 1000}
-                onChange={(ts) => this.updateField('end', ts / 1000)}
-              />
+              <TimePicker value={end * 1000} onChange={(ts) => this.updateEnd(ts / 1000)} />
             )}
           </EventPropertyRow>
 
@@ -588,9 +606,22 @@ class CalendarEventPopoverUnenditable extends React.Component<
   descriptionRef = React.createRef<HTMLDivElement>();
 
   renderTime() {
-    const startMoment = moment(this.props.event.start * 1000);
-    const endMoment = moment(this.props.event.end * 1000);
+    const { event } = this.props;
+    const startMoment = moment(event.start * 1000);
     const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
+
+    if (event.isAllDay) {
+      const lastDay = moment(inclusiveAllDayEnd(event.end) * 1000);
+      return (
+        <div>
+          {lastDay.isSame(startMoment, 'day') ? date : `${date} – ${lastDay.format('MMMM D')}`}
+          <br />
+          {localized('All day')}
+        </div>
+      );
+    }
+
+    const endMoment = moment(event.end * 1000);
     const timeRange = `${formatTime(startMoment)} - ${formatTime(endMoment)}`;
     return (
       <div>

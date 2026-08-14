@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {
   Utils,
   Calendar,
@@ -9,6 +10,7 @@ import {
   TaskQueue,
   localized,
 } from 'mailspring-exports';
+import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 
 // Cache of calendar colors synced from CalDAV servers
 const calendarColorCache: Map<string, string> = new Map();
@@ -253,6 +255,76 @@ export function extractMeetingDomain(location: string, description: string): str
   }
 
   return null;
+}
+
+/**
+ * All-day events store an exclusive end — midnight after the last day covered — so a
+ * date picker showing it raw reads a day later than the event actually runs.
+ * @returns The last day the event covers, at local midnight
+ */
+export function inclusiveAllDayEnd(end: number): number {
+  return moment
+    .unix(end - 1)
+    .startOf('day')
+    .unix();
+}
+
+/**
+ * Shift a timestamp by whole calendar days, landing on the target day's start. Adding 86400
+ * seconds would move by an hour on a transition day; add() alone leaves an instant on the
+ * previous day where the target midnight doesn't exist, which collapses a one-day event.
+ */
+export function addCalendarDays(unix: number, days: number): number {
+  return moment.unix(unix).add(days, 'days').startOf('day').unix();
+}
+
+/**
+ * Whole calendar days from one timestamp to another, ignoring the time of day.
+ * Rounds because where DST starts at midnight (Santiago, Havana, Beirut), startOf('day') on
+ * the transition day itself normalizes to 01:00, leaving a 1/24 residual: 4.958, not 5.
+ */
+export function calendarDaysBetween(from: number, to: number): number {
+  return Math.round(
+    moment.unix(to).startOf('day').diff(moment.unix(from).startOf('day'), 'days', true)
+  );
+}
+
+/**
+ * Inverse of inclusiveAllDayEnd: turns a picked last-covered day back into the
+ * exclusive end that gets stored.
+ */
+export function exclusiveAllDayEnd(lastDay: number): number {
+  // add before startOf: truncating first lands on 01:00 where local midnight doesn't exist
+  return moment.unix(lastDay).add(1, 'day').startOf('day').unix();
+}
+
+/**
+ * The end an event should take when its start moves, preserving the duration.
+ * All-day events shift in whole days: a seconds delta across a DST transition would
+ * land the end off midnight and gain or lose a day once serialized.
+ * @returns The new end, as a unix timestamp
+ */
+export function shiftEndWithStart(
+  startUnix: number,
+  endUnix: number,
+  newStartUnix: number,
+  isAllDay: boolean
+): number {
+  if (!isAllDay) {
+    return endUnix + (newStartUnix - startUnix);
+  }
+  const days = calendarDaysBetween(startUnix, newStartUnix);
+  return exclusiveAllDayEnd(addCalendarDays(inclusiveAllDayEnd(endUnix), days));
+}
+
+/**
+ * Clamp a proposed end so it can never precede the start — one whole day for an all-day
+ * event, MIN_EVENT_DURATION_SECONDS for a timed one.
+ * @returns The clamped end, as a unix timestamp
+ */
+export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean): number {
+  const floor = isAllDay ? exclusiveAllDayEnd(startUnix) : startUnix + MIN_EVENT_DURATION_SECONDS;
+  return Math.max(endUnix, floor);
 }
 
 /**

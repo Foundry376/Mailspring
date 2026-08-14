@@ -516,6 +516,66 @@ describe('ICSEventHelpers.shiftInlineExceptions', function () {
     expect(result).toBe(masterIcsWithException);
   });
 
+  describe('with a DATE-valued RECURRENCE-ID', function () {
+    // A daily all-day series with one inline exception on the 15th
+    const ALLDAY_WITH_EXCEPTION = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'BEGIN:VEVENT',
+      'UID:allday-series',
+      'SUMMARY:Standup',
+      'DTSTART;VALUE=DATE:20260310',
+      'DTEND;VALUE=DATE:20260311',
+      'RRULE:FREQ=DAILY',
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:allday-series',
+      'SUMMARY:Standup (moved)',
+      'RECURRENCE-ID;VALUE=DATE:20260315',
+      'DTSTART;VALUE=DATE:20260318',
+      'DTEND;VALUE=DATE:20260319',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const HOUR_MS = 3600000;
+
+    // The master shifts by whole calendar days, so the RECURRENCE-ID must too. Adding a
+    // 23h delta to a date would land inside the same day and detach the exception.
+    it('moves a whole day on a 23-hour (spring-forward) delta', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 23 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
+      expect(shifted).not.toContain('RECURRENCE-ID;VALUE=DATE:20260315');
+    });
+
+    // Passes with a raw ms delta too — 25h lands on the right day before truncation. Kept
+    // as a boundary case, not as a guard; only the 23-hour test above discriminates.
+    it('moves a whole day on a 25-hour delta', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 25 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
+    });
+
+    it('moves a whole day on an exact 24-hour delta (true under either arithmetic)', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 24 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260316');
+    });
+
+    it('moves backward a whole day on a negative 23-hour delta', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, -23 * HOUR_MS);
+      expect(shifted).toContain('RECURRENCE-ID;VALUE=DATE:20260314');
+    });
+
+    it('keeps the RECURRENCE-ID DATE-typed rather than adding a time', function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 23 * HOUR_MS);
+      expect(shifted).not.toMatch(/RECURRENCE-ID(?!;VALUE=DATE)/);
+    });
+
+    it("leaves the exception's own DTSTART alone", function () {
+      const shifted = ICSEventHelpers.shiftInlineExceptions(ALLDAY_WITH_EXCEPTION, 23 * HOUR_MS);
+      expect(shifted).toContain('DTSTART;VALUE=DATE:20260318');
+    });
+  });
+
   it('shifts the RECURRENCE-ID forward by the given delta', function () {
     // Shift forward 1 day = 86400000 ms
     const shifted = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, 86400000);
@@ -694,6 +754,105 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function () {
     // Master DTSTART was 20260301T060000Z → -2h → 20260301T040000Z
     expect(result).toContain('20260301T040000Z');
   });
+
+  // These pin the calendar-day SEMANTICS (whole-day moves, exclusive DTEND, month rollover)
+  // but not the DST behaviour: this module does plain-Date local arithmetic, which
+  // moment.tz.setDefault cannot redirect, and in CI's UTC a whole-day shift is exactly
+  // 86400s either way. Verified by hand across Chicago/Santiago/Havana/Beirut instead.
+  describe('for an all-day series', function () {
+    // A yearly all-day holiday. DTEND is exclusive, so 21st→22nd is a single day.
+    const YEARLY_ALLDAY_ICS = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'BEGIN:VEVENT',
+      'UID:holiday-1',
+      'SUMMARY:Midsummer',
+      'DTSTART;VALUE=DATE:20260621',
+      'DTEND;VALUE=DATE:20260622',
+      'RRULE:FREQ=YEARLY',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    // All-day occurrence times are local midnights, the way the calendar produces them
+    const localMidnight = (y: number, m: number, d: number) =>
+      new Date(y, m - 1, d).getTime() / 1000;
+
+    it('moves the master forward by whole days, keeping DATE values', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 22),
+        localMidnight(2026, 6, 23),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260622');
+      expect(result).toContain('DTEND;VALUE=DATE:20260623');
+    });
+
+    it('moves the master backward by whole days', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 19),
+        localMidnight(2026, 6, 20),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260619');
+      expect(result).toContain('DTEND;VALUE=DATE:20260620');
+    });
+
+    it('leaves a zero-day move alone rather than drifting the dates', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 22),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260621');
+      expect(result).toContain('DTEND;VALUE=DATE:20260622');
+    });
+
+    it('carries the move across a month boundary', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 7, 1),
+        localMidnight(2026, 7, 2),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260701');
+      expect(result).toContain('DTEND;VALUE=DATE:20260702');
+    });
+
+    it('preserves the RRULE', function () {
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 22),
+        localMidnight(2026, 6, 23),
+        true
+      );
+      expect(result).toContain('FREQ=YEARLY');
+    });
+
+    it('keeps a multi-day span the same length', function () {
+      const THREE_DAY_ICS = YEARLY_ALLDAY_ICS.replace(
+        'DTEND;VALUE=DATE:20260622',
+        'DTEND;VALUE=DATE:20260624'
+      );
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        THREE_DAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 28),
+        localMidnight(2026, 7, 1),
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260628');
+      expect(result).toContain('DTEND;VALUE=DATE:20260701');
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -707,5 +866,124 @@ describe('ICSEventHelpers.isRecurringEvent', function () {
 
   it('returns false for a simple (non-recurring) event', function () {
     expect(ICSEventHelpers.isRecurringEvent(SIMPLE_ICS)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// All-day DTEND is exclusive (RFC 5545): midnight of the day AFTER the last day
+// covered. Timestamps below are local midnights, because all-day times are built
+// from local date components — a UTC midnight would land on the previous day in
+// any negative-offset zone.
+// ---------------------------------------------------------------------------
+
+const ALL_DAY_SIMPLE_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:all-day-simple@test
+DTSTART;VALUE=DATE:20260622
+DTEND;VALUE=DATE:20260623
+SUMMARY:Company Holiday
+DTSTAMP:20260101T000000Z
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`;
+
+/** Local midnight, as unix seconds */
+function localDay(year: number, month1Indexed: number, day: number): number {
+  return new Date(year, month1Indexed - 1, day).getTime() / 1000;
+}
+
+/** Extract the YYYYMMDD from a DATE-valued property */
+function getDateOnly(ics: string, propName: string): string | null {
+  const match = new RegExp(`^${propName.toUpperCase()}[^:]*:(\\d{8})\\s*$`, 'im').exec(ics);
+  return match ? match[1] : null;
+}
+
+describe('ICSEventHelpers.updateEventTimes with all-day events', function () {
+  it('keeps an already-exclusive end unchanged', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22),
+      end: localDay(2026, 6, 23),
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260622');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('converts an inclusive end-of-day end to the next day', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22),
+      end: localDay(2026, 6, 23) - 1, // 23:59:59 on the 22nd
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260622');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('gives a degenerate end (equal to start) a full day', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22),
+      end: localDay(2026, 6, 22),
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('gives a same-day timed range a full day, as the popover all-day toggle produces', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 22) + 10 * 3600, // 10:00
+      end: localDay(2026, 6, 22) + 11 * 3600, // 11:00
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260622');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('preserves a multi-day span', function () {
+    const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 20),
+      end: localDay(2026, 6, 23), // covers the 20th, 21st, 22nd
+      isAllDay: true,
+    });
+    expect(getDateOnly(result, 'DTSTART')).toBe('20260620');
+    expect(getDateOnly(result, 'DTEND')).toBe('20260623');
+  });
+
+  it('rolls over month and year boundaries', function () {
+    const endOfMonth = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 6, 30),
+      end: localDay(2026, 6, 30),
+      isAllDay: true,
+    });
+    expect(getDateOnly(endOfMonth, 'DTEND')).toBe('20260701');
+
+    const endOfYear = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+      start: localDay(2026, 12, 31),
+      end: localDay(2026, 12, 31),
+      isAllDay: true,
+    });
+    expect(getDateOnly(endOfYear, 'DTEND')).toBe('20270101');
+  });
+
+  it('never emits a zero-length all-day event', function () {
+    const ends = [
+      localDay(2026, 6, 22),
+      localDay(2026, 6, 22) + 1,
+      localDay(2026, 6, 23) - 1,
+      localDay(2026, 6, 23),
+    ];
+    ends.forEach((end) => {
+      const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
+        start: localDay(2026, 6, 22),
+        end,
+        isAllDay: true,
+      });
+      const dtstart = getDateOnly(result, 'DTSTART');
+      const dtend = getDateOnly(result, 'DTEND');
+      // Assert both parsed, or a DATE-TIME regression on one side would pass
+      expect(dtstart).toBe('20260622');
+      expect(dtend).toBe('20260623');
+    });
   });
 });

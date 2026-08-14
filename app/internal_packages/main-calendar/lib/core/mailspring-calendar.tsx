@@ -35,6 +35,10 @@ import {
   showNoEditableCalendarsError,
   showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
+  addCalendarDays,
+  exclusiveAllDayEnd,
+  shiftEndWithStart,
+  clampEnd,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -329,7 +333,7 @@ export class MailspringCalendar extends React.Component<
       startUnix = Math.round(args.time / thirtyMinutes) * thirtyMinutes;
     }
 
-    const endUnix = isAllDay ? startUnix + 86400 : startUnix + 3600; // 1 day or 1 hour
+    const endUnix = isAllDay ? exclusiveAllDayEnd(startUnix) : startUnix + 3600;
 
     // Build a temporary EventOccurrence to open the popover in "new event" mode
     const newEventOccurrence: EventOccurrence = {
@@ -606,6 +610,11 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
+    // All-day events have no time of day, so up/down has nothing to move
+    if (occurrence.isAllDay && (direction === 'up' || direction === 'down')) {
+      return;
+    }
+
     // Calculate time delta based on view and direction
     // Day/Week view: up/down changes time, left/right changes day
     // Month view: left/right changes day
@@ -663,14 +672,33 @@ export class MailspringCalendar extends React.Component<
       let newStart: number;
       let newEnd: number;
 
-      if (isResize) {
+      if (occurrence.isAllDay) {
+        // Only left/right reaches here, so the delta is a day in either direction. Shifting
+        // by calendar days rather than 86400 seconds keeps the times on midnight across a
+        // DST transition, where a seconds shift overshoots and snaps up an extra day.
+        const days = Math.sign(timeDelta);
+        newStart = isResize ? occurrence.start : addCalendarDays(occurrence.start, days);
+        newEnd = isResize
+          ? clampEnd(newStart, addCalendarDays(occurrence.end, days), true)
+          : shiftEndWithStart(occurrence.start, occurrence.end, newStart, true);
+        const snapped = snapAllDayTimes(newStart, newEnd);
+        newStart = snapped.start;
+        newEnd = snapped.end;
+      } else if (isResize) {
         // Shift+Arrow: resize the event (change end time only)
         newStart = occurrence.start;
-        newEnd = Math.max(occurrence.end + timeDelta, occurrence.start + 900); // Min 15 min
+        newEnd = clampEnd(newStart, occurrence.end + timeDelta, false);
       } else {
         // Arrow: move the event (change both start and end)
         newStart = occurrence.start + timeDelta;
         newEnd = occurrence.end + timeDelta;
+      }
+
+      // Resizing at the minimum duration clamps back to the current end, so the change can
+      // be a no-op. Bail like the mouse-up path does, rather than queueing a syncback and an
+      // undo toast for an identical event — or prompting for a recurring series that won't move.
+      if (newStart === occurrence.start && newEnd === occurrence.end) {
+        return;
       }
 
       // Use shared utility for recurring event support (shows dialog if needed)

@@ -3,6 +3,7 @@ import moment from 'moment-timezone';
 import { Rx, Event, DatabaseStore, localized, Calendar, Actions } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion, BindGlobalCommands } from 'mailspring-component-kit';
 import { EventOccurrence, occurrencesForEvents } from './calendar-data-source';
+import { inclusiveAllDayEnd } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
@@ -189,10 +190,11 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
     const end = moment(event.end * 1000);
 
     if (event.isAllDay) {
-      if (start.isSame(end, 'day') || end.diff(start, 'hours') <= 24) {
+      const lastDay = moment(inclusiveAllDayEnd(event.end) * 1000);
+      if (lastDay.isSame(start, 'day')) {
         return start.format('ddd, MMM D, YYYY');
       }
-      return `${start.format('MMM D')} - ${end.format('MMM D, YYYY')}`;
+      return `${start.format('MMM D')} - ${lastDay.format('MMM D, YYYY')}`;
     }
 
     if (start.isSame(end, 'day')) {

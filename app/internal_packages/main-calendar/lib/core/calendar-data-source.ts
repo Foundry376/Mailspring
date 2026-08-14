@@ -173,7 +173,7 @@ export function occurrencesForEvents(
             title: item.summary || '',
             location: item.location || '',
             description: item.description || '',
-            isAllDay: end - start >= 86400 - 1,
+            isAllDay: !!e.startDate.isDate,
             isCancelled: status.toUpperCase() === 'CANCELLED',
             isPending: isTentativeStatus || isAwaitingMyResponse,
             isException: !!item.component?.getFirstPropertyValue('recurrence-id'),
@@ -198,7 +198,10 @@ export function occurrencesForEvents(
           title: '(Error expanding event)',
           location: '',
           description: '',
-          isAllDay: master.recurrenceEnd - master.recurrenceStart >= 86400 - 1,
+          // Expansion failed, so there's no DATE flag to read — fall back on duration. A
+          // recurring master's columns can hold one occurrence's span, so a series can
+          // misread as all-day here.
+          isAllDay: master.recurrenceEnd - master.recurrenceStart >= 82800,
           isCancelled: false,
           isPending: false,
           isException: false,
@@ -259,7 +262,7 @@ export function occurrencesForEvents(
           title: icsEvent.summary || '',
           location: icsEvent.location || '',
           description: icsEvent.description || '',
-          isAllDay: occEnd - occStart >= 86400 - 1,
+          isAllDay: !!icsEvent.startDate.isDate,
           isCancelled: status.toUpperCase() === 'CANCELLED',
           isPending: isTentativeStatus || isAwaitingMyResponse,
           isException: true,
