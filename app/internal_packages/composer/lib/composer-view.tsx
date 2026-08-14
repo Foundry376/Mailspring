@@ -7,6 +7,7 @@ import {
   DraftStore,
   DraftEditingSession,
   MessageWithEditorState,
+  EmlUtils,
   File,
 } from 'mailspring-exports';
 import { webUtils } from 'electron';
@@ -41,6 +42,7 @@ interface ComposerViewState {
   quotedTextHidden: boolean;
   quotedTextPresent: boolean;
   isDropping: boolean;
+  attachingThreadCount: number;
 }
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
@@ -78,6 +80,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
     this.state = {
       isDropping: false,
+      attachingThreadCount: 0,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
       quotedTextHidden: hideQuotedTextByDefault(draft),
     };
@@ -202,7 +205,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
               </>
             )}
 
-            <AttachmentsArea draft={draft} />
+            <AttachmentsArea draft={draft} attachingThreadCount={this.state.attachingThreadCount} />
           </div>
           <div className="composer-footer-region">
             <InjectedComponentSet
@@ -278,7 +281,14 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     const hasNativeFile = event.dataTransfer.types.includes('Files');
     const hasNonNativeFilePath = nonNativeFilePath !== null;
 
-    return hasNativeFile || hasNonNativeFilePath;
+    return hasNativeFile || hasNonNativeFilePath || this._hasThreadsForDrop(event);
+  };
+
+  // Threads dragged out of the thread list carry their ids in a custom MIME
+  // type. Note that we can only look at `types` here — the payload itself is
+  // not readable until the drop actually happens.
+  _hasThreadsForDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    return event.dataTransfer.types.includes('mailspring-threads-data');
   };
 
   _nonNativeFilePathForDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -312,6 +322,66 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     if (uri) {
       this._onFileReceived(uri);
       event.preventDefault();
+    }
+
+    // Accept drops of threads from the thread list, attaching each one as a
+    // .eml file. dataTransfer is only valid for the duration of this handler,
+    // so read the payload now and hand the ids off to an async worker.
+    if (this._hasThreadsForDrop(event)) {
+      this._onThreadsReceived(event.dataTransfer.getData('mailspring-threads-data'));
+      event.preventDefault();
+    }
+  };
+
+  _onThreadsReceived = async (json: string) => {
+    let threadIds: string[] = [];
+    try {
+      threadIds = JSON.parse(json).threadIds || [];
+    } catch (err) {
+      return;
+    }
+
+    // Dropping a thread onto a reply being written inside that same thread is
+    // almost always an accident, and attaching a copy of the conversation to
+    // itself isn't useful. Ignore it rather than surfacing an error.
+    threadIds = threadIds.filter((id) => id !== this.props.draft.threadId);
+    if (!threadIds.length) {
+      return;
+    }
+
+    // Fetching the raw message from the sync engine is a remote round trip, so
+    // show a placeholder in the attachments area until the files land.
+    const dropCount = threadIds.length;
+    this.setState((state) => ({ attachingThreadCount: state.attachingThreadCount + dropCount }));
+
+    let staged: Array<{ filePath: string }> = [];
+    try {
+      staged = await EmlUtils.stageThreadsAsEml(threadIds);
+    } catch (err) {
+      AppEnv.reportError(err);
+    } finally {
+      if (this._mounted) {
+        this.setState((state) => ({
+          attachingThreadCount: state.attachingThreadCount - dropCount,
+        }));
+      }
+    }
+
+    if (!this._mounted) {
+      return;
+    }
+    for (const { filePath } of staged) {
+      this._onFileReceived(filePath);
+    }
+    if (staged.length < threadIds.length) {
+      AppEnv.showErrorDialog(
+        threadIds.length === 1
+          ? localized('Could not download the original message. Please try again.')
+          : localized(
+              'Could not download %1$@ of the original messages. Please try again.',
+              threadIds.length - staged.length
+            )
+      );
     }
   };
 

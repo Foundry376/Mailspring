@@ -1,4 +1,17 @@
-import { defaultEmlFilename } from '../../src/services/eml-utils';
+import fs from 'fs';
+import path from 'path';
+import {
+  Actions,
+  DatabaseStore,
+  Message,
+  TaskQueue,
+  GetMessageRFC2822Task,
+} from 'mailspring-exports';
+import {
+  defaultEmlFilename,
+  newestExportableMessagesForThreadIds,
+  stageMessagesAsEml,
+} from '../../src/services/eml-utils';
 
 describe('defaultEmlFilename', function () {
   describe('normal subjects', () => {
@@ -115,9 +128,7 @@ describe('defaultEmlFilename', function () {
 
     it('strips all C0 control characters', () => {
       // Build a string with chars 0x01–0x1F between "a" and "b"
-      const controls = Array.from({ length: 31 }, (_, i) =>
-        String.fromCharCode(i + 1)
-      ).join('');
+      const controls = Array.from({ length: 31 }, (_, i) => String.fromCharCode(i + 1)).join('');
       expect(defaultEmlFilename(`a${controls}b`)).toEqual('ab.eml');
     });
   });
@@ -146,5 +157,146 @@ describe('defaultEmlFilename', function () {
     it('does not remove dots in the middle of the name', () => {
       expect(defaultEmlFilename('v1.2.3 release')).toEqual('v1.2.3 release.eml');
     });
+  });
+});
+
+describe('newestExportableMessagesForThreadIds', function () {
+  const queryFor = (results: Message[]) => {
+    const query: any = {
+      order() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
+      then(callback) {
+        return Promise.resolve(results).then(callback);
+      },
+    };
+    return query;
+  };
+
+  it('returns the single newest message the query yields for each thread', async () => {
+    const a = new Message({ id: 'a', threadId: 't1' });
+    const b = new Message({ id: 'b', threadId: 't2' });
+    spyOn(DatabaseStore, 'findAll').andCallFake((klass, where) =>
+      queryFor(where.threadId === 't1' ? [a] : [b])
+    );
+
+    const messages = await newestExportableMessagesForThreadIds(['t1', 't2']);
+    expect(messages.map((m) => m.id)).toEqual(['a', 'b']);
+  });
+
+  it('excludes drafts, which have no raw source on the server', async () => {
+    spyOn(DatabaseStore, 'findAll').andCallFake(() => queryFor([]));
+    await newestExportableMessagesForThreadIds(['t1']);
+    expect((DatabaseStore.findAll as any).calls[0].args[1]).toEqual({
+      threadId: 't1',
+      draft: false,
+    });
+  });
+
+  it('omits threads that have no exportable message', async () => {
+    const a = new Message({ id: 'a', threadId: 't1' });
+    spyOn(DatabaseStore, 'findAll').andCallFake((klass, where) =>
+      queryFor(where.threadId === 't1' ? [a] : [])
+    );
+
+    const messages = await newestExportableMessagesForThreadIds(['t1', 't2']);
+    expect(messages.map((m) => m.id)).toEqual(['a']);
+  });
+
+  it('returns an empty array when given no threads', async () => {
+    spyOn(DatabaseStore, 'findAll').andCallFake(() => queryFor([]));
+    expect(await newestExportableMessagesForThreadIds([])).toEqual([]);
+    expect(DatabaseStore.findAll).not.toHaveBeenCalled();
+  });
+});
+
+describe('stageMessagesAsEml', function () {
+  let queued: GetMessageRFC2822Task[] = [];
+  let cleanup: string[] = [];
+
+  // Stand in for the sync engine: when a fetch is awaited, write the file it
+  // was asked to produce. `writeFor` decides which ones actually get written.
+  const engineWrites = (writeFor: (task: GetMessageRFC2822Task) => boolean) => {
+    (TaskQueue.waitForPerformRemote as any).andCallFake((task: GetMessageRFC2822Task) => {
+      if (writeFor(task)) {
+        fs.writeFileSync(task.filepath, 'Subject: raw\r\n\r\nbody\r\n');
+        cleanup.push(path.dirname(task.filepath));
+      }
+      return Promise.resolve();
+    });
+  };
+
+  beforeEach(() => {
+    queued = [];
+    cleanup = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(() => Promise.resolve());
+  });
+
+  afterEach(() => {
+    for (const dir of cleanup) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('queues one fetch per message, staging each into its own directory', async () => {
+    engineWrites(() => true);
+    const messages = [
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' }),
+      new Message({ id: 'm2', accountId: 'a2', subject: 'World' }),
+    ];
+
+    const staged = await stageMessagesAsEml(messages);
+
+    expect(queued.length).toEqual(2);
+    expect(queued.map((t) => t.messageId)).toEqual(['m1', 'm2']);
+    expect(queued.map((t) => t.accountId)).toEqual(['a1', 'a2']);
+    expect(staged.map((s) => path.basename(s.filePath))).toEqual(['Hello.eml', 'World.eml']);
+    expect(path.dirname(staged[0].filePath)).not.toEqual(path.dirname(staged[1].filePath));
+  });
+
+  it('queues every fetch before awaiting any of them', async () => {
+    let resolveAll;
+    const gate = new Promise<void>((resolve) => (resolveAll = resolve));
+    (TaskQueue.waitForPerformRemote as any).andCallFake(() => gate);
+
+    const promise = stageMessagesAsEml([
+      new Message({ id: 'm1', accountId: 'a1', subject: 'One' }),
+      new Message({ id: 'm2', accountId: 'a1', subject: 'Two' }),
+    ]);
+    expect(queued.length).toEqual(2);
+    resolveAll();
+    const staged = await promise;
+    // Nothing was written, so nothing is reported as staged
+    expect(staged).toEqual([]);
+  });
+
+  it('omits messages whose file was never written', async () => {
+    engineWrites((task) => task.messageId === 'm1');
+    const staged = await stageMessagesAsEml([
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Written' }),
+      new Message({ id: 'm2', accountId: 'a1', subject: 'Missing' }),
+    ]);
+
+    expect(staged.length).toEqual(1);
+    expect(staged[0].message.id).toEqual('m1');
+    expect(path.basename(staged[0].filePath)).toEqual('Written.eml');
+  });
+
+  it('uses an explicit filename when one is given', async () => {
+    engineWrites(() => true);
+    const staged = await stageMessagesAsEml(
+      [new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' })],
+      { filename: 'Forwarded Message.eml' }
+    );
+    expect(path.basename(staged[0].filePath)).toEqual('Forwarded Message.eml');
+  });
+
+  it('does nothing when given no messages', async () => {
+    expect(await stageMessagesAsEml([])).toEqual([]);
+    expect(Actions.queueTask).not.toHaveBeenCalled();
   });
 });

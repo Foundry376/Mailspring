@@ -600,6 +600,20 @@ body.platform-win32 {
   }
 }
 
+// Placeholder shown while a thread dragged onto the composer is being fetched
+// from the sync engine and written out as a .eml file.
+.attaching-messages {
+  display: flex;
+  align-items: center;
+  padding: @spacing-half 0;
+  color: @text-color-subtle;
+  font-size: @font-size-smaller;
+
+  img {
+    margin-right: @spacing-half;
+  }
+}
+
 // Overrides for the full-window popout composer
 .composer-full-window {
   width: 100%;

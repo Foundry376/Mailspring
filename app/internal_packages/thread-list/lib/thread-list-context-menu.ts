@@ -165,30 +165,15 @@ export default class ThreadListContextMenu {
       label: localized('Forward as Attachment'),
       click: async () => {
         const thread = this.threads[0];
-        const messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id })
-          .order(Message.attributes.date.descending())
-          .limit(1);
+        const messages = await EmlUtils.newestExportableMessagesForThreadIds([thread.id]);
         if (!messages.length) return;
 
         const message = messages[0];
-        const pathModule = require('path');
-        const fs = require('fs');
-        const tempDir = pathModule.join(
-          require('@electron/remote').app.getPath('temp'),
-          `mailspring-fwd-${message.id}`
-        );
-        fs.mkdirSync(tempDir, { recursive: true });
-        const tempPath = pathModule.join(tempDir, 'Forwarded Message.eml');
-
-        const task = new GetMessageRFC2822Task({
-          messageId: message.id,
-          accountId: message.accountId,
-          filepath: tempPath,
+        const staged = await EmlUtils.stageMessagesAsEml([message], {
+          filename: 'Forwarded Message.eml',
         });
-        Actions.queueTask(task);
-        await TaskQueue.waitForPerformRemote(task);
 
-        if (!fs.existsSync(tempPath)) {
+        if (!staged.length) {
           AppEnv.showErrorDialog(
             localized('Could not download the original message. Please try again.')
           );
@@ -207,7 +192,7 @@ export default class ThreadListContextMenu {
         await TaskQueue.waitForPerformLocal(syncTask);
 
         Actions.addAttachment({
-          filePath: tempPath,
+          filePath: staged[0].filePath,
           headerMessageId: draft.headerMessageId,
           onCreated: () => {
             Actions.composePopoutDraft(draft.headerMessageId);
@@ -340,9 +325,7 @@ export default class ThreadListContextMenu {
       click: async () => {
         if (this.threadIds.length === 1) {
           const thread = this.threads[0];
-          const messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id })
-            .order(Message.attributes.date.descending())
-            .limit(1);
+          const messages = await EmlUtils.newestExportableMessagesForThreadIds([thread.id]);
           if (!messages.length) return;
 
           const message = messages[0];
@@ -369,15 +352,11 @@ export default class ThreadListContextMenu {
               const outputDir = selected[0];
               const path = require('path');
 
-              for (const thread of this.threads) {
-                const messages = await DatabaseStore.findAll<Message>(Message, {
-                  threadId: thread.id,
-                })
-                  .order(Message.attributes.date.descending())
-                  .limit(1);
-                if (!messages.length) continue;
+              const messages = await EmlUtils.newestExportableMessagesForThreadIds(
+                this.threads.map((t) => t.id)
+              );
 
-                const message = messages[0];
+              for (const message of messages) {
                 const filename = EmlUtils.defaultEmlFilename(message.subject);
 
                 const task = new GetMessageRFC2822Task({
