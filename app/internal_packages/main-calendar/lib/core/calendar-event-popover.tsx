@@ -35,6 +35,7 @@ import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
 import { parseEventIdFromOccurrence } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
+import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 
 /**
  * Convert a RepeatOption UI value to an RRULE string (or null for 'none').
@@ -417,6 +418,19 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ [key]: value } as Pick<CalendarEventPopoverState, K>);
   };
 
+  /** Moving the start carries the end with it, so the duration is preserved. */
+  updateStart = (start: number): void => {
+    this.setState({ start, end: this.state.end + (start - this.state.start) });
+  };
+
+  /** The end can never land before the start; an all-day event keeps at least one whole day. */
+  updateEnd = (end: number): void => {
+    const floor = this.state.allDay
+      ? exclusiveAllDayEnd(this.state.start)
+      : this.state.start + MIN_EVENT_DURATION_SECONDS;
+    this.setState({ end: Math.max(end, floor) });
+  };
+
   renderEditable = () => {
     const {
       title,
@@ -482,30 +496,19 @@ export class CalendarEventPopover extends React.Component<
 
           {/* Start/End times using property rows */}
           <EventPropertyRow label={localized('starts:')}>
-            <DatePicker
-              value={start * 1000}
-              onChange={(ts) => this.updateField('start', ts / 1000)}
-            />
+            <DatePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
             {!allDay && (
-              <TimePicker
-                value={start * 1000}
-                onChange={(ts) => this.updateField('start', ts / 1000)}
-              />
+              <TimePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
             )}
           </EventPropertyRow>
 
           <EventPropertyRow label={localized('ends:')}>
             <DatePicker
               value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
-              onChange={(ts) =>
-                this.updateField('end', allDay ? exclusiveAllDayEnd(ts / 1000) : ts / 1000)
-              }
+              onChange={(ts) => this.updateEnd(allDay ? exclusiveAllDayEnd(ts / 1000) : ts / 1000)}
             />
             {!allDay && (
-              <TimePicker
-                value={end * 1000}
-                onChange={(ts) => this.updateField('end', ts / 1000)}
-              />
+              <TimePicker value={end * 1000} onChange={(ts) => this.updateEnd(ts / 1000)} />
             )}
           </EventPropertyRow>
 

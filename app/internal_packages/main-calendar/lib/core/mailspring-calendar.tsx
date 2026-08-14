@@ -26,7 +26,7 @@ import { MonthView } from './month-view';
 import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
 import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
-import { CalendarView } from './calendar-constants';
+import { CalendarView, MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
   setCalendarColors,
@@ -666,7 +666,10 @@ export class MailspringCalendar extends React.Component<
       if (isResize) {
         // Shift+Arrow: resize the event (change end time only)
         newStart = occurrence.start;
-        newEnd = Math.max(occurrence.end + timeDelta, occurrence.start + 900); // Min 15 min
+        newEnd = Math.max(
+          occurrence.end + timeDelta,
+          occurrence.start + MIN_EVENT_DURATION_SECONDS
+        );
       } else {
         // Arrow: move the event (change both start and end)
         newStart = occurrence.start + timeDelta;
