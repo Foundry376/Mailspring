@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {
   Utils,
   Calendar,
@@ -262,11 +263,10 @@ export function extractMeetingDomain(location: string, description: string): str
  * @returns The last day the event covers, at local midnight
  */
 export function inclusiveAllDayEnd(end: number): number {
-  const lastCovered = new Date((end - 1) * 1000);
-  return (
-    new Date(lastCovered.getFullYear(), lastCovered.getMonth(), lastCovered.getDate()).getTime() /
-    1000
-  );
+  return moment
+    .unix(end - 1)
+    .startOf('day')
+    .unix();
 }
 
 /**
@@ -274,26 +274,18 @@ export function inclusiveAllDayEnd(end: number): number {
  * transition — adding 86400 seconds would move it by an hour on those days.
  */
 export function addCalendarDays(unix: number, days: number): number {
-  const d = new Date(unix * 1000);
-  return (
-    new Date(
-      d.getFullYear(),
-      d.getMonth(),
-      d.getDate() + days,
-      d.getHours(),
-      d.getMinutes(),
-      d.getSeconds()
-    ).getTime() / 1000
-  );
+  return moment.unix(unix).add(days, 'days').unix();
 }
 
-/** Whole calendar days from one timestamp to another, ignoring the time of day. */
+/**
+ * Whole calendar days from one timestamp to another, ignoring the time of day.
+ * Rounds because diff() truncates, and in zones whose DST transition falls at midnight
+ * the normalized start-of-day is an hour off, dragging the quotient below the integer.
+ */
 export function calendarDaysBetween(from: number, to: number): number {
-  const a = new Date(from * 1000);
-  const b = new Date(to * 1000);
-  const startOfA = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
-  const startOfB = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
-  return Math.round((startOfB - startOfA) / 86400000);
+  return Math.round(
+    moment.unix(to).startOf('day').diff(moment.unix(from).startOf('day'), 'days', true)
+  );
 }
 
 /**
@@ -301,8 +293,8 @@ export function calendarDaysBetween(from: number, to: number): number {
  * exclusive end that gets stored.
  */
 export function exclusiveAllDayEnd(lastDay: number): number {
-  const day = new Date(lastDay * 1000);
-  return new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1).getTime() / 1000;
+  // add before startOf: truncating first lands on 01:00 where local midnight doesn't exist
+  return moment.unix(lastDay).add(1, 'day').startOf('day').unix();
 }
 
 /**

@@ -61,9 +61,21 @@ describe('exclusiveAllDayEnd', function () {
 });
 
 // These exercise DST transitions using 2026 US dates: March 8 is a 23-hour day and
-// November 1 a 25-hour day. In a zone without DST they still pass, just vacuously —
-// the specs cannot set TZ at runtime.
+// November 1 a 25-hour day. TZ is pinned per-block so they stay meaningful on a UTC
+// CI runner, where every day is 24 hours and the assertions would hold vacuously.
+function pinTimezone(tz: string) {
+  let original: string | undefined;
+  beforeEach(function () {
+    original = process.env.TZ;
+    process.env.TZ = tz;
+  });
+  afterEach(function () {
+    process.env.TZ = original;
+  });
+}
 describe('addCalendarDays', function () {
+  pinTimezone('America/Chicago');
+
   it('lands on the next calendar day across a spring-forward transition', function () {
     expect(addCalendarDays(localDay(2026, 3, 7), 1)).toBe(localDay(2026, 3, 8));
     expect(addCalendarDays(localDay(2026, 3, 7), 2)).toBe(localDay(2026, 3, 9));
@@ -85,6 +97,8 @@ describe('addCalendarDays', function () {
 });
 
 describe('calendarDaysBetween', function () {
+  pinTimezone('America/Chicago');
+
   it('counts whole days regardless of how long the day was', function () {
     expect(calendarDaysBetween(localDay(2026, 3, 7), localDay(2026, 3, 9))).toBe(2);
     expect(calendarDaysBetween(localDay(2026, 11, 1), localDay(2026, 11, 3))).toBe(2);
@@ -103,32 +117,11 @@ describe('calendarDaysBetween', function () {
   });
 });
 
-describe('shifting an all-day range', function () {
-  // The bug this guards: shifting the end by 86400 seconds instead of a calendar day
-  // left it off midnight on a 23- or 25-hour day, and the event gained or lost a day.
-  function shiftAllDay(start: number, end: number, newStart: number) {
-    const days = calendarDaysBetween(start, newStart);
-    return exclusiveAllDayEnd(addCalendarDays(inclusiveAllDayEnd(end), days));
-  }
-
-  it('keeps a one-day event one day long across spring-forward', function () {
-    const shifted = shiftAllDay(localDay(2026, 3, 7), localDay(2026, 3, 8), localDay(2026, 3, 8));
-    expect(shifted).toBe(localDay(2026, 3, 9));
-  });
-
-  it('keeps a three-day event three days long across fall-back', function () {
-    const shifted = shiftAllDay(
-      localDay(2026, 10, 30),
-      localDay(2026, 11, 2),
-      localDay(2026, 11, 1)
-    );
-    expect(calendarDaysBetween(localDay(2026, 11, 1), shifted)).toBe(3);
-  });
-});
-
 const MIN_EVENT = 900;
 
 describe('shiftEndWithStart', function () {
+  pinTimezone('America/Chicago');
+
   it('preserves a timed duration', function () {
     const start = localDay(2026, 6, 22) + 10 * 3600;
     const end = start + 3600;

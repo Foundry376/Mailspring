@@ -4,7 +4,10 @@ import {
   isPastDate,
   canMoveEvent,
   snapAllDayTimes,
+  createDragState,
+  updateDragState,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
+import { MONTH_VIEW_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
 import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const HOUR = 60 * 60;
@@ -136,5 +139,69 @@ describe('snapAllDayTimes', function () {
       const snapped = snapAllDayTimes(JUN22, end);
       expect(snapped.end).toBeGreaterThan(snapped.start);
     });
+  });
+});
+
+describe('updateDragState with day snapping', function () {
+  // Pinned so the spring-forward case is real on a UTC runner
+  let originalTz: string | undefined;
+  beforeEach(function () {
+    originalTz = process.env.TZ;
+    process.env.TZ = 'America/Chicago';
+  });
+  afterEach(function () {
+    process.env.TZ = originalTz;
+  });
+
+  const day = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
+
+  // Drags an all-day event's edge and returns the resulting preview range.
+  function dragEdge(
+    start: number,
+    end: number,
+    mode: 'resize-start' | 'resize-end',
+    mouseTime: number
+  ) {
+    const event = makeOccurrence({ isAllDay: true, start, end });
+    const cursor = mode === 'resize-start' ? 'ew-resize' : 'ew-resize';
+    const state = createDragState(event, { mode, cursor }, mouseTime, 0, 0, MONTH_VIEW_DRAG_CONFIG);
+    // Move far enough to clear the drag threshold
+    const dragged = updateDragState(
+      state,
+      mouseTime,
+      100,
+      100,
+      'month-cell',
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    return { start: dragged.previewStart, end: dragged.previewEnd };
+  }
+
+  it('keeps preview ends on midnight when resizing on a spring-forward day', function () {
+    // A calendar day is 82800s on Mar 8 2026, so a seconds-based floor lands at 23:00
+    // of the previous day and previews an extra day.
+    expect(
+      dragEdge(day(2026, 3, 8), day(2026, 3, 9), 'resize-end', day(2026, 3, 8) + 3600)
+    ).toEqual({ start: day(2026, 3, 8), end: day(2026, 3, 9) });
+    expect(
+      dragEdge(day(2026, 3, 8), day(2026, 3, 9), 'resize-start', day(2026, 3, 8) + 3600)
+    ).toEqual({ start: day(2026, 3, 8), end: day(2026, 3, 9) });
+  });
+
+  it('never previews less than one whole day', function () {
+    // resize-end dragged back before the start
+    expect(
+      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-end', day(2026, 8, 12) + 3600)
+    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 15) });
+    // resize-start dragged past the end
+    expect(
+      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-start', day(2026, 8, 20) + 3600)
+    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 15) });
+  });
+
+  it('extends a multi-day span to the day the cursor is in', function () {
+    expect(
+      dragEdge(day(2026, 8, 14), day(2026, 8, 16), 'resize-end', day(2026, 8, 18) + 3600)
+    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 19) });
   });
 });

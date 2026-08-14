@@ -265,39 +265,37 @@ export function updateDragState(
       break;
     }
     case 'resize-start': {
-      // For resize-start, new start is at mouse position
-      // For day-based snapping, snap to start of the day the cursor is in
-      const newStart = Math.min(mouseTime, state.originalEnd - minDuration);
       if (usesDaySnap) {
-        previewStart = moment.unix(newStart).startOf('day').unix();
+        // Clamp to the last day covered rather than subtracting seconds: one calendar day
+        // is 82800s on a spring-forward day, so a seconds floor lands off midnight.
+        const lastDay = inclusiveAllDayEnd(state.originalEnd);
+        previewStart = moment.unix(Math.min(mouseTime, lastDay)).startOf('day').unix();
         previewEnd = exclusiveDayEnd(state.originalEnd, previewStart);
       } else {
+        const newStart = Math.min(mouseTime, state.originalEnd - minDuration);
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = state.originalEnd;
-      }
-      // Ensure minimum duration after snapping
-      if (previewEnd - previewStart < minDuration) {
-        previewStart = previewEnd - minDuration;
+        // Ensure minimum duration after snapping
+        if (previewEnd - previewStart < minDuration) {
+          previewStart = previewEnd - minDuration;
+        }
       }
       break;
     }
     case 'resize-end': {
-      // For resize-end, new end is at mouse position
-      // For day-based snapping, snap to END of the day the cursor is in (not start)
-      // Don't use click offset for day-based operations
-      const newEnd = usesDaySnap
-        ? mouseTime
-        : Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
       if (usesDaySnap) {
+        // Snap to midnight after the day the cursor is in; the floor in exclusiveDayEnd
+        // already keeps at least one whole day, so no seconds correction applies here.
         previewStart = moment.unix(state.originalStart).startOf('day').unix();
-        previewEnd = exclusiveDayEnd(newEnd, previewStart);
+        previewEnd = exclusiveDayEnd(mouseTime, previewStart);
       } else {
+        const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
         previewStart = state.originalStart;
         previewEnd = snapToInterval(newEnd, snapInterval);
-      }
-      // Ensure minimum duration after snapping
-      if (previewEnd - previewStart < minDuration) {
-        previewEnd = previewStart + minDuration;
+        // Ensure minimum duration after snapping
+        if (previewEnd - previewStart < minDuration) {
+          previewEnd = previewStart + minDuration;
+        }
       }
       break;
     }
