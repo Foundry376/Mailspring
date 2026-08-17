@@ -919,8 +919,8 @@ The templates plugin is the most complete example. It uses all three plugin syst
 
 **Template insertion flow**:
 1. User clicks template picker button → `Actions.insertTemplateId()`
-2. `TemplateStore` reads template HTML from disk
-3. Template HTML is inserted via `session.changes.add({ body: templateHTML + existingContent })`
+2. `TemplateStore` reads template HTML from disk and splits off the optional subject line, which is stored in a `<meta name="subject">` tag at the top of the file (see `template-file.ts`)
+3. Template HTML is inserted via `session.changes.add({ body: templateHTML + existingContent, subject })` — the subject is only included when the template has one and the draft is not a reply or forward
 4. The body setter converts HTML to Slate value, finding `<span data-tvar>` elements and creating `templatevar` inline nodes via the deserialization rules
 5. `TemplateStatusBar` detects the variables and shows the "Press tab" hint
 

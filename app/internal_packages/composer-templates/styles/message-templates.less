@@ -5,12 +5,26 @@
 
 .template-picker {
   .content-container {
-    height: 150px;
-    width: 210px;
+    height: 190px;
+    width: 260px;
     overflow-y: scroll;
   }
   .footer-container {
     border-top: 1px solid @border-color-secondary;
+  }
+  .template {
+    .name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .subject {
+      font-size: @font-size-small;
+      opacity: 0.65;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 }
 
@@ -82,6 +96,23 @@
 
     .section {
       margin-bottom: 10px;
+      &.fields {
+        display: flex;
+
+        .field {
+          display: flex;
+          &.name {
+            flex: 0 1 240px;
+            margin-right: 6px;
+          }
+          &.subject {
+            flex: 1 1 auto;
+          }
+          input {
+            width: 100%;
+          }
+        }
+      }
       &.editor {
         display: flex;
         flex: 1;
