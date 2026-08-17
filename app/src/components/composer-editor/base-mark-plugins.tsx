@@ -37,11 +37,45 @@ const PT_TO_SIZE = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 5, 
 
 let plugins = null;
 
+function isNeutralDefaultColor(color: string) {
+  const normalized = color.toLowerCase().replace(/\s/g, '');
+
+  if (['black', 'white', 'transparent'].includes(normalized)) return true;
+
+  const shortHex = normalized.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+  const longHex = normalized.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  const rgb = normalized.match(
+    /^rgba?\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)(?:,[^)]+)?\)$/i
+  );
+
+  let channels: number[] = null;
+  if (shortHex) {
+    channels = shortHex.slice(1).map((channel) => parseInt(channel + channel, 16));
+  } else if (longHex) {
+    channels = longHex.slice(1).map((channel) => parseInt(channel, 16));
+  } else if (rgb) {
+    channels = rgb.slice(1, 4).map(Number);
+  }
+
+  if (!channels) return false;
+
+  const darkest = Math.min(...channels);
+  const lightest = Math.max(...channels);
+  const isNeutral = lightest - darkest <= 12;
+
+  // Near-black and near-white colors are commonly the source page's default text
+  // color. Preserving them when pasting from a page using the opposite color scheme
+  // can make the sent email unreadable (for example near-white text copied from a
+  // dark-themed web app, landing on a light message background). Mailspring does not
+  // preserve source backgrounds, so these colors cannot be safely treated as
+  // intentional formatting.
+  return isNeutral && (lightest <= 32 || darkest >= 223);
+}
+
 function isMeaningfulColor(color: string, el: HTMLElement) {
   if (!color) return false;
 
-  const meaningless = ['black', 'rgb(0,0,0)', 'rgba(0,0,0,1)', '#000', '#000000'];
-  if (meaningless.includes(color.replace(/ /g, ''))) return false;
+  if (isNeutralDefaultColor(color)) return false;
 
   const isOwnHTML = (el.style.fontFamily || '').includes('Nylas-Pro');
   if (isOwnHTML && color === AppEnv.themes.getEmailTextColor()) return false;
