@@ -201,6 +201,13 @@ export function BuildMarkButtonWithValuePicker(config) {
       e.preventDefault();
       const { value, editor } = this.props;
       const active = safeActiveMarks(value).find((m) => m.type === config.type);
+      if (!active) {
+        // Nothing to remove — e.g. the user confirmed an empty URL field
+        // without ever having applied a mark. Calling into Slate with an
+        // undefined mark throws inside Mark.fromJSON.
+        editor.focus();
+        return;
+      }
       if (value.selection.isCollapsed) {
         const anchorNode = value.document.getNode(value.selection.anchor.key);
         const expanded = value.selection.moveToRangeOfNode(anchorNode);
