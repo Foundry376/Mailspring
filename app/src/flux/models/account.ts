@@ -164,9 +164,20 @@ export class Account extends ModelWithMetadata {
     if (!alias) {
       return this.me();
     }
-    return Contact.fromString(alias, {
+    const contact = Contact.fromString(alias, {
       accountId: this.id,
     });
+
+    // Aliases are user-provided and may not contain an email address at all
+    // (eg: legacy or hand-edited data.) Treat the alias as a display name over
+    // the account's own address - which is what the preferences UI saves for
+    // the same input - rather than returning a contact that can't send mail.
+    if (!contact.email) {
+      contact.email = this.emailAddress;
+      contact.name = contact.name || this.name;
+      contact.id = `local-${this.id}-${this.emailAddress}`;
+    }
+    return contact;
   }
 
   defaultMe() {

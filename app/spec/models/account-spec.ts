@@ -189,6 +189,48 @@ describe('Account', function () {
     });
   });
 
+  describe('meUsingAlias()', function () {
+    const accountWithAliases = (aliases: string[]) =>
+      new Account({
+        id: TEST_ACCOUNT_ID,
+        name: TEST_ACCOUNT_NAME,
+        emailAddress: TEST_ACCOUNT_EMAIL,
+        aliases,
+      });
+
+    it('returns me() when the alias is empty', function () {
+      const contact = accountWithAliases([]).meUsingAlias('');
+      expect(contact.email).toBe(TEST_ACCOUNT_EMAIL);
+      expect(contact.name).toBe(TEST_ACCOUNT_NAME);
+    });
+
+    it('parses a well formed alias', function () {
+      const contact = accountWithAliases([]).meUsingAlias('Ben Alt <alt@example.com>');
+      expect(contact.name).toBe('Ben Alt');
+      expect(contact.email).toBe('alt@example.com');
+      expect(contact.accountId).toBe(TEST_ACCOUNT_ID);
+    });
+
+    it('does not throw when the alias contains the email address twice', function () {
+      const contact = accountWithAliases([]).meUsingAlias('alt@example.com <alt@example.com>');
+      expect(contact.name).toBe('alt@example.com');
+      expect(contact.email).toBe('alt@example.com');
+    });
+
+    it('falls back to the account address when the alias has no email address', function () {
+      const contact = accountWithAliases([]).meUsingAlias('Just A Name');
+      expect(contact.email).toBe(TEST_ACCOUNT_EMAIL);
+      expect(contact.name).toBe('Just A Name');
+      expect(contact.accountId).toBe(TEST_ACCOUNT_ID);
+    });
+
+    it('falls back to the account name when the alias is only whitespace', function () {
+      const contact = accountWithAliases([]).meUsingAlias('   ');
+      expect(contact.email).toBe(TEST_ACCOUNT_EMAIL);
+      expect(contact.name).toBe(TEST_ACCOUNT_NAME);
+    });
+  });
+
   describe('defaultMe()', function () {
     it('returns me() when no defaultAlias is set', function () {
       const account = new Account({
