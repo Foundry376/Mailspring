@@ -1,4 +1,10 @@
 import { parseICSString } from './calendar-utils';
+import {
+  calendarDateOf,
+  unixDayStart,
+  addCalendarDays,
+  calendarDaysBetween,
+} from './calendar-date';
 
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
@@ -726,6 +732,17 @@ export function applyEditsToException(
 }
 
 /**
+ * The start of the date `days` after the one this instant falls on.
+ *
+ * All-day values reach this module as instants, so converting to a date and back is the only
+ * way to shift them by whole days. Note the brand can't protect these call sites: ical.js
+ * values arrive as `any`, so a raw millisecond count would type-check silently.
+ */
+function shiftedDayStart(unixSeconds: number, days: number): number {
+  return unixDayStart(addCalendarDays(calendarDateOf(unixSeconds), days));
+}
+
+/**
  * Shifts the RECURRENCE-ID of all inline exception VEVENTs within a master VCALENDAR
  * by the given time delta (in milliseconds). This keeps inline exceptions correctly
  * mapped to their corresponding RRULE-generated slots after the master series is shifted.
@@ -766,7 +783,9 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
     // An all-day delta is always whole days give or take the transition hour, so round it.
     const newRidTime = (ridValue.isDate as boolean)
       ? createAllDayTime(
-          new Date(addCalendarDays(ridDate.getTime(), Math.round(deltaMs / 86400000)) * 1000),
+          new Date(
+            shiftedDayStart(ridDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
+          ),
           ical
         )
       : // Keep as UTC (same format as createRecurrenceException)
@@ -806,10 +825,13 @@ export function updateRecurringEventTimes(
     // A raw millisecond delta is wrong here: moving an occurrence across a spring-forward
     // day yields 23h, and shifting the master by 23h leaves its date unchanged, so the
     // series silently doesn't move. Shift the dates themselves instead.
-    const days = calendarDaysBetween(originalOccurrenceStart, newStart);
+    const days = calendarDaysBetween(
+      calendarDateOf(originalOccurrenceStart),
+      calendarDateOf(newStart)
+    );
     return updateEventTimes(ics, {
-      start: addCalendarDays(currentStart, days),
-      end: addCalendarDays(currentEnd, days),
+      start: shiftedDayStart(currentStart / 1000, days),
+      end: shiftedDayStart(currentEnd / 1000, days),
       isAllDay,
     });
   }
@@ -821,27 +843,6 @@ export function updateRecurringEventTimes(
     end: (currentEnd + deltaMs) / 1000,
     isAllDay,
   });
-}
-
-/**
- * Whole calendar days from one timestamp's local date to another's. Compared in UTC, which
- * has no transitions, so a DST change between the two can't skew the count.
- *
- * Duplicated from calendar-helpers.ts because that module lives in an internal package and
- * this one can't import upwards. Both go away once all-day events are modelled as dates.
- */
-function calendarDaysBetween(fromUnix: number, toUnix: number): number {
-  const utcMidnight = (unix: number) => {
-    const d = new Date(unix * 1000);
-    return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-  };
-  return Math.round((utcMidnight(toUnix) - utcMidnight(fromUnix)) / 86400000);
-}
-
-/** Shifts a timestamp's local date by whole days, landing on that date's local midnight. */
-function addCalendarDays(ms: number, days: number): number {
-  const d = new Date(ms);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days).getTime() / 1000;
 }
 
 /**
