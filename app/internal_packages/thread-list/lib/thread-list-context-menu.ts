@@ -165,20 +165,17 @@ export default class ThreadListContextMenu {
       label: localized('Forward as Attachment'),
       click: async () => {
         const thread = this.threads[0];
-        const messages = await EmlUtils.newestExportableMessagesForThreadIds([thread.id]);
-        if (!messages.length) return;
-
-        const message = messages[0];
-        const staged = await EmlUtils.stageMessagesAsEml([message], {
+        const staged = await EmlUtils.stageThreadAsEml(thread.id, {
           filename: 'Forwarded Message.eml',
         });
 
-        if (!staged.length) {
+        if (!staged) {
           AppEnv.showErrorDialog(
             localized('Could not download the original message. Please try again.')
           );
           return;
         }
+        const { message, filePath } = staged;
 
         const account = AccountStore.accountForId(message.accountId);
         const draft = await DraftFactory.createDraft({
@@ -192,10 +189,10 @@ export default class ThreadListContextMenu {
         await TaskQueue.waitForPerformLocal(syncTask);
 
         Actions.addAttachment({
-          filePath: staged[0].filePath,
+          filePath,
           headerMessageId: draft.headerMessageId,
           onCreated: () => {
-            EmlUtils.discardStagedEml(staged[0].filePath);
+            EmlUtils.discardStagedEml(filePath);
             Actions.composePopoutDraft(draft.headerMessageId);
           },
         });

@@ -12,7 +12,9 @@ import {
   defaultEmlFilename,
   discardStagedEml,
   newestExportableMessagesForThreadIds,
+  stageMessageAsEml,
   stageMessagesAsEml,
+  stageThreadAsEml,
   stageThreadsAsEml,
 } from '../../src/services/eml-utils';
 
@@ -344,6 +346,55 @@ describe('discardStagedEml', function () {
     expect(() =>
       discardStagedEml(path.join(os.tmpdir(), 'mailspring-eml-spec-absent', 'Hello.eml'))
     ).not.toThrow();
+  });
+});
+
+describe('stageMessageAsEml', function () {
+  beforeEach(() => {
+    spyOn(Actions, 'queueTask');
+  });
+
+  it('unwraps the single staged result', async () => {
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake((task: GetMessageRFC2822Task) => {
+      fs.writeFileSync(task.filepath, 'raw');
+      return Promise.resolve();
+    });
+    const staged = await stageMessageAsEml(
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' })
+    );
+    expect(path.basename(staged.filePath)).toEqual('Hello.eml');
+    discardStagedEml(staged.filePath);
+  });
+
+  it('returns null when the fetch produced no file', async () => {
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(() => Promise.resolve());
+    const staged = await stageMessageAsEml(
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' })
+    );
+    expect(staged).toBe(null);
+  });
+});
+
+describe('stageThreadAsEml', function () {
+  it('returns null when the thread has no exportable message', async () => {
+    spyOn(Actions, 'queueTask');
+    spyOn(DatabaseStore, 'findAll').andCallFake(() => {
+      const query: any = {
+        order() {
+          return this;
+        },
+        limit() {
+          return this;
+        },
+        then(callback) {
+          return Promise.resolve([]).then(callback);
+        },
+      };
+      return query;
+    });
+
+    expect(await stageThreadAsEml('t1')).toBe(null);
+    expect(Actions.queueTask).not.toHaveBeenCalled();
   });
 });
 

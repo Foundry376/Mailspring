@@ -150,12 +150,12 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     if (!message || !this.state.currentThread) {
       return;
     }
-    const staged = await EmlUtils.stageMessagesAsEml([message], {
+    const staged = await EmlUtils.stageMessageAsEml(message, {
       filename: 'Forwarded Message.eml',
     });
 
     // The fetch is remote and can fail without writing anything
-    if (!staged.length) {
+    if (!staged) {
       AppEnv.showErrorDialog(
         localized('Could not download the original message. Please try again.')
       );
@@ -174,10 +174,10 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     await TaskQueue.waitForPerformLocal(syncTask);
 
     Actions.addAttachment({
-      filePath: staged[0].filePath,
+      filePath: staged.filePath,
       headerMessageId: draft.headerMessageId,
       onCreated: () => {
-        EmlUtils.discardStagedEml(staged[0].filePath);
+        EmlUtils.discardStagedEml(staged.filePath);
         Actions.composePopoutDraft(draft.headerMessageId);
       },
     });

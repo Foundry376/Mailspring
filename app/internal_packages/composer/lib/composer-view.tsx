@@ -7,6 +7,7 @@ import {
   DraftStore,
   DraftEditingSession,
   MessageWithEditorState,
+  DragDropTypes,
   EmlUtils,
   File,
 } from 'mailspring-exports';
@@ -205,7 +206,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
               </>
             )}
 
-            <AttachmentsArea draft={draft} attachingThreadCount={this.state.attachingThreadCount} />
+            <AttachmentsArea draft={draft} attaching={this.state.attachingThreadCount > 0} />
           </div>
           <div className="composer-footer-region">
             <InjectedComponentSet
@@ -284,11 +285,8 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     return hasNativeFile || hasNonNativeFilePath || this._hasThreadsForDrop(event);
   };
 
-  // Threads dragged out of the thread list carry their ids in a custom MIME
-  // type. Note that we can only look at `types` here — the payload itself is
-  // not readable until the drop actually happens.
   _hasThreadsForDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    return event.dataTransfer.types.includes('mailspring-threads-data');
+    return event.dataTransfer.types.includes(DragDropTypes.ThreadsDragType);
   };
 
   _nonNativeFilePathForDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -324,11 +322,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       event.preventDefault();
     }
 
-    // Accept drops of threads from the thread list, attaching each one as a
-    // .eml file. dataTransfer is only valid for the duration of this handler,
-    // so read the payload now and hand the ids off to an async worker.
+    // dataTransfer is only valid for the duration of this handler, so read the
+    // payload now and hand the ids off to an async worker.
     if (this._hasThreadsForDrop(event)) {
-      this._onThreadsReceived(event.dataTransfer.getData('mailspring-threads-data'));
+      this._onThreadsReceived(event.dataTransfer.getData(DragDropTypes.ThreadsDragType));
       event.preventDefault();
     }
   };
@@ -378,27 +375,19 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
     // A thread with nothing exportable in it and a fetch that failed are
     // different problems, and only the second one is worth retrying.
+    const problems = [];
     if (unavailableThreadIds.length) {
-      AppEnv.showErrorDialog(
-        unavailableThreadIds.length === 1
-          ? localized('This conversation has no message that can be attached.')
-          : localized(
-              '%1$@ of the conversations have no message that can be attached.',
-              unavailableThreadIds.length
-            )
+      problems.push(
+        localized('One or more of the conversations have no message that can be attached.')
       );
     }
-
-    const failedCount = threadIds.length - unavailableThreadIds.length - staged.length;
-    if (failedCount > 0) {
-      AppEnv.showErrorDialog(
-        failedCount === 1
-          ? localized('Could not download the original message. Please try again.')
-          : localized(
-              'Could not download %1$@ of the original messages. Please try again.',
-              failedCount
-            )
+    if (staged.length < threadIds.length - unavailableThreadIds.length) {
+      problems.push(
+        localized('One or more of the original messages could not be downloaded. Please try again.')
       );
+    }
+    if (problems.length) {
+      AppEnv.showErrorDialog(problems.join('\n\n'));
     }
   };
 

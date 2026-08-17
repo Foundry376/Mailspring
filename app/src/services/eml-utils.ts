@@ -2,6 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
+import _ from 'underscore';
 
 import {
   Actions,
@@ -114,10 +115,33 @@ export async function stageMessagesAsEml(
 
   // Directories whose file never arrived are dead weight — drop them now, and
   // leave the rest to discardStagedEml once the caller is done with the file.
-  const [written, missing] = partition(staged, ({ filePath }) => fs.existsSync(filePath));
+  const [written, missing] = _.partition(staged, ({ filePath }) => fs.existsSync(filePath));
   missing.forEach(({ dir }) => removeStagingDirectory(dir));
 
   return written.map(({ message, filePath }) => ({ message, filePath }));
+}
+
+/**
+ * Stage a single message, returning null if its source couldn't be fetched.
+ */
+export async function stageMessageAsEml(
+  message: Message,
+  options: { filename?: string } = {}
+): Promise<StagedEml | null> {
+  const [staged] = await stageMessagesAsEml([message], options);
+  return staged || null;
+}
+
+/**
+ * Stage the message that represents a single thread, returning null if the
+ * thread has nothing exportable in it or its source couldn't be fetched.
+ */
+export async function stageThreadAsEml(
+  threadId: string,
+  options: { filename?: string } = {}
+): Promise<StagedEml | null> {
+  const [message] = await newestExportableMessagesForThreadIds([threadId]);
+  return message ? stageMessageAsEml(message, options) : null;
 }
 
 /**
@@ -148,13 +172,6 @@ function removeStagingDirectory(dir: string) {
   } catch (err) {
     // best effort
   }
-}
-
-function partition<T>(items: T[], predicate: (item: T) => boolean): [T[], T[]] {
-  const yes: T[] = [];
-  const no: T[] = [];
-  items.forEach((item) => (predicate(item) ? yes : no).push(item));
-  return [yes, no];
 }
 
 export interface StagedThreads {

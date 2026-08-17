@@ -601,16 +601,25 @@ body.platform-win32 {
 }
 
 // Placeholder shown while a thread dragged onto the composer is being fetched
-// from the sync engine and written out as a .eml file.
+// from the sync engine and written out as a .eml file. Indented to line up
+// with .nylas-attachment-item, which it sits alongside.
 .attaching-messages {
   display: flex;
   align-items: center;
-  padding: @spacing-half 0;
+  margin: 0 0 @spacing-standard @spacing-standard;
   color: @text-color-subtle;
-  font-size: @font-size-smaller;
+  font-size: @font-size-small;
 
-  img {
+  .spinner {
+    width: auto;
     margin-right: @spacing-half;
+
+    > div {
+      width: 6px;
+      height: 6px;
+      margin-right: 2px;
+      margin-left: 0;
+    }
   }
 }
 

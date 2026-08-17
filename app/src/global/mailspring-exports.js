@@ -187,6 +187,7 @@ lazyLoad(`CalendarUtils`, 'calendar-utils');
 lazyLoad(`ICSEventHelpers`, 'ics-event-helpers');
 lazyLoad(`FsUtils`, 'fs-utils');
 lazyLoad(`CanvasUtils`, 'canvas-utils');
+lazyLoad(`DragDropTypes`, 'drag-drop-types');
 lazyLoad(`RegExpUtils`, 'regexp-utils');
 lazyLoad(`MenuHelpers`, 'menu-helpers');
 lazyLoad(`VirtualDOMUtils`, 'virtual-dom-utils');
