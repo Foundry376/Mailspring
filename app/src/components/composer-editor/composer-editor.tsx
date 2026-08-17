@@ -313,9 +313,8 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     const text = event.clipboardData.getData('text/plain');
     if (text) {
       const { document, selection, startBlock } = editor.value;
-      // Slate's runtime Editor includes isVoid, but the version's public TypeScript
-      // declaration omits it.
-      if (!startBlock || (editor as any).isVoid(startBlock)) return next();
+      // Slate's runtime Editor includes isVoid, but the TypeScript declaration omits it.
+      if (!startBlock || (editor as any)?.isVoid(startBlock)) return next();
 
       const fragment = Plain.deserialize(normalizePlainTextForPaste(text), {
         defaultBlock: startBlock as any,
