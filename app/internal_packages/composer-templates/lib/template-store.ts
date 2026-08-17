@@ -340,24 +340,13 @@ class TemplateStore extends MailspringStore {
 
     let proceed = true;
     if (bodyWouldBeReplaced || subjectWouldBeReplaced) {
-      let message;
-      if (bodyWouldBeReplaced && subjectWouldBeReplaced) {
-        message = localized(
-          'It looks like your draft already has a subject and some content. Loading this template will overwrite the subject line and all draft contents.'
-        );
-      } else if (subjectWouldBeReplaced) {
-        message = localized(
-          'It looks like your draft already has a subject. Loading this template will replace it.'
-        );
-      } else {
-        message = localized(
+      proceed = this._displayDialog(
+        localized('Replace draft contents?'),
+        localized(
           'It looks like your draft already has some content. Loading this template will overwrite all draft contents.'
-        );
-      }
-      proceed = this._displayDialog(localized('Replace draft contents?'), message, [
-        localized('Replace contents'),
-        localized('Cancel'),
-      ]);
+        ),
+        [localized('Replace contents'), localized('Cancel')]
+      );
     }
 
     if (proceed) {
