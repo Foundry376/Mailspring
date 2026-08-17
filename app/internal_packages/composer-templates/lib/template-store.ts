@@ -172,10 +172,14 @@ class TemplateStore extends MailspringStore {
     }
 
     // The draft's subject becomes both the template's name and its subject line,
-    // so using the template later fills the subject back in.
+    // so using the template later fills the subject back in. Not for a reply or
+    // a forward though - a "Re:" / "Fwd:" subject belongs to the thread the draft
+    // came from, and it's the one thing we'd refuse to apply on the way back out.
+    const isThreadSubject = !!draft.replyToHeaderMessageId || !!draft.forwardedHeaderMessageId;
+
     this.saveNewTemplate(
       draftName,
-      { subject: draftSubject, body: draftContents },
+      { subject: isThreadSubject ? '' : draftSubject, body: draftContents },
       this._onShowTemplates
     );
   }

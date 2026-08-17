@@ -17,7 +17,8 @@ very top of the file:
 When you insert the template, the subject is filled into your draft. Templates
 without the meta tag leave the draft's subject alone, and the subject of a reply or
 a forward is never overwritten. If your draft already has a subject, Mailspring
-asks before replacing it.
+asks before replacing it. The same rule applies in reverse: saving a reply or a
+forward with "Save Draft as Template" keeps the body but not the subject.
 
 If you include HTML &lt;code&gt; tags in your template, you can create
 regions that you can jump between and fill easily.

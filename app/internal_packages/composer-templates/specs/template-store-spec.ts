@@ -90,4 +90,45 @@ describe('TemplateStore', function templateStore() {
       expect(changes.body).toBe('<div>Hey!</div><signature>Ben</signature>');
     });
   });
+
+  describe('creating a template from a draft', () => {
+    const createFromDraft = async (draftProps) => {
+      const draft = new Message({
+        draft: true,
+        subject: '',
+        body: '<div>Hey there!</div>',
+        ...draftProps,
+      });
+      spyOn(DraftStore, 'sessionForClientId').andReturn(Promise.resolve({ draft: () => draft }));
+      spyOn(TemplateStore as any, 'saveNewTemplate');
+      await (TemplateStore as any)._onCreateTemplateFromDraft('draft-1');
+      const spy = (TemplateStore as any).saveNewTemplate;
+      return spy.calls.length
+        ? { name: spy.mostRecentCall.args[0], ...spy.mostRecentCall.args[1] }
+        : null;
+    };
+
+    it("keeps the draft's subject as the template subject", async () => {
+      const saved = await createFromDraft({ subject: 'Following up on our call' });
+      expect(saved.name).toBe('Following up on our call');
+      expect(saved.subject).toBe('Following up on our call');
+    });
+
+    it('does not carry over the subject of a reply', async () => {
+      const saved = await createFromDraft({
+        subject: 'Re: Lunch tomorrow',
+        replyToHeaderMessageId: 'other-message',
+      });
+      expect(saved.name).toBe('Re Lunch tomorrow');
+      expect(saved.subject).toBe('');
+    });
+
+    it('does not carry over the subject of a forward', async () => {
+      const saved = await createFromDraft({
+        subject: 'Fwd: Q3 numbers',
+        forwardedHeaderMessageId: 'other-message',
+      });
+      expect(saved.subject).toBe('');
+    });
+  });
 });
