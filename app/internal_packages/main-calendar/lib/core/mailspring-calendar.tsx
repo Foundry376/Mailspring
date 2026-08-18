@@ -26,7 +26,12 @@ import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
-import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
+import {
+  CalendarDataSource,
+  EventOccurrence,
+  FocusedEventInfo,
+  coveredDates,
+} from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -337,13 +342,11 @@ export class MailspringCalendar extends React.Component<
       : startUnix + 3600;
 
     // Build a temporary EventOccurrence to open the popover in "new event" mode
-    const clickedDate = CalendarDateUtils.calendarDateFromUnix(startUnix);
     const newEventOccurrence: EventOccurrence = {
       id: `__new_event_${Date.now()}`,
       start: startUnix,
       end: endUnix,
-      startDate: clickedDate,
-      endDate: isAllDay ? clickedDate : CalendarDateUtils.calendarDateFromUnix(endUnix),
+      ...coveredDates(startUnix, endUnix, isAllDay),
       title: '',
       description: '',
       location: '',

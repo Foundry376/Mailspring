@@ -65,9 +65,7 @@ export function dayStartUnix(date: CalendarDate): number {
 }
 
 /**
- * The first instant after a date — the exclusive boundary the day-overlap filters compare
- * against, so the day following a span doesn't light up. No caller yet; the filters still
- * compare timestamps.
+ * The first instant after a date — the exclusive end callers store or serialize.
  */
 export function nextDayStartUnix(date: CalendarDate): number {
   return dayStartUnix(addCalendarDays(date, 1));

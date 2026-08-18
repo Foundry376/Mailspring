@@ -79,9 +79,8 @@ export interface EventOccurrence {
   /**
    * The days covered, inclusive both ends — a one-day event has `startDate === endDate`.
    *
-   * Stored rather than derived per render because reading a date costs ~2µs and the day-cell
-   * filters would call it per event per cell. Those filters still compare timestamps, so
-   * nothing reads these yet.
+   * Stored rather than derived per render: the day-cell filters read them per event per cell,
+   * via eventCoversDate.
    */
   startDate: CalendarDate;
   endDate: CalendarDate;
@@ -286,9 +285,11 @@ export function occurrencesForEvents(
           continue;
         }
         const isAllDay = master.recurrenceEnd - master.recurrenceStart >= 82800;
-        const startDate = CalendarDateUtils.calendarDateFromUnix(master.recurrenceStart);
-        const exclusiveEnd = CalendarDateUtils.calendarDateFromUnix(master.recurrenceEnd);
-        const endDate = isAllDay ? lastCoveredDate(exclusiveEnd, startDate) : exclusiveEnd;
+        const { startDate, endDate } = coveredDates(
+          master.recurrenceStart,
+          master.recurrenceEnd,
+          isAllDay
+        );
 
         occurrences.push({
           start: master.recurrenceStart,

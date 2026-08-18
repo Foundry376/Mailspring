@@ -1,4 +1,3 @@
-import moment from 'moment-timezone';
 import { formatCalendarDate } from '../src/calendar-date';
 // Import the functions under test directly from the source file.
 // We use a relative path because the plugin is not registered in mailspring-exports.
@@ -244,9 +243,9 @@ describe('updateDragState move with day snapping', function () {
     });
   });
 
-  // A midnight-gap block used to live here, pinned with moment.tz.setDefault. The move path
-  // now computes through calendar-date (plain Date/Intl), which setDefault cannot reach, so
-  // that coverage needs the runner's own zone instead — see scripts/test.js.
+  // A midnight-gap block lived here, pinned with moment.tz.setDefault. The move path now
+  // computes through calendar-date, which setDefault cannot reach — and the runner's pinned
+  // zone transitions at 2am, so it has no missing midnight either. That case is uncovered.
 });
 
 describe('createDragPreviewEvent', function () {

@@ -247,7 +247,7 @@ describe('eventCoversDate', function () {
     expect(eventCoversDate(occ, day('2026-06-23'))).toBe(true);
   });
 
-  it('covers the transition day of an all-day span across a DST change', function () {
+  it('covers the middle days of a multi-day span, not just the ends', function () {
     const occ = only(icsFor('DTSTART;VALUE=DATE:20260307', 'DTEND;VALUE=DATE:20260310'));
     expect(
       ['2026-03-07', '2026-03-08', '2026-03-09'].map((iso) => eventCoversDate(occ, day(iso)))

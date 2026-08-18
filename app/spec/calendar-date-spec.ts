@@ -29,7 +29,9 @@ describe('the epoch-day encoding', function () {
   });
 
   it('reads an instant onto the same integer', function () {
-    expect(calendarDateFromUnix(Date.UTC(2026, 5, 21, 12) / 1000, 'UTC')).toBe(20625 as CalendarDate);
+    expect(calendarDateFromUnix(Date.UTC(2026, 5, 21, 12) / 1000, 'UTC')).toBe(
+      20625 as CalendarDate
+    );
   });
 });
 
@@ -127,8 +129,8 @@ describe('dayStartUnix', function () {
 });
 
 describe('nextDayStartUnix', function () {
-  // month-view.tsx and agenda-view.tsx filter on `start < dayEnd && end > dayStart`, which
-  // needs the exclusive boundary: the covered day lights up and the next one must not.
+  // The exclusive boundary a stored or serialized end needs: one day's worth past the last
+  // covered day, and not two.
   it('satisfies the overlap test for exactly the days covered', function () {
     const end = nextDayStartUnix(d('2026-06-21')); // one-day event on the 21st
     expect(end > dayStartUnix(d('2026-06-21'))).toBe(true);

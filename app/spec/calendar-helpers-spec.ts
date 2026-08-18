@@ -1,14 +1,15 @@
 // Import directly from the source file; the plugin isn't registered in mailspring-exports.
-import moment from 'moment-timezone';
 import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
-import { shiftedDayStartUnix, calendarDateFromUnix, nextDayStartUnix } from '../src/calendar-date';
-
-/** The stored exclusive end for a last-covered day, as the production callers now build it */
-const exclusiveEnd = (lastDay: number) => nextDayStartUnix(calendarDateFromUnix(lastDay));
+import {
+  shiftedDayStartUnix,
+  dayStartUnix,
+  calendarDateFromUnix,
+  calendarDaysBetween,
+} from '../src/calendar-date';
 
 /** Local midnight, as unix seconds — all-day times are built from local date components */
 function localDay(year: number, month1Indexed: number, day: number): number {
@@ -119,10 +120,55 @@ describe('clampEnd', function () {
 
 // A moment.tz.setDefault-pinned DST block lived here. It's gone rather than patched: setDefault
 // only reaches code still computing through moment, and the day math it covered now runs on
-// epoch-day integers, which have no zone behaviour to pin. That coverage is in
-// calendar-date-spec.ts, zone-independent by construction.
+// epoch-day integers, which have no zone behaviour to pin. What it covered at the CALL sites
+// is restored below with transition-date fixtures in the runner's pinned zone.
 //
 // inclusiveAllDayEnd is the last moment holdout, and it needed no pinned coverage: for an exact
 // midnight its truncation is correct in every zone, transition days included. Its one bad input
 // is an end an hour past midnight, which it cannot tell from the all-day toggle wall-clock ends
-// - indistinguishable by construction, and unreachable while callers pass ical.js values.
+// - indistinguishable by construction. Reachable via the expansion-failure path, which passes
+// the engine-written columns rather than ical.js values.
+
+// Restores what the deleted setDefault block was reaching for, without pinning a zone: these
+// use the runner's own transition dates (scripts/test.js pins one that has them) and assert an
+// invariant rather than a magnitude, so they hold in every zone and still fail if any of these
+// call sites is rewritten as `+ days * 86400`.
+describe('all-day day math at a DST transition', function () {
+  const localDay = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
+  /** A day boundary is the start of its own date — false for anything landing mid-day */
+  const isDayStart = (unix: number) => unix === dayStartUnix(calendarDateFromUnix(unix));
+
+  // 2026-03-08 and 2026-11-01 are 23 and 25 hours long in the pinned zone
+  const TRANSITIONS = [localDay(2026, 3, 8), localDay(2026, 11, 1)];
+  const ORDINARY = localDay(2026, 6, 21);
+
+  it('lands clampEnd floors on a day boundary', function () {
+    [...TRANSITIONS, ORDINARY].forEach((start) => {
+      expect(isDayStart(clampEnd(start, start, true))).toBe(true);
+    });
+  });
+
+  it('gives clampEnd floors a full day, whatever its length', function () {
+    TRANSITIONS.forEach((start) => {
+      const floor = clampEnd(start, start, true);
+      expect(calendarDaysBetween(calendarDateFromUnix(start), calendarDateFromUnix(floor))).toBe(1);
+    });
+  });
+
+  it('lands shiftEndWithStart on a day boundary across a transition', function () {
+    TRANSITIONS.forEach((start) => {
+      const end = clampEnd(start, start, true); // one-day event
+      const moved = shiftEndWithStart(start, end, shiftedDayStartUnix(start, 1), true);
+      expect(isDayStart(moved)).toBe(true);
+    });
+  });
+
+  it('keeps a span the same number of days when its start crosses a transition', function () {
+    TRANSITIONS.forEach((start) => {
+      const end = shiftedDayStartUnix(start, 3); // exclusive end of a 3-day span
+      const moved = shiftEndWithStart(start, end, shiftedDayStartUnix(start, 1), true);
+      const from = calendarDateFromUnix(shiftedDayStartUnix(start, 1));
+      expect(calendarDaysBetween(from, calendarDateFromUnix(moved))).toBe(3);
+    });
+  });
+});
