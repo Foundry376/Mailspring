@@ -107,8 +107,8 @@ function messageTrackingSummary(message: Message) {
 // Upper bound on attachment bytes returned inline (as UTF-8 text or an MCP
 // image content block) in a tool result. Larger files — like all binary
 // files — are never inlined; the tool returns a resource_link plus the local
-// path instead, so tool results stay within what MCP clients will buffer.
-const MAX_INLINE_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+// path instead, so tool results stay small enough to hand to a model.
+const MAX_INLINE_ATTACHMENT_BYTES = 200 * 1024;
 
 // URI scheme for the MCP resource that serves raw attachment bytes to
 // clients that explicitly read it (via resources/read). Tool results carry
@@ -560,7 +560,7 @@ export function registerTools(server: McpServer) {
   defineTool(
     server,
     'get_attachment',
-    "View the contents of an email attachment. Find the attachment's fileId in the `files` array returned by get_message or get_thread (use search_mail's has:attachment to find mail with attachments). Every result starts with a JSON metadata block (filename, contentType, size, plus the file's local `path` and its MCP `resourceUri` — this server only accepts connections from the same machine, so the path is directly readable by local tools). Text-based attachments (text/*, JSON, XML, SVG, ICS, EML) up to 10MB include their content in the JSON as UTF-8 `data`; images (PNG/JPEG/GIF/WebP) up to 10MB are additionally returned as an MCP image content block so they can be viewed directly; any other type or size returns no inline payload — instead the result ends with a resource_link content block whose URI can be fetched via resources/read, or the file can be read straight from `path`. If the attachment hasn't been downloaded from the mail server yet it is fetched first, which can take several seconds.",
+    "View the contents of an email attachment. Find the attachment's fileId in the `files` array returned by get_message or get_thread (use search_mail's has:attachment to find mail with attachments). Every result starts with a JSON metadata block (filename, contentType, size, plus the file's local `path` and its MCP `resourceUri` — this server only accepts connections from the same machine, so the path is directly readable by local tools). Text-based attachments (text/*, JSON, XML, SVG, ICS, EML) up to 200KB include their content in the JSON as UTF-8 `data`; images (PNG/JPEG/GIF/WebP) up to 200KB are additionally returned as an MCP image content block so they can be viewed directly; any other type or size returns no inline payload — instead the result ends with a resource_link content block whose URI can be fetched via resources/read, or the file can be read straight from `path`. If the attachment hasn't been downloaded from the mail server yet it is fetched first, which can take several seconds.",
     {
       messageId: z.string().describe('The ID of the message the attachment belongs to'),
       fileId: z.string().describe("The attachment's file ID (from the message's `files` array)"),
