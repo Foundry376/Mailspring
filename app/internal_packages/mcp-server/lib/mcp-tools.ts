@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import {
   AccountStore,
@@ -104,11 +104,20 @@ function messageTrackingSummary(message: Message) {
 
 // ── Attachment viewing (get_attachment) ──────────────────────────────────
 
-// Upper bound on attachment bytes returned inline in a tool result. Base64
-// encoding inflates binary payloads by ~33%, so this keeps responses well
-// within what MCP clients will buffer, without truncating typical email
-// attachments (Mailspring caps outgoing attachments at 25MB).
+// Upper bound on attachment bytes returned inline (as UTF-8 text or an MCP
+// image content block) in a tool result. Larger files — like all binary
+// files — are never inlined; the tool returns a resource_link plus the local
+// path instead, so tool results stay within what MCP clients will buffer.
 const MAX_INLINE_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
+// URI scheme for the MCP resource that serves raw attachment bytes to
+// clients that explicitly read it (via resources/read). Tool results carry
+// only a resource_link with one of these URIs — never base64 payloads.
+const ATTACHMENT_URI_SCHEME = 'attachment';
+
+function attachmentResourceUri(messageId: string, fileId: string): string {
+  return `${ATTACHMENT_URI_SCHEME}://${encodeURIComponent(messageId)}/${encodeURIComponent(fileId)}`;
+}
 
 // The sync engine writes attachment files to disk as part of fetching a
 // message's body. When the body hasn't been synced yet we request it and
@@ -254,7 +263,8 @@ function errorResult(message: string) {
 
 type ToolContent =
   | { type: 'text'; text: string }
-  | { type: 'image'; data: string; mimeType: string };
+  | { type: 'image'; data: string; mimeType: string }
+  | { type: 'resource_link'; uri: string; name: string; description?: string; mimeType?: string };
 type ToolResult = { content: ToolContent[]; isError?: boolean };
 
 async function withAudit(
@@ -306,6 +316,67 @@ function defineTool(
       if (err) return errorResult(err);
       return handler(args);
     })
+  );
+}
+
+// Serves raw attachment bytes to clients that explicitly dereference an
+// attachment:// resource_link returned by get_attachment. This is MCP's
+// mechanism for binary content: tool results stay payload-free (a link plus
+// metadata) and a client opts in to the bytes via resources/read, where the
+// spec carries them as a blob. The same account/folder authorization as
+// get_attachment applies, and reads land in the audit log.
+export function registerResources(server: McpServer) {
+  server.registerResource(
+    'attachment',
+    new ResourceTemplate(`${ATTACHMENT_URI_SCHEME}://{messageId}/{fileId}`, { list: undefined }),
+    {
+      title: 'Email attachment',
+      description: 'Raw bytes of an email attachment. Discover URIs via the get_attachment tool.',
+    },
+    async (uri, variables) => {
+      const start = Date.now();
+      const audit = (resultSummary: string) =>
+        addAuditEntry({
+          timestamp: Date.now(),
+          toolName: 'resources/read',
+          params: uri.href.slice(0, 200),
+          resultSummary,
+          durationMs: Date.now() - start,
+        });
+
+      try {
+        // Variables come from the SDK's template match on the raw URI, so
+        // they preserve the ids' case (unlike uri.host, which URL lowercases).
+        const messageId = decodeURIComponent(String(variables.messageId));
+        const fileId = decodeURIComponent(String(variables.fileId));
+
+        const message = await DatabaseStore.find<Message>(Message, messageId);
+        if (!message || !isMessageAllowed(message)) {
+          throw new Error(`Message '${messageId}' not found`);
+        }
+        const file = (message.files || []).find((f) => f.id === fileId);
+        if (!file) {
+          throw new Error(`Message '${messageId}' has no attachment with id '${fileId}'`);
+        }
+        const filePath = await attachmentPathOnDisk(file);
+        if (!filePath) {
+          throw new Error(
+            `Attachment '${file.displayName()}' has not been downloaded — call the get_attachment tool first.`
+          );
+        }
+
+        const buffer = await fs.promises.readFile(filePath);
+        audit('ok');
+        return {
+          contents: [
+            { uri: uri.href, mimeType: mimeTypeForFile(file), blob: buffer.toString('base64') },
+          ],
+        };
+      } catch (err) {
+        audit(`error: ${(err as Error).message}`.slice(0, 100));
+        throw err;
+      }
+    }
   );
 }
 
@@ -489,7 +560,7 @@ export function registerTools(server: McpServer) {
   defineTool(
     server,
     'get_attachment',
-    "View the contents of an email attachment. Find the attachment's fileId in the `files` array returned by get_message or get_thread (use search_mail's has:attachment to find mail with attachments). Returns a JSON object with the attachment's metadata and an `encoding` field describing the content: text-based attachments (text/*, JSON, XML, SVG, ICS, EML) carry their content in `data` as UTF-8 text, images (PNG/JPEG/GIF/WebP) are returned as a separate MCP image content block after the JSON so they can be viewed directly, and any other type carries `data` as base64. Attachments larger than 10MB return an error instead of content. If the attachment hasn't been downloaded from the mail server yet it is fetched first, which can take several seconds.",
+    "View the contents of an email attachment. Find the attachment's fileId in the `files` array returned by get_message or get_thread (use search_mail's has:attachment to find mail with attachments). Every result starts with a JSON metadata block (filename, contentType, size, plus the file's local `path` and its MCP `resourceUri` — this server only accepts connections from the same machine, so the path is directly readable by local tools). Text-based attachments (text/*, JSON, XML, SVG, ICS, EML) up to 10MB include their content in the JSON as UTF-8 `data`; images (PNG/JPEG/GIF/WebP) up to 10MB are additionally returned as an MCP image content block so they can be viewed directly; any other type or size returns no inline payload — instead the result ends with a resource_link content block whose URI can be fetched via resources/read, or the file can be read straight from `path`. If the attachment hasn't been downloaded from the mail server yet it is fetched first, which can take several seconds.",
     {
       messageId: z.string().describe('The ID of the message the attachment belongs to'),
       fileId: z.string().describe("The attachment's file ID (from the message's `files` array)"),
@@ -535,12 +606,6 @@ export function registerTools(server: McpServer) {
       }
 
       const { size } = await fs.promises.stat(filePath);
-      if (size > MAX_INLINE_ATTACHMENT_BYTES) {
-        return errorResult(
-          `Attachment '${file.displayName()}' is ${size} bytes, which exceeds the ${MAX_INLINE_ATTACHMENT_BYTES} byte limit for inline retrieval`
-        );
-      }
-
       const mimeType = mimeTypeForFile(file);
       const metadata = {
         id: file.id,
@@ -551,25 +616,61 @@ export function registerTools(server: McpServer) {
         messageId: message.id,
         threadId: message.threadId,
         accountId: message.accountId,
+        // The server only accepts loopback connections (see mcp-http-server),
+        // so every client runs on this machine and can use the path directly.
+        path: filePath,
+        resourceUri: attachmentResourceUri(message.id, file.id),
       };
 
-      const buffer = await fs.promises.readFile(filePath);
+      if (size <= MAX_INLINE_ATTACHMENT_BYTES) {
+        if (isTextMimeType(mimeType)) {
+          const buffer = await fs.promises.readFile(filePath);
+          return textResult({ ...metadata, data: buffer.toString('utf8') });
+        }
+        if (VIEWABLE_IMAGE_MIME_TYPES.has(mimeType)) {
+          const buffer = await fs.promises.readFile(filePath);
+          return {
+            content: [
+              {
+                type: 'text' as const,
+                text: JSON.stringify(
+                  { ...metadata, note: 'The image follows this JSON as an image content block.' },
+                  null,
+                  2
+                ),
+              },
+              { type: 'image' as const, data: buffer.toString('base64'), mimeType },
+            ],
+          };
+        }
+      }
 
-      if (VIEWABLE_IMAGE_MIME_TYPES.has(mimeType)) {
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: JSON.stringify({ ...metadata, encoding: 'image' }, null, 2),
-            },
-            { type: 'image' as const, data: buffer.toString('base64'), mimeType },
-          ],
-        };
-      }
-      if (isTextMimeType(mimeType)) {
-        return textResult({ ...metadata, encoding: 'utf8', data: buffer.toString('utf8') });
-      }
-      return textResult({ ...metadata, encoding: 'base64', data: buffer.toString('base64') });
+      // Binary and oversized attachments are deliberately never base64'd into
+      // the tool result — the payload would inflate by ~33% and reach the
+      // model as unusable text. Following the pattern other MCP servers use
+      // for binary content, return a resource_link (fetchable on demand via
+      // resources/read) alongside the local path in the metadata.
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(
+              {
+                ...metadata,
+                note: 'Content is not returned inline for this type/size. Read the file at `path` with local tools, or fetch `resourceUri` via resources/read.',
+              },
+              null,
+              2
+            ),
+          },
+          {
+            type: 'resource_link' as const,
+            uri: metadata.resourceUri,
+            name: file.displayName(),
+            mimeType,
+          },
+        ],
+      };
     }
   );
 
