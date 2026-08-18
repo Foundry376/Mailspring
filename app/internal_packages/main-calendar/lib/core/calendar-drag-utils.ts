@@ -6,7 +6,12 @@ import {
   HitZone,
   ViewDirection,
 } from './calendar-drag-types';
-import { EventOccurrence, coveredDates } from './calendar-data-source';
+import {
+  EventOccurrence,
+  coveredDates,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
+} from './calendar-data-source';
 import { CalendarDateUtils } from 'mailspring-exports';
 import { inclusiveAllDayEnd } from './calendar-helpers';
 
@@ -56,16 +61,18 @@ function exclusiveDayEnd(end: number, floor: number): number {
  */
 export function createDragPreviewEvent(dragState: DragState): EventOccurrence {
   const { event, previewStart, previewEnd } = dragState;
-  return {
+  // coveredDates replaces the spread's pre-drag dates. Timed previews also carry the preview
+  // instants; all-day previews carry only the shifted dates.
+  const shared = {
     ...event,
-    id: `${event.id}-drag-preview`,
-    start: previewStart,
-    end: previewEnd,
-    // The spread carries the pre-drag dates, which no longer agree with the preview instants
     ...coveredDates(previewStart, previewEnd, event.isAllDay),
+    id: `${event.id}-drag-preview`,
     isDragPreview: true,
     originalEventId: event.id,
   };
+  return event.isAllDay
+    ? { ...shared, isAllDay: true }
+    : { ...shared, isAllDay: false, start: previewStart, end: previewEnd };
 }
 
 /**
@@ -184,24 +191,24 @@ export function createDragState(
   // so the event doesn't jump when dragging starts.
   let clickOffset = 0;
   if (hitZone.mode === 'move') {
-    clickOffset = mouseTime - event.start;
+    clickOffset = mouseTime - occurrenceStartUnix(event);
   } else if (hitZone.mode === 'resize-end') {
     // For resize-end, offset is from the end of the event
-    clickOffset = mouseTime - event.end;
+    clickOffset = mouseTime - occurrenceEndUnix(event);
   }
   // For resize-start, no offset needed (we resize from start time)
 
   return {
     mode: hitZone.mode,
     event,
-    originalStart: event.start,
-    originalEnd: event.end,
+    originalStart: occurrenceStartUnix(event),
+    originalEnd: occurrenceEndUnix(event),
     initialMouseTime: mouseTime,
     clickOffset,
     initialMouseX: mouseX,
     initialMouseY: mouseY,
-    previewStart: event.start,
-    previewEnd: event.end,
+    previewStart: occurrenceStartUnix(event),
+    previewEnd: occurrenceEndUnix(event),
     snapIntervalSeconds: config.snapInterval,
     isDragging: false,
   };
@@ -361,7 +368,7 @@ export function canMoveEvent(event: EventOccurrence, isCalendarReadOnly = false)
   }
 
   // An in-progress event can still be moved — only a past end time locks it
-  if (isPastDate(event.end)) {
+  if (isPastDate(occurrenceEndUnix(event))) {
     return false;
   }
 

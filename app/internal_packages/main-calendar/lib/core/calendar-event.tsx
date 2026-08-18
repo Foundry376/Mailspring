@@ -1,7 +1,13 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { InjectedComponentSet } from 'mailspring-component-kit';
-import { EventOccurrence } from './calendar-data-source';
+import { CalendarDateUtils } from 'mailspring-exports';
+import {
+  EventOccurrence,
+  isTimed,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
+} from './calendar-data-source';
 import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
 import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
@@ -87,14 +93,24 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   }
 
   _getDimensions() {
-    const scopeLen = this.props.scopeEnd - this.props.scopeStart;
-    const duration = this.props.event.end - this.props.event.start;
+    const event = this.props.event;
 
-    let top: number | string = Math.max(
-      (this.props.event.start - this.props.scopeStart) / scopeLen,
-      0
-    );
-    let height: number | string = Math.min((duration - this._overflowBefore()) / scopeLen, 1);
+    // top/height are fractions of the scope. Timed events fill a day vertically by instant;
+    // all-day events fill the week horizontally (remapped in _getStyles) by whole days, so their
+    // fraction is computed in date space — DST-immune, unlike a seconds-based fraction would be.
+    let top: number | string;
+    let height: number | string;
+    if (isTimed(event)) {
+      const scopeLen = this.props.scopeEnd - this.props.scopeStart;
+      const duration = event.end - event.start;
+      top = Math.max((event.start - this.props.scopeStart) / scopeLen, 0);
+      height = Math.min((duration - this._overflowBefore()) / scopeLen, 1);
+    } else {
+      const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);
+      const scopeDays = Math.round((this.props.scopeEnd - this.props.scopeStart) / 86400);
+      top = Math.max((event.startDate - scopeStartDate) / scopeDays, 0);
+      height = Math.min((event.endDate + 1 - event.startDate) / scopeDays, 1);
+    }
 
     let width: number | string = 1;
     let left: number | string;
@@ -150,7 +166,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   }
 
   _overflowBefore() {
-    return Math.max(this.props.scopeStart - this.props.event.start, 0);
+    const event = this.props.event;
+    return isTimed(event) ? Math.max(this.props.scopeStart - event.start, 0) : 0;
   }
 
   /**
@@ -217,8 +234,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
 
     // Clamp to [0, 1] and calculate time
     percent = Math.max(0, Math.min(1, percent));
-    const eventDuration = this.props.event.end - this.props.event.start;
-    return this.props.event.start + percent * eventDuration;
+    // Drag works in unix throughout, so hand it an instant even for all-day events.
+    const start = occurrenceStartUnix(this.props.event);
+    const eventDuration = occurrenceEndUnix(this.props.event) - start;
+    return start + percent * eventDuration;
   }
 
   /**
@@ -264,7 +283,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     if (!event.isDragPreview) {
       return null;
     }
-    const timeString = formatDragPreviewTime(event.start, event.end, event.isAllDay);
+    const timeString = formatDragPreviewTime(
+      occurrenceStartUnix(event),
+      occurrenceEndUnix(event),
+      event.isAllDay
+    );
     return <div className="drag-preview-time-tooltip">{timeString}</div>;
   }
 
@@ -282,7 +305,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     }
 
     const meetingDomain = extractMeetingDomain(event.location, event.description);
-    const timeRange = formatEventTimeRange(event.start, event.end, event.isAllDay);
+    const timeRange = formatEventTimeRange(
+      occurrenceStartUnix(event),
+      occurrenceEndUnix(event),
+      event.isAllDay
+    );
     const hasPhysicalLocation = !meetingDomain && !!event.location;
 
     if (!meetingDomain && !hasPhysicalLocation && !timeRange) {

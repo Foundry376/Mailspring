@@ -41,6 +41,32 @@ export function eventCoversDate(event: EventOccurrence, date: CalendarDate): boo
 }
 
 /**
+ * Narrowing guard. The app tsconfig omits `strictNullChecks`, so `if (e.isAllDay)` does NOT
+ * narrow the union — only `=== true`/`=== false` and a guard like this do. Use it to reach
+ * `start`/`end`, which exist on timed occurrences only.
+ */
+export function isTimed(e: EventOccurrence): e is TimedOccurrence {
+  return e.isAllDay === false;
+}
+
+/**
+ * An occurrence's start as an instant — its real start if timed, its first day's start if
+ * all-day. For sort keys, the focus scroll target, and day-snap drag references; never stored.
+ */
+export function occurrenceStartUnix(e: EventOccurrence): number {
+  return isTimed(e) ? e.start : CalendarDateUtils.dayStartUnix(e.startDate);
+}
+
+/**
+ * An occurrence's end as an exclusive instant — its real end if timed, the midnight after its
+ * last covered day if all-day. For drag hit-testing and time formatting; never stored, and not
+ * for layout positioning (that stays in date space).
+ */
+export function occurrenceEndUnix(e: EventOccurrence): number {
+  return isTimed(e) ? e.end : CalendarDateUtils.nextDayStartUnix(e.endDate);
+}
+
+/**
  * The dates an event covers, inclusive, from its start and exclusive end instants.
  *
  * All-day ends land on a day boundary, so the last covered date is one date back; timed ends
@@ -73,14 +99,13 @@ function lastCoveredDate(exclusiveEnd: CalendarDate, startDate: CalendarDate): C
   return Math.max(CalendarDateUtils.addCalendarDays(exclusiveEnd, -1), startDate) as CalendarDate;
 }
 
-export interface EventOccurrence {
-  start: number; // unix
-  end: number; // unix
+/** Fields common to all occurrences, all-day or timed. */
+interface OccurrenceBase {
   /**
    * The days covered, inclusive both ends — a one-day event has `startDate === endDate`.
    *
-   * Stored rather than derived per render: the day-cell filters read them per event per cell,
-   * via eventCoversDate.
+   * The authoritative span for all-day events, and what the day-cell filters read per event
+   * per cell via eventCoversDate.
    */
   startDate: CalendarDate;
   endDate: CalendarDate;
@@ -90,7 +115,6 @@ export interface EventOccurrence {
   title: string;
   location: string;
   description: string;
-  isAllDay: boolean;
   isCancelled: boolean;
   /**
    * True if this event should display with "pending" styling (hatched pattern).
@@ -118,8 +142,27 @@ export interface EventOccurrence {
   originalEventId?: string;
 }
 
+/** An all-day occurrence: covered dates only, no instants. `isAllDay` discriminates the union. */
+export interface AllDayOccurrence extends OccurrenceBase {
+  isAllDay: true;
+}
+
+/** A timed occurrence: keeps its start/end instants. */
+export interface TimedOccurrence extends OccurrenceBase {
+  isAllDay: false;
+  start: number; // unix
+  end: number; // unix
+}
+
+export type EventOccurrence = AllDayOccurrence | TimedOccurrence;
+
 // Minimal type for focusing/highlighting an event on the calendar
-export type FocusedEventInfo = Pick<EventOccurrence, 'start' | 'id'>;
+/**
+ * What the calendar keeps to hold an event focused: its id and a scroll-to instant. `start`
+ * is that instant — a timed event's real start, an all-day event's day start — so an all-day
+ * occurrence (which has no start of its own) still scrolls the view somewhere sensible.
+ */
+export type FocusedEventInfo = { id: string; start: number };
 
 /** Strip mailto: prefix from email addresses (common in iCalendar data) */
 function normalizeEmail(email: string): string {
@@ -202,16 +245,13 @@ function occurrenceFromICS(args: {
 
   const rid = item.component?.getFirstPropertyValue('recurrence-id');
 
-  return {
-    start: startUnix,
-    end: endUnix,
+  const base: OccurrenceBase = {
     id,
     accountId: event.accountId,
     calendarId: event.calendarId,
     title: item.summary || '',
     location: item.location || '',
     description: item.description || '',
-    isAllDay,
     startDate,
     endDate,
     isCancelled: status === 'CANCELLED',
@@ -222,6 +262,10 @@ function occurrenceFromICS(args: {
     organizer: item.organizer ? { email: item.organizer } : null,
     attendees,
   };
+
+  return isAllDay
+    ? { ...base, isAllDay: true }
+    : { ...base, isAllDay: false, start: startUnix, end: endUnix };
 }
 
 export function occurrencesForEvents(
@@ -290,19 +334,16 @@ export function occurrencesForEvents(
             isAllDay
           );
 
-          occurrences.push({
-            start: master.recurrenceStart,
-            end: master.recurrenceEnd,
+          // Expansion failed, so there's no DATE flag to read — isAllDay fell back on
+          // duration above. A recurring master's columns can hold one occurrence's span, so
+          // a series can misread as all-day here.
+          const errorBase: OccurrenceBase = {
             id: `${master.id}-e0`,
             accountId: master.accountId,
             calendarId: master.calendarId,
             title: '(Error expanding event)',
             location: '',
             description: '',
-            // Expansion failed, so there's no DATE flag to read — fall back on duration. A
-            // recurring master's columns can hold one occurrence's span, so a series can
-            // misread as all-day here.
-            isAllDay,
             startDate,
             endDate,
             isCancelled: false,
@@ -311,7 +352,17 @@ export function occurrencesForEvents(
             isRecurring: false,
             organizer: null,
             attendees: [],
-          });
+          };
+          occurrences.push(
+            isAllDay
+              ? { ...errorBase, isAllDay: true }
+              : {
+                  ...errorBase,
+                  isAllDay: false,
+                  start: master.recurrenceStart,
+                  end: master.recurrenceEnd,
+                }
+          );
         }
       }
     }

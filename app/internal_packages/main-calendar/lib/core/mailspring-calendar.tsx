@@ -31,6 +31,8 @@ import {
   EventOccurrence,
   FocusedEventInfo,
   coveredDates,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
 } from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
@@ -485,7 +487,7 @@ export class MailspringCalendar extends React.Component<
     // Add EXDATE to exclude this occurrence
     masterEvent.ics = ICSEventHelpers.addExclusionDate(
       masterEvent.ics,
-      occurrence.start,
+      occurrenceStartUnix(occurrence),
       occurrence.isAllDay
     );
 
@@ -675,7 +677,9 @@ export class MailspringCalendar extends React.Component<
         return;
       }
 
-      // Calculate new times
+      // The keyboard pipeline is unix, so derive instants for all-day occurrences (dates only).
+      const occStart = occurrenceStartUnix(occurrence);
+      const occEnd = occurrenceEndUnix(occurrence);
       let newStart: number;
       let newEnd: number;
 
@@ -684,29 +688,27 @@ export class MailspringCalendar extends React.Component<
         // by calendar days rather than 86400 seconds keeps the times on midnight across a
         // DST transition, where a seconds shift overshoots and snaps up an extra day.
         const days = Math.sign(timeDelta);
-        newStart = isResize
-          ? occurrence.start
-          : CalendarDateUtils.shiftedDayStartUnix(occurrence.start, days);
+        newStart = isResize ? occStart : CalendarDateUtils.shiftedDayStartUnix(occStart, days);
         newEnd = isResize
-          ? clampEnd(newStart, CalendarDateUtils.shiftedDayStartUnix(occurrence.end, days), true)
-          : shiftEndWithStart(occurrence.start, occurrence.end, newStart, true);
+          ? clampEnd(newStart, CalendarDateUtils.shiftedDayStartUnix(occEnd, days), true)
+          : shiftEndWithStart(occStart, occEnd, newStart, true);
         const snapped = snapAllDayTimes(newStart, newEnd);
         newStart = snapped.start;
         newEnd = snapped.end;
       } else if (isResize) {
         // Shift+Arrow: resize the event (change end time only)
-        newStart = occurrence.start;
-        newEnd = clampEnd(newStart, occurrence.end + timeDelta, false);
+        newStart = occStart;
+        newEnd = clampEnd(newStart, occEnd + timeDelta, false);
       } else {
         // Arrow: move the event (change both start and end)
-        newStart = occurrence.start + timeDelta;
-        newEnd = occurrence.end + timeDelta;
+        newStart = occStart + timeDelta;
+        newEnd = occEnd + timeDelta;
       }
 
       // Resizing at the minimum duration clamps back to the current end, so the change can
       // be a no-op. Bail like the mouse-up path does, rather than queueing a syncback and an
       // undo toast for an identical event — or prompting for a recurring series that won't move.
-      if (newStart === occurrence.start && newEnd === occurrence.end) {
+      if (newStart === occStart && newEnd === occEnd) {
         return;
       }
 
@@ -716,7 +718,7 @@ export class MailspringCalendar extends React.Component<
         // For inline exceptions, use the RECURRENCE-ID value (recurrenceIdStart), NOT the
         // exception's moved DTSTART (start). Using start would produce the wrong RECURRENCE-ID
         // in the new exception, causing the upsert to miss the existing one and leave a duplicate.
-        originalOccurrenceStart: occurrence.recurrenceIdStart ?? occurrence.start,
+        originalOccurrenceStart: occurrence.recurrenceIdStart ?? occStart,
         newStart,
         newEnd,
         isAllDay: occurrence.isAllDay,
@@ -777,7 +779,8 @@ export class MailspringCalendar extends React.Component<
         // For inline exceptions, use the RECURRENCE-ID value (recurrenceIdStart), NOT the
         // exception's moved DTSTART (start). Using start would produce the wrong RECURRENCE-ID
         // in the new exception, causing the upsert to miss the existing one and leave a duplicate.
-        originalOccurrenceStart: dragState.event.recurrenceIdStart ?? dragState.event.start,
+        originalOccurrenceStart:
+          dragState.event.recurrenceIdStart ?? occurrenceStartUnix(dragState.event),
         newStart,
         newEnd,
         isAllDay: dragState.event.isAllDay,

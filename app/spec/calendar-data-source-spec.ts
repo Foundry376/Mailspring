@@ -4,6 +4,8 @@ import { Event as MailspringEvent } from '../src/flux/models/event';
 import {
   occurrencesForEvents,
   eventCoversDate,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { formatCalendarDate, parseCalendarDate } from '../src/calendar-date';
 
@@ -56,7 +58,7 @@ describe('occurrencesForEvents isAllDay classification', function () {
 
   it('does not treat a long timed event as all-day', function () {
     const [occ] = expand(makeEvent(icsFor('DTSTART:20260622T090000Z', 'DTEND:20260623T170000Z')));
-    expect(occ.end - occ.start).toBeGreaterThan(86400);
+    expect(occurrenceEndUnix(occ) - occurrenceStartUnix(occ)).toBeGreaterThan(86400);
     expect(occ.isAllDay).toBe(false);
   });
 

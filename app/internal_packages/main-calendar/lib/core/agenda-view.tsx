@@ -6,7 +6,12 @@ import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
 import { CalendarEventPopover } from './calendar-event-popover';
-import { EventOccurrence, eventCoversDate } from './calendar-data-source';
+import {
+  EventOccurrence,
+  eventCoversDate,
+  isTimed,
+  occurrenceStartUnix,
+} from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { calcEventColors, extractMeetingDomain } from './calendar-helpers';
 
@@ -94,7 +99,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
           // All-day events first, then sort by start time
           if (a.isAllDay && !b.isAllDay) return -1;
           if (!a.isAllDay && b.isAllDay) return 1;
-          return a.start - b.start;
+          return occurrenceStartUnix(a) - occurrenceStartUnix(b);
         });
 
       days.push({ day, events });
@@ -122,12 +127,12 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
   };
 
   _formatEventTime(event: EventOccurrence): string {
-    if (event.isAllDay) {
-      return localized('All day');
+    if (isTimed(event)) {
+      const start = moment.unix(event.start);
+      const end = moment.unix(event.end);
+      return `${start.format('LT')} – ${end.format('LT')}`;
     }
-    const start = moment.unix(event.start);
-    const end = moment.unix(event.end);
-    return `${start.format('LT')} – ${end.format('LT')}`;
+    return localized('All day');
   }
 
   _renderDayHeader(day: Moment) {
