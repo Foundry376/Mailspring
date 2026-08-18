@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 
 import { EventOccurrence } from './calendar-data-source';
 import { CalendarContainerType } from './calendar-drag-types';
+import { allDayColumnStartUnix } from './calendar-drag-utils';
 
 export interface CalendarEventArgs {
   /** The underlying DOM mouse event */
@@ -184,11 +185,11 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         width = rect.width;
         height = rect.height;
 
-        // Calculate which day based on X position as percentage of the week
-        const percentWeek = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-        const numDays = Math.ceil((endTime - startTime) / 86400); // seconds per day
-        const dayIndex = Math.min(Math.floor(percentWeek * numDays), numDays - 1);
-        time = startTime + dayIndex * 86400;
+        // Resolve the day in date space so the column count matches what the view rendered and
+        // the result lands on a real calendar midnight — a seconds-based bucket count and offset
+        // both drift a day across a DST transition.
+        const percentWeek = (event.clientX - rect.left) / rect.width;
+        time = allDayColumnStartUnix(startTime, endTime, percentWeek);
         break;
       }
 
