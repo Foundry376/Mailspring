@@ -1,5 +1,6 @@
+import * as Immutable from 'immutable';
 import MailspringStore from 'mailspring-store';
-import { Editor, Value, Block } from 'slate';
+import { Editor, Value, Block, Text } from 'slate';
 
 import RegExpUtils from '../../regexp-utils';
 import { localized } from '../../intl';
@@ -86,8 +87,14 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
             }
           }
 
+          // Note: an empty block must still contain a Text node — a block with zero
+          // children leaves the document in a state Slate can't compute a selection
+          // range over (moveToRangeOfDocument crashes on Point.moveToStartOfNode).
           edits = edits
-            .replaceNodeByKey(first.key, Block.create({ type: 'div' }))
+            .replaceNodeByKey(
+              first.key,
+              Block.create({ type: 'div', nodes: Immutable.List([Text.create('')]) })
+            )
             .moveToRangeOfDocument()
             .insertFragment(inHTMLEditorValue.document);
 
