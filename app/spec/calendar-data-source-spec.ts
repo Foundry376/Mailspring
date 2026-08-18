@@ -193,6 +193,30 @@ describe('occurrencesForEvents when expansion fails', function () {
     expect(formatCalendarDate(occ.startDate)).toBe('2026-06-22');
     expect(formatCalendarDate(occ.endDate)).toBe('2026-06-22');
   });
+
+  it('still surfaces a standalone exception when the master fails to expand with non-finite columns', function () {
+    // The non-finite guard must skip only the phantom fallback push, not the whole UID
+    // iteration: a master that throws AND lacks usable columns must not drop this UID's
+    // separate exception records. Fails if the guard `continue`s the iteration instead.
+    const master = makeEvent('this is not valid ics', {
+      id: 'master-1',
+      recurrenceStart: NaN,
+      recurrenceEnd: NaN,
+    } as any);
+    const exception = makeEvent(
+      icsFor(
+        'DTSTART;VALUE=DATE:20260622',
+        'DTEND;VALUE=DATE:20260623',
+        'RECURRENCE-ID;VALUE=DATE:20260622'
+      ),
+      { id: 'exc-1', recurrenceId: '20260622', recurrenceStart: new Date(2026, 5, 22).getTime() / 1000 } as any
+    );
+    const occs = occurrencesForEvents([master, exception], {
+      startUnix: new Date(2026, 0, 1).getTime() / 1000,
+      endUnix: new Date(2027, 0, 1).getTime() / 1000,
+    });
+    expect(occs.some((o) => o.id === 'exc-1-e0')).toBe(true);
+  });
 });
 
 describe('eventCoversDate', function () {

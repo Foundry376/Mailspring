@@ -279,40 +279,40 @@ export function occurrencesForEvents(
       } catch (err) {
         console.error(`Failed to expand ICS for event ${master.id}:`, err);
         // Fallback: show the master event as a single occurrence so it doesn't vanish.
-        // Skip rows with null/non-finite rs/re: those derive to NaN or 1970 dates that
-        // render nowhere, so a phantom occurrence is worse than none.
-        if (!Number.isFinite(master.recurrenceStart) || !Number.isFinite(master.recurrenceEnd)) {
-          continue;
-        }
-        const isAllDay = master.recurrenceEnd - master.recurrenceStart >= 82800;
-        const { startDate, endDate } = coveredDates(
-          master.recurrenceStart,
-          master.recurrenceEnd,
-          isAllDay
-        );
+        // Push it only when rs/re are finite — null/non-finite derive to NaN or 1970 dates
+        // that render nowhere. Guard the push, not the iteration: a bad master must still
+        // fall through to this UID's standalone exceptions below.
+        if (Number.isFinite(master.recurrenceStart) && Number.isFinite(master.recurrenceEnd)) {
+          const isAllDay = master.recurrenceEnd - master.recurrenceStart >= 82800;
+          const { startDate, endDate } = coveredDates(
+            master.recurrenceStart,
+            master.recurrenceEnd,
+            isAllDay
+          );
 
-        occurrences.push({
-          start: master.recurrenceStart,
-          end: master.recurrenceEnd,
-          id: `${master.id}-e0`,
-          accountId: master.accountId,
-          calendarId: master.calendarId,
-          title: '(Error expanding event)',
-          location: '',
-          description: '',
-          // Expansion failed, so there's no DATE flag to read — fall back on duration. A
-          // recurring master's columns can hold one occurrence's span, so a series can
-          // misread as all-day here.
-          isAllDay,
-          startDate,
-          endDate,
-          isCancelled: false,
-          isPending: false,
-          isException: false,
-          isRecurring: false,
-          organizer: null,
-          attendees: [],
-        });
+          occurrences.push({
+            start: master.recurrenceStart,
+            end: master.recurrenceEnd,
+            id: `${master.id}-e0`,
+            accountId: master.accountId,
+            calendarId: master.calendarId,
+            title: '(Error expanding event)',
+            location: '',
+            description: '',
+            // Expansion failed, so there's no DATE flag to read — fall back on duration. A
+            // recurring master's columns can hold one occurrence's span, so a series can
+            // misread as all-day here.
+            isAllDay,
+            startDate,
+            endDate,
+            isCancelled: false,
+            isPending: false,
+            isException: false,
+            isRecurring: false,
+            organizer: null,
+            attendees: [],
+          });
+        }
       }
     }
 
