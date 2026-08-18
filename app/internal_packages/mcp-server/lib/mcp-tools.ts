@@ -1,12 +1,16 @@
+import fs from 'fs';
+import path from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import {
   AccountStore,
+  AttachmentStore,
   CategoryStore,
   DatabaseStore,
   Thread,
   Message,
   Contact,
+  File,
   Label,
   DraftFactory,
   SyncbackDraftTask,
@@ -98,6 +102,112 @@ function messageTrackingSummary(message: Message) {
   return { opens, links };
 }
 
+// ── Attachment viewing (get_attachment) ──────────────────────────────────
+
+// Upper bound on attachment bytes returned inline in a tool result. Base64
+// encoding inflates binary payloads by ~33%, so this keeps responses well
+// within what MCP clients will buffer, without truncating typical email
+// attachments (Mailspring caps outgoing attachments at 25MB).
+const MAX_INLINE_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
+// The sync engine writes attachment files to disk as part of fetching a
+// message's body. When the body hasn't been synced yet we request it and
+// poll for the file to appear; a large attachment on a slow connection
+// needs a generous deadline. When the body is already local, the file
+// should appear almost immediately (or never will), so give up quickly.
+const ATTACHMENT_DOWNLOAD_TIMEOUT_MS = 30 * 1000;
+const ATTACHMENT_RECHECK_TIMEOUT_MS = 5 * 1000;
+const ATTACHMENT_POLL_INTERVAL_MS = 500;
+
+// Fallback types for files without a usable contentType: files attached to
+// local drafts are created with `contentType: null`, and some providers
+// declare everything as application/octet-stream.
+const EXTENSION_MIME_TYPES: { [ext: string]: string } = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+  txt: 'text/plain',
+  log: 'text/plain',
+  md: 'text/markdown',
+  csv: 'text/csv',
+  tsv: 'text/tab-separated-values',
+  html: 'text/html',
+  htm: 'text/html',
+  css: 'text/css',
+  js: 'application/javascript',
+  json: 'application/json',
+  xml: 'application/xml',
+  yml: 'text/yaml',
+  yaml: 'text/yaml',
+  ics: 'text/calendar',
+  eml: 'message/rfc822',
+  pdf: 'application/pdf',
+};
+
+// Formats MCP clients can render from an image content block. SVG is
+// deliberately absent — it's XML and is far more useful to a client as text.
+const VIEWABLE_IMAGE_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
+
+const TEXT_MIME_TYPES = new Set([
+  'application/json',
+  'application/javascript',
+  'application/x-javascript',
+  'application/xml',
+  'application/xhtml+xml',
+  'image/svg+xml',
+  'message/rfc822',
+]);
+
+function mimeTypeForFile(file: File): string {
+  // contentType may carry parameters (e.g. "text/plain; charset=utf-8").
+  const declared = (file.contentType || '').split(';')[0].trim().toLowerCase();
+  if (declared && declared !== 'application/octet-stream') return declared;
+  return EXTENSION_MIME_TYPES[file.displayExtension()] || 'application/octet-stream';
+}
+
+function isTextMimeType(mimeType: string): boolean {
+  return (
+    mimeType.startsWith('text/') ||
+    mimeType.endsWith('+json') ||
+    mimeType.endsWith('+xml') ||
+    TEXT_MIME_TYPES.has(mimeType)
+  );
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.promises.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Where the sync engine saved this attachment on disk, or null if it hasn't
+// been downloaded yet. Mirrors AttachmentStore._prepareAndResolveFilePath:
+// when the exact path is missing but the file's directory holds exactly one
+// entry, the sync engine saved the file under an altered name — use it.
+async function attachmentPathOnDisk(file: File): Promise<string | null> {
+  const filePath = AttachmentStore.pathForFile(file);
+  if (!filePath) return null;
+  if (await fileExists(filePath)) return filePath;
+  try {
+    const dir = path.dirname(filePath);
+    const items = (await fs.promises.readdir(dir)).filter((i) => i !== '.DS_Store');
+    if (items.length === 1) return path.join(dir, items[0]);
+  } catch {
+    // The directory doesn't exist — the file hasn't been downloaded.
+  }
+  return null;
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export interface AuditEntry {
   timestamp: number;
   toolName: string;
@@ -142,7 +252,10 @@ function errorResult(message: string) {
   };
 }
 
-type ToolResult = { content: { type: 'text'; text: string }[]; isError?: boolean };
+type ToolContent =
+  | { type: 'text'; text: string }
+  | { type: 'image'; data: string; mimeType: string };
+type ToolResult = { content: ToolContent[]; isError?: boolean };
 
 async function withAudit(
   toolName: string,
@@ -335,7 +448,7 @@ export function registerTools(server: McpServer) {
   defineTool(
     server,
     'get_thread',
-    'Get a thread with all its messages and full body content',
+    "Get a thread with all its messages, full body content, and attachment metadata (each message's `files` array; retrieve one with get_attachment)",
     { threadId: z.string().describe('The thread ID') },
     'read',
     async ({ threadId }) => {
@@ -358,7 +471,7 @@ export function registerTools(server: McpServer) {
   defineTool(
     server,
     'get_message',
-    'Get a single message with full body content',
+    'Get a single message with full body content and attachment metadata (`files` array; retrieve one with get_attachment)',
     { messageId: z.string().describe('The message ID') },
     'read',
     async ({ messageId }) => {
@@ -370,6 +483,93 @@ export function registerTools(server: McpServer) {
       const result = serializeMessageDetail(message);
       if (!result) return errorResult(`Message '${messageId}' not found`);
       return textResult(result);
+    }
+  );
+
+  defineTool(
+    server,
+    'get_attachment',
+    "View the contents of an email attachment. Find the attachment's fileId in the `files` array returned by get_message or get_thread (use search_mail's has:attachment to find mail with attachments). Returns a JSON object with the attachment's metadata and an `encoding` field describing the content: text-based attachments (text/*, JSON, XML, SVG, ICS, EML) carry their content in `data` as UTF-8 text, images (PNG/JPEG/GIF/WebP) are returned as a separate MCP image content block after the JSON so they can be viewed directly, and any other type carries `data` as base64. Attachments larger than 10MB return an error instead of content. If the attachment hasn't been downloaded from the mail server yet it is fetched first, which can take several seconds.",
+    {
+      messageId: z.string().describe('The ID of the message the attachment belongs to'),
+      fileId: z.string().describe("The attachment's file ID (from the message's `files` array)"),
+    },
+    'read',
+    async ({ messageId, fileId }) => {
+      // Body is included so the download wait below can distinguish
+      // "body never synced" from "body synced but file missing".
+      const message = await DatabaseStore.find<Message>(Message, messageId).include(
+        Message.attributes.body
+      );
+      if (!message || !isMessageAllowed(message)) {
+        return errorResult(`Message '${messageId}' not found`);
+      }
+
+      const file = (message.files || []).find((f) => f.id === fileId);
+      if (!file) {
+        return errorResult(`Message '${messageId}' has no attachment with id '${fileId}'`);
+      }
+      if (!AttachmentStore.pathForFile(file)) {
+        return errorResult(
+          `Attachment '${fileId}' has an unsafe filename and cannot be resolved on disk`
+        );
+      }
+
+      let filePath = await attachmentPathOnDisk(file);
+      if (!filePath) {
+        // Attachments are written to disk when the sync engine fetches the
+        // message body, so request the body and wait for the file to appear.
+        Actions.fetchBodies([message]);
+        const deadline =
+          Date.now() +
+          (message.body ? ATTACHMENT_RECHECK_TIMEOUT_MS : ATTACHMENT_DOWNLOAD_TIMEOUT_MS);
+        while (!filePath && Date.now() < deadline) {
+          await delay(ATTACHMENT_POLL_INTERVAL_MS);
+          filePath = await attachmentPathOnDisk(file);
+        }
+      }
+      if (!filePath) {
+        return errorResult(
+          `Attachment '${file.displayName()}' is not available locally and could not be downloaded. Open the message in Mailspring to download it, then try again.`
+        );
+      }
+
+      const { size } = await fs.promises.stat(filePath);
+      if (size > MAX_INLINE_ATTACHMENT_BYTES) {
+        return errorResult(
+          `Attachment '${file.displayName()}' is ${size} bytes, which exceeds the ${MAX_INLINE_ATTACHMENT_BYTES} byte limit for inline retrieval`
+        );
+      }
+
+      const mimeType = mimeTypeForFile(file);
+      const metadata = {
+        id: file.id,
+        filename: file.displayName(),
+        contentType: mimeType,
+        size,
+        isInline: !!file.contentId,
+        messageId: message.id,
+        threadId: message.threadId,
+        accountId: message.accountId,
+      };
+
+      const buffer = await fs.promises.readFile(filePath);
+
+      if (VIEWABLE_IMAGE_MIME_TYPES.has(mimeType)) {
+        return {
+          content: [
+            {
+              type: 'text' as const,
+              text: JSON.stringify({ ...metadata, encoding: 'image' }, null, 2),
+            },
+            { type: 'image' as const, data: buffer.toString('base64'), mimeType },
+          ],
+        };
+      }
+      if (isTextMimeType(mimeType)) {
+        return textResult({ ...metadata, encoding: 'utf8', data: buffer.toString('utf8') });
+      }
+      return textResult({ ...metadata, encoding: 'base64', data: buffer.toString('base64') });
     }
   );
 
