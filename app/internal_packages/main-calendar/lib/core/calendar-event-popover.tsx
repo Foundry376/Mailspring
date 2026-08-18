@@ -22,7 +22,12 @@ import {
   TimePicker,
 } from 'mailspring-component-kit';
 import { EventAttendeesInput } from './event-attendees-input';
-import { EventOccurrence, EventAttendee } from './calendar-data-source';
+import {
+  EventOccurrence,
+  EventAttendee,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
+} from './calendar-data-source';
 import { EventPropertyRow } from './event-property-row';
 import {
   createCalendarEvent,
@@ -123,7 +128,10 @@ export class CalendarEventPopover extends React.Component<
 
   constructor(props: CalendarEventPopoverProps) {
     super(props);
-    const { description, start, end, location, attendees, title, isAllDay } = this.props.event;
+    const { description, location, attendees, title, isAllDay } = this.props.event;
+    // The popover edits in instants; seed all-day events from their derived day boundaries.
+    const start = occurrenceStartUnix(this.props.event);
+    const end = occurrenceEndUnix(this.props.event);
 
     this.state = {
       description,
@@ -150,7 +158,9 @@ export class CalendarEventPopover extends React.Component<
   componentDidUpdate(prevProps: CalendarEventPopoverProps, prevState: CalendarEventPopoverState) {
     // Update state when event prop changes
     if (prevProps.event !== this.props.event) {
-      const { description, start, end, location, attendees, title } = this.props.event;
+      const { description, location, attendees, title } = this.props.event;
+      const start = occurrenceStartUnix(this.props.event);
+      const end = occurrenceEndUnix(this.props.event);
       this.setState({ description, start, end, location, attendees, title });
     }
 
@@ -293,7 +303,7 @@ export class CalendarEventPopover extends React.Component<
       // the same delta to the master DTSTART. This preserves all occurrences relative
       // to the new master start (unlike absolute updateEventTimes which would drop
       // occurrences scheduled before the selected occurrence's date).
-      const originalOccurrenceStart = this.props.event.start;
+      const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
       ics = ICSEventHelpers.updateRecurringEventTimes(
         ics,
         originalOccurrenceStart,
@@ -350,7 +360,8 @@ export class CalendarEventPopover extends React.Component<
     // recurrenceIdStart instead (the RECURRENCE-ID value = the original unmodified time).
     // This ensures the upsert in createRecurrenceException finds and replaces the existing
     // inline exception VEVENT rather than creating a duplicate.
-    const originalOccurrenceStart = this.props.event.recurrenceIdStart ?? this.props.event.start;
+    const originalOccurrenceStart =
+      this.props.event.recurrenceIdStart ?? occurrenceStartUnix(this.props.event);
 
     // Embed the exception VEVENT inline in the master VCALENDAR with new times
     const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
@@ -615,20 +626,22 @@ class CalendarEventPopoverUnenditable extends React.Component<
 
   renderTime() {
     const { event } = this.props;
-    const startMoment = moment(event.start * 1000);
-    const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
 
-    if (event.isAllDay) {
-      const lastDay = moment(inclusiveAllDayEnd(event.end) * 1000);
+    if (event.isAllDay === true) {
+      const startMoment = moment(CalendarDateUtils.dayStartUnix(event.startDate) * 1000);
+      const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
+      const lastDay = moment(CalendarDateUtils.dayStartUnix(event.endDate) * 1000);
       return (
         <div>
-          {lastDay.isSame(startMoment, 'day') ? date : `${date} – ${lastDay.format('MMMM D')}`}
+          {event.startDate === event.endDate ? date : `${date} – ${lastDay.format('MMMM D')}`}
           <br />
           {localized('All day')}
         </div>
       );
     }
 
+    const startMoment = moment(event.start * 1000);
+    const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
     const endMoment = moment(event.end * 1000);
     const timeRange = `${formatTime(startMoment)} - ${formatTime(endMoment)}`;
     return (

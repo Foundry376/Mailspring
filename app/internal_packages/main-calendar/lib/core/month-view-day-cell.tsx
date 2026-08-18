@@ -1,7 +1,7 @@
 import React from 'react';
 import { Moment } from 'moment-timezone';
 import classnames from 'classnames';
-import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
+import { EventOccurrence, FocusedEventInfo, occurrenceStartUnix } from './calendar-data-source';
 import { MonthViewEvent } from './month-view-event';
 import { localized } from 'mailspring-exports';
 import { DragState, HitZone } from './calendar-drag-types';
@@ -49,7 +49,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       if (!a.isDragPreview && b.isDragPreview) return -1;
       if (a.isAllDay && !b.isAllDay) return -1;
       if (!a.isAllDay && b.isAllDay) return 1;
-      return a.start - b.start;
+      return occurrenceStartUnix(a) - occurrenceStartUnix(b);
     });
   }
 

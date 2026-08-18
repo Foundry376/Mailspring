@@ -1,9 +1,16 @@
 import React, { Component } from 'react';
 import moment from 'moment-timezone';
-import { Rx, Event, DatabaseStore, localized, Calendar, Actions } from 'mailspring-exports';
+import {
+  Rx,
+  Event,
+  DatabaseStore,
+  localized,
+  Calendar,
+  Actions,
+  CalendarDateUtils,
+} from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion, BindGlobalCommands } from 'mailspring-component-kit';
-import { EventOccurrence, occurrencesForEvents } from './calendar-data-source';
-import { inclusiveAllDayEnd } from './calendar-helpers';
+import { EventOccurrence, occurrencesForEvents, occurrenceStartUnix } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
@@ -107,8 +114,8 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
       // Sort by start date, closest to now first
       const now = moment().unix();
       suggestions.sort((a, b) => {
-        const aDiff = Math.abs(a.start - now);
-        const bDiff = Math.abs(b.start - now);
+        const aDiff = Math.abs(occurrenceStartUnix(a) - now);
+        const bDiff = Math.abs(occurrenceStartUnix(b) - now);
         return aDiff - bDiff;
       });
 
@@ -131,7 +138,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
 
   _onSelectEvent = (event: EventOccurrence) => {
     this.setState({ query: '', suggestions: [], focused: false, selectedIdx: -1 });
-    Actions.focusCalendarEvent(event);
+    Actions.focusCalendarEvent({ id: event.id, start: occurrenceStartUnix(event) });
   };
 
   _focusSearch = () => {
@@ -186,16 +193,17 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
   };
 
   _formatEventTime = (event: EventOccurrence) => {
+    if (event.isAllDay === true) {
+      const first = moment(CalendarDateUtils.dayStartUnix(event.startDate) * 1000);
+      if (event.startDate === event.endDate) {
+        return first.format('ddd, MMM D, YYYY');
+      }
+      const last = moment(CalendarDateUtils.dayStartUnix(event.endDate) * 1000);
+      return `${first.format('MMM D')} - ${last.format('MMM D, YYYY')}`;
+    }
+
     const start = moment(event.start * 1000);
     const end = moment(event.end * 1000);
-
-    if (event.isAllDay) {
-      const lastDay = moment(inclusiveAllDayEnd(event.end) * 1000);
-      if (lastDay.isSame(start, 'day')) {
-        return start.format('ddd, MMM D, YYYY');
-      }
-      return `${start.format('MMM D')} - ${lastDay.format('MMM D, YYYY')}`;
-    }
 
     if (start.isSame(end, 'day')) {
       return `${start.format('ddd, MMM D')} \u00B7 ${start.format('h:mm A')} - ${end.format(

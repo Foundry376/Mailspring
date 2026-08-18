@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, occurrenceStartUnix, occurrenceEndUnix } from './calendar-data-source';
 import { calcEventColors } from './calendar-helpers';
 import { RecurringIcon } from './calendar-icons';
 import { HitZone } from './calendar-drag-types';
@@ -139,7 +139,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
     // For month view events, use the event's start time as the mouse time
     // since day-level snapping doesn't require precise time positioning
-    const mouseTime = this.props.event.start;
+    const mouseTime = occurrenceStartUnix(this.props.event);
 
     // Notify parent of drag start
     if (this.props.onDragStart) {
@@ -185,7 +185,11 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
     // Drag preview events render differently - non-interactive with time tooltip
     if (event.isDragPreview) {
-      const timeString = formatDragPreviewTime(event.start, event.end, event.isAllDay);
+      const timeString = formatDragPreviewTime(
+        occurrenceStartUnix(event),
+        occurrenceEndUnix(event),
+        event.isAllDay
+      );
       return (
         <div className={className} style={style}>
           <span className="month-view-event-title">{event.title}</span>

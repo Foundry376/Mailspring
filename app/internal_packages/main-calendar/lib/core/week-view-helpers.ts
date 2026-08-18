@@ -1,6 +1,6 @@
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, isTimed } from './calendar-data-source';
 import moment, { Moment } from 'moment';
-import { Utils } from 'mailspring-exports';
+import { Utils, CalendarDateUtils } from 'mailspring-exports';
 
 // This pre-fetches from Utils to prevent constant disc access
 const overlapsBounds = Utils.overlapsBounds;
@@ -16,18 +16,30 @@ export interface OverlapByEventId {
  *   - concurrentEvents: number of concurrent events
  *   - order: the order in that series of concurrent events
  */
+/**
+ * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Each call is homogeneous —
+ * the all-day bar passes only all-day events, day columns only timed — so all-day stacks in
+ * date space (`addCalendarDays(endDate, 1)` exclusive) and timed in instants, and the two never mix in one call.
+ */
+function sweepBounds(e: EventOccurrence): { lo: number; hi: number } {
+  return isTimed(e)
+    ? { lo: e.start, hi: e.end }
+    : { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
+}
+
 export function overlapForEvents(events: EventOccurrence[]) {
   const eventsByTime: { [unix: number]: EventOccurrence[] } = {};
 
   for (const event of events) {
-    if (!eventsByTime[event.start]) {
-      eventsByTime[event.start] = [];
+    const b = sweepBounds(event);
+    if (!eventsByTime[b.lo]) {
+      eventsByTime[b.lo] = [];
     }
-    if (!eventsByTime[event.end]) {
-      eventsByTime[event.end] = [];
+    if (!eventsByTime[b.hi]) {
+      eventsByTime[b.hi] = [];
     }
-    eventsByTime[event.start].push(event);
-    eventsByTime[event.end].push(event);
+    eventsByTime[b.lo].push(event);
+    eventsByTime[b.hi].push(event);
   }
   const sortedTimes = Object.keys(eventsByTime)
     .map(Number)
@@ -41,12 +53,13 @@ export function overlapForEvents(events: EventOccurrence[]) {
     // Process all event start/ends during this time to keep our
     // "ongoingEvents" set correct.
     for (const e of eventsByTime[t]) {
-      if (e.start === t) {
+      const b = sweepBounds(e);
+      if (b.lo === t) {
         overlapById[e.id] = { concurrentEvents: 1, order: null };
         ongoingEvents.push(e);
         ongoingIds.add(e.id);
       }
-      if (e.end === t) {
+      if (b.hi === t) {
         ongoingIds.delete(e.id);
       }
     }
@@ -118,9 +131,7 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
   });
 
   events.forEach((event) => {
-    if (event.isAllDay) {
-      map.allDay.push(event);
-    } else {
+    if (isTimed(event)) {
       for (const day of unixDays) {
         const bounds = {
           start: day,
@@ -130,6 +141,8 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
           map[`${day}`].push(event);
         }
       }
+    } else {
+      map.allDay.push(event);
     }
   });
 

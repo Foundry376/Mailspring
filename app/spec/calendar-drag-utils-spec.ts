@@ -12,13 +12,19 @@ import {
 import { MONTH_VIEW_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
 import {
   EventOccurrence,
+  TimedOccurrence,
   coveredDates,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const HOUR = 60 * 60;
 
-function makeOccurrence(overrides: Partial<EventOccurrence> = {}): EventOccurrence {
+// Fixtures still specify all-day events by the instants they span; makeOccurrence derives the
+// dates and emits the right variant, so callers can't encode a shape production never emits.
+type OccurrenceOverrides = Partial<Omit<TimedOccurrence, 'isAllDay'>> & { isAllDay?: boolean };
+
+function makeOccurrence(overrides: OccurrenceOverrides = {}): EventOccurrence {
   const nowUnix = Date.now() / 1000;
+  const { start = nowUnix + HOUR, end = nowUnix + 2 * HOUR, isAllDay = false, ...rest } = overrides;
   const base = {
     id: 'event-1-e0',
     accountId: 'acct-1',
@@ -26,20 +32,16 @@ function makeOccurrence(overrides: Partial<EventOccurrence> = {}): EventOccurren
     title: 'Standup',
     location: '',
     description: '',
-    start: nowUnix + HOUR,
-    end: nowUnix + 2 * HOUR,
-    isAllDay: false,
     isCancelled: false,
     isPending: false,
     isException: false,
     isRecurring: false,
     organizer: null,
     attendees: [],
-    ...overrides,
+    ...rest,
+    ...coveredDates(start, end, isAllDay),
   };
-  // Through the same derivation production uses, so fixtures can't encode a shape
-  // occurrencesForEvents would never emit
-  return { ...base, ...coveredDates(base.start, base.end, base.isAllDay) };
+  return isAllDay ? { ...base, isAllDay: true } : { ...base, isAllDay: false, start, end };
 }
 
 describe('isPastDate', function () {
