@@ -278,9 +278,9 @@ export function occurrencesForEvents(
         });
       } catch (err) {
         console.error(`Failed to expand ICS for event ${master.id}:`, err);
-        // Fallback: show the master event as a single occurrence so it doesn't vanish
-        // A row whose JSON lacks rs/re can't be placed on a calendar, and reading a date off a
-        // non-finite value throws — which would abandon every other event in the batch.
+        // Fallback: show the master event as a single occurrence so it doesn't vanish.
+        // Skip rows with null/non-finite rs/re: those derive to NaN or 1970 dates that
+        // render nowhere, so a phantom occurrence is worse than none.
         if (!Number.isFinite(master.recurrenceStart) || !Number.isFinite(master.recurrenceEnd)) {
           continue;
         }
