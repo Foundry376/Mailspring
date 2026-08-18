@@ -6,7 +6,7 @@ import {
   HitZone,
   ViewDirection,
 } from './calendar-drag-types';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, coveredDates } from './calendar-data-source';
 import { inclusiveAllDayEnd, exclusiveAllDayEnd, addCalendarDays } from './calendar-helpers';
 
 /**
@@ -58,6 +58,8 @@ export function createDragPreviewEvent(dragState: DragState): EventOccurrence {
     id: `${event.id}-drag-preview`,
     start: previewStart,
     end: previewEnd,
+    // The spread carries the pre-drag dates, which no longer agree with the preview instants
+    ...coveredDates(previewStart, previewEnd, event.isAllDay),
     isDragPreview: true,
     originalEventId: event.id,
   };

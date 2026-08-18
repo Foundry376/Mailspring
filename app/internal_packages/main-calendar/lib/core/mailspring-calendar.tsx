@@ -8,6 +8,7 @@ import {
   Account,
   Actions,
   localized,
+  CalendarDateUtils,
   DestroyEventTask,
   Event,
   SyncbackEventTask,
@@ -336,10 +337,13 @@ export class MailspringCalendar extends React.Component<
     const endUnix = isAllDay ? exclusiveAllDayEnd(startUnix) : startUnix + 3600;
 
     // Build a temporary EventOccurrence to open the popover in "new event" mode
+    const clickedDate = CalendarDateUtils.calendarDateFromUnix(startUnix);
     const newEventOccurrence: EventOccurrence = {
       id: `__new_event_${Date.now()}`,
       start: startUnix,
       end: endUnix,
+      startDate: clickedDate,
+      endDate: isAllDay ? clickedDate : CalendarDateUtils.calendarDateFromUnix(endUnix),
       title: '',
       description: '',
       location: '',

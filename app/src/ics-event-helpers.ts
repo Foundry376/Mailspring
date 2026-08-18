@@ -1,7 +1,7 @@
 import { parseICSString } from './calendar-utils';
 import {
-  calendarDateOf,
-  unixDayStart,
+  calendarDateFromUnix,
+  dayStartUnix,
   addCalendarDays,
   calendarDaysBetween,
 } from './calendar-date';
@@ -739,7 +739,7 @@ export function applyEditsToException(
  * values arrive as `any`, so a raw millisecond count would type-check silently.
  */
 function shiftedDayStart(unixSeconds: number, days: number): number {
-  return unixDayStart(addCalendarDays(calendarDateOf(unixSeconds), days));
+  return dayStartUnix(addCalendarDays(calendarDateFromUnix(unixSeconds), days));
 }
 
 /**
@@ -826,8 +826,8 @@ export function updateRecurringEventTimes(
     // day yields 23h, and shifting the master by 23h leaves its date unchanged, so the
     // series silently doesn't move. Shift the dates themselves instead.
     const days = calendarDaysBetween(
-      calendarDateOf(originalOccurrenceStart),
-      calendarDateOf(newStart)
+      calendarDateFromUnix(originalOccurrenceStart),
+      calendarDateFromUnix(newStart)
     );
     return updateEventTimes(ics, {
       start: shiftedDayStart(currentStart / 1000, days),
