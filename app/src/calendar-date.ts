@@ -26,7 +26,8 @@ function partFormatterFor(zone: string): Intl.DateTimeFormat {
 }
 
 /**
- * The calendar date an instant falls on, in `zone` or the host's zone.
+ * The calendar date an instant falls on, in `zone` or the host's zone. No caller passes a zone
+ * yet; it's the seam a display-timezone setting needs, and what lets specs cover real zones.
  *
  * No arithmetic: any time of day on a date yields that date, including the 01:00 the sync
  * engine writes and the 23:00 a seconds shift lands on.
