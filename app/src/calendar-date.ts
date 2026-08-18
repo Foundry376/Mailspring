@@ -73,6 +73,16 @@ export function nextDayStartUnix(date: CalendarDate): number {
   return dayStartUnix(addCalendarDays(date, 1));
 }
 
+/**
+ * The start of the date `days` after the one this instant falls on.
+ *
+ * A migration bridge for callers that still hold instants. It goes away as they move to
+ * holding dates, at which point they compose the two functions above directly.
+ */
+export function shiftedDayStartUnix(unixSeconds: number, days: number): number {
+  return dayStartUnix(addCalendarDays(calendarDateFromUnix(unixSeconds), days));
+}
+
 /** Shift by whole days. Free and exact — epoch days have no transitions to cross. */
 export function addCalendarDays(date: CalendarDate, days: number): CalendarDate {
   return (date + days) as CalendarDate;

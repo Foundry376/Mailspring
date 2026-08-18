@@ -36,7 +36,6 @@ import {
   showNoEditableCalendarsError,
   showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
-  addCalendarDays,
   exclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
@@ -681,9 +680,11 @@ export class MailspringCalendar extends React.Component<
         // by calendar days rather than 86400 seconds keeps the times on midnight across a
         // DST transition, where a seconds shift overshoots and snaps up an extra day.
         const days = Math.sign(timeDelta);
-        newStart = isResize ? occurrence.start : addCalendarDays(occurrence.start, days);
+        newStart = isResize
+          ? occurrence.start
+          : CalendarDateUtils.shiftedDayStartUnix(occurrence.start, days);
         newEnd = isResize
-          ? clampEnd(newStart, addCalendarDays(occurrence.end, days), true)
+          ? clampEnd(newStart, CalendarDateUtils.shiftedDayStartUnix(occurrence.end, days), true)
           : shiftEndWithStart(occurrence.start, occurrence.end, newStart, true);
         const snapped = snapAllDayTimes(newStart, newEnd);
         newStart = snapped.start;

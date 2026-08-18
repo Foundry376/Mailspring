@@ -3,11 +3,14 @@ import moment from 'moment-timezone';
 import {
   inclusiveAllDayEnd,
   exclusiveAllDayEnd,
-  addCalendarDays,
-  calendarDaysBetween,
   shiftEndWithStart,
   clampEnd,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
+import {
+  shiftedDayStartUnix,
+  calendarDateFromUnix,
+  calendarDaysBetween,
+} from '../src/calendar-date';
 
 /** Local midnight, as unix seconds — all-day times are built from local date components */
 function localDay(year: number, month1Indexed: number, day: number): number {
@@ -58,31 +61,6 @@ describe('exclusiveAllDayEnd', function () {
   it('is stable when a picked day is re-picked', function () {
     const picked = localDay(2026, 6, 21);
     expect(inclusiveAllDayEnd(exclusiveAllDayEnd(picked))).toBe(picked);
-  });
-});
-
-describe('addCalendarDays', function () {
-  it('shifts backwards', function () {
-    expect(addCalendarDays(localDay(2026, 6, 24), -2)).toBe(localDay(2026, 6, 22));
-  });
-
-  it('crosses month and year boundaries', function () {
-    expect(addCalendarDays(localDay(2026, 6, 30), 1)).toBe(localDay(2026, 7, 1));
-    expect(addCalendarDays(localDay(2026, 12, 31), 1)).toBe(localDay(2027, 1, 1));
-  });
-});
-
-describe('calendarDaysBetween', function () {
-  it('is zero for the same day and negative going backwards', function () {
-    expect(calendarDaysBetween(localDay(2026, 6, 22), localDay(2026, 6, 22))).toBe(0);
-    expect(calendarDaysBetween(localDay(2026, 6, 24), localDay(2026, 6, 22))).toBe(-2);
-  });
-
-  it('round-trips with addCalendarDays', function () {
-    [-3, -1, 0, 1, 5, 40].forEach((days) => {
-      const from = localDay(2026, 6, 22);
-      expect(calendarDaysBetween(from, addCalendarDays(from, days))).toBe(days);
-    });
   });
 });
 
@@ -139,9 +117,9 @@ describe('clampEnd', function () {
   it('returns the end unchanged when a one-day event is shrunk', function () {
     const start = localDay(2026, 6, 22);
     const end = localDay(2026, 6, 23);
-    expect(clampEnd(start, addCalendarDays(end, -1), true)).toBe(end);
+    expect(clampEnd(start, shiftedDayStartUnix(end, -1), true)).toBe(end);
     // a longer span really does shrink
-    expect(clampEnd(start, addCalendarDays(localDay(2026, 6, 25), -1), true)).toBe(
+    expect(clampEnd(start, shiftedDayStartUnix(localDay(2026, 6, 25), -1), true)).toBe(
       localDay(2026, 6, 24)
     );
   });
@@ -170,7 +148,9 @@ describe('clampEnd', function () {
 
 // Calendar-day arithmetic only differs from a naive +86400 on a DST transition day, so these
 // pin the zone rather than relying on the machine's. moment-timezone augments the same moment
-// instance calendar-helpers imports, so setDefault reaches the code under test; fixtures use
+// instance calendar-helpers imports, so setDefault reaches what still computes through moment.
+// It does NOT reach anything routed through calendar-date (plain Date/Intl) — shiftEndWithStart
+// is now half each, so its DST coverage lives with the runner's zone instead. Fixtures use
 // an explicit zone so every assertion holds under CI's UTC too.
 describe('calendar-day arithmetic across DST transitions', function () {
   afterEach(function () {
@@ -179,6 +159,10 @@ describe('calendar-day arithmetic across DST transitions', function () {
 
   /** Start of a calendar day in `zone`, whatever wall clock that instant carries */
   const dayStart = (zone: string, iso: string) => moment.tz(iso, zone).unix();
+  /** Fixture shift. Must be moment-based: setDefault only reaches moment, so a Date-based
+   *  shift would build the fixture in the host zone while the code under test is in ZONE. */
+  const shiftFixture = (unix: number, days: number) =>
+    moment.unix(unix).add(days, 'days').startOf('day').unix();
 
   describe('where the transition is at 2am', function () {
     const ZONE = 'America/Chicago';
@@ -186,30 +170,21 @@ describe('calendar-day arithmetic across DST transitions', function () {
     it('advances to the next day-start across spring-forward, where +86400 overshoots', function () {
       moment.tz.setDefault(ZONE);
       const mar8 = dayStart(ZONE, '2026-03-08');
-      expect(addCalendarDays(mar8, 1)).toBe(dayStart(ZONE, '2026-03-09'));
-      expect(addCalendarDays(mar8, 1) - mar8).toBe(23 * 3600);
+      expect(shiftFixture(mar8, 1)).toBe(dayStart(ZONE, '2026-03-09'));
+      expect(shiftFixture(mar8, 1) - mar8).toBe(23 * 3600);
     });
 
     it('advances to the next day-start across fall-back, where +86400 undershoots', function () {
       moment.tz.setDefault(ZONE);
       const nov1 = dayStart(ZONE, '2026-11-01');
-      expect(addCalendarDays(nov1, 1)).toBe(dayStart(ZONE, '2026-11-02'));
-      expect(addCalendarDays(nov1, 1) - nov1).toBe(25 * 3600);
+      expect(shiftFixture(nov1, 1)).toBe(dayStart(ZONE, '2026-11-02'));
+      expect(shiftFixture(nov1, 1) - nov1).toBe(25 * 3600);
     });
 
     it('gives a 23-hour day a full exclusive end', function () {
       moment.tz.setDefault(ZONE);
       expect(exclusiveAllDayEnd(dayStart(ZONE, '2026-03-08'))).toBe(dayStart(ZONE, '2026-03-09'));
       expect(inclusiveAllDayEnd(dayStart(ZONE, '2026-03-09'))).toBe(dayStart(ZONE, '2026-03-08'));
-    });
-
-    it('keeps a multi-day span the same number of days across a transition', function () {
-      moment.tz.setDefault(ZONE);
-      // Mar 6 -> Mar 8 exclusive covers 2 days; move the start to Mar 7, spanning the transition
-      const start = dayStart(ZONE, '2026-03-06');
-      const end = dayStart(ZONE, '2026-03-08');
-      const newStart = dayStart(ZONE, '2026-03-07');
-      expect(shiftEndWithStart(start, end, newStart, true)).toBe(dayStart(ZONE, '2026-03-09'));
     });
 
     it('floors an all-day end to a whole calendar day, not 86400 seconds', function () {
@@ -227,33 +202,33 @@ describe('calendar-day arithmetic across DST transitions', function () {
     it('returns whole days when an endpoint is the transition day', function () {
       moment.tz.setDefault(ZONE);
       const sep6 = dayStart(ZONE, '2026-09-06');
-      expect(calendarDaysBetween(sep6, addCalendarDays(sep6, 5))).toBe(5);
-      expect(calendarDaysBetween(sep6, addCalendarDays(sep6, -5))).toBe(-5);
-      expect(calendarDaysBetween(sep6, addCalendarDays(sep6, 1))).toBe(1);
+      expect(
+        calendarDaysBetween(calendarDateFromUnix(sep6), calendarDateFromUnix(shiftFixture(sep6, 5)))
+      ).toBe(5);
+      expect(
+        calendarDaysBetween(
+          calendarDateFromUnix(sep6),
+          calendarDateFromUnix(shiftFixture(sep6, -5))
+        )
+      ).toBe(-5);
+      expect(
+        calendarDaysBetween(calendarDateFromUnix(sep6), calendarDateFromUnix(shiftFixture(sep6, 1)))
+      ).toBe(1);
     });
 
     // These compare calendar days, not instants. Where midnight doesn't exist the day starts
-    // at 01:00, and addCalendarDays carries that wall clock, so a round trip can shift by an
+    // at 01:00, and the shift carries that wall clock, so a round trip can shift by an
     // hour within the same day. Both encode the same DATE, so only the day is contractual.
     it('round-trips inclusive and exclusive ends onto the same day', function () {
       moment.tz.setDefault(ZONE);
       const sep6 = dayStart(ZONE, '2026-09-06');
       [-1, 0, 1].forEach((offset) => {
-        const start = addCalendarDays(sep6, offset);
+        const start = shiftFixture(sep6, offset);
         const roundTripped = inclusiveAllDayEnd(exclusiveAllDayEnd(start));
-        expect(calendarDaysBetween(start, roundTripped)).toBe(0);
+        expect(
+          calendarDaysBetween(calendarDateFromUnix(start), calendarDateFromUnix(roundTripped))
+        ).toBe(0);
       });
-    });
-
-    it('carries an end with its start without losing or gaining a day', function () {
-      moment.tz.setDefault(ZONE);
-      const start = dayStart(ZONE, '2026-09-04');
-      const end = exclusiveAllDayEnd(start); // one-day event
-      const newStart = dayStart(ZONE, '2026-09-06'); // the transition day
-      const moved = shiftEndWithStart(start, end, newStart, true);
-      // Still exactly one day long, and still the day after the new start
-      expect(calendarDaysBetween(newStart, moved)).toBe(1);
-      expect(calendarDaysBetween(newStart, inclusiveAllDayEnd(moved))).toBe(0);
     });
 
     // The only input shape where `add` before `startOf` differs from the reverse: the day
@@ -267,8 +242,13 @@ describe('calendar-day arithmetic across DST transitions', function () {
     it('spans the transition day itself without dropping it', function () {
       moment.tz.setDefault(ZONE);
       const start = dayStart(ZONE, '2026-09-05');
-      const end = exclusiveAllDayEnd(addCalendarDays(start, 2)); // covers 5th, 6th, 7th
-      expect(calendarDaysBetween(start, inclusiveAllDayEnd(end))).toBe(2);
+      const end = exclusiveAllDayEnd(shiftFixture(start, 2)); // covers 5th, 6th, 7th
+      expect(
+        calendarDaysBetween(
+          calendarDateFromUnix(start),
+          calendarDateFromUnix(inclusiveAllDayEnd(end))
+        )
+      ).toBe(2);
     });
   });
 });

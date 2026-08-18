@@ -1,10 +1,5 @@
 import { parseICSString } from './calendar-utils';
-import {
-  calendarDateFromUnix,
-  dayStartUnix,
-  addCalendarDays,
-  calendarDaysBetween,
-} from './calendar-date';
+import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
 
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
@@ -732,17 +727,6 @@ export function applyEditsToException(
 }
 
 /**
- * The start of the date `days` after the one this instant falls on.
- *
- * All-day values reach this module as instants, so converting to a date and back is the only
- * way to shift them by whole days. Note the brand can't protect these call sites: ical.js
- * values arrive as `any`, so a raw millisecond count would type-check silently.
- */
-function shiftedDayStart(unixSeconds: number, days: number): number {
-  return dayStartUnix(addCalendarDays(calendarDateFromUnix(unixSeconds), days));
-}
-
-/**
  * Shifts the RECURRENCE-ID of all inline exception VEVENTs within a master VCALENDAR
  * by the given time delta (in milliseconds). This keeps inline exceptions correctly
  * mapped to their corresponding RRULE-generated slots after the master series is shifted.
@@ -784,7 +768,7 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
     const newRidTime = (ridValue.isDate as boolean)
       ? createAllDayTime(
           new Date(
-            shiftedDayStart(ridDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
+            shiftedDayStartUnix(ridDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
           ),
           ical
         )
@@ -830,8 +814,8 @@ export function updateRecurringEventTimes(
       calendarDateFromUnix(newStart)
     );
     return updateEventTimes(ics, {
-      start: shiftedDayStart(currentStart / 1000, days),
-      end: shiftedDayStart(currentEnd / 1000, days),
+      start: shiftedDayStartUnix(currentStart / 1000, days),
+      end: shiftedDayStartUnix(currentEnd / 1000, days),
       isAllDay,
     });
   }

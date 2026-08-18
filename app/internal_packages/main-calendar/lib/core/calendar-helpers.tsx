@@ -9,6 +9,7 @@ import {
   SyncbackEventTask,
   TaskQueue,
   localized,
+  CalendarDateUtils,
 } from 'mailspring-exports';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 
@@ -270,26 +271,6 @@ export function inclusiveAllDayEnd(end: number): number {
 }
 
 /**
- * Shift a timestamp by whole calendar days, landing on the target day's start. Adding 86400
- * seconds would move by an hour on a transition day; add() alone leaves an instant on the
- * previous day where the target midnight doesn't exist, which collapses a one-day event.
- */
-export function addCalendarDays(unix: number, days: number): number {
-  return moment.unix(unix).add(days, 'days').startOf('day').unix();
-}
-
-/**
- * Whole calendar days from one timestamp to another, ignoring the time of day.
- * Rounds because where DST starts at midnight (Santiago, Havana, Beirut), startOf('day') on
- * the transition day itself normalizes to 01:00, leaving a 1/24 residual: 4.958, not 5.
- */
-export function calendarDaysBetween(from: number, to: number): number {
-  return Math.round(
-    moment.unix(to).startOf('day').diff(moment.unix(from).startOf('day'), 'days', true)
-  );
-}
-
-/**
  * Inverse of inclusiveAllDayEnd: turns a picked last-covered day back into the
  * exclusive end that gets stored.
  */
@@ -313,8 +294,13 @@ export function shiftEndWithStart(
   if (!isAllDay) {
     return endUnix + (newStartUnix - startUnix);
   }
-  const days = calendarDaysBetween(startUnix, newStartUnix);
-  return exclusiveAllDayEnd(addCalendarDays(inclusiveAllDayEnd(endUnix), days));
+  const days = CalendarDateUtils.calendarDaysBetween(
+    CalendarDateUtils.calendarDateFromUnix(startUnix),
+    CalendarDateUtils.calendarDateFromUnix(newStartUnix)
+  );
+  return exclusiveAllDayEnd(
+    CalendarDateUtils.shiftedDayStartUnix(inclusiveAllDayEnd(endUnix), days)
+  );
 }
 
 /**

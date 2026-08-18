@@ -35,6 +35,11 @@ function dateFromICALTime(time: ICALTime): CalendarDate {
   return CalendarDateUtils.calendarDateFromParts(time.year, time.month, time.day);
 }
 
+/** Whether an occurrence covers the given day. */
+export function eventCoversDate(event: EventOccurrence, date: CalendarDate): boolean {
+  return event.startDate <= date && date <= event.endDate;
+}
+
 /**
  * The dates an event covers, inclusive, from its start and exclusive end instants.
  *

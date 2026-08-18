@@ -1,8 +1,11 @@
 // Import the function under test directly from the source file.
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import { Event as MailspringEvent } from '../src/flux/models/event';
-import { occurrencesForEvents } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
-import { formatCalendarDate } from '../src/calendar-date';
+import {
+  occurrencesForEvents,
+  eventCoversDate,
+} from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { formatCalendarDate, parseCalendarDate } from '../src/calendar-date';
 
 // All-day-ness comes from the ICS DATE type, never from duration.
 function makeEvent(ics: string, overrides: Partial<MailspringEvent> = {}): MailspringEvent {
@@ -189,5 +192,65 @@ describe('occurrencesForEvents when expansion fails', function () {
     expect(occ.title).toBe('(Error expanding event)');
     expect(formatCalendarDate(occ.startDate)).toBe('2026-06-22');
     expect(formatCalendarDate(occ.endDate)).toBe('2026-06-22');
+  });
+});
+
+describe('eventCoversDate', function () {
+  // What the month and agenda day cells filter on. Fed straight from occurrencesForEvents so
+  // the fixtures are shapes the app actually produces.
+  const only = (ics: string) => expand(makeEvent(ics))[0];
+  const day = (iso: string) => parseCalendarDate(iso);
+
+  it('covers each day of a multi-day all-day span and neither neighbour', function () {
+    const occ = only(icsFor('DTSTART;VALUE=DATE:20260622', 'DTEND;VALUE=DATE:20260625'));
+    expect(
+      ['2026-06-21', '2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25'].map((iso) =>
+        eventCoversDate(occ, day(iso))
+      )
+    ).toEqual([false, true, true, true, false]);
+  });
+
+  it('covers exactly one day for a one-day all-day event', function () {
+    const occ = only(icsFor('DTSTART;VALUE=DATE:20260622', 'DTEND;VALUE=DATE:20260623'));
+    expect(eventCoversDate(occ, day('2026-06-22'))).toBe(true);
+    expect(eventCoversDate(occ, day('2026-06-23'))).toBe(false);
+  });
+
+  // The old timestamp filter compared `end > dayStart`, which the exclusive midnight made work
+  // by luck. A timed event ending exactly at midnight must not light up the following cell.
+  it('does not cover the next day for a timed event ending at midnight', function () {
+    const fmt = (dt: Date) =>
+      `${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(
+        dt.getDate()
+      ).padStart(2, '0')}T${String(dt.getHours()).padStart(2, '0')}0000`;
+    const occ = only(
+      icsFor(`DTSTART:${fmt(new Date(2026, 5, 22, 22))}`, `DTEND:${fmt(new Date(2026, 5, 23, 0))}`)
+    );
+    expect(eventCoversDate(occ, day('2026-06-22'))).toBe(true);
+    expect(eventCoversDate(occ, day('2026-06-23'))).toBe(false);
+  });
+
+  it('covers both days for a timed event that really crosses midnight', function () {
+    const fmt = (dt: Date) =>
+      `${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(
+        dt.getDate()
+      ).padStart(2, '0')}T${String(dt.getHours()).padStart(2, '0')}${String(
+        dt.getMinutes()
+      ).padStart(2, '0')}00`;
+    const occ = only(
+      icsFor(
+        `DTSTART:${fmt(new Date(2026, 5, 22, 23, 30))}`,
+        `DTEND:${fmt(new Date(2026, 5, 23, 0, 30))}`
+      )
+    );
+    expect(eventCoversDate(occ, day('2026-06-22'))).toBe(true);
+    expect(eventCoversDate(occ, day('2026-06-23'))).toBe(true);
+  });
+
+  it('covers the transition day of an all-day span across a DST change', function () {
+    const occ = only(icsFor('DTSTART;VALUE=DATE:20260307', 'DTEND;VALUE=DATE:20260310'));
+    expect(
+      ['2026-03-07', '2026-03-08', '2026-03-09'].map((iso) => eventCoversDate(occ, day(iso)))
+    ).toEqual([true, true, true]);
   });
 });

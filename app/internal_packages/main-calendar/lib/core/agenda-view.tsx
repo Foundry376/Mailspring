@@ -1,12 +1,12 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
-import { localized, Actions } from 'mailspring-exports';
+import { localized, Actions, CalendarDateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
 import { CalendarEventPopover } from './calendar-event-popover';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, eventCoversDate } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { calcEventColors, extractMeetingDomain } from './calendar-helpers';
 
@@ -86,11 +86,10 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
 
     for (let i = 0; i < DAYS_IN_VIEW; i++) {
       const day = moment(focusedMoment).startOf('day').add(i, 'days');
-      const dayStart = day.unix();
-      const dayEnd = day.clone().endOf('day').unix();
+      const date = CalendarDateUtils.calendarDateFromUnix(day.unix());
 
       const events = this.state.events
-        .filter((event) => event.start < dayEnd && event.end > dayStart)
+        .filter((event) => eventCoversDate(event, date))
         .sort((a, b) => {
           // All-day events first, then sort by start time
           if (a.isAllDay && !b.isAllDay) return -1;

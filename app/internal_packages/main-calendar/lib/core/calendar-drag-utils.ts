@@ -7,7 +7,8 @@ import {
   ViewDirection,
 } from './calendar-drag-types';
 import { EventOccurrence, coveredDates } from './calendar-data-source';
-import { inclusiveAllDayEnd, exclusiveAllDayEnd, addCalendarDays } from './calendar-helpers';
+import { CalendarDateUtils } from 'mailspring-exports';
+import { inclusiveAllDayEnd, exclusiveAllDayEnd } from './calendar-helpers';
 
 /**
  * Snap a timestamp to the nearest interval
@@ -261,7 +262,12 @@ export function updateDragState(
         previewStart = moment.unix(newStart).startOf('day').unix();
         // Via the helpers, not a raw add: where the drop day's midnight doesn't exist, add()
         // keeps the 01:00 wall clock and snapAllDayTimes then rounds it up an extra day.
-        previewEnd = exclusiveAllDayEnd(addCalendarDays(previewStart, numDays - 1));
+        previewEnd = CalendarDateUtils.nextDayStartUnix(
+          CalendarDateUtils.addCalendarDays(
+            CalendarDateUtils.calendarDateFromUnix(previewStart),
+            numDays - 1
+          )
+        );
       } else {
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = previewStart + eventDuration;
