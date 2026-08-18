@@ -343,16 +343,14 @@ export class MailspringCalendar extends React.Component<
       ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(startUnix))
       : startUnix + 3600;
 
-    // Build a temporary EventOccurrence to open the popover in "new event" mode
-    const newEventOccurrence: EventOccurrence = {
+    // Build a temporary EventOccurrence to open the popover in "new event" mode. Build the
+    // right variant — an all-day new event carries dates only, like every other occurrence.
+    const base = {
       id: `__new_event_${Date.now()}`,
-      start: startUnix,
-      end: endUnix,
       ...coveredDates(startUnix, endUnix, isAllDay),
       title: '',
       description: '',
       location: '',
-      isAllDay,
       isRecurring: false,
       isCancelled: false,
       isPending: false,
@@ -362,6 +360,9 @@ export class MailspringCalendar extends React.Component<
       accountId: editableCalendars[0].accountId,
       calendarId: editableCalendars[0].id,
     };
+    const newEventOccurrence: EventOccurrence = isAllDay
+      ? { ...base, isAllDay: true }
+      : { ...base, isAllDay: false, start: startUnix, end: endUnix };
 
     // Open the popover anchored near the mouse position
     const originRect = new DOMRect(args.mouseEvent.clientX - 1, args.mouseEvent.clientY - 1, 2, 2);

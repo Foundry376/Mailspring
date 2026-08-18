@@ -1,6 +1,6 @@
 import { EventOccurrence, isTimed } from './calendar-data-source';
 import moment, { Moment } from 'moment';
-import { Utils } from 'mailspring-exports';
+import { Utils, CalendarDateUtils } from 'mailspring-exports';
 
 // This pre-fetches from Utils to prevent constant disc access
 const overlapsBounds = Utils.overlapsBounds;
@@ -19,19 +19,19 @@ export interface OverlapByEventId {
 /**
  * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Each call is homogeneous —
  * the all-day bar passes only all-day events, day columns only timed — so all-day stacks in
- * date space (`endDate + 1` exclusive) and timed in instants, and the two never mix in one call.
+ * date space (`addCalendarDays(endDate, 1)` exclusive) and timed in instants, and the two never mix in one call.
  */
 function sweepBounds(e: EventOccurrence): { lo: number; hi: number } {
-  return isTimed(e) ? { lo: e.start, hi: e.end } : { lo: e.startDate, hi: e.endDate + 1 };
+  return isTimed(e)
+    ? { lo: e.start, hi: e.end }
+    : { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
 }
 
 export function overlapForEvents(events: EventOccurrence[]) {
   const eventsByTime: { [unix: number]: EventOccurrence[] } = {};
-  const boundsById: { [id: string]: { lo: number; hi: number } } = {};
 
   for (const event of events) {
     const b = sweepBounds(event);
-    boundsById[event.id] = b;
     if (!eventsByTime[b.lo]) {
       eventsByTime[b.lo] = [];
     }
@@ -53,12 +53,13 @@ export function overlapForEvents(events: EventOccurrence[]) {
     // Process all event start/ends during this time to keep our
     // "ongoingEvents" set correct.
     for (const e of eventsByTime[t]) {
-      if (boundsById[e.id].lo === t) {
+      const b = sweepBounds(e);
+      if (b.lo === t) {
         overlapById[e.id] = { concurrentEvents: 1, order: null };
         ongoingEvents.push(e);
         ongoingIds.add(e.id);
       }
-      if (boundsById[e.id].hi === t) {
+      if (b.hi === t) {
         ongoingIds.delete(e.id);
       }
     }

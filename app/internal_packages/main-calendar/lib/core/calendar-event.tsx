@@ -108,8 +108,13 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     } else {
       const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);
       const scopeDays = Math.round((this.props.scopeEnd - this.props.scopeStart) / 86400);
-      top = Math.max((event.startDate - scopeStartDate) / scopeDays, 0);
-      height = Math.min((event.endDate + 1 - event.startDate) / scopeDays, 1);
+      const startOffset = CalendarDateUtils.calendarDaysBetween(scopeStartDate, event.startDate);
+      const spanDays = CalendarDateUtils.calendarDaysBetween(event.startDate, event.endDate) + 1;
+      // Mirror the timed branch: clamp the start into scope and drop the pre-scope days from the
+      // span, so an all-day event beginning before the visible week isn't drawn too wide.
+      const overflowDays = Math.max(-startOffset, 0);
+      top = Math.max(startOffset / scopeDays, 0);
+      height = Math.min((spanDays - overflowDays) / scopeDays, 1);
     }
 
     let width: number | string = 1;

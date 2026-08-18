@@ -186,29 +186,33 @@ export function createDragState(
   mouseY: number,
   config: DragConfig
 ): DragState {
+  // The drag pipeline is unix; derive the event's instants once (all-day carries dates only).
+  const start = occurrenceStartUnix(event);
+  const end = occurrenceEndUnix(event);
+
   // Calculate click offset for 'move' mode - this is the time difference between
   // where the user clicked and the event's start time. We'll preserve this offset
   // so the event doesn't jump when dragging starts.
   let clickOffset = 0;
   if (hitZone.mode === 'move') {
-    clickOffset = mouseTime - occurrenceStartUnix(event);
+    clickOffset = mouseTime - start;
   } else if (hitZone.mode === 'resize-end') {
     // For resize-end, offset is from the end of the event
-    clickOffset = mouseTime - occurrenceEndUnix(event);
+    clickOffset = mouseTime - end;
   }
   // For resize-start, no offset needed (we resize from start time)
 
   return {
     mode: hitZone.mode,
     event,
-    originalStart: occurrenceStartUnix(event),
-    originalEnd: occurrenceEndUnix(event),
+    originalStart: start,
+    originalEnd: end,
     initialMouseTime: mouseTime,
     clickOffset,
     initialMouseX: mouseX,
     initialMouseY: mouseY,
-    previewStart: occurrenceStartUnix(event),
-    previewEnd: occurrenceEndUnix(event),
+    previewStart: start,
+    previewEnd: end,
     snapIntervalSeconds: config.snapInterval,
     isDragging: false,
   };
