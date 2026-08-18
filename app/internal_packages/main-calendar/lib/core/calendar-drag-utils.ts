@@ -6,8 +6,9 @@ import {
   HitZone,
   ViewDirection,
 } from './calendar-drag-types';
-import { EventOccurrence } from './calendar-data-source';
-import { inclusiveAllDayEnd, exclusiveAllDayEnd, addCalendarDays } from './calendar-helpers';
+import { EventOccurrence, coveredDates } from './calendar-data-source';
+import { CalendarDateUtils } from 'mailspring-exports';
+import { inclusiveAllDayEnd } from './calendar-helpers';
 
 /**
  * Snap a timestamp to the nearest interval
@@ -41,7 +42,9 @@ export function snapAllDayTimes(start: number, end: number): { start: number; en
  * @returns Exclusive end, as a unix timestamp
  */
 function exclusiveDayEnd(end: number, floor: number): number {
-  return exclusiveAllDayEnd(Math.max(inclusiveAllDayEnd(end), floor));
+  return CalendarDateUtils.nextDayStartUnix(
+    CalendarDateUtils.calendarDateFromUnix(Math.max(inclusiveAllDayEnd(end), floor))
+  );
 }
 
 /**
@@ -58,6 +61,8 @@ export function createDragPreviewEvent(dragState: DragState): EventOccurrence {
     id: `${event.id}-drag-preview`,
     start: previewStart,
     end: previewEnd,
+    // The spread carries the pre-drag dates, which no longer agree with the preview instants
+    ...coveredDates(previewStart, previewEnd, event.isAllDay),
     isDragPreview: true,
     originalEventId: event.id,
   };
@@ -259,7 +264,12 @@ export function updateDragState(
         previewStart = moment.unix(newStart).startOf('day').unix();
         // Via the helpers, not a raw add: where the drop day's midnight doesn't exist, add()
         // keeps the 01:00 wall clock and snapAllDayTimes then rounds it up an extra day.
-        previewEnd = exclusiveAllDayEnd(addCalendarDays(previewStart, numDays - 1));
+        previewEnd = CalendarDateUtils.nextDayStartUnix(
+          CalendarDateUtils.addCalendarDays(
+            CalendarDateUtils.calendarDateFromUnix(previewStart),
+            numDays - 1
+          )
+        );
       } else {
         previewStart = snapToInterval(newStart, snapInterval);
         previewEnd = previewStart + eventDuration;
@@ -291,7 +301,9 @@ export function updateDragState(
         // would drop the cursor's own day. Include that day, then take the next midnight.
         previewStart = moment.unix(state.originalStart).startOf('day').unix();
         const lastDay = Math.max(moment.unix(mouseTime).startOf('day').unix(), previewStart);
-        previewEnd = exclusiveAllDayEnd(lastDay);
+        previewEnd = CalendarDateUtils.nextDayStartUnix(
+          CalendarDateUtils.calendarDateFromUnix(lastDay)
+        );
       } else {
         const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
         previewStart = state.originalStart;

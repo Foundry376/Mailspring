@@ -191,6 +191,10 @@ export type CalendarUtils = typeof import('../calendar-utils');
 export const CalendarUtils: CalendarUtils;
 export { ICSParticipantStatus, ICSParticipant } from '../calendar-utils';
 
+export type CalendarDateUtils = typeof import('../calendar-date');
+export const CalendarDateUtils: CalendarDateUtils;
+export { CalendarDate } from '../calendar-date';
+
 export type ICSEventHelpers = typeof import('../ics-event-helpers');
 export const ICSEventHelpers: ICSEventHelpers;
 export {

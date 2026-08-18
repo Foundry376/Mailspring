@@ -1,4 +1,5 @@
 import { parseICSString } from './calendar-utils';
+import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
 
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
@@ -766,7 +767,9 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
     // An all-day delta is always whole days give or take the transition hour, so round it.
     const newRidTime = (ridValue.isDate as boolean)
       ? createAllDayTime(
-          new Date(addCalendarDays(ridDate.getTime(), Math.round(deltaMs / 86400000)) * 1000),
+          new Date(
+            shiftedDayStartUnix(ridDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
+          ),
           ical
         )
       : // Keep as UTC (same format as createRecurrenceException)
@@ -806,10 +809,13 @@ export function updateRecurringEventTimes(
     // A raw millisecond delta is wrong here: moving an occurrence across a spring-forward
     // day yields 23h, and shifting the master by 23h leaves its date unchanged, so the
     // series silently doesn't move. Shift the dates themselves instead.
-    const days = calendarDaysBetween(originalOccurrenceStart, newStart);
+    const days = calendarDaysBetween(
+      calendarDateFromUnix(originalOccurrenceStart),
+      calendarDateFromUnix(newStart)
+    );
     return updateEventTimes(ics, {
-      start: addCalendarDays(currentStart, days),
-      end: addCalendarDays(currentEnd, days),
+      start: shiftedDayStartUnix(currentStart / 1000, days),
+      end: shiftedDayStartUnix(currentEnd / 1000, days),
       isAllDay,
     });
   }
@@ -821,27 +827,6 @@ export function updateRecurringEventTimes(
     end: (currentEnd + deltaMs) / 1000,
     isAllDay,
   });
-}
-
-/**
- * Whole calendar days from one timestamp's local date to another's. Compared in UTC, which
- * has no transitions, so a DST change between the two can't skew the count.
- *
- * Duplicated from calendar-helpers.ts because that module lives in an internal package and
- * this one can't import upwards. Both go away once all-day events are modelled as dates.
- */
-function calendarDaysBetween(fromUnix: number, toUnix: number): number {
-  const utcMidnight = (unix: number) => {
-    const d = new Date(unix * 1000);
-    return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-  };
-  return Math.round((utcMidnight(toUnix) - utcMidnight(fromUnix)) / 86400000);
-}
-
-/** Shifts a timestamp's local date by whole days, landing on that date's local midnight. */
-function addCalendarDays(ms: number, days: number): number {
-  const d = new Date(ms);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days).getTime() / 1000;
 }
 
 /**

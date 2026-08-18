@@ -1,7 +1,8 @@
-import moment from 'moment-timezone';
+import { formatCalendarDate } from '../src/calendar-date';
 // Import the functions under test directly from the source file.
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import {
+  createDragPreviewEvent,
   isPastDate,
   canMoveEvent,
   snapAllDayTimes,
@@ -9,13 +10,16 @@ import {
   updateDragState,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import { MONTH_VIEW_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
-import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import {
+  EventOccurrence,
+  coveredDates,
+} from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const HOUR = 60 * 60;
 
 function makeOccurrence(overrides: Partial<EventOccurrence> = {}): EventOccurrence {
   const nowUnix = Date.now() / 1000;
-  return {
+  const base = {
     id: 'event-1-e0',
     accountId: 'acct-1',
     calendarId: 'cal-1',
@@ -33,6 +37,9 @@ function makeOccurrence(overrides: Partial<EventOccurrence> = {}): EventOccurren
     attendees: [],
     ...overrides,
   };
+  // Through the same derivation production uses, so fixtures can't encode a shape
+  // occurrencesForEvents would never emit
+  return { ...base, ...coveredDates(base.start, base.end, base.isAllDay) };
 }
 
 describe('isPastDate', function () {
@@ -162,33 +169,38 @@ describe('updateDragState with day snapping', function () {
 
   it('never previews less than one whole day', function () {
     // resize-end dragged back before the start
-    expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-end', day(2026, 8, 12))
-    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 15) });
+    expect(dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-end', day(2026, 8, 12))).toEqual({
+      start: day(2026, 8, 14),
+      end: day(2026, 8, 15),
+    });
     // resize-start dragged past the end
-    expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-start', day(2026, 8, 20))
-    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 15) });
+    expect(dragEdge(day(2026, 8, 14), day(2026, 8, 15), 'resize-start', day(2026, 8, 20))).toEqual({
+      start: day(2026, 8, 14),
+      end: day(2026, 8, 15),
+    });
   });
 
   it('extends a multi-day span to the day the cursor is in', function () {
-    expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 16), 'resize-end', day(2026, 8, 18))
-    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 19) });
+    expect(dragEdge(day(2026, 8, 14), day(2026, 8, 16), 'resize-end', day(2026, 8, 18))).toEqual({
+      start: day(2026, 8, 14),
+      end: day(2026, 8, 19),
+    });
   });
 
   it('keeps the last day when the right edge is grabbed without moving', function () {
     // Containers hand over the day's exact midnight, so a jiggle inside the last cell
     // must not shrink the event. Aug 14 -> Aug 17 covers 14-16; cursor sits on the 16th.
-    expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 17), 'resize-end', day(2026, 8, 16))
-    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 17) });
+    expect(dragEdge(day(2026, 8, 14), day(2026, 8, 17), 'resize-end', day(2026, 8, 16))).toEqual({
+      start: day(2026, 8, 14),
+      end: day(2026, 8, 17),
+    });
   });
 
   it('shrinks a span to the cursor day rather than one short of it', function () {
-    expect(
-      dragEdge(day(2026, 8, 14), day(2026, 8, 20), 'resize-end', day(2026, 8, 16))
-    ).toEqual({ start: day(2026, 8, 14), end: day(2026, 8, 17) });
+    expect(dragEdge(day(2026, 8, 14), day(2026, 8, 20), 'resize-end', day(2026, 8, 16))).toEqual({
+      start: day(2026, 8, 14),
+      end: day(2026, 8, 17),
+    });
   });
 });
 
@@ -218,40 +230,72 @@ describe('updateDragState move with day snapping', function () {
   }
 
   it('moves a one-day event to the drop day, ending on the next midnight', function () {
-    expect(
-      dragMove(localDay(2026, 8, 14), localDay(2026, 8, 15), localDay(2026, 8, 20))
-    ).toEqual({ start: localDay(2026, 8, 20), end: localDay(2026, 8, 21) });
+    expect(dragMove(localDay(2026, 8, 14), localDay(2026, 8, 15), localDay(2026, 8, 20))).toEqual({
+      start: localDay(2026, 8, 20),
+      end: localDay(2026, 8, 21),
+    });
   });
 
   it('preserves the span of a multi-day event', function () {
-    expect(
-      dragMove(localDay(2026, 8, 14), localDay(2026, 8, 17), localDay(2026, 8, 20))
-    ).toEqual({ start: localDay(2026, 8, 20), end: localDay(2026, 8, 23) });
+    expect(dragMove(localDay(2026, 8, 14), localDay(2026, 8, 17), localDay(2026, 8, 20))).toEqual({
+      start: localDay(2026, 8, 20),
+      end: localDay(2026, 8, 23),
+    });
   });
 
-  describe('onto a day whose local midnight does not exist', function () {
-    const ZONE = 'America/Santiago';
-    const dayStart = (iso: string) => moment.tz(iso, ZONE).unix();
+  // A midnight-gap block lived here, pinned with moment.tz.setDefault. The move path now
+  // computes through calendar-date, which setDefault cannot reach — and the runner's pinned
+  // zone transitions at 2am, so it has no missing midnight either. That case is uncovered.
+});
 
-    afterEach(function () {
-      moment.tz.setDefault();
-    });
+describe('createDragPreviewEvent', function () {
+  const localDay = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
+  const covered = (occ: EventOccurrence) => [
+    formatCalendarDate(occ.startDate),
+    formatCalendarDate(occ.endDate),
+  ];
 
-    // A raw add() keeps the 01:00 wall clock the missing midnight forces, and snapAllDayTimes
-    // then rounds it up, so a one-day event lands as two.
-    it('still previews exactly one day', function () {
-      moment.tz.setDefault(ZONE);
-      const start = dayStart('2026-01-10');
-      const moved = dragMove(start, dayStart('2026-01-11'), dayStart('2026-09-06'));
-      expect(moved.start).toBe(dayStart('2026-09-06'));
-      expect(moved.end).toBe(dayStart('2026-09-07'));
+  // The preview spreads the original occurrence, so its dates have to be recomputed from the
+  // preview instants or they describe where the event was before the drag.
+  it('moves an all-day preview onto the dragged days', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 6, 21),
+      end: localDay(2026, 6, 22),
     });
+    const preview = createDragPreviewEvent({
+      event,
+      previewStart: localDay(2026, 6, 24),
+      previewEnd: localDay(2026, 6, 25),
+    } as any);
+    expect(covered(preview)).toEqual(['2026-06-24', '2026-06-24']);
+  });
 
-    it('still previews exactly three days for a three-day event', function () {
-      moment.tz.setDefault(ZONE);
-      const start = dayStart('2026-01-10');
-      const moved = dragMove(start, dayStart('2026-01-13'), dayStart('2026-09-06'));
-      expect(moved.end).toBe(dayStart('2026-09-09'));
+  it('keeps a multi-day all-day span the same length', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 6, 21),
+      end: localDay(2026, 6, 24),
     });
+    const preview = createDragPreviewEvent({
+      event,
+      previewStart: localDay(2026, 6, 28),
+      previewEnd: localDay(2026, 7, 1),
+    } as any);
+    expect(covered(preview)).toEqual(['2026-06-28', '2026-06-30']);
+  });
+
+  it('moves a timed preview onto the dragged day', function () {
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 6, 21) + 10 * HOUR,
+      end: localDay(2026, 6, 21) + 11 * HOUR,
+    });
+    const preview = createDragPreviewEvent({
+      event,
+      previewStart: localDay(2026, 6, 25) + 10 * HOUR,
+      previewEnd: localDay(2026, 6, 25) + 11 * HOUR,
+    } as any);
+    expect(covered(preview)).toEqual(['2026-06-25', '2026-06-25']);
   });
 });

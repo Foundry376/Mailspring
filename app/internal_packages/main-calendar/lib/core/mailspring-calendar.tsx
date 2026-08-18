@@ -8,6 +8,7 @@ import {
   Account,
   Actions,
   localized,
+  CalendarDateUtils,
   DestroyEventTask,
   Event,
   SyncbackEventTask,
@@ -25,7 +26,12 @@ import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { AgendaView } from './agenda-view';
 import { CalendarSourceList } from './calendar-source-list';
-import { CalendarDataSource, EventOccurrence, FocusedEventInfo } from './calendar-data-source';
+import {
+  CalendarDataSource,
+  EventOccurrence,
+  FocusedEventInfo,
+  coveredDates,
+} from './calendar-data-source';
 import { CalendarView } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -35,8 +41,6 @@ import {
   showNoEditableCalendarsError,
   showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
-  addCalendarDays,
-  exclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
 } from './calendar-helpers';
@@ -333,13 +337,16 @@ export class MailspringCalendar extends React.Component<
       startUnix = Math.round(args.time / thirtyMinutes) * thirtyMinutes;
     }
 
-    const endUnix = isAllDay ? exclusiveAllDayEnd(startUnix) : startUnix + 3600;
+    const endUnix = isAllDay
+      ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(startUnix))
+      : startUnix + 3600;
 
     // Build a temporary EventOccurrence to open the popover in "new event" mode
     const newEventOccurrence: EventOccurrence = {
       id: `__new_event_${Date.now()}`,
       start: startUnix,
       end: endUnix,
+      ...coveredDates(startUnix, endUnix, isAllDay),
       title: '',
       description: '',
       location: '',
@@ -677,9 +684,11 @@ export class MailspringCalendar extends React.Component<
         // by calendar days rather than 86400 seconds keeps the times on midnight across a
         // DST transition, where a seconds shift overshoots and snaps up an extra day.
         const days = Math.sign(timeDelta);
-        newStart = isResize ? occurrence.start : addCalendarDays(occurrence.start, days);
+        newStart = isResize
+          ? occurrence.start
+          : CalendarDateUtils.shiftedDayStartUnix(occurrence.start, days);
         newEnd = isResize
-          ? clampEnd(newStart, addCalendarDays(occurrence.end, days), true)
+          ? clampEnd(newStart, CalendarDateUtils.shiftedDayStartUnix(occurrence.end, days), true)
           : shiftEndWithStart(occurrence.start, occurrence.end, newStart, true);
         const snapped = snapAllDayTimes(newStart, newEnd);
         newStart = snapped.start;

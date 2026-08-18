@@ -12,6 +12,7 @@ import {
   ICSEventHelpers,
   CalendarUtils,
   SyncbackEventTask,
+  CalendarDateUtils,
 } from 'mailspring-exports';
 import {
   DatePicker,
@@ -26,7 +27,6 @@ import { EventPropertyRow } from './event-property-row';
 import {
   createCalendarEvent,
   inclusiveAllDayEnd,
-  exclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
 } from './calendar-helpers';
@@ -515,7 +515,15 @@ export class CalendarEventPopover extends React.Component<
           <EventPropertyRow label={localized('ends:')}>
             <DatePicker
               value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
-              onChange={(ts) => this.updateEnd(allDay ? exclusiveAllDayEnd(ts / 1000) : ts / 1000)}
+              onChange={(ts) =>
+                this.updateEnd(
+                  allDay
+                    ? CalendarDateUtils.nextDayStartUnix(
+                        CalendarDateUtils.calendarDateFromUnix(ts / 1000)
+                      )
+                    : ts / 1000
+                )
+              }
             />
             {!allDay && (
               <TimePicker value={end * 1000} onChange={(ts) => this.updateEnd(ts / 1000)} />

@@ -1,11 +1,12 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { InjectedComponentSet } from 'mailspring-component-kit';
+import { CalendarDateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, eventCoversDate } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { MonthViewDayCell } from './month-view-day-cell';
 import { getEventsWithDragPreview } from './calendar-drag-utils';
@@ -95,14 +96,10 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   }
 
   _getEventsForDay(day: Moment): EventOccurrence[] {
-    const dayStart = day.clone().startOf('day').unix();
-    const dayEnd = day.clone().endOf('day').unix();
+    const date = CalendarDateUtils.calendarDateFromUnix(day.unix());
     const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
 
-    return events.filter((event) => {
-      // Event overlaps with this day
-      return event.start < dayEnd && event.end > dayStart;
-    });
+    return events.filter((event) => eventCoversDate(event, date));
   }
 
   _isToday(day: Moment): boolean {
