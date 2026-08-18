@@ -8,7 +8,7 @@ import {
 } from './calendar-drag-types';
 import { EventOccurrence, coveredDates } from './calendar-data-source';
 import { CalendarDateUtils } from 'mailspring-exports';
-import { inclusiveAllDayEnd, exclusiveAllDayEnd } from './calendar-helpers';
+import { inclusiveAllDayEnd } from './calendar-helpers';
 
 /**
  * Snap a timestamp to the nearest interval
@@ -42,7 +42,9 @@ export function snapAllDayTimes(start: number, end: number): { start: number; en
  * @returns Exclusive end, as a unix timestamp
  */
 function exclusiveDayEnd(end: number, floor: number): number {
-  return exclusiveAllDayEnd(Math.max(inclusiveAllDayEnd(end), floor));
+  return CalendarDateUtils.nextDayStartUnix(
+    CalendarDateUtils.calendarDateFromUnix(Math.max(inclusiveAllDayEnd(end), floor))
+  );
 }
 
 /**
@@ -299,7 +301,9 @@ export function updateDragState(
         // would drop the cursor's own day. Include that day, then take the next midnight.
         previewStart = moment.unix(state.originalStart).startOf('day').unix();
         const lastDay = Math.max(moment.unix(mouseTime).startOf('day').unix(), previewStart);
-        previewEnd = exclusiveAllDayEnd(lastDay);
+        previewEnd = CalendarDateUtils.nextDayStartUnix(
+          CalendarDateUtils.calendarDateFromUnix(lastDay)
+        );
       } else {
         const newEnd = Math.max(mouseTime - state.clickOffset, state.originalStart + minDuration);
         previewStart = state.originalStart;

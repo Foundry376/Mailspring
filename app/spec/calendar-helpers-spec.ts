@@ -2,15 +2,13 @@
 import moment from 'moment-timezone';
 import {
   inclusiveAllDayEnd,
-  exclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
-import {
-  shiftedDayStartUnix,
-  calendarDateFromUnix,
-  calendarDaysBetween,
-} from '../src/calendar-date';
+import { shiftedDayStartUnix, calendarDateFromUnix, nextDayStartUnix } from '../src/calendar-date';
+
+/** The stored exclusive end for a last-covered day, as the production callers now build it */
+const exclusiveEnd = (lastDay: number) => nextDayStartUnix(calendarDateFromUnix(lastDay));
 
 /** Local midnight, as unix seconds — all-day times are built from local date components */
 function localDay(year: number, month1Indexed: number, day: number): number {
@@ -34,33 +32,6 @@ describe('inclusiveAllDayEnd', function () {
   it('crosses month and year boundaries', function () {
     expect(inclusiveAllDayEnd(localDay(2026, 7, 1))).toBe(localDay(2026, 6, 30));
     expect(inclusiveAllDayEnd(localDay(2027, 1, 1))).toBe(localDay(2026, 12, 31));
-  });
-});
-
-describe('exclusiveAllDayEnd', function () {
-  it('turns a picked day into the midnight after it', function () {
-    expect(exclusiveAllDayEnd(localDay(2026, 6, 21))).toBe(localDay(2026, 6, 22));
-  });
-
-  it('crosses month and year boundaries', function () {
-    expect(exclusiveAllDayEnd(localDay(2026, 6, 30))).toBe(localDay(2026, 7, 1));
-    expect(exclusiveAllDayEnd(localDay(2026, 12, 31))).toBe(localDay(2027, 1, 1));
-  });
-
-  it('round-trips with inclusiveAllDayEnd', function () {
-    [
-      localDay(2026, 6, 22),
-      localDay(2026, 6, 23),
-      localDay(2026, 7, 1),
-      localDay(2027, 1, 1),
-    ].forEach((storedEnd) => {
-      expect(exclusiveAllDayEnd(inclusiveAllDayEnd(storedEnd))).toBe(storedEnd);
-    });
-  });
-
-  it('is stable when a picked day is re-picked', function () {
-    const picked = localDay(2026, 6, 21);
-    expect(inclusiveAllDayEnd(exclusiveAllDayEnd(picked))).toBe(picked);
   });
 });
 
@@ -146,109 +117,12 @@ describe('clampEnd', function () {
   });
 });
 
-// Calendar-day arithmetic only differs from a naive +86400 on a DST transition day, so these
-// pin the zone rather than relying on the machine's. moment-timezone augments the same moment
-// instance calendar-helpers imports, so setDefault reaches what still computes through moment.
-// It does NOT reach anything routed through calendar-date (plain Date/Intl) — shiftEndWithStart
-// is now half each, so its DST coverage lives with the runner's zone instead. Fixtures use
-// an explicit zone so every assertion holds under CI's UTC too.
-describe('calendar-day arithmetic across DST transitions', function () {
-  afterEach(function () {
-    moment.tz.setDefault(); // back to the machine's zone, or the rest of the suite inherits this
-  });
-
-  /** Start of a calendar day in `zone`, whatever wall clock that instant carries */
-  const dayStart = (zone: string, iso: string) => moment.tz(iso, zone).unix();
-  /** Fixture shift. Must be moment-based: setDefault only reaches moment, so a Date-based
-   *  shift would build the fixture in the host zone while the code under test is in ZONE. */
-  const shiftFixture = (unix: number, days: number) =>
-    moment.unix(unix).add(days, 'days').startOf('day').unix();
-
-  describe('where the transition is at 2am', function () {
-    const ZONE = 'America/Chicago';
-
-    it('advances to the next day-start across spring-forward, where +86400 overshoots', function () {
-      moment.tz.setDefault(ZONE);
-      const mar8 = dayStart(ZONE, '2026-03-08');
-      expect(shiftFixture(mar8, 1)).toBe(dayStart(ZONE, '2026-03-09'));
-      expect(shiftFixture(mar8, 1) - mar8).toBe(23 * 3600);
-    });
-
-    it('advances to the next day-start across fall-back, where +86400 undershoots', function () {
-      moment.tz.setDefault(ZONE);
-      const nov1 = dayStart(ZONE, '2026-11-01');
-      expect(shiftFixture(nov1, 1)).toBe(dayStart(ZONE, '2026-11-02'));
-      expect(shiftFixture(nov1, 1) - nov1).toBe(25 * 3600);
-    });
-
-    it('gives a 23-hour day a full exclusive end', function () {
-      moment.tz.setDefault(ZONE);
-      expect(exclusiveAllDayEnd(dayStart(ZONE, '2026-03-08'))).toBe(dayStart(ZONE, '2026-03-09'));
-      expect(inclusiveAllDayEnd(dayStart(ZONE, '2026-03-09'))).toBe(dayStart(ZONE, '2026-03-08'));
-    });
-
-    it('floors an all-day end to a whole calendar day, not 86400 seconds', function () {
-      moment.tz.setDefault(ZONE);
-      const mar8 = dayStart(ZONE, '2026-03-08');
-      expect(clampEnd(mar8, mar8, true)).toBe(dayStart(ZONE, '2026-03-09'));
-    });
-  });
-
-  describe('where the transition is at midnight', function () {
-    // Santiago springs forward at 24:00, so 2026-09-06 has no 00:00 and startOf('day')
-    // normalizes to 01:00 — the case that leaves a fractional day-diff.
-    const ZONE = 'America/Santiago';
-
-    it('returns whole days when an endpoint is the transition day', function () {
-      moment.tz.setDefault(ZONE);
-      const sep6 = dayStart(ZONE, '2026-09-06');
-      expect(
-        calendarDaysBetween(calendarDateFromUnix(sep6), calendarDateFromUnix(shiftFixture(sep6, 5)))
-      ).toBe(5);
-      expect(
-        calendarDaysBetween(
-          calendarDateFromUnix(sep6),
-          calendarDateFromUnix(shiftFixture(sep6, -5))
-        )
-      ).toBe(-5);
-      expect(
-        calendarDaysBetween(calendarDateFromUnix(sep6), calendarDateFromUnix(shiftFixture(sep6, 1)))
-      ).toBe(1);
-    });
-
-    // These compare calendar days, not instants. Where midnight doesn't exist the day starts
-    // at 01:00, and the shift carries that wall clock, so a round trip can shift by an
-    // hour within the same day. Both encode the same DATE, so only the day is contractual.
-    it('round-trips inclusive and exclusive ends onto the same day', function () {
-      moment.tz.setDefault(ZONE);
-      const sep6 = dayStart(ZONE, '2026-09-06');
-      [-1, 0, 1].forEach((offset) => {
-        const start = shiftFixture(sep6, offset);
-        const roundTripped = inclusiveAllDayEnd(exclusiveAllDayEnd(start));
-        expect(
-          calendarDaysBetween(calendarDateFromUnix(start), calendarDateFromUnix(roundTripped))
-        ).toBe(0);
-      });
-    });
-
-    // The only input shape where `add` before `startOf` differs from the reverse: the day
-    // BEFORE a missing midnight. Truncating first lands on the transition day at 23:00,
-    // still inside the previous day, which collapses a one-day event to zero length.
-    it('takes the next day-start when the following midnight does not exist', function () {
-      moment.tz.setDefault(ZONE);
-      expect(exclusiveAllDayEnd(dayStart(ZONE, '2026-09-05'))).toBe(dayStart(ZONE, '2026-09-06'));
-    });
-
-    it('spans the transition day itself without dropping it', function () {
-      moment.tz.setDefault(ZONE);
-      const start = dayStart(ZONE, '2026-09-05');
-      const end = exclusiveAllDayEnd(shiftFixture(start, 2)); // covers 5th, 6th, 7th
-      expect(
-        calendarDaysBetween(
-          calendarDateFromUnix(start),
-          calendarDateFromUnix(inclusiveAllDayEnd(end))
-        )
-      ).toBe(2);
-    });
-  });
-});
+// A moment.tz.setDefault-pinned DST block lived here. It's gone rather than patched: setDefault
+// only reaches code still computing through moment, and the day math it covered now runs on
+// epoch-day integers, which have no zone behaviour to pin. That coverage is in
+// calendar-date-spec.ts, zone-independent by construction.
+//
+// inclusiveAllDayEnd is the last moment holdout, and it needed no pinned coverage: for an exact
+// midnight its truncation is correct in every zone, transition days included. Its one bad input
+// is an end an hour past midnight, which it cannot tell from the all-day toggle wall-clock ends
+// - indistinguishable by construction, and unreachable while callers pass ical.js values.

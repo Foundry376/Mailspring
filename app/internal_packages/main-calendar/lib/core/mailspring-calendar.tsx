@@ -36,7 +36,6 @@ import {
   showNoEditableCalendarsError,
   showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
-  exclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
 } from './calendar-helpers';
@@ -333,7 +332,9 @@ export class MailspringCalendar extends React.Component<
       startUnix = Math.round(args.time / thirtyMinutes) * thirtyMinutes;
     }
 
-    const endUnix = isAllDay ? exclusiveAllDayEnd(startUnix) : startUnix + 3600;
+    const endUnix = isAllDay
+      ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(startUnix))
+      : startUnix + 3600;
 
     // Build a temporary EventOccurrence to open the popover in "new event" mode
     const clickedDate = CalendarDateUtils.calendarDateFromUnix(startUnix);

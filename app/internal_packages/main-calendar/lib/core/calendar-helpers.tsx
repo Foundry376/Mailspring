@@ -271,15 +271,6 @@ export function inclusiveAllDayEnd(end: number): number {
 }
 
 /**
- * Inverse of inclusiveAllDayEnd: turns a picked last-covered day back into the
- * exclusive end that gets stored.
- */
-export function exclusiveAllDayEnd(lastDay: number): number {
-  // add before startOf: truncating first lands on 01:00 where local midnight doesn't exist
-  return moment.unix(lastDay).add(1, 'day').startOf('day').unix();
-}
-
-/**
  * The end an event should take when its start moves, preserving the duration.
  * All-day events shift in whole days: a seconds delta across a DST transition would
  * land the end off midnight and gain or lose a day once serialized.
@@ -298,8 +289,11 @@ export function shiftEndWithStart(
     CalendarDateUtils.calendarDateFromUnix(startUnix),
     CalendarDateUtils.calendarDateFromUnix(newStartUnix)
   );
-  return exclusiveAllDayEnd(
-    CalendarDateUtils.shiftedDayStartUnix(inclusiveAllDayEnd(endUnix), days)
+  return CalendarDateUtils.nextDayStartUnix(
+    CalendarDateUtils.addCalendarDays(
+      CalendarDateUtils.calendarDateFromUnix(inclusiveAllDayEnd(endUnix)),
+      days
+    )
   );
 }
 
@@ -309,7 +303,9 @@ export function shiftEndWithStart(
  * @returns The clamped end, as a unix timestamp
  */
 export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean): number {
-  const floor = isAllDay ? exclusiveAllDayEnd(startUnix) : startUnix + MIN_EVENT_DURATION_SECONDS;
+  const floor = isAllDay
+    ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(startUnix))
+    : startUnix + MIN_EVENT_DURATION_SECONDS;
   return Math.max(endUnix, floor);
 }
 
