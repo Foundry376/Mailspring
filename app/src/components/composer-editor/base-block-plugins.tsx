@@ -440,9 +440,26 @@ const plugins: ComposerEditorPlugin[] = [
       ) {
         event.preventDefault();
         return;
-      } else {
-        return next();
       }
+
+      // Slate's Backspace command deletes one *character* at a time, and a character
+      // can be two UTF-16 code units wide (eg: a surrogate pair, or a stray unpaired
+      // surrogate left behind by mangled HTML). To do that, it walks backward across
+      // text nodes counting code units until it has consumed enough of them - but if
+      // the document contains fewer code units before the cursor than it needs, it
+      // walks off the start of the document and crashes trying to read `.text` of a
+      // node that doesn't exist. Guard that case by deleting only what's actually
+      // there instead of handing off to Slate's normal command.
+      if (selection.isCollapsed && selection.start && selection.start.key) {
+        const before = document.getOffset(selection.start.key) + selection.start.offset;
+        if (before > 0 && before < 2) {
+          event.preventDefault();
+          editor.deleteBackward(before);
+          return;
+        }
+      }
+
+      return next();
     },
   },
 
