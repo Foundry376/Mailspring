@@ -1,4 +1,10 @@
-import { formatCalendarDate } from '../src/calendar-date';
+import {
+  formatCalendarDate,
+  parseCalendarDate,
+  dayStartUnix,
+  nextDayStartUnix,
+  addCalendarDays,
+} from '../src/calendar-date';
 // Import the functions under test directly from the source file.
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import {
@@ -7,6 +13,7 @@ import {
   snapAllDayTimes,
   createDragState,
   updateDragState,
+  allDayColumnStartUnix,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import { MONTH_VIEW_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
 import {
@@ -272,5 +279,30 @@ describe('createDragPreviewEvent', function () {
       previewEnd: localDay(2026, 6, 25) + 11 * HOUR,
     } as any);
     expect(covered(preview)).toEqual(['2026-06-25', '2026-06-25']);
+  });
+});
+
+
+describe('allDayColumnStartUnix', function () {
+  // Runner is pinned to America/Chicago (scripts/test.js), so a span across 2025-11-02 includes
+  // a 25-hour fall-back day — where a `ceil(seconds/86400)` bucket count and a `start + i*86400`
+  // offset both drift a day. Date-space resolution does not.
+  const firstDate = parseCalendarDate('2025-10-26');
+  const numDays = 21; // week view: DAYS_IN_VIEW (7) + BUFFER_DAYS (7) * 2
+  const lastDate = addCalendarDays(firstDate, numDays - 1);
+  const scopeStart = dayStartUnix(firstDate);
+  const scopeEnd = nextDayStartUnix(lastDate) - 1; // last day's final second, as the view emits
+
+  it('resolves every column to its own calendar midnight across the transition', function () {
+    for (let i = 0; i < numDays; i++) {
+      const fraction = (i + 0.5) / numDays;
+      const expected = dayStartUnix(addCalendarDays(firstDate, i));
+      expect(allDayColumnStartUnix(scopeStart, scopeEnd, fraction)).toBe(expected);
+    }
+  });
+
+  it('clamps out-of-range fractions to the first and last columns', function () {
+    expect(allDayColumnStartUnix(scopeStart, scopeEnd, -0.5)).toBe(dayStartUnix(firstDate));
+    expect(allDayColumnStartUnix(scopeStart, scopeEnd, 1.5)).toBe(dayStartUnix(lastDate));
   });
 });

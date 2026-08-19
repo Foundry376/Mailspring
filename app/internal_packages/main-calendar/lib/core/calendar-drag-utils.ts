@@ -26,6 +26,29 @@ export function snapToInterval(timestamp: number, intervalSeconds: number): numb
 }
 
 /**
+ * The unix midnight of the all-day column a horizontal hit-test lands on, given the scope's
+ * bounds and the fraction across it. Date-space on purpose: the column count is derived as a
+ * day difference (so it matches the rendered columns exactly) and the result is a real calendar
+ * day's start, so neither the bucket count nor the resolved day drifts across a DST transition —
+ * unlike `ceil((end - start) / 86400)` buckets and a `start + index * 86400` offset.
+ */
+export function allDayColumnStartUnix(
+  scopeStartUnix: number,
+  scopeEndUnix: number,
+  fraction: number
+): number {
+  const startDate = CalendarDateUtils.calendarDateFromUnix(scopeStartUnix);
+  const numDays =
+    CalendarDateUtils.calendarDaysBetween(
+      startDate,
+      CalendarDateUtils.calendarDateFromUnix(scopeEndUnix)
+    ) + 1;
+  const clamped = Math.max(0, Math.min(1, fraction));
+  const dayIndex = Math.min(Math.floor(clamped * numDays), numDays - 1);
+  return CalendarDateUtils.dayStartUnix(CalendarDateUtils.addCalendarDays(startDate, dayIndex));
+}
+
+/**
  * Snap all-day event times to day boundaries.
  * The end is exclusive (midnight after the last day covered), matching RFC 5545 DTEND
  * and the events the sync engine produces.
