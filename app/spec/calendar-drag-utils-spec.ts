@@ -3,7 +3,6 @@ import { formatCalendarDate } from '../src/calendar-date';
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import {
   createDragPreviewEvent,
-  isPastDate,
   canMoveEvent,
   snapAllDayTimes,
   createDragState,
@@ -44,31 +43,25 @@ function makeOccurrence(overrides: OccurrenceOverrides = {}): EventOccurrence {
   return isAllDay ? { ...base, isAllDay: true } : { ...base, isAllDay: false, start, end };
 }
 
-describe('isPastDate', function () {
-  it('returns true for a timestamp in the past', function () {
-    expect(isPastDate(Date.now() / 1000 - HOUR)).toBe(true);
-  });
-
-  it('returns false for a timestamp in the future', function () {
-    expect(isPastDate(Date.now() / 1000 + HOUR)).toBe(false);
-  });
-});
-
 describe('canMoveEvent', function () {
   it('allows moving an upcoming event', function () {
     expect(canMoveEvent(makeOccurrence())).toBe(true);
   });
 
-  it('blocks moving an event that has already ended', function () {
+  it('allows moving a past event on an editable calendar', function () {
     const nowUnix = Date.now() / 1000;
     const past = makeOccurrence({ start: nowUnix - 2 * HOUR, end: nowUnix - HOUR });
-    expect(canMoveEvent(past)).toBe(false);
+    expect(canMoveEvent(past)).toBe(true);
   });
 
-  it('allows moving an in-progress event, since only the end time being past locks it', function () {
+  it('allows moving a past all-day event', function () {
     const nowUnix = Date.now() / 1000;
-    const inProgress = makeOccurrence({ start: nowUnix - HOUR, end: nowUnix + HOUR });
-    expect(canMoveEvent(inProgress)).toBe(true);
+    const pastAllDay = makeOccurrence({
+      isAllDay: true,
+      start: nowUnix - 48 * HOUR,
+      end: nowUnix - 24 * HOUR,
+    });
+    expect(canMoveEvent(pastAllDay)).toBe(true);
   });
 
   it('blocks moving an event in a read-only calendar', function () {
@@ -77,26 +70,6 @@ describe('canMoveEvent', function () {
 
   it('blocks moving a cancelled event', function () {
     expect(canMoveEvent(makeOccurrence({ isCancelled: true }))).toBe(false);
-  });
-
-  it('blocks an all-day event only once its day is over', function () {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const todayStartUnix = startOfToday.getTime() / 1000;
-
-    const today = makeOccurrence({
-      isAllDay: true,
-      start: todayStartUnix,
-      end: todayStartUnix + 24 * HOUR,
-    });
-    expect(canMoveEvent(today)).toBe(true);
-
-    const yesterday = makeOccurrence({
-      isAllDay: true,
-      start: todayStartUnix - 24 * HOUR,
-      end: todayStartUnix - 1,
-    });
-    expect(canMoveEvent(yesterday)).toBe(false);
   });
 });
 

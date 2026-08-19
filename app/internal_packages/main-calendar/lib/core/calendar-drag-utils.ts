@@ -346,15 +346,6 @@ export function updateDragState(
 }
 
 /**
- * Check if a timestamp is in the past
- * @param timestamp Unix timestamp to check
- * @returns True if the timestamp has passed
- */
-export function isPastDate(timestamp: number): boolean {
-  return timestamp * 1000 < Date.now();
-}
-
-/**
  * Check if an event's time can be changed by drag, resize, or keyboard
  * @param event The event occurrence
  * @param isCalendarReadOnly Whether the calendar containing this event is read-only
@@ -368,11 +359,6 @@ export function canMoveEvent(event: EventOccurrence, isCalendarReadOnly = false)
 
   // Don't allow moving cancelled events
   if (event.isCancelled) {
-    return false;
-  }
-
-  // An in-progress event can still be moved — only a past end time locks it
-  if (isPastDate(occurrenceEndUnix(event))) {
     return false;
   }
 
