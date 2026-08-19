@@ -768,7 +768,7 @@ export class MailspringCalendar extends React.Component<
       let newStart = dragState.previewStart;
       let newEnd = dragState.previewEnd;
 
-      if (dragState.event.isAllDay) {
+      if (dragState.previewIsAllDay) {
         const snapped = snapAllDayTimes(newStart, newEnd);
         newStart = snapped.start;
         newEnd = snapped.end;
@@ -784,7 +784,7 @@ export class MailspringCalendar extends React.Component<
           dragState.event.recurrenceIdStart ?? occurrenceStartUnix(dragState.event),
         newStart,
         newEnd,
-        isAllDay: dragState.event.isAllDay,
+        isAllDay: dragState.previewIsAllDay,
         isException: dragState.event.isException,
         description:
           dragState.mode === 'move' ? localized('Move event') : localized('Resize event'),

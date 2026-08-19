@@ -88,12 +88,12 @@ export function createDragPreviewEvent(dragState: DragState): EventOccurrence {
   // instants; all-day previews carry only the shifted dates.
   const shared = {
     ...event,
-    ...coveredDates(previewStart, previewEnd, event.isAllDay),
+    ...coveredDates(previewStart, previewEnd, dragState.previewIsAllDay),
     id: `${event.id}-drag-preview`,
     isDragPreview: true,
     originalEventId: event.id,
   };
-  return event.isAllDay
+  return dragState.previewIsAllDay
     ? { ...shared, isAllDay: true }
     : { ...shared, isAllDay: false, start: previewStart, end: previewEnd };
 }
@@ -236,6 +236,7 @@ export function createDragState(
     initialMouseY: mouseY,
     previewStart: start,
     previewEnd: end,
+    previewIsAllDay: event.isAllDay,
     snapIntervalSeconds: config.snapInterval,
     isDragging: false,
   };
@@ -285,17 +286,15 @@ export function updateDragState(
   const usesDaySnap = containerType !== 'day-column';
   const snapInterval = usesDaySnap ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
   const minDuration = usesDaySnap ? 86400 : config.minDuration;
+  // The all-day row converts a timed event; a month cell preserves the event's kind.
+  const previewIsAllDay = state.event.isAllDay || containerType === 'all-day-area';
 
   switch (state.mode) {
     case 'move': {
-      // For move, calculate new start by subtracting the click offset from current mouse position
-      // This keeps the event at the same position relative to the mouse cursor
-      // For day-based snapping, ignore click offset since we snap to day boundaries
-      const newStart = usesDaySnap ? mouseTime : mouseTime - state.clickOffset;
-      if (usesDaySnap) {
-        // Day-based move: snap the start, then span the same number of whole days
+      if (state.event.isAllDay) {
+        // All-day: snap the start, then span the same number of whole days.
         const numDays = Math.max(1, Math.round(eventDuration / 86400));
-        previewStart = moment.unix(newStart).startOf('day').unix();
+        previewStart = moment.unix(mouseTime).startOf('day').unix();
         // Via the helpers, not a raw add: where the drop day's midnight doesn't exist, add()
         // keeps the 01:00 wall clock and snapAllDayTimes then rounds it up an extra day.
         previewEnd = CalendarDateUtils.nextDayStartUnix(
@@ -304,8 +303,23 @@ export function updateDragState(
             numDays - 1
           )
         );
+      } else if (containerType === 'all-day-area') {
+        // Timed event dropped on the all-day row converts to a single all-day day.
+        previewStart = moment.unix(mouseTime).startOf('day').unix();
+        previewEnd = CalendarDateUtils.nextDayStartUnix(
+          CalendarDateUtils.calendarDateFromUnix(previewStart)
+        );
+      } else if (usesDaySnap) {
+        // Timed event moved across day cells (month view): shift by whole calendar days and
+        // keep the clock time. moment add() holds 10am at 10am across a DST change.
+        const daysDelta = CalendarDateUtils.calendarDaysBetween(
+          CalendarDateUtils.calendarDateFromUnix(state.originalStart),
+          CalendarDateUtils.calendarDateFromUnix(mouseTime)
+        );
+        previewStart = moment.unix(state.originalStart).add(daysDelta, 'days').unix();
+        previewEnd = previewStart + eventDuration;
       } else {
-        previewStart = snapToInterval(newStart, snapInterval);
+        previewStart = snapToInterval(mouseTime - state.clickOffset, snapInterval);
         previewEnd = previewStart + eventDuration;
       }
       break;
@@ -355,7 +369,8 @@ export function updateDragState(
   if (
     isDragging === state.isDragging &&
     previewStart === state.previewStart &&
-    previewEnd === state.previewEnd
+    previewEnd === state.previewEnd &&
+    previewIsAllDay === state.previewIsAllDay
   ) {
     return state;
   }
@@ -365,6 +380,7 @@ export function updateDragState(
     isDragging,
     previewStart,
     previewEnd,
+    previewIsAllDay,
   };
 }
 

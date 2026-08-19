@@ -67,6 +67,13 @@ export interface DragState {
   /** Current preview end time (updated during drag) */
   previewEnd: number;
 
+  /**
+   * Whether the current drop position would make the event all-day — true for an all-day event,
+   * or a timed event dragged onto the all-day row (which converts). Drives the preview's kind
+   * and how the drop persists.
+   */
+  previewIsAllDay: boolean;
+
   /** Time snapping interval in seconds (e.g., 900 for 15 minutes) */
   snapIntervalSeconds: number;
 
