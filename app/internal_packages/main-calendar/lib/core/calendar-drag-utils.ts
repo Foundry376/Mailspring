@@ -286,14 +286,19 @@ export function updateDragState(
   const usesDaySnap = containerType !== 'day-column';
   const snapInterval = usesDaySnap ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
   const minDuration = usesDaySnap ? 86400 : config.minDuration;
-  // The all-day row converts a timed event; a month cell preserves the event's kind.
-  const previewIsAllDay = state.event.isAllDay || containerType === 'all-day-area';
+  // The all-day row converts a timed event; a month cell preserves the event's kind. Recurring
+  // events are NOT converted yet: createRecurrenceException threads one isAllDay through both the
+  // exception times and the RECURRENCE-ID, so a convert would misformat the RID and orphan the
+  // exception. A recurring timed event dropped here keeps its time (moves to that day) instead.
+  const previewIsAllDay =
+    state.event.isAllDay || (containerType === 'all-day-area' && !state.event.isRecurring);
 
   switch (state.mode) {
     case 'move': {
-      if (state.event.isAllDay) {
-        // All-day: snap the start, then span the same number of whole days.
-        const numDays = Math.max(1, Math.round(eventDuration / 86400));
+      if (previewIsAllDay) {
+        // Target is all-day. An all-day event keeps its whole-day span; a converting timed
+        // event becomes a single day. Snap the start, then span that many whole days.
+        const numDays = state.event.isAllDay ? Math.max(1, Math.round(eventDuration / 86400)) : 1;
         previewStart = moment.unix(mouseTime).startOf('day').unix();
         // Via the helpers, not a raw add: where the drop day's midnight doesn't exist, add()
         // keeps the 01:00 wall clock and snapAllDayTimes then rounds it up an extra day.
@@ -303,15 +308,10 @@ export function updateDragState(
             numDays - 1
           )
         );
-      } else if (containerType === 'all-day-area') {
-        // Timed event dropped on the all-day row converts to a single all-day day.
-        previewStart = moment.unix(mouseTime).startOf('day').unix();
-        previewEnd = CalendarDateUtils.nextDayStartUnix(
-          CalendarDateUtils.calendarDateFromUnix(previewStart)
-        );
       } else if (usesDaySnap) {
-        // Timed event moved across day cells (month view): shift by whole calendar days and
-        // keep the clock time. moment add() holds 10am at 10am across a DST change.
+        // Timed event on a day-granular surface — a month cell, or a recurring event on the
+        // all-day row (not converted). Shift by whole calendar days and keep the clock time;
+        // moment add() holds 10am at 10am across a DST change.
         const daysDelta = CalendarDateUtils.calendarDaysBetween(
           CalendarDateUtils.calendarDateFromUnix(state.originalStart),
           CalendarDateUtils.calendarDateFromUnix(mouseTime)

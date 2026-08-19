@@ -269,6 +269,35 @@ describe('updateDragState move with day snapping', function () {
       isAllDay: true,
     });
   });
+
+  it('does not convert a RECURRING timed event on the all-day row (keeps its time for now)', function () {
+    // createRecurrenceException can't yet convert a single occurrence (the RECURRENCE-ID would
+    // misformat), so a recurring timed event dropped here keeps its clock time instead.
+    const start = localDay(2026, 8, 14) + 10 * HOUR;
+    const end = localDay(2026, 8, 14) + 11 * HOUR;
+    const event = makeOccurrence({ isAllDay: false, start, end, isRecurring: true });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'move' },
+      localDay(2026, 8, 20),
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 20),
+      100,
+      100,
+      'all-day-area',
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    expect(dragged.previewIsAllDay).toBe(false);
+    expect({ start: dragged.previewStart, end: dragged.previewEnd }).toEqual({
+      start: localDay(2026, 8, 20) + 10 * HOUR,
+      end: localDay(2026, 8, 20) + 11 * HOUR,
+    });
+  });
 });
 
 describe('createDragPreviewEvent', function () {
