@@ -26,14 +26,6 @@ export function snapToInterval(timestamp: number, intervalSeconds: number): numb
 }
 
 /**
- * Snap all-day event times to day boundaries.
- * The end is exclusive (midnight after the last day covered), matching RFC 5545 DTEND
- * and the events the sync engine produces.
- * @param start Start timestamp
- * @param end End timestamp
- * @returns Snapped start and end times
- */
-/**
  * The unix midnight of the all-day column a horizontal hit-test lands on, given the scope's
  * bounds and the fraction across it. Date-space on purpose: the column count is derived as a
  * day difference (so it matches the rendered columns exactly) and the result is a real calendar
@@ -56,6 +48,14 @@ export function allDayColumnStartUnix(
   return CalendarDateUtils.dayStartUnix(CalendarDateUtils.addCalendarDays(startDate, dayIndex));
 }
 
+/**
+ * Snap all-day event times to day boundaries.
+ * The end is exclusive (midnight after the last day covered), matching RFC 5545 DTEND
+ * and the events the sync engine produces.
+ * @param start Start timestamp
+ * @param end End timestamp
+ * @returns Snapped start and end times
+ */
 export function snapAllDayTimes(start: number, end: number): { start: number; end: number } {
   const snappedStart = moment.unix(start).startOf('day').unix();
   return { start: snappedStart, end: exclusiveDayEnd(end, snappedStart) };
