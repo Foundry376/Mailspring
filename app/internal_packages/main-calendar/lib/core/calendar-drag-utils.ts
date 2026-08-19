@@ -291,7 +291,8 @@ export function updateDragState(
   // exception times and the RECURRENCE-ID, so a convert would misformat the RID and orphan the
   // exception. A recurring timed event dropped here keeps its time (moves to that day) instead.
   const previewIsAllDay =
-    state.event.isAllDay || (containerType === 'all-day-area' && !state.event.isRecurring);
+    state.event.isAllDay ||
+    (state.mode === 'move' && containerType === 'all-day-area' && !state.event.isRecurring);
 
   switch (state.mode) {
     case 'move': {

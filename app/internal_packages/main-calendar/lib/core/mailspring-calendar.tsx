@@ -585,10 +585,13 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    // Check if times actually changed
+    // Check if the times OR the kind actually changed. A timed event dropped on the all-day
+    // row can convert with identical instants (e.g. a midnight-to-midnight event), so a
+    // times-only check would silently drop the conversion.
     if (
       dragState.previewStart === dragState.originalStart &&
-      dragState.previewEnd === dragState.originalEnd
+      dragState.previewEnd === dragState.originalEnd &&
+      dragState.previewIsAllDay === dragState.event.isAllDay
     ) {
       // No change, just clear state
       this.setState({ dragState: null });

@@ -298,6 +298,33 @@ describe('updateDragState move with day snapping', function () {
       end: localDay(2026, 8, 20) + 11 * HOUR,
     });
   });
+
+  it('does not convert on RESIZE when the cursor drifts over the all-day row', function () {
+    // Week view shares one container for the grid and the all-day strip, so a resize cursor can
+    // stray onto 'all-day-area'. That must not flip a timed event to all-day — only move converts.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 14) + 10 * HOUR,
+      end: localDay(2026, 8, 14) + 12 * HOUR,
+    });
+    const state = createDragState(
+      event,
+      { mode: 'resize-end', cursor: 'ns-resize' },
+      localDay(2026, 8, 14) + 12 * HOUR,
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 15),
+      100,
+      100,
+      'all-day-area',
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    expect(dragged.previewIsAllDay).toBe(false);
+  });
 });
 
 describe('createDragPreviewEvent', function () {
