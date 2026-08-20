@@ -803,28 +803,36 @@ export function updateRecurringEventTimes(
   const { event } = parseICSString(ics);
 
   const currentStart = event.startDate.toJSDate().getTime();
-  const currentEnd = event.endDate.toJSDate().getTime();
 
   if (isAllDay) {
-    // A raw millisecond delta is wrong here: moving an occurrence across a spring-forward
-    // day yields 23h, and shifting the master by 23h leaves its date unchanged, so the
-    // series silently doesn't move. Shift the dates themselves instead.
+    // Shift the master start by the same whole days the occurrence moved, then span the new
+    // duration. Shifting by day count (not a ms delta) keeps the series on midnight across a
+    // spring-forward day, where a 23h ms shift would leave the date unchanged and the series
+    // silently wouldn't move.
     const days = calendarDaysBetween(
       calendarDateFromUnix(originalOccurrenceStart),
       calendarDateFromUnix(newStart)
     );
+    const spanDays = calendarDaysBetween(
+      calendarDateFromUnix(newStart),
+      calendarDateFromUnix(newEnd)
+    );
+    const newMasterStart = shiftedDayStartUnix(currentStart / 1000, days);
     return updateEventTimes(ics, {
-      start: shiftedDayStartUnix(currentStart / 1000, days),
-      end: shiftedDayStartUnix(currentEnd / 1000, days),
+      start: newMasterStart,
+      end: shiftedDayStartUnix(newMasterStart, spanDays),
       isAllDay,
     });
   }
 
-  // Timed events keep their wall-clock offset from the occurrence that was moved
+  // Shift the master start by the occurrence's move delta, then apply the new duration, so a
+  // resize (which changes newEnd relative to newStart) actually changes the whole series.
   const deltaMs = (newStart - originalOccurrenceStart) * 1000;
+  const durationMs = (newEnd - newStart) * 1000;
+  const newMasterStart = currentStart + deltaMs;
   return updateEventTimes(ics, {
-    start: (currentStart + deltaMs) / 1000,
-    end: (currentEnd + deltaMs) / 1000,
+    start: newMasterStart / 1000,
+    end: (newMasterStart + durationMs) / 1000,
     isAllDay,
   });
 }

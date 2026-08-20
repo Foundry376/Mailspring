@@ -755,6 +755,37 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function () {
     expect(result).toContain('20260301T040000Z');
   });
 
+  it('applies a resize to the whole series (extends the master duration)', function () {
+    // Resize the 2nd occurrence from 1h to 2h: start unchanged, end +1h. Before the fix newEnd
+    // was ignored and the master stayed 1h (07:00); now it becomes 2h (08:00).
+    const T_RESIZE_END = Date.UTC(2026, 2, 2, 8, 0, 0) / 1000; // 20260302T080000Z (2h span)
+    const result = ICSEventHelpers.updateRecurringEventTimes(
+      DAILY_STANDUP_ICS,
+      T_OCC2_START,
+      T_OCC2_START, // no move
+      T_RESIZE_END,
+      false
+    );
+    expect(result).toContain('20260301T060000Z'); // DTSTART unchanged
+    expect(result).toContain('20260301T080000Z'); // DTEND now 2h after start
+    expect(result).not.toContain('20260301T070000Z'); // old 1h end gone
+  });
+
+  it('applies a combined move and resize', function () {
+    // Move +2h AND resize to 3h: newStart 08:00, newEnd 11:00.
+    const T_MR_START = Date.UTC(2026, 2, 2, 8, 0, 0) / 1000;
+    const T_MR_END = Date.UTC(2026, 2, 2, 11, 0, 0) / 1000;
+    const result = ICSEventHelpers.updateRecurringEventTimes(
+      DAILY_STANDUP_ICS,
+      T_OCC2_START,
+      T_MR_START,
+      T_MR_END,
+      false
+    );
+    expect(result).toContain('20260301T080000Z'); // DTSTART shifted +2h
+    expect(result).toContain('20260301T110000Z'); // DTEND = new start + 3h
+  });
+
   // These pin the calendar-day SEMANTICS (whole-day moves, exclusive DTEND, month rollover)
   // but not the DST behaviour: this module does plain-Date local arithmetic, which
   // moment.tz.setDefault cannot redirect, and in CI's UTC a whole-day shift is exactly
@@ -812,6 +843,20 @@ describe('ICSEventHelpers.updateRecurringEventTimes', function () {
       );
       expect(result).toContain('DTSTART;VALUE=DATE:20260621');
       expect(result).toContain('DTEND;VALUE=DATE:20260622');
+    });
+
+    it('resizes the series to a longer span', function () {
+      // Extend the 1-day holiday to 3 days (no move). Before the fix newEnd was ignored and it
+      // stayed 1 day; now the exclusive DTEND moves out to cover three days.
+      const result = ICSEventHelpers.updateRecurringEventTimes(
+        YEARLY_ALLDAY_ICS,
+        localMidnight(2026, 6, 21),
+        localMidnight(2026, 6, 21), // no move
+        localMidnight(2026, 6, 24), // 3-day span (exclusive end)
+        true
+      );
+      expect(result).toContain('DTSTART;VALUE=DATE:20260621');
+      expect(result).toContain('DTEND;VALUE=DATE:20260624');
     });
 
     it('carries the move across a month boundary', function () {
