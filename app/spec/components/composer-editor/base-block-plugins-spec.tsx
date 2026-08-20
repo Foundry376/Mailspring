@@ -1,6 +1,5 @@
 import { Editor, Value } from 'slate';
 import { EditListPlugin } from '../../../src/components/composer-editor/base-block-plugins';
-import '../../../src/components/composer-editor/patch-slate-normalizing';
 
 const text = (t: string) => ({ object: 'text', leaves: [{ object: 'leaf', text: t, marks: [] }] });
 const block = (type: string, nodes: any[]) => ({ object: 'block', type, data: {}, nodes });
@@ -80,6 +79,13 @@ describe('EditListPlugin', () => {
 });
 
 describe('Slate withoutNormalizing patch', () => {
+  // Imported here, not at module scope, since installing it mutates `Editor.prototype` for
+  // every other spec in the run and the `EditListPlugin` specs above don't need it — they
+  // build their editors with `plugins: []` so nothing ever normalizes.
+  beforeAll(() => {
+    require('../../../src/components/composer-editor/patch-slate-normalizing');
+  });
+
   it('restores normalization when the callback throws', () => {
     const editor = editorWith([div('hello')]);
     expect((editor as any).tmp.normalize).toBe(true);

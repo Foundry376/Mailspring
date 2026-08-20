@@ -251,10 +251,14 @@ const EditListPluginBase = new EditList({
 export const EditListPlugin = {
   ...EditListPluginBase,
   onKeyDown: (event: React.KeyboardEvent, editor: Editor, next: () => void) => {
+    // slate-edit-list's own onKeyDown only acts on these three keys; matching its gate here
+    // avoids running the guard below (a couple of tree walks) on every other keystroke.
+    if (event.key !== 'Enter' && event.key !== 'Tab' && event.key !== 'Backspace') {
+      return EditListPluginBase.onKeyDown(event, editor, next);
+    }
     const { utils } = EditListPluginBase;
     const { value } = editor;
-    // `startBlock` is the precondition `getCurrentItem` itself assumes; it runs on every
-    // keystroke here, not just the keys the plugin handles.
+    // `startBlock` is the precondition `getCurrentItem` itself assumes.
     if (value.startBlock && utils.getCurrentItem(value) && !utils.getCurrentList(value)) {
       return next();
     }
