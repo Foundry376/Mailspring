@@ -79,12 +79,11 @@ describe('EditListPlugin', () => {
 });
 
 describe('Slate withoutNormalizing patch', () => {
-  // Imported here, not at module scope, since installing it mutates `Editor.prototype` for
+  // Required here, not at module scope, since installing it mutates `Editor.prototype` for
   // every other spec in the run and the `EditListPlugin` specs above don't need it — they
-  // build their editors with `plugins: []` so nothing ever normalizes.
-  beforeAll(() => {
-    require('../../../src/components/composer-editor/patch-slate-normalizing');
-  });
+  // build their editors with `plugins: []` so nothing ever normalizes. A `describe` body runs
+  // once, synchronously, before any of its `it`s, so this installs the patch exactly once.
+  require('../../../src/components/composer-editor/patch-slate-normalizing');
 
   it('restores normalization when the callback throws', () => {
     const editor = editorWith([div('hello')]);
