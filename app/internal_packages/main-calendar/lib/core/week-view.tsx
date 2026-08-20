@@ -36,6 +36,7 @@ export class WeekView extends React.Component<
 
   _waitingForShift = 0;
   _mounted = false;
+  _pendingInitialCenter = false;
   _scrollbar = React.createRef<any>();
   _sub?: Disposable;
 
@@ -53,7 +54,9 @@ export class WeekView extends React.Component<
 
   componentDidMount() {
     this._mounted = true;
-    this._centerScrollRegion();
+    // Center after _setIntervalHeight finalizes the grid height (below); centering now
+    // uses a too-short scrollHeight and pushes edge-of-day events off-screen.
+    this._pendingInitialCenter = true;
 
     // Shift ourselves right by a week because we preload 7 days on either side
     const wrap = this._calendarWrapEl.current;
@@ -183,12 +186,21 @@ export class WeekView extends React.Component<
     const viewportHeight = this._gridScrollRegion.current.viewportEl.clientHeight;
     this._legendWrapEl.current.style.height = `${viewportHeight}px`;
 
-    this.setState({
-      intervalHeight: Math.max(
-        viewportHeight / (TICKS_PER_DAY * DAY_PORTION_SHOWN_VERTICALLY),
-        MIN_INTERVAL_HEIGHT
-      ),
-    });
+    this.setState(
+      {
+        intervalHeight: Math.max(
+          viewportHeight / (TICKS_PER_DAY * DAY_PORTION_SHOWN_VERTICALLY),
+          MIN_INTERVAL_HEIGHT
+        ),
+      },
+      () => {
+        // Resize also calls this; only the initial mount should reposition the scroll.
+        if (this._pendingInitialCenter) {
+          this._pendingInitialCenter = false;
+          this._centerScrollRegion();
+        }
+      }
+    );
   };
 
   _onScrollCalendarArea = (_event: React.UIEvent) => {
