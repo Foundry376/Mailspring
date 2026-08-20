@@ -331,8 +331,13 @@ export class CalendarEventPopover extends React.Component<
     ics = ICSEventHelpers.updateRecurrenceRule(ics, rrule);
 
     event.ics = ics;
-    event.recurrenceStart = this.state.start;
-    event.recurrenceEnd = this.state.end;
+    // Re-derive the cached columns from the written ICS, not from state: for a recurring "all
+    // events" edit the master DTSTART/DTEND are shifted+resized and differ from the edited
+    // occurrence's times (matches modifyAllOccurrences). For a non-recurring edit this equals
+    // state anyway.
+    const { event: savedIcsEvent } = CalendarUtils.parseICSString(ics);
+    event.recurrenceStart = savedIcsEvent.startDate.toJSDate().getTime() / 1000;
+    event.recurrenceEnd = savedIcsEvent.endDate.toJSDate().getTime() / 1000;
 
     Actions.queueTask(
       SyncbackEventTask.forUpdating({
