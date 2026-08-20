@@ -5,6 +5,7 @@ import React from 'react';
 import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
 import { HeaderControls } from './header-controls';
 import { EventOccurrence } from './calendar-data-source';
+import { centerGridScroll } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
@@ -172,8 +173,7 @@ export class DayView extends React.Component<
   };
 
   _centerScrollRegion() {
-    const wrap = this._gridScrollRegion.current.viewportEl;
-    wrap.scrollTop = wrap.scrollHeight / 2 - wrap.clientHeight / 2;
+    centerGridScroll(this._gridScrollRegion.current.viewportEl, this.props.selectedEvents?.[0]);
   }
 
   _setIntervalHeight = () => {

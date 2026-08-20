@@ -41,6 +41,18 @@ export function eventCoversDate(event: EventOccurrence, date: CalendarDate): boo
 }
 
 /**
+ * Whether an occurrence is in the selection, compared by id. Selection holds occurrences captured
+ * at click time; a data refresh gives every occurrence a fresh object identity, so an identity
+ * (`includes`) check silently drops the highlight on the next render.
+ */
+export function isEventSelected(
+  selectedEvents: EventOccurrence[],
+  event: EventOccurrence
+): boolean {
+  return selectedEvents.some((e) => e.id === event.id);
+}
+
+/**
  * Narrowing guard. The app tsconfig omits `strictNullChecks`, so `if (e.isAllDay)` does NOT
  * narrow the union — only `=== true`/`=== false` and a guard like this do. Use it to reach
  * `start`/`end`, which exist on timed occurrences only.
@@ -302,7 +314,7 @@ export function occurrencesForEvents(
 
         const masterIsRecurring = ICSEventHelpers.isRecurringEvent(master.ics);
 
-        [...expanded.events, ...expanded.occurrences].forEach((e, idx) => {
+        [...expanded.events, ...expanded.occurrences].forEach((e) => {
           const start = e.startDate.toJSDate().getTime() / 1000;
           const end = e.endDate.toJSDate().getTime() / 1000;
           // For occurrences, the actual event data is in e.item; for events, e is the event itself
@@ -311,7 +323,10 @@ export function occurrencesForEvents(
 
           occurrences.push(
             occurrenceFromICS({
-              id: `${master.id}-e${idx}`,
+              // Key on the occurrence start, not the expansion index: idx depends on the query
+              // range, so the same occurrence got a different id per view — breaking selection
+              // (and React keys) when switching views. The start is stable across ranges.
+              id: `${master.id}-e${Math.round(start)}`,
               event: master,
               item,
               startTime: e.startDate,
