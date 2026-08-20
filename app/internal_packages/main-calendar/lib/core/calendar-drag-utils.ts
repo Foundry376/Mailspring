@@ -88,12 +88,12 @@ export function createDragPreviewEvent(dragState: DragState): EventOccurrence {
   // instants; all-day previews carry only the shifted dates.
   const shared = {
     ...event,
-    ...coveredDates(previewStart, previewEnd, event.isAllDay),
+    ...coveredDates(previewStart, previewEnd, dragState.previewIsAllDay),
     id: `${event.id}-drag-preview`,
     isDragPreview: true,
     originalEventId: event.id,
   };
-  return event.isAllDay
+  return dragState.previewIsAllDay
     ? { ...shared, isAllDay: true }
     : { ...shared, isAllDay: false, start: previewStart, end: previewEnd };
 }
@@ -236,6 +236,7 @@ export function createDragState(
     initialMouseY: mouseY,
     previewStart: start,
     previewEnd: end,
+    previewIsAllDay: event.isAllDay,
     snapIntervalSeconds: config.snapInterval,
     isDragging: false,
   };
@@ -285,17 +286,21 @@ export function updateDragState(
   const usesDaySnap = containerType !== 'day-column';
   const snapInterval = usesDaySnap ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
   const minDuration = usesDaySnap ? 86400 : config.minDuration;
+  // The all-day row converts a timed event; a month cell preserves the event's kind. Recurring
+  // events are NOT converted yet: createRecurrenceException threads one isAllDay through both the
+  // exception times and the RECURRENCE-ID, so a convert would misformat the RID and orphan the
+  // exception. A recurring timed event dropped here keeps its time (moves to that day) instead.
+  const previewIsAllDay =
+    state.event.isAllDay ||
+    (state.mode === 'move' && containerType === 'all-day-area' && !state.event.isRecurring);
 
   switch (state.mode) {
     case 'move': {
-      // For move, calculate new start by subtracting the click offset from current mouse position
-      // This keeps the event at the same position relative to the mouse cursor
-      // For day-based snapping, ignore click offset since we snap to day boundaries
-      const newStart = usesDaySnap ? mouseTime : mouseTime - state.clickOffset;
-      if (usesDaySnap) {
-        // Day-based move: snap the start, then span the same number of whole days
-        const numDays = Math.max(1, Math.round(eventDuration / 86400));
-        previewStart = moment.unix(newStart).startOf('day').unix();
+      if (previewIsAllDay) {
+        // Target is all-day. An all-day event keeps its whole-day span; a converting timed
+        // event becomes a single day. Snap the start, then span that many whole days.
+        const numDays = state.event.isAllDay ? Math.max(1, Math.round(eventDuration / 86400)) : 1;
+        previewStart = moment.unix(mouseTime).startOf('day').unix();
         // Via the helpers, not a raw add: where the drop day's midnight doesn't exist, add()
         // keeps the 01:00 wall clock and snapAllDayTimes then rounds it up an extra day.
         previewEnd = CalendarDateUtils.nextDayStartUnix(
@@ -304,8 +309,18 @@ export function updateDragState(
             numDays - 1
           )
         );
+      } else if (usesDaySnap) {
+        // Timed event on a day-granular surface — a month cell, or a recurring event on the
+        // all-day row (not converted). Shift by whole calendar days and keep the clock time;
+        // moment add() holds 10am at 10am across a DST change.
+        const daysDelta = CalendarDateUtils.calendarDaysBetween(
+          CalendarDateUtils.calendarDateFromUnix(state.originalStart),
+          CalendarDateUtils.calendarDateFromUnix(mouseTime)
+        );
+        previewStart = moment.unix(state.originalStart).add(daysDelta, 'days').unix();
+        previewEnd = previewStart + eventDuration;
       } else {
-        previewStart = snapToInterval(newStart, snapInterval);
+        previewStart = snapToInterval(mouseTime - state.clickOffset, snapInterval);
         previewEnd = previewStart + eventDuration;
       }
       break;
@@ -355,7 +370,8 @@ export function updateDragState(
   if (
     isDragging === state.isDragging &&
     previewStart === state.previewStart &&
-    previewEnd === state.previewEnd
+    previewEnd === state.previewEnd &&
+    previewIsAllDay === state.previewIsAllDay
   ) {
     return state;
   }
@@ -365,6 +381,7 @@ export function updateDragState(
     isDragging,
     previewStart,
     previewEnd,
+    previewIsAllDay,
   };
 }
 

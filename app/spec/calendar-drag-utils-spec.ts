@@ -228,6 +228,103 @@ describe('updateDragState move with day snapping', function () {
   // A midnight-gap block lived here, pinned with moment.tz.setDefault. The move path now
   // computes through calendar-date, which setDefault cannot reach — and the runner's pinned
   // zone transitions at 2am, so it has no missing midnight either. That case is uncovered.
+
+  // Drops a TIMED event, in the given container, and returns the preview range + target kind.
+  function dragMoveTimed(
+    start: number,
+    end: number,
+    mouseTime: number,
+    containerType: 'month-cell' | 'all-day-area'
+  ) {
+    const event = makeOccurrence({ isAllDay: false, start, end });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'move' },
+      mouseTime,
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(state, mouseTime, 100, 100, containerType, MONTH_VIEW_DRAG_CONFIG);
+    return { start: dragged.previewStart, end: dragged.previewEnd, isAllDay: dragged.previewIsAllDay };
+  }
+
+  it('preserves a timed event\'s clock time when moved across month cells', function () {
+    // 10-11am on Aug 14, dropped on Aug 20 -> 10-11am on Aug 20, still timed.
+    const start = localDay(2026, 8, 14) + 10 * HOUR;
+    const end = localDay(2026, 8, 14) + 11 * HOUR;
+    expect(dragMoveTimed(start, end, localDay(2026, 8, 20), 'month-cell')).toEqual({
+      start: localDay(2026, 8, 20) + 10 * HOUR,
+      end: localDay(2026, 8, 20) + 11 * HOUR,
+      isAllDay: false,
+    });
+  });
+
+  it('converts a timed event to a single all-day day when dropped on the all-day row', function () {
+    const start = localDay(2026, 8, 14) + 10 * HOUR;
+    const end = localDay(2026, 8, 14) + 11 * HOUR;
+    expect(dragMoveTimed(start, end, localDay(2026, 8, 20), 'all-day-area')).toEqual({
+      start: localDay(2026, 8, 20),
+      end: localDay(2026, 8, 21),
+      isAllDay: true,
+    });
+  });
+
+  it('does not convert a RECURRING timed event on the all-day row (keeps its time for now)', function () {
+    // createRecurrenceException can't yet convert a single occurrence (the RECURRENCE-ID would
+    // misformat), so a recurring timed event dropped here keeps its clock time instead.
+    const start = localDay(2026, 8, 14) + 10 * HOUR;
+    const end = localDay(2026, 8, 14) + 11 * HOUR;
+    const event = makeOccurrence({ isAllDay: false, start, end, isRecurring: true });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'move' },
+      localDay(2026, 8, 20),
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 20),
+      100,
+      100,
+      'all-day-area',
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    expect(dragged.previewIsAllDay).toBe(false);
+    expect({ start: dragged.previewStart, end: dragged.previewEnd }).toEqual({
+      start: localDay(2026, 8, 20) + 10 * HOUR,
+      end: localDay(2026, 8, 20) + 11 * HOUR,
+    });
+  });
+
+  it('does not convert on RESIZE when the cursor drifts over the all-day row', function () {
+    // Week view shares one container for the grid and the all-day strip, so a resize cursor can
+    // stray onto 'all-day-area'. That must not flip a timed event to all-day — only move converts.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 14) + 10 * HOUR,
+      end: localDay(2026, 8, 14) + 12 * HOUR,
+    });
+    const state = createDragState(
+      event,
+      { mode: 'resize-end', cursor: 'ns-resize' },
+      localDay(2026, 8, 14) + 12 * HOUR,
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 15),
+      100,
+      100,
+      'all-day-area',
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    expect(dragged.previewIsAllDay).toBe(false);
+  });
 });
 
 describe('createDragPreviewEvent', function () {
@@ -249,7 +346,9 @@ describe('createDragPreviewEvent', function () {
       event,
       previewStart: localDay(2026, 6, 24),
       previewEnd: localDay(2026, 6, 25),
+      previewIsAllDay: true,
     } as any);
+    expect(preview.isAllDay).toBe(true);
     expect(covered(preview)).toEqual(['2026-06-24', '2026-06-24']);
   });
 
@@ -263,7 +362,9 @@ describe('createDragPreviewEvent', function () {
       event,
       previewStart: localDay(2026, 6, 28),
       previewEnd: localDay(2026, 7, 1),
+      previewIsAllDay: true,
     } as any);
+    expect(preview.isAllDay).toBe(true);
     expect(covered(preview)).toEqual(['2026-06-28', '2026-06-30']);
   });
 
@@ -277,7 +378,25 @@ describe('createDragPreviewEvent', function () {
       event,
       previewStart: localDay(2026, 6, 25) + 10 * HOUR,
       previewEnd: localDay(2026, 6, 25) + 11 * HOUR,
+      previewIsAllDay: false,
     } as any);
+    expect(preview.isAllDay).toBe(false);
+    expect(covered(preview)).toEqual(['2026-06-25', '2026-06-25']);
+  });
+
+  it('renders a converting timed event as an all-day preview', function () {
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 6, 21) + 10 * HOUR,
+      end: localDay(2026, 6, 21) + 11 * HOUR,
+    });
+    const preview = createDragPreviewEvent({
+      event,
+      previewStart: localDay(2026, 6, 25),
+      previewEnd: localDay(2026, 6, 26),
+      previewIsAllDay: true,
+    } as any);
+    expect(preview.isAllDay).toBe(true);
     expect(covered(preview)).toEqual(['2026-06-25', '2026-06-25']);
   });
 });
