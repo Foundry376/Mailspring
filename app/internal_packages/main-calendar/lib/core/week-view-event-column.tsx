@@ -3,7 +3,7 @@ import { Moment } from 'moment';
 import classnames from 'classnames';
 import { Utils } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
-import { EventOccurrence, FocusedEventInfo } from './calendar-data-source';
+import { EventOccurrence, FocusedEventInfo, isEventSelected } from './calendar-data-source';
 import { overlapForEvents } from './week-view-helpers';
 import { DragState, HitZone } from './calendar-drag-types';
 
@@ -74,7 +74,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
         {events.map((e) => (
           <CalendarEvent
             event={e}
-            selected={selectedEvents.includes(e)}
+            selected={isEventSelected(selectedEvents, e)}
             order={overlap[e.id]?.order || 1}
             focused={focusedEvent ? focusedEvent.id === e.id : false}
             key={e.id}

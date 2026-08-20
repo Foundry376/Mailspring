@@ -1,7 +1,12 @@
 import React from 'react';
 import { Moment } from 'moment-timezone';
 import classnames from 'classnames';
-import { EventOccurrence, FocusedEventInfo, occurrenceStartUnix } from './calendar-data-source';
+import {
+  EventOccurrence,
+  FocusedEventInfo,
+  occurrenceStartUnix,
+  isEventSelected,
+} from './calendar-data-source';
 import { MonthViewEvent } from './month-view-event';
 import { localized } from 'mailspring-exports';
 import { DragState, HitZone } from './calendar-drag-types';
@@ -38,7 +43,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
   };
 
   _isEventSelected(event: EventOccurrence): boolean {
-    return this.props.selectedEvents.some((e) => e.id === event.id);
+    return isEventSelected(this.props.selectedEvents, event);
   }
 
   _sortEvents(events: EventOccurrence[]): EventOccurrence[] {
