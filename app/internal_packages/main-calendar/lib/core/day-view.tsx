@@ -5,6 +5,7 @@ import React from 'react';
 import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
 import { HeaderControls } from './header-controls';
 import { EventOccurrence } from './calendar-data-source';
+import { centerGridScroll } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
@@ -35,6 +36,7 @@ export class DayView extends React.Component<
 
   _waitingForShift = 0;
   _mounted = false;
+  _pendingInitialCenter = false;
   _scrollbar = React.createRef<any>();
   _sub?: Disposable;
 
@@ -52,7 +54,9 @@ export class DayView extends React.Component<
 
   componentDidMount() {
     this._mounted = true;
-    this._centerScrollRegion();
+    // Center after _setIntervalHeight finalizes the grid height (below); centering now
+    // uses a too-short scrollHeight and pushes edge-of-day events off-screen.
+    this._pendingInitialCenter = true;
 
     // Shift ourselves right by BUFFER_DAYS to show the focused day (not the buffer).
     // clientWidth equals the visible viewport (1 day), so scrolling by clientWidth
@@ -172,8 +176,7 @@ export class DayView extends React.Component<
   };
 
   _centerScrollRegion() {
-    const wrap = this._gridScrollRegion.current.viewportEl;
-    wrap.scrollTop = wrap.scrollHeight / 2 - wrap.clientHeight / 2;
+    centerGridScroll(this._gridScrollRegion.current.viewportEl, this.props.selectedEvents?.[0]);
   }
 
   _setIntervalHeight = () => {
@@ -183,12 +186,21 @@ export class DayView extends React.Component<
     const viewportHeight = this._gridScrollRegion.current.viewportEl.clientHeight;
     this._legendWrapEl.current.style.height = `${viewportHeight}px`;
 
-    this.setState({
-      intervalHeight: Math.max(
-        viewportHeight / (TICKS_PER_DAY * DAY_PORTION_SHOWN_VERTICALLY),
-        MIN_INTERVAL_HEIGHT
-      ),
-    });
+    this.setState(
+      {
+        intervalHeight: Math.max(
+          viewportHeight / (TICKS_PER_DAY * DAY_PORTION_SHOWN_VERTICALLY),
+          MIN_INTERVAL_HEIGHT
+        ),
+      },
+      () => {
+        // Resize also calls this; only the initial mount should reposition the scroll.
+        if (this._pendingInitialCenter) {
+          this._pendingInitialCenter = false;
+          this._centerScrollRegion();
+        }
+      }
+    );
   };
 
   _onScrollCalendarArea = (_event: React.UIEvent) => {

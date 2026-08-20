@@ -1,7 +1,7 @@
 import React from 'react';
 import { Utils } from 'mailspring-exports';
 import { CalendarEvent } from './calendar-event';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, isEventSelected } from './calendar-data-source';
 import { OverlapByEventId } from './week-view-helpers';
 import { EventRendererProps } from './mailspring-calendar';
 import { DragState, HitZone } from './calendar-drag-types';
@@ -63,7 +63,7 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
             event={e}
             order={allDayOverlap[e.id]?.order || 1}
             key={e.id}
-            selected={selectedEvents.includes(e)}
+            selected={isEventSelected(selectedEvents, e)}
             focused={focusedEvent ? focusedEvent.id === e.id : false}
             scopeStart={this.props.start}
             scopeEnd={this.props.end}

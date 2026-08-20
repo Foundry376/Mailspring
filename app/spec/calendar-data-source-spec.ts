@@ -6,6 +6,8 @@ import {
   eventCoversDate,
   occurrenceStartUnix,
   occurrenceEndUnix,
+  isEventSelected,
+  EventOccurrence,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { formatCalendarDate, parseCalendarDate } from '../src/calendar-date';
 
@@ -278,5 +280,51 @@ describe('eventCoversDate', function () {
     expect(
       ['2026-03-07', '2026-03-08', '2026-03-09'].map((iso) => eventCoversDate(occ, day(iso)))
     ).toEqual([true, true, true]);
+  });
+});
+
+
+describe('isEventSelected', function () {
+  const occ = (id: string) => ({ id } as EventOccurrence);
+
+  it('matches by id even when the object identity differs', function () {
+    // Selection is captured at click time; a data refresh gives the occurrence a fresh object,
+    // so an identity check would drop the highlight. This is the week-view bug this guards.
+    const selected = [occ('evt-1'), occ('evt-2')];
+    expect(isEventSelected(selected, occ('evt-1'))).toBe(true);
+  });
+
+  it('does not match a different id', function () {
+    expect(isEventSelected([occ('evt-1')], occ('evt-9'))).toBe(false);
+  });
+
+  it('is false for an empty selection', function () {
+    expect(isEventSelected([], occ('evt-1'))).toBe(false);
+  });
+});
+
+
+describe('occurrence id stability across query ranges', function () {
+  it('gives a recurring occurrence the same id in a wide and a narrow range', function () {
+    // idx-based ids differed per range (the Jun-20 occurrence is the 6th from Jun-15 in June but
+    // the 3rd in the Jun 18-25 week), which broke selection/React keys when switching views.
+    const event = makeEvent(
+      icsFor('DTSTART:20260615T090000Z', 'DTEND:20260615T100000Z', 'RRULE:FREQ=DAILY')
+    );
+    const wide = occurrencesForEvents([event], {
+      startUnix: new Date(2026, 5, 1).getTime() / 1000,
+      endUnix: new Date(2026, 6, 1).getTime() / 1000,
+    });
+    const narrow = occurrencesForEvents([event], {
+      startUnix: new Date(2026, 5, 18).getTime() / 1000,
+      endUnix: new Date(2026, 5, 25).getTime() / 1000,
+    });
+    const onJun20 = (occs: any[]) =>
+      occs.find((o) => formatCalendarDate(o.startDate) === '2026-06-20');
+    const w = onJun20(wide);
+    const n = onJun20(narrow);
+    expect(w).toBeDefined();
+    expect(n).toBeDefined();
+    expect(w.id).toBe(n.id);
   });
 });

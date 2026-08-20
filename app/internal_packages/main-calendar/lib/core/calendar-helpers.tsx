@@ -12,6 +12,7 @@ import {
   CalendarDateUtils,
 } from 'mailspring-exports';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
+import { EventOccurrence, isTimed } from './calendar-data-source';
 
 // Cache of calendar colors synced from CalDAV servers
 const calendarColorCache: Map<string, string> = new Map();
@@ -446,4 +447,17 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
   } catch (error) {
     console.error('Failed to sync new event to server:', error);
   }
+}
+
+/**
+ * Scroll a day/week hour grid so a selected timed event's time is centered in the viewport;
+ * with no timed selection, fall back to the midday default.
+ */
+export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventOccurrence): void {
+  let dayFraction = 0.5;
+  if (selectedEvent && isTimed(selectedEvent)) {
+    const m = moment.unix(selectedEvent.start);
+    dayFraction = (m.hour() * 3600 + m.minute() * 60) / 86400;
+  }
+  viewportEl.scrollTop = viewportEl.scrollHeight * dayFraction - viewportEl.clientHeight / 2;
 }

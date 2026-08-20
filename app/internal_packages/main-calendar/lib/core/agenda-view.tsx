@@ -11,6 +11,7 @@ import {
   eventCoversDate,
   isTimed,
   occurrenceStartUnix,
+  isEventSelected,
 } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { calcEventColors, extractMeetingDomain } from './calendar-helpers';
@@ -171,7 +172,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
   _renderEvent(event: EventOccurrence, dayKey: string) {
     const colors = calcEventColors(event.calendarId);
     const meetingDomain = extractMeetingDomain(event.location, event.description);
-    const isSelected = this.props.selectedEvents.some((e) => e.id === event.id);
+    const isSelected = isEventSelected(this.props.selectedEvents, event);
 
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
     const uniqueId = `${event.id}-${dayKey}`;
