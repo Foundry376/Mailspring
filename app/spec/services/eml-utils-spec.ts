@@ -1,4 +1,22 @@
-import { defaultEmlFilename } from '../../src/services/eml-utils';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import {
+  Actions,
+  DatabaseStore,
+  Message,
+  TaskQueue,
+  GetMessageRFC2822Task,
+} from 'mailspring-exports';
+import {
+  defaultEmlFilename,
+  discardStagedEml,
+  newestExportableMessagesForThreadIds,
+  stageMessageAsEml,
+  stageMessagesAsEml,
+  stageThreadAsEml,
+  stageThreadsAsEml,
+} from '../../src/services/eml-utils';
 
 describe('defaultEmlFilename', function () {
   describe('normal subjects', () => {
@@ -115,9 +133,7 @@ describe('defaultEmlFilename', function () {
 
     it('strips all C0 control characters', () => {
       // Build a string with chars 0x01–0x1F between "a" and "b"
-      const controls = Array.from({ length: 31 }, (_, i) =>
-        String.fromCharCode(i + 1)
-      ).join('');
+      const controls = Array.from({ length: 31 }, (_, i) => String.fromCharCode(i + 1)).join('');
       expect(defaultEmlFilename(`a${controls}b`)).toEqual('ab.eml');
     });
   });
@@ -146,5 +162,270 @@ describe('defaultEmlFilename', function () {
     it('does not remove dots in the middle of the name', () => {
       expect(defaultEmlFilename('v1.2.3 release')).toEqual('v1.2.3 release.eml');
     });
+  });
+});
+
+describe('newestExportableMessagesForThreadIds', function () {
+  const queryFor = (results: Message[]) => {
+    const query: any = {
+      order() {
+        return this;
+      },
+      limit() {
+        return this;
+      },
+      then(callback) {
+        return Promise.resolve(results).then(callback);
+      },
+    };
+    return query;
+  };
+
+  it('returns the single newest message the query yields for each thread', async () => {
+    const a = new Message({ id: 'a', threadId: 't1' });
+    const b = new Message({ id: 'b', threadId: 't2' });
+    spyOn(DatabaseStore, 'findAll').andCallFake((klass, where) =>
+      queryFor(where.threadId === 't1' ? [a] : [b])
+    );
+
+    const messages = await newestExportableMessagesForThreadIds(['t1', 't2']);
+    expect(messages.map((m) => m.id)).toEqual(['a', 'b']);
+  });
+
+  it('excludes drafts, which have no raw source on the server', async () => {
+    spyOn(DatabaseStore, 'findAll').andCallFake(() => queryFor([]));
+    await newestExportableMessagesForThreadIds(['t1']);
+    expect((DatabaseStore.findAll as any).calls[0].args[1]).toEqual({
+      threadId: 't1',
+      draft: false,
+    });
+  });
+
+  it('omits threads that have no exportable message', async () => {
+    const a = new Message({ id: 'a', threadId: 't1' });
+    spyOn(DatabaseStore, 'findAll').andCallFake((klass, where) =>
+      queryFor(where.threadId === 't1' ? [a] : [])
+    );
+
+    const messages = await newestExportableMessagesForThreadIds(['t1', 't2']);
+    expect(messages.map((m) => m.id)).toEqual(['a']);
+  });
+
+  it('returns an empty array when given no threads', async () => {
+    spyOn(DatabaseStore, 'findAll').andCallFake(() => queryFor([]));
+    expect(await newestExportableMessagesForThreadIds([])).toEqual([]);
+    expect(DatabaseStore.findAll).not.toHaveBeenCalled();
+  });
+});
+
+describe('stageMessagesAsEml', function () {
+  let queued: GetMessageRFC2822Task[] = [];
+  let cleanup: string[] = [];
+
+  // Stand in for the sync engine: when a fetch is awaited, write the file it
+  // was asked to produce. `writeFor` decides which ones actually get written.
+  const engineWrites = (writeFor: (task: GetMessageRFC2822Task) => boolean) => {
+    (TaskQueue.waitForPerformRemote as any).andCallFake((task: GetMessageRFC2822Task) => {
+      if (writeFor(task)) {
+        fs.writeFileSync(task.filepath, 'Subject: raw\r\n\r\nbody\r\n');
+        cleanup.push(path.dirname(task.filepath));
+      }
+      return Promise.resolve();
+    });
+  };
+
+  beforeEach(() => {
+    queued = [];
+    cleanup = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(() => Promise.resolve());
+  });
+
+  afterEach(() => {
+    for (const dir of cleanup) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('queues one fetch per message, staging each into its own directory', async () => {
+    engineWrites(() => true);
+    const messages = [
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' }),
+      new Message({ id: 'm2', accountId: 'a2', subject: 'World' }),
+    ];
+
+    const staged = await stageMessagesAsEml(messages);
+
+    expect(queued.length).toEqual(2);
+    expect(queued.map((t) => t.messageId)).toEqual(['m1', 'm2']);
+    expect(queued.map((t) => t.accountId)).toEqual(['a1', 'a2']);
+    expect(staged.map((s) => path.basename(s.filePath))).toEqual(['Hello.eml', 'World.eml']);
+    expect(path.dirname(staged[0].filePath)).not.toEqual(path.dirname(staged[1].filePath));
+  });
+
+  it('queues every fetch before awaiting any of them', async () => {
+    let resolveAll;
+    const gate = new Promise<void>((resolve) => (resolveAll = resolve));
+    (TaskQueue.waitForPerformRemote as any).andCallFake(() => gate);
+
+    const promise = stageMessagesAsEml([
+      new Message({ id: 'm1', accountId: 'a1', subject: 'One' }),
+      new Message({ id: 'm2', accountId: 'a1', subject: 'Two' }),
+    ]);
+    expect(queued.length).toEqual(2);
+    resolveAll();
+    const staged = await promise;
+    // Nothing was written, so nothing is reported as staged
+    expect(staged).toEqual([]);
+  });
+
+  it('omits messages whose file was never written', async () => {
+    engineWrites((task) => task.messageId === 'm1');
+    const staged = await stageMessagesAsEml([
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Written' }),
+      new Message({ id: 'm2', accountId: 'a1', subject: 'Missing' }),
+    ]);
+
+    expect(staged.length).toEqual(1);
+    expect(staged[0].message.id).toEqual('m1');
+    expect(path.basename(staged[0].filePath)).toEqual('Written.eml');
+  });
+
+  it('uses an explicit filename when one is given', async () => {
+    engineWrites(() => true);
+    const staged = await stageMessagesAsEml(
+      [new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' })],
+      { filename: 'Forwarded Message.eml' }
+    );
+    expect(path.basename(staged[0].filePath)).toEqual('Forwarded Message.eml');
+  });
+
+  it('does nothing when given no messages', async () => {
+    expect(await stageMessagesAsEml([])).toEqual([]);
+    expect(Actions.queueTask).not.toHaveBeenCalled();
+  });
+
+  it('removes the staging directory of a message whose file never arrived', async () => {
+    engineWrites(() => false);
+    await stageMessagesAsEml([new Message({ id: 'm1', accountId: 'a1', subject: 'Missing' })]);
+    expect(fs.existsSync(path.dirname(queued[0].filepath))).toBe(false);
+  });
+
+  it('leaves the staging directory of a written file in place for the caller', async () => {
+    engineWrites(() => true);
+    const staged = await stageMessagesAsEml([
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Written' }),
+    ]);
+    expect(fs.existsSync(staged[0].filePath)).toBe(true);
+  });
+});
+
+describe('discardStagedEml', function () {
+  it('removes the file and the staging directory around it', () => {
+    const dir = path.join(os.tmpdir(), 'mailspring-eml-spec-discard');
+    const filePath = path.join(dir, 'Hello.eml');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, 'raw');
+
+    discardStagedEml(filePath);
+    expect(fs.existsSync(dir)).toBe(false);
+  });
+
+  it('refuses to touch a directory it did not create', () => {
+    const dir = path.join(os.tmpdir(), 'mailspring-spec-not-staging');
+    const filePath = path.join(dir, 'Hello.eml');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, 'raw');
+
+    discardStagedEml(filePath);
+    expect(fs.existsSync(filePath)).toBe(true);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('does not throw when the file is already gone', () => {
+    expect(() =>
+      discardStagedEml(path.join(os.tmpdir(), 'mailspring-eml-spec-absent', 'Hello.eml'))
+    ).not.toThrow();
+  });
+});
+
+describe('stageMessageAsEml', function () {
+  beforeEach(() => {
+    spyOn(Actions, 'queueTask');
+  });
+
+  it('unwraps the single staged result', async () => {
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake((task: GetMessageRFC2822Task) => {
+      fs.writeFileSync(task.filepath, 'raw');
+      return Promise.resolve();
+    });
+    const staged = await stageMessageAsEml(
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' })
+    );
+    expect(path.basename(staged.filePath)).toEqual('Hello.eml');
+    discardStagedEml(staged.filePath);
+  });
+
+  it('returns null when the fetch produced no file', async () => {
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(() => Promise.resolve());
+    const staged = await stageMessageAsEml(
+      new Message({ id: 'm1', accountId: 'a1', subject: 'Hello' })
+    );
+    expect(staged).toBe(null);
+  });
+});
+
+describe('stageThreadAsEml', function () {
+  it('returns null when the thread has no exportable message', async () => {
+    spyOn(Actions, 'queueTask');
+    spyOn(DatabaseStore, 'findAll').andCallFake(() => {
+      const query: any = {
+        order() {
+          return this;
+        },
+        limit() {
+          return this;
+        },
+        then(callback) {
+          return Promise.resolve([]).then(callback);
+        },
+      };
+      return query;
+    });
+
+    expect(await stageThreadAsEml('t1')).toBe(null);
+    expect(Actions.queueTask).not.toHaveBeenCalled();
+  });
+});
+
+describe('stageThreadsAsEml', function () {
+  beforeEach(() => {
+    spyOn(Actions, 'queueTask');
+    spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(() => Promise.resolve());
+  });
+
+  it('reports threads with no exportable message separately from failed fetches', async () => {
+    const a = new Message({ id: 'a', threadId: 't1', accountId: 'a1', subject: 'Hello' });
+    spyOn(DatabaseStore, 'findAll').andCallFake((klass, where) => {
+      const results = where.threadId === 't1' ? [a] : [];
+      const query: any = {
+        order() {
+          return this;
+        },
+        limit() {
+          return this;
+        },
+        then(callback) {
+          return Promise.resolve(results).then(callback);
+        },
+      };
+      return query;
+    });
+
+    // Nothing is written, so t1 counts as a failed fetch rather than an
+    // unavailable thread — the two must not be conflated.
+    const { staged, unavailableThreadIds } = await stageThreadsAsEml(['t1', 't2']);
+    expect(staged).toEqual([]);
+    expect(unavailableThreadIds).toEqual(['t2']);
   });
 });
