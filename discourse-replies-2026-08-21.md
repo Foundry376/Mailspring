@@ -1,6 +1,8 @@
-# Mailspring Discourse Reply Drafts — 2026-08-14
+# Mailspring Discourse Reply Drafts — 2026-08-21
 
-**Read this note first:** Last week's session wrote `discourse-replies-2026-08-07.md` — carefully researched, but it seems it was never actually reviewed or posted (`discourse-posted-ids.json` is unchanged, and the file was still sitting in the working copy this week). That's the same process gap that file itself flagged about the weeks before it. I re-verified the load-bearing claims in it myself this session (Run-on-Startup/Update.exe dependency, composer table support, the MCP `npx` config bug) against current code and current thread state — everything held up, no new replies had landed on any of those 37 threads in the intervening week, so I've carried it forward largely as-is rather than re-do work that was already solid. I added a few threads that appeared since 08-07 (two detailed refresh/sync reports, and a Mac notifications regression) with fresh research. **Please make sure this one actually gets reviewed and posted (or explicitly deleted) — don't let it become week three of the same gap.**
+**Read this note first:** This is now the third week running that a fully-researched draft has gone unposted. `discourse-replies-2026-08-07.md` flagged that 10 weeks of prior drafts (back to 2026-05-22) were never reviewed. `discourse-replies-2026-08-14.md` then sat for another week, unreviewed and unposted, with its own note asking that it "actually gets reviewed and posted (or explicitly deleted)." `discourse-posted-ids.json` is still unchanged from before any of this started — nothing from this pipeline has ever actually been posted.
+
+I re-verified the 08-14 batch against current forum state before carrying it forward: the changelog hasn't changed (still 1.23.0, 7/19/2026), and I checked every one of those 39 threads' current post/tag counts — none has had a new reply or a `resolved` tag added since 08-14, so nothing in it is stale. I've kept it essentially as-is (renumbered) rather than re-do already-solid work, and added four new items (#41–44) for genuinely new/changed forum activity since then. **Given the pattern of the last three weeks, please either post this batch or explicitly tell me to delete it — don't let a fourth unreviewed draft pile up.**
 
 ---
 
@@ -292,7 +294,7 @@
 
 ---
 
-## New this week
+## Added 2026-08-14
 
 ### 39. Inbox view doesn't refresh on new mail arrival — unread indicators and message list go stale until switching folders
 **Thread:** https://community.getmailspring.com/t/inbox-view-doesnt-refresh-on-new-mail-arrival-unread-indicators-and-message-list-go-stale-until-switching-folders/14550
@@ -308,10 +310,33 @@
 
 ---
 
+## New this week (2026-08-21)
+
+### 41. Search with advanced, Gmail-style queries
+**Thread:** https://community.getmailspring.com/t/search-with-advanced-gmail-style-queries/153
+**Action:** Reply
+
+> Thanks for the screenshots — that's a clear, specific example to work from. I traced how search works on the app side: it queries a local full-text index (SQLite FTS) but doesn't build or populate it — that indexing happens entirely in our sync engine, which isn't something I can inspect from here, so I can't tell you exactly why that one message from Simona didn't make it in. Worth trying first: **Preferences > Accounts > select the account > "Rebuild Cache"**, which rebuilds the local database (including the search index) from scratch — that clears up sync/index mismatches like this in a lot of cases. If it's still missing after a rebuild, let me know and I'll dig further on the sync-engine side.
+
+### 42. Umlauts break attachment names ("Unnamed Attachment")
+**Thread:** https://community.getmailspring.com/t/umlauts-break-attachment-names-unnamed-attachment/9903
+**Action:** Reply
+
+> Thanks for confirming this is still happening on 1.23.0 — and it's genuinely useful that you're seeing it with Portuguese characters too, since that points to a general non-ASCII filename issue rather than anything Umlaut-specific. I traced the "Unnamed Attachment" fallback in our code: it only shows up when an attachment's filename arrives completely empty from our sync engine, which is also where the actual MIME filename parsing/decoding happens — that's not code I have visibility into from the Electron app side, so I can't pin down exactly why a non-ASCII filename header is getting dropped instead of decoded. I've flagged this with the specifics you've given (German and Portuguese special characters) so it can be tracked down on the sync-engine side.
+
+### 43. "No Recipient" error on email send. Email shows in drafts, but is empty on draft open
+**Thread:** https://community.getmailspring.com/t/no-recipient-error-on-email-send-email-shows-in-drafts-but-is-empty-on-draft-open/687
+**Action:** Reply
+
+> Really glad you dug into this one — it's been open since 2021, and getting an actual root cause from someone who can reproduce it would be huge. Please do go ahead and open a PR (or an issue first if you'd rather talk through the approach before writing code — either is fine with me). One thing that might line up with what you found: when Mailspring resolves the "From" account at send time, there's a code path (`ensureCorrectAccount()` in `draft-editing-session.ts`) that — if the draft's stored account doesn't match the account that actually owns the send-as address — will silently create a brand-new draft under the correct account and destroy the old one, and that destroy isn't awaited relative to the create. A Google Workspace account with multiple "send as" identities seems like exactly the kind of setup that could trigger a mismatch there. If your fix is in that neighborhood, that'd match what I can see from the app side — thanks for sticking with this, and looking forward to the PR.
+
+---
+
 ## Flagged for you separately — not included above, need your direct attention
 
 - **I am currently unemployed** (https://community.getmailspring.com/t/i-am-currently-unemployed/14530) — asking for a temporary discount on the subscription due to financial hardship. This needs your personal judgment call, not a scripted reply.
 - **Overdue payment** (https://community.getmailspring.com/t/overdue-payment/13945) — missed payment affecting read-receipts access; needs someone with account/billing system access.
+- **Refund requested within 24 hours of purchase, no reply from support** (https://community.getmailspring.com/t/refund-requested-within-24-hours-of-purchase-no-reply-from-support/14545) — new this week. A user is asking publicly for an $85 refund after apparently not hearing back from support. Needs your/support's direct attention on the actual refund. Separately: one of the two community replies in that thread looks like it may have had a spammy link inserted into a quoted post after the fact (a "quote-modified" reply quoting the earlier community reply, with a `tropical-casino.com` link embedded inside the blockquote that wasn't in the original). I haven't followed that link. Worth a look in case it's a compromised/spam account, independent of the refund question itself.
 - A handful of **Service Issues / Bugs** threads didn't have enough specific detail to draw a confident, evidence-based conclusion, so I left them unanswered rather than guess: **Mailspring will not authenticate shaw webmail** (#14452, VPN + wrong IMAP port — now has a second user confirming the same symptom with no VPN at all), **Not able to install... SMTP Authentication Error 296** (#14243, Hostinger), **Gmail Won't Send** (#14496), **Encountered an error while syncing** (#14218), **Emails stuck on Monday, March 2nd** (#14276), **Mails not showing up - with different address** (#14549, GMX forwarding/alias question — too specific to that account setup to answer without back-and-forth).
 - **Impossible to update mailspring to 1.20.1** (#14424, Flathub) already has a helpful reply from a community member (LinusDierheimer) — no action needed unless you want to add anything.
 - **My mail rules are being ignored** (https://community.getmailspring.com/t/my-mail-rules-are-being-ignored/76) is still open from 2021 with no fresh lead this week — didn't want to bump it with nothing new to add.
