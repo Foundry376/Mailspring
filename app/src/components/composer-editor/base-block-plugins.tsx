@@ -26,6 +26,26 @@ function nodeIsEmpty(node: Node) {
   return false;
 }
 
+// Slate treats a UTF-16 surrogate code unit (0xd800 - 0xdfff, whether paired or a
+// stray unpaired half) as the first code unit of a 2-code-unit-wide character.
+// Mirrors slate's own TextUtils.isSurrogate.
+function isSurrogateCodeUnit(code: number) {
+  return code >= 0xd800 && code <= 0xdfff;
+}
+
+// Returns whether the single code unit immediately before `point` is a surrogate,
+// walking back into the previous text node if `point` sits at the start of its own.
+function isSurrogateCodeUnitBeforeCursor(document: any, point: any) {
+  let node = document.getDescendant(point.key);
+  let offset = point.offset;
+  while (node && offset === 0) {
+    node = document.getPreviousText(node.key);
+    offset = node ? node.text.length : 0;
+  }
+  if (!node) return false;
+  return isSurrogateCodeUnit(node.text.charCodeAt(offset - 1));
+}
+
 function isBlockTypeOrWithinType(value: Value, type: string) {
   if (!value.focusBlock) {
     return false;
@@ -440,9 +460,28 @@ const plugins: ComposerEditorPlugin[] = [
       ) {
         event.preventDefault();
         return;
-      } else {
-        return next();
       }
+
+      // Slate's Backspace command deletes one *character* at a time, and a character
+      // is two UTF-16 code units wide when the code unit immediately before the cursor
+      // is a surrogate (eg: a surrogate pair, or a stray unpaired surrogate left behind
+      // by mangled HTML). To find that character, it walks backward across text nodes
+      // counting code units until it has consumed enough of them - but if the document
+      // contains fewer code units before the cursor than it needs, it walks off the
+      // start of the document and crashes trying to read `.text` of a node that doesn't
+      // exist. Guard only that specific case (not ordinary single-code-unit backspaces,
+      // which other plugins like the list editor need to see) by deleting just the
+      // stray code unit ourselves instead of handing off to Slate's normal command.
+      if (selection.isCollapsed && selection.start && selection.start.key) {
+        const before = document.getOffset(selection.start.key) + selection.start.offset;
+        if (before === 1 && isSurrogateCodeUnitBeforeCursor(document, selection.start)) {
+          event.preventDefault();
+          editor.deleteBackward(before);
+          return;
+        }
+      }
+
+      return next();
     },
   },
 
