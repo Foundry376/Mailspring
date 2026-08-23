@@ -1,4 +1,4 @@
-import type { Thread, Message, Category, Contact } from 'mailspring-exports';
+import type { Thread, Message, Category, Contact, File } from 'mailspring-exports';
 import { isThreadAllowed, isMessageAllowed } from './mcp-access-control';
 
 // Authorization + output-shaping, combined. Every thread/message that leaves
@@ -16,6 +16,16 @@ function serializeContact(c: Pick<Contact, 'name' | 'email'>) {
   return { name: c.name, email: c.email };
 }
 
+function serializeFile(f: File) {
+  return {
+    id: f.id,
+    filename: f.displayName(),
+    contentType: f.contentType || null,
+    size: f.size,
+    isInline: !!f.contentId,
+  };
+}
+
 export function serializeThreadSummary(
   thread: Thread,
   opts: { includeMessageCount?: boolean } = {}
@@ -29,6 +39,7 @@ export function serializeThreadSummary(
     starred: thread.starred,
     lastMessageReceivedTimestamp: thread.lastMessageReceivedTimestamp,
     participantCount: thread.participants?.length || 0,
+    attachmentCount: thread.attachmentCount || 0,
     accountId: thread.accountId,
     categories: (thread.categories || []).map(serializeCategory),
   };
@@ -52,6 +63,7 @@ export function serializeMessageDetail(message: Message): Record<string, any> | 
     date: message.date,
     body: message.body,
     snippet: message.snippet,
+    files: (message.files || []).map(serializeFile),
     unread: message.unread,
     starred: message.starred,
     draft: message.draft,

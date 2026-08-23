@@ -3,7 +3,7 @@ import { randomUUID, createHash, timingSafeEqual } from 'crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { registerTools } from './mcp-tools';
+import { registerTools, registerResources } from './mcp-tools';
 
 export class McpHttpServer {
   private httpServer: http.Server | null = null;
@@ -15,6 +15,7 @@ export class McpHttpServer {
       version: '1.0.0',
     });
     registerTools(server);
+    registerResources(server);
     return server;
   }
 
