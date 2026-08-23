@@ -1,0 +1,21 @@
+.btn.copy-button {
+  // Center the icon within the button and the button within its line, so the
+  // button lines up with an adjacent <input> or <code> rather than sitting on
+  // the text baseline.
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+
+  // The icon lives in a fixed-size box so swapping the clipboard icon for the
+  // checkmark (which has different dimensions) never resizes the button and
+  // reflows the content alongside it.
+  .copy-button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+  }
+}

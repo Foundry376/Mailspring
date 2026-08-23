@@ -55,6 +55,7 @@ export const EditableTableCell: typeof import('../components/editable-table').Ed
 export * from '../components/lazy-rendered-list';
 export * from '../components/attachment-items';
 export const CodeSnippet: typeof import('../components/code-snippet').default;
+export const CopyButton: typeof import('../components/copy-button').default;
 
 export * from '../components/composer-editor/composer-editor';
 export * from '../components/composer-editor/composer-editor-plaintext';

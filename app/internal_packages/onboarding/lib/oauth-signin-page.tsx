@@ -1,7 +1,7 @@
 import { shell } from 'electron';
 import React from 'react';
 import { localized, localizedReactFragment, Account } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { CopyButton, RetinaImg } from 'mailspring-component-kit';
 import http from 'http';
 import url from 'url';
 
@@ -42,7 +42,6 @@ interface OAuthSignInPageState {
   showAlternative: boolean;
   errorMessage?: string;
   errorLog?: string;
-  pressed?: boolean;
 }
 
 export default class OAuthSignInPage extends React.Component<
@@ -202,18 +201,7 @@ export default class OAuthSignInPage extends React.Component<
             value={this.props.providerAuthPageUrl}
             readOnly
           />
-          <div
-            className="copy-to-clipboard"
-            onClick={() =>
-              navigator.clipboard
-                .writeText(this.props.providerAuthPageUrl)
-                .catch((err) => console.error('Failed to copy to clipboard:', err))
-            }
-            onMouseDown={() => this.setState({ pressed: true })}
-            onMouseUp={() => this.setState({ pressed: false })}
-          >
-            <RetinaImg name="icon-copytoclipboard.png" mode={RetinaImg.Mode.ContentIsMask} />
-          </div>
+          <CopyButton className="copy-to-clipboard" text={this.props.providerAuthPageUrl} />
         </div>
       </div>
     );

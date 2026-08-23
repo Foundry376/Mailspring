@@ -5,7 +5,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import React from 'react';
 import { localized } from 'mailspring-exports';
-import { Switch, RetinaImg } from 'mailspring-component-kit';
+import { Switch, RetinaImg, CopyButton } from 'mailspring-component-kit';
 import McpServerManager from './mcp-server-manager';
 import PreferencesMcpAccounts from './preferences-mcp-accounts';
 import PreferencesMcpAudit from './preferences-mcp-audit';
@@ -21,14 +21,12 @@ interface State {
   enabledAccounts: { [accountId: string]: { enabled: boolean; excludedFolderIds?: string[] } };
   running: boolean;
   error: string | null;
-  tokenCopied: boolean;
   claudeStatus: string | null;
   codexStatus: string | null;
   claudeCodeStatus: string | null;
   // Set true once the user has successfully added Mailspring to any AI tool;
   // reveals the "Try It!" example prompt beneath the Quick Setup buttons.
   tryItVisible: boolean;
-  tryItCopied: boolean;
 }
 
 export default class PreferencesMcp extends React.Component<Record<string, never>, State> {
@@ -39,10 +37,10 @@ export default class PreferencesMcp extends React.Component<Record<string, never
 
   constructor(props: Record<string, never>) {
     super(props);
-    // tryItVisible/tryItCopied are UI-only and must persist across the
-    // manager-driven setState(this._getState()) updates, so they live outside
-    // _getState() and are seeded here.
-    this.state = { ...this._getState(), tryItVisible: false, tryItCopied: false };
+    // tryItVisible is UI-only and must persist across the manager-driven
+    // setState(this._getState()) updates, so it lives outside _getState() and
+    // is seeded here.
+    this.state = { ...this._getState(), tryItVisible: false };
   }
 
   componentDidMount() {
@@ -59,7 +57,7 @@ export default class PreferencesMcp extends React.Component<Record<string, never
     }
   }
 
-  _getState(): Omit<State, 'tryItVisible' | 'tryItCopied'> {
+  _getState(): Omit<State, 'tryItVisible'> {
     return {
       enabled: AppEnv.config.get('core.mcp.enabled') || false,
       port: AppEnv.config.get('core.mcp.port') || 2587,
@@ -68,7 +66,6 @@ export default class PreferencesMcp extends React.Component<Record<string, never
       enabledAccounts: AppEnv.config.get('core.mcp.enabledAccounts') || {},
       running: McpServerManager.isRunning(),
       error: McpServerManager.getError(),
-      tokenCopied: false,
       claudeStatus: null,
       codexStatus: null,
       claudeCodeStatus: null,
@@ -80,12 +77,6 @@ export default class PreferencesMcp extends React.Component<Record<string, never
       'Read the threads in my inbox using Mailspring - what should I prioritize? Draft a reply to the most important message.'
     );
   }
-
-  _onCopyTryIt = () => {
-    navigator.clipboard.writeText(this._tryItPrompt());
-    this.setState({ tryItCopied: true });
-    setTimeout(() => this.setState({ tryItCopied: false }), 2000);
-  };
 
   // Renders one Quick Setup button. Short status messages ("Adding…",
   // "Added!") display inside the fixed-width button in place of its label;
@@ -128,12 +119,6 @@ export default class PreferencesMcp extends React.Component<Record<string, never
     this.setState({ accessLevel: e.target.value });
   };
 
-  _onCopyToken = () => {
-    navigator.clipboard.writeText(this.state.token);
-    this.setState({ tokenCopied: true });
-    setTimeout(() => this.setState({ tokenCopied: false }), 2000);
-  };
-
   _onRegenerateToken = () => {
     McpServerManager.regenerateToken();
     this.setState(this._getState());
@@ -162,14 +147,17 @@ export default class PreferencesMcp extends React.Component<Record<string, never
       if (!config.mcpServers) config.mcpServers = {};
       config.mcpServers.mailspring = {
         command: 'npx',
+        env: { AUTH_HEADER: `Bearer ${this.state.token}` },
         args: [
+          '--registry=https://registry.npmjs.org/',
+          '--yes',
           'mcp-remote@latest',
           `http://127.0.0.1:${this.state.port}/mcp`,
           '--allow-http',
           '--transport',
           'http-only',
           '--header',
-          `Authorization: Bearer ${this.state.token}`,
+          'Authorization:${AUTH_HEADER}',
         ],
       };
 
@@ -312,13 +300,11 @@ export default class PreferencesMcp extends React.Component<Record<string, never
       token,
       running,
       error,
-      tokenCopied,
       enabledAccounts,
       claudeStatus,
       codexStatus,
       claudeCodeStatus,
       tryItVisible,
-      tryItCopied,
     } = this.state;
 
     const setupError = [claudeStatus, codexStatus, claudeCodeStatus].find(
@@ -382,22 +368,15 @@ export default class PreferencesMcp extends React.Component<Record<string, never
                   {tryItVisible && (
                     <div className="mcp-try-it">
                       <h6>{localized('Try It!')}</h6>
+                      <p className="mcp-description">
+                        {localized(
+                          'Note: Restart Claude / ChatGPT and start a new chat, existing chats may not see the new connector.'
+                        )}
+                      </p>
+
                       <div className="mcp-try-it-prompt">
                         <code>{this._tryItPrompt()}</code>
-                        <button
-                          className="btn btn-small btn-icon"
-                          onClick={this._onCopyTryIt}
-                          title={localized('Copy to clipboard')}
-                        >
-                          {tryItCopied ? (
-                            localized('Copied!')
-                          ) : (
-                            <RetinaImg
-                              name="icon-copytoclipboard.png"
-                              mode={RetinaImg.Mode.ContentIsMask}
-                            />
-                          )}
-                        </button>
+                        <CopyButton text={() => this._tryItPrompt()} />
                       </div>
                     </div>
                   )}
@@ -434,20 +413,7 @@ export default class PreferencesMcp extends React.Component<Record<string, never
                     <label>{localized('Bearer Token')}</label>
                     <div className="mcp-token-row">
                       <code className="mcp-token">{token}</code>
-                      <button
-                        className="btn btn-small btn-icon"
-                        onClick={this._onCopyToken}
-                        title={localized('Copy to clipboard')}
-                      >
-                        {tokenCopied ? (
-                          localized('Copied!')
-                        ) : (
-                          <RetinaImg
-                            name="icon-copytoclipboard.png"
-                            mode={RetinaImg.Mode.ContentIsMask}
-                          />
-                        )}
-                      </button>
+                      <CopyButton text={token} />
                       <button
                         className="btn btn-small btn-icon"
                         onClick={this._onRegenerateToken}
