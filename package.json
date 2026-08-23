@@ -49,7 +49,7 @@
     "better-sqlite3": "^12.8.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "41.7.2",
+    "electron": "43.4.1",
     "electron-playwright-helpers": "^2.1.0",
     "electron-winstaller": "5.4.0",
     "eslint": "^8.0.0",
