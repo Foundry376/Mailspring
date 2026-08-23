@@ -78,7 +78,9 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0"
   },
-  "overrides": {},
+  "overrides": {
+    "@xmldom/xmldom": "0.9.10"
+  },
   "optionalDependencies": {
     "windows-focus-assist": "^1.4.0"
   }
