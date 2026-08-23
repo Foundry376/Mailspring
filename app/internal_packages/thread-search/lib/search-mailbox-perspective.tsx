@@ -105,6 +105,7 @@ class SearchMailboxPerspective extends MailboxPerspective {
         return new ChangeLabelsTask({
           threads: accountThreads,
           source: 'Dragged out of list',
+          labelsToAdd: [],
           labelsToRemove: [CategoryStore.getInboxCategory(accountId)],
         });
       }
