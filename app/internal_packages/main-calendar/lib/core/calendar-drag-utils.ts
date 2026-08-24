@@ -14,6 +14,7 @@ import {
 } from './calendar-data-source';
 import { CalendarDateUtils } from 'mailspring-exports';
 import { inclusiveAllDayEnd } from './calendar-helpers';
+import { DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 
 /**
  * Snap a timestamp to the nearest interval
@@ -286,13 +287,19 @@ export function updateDragState(
   const usesDaySnap = containerType !== 'day-column';
   const snapInterval = usesDaySnap ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
   const minDuration = usesDaySnap ? 86400 : config.minDuration;
-  // The all-day row converts a timed event; a month cell preserves the event's kind. Recurring
-  // events are NOT converted yet: createRecurrenceException threads one isAllDay through both the
-  // exception times and the RECURRENCE-ID, so a convert would misformat the RID and orphan the
-  // exception. A recurring timed event dropped here keeps its time (moves to that day) instead.
+  // A move converts between kinds when the drop container disagrees with the event: the all-day
+  // row makes a timed event all-day, the timed grid (day-column) makes an all-day event timed. A
+  // month cell preserves the event's kind. Recurring events are NOT converted yet:
+  // createRecurrenceException threads one isAllDay through both the exception times and the
+  // RECURRENCE-ID, so a convert would misformat the RID and orphan the exception — a recurring
+  // event dropped across kinds keeps its own kind (moves to that day) instead.
+  const canConvert = state.mode === 'move' && !state.event.isRecurring;
   const previewIsAllDay =
-    state.event.isAllDay ||
-    (state.mode === 'move' && containerType === 'all-day-area' && !state.event.isRecurring);
+    containerType === 'all-day-area'
+      ? state.event.isAllDay || canConvert
+      : containerType === 'day-column'
+        ? state.event.isAllDay && !canConvert
+        : state.event.isAllDay;
 
   switch (state.mode) {
     case 'move': {
@@ -309,6 +316,12 @@ export function updateDragState(
             numDays - 1
           )
         );
+      } else if (state.event.isAllDay) {
+        // Converting an all-day event into the timed grid (reached only in day-column, the one
+        // place previewIsAllDay flips false for an all-day event). It has no clock time to keep,
+        // so drop its start at the snapped cursor time and give it the default new-event length.
+        previewStart = snapToInterval(mouseTime, snapInterval);
+        previewEnd = previewStart + DEFAULT_TIMED_EVENT_DURATION_SECONDS;
       } else if (usesDaySnap) {
         // Timed event on a day-granular surface — a month cell, or a recurring event on the
         // all-day row (not converted). Shift by whole calendar days and keep the clock time;

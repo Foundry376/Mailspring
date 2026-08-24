@@ -11,15 +11,21 @@ import {
   createDragPreviewEvent,
   canMoveEvent,
   snapAllDayTimes,
+  snapToInterval,
   createDragState,
   updateDragState,
   allDayColumnStartUnix,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
-import { MONTH_VIEW_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
+import {
+  DEFAULT_DRAG_CONFIG,
+  MONTH_VIEW_DRAG_CONFIG,
+} from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
+import { DEFAULT_TIMED_EVENT_DURATION_SECONDS } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import {
   EventOccurrence,
   TimedOccurrence,
   coveredDates,
+  isTimed,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const HOUR = 60 * 60;
@@ -327,6 +333,70 @@ describe('updateDragState move with day snapping', function () {
   });
 });
 
+describe('updateDragState move converting all-day to timed', function () {
+  const localDay = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
+
+  // Drops an all-day event into the timed grid (day-column) and returns the preview range + kind.
+  function dragAllDayToGrid(
+    start: number,
+    end: number,
+    mouseTime: number,
+    overrides: { isRecurring?: boolean } = {}
+  ) {
+    const event = makeOccurrence({ isAllDay: true, start, end, ...overrides });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'move' },
+      mouseTime,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(state, mouseTime, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
+    return { start: dragged.previewStart, end: dragged.previewEnd, isAllDay: dragged.previewIsAllDay };
+  }
+
+  it('converts an all-day event to a timed event at the snapped drop time', function () {
+    // A one-day event dropped at 10:05am becomes timed, starting at the snapped cursor time
+    // (not offset from midnight) and lasting the default new-event length.
+    const mouseTime = localDay(2026, 8, 20) + 10 * HOUR + 5 * 60;
+    const snappedStart = snapToInterval(mouseTime, DEFAULT_DRAG_CONFIG.snapInterval);
+    expect(dragAllDayToGrid(localDay(2026, 8, 14), localDay(2026, 8, 15), mouseTime)).toEqual({
+      start: snappedStart,
+      end: snappedStart + DEFAULT_TIMED_EVENT_DURATION_SECONDS,
+      isAllDay: false,
+    });
+  });
+
+  it('gives a multi-day all-day event the same default duration when converted', function () {
+    // The all-day span is discarded — a converted event has no clock time, so it takes the default.
+    const mouseTime = localDay(2026, 8, 20) + 14 * HOUR;
+    const snappedStart = snapToInterval(mouseTime, DEFAULT_DRAG_CONFIG.snapInterval);
+    expect(dragAllDayToGrid(localDay(2026, 8, 14), localDay(2026, 8, 17), mouseTime)).toEqual({
+      start: snappedStart,
+      end: snappedStart + DEFAULT_TIMED_EVENT_DURATION_SECONDS,
+      isAllDay: false,
+    });
+  });
+
+  it('does not convert a RECURRING all-day event in the grid (keeps it all-day for now)', function () {
+    // createRecurrenceException can't yet convert a single occurrence (the RECURRENCE-ID would
+    // misformat), so a recurring all-day event dropped here stays all-day, moved to the drop day.
+    const result = dragAllDayToGrid(
+      localDay(2026, 8, 14),
+      localDay(2026, 8, 15),
+      localDay(2026, 8, 20) + 10 * HOUR,
+      { isRecurring: true }
+    );
+    expect(result.isAllDay).toBe(true);
+    expect(result).toEqual({
+      start: localDay(2026, 8, 20),
+      end: localDay(2026, 8, 21),
+      isAllDay: true,
+    });
+  });
+});
+
 describe('createDragPreviewEvent', function () {
   const localDay = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
   const covered = (occ: EventOccurrence) => [
@@ -397,6 +467,26 @@ describe('createDragPreviewEvent', function () {
       previewIsAllDay: true,
     } as any);
     expect(preview.isAllDay).toBe(true);
+    expect(covered(preview)).toEqual(['2026-06-25', '2026-06-25']);
+  });
+
+  it('renders a converting all-day event as a timed preview', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 6, 21),
+      end: localDay(2026, 6, 22),
+    });
+    const preview = createDragPreviewEvent({
+      event,
+      previewStart: localDay(2026, 6, 25) + 10 * HOUR,
+      previewEnd: localDay(2026, 6, 25) + 11 * HOUR,
+      previewIsAllDay: false,
+    } as any);
+    expect(preview.isAllDay).toBe(false);
+    if (isTimed(preview)) {
+      expect(preview.start).toBe(localDay(2026, 6, 25) + 10 * HOUR);
+      expect(preview.end).toBe(localDay(2026, 6, 25) + 11 * HOUR);
+    }
     expect(covered(preview)).toEqual(['2026-06-25', '2026-06-25']);
   });
 });
