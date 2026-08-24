@@ -34,7 +34,7 @@ import {
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { CalendarView } from './calendar-constants';
+import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
   setCalendarColors,
@@ -348,7 +348,7 @@ export class MailspringCalendar extends React.Component<
 
     const endUnix = isAllDay
       ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(startUnix))
-      : startUnix + 3600;
+      : startUnix + DEFAULT_TIMED_EVENT_DURATION_SECONDS;
 
     // Build a temporary EventOccurrence to open the popover in "new event" mode. Build the
     // right variant — an all-day new event carries dates only, like every other occurrence.
