@@ -21,24 +21,33 @@ import { shell } from 'electron';
 //
 // The URL goes in `.message` (rather than only the stack) because our
 // hand-rolled Sentry reporter only ever serializes `err.message`/`err.stack`
-// for this call path — an "extra" field would never be sent. For http(s)
-// URLs we strip the query string and hash first: some callers without their
-// own `.catch` pass URLs carrying auth tokens (eg. SSO/OAuth redirects), and
-// those would otherwise leak into Sentry if one ever hit this rare rejection
-// path. The clean, unmodified native message is preserved on
+// for this call path — an "extra" field would never be sent. Some callers
+// without their own `.catch` pass URLs that carry sensitive data: for
+// http(s) it's typically an auth token in the query string or hash (eg.
+// SSO/OAuth redirects); for other schemes the "path" itself is often the
+// sensitive payload (a phone number in `tel:`, an email address in
+// `mailto:`). Redact both before reporting so this rare rejection path can't
+// leak them. The clean, unmodified native message is preserved on
 // `.originalMessage` so callers that show it to the user (eg. the link-open
-// error dialog) don't have to display the URL back at them.
+// error dialog) don't have to display the redacted/URL-annotated text back
+// at them.
 function redactUrlForReporting(url: string): string {
+  let parsed: URL;
   try {
-    const parsed = new URL(url);
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-      return `${parsed.protocol}//${parsed.host}${parsed.pathname}`;
-    }
+    parsed = new URL(url);
   } catch {
-    // Not a parseable http(s) URL (eg. `tel:`, `ms-settings:`) — no query
-    // string semantics to worry about, so it's safe to report as-is.
+    // Doesn't even parse as a URL — nothing structured to redact, and no
+    // scheme we can safely report either.
+    return '(unparseable url)';
   }
-  return url;
+  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    // Path segments are typically routes, not secrets, so keep them for
+    // triage value; query string and hash are where tokens tend to live.
+    return `${parsed.protocol}//${parsed.host}${parsed.pathname}`;
+  }
+  // Every other scheme (tel:, mailto:, ms-settings:, ...) only reports its
+  // scheme — the rest is frequently the sensitive part, not a route.
+  return parsed.protocol;
 }
 
 const originalOpenExternal = shell.openExternal.bind(shell);
