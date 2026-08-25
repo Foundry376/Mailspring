@@ -374,7 +374,7 @@ export default class WindowEventHandler {
             title: localized('Failed to Open Link'),
             message: localized(
               'Mailspring was unable to open the link in your browser.\n\n%@',
-              err.message
+              (err as Error & { originalMessage?: string }).originalMessage || err.message
             ),
           });
         } else {

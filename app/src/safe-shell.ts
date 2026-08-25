@@ -18,6 +18,29 @@ import { shell } from 'electron';
 // message and the caller's frames as its stack. Sentry's ingestion also
 // drops the stacktrace entirely from events whose frames don't parse, so a
 // guaranteed-well-formed stack is the only way to make these actionable.
+//
+// The URL goes in `.message` (rather than only the stack) because our
+// hand-rolled Sentry reporter only ever serializes `err.message`/`err.stack`
+// for this call path — an "extra" field would never be sent. For http(s)
+// URLs we strip the query string and hash first: some callers without their
+// own `.catch` pass URLs carrying auth tokens (eg. SSO/OAuth redirects), and
+// those would otherwise leak into Sentry if one ever hit this rare rejection
+// path. The clean, unmodified native message is preserved on
+// `.originalMessage` so callers that show it to the user (eg. the link-open
+// error dialog) don't have to display the URL back at them.
+function redactUrlForReporting(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return `${parsed.protocol}//${parsed.host}${parsed.pathname}`;
+    }
+  } catch {
+    // Not a parseable http(s) URL (eg. `tel:`, `ms-settings:`) — no query
+    // string semantics to worry about, so it's safe to report as-is.
+  }
+  return url;
+}
+
 const originalOpenExternal = shell.openExternal.bind(shell);
 shell.openExternal = (url: string, options?: Electron.OpenExternalOptions) => {
   const callSite: { stack?: string } = {};
@@ -29,11 +52,12 @@ shell.openExternal = (url: string, options?: Electron.OpenExternalOptions) => {
       throw err;
     }
     const name = err.name || 'Error';
-    const message = `${err.message} (url: ${url})`;
+    const message = `${err.message} (url: ${redactUrlForReporting(url)})`;
     const frames = (callSite.stack || '').split('\n').slice(1).join('\n');
     const wrapped = new Error(message);
     wrapped.name = name;
     wrapped.stack = `${name}: ${message}\n${frames}`;
+    (wrapped as Error & { originalMessage?: string }).originalMessage = err.message;
     // Re-throw: existing `.catch` handlers (eg. the link-open error dialog)
     // already report this; the global unhandled-rejection handler
     // logs/reports anything nobody else catches, now with a stack and URL.

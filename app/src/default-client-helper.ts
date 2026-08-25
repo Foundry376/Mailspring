@@ -46,12 +46,17 @@ export class DefaultClientHelperWindows implements DCH {
     // On Windows 11 21H2+ (with April 2023 update), we can deep link directly to Mailspring's
     // default app settings page. On older Windows versions, this falls back to the main
     // Default Apps page, which is still better than opening a web browser.
-    shell.openExternal('ms-settings:defaultapps?registeredAppUser=Mailspring').catch((err) => {
-      AppEnv.showErrorDialog({
-        title: localized('Failed to Open Settings'),
-        message: localized('Mailspring was unable to open Windows Settings.\n\n%@', err.message),
+    shell
+      .openExternal('ms-settings:defaultapps?registeredAppUser=Mailspring')
+      .catch((err: Error) => {
+        AppEnv.showErrorDialog({
+          title: localized('Failed to Open Settings'),
+          message: localized(
+            'Mailspring was unable to open Windows Settings.\n\n%@',
+            (err as Error & { originalMessage?: string }).originalMessage || err.message
+          ),
+        });
       });
-    });
   }
 
   registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
@@ -90,12 +95,12 @@ export class DefaultClientHelperWindows implements DCH {
             // Mailspring's default app settings. On older versions, falls back to Default Apps.
             shell
               .openExternal('ms-settings:defaultapps?registeredAppUser=Mailspring')
-              .catch((err) => {
+              .catch((err: Error) => {
                 AppEnv.showErrorDialog({
                   title: localized('Failed to Open Settings'),
                   message: localized(
                     'Mailspring was unable to open Windows Settings.\n\n%@',
-                    err.message
+                    (err as Error & { originalMessage?: string }).originalMessage || err.message
                   ),
                 });
               });
