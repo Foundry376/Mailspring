@@ -1,6 +1,16 @@
 import _ from 'underscore';
 import { Contact } from '../../src/flux/models/contact';
-import ContactStore from '../../src/flux/stores/contact-store';
+import ContactStore, { contactSearchFetchLimit } from '../../src/flux/stores/contact-store';
+
+describe('contactSearchFetchLimit', () => {
+  it('still fetches contacts when no legacy account rows are loaded', () => {
+    expect(contactSearchFetchLimit(5, 0)).toBe(5);
+  });
+
+  it('allows room to deduplicate contacts from multiple accounts', () => {
+    expect(contactSearchFetchLimit(5, 3)).toBe(15);
+  });
+});
 
 xdescribe('ContactStore', function () {
   beforeEach(function () {

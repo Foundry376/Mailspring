@@ -6,6 +6,9 @@ import { AccountStore } from './account-store';
 import ComponentRegistry from '../../registries/component-registry';
 import { ContactGroup } from 'mailspring-exports';
 
+export const contactSearchFetchLimit = (limit: number, accountCount: number) =>
+  limit * Math.max(accountCount, 1);
+
 /**
 Public: ContactStore provides convenience methods for searching contacts and
 formatting contacts. When Contacts become editable, this store will be expanded
@@ -55,7 +58,7 @@ class ContactStore extends MailspringStore {
     // (which is very slow), we just ask for more items.
     const query = DatabaseStore.findAll<Contact>(Contact)
       .search(search)
-      .limit(limit * accountCount)
+      .limit(contactSearchFetchLimit(limit, accountCount))
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending());
@@ -75,7 +78,7 @@ class ContactStore extends MailspringStore {
   topContacts({ limit = 5 } = {}) {
     const accountCount = AccountStore.accounts().length;
     return DatabaseStore.findAll<Contact>(Contact)
-      .limit(limit * accountCount)
+      .limit(contactSearchFetchLimit(limit, accountCount))
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending())
