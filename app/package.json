@@ -73,12 +73,11 @@
     "windows-iana": "^4.2.1",
     "xml2js": "^0.6.2"
   },
-  "resolutions": {
+  "overrides": {
     "electron": "43.4.1",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0"
   },
-  "overrides": {},
   "optionalDependencies": {
     "windows-focus-assist": "^1.4.0"
   }
