@@ -197,6 +197,24 @@ User Action → Actions.queueTask() → MailsyncBridge → stdin → Sync Engine
 UI Updates ← QuerySubscription ← DatabaseStore.trigger() ← stdout deltas
 ```
 
+## Comment Style
+
+Write for a technical reader who prefers self-documenting code. Prefer clearer names and
+smaller functions over commentary; a comment that restates the code should be deleted.
+
+- State **current behavior and rationale** — why the code is the way it is, and what a
+  reader would otherwise get wrong. Never narrate thought process, stream of
+  consciousness, or the path you took to the answer.
+- Never describe history: where code used to live, what it was folded out of, what the
+  previous implementation did, or what a diff changed. Git records that.
+- Cite external evidence when it exists — a Sentry issue ID (`MAILSPRING-CLIENT-AC`), an
+  upstream commit or PR in mailcore2/libetpan/Electron, a spec section, a provider quirk.
+  These justify code that otherwise looks arbitrary and are the most valuable comments in
+  the codebase.
+- Paragraph-length comments should be rare, and almost always attach to a function, class,
+  or module rather than sitting inline. Inline comments belong on one non-obvious line and
+  should be one or two lines long.
+
 ## Development Notes
 
 - Hot reload is available via `CTRL+R` (Windows/Linux) or `CMD+R` (macOS)

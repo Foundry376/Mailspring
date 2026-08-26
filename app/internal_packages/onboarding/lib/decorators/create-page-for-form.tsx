@@ -176,6 +176,14 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
           // TODO: Potentially show Authentication Errors on this simple screen?
           const isBasicForm = FormComponent.displayName === 'AccountBasicSettingsForm';
           if (account.provider === 'imap' && isBasicForm) {
+            // Advice means a rejected TLS handshake, which "Allow insecure SSL" fixes.
+            // Both services, since an IMAP failure short-circuits before SMTP is tested.
+            if (err.errorAdvice) {
+              const relaxed = account.clone();
+              relaxed.settings.imap_allow_insecure_ssl = true;
+              relaxed.settings.smtp_allow_insecure_ssl = true;
+              OnboardingActions.setAccount(relaxed);
+            }
             OnboardingActions.moveToPage('account-settings-imap');
             return;
           }

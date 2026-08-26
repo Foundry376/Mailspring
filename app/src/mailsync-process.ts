@@ -285,8 +285,14 @@ export class MailsyncProcess extends EventEmitter {
             if (response.error_service) {
               msg = `${msg} (${response.error_service.toUpperCase()})`;
             }
+            // Set only for a rejected TLS handshake today; arrives unlocalized.
+            if (response.error_advice) {
+              msg = `${msg} ${response.error_advice}`;
+            }
             const error = new Error(msg);
             (error as any).rawLog = this._stripSecrets(response.log);
+            (error as any).errorAdvice = response.error_advice || null;
+            (error as any).errorService = response.error_service || null;
             // Errors mailsync explicitly classified (bad credentials, unreachable
             // server, TLS/certificate problems, provider-side rate limits, etc.)
             // describe the mail server or the user's settings, not a bug in
