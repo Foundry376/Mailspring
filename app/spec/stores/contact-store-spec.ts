@@ -1,6 +1,11 @@
 import _ from 'underscore';
+import { Thread } from '../../src/flux/models/thread';
 import { Contact } from '../../src/flux/models/contact';
-import ContactStore, { contactSearchFetchLimit } from '../../src/flux/stores/contact-store';
+import ContactStore, {
+  contactSearchFetchLimit,
+  contactsMatchingEmailPrefix,
+  prioritizeContactsMatchingEmailPrefix,
+} from '../../src/flux/stores/contact-store';
 
 describe('contactSearchFetchLimit', () => {
   it('still fetches contacts when no legacy account rows are loaded', () => {
@@ -9,6 +14,33 @@ describe('contactSearchFetchLimit', () => {
 
   it('allows room to deduplicate contacts from multiple accounts', () => {
     expect(contactSearchFetchLimit(5, 3)).toBe(15);
+  });
+});
+
+describe('recipient autocomplete helpers', () => {
+  it('extracts distinct email-prefix matches from recent sent threads', () => {
+    const ovotrack = new Contact({ name: 'Marco Harmsen', email: 'support@ovotrack.nl' });
+    const compass = new Contact({
+      name: 'Compass Foundation, LLC',
+      email: 'support@compassfoundation.io',
+    });
+    const namedSupport = new Contact({ name: 'Product Support', email: 'help@example.com' });
+    const threads = [
+      new Thread({ participants: [ovotrack, namedSupport] }),
+      new Thread({ participants: [compass, ovotrack] }),
+    ];
+
+    expect(contactsMatchingEmailPrefix(threads, 'SUPPORT@')).toEqual([ovotrack, compass]);
+  });
+
+  it('ranks email-prefix matches ahead of display-name-only matches', () => {
+    const namedSupport = new Contact({ name: 'Microsoft Support', email: 'mscsup9@microsoft.com' });
+    const addressMatch = new Contact({ name: 'Marco Harmsen', email: 'support@ovotrack.nl' });
+
+    expect(prioritizeContactsMatchingEmailPrefix([namedSupport, addressMatch], 'support')).toEqual([
+      addressMatch,
+      namedSupport,
+    ]);
   });
 });
 
