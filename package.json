@@ -49,7 +49,7 @@
     "better-sqlite3": "^12.8.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "43.4.1",
+    "electron": "44.0.0",
     "electron-playwright-helpers": "^2.1.0",
     "electron-winstaller": "5.4.0",
     "eslint": "^8.0.0",
@@ -86,5 +86,11 @@
   },
   "overrides": {
     "tar": "7.5.21"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "electron-winstaller@5.4.0": true,
+    "highlight.js@9.18.5": true,
+    "@sentry/cli@2.58.6": true
   }
 }
