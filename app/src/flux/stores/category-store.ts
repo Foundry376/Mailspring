@@ -151,15 +151,17 @@ class CategoryStore extends MailspringStore {
     return this.getCategoryByRole(accountOrId, 'inbox');
   }
 
-  // Public: Returns the Folder that should be used for
-  // "Move to Trash", or null if no trash folder exists.
+  // Public: Returns the Folder or Label that should be used for
+  // "Move to Trash", or null if no trash category exists. On Gmail-style
+  // accounts this is a Label, not a Folder.
   //
   getTrashCategory(accountOrId: Account | string | null) {
     return this.getCategoryByRole(accountOrId, 'trash');
   }
 
-  // Public: Returns the Folder that should be used for
-  // "Move to Spam", or null if no trash folder exists.
+  // Public: Returns the Folder or Label that should be used for
+  // "Move to Spam", or null if no spam category exists. On Gmail-style
+  // accounts this is a Label, not a Folder.
   //
   getSpamCategory(accountOrId: Account | string | null) {
     return this.getCategoryByRole(accountOrId, 'spam');
