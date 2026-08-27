@@ -39,9 +39,20 @@ export const TaskFactory = {
 
   tasksForMarkingAsSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      const folder = CategoryStore.getSpamCategory(accountId);
-      if (!folder) return null;
-      return new ChangeFolderTask({ folder, source, threads: accountThreads });
+      const spam = CategoryStore.getSpamCategory(accountId) as any;
+      if (!spam) return null;
+
+      if (spam instanceof Label) {
+        const inbox = CategoryStore.getInboxCategory(accountId);
+        return new ChangeLabelsTask({
+          labelsToAdd: [spam],
+          labelsToRemove: inbox instanceof Label ? [inbox] : [],
+          threads: accountThreads,
+          source,
+        });
+      }
+
+      return new ChangeFolderTask({ folder: spam, source, threads: accountThreads });
     });
   },
 
@@ -99,6 +110,17 @@ export const TaskFactory = {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const trash = CategoryStore.getTrashCategory(accountId) as any;
       if (!trash) return null;
+
+      if (trash instanceof Label) {
+        const inbox = CategoryStore.getInboxCategory(accountId);
+        return new ChangeLabelsTask({
+          labelsToAdd: [trash],
+          labelsToRemove: inbox instanceof Label ? [inbox] : [],
+          threads: accountThreads,
+          source,
+        });
+      }
+
       return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
     });
   },

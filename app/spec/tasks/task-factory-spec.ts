@@ -11,7 +11,8 @@ import {
 describe('TaskFactory', function taskFactory() {
   beforeEach(() => {
     // ac-1 is a folder-based IMAP account; ac-2 is Gmail, whose Inbox is a label and
-    // whose All Mail, Spam and Trash are folders.
+    // whose All Mail, Spam and Trash are folders. ac-3 is Gmail with [Gmail]/Trash and
+    // [Gmail]/Spam hidden from IMAP, where the engine gives the roles to labels by name.
     this.categories = {
       'ac-1': {
         archive: new Folder({ id: 'f-archive', accountId: 'ac-1', role: 'archive' } as any),
@@ -26,10 +27,17 @@ describe('TaskFactory', function taskFactory() {
         spam: new Folder({ id: 'g-spam', accountId: 'ac-2', role: 'spam' } as any),
         trash: new Folder({ id: 'g-trash', accountId: 'ac-2', role: 'trash' } as any),
       },
+      'ac-3': {
+        all: new Folder({ id: 'h-all', accountId: 'ac-3', role: 'all' } as any),
+        inbox: new Label({ id: 'h-inbox', accountId: 'ac-3', role: 'inbox' } as any),
+        spam: new Label({ id: 'h-junk', accountId: 'ac-3', role: 'spam' } as any),
+        trash: new Label({ id: 'h-trash', accountId: 'ac-3', role: 'trash' } as any),
+      },
     };
     this.threads = [
       new Thread({ id: 't1', accountId: 'ac-1' }),
       new Thread({ id: 't2', accountId: 'ac-2' }),
+      new Thread({ id: 't3', accountId: 'ac-3' }),
     ];
 
     const byRole = (role) => (accountId) => this.categories[accountId][role];
@@ -102,11 +110,41 @@ describe('TaskFactory', function taskFactory() {
   describe('tasksForMovingToTrash', () => {
     it('does not scope, since the engine moves every copy to Trash', () => {
       const tasks = TaskFactory.tasksForMovingToTrash({
-        threads: this.threads,
+        threads: this.threads.slice(0, 2),
         source: 'Toolbar Button: Thread List',
       });
       expect(tasks.map((t) => t.folder.id)).toEqual(['f-trash', 'g-trash']);
       expect(tasks.map((t) => t.sourceFolderIds)).toEqual([[], []]);
+    });
+
+    it('labels the threads Trash when the trash role belongs to a Gmail label', () => {
+      const [task] = TaskFactory.tasksForMovingToTrash({
+        threads: [this.threads[2]],
+        source: 'Toolbar Button: Thread List',
+      });
+      expect(task instanceof ChangeLabelsTask).toBe(true);
+      expect(task.labelsToAdd.map((l) => l.id)).toEqual(['h-trash']);
+      expect(task.labelsToRemove.map((l) => l.id)).toEqual(['h-inbox']);
+    });
+  });
+
+  describe('tasksForMarkingAsSpam', () => {
+    it('moves to the Spam folder when there is one', () => {
+      const tasks = TaskFactory.tasksForMarkingAsSpam({
+        threads: this.threads.slice(0, 2),
+        source: 'Toolbar Button: Thread List',
+      });
+      expect(tasks.map((t) => t.folder.id)).toEqual(['f-spam', 'g-spam']);
+    });
+
+    it('labels the threads Spam when the spam role belongs to a Gmail label', () => {
+      const [task] = TaskFactory.tasksForMarkingAsSpam({
+        threads: [this.threads[2]],
+        source: 'Toolbar Button: Thread List',
+      });
+      expect(task instanceof ChangeLabelsTask).toBe(true);
+      expect(task.labelsToAdd.map((l) => l.id)).toEqual(['h-junk']);
+      expect(task.labelsToRemove.map((l) => l.id)).toEqual(['h-inbox']);
     });
   });
 });
