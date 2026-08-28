@@ -32,12 +32,9 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
       commands['core:delete-item'] = this.props.onDeleteEvent;
     }
 
-    const key = `calendar-menu-${this.props.hasSelectedEvents}`;
-
-    return (
-      <BindGlobalCommands key={key} commands={commands}>
-        {this.props.children}
-      </BindGlobalCommands>
-    );
+    // No `key` here on purpose: this wraps the whole calendar view, so a key that changes
+    // with the selection makes React rebuild the entire grid on every click.
+    // BindGlobalCommands re-registers when the set of command names changes.
+    return <BindGlobalCommands commands={commands}>{this.props.children}</BindGlobalCommands>;
   }
 }
