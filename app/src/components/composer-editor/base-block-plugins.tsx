@@ -253,11 +253,38 @@ export const BLOCK_CONFIG: {
   },
 };
 
-export const EditListPlugin = new EditList({
+const EditListPluginBase = new EditList({
   types: [BLOCK_CONFIG.ol_list.type, BLOCK_CONFIG.ul_list.type],
   typeItem: BLOCK_CONFIG.list_item.type,
   typeDefault: BLOCK_CONFIG.div.type,
 });
+
+// `slate-edit-list` decides "is the cursor in a list?" with `getCurrentItem`, which returns
+// any parent block of type `list_item` — including one that isn't inside an `ol_list`/`ul_list`.
+// Email HTML regularly contains an `<li>` with no surrounding list, so that shape does reach
+// the composer. Handing Enter/Backspace to the plugin there routes into its `unwrapList`, whose
+// `unwrapNodeByKey` lifts the orphan's one-element path to the empty root path: Slate's
+// `assertNode` accepts that path (it resolves to the document itself) but `getDescendant`
+// returns null for it, so `splitNodeByPath` reads `.type` off null and throws
+// (MAILSPRING-CLIENT-EV). Fall through to the default handling when the item isn't really
+// in a list — the orphan then behaves like any other block.
+export const EditListPlugin = {
+  ...EditListPluginBase,
+  onKeyDown: (event: React.KeyboardEvent, editor: Editor, next: () => void) => {
+    // slate-edit-list's own onKeyDown only acts on these three keys; matching its gate here
+    // avoids running the guard below (a couple of tree walks) on every other keystroke.
+    if (event.key !== 'Enter' && event.key !== 'Tab' && event.key !== 'Backspace') {
+      return EditListPluginBase.onKeyDown(event, editor, next);
+    }
+    const { utils } = EditListPluginBase;
+    const { value } = editor;
+    // `startBlock` is the precondition `getCurrentItem` itself assumes.
+    if (value.startBlock && utils.getCurrentItem(value) && !utils.getCurrentList(value)) {
+      return next();
+    }
+    return EditListPluginBase.onKeyDown(event, editor, next);
+  },
+};
 
 function renderNode(props, editor: Editor = null, next = () => {}) {
   const config = BLOCK_CONFIG[props.node.type];
