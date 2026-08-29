@@ -58,6 +58,42 @@ function isBlockTypeOrWithinType(value: Value, type: string) {
   return !!(isMe || isParent);
 }
 
+// Slate's compound change functions (`unwrapBlockAtRange`, `insertFragmentAtRange`, etc. in the
+// vendored slate/lib/slate.js) can throw "could not find node with path or key" partway through
+// a multi-step move/remove sequence, using node keys that a prior step in the same sequence
+// already invalidated — see MAILSPRING-CLIENT-2X. Catching that keeps the composer from crashing,
+// but on its own that's not enough to fully recover:
+//
+// 1. Slate's own `withoutNormalizing` (slate.js:11514) isn't exception-safe — every one of these
+//    compound functions runs inside it, and if the wrapped function throws, the flag it uses to
+//    suppress normalization never gets restored and the deferred normalization pass never runs.
+//    That flag lives on `editor.tmp.normalize`, checked by `normalizeDirtyPaths` (slate.js:11697)
+//    before every future normalization attempt — so once it's stuck `false`, this editor instance
+//    silently stops enforcing the document schema for the rest of the composer session.
+// 2. Slate schedules its flush-to-`onChange` on a microtask queued by the *first* operation that
+//    succeeded before the throw (slate.js:11179-11184), so whatever partial mutation the
+//    interrupted command left behind still reaches `ComposerEditor.onChange` — it is not
+//    discarded just because the command that produced it threw.
+//
+// Note also that the `editor` object plugins receive here is slate-react's `<Editor>` component,
+// not the underlying Slate editor — it forwards commands to an internal `.controller`
+// (slate-react.js:5238) that holds the *real* `tmp` flags, while `editor.tmp` itself is an
+// unrelated object slate-react uses for its own React bookkeeping. So we have to reach through
+// `.controller.tmp` specifically. Resetting the flag there and calling `.normalize()`
+// synchronously (before the already-queued microtask flush fires) re-enables normalization and
+// cleans up the partial mutation before it reaches `ComposerEditor.onChange`.
+export function recoverFromInterruptedSlateCommand(editor: Editor) {
+  try {
+    const core = (editor as any).controller;
+    if (core && core.tmp) {
+      core.tmp.normalize = true;
+      core.normalize();
+    }
+  } catch (err) {
+    console.warn('recoverFromInterruptedSlateCommand: recovery itself failed', err);
+  }
+}
+
 function toggleBlockTypeWithBreakout(editor: Editor, type: string) {
   if (!editor.value.focusBlock) return;
 
@@ -71,8 +107,14 @@ function toggleBlockTypeWithBreakout(editor: Editor, type: string) {
   if (idx !== -1) {
     const depth = ancestors.size - idx;
     if (depth > 0) {
-      editor.splitBlock(ancestors.size - idx);
-      for (let x = 0; x < depth; x++) editor.unwrapBlock({ type });
+      try {
+        editor.splitBlock(ancestors.size - idx);
+        for (let x = 0; x < depth; x++) editor.unwrapBlock({ type });
+      } catch (err) {
+        console.warn('toggleBlockTypeWithBreakout: failed to break out of nested block', err);
+        recoverFromInterruptedSlateCommand(editor);
+        return;
+      }
     }
     editor.setBlocks(BLOCK_CONFIG.div.type);
   } else {
