@@ -11,6 +11,7 @@ import {
   DatabaseChangeRecord,
   TaskFactory,
 } from 'mailspring-exports';
+import { notificationSoundPlaybackOptions } from '../../custom-sounds/lib/notification-sound';
 
 const WAIT_FOR_CHANGES_DELAY = 400;
 
@@ -236,8 +237,7 @@ export class Notifier {
   _playNewMailSound = _.debounce(
     () => {
       if (!AppEnv.config.get('core.notifications.sounds')) return;
-      const volumePercent = Number(AppEnv.config.get('core.notifications.soundVolume'));
-      SoundRegistry.playSound('new-mail', { volume: volumePercent / 100 });
+      SoundRegistry.playSound('new-mail', notificationSoundPlaybackOptions(AppEnv.config));
     },
     5000,
     true

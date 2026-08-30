@@ -375,6 +375,11 @@ export default {
             unit: '%',
             title: localized('Notification sound volume'),
           },
+          customSoundPath: {
+            type: 'string',
+            default: '',
+            advanced: true,
+          },
           unsnoozeToTop: {
             type: 'boolean',
             default: true,
