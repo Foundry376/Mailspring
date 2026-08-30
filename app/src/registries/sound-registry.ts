@@ -1,10 +1,22 @@
 import path from 'path';
 import NativeNotifications from '../native-notifications';
 
-class SoundRegistry {
+export interface SoundPlaybackOptions {
+  volume?: number;
+}
+
+export function normalizeSoundVolume(volume: unknown): number {
+  if (volume === undefined) return 1;
+
+  const numericVolume = Number(volume);
+  if (!Number.isFinite(numericVolume)) return 1;
+  return Math.min(1, Math.max(0, numericVolume));
+}
+
+export class SoundRegistry {
   private _sounds = {};
 
-  async playSound(name: string) {
+  async playSound(name: string, options: SoundPlaybackOptions = {}) {
     if (AppEnv.inSpecMode()) {
       return;
     }
@@ -29,6 +41,7 @@ class SoundRegistry {
       const args = [resourcePath].concat(src);
       a.src = path.join.apply(this, args);
     }
+    a.volume = normalizeSoundVolume(options.volume);
     a.autoplay = true;
     a.play();
   }

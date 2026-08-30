@@ -236,7 +236,8 @@ export class Notifier {
   _playNewMailSound = _.debounce(
     () => {
       if (!AppEnv.config.get('core.notifications.sounds')) return;
-      SoundRegistry.playSound('new-mail');
+      const volumePercent = Number(AppEnv.config.get('core.notifications.soundVolume'));
+      SoundRegistry.playSound('new-mail', { volume: volumePercent / 100 });
     },
     5000,
     true

@@ -366,6 +366,15 @@ export default {
             default: true,
             title: localized('Play sound when receiving new mail'),
           },
+          soundVolume: {
+            type: 'number',
+            default: 100,
+            minimum: 0,
+            maximum: 100,
+            multipleOf: 1,
+            unit: '%',
+            title: localized('Notification sound volume'),
+          },
           unsnoozeToTop: {
             type: 'boolean',
             default: true,
