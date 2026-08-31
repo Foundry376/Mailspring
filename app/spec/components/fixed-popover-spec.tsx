@@ -230,7 +230,71 @@ describe('FixedPopover', function fixedPopover() {
     });
   });
 
+  describe('computeClampedOffset', () => {
+    beforeEach(() => {
+      this.PADDING = 10;
+      this.windowDimensions = { height: 500, width: 500 };
+    });
+
+    const clamp = ({ top, left, bottom, right }, initialState = undefined) => {
+      const popover = makePopover(initialState ? { initialState } : {});
+      return popover.computeClampedOffset({
+        currentRect: { top, left, bottom, right },
+        windowDimensions: this.windowDimensions,
+        offsetPadding: this.PADDING,
+      });
+    };
+
+    it('does not move a popover that is already on screen', () => {
+      expect(clamp({ top: 10, left: 10, bottom: 200, right: 200 })).toEqual({ x: 0, y: 0 });
+    });
+
+    it('slides left when the right edge is past the window', () => {
+      expect(clamp({ top: 10, left: 300, bottom: 200, right: 520 })).toEqual({ x: -30, y: 0 });
+    });
+
+    it('slides right when the left edge is past the window', () => {
+      expect(clamp({ top: 10, left: -20, bottom: 200, right: 100 })).toEqual({ x: 30, y: 0 });
+    });
+
+    it('slides up when the bottom edge is past the window', () => {
+      expect(clamp({ top: 300, left: 10, bottom: 530, right: 200 })).toEqual({ x: 0, y: -40 });
+    });
+
+    it('slides down when the top edge is past the window', () => {
+      expect(clamp({ top: -15, left: 10, bottom: 200, right: 200 })).toEqual({ x: 0, y: 25 });
+    });
+
+    it('favours the top left edge when the popover is larger than the window', () => {
+      // Pulling the far edge in would push the near edge out. The near edge wins, so the
+      // popover starts inside the window and its own max-height scrolls the remainder.
+      expect(clamp({ top: -20, left: -20, bottom: 520, right: 520 })).toEqual({ x: 30, y: 30 });
+    });
+
+    it('adds to an offset already in state, which currentRect already reflects', () => {
+      const state = { offset: { x: 5, y: 7 } };
+      expect(clamp({ top: 10, left: 300, bottom: 200, right: 520 }, state)).toEqual({
+        x: -25,
+        y: 7,
+      });
+    });
+  });
+
   describe('computePopoverStyles', () => {
-    // TODO
+    const originRect = { top: 100, left: 100, width: 50, height: 20 };
+
+    // Every direction has to honour both axes: the clamp that rescues an off-screen popover
+    // can need to move it on either one, whichever way the popover happens to point.
+    [Up, Down, Left, Right].forEach(direction => {
+      it(`applies both offset axes when pointing ${direction}`, () => {
+        const popover = makePopover();
+        const { popoverStyle } = popover.computePopoverStyles({
+          originRect,
+          direction,
+          offset: { x: 12, y: 34 },
+        });
+        expect(popoverStyle.transform).toContain('translate(12px, 34px)');
+      });
+    });
   });
 });

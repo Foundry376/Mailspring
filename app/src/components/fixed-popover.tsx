@@ -124,7 +124,18 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     });
     if (newState) {
       if (this.updateCount > 1) {
-        this.setState({ direction: this.props.direction, offset: {}, visible: true });
+        /*
+        Flipping the direction and nudging across it have both failed to bring the popover on
+        screen, which is what happens when it is simply taller or wider than the room beside
+        its anchor - a full event editor next to an event low in a short window, say. Showing
+        it at the original position anyway left its footer buttons past the edge of the
+        window with no way to reach them, so slide it back inside instead. The pointer stays
+        with the anchor and no longer touches the popover, which is the lesser of the two.
+        */
+        this.setState({
+          offset: this.computeClampedOffset({ currentRect, windowDimensions }),
+          visible: true,
+        });
         return;
       }
 
@@ -178,6 +189,35 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
       right: Math.abs(currentRect.right - windowDimensions.width),
     };
     return { overflows, overflowValues };
+  };
+
+  /*
+  The extra translate that brings an off-screen popover back inside the window.
+
+  currentRect already includes the offset in state, so the correction is added to it rather
+  than replacing it. Pulling an edge in can push the opposite edge out when the popover is
+  larger than the window itself; in that case the top/left edge wins, so the popover starts
+  at the top of the window and its own max-height scrolls the rest.
+  */
+  computeClampedOffset = ({ currentRect, windowDimensions, offsetPadding = OFFSET_PADDING }) => {
+    const { offset } = this.state;
+    let dx = 0;
+    let dy = 0;
+
+    if (currentRect.right > windowDimensions.width) {
+      dx = windowDimensions.width - currentRect.right - offsetPadding;
+    }
+    if (currentRect.left + dx < 0) {
+      dx = offsetPadding - currentRect.left;
+    }
+    if (currentRect.bottom > windowDimensions.height) {
+      dy = windowDimensions.height - currentRect.bottom - offsetPadding;
+    }
+    if (currentRect.top + dy < 0) {
+      dy = offsetPadding - currentRect.top;
+    }
+
+    return { x: (offset.x || 0) + dx, y: (offset.y || 0) + dy };
   };
 
   computeAdjustedOffsetAndDirection = ({
@@ -242,7 +282,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
         };
         popoverStyle = {
           // Center, place on top of container, and adjust 10px for the pointer
-          transform: `translate(${offset.x || 0}px) translate(-50%, calc(-100% - 10px))`,
+          transform: `translate(${offset.x || 0}px, ${offset.y || 0}px) translate(-50%, calc(-100% - 10px))`,
           left: originRect.width / 2,
         };
         pointerStyle = {
@@ -260,7 +300,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
         };
         popoverStyle = {
           // Center and adjust 10px for the pointer (already positioned at the bottom of container)
-          transform: `translate(${offset.x || 0}px) translate(-50%, 10px)`,
+          transform: `translate(${offset.x || 0}px, ${offset.y || 0}px) translate(-50%, 10px)`,
           left: originRect.width / 2,
         };
         pointerStyle = {
@@ -278,7 +318,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
         };
         popoverStyle = {
           // Center, place on left of container, and adjust 10px for the pointer
-          transform: `translate(0, ${offset.y || 0}px) translate(calc(-100% - 10px), -50%)`,
+          transform: `translate(${offset.x || 0}px, ${offset.y || 0}px) translate(calc(-100% - 10px), -50%)`,
           top: originRect.height / 2,
         };
         pointerStyle = {
@@ -296,7 +336,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
         };
         popoverStyle = {
           // Center and adjust 10px for the pointer
-          transform: `translate(0, ${offset.y || 0}px) translate(10px, -50%)`,
+          transform: `translate(${offset.x || 0}px, ${offset.y || 0}px) translate(10px, -50%)`,
           top: originRect.height / 2,
         };
         pointerStyle = {
