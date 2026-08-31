@@ -76,6 +76,9 @@ export default class ThreadListContextMenu {
     }
     const first = this.threads[0];
     const from = first.participants.find((p) => !p.isMe()) || first.participants[0];
+    if (!from) {
+      return null;
+    }
 
     return {
       label: localized(`Search for`) + ' ' + from.email,
