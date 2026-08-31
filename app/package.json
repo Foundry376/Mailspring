@@ -71,6 +71,7 @@
     "underscore.string": "^3.3.5",
     "vcf": "^2.0.5",
     "windows-iana": "^4.2.1",
+    "xdg-portal": "^1.2.0",
     "xml2js": "^0.6.2"
   },
   "overrides": {
