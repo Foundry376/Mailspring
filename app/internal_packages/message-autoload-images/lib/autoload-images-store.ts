@@ -30,7 +30,8 @@ class AutoloadImagesStore extends MailspringStore {
     // - background: url(""...."")
     // - @import url(....)
     // - @import "...." / @import '....' (string form, no url())
-    return /((?:src|background|placeholder|icon|poster|srcset)\s*=\s*['"]?(?=[cid:|\w*://])|(?::|@import)\s*url\(['"]?|@import\s+['"])+([^"')]*)/gi;
+    // - any later url() in a comma-separated CSS value
+    return /((?:src|background|placeholder|icon|poster|srcset)\s*=\s*['"]?(?=[cid:|\w*://])|(?::|,|@import)\s*url\(['"]?|@import\s+['"])+([^"')]*)/gi;
   };
 
   getLinkTagRegexp = () => {
