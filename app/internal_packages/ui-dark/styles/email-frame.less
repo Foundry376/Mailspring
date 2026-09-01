@@ -1,5 +1,7 @@
 .ignore-in-parent-frame {
-  body {
+  // Plaintext bodies are rendered into #inbox-plain-wrapper and already use the
+  // theme's text color, so inverting them would flip them back to dark-on-dark.
+  body:not(:has(#inbox-plain-wrapper)) {
     filter: invert(100%) hue-rotate(180deg);
     color: #111;
   }
