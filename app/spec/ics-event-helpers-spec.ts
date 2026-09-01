@@ -1032,3 +1032,102 @@ describe('ICSEventHelpers.updateEventTimes with all-day events', function () {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Expansion budget. ical-expander iterates forward from DTSTART with no way to seek, so a
+// fixed cap is a limit on how far back a series may begin. At 100 a weekly meeting older
+// than about two years expanded to nothing and disappeared from the calendar.
+// ---------------------------------------------------------------------------
+
+describe('ICSEventHelpers.expansionIterationBudget', function () {
+  const series = (rrule: string, dtstart = '20220308T130000Z') =>
+    [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      // A VTIMEZONE first, with its own RRULEs - this is what a real Google calendar sends.
+      'BEGIN:VTIMEZONE',
+      'TZID:America/Indiana/Indianapolis',
+      'BEGIN:DAYLIGHT',
+      'TZOFFSETFROM:-0500',
+      'TZOFFSETTO:-0400',
+      'TZNAME:EDT',
+      'DTSTART:19700308T020000',
+      'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+      'END:DAYLIGHT',
+      'END:VTIMEZONE',
+      'BEGIN:VEVENT',
+      'UID:series@test',
+      'DTSTAMP:20220308T000000Z',
+      `DTSTART:${dtstart}`,
+      'DTEND:20220308T132000Z',
+      `RRULE:${rrule}`,
+      'SUMMARY:Standup',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+  const START = Date.UTC(2022, 2, 8, 13, 0, 0) / 1000;
+  const NOW = Date.UTC(2026, 7, 28, 0, 0, 0) / 1000;
+
+  const budgetFor = (rrule: string, start: any = START, end: any = NOW) =>
+    ICSEventHelpers.expansionIterationBudget(series(rrule), start, end);
+
+  // A weekly series over this span needs 334 steps and a yearly one 105, both of which floor
+  // to MIN - so a weekly fixture cannot tell the VEVENT's rule from the VTIMEZONE's. Daily
+  // needs more than the floor, which is what makes these assertions discriminating.
+  const DAY = 86400;
+  const WEEK = 7 * DAY;
+  const FLOOR = 1000;
+
+  it("reads the event's RRULE, not the VTIMEZONE's DST rule", function () {
+    // The DAYLIGHT block's FREQ=YEARLY comes first in the file, so a plain search for the
+    // first RRULE reads it and derives 105 - indistinguishable from any other floored
+    // result. The event's own daily rule derives well above the floor.
+    const daily = budgetFor('FREQ=DAILY');
+    expect(daily).toBe(Math.ceil((NOW - START) / DAY) + 100);
+    expect(daily).toBeGreaterThan(FLOOR);
+    // Same file shape and dates, so the difference comes only from which rule was read.
+    expect(budgetFor('FREQ=YEARLY;BYMONTH=3')).toBe(FLOOR);
+  });
+
+  it('budgets enough steps to reach the end of the window', function () {
+    // The old fixed cap of 100 is about two years of weekly steps and stopped in early 2024.
+    expect(budgetFor('FREQ=WEEKLY;BYDAY=TU')).toBeGreaterThan(Math.ceil((NOW - START) / WEEK));
+    // Daily needs 1634, more than the floor supplies, so this asserts the derivation itself.
+    const daily = budgetFor('FREQ=DAILY');
+    expect(daily).toBeGreaterThan(Math.ceil((NOW - START) / DAY));
+    expect(daily).toBeGreaterThan(budgetFor('FREQ=WEEKLY;BYDAY=TU'));
+  });
+
+  it('returns the floor when the series has no usable start', function () {
+    // recurrenceStart can be null or non-finite. A NaN budget is worse than a small one:
+    // it survives Math.max/Math.min and ical-expander reads `!this.maxIterations` as no cap,
+    // so an abusive rule iterates unbounded instead of being truncated.
+    // Passed positionally rather than through budgetFor, whose defaults would swallow
+    // undefined and quietly test a finite start instead.
+    const abusive = series('FREQ=SECONDLY');
+    [null, undefined, NaN, Infinity, -Infinity].forEach((noStart) => {
+      expect(ICSEventHelpers.expansionIterationBudget(abusive, noStart as any, NOW)).toBe(FLOOR);
+    });
+    expect(ICSEventHelpers.expansionIterationBudget(series('FREQ=DAILY'), START, NaN)).toBe(FLOOR);
+  });
+
+  it('accounts for INTERVAL, which stretches how far each step reaches', function () {
+    expect(budgetFor('FREQ=DAILY')).toBeGreaterThan(budgetFor('FREQ=DAILY;INTERVAL=3'));
+  });
+
+  it('caps a frequency fine enough to be abusive rather than spinning', function () {
+    // An invitation is untrusted input; FREQ=SECONDLY dated years back would otherwise
+    // iterate essentially forever.
+    expect(budgetFor('FREQ=SECONDLY')).toBe(50000);
+  });
+
+  it('returns the floor for an event that does not recur at all', function () {
+    // Strip the VEVENT's own rule rather than the first RRULE in the file - that one belongs
+    // to the VTIMEZONE, and removing it leaves a weekly series that floors to the same value.
+    const ics = series('FREQ=WEEKLY').replace('\r\nRRULE:FREQ=WEEKLY', '');
+    expect(/BEGIN:VEVENT[\s\S]*RRULE:/.test(ics)).toBe(false);
+    expect(ICSEventHelpers.expansionIterationBudget(ics, START, NOW)).toBe(FLOOR);
+  });
+});
