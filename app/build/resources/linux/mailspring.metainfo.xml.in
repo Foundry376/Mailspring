@@ -52,6 +52,9 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="1.24.0" date="2026-09-01">
+      <url type="details">https://github.com/Foundry376/Mailspring/releases/tag/1.24.0</url>
+    </release>
     <release version="1.23.0" date="2026-07-19">
       <url type="details">https://github.com/Foundry376/Mailspring/releases/tag/1.23.0</url>
     </release>
