@@ -95,7 +95,7 @@ function buildEvent({ err, extra, deviceHash, release, tags }) {
   if (frames.length > 0) {
     exceptionValue.stacktrace = { frames };
   }
-  return {
+  const event = {
     event_id: makeEventId(),
     timestamp: Date.now() / 1000,
     platform: 'node',
@@ -107,6 +107,16 @@ function buildEvent({ err, extra, deviceHash, release, tags }) {
     extra: extra || {},
     exception: { values: [exceptionValue] },
   };
+  // Without an explicit fingerprint, Sentry groups solely by stacktrace.
+  // Callers that throw several distinct, recognizable failure modes from
+  // one shared call site (eg. MailsyncProcess._spawnAndWait) attach a
+  // `fingerprint` array to the Error so those failures land in separate
+  // issues instead of collapsing into one bucket keyed off whichever
+  // message happened to report first.
+  if (Array.isArray(err.fingerprint) && err.fingerprint.every(part => typeof part === 'string')) {
+    event.fingerprint = err.fingerprint;
+  }
+  return event;
 }
 
 function sendEnvelope(event, release) {
