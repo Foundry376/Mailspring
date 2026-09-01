@@ -232,15 +232,16 @@ describe('FixedPopover', function fixedPopover() {
 
   describe('computeClampedOffset', () => {
     beforeEach(() => {
+      this.popover = makePopover();
       this.PADDING = 10;
       this.windowDimensions = { height: 500, width: 500 };
     });
 
-    const clamp = ({ top, left, bottom, right }, initialState = undefined) => {
-      const popover = makePopover(initialState ? { initialState } : {});
-      return popover.computeClampedOffset({
+    const clamp = ({ top, left, bottom, right }, offset = {}) => {
+      return this.popover.computeClampedOffset({
         currentRect: { top, left, bottom, right },
         windowDimensions: this.windowDimensions,
+        offset,
         offsetPadding: this.PADDING,
       });
     };
@@ -271,9 +272,8 @@ describe('FixedPopover', function fixedPopover() {
       expect(clamp({ top: -20, left: -20, bottom: 520, right: 520 })).toEqual({ x: 30, y: 30 });
     });
 
-    it('adds to an offset already in state, which currentRect already reflects', () => {
-      const state = { offset: { x: 5, y: 7 } };
-      expect(clamp({ top: 10, left: 300, bottom: 200, right: 520 }, state)).toEqual({
+    it('adds to the offset currentRect already reflects', () => {
+      expect(clamp({ top: 10, left: 300, bottom: 200, right: 520 }, { x: 5, y: 7 })).toEqual({
         x: -25,
         y: 7,
       });

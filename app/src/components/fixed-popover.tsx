@@ -124,16 +124,16 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     });
     if (newState) {
       if (this.updateCount > 1) {
-        /*
-        Flipping the direction and nudging across it have both failed to bring the popover on
-        screen, which is what happens when it is simply taller or wider than the room beside
-        its anchor - a full event editor next to an event low in a short window, say. Showing
-        it at the original position anyway left its footer buttons past the edge of the
-        window with no way to reach them, so slide it back inside instead. The pointer stays
-        with the anchor and no longer touches the popover, which is the lesser of the two.
-        */
+        // No direction fits, so bring the popover inside the window rather than leave it
+        // where it overflows. The direction that produced currentRect is kept, because the
+        // correction is measured against it - so a popover given a fallbackDirection settles
+        // in the direction that was tried last rather than the one originally asked for.
         this.setState({
-          offset: this.computeClampedOffset({ currentRect, windowDimensions }),
+          offset: this.computeClampedOffset({
+            currentRect,
+            windowDimensions,
+            offset: this.state.offset,
+          }),
           visible: true,
         });
         return;
@@ -194,13 +194,23 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   /*
   The extra translate that brings an off-screen popover back inside the window.
 
-  currentRect already includes the offset in state, so the correction is added to it rather
-  than replacing it. Pulling an edge in can push the opposite edge out when the popover is
-  larger than the window itself; in that case the top/left edge wins, so the popover starts
-  at the top of the window and its own max-height scrolls the rest.
+  Reached when flipping the direction and nudging across it have both failed, which happens
+  when the popover is simply taller or wider than the room beside its anchor - a full event
+  editor next to an event low in a short window, say. The popover is moved off its anchor to
+  stay reachable, so the pointer no longer touches it; an unreachable footer is the worse of
+  the two.
+
+  `offset` must be the one currentRect already reflects, since the correction is added to it
+  rather than replacing it. Pulling an edge in can push the opposite edge out when the
+  popover is larger than the window itself; there the top/left edge wins, so the popover
+  starts inside the window and its own max-height scrolls the rest.
   */
-  computeClampedOffset = ({ currentRect, windowDimensions, offsetPadding = OFFSET_PADDING }) => {
-    const { offset } = this.state;
+  computeClampedOffset = ({
+    currentRect,
+    windowDimensions,
+    offset = {} as FixedPopoverState['offset'],
+    offsetPadding = OFFSET_PADDING,
+  }) => {
     let dx = 0;
     let dy = 0;
 
