@@ -37,3 +37,27 @@ describe('lastJSONResponse', function () {
     expect(lastJSONResponse('{"error":null}\n{"error":')).toEqual({ error: null });
   });
 });
+
+describe('accumulating mailsync stdout', function () {
+  // mailsync's result line carries the whole IMAP/SMTP conversation in `test` mode, so it
+  // routinely spans more than one 64KB chunk, and a server error or account name is often
+  // non-ASCII. Decoding each chunk on its own splits any multi-byte character that lands on
+  // a boundary into two replacement characters.
+  const payload = '{"error":"Café serveur"}';
+  const bytes = Buffer.from(payload, 'utf-8');
+  const splitAt = bytes.indexOf(0xc3) + 1; // between the two bytes of 'é'
+  const chunks = [bytes.subarray(0, splitAt), bytes.subarray(splitAt)];
+
+  it('mangles a character split across chunks when each chunk is decoded alone', function () {
+    const perChunk = chunks.map(c => c.toString('utf-8')).join('');
+    expect(perChunk).not.toEqual(payload);
+    expect(perChunk).toContain('�');
+    expect(lastJSONResponse(perChunk).error).not.toEqual('Café serveur');
+  });
+
+  it('preserves it when the bytes are joined before decoding', function () {
+    const joined = Buffer.concat(chunks).toString('utf-8');
+    expect(joined).toEqual(payload);
+    expect(lastJSONResponse(joined)).toEqual({ error: 'Café serveur' });
+  });
+});

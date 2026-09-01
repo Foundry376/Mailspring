@@ -261,21 +261,24 @@ export class MailsyncProcess extends EventEmitter {
   _spawnAndWait(mode, { onData }: { onData?: (data: any) => void } = {}) {
     return new Promise<{ response: any; buffer: Buffer }>((resolve, reject) => {
       this._spawnProcess(mode);
-      // `buffer` is both streams together and is what we show the user when something goes
-      // wrong; `out` is stdout alone, which is the only place the JSON result appears.
-      let buffer = Buffer.from([]);
-      let out = Buffer.from([]);
+      // `bothChunks` is both streams together and is what we show the user when something
+      // goes wrong; `outChunks` is stdout alone, which is the only place the JSON result
+      // appears. Chunks are concatenated as bytes and decoded once at the end: `a += b` on
+      // two Buffers coerces both through toString(), which decodes every chunk on its own
+      // and mangles any multi-byte character that straddles a chunk boundary.
+      const bothChunks: Buffer[] = [];
+      const outChunks: Buffer[] = [];
 
       if (this._proc.stdout) {
-        this._proc.stdout.on('data', (data) => {
-          buffer += data;
-          out += data;
+        this._proc.stdout.on('data', (data: Buffer) => {
+          bothChunks.push(data);
+          outChunks.push(data);
           if (onData) onData(data);
         });
       }
       if (this._proc.stderr) {
-        this._proc.stderr.on('data', (data) => {
-          buffer += data;
+        this._proc.stderr.on('data', (data: Buffer) => {
+          bothChunks.push(data);
           if (onData) onData(data);
         });
       }
@@ -285,8 +288,9 @@ export class MailsyncProcess extends EventEmitter {
       });
 
       this._proc.on('close', (code, signal) => {
+        const buffer = Buffer.concat(bothChunks);
         try {
-          const response = lastJSONResponse(out.toString('utf-8'));
+          const response = lastJSONResponse(Buffer.concat(outChunks).toString('utf-8'));
           if (!response) {
             // If the Mailsync executable itself failed to run, the logs are not JSON
             // and may contain system errors (shared library issues, etc). Include this
