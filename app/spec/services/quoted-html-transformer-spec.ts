@@ -17,7 +17,7 @@ describe('QuotedHTMLTransformer', function () {
     );
   };
 
-  for (let n = 1; n <= 28; n++) {
+  for (let n = 1; n <= 29; n++) {
     it(`properly parses email_${n}`, function () {
       const opts = { keepIfWholeBodyIsQuote: true };
       const actual = removeQuotedHTML(`email_${n}.html`, opts).trim();

@@ -283,6 +283,14 @@ class SanitizeTransformer {
       ALLOWED_URI_REGEXP:
         /^(?:(?:https?|ftps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|(?!file:)[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
       KEEP_CONTENT: true,
+      // Emails routinely put their entire stylesheet in <head>. DOMPurify
+      // returns `body.innerHTML`, so without this the parser puts those
+      // <style> blocks in <head> and they are discarded before the allow-list
+      // is ever consulted. FORCE_BODY prepends a throwaway element so the
+      // parser opens <body> immediately and head-level content is sanitized
+      // and kept inline. <base>, <link> and <meta> are still dropped by the
+      // allow-list, and the @import hook above now actually sees these sheets.
+      FORCE_BODY: true,
     });
   }
 
