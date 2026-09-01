@@ -17,7 +17,10 @@ class EmailFrameStylesStore extends MailspringStore {
       this._findStyles();
       this._listenToStyles();
     }
-    return this._styles;
+    return {
+      themeStyles: this._styles,
+      renderModeStyles: this._emailRenderModeOverrideStyles(),
+    };
   }
 
   _findStyles = () => {
@@ -36,7 +39,6 @@ class EmailFrameStylesStore extends MailspringStore {
       this._styles += `\n${(sheet as HTMLElement).innerText}`;
     }
     this._styles = this._styles.replace(/.ignore-in-parent-frame/g, '');
-    this._styles += this._emailRenderModeOverrideStyles();
     this.trigger();
   };
 

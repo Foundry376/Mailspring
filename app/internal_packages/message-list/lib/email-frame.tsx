@@ -78,7 +78,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     // the `border-collapse: collapse` css property while setting a
     // `padding`.
     const { message, showQuotedText } = this.props;
-    const styles = EmailFrameStylesStore.styles();
+    const { themeStyles, renderModeStyles } = EmailFrameStylesStore.styles();
     const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
 
     let content = this.props.content;
@@ -93,7 +93,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     if (message.plaintext) {
       doc.write(
         `<!DOCTYPE html>` +
-          (styles ? `<style>${styles}</style>` : '') +
+          `<style>${themeStyles}</style>` +
           `<div id='inbox-plain-wrapper' class="${process.platform}"></div>`
       );
       doc.close();
@@ -103,7 +103,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     } else {
       doc.write(
         `<!DOCTYPE html>` +
-          (styles ? `<style>${styles}</style>` : '') +
+          `<style>${themeStyles || ''}\n${renderModeStyles || ''}</style>` +
           `<div id='inbox-html-wrapper' class="${process.platform}">${content}</div>`
       );
       doc.close();
