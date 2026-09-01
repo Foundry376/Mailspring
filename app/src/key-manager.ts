@@ -5,9 +5,22 @@ interface KeySet {
   [key: string]: string;
 }
 
+interface DecryptResult {
+  result: string;
+  shouldReEncrypt: boolean;
+}
+
 const { safeStorage } = require('@electron/remote');
 
 const configCredentialsKey = 'credentials';
+
+// The real keychain varies by platform and may be locked or absent, so specs replace this.
+export const secureStorage = {
+  isAvailable: (): Promise<boolean> => safeStorage.isAsyncEncryptionAvailable(),
+  encrypt: (plaintext: string): Promise<Buffer> => safeStorage.encryptStringAsync(plaintext),
+  decrypt: (encrypted: Buffer): Promise<DecryptResult> =>
+    safeStorage.decryptStringAsync(encrypted),
+};
 
 /**
  * A basic wrap around electron's secure key management. Consolidates all of
@@ -18,6 +31,9 @@ const configCredentialsKey = 'credentials';
  * and every key we want to access.
  */
 class KeyManager {
+  private _fatalErrorReported = false;
+  private _reEncryptAttempted = false;
+
   async deleteAccountSecrets(account: Account) {
     try {
       const keys = await this._getKeyHash();
@@ -85,49 +101,84 @@ class KeyManager {
     }
   }
 
-  async _getKeyHash() {
-    let raw = '{}';
+  async _getKeyHash(): Promise<KeySet> {
     const encryptedCredentials = AppEnv.config.get(configCredentialsKey);
     // Check for different null values to prevent issues if a migration from keytar has failed
     if (
-      encryptedCredentials !== undefined &&
-      encryptedCredentials !== null &&
-      encryptedCredentials !== 'null'
+      encryptedCredentials === undefined ||
+      encryptedCredentials === null ||
+      encryptedCredentials === 'null'
     ) {
-      try {
-        raw = (await safeStorage.decryptStringAsync(Buffer.from(encryptedCredentials, 'utf-8')))
-          .result;
-      } catch (err) {
-        console.error('Mailspring encountered an error reading passwords from the keychain.');
-        console.error(err);
-      }
-    }
-    try {
-      return JSON.parse(raw) as KeySet;
-    } catch (err) {
       return {} as KeySet;
     }
+
+    let decrypted: DecryptResult;
+    try {
+      decrypted = await secureStorage.decrypt(Buffer.from(encryptedCredentials, 'utf-8'));
+    } catch (err) {
+      // Stored-but-unreadable is not the same as nothing stored. Resolving to an empty keyset
+      // would let the next read-modify-write mutator persist it, erasing every account's
+      // password over a locked keyring or a secret service that has not started yet.
+      this._reportFatalError(
+        new Error(
+          localized('Mailspring could not read your saved passwords and cannot continue.') +
+            this._encryptionUnavailableHint()
+        )
+      );
+    }
+
+    let keys: KeySet;
+    try {
+      keys = JSON.parse(decrypted.result) as KeySet;
+    } catch (err) {
+      // Decrypted to something that is not a keyset: no passwords left to preserve.
+      return {} as KeySet;
+    }
+
+    // Chromium raises this when the provider that encrypts new data is not the one this blob
+    // was written with, as it migrates Linux users to org.freedesktop.portal.Secret. The old key
+    // still decrypts, so this is hygiene: rewrite once, and never let a failure become fatal.
+    if (decrypted.shouldReEncrypt && !this._reEncryptAttempted) {
+      this._reEncryptAttempted = true;
+      try {
+        await this._writeKeyHash(keys);
+      } catch (err) {
+        console.warn('Mailspring could not re-encrypt your saved passwords with the new key.', err);
+      }
+    }
+
+    return keys;
+  }
+
+  _encryptionUnavailableHint() {
+    return process.platform === 'linux'
+      ? localized(
+          ' On Linux, Mailspring requires a secret service such as org.freedesktop.portal.Secret or org.freedesktop.Secret.Service. Please ensure a provider is installed and running, then restart Mailspring.'
+        )
+      : '';
   }
 
   async _writeKeyHash(keys: KeySet) {
-    if (!(await safeStorage.isAsyncEncryptionAvailable())) {
-      const platformHint =
-        process.platform === 'linux'
-          ? localized(
-              ' On Linux, Mailspring requires a secret service such as org.freedesktop.portal.Secret or org.freedesktop.Secret.Service. Please ensure a provider is installed and running, then restart Mailspring.'
-            )
-          : '';
+    if (!(await secureStorage.isAvailable())) {
       throw new Error(
         localized(
           `Mailspring could not store your password securely because encryption is not available on this system.`
-        ) + platformHint
+        ) + this._encryptionUnavailableHint()
       );
     }
-    const enrcyptedCredentials = await safeStorage.encryptStringAsync(JSON.stringify(keys));
+    const enrcyptedCredentials = await secureStorage.encrypt(JSON.stringify(keys));
     AppEnv.config.set(configCredentialsKey, enrcyptedCredentials);
   }
 
-  _reportFatalError(err: Error) {
+  _reportFatalError(err: Error): never {
+    // ensureClients is throttled rather than serialized, and _getKeyHash's callers report its
+    // throw a second time, so only the first failure gets a dialog. The rest still propagate.
+    if (this._fatalErrorReported) {
+      (err as any).noSentry = true;
+      throw err;
+    }
+    this._fatalErrorReported = true;
+
     const clickedButton = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'error',
       buttons: [localized('Mailspring Help'), localized('Quit')],
