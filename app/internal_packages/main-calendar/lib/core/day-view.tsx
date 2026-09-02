@@ -17,6 +17,7 @@ import {
   overlapForEvents,
   maxConcurrentEvents,
   eventsGroupedByDay,
+  exclusiveDayEnds,
   TICKS_PER_DAY,
   tickGenerator,
 } from './week-view-helpers';
@@ -227,6 +228,7 @@ export class DayView extends React.Component<
     const days = this._daysInView();
     const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
     const eventsByDay = eventsGroupedByDay(events, days);
+    const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
@@ -319,10 +321,10 @@ export class DayView extends React.Component<
                 style={{ width: `${this._bufferRatio() * 100}%` }}
               >
                 <div className="event-grid" style={{ height: totalHeight }}>
-                  {days.map((day) => (
+                  {days.map((day, dayIdx) => (
                     <WeekViewEventColumn
                       day={day}
-                      dayEnd={day.unix() + 24 * 60 * 60 - 1}
+                      dayEnd={dayEnds[dayIdx]}
                       key={day.valueOf()}
                       events={eventsByDay[day.unix()]}
                       focusedEvent={this.props.focusedEvent}
