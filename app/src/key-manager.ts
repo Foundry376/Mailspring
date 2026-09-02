@@ -18,8 +18,7 @@ const configCredentialsKey = 'credentials';
 export const secureStorage = {
   isAvailable: (): Promise<boolean> => safeStorage.isAsyncEncryptionAvailable(),
   encrypt: (plaintext: string): Promise<Buffer> => safeStorage.encryptStringAsync(plaintext),
-  decrypt: (encrypted: Buffer): Promise<DecryptResult> =>
-    safeStorage.decryptStringAsync(encrypted),
+  decrypt: (encrypted: Buffer): Promise<DecryptResult> => safeStorage.decryptStringAsync(encrypted),
 };
 
 /**
