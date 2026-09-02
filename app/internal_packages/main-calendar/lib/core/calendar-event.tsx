@@ -17,6 +17,11 @@ interface CalendarEventProps {
   event: EventOccurrence;
   order: number;
   selected: boolean;
+  /**
+   * The span this event is positioned within. Day columns pass one day, exclusive — its real
+   * length, not 86400. The all-day row passes the whole buffered week, and reads it only as a
+   * day count, so the two disagree by a second there without effect.
+   */
   scopeEnd: number;
   scopeStart: number;
   direction: 'horizontal' | 'vertical';

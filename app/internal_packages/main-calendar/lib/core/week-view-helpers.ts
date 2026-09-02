@@ -1,9 +1,6 @@
 import { EventOccurrence, isTimed } from './calendar-data-source';
 import moment, { Moment } from 'moment';
-import { Utils, CalendarDateUtils } from 'mailspring-exports';
-
-// This pre-fetches from Utils to prevent constant disc access
-const overlapsBounds = Utils.overlapsBounds;
+import { CalendarDateUtils } from 'mailspring-exports';
 
 export interface OverlapByEventId {
   [id: string]: { concurrentEvents: number; order: null | number };
@@ -122,6 +119,19 @@ export function maxConcurrentEvents(eventOverlap: OverlapByEventId) {
   return max;
 }
 
+/**
+ * Each day's EXCLUSIVE end, taken from the next day's start so membership, layout and drag
+ * hit-testing cannot drift from the rendered columns. A day is not always 86400 seconds:
+ * 90000 on a fall-back day, 82800 on a spring-forward one. The last day has no successor and
+ * resolves in the host zone, which is the zone the views build `days` in today.
+ */
+export function exclusiveDayEnds(days: Moment[]): number[] {
+  const unixDays = days.map((d) => d.unix());
+  return unixDays.map((day, i) =>
+    i + 1 < unixDays.length ? unixDays[i + 1] : CalendarDateUtils.shiftedDayStartUnix(day, 1)
+  );
+}
+
 export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
   const map: { allDay: EventOccurrence[]; [dayUnix: string]: EventOccurrence[] } = { allDay: [] };
 
@@ -130,17 +140,18 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
     map[`${day}`] = [];
   });
 
+  const exclusiveEnds = exclusiveDayEnds(days);
+
   events.forEach((event) => {
     if (isTimed(event)) {
-      for (const day of unixDays) {
-        const bounds = {
-          start: day,
-          end: day + 24 * 60 * 60 - 1,
-        };
-        if (overlapsBounds(bounds, event)) {
+      // Half-open, matching `coveredDates`' last-covered-instant convention, so a
+      // 22:00-00:00 event covers only the day it starts on.
+      const lastInstant = Math.max(event.end - 1, event.start);
+      unixDays.forEach((day, i) => {
+        if (event.start < exclusiveEnds[i] && lastInstant >= day) {
           map[`${day}`].push(event);
         }
-      }
+      });
     } else {
       map.allDay.push(event);
     }
