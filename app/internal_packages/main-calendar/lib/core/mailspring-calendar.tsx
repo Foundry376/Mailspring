@@ -101,8 +101,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
+    hitZone: HitZone
   ) => void;
 
   /** Set of calendar IDs that are read-only (events in these calendars cannot be dragged) */
@@ -525,24 +524,16 @@ export class MailspringCalendar extends React.Component<
   /**
    * Handle drag start from an event
    */
-  _onEventDragStart = (
-    event: EventOccurrence,
-    mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
-  ) => {
-    const config = this._getDragConfig();
+  /**
+   * A grab waiting for its time: the event's mousedown lands here first, then bubbles to the
+   * CalendarEventContainer, whose hit-test hands _onCalendarMouseDown the grid time under the
+   * cursor. Anchoring on the grid rather than the event's box keeps the grab offset in the same
+   * coordinates as every later drag target.
+   */
+  _pendingDrag: { event: EventOccurrence; hitZone: HitZone; x: number; y: number } | null = null;
 
-    const dragState = createDragState(
-      event,
-      hitZone,
-      mouseTime,
-      mouseEvent.clientX,
-      mouseEvent.clientY,
-      config
-    );
-
-    this.setState({ dragState });
+  _onEventDragStart = (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => {
+    this._pendingDrag = { event, hitZone, x: mouseEvent.clientX, y: mouseEvent.clientY };
   };
 
   /**
@@ -609,11 +600,21 @@ export class MailspringCalendar extends React.Component<
     this._persistDragChange(dragState);
   };
 
-  /**
-   * Handle mouse down on calendar
-   */
-  _onCalendarMouseDown = (_args: CalendarEventArgs) => {
-    // No-op: mouseUp handles drag completion, mouseMove handles drag updates
+  _onCalendarMouseDown = (args: CalendarEventArgs) => {
+    const pending = this._pendingDrag;
+    this._pendingDrag = null;
+    if (!pending || args.time === null) {
+      return;
+    }
+    const dragState = createDragState(
+      pending.event,
+      pending.hitZone,
+      args.time,
+      pending.x,
+      pending.y,
+      this._getDragConfig()
+    );
+    this.setState({ dragState });
   };
 
   /**
