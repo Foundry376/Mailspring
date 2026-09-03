@@ -4,6 +4,7 @@ import { AccountStore } from './account-store';
 import ContactStore from './contact-store';
 import { MessageStore } from './message-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
+import FocusedContentStore from './focused-content-store';
 import { localized } from '../../intl';
 import { Contact } from '../models/contact';
 import { Message } from '../models/message';
@@ -430,13 +431,20 @@ class DraftFactory {
   _accountForNewDraft() {
     const defAccountId = AppEnv.config.get('core.sending.defaultAccountIdForSend');
     const account = AccountStore.accountForId(defAccountId);
-    if (account) {
-      return account;
+    if (account) return account;
+
+    const perspectiveAccountIds = FocusedPerspectiveStore.current().accountIds;
+
+    if (perspectiveAccountIds.length > 1) {
+      const focusedThread = FocusedContentStore.focused('thread');
+      if (focusedThread && perspectiveAccountIds.includes(focusedThread.accountId)) {
+        const focusedAccount = AccountStore.accountForId(focusedThread.accountId);
+        if (focusedAccount) return focusedAccount;
+      }
     }
-    const focusedAccountId = FocusedPerspectiveStore.current().accountIds[0];
-    if (focusedAccountId) {
-      return AccountStore.accountForId(focusedAccountId);
-    }
+
+    const focusedAccountId = perspectiveAccountIds[0];
+    if (focusedAccountId) return AccountStore.accountForId(focusedAccountId);
     return AccountStore.accounts()[0];
   }
 }
