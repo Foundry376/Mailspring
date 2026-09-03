@@ -8,7 +8,7 @@ import {
   formatCalendarDate,
   parseCalendarDate,
   secondsIntoDay,
-  unixAtSecondsIntoDay,
+  secondsIntoDayUnix,
 } from '../src/calendar-date';
 
 /** Fixtures read as dates, not epoch-day integers — a failure says 2026-06-21, not 20627 */
@@ -173,29 +173,29 @@ describe('secondsIntoDay', function () {
   });
 });
 
-describe('unixAtSecondsIntoDay', function () {
+describe('secondsIntoDayUnix', function () {
   it('inverts secondsIntoDay on ordinary and transition days alike', function () {
     SAMPLE_DAYS.forEach((iso) => {
-      expect(unixAtSecondsIntoDay(d(iso), 37800)).toBe(at(iso, 10, 30));
-      expect(secondsIntoDay(unixAtSecondsIntoDay(d(iso), 37800))).toBe(37800);
+      expect(secondsIntoDayUnix(d(iso), 37800)).toBe(at(iso, 10, 30));
+      expect(secondsIntoDay(secondsIntoDayUnix(d(iso), 37800))).toBe(37800);
     });
   });
 
   it('resolves a time inside the spring-forward gap forward', function () {
     // 02:30 does not exist on 2026-03-08 in Chicago; the clock goes 01:59 -> 03:00.
-    expect(unixAtSecondsIntoDay(d(SPRING_FORWARD_DAY), 9000)).toBe(
+    expect(secondsIntoDayUnix(d(SPRING_FORWARD_DAY), 9000)).toBe(
       Date.UTC(2026, 2, 8, 8, 30) / 1000
     );
   });
 
   it('picks the first occurrence of a fall-back repeated hour', function () {
     // 01:30 happens twice on 2025-11-02 in Chicago: 06:30Z (CDT) and 07:30Z (CST).
-    expect(unixAtSecondsIntoDay(d(FALL_BACK_DAY), 5400)).toBe(Date.UTC(2025, 10, 2, 6, 30) / 1000);
+    expect(secondsIntoDayUnix(d(FALL_BACK_DAY), 5400)).toBe(Date.UTC(2025, 10, 2, 6, 30) / 1000);
   });
 
   it('lands 86400 on the next day-start, whatever the day length', function () {
     SAMPLE_DAYS.forEach((iso) => {
-      expect(unixAtSecondsIntoDay(d(iso), 86400)).toBe(nextDayStartUnix(d(iso)));
+      expect(secondsIntoDayUnix(d(iso), 86400)).toBe(nextDayStartUnix(d(iso)));
     });
   });
 });

@@ -173,7 +173,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         // The grid is 24 wall-clock hours, so a fraction of it is a time of day — not a share of
         // the day's elapsed seconds, which lands up to an hour off the gridline on a DST day.
         const percentDay = Math.max(0, Math.min(1, y / height));
-        time = CalendarDateUtils.unixAtSecondsIntoDay(
+        time = CalendarDateUtils.secondsIntoDayUnix(
           CalendarDateUtils.calendarDateFromUnix(startTime),
           Math.round(percentDay * DAY_DUR)
         );

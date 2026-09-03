@@ -86,7 +86,7 @@ export function secondsIntoDay(unixSeconds: number): number {
  * `secondsIntoDay` wherever the clock reading exists once; a time inside a spring-forward gap
  * resolves forward, and a time the fall-back repeats resolves to its first occurrence.
  */
-export function unixAtSecondsIntoDay(date: CalendarDate, seconds: number): number {
+export function secondsIntoDayUnix(date: CalendarDate, seconds: number): number {
   const utc = new Date(date * MS_PER_DAY);
   return (
     new Date(utc.getUTCFullYear(), utc.getUTCMonth(), utc.getUTCDate(), 0, 0, seconds).getTime() /
