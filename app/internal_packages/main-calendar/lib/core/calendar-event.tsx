@@ -12,6 +12,7 @@ import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './c
 import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { DAY_DUR } from './week-view-helpers';
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -100,16 +101,20 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   _getDimensions() {
     const event = this.props.event;
 
-    // top/height are fractions of the scope. Timed events fill a day vertically by instant;
-    // all-day events fill the week horizontally (remapped in _getStyles) by whole days, so their
-    // fraction is computed in date space — DST-immune, unlike a seconds-based fraction would be.
+    // top/height are fractions of the scope, in the grid's own coordinates rather than elapsed
+    // seconds, so neither drifts on a DST day: timed events fill a day vertically by wall clock
+    // (the gridlines are 24 uniform hours), all-day events fill the week horizontally (remapped
+    // in _getStyles) by whole days.
     let top: number | string;
     let height: number | string;
     if (isTimed(event)) {
-      const scopeLen = this.props.scopeEnd - this.props.scopeStart;
-      const duration = event.end - event.start;
-      top = Math.max((event.start - this.props.scopeStart) / scopeLen, 0);
-      height = Math.min((duration - this._overflowBefore()) / scopeLen, 1);
+      // Instants outside the column clamp to its edges; `scopeEnd` is the next day's start, so an
+      // end exactly there reaches the bottom rather than reading as 00:00.
+      const { scopeStart, scopeEnd } = this.props;
+      top = event.start <= scopeStart ? 0 : CalendarDateUtils.secondsIntoDay(event.start) / DAY_DUR;
+      const bottom =
+        event.end >= scopeEnd ? 1 : CalendarDateUtils.secondsIntoDay(event.end) / DAY_DUR;
+      height = Math.max(bottom - top, 0);
     } else {
       const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);
       const scopeDays = Math.round((this.props.scopeEnd - this.props.scopeStart) / 86400);
@@ -173,11 +178,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       styles.backgroundColor = colors.background;
     }
     return styles;
-  }
-
-  _overflowBefore() {
-    const event = this.props.event;
-    return isTimed(event) ? Math.max(this.props.scopeStart - event.start, 0) : 0;
   }
 
   /**

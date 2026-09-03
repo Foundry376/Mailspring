@@ -61,7 +61,8 @@ function allDayDimensions(startISO: string, endISO: string) {
 }
 
 // A day column's scope: its own start, and the next day's start as the exclusive end, as
-// `exclusiveDayEnds` supplies them. Chicago runner, so 2025-11-02 is 25 hours long.
+// `exclusiveDayEnds` supplies them. Chicago runner, so 2025-11-02 is 25 hours long and
+// 2026-03-08 is 23.
 function timedDimensions(startISO: string, endISO: string, dayISO: string, nextDayISO: string) {
   const event = {
     ...OCCURRENCE_META,
@@ -73,6 +74,9 @@ function timedDimensions(startISO: string, endISO: string, dayISO: string, nextD
   } as TimedOccurrence;
   return dimensions(event, 'vertical', moment(dayISO).unix(), moment(nextDayISO).unix());
 }
+
+/** Percent of the column a wall-clock hour is at: the gridline the legend labels with it. */
+const hourLine = (hours: number) => (hours / 24) * 100;
 
 describe('CalendarEvent all-day dimensions', function () {
   it('sizes a fully-visible multi-day span by its covered days', function () {
@@ -91,31 +95,65 @@ describe('CalendarEvent all-day dimensions', function () {
   });
 });
 
+// The legend, gridlines and now-line divide every column into 24 equal hours, so an event has
+// to sit on the line its own label names. Elapsed-seconds positioning drifts off it by up to an
+// hour on a transition day (and once put a 23:30 event at 102%, clipped away by
+// `.event-column { overflow: hidden }`).
 describe('CalendarEvent timed dimensions across DST', function () {
-  it('keeps a late event on a 25-hour day inside its column', function () {
-    // Against a hardcoded 86399s scope a 23:30 event computes top 102%, which
-    // `.event-column { overflow: hidden }` clips away entirely.
+  it('keeps a late event on a 25-hour day on its own gridline', function () {
     const { topPct, heightPct } = timedDimensions(
       '2025-11-02 23:30',
       '2025-11-02 23:45',
       '2025-11-02',
       '2025-11-03'
     );
-    expect(topPct).toBeCloseTo((88200 / 90000) * 100, 4);
-    expect(topPct + heightPct).toBeLessThan(100.0001);
+    expect(topPct).toBeCloseTo(hourLine(23.5), 4);
+    expect(topPct + heightPct).toBeCloseTo(hourLine(23.75), 4);
   });
 
-  it('sizes an event against the real length of a 23-hour day', function () {
-    // Proportional to elapsed seconds, which is NOT the wall-clock hour gridline: the
-    // legend and now-line divide the column into 24 equal hours, so on a transition day a
-    // 10:00 event draws ~37 min off its own "10 AM" line. Pre-existing and improved here
-    // (it was a full hour), not fixed — see the backlog's elapsed-vs-wall-clock item.
+  it('draws a 10:00 event on the 10 AM line of a 23-hour day', function () {
+    // Elapsed seconds would put it at 32400/82800 = 39.1%, 37 minutes above the line.
     const { topPct } = timedDimensions(
       '2026-03-08 10:00',
       '2026-03-08 11:00',
       '2026-03-08',
       '2026-03-09'
     );
-    expect(topPct).toBeCloseTo((32400 / 82800) * 100, 4);
+    expect(topPct).toBeCloseTo(hourLine(10), 4);
+  });
+
+  it('spans the hours its label names across a spring-forward gap', function () {
+    // 01:30-03:30 lasts one real hour; the grid still has a 2 AM row, so it draws two tall.
+    const { topPct, heightPct } = timedDimensions(
+      '2026-03-08 01:30',
+      '2026-03-08 03:30',
+      '2026-03-08',
+      '2026-03-09'
+    );
+    expect(topPct).toBeCloseTo(hourLine(1.5), 4);
+    expect(heightPct).toBeCloseTo(hourLine(2), 4);
+  });
+
+  it('reaches the column bottom when it ends at the next midnight', function () {
+    // The end instant's own wall clock reads 00:00; the exclusive scope end is what makes it 100%.
+    const { topPct, heightPct } = timedDimensions(
+      '2025-11-02 22:00',
+      '2025-11-03 00:00',
+      '2025-11-02',
+      '2025-11-03'
+    );
+    expect(topPct).toBeCloseTo(hourLine(22), 4);
+    expect(topPct + heightPct).toBeCloseTo(100, 4);
+  });
+
+  it('clips to the column top when it began the day before', function () {
+    const { topPct, heightPct } = timedDimensions(
+      '2025-11-01 22:00',
+      '2025-11-02 03:00',
+      '2025-11-02',
+      '2025-11-03'
+    );
+    expect(topPct).toBe(0);
+    expect(heightPct).toBeCloseTo(hourLine(3), 4);
   });
 });

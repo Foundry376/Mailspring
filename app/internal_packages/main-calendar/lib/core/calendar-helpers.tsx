@@ -456,8 +456,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
 export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventOccurrence): void {
   let dayFraction = 0.5;
   if (selectedEvent && isTimed(selectedEvent)) {
-    const m = moment.unix(selectedEvent.start);
-    dayFraction = (m.hour() * 3600 + m.minute() * 60) / 86400;
+    dayFraction = CalendarDateUtils.secondsIntoDay(selectedEvent.start) / 86400;
   }
   viewportEl.scrollTop = viewportEl.scrollHeight * dayFraction - viewportEl.clientHeight / 2;
 }

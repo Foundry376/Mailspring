@@ -7,6 +7,8 @@ import {
   calendarDaysBetween,
   formatCalendarDate,
   parseCalendarDate,
+  secondsIntoDay,
+  unixAtSecondsIntoDay,
 } from '../src/calendar-date';
 
 /** Fixtures read as dates, not epoch-day integers — a failure says 2026-06-21, not 20627 */
@@ -146,6 +148,47 @@ describe('nextDayStartUnix', function () {
       const next = addCalendarDays(d(iso), 1);
       expect(nextDayStartUnix(d(iso))).toBe(dayStartUnix(next));
       expect(nextDayStartUnix(d(iso)) > dayStartUnix(d(iso))).toBe(true);
+    });
+  });
+});
+
+// Host-zone reads, so these discriminate only on the pinned Chicago runner, where 2025-11-02
+// is a 25-hour day and 2026-03-08 a 23-hour one. UTC literals are used where a fixture built
+// through the Date constructor would resolve a gap or a repeat the same way the code does.
+describe('secondsIntoDay', function () {
+  it('reads the wall clock, not elapsed time, on a transition day', function () {
+    expect(secondsIntoDay(at('2026-06-21', 10, 30))).toBe(37800);
+    expect(secondsIntoDay(at('2025-11-02', 10, 30))).toBe(37800); // 41400s after midnight
+    expect(secondsIntoDay(at('2026-03-08', 10, 30))).toBe(37800); // 34200s after midnight
+  });
+
+  it('is 0 at midnight and 86399 at the last second', function () {
+    expect(secondsIntoDay(at('2026-06-21'))).toBe(0);
+    expect(secondsIntoDay(at('2026-06-21', 23, 59) + 59)).toBe(86399);
+  });
+});
+
+describe('unixAtSecondsIntoDay', function () {
+  it('inverts secondsIntoDay on ordinary and transition days alike', function () {
+    ['2026-06-21', '2025-11-02', '2026-03-08'].forEach((iso) => {
+      expect(unixAtSecondsIntoDay(d(iso), 37800)).toBe(at(iso, 10, 30));
+      expect(secondsIntoDay(unixAtSecondsIntoDay(d(iso), 37800))).toBe(37800);
+    });
+  });
+
+  it('resolves a time inside the spring-forward gap forward', function () {
+    // 02:30 does not exist on 2026-03-08 in Chicago; the clock goes 01:59 -> 03:00.
+    expect(unixAtSecondsIntoDay(d('2026-03-08'), 9000)).toBe(Date.UTC(2026, 2, 8, 8, 30) / 1000);
+  });
+
+  it('picks the first occurrence of a fall-back repeated hour', function () {
+    // 01:30 happens twice on 2025-11-02 in Chicago: 06:30Z (CDT) and 07:30Z (CST).
+    expect(unixAtSecondsIntoDay(d('2025-11-02'), 5400)).toBe(Date.UTC(2025, 10, 2, 6, 30) / 1000);
+  });
+
+  it('lands 86400 on the next day-start, whatever the day length', function () {
+    ['2026-06-21', '2025-11-02', '2026-03-08'].forEach((iso) => {
+      expect(unixAtSecondsIntoDay(d(iso), 86400)).toBe(nextDayStartUnix(d(iso)));
     });
   });
 });

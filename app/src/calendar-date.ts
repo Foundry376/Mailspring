@@ -72,6 +72,29 @@ export function nextDayStartUnix(date: CalendarDate): number {
 }
 
 /**
+ * Wall-clock seconds since the local midnight of the date an instant falls on: 10:30 is 37800
+ * on a 23- or 25-hour day too. Not `unix - dayStartUnix(date)`, which is elapsed time and sits
+ * an hour off the clock after a DST transition.
+ */
+export function secondsIntoDay(unixSeconds: number): number {
+  const d = new Date(unixSeconds * 1000);
+  return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
+}
+
+/**
+ * The instant at a wall-clock offset into a date, in the local zone. The inverse of
+ * `secondsIntoDay` wherever the clock reading exists once; a time inside a spring-forward gap
+ * resolves forward, and a time the fall-back repeats resolves to its first occurrence.
+ */
+export function unixAtSecondsIntoDay(date: CalendarDate, seconds: number): number {
+  const utc = new Date(date * MS_PER_DAY);
+  return (
+    new Date(utc.getUTCFullYear(), utc.getUTCMonth(), utc.getUTCDate(), 0, 0, seconds).getTime() /
+    1000
+  );
+}
+
+/**
  * The start of the date `days` after the one this instant falls on.
  *
  * A migration bridge for callers that still hold instants. It goes away as they move to

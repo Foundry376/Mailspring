@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Moment from 'moment';
 import classNames from 'classnames';
+import { CalendarDateUtils } from 'mailspring-exports';
+import { DAY_DUR } from './week-view-helpers';
 
 interface CurrentTimeIndicatorProps {
   gridHeight: number;
@@ -12,7 +13,7 @@ interface CurrentTimeIndicatorProps {
 
 export class CurrentTimeIndicator extends React.Component<
   CurrentTimeIndicatorProps,
-  { msecIntoDay: number }
+  { dayFraction: number }
 > {
   _movementTimer = null;
 
@@ -35,17 +36,12 @@ export class CurrentTimeIndicator extends React.Component<
   }
 
   getStateFromTime() {
-    const now = Moment();
-    return {
-      msecIntoDay:
-        now.millisecond() + (now.second() + (now.minute() + now.hour() * 60) * 60) * 1000,
-    };
+    return { dayFraction: CalendarDateUtils.secondsIntoDay(Date.now() / 1000) / DAY_DUR };
   }
 
   render() {
     const { gridHeight, numColumns, todayColumnIdx, visible } = this.props;
-    const msecsPerDay = 24 * 60 * 60 * 1000;
-    const { msecIntoDay } = this.state;
+    const { dayFraction } = this.state;
 
     const todayMarker =
       todayColumnIdx !== -1 ? (
@@ -55,7 +51,7 @@ export class CurrentTimeIndicator extends React.Component<
     return (
       <div
         className={classNames({ 'current-time-indicator': true, visible: visible })}
-        style={{ top: gridHeight * (msecIntoDay / msecsPerDay) }}
+        style={{ top: gridHeight * dayFraction }}
       >
         {todayMarker}
       </div>
