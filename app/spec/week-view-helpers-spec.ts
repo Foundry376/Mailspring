@@ -2,6 +2,7 @@
 import {
   eventsGroupedByDay,
   exclusiveDayEnds,
+  overlapForEvents,
 } from '../internal_packages/main-calendar/lib/core/week-view-helpers';
 import {
   EventOccurrence,
@@ -148,5 +149,44 @@ describe('exclusiveDayEnds', function () {
   it('resolves the final day, which has no successor', function () {
     const days = daysFrom('2026-06-08', 3);
     expect(exclusiveDayEnds(days)[2]).toBe(at('2026-06-11').unix());
+  });
+});
+
+describe('overlapForEvents in a day column', function () {
+  const column = { start: at('2025-11-02').unix(), end: at('2025-11-03').unix() };
+  const utc = (h: number, m: number) => Date.UTC(2025, 10, 2, h, m) / 1000;
+  const stacking = (events: EventOccurrence[]) =>
+    events.map((e) => {
+      const o = overlapForEvents(events, column)[e.id];
+      return [o.concurrentEvents, o.order];
+    });
+
+  it('stacks the two occurrences of a fall-back repeated hour side by side', function () {
+    // Both read 01:30-02:30 on the clock: CDT is 06:30Z, CST an hour later. By instant they
+    // are sequential; on the grid they share a slot.
+    const first = { ...makeOccurrence(utc(6, 30), utc(7, 30)), id: 'cdt' };
+    const second = { ...makeOccurrence(utc(7, 30), utc(8, 30)), id: 'cst' };
+    expect(stacking([first, second])).toEqual([
+      [2, 1],
+      [2, 2],
+    ]);
+  });
+
+  it('keeps events in consecutive slots apart', function () {
+    const ten = { ...timedEvent('2025-11-02 10:00', '2025-11-02 11:00'), id: 'ten' };
+    const eleven = { ...timedEvent('2025-11-02 11:00', '2025-11-02 12:00'), id: 'eleven' };
+    expect(stacking([ten, eleven])).toEqual([
+      [1, 1],
+      [1, 1],
+    ]);
+  });
+
+  it('treats an event carried over from the previous day as filling the top rows', function () {
+    const carried = { ...timedEvent('2025-11-01 22:00', '2025-11-02 03:00'), id: 'carried' };
+    const early = { ...timedEvent('2025-11-02 00:30', '2025-11-02 01:00'), id: 'early' };
+    expect(stacking([carried, early])).toEqual([
+      [2, 1],
+      [2, 2],
+    ]);
   });
 });

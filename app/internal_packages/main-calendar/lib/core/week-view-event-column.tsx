@@ -60,8 +60,8 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       'event-column': true,
       weekend: day.day() === 0 || day.day() === 6,
     });
-    const overlap = overlapForEvents(events);
     const dayStart = day.unix();
+    const overlap = overlapForEvents(events, { start: dayStart, end: dayEnd });
 
     return (
       <div

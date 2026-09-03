@@ -12,7 +12,7 @@ import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './c
 import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
-import { dayFraction } from './week-view-helpers';
+import { DAY_DUR, columnSpan } from './week-view-helpers';
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -106,10 +106,9 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     let top: number | string;
     let height: number | string;
     if (isTimed(event)) {
-      const { scopeStart, scopeEnd } = this.props;
-      top = event.start < scopeStart ? 0 : dayFraction(event.start);
-      const bottom = event.end >= scopeEnd ? 1 : dayFraction(event.end);
-      height = Math.max(bottom - top, 0);
+      const span = columnSpan(event, this.props.scopeStart, this.props.scopeEnd);
+      top = span.top / DAY_DUR;
+      height = (span.bottom - span.top) / DAY_DUR;
     } else {
       const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);
       const scopeDays = Math.round((this.props.scopeEnd - this.props.scopeStart) / 86400);

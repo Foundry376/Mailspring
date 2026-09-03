@@ -1,4 +1,4 @@
-import { EventOccurrence, isTimed } from './calendar-data-source';
+import { EventOccurrence, TimedOccurrence, isTimed } from './calendar-data-source';
 import moment, { Moment } from 'moment';
 import { CalendarDateUtils } from 'mailspring-exports';
 
@@ -13,22 +13,39 @@ export interface OverlapByEventId {
  *   - concurrentEvents: number of concurrent events
  *   - order: the order in that series of concurrent events
  */
+/** A day column's bounds: its start and the next column's start, as `exclusiveDayEnds` gives them. */
+export interface ColumnBounds {
+  start: number;
+  end: number;
+}
+
 /**
  * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Each call is homogeneous —
  * the all-day bar passes only all-day events, day columns only timed — so all-day stacks in
- * date space (`addCalendarDays(endDate, 1)` exclusive) and timed in instants, and the two never mix in one call.
+ * date space (`addCalendarDays(endDate, 1)` exclusive) and timed in the column's grid
+ * coordinates, and the two never mix in one call.
  */
-function sweepBounds(e: EventOccurrence): { lo: number; hi: number } {
-  return isTimed(e)
-    ? { lo: e.start, hi: e.end }
-    : { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
+function sweepBounds(e: EventOccurrence, column?: ColumnBounds): { lo: number; hi: number } {
+  if (!isTimed(e)) {
+    return { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
+  }
+  if (!column) {
+    return { lo: e.start, hi: e.end };
+  }
+  const { top, bottom } = columnSpan(e, column.start, column.end);
+  return { lo: top, hi: bottom };
 }
 
-export function overlapForEvents(events: EventOccurrence[]) {
+/**
+ * `column` puts timed events in the grid's wall-clock coordinates, the same ones they are
+ * drawn in, so two events in a fall-back day's repeated hour stack side by side instead of
+ * one hiding the other — by instant they are sequential, on screen they share a slot.
+ */
+export function overlapForEvents(events: EventOccurrence[], column?: ColumnBounds) {
   const eventsByTime: { [unix: number]: EventOccurrence[] } = {};
 
   for (const event of events) {
-    const b = sweepBounds(event);
+    const b = sweepBounds(event, column);
     if (!eventsByTime[b.lo]) {
       eventsByTime[b.lo] = [];
     }
@@ -50,7 +67,7 @@ export function overlapForEvents(events: EventOccurrence[]) {
     // Process all event start/ends during this time to keep our
     // "ongoingEvents" set correct.
     for (const e of eventsByTime[t]) {
-      const b = sweepBounds(e);
+      const b = sweepBounds(e, column);
       if (b.lo === t) {
         overlapById[e.id] = { concurrentEvents: 1, order: null };
         ongoingEvents.push(e);
@@ -167,6 +184,26 @@ export const TICKS_PER_DAY = DAY_DUR / TICK_STEP;
 /** Where an instant sits down the grid, 0..1: the grid is 24 wall-clock hours on every day. */
 export function dayFraction(unixSeconds: number): number {
   return CalendarDateUtils.secondsIntoDay(unixSeconds) / DAY_DUR;
+}
+
+/**
+ * The grid rows a timed event occupies in one day column, in grid seconds (0..DAY_DUR; integers,
+ * so they are safe as sweep keys). Instants outside the column clamp to its edges; `scopeEnd`
+ * is the next column's start, so an end exactly there is the bottom rather than a 00:00
+ * reading. Across a fall-back transition an end can read no later than its start; such an
+ * event is drawn at its real duration instead.
+ */
+export function columnSpan(
+  event: TimedOccurrence,
+  scopeStart: number,
+  scopeEnd: number
+): { top: number; bottom: number } {
+  const top = event.start < scopeStart ? 0 : CalendarDateUtils.secondsIntoDay(event.start);
+  if (event.end >= scopeEnd) {
+    return { top, bottom: DAY_DUR };
+  }
+  const wallClockEnd = CalendarDateUtils.secondsIntoDay(event.end);
+  return { top, bottom: wallClockEnd > top ? wallClockEnd : top + (event.end - event.start) };
 }
 
 export function* tickGenerator(type: 'major' | 'minor', tickHeight: number) {

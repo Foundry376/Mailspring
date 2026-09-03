@@ -63,13 +63,15 @@ function allDayDimensions(startISO: string, endISO: string) {
 // A day column's scope: its own start, and the next day's start as the exclusive end, as
 // `exclusiveDayEnds` supplies them. Chicago runner, so 2025-11-02 is 25 hours long and
 // 2026-03-08 is 23.
-function timedDimensions(startISO: string, endISO: string, dayISO: string) {
+// Times are local ISO strings, or unix seconds where the clock reading is ambiguous.
+function timedDimensions(start: string | number, end: string | number, dayISO: string) {
   const day = parseCalendarDate(dayISO);
+  const unix = (t: string | number) => (typeof t === 'number' ? t : moment(t).unix());
   const event = {
     ...OCCURRENCE_META,
     isAllDay: false,
-    start: moment(startISO).unix(),
-    end: moment(endISO).unix(),
+    start: unix(start),
+    end: unix(end),
     startDate: day,
     endDate: day,
   } as TimedOccurrence;
@@ -130,6 +132,17 @@ describe('CalendarEvent timed dimensions across DST', function () {
     );
     expect(topPct).toBeCloseTo(hourLine(1.5), 4);
     expect(heightPct).toBeCloseTo(hourLine(2), 4);
+  });
+
+  it('draws its real duration when its end reads no later than its start', function () {
+    // 01:30 CDT to 01:30 CST is one real hour whose two ends read the same on the clock.
+    const { topPct, heightPct } = timedDimensions(
+      Date.UTC(2025, 10, 2, 6, 30) / 1000,
+      Date.UTC(2025, 10, 2, 7, 30) / 1000,
+      '2025-11-02'
+    );
+    expect(topPct).toBeCloseTo(hourLine(1.5), 4);
+    expect(heightPct).toBeCloseTo(hourLine(1), 4);
   });
 
   it('reaches the column bottom when it ends at the next midnight', function () {
