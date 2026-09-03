@@ -7,6 +7,13 @@ import { Emitter, Disposable } from 'event-kit';
 let suspended = false;
 const templateConfigKey = 'core.keymapTemplate';
 
+interface KeymapLoadOptions {
+  replaceExistingCommands?: boolean;
+}
+
+const normalizePlatformKeystrokes = (keystrokes: string) =>
+  keystrokes.replace(/\bmod\b/g, process.platform === 'darwin' ? 'command' : 'ctrl');
+
 /*
 By default, Mousetrap stops all hotkeys within text inputs. Override this to
 more specifically block only hotkeys that have no modifier keys (things like
@@ -72,10 +79,16 @@ class KeymapFile {
   _disposable = null;
   _path: string;
   _manager: KeymapManager;
+  _replaceExistingCommands: boolean;
 
-  constructor(manager: KeymapManager, filePath: string) {
+  constructor(
+    manager: KeymapManager,
+    filePath: string,
+    { replaceExistingCommands = false }: KeymapLoadOptions = {}
+  ) {
     this._manager = manager;
     this._path = filePath;
+    this._replaceExistingCommands = replaceExistingCommands;
   }
 
   load = () => {
@@ -116,6 +129,10 @@ class KeymapFile {
 
   bindings() {
     return this._bindings;
+  }
+
+  replacesExistingCommands() {
+    return this._replaceExistingCommands;
   }
 }
 
@@ -219,12 +236,14 @@ export default class KeymapManager {
         'templates',
         `${templateFile}.json`
       );
-      this._removeTemplate = this.loadKeymap(templateKeymapPath);
+      this._removeTemplate = this.loadKeymap(templateKeymapPath, {
+        replaceExistingCommands: true,
+      });
     }
   };
 
-  loadKeymap(filePath: string) {
-    const file = new KeymapFile(this, filePath);
+  loadKeymap(filePath: string, { replaceExistingCommands = false }: KeymapLoadOptions = {}) {
+    const file = new KeymapFile(this, filePath, { replaceExistingCommands });
     this._files.push(file);
     file.load();
 
@@ -235,13 +254,19 @@ export default class KeymapManager {
   }
 
   ensureKeystrokesRegistered(keystrokes: string) {
-    if (this._registered[keystrokes]) {
+    const platformKeystrokes = normalizePlatformKeystrokes(keystrokes);
+    if (this._registered[platformKeystrokes]) {
       return;
     }
-    this._registered[keystrokes] = true;
+    this._registered[platformKeystrokes] = true;
 
-    mousetrap.bind(keystrokes, () => {
-      for (const command of this._commandsCache[keystrokes] || []) {
+    mousetrap.bind(platformKeystrokes, () => {
+      const commands = this._commandsCache[platformKeystrokes] || [];
+      if (commands.length === 0) {
+        return;
+      }
+
+      for (const command of commands) {
         if (command.startsWith('application:')) {
           ipcRenderer.send('command', command);
         } else {
@@ -259,7 +284,13 @@ export default class KeymapManager {
       const fileBindings = file.bindings();
       for (const command of Object.keys(fileBindings)) {
         const keystrokesArray = fileBindings[command];
-        this._bindingsCache[command] = (this._bindingsCache[command] || []).concat(keystrokesArray);
+        if (file.replacesExistingCommands()) {
+          this._bindingsCache[command] = keystrokesArray.slice();
+        } else {
+          this._bindingsCache[command] = (this._bindingsCache[command] || []).concat(
+            keystrokesArray
+          );
+        }
       }
     }
     if (this.userKeymap) {
@@ -272,11 +303,12 @@ export default class KeymapManager {
     this._commandsCache = {};
     for (const command of Object.keys(this._bindingsCache)) {
       for (const keystrokes of this._bindingsCache[command]) {
-        if (!this._commandsCache[keystrokes]) {
-          this._commandsCache[keystrokes] = [];
+        const platformKeystrokes = normalizePlatformKeystrokes(keystrokes);
+        if (!this._commandsCache[platformKeystrokes]) {
+          this._commandsCache[platformKeystrokes] = [];
         }
-        if (!this._commandsCache[keystrokes].includes(command)) {
-          this._commandsCache[keystrokes].push(command);
+        if (!this._commandsCache[platformKeystrokes].includes(command)) {
+          this._commandsCache[platformKeystrokes].push(command);
         }
       }
     }
