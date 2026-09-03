@@ -9,6 +9,8 @@ import {
   parseCalendarDate,
   secondsIntoDay,
   secondsIntoDayUnix,
+  firstOccurrenceUnix,
+  nearestOccurrenceUnix,
 } from '../src/calendar-date';
 
 /** Fixtures read as dates, not epoch-day integers — a failure says 2026-06-21, not 20627 */
@@ -197,6 +199,47 @@ describe('secondsIntoDayUnix', function () {
     SAMPLE_DAYS.forEach((iso) => {
       expect(secondsIntoDayUnix(d(iso), 86400)).toBe(nextDayStartUnix(d(iso)));
     });
+  });
+});
+
+describe('firstOccurrenceUnix', function () {
+  const cdt130 = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+  const cst130 = Date.UTC(2025, 10, 2, 7, 30) / 1000;
+
+  it('is the instant itself outside a repeated hour', function () {
+    [
+      at(ORDINARY_DAY, 10, 30),
+      at(FALL_BACK_DAY, 10, 30),
+      at(SPRING_FORWARD_DAY, 3, 30),
+      cdt130,
+    ].forEach((unix) => expect(firstOccurrenceUnix(unix)).toBe(unix));
+  });
+
+  it('is an hour earlier inside the second occurrence of a repeated hour', function () {
+    expect(firstOccurrenceUnix(cst130)).toBe(cdt130);
+  });
+});
+
+describe('nearestOccurrenceUnix', function () {
+  const cdt130 = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+  const cst130 = Date.UTC(2025, 10, 2, 7, 30) / 1000;
+  const cst330 = Date.UTC(2025, 10, 2, 9, 30) / 1000;
+
+  it('resolves a repeated reading toward the reference', function () {
+    expect(nearestOccurrenceUnix(cdt130, cst130)).toBe(cst130);
+    expect(nearestOccurrenceUnix(cst130, cdt130)).toBe(cdt130);
+    expect(nearestOccurrenceUnix(cdt130, cst330)).toBe(cst130); // 3:30 CST is nearer the CST 1:30
+  });
+
+  it('keeps an instant whose reading happens once', function () {
+    const ten = at(FALL_BACK_DAY, 10, 30);
+    expect(nearestOccurrenceUnix(ten, ten - 5 * 3600)).toBe(ten);
+    const gapEdge = at(SPRING_FORWARD_DAY, 3, 30); // 2:30 does not exist; 3:30 happens once
+    expect(nearestOccurrenceUnix(gapEdge, gapEdge - 3600)).toBe(gapEdge);
+  });
+
+  it('keeps the instant when it is already the nearer occurrence', function () {
+    expect(nearestOccurrenceUnix(cdt130, cdt130 - 600)).toBe(cdt130);
   });
 });
 

@@ -95,6 +95,34 @@ export function secondsIntoDayUnix(date: CalendarDate, seconds: number): number 
 }
 
 /**
+ * The first instant on this instant's date with its clock reading — the instant a wall-clock
+ * grid maps that reading to. Only differs from the instant inside the second occurrence of a
+ * fall-back repeated hour, where it is an hour earlier.
+ */
+export function firstOccurrenceUnix(unixSeconds: number): number {
+  return secondsIntoDayUnix(calendarDateFromUnix(unixSeconds), secondsIntoDay(unixSeconds));
+}
+
+/**
+ * `instant`, or the other instant an hour away with the same clock reading (a fall-back repeated
+ * hour) when that one is nearer to `reference`. Lets a clock reading that names two instants
+ * resolve toward the one an event already had.
+ */
+export function nearestOccurrenceUnix(instant: number, reference: number): number {
+  const reading = secondsIntoDay(instant);
+  let nearest = instant;
+  for (const alt of [instant - 3600, instant + 3600]) {
+    if (
+      secondsIntoDay(alt) === reading &&
+      Math.abs(alt - reference) < Math.abs(nearest - reference)
+    ) {
+      nearest = alt;
+    }
+  }
+  return nearest;
+}
+
+/**
  * The start of the date `days` after the one this instant falls on.
  *
  * A migration bridge for callers that still hold instants. It goes away as they move to

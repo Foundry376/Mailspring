@@ -551,6 +551,68 @@ describe('createDragState anchored on the grid', function () {
     expect(dragged.previewEnd).toBe(cst + HOUR / 2);
   });
 
+  it('moves a second-occurrence event one hour when dragged one row out of the repeated hour', function () {
+    // Grabbed at the grid's 01:30 (first occurrence) and released at 02:30, which happens once.
+    const cst = Date.UTC(2025, 10, 2, 7, 0) / 1000;
+    const state = createDragState(
+      makeOccurrence({ start: cst, end: cst + HOUR }),
+      { mode: 'move', cursor: 'grab' },
+      cst - HOUR / 2,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      cst + HOUR + HOUR / 2,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(dragged.previewStart).toBe(cst + HOUR);
+  });
+
+  it('lands an event dragged into the repeated hour on its own side of the transition', function () {
+    // 03:00 CST dragged up two rows to the 01:00 line: the grid says 01:00 CDT, the event says CST.
+    const cst3 = Date.UTC(2025, 10, 2, 9, 0) / 1000;
+    const state = createDragState(
+      makeOccurrence({ start: cst3, end: cst3 + HOUR }),
+      { mode: 'move', cursor: 'grab' },
+      cst3 + HOUR / 2,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const gridOneThirtyCdt = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+    const dragged = updateDragState(
+      state,
+      gridOneThirtyCdt,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(dragged.previewStart).toBe(Date.UTC(2025, 10, 2, 7, 0) / 1000);
+  });
+
+  it('keeps an end inside the second occurrence when its edge is grabbed and released in place', function () {
+    // 01:30 CDT to 01:30 CST: the grid reads the end's pixel as 01:30 CDT, an hour before it.
+    const start = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+    const end = start + HOUR;
+    const state = createDragState(
+      makeOccurrence({ start, end }),
+      { mode: 'resize-end', cursor: 'ns-resize' },
+      start,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(state, start, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
+    expect(dragged.previewEnd).toBe(end);
+    expect(dragged.previewStart).toBe(start);
+  });
+
   it('moves by exactly the cursor delta, wherever in the event it was grabbed', function () {
     const start = Date.UTC(2026, 5, 9, 15, 0) / 1000; // 10:00 CDT
     const grabbed = start + HOUR / 4; // a quarter of the way down the box
