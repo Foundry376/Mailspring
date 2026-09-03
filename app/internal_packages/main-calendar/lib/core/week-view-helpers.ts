@@ -164,6 +164,11 @@ export const DAY_DUR = 24 * 60 * 60;
 export const TICK_STEP = 30 * 60;
 export const TICKS_PER_DAY = DAY_DUR / TICK_STEP;
 
+/** Where an instant sits down the grid, 0..1: the grid is 24 wall-clock hours on every day. */
+export function dayFraction(unixSeconds: number): number {
+  return CalendarDateUtils.secondsIntoDay(unixSeconds) / DAY_DUR;
+}
+
 export function* tickGenerator(type: 'major' | 'minor', tickHeight: number) {
   const step = TICK_STEP * 2;
   const skip = TICK_STEP * 2;

@@ -63,20 +63,28 @@ function allDayDimensions(startISO: string, endISO: string) {
 // A day column's scope: its own start, and the next day's start as the exclusive end, as
 // `exclusiveDayEnds` supplies them. Chicago runner, so 2025-11-02 is 25 hours long and
 // 2026-03-08 is 23.
-function timedDimensions(startISO: string, endISO: string, dayISO: string, nextDayISO: string) {
+function timedDimensions(startISO: string, endISO: string, dayISO: string) {
+  const day = parseCalendarDate(dayISO);
   const event = {
     ...OCCURRENCE_META,
     isAllDay: false,
     start: moment(startISO).unix(),
     end: moment(endISO).unix(),
-    startDate: parseCalendarDate(dayISO),
-    endDate: parseCalendarDate(dayISO),
+    startDate: day,
+    endDate: day,
   } as TimedOccurrence;
-  return dimensions(event, 'vertical', moment(dayISO).unix(), moment(nextDayISO).unix());
+  return dimensions(
+    event,
+    'vertical',
+    CalendarDateUtils.dayStartUnix(day),
+    CalendarDateUtils.nextDayStartUnix(day)
+  );
 }
 
 /** Percent of the column a wall-clock hour is at: the gridline the legend labels with it. */
-const hourLine = (hours: number) => (hours / 24) * 100;
+function hourLine(hours: number) {
+  return (hours / 24) * 100;
+}
 
 describe('CalendarEvent all-day dimensions', function () {
   it('sizes a fully-visible multi-day span by its covered days', function () {
@@ -96,29 +104,20 @@ describe('CalendarEvent all-day dimensions', function () {
 });
 
 // The legend, gridlines and now-line divide every column into 24 equal hours, so an event has
-// to sit on the line its own label names. Elapsed-seconds positioning drifts off it by up to an
-// hour on a transition day (and once put a 23:30 event at 102%, clipped away by
-// `.event-column { overflow: hidden }`).
+// to sit on the line its own label names; elapsed seconds drift off it by up to an hour.
 describe('CalendarEvent timed dimensions across DST', function () {
   it('keeps a late event on a 25-hour day on its own gridline', function () {
     const { topPct, heightPct } = timedDimensions(
       '2025-11-02 23:30',
       '2025-11-02 23:45',
-      '2025-11-02',
-      '2025-11-03'
+      '2025-11-02'
     );
     expect(topPct).toBeCloseTo(hourLine(23.5), 4);
     expect(topPct + heightPct).toBeCloseTo(hourLine(23.75), 4);
   });
 
   it('draws a 10:00 event on the 10 AM line of a 23-hour day', function () {
-    // Elapsed seconds would put it at 32400/82800 = 39.1%, 37 minutes above the line.
-    const { topPct } = timedDimensions(
-      '2026-03-08 10:00',
-      '2026-03-08 11:00',
-      '2026-03-08',
-      '2026-03-09'
-    );
+    const { topPct } = timedDimensions('2026-03-08 10:00', '2026-03-08 11:00', '2026-03-08');
     expect(topPct).toBeCloseTo(hourLine(10), 4);
   });
 
@@ -127,8 +126,7 @@ describe('CalendarEvent timed dimensions across DST', function () {
     const { topPct, heightPct } = timedDimensions(
       '2026-03-08 01:30',
       '2026-03-08 03:30',
-      '2026-03-08',
-      '2026-03-09'
+      '2026-03-08'
     );
     expect(topPct).toBeCloseTo(hourLine(1.5), 4);
     expect(heightPct).toBeCloseTo(hourLine(2), 4);
@@ -139,8 +137,7 @@ describe('CalendarEvent timed dimensions across DST', function () {
     const { topPct, heightPct } = timedDimensions(
       '2025-11-02 22:00',
       '2025-11-03 00:00',
-      '2025-11-02',
-      '2025-11-03'
+      '2025-11-02'
     );
     expect(topPct).toBeCloseTo(hourLine(22), 4);
     expect(topPct + heightPct).toBeCloseTo(100, 4);
@@ -150,8 +147,7 @@ describe('CalendarEvent timed dimensions across DST', function () {
     const { topPct, heightPct } = timedDimensions(
       '2025-11-01 22:00',
       '2025-11-02 03:00',
-      '2025-11-02',
-      '2025-11-03'
+      '2025-11-02'
     );
     expect(topPct).toBe(0);
     expect(heightPct).toBeCloseTo(hourLine(3), 4);

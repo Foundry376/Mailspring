@@ -12,7 +12,7 @@ import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './c
 import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
-import { DAY_DUR } from './week-view-helpers';
+import { dayFraction } from './week-view-helpers';
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -101,19 +101,14 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   _getDimensions() {
     const event = this.props.event;
 
-    // top/height are fractions of the scope, in the grid's own coordinates rather than elapsed
-    // seconds, so neither drifts on a DST day: timed events fill a day vertically by wall clock
-    // (the gridlines are 24 uniform hours), all-day events fill the week horizontally (remapped
-    // in _getStyles) by whole days.
+    // Fractions of the scope: timed events by wall clock down a day column, all-day events by
+    // whole days across the week (remapped in _getStyles).
     let top: number | string;
     let height: number | string;
     if (isTimed(event)) {
-      // Instants outside the column clamp to its edges; `scopeEnd` is the next day's start, so an
-      // end exactly there reaches the bottom rather than reading as 00:00.
       const { scopeStart, scopeEnd } = this.props;
-      top = event.start <= scopeStart ? 0 : CalendarDateUtils.secondsIntoDay(event.start) / DAY_DUR;
-      const bottom =
-        event.end >= scopeEnd ? 1 : CalendarDateUtils.secondsIntoDay(event.end) / DAY_DUR;
+      top = event.start < scopeStart ? 0 : dayFraction(event.start);
+      const bottom = event.end >= scopeEnd ? 1 : dayFraction(event.end);
       height = Math.max(bottom - top, 0);
     } else {
       const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);

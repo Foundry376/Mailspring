@@ -1,8 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classNames from 'classnames';
-import { CalendarDateUtils } from 'mailspring-exports';
-import { DAY_DUR } from './week-view-helpers';
+import { dayFraction } from './week-view-helpers';
 
 interface CurrentTimeIndicatorProps {
   gridHeight: number;
@@ -36,7 +35,7 @@ export class CurrentTimeIndicator extends React.Component<
   }
 
   getStateFromTime() {
-    return { dayFraction: CalendarDateUtils.secondsIntoDay(Date.now() / 1000) / DAY_DUR };
+    return { dayFraction: dayFraction(Date.now() / 1000) };
   }
 
   render() {
