@@ -1,5 +1,6 @@
 // Import directly from the source file; the plugin isn't registered in mailspring-exports.
 import {
+  columnSpan,
   eventsGroupedByDay,
   exclusiveDayEnds,
   overlapForEvents,
@@ -188,5 +189,20 @@ describe('overlapForEvents in a day column', function () {
       [2, 1],
       [2, 2],
     ]);
+  });
+});
+
+describe('columnSpan', function () {
+  const column = { start: at('2026-06-10').unix(), end: at('2026-06-11').unix() };
+
+  it('never returns a bottom above its top, even for an end before its start', function () {
+    const backwards = makeOccurrence(at('2026-06-10 11:00').unix(), at('2026-06-10 10:00').unix());
+    const { top, bottom } = columnSpan(backwards as any, column);
+    expect(bottom).toBe(top);
+  });
+
+  it('caps the bottom at the column end', function () {
+    const span = columnSpan(timedEvent('2026-06-10 23:30', '2026-06-11 00:30') as any, column);
+    expect(span.bottom).toBe(86400);
   });
 });

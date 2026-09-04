@@ -522,18 +522,14 @@ export class MailspringCalendar extends React.Component<
   }
 
   /**
-   * Handle drag start from an event
+   * A grab waiting for its position: the event's mousedown lands here first, then bubbles to
+   * the CalendarEventContainer, whose hit-test hands _onCalendarMouseDown the grid time and
+   * container coordinates under the cursor — the same frame every later drag target uses.
    */
-  /**
-   * A grab waiting for its time: the event's mousedown lands here first, then bubbles to the
-   * CalendarEventContainer, whose hit-test hands _onCalendarMouseDown the grid time under the
-   * cursor. Anchoring on the grid rather than the event's box keeps the grab offset in the same
-   * coordinates as every later drag target.
-   */
-  _pendingDrag: { event: EventOccurrence; hitZone: HitZone; x: number; y: number } | null = null;
+  _pendingDrag: { event: EventOccurrence; hitZone: HitZone } | null = null;
 
-  _onEventDragStart = (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => {
-    this._pendingDrag = { event, hitZone, x: mouseEvent.clientX, y: mouseEvent.clientY };
+  _onEventDragStart = (event: EventOccurrence, _mouseEvent: React.MouseEvent, hitZone: HitZone) => {
+    this._pendingDrag = { event, hitZone };
   };
 
   /**
@@ -610,8 +606,8 @@ export class MailspringCalendar extends React.Component<
       pending.event,
       pending.hitZone,
       args.time,
-      pending.x,
-      pending.y,
+      args.x,
+      args.y,
       this._getDragConfig()
     );
     this.setState({ dragState });

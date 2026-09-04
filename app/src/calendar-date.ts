@@ -104,22 +104,24 @@ export function firstOccurrenceUnix(unixSeconds: number): number {
 }
 
 /**
- * `instant`, or the other instant an hour away with the same clock reading (a fall-back repeated
- * hour) when that one is nearer to `reference`. Lets a clock reading that names two instants
- * resolve toward the one an event already had.
+ * `instant`, or the other instant with the same clock reading on the reference's side of a
+ * fall-back transition — the one sharing its UTC offset. A repeated reading names two instants;
+ * this picks the one a gesture relative to `reference` means. Candidates half an hour away
+ * cover zones whose DST shift is 30 minutes (Lord Howe Island).
  */
-export function nearestOccurrenceUnix(instant: number, reference: number): number {
+export function sameOffsetOccurrenceUnix(instant: number, reference: number): number {
   const reading = secondsIntoDay(instant);
-  let nearest = instant;
-  for (const alt of [instant - 3600, instant + 3600]) {
-    if (
-      secondsIntoDay(alt) === reading &&
-      Math.abs(alt - reference) < Math.abs(nearest - reference)
-    ) {
-      nearest = alt;
+  const offset = new Date(reference * 1000).getTimezoneOffset();
+  if (new Date(instant * 1000).getTimezoneOffset() === offset) {
+    return instant;
+  }
+  for (const delta of [-3600, -1800, 1800, 3600]) {
+    const alt = instant + delta;
+    if (secondsIntoDay(alt) === reading && new Date(alt * 1000).getTimezoneOffset() === offset) {
+      return alt;
     }
   }
-  return nearest;
+  return instant;
 }
 
 /**

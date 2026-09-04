@@ -21,25 +21,21 @@ export interface ColumnBounds {
 
 /**
  * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Each call is homogeneous —
- * the all-day bar passes only all-day events, day columns only timed — so all-day stacks in
- * date space (`addCalendarDays(endDate, 1)` exclusive) and timed in the column's grid
- * coordinates, and the two never mix in one call.
+ * the all-day bar passes only all-day events, day columns only timed with their bounds — so
+ * all-day stacks in date space (`addCalendarDays(endDate, 1)` exclusive) and timed in the
+ * column's grid coordinates, and the two never mix in one call.
  */
 function sweepBounds(e: EventOccurrence, column?: ColumnBounds): { lo: number; hi: number } {
   if (!isTimed(e)) {
     return { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
   }
-  if (!column) {
-    return { lo: e.start, hi: e.end };
-  }
-  const { top, bottom } = columnSpan(e, column.start, column.end);
+  const { top, bottom } = columnSpan(e, column);
   return { lo: top, hi: bottom };
 }
 
 /**
- * `column` puts timed events in the grid's wall-clock coordinates, the same ones they are
- * drawn in, so two events in a fall-back day's repeated hour stack side by side instead of
- * one hiding the other — by instant they are sequential, on screen they share a slot.
+ * Timed events sweep in the grid's wall-clock coordinates, the ones they are drawn in, so what
+ * overlaps on screen overlaps here — including the two occurrences of a repeated hour.
  */
 export function overlapForEvents(events: EventOccurrence[], column?: ColumnBounds) {
   const eventsByTime: { [unix: number]: EventOccurrence[] } = {};
@@ -187,23 +183,22 @@ export function dayFraction(unixSeconds: number): number {
 }
 
 /**
- * The grid rows a timed event occupies in one day column, in grid seconds (0..DAY_DUR; integers,
- * so they are safe as sweep keys). Instants outside the column clamp to its edges; `scopeEnd`
- * is the next column's start, so an end exactly there is the bottom rather than a 00:00
- * reading. Across a fall-back transition an end can read no later than its start; such an
- * event is drawn at its real duration instead.
+ * The grid rows a timed event occupies in one day column, in whole grid seconds (0..DAY_DUR),
+ * so they double as sweep keys. Instants outside the column clamp to its edges. Across a
+ * fall-back transition an end can read no later than its start; such an event is drawn at
+ * its real duration instead.
  */
 export function columnSpan(
   event: TimedOccurrence,
-  scopeStart: number,
-  scopeEnd: number
+  column: ColumnBounds
 ): { top: number; bottom: number } {
-  const top = event.start < scopeStart ? 0 : CalendarDateUtils.secondsIntoDay(event.start);
-  if (event.end >= scopeEnd) {
+  const top = event.start < column.start ? 0 : CalendarDateUtils.secondsIntoDay(event.start);
+  if (event.end >= column.end) {
     return { top, bottom: DAY_DUR };
   }
   const wallClockEnd = CalendarDateUtils.secondsIntoDay(event.end);
-  return { top, bottom: wallClockEnd > top ? wallClockEnd : top + (event.end - event.start) };
+  const bottom = wallClockEnd > top ? wallClockEnd : top + (event.end - event.start);
+  return { top, bottom: Math.min(Math.max(bottom, top), DAY_DUR) };
 }
 
 export function* tickGenerator(type: 'major' | 'minor', tickHeight: number) {

@@ -101,7 +101,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     let top: number | string;
     let height: number | string;
     if (isTimed(event)) {
-      const span = columnSpan(event, this.props.scopeStart, this.props.scopeEnd);
+      const span = columnSpan(event, { start: this.props.scopeStart, end: this.props.scopeEnd });
       top = span.top / DAY_DUR;
       height = (span.bottom - span.top) / DAY_DUR;
     } else {
@@ -230,8 +230,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Prevent text selection during drag
     e.preventDefault();
 
-    // The grab time comes from the grid, not this box: the container maps the same mousedown
-    // as it bubbles, so the anchor and every later drag target share one coordinate system.
+    // No time is passed: the container's hit-test supplies it as this mousedown bubbles.
     if (this.props.onDragStart) {
       this.props.onDragStart(this.props.event, e, this.state.hitZone);
     }

@@ -214,9 +214,8 @@ export function createDragState(
   const start = occurrenceStartUnix(event);
   const end = occurrenceEndUnix(event);
 
-  // The grab offset keeps the event from jumping when the drag starts. It is measured against
-  // the instant the grid maps the event's clock reading to (`mouseTime` comes from the grid),
-  // which inside a fall-back repeated hour is the first occurrence, not the event's own.
+  // The grab offset keeps the event from jumping when the drag starts. `mouseTime` comes from
+  // the grid, so it is measured against the grid's reading of the edge, not the edge itself.
   let clickOffset = 0;
   if (hitZone.mode === 'move') {
     clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(start);
@@ -229,7 +228,6 @@ export function createDragState(
     event,
     originalStart: start,
     originalEnd: end,
-    initialMouseTime: mouseTime,
     clickOffset,
     initialMouseX: mouseX,
     initialMouseY: mouseY,
@@ -331,8 +329,8 @@ export function updateDragState(
         previewStart = moment.unix(state.originalStart).add(daysDelta, 'days').unix();
         previewEnd = previewStart + eventDuration;
       } else {
-        // A grid reading inside a repeated hour names two instants; keep the event's own.
-        previewStart = CalendarDateUtils.nearestOccurrenceUnix(
+        // A grid reading inside a repeated hour names two instants; stay on the event's side.
+        previewStart = CalendarDateUtils.sameOffsetOccurrenceUnix(
           snapToInterval(mouseTime - state.clickOffset, snapInterval),
           state.originalStart
         );
@@ -348,7 +346,7 @@ export function updateDragState(
         previewStart = moment.unix(Math.min(mouseTime, lastDay)).startOf('day').unix();
         previewEnd = exclusiveDayEnd(state.originalEnd, previewStart);
       } else {
-        previewStart = CalendarDateUtils.nearestOccurrenceUnix(
+        previewStart = CalendarDateUtils.sameOffsetOccurrenceUnix(
           snapToInterval(mouseTime, snapInterval),
           state.originalStart
         );
@@ -372,7 +370,7 @@ export function updateDragState(
         );
       } else {
         previewStart = state.originalStart;
-        previewEnd = CalendarDateUtils.nearestOccurrenceUnix(
+        previewEnd = CalendarDateUtils.sameOffsetOccurrenceUnix(
           snapToInterval(mouseTime - state.clickOffset, snapInterval),
           state.originalEnd
         );

@@ -573,6 +573,27 @@ describe('createDragState anchored on the grid', function () {
     expect(dragged.previewStart).toBe(cst + HOUR);
   });
 
+  it('moves a second-occurrence event later by 30 and 45 minutes within the repeated hour', function () {
+    // The grid hands back the first occurrence for every pixel in the hour; a nearest-instant
+    // rule ties at 30 minutes and lands on CDT, 30 real minutes earlier than the drag.
+    const cst = Date.UTC(2025, 10, 2, 7, 0) / 1000;
+    const state = createDragState(
+      makeOccurrence({ start: cst, end: cst + HOUR / 2 }),
+      { mode: 'move', cursor: 'grab' },
+      cst - HOUR, // grabbed at the top row: the grid says 01:00 CDT
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const gridAt = (minutes: number) => cst - HOUR + minutes * 60; // still CDT readings
+    expect(
+      updateDragState(state, gridAt(30), 100, 100, 'day-column', DEFAULT_DRAG_CONFIG).previewStart
+    ).toBe(cst + 30 * 60);
+    expect(
+      updateDragState(state, gridAt(45), 100, 100, 'day-column', DEFAULT_DRAG_CONFIG).previewStart
+    ).toBe(cst + 45 * 60);
+  });
+
   it('lands an event dragged into the repeated hour on its own side of the transition', function () {
     // 03:00 CST dragged up two rows to the 01:00 line: the grid says 01:00 CDT, the event says CST.
     const cst3 = Date.UTC(2025, 10, 2, 9, 0) / 1000;
@@ -611,6 +632,37 @@ describe('createDragState anchored on the grid', function () {
     const dragged = updateDragState(state, start, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
     expect(dragged.previewEnd).toBe(end);
     expect(dragged.previewStart).toBe(start);
+  });
+
+  it('shrinks from the top to the minimum duration and no further', function () {
+    const start = Date.UTC(2026, 5, 9, 15, 0) / 1000; // 10:00 CDT
+    const state = createDragState(
+      makeOccurrence({ start, end: start + HOUR }),
+      { mode: 'resize-start', cursor: 'ns-resize' },
+      start,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const past = updateDragState(
+      state,
+      start + 2 * HOUR,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(past.previewEnd).toBe(start + HOUR);
+    expect(past.previewStart).toBe(start + HOUR - DEFAULT_DRAG_CONFIG.minDuration);
+    const half = updateDragState(
+      state,
+      start + HOUR / 2,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(half.previewStart).toBe(start + HOUR / 2);
   });
 
   it('moves by exactly the cursor delta, wherever in the event it was grabbed', function () {

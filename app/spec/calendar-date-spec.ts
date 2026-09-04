@@ -10,7 +10,7 @@ import {
   secondsIntoDay,
   secondsIntoDayUnix,
   firstOccurrenceUnix,
-  nearestOccurrenceUnix,
+  sameOffsetOccurrenceUnix,
 } from '../src/calendar-date';
 
 /** Fixtures read as dates, not epoch-day integers — a failure says 2026-06-21, not 20627 */
@@ -220,26 +220,34 @@ describe('firstOccurrenceUnix', function () {
   });
 });
 
-describe('nearestOccurrenceUnix', function () {
+describe('sameOffsetOccurrenceUnix', function () {
   const cdt130 = Date.UTC(2025, 10, 2, 6, 30) / 1000;
   const cst130 = Date.UTC(2025, 10, 2, 7, 30) / 1000;
   const cst330 = Date.UTC(2025, 10, 2, 9, 30) / 1000;
 
-  it('resolves a repeated reading toward the reference', function () {
-    expect(nearestOccurrenceUnix(cdt130, cst130)).toBe(cst130);
-    expect(nearestOccurrenceUnix(cst130, cdt130)).toBe(cdt130);
-    expect(nearestOccurrenceUnix(cdt130, cst330)).toBe(cst130); // 3:30 CST is nearer the CST 1:30
+  it("resolves a repeated reading to the reference's side of the transition", function () {
+    expect(sameOffsetOccurrenceUnix(cdt130, cst130)).toBe(cst130);
+    expect(sameOffsetOccurrenceUnix(cst130, cdt130)).toBe(cdt130);
+    expect(sameOffsetOccurrenceUnix(cdt130, cst330)).toBe(cst130); // 3:30 CST is on the CST side
+  });
+
+  it('is decided by side, not distance', function () {
+    // 1:00 CST as reference, 1:30 CDT as instant: the CDT and CST 1:30s are equally far, and a
+    // nearest-instant rule would keep CDT — 30 real minutes EARLIER than the gesture.
+    const cst100 = Date.UTC(2025, 10, 2, 7, 0) / 1000;
+    expect(sameOffsetOccurrenceUnix(cdt130, cst100)).toBe(cst130);
+    expect(sameOffsetOccurrenceUnix(cst130, cst100 - 2 * 3600)).toBe(cdt130); // 11:00 PM CDT reference
   });
 
   it('keeps an instant whose reading happens once', function () {
     const ten = at(FALL_BACK_DAY, 10, 30);
-    expect(nearestOccurrenceUnix(ten, ten - 5 * 3600)).toBe(ten);
+    expect(sameOffsetOccurrenceUnix(ten, ten - 5 * 3600)).toBe(ten);
     const gapEdge = at(SPRING_FORWARD_DAY, 3, 30); // 2:30 does not exist; 3:30 happens once
-    expect(nearestOccurrenceUnix(gapEdge, gapEdge - 3600)).toBe(gapEdge);
+    expect(sameOffsetOccurrenceUnix(gapEdge, gapEdge - 3600)).toBe(gapEdge);
   });
 
-  it('keeps the instant when it is already the nearer occurrence', function () {
-    expect(nearestOccurrenceUnix(cdt130, cdt130 - 600)).toBe(cdt130);
+  it('keeps the instant when it is already on the reference side', function () {
+    expect(sameOffsetOccurrenceUnix(cdt130, cdt130 - 600)).toBe(cdt130);
   });
 });
 
