@@ -27,8 +27,7 @@ interface WeekViewEventColumnProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
+    hitZone: HitZone
   ) => void;
   /** Set of calendar IDs that are read-only */
   readOnlyCalendarIds: Set<string>;
@@ -60,8 +59,8 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       'event-column': true,
       weekend: day.day() === 0 || day.day() === 6,
     });
-    const overlap = overlapForEvents(events);
     const dayStart = day.unix();
+    const overlap = overlapForEvents(events, { start: dayStart, end: dayEnd });
 
     return (
       <div

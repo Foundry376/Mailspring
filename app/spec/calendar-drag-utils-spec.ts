@@ -251,11 +251,22 @@ describe('updateDragState move with day snapping', function () {
       0,
       MONTH_VIEW_DRAG_CONFIG
     );
-    const dragged = updateDragState(state, mouseTime, 100, 100, containerType, MONTH_VIEW_DRAG_CONFIG);
-    return { start: dragged.previewStart, end: dragged.previewEnd, isAllDay: dragged.previewIsAllDay };
+    const dragged = updateDragState(
+      state,
+      mouseTime,
+      100,
+      100,
+      containerType,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    return {
+      start: dragged.previewStart,
+      end: dragged.previewEnd,
+      isAllDay: dragged.previewIsAllDay,
+    };
   }
 
-  it('preserves a timed event\'s clock time when moved across month cells', function () {
+  it("preserves a timed event's clock time when moved across month cells", function () {
     // 10-11am on Aug 14, dropped on Aug 20 -> 10-11am on Aug 20, still timed.
     const start = localDay(2026, 8, 14) + 10 * HOUR;
     const end = localDay(2026, 8, 14) + 11 * HOUR;
@@ -353,7 +364,11 @@ describe('updateDragState move converting all-day to timed', function () {
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(state, mouseTime, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
-    return { start: dragged.previewStart, end: dragged.previewEnd, isAllDay: dragged.previewIsAllDay };
+    return {
+      start: dragged.previewStart,
+      end: dragged.previewEnd,
+      isAllDay: dragged.previewIsAllDay,
+    };
   }
 
   it('converts an all-day event to a timed event at the snapped drop time', function () {
@@ -491,7 +506,6 @@ describe('createDragPreviewEvent', function () {
   });
 });
 
-
 describe('allDayColumnStartUnix', function () {
   // Runner is pinned to America/Chicago (scripts/test.js), so a span across 2025-11-02 includes
   // a 25-hour fall-back day — where a `ceil(seconds/86400)` bucket count and a `start + i*86400`
@@ -513,5 +527,163 @@ describe('allDayColumnStartUnix', function () {
   it('clamps out-of-range fractions to the first and last columns', function () {
     expect(allDayColumnStartUnix(scopeStart, scopeEnd, -0.5)).toBe(dayStartUnix(firstDate));
     expect(allDayColumnStartUnix(scopeStart, scopeEnd, 1.5)).toBe(dayStartUnix(lastDate));
+  });
+});
+
+// The anchor handed to createDragState is the grid's time under the cursor, from the same
+// hit-test that later supplies every drag target, so the two share one coordinate system.
+describe('createDragState anchored on the grid', function () {
+  it('round-trips an event in the second occurrence of a repeated hour', function () {
+    // 01:00 CST on Chicago's fall-back day. The grid maps that pixel to the FIRST occurrence,
+    // 01:00 CDT, an hour earlier; the grab offset absorbs the hour, so a drop in place is a no-op.
+    const cst = Date.UTC(2025, 10, 2, 7, 0) / 1000;
+    const gridTime = cst - HOUR;
+    const state = createDragState(
+      makeOccurrence({ start: cst, end: cst + HOUR / 2 }),
+      { mode: 'move', cursor: 'grab' },
+      gridTime,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(state, gridTime, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
+    expect(dragged.previewStart).toBe(cst);
+    expect(dragged.previewEnd).toBe(cst + HOUR / 2);
+  });
+
+  it('moves a second-occurrence event one hour when dragged one row out of the repeated hour', function () {
+    // Grabbed at the grid's 01:30 (first occurrence) and released at 02:30, which happens once.
+    const cst = Date.UTC(2025, 10, 2, 7, 0) / 1000;
+    const state = createDragState(
+      makeOccurrence({ start: cst, end: cst + HOUR }),
+      { mode: 'move', cursor: 'grab' },
+      cst - HOUR / 2,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      cst + HOUR + HOUR / 2,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(dragged.previewStart).toBe(cst + HOUR);
+  });
+
+  it('moves a second-occurrence event later by 30 and 45 minutes within the repeated hour', function () {
+    // The grid hands back the first occurrence for every pixel in the hour; a nearest-instant
+    // rule ties at 30 minutes and lands on CDT, 30 real minutes earlier than the drag.
+    const cst = Date.UTC(2025, 10, 2, 7, 0) / 1000;
+    const state = createDragState(
+      makeOccurrence({ start: cst, end: cst + HOUR / 2 }),
+      { mode: 'move', cursor: 'grab' },
+      cst - HOUR, // grabbed at the top row: the grid says 01:00 CDT
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const gridAt = (minutes: number) => cst - HOUR + minutes * 60; // still CDT readings
+    expect(
+      updateDragState(state, gridAt(30), 100, 100, 'day-column', DEFAULT_DRAG_CONFIG).previewStart
+    ).toBe(cst + 30 * 60);
+    expect(
+      updateDragState(state, gridAt(45), 100, 100, 'day-column', DEFAULT_DRAG_CONFIG).previewStart
+    ).toBe(cst + 45 * 60);
+  });
+
+  it('lands an event dragged into the repeated hour on its own side of the transition', function () {
+    // 03:00 CST dragged up two rows to the 01:00 line: the grid says 01:00 CDT, the event says CST.
+    const cst3 = Date.UTC(2025, 10, 2, 9, 0) / 1000;
+    const state = createDragState(
+      makeOccurrence({ start: cst3, end: cst3 + HOUR }),
+      { mode: 'move', cursor: 'grab' },
+      cst3 + HOUR / 2,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const gridOneThirtyCdt = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+    const dragged = updateDragState(
+      state,
+      gridOneThirtyCdt,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(dragged.previewStart).toBe(Date.UTC(2025, 10, 2, 7, 0) / 1000);
+  });
+
+  it('keeps an end inside the second occurrence when its edge is grabbed and released in place', function () {
+    // 01:30 CDT to 01:30 CST: the grid reads the end's pixel as 01:30 CDT, an hour before it.
+    const start = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+    const end = start + HOUR;
+    const state = createDragState(
+      makeOccurrence({ start, end }),
+      { mode: 'resize-end', cursor: 'ns-resize' },
+      start,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(state, start, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
+    expect(dragged.previewEnd).toBe(end);
+    expect(dragged.previewStart).toBe(start);
+  });
+
+  it('shrinks from the top to the minimum duration and no further', function () {
+    const start = Date.UTC(2026, 5, 9, 15, 0) / 1000; // 10:00 CDT
+    const state = createDragState(
+      makeOccurrence({ start, end: start + HOUR }),
+      { mode: 'resize-start', cursor: 'ns-resize' },
+      start,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const past = updateDragState(
+      state,
+      start + 2 * HOUR,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(past.previewEnd).toBe(start + HOUR);
+    expect(past.previewStart).toBe(start + HOUR - DEFAULT_DRAG_CONFIG.minDuration);
+    const half = updateDragState(
+      state,
+      start + HOUR / 2,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(half.previewStart).toBe(start + HOUR / 2);
+  });
+
+  it('moves by exactly the cursor delta, wherever in the event it was grabbed', function () {
+    const start = Date.UTC(2026, 5, 9, 15, 0) / 1000; // 10:00 CDT
+    const grabbed = start + HOUR / 4; // a quarter of the way down the box
+    const state = createDragState(
+      makeOccurrence({ start, end: start + HOUR }),
+      { mode: 'move', cursor: 'grab' },
+      grabbed,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      grabbed + HOUR,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect(dragged.previewStart).toBe(start + HOUR);
   });
 });

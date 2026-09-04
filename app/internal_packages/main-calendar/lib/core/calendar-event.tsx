@@ -12,6 +12,7 @@ import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './c
 import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { DAY_DUR, columnSpan } from './week-view-helpers';
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -43,12 +44,7 @@ interface CalendarEventProps {
   onFocused: (event: EventOccurrence) => void;
 
   /** Called when a drag operation starts on this event */
-  onDragStart?: (
-    event: EventOccurrence,
-    mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
-  ) => void;
+  onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
 }
 
 interface CalendarEventState {
@@ -100,16 +96,14 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   _getDimensions() {
     const event = this.props.event;
 
-    // top/height are fractions of the scope. Timed events fill a day vertically by instant;
-    // all-day events fill the week horizontally (remapped in _getStyles) by whole days, so their
-    // fraction is computed in date space — DST-immune, unlike a seconds-based fraction would be.
+    // Fractions of the scope: timed events by wall clock down a day column, all-day events by
+    // whole days across the week (remapped in _getStyles).
     let top: number | string;
     let height: number | string;
     if (isTimed(event)) {
-      const scopeLen = this.props.scopeEnd - this.props.scopeStart;
-      const duration = event.end - event.start;
-      top = Math.max((event.start - this.props.scopeStart) / scopeLen, 0);
-      height = Math.min((duration - this._overflowBefore()) / scopeLen, 1);
+      const span = columnSpan(event, { start: this.props.scopeStart, end: this.props.scopeEnd });
+      top = span.top / DAY_DUR;
+      height = (span.bottom - span.top) / DAY_DUR;
     } else {
       const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);
       const scopeDays = Math.round((this.props.scopeEnd - this.props.scopeStart) / 86400);
@@ -175,11 +169,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     return styles;
   }
 
-  _overflowBefore() {
-    const event = this.props.event;
-    return isTimed(event) ? Math.max(this.props.scopeStart - event.start, 0) : 0;
-  }
-
   /**
    * Check if this event can be dragged
    */
@@ -226,31 +215,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   };
 
   /**
-   * Calculate the time at the mouse position within this event's scope
-   */
-  _getMouseTime(e: React.MouseEvent<HTMLDivElement>): number {
-    const bounds = e.currentTarget.getBoundingClientRect();
-    const { scopeStart, scopeEnd, direction } = this.props;
-    const scopeLen = scopeEnd - scopeStart;
-
-    let percent: number;
-    if (direction === 'vertical') {
-      // Vertical layout: Y position determines time
-      percent = (e.clientY - bounds.top) / bounds.height;
-    } else {
-      // Horizontal layout: X position determines time
-      percent = (e.clientX - bounds.left) / bounds.width;
-    }
-
-    // Clamp to [0, 1] and calculate time
-    percent = Math.max(0, Math.min(1, percent));
-    // Drag works in unix throughout, so hand it an instant even for all-day events.
-    const start = occurrenceStartUnix(this.props.event);
-    const eventDuration = occurrenceEndUnix(this.props.event) - start;
-    return start + percent * eventDuration;
-  }
-
-  /**
    * Initiate drag on mouse down
    */
   _onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -266,12 +230,9 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Prevent text selection during drag
     e.preventDefault();
 
-    // Calculate the time at the click position within this event
-    const mouseTime = this._getMouseTime(e);
-
-    // Notify parent of drag start
+    // No time is passed: the container's hit-test supplies it as this mousedown bubbles.
     if (this.props.onDragStart) {
-      this.props.onDragStart(this.props.event, e, this.state.hitZone, mouseTime);
+      this.props.onDragStart(this.props.event, e, this.state.hitZone);
     }
   };
 

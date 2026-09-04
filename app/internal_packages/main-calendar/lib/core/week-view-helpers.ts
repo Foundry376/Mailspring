@@ -1,4 +1,4 @@
-import { EventOccurrence, isTimed } from './calendar-data-source';
+import { EventOccurrence, TimedOccurrence, isTimed } from './calendar-data-source';
 import moment, { Moment } from 'moment';
 import { CalendarDateUtils } from 'mailspring-exports';
 
@@ -13,22 +13,35 @@ export interface OverlapByEventId {
  *   - concurrentEvents: number of concurrent events
  *   - order: the order in that series of concurrent events
  */
-/**
- * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Each call is homogeneous —
- * the all-day bar passes only all-day events, day columns only timed — so all-day stacks in
- * date space (`addCalendarDays(endDate, 1)` exclusive) and timed in instants, and the two never mix in one call.
- */
-function sweepBounds(e: EventOccurrence): { lo: number; hi: number } {
-  return isTimed(e)
-    ? { lo: e.start, hi: e.end }
-    : { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
+/** A day column's bounds: its start and the next column's start, as `exclusiveDayEnds` gives them. */
+export interface ColumnBounds {
+  start: number;
+  end: number;
 }
 
-export function overlapForEvents(events: EventOccurrence[]) {
+/**
+ * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Inside a day column a timed
+ * event sweeps by its grid rows; everywhere else — the all-day bar, or any call without a
+ * column — by the dates it covers (`addCalendarDays(endDate, 1)` exclusive), which every
+ * occurrence carries. Each call is homogeneous, so the two coordinate systems never mix.
+ */
+function sweepBounds(e: EventOccurrence, column?: ColumnBounds): { lo: number; hi: number } {
+  if (column && isTimed(e)) {
+    const { top, bottom } = columnSpan(e, column);
+    return { lo: top, hi: bottom };
+  }
+  return { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
+}
+
+/**
+ * Timed events sweep in the grid's wall-clock coordinates, the ones they are drawn in, so what
+ * overlaps on screen overlaps here — including the two occurrences of a repeated hour.
+ */
+export function overlapForEvents(events: EventOccurrence[], column?: ColumnBounds) {
   const eventsByTime: { [unix: number]: EventOccurrence[] } = {};
 
   for (const event of events) {
-    const b = sweepBounds(event);
+    const b = sweepBounds(event, column);
     if (!eventsByTime[b.lo]) {
       eventsByTime[b.lo] = [];
     }
@@ -50,7 +63,7 @@ export function overlapForEvents(events: EventOccurrence[]) {
     // Process all event start/ends during this time to keep our
     // "ongoingEvents" set correct.
     for (const e of eventsByTime[t]) {
-      const b = sweepBounds(e);
+      const b = sweepBounds(e, column);
       if (b.lo === t) {
         overlapById[e.id] = { concurrentEvents: 1, order: null };
         ongoingEvents.push(e);
@@ -163,6 +176,30 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
 export const DAY_DUR = 24 * 60 * 60;
 export const TICK_STEP = 30 * 60;
 export const TICKS_PER_DAY = DAY_DUR / TICK_STEP;
+
+/** Where an instant sits down the grid, 0..1: the grid is 24 wall-clock hours on every day. */
+export function dayFraction(unixSeconds: number): number {
+  return CalendarDateUtils.secondsIntoDay(unixSeconds) / DAY_DUR;
+}
+
+/**
+ * The grid rows a timed event occupies in one day column, in whole grid seconds (0..DAY_DUR),
+ * so they double as sweep keys. Instants outside the column clamp to its edges. Across a
+ * fall-back transition an end can read no later than its start; such an event is drawn at
+ * its real duration instead.
+ */
+export function columnSpan(
+  event: TimedOccurrence,
+  column: ColumnBounds
+): { top: number; bottom: number } {
+  const top = event.start < column.start ? 0 : CalendarDateUtils.secondsIntoDay(event.start);
+  if (event.end >= column.end) {
+    return { top, bottom: DAY_DUR };
+  }
+  const wallClockEnd = CalendarDateUtils.secondsIntoDay(event.end);
+  const bottom = wallClockEnd > top ? wallClockEnd : top + (event.end - event.start);
+  return { top, bottom: Math.min(Math.max(bottom, top), DAY_DUR) };
+}
 
 export function* tickGenerator(type: 'major' | 'minor', tickHeight: number) {
   const step = TICK_STEP * 2;
