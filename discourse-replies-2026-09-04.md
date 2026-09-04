@@ -1,12 +1,15 @@
-# Mailspring Discourse Reply Drafts — 2026-08-28
+# Mailspring Discourse Reply Drafts — 2026-09-04
 
-**Read this note first:** This pipeline now has eleven straight weeks of fully-researched drafts that were never reviewed or posted (back to 2026-05-22 — see the git history on this branch). `discourse-posted-ids.json` has not changed once in that entire time; nothing from this process has ever actually reached the forum. I'm flagging this to you directly outside this file too, since a twelfth silent addition to the pile isn't useful to anyone.
+**Read this note first — the backlog problem is still the main story.** This is the thirteenth consecutive week a fully-researched draft has been prepared (back to 2026-05-22 — see the git history on this branch), and `discourse-posted-ids.json` still has not changed once in that entire time. Nothing from this pipeline has ever actually reached the forum.
 
-I re-verified every item carried over from 08-21 against current forum state: the changelog is unchanged (still 1.23.0, 7/19/2026), and I re-checked each of those 43 threads' current posts/tags. Two changed and are updated below:
-- **#22** (empty-inbox scrollbar glitch) is now actually fixed — a community member (Salman Afzal) filed [PR #2821](https://github.com/foundry376/Mailspring/pull/2821) against the exact bug, and it's already merged to master. Updated to a "fixed, thank you" reply and marked Resolved.
-- **#43** ("No Recipient" error) got a new post from rudolfbyker on 8/18 saying they found the root cause and fixed it, but are unsure if they need permission before opening a PR since this isn't a labeled `accepted` GitHub issue. Reply updated to explicitly say yes, go ahead.
+I did **not** just pile a fourteenth batch of identical carry-forward items on top this week. Instead, since a new release (**v1.24.0**, shipped 9/1) came out since the 08-28 draft was written, I spent this run on two bounded, high-value things:
 
-Everything else in the carried-forward batch is unchanged and still accurate. Added five new items (#44–48) for topics that surfaced or changed since 08-21. **Please either post this batch (it's now 48 items across six weeks of real user questions) or explicitly tell me to abandon/reset the pipeline — the backlog itself is the most important thing for you to see this week, more than any individual reply below.**
+1. **A bug-fix pass against v1.24.0** — checking whether anything in the carried-forward backlog or fresh forum activity was resolved by the new release, and updating the two items it actually touched (below).
+2. **A survey of everything posted since 08-28** — six new threads, all researched and verified against the current codebase.
+
+Everything from 08-28 and earlier is preserved below unchanged except items **#22** and **#45**, which needed a wording update now that the fix they described has actually shipped (it was "merged, ships next release" before; it's out now). Item counts below continue from the 08-28 batch (49–54 are new).
+
+**This is now 54 items across fourteen weeks of real user questions, plus the recurring ask: either start posting (even a handful of the most confident, oldest items would break the streak) or explicitly tell me to abandon/reset the pipeline.** A backlog that never gets reviewed isn't doing anyone any good, and it keeps growing rather than shrinking.
 
 ---
 
@@ -166,7 +169,7 @@ Everything else in the carried-forward batch is unchanged and still accurate. Ad
 **Thread:** https://community.getmailspring.com/t/when-i-have-0-email-in-my-inbox-theres-a-nice-graphic-showing-up-but-with-some-scroll-bars-glitch/14541
 **Action:** Reply + mark Resolved
 
-> Good news — this is fixed! A community member ran into the same thing and sent in a real fix ([PR #2821](https://github.com/foundry376/Mailspring/pull/2821)), which is merged and will ship in the next release. Thanks for the original report, and thanks to the contributor who tracked it down and fixed it.
+> Good news — this is fixed as of **v1.24.0**, released 9/1! A community member ran into the same thing and sent in the fix ([PR #2821](https://github.com/foundry376/Mailspring/pull/2821)). Please update and let me know if you're still seeing it. Thanks for the original report, and thanks to the contributor who tracked it down and fixed it.
 
 ### 23. E-mail row permanently green on mouse over
 **Thread:** https://community.getmailspring.com/t/e-mail-row-permanently-green-on-mouse-over/14532
@@ -194,7 +197,7 @@ Everything else in the carried-forward batch is unchanged and still accurate. Ad
 **Thread:** https://community.getmailspring.com/t/problem-with-local-email-database/14453
 **Action:** Reply
 
-> The chrome-i18n extension error is harmless and unrelated — that's an optional language-detection extension failing to load, which we already catch and log without it affecting anything else. The real problem is the "local email database" dialog itself, which means our sync engine is failing to start up/migrate on launch; Rebuild only clears the local index cache, so if the underlying process can't run at all, Rebuild will just loop the same way you're seeing. You posted this on 1.21.1 — please update to the current 1.23.0 first, since several startup and crash fixes have shipped since then. If it's still stuck after updating: fully quit any lingering `mailspring`/`mailsync` processes, then try a clean reinstall (this will require reconnecting your accounts), and if it still won't launch, running Mailspring from a terminal and sharing the full console output would help us see exactly where it's failing.
+> The chrome-i18n extension error is harmless and unrelated — that's an optional language-detection extension failing to load, which we already catch and log without it affecting anything else. The real problem is the "local email database" dialog itself, which means our sync engine is failing to start up/migrate on launch; Rebuild only clears the local index cache, so if the underlying process can't run at all, Rebuild will just loop the same way you're seeing. You posted this on 1.21.1 — please update to the current 1.24.0 first, since several startup and crash fixes have shipped since then. If it's still stuck after updating: fully quit any lingering `mailspring`/`mailsync` processes, then try a clean reinstall (this will require reconnecting your accounts), and if it still won't launch, running Mailspring from a terminal and sharing the full console output would help us see exactly where it's failing.
 
 ---
 
@@ -348,7 +351,7 @@ Everything else in the carried-forward batch is unchanged and still accurate. Ad
 **Thread:** https://community.getmailspring.com/t/scrollbar-on-empty-animations/14555
 **Action:** Reply + mark Resolved
 
-> Thank you for this — both the report and the fix. I've merged [PR #2821](https://github.com/foundry376/Mailspring/pull/2821); it'll ship in the next release. (To answer your side question: yes, branch protection allowing you to merge your own PR was expected here, not a bug — external contributors don't have merge access, so what you saw was likely just GitHub showing you the merge button without it actually being enabled for you. Either way, this one's in via the normal review.) Marking resolved since [this is the same bug reported here](https://community.getmailspring.com/t/when-i-have-0-email-in-my-inbox-theres-a-nice-graphic-showing-up-but-with-some-scroll-bars-glitch/14541) — thanks again for tracking it down and fixing it yourself.
+> Thank you for this — both the report and the fix. [PR #2821](https://github.com/foundry376/Mailspring/pull/2821) is merged and shipped in **v1.24.0** (released 9/1). (To answer your side question: yes, branch protection allowing you to merge your own PR was expected here, not a bug — external contributors don't have merge access, so what you saw was likely just GitHub showing you the merge button without it actually being enabled for you. Either way, this one's in via the normal review.) Marking resolved since [this is the same bug reported here](https://community.getmailspring.com/t/when-i-have-0-email-in-my-inbox-theres-a-nice-graphic-showing-up-but-with-some-scroll-bars-glitch/14541) — thanks again for tracking it down and fixing it yourself.
 
 ### 46. A way to setup my own avatar for outgoing emails
 **Thread:** https://community.getmailspring.com/t/a-way-to-setup-my-own-avatar-for-outgoing-emails/14554
@@ -370,16 +373,59 @@ Everything else in the carried-forward batch is unchanged and still accurate. Ad
 
 ---
 
+## New this week (2026-09-04)
+
+### 49. Images negative on Dark theme - are you kidding me
+**Thread:** https://community.getmailspring.com/t/images-negative-on-dark-theme-are-you-kidding-me/14562
+**Action:** Reply
+
+> Confirmed both of these in the code, and I'm sorry they've been this persistent. The dark theme's message viewer applies a blunt `filter: invert(100%) hue-rotate(180deg)` to the entire email body and every embedded image (`email-frame.less`) — it's a global trick to get dark-on-light HTML mail readable without parsing each message's actual colors, and photos get inverted right along with the text because the filter can't tell the difference. On Ctrl+Q: that's Outlook's standard "mark as read" shortcut, but Mailspring's keymap system currently treats it as hard-bound to Quit on Windows regardless of what you remap "Mark as Read" to, so your remap has nowhere to actually take effect. Good news on both: a contributor has already opened fixes — [PR #2849](https://github.com/foundry376/Mailspring/pull/2849) (frees up Ctrl+Q/Ctrl+U so they follow your keymap instead of being hard-wired to Quit) and [PR #2850](https://github.com/foundry376/Mailspring/pull/2850) (stops the theme's invert filter from reaching into email content, so images and text render as sent). Neither is merged yet — I need to review both — so I can't promise a release yet, but they're in the queue and this isn't being left as-is.
+
+### 50. Dark Mode Inversion Issue: Custom Dark Hex Colors (#111827) Render Illegible on Dark Background
+**Thread:** https://community.getmailspring.com/t/dark-mode-inversion-issue-custom-dark-hex-colors-111827-render-illegible-on-dark-background/14065
+**Action:** Reply
+
+> This is the same root cause as [a report posted this week](https://community.getmailspring.com/t/images-negative-on-dark-theme-are-you-kidding-me/14562) — dark theme applies a single blanket CSS `invert(100%) hue-rotate(180deg)` filter to the whole message body rather than doing real per-color contrast remapping, so it can't distinguish "plain black text that should flip to white" from "an intentional dark charcoal like `#111827`" — both just get inverted the same mechanical way, and a dark-grey-on-dark-grey result is exactly what that produces. There's an open fix for the broader problem, [PR #2850](https://github.com/foundry376/Mailspring/pull/2850), which stops app theme filters from reaching into email content at all. It's not merged yet — I need to review it — but it's the right fix for this too, not just the image-inversion case.
+
+### 51. How do I reduce the volume of the sound when receiving new mail?
+**Thread:** https://community.getmailspring.com/t/how-do-i-reduce-the-volume-of-the-sound-when-receiving-new-mail/1639
+**Action:** Reply
+
+> There's no volume control for this today, and I confirmed there's nothing in `config-schema.ts` for it currently — it plays the bundled notification sound at a fixed level. Good news: there's an open PR for exactly this, [PR #2830](https://github.com/foundry376/Mailspring/pull/2830), which adds a 0–100 notification volume slider plus a custom-sound picker (with a preview button and reset-to-default) in **Preferences > General > Notifications**. It's not merged yet, so I can't promise a release date, but it's a real, tested implementation waiting on my review, not just a request in the queue.
+
+### 52. Custom notification sound
+**Thread:** https://community.getmailspring.com/t/custom-notification-sound/530
+**Action:** Reply
+
+> Same answer as I just gave on the [volume thread](https://community.getmailspring.com/t/how-do-i-reduce-the-volume-of-the-sound-when-receiving-new-mail/1639/2) this request is linked to — there's an open PR, [PR #2830](https://github.com/foundry376/Mailspring/pull/2830), that adds a native custom-sound picker (MP3/OGG/WAV/M4A/AAC/FLAC) plus a volume slider, replacing the asar-unpacking workaround posted earlier in this thread. It's not merged yet — I need to review it — but after years of people asking for this and hacking around it manually, there's finally a real implementation to look at.
+
+### 53. Add a receive sound that is selectable for incoming email
+**Thread:** https://community.getmailspring.com/t/add-a-receive-sound-that-is-selectable-for-incoming-email/14455
+**Action:** Reply + mark Resolved
+
+> This is the same request as our long-running [Custom notification sound](https://community.getmailspring.com/t/custom-notification-sound/530) thread, which now has an open PR ([#2830](https://github.com/foundry376/Mailspring/pull/2830)) adding a selectable custom sound plus a volume slider. Marking resolved as a duplicate so follow-up stays in one place — I'll update that thread once the PR lands.
+
+### 54. Sync email accounts to profile
+**Thread:** https://community.getmailspring.com/t/sync-email-accounts-to-profile/14560
+**Action:** Reply
+
+> Confirmed there's nothing like this today — every install requires manually reconnecting each account from scratch, with no account-export/import or cloud-profile mechanism in `config-schema.ts` or anywhere else I can find. I don't have a timeline to offer, but I've noted it as a feature request — it comes up periodically for people running Mailspring on more than one machine.
+
+---
+
 ## Flagged for you separately — not included above, need your direct attention
 
-- **I am currently unemployed** (https://community.getmailspring.com/t/i-am-currently-unemployed/14530) — asking for a temporary discount on the subscription due to financial hardship. This needs your personal judgment call, not a scripted reply.
+- **Calendar contribution + roadmap direction** (https://community.getmailspring.com/t/working-google-calendar-fork/14561 and the tail end of https://community.getmailspring.com/t/calendar-support/85) — new this week, and this is the big one. brhellman is asking directly whether a full CalDAV/O365/RSVP calendar implementation (built against 4 separate PRs) collides with work you already have planned, and whether to open it as a client PR or post it as one large commit. ejbiker93ss has a second, independent calendar fork with a different feature set (Outlook-style folder view, SmarterMail API, AI chat) and says plainly in thread #85: *"we don't know if the maintainer of the project even wants these features... we really need some guidance as to where this product is headed."* Two things I can confirm factually if you want a quick status reply before you weigh in on the bigger question: of the four PRs brhellman listed, **#2829** (typecheck fix) and the sync-engine hardening work (**Mailspring-Sync#122**) already shipped in **v1.24.0** on 9/1 — only **#2827** (mailsync startup error reporting, open, CI green, awaiting review) and the calendar engine/client work itself are still pending. The actual "should we accept this and what should the calendar roadmap be" question is entirely yours to answer — I don't have visibility into what you've already discussed with either contributor or planned internally.
+- **I am currently unemployed** (https://community.getmailspring.com/t/i-am-currently-unemployed/14530) — asking for a temporary discount on the subscription due to financial hardship. Still open, unchanged since last week. This needs your personal judgment call, not a scripted reply.
 - **Overdue payment** (https://community.getmailspring.com/t/overdue-payment/13945) — missed payment affecting read-receipts access; needs someone with account/billing system access.
-- **Refund requested within 24 hours of purchase, no reply from support** (https://community.getmailspring.com/t/refund-requested-within-24-hours-of-purchase-no-reply-from-support/14545) — new this week. A user is asking publicly for an $85 refund after apparently not hearing back from support. Needs your/support's direct attention on the actual refund. Separately: one of the two community replies in that thread looks like it may have had a spammy link inserted into a quoted post after the fact (a "quote-modified" reply quoting the earlier community reply, with a `tropical-casino.com` link embedded inside the blockquote that wasn't in the original). I haven't followed that link. Worth a look in case it's a compromised/spam account, independent of the refund question itself.
+- **Refund requested within 24 hours of purchase, no reply from support** (https://community.getmailspring.com/t/refund-requested-within-24-hours-of-purchase-no-reply-from-support/14545) — still open, unchanged since last week. A user is asking publicly for an $85 refund after apparently not hearing back from support. Needs your/support's direct attention on the actual refund. Separately: one of the two community replies in that thread looked like it may have had a spammy link inserted into a quoted post after the fact (a "quote-modified" reply quoting the earlier community reply, with a `tropical-casino.com` link embedded inside the blockquote that wasn't in the original) — I haven't followed that link, worth a look in case it's a compromised/spam account.
 - A handful of **Service Issues / Bugs** threads didn't have enough specific detail to draw a confident, evidence-based conclusion, so I left them unanswered rather than guess: **Mailspring will not authenticate shaw webmail** (#14452, VPN + wrong IMAP port — now has a second user confirming the same symptom with no VPN at all), **Not able to install... SMTP Authentication Error 296** (#14243, Hostinger), **Gmail Won't Send** (#14496), **Encountered an error while syncing** (#14218), **Emails stuck on Monday, March 2nd** (#14276), **Mails not showing up - with different address** (#14549, GMX forwarding/alias question — too specific to that account setup to answer without back-and-forth).
 - **Impossible to update mailspring to 1.20.1** (#14424, Flathub) already has a helpful reply from a community member (LinusDierheimer) — no action needed unless you want to add anything.
 - **My mail rules are being ignored** (https://community.getmailspring.com/t/my-mail-rules-are-being-ignored/76) is still open from 2021 with no fresh lead this week — didn't want to bump it with nothing new to add.
 - **Remove SMTP Authentication in favor of a proper implementation of OAUTH2** (#7871) — a real architectural ask (pure OAuth2 without SMTP AUTH fallback for O365), but the SMTP auth mechanism lives entirely in the C++ sync engine, which isn't in this checkout, so I can't give a confident answer on current behavior or plans.
-- **JMAP support** (https://community.getmailspring.com/t/jmap-support/14487) — new this week, two users asking whether we'd consider JMAP over IMAP. This is a roadmap/protocol-strategy call, not something I can answer from the code — needs your take, not a scripted reply.
+- **JMAP support** (https://community.getmailspring.com/t/jmap-support/14487) — two users asking whether we'd consider JMAP over IMAP. Still open, unchanged since last week. This is a roadmap/protocol-strategy call, not something I can answer from the code — needs your take, not a scripted reply.
 - **Flatpak Distribution on Linux** (#68) — you already replied directly on 8/26, so no action needed here.
-- **Make Threading/Conversation View Optional** (#291) — the 104-post megathread that item #48's reply (Custom Email Sorting) points back to, along with the mailspring-unthreaded plugin. No maintainer commitment exists yet and nothing new was said this week beyond what's already in the thread, so I didn't add another reply on top of it — but it's worth knowing it's still the live blocker behind both.
+- **Make Threading/Conversation View Optional** (#291) — the 105-post megathread that item #48's reply (Custom Email Sorting) points back to, along with the mailspring-unthreaded plugin. No maintainer commitment exists yet and nothing new was said this week beyond what's already in the thread, so I didn't add another reply on top of it — but it's worth knowing it's still the live blocker behind both.
+- **Mailspring -unthreaded 101 plugin locking up mailspring** (https://community.getmailspring.com/t/mailspring-unthreaded-101-plugin-locking-up-mailspring/14547) — no action needed, this is entirely about a third-party community plugin (not Mailspring core), and the latest post is just appreciation for the plugin author.
+- **Force stop mailspring** (https://community.getmailspring.com/t/force-stop-mailspring/14563) — already has a correct, complete community answer (Task Manager / tray icon quit). No action needed.
 - A few very old, low-detail threads with no recent activity (**Cannot login to Gmail** #10026, **I am new to Mailspring Pro... contacts** #9606, and similar single-post threads from 2025) — left alone rather than reviving stale threads with generic advice.
