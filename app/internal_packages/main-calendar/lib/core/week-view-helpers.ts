@@ -20,17 +20,17 @@ export interface ColumnBounds {
 }
 
 /**
- * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Each call is homogeneous —
- * the all-day bar passes only all-day events, day columns only timed with their bounds — so
- * all-day stacks in date space (`addCalendarDays(endDate, 1)` exclusive) and timed in the
- * column's grid coordinates, and the two never mix in one call.
+ * Sweep-line bounds for an occurrence, as a half-open `[lo, hi)`. Inside a day column a timed
+ * event sweeps by its grid rows; everywhere else — the all-day bar, or any call without a
+ * column — by the dates it covers (`addCalendarDays(endDate, 1)` exclusive), which every
+ * occurrence carries. Each call is homogeneous, so the two coordinate systems never mix.
  */
 function sweepBounds(e: EventOccurrence, column?: ColumnBounds): { lo: number; hi: number } {
-  if (!isTimed(e)) {
-    return { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
+  if (column && isTimed(e)) {
+    const { top, bottom } = columnSpan(e, column);
+    return { lo: top, hi: bottom };
   }
-  const { top, bottom } = columnSpan(e, column);
-  return { lo: top, hi: bottom };
+  return { lo: e.startDate, hi: CalendarDateUtils.addCalendarDays(e.endDate, 1) };
 }
 
 /**

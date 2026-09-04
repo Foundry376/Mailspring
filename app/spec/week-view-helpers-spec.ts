@@ -182,6 +182,15 @@ describe('overlapForEvents in a day column', function () {
     ]);
   });
 
+  it('sweeps timed events by covered dates when no column is given', function () {
+    // Without rows to place them in, two events on the same day overlap as that day does.
+    const ten = { ...timedEvent('2025-11-02 10:00', '2025-11-02 11:00'), id: 'ten' };
+    const four = { ...timedEvent('2025-11-02 16:00', '2025-11-02 17:00'), id: 'four' };
+    const overlap = overlapForEvents([ten, four]);
+    expect(overlap.ten.concurrentEvents).toBe(2);
+    expect(overlap.four.concurrentEvents).toBe(2);
+  });
+
   it('treats an event carried over from the previous day as filling the top rows', function () {
     const carried = { ...timedEvent('2025-11-01 22:00', '2025-11-02 03:00'), id: 'carried' };
     const early = { ...timedEvent('2025-11-02 00:30', '2025-11-02 01:00'), id: 'early' };
