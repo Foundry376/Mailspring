@@ -89,6 +89,30 @@ export const LocalizedErrorStrings = {
 // being treated as expected, user-actionable failures.
 const AMBIGUOUS_MAILSYNC_ERRORS = new Set(['ErrorParse', 'ErrorIdentityMissingFields']);
 
+/*
+Extracts mailsync's JSON result from what it wrote to stdout.
+
+The result is one JSON object, but the end of the stream is not reliably that object. It
+arrives without a trailing newline, mailsync prints human-readable progress lines before it
+(`Running Setup`), and on Linux it can emit a diagnostic - a missing libtidy is the common
+one - at any point. Parsing the last line of stdout and stderr combined turns any of those
+into "an unknown error has occurred mailsync: 0", so scan stdout backwards for the last
+line that actually parses.
+*/
+export function lastJSONResponse(stdout: string): any | null {
+  const lines = stdout.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (!line.startsWith('{')) continue;
+    try {
+      return JSON.parse(line);
+    } catch (err) {
+      // Not the result line - keep looking further back.
+    }
+  }
+  return null;
+}
+
 export class MailsyncProcess extends EventEmitter {
   _proc: ChildProcess = null;
   _win = null;
@@ -237,17 +261,24 @@ export class MailsyncProcess extends EventEmitter {
   _spawnAndWait(mode, { onData }: { onData?: (data: any) => void } = {}) {
     return new Promise<{ response: any; buffer: Buffer }>((resolve, reject) => {
       this._spawnProcess(mode);
-      let buffer = Buffer.from([]);
+      // `bothChunks` is both streams together and is what we show the user when something
+      // goes wrong; `outChunks` is stdout alone, which is the only place the JSON result
+      // appears. Chunks are concatenated as bytes and decoded once at the end: `a += b` on
+      // two Buffers coerces both through toString(), which decodes every chunk on its own
+      // and mangles any multi-byte character that straddles a chunk boundary.
+      const bothChunks: Buffer[] = [];
+      const outChunks: Buffer[] = [];
 
       if (this._proc.stdout) {
-        this._proc.stdout.on('data', (data) => {
-          buffer += data;
+        this._proc.stdout.on('data', (data: Buffer) => {
+          bothChunks.push(data);
+          outChunks.push(data);
           if (onData) onData(data);
         });
       }
       if (this._proc.stderr) {
-        this._proc.stderr.on('data', (data) => {
-          buffer += data;
+        this._proc.stderr.on('data', (data: Buffer) => {
+          bothChunks.push(data);
           if (onData) onData(data);
         });
       }
@@ -257,13 +288,10 @@ export class MailsyncProcess extends EventEmitter {
       });
 
       this._proc.on('close', (code, signal) => {
+        const buffer = Buffer.concat(bothChunks);
         try {
-          const lastLine = buffer.toString('utf-8').split('\n').pop();
-
-          let response: any;
-          try {
-            response = JSON.parse(lastLine);
-          } catch (err) {
+          const response = lastJSONResponse(Buffer.concat(outChunks).toString('utf-8'));
+          if (!response) {
             // If the Mailsync executable itself failed to run, the logs are not JSON
             // and may contain system errors (shared library issues, etc). Include this
             // in the logs so users can fix on their own or report detailed bugs.
