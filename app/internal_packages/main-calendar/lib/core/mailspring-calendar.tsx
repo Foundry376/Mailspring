@@ -1,5 +1,6 @@
 import moment, { Moment } from 'moment';
 import React from 'react';
+import { ipcRenderer } from 'electron';
 import {
   Rx,
   DatabaseStore,
@@ -870,11 +871,8 @@ export class MailspringCalendar extends React.Component<
     AppEnv.config.set(CALENDAR_LIST_VISIBLE, visible);
   };
 
-  /**
-   * Refresh calendars by triggering a sync.
-   */
   _onRefreshCalendars = () => {
-    AppEnv.mailsyncBridge.sendSyncMailNow();
+    ipcRenderer.send('command', 'application:sync-calendar');
   };
 
   _shouldShowEmptyState() {

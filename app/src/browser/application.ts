@@ -434,10 +434,13 @@ export default class Application extends EventEmitter {
 
     this.on('application:show-calendar', () => {
       this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
-      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
-      if (main) {
-        main.sendMessage('run-calendar-sync');
-      }
+      this.sendCalendarSync();
+    });
+
+    // The calendar window's MailsyncBridge has no sync clients, so a manual
+    // refresh has to be routed through the main window's bridge.
+    this.on('application:sync-calendar', () => {
+      this.sendCalendarSync();
     });
 
     this.on('application:show-contacts', () => {
@@ -890,6 +893,13 @@ export default class Application extends EventEmitter {
 
     registerQuickpreviewIPCHandlers(ipcMain);
     registerNotificationIPCHandlers(ipcMain);
+  }
+
+  sendCalendarSync() {
+    const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+    if (main) {
+      main.sendMessage('run-calendar-sync');
+    }
   }
 
   // Public: Executes the given command.
