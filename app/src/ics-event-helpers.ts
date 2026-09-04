@@ -71,6 +71,80 @@ export function generateUID(): string {
 }
 
 /**
+ * How many occurrences an expander may step through before giving up on one series.
+ *
+ * ical-expander iterates forward from DTSTART with no way to seek, so a cap limits how far
+ * back a series may begin rather than how much work a window costs. Too low and a long
+ * running series silently expands to nothing: at 100, a weekly meeting that started three
+ * years ago never reaches the present and simply disappears from the calendar. Removing the
+ * cap is worse - an invitation is untrusted input, and `RRULE:FREQ=SECONDLY` dated 1970
+ * would spin forever.
+ *
+ * So the budget comes from the series itself: how many steps of its own frequency fit
+ * between where it starts and the end of the window, plus slack. Real calendars land far
+ * below the ceiling - a weekly meeting running since 2020 needs about 300 - while a
+ * frequency fine enough to be abusive exceeds it and is truncated instead of expanded.
+ *
+ * @param ics - The series' calendar object.
+ * @param seriesStartUnix - DTSTART of the series, in unix seconds.
+ * @param windowEndUnix - The end of the range being expanded, in unix seconds.
+ */
+export function expansionIterationBudget(
+  ics: string,
+  seriesStartUnix: number,
+  windowEndUnix: number
+): number {
+  // A master event can reach here with a null or non-finite recurrenceStart - the expansion
+  // fallback guards for exactly that. NaN would survive Math.max/Math.min and become the cap
+  // itself, and ical-expander's loop is `!this.maxIterations || i < this.maxIterations`
+  // (index.js:104), so a NaN cap switches the limit off rather than truncating.
+  if (!Number.isFinite(seriesStartUnix) || !Number.isFinite(windowEndUnix)) {
+    return MIN_EXPANSION_ITERATIONS;
+  }
+  const rule = firstVeventRRule(ics);
+  if (!rule) {
+    return MIN_EXPANSION_ITERATIONS; // not a series; one occurrence is all there is to reach
+  }
+  const freq = /FREQ=([A-Z]+)/i.exec(rule);
+  const interval = parseInt((/INTERVAL=(\d+)/i.exec(rule) || [])[1], 10) || 1;
+  const step =
+    (EXPANSION_STEP_SECONDS[(freq ? freq[1] : '').toUpperCase()] || EXPANSION_STEP_SECONDS.DAILY) *
+    interval;
+  const steps = Math.ceil(Math.max(0, windowEndUnix - seriesStartUnix) / step) + 100;
+  return Math.min(MAX_EXPANSION_ITERATIONS, Math.max(MIN_EXPANSION_ITERATIONS, steps));
+}
+
+/**
+ * The RRULE of the first VEVENT, ignoring any that belong to a VTIMEZONE.
+ *
+ * A VTIMEZONE's STANDARD and DAYLIGHT blocks each carry their own RRULE describing the
+ * zone's DST transitions, and they appear before the VEVENT - so a plain search for the
+ * first RRULE in the file returns `FREQ=YEARLY;BYMONTH=3;BYDAY=2SU` for a weekly meeting,
+ * and any budget derived from it is wrong by a factor of fifty.
+ */
+function firstVeventRRule(ics: string): string | null {
+  const unfolded = ics.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
+  const vevent = unfolded.split(/^BEGIN:VEVENT$/m)[1];
+  if (!vevent) return null;
+  const match = /^RRULE:(.*)$/im.exec(vevent.split(/^END:VEVENT$/m)[0]);
+  return match ? match[1] : null;
+}
+
+const EXPANSION_STEP_SECONDS: { [freq: string]: number } = {
+  SECONDLY: 1,
+  MINUTELY: 60,
+  HOURLY: 3600,
+  DAILY: 86400,
+  WEEKLY: 604800,
+  // Deliberately the shortest month and year. Underestimating the step overestimates the
+  // budget, which errs towards expanding a legitimate series rather than truncating it.
+  MONTHLY: 28 * 86400,
+  YEARLY: 365 * 86400,
+};
+const MIN_EXPANSION_ITERATIONS = 1000;
+const MAX_EXPANSION_ITERATIONS = 50000;
+
+/**
  * Formats a Date as an ICS date-only string (YYYYMMDD)
  * Uses LOCAL date components since all-day events represent a day in the user's timezone
  */
