@@ -69,7 +69,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     const CustomComponent = p.customComponent;
     if (CustomComponent) return <CustomComponent token={p} />;
     if (p instanceof Contact) {
-      return <Menu.NameEmailContent name={p.fullName()} email={p.email} key={p.id} />;
+      return <Menu.NameEmailContent name={p.fullName()} email={p.email} key={p.id || p.email} />;
     } else if (p instanceof ContactGroup) {
       return p.name;
     }
@@ -234,7 +234,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
                 ContactStore.searchContactGroups(input),
                 ContactStore.searchContacts(input),
               ])
-            ).flat()
+            ).flat() as Contact[]
           }
           shouldBreakOnKeydown={this._shouldBreakOnKeydown}
           onInputTrySubmit={this._onInputTrySubmit}

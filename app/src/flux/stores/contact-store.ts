@@ -5,6 +5,44 @@ import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
 import ComponentRegistry from '../../registries/component-registry';
 import { ContactGroup } from 'mailspring-exports';
+import { Thread } from '../models/thread';
+import {
+  SearchQueryToken,
+  TextQueryExpression,
+  ToQueryExpression,
+} from '../../services/search/search-query-ast';
+
+export const contactSearchFetchLimit = (limit: number, accountCount: number) =>
+  limit * Math.max(accountCount, 1);
+
+export const contactsMatchingEmailPrefix = (threads: Thread[], _search: string) => {
+  const search = _search.trim().toLowerCase();
+  const byEmail = new Map<string, Contact>();
+
+  for (const thread of threads) {
+    for (const participant of thread.participants || []) {
+      const email = (participant.email || '').trim().toLowerCase();
+      if (email.startsWith(search) && !byEmail.has(email)) {
+        byEmail.set(email, participant);
+      }
+    }
+  }
+
+  return Array.from(byEmail.values());
+};
+
+export const prioritizeContactsMatchingEmailPrefix = (contacts: Contact[], _search: string) => {
+  const search = _search.trim().toLowerCase();
+  const emailMatches: Contact[] = [];
+  const otherMatches: Contact[] = [];
+
+  for (const contact of contacts) {
+    const email = (contact.email || '').trim().toLowerCase();
+    (email.startsWith(search) ? emailMatches : otherMatches).push(contact);
+  }
+
+  return emailMatches.concat(otherMatches);
+};
 
 /**
 Public: ContactStore provides convenience methods for searching contacts and
@@ -36,9 +74,9 @@ class ContactStore extends MailspringStore {
   //
   // Returns an {Array} of matching {Contact} models
   //
-  searchContacts(_search: string, options: { limit?: number } = {}) {
+  async searchContacts(_search: string, options: { limit?: number } = {}) {
     const limit = Math.max(options.limit ? options.limit : 5, 0);
-    const search = _search.toLowerCase();
+    const search = _search.trim().toLowerCase();
 
     const accountCount = AccountStore.accounts().length;
     const extensions = ComponentRegistry.findComponentsMatching({
@@ -46,7 +84,11 @@ class ContactStore extends MailspringStore {
     });
 
     if (!search || search.length === 0) {
-      return Promise.resolve([]);
+      return [];
+    }
+
+    if (limit === 0) {
+      return [];
     }
 
     // Note that we ask for LIMIT * accountCount because we want to
@@ -55,27 +97,52 @@ class ContactStore extends MailspringStore {
     // (which is very slow), we just ask for more items.
     const query = DatabaseStore.findAll<Contact>(Contact)
       .search(search)
-      .limit(limit * accountCount)
+      .limit(contactSearchFetchLimit(limit, accountCount))
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending());
 
-    return query.then(async (_results) => {
-      let results = this._distinctByEmail(this._omitFindInMailDisabled(_results));
-      for (const ext of extensions) {
-        results = await ext.findAdditionalContacts(search, results);
-      }
-      if (results.length > limit) {
-        results.length = limit;
-      }
-      return results;
-    }) as any as Promise<Contact[]>;
+    const historySearch = this._searchSentRecipientContacts(search, limit).catch((err) => {
+      console.warn('Unable to search sent-recipient history for autocomplete', err);
+      return [];
+    });
+
+    const [_results, historyResults] = await Promise.all([query, historySearch]);
+    let results = this._distinctByEmail(
+      this._omitFindInMailDisabled(historyResults.concat(_results))
+    );
+    for (const ext of extensions) {
+      results = await ext.findAdditionalContacts(search, results);
+    }
+    results = prioritizeContactsMatchingEmailPrefix(this._distinctByEmail(results), search);
+    if (results.length > limit) {
+      results.length = limit;
+    }
+    return results;
+  }
+
+  _searchSentRecipientContacts(search: string, limit: number): Promise<Contact[]> {
+    if (search.length < 2) {
+      return Promise.resolve([]);
+    }
+
+    const recipientSearch = new ToQueryExpression(
+      new TextQueryExpression(new SearchQueryToken(search))
+    );
+    const threadLimit = Math.min(Math.max(limit * 20, 100), 500);
+
+    return DatabaseStore.findAll<Thread>(Thread)
+      .structuredSearch(recipientSearch)
+      .where(Thread.attributes.lastMessageSentTimestamp.greaterThan(new Date(0)))
+      .order(Thread.attributes.lastMessageSentTimestamp.descending())
+      .limit(threadLimit)
+      .then((threads) => contactsMatchingEmailPrefix(threads, search).slice(0, limit));
   }
 
   topContacts({ limit = 5 } = {}) {
     const accountCount = AccountStore.accounts().length;
     return DatabaseStore.findAll<Contact>(Contact)
-      .limit(limit * accountCount)
+      .limit(contactSearchFetchLimit(limit, accountCount))
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false))
       .order(Contact.attributes.refs.descending())
