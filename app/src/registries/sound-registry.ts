@@ -1,36 +1,69 @@
 import path from 'path';
 import NativeNotifications from '../native-notifications';
 
-class SoundRegistry {
+export interface SoundPlaybackOptions {
+  volume?: number;
+  source?: string;
+}
+
+export function normalizeSoundVolume(volume: unknown): number {
+  if (volume === undefined) return 1;
+
+  const numericVolume = Number(volume);
+  if (!Number.isFinite(numericVolume)) return 1;
+  return Math.min(1, Math.max(0, numericVolume));
+}
+
+export class SoundRegistry {
   private _sounds = {};
 
-  async playSound(name: string) {
+  private _audioForSource(src: string | string[], volume: number) {
+    const audio = new Audio();
+    const { resourcePath } = AppEnv.getLoadSettings();
+
+    if (typeof src === 'string') {
+      if (/^(mailspring|file|data|blob):/.test(src)) {
+        audio.src = src;
+      } else {
+        audio.src = path.join(resourcePath, 'static', 'sounds', src);
+      }
+    } else if (src instanceof Array) {
+      const args = [resourcePath].concat(src);
+      audio.src = path.join.apply(this, args);
+    }
+    audio.volume = volume;
+    audio.autoplay = true;
+    return audio;
+  }
+
+  async playSound(name: string, options: SoundPlaybackOptions = {}) {
     if (AppEnv.inSpecMode()) {
       return;
     }
     if (await NativeNotifications.doNotDisturb()) {
       return;
     }
-    const src = this._sounds[name];
+    const registeredSource = this._sounds[name];
+    const src = options.source || registeredSource;
     if (!src) {
       return;
     }
 
-    const a = new Audio();
-    const { resourcePath } = AppEnv.getLoadSettings();
-
-    if (typeof src === 'string') {
-      if (src.indexOf('mailspring://') === 0) {
-        a.src = src;
-      } else {
-        a.src = path.join(resourcePath, 'static', 'sounds', src);
+    const volume = normalizeSoundVolume(options.volume);
+    try {
+      await this._audioForSource(src, volume).play();
+    } catch (error) {
+      if (options.source && registeredSource && options.source !== registeredSource) {
+        try {
+          await this._audioForSource(registeredSource, volume).play();
+          return;
+        } catch (fallbackError) {
+          console.warn(`Unable to play the default sound '${name}'.`, fallbackError);
+          return;
+        }
       }
-    } else if (src instanceof Array) {
-      const args = [resourcePath].concat(src);
-      a.src = path.join.apply(this, args);
+      console.warn(`Unable to play sound '${name}'.`, error);
     }
-    a.autoplay = true;
-    a.play();
   }
 
   register(name: string | { [key: string]: string[] }, rpath?: string) {
