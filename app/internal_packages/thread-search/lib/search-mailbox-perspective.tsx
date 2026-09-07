@@ -113,15 +113,12 @@ class SearchMailboxPerspective extends MailboxPerspective {
       // a falsy value, so this should be unreachable. Rather than crash the remove/
       // archive action (MAILSPRING-CLIENT-2J), report it with enough context to
       // diagnose what category shape actually slipped through and no-op.
-      AppEnv.reportError(
-        new Error('Unexpected type returned from preferredRemovalDestination()'),
-        {
-          accountId,
-          accountProvider: account.provider,
-          destConstructorName: dest?.constructor?.name,
-          destRole: (dest as any)?.role,
-        }
-      );
+      AppEnv.reportError(new Error('Unexpected type returned from preferredRemovalDestination()'), {
+        accountId,
+        accountProvider: account.provider,
+        destConstructorName: dest?.constructor?.name,
+        destRole: (dest as any)?.role,
+      });
       return [];
     });
   }
