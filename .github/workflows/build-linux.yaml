@@ -7,6 +7,16 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
+    # Electron 43's V8 headers declare classes as `class [[deprecated(...)]]
+    # __attribute__((visibility("default"))) Value`, an attribute ordering no GCC
+    # before 13 can parse, so better-sqlite3 fails to build with 22.04's GCC 11.
+    # Clang 15 accepts it and still links against 22.04's libstdc++, keeping the
+    # glibc/libstdc++ baseline that test-ubuntu 22.04 verifies. (Clang 14, the
+    # distro default, is too old: it lacks the builtin std::source_location needs.)
+    env:
+      CC: clang-15
+      CXX: clang++-15
+
     steps:
       - name: Fail if branch is not master
         if: github.ref != 'refs/heads/master'
@@ -23,7 +33,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y \
             software-properties-common \
-            autoconf automake build-essential clang cmake execstack fakeroot git \
+            autoconf automake build-essential clang clang-15 cmake execstack fakeroot git \
             libc-ares-dev libctemplate-dev libcurl4-openssl-dev libglib2.0-dev \
             libicu-dev libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit \
             libsecret-1-dev libssl-dev libnss3 libnss3-dev libtidy-dev libtool \
