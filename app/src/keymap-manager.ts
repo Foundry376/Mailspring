@@ -11,6 +11,9 @@ interface KeymapLoadOptions {
   replaceExistingCommands?: boolean;
 }
 
+// Mousetrap understands mod, but keeps mod+u and ctrl+u as separate callbacks.
+// Our stopCallback skips the second after the first stops propagation, so merge
+// platform aliases before registering callbacks and collecting their commands.
 const normalizePlatformKeystrokes = (keystrokes: string) =>
   keystrokes.replace(/\bmod\b/g, process.platform === 'darwin' ? 'command' : 'ctrl');
 
