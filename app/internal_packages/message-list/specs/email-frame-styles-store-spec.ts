@@ -13,7 +13,7 @@ describe('EmailFrameStylesStore', () => {
 
     themeSheet = document.createElement('style');
     themeSheet.setAttribute('source-path', '/themes/example/email-frame.less');
-    themeSheet.innerText = '.ignore-in-parent-frame body { filter: invert(100%); }';
+    themeSheet.innerText = '.ignore-in-parent-frame body { font-size: 18px; color: pink; }';
     document.head.appendChild(themeSheet);
 
     store = new EmailFrameStylesStore();
@@ -31,11 +31,12 @@ describe('EmailFrameStylesStore', () => {
     return store.styles();
   };
 
-  it('keeps app theme filters out of light email rendering', () => {
+  it('preserves theme typography and colors in light email rendering', () => {
     const { themeStyles, renderModeStyles } = stylesFor('light');
 
     expect(themeStyles).toContain('font-family: test');
-    expect(themeStyles).not.toContain('filter: invert(100%)');
+    expect(themeStyles).toContain('font-size: 18px; color: pink;');
+    expect(renderModeStyles).not.toContain('color:');
     expect(renderModeStyles).toContain('body { filter: none !important;');
     expect(renderModeStyles).toContain('img { filter: none !important; }');
   });
@@ -43,7 +44,8 @@ describe('EmailFrameStylesStore', () => {
   it('uses one controlled inversion layer for dark email rendering', () => {
     const { themeStyles, renderModeStyles } = stylesFor('dark');
 
-    expect(themeStyles).not.toContain('filter: invert(100%)');
+    expect(themeStyles).toContain('font-size: 18px; color: pink;');
+    expect(renderModeStyles).not.toContain('color:');
     expect(renderModeStyles).toContain('body { filter: invert(100%) hue-rotate(180deg)');
     expect(renderModeStyles).toContain('img { filter: invert(100%) hue-rotate(180deg)');
   });
@@ -51,7 +53,8 @@ describe('EmailFrameStylesStore', () => {
   it('treats legacy theme mode as light email rendering', () => {
     const { themeStyles, renderModeStyles } = stylesFor('theme');
 
-    expect(themeStyles).not.toContain('filter: invert(100%)');
+    expect(themeStyles).toContain('font-size: 18px; color: pink;');
+    expect(renderModeStyles).not.toContain('color:');
     expect(renderModeStyles).toContain('body { filter: none !important;');
   });
 });

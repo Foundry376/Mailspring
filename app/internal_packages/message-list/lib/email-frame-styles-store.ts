@@ -33,35 +33,23 @@ class EmailFrameStylesStore extends MailspringStore {
       this._styles += `\n${(accentSheet as HTMLElement).innerText}`;
     }
 
-    // Email content has its own light/dark control. App theme filters can stack
-    // with it and invert photographs or make message text unreadable.
     for (const sheet of Array.from(
       document.querySelectorAll('[source-path*="email-frame.less"]')
     )) {
-      if (this._isCoreEmailFrameStylesheet(sheet)) {
-        this._styles += `\n${(sheet as HTMLElement).innerText}`;
-      }
+      this._styles += `\n${(sheet as HTMLElement).innerText}`;
     }
     this._styles = this._styles.replace(/.ignore-in-parent-frame/g, '');
     this.trigger();
   };
 
-  _isCoreEmailFrameStylesheet(sheet: Element) {
-    const sourcePath = (sheet.getAttribute('source-path') || '').replace(/\\/g, '/');
-    return /(^|\/)static\/style\/email-frame\.less$/.test(sourcePath);
-  }
-
   _emailRenderModeOverrideStyles() {
     const mode = AppEnv.config.get(EMAIL_RENDER_MODE_KEY) === 'dark' ? 'dark' : 'light';
     if (mode === 'light') {
-      return (
-        '\nbody { filter: none !important; color: #111 !important; }' +
-        '\nimg { filter: none !important; }'
-      );
+      return '\nbody { filter: none !important; }' + '\nimg { filter: none !important; }';
     }
     if (mode === 'dark') {
       return (
-        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; color: #111 !important; }' +
+        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; }' +
         '\nimg { filter: invert(100%) hue-rotate(180deg) !important; }'
       );
     }
