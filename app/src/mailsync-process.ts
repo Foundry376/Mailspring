@@ -325,13 +325,25 @@ export class MailsyncProcess extends EventEmitter {
   // requests and shouldn't have unrelated crashes reclassified this way - and
   // surface a friendly, localized, network-flagged error so callers can avoid
   // reporting it to Sentry.
+  //
+  // A second signature covers the same TLS-interception scenario when mailsync
+  // doesn't get a chance to log the offline marker at all: on Windows, security
+  // software that intercepts TLS (corporate antivirus, proxies, etc.) can make
+  // the HTTPS client throw an uncaught C++ exception mid-request, which crashes
+  // the process with SEH code 0xE06D7363 - the MSVC runtime's signature for an
+  // unhandled C++ exception - right after mailsync logs that it's about to fetch
+  // an OAuth2 access token (see MAILSPRING-CLIENT-DH, ~100 Windows users hitting
+  // this exact exit code while linking a new Gmail/Outlook account).
   _buildCrashError(
     mode: string,
     code: number | null,
     signal: NodeJS.Signals | null,
     rawLog: string
   ) {
-    const isNetworkFailure = mode === 'test' && /"offline"\s*:\s*true/.test(rawLog);
+    const hasOfflineMarker = /"offline"\s*:\s*true/.test(rawLog);
+    const crashedFetchingOAuthToken =
+      code === 0xe06d7363 && /Fetching XOAuth2 access token/.test(rawLog);
+    const isNetworkFailure = mode === 'test' && (hasOfflineMarker || crashedFetchingOAuthToken);
     const exitDescription = signal ? `signal ${signal}` : `${code}`;
     const error = isNetworkFailure
       ? new Error(LocalizedErrorStrings.ErrorConnection)
