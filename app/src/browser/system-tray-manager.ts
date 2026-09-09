@@ -43,6 +43,37 @@ function _getIcon(iconPath: string) {
   return nativeImage.createFromPath(iconPath);
 }
 
+// Chromium's tray backend only picks the AppIndicator/StatusNotifierItem
+// implementation when XDG_CURRENT_DESKTOP matches one of these values (a
+// holdover from Ubuntu Unity). Every other desktop, including compositors
+// that implement the StatusNotifierItem host themselves (Hyprland, Sway,
+// i3+snixembed, etc.), falls back to the legacy X11 XEmbed tray icon, which
+// has no XEmbed manager to embed into on Wayland — so the icon silently
+// never appears. Reporting as Unity just for the Tray() construction call
+// gets Chromium to use the SNI backend without touching the real
+// XDG_CURRENT_DESKTOP value that the rest of the app (dark-panel icon
+// selection, DND detection) still relies on to identify the actual desktop.
+const APPINDICATOR_DESKTOPS = ['GNOME', 'UNITY'];
+
+function _withAppIndicatorDesktop<T>(fn: () => T): T {
+  if (process.platform !== 'linux') return fn();
+
+  const original = process.env.XDG_CURRENT_DESKTOP;
+  const current = (original || '').toUpperCase();
+  if (APPINDICATOR_DESKTOPS.some((d) => current.includes(d))) return fn();
+
+  process.env.XDG_CURRENT_DESKTOP = 'Unity';
+  try {
+    return fn();
+  } finally {
+    if (original === undefined) {
+      delete process.env.XDG_CURRENT_DESKTOP;
+    } else {
+      process.env.XDG_CURRENT_DESKTOP = original;
+    }
+  }
+}
+
 class SystemTrayManager {
   _iconPath = null;
   _unreadString = null;
@@ -101,12 +132,14 @@ class SystemTrayManager {
     const created = this._tray !== null;
 
     if (enabled && !created) {
-      this._tray = new Tray(_getIcon(this._iconPath || this._defaultIconPath()));
-      this._tray.setToolTip(_getTooltip(this._unreadString));
-      this._tray.addListener('click', this._onClick);
-      this._tray.setContextMenu(
-        Menu.buildFromTemplate(_getMenuTemplate(this._platform, this._application) as any)
-      );
+      _withAppIndicatorDesktop(() => {
+        this._tray = new Tray(_getIcon(this._iconPath || this._defaultIconPath()));
+        this._tray.setToolTip(_getTooltip(this._unreadString));
+        this._tray.addListener('click', this._onClick);
+        this._tray.setContextMenu(
+          Menu.buildFromTemplate(_getMenuTemplate(this._platform, this._application) as any)
+        );
+      });
     }
   }
 
