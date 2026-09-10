@@ -227,9 +227,16 @@ export class EventedIFrame extends React.Component<
       // just following the link directly
       if (rawHref.startsWith(rootURLForServer('identity'))) {
         const path = rawHref.split(rootURLForServer('identity')).pop();
-        IdentityStore.fetchSingleSignOnURL(path, { source: 'SingleSignOnEmail' }).then((href) => {
-          AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });
-        });
+        IdentityStore.fetchSingleSignOnURL(path, { source: 'SingleSignOnEmail' }).then(
+          (href) => {
+            AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });
+          },
+          () => {
+            // No identity is set (eg. the user is signed out) - fall back to opening
+            // the link directly rather than dropping the click on the floor.
+            AppEnv.windowEventHandler.openLink({ href: rawHref, metaKey: e.metaKey });
+          }
+        );
         return;
       }
 
