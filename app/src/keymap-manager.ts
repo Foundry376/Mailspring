@@ -7,10 +7,6 @@ import { Emitter, Disposable } from 'event-kit';
 let suspended = false;
 const templateConfigKey = 'core.keymapTemplate';
 
-interface KeymapLoadOptions {
-  replaceExistingCommands?: boolean;
-}
-
 // Mousetrap understands mod, but keeps mod+u and ctrl+u as separate callbacks.
 // Our stopCallback skips the second after the first stops propagation, so merge
 // platform aliases before registering callbacks and collecting their commands.
@@ -82,16 +78,10 @@ class KeymapFile {
   _disposable = null;
   _path: string;
   _manager: KeymapManager;
-  _replaceExistingCommands: boolean;
 
-  constructor(
-    manager: KeymapManager,
-    filePath: string,
-    { replaceExistingCommands = false }: KeymapLoadOptions = {}
-  ) {
+  constructor(manager: KeymapManager, filePath: string) {
     this._manager = manager;
     this._path = filePath;
-    this._replaceExistingCommands = replaceExistingCommands;
   }
 
   load = () => {
@@ -132,10 +122,6 @@ class KeymapFile {
 
   bindings() {
     return this._bindings;
-  }
-
-  replacesExistingCommands() {
-    return this._replaceExistingCommands;
   }
 }
 
@@ -239,14 +225,12 @@ export default class KeymapManager {
         'templates',
         `${templateFile}.json`
       );
-      this._removeTemplate = this.loadKeymap(templateKeymapPath, {
-        replaceExistingCommands: true,
-      });
+      this._removeTemplate = this.loadKeymap(templateKeymapPath);
     }
   };
 
-  loadKeymap(filePath: string, { replaceExistingCommands = false }: KeymapLoadOptions = {}) {
-    const file = new KeymapFile(this, filePath, { replaceExistingCommands });
+  loadKeymap(filePath: string) {
+    const file = new KeymapFile(this, filePath);
     this._files.push(file);
     file.load();
 
@@ -280,6 +264,10 @@ export default class KeymapManager {
     });
   }
 
+  // Keymap files layer additively: a template (Gmail, Outlook, ...) adds its
+  // keystrokes alongside the base bindings rather than replacing them, so
+  // base.json's up/down, enter, escape and mod+z keep working under every
+  // template. Only the user's keymap.json overrides a command's bindings.
   keymapCacheInvalidated() {
     this._bindingsCache = {};
 
@@ -287,13 +275,7 @@ export default class KeymapManager {
       const fileBindings = file.bindings();
       for (const command of Object.keys(fileBindings)) {
         const keystrokesArray = fileBindings[command];
-        if (file.replacesExistingCommands()) {
-          this._bindingsCache[command] = keystrokesArray.slice();
-        } else {
-          this._bindingsCache[command] = (this._bindingsCache[command] || []).concat(
-            keystrokesArray
-          );
-        }
+        this._bindingsCache[command] = (this._bindingsCache[command] || []).concat(keystrokesArray);
       }
     }
     if (this.userKeymap) {
