@@ -43,13 +43,13 @@ class EmailFrameStylesStore extends MailspringStore {
   };
 
   _emailRenderModeOverrideStyles() {
-    const mode = AppEnv.config.get(EMAIL_RENDER_MODE_KEY) || 'theme';
+    const mode = AppEnv.config.get(EMAIL_RENDER_MODE_KEY) === 'dark' ? 'dark' : 'light';
     if (mode === 'light') {
-      return '\nbody, img { filter: none !important; }';
+      return '\nbody { filter: none !important; }' + '\nimg { filter: none !important; }';
     }
     if (mode === 'dark') {
       return (
-        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; color: #111 !important; }' +
+        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; }' +
         '\nimg { filter: invert(100%) hue-rotate(180deg) !important; }'
       );
     }
@@ -73,4 +73,5 @@ class EmailFrameStylesStore extends MailspringStore {
   }
 }
 
+export { EmailFrameStylesStore };
 export default new EmailFrameStylesStore();
