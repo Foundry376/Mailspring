@@ -303,6 +303,18 @@ export class MailsyncProcess extends EventEmitter {
             // failures.
             (error as any).isUserError =
               isRecognizedMailsyncError && !AMBIGUOUS_MAILSYNC_ERRORS.has(response.error);
+            // Every classified error thrown here shares this one call site, so
+            // without an explicit fingerprint Sentry's stack-based grouping
+            // collapses unrelated failures (bad credentials, TLS errors, unknown
+            // mailsync error codes, etc.) into a single unactionable issue keyed
+            // off whichever message happened to report first. Group by the raw
+            // mailsync error code instead, which is what actually distinguishes
+            // one failure mode from another (see error-logger-extensions/sentry-error-reporter.js).
+            (error as any).fingerprint = [
+              'mailsync-classified-error',
+              response.error || 'unrecognized',
+              response.error_service || 'none',
+            ];
             return reject(error);
           }
         } catch (err) {
