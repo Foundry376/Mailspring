@@ -463,8 +463,15 @@ export class Contact extends Model {
 
   constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);
+    this.normalizeEmail();
     if (!this.contactGroups) {
       this.contactGroups = [];
+    }
+  }
+
+  private normalizeEmail() {
+    if (typeof this.email === 'string') {
+      this.email = this.email.trim();
     }
   }
 
@@ -487,6 +494,7 @@ export class Contact extends Model {
       json['h'] = false;
     }
     super.fromJSON(json);
+    this.normalizeEmail();
     this.name = this.name || this.email;
     return json;
   }

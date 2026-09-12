@@ -145,6 +145,28 @@ describe('DraftFactory', function draftFactory() {
   });
 
   describe('creating drafts', () => {
+    describe('createDraftForSendAgain', () => {
+      it('creates a new editable message with the original contents and recipients', () => {
+        spyOn(Actions, 'fetchFile');
+
+        waitsForPromise(() =>
+          DraftFactory.createDraftForSendAgain(fakeMessageWithFiles).then((draft) => {
+            expect(draft.threadId).toBeFalsy();
+            expect(draft.replyToHeaderMessageId).toBeFalsy();
+            expect(draft.forwardedHeaderMessageId).toBeFalsy();
+            expect(draft.subject).toBe(fakeMessageWithFiles.subject);
+            expect(draft.body).toBe(fakeMessageWithFiles.body);
+            expect(draft.to).toEqual(fakeMessageWithFiles.to);
+            expect(draft.cc).toEqual(fakeMessageWithFiles.cc);
+            expect(draft.bcc).toEqual(fakeMessageWithFiles.bcc);
+            expect(draft.from).toEqual(fakeMessageWithFiles.from);
+            expect(draft.files).toEqual(fakeMessageWithFiles.files);
+            expect(Actions.fetchFile).toHaveBeenCalled();
+          })
+        );
+      });
+    });
+
     describe('createDraftForReply', () => {
       it('should include a quoted text block', () => {
         waitsForPromise(() => {
