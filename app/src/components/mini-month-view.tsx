@@ -10,16 +10,22 @@ interface MiniMonthViewProps {
 interface MiniMonthViewState {
   shownYear: number;
   shownMonth: number;
+  today: Moment;
 }
 
 export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonthViewState> {
   static displayName = 'MiniMonthView';
 
-  today = moment();
+  private _todayTimer?: number;
 
   constructor(props) {
     super(props);
     this.state = this._stateFromProps(props);
+  }
+
+  componentDidMount() {
+    this._scheduleTodayRefresh();
+    document.addEventListener('visibilitychange', this._onVisibilityChange);
   }
 
   componentDidUpdate(prevProps: MiniMonthViewProps) {
@@ -28,12 +34,40 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     }
   }
 
+  componentWillUnmount() {
+    if (this._todayTimer !== undefined) window.clearTimeout(this._todayTimer);
+    document.removeEventListener('visibilitychange', this._onVisibilityChange);
+  }
+
   _stateFromProps(props: MiniMonthViewProps) {
     return {
       shownYear: props.value.year(),
       shownMonth: props.value.month(),
+      today: moment().startOf('day'),
     };
   }
+
+  _refreshToday = (now = moment()) => {
+    const today = now.clone().startOf('day');
+    if (!today.isSame(this.state.today, 'day')) {
+      this.setState({ today });
+    }
+    this._scheduleTodayRefresh(now);
+  };
+
+  // Wake shortly after local midnight so the `today` highlight moves without a
+  // remount. The extra second keeps a timer that fires slightly early from
+  // landing on the same day and scheduling a second near-zero wait.
+  _scheduleTodayRefresh(now = moment()) {
+    if (this._todayTimer !== undefined) window.clearTimeout(this._todayTimer);
+    const nextDay = now.clone().add(1, 'day').startOf('day');
+    const delay = Math.max(1000, nextDay.diff(now) + 1000);
+    this._todayTimer = window.setTimeout(this._refreshToday, delay);
+  }
+
+  _onVisibilityChange = () => {
+    if (!document.hidden) this._refreshToday();
+  };
 
   _isSameDay(m1: Moment, m2: Moment) {
     return m1.dayOfYear() === m2.dayOfYear() && m1.year() === m2.year();
@@ -53,7 +87,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
         const dayStr = dayIter.format('D');
         const className = classnames({
           day: true,
-          today: this._isSameDay(dayIter, this.today),
+          today: this._isSameDay(dayIter, this.state.today),
           'cur-day': this._isSameDay(dayIter, this.props.value),
           'cur-month': dayIter.month() === curMonthNumber,
         });
