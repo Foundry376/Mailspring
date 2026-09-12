@@ -3,7 +3,12 @@ import proxyquire from 'proxyquire';
 // proxyquire injects the mock before the module is evaluated, so the
 // destructured `execFile` binding is mocked.
 let execFileSpy: jasmine.Spy;
-let waitForStatusNotifierHost: () => Promise<void>;
+let waitForStatusNotifierHost: (sleep?: (ms: number) => Promise<void>) => Promise<void>;
+let statusNotifierWaitBudgetMs: () => number;
+
+// The spec harness replaces setTimeout with a manually advanced clock, so the
+// poll loop is driven with a sleep that resolves immediately instead.
+const noSleep = () => Promise.resolve();
 
 function loadModule() {
   execFileSpy = jasmine.createSpy('execFile');
@@ -11,6 +16,7 @@ function loadModule() {
     child_process: { execFile: execFileSpy, '@noCallThru': false },
   });
   waitForStatusNotifierHost = mod.waitForStatusNotifierHost;
+  statusNotifierWaitBudgetMs = mod.statusNotifierWaitBudgetMs;
 }
 
 function respondWith(responses: Array<string | null>) {
@@ -58,15 +64,13 @@ describe('sni-host', () => {
 
   it('returns immediately when a host is already registered', async () => {
     respondWith([HOST_UP]);
-    const started = Date.now();
-    await waitForStatusNotifierHost();
+    await waitForStatusNotifierHost(noSleep);
     expect(execFileSpy.calls.length).toBe(1);
-    expect(Date.now() - started).toBeLessThan(400);
   });
 
   it('queries the IsStatusNotifierHostRegistered property over the session bus', async () => {
     respondWith([HOST_UP]);
-    await waitForStatusNotifierHost();
+    await waitForStatusNotifierHost(noSleep);
     const [cmd, args] = execFileSpy.calls[0].args;
     expect(cmd).toBe('dbus-send');
     expect(args).toContain('--session');
@@ -76,22 +80,22 @@ describe('sni-host', () => {
 
   it('keeps polling until a late-starting host registers', async () => {
     respondWith([HOST_DOWN, HOST_DOWN, HOST_UP]);
-    await waitForStatusNotifierHost();
+    await waitForStatusNotifierHost(noSleep);
     expect(execFileSpy.calls.length).toBe(3);
   });
 
   it('keeps polling while the watcher name has no owner', async () => {
     respondWith([null, null, HOST_UP]);
-    await waitForStatusNotifierHost();
+    await waitForStatusNotifierHost(noSleep);
     expect(execFileSpy.calls.length).toBe(3);
   });
 
-  it('gives up quickly on X11, where an XEmbed tray is still a valid target', async () => {
-    respondWith([HOST_DOWN]);
-    const started = Date.now();
-    await waitForStatusNotifierHost();
-    const elapsed = Date.now() - started;
-    expect(elapsed).toBeGreaterThan(2500);
-    expect(elapsed).toBeLessThan(6000);
+  it('gives up quickly on X11, where an XEmbed tray is still a valid target', () => {
+    expect(statusNotifierWaitBudgetMs()).toBe(3000);
+  });
+
+  it('waits far longer on Wayland, which has no XEmbed tray to fall back to', () => {
+    process.env.XDG_SESSION_TYPE = 'wayland';
+    expect(statusNotifierWaitBudgetMs()).toBe(15000);
   });
 });

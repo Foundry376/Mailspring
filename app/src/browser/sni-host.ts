@@ -52,11 +52,22 @@ function isStatusNotifierHostRegistered(): Promise<boolean> {
  * available to us, since the icon cannot be destroyed and recreated on Linux
  * (electron/electron#17622).
  */
-export async function waitForStatusNotifierHost(): Promise<void> {
-  const deadline = Date.now() + (isWaylandSession() ? SNI_WAIT_WAYLAND_MS : SNI_WAIT_X11_MS);
+export function statusNotifierWaitBudgetMs(): number {
+  return isWaylandSession() ? SNI_WAIT_WAYLAND_MS : SNI_WAIT_X11_MS;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// `sleep` is injectable only so specs can drive the poll loop: the spec
+// harness replaces the global setTimeout with a manually advanced clock, so a
+// real delay never resolves under test.
+export async function waitForStatusNotifierHost(sleep = delay): Promise<void> {
+  const deadline = Date.now() + statusNotifierWaitBudgetMs();
   let ready = await isStatusNotifierHostRegistered();
   while (!ready && Date.now() < deadline) {
-    await new Promise((resolve) => setTimeout(resolve, SNI_PROBE_INTERVAL_MS));
+    await sleep(SNI_PROBE_INTERVAL_MS);
     ready = await isStatusNotifierHostRegistered();
   }
 }
