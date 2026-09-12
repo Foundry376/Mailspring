@@ -1,6 +1,7 @@
 import path from 'path';
 import { Tray, Menu, nativeImage, nativeTheme } from 'electron';
 import { localized } from '../intl';
+import { waitForStatusNotifierHost } from './sni-host';
 import Application from './application';
 
 function _getMenuTemplate(platform: string, application: Application) {
@@ -47,6 +48,7 @@ class SystemTrayManager {
   _iconPath = null;
   _unreadString = null;
   _tray = null;
+  _awaitingTrayHost = false;
   _platform: string = null;
   _application: Application;
 
@@ -96,18 +98,30 @@ class SystemTrayManager {
     );
   }
 
-  initTray() {
-    const enabled = this._application.config.get('core.workspace.systemTray') !== false;
-    const created = this._tray !== null;
+  _trayEnabled() {
+    return this._application.config.get('core.workspace.systemTray') !== false;
+  }
 
-    if (enabled && !created) {
-      this._tray = new Tray(_getIcon(this._iconPath || this._defaultIconPath()));
-      this._tray.setToolTip(_getTooltip(this._unreadString));
-      this._tray.addListener('click', this._onClick);
-      this._tray.setContextMenu(
-        Menu.buildFromTemplate(_getMenuTemplate(this._platform, this._application) as any)
-      );
+  async initTray() {
+    if (!this._trayEnabled() || this._tray !== null || this._awaitingTrayHost) return;
+
+    if (this._platform === 'linux') {
+      this._awaitingTrayHost = true;
+      try {
+        await waitForStatusNotifierHost();
+      } finally {
+        this._awaitingTrayHost = false;
+      }
+      // The setting can be switched off while we were waiting for the host.
+      if (!this._trayEnabled() || this._tray !== null) return;
     }
+
+    this._tray = new Tray(_getIcon(this._iconPath || this._defaultIconPath()));
+    this._tray.setToolTip(_getTooltip(this._unreadString));
+    this._tray.addListener('click', this._onClick);
+    this._tray.setContextMenu(
+      Menu.buildFromTemplate(_getMenuTemplate(this._platform, this._application) as any)
+    );
   }
 
   _onClick = () => {
