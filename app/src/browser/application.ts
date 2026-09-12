@@ -439,8 +439,8 @@ export default class Application extends EventEmitter {
 
     // The calendar window's MailsyncBridge has no sync clients, so a manual
     // refresh has to be routed through the main window's bridge.
-    this.on('application:sync-calendar', () => {
-      this.sendCalendarSync();
+    this.on('application:sync-calendar', (accountId?: string) => {
+      this.sendCalendarSync(accountId);
     });
 
     this.on('application:show-contacts', () => {
@@ -895,10 +895,10 @@ export default class Application extends EventEmitter {
     registerNotificationIPCHandlers(ipcMain);
   }
 
-  sendCalendarSync() {
+  sendCalendarSync(accountId?: string) {
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
     if (main) {
-      main.sendMessage('run-calendar-sync');
+      main.sendMessage('run-calendar-sync', accountId);
     }
   }
 
