@@ -49,6 +49,7 @@ class EmailFrameStylesStore extends MailspringStore {
     }
     if (mode === 'dark') {
       return (
+        '\n#inbox-html-wrapper { color: black; background: white; }' +
         '\nbody { filter: invert(100%) hue-rotate(180deg) !important; }' +
         '\nimg { filter: invert(100%) hue-rotate(180deg) !important; }'
       );

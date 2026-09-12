@@ -12,6 +12,35 @@ import {
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
 
+// Emails that paint their own backgrounds (marketing tables, colored wrappers)
+// or hardcode their text colors were designed for a white page and almost always
+// assume the default text color is black, so we render them on white. Emails
+// that do neither are rendered transparent with the theme's text color so they
+// blend into the message list in dark themes.
+//
+// Backgrounds on inline elements are ignored so a highlighted word or styled
+// link in an otherwise plain email doesn't force the white background. Link
+// colors are ignored because nearly every email colors its links and the
+// stylesheet already restyles them for the theme.
+function isDesignedForWhiteBackground(wrapper: HTMLElement): boolean {
+  const win = wrapper.ownerDocument.defaultView;
+  if (!win) return false;
+  const defaultColor = win.getComputedStyle(wrapper).color;
+
+  for (const el of Array.from(wrapper.querySelectorAll<HTMLElement>('*'))) {
+    const style = win.getComputedStyle(el);
+    if (style.display === 'none') continue;
+
+    if (style.color !== defaultColor && !el.closest('a')) return true;
+
+    if (style.display.startsWith('inline')) continue;
+    if (style.backgroundImage !== 'none') return true;
+    const bg = style.backgroundColor;
+    if (bg && bg !== 'transparent' && !/^rgba\(\d+, \d+, \d+, 0\)$/.test(bg)) return true;
+  }
+  return false;
+}
+
 interface EmailFrameProps {
   content: string;
   showQuotedText: boolean;
@@ -110,6 +139,11 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       const htmlWrapper = doc.getElementById('inbox-html-wrapper');
       if (htmlWrapper) {
         htmlWrapper.setAttribute('role', 'document');
+        try {
+          htmlWrapper.classList.toggle('has-background', isDesignedForWhiteBackground(htmlWrapper));
+        } catch (e) {
+          AppEnv.reportError(e);
+        }
       }
     }
 

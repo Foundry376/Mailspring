@@ -70,8 +70,11 @@
 
   #inbox-html-wrapper {
     font-family: 'Nylas-Pro', 'Helvetica', 'Lucidia Grande', sans-serif;
-    background: white;
-    color: black;
+    color: @text-color;
+    &.has-background {
+      background: white;
+      color: black;
+    }
   }
 
   #inbox-html-wrapper.platform-win32 {
