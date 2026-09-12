@@ -192,6 +192,147 @@ describe('updateDragState with day snapping', function () {
   });
 });
 
+/*
+Resizing a *timed* event in a month cell. The month grid snaps to whole days, but a 1pm
+meeting is still a 1pm meeting after its edge is dragged: only the date moves. The preview
+of a timed event is persisted exactly as it stands, so snapping these to midnight the way an
+all-day span is snapped writes away the meeting's time of day.
+*/
+describe('updateDragState resizing a timed event in a month cell', function () {
+  const localDay = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
+
+  function dragTimedEdge(
+    start: number,
+    end: number,
+    mode: 'resize-start' | 'resize-end',
+    mouseTime: number,
+    containerType: 'month-cell' | 'all-day-area' = 'month-cell'
+  ) {
+    const event = makeOccurrence({ isAllDay: false, start, end });
+    const state = createDragState(
+      event,
+      { mode, cursor: 'ew-resize' },
+      mouseTime,
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      mouseTime,
+      100,
+      100,
+      containerType,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    return {
+      start: dragged.previewStart,
+      end: dragged.previewEnd,
+      isAllDay: dragged.previewIsAllDay,
+    };
+  }
+
+  it('moves the end onto the cursor day and keeps its clock time', function () {
+    // 1-2pm on Aug 14, right edge dragged to Aug 16 -> Aug 14 1pm to Aug 16 2pm.
+    const start = localDay(2026, 8, 14) + 13 * HOUR;
+    const end = localDay(2026, 8, 14) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-end', localDay(2026, 8, 16))).toEqual({
+      start,
+      end: localDay(2026, 8, 16) + 14 * HOUR,
+      isAllDay: false,
+    });
+  });
+
+  it('moves the start onto the cursor day and keeps its clock time', function () {
+    // Aug 14 1pm to Aug 16 2pm, left edge dragged back to Aug 12.
+    const start = localDay(2026, 8, 14) + 13 * HOUR;
+    const end = localDay(2026, 8, 16) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-start', localDay(2026, 8, 12))).toEqual({
+      start: localDay(2026, 8, 12) + 13 * HOUR,
+      end,
+      isAllDay: false,
+    });
+  });
+
+  it('drags the end from the day the event is drawn on, not the midnight it ends at', function () {
+    // 11pm Aug 14 to midnight Aug 15 is drawn on the 14th alone. Dragging its edge onto the
+    // 15th must add a day, which a delta measured from the DTEND would read as no movement.
+    const start = localDay(2026, 8, 14) + 23 * HOUR;
+    const end = localDay(2026, 8, 15);
+    expect(dragTimedEdge(start, end, 'resize-end', localDay(2026, 8, 15))).toEqual({
+      start,
+      end: localDay(2026, 8, 16),
+      isAllDay: false,
+    });
+  });
+
+  it('holds the shortest timed event, not a whole day, when the edges cross', function () {
+    const start = localDay(2026, 8, 14) + 13 * HOUR;
+    const end = localDay(2026, 8, 14) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-end', localDay(2026, 8, 11))).toEqual({
+      start,
+      end: start + 900,
+      isAllDay: false,
+    });
+  });
+
+  it('holds the shortest timed event when the start is dragged past the end', function () {
+    const start = localDay(2026, 8, 14) + 13 * HOUR;
+    const end = localDay(2026, 8, 14) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-start', localDay(2026, 8, 20))).toEqual({
+      start: end - 900,
+      end,
+      isAllDay: false,
+    });
+  });
+
+  // The whole point of moving whole calendar days rather than a seconds delta. The runner pins
+  // America/Chicago (scripts/test.js), where 2026-03-08 is 23 hours and 2026-11-01 is 25: a
+  // `+ days * 86400` lands an hour either side of the clock time these assert.
+  it('keeps the clock time when the end is dragged across a spring-forward day', function () {
+    const start = localDay(2026, 3, 7) + 13 * HOUR;
+    const end = localDay(2026, 3, 7) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-end', localDay(2026, 3, 9))).toEqual({
+      start,
+      end: localDay(2026, 3, 9) + 14 * HOUR,
+      isAllDay: false,
+    });
+  });
+
+  it('keeps the clock time when the end is dragged across a fall-back day', function () {
+    const start = localDay(2026, 10, 31) + 13 * HOUR;
+    const end = localDay(2026, 10, 31) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-end', localDay(2026, 11, 2))).toEqual({
+      start,
+      end: localDay(2026, 11, 2) + 14 * HOUR,
+      isAllDay: false,
+    });
+  });
+
+  it('keeps the clock time when the start is dragged back across a spring-forward day', function () {
+    const start = localDay(2026, 3, 9) + 13 * HOUR;
+    const end = localDay(2026, 3, 9) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-start', localDay(2026, 3, 7))).toEqual({
+      start: localDay(2026, 3, 7) + 13 * HOUR,
+      end,
+      isAllDay: false,
+    });
+  });
+
+  // The all-day row is the other day-granular surface, reachable by dragging a timed event's
+  // edge out of the week grid and into it. It converts on a MOVE but not on a resize, so the
+  // preview stays timed and takes the same whole-day treatment as a month cell.
+  it('treats the all-day row like a month cell, without converting the event', function () {
+    const start = localDay(2026, 8, 14) + 13 * HOUR;
+    const end = localDay(2026, 8, 14) + 14 * HOUR;
+    expect(dragTimedEdge(start, end, 'resize-end', localDay(2026, 8, 16), 'all-day-area')).toEqual({
+      start,
+      end: localDay(2026, 8, 16) + 14 * HOUR,
+      isAllDay: false,
+    });
+  });
+});
+
 describe('updateDragState move with day snapping', function () {
   const localDay = (y: number, m: number, d: number) => new Date(y, m - 1, d).getTime() / 1000;
 
