@@ -244,9 +244,10 @@ export async function clickSidebarFolder(page: Page, name: string) {
 // we intercept them at the Flux action layer in the renderer process.
 
 /**
- * Execute JavaScript in the renderer via the main process's
- * webContents.executeJavaScript(), bypassing Mailspring's
- * window.eval() security restriction.
+ * Run a JS string in the main window via the main process's
+ * webContents.executeJavaScript(). `page.evaluate` is the normal tool (eval is
+ * enabled under PLAYWRIGHT); this is for code that must run from the main
+ * process side, e.g. before a Page handle is available.
  */
 export async function executeInRenderer(electronApp: ElectronApplication, code: string): Promise<any> {
   return electronApp.evaluate(async ({ BrowserWindow }, js) => {
@@ -259,75 +260,77 @@ export async function executeInRenderer(electronApp: ElectronApplication, code: 
   }, code);
 }
 
+/** The main window, or throw. Prefer `page.evaluate` on it over `executeInRenderer`. */
+function mainWindowOf(electronApp: ElectronApplication): Page {
+  const page = electronApp.windows().find(isMainWindow);
+  if (!page) throw new Error('Main window not found');
+  return page;
+}
+
+// Only the fields specs assert on; Task instances hold Models that don't serialize.
+type CapturedTask = {
+  __cls: string;
+  id: string;
+  accountId: string;
+  starred?: boolean;
+  unread?: boolean;
+  threadIds?: string[];
+  path?: string;
+  existingPath?: string;
+  folder?: { displayName: string; role: string };
+  labelsToAdd?: { displayName: string; role: string }[];
+  labelsToRemove?: { displayName: string; role: string }[];
+};
+
 /**
- * Install a listener on Actions.queueTask in the renderer to capture
- * tasks as they are created. Uses webContents.executeJavaScript() from
- * the main process to bypass Mailspring's window.eval() restriction.
- * Task data is stored in a hidden DOM element readable via locators.
+ * Listen to Actions.queueTask / queueTasks in the main window and record each
+ * task on `window.__capturedTasks`, so specs can assert on what the UI asked
+ * the sync engine to do without mailsync running.
  */
 export async function installTaskCapture(electronApp: ElectronApplication) {
-  await executeInRenderer(electronApp, `
-    (function() {
-      var el = document.createElement('div');
-      el.id = '__test-captured-tasks';
-      el.style.display = 'none';
-      el.setAttribute('data-tasks', '[]');
-      document.body.appendChild(el);
-
-      function captureTask(task) {
-        var existing = JSON.parse(el.getAttribute('data-tasks') || '[]');
-        existing.push({
-          __cls: task.constructor.name,
-          id: task.id,
-          accountId: task.accountId,
-          starred: task.starred,
-          unread: task.unread,
-          threadIds: task.threadIds,
-          path: task.path,
-          existingPath: task.existingPath,
-          folder: task.folder ? { displayName: task.folder.displayName, role: task.folder.role } : undefined,
-          labelsToAdd: task.labelsToAdd ? task.labelsToAdd.map(function(l) { return { displayName: l.displayName, role: l.role }; }) : undefined,
-          labelsToRemove: task.labelsToRemove ? task.labelsToRemove.map(function(l) { return { displayName: l.displayName, role: l.role }; }) : undefined,
-        });
-        el.setAttribute('data-tasks', JSON.stringify(existing));
-      }
-
-      window.$m.Actions.queueTask.listen(captureTask);
-      window.$m.Actions.queueTasks.listen(function(tasks) {
-        if (tasks && tasks.length) { tasks.forEach(captureTask); }
+  await mainWindowOf(electronApp).evaluate(() => {
+    const w = window as any;
+    w.__capturedTasks = [];
+    const capture = (task: any) => {
+      const summarize = (c: any) => ({ displayName: c.displayName, role: c.role });
+      w.__capturedTasks.push({
+        __cls: task.constructor.name,
+        id: task.id,
+        accountId: task.accountId,
+        starred: task.starred,
+        unread: task.unread,
+        threadIds: task.threadIds,
+        path: task.path,
+        existingPath: task.existingPath,
+        folder: task.folder ? summarize(task.folder) : undefined,
+        labelsToAdd: task.labelsToAdd?.map(summarize),
+        labelsToRemove: task.labelsToRemove?.map(summarize),
       });
-    })();
-  `);
+    };
+    w.$m.Actions.queueTask.listen(capture);
+    w.$m.Actions.queueTasks.listen((tasks: any[]) => tasks?.forEach(capture));
+  });
 }
 
-/** Get all captured tasks from the hidden DOM element */
-export async function getCapturedTasks(page: Page): Promise<any[]> {
-  const el = page.locator('#__test-captured-tasks');
-  const json = await el.getAttribute('data-tasks');
-  return JSON.parse(json || '[]');
+export async function getCapturedTasks(page: Page): Promise<CapturedTask[]> {
+  return page.evaluate(() => (window as any).__capturedTasks ?? []);
 }
 
-/** Clear captured tasks */
 export async function clearCapturedTasks(electronApp: ElectronApplication) {
-  await executeInRenderer(
-    electronApp,
-    `document.getElementById('__test-captured-tasks').setAttribute('data-tasks', '[]')`
-  );
+  await mainWindowOf(electronApp).evaluate(() => {
+    (window as any).__capturedTasks = [];
+  });
 }
 
-/**
- * Wait for a captured task matching a predicate.
- * Polls the hidden DOM element's data-tasks attribute.
- */
+/** Wait for a captured task matching a predicate; resolves null on timeout. */
 export async function waitForCapturedTask(
   page: Page,
-  matcher: (task: any) => boolean,
+  matcher: (task: CapturedTask) => boolean,
   timeoutMs = 10_000
 ): Promise<any> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const tasks = await getCapturedTasks(page);
-    const match = tasks.find(matcher);
+    const match = (await getCapturedTasks(page)).find(matcher);
     if (match) return match;
     await new Promise(r => setTimeout(r, 300));
   }
@@ -350,47 +353,41 @@ export async function waitForCapturedTask(
  * a specific menu action (Rename, Delete, New Subfolder, etc.).
  */
 export async function installMenuIntercept(electronApp: ElectronApplication) {
-  await executeInRenderer(electronApp, `
-    (function() {
-      window.__menuAutoClick = null;
+  await mainWindowOf(electronApp).evaluate(() => {
+    const w = window as any;
+    w.__menuAutoClick = null;
 
-      document.addEventListener('contextmenu', function(event) {
-        var label = window.__menuAutoClick;
+    document.addEventListener(
+      'contextmenu',
+      event => {
+        const label: string | null = w.__menuAutoClick;
         if (!label) return;
 
-        window.__menuAutoClick = null;
+        w.__menuAutoClick = null;
         event.stopImmediatePropagation();
         event.preventDefault();
 
-        // Find the closest treeitem
-        var treeitem = event.target.closest('[role="treeitem"]');
+        const treeitem = (event.target as Element).closest('[role="treeitem"]') as any;
         if (!treeitem) return;
 
-        // Find the React fiber key
-        var key = Object.keys(treeitem).find(function(k) {
-          return k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$');
-        });
-        if (!key) return;
+        const fiberKey = Object.keys(treeitem).find(
+          k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$')
+        );
+        if (!fiberKey) return;
 
-        // Walk up the fiber tree to find OutlineViewItem component instance
-        var current = treeitem[key];
-        while (current) {
-          var instance = current.stateNode;
-          if (instance && typeof instance._onEdit === 'function') {
-            if (label.indexOf('Rename') >= 0 || label.indexOf('rename') >= 0) {
-              instance._onEdit();
-            } else if (label.indexOf('Delete') >= 0 || label.indexOf('delete') >= 0) {
-              instance._onDelete();
-            } else if (label.indexOf('Subfolder') >= 0 || label.indexOf('Sublabel') >= 0) {
-              instance._onCreateChildTriggered();
-            }
-            break;
-          }
-          current = current.return;
+        // Walk up to the OutlineViewItem instance and call its handler directly.
+        for (let fiber = treeitem[fiberKey]; fiber; fiber = fiber.return) {
+          const instance = fiber.stateNode;
+          if (!instance || typeof instance._onEdit !== 'function') continue;
+          if (/rename/i.test(label)) instance._onEdit();
+          else if (/delete/i.test(label)) instance._onDelete();
+          else if (/sub(folder|label)/i.test(label)) instance._onCreateChildTriggered();
+          break;
         }
-      }, true);
-    })();
-  `);
+      },
+      true
+    );
+  });
 }
 
 /**
@@ -400,10 +397,9 @@ export async function installMenuIntercept(electronApp: ElectronApplication) {
  * Supported labels: "Rename", "Delete", "Subfolder", "Sublabel"
  */
 export async function triggerMenuAction(electronApp: ElectronApplication, labelSubstring: string) {
-  await executeInRenderer(
-    electronApp,
-    `window.__menuAutoClick = ${JSON.stringify(labelSubstring)};`
-  );
+  await mainWindowOf(electronApp).evaluate(label => {
+    (window as any).__menuAutoClick = label;
+  }, labelSubstring);
 }
 
 // ─── Search Helpers ───────────────────────────────────────────────────
