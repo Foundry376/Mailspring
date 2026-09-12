@@ -478,23 +478,26 @@ export function createICSString(options: CreateEventOptions): string {
 
   // Set organizer
   if (options.organizer) {
-    const organizer = vevent.addProperty('organizer' as any);
+    const organizer = new ical.Property('organizer');
     organizer.setValue(`mailto:${options.organizer.email}`);
     if (options.organizer.name) {
       organizer.setParameter('cn', options.organizer.name);
     }
+    vevent.addProperty(organizer);
   }
 
   // Set attendees
   if (options.attendees) {
     for (const attendee of options.attendees) {
-      const prop = vevent.addProperty('attendee' as any);
+      const prop = new ical.Property('attendee');
       prop.setValue(`mailto:${attendee.email}`);
       if (attendee.name) {
         prop.setParameter('cn', attendee.name);
       }
       prop.setParameter('partstat', 'NEEDS-ACTION');
       prop.setParameter('role', attendee.role || 'REQ-PARTICIPANT');
+      prop.setParameter('rsvp', 'TRUE');
+      vevent.addProperty(prop);
     }
   }
 
@@ -785,13 +788,15 @@ export function applyEditsToException(
   if (edits.attendees !== undefined) {
     exceptionVevent.removeAllProperties('attendee');
     for (const attendee of edits.attendees) {
-      const prop = exceptionVevent.addProperty('attendee' as any);
+      const prop = new ical.Property('attendee');
       prop.setValue(`mailto:${attendee.email}`);
       if (attendee.name) {
         prop.setParameter('cn', attendee.name);
       }
       prop.setParameter('partstat', attendee.partstat || 'NEEDS-ACTION');
       prop.setParameter('role', 'REQ-PARTICIPANT');
+      prop.setParameter('rsvp', 'TRUE');
+      exceptionVevent.addProperty(prop);
     }
   }
 
@@ -1057,13 +1062,15 @@ export function updateAttendees(
 
   // Add new attendees
   for (const attendee of attendees) {
-    const prop = vevent.addProperty('attendee' as any);
+    const prop = new ical.Property('attendee');
     prop.setValue(`mailto:${attendee.email}`);
     if (attendee.name) {
       prop.setParameter('cn', attendee.name);
     }
     prop.setParameter('partstat', attendee.partstat || 'NEEDS-ACTION');
     prop.setParameter('role', 'REQ-PARTICIPANT');
+    prop.setParameter('rsvp', 'TRUE');
+    vevent.addProperty(prop);
   }
 
   // Update DTSTAMP
