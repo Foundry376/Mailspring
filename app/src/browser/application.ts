@@ -1,7 +1,17 @@
 /* eslint global-require: "off" */
 
 import '../safe-shell';
-import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell } from 'electron';
+import {
+  BrowserWindow,
+  ClipboardItem,
+  Menu,
+  app,
+  clipboard,
+  ipcMain,
+  dialog,
+  nativeImage,
+  shell,
+} from 'electron';
 
 import fs from 'fs';
 import url from 'url';
@@ -30,8 +40,6 @@ import {
 } from './notification-ipc';
 import WindowsTaskbarManager from './windows-taskbar-manager';
 import { resetThemeForRecovery } from './theme-recovery';
-
-let clipboard = null;
 
 // The application's singleton class.
 //
@@ -786,13 +794,12 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('write-image-to-clipboard', (event, dataURL) => {
       // This can't be done from the renderer due to https://github.com/electron/electron/issues/8151
-      clipboard = require('electron').clipboard;
-      clipboard.writeImage(nativeImage.createFromDataURL(dataURL));
+      const png = nativeImage.createFromDataURL(dataURL).toPNG();
+      clipboard.write([new ClipboardItem({ 'image/png': new Blob([png], { type: 'image/png' }) })]);
     });
 
     ipcMain.on('write-text-to-selection-clipboard', (event, selectedText) => {
-      clipboard = require('electron').clipboard;
-      clipboard.writeText(selectedText, 'selection');
+      if (clipboard.selection) clipboard.selection.writeText(selectedText);
     });
 
     ipcMain.on('account-setup-successful', () => {

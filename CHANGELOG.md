@@ -4,6 +4,8 @@
 
 Note: The Flatpak version of Mailspring now uses Portal for secret storage, and you may be prompted to re-authenticate accounts after upgrading.
 
+Note: Mailspring now requires macOS 13 (Ventura) or later, because Chromium has dropped support for macOS 12. Windows and Linux system requirements are unchanged.
+
 Features:
 
 - Added support for dragging threads into the composer to attach them as .eml files. (#2800)
@@ -51,6 +53,8 @@ Bug Fixes:
 - Mailsync startup failures now report the actual reason instead of "an unknown error has occurred". (#2827) Thanks @brhellman!
 - On macOS, Quick Look thumbnail generation now times out so hung `qlmanage` processes can't accumulate. (#2862) Thanks @nitay!
 - Fixed an unhandled promise rejection when opening identity links while signed out. (#2861)
+- Fixed the system tray icon not appearing on Linux when Mailspring launched before the desktop's tray host was ready, and when running in the Snap or Flatpak sandbox. (#2863, #2825)
+- Files copied from Finder, Explorer, or a Linux file manager and pasted into the composer now attach under their original filename instead of "Pasted File".
 
 Improvements:
 
@@ -72,7 +76,9 @@ Localization:
 
 Developer:
 
-- Updated Electron from 41.7.2 to 43.7.0. (#2818) Thanks @wrench-exile-legacy!
+- Updated Electron from 41.7.2 to 44.3.0 (Chromium 152, Node.js 24.20). (#2818, #2825) Thanks @wrench-exile-legacy and @LinusDierheimer!
+- Migrated to Electron 44's promise-based `clipboard` API; the module is no longer available in renderer processes.
+- Added Playwright coverage for composer paste (text, HTML, images, and copied files) and clipboard writes; `window.eval` is enabled under the Playwright harness so `page.evaluate` works.
 - Upgraded `tar` to 7.5.19 to address CVE-2026-59873. (#2811) Thanks @anupamme!
 - Switched `app/package.json` from `resolutions` to `overrides`. (#2822) Thanks @LinusDierheimer!
 - Fixed the three type errors that were keeping CI red. (#2829) Thanks @brhellman!

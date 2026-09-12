@@ -4,7 +4,7 @@ import * as Immutable from 'immutable';
 import { Editor, Value, Operation, Range, Block, Text, Point } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps, Plugin } from 'slate-react';
 import Plain from 'slate-plain-serializer';
-import { clipboard as ElectronClipboard } from 'electron';
+import { webUtils } from 'electron';
 import { InlineStyleTransformer, SanitizeTransformer } from 'mailspring-exports';
 import os from 'os';
 import path from 'path';
@@ -441,6 +441,16 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
     // file and fire our `onFilePaste` event.
     if (item.kind === 'file') {
       const blob = item.getAsFile();
+
+      // Chromium exposes files copied in Finder / Explorer / a Linux file manager as
+      // file items backed by the real file. Attach those by path so the original
+      // filename is kept; only pasteboard-only blobs (screenshots) need a temp copy.
+      const existingPath = webUtils.getPathForFile(blob);
+      if (existingPath) {
+        onFileReceived(existingPath);
+        return true;
+      }
+
       const ext =
         {
           'image/png': '.png',
@@ -462,25 +472,6 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
       reader.readAsArrayBuffer(blob);
       return true;
     }
-  }
-
-  const macCopiedFile = decodeURI(ElectronClipboard.read('public.file-url').replace('file://', ''));
-  const winCopiedFile = ElectronClipboard.read('FileNameW').replace(
-    new RegExp(String.fromCharCode(0), 'g'),
-    ''
-  );
-  const xdgCopiedFiles = (ElectronClipboard.read('text/uri-list') || '')
-    .split('\r\n') // yes, really
-    .filter((path) => path.startsWith('file://'))
-    .map((path) => path.replace('file://', ''))
-    .filter((path) => path.length);
-  if (macCopiedFile.length || winCopiedFile.length) {
-    onFileReceived(macCopiedFile || winCopiedFile);
-    return true;
-  }
-  if (xdgCopiedFiles.length) {
-    xdgCopiedFiles.forEach(onFileReceived);
-    return true;
   }
 
   return false;
