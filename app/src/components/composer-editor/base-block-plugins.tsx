@@ -253,11 +253,32 @@ export const BLOCK_CONFIG: {
   },
 };
 
-export const EditListPlugin = new EditList({
+const EditListPluginBase = new EditList({
   types: [BLOCK_CONFIG.ol_list.type, BLOCK_CONFIG.ul_list.type],
   typeItem: BLOCK_CONFIG.list_item.type,
   typeDefault: BLOCK_CONFIG.div.type,
 });
+
+// `getCurrentItem` matches any `list_item`, even one with no surrounding `ol_list`/`ul_list` —
+// a shape email HTML often produces. Letting the base plugin handle Enter/Backspace there calls
+// `unwrapList`, which lifts the orphan's one-element path to the empty root path; Slate then
+// reads `.type` off the null that resolves to and throws (MAILSPRING-CLIENT-EV). Fall through
+// to default handling instead so the orphan behaves like any other block.
+export const EditListPlugin = {
+  ...EditListPluginBase,
+  onKeyDown: (event: React.KeyboardEvent, editor: Editor, next: () => void) => {
+    // Match the base plugin's own key gate so the guard below doesn't run on every keystroke.
+    if (event.key !== 'Enter' && event.key !== 'Tab' && event.key !== 'Backspace') {
+      return EditListPluginBase.onKeyDown(event, editor, next);
+    }
+    const { utils } = EditListPluginBase;
+    const { value } = editor;
+    if (value.startBlock && utils.getCurrentItem(value) && !utils.getCurrentList(value)) {
+      return next();
+    }
+    return EditListPluginBase.onKeyDown(event, editor, next);
+  },
+};
 
 function renderNode(props, editor: Editor = null, next = () => {}) {
   const config = BLOCK_CONFIG[props.node.type];
