@@ -8,7 +8,7 @@ describe('Keymap input integration', function () {
     const resourcePath = AppEnv.getLoadSettings().resourcePath;
     const outlookKeymap = AppEnv.keymaps.loadKeymap(
       path.join(resourcePath, 'keymaps', 'templates', 'Outlook.json'),
-      { replaceExistingCommands: true }
+      { layer: 'template' }
     );
     const receivedCommands: string[] = [];
     const commandHandlers = AppEnv.commands.add(document.body, {

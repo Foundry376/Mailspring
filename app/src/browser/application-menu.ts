@@ -307,13 +307,16 @@ export default class ApplicationMenu {
   // Returns a String containing the keystroke in a format that can be interpreted
   //   by Electron to provide nice icons where available.
   acceleratorForCommand(command: string, keystrokesByCommand: Record<string, string[]>) {
-    // A keymap may spell out `command` to give a binding to macOS only (Outlook's
-    // quit is command+q there and alt+f4 elsewhere). Electron has no Command key
-    // outside macOS, so such a keystroke can't be this platform's accelerator.
-    const keystrokes = (keystrokesByCommand[command] || []).filter(
-      (keystroke) => process.platform === 'darwin' || !/\b(command|meta)\b/.test(keystroke)
-    );
-    let firstKeystroke = keystrokes[0];
+    // Outlook binds quit to ["command+q", "alt+f4"] so that Cmd+Q survives on macOS
+    // while ctrl+q is free for mark-as-read elsewhere. On Windows and Linux a
+    // `command` keystroke is the Super/Win key, so prefer a native keystroke for
+    // the menu and only fall back to it when nothing else is bound.
+    const keystrokes = keystrokesByCommand[command] || [];
+    const native =
+      process.platform === 'darwin'
+        ? keystrokes
+        : keystrokes.filter((keystroke) => !/\b(command|meta)\b/.test(keystroke));
+    let firstKeystroke = native[0] || keystrokes[0];
     if (!firstKeystroke) {
       return null;
     }

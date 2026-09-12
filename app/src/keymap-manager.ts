@@ -7,8 +7,19 @@ import { Emitter, Disposable } from 'event-kit';
 let suspended = false;
 const templateConfigKey = 'core.keymapTemplate';
 
+// Bindings are resolved base → template → package regardless of the order the
+// files were loaded in. Base files layer additively. A template (Gmail, Outlook,
+// ...) replaces the base bindings of each command it defines, which is what lets
+// Outlook free ctrl+q from application:quit on Windows; the cost is that a
+// template must restate every base keystroke it wants to keep (up/down
+// alongside j/k, enter alongside o, ...), and keymap-templates-spec fails if one
+// is dropped without being listed there as intentional. Package keymaps are
+// added on top so a template can't strip mod+enter from composer:send-message.
+type KeymapLayer = 'base' | 'template' | 'package';
+const layerOrder: KeymapLayer[] = ['base', 'template', 'package'];
+
 interface KeymapLoadOptions {
-  replaceExistingCommands?: boolean;
+  layer?: KeymapLayer;
 }
 
 // Mousetrap understands mod, but keeps mod+u and ctrl+u as separate callbacks.
@@ -82,16 +93,16 @@ class KeymapFile {
   _disposable = null;
   _path: string;
   _manager: KeymapManager;
-  _replaceExistingCommands: boolean;
+  _layer: KeymapLayer;
 
   constructor(
     manager: KeymapManager,
     filePath: string,
-    { replaceExistingCommands = false }: KeymapLoadOptions = {}
+    { layer = 'package' }: KeymapLoadOptions = {}
   ) {
     this._manager = manager;
     this._path = filePath;
-    this._replaceExistingCommands = replaceExistingCommands;
+    this._layer = layer;
   }
 
   load = () => {
@@ -134,8 +145,8 @@ class KeymapFile {
     return this._bindings;
   }
 
-  replacesExistingCommands() {
-    return this._replaceExistingCommands;
+  layer() {
+    return this._layer;
   }
 }
 
@@ -208,8 +219,10 @@ export default class KeymapManager {
 
   loadKeymaps = () => {
     // Load the base keymap and the base.platform keymap
-    this.loadKeymap(path.join(this.resourcePath, 'keymaps', 'base.json'));
-    this.loadKeymap(path.join(this.resourcePath, 'keymaps', `base-${process.platform}.json`));
+    this.loadKeymap(path.join(this.resourcePath, 'keymaps', 'base.json'), { layer: 'base' });
+    this.loadKeymap(path.join(this.resourcePath, 'keymaps', `base-${process.platform}.json`), {
+      layer: 'base',
+    });
 
     // Load the template keymap (Gmail, Mail.app, etc.) the user has chosen
     if (this._unobserveTemplate) {
@@ -239,14 +252,12 @@ export default class KeymapManager {
         'templates',
         `${templateFile}.json`
       );
-      this._removeTemplate = this.loadKeymap(templateKeymapPath, {
-        replaceExistingCommands: true,
-      });
+      this._removeTemplate = this.loadKeymap(templateKeymapPath, { layer: 'template' });
     }
   };
 
-  loadKeymap(filePath: string, { replaceExistingCommands = false }: KeymapLoadOptions = {}) {
-    const file = new KeymapFile(this, filePath, { replaceExistingCommands });
+  loadKeymap(filePath: string, { layer = 'package' }: KeymapLoadOptions = {}) {
+    const file = new KeymapFile(this, filePath, { layer });
     this._files.push(file);
     file.load();
 
@@ -280,20 +291,15 @@ export default class KeymapManager {
     });
   }
 
-  // The base keymaps layer additively. A template (Gmail, Outlook, ...) and the
-  // user's keymap.json instead replace the bindings of each command they define,
-  // which is what lets Outlook free ctrl+q from application:quit on Windows. The
-  // cost is that a template must restate every base keystroke it wants to keep
-  // (up/down alongside j/k, enter alongside o, ...); keymap-templates-spec fails
-  // if one is dropped without being listed there as intentional.
   keymapCacheInvalidated() {
     this._bindingsCache = {};
 
-    for (const file of this._files) {
+    const files = layerOrder.flatMap((layer) => this._files.filter((f) => f.layer() === layer));
+    for (const file of files) {
       const fileBindings = file.bindings();
       for (const command of Object.keys(fileBindings)) {
         const keystrokesArray = fileBindings[command];
-        if (file.replacesExistingCommands()) {
+        if (file.layer() === 'template') {
           this._bindingsCache[command] = keystrokesArray.slice();
         } else {
           this._bindingsCache[command] = (this._bindingsCache[command] || []).concat(
