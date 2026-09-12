@@ -16,6 +16,35 @@
     margin: 4px 0 0 0;
   }
 
+  .config-schema-range-item {
+    label,
+    input[type='range'] {
+      display: block;
+      width: 100%;
+    }
+
+    output {
+      float: right;
+      color: @text-color-very-subtle;
+    }
+  }
+
+  .notification-sound-controls {
+    padding-top: @padding-small-vertical;
+
+    .notification-sound-file {
+      margin-bottom: @padding-small-vertical;
+      color: @text-color-very-subtle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn {
+      margin: 0 @padding-small-horizontal @padding-small-vertical 0;
+    }
+  }
+
   height: 100%;
   background-color: @background-primary;
   color: @text-color;
