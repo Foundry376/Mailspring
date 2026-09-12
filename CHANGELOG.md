@@ -1,6 +1,6 @@
 # Mailspring Changelog
 
-## 1.24.0 (9/1/2026)
+## 1.24.0 (9/12/2026)
 
 Note: The Flatpak version of Mailspring now uses Portal for secret storage, and you may be prompted to re-authenticate accounts after upgrading.
 
@@ -10,6 +10,7 @@ Features:
 - Added subject line support to email templates. (#2794)
 - In the calendar, dragging an event now converts between all-day and timed. (#2819, #2812) Thanks @manilabui!
 - Added an MCP `get_attachment` tool so local agents can view mail attachments. (#2807) Thanks @ahmedwalid05!
+- On Windows, Mailspring now recovers from GPU-related renderer crashes that happen before the window loads by relaunching with hardware acceleration disabled. Thanks @ejbiker93ss!
 
 Bug Fixes:
 
@@ -33,6 +34,23 @@ Bug Fixes:
 - On Linux, EROFS, EIO, ENOSPC, and EBADF are now swallowed alongside EPIPE in the stdout/stderr error handler. (#2789)
 - Plain text messages are no longer inverted in dark mode, causing black-on-dark-gray text.
 - Messages with stylesheets in the HTML `<head>` region now render with the styles intact.
+- Fixed recurring meetings whose series started years ago not appearing in the calendar. (#2845) Thanks @brhellman!
+- Fixed timed calendar events at midnight and across DST day boundaries rendering in the wrong day column or not at all. (#2847) Thanks @manilabui!
+- Fixed timed calendar events sitting off their gridlines on DST days. (#2852) Thanks @manilabui!
+- Fixed a timed event losing its time of day when its edge was dragged in month view. (#2858) Thanks @brhellman!
+- Fixed the calendar view jumping when an event was selected for the first time. (#2854) Thanks @brhellman!
+- Fixed the day/week calendar grid not scrolling to the end of the day in short windows. (#2851) Thanks @manilabui!
+- Fixed every calendar invitee being underlined as a malformed address. (#2844) Thanks @brhellman!
+- Fixed "Refresh Calendars" not actually syncing calendars. (#2853) Thanks @manilabui!
+- Fixed a TypeError when creating or editing calendar events with an organizer or attendees. Thanks @ejbiker93ss!
+- The calendar now syncs immediately after you RSVP to an invitation. Thanks @ejbiker93ss!
+- Fixed the mini month view's today marker not advancing past midnight. Thanks @ejbiker93ss!
+- Fixed Outlook-style read/unread keyboard shortcuts on Windows. (#2849) Thanks @ejbiker93ss!
+- Fixed "Reset Theme" after a theme compile error not recovering when the failing theme was set as the light or dark theme. Thanks @ejbiker93ss!
+- Fixed contact email addresses with surrounding whitespace failing validation or being sent as malformed recipients. Thanks @ejbiker93ss!
+- Mailsync startup failures now report the actual reason instead of "an unknown error has occurred". (#2827) Thanks @brhellman!
+- On macOS, Quick Look thumbnail generation now times out so hung `qlmanage` processes can't accumulate. (#2862) Thanks @nitay!
+- Fixed an unhandled promise rejection when opening identity links while signed out. (#2861)
 
 Improvements:
 
@@ -42,23 +60,28 @@ Improvements:
 - HTML signatures can now be pasted into the "Raw Signature" box.
 - On Linux, autostart now uses XDG Desktop Portals when running inside Flatpak. (#2838) Thanks @LinusDierheimer!
 - The key manager now uses the async `safeStorage` API. (#2823) Thanks @LinusDierheimer!
+- Removed the legacy dark-theme email inversion; the "Match app theme" email render mode is gone and email bodies now default to light mode. (#2850) Thanks @ejbiker93ss!
 
 Localization:
 
 - Added Swedish desktop and integration labels. (#2837) Thanks @yeager!
+- Updated the Czech translations. (#2855) Thanks @tomo90!
 - Completed the missing Traditional Chinese strings. (#2790) Thanks @nrps9909!
 - Updated the Hebrew translations and added Hebrew to the list of human-verified languages. (#2801) Thanks @omeritzics!
 - Updated translations of new strings and made minor corrections. (#2784) Thanks @Impostor0729!
 
 Developer:
 
-- Updated Electron from 41.7.2 to 43.4.1. (#2818) Thanks @wrench-exile-legacy!
+- Updated Electron from 41.7.2 to 43.7.0. (#2818) Thanks @wrench-exile-legacy!
 - Upgraded `tar` to 7.5.19 to address CVE-2026-59873. (#2811) Thanks @anupamme!
 - Switched `app/package.json` from `resolutions` to `overrides`. (#2822) Thanks @LinusDierheimer!
 - Fixed the three type errors that were keeping CI red. (#2829) Thanks @brhellman!
 - `reportError()` now captures a real stack for stackless inputs. (#2828)
 - Errors thrown by community plugins are no longer reported to Sentry. (#2783)
 - Uncaught `shell.openExternal` rejections now capture the caller stack. (#2788)
+- `ContextifyScript` compile errors with no first-party frames are no longer reported to Sentry. (#2859)
+- On Linux, newer versions of sqlite3 are now built with clang-15.
+- Added a Claude Code hook that lints edited TypeScript files.
 
 ## 1.23.0 (7/19/2026)
 
