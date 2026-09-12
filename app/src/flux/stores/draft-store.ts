@@ -579,11 +579,23 @@ class DraftStore extends MailspringStore {
       Message.attributes.body
     );
     if (!draft) {
+      // waitForPerformLocal() above resolves as soon as the SyncbackDraftTask's status
+      // leaves 'local' — including when the sync engine cancels it — which can happen
+      // before the draft row's own SQLite transaction has actually committed. Retry once
+      // after a short delay to absorb that race before reporting a real failure.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      draft = await DatabaseStore.findBy<Message>(Message, {
+        headerMessageId,
+        draft: true,
+      }).include(Message.attributes.body);
+      diagnostics.foundOnRetry = !!draft;
+    }
+    if (!draft) {
       this._draftsSending[headerMessageId] = false;
       this.trigger({ headerMessageId });
       return this._onUnexpectedNotFoundDuringSend(headerMessageId, {
         ...diagnostics,
-        failedAt: 'DatabaseStore.findBy returned null after commit',
+        failedAt: 'DatabaseStore.findBy returned null after commit (and retry)',
       });
     }
 
