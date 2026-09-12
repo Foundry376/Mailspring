@@ -15,7 +15,8 @@ describe('KeymapManager', function () {
     spyOn(AppEnv.commands, 'dispatch');
     const baseKeymap = manager.loadKeymap(path.join(resourcePath, 'keymaps', 'base.json'));
     const outlookKeymap = manager.loadKeymap(
-      path.join(resourcePath, 'keymaps', 'templates', 'Outlook.json')
+      path.join(resourcePath, 'keymaps', 'templates', 'Outlook.json'),
+      { replaceExistingCommands: true }
     );
 
     try {
@@ -31,17 +32,19 @@ describe('KeymapManager', function () {
     }
   });
 
-  it('layers template bindings on top of the base keymap', function () {
+  it('replaces base bindings for the commands a template defines', function () {
     const resourcePath = AppEnv.getLoadSettings().resourcePath;
     const manager = new KeymapManager({ configDirPath: resourcePath, resourcePath });
     const baseKeymap = manager.loadKeymap(path.join(resourcePath, 'keymaps', 'base.json'));
     const outlookKeymap = manager.loadKeymap(
-      path.join(resourcePath, 'keymaps', 'templates', 'Outlook.json')
+      path.join(resourcePath, 'keymaps', 'templates', 'Outlook.json'),
+      { replaceExistingCommands: true }
     );
 
-    expect(manager.getBindingsForCommand('application:quit')).toEqual(['mod+q', 'alt+f4']);
+    expect(manager.getBindingsForCommand('application:quit')).toEqual(['command+q', 'alt+f4']);
     expect(manager.getBindingsForCommand('core:focus-item')).toEqual(['enter', 'ctrl+o']);
     expect(manager.getBindingsForCommand('core:copy')).toEqual(['mod+c']);
+    expect((manager as any)._commandsCache['ctrl+o']).toEqual(['core:focus-item']);
     expect((manager as any)._commandsCache['ctrl+q']).toEqual(['core:mark-as-read']);
 
     // The base keymap binds underline to mod+u, which only collides with Outlook's
@@ -65,7 +68,8 @@ describe('KeymapManager', function () {
     const manager = new KeymapManager({ configDirPath: resourcePath, resourcePath });
     const baseKeymap = manager.loadKeymap(path.join(resourcePath, 'keymaps', 'base.json'));
     const gmailKeymap = manager.loadKeymap(
-      path.join(resourcePath, 'keymaps', 'templates', 'Gmail.json')
+      path.join(resourcePath, 'keymaps', 'templates', 'Gmail.json'),
+      { replaceExistingCommands: true }
     );
 
     expect(manager.getBindingsForCommand('core:previous-item')).toEqual(['up', 'k']);

@@ -307,7 +307,13 @@ export default class ApplicationMenu {
   // Returns a String containing the keystroke in a format that can be interpreted
   //   by Electron to provide nice icons where available.
   acceleratorForCommand(command: string, keystrokesByCommand: Record<string, string[]>) {
-    let firstKeystroke = keystrokesByCommand[command] && keystrokesByCommand[command][0];
+    // A keymap may spell out `command` to give a binding to macOS only (Outlook's
+    // quit is command+q there and alt+f4 elsewhere). Electron has no Command key
+    // outside macOS, so such a keystroke can't be this platform's accelerator.
+    const keystrokes = (keystrokesByCommand[command] || []).filter(
+      (keystroke) => process.platform === 'darwin' || !/\b(command|meta)\b/.test(keystroke)
+    );
+    let firstKeystroke = keystrokes[0];
     if (!firstKeystroke) {
       return null;
     }

@@ -7,6 +7,10 @@ import { Emitter, Disposable } from 'event-kit';
 let suspended = false;
 const templateConfigKey = 'core.keymapTemplate';
 
+interface KeymapLoadOptions {
+  replaceExistingCommands?: boolean;
+}
+
 // Mousetrap understands mod, but keeps mod+u and ctrl+u as separate callbacks.
 // Our stopCallback skips the second after the first stops propagation, so merge
 // platform aliases before registering callbacks and collecting their commands.
@@ -78,10 +82,16 @@ class KeymapFile {
   _disposable = null;
   _path: string;
   _manager: KeymapManager;
+  _replaceExistingCommands: boolean;
 
-  constructor(manager: KeymapManager, filePath: string) {
+  constructor(
+    manager: KeymapManager,
+    filePath: string,
+    { replaceExistingCommands = false }: KeymapLoadOptions = {}
+  ) {
     this._manager = manager;
     this._path = filePath;
+    this._replaceExistingCommands = replaceExistingCommands;
   }
 
   load = () => {
@@ -122,6 +132,10 @@ class KeymapFile {
 
   bindings() {
     return this._bindings;
+  }
+
+  replacesExistingCommands() {
+    return this._replaceExistingCommands;
   }
 }
 
@@ -225,12 +239,14 @@ export default class KeymapManager {
         'templates',
         `${templateFile}.json`
       );
-      this._removeTemplate = this.loadKeymap(templateKeymapPath);
+      this._removeTemplate = this.loadKeymap(templateKeymapPath, {
+        replaceExistingCommands: true,
+      });
     }
   };
 
-  loadKeymap(filePath: string) {
-    const file = new KeymapFile(this, filePath);
+  loadKeymap(filePath: string, { replaceExistingCommands = false }: KeymapLoadOptions = {}) {
+    const file = new KeymapFile(this, filePath, { replaceExistingCommands });
     this._files.push(file);
     file.load();
 
@@ -264,10 +280,12 @@ export default class KeymapManager {
     });
   }
 
-  // Keymap files layer additively: a template (Gmail, Outlook, ...) adds its
-  // keystrokes alongside the base bindings rather than replacing them, so
-  // base.json's up/down, enter, escape and mod+z keep working under every
-  // template. Only the user's keymap.json overrides a command's bindings.
+  // The base keymaps layer additively. A template (Gmail, Outlook, ...) and the
+  // user's keymap.json instead replace the bindings of each command they define,
+  // which is what lets Outlook free ctrl+q from application:quit on Windows. The
+  // cost is that a template must restate every base keystroke it wants to keep
+  // (up/down alongside j/k, enter alongside o, ...); keymap-templates-spec fails
+  // if one is dropped without being listed there as intentional.
   keymapCacheInvalidated() {
     this._bindingsCache = {};
 
@@ -275,7 +293,13 @@ export default class KeymapManager {
       const fileBindings = file.bindings();
       for (const command of Object.keys(fileBindings)) {
         const keystrokesArray = fileBindings[command];
-        this._bindingsCache[command] = (this._bindingsCache[command] || []).concat(keystrokesArray);
+        if (file.replacesExistingCommands()) {
+          this._bindingsCache[command] = keystrokesArray.slice();
+        } else {
+          this._bindingsCache[command] = (this._bindingsCache[command] || []).concat(
+            keystrokesArray
+          );
+        }
       }
     }
     if (this.userKeymap) {
