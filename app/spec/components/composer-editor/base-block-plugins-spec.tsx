@@ -7,8 +7,7 @@ const div = (t: string) => block('div', [text(t)]);
 const listItem = (...nodes: any[]) => block('list_item', nodes);
 const list = (...nodes: any[]) => block('ul_list', nodes);
 
-// Built without plugins on purpose: the schema would repair an orphaned `list_item`, and the
-// crash we're guarding against only happens in an editor that is no longer normalizing.
+// No plugins: the schema would repair an orphaned `list_item` otherwise.
 function editorWith(nodes: any[]) {
   return new Editor({
     value: Value.fromJSON({
@@ -40,9 +39,7 @@ function pressKey(editor: Editor, key: string, textToFocus: string, offset = 0) 
 }
 
 describe('EditListPlugin', () => {
-  // MAILSPRING-CLIENT-EV: email HTML can contain an <li> with no <ul>/<ol> around it. Slate's
-  // `unwrapNodeByPath` lifts such a node's one-element path to the empty root path, which
-  // `getDescendant` resolves to null, and `splitNodeByPath` then reads `.type` off null.
+  // MAILSPRING-CLIENT-EV: an <li> with no <ul>/<ol> around it, as email HTML often produces.
   ['Enter', 'Backspace', 'Tab'].forEach((key) => {
     it(`ignores ${key} inside a list_item that is not in a list`, () => {
       const editor = editorWith([div('before'), listItem(div('')), div('after')]);
@@ -79,10 +76,8 @@ describe('EditListPlugin', () => {
 });
 
 describe('Slate withoutNormalizing patch', () => {
-  // Required here, not at module scope, since installing it mutates `Editor.prototype` for
-  // every other spec in the run and the `EditListPlugin` specs above don't need it — they
-  // build their editors with `plugins: []` so nothing ever normalizes. A `describe` body runs
-  // once, synchronously, before any of its `it`s, so this installs the patch exactly once.
+  // Required here rather than at module scope: it mutates `Editor.prototype` and the specs
+  // above don't need it. A `describe` body runs once, so this installs it exactly once.
   require('../../../src/components/composer-editor/patch-slate-normalizing');
 
   it('restores normalization when the callback throws', () => {
