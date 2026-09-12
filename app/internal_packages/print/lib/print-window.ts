@@ -98,7 +98,11 @@ export default class PrintWindow {
 
       try {
         const data = await this.browserWin.webContents.printToPDF({
-          margins: { marginType: 'none' },
+          // Electron 21 replaced the old top-level `marginsType` enum with explicit
+          // per-side inches (PrintToPDFMargins). `marginType: 'none'` was neither: an
+          // unrecognised key, silently ignored, so these PDFs have been printing with the
+          // default 1cm margins rather than none.
+          margins: { top: 0, bottom: 0, left: 0, right: 0 },
           pageSize: 'Letter',
           printBackground: true,
           landscape: false,

@@ -8,6 +8,13 @@ const isEmptyishTextContent = (el) => {
   return trimmed === '' || /^-+$/.test(trimmed);
 };
 
+// Email bodies reach us as body fragments, but a fragment whose first element
+// is <style>, <title> or <meta> is routed into <head> by the tree builder — and
+// fragments are serialized back out of <body> alone. Marketing mail commonly
+// leads with its whole stylesheet, so parsing has to be pinned to "in body"
+// mode or the sheet is silently dropped between sanitization and display.
+const isWholeDocument = (html: string) => /<\s?head\s?>/i.test(html) || /<\s?body[\s>]/i.test(html);
+
 const looksLikeTrackingPixel = (img) => {
   // we want to avoid hiding quoted text if the user has added an image beneath it, but only
   // if that image is more than 1px in size...
@@ -177,7 +184,7 @@ class QuotedHTMLTransformer {
     const domParser = new DOMParser();
     let doc;
     try {
-      doc = domParser.parseFromString(text, 'text/html');
+      doc = domParser.parseFromString(isWholeDocument(text) ? text : `<body>${text}`, 'text/html');
     } catch (error) {
       const errText = `HTML Parser Error: ${error.toString()}`;
       doc = domParser.parseFromString(errText, 'text/html');
@@ -193,7 +200,7 @@ class QuotedHTMLTransformer {
     if (!doc.body) {
       doc = this._parseHTML('');
     }
-    if (/<\s?head\s?>/i.test(initialHTML) || /<\s?body[\s>]/i.test(initialHTML)) {
+    if (isWholeDocument(initialHTML)) {
       return doc.children[0].innerHTML;
     }
     return doc.body.innerHTML;

@@ -18,12 +18,7 @@ interface MonthViewEventProps {
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
-  onDragStart?: (
-    event: EventOccurrence,
-    mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
-  ) => void;
+  onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
 }
 
 interface MonthViewEventState {
@@ -137,13 +132,9 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     // Note: Don't call stopPropagation() - the event needs to bubble to
     // CalendarEventContainer so it can track _mouseIsDown state
 
-    // For month view events, use the event's start time as the mouse time
-    // since day-level snapping doesn't require precise time positioning
-    const mouseTime = occurrenceStartUnix(this.props.event);
-
     // Notify parent of drag start
     if (this.props.onDragStart) {
-      this.props.onDragStart(this.props.event, e, this.state.hitZone, mouseTime);
+      this.props.onDragStart(this.props.event, e, this.state.hitZone);
     }
   };
 

@@ -2,6 +2,8 @@ import path from 'path';
 import fs from 'fs';
 import pkg from './utils/package';
 import { getFirstExistingPath, XDG_CONFIG_PATHS, XDG_DATA_PATHS } from './utils/xdg-paths';
+import * as portal from 'xdg-portal';
+import { localized } from './intl';
 
 class SystemStartServiceBase {
   checkAvailability(): Promise<boolean> {
@@ -105,7 +107,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
   }
 }
 
-class SystemStartServiceLinux extends SystemStartServiceBase {
+class SystemStartServiceLinuxDesktopFile extends SystemStartServiceBase {
   async checkAvailability(): Promise<boolean> {
     return this._launcherPath() !== null;
   }
@@ -154,12 +156,63 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
   }
 }
 
+class SystemStartServiceLinuxBackgroundPortal extends SystemStartServiceBase {
+  private async doPortalRequest(
+    options: portal.Background.RequestBackgroundOptions
+  ): Promise<void> {
+    const client = await portal.client();
+    const response = await client.desktop.Background.RequestBackground('', options);
+    client.close();
+    if (response.response !== 0 || !response.results.background)
+      throw new Error(`Portal denied setting autostart: ${JSON.stringify(response)}`);
+  }
+
+  async checkAvailability(): Promise<boolean> {
+    // We assume that this backend does only get used when the portal is available
+    return true;
+  }
+
+  async doesLaunchOnSystemStart(): Promise<boolean> {
+    // Currently no better way to check this
+    return process.argv.includes('--background');
+  }
+
+  configureToLaunchOnSystemStart() {
+    this.doPortalRequest({
+      autostart: true,
+      commandline: ['mailspring', '--background', '%U'],
+      reason: localized(
+        'Mailspring needs to run in the background to check for new mail and show notifications.'
+      ),
+    }).catch((error) => {
+      console.error('Error configuring to launch on system start:', error);
+    });
+  }
+
+  dontLaunchOnSystemStart() {
+    this.doPortalRequest({
+      autostart: false,
+    }).catch((error) => {
+      console.error('Error configuring to not launch on system start:', error);
+    });
+  }
+}
+
+function usePortal(): boolean {
+  return (
+    process.env.FLATPAK_ID !== undefined ||
+    process.env.MAILSPRING_FORCE_BACKGROUND_PORTAL === 'true'
+  );
+}
+
 /* eslint import/no-mutable-exports: 0*/
 let SystemStartService;
 if (process.platform === 'darwin') {
   SystemStartService = SystemStartServiceDarwin;
 } else if (process.platform === 'linux') {
-  SystemStartService = SystemStartServiceLinux;
+  SystemStartService = usePortal()
+    ? SystemStartServiceLinuxBackgroundPortal
+    : SystemStartServiceLinuxDesktopFile;
 } else if (process.platform === 'win32') {
   SystemStartService = SystemStartServiceWin32;
 } else {

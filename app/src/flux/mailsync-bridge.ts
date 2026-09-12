@@ -93,12 +93,9 @@ export default class MailsyncBridge {
       return;
     }
 
-    // Temporary: allow calendar sync to be manually invoked
-    ipcRenderer.on('run-calendar-sync', () => {
-      for (const client of Object.values(this._clients)) {
-        client.sendMessage({ type: 'sync-calendar' });
-      }
-    });
+    ipcRenderer.on('run-calendar-sync', (_event, accountId?: string) =>
+      this.sendSyncCalendarNow(accountId)
+    );
 
     Actions.queueTask.listen(this._onQueueTask, this);
     Actions.queueTasks.listen(this._onQueueTasks, this);
@@ -200,6 +197,23 @@ export default class MailsyncBridge {
     console.warn('Sending `wake` to all mailsync workers...');
     for (const client of Object.values(this._clients)) {
       client.sendMessage({ type: 'wake-workers' });
+    }
+  }
+
+  // Only the main window owns sync clients; other windows route through the
+  // main process, which forwards `run-calendar-sync` to the main window.
+  sendSyncCalendarNow(accountId?: string) {
+    if (!AppEnv.isMainWindow()) {
+      ipcRenderer.send('command', 'application:sync-calendar', accountId);
+      return;
+    }
+
+    const clients = accountId
+      ? [this._clients[accountId]].filter(Boolean)
+      : Object.values(this._clients);
+
+    for (const client of clients) {
+      client.sendMessage({ type: 'sync-calendar' });
     }
   }
 

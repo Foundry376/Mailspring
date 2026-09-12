@@ -2,7 +2,7 @@
   "name": "mailspring",
   "productName": "Mailspring",
   "desktopName": "Mailspring.desktop",
-  "version": "1.23.0",
+  "version": "1.24.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/foundry376/mailspring.git"
@@ -71,6 +71,7 @@
     "underscore.string": "^3.3.5",
     "vcf": "^2.0.5",
     "windows-iana": "^4.2.1",
+    "xdg-portal": "^1.2.0",
     "xml2js": "^0.6.2"
   },
   "overrides": {

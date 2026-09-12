@@ -100,17 +100,22 @@ export class EventRSVPTask extends Task {
   async onSuccess() {
     if (this.messageId && this.icsRSVPStatus) {
       const msg = await DatabaseStore.find<Message>(Message, this.messageId);
-      if (!msg) return;
-      Actions.queueTask(
-        SyncbackMetadataTask.forSaving({
-          model: msg,
-          pluginId: 'event-rsvp',
-          value: {
-            status: this.icsRSVPStatus,
-            time: Date.now(),
-          },
-        })
-      );
+      if (msg) {
+        Actions.queueTask(
+          SyncbackMetadataTask.forSaving({
+            model: msg,
+            pluginId: 'event-rsvp',
+            value: {
+              status: this.icsRSVPStatus,
+              time: Date.now(),
+            },
+          })
+        );
+      }
     }
+
+    // Pull the provider's latest calendar state after any RSVP response. Calendar
+    // views observe the local Event table and update as soon as this sync lands.
+    AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
   }
 }

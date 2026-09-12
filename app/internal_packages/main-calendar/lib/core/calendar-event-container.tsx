@@ -1,9 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { CalendarDateUtils } from 'mailspring-exports';
 
 import { EventOccurrence } from './calendar-data-source';
 import { CalendarContainerType } from './calendar-drag-types';
 import { allDayColumnStartUnix } from './calendar-drag-utils';
+import { DAY_DUR } from './week-view-helpers';
 
 export interface CalendarEventArgs {
   /** The underlying DOM mouse event */
@@ -168,10 +170,13 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
             : event.clientX - rect.left;
         width = rect.width;
 
-        // Calculate time as percentage through the day
+        // The grid is 24 wall-clock hours, so a fraction of it is a time of day — not a share of
+        // the day's elapsed seconds, which lands up to an hour off the gridline on a DST day.
         const percentDay = Math.max(0, Math.min(1, y / height));
-        const timeOffset = (endTime - startTime) * percentDay;
-        time = startTime + timeOffset;
+        time = CalendarDateUtils.secondsIntoDayUnix(
+          CalendarDateUtils.calendarDateFromUnix(startTime),
+          Math.round(percentDay * DAY_DUR)
+        );
         break;
       }
 

@@ -7,15 +7,19 @@ import {
   calendarDaysBetween,
   formatCalendarDate,
   parseCalendarDate,
+  secondsIntoDay,
+  secondsIntoDayUnix,
+  firstOccurrenceUnix,
+  sameOffsetOccurrenceUnix,
 } from '../src/calendar-date';
 
 /** Fixtures read as dates, not epoch-day integers — a failure says 2026-06-21, not 20627 */
 const d = (iso: string): CalendarDate => parseCalendarDate(iso);
 
 /** A local instant on the given date, at the given time of day */
-const at = (iso: string, hour = 0, minute = 0): number => {
+const at = (iso: string, hour = 0, minute = 0, second = 0): number => {
   const [y, m, day] = iso.split('-').map(Number);
-  return new Date(y, m - 1, day, hour, minute).getTime() / 1000;
+  return new Date(y, m - 1, day, hour, minute, second).getTime() / 1000;
 };
 
 // Literals, not round-trips: every other assertion here compares the module against itself,
@@ -147,6 +151,103 @@ describe('nextDayStartUnix', function () {
       expect(nextDayStartUnix(d(iso))).toBe(dayStartUnix(next));
       expect(nextDayStartUnix(d(iso)) > dayStartUnix(d(iso))).toBe(true);
     });
+  });
+});
+
+// Host-zone reads, so these discriminate only on the pinned Chicago runner. UTC literals are
+// used where a fixture built through the Date constructor would resolve a gap or a repeat the
+// same way the code does.
+const ORDINARY_DAY = '2026-06-21';
+const FALL_BACK_DAY = '2025-11-02'; // 25 hours in Chicago
+const SPRING_FORWARD_DAY = '2026-03-08'; // 23 hours in Chicago
+const SAMPLE_DAYS = [ORDINARY_DAY, FALL_BACK_DAY, SPRING_FORWARD_DAY];
+
+describe('secondsIntoDay', function () {
+  it('reads the wall clock, not elapsed time, on a transition day', function () {
+    expect(secondsIntoDay(at(ORDINARY_DAY, 10, 30))).toBe(37800);
+    expect(secondsIntoDay(at(FALL_BACK_DAY, 10, 30))).toBe(37800); // 41400s after midnight
+    expect(secondsIntoDay(at(SPRING_FORWARD_DAY, 10, 30))).toBe(37800); // 34200s after midnight
+  });
+
+  it('is 0 at midnight and 86399 at the last second', function () {
+    expect(secondsIntoDay(at(ORDINARY_DAY))).toBe(0);
+    expect(secondsIntoDay(at(ORDINARY_DAY, 23, 59, 59))).toBe(86399);
+  });
+});
+
+describe('secondsIntoDayUnix', function () {
+  it('inverts secondsIntoDay on ordinary and transition days alike', function () {
+    SAMPLE_DAYS.forEach((iso) => {
+      expect(secondsIntoDayUnix(d(iso), 37800)).toBe(at(iso, 10, 30));
+      expect(secondsIntoDay(secondsIntoDayUnix(d(iso), 37800))).toBe(37800);
+    });
+  });
+
+  it('resolves a time inside the spring-forward gap forward', function () {
+    // 02:30 does not exist on 2026-03-08 in Chicago; the clock goes 01:59 -> 03:00.
+    expect(secondsIntoDayUnix(d(SPRING_FORWARD_DAY), 9000)).toBe(
+      Date.UTC(2026, 2, 8, 8, 30) / 1000
+    );
+  });
+
+  it('picks the first occurrence of a fall-back repeated hour', function () {
+    // 01:30 happens twice on 2025-11-02 in Chicago: 06:30Z (CDT) and 07:30Z (CST).
+    expect(secondsIntoDayUnix(d(FALL_BACK_DAY), 5400)).toBe(Date.UTC(2025, 10, 2, 6, 30) / 1000);
+  });
+
+  it('lands 86400 on the next day-start, whatever the day length', function () {
+    SAMPLE_DAYS.forEach((iso) => {
+      expect(secondsIntoDayUnix(d(iso), 86400)).toBe(nextDayStartUnix(d(iso)));
+    });
+  });
+});
+
+describe('firstOccurrenceUnix', function () {
+  const cdt130 = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+  const cst130 = Date.UTC(2025, 10, 2, 7, 30) / 1000;
+
+  it('is the instant itself outside a repeated hour', function () {
+    [
+      at(ORDINARY_DAY, 10, 30),
+      at(FALL_BACK_DAY, 10, 30),
+      at(SPRING_FORWARD_DAY, 3, 30),
+      cdt130,
+    ].forEach((unix) => expect(firstOccurrenceUnix(unix)).toBe(unix));
+  });
+
+  it('is an hour earlier inside the second occurrence of a repeated hour', function () {
+    expect(firstOccurrenceUnix(cst130)).toBe(cdt130);
+  });
+});
+
+describe('sameOffsetOccurrenceUnix', function () {
+  const cdt130 = Date.UTC(2025, 10, 2, 6, 30) / 1000;
+  const cst130 = Date.UTC(2025, 10, 2, 7, 30) / 1000;
+  const cst330 = Date.UTC(2025, 10, 2, 9, 30) / 1000;
+
+  it("resolves a repeated reading to the reference's side of the transition", function () {
+    expect(sameOffsetOccurrenceUnix(cdt130, cst130)).toBe(cst130);
+    expect(sameOffsetOccurrenceUnix(cst130, cdt130)).toBe(cdt130);
+    expect(sameOffsetOccurrenceUnix(cdt130, cst330)).toBe(cst130); // 3:30 CST is on the CST side
+  });
+
+  it('is decided by side, not distance', function () {
+    // 1:00 CST as reference, 1:30 CDT as instant: the CDT and CST 1:30s are equally far, and a
+    // nearest-instant rule would keep CDT — 30 real minutes EARLIER than the gesture.
+    const cst100 = Date.UTC(2025, 10, 2, 7, 0) / 1000;
+    expect(sameOffsetOccurrenceUnix(cdt130, cst100)).toBe(cst130);
+    expect(sameOffsetOccurrenceUnix(cst130, cst100 - 2 * 3600)).toBe(cdt130); // 11:00 PM CDT reference
+  });
+
+  it('keeps an instant whose reading happens once', function () {
+    const ten = at(FALL_BACK_DAY, 10, 30);
+    expect(sameOffsetOccurrenceUnix(ten, ten - 5 * 3600)).toBe(ten);
+    const gapEdge = at(SPRING_FORWARD_DAY, 3, 30); // 2:30 does not exist; 3:30 happens once
+    expect(sameOffsetOccurrenceUnix(gapEdge, gapEdge - 3600)).toBe(gapEdge);
+  });
+
+  it('keeps the instant when it is already on the reference side', function () {
+    expect(sameOffsetOccurrenceUnix(cdt130, cdt130 - 600)).toBe(cdt130);
   });
 });
 

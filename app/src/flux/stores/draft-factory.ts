@@ -271,6 +271,29 @@ class DraftFactory {
     });
   }
 
+  async createDraftForSendAgain(message: Message) {
+    // Reuse the same attachment preparation path as forwarding. This ensures files are
+    // available locally when the duplicated draft is eventually sent.
+    message.files.forEach((file) => Actions.fetchFile(file));
+
+    const draft = await this.createDraft({
+      to: [...message.to],
+      cc: [...message.cc],
+      bcc: [...message.bcc],
+      from: [...message.from],
+      subject: message.subject,
+      files: [...message.files],
+      accountId: message.accountId,
+    });
+
+    // Assign these after createDraft so its new-message formatting defaults do not alter
+    // the original content. This is intentionally a new message with no reply / forward
+    // metadata or thread association.
+    draft.body = message.body || (message.plaintext ? '' : '<br/>');
+    draft.plaintext = message.plaintext;
+    return draft;
+  }
+
   async createDraftForResurfacing(thread: Thread, threadMessageId: string, body: string) {
     const account = AccountStore.accountForId(thread.accountId);
     let replyToHeaderMessageId = threadMessageId;

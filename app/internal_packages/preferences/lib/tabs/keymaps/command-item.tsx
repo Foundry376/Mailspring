@@ -177,7 +177,11 @@ export default class CommandKeybinding extends React.Component<
 
     let value: React.ReactChild | React.ReactChild[] = 'None';
     if (bindings.length > 0) {
-      value = [...new Set(bindings)].map(this._renderKeystrokes);
+      // Templates may list mod+a and ctrl+a for one command; they are the same key
+      // on Windows and Linux, so dedupe by what the user would actually press.
+      const mod = process.platform === 'darwin' ? 'command' : 'ctrl';
+      const byKey = new Map(bindings.map((b) => [b.replace(/\bmod\b/g, mod), b]));
+      value = [...byKey.values()].map(this._renderKeystrokes);
     }
 
     let classnames = 'shortcut';

@@ -10,16 +10,16 @@
   "navigation:go-to-tasks": "command+ctrl+7",
   "navigation:go-to-label": "command+ctrl+8",
 
-  "multiselect-list:select-all": "command+a",
+  "multiselect-list:select-all": "mod+a",
 
   "core:find-in-thread": "mod+f",
   "core:find-in-thread-next": "mod+g",
   "core:find-in-thread-previous": "mod+shift+g",
 
-  "core:previous-item": "command+[",
-  "core:select-up": "shift+command+[",
-  "core:next-item": "command+]",
-  "core:select-down": "shift+command+]",
+  "core:previous-item": ["up", "command+["],
+  "core:select-up": ["shift+up", "shift+command+["],
+  "core:next-item": ["down", "command+]"],
+  "core:select-down": ["shift+down", "shift+command+]"],
 
   "core:reply": ["mod+r", "mod+alt+r"],
   "core:reply-all": ["mod+shift+r", "mod+alt+shift+r"],
@@ -29,7 +29,7 @@
   "core:star-item": "mod+shift+l",
   "core:focus-search": "mod+alt+f",
   "core:archive-item": "command+ctrl+a",
-  "core:snooze-item": "mod+h",
+  "core:snooze-item": ["z", "mod+h"],
 
   "composer:send-message": "mod+shift+d"
 }

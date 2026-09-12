@@ -1,5 +1,88 @@
 # Mailspring Changelog
 
+## 1.24.0 (9/12/2026)
+
+Note: The Flatpak version of Mailspring now uses Portal for secret storage, and you may be prompted to re-authenticate accounts after upgrading.
+
+Features:
+
+- Added support for dragging threads into the composer to attach them as .eml files. (#2800)
+- Added subject line support to email templates. (#2794)
+- In the calendar, dragging an event now converts between all-day and timed. (#2819, #2812) Thanks @manilabui!
+- Added an MCP `get_attachment` tool so local agents can view mail attachments. (#2807) Thanks @ahmedwalid05!
+- On Windows, Mailspring now recovers from GPU-related renderer crashes that happen before the window loads by relaunching with hardware acceleration disabled. Thanks @ejbiker93ss!
+
+Bug Fixes:
+
+- Fixed a crash in the thread list context menu for threads with no participants. (#2839)
+- Fixed a composer crash when removing a link mark with no active mark present. (#2802)
+- Fixed a composer crash when applying a signature to an empty document. (#2804)
+- Fixed a composer crash when backspacing near an unpaired UTF-16 surrogate. (#2808)
+- Fixed a composer crash from an unset Slate selection point. (#2787)
+- Fixed a crash when the custom-fonts plugin activated during boot. (#2785)
+- Fixed a `ChangeLabelsTask` assertion failure when removing search results. (#2816)
+- Fixed a `TaskQueue` crash when queries loaded out of order. (#2786)
+- Fixed an uncaught "Unknown button clicked" crash in the config load-error dialog. (#2798)
+- Fixed all-day events losing or gaining a day across edit, drag, and recurring paths, including near DST transitions. (#2799, #2805, #2806, #2810) Thanks @manilabui!
+- Fixed resizing recurring events when applying the change to all events. (#2814) Thanks @manilabui!
+- Fixed calendar deletion and blocked edits on read-only calendars and past events. (#2797) Thanks @manilabui!
+- Fixed pasted text colors and line spacing on Windows. (#2796) Thanks @Mylosis!
+- Fixed scrollbars appearing in the inbox-zero animation. (#2821) Thanks @m-salman-afzal!
+- Fixed synchronization with NetEase IMAP servers. (#121) Thanks @aixia715!
+- Mailspring now falls back to legacy TLS settings when the handshake is rejected, and surfaces a suggestion when it does. (#119)
+- Fixed crash safety, XML escaping, and log hygiene issues in the sync engine. (#122) Thanks @brhellman!
+- On Linux, EROFS, EIO, ENOSPC, and EBADF are now swallowed alongside EPIPE in the stdout/stderr error handler. (#2789)
+- Plain text messages are no longer inverted in dark mode, causing black-on-dark-gray text.
+- Messages with stylesheets in the HTML `<head>` region now render with the styles intact.
+- Fixed recurring meetings whose series started years ago not appearing in the calendar. (#2845) Thanks @brhellman!
+- Fixed timed calendar events at midnight and across DST day boundaries rendering in the wrong day column or not at all. (#2847) Thanks @manilabui!
+- Fixed timed calendar events sitting off their gridlines on DST days. (#2852) Thanks @manilabui!
+- Fixed a timed event losing its time of day when its edge was dragged in month view. (#2858) Thanks @brhellman!
+- Fixed the calendar view jumping when an event was selected for the first time. (#2854) Thanks @brhellman!
+- Fixed the day/week calendar grid not scrolling to the end of the day in short windows. (#2851) Thanks @manilabui!
+- Fixed every calendar invitee being underlined as a malformed address. (#2844) Thanks @brhellman!
+- Fixed "Refresh Calendars" not actually syncing calendars. (#2853) Thanks @manilabui!
+- Fixed a TypeError when creating or editing calendar events with an organizer or attendees. Thanks @ejbiker93ss!
+- The calendar now syncs immediately after you RSVP to an invitation. Thanks @ejbiker93ss!
+- Fixed the mini month view's today marker not advancing past midnight. Thanks @ejbiker93ss!
+- Fixed Outlook-style read/unread keyboard shortcuts on Windows. (#2849) Thanks @ejbiker93ss!
+- Fixed "Reset Theme" after a theme compile error not recovering when the failing theme was set as the light or dark theme. Thanks @ejbiker93ss!
+- Fixed contact email addresses with surrounding whitespace failing validation or being sent as malformed recipients. Thanks @ejbiker93ss!
+- Mailsync startup failures now report the actual reason instead of "an unknown error has occurred". (#2827) Thanks @brhellman!
+- On macOS, Quick Look thumbnail generation now times out so hung `qlmanage` processes can't accumulate. (#2862) Thanks @nitay!
+- Fixed an unhandled promise rejection when opening identity links while signed out. (#2861)
+
+Improvements:
+
+- Selected calendar events now stay selected and scroll into view when switching views. (#2815) Thanks @manilabui!
+- You can now drag across past events in the calendar to create a new event. (#2809) Thanks @manilabui!
+- Improved `Contact.fromString` parsing and the `Account.meUsingAlias` fallback. (#2793)
+- HTML signatures can now be pasted into the "Raw Signature" box.
+- On Linux, autostart now uses XDG Desktop Portals when running inside Flatpak. (#2838) Thanks @LinusDierheimer!
+- The key manager now uses the async `safeStorage` API. (#2823) Thanks @LinusDierheimer!
+- Removed the legacy dark-theme email inversion; the "Match app theme" email render mode is gone and email bodies now default to light mode. (#2850) Thanks @ejbiker93ss!
+
+Localization:
+
+- Added Swedish desktop and integration labels. (#2837) Thanks @yeager!
+- Updated the Czech translations. (#2855) Thanks @tomo90!
+- Completed the missing Traditional Chinese strings. (#2790) Thanks @nrps9909!
+- Updated the Hebrew translations and added Hebrew to the list of human-verified languages. (#2801) Thanks @omeritzics!
+- Updated translations of new strings and made minor corrections. (#2784) Thanks @Impostor0729!
+
+Developer:
+
+- Updated Electron from 41.7.2 to 43.7.0. (#2818) Thanks @wrench-exile-legacy!
+- Upgraded `tar` to 7.5.19 to address CVE-2026-59873. (#2811) Thanks @anupamme!
+- Switched `app/package.json` from `resolutions` to `overrides`. (#2822) Thanks @LinusDierheimer!
+- Fixed the three type errors that were keeping CI red. (#2829) Thanks @brhellman!
+- `reportError()` now captures a real stack for stackless inputs. (#2828)
+- Errors thrown by community plugins are no longer reported to Sentry. (#2783)
+- Uncaught `shell.openExternal` rejections now capture the caller stack. (#2788)
+- `ContextifyScript` compile errors with no first-party frames are no longer reported to Sentry. (#2859)
+- On Linux, newer versions of sqlite3 are now built with clang-15.
+- Added a Claude Code hook that lints edited TypeScript files.
+
 ## 1.23.0 (7/19/2026)
 
 Features:
@@ -267,7 +350,6 @@ Bug Fixes:
 
 - Added error handling for `shell.openExternal` calls to prevent crashes on unsupported URLs. (#2679)
 
-
 Developer:
 
 - Fixed ability to declare platform-specific options via config-schema. (#2681)
@@ -387,7 +469,6 @@ Developer:
 Features:
 
 - Grammar check is now available in the composer! (#2612)
-
   - This feature relies on a deployment of LanguageTool at id.getmailspring.com - when you use Grammar Check, small snippets of your draft are sent to this server, but the requests are not logged and no message data is stored.
   - This feature is disabled by default. To turn it on, click the new icon in the composer toolbar.
 
@@ -1544,7 +1625,6 @@ Fixes:
 Features:
 
 - Mailspring now supports localization! The app detects your system locale and all text, menus, buttons, etc. in the app appear in your language. Mailspring's core strings has been manually localized in 38 languages and the rest (mostly error messages and text describing features) have been automatically translated.
-
   - We'd love your help improving these localizations! A new "Developer > Toggle Localizer Tools" menu option in Mailspring allows you to submit better translations right within the app. You can also edit the translation files directly and submit a pull request. See the new [localizer guide here](https://github.com/Foundry376/Mailspring/blob/master/LOCALIZATION.md).
 
   - If you use a RTL language, Mailspring's entire UI now appears right-justified, including the sidebar, preference panels, scrollbars, and more. If you use Mailspring in Arabic or Hebrew and notice issues in the right-to-left presentation, please file issues or submit pull requests.
@@ -1629,7 +1709,6 @@ Fixes:
 ### 1.3.0 (7/14/2018)
 
 - Mailspring 1.3 brings an overhauled search bar with powerful autocomplete that makes it easier to create advanced search queries.
-
   - In addition to searching for freeform text and using the Gmail query language (`subject:`, `in:`, `is:`, `from:`, `to:`), Mailspring now allows you to search by date using natural language terms like `since: "last week"` and `before: "february 5th"`. Try combining them with other terms to search a specific time window!
 
   - You can now right-click a thread to search for other threads from that sender or with that subject.
@@ -1637,7 +1716,6 @@ Fixes:
   - You can now focus the search bar and conduct searches entirely with keyboard shortcuts (use Escape to exit the search bar!) #960
 
 - Mailspring now uses Electron 2.0.2, which delivers some [great bug fixes and new features](https://github.com/electron/electron/releases/tag/v2.0.0):
-
   - Chrome 61, Node 8.9.3, V8 6.1.534.41 with improved performance and lower memory footprints
   - Better GTK+ theme support, including support for menu styling
   - Better support for Linux desktop notifications
@@ -1957,7 +2035,6 @@ Fixes:
 - The `View` links in the contact sidebar now open the browser correctly.
 
 - Electron has been bumped to 1.7.10, which fixes:
-
   - Subpixel font rendering with freetype on Linux.
 
   - Rendering issues with Nvidia GPU on High Sierra

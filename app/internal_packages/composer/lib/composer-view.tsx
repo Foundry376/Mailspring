@@ -7,6 +7,8 @@ import {
   DraftStore,
   DraftEditingSession,
   MessageWithEditorState,
+  DragDropTypes,
+  EmlUtils,
   File,
 } from 'mailspring-exports';
 import { webUtils } from 'electron';
@@ -41,6 +43,7 @@ interface ComposerViewState {
   quotedTextHidden: boolean;
   quotedTextPresent: boolean;
   isDropping: boolean;
+  attachingThreadCount: number;
 }
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
@@ -78,6 +81,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
     this.state = {
       isDropping: false,
+      attachingThreadCount: 0,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
       quotedTextHidden: hideQuotedTextByDefault(draft),
     };
@@ -202,7 +206,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
               </>
             )}
 
-            <AttachmentsArea draft={draft} />
+            <AttachmentsArea draft={draft} attaching={this.state.attachingThreadCount > 0} />
           </div>
           <div className="composer-footer-region">
             <InjectedComponentSet
@@ -278,7 +282,11 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     const hasNativeFile = event.dataTransfer.types.includes('Files');
     const hasNonNativeFilePath = nonNativeFilePath !== null;
 
-    return hasNativeFile || hasNonNativeFilePath;
+    return hasNativeFile || hasNonNativeFilePath || this._hasThreadsForDrop(event);
+  };
+
+  _hasThreadsForDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    return event.dataTransfer.types.includes(DragDropTypes.ThreadsDragType);
   };
 
   _nonNativeFilePathForDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -312,6 +320,74 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     if (uri) {
       this._onFileReceived(uri);
       event.preventDefault();
+    }
+
+    // dataTransfer is only valid for the duration of this handler, so read the
+    // payload now and hand the ids off to an async worker.
+    if (this._hasThreadsForDrop(event)) {
+      this._onThreadsReceived(event.dataTransfer.getData(DragDropTypes.ThreadsDragType));
+      event.preventDefault();
+    }
+  };
+
+  _onThreadsReceived = async (json: string) => {
+    let threadIds: string[] = [];
+    try {
+      threadIds = JSON.parse(json).threadIds || [];
+    } catch (err) {
+      return;
+    }
+    if (!threadIds.length) {
+      return;
+    }
+
+    // Fetching the raw message from the sync engine is a remote round trip, so
+    // show a placeholder in the attachments area until the files land.
+    const dropCount = threadIds.length;
+    this.setState((state) => ({ attachingThreadCount: state.attachingThreadCount + dropCount }));
+
+    let staged: Array<{ filePath: string }> = [];
+    let unavailableThreadIds: string[] = [];
+    try {
+      ({ staged, unavailableThreadIds } = await EmlUtils.stageThreadsAsEml(threadIds));
+    } catch (err) {
+      AppEnv.reportError(err);
+    } finally {
+      if (this._mounted) {
+        this.setState((state) => ({
+          attachingThreadCount: state.attachingThreadCount - dropCount,
+        }));
+      }
+    }
+
+    if (!this._mounted) {
+      return;
+    }
+    for (const { filePath } of staged) {
+      Actions.addAttachment({
+        filePath,
+        headerMessageId: this.props.draft.headerMessageId,
+        // The attachment store copies the file into its own directory before
+        // this fires, so the staged copy is free to go.
+        onCreated: () => EmlUtils.discardStagedEml(filePath),
+      });
+    }
+
+    // A thread with nothing exportable in it and a fetch that failed are
+    // different problems, and only the second one is worth retrying.
+    const problems = [];
+    if (unavailableThreadIds.length) {
+      problems.push(
+        localized('One or more of the conversations have no message that can be attached.')
+      );
+    }
+    if (staged.length < threadIds.length - unavailableThreadIds.length) {
+      problems.push(
+        localized('One or more of the original messages could not be downloaded. Please try again.')
+      );
+    }
+    if (problems.length) {
+      AppEnv.showErrorDialog(problems.join('\n\n'));
     }
   };
 

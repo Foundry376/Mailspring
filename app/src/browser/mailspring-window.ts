@@ -6,6 +6,11 @@ import { EventEmitter } from 'events';
 import { isWaylandSession } from './is-wayland';
 import { XDG_DATA_PATHS, getFirstExistingPath } from '../utils/xdg-paths';
 
+import {
+  attemptEarlyRendererCrashRecovery,
+  isPrimaryWindow,
+} from './hardware-acceleration-recovery';
+
 let WindowIconPath = null;
 let idNum = 0;
 
@@ -356,6 +361,21 @@ export default class MailspringWindow extends EventEmitter {
         // Killed means that the app is exiting and the browser window is being
         // forceably cleaned up. Carry on, do not try to reload the window.
         this.browserWindow.destroy();
+        return;
+      }
+
+      if (
+        attemptEarlyRendererCrashRecovery({
+          app,
+          configDirPath: this.configDirPath,
+          loaded: this.loaded,
+          primaryWindow: isPrimaryWindow({
+            mainWindow: this.mainWindow,
+            windowType: this.windowType,
+          }),
+          reason: details.reason,
+        })
+      ) {
         return;
       }
 

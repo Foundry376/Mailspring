@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +22,10 @@ jobs:
             dbus-x11 \
             libgbm1 \
             libnss3 \
-            libasound2 \
-            libatk1.0-0 \
-            libatk-bridge2.0-0 \
-            libgtk-3-0
+            libasound2t64 \
+            libatk1.0-0t64 \
+            libatk-bridge2.0-0t64 \
+            libgtk-3-0t64
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,6 +41,13 @@ jobs:
 
       - name: Run Typecheck
         run: npm run typecheck
+
+      # Ubuntu 23.10+ restricts unprivileged user namespaces through AppArmor, so
+      # Electron cannot use its namespace sandbox and falls back to the SUID helper,
+      # which is not setuid root inside node_modules. Re-allow the namespace sandbox
+      # rather than passing --no-sandbox, so the tests run the way the app ships.
+      - name: Allow Electron's namespace sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Run tests
         run: dbus-launch --exit-with-session xvfb-run -a npm test

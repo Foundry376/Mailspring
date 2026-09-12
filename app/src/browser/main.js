@@ -361,6 +361,12 @@ const start = () => {
 
   setupCompileCache(configDirPath, options.devMode);
 
+  // Must precede `ready`: disableHardwareAcceleration() has no effect afterward.
+  require('./hardware-acceleration-recovery').applyPersistentSoftwareRendering(
+    app,
+    configDirPath
+  );
+
   const onOpenFileBeforeReady = (event, file) => {
     event.preventDefault();
     options.pathsToOpen.push(file);

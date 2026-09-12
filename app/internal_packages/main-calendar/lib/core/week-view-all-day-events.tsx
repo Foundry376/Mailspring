@@ -24,8 +24,7 @@ interface WeekViewAllDayEventsProps extends EventRendererProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
+    hitZone: HitZone
   ) => void;
   /** Set of calendar IDs that are read-only */
   readOnlyCalendarIds: Set<string>;

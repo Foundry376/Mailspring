@@ -150,29 +150,12 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     if (!message || !this.state.currentThread) {
       return;
     }
-    const pathModule = require('path');
-    const fs = require('fs');
-
-    // Use a unique subdirectory per operation so concurrent forwards don't
-    // race on the same file. The basename stays "Forwarded Message.eml" so
-    // the attachment has a clean display name.
-    const tempDir = pathModule.join(
-      require('@electron/remote').app.getPath('temp'),
-      `mailspring-fwd-${message.id}`
-    );
-    fs.mkdirSync(tempDir, { recursive: true });
-    const tempPath = pathModule.join(tempDir, 'Forwarded Message.eml');
-
-    const task = new GetMessageRFC2822Task({
-      messageId: message.id,
-      accountId: message.accountId,
-      filepath: tempPath,
+    const staged = await EmlUtils.stageMessageAsEml(message, {
+      filename: 'Forwarded Message.eml',
     });
-    Actions.queueTask(task);
-    await TaskQueue.waitForPerformRemote(task);
 
-    // Verify the file was actually written before creating a draft
-    if (!fs.existsSync(tempPath)) {
+    // The fetch is remote and can fail without writing anything
+    if (!staged) {
       AppEnv.showErrorDialog(
         localized('Could not download the original message. Please try again.')
       );
@@ -191,9 +174,10 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     await TaskQueue.waitForPerformLocal(syncTask);
 
     Actions.addAttachment({
-      filePath: tempPath,
+      filePath: staged.filePath,
       headerMessageId: draft.headerMessageId,
       onCreated: () => {
+        EmlUtils.discardStagedEml(staged.filePath);
         Actions.composePopoutDraft(draft.headerMessageId);
       },
     });

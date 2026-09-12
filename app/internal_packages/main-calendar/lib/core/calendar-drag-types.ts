@@ -49,9 +49,6 @@ export interface DragState {
   /** Original end time (unix timestamp) - for calculating deltas and cancellation */
   originalEnd: number;
 
-  /** Unix timestamp at the initial mouse position when drag started */
-  initialMouseTime: number;
-
   /** Offset between click position and event start (for 'move' mode) - preserves grab point */
   clickOffset: number;
 

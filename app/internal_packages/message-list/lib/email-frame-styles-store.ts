@@ -17,7 +17,10 @@ class EmailFrameStylesStore extends MailspringStore {
       this._findStyles();
       this._listenToStyles();
     }
-    return this._styles;
+    return {
+      themeStyles: this._styles,
+      renderModeStyles: this._emailRenderModeOverrideStyles(),
+    };
   }
 
   _findStyles = () => {
@@ -36,18 +39,17 @@ class EmailFrameStylesStore extends MailspringStore {
       this._styles += `\n${(sheet as HTMLElement).innerText}`;
     }
     this._styles = this._styles.replace(/.ignore-in-parent-frame/g, '');
-    this._styles += this._emailRenderModeOverrideStyles();
     this.trigger();
   };
 
   _emailRenderModeOverrideStyles() {
-    const mode = AppEnv.config.get(EMAIL_RENDER_MODE_KEY) || 'theme';
+    const mode = AppEnv.config.get(EMAIL_RENDER_MODE_KEY) === 'dark' ? 'dark' : 'light';
     if (mode === 'light') {
-      return '\nbody, img { filter: none !important; }';
+      return '\nbody { filter: none !important; }' + '\nimg { filter: none !important; }';
     }
     if (mode === 'dark') {
       return (
-        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; color: #111 !important; }' +
+        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; }' +
         '\nimg { filter: invert(100%) hue-rotate(180deg) !important; }'
       );
     }
@@ -71,4 +73,5 @@ class EmailFrameStylesStore extends MailspringStore {
   }
 }
 
+export { EmailFrameStylesStore };
 export default new EmailFrameStylesStore();

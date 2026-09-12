@@ -29,6 +29,7 @@ import {
   registerNotificationIPCHandlers,
 } from './notification-ipc';
 import WindowsTaskbarManager from './windows-taskbar-manager';
+import { resetThemeForRecovery } from './theme-recovery';
 
 let clipboard = null;
 
@@ -434,10 +435,13 @@ export default class Application extends EventEmitter {
 
     this.on('application:show-calendar', () => {
       this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
-      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
-      if (main) {
-        main.sendMessage('run-calendar-sync');
-      }
+      this.sendCalendarSync();
+    });
+
+    // The calendar window's MailsyncBridge has no sync clients, so a manual
+    // refresh has to be routed through the main window's bridge.
+    this.on('application:sync-calendar', (accountId?: string) => {
+      this.sendCalendarSync(accountId);
     });
 
     this.on('application:show-contacts', () => {
@@ -639,14 +643,24 @@ export default class Application extends EventEmitter {
 
       const buttonIndex = dialog.showMessageBoxSync({
         type: 'warning',
-        buttons: [localized('Reset Theme'), localized('Continue')],
+        buttons: [localized('Reset Theme and Restart'), localized('Continue')],
         defaultId: 0,
         message,
-        detail,
+        detail: `${detail}\n\n${localized(
+          'Reset Theme and Restart restores the bundled automatic, light, and dark themes, clears cached theme styles, and restarts Mailspring. Your accounts, mail, plugins, and other settings are not changed.'
+        )}`,
       });
       if (buttonIndex === 0) {
         userResetTheme = true;
-        this.config.set('core.theme', '');
+        const cacheClearErrors = resetThemeForRecovery(this.config, this.configDirPath);
+        for (const error of cacheClearErrors) {
+          console.warn(`Theme was reset but a compiled LESS cache could not be removed: ${error}`);
+        }
+        // Relaunch rather than recompiling in place: the renderer still holds
+        // the failed theme's cache open, and a clean start is the only way to
+        // guarantee the bundled themes load without leftover state.
+        app.relaunch();
+        app.quit();
       }
     });
 
@@ -883,6 +897,13 @@ export default class Application extends EventEmitter {
 
     registerQuickpreviewIPCHandlers(ipcMain);
     registerNotificationIPCHandlers(ipcMain);
+  }
+
+  sendCalendarSync(accountId?: string) {
+    const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+    if (main) {
+      main.sendMessage('run-calendar-sync', accountId);
+    }
   }
 
   // Public: Executes the given command.
