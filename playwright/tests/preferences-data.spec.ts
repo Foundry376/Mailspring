@@ -131,7 +131,11 @@ test("a template's subject line is saved into the template file", async () => {
   const templatesContainer = mainWindow.locator('.preferences-templates-container');
   await expect(templatesContainer).toBeVisible({ timeout: 3_000 });
 
-  // The template renamed above is still selected - give it a subject line.
+  // Creating a template does not select it, so select the renamed one to
+  // enable the editor, then give it a subject line.
+  await templatesContainer
+    .locator('.template-list .list-item:has-text("My Test Template")')
+    .click();
   const subjectInput = templatesContainer.locator('#template-subject');
   await expect(subjectInput).toBeVisible({ timeout: 3_000 });
   await subjectInput.fill('Following up on our call');

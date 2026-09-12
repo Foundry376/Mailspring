@@ -26,10 +26,12 @@ export function prepareTestConfigDir(): string {
 
   const sourceConfigPath = path.join(FIXTURE_DIR, 'config.json');
 
-  // Copy the entire source config.json, then override specific keys.
-  // This preserves the encrypted credentials blob (needed for mailsync
-  // task processing) while letting us control workspace mode, keymap, etc.
-  // We clear the identity to prevent the "Please sign in" keychain dialog.
+  // Copy the entire source config.json, then override specific keys so we
+  // control workspace mode, keymap, etc. We clear the identity to prevent the
+  // "Please sign in" dialog, and drop `credentials`: the blob is bound to the
+  // keychain key of whichever binary wrote it, and KeyManager treats a stored
+  // but undecryptable blob as fatal (it shows a "cannot continue" dialog and
+  // quits). With no blob, it resolves to an empty keyset and the app boots.
   let config: any;
   if (fs.existsSync(sourceConfigPath)) {
     config = JSON.parse(fs.readFileSync(sourceConfigPath, 'utf-8'));
@@ -51,6 +53,7 @@ export function prepareTestConfigDir(): string {
       keymapTemplate: 'Gmail',
     };
     delete config['*'].identity;
+    delete config['*'].credentials;
   } else {
     config = {
       '*': {
