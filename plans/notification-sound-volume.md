@@ -41,7 +41,11 @@ Per-filter sounds are intentionally out of scope.
    constrain selection to browser-supported audio formats.
 3. Handle moved, deleted, unreadable, and malformed selections by falling back to
    the bundled sound without breaking notifications.
-4. Add focused resolver, preference UI, and notification integration tests.
+4. Permit local files only as media resources in the main-window CSP, while
+   retaining the existing script policy.
+5. Reject relative paths, non-regular files, empty files, and files larger than 25
+   MiB before handing a custom source to Chromium's media decoder.
+6. Add focused resolver, preference UI, notification integration, and CSP tests.
 
 ### Final verification and handoff
 

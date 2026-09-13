@@ -22,7 +22,7 @@ export class SoundRegistry {
     const { resourcePath } = AppEnv.getLoadSettings();
 
     if (typeof src === 'string') {
-      if (/^(mailspring|file|data|blob):/.test(src)) {
+      if (/^(mailspring|file):/.test(src)) {
         audio.src = src;
       } else {
         audio.src = path.join(resourcePath, 'static', 'sounds', src);

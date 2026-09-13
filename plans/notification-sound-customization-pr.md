@@ -9,6 +9,8 @@
   sounds retain their existing behavior.
 - Resolve custom files at playback time and fall back to the bundled sound when a
   selection is missing, unsupported, or cannot be played.
+- Permit local files only as media resources, without expanding the script policy,
+  and reject relative paths, non-regular files, empty files, and files over 25 MiB.
 - Extend `SoundRegistry` with reusable per-play volume and source options, keeping
   the preference UI, sound selection, and audio playback concerns separate.
 - Add regression coverage for the silent Windows toast behavior established by
@@ -31,7 +33,9 @@ selection on top of that foundation.
   only to notification playback.
 - Added regression coverage for silent individual and summary Windows toast XML.
 - `npm run lint:check`
-- Targeted Electron specs: 29 passing
+- Targeted Electron specs: 31 passing
+- Real external-file playback in Electron: MP3, OGG, WAV, M4A, AAC, and FLAC all
+  passed through the production resolver and Content Security Policy.
 - `npm run build` (produced the macOS arm64 app and ZIP)
 
 `npm run typecheck` reaches the full project and reports three existing errors
