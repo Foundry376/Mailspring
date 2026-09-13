@@ -232,6 +232,7 @@ function buildPackagerOptions() {
           'examples/**',
           '**/src/tasks/**',
           '**/src/quickpreview/**',
+          '**/mcp-stdio-bridge.js',
           '**/static/all_licenses.html',
           '**/static/extensions/**',
           '**/node_modules/spellchecker/**',
