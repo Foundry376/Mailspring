@@ -423,6 +423,9 @@ export class DraftEditingSession extends MailspringStore {
           files: draft.files,
           replyTo: draft.replyTo,
           subject: draft.subject,
+          // Carry over plugin metadata (open/link tracking, send-later) so toggles the
+          // user enabled aren't silently reset when the draft moves between accounts.
+          pluginMetadata: draft.pluginMetadata,
           headerMessageId: draft.headerMessageId,
           accountId: account.id,
           unread: false,
