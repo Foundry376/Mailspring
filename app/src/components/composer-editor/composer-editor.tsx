@@ -274,7 +274,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
       return next();
     }
 
-    if (onFileReceived && event.clipboardData.items.length > 0) {
+    if (onFileReceived && shouldAttachPastedFile(event.clipboardData)) {
       event.preventDefault();
       if (handleFilePasted(event, onFileReceived)) {
         return;
@@ -284,9 +284,9 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     let html = event.clipboardData.getData('text/html');
 
     if (html) {
-      // Strip event handlers and disallowed tags before any DOM parsing or rendering — the
-      // composer runs with nodeIntegration so an <img onerror=...> in pasted HTML would
-      // execute with full Node access once it lands inside an uneditable block.
+      // Strip event handlers and disallowed tags before this HTML is rendered — the composer
+      // runs with nodeIntegration so an <img onerror=...> in pasted HTML would execute with
+      // full Node access once it lands inside an uneditable block.
       html = SanitizeTransformer.runSync(html);
 
       // Unfortuantely, pasting HTML requires an synchronous hop through our main process style
@@ -429,50 +429,67 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
 
 // Helpers
 
+// Excel, Numbers and LibreOffice Calc put both an HTML table and a rendered image of
+// the selection on the clipboard; the table is what the user wants. Chrome's "Copy Image"
+// also sets text/html, but only to a bare <img> with no text (PR #2104), so that case
+// must still attach the image file. An empty <table> still counts: Excel emits one for
+// blank cell ranges and pasting it beats attaching a picture of blank cells.
+//
+// Parsing unsanitized HTML here is safe: a DOMParser document has no browsing context
+// and scripting is disabled, so nothing loads or executes (DOMPurify relies on the same).
+export function clipboardHasRichText(clipboardData: DataTransfer) {
+  const html = clipboardData.getData('text/html');
+  if (!html) return false;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('style, script').forEach((el) => el.remove());
+  return !!doc.querySelector('table') || doc.body.textContent.trim().length > 0;
+}
+
+// Only arbitrate between file and HTML when the clipboard actually carries a file item;
+// string-only pastes skip the extra parse entirely.
+export function shouldAttachPastedFile(clipboardData: DataTransfer) {
+  const hasFileItem = Array.from(clipboardData.items).some((i) => i.kind === 'file');
+  return hasFileItem && !clipboardHasRichText(clipboardData);
+}
+
 export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: string) => void) {
-  if (event.clipboardData.items.length === 0) {
-    return false;
-  }
   // See https://github.com/Foundry376/Mailspring/pull/2104 - if you right-click + Copy Image in Chrome,
-  // the image file is item 1, not item 0. We want to prefer the files whenever one is present.
-  for (const i in event.clipboardData.items) {
-    const item = event.clipboardData.items[i];
-    // If the pasteboard has a file on it, stream it to a temporary
-    // file and fire our `onFilePaste` event.
-    if (item.kind === 'file') {
-      const blob = item.getAsFile();
+  // the image file is item 1, not item 0. Every file item is attached so that copying several
+  // files in Finder / Explorer / a Linux file manager pastes all of them.
+  const fileItems = Array.from(event.clipboardData.items).filter((item) => item.kind === 'file');
 
-      // Chromium exposes files copied in Finder / Explorer / a Linux file manager as
-      // file items backed by the real file. Attach those by path so the original
-      // filename is kept; only pasteboard-only blobs (screenshots) need a temp copy.
-      const existingPath = webUtils.getPathForFile(blob);
-      if (existingPath) {
-        onFileReceived(existingPath);
-        return true;
-      }
+  for (const item of fileItems) {
+    const blob = item.getAsFile();
 
-      const ext =
-        {
-          'image/png': '.png',
-          'image/jpg': '.jpg',
-          'image/tiff': '.tiff',
-        }[item.type] || '';
+    // Chromium exposes files copied in a file manager as file items backed by the real
+    // file. Attach those by path so the original filename is kept; only pasteboard-only
+    // blobs (screenshots) need a temp copy.
+    const existingPath = webUtils.getPathForFile(blob);
+    if (existingPath) {
+      onFileReceived(existingPath);
+      continue;
+    }
 
-      const reader = new FileReader();
-      reader.addEventListener('loadend', () => {
-        const buffer = Buffer.from(new Uint8Array(reader.result as any));
-        const tmpFolder = path.join(os.tmpdir(), `-mailspring-attachment-${crypto.randomUUID()}`);
-        const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
-        fs.mkdir(tmpFolder, () => {
-          fs.writeFile(tmpPath, buffer, () => {
-            onFileReceived(tmpPath);
-          });
+    const ext =
+      {
+        'image/png': '.png',
+        'image/jpg': '.jpg',
+        'image/tiff': '.tiff',
+      }[item.type] || '';
+
+    const reader = new FileReader();
+    reader.addEventListener('loadend', () => {
+      const buffer = Buffer.from(new Uint8Array(reader.result as any));
+      const tmpFolder = path.join(os.tmpdir(), `-mailspring-attachment-${crypto.randomUUID()}`);
+      const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
+      fs.mkdir(tmpFolder, () => {
+        fs.writeFile(tmpPath, buffer, () => {
+          onFileReceived(tmpPath);
         });
       });
-      reader.readAsArrayBuffer(blob);
-      return true;
-    }
+    });
+    reader.readAsArrayBuffer(blob);
   }
 
-  return false;
+  return fileItems.length > 0;
 }
