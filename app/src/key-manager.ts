@@ -19,6 +19,12 @@ export const secureStorage = {
   isAvailable: (): Promise<boolean> => safeStorage.isAsyncEncryptionAvailable(),
   encrypt: (plaintext: string): Promise<Buffer> => safeStorage.encryptStringAsync(plaintext),
   decrypt: (encrypted: Buffer): Promise<DecryptResult> => safeStorage.decryptStringAsync(encrypted),
+  decryptLegacy: (encrypted: Buffer): DecryptResult => {
+    return {
+      shouldReEncrypt: true, // Move users to the new API
+      result: safeStorage.decryptString(encrypted),
+    };
+  },
 };
 
 /**
@@ -100,7 +106,27 @@ class KeyManager {
     }
   }
 
+  async _ensureEncryptionAvailable(): Promise<void> {
+    if (await secureStorage.isAvailable()) {
+      return;
+    }
+
+    let message = localized(
+      `Mailspring cannot handle your password securely because encryption is not available on this system.`
+    );
+
+    if (process.platform === 'linux') {
+      message += localized(
+        ' On Linux, Mailspring requires a secret service API such as org.freedesktop.portal.Secret or org.freedesktop.Secret.Service. Please ensure a provider is installed and running, then restart Mailspring.'
+      );
+    }
+
+    throw new Error(message);
+  }
+
   async _getKeyHash(): Promise<KeySet> {
+    await this._ensureEncryptionAvailable();
+
     const encryptedCredentials = AppEnv.config.get(configCredentialsKey);
     // Check for different null values to prevent issues if a migration from keytar has failed
     if (
@@ -115,15 +141,20 @@ class KeyManager {
     try {
       decrypted = await secureStorage.decrypt(Buffer.from(encryptedCredentials, 'utf-8'));
     } catch (err) {
-      // Stored-but-unreadable is not the same as nothing stored. Resolving to an empty keyset
-      // would let the next read-modify-write mutator persist it, erasing every account's
-      // password over a locked keyring or a secret service that has not started yet.
-      this._reportFatalError(
-        new Error(
-          localized('Mailspring could not read your saved passwords and cannot continue.') +
-            this._encryptionUnavailableHint()
-        )
-      );
+      console.warn('Failed to decrypt credentials with the async safeStorage API: ', err);
+      try {
+        decrypted = secureStorage.decryptLegacy(Buffer.from(encryptedCredentials, 'utf-8'));
+      } catch (err) {
+        console.warn('Failed to decrypt credentials with the sync safeStorage API: ', err);
+        // Stored-but-unreadable is not the same as nothing stored. Resolving to an empty keyset
+        // would let the next read-modify-write mutator persist it, erasing every account's
+        // password over a locked keyring or a secret service that has not started yet.
+        this._reportFatalError(
+          new Error(
+            localized('Mailspring could not read your saved passwords and cannot continue.')
+          )
+        );
+      }
     }
 
     let keys: KeySet;
@@ -149,22 +180,8 @@ class KeyManager {
     return keys;
   }
 
-  _encryptionUnavailableHint() {
-    return process.platform === 'linux'
-      ? localized(
-          ' On Linux, Mailspring requires a secret service such as org.freedesktop.portal.Secret or org.freedesktop.Secret.Service. Please ensure a provider is installed and running, then restart Mailspring.'
-        )
-      : '';
-  }
-
   async _writeKeyHash(keys: KeySet) {
-    if (!(await secureStorage.isAvailable())) {
-      throw new Error(
-        localized(
-          `Mailspring could not store your password securely because encryption is not available on this system.`
-        ) + this._encryptionUnavailableHint()
-      );
-    }
+    await this._ensureEncryptionAvailable();
     const enrcyptedCredentials = await secureStorage.encrypt(JSON.stringify(keys));
     AppEnv.config.set(configCredentialsKey, enrcyptedCredentials);
   }
