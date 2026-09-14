@@ -7,6 +7,7 @@ import Toolbar from './sheet-toolbar';
 import { Flexbox } from './components/flexbox';
 import { InjectedComponentSet } from './components/injected-component-set';
 import { SheetDeclaration } from './flux/stores/workspace-store';
+import { Disposable } from 'rx-core';
 
 interface SheetContainerState {
   stack: SheetDeclaration[];
@@ -37,6 +38,7 @@ export default class SheetContainer extends React.Component<
 
   _toolbarComponents = {};
   unsubscribe?: () => void;
+  windowPropsDisposable?: Disposable;
 
   constructor(props) {
     super(props);
@@ -45,6 +47,9 @@ export default class SheetContainer extends React.Component<
 
   componentDidMount() {
     this.unsubscribe = WorkspaceStore.listen(this._onStoreChange);
+    // A hot window mounts with the empty window's load settings and receives the real
+    // ones (including `toolbar`) only when it is assigned a window type.
+    this.windowPropsDisposable = AppEnv.onWindowPropsReceived(this._onStoreChange);
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
@@ -57,6 +62,9 @@ export default class SheetContainer extends React.Component<
   componentWillUnmount() {
     if (this.unsubscribe) {
       this.unsubscribe();
+    }
+    if (this.windowPropsDisposable) {
+      this.windowPropsDisposable.dispose();
     }
   }
 

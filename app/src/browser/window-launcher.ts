@@ -43,7 +43,11 @@ export default class WindowLauncher {
   }) {
     this._defaultWindowOpts = {
       frame: process.platform !== 'darwin',
-      toolbar: process.platform !== 'linux',
+      // Popout windows (composer, thread) have nothing in the sheet toolbar except the
+      // window title and the menu button, so wherever the OS draws a native frame the
+      // toolbar is a second title bar. Windows that need a toolbar (main, contacts) set
+      // it explicitly.
+      toolbar: process.platform === 'darwin',
       hidden: false,
       devMode,
       safeMode,
