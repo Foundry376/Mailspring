@@ -262,12 +262,15 @@ export default class WindowManager {
       windowType: WindowManager.MAIN_WINDOW,
       title: localized('Message Viewer'),
       toolbar: true,
+      // The toolbar's menu button is the only menu access on Windows; Linux follows
+      // core.workspace.menubarStyle via WindowLauncher.createDefaultWindowOpts.
       neverClose: true,
       bootstrapScript: require.resolve('../window-bootstrap'),
       mainWindow: true,
       width: 900, // Gets changed based on previous settings
       height: 600, // Gets changed based on previous settings
       initializeInBackground: this.initializeInBackground,
+      ...(process.platform === 'win32' ? { autoHideMenuBar: false } : {}),
     };
 
     coreWinOpts[WindowManager.ONBOARDING_WINDOW] = {
@@ -303,6 +306,7 @@ export default class WindowManager {
       height: 500,
       toolbar: true,
       hidden: true,
+      ...(process.platform === 'win32' ? { autoHideMenuBar: false } : {}),
     };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript

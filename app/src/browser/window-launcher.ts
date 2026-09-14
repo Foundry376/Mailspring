@@ -48,6 +48,11 @@ export default class WindowLauncher {
       // toolbar is a second title bar. Windows that need a toolbar (main, contacts) set
       // it explicitly.
       toolbar: process.platform === 'darwin',
+      // On Windows the renderer hides the native menu bar (AppEnv calls
+      // setMenuBarVisibility(false)) in favor of the toolbar's menu button. Popout
+      // windows have no toolbar, so let a single Alt press reveal the menu bar. On
+      // Linux this follows core.workspace.menubarStyle below.
+      autoHideMenuBar: process.platform === 'win32',
       hidden: false,
       devMode,
       safeMode,
