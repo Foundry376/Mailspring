@@ -33,6 +33,9 @@ export interface MailRule extends Template {
   actions: [
     {
       value: string;
+      // Display name of the folder / label chosen for `value`, used to re-resolve the
+      // category when its id changes (folder ids are hashes of the IMAP path).
+      valueName?: string;
       templateKey: string;
     },
   ];
@@ -160,6 +163,9 @@ class MailRulesStore extends MailspringStore {
 
   _onUpdateMailRule = (id: string, properties: Partial<MailRule>) => {
     const existing = this._rules.find((f) => id === f.id);
+    if (!existing) {
+      return;
+    }
     Object.assign(existing, properties);
     this._saveMailRules();
     this.trigger();
@@ -195,6 +201,11 @@ class MailRulesStore extends MailspringStore {
   // Reprocessing Existing Mail
 
   _onStartReprocessing = (aid: string) => {
+    // The preferences UI explains this to the user before dispatching; here we only
+    // avoid walking the entire inbox for nothing.
+    if (!this._rules.some((r) => r.accountId === aid && !r.disabled)) {
+      return;
+    }
     const inboxCategory = CategoryStore.getCategoryByRole(aid, 'inbox');
     if (!inboxCategory) {
       AppEnv.showErrorDialog(
