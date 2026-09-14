@@ -59,8 +59,22 @@ class SendRemindersStore extends MailspringStore {
         continue;
       }
 
-      // has a new message arrived on the thread? if so, clear the metadata completely
       const currentReplyTimestamp = new Date(thread.lastMessageReceivedTimestamp).getTime() / 1000;
+
+      // Metadata the sync engine promoted from a draft on send carries only
+      // {expiration, sentHeaderMessageId}. Record the reply baseline the first
+      // time we see it; comparing the missing field below would read as "a reply
+      // arrived" and silently discard the reminder.
+      if (metadata.lastReplyTimestamp === undefined) {
+        metadata.lastReplyTimestamp = currentReplyTimestamp;
+        metadata.shouldNotify = false;
+        if (type !== 'metadata-expiration') {
+          updateReminderMetadata(thread, metadata);
+          continue;
+        }
+      }
+
+      // has a new message arrived on the thread? if so, clear the metadata completely
       if (metadata.lastReplyTimestamp !== currentReplyTimestamp) {
         updateReminderMetadata(thread, {});
         continue;
