@@ -48,6 +48,14 @@ export function backgroundColorBehind(el: HTMLElement): RGBA {
 // nearly invisible, like `rgb(54,55,55)` body copy (~1.2:1).
 const MIN_LEGIBLE_CONTRAST = 1.5;
 
+// Mail clients serialize "default text" as an explicit black: Apple Mail wraps
+// pasted signatures in `color: rgb(0, 0, 0)`, Outlook emits `color: black` and
+// `color: windowtext`. Treat anything this dark as the sender's default rather
+// than a design choice.
+function isNearBlack([r, g, b]: RGBA): boolean {
+  return r <= 32 && g <= 32 && b <= 32;
+}
+
 function hasOwnText(el: Element): boolean {
   for (const node of Array.from(el.childNodes)) {
     if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) return true;
@@ -55,35 +63,63 @@ function hasOwnText(el: Element): boolean {
   return false;
 }
 
-// Emails that paint their own backgrounds (marketing tables, colored wrappers)
-// or hardcode text colors that would be illegible against the theme were
-// designed for a white page and almost always assume the default text color is
-// black, so we render them on white. Emails that do neither are rendered
-// transparent with the theme's text color so they blend into the message list.
-//
 // Backgrounds on inline elements are ignored so a highlighted word or styled
-// link in an otherwise plain email doesn't force the white background. Link
-// colors are ignored because nearly every email colors its links and the
-// stylesheet already restyles them for the theme. Fully transparent text is
-// ignored because marketing emails use it for hidden preheaders.
-export function isDesignedForWhiteBackground(wrapper: HTMLElement, behind: RGBA): boolean {
-  const win = wrapper.ownerDocument.defaultView;
-  if (!win) return false;
-
-  for (const el of Array.from(wrapper.querySelectorAll<HTMLElement>('*'))) {
+// link in an otherwise plain email doesn't count as painting the page.
+function paintsOwnBackground(elements: HTMLElement[], win: Window): boolean {
+  for (const el of elements) {
     const style = win.getComputedStyle(el);
-    if (style.display === 'none') continue;
-
-    if (hasOwnText(el) && !el.closest('a')) {
-      const color = parseComputedColor(style.color);
-      if (!color) return true;
-      if (color[3] > 0 && contrastRatio(color, behind) < MIN_LEGIBLE_CONTRAST) return true;
-    }
-
-    if (style.display.startsWith('inline')) continue;
+    if (style.display === 'none' || style.display.startsWith('inline')) continue;
     if (style.backgroundImage !== 'none') return true;
     const bg = parseComputedColor(style.backgroundColor);
     if (!bg || bg[3] > 0) return true;
+  }
+  return false;
+}
+
+// Decides how an email's colors should be rendered against the theme, and
+// returns true when it should be shown on a white page.
+//
+// Emails that paint their own backgrounds (marketing tables, colored wrappers)
+// were designed for a white page and almost always assume the default text
+// color is black, so they get the white page and their colors are left alone.
+//
+// Emails with no backgrounds render transparent so they blend into the message
+// list. Their text sits directly on the theme background, so hardcoded
+// near-black colors are replaced with the theme's text color (see
+// `isNearBlack`), and any other hardcoded color that would be illegible against
+// the theme falls back to the white page. Link colors are ignored because
+// nearly every email colors its links and the stylesheet already restyles them
+// for the theme. Fully transparent text is ignored because marketing emails use
+// it for hidden preheaders.
+export function prepareEmailColors(wrapper: HTMLElement, behind: RGBA): boolean {
+  const win = wrapper.ownerDocument.defaultView;
+  if (!win) return false;
+
+  const elements = Array.from(wrapper.querySelectorAll<HTMLElement>('*'));
+  if (paintsOwnBackground(elements, win)) return true;
+
+  const defaultColor = win.getComputedStyle(wrapper).color;
+  const nearBlackElements: HTMLElement[] = [];
+
+  for (const el of elements) {
+    if (!hasOwnText(el) || el.closest('a')) continue;
+    const style = win.getComputedStyle(el);
+    if (style.display === 'none') continue;
+
+    const color = parseComputedColor(style.color);
+    if (!color) return true;
+    if (color[3] === 0) continue;
+    if (isNearBlack(color)) {
+      nearBlackElements.push(el);
+      continue;
+    }
+    if (contrastRatio(color, behind) < MIN_LEGIBLE_CONTRAST) return true;
+  }
+
+  // Only rewrite once we know the email stays transparent: on a white page the
+  // sender's black is correct.
+  for (const el of nearBlackElements) {
+    el.style.color = defaultColor;
   }
   return false;
 }
