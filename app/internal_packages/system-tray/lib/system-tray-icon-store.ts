@@ -102,38 +102,35 @@ class SystemTrayIconStore {
     return '';
   };
 
+  // On Windows, Electron builds the tray HICON from the 1x bitmap of a PNG
+  // regardless of the display scale, so a PNG is always blurry above 100%.
+  // A multi-size .ico lets Windows pick an exact frame for 125% / 150% / etc.
+  // See assets/build-win32-ico.py.
+  _iconPath = (basename: string) => {
+    const ext = platform === 'win32' ? 'ico' : 'png';
+    return path.join(__dirname, '..', 'assets', platform, `${basename}.${ext}`);
+  };
+
   inboxZeroIcon = () => {
     if (platform === 'darwin') {
-      return path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero-Template.png');
+      return this._iconPath('MenuItem-Inbox-Zero-Template');
     }
-    return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Zero${this._dark()}.png`);
+    return this._iconPath(`MenuItem-Inbox-Zero${this._dark()}`);
   };
 
   inboxFullIcon = () => {
     if (platform === 'darwin') {
-      return path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full-Template.png');
+      return this._iconPath('MenuItem-Inbox-Full-Template');
     }
-    return path.join(__dirname, '..', 'assets', platform, `MenuItem-Inbox-Full${this._dark()}.png`);
+    return this._iconPath(`MenuItem-Inbox-Full${this._dark()}`);
   };
 
   inboxFullNewIcon = () => {
-    return path.join(
-      __dirname,
-      '..',
-      'assets',
-      platform,
-      `MenuItem-Inbox-Full-NewItems${this._dark()}.png`
-    );
+    return this._iconPath(`MenuItem-Inbox-Full-NewItems${this._dark()}`);
   };
 
   inboxFullUnreadIcon = () => {
-    return path.join(
-      __dirname,
-      '..',
-      'assets',
-      platform,
-      `MenuItem-Inbox-Full-UnreadItems${this._dark()}.png`
-    );
+    return this._iconPath(`MenuItem-Inbox-Full-UnreadItems${this._dark()}`);
   };
 
   _updateIcon = () => {
