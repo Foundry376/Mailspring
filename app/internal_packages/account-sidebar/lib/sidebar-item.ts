@@ -314,8 +314,6 @@ export default class SidebarItem {
         onExport: opts.exportable ? onExportFolder : undefined,
         onExportMbox: opts.exportable ? onExportMboxFolder : undefined,
         onCreateChild: opts.editable ? onCreateChild : undefined,
-        onMarkAllAsRead:
-          opts.markableAllRead && perspective.category() ? onMarkAllAsRead : undefined,
         onCollapseToggled: toggleItemCollapsed,
 
         onDrop(item, event) {
@@ -373,8 +371,8 @@ export default class SidebarItem {
       const role = categories[0] != null ? categories[0].role : null;
       opts.exportable = !role || !EXCLUDED_EXPORT_ROLES.has(role);
     }
-    if (opts.markableAllRead == null) {
-      opts.markableAllRead = true;
+    if (opts.onMarkAllAsRead == null && perspective.category()) {
+      opts.onMarkAllAsRead = onMarkAllAsRead;
     }
     opts.contextMenuLabel = contextMenuLabel;
     return this.forPerspective(id, perspective, opts);
