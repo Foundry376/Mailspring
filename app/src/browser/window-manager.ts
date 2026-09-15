@@ -294,8 +294,9 @@ export default class WindowManager {
       title: localized('Calendar Preview'),
       width: Math.round(screenWidth * 0.75),
       height: Math.round(screenHeight * 0.75),
-      toolbar: false,
+      toolbar: true,
       hidden: false,
+      ...(process.platform === 'win32' ? { autoHideMenuBar: false } : {}),
     };
 
     coreWinOpts[WindowManager.CONTACTS_WINDOW] = {

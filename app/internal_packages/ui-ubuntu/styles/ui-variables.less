@@ -42,6 +42,18 @@
     background-color: @light;
   }
 
+  // The macOS glass rims are white and clash with this dark toolbar; use a
+  // plain hairline edge instead.
+  body.platform-darwin & .sheet-toolbar .sheet-toolbar-container {
+    .btn.btn-toolbar,
+    .button-group {
+      box-shadow: 0 0 0 1px lighten(@toolbar-background-color, 14%);
+    }
+    .button-group .btn.btn-toolbar {
+      box-shadow: none;
+    }
+  }
+
   .sheet-toolbar .item-back .item-back-title {
     color: @light;
   }
