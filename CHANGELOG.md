@@ -1,5 +1,40 @@
 # Mailspring Changelog
 
+## 1.24.1 (9/14/2026)
+
+Features:
+
+- Added "Mark All as Read" to the folder context menu, and an option to show unread counts for all folders. Thanks @AnsCodeLab!
+- New drafts in a unified inbox now default to the account of the focused thread. Thanks @AnsCodeLab!
+- Added a `MessageActionMenuItem` extension point so plugins can add items to the message "..." menu. Thanks @AnsCodeLab!
+
+Bug Fixes:
+
+- On Linux, fixed accounts being lost after upgrading when the KWallet secret name changed. Mailspring now falls back to the previous secret storage key and re-saves credentials.
+- Fixed mail rules breaking when a folder's ID changed right after it was created. Rules now match folders by name when the match is unambiguous.
+- Fixed the sidebar not switching from "Drafts" to "Activity" and other perspectives with the same layout.
+- Fixed reminders created in the draft UI missing the last reply timestamp, so they never fired.
+- Uploading a new signature image no longer overwrites the previous image on Mailspring's servers. Previously, replacing a signature image changed the image in emails you had already sent, and teams sharing a Mailspring ID could overwrite each other's default signature images.
+- On Windows, composer and thread popout windows no longer show a second title bar beneath the native one; press Alt in those windows to show the menu bar. Thanks @ejbiker93ss!
+- On Windows, the system tray icon is no longer blurry at 125% / 150% and other fractional display scales. Tray icons now ship as multi-size .ico files so Windows can pick an exact-match frame instead of stretching the 16px image.
+- Fixed popout windows sometimes opening with the wrong toolbar when a hot window is assigned a window type. Thanks @ejbiker93ss!
+- Fixed link and open tracking being lost when moving a draft between accounts.
+- When attaching multiple files to a draft, the file order is now preserved.
+- Pasting from Excel or OpenOffice now prefers the HTML clipboard content, and pasting several files at once attaches all of them, not just the first.
+- Pasted JPEG, GIF, BMP, and WebP clipboard images are now recognized so they stay inline in the composer. Thanks @AnsCodeLab!
+- Fixed some hardcoded colors in package stylesheets that did not follow the active theme.
+
+Improvements:
+
+- Emails with an explicit black text color (common in iCloud and Apple Mail signatures) are now shown white on dark background in dark mode, instead of a bright white background. (#2850)
+- The folder context menu is now grouped with separators.
+- On Windows, keyboard shortcuts are now shown with Ctrl / Alt / Shift instead of `mod` in the preferences.
+
+Developer:
+
+- The Claude Desktop MCP integration now uses a stdio bridge built into Mailspring instead of relying on `npx`.
+- `--spec-directory` now resolves relative paths and fails fast when the directory does not exist.
+
 ## 1.24.0 (9/12/2026)
 
 Note: The Flatpak version of Mailspring now uses Portal for secret storage, and you may be prompted to re-authenticate accounts after upgrading.
