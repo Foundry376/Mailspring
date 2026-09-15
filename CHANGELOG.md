@@ -10,7 +10,7 @@ Features:
 
 Bug Fixes:
 
-- On Linux, fixed accounts being lost after upgrading when the KWallet secret name changed. Mailspring now falls back to the previous secret storage key and re-saves credentials.
+- On Linux, fixed accounts being lost after upgrading when the KWallet secret name changed. Mailspring now falls back to the previous secret storage key and re-saves credentials. (#2864) Thanks @LinusDierheimer!
 - Fixed mail rules breaking when a folder's ID changed right after it was created. Rules now match folders by name when the match is unambiguous.
 - Fixed the sidebar not switching from "Drafts" to "Activity" and other perspectives with the same layout.
 - Fixed reminders created in the draft UI missing the last reply timestamp, so they never fired.
