@@ -29,7 +29,7 @@ async function dispatch(thread: Thread, type = 'persist') {
 }
 
 function queuedMetadataValue() {
-  const calls = (Actions.queueTask as jasmine.Spy).calls;
+  const calls = (Actions.queueTask as unknown as jasmine.Spy).calls;
   const task = calls.length ? calls[calls.length - 1].args[0] : null;
   expect(task instanceof SyncbackMetadataTask).toBe(true);
   expect(task.pluginId).toBe(PLUGIN_ID);
