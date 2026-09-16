@@ -483,7 +483,7 @@ export class CalendarEventPopover extends React.Component<
 
     return (
       <div className="calendar-event-popover editing" tabIndex={0}>
-        <TabGroupRegion>
+        <TabGroupRegion className="popover-form">
           {/* Title row */}
           <div className="title-wrapper">
             <input
@@ -497,122 +497,134 @@ export class CalendarEventPopover extends React.Component<
             {/* CalendarColorPicker disabled until custom event colors are fully supported */}
           </div>
 
-          {/* Calendar selector - only shown for new events */}
-          {this.props.isNewEvent && this.props.calendars && this.props.accounts && (
-            <CalendarSelector
-              calendars={this.props.calendars}
-              accounts={this.props.accounts}
-              disabledCalendars={this.props.disabledCalendars || []}
-              selectedCalendarId={this.state.selectedCalendarId}
-              onChange={(calendarId, accountId) => {
-                this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
+          {/* Everything between the title and the buttons scrolls; the buttons stay put. */}
+          <div className="popover-body">
+            {/* Calendar selector - only shown for new events */}
+            {this.props.isNewEvent && this.props.calendars && this.props.accounts && (
+              <CalendarSelector
+                calendars={this.props.calendars}
+                accounts={this.props.accounts}
+                disabledCalendars={this.props.disabledCalendars || []}
+                selectedCalendarId={this.state.selectedCalendarId}
+                onChange={(calendarId, accountId) => {
+                  this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
+                }}
+              />
+            )}
+
+            {/* Location with video call toggle */}
+            <LocationVideoInput
+              value={location}
+              onChange={(value) => this.updateField('location', value)}
+              onVideoToggle={() => {
+                // Placeholder: could add video call link
               }}
             />
-          )}
 
-          {/* Location with video call toggle */}
-          <LocationVideoInput
-            value={location}
-            onChange={(value) => this.updateField('location', value)}
-            onVideoToggle={() => {
-              // Placeholder: could add video call link
-            }}
-          />
-
-          {/* All-day toggle */}
-          <AllDayToggle
-            checked={allDay}
-            onChange={(checked) => this.updateField('allDay', checked)}
-          />
-
-          {/* Start/End times using property rows */}
-          <EventPropertyRow label={localized('starts:')}>
-            <DatePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
-            {!allDay && (
-              <TimePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
-            )}
-          </EventPropertyRow>
-
-          <EventPropertyRow label={localized('ends:')}>
-            <DatePicker
-              value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
-              onChange={(ts) =>
-                this.updateEnd(
-                  allDay
-                    ? CalendarDateUtils.nextDayStartUnix(
-                        CalendarDateUtils.calendarDateFromUnix(ts / 1000)
-                      )
-                    : ts / 1000
-                )
-              }
+            {/* All-day toggle */}
+            <AllDayToggle
+              checked={allDay}
+              onChange={(checked) => this.updateField('allDay', checked)}
             />
-            {!allDay && (
-              <TimePicker value={end * 1000} onChange={(ts) => this.updateEnd(ts / 1000)} />
+
+            {/* Start/End times using property rows */}
+            <EventPropertyRow label={localized('starts:')}>
+              <DatePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
+              {!allDay && (
+                <TimePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
+              )}
+            </EventPropertyRow>
+
+            <EventPropertyRow label={localized('ends:')}>
+              <DatePicker
+                value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
+                onChange={(ts) =>
+                  this.updateEnd(
+                    allDay
+                      ? CalendarDateUtils.nextDayStartUnix(
+                          CalendarDateUtils.calendarDateFromUnix(ts / 1000)
+                        )
+                      : ts / 1000
+                  )
+                }
+              />
+              {!allDay && (
+                <TimePicker value={end * 1000} onChange={(ts) => this.updateEnd(ts / 1000)} />
+              )}
+            </EventPropertyRow>
+
+            {/* Time zone selector */}
+            <TimeZoneSelector
+              value={timezone}
+              onChange={(value) => this.updateField('timezone', value)}
+            />
+
+            {/* Repeat selector */}
+            <RepeatSelector
+              value={repeat}
+              onChange={(value) => this.updateField('repeat', value)}
+            />
+
+            {/* Alert selector */}
+            <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
+
+            {/* Show as selector */}
+            <ShowAsSelector
+              value={showAs}
+              onChange={(value) => this.updateField('showAs', value)}
+            />
+
+            {/* Invitees section - collapsible */}
+            {showInvitees ? (
+              <div className="expanded-section">
+                <div className="section-header">
+                  <span className="section-title">{localized('Invitees')}</span>
+                  <span
+                    className="section-close"
+                    onClick={() => this.setState({ showInvitees: false })}
+                  >
+                    ×
+                  </span>
+                </div>
+                <EventAttendeesInput
+                  ref={this.attendeesInputRef}
+                  className="event-participant-field"
+                  attendees={attendees}
+                  change={(val) => this.updateField('attendees', val)}
+                />
+              </div>
+            ) : (
+              <div className="action-link" onClick={() => this.setState({ showInvitees: true })}>
+                {localized('Add Invitees')}
+              </div>
             )}
-          </EventPropertyRow>
 
-          {/* Time zone selector */}
-          <TimeZoneSelector
-            value={timezone}
-            onChange={(value) => this.updateField('timezone', value)}
-          />
-
-          {/* Repeat selector */}
-          <RepeatSelector value={repeat} onChange={(value) => this.updateField('repeat', value)} />
-
-          {/* Alert selector */}
-          <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
-
-          {/* Show as selector */}
-          <ShowAsSelector value={showAs} onChange={(value) => this.updateField('showAs', value)} />
-
-          {/* Invitees section - collapsible */}
-          {showInvitees ? (
-            <div className="expanded-section">
-              <div className="section-header">
-                <span className="section-title">{localized('Invitees')}</span>
-                <span
-                  className="section-close"
-                  onClick={() => this.setState({ showInvitees: false })}
-                >
-                  ×
-                </span>
+            {/* Notes section - collapsible */}
+            {showNotes ? (
+              <div className="expanded-section">
+                <div className="section-header">
+                  <span className="section-title">{localized('Notes')}</span>
+                  <span
+                    className="section-close"
+                    onClick={() => this.setState({ showNotes: false })}
+                  >
+                    ×
+                  </span>
+                </div>
+                <textarea
+                  ref={this.notesTextareaRef}
+                  value={notes}
+                  aria-label={localized('Notes')}
+                  placeholder={localized('Add notes or URL...')}
+                  onChange={(e) => this.updateField('description', e.target.value)}
+                />
               </div>
-              <EventAttendeesInput
-                ref={this.attendeesInputRef}
-                className="event-participant-field"
-                attendees={attendees}
-                change={(val) => this.updateField('attendees', val)}
-              />
-            </div>
-          ) : (
-            <div className="action-link" onClick={() => this.setState({ showInvitees: true })}>
-              {localized('Add Invitees')}
-            </div>
-          )}
-
-          {/* Notes section - collapsible */}
-          {showNotes ? (
-            <div className="expanded-section">
-              <div className="section-header">
-                <span className="section-title">{localized('Notes')}</span>
-                <span className="section-close" onClick={() => this.setState({ showNotes: false })}>
-                  ×
-                </span>
+            ) : (
+              <div className="action-link" onClick={() => this.setState({ showNotes: true })}>
+                {localized('Add Notes or URL')}
               </div>
-              <textarea
-                ref={this.notesTextareaRef}
-                value={notes}
-                aria-label={localized('Notes')}
-                placeholder={localized('Add notes or URL...')}
-                onChange={(e) => this.updateField('description', e.target.value)}
-              />
-            </div>
-          ) : (
-            <div className="action-link" onClick={() => this.setState({ showNotes: true })}>
-              {localized('Add Notes or URL')}
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Action buttons */}
           <EventPopoverActions onSave={this.saveEdits} onCancel={() => Actions.closePopover()} />
@@ -699,80 +711,83 @@ class CalendarEventPopoverUnenditable extends React.Component<
             />
           )}
         </div>
-        {location && (
-          <div className="location">
-            {location.startsWith('http') || location.startsWith('tel:') ? (
-              <a href={location}>{location}</a>
-            ) : (
-              location
-            )}
-          </div>
-        )}
-        <div className="section">{this.renderTime()}</div>
-        <ScrollRegion className="section invitees">
-          <div className="label">{localized(`Invitees`)}: </div>
-          <div className="invitees-list">
-            {sortAttendeesByStatus(attendees).map((a, idx) => {
-              const partstat = a.partstat || 'NEEDS-ACTION';
-              const questionMarkIcon = (
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
-                </svg>
-              );
-              let statusIcon: React.ReactNode;
-              let statusClass = 'needs-action';
-              if (partstat === 'ACCEPTED') {
-                statusIcon = (
+        {/* Everything under the title scrolls as one body when the card is taller than the window. */}
+        <div className="popover-body">
+          {location && (
+            <div className="location">
+              {location.startsWith('http') || location.startsWith('tel:') ? (
+                <a href={location}>{location}</a>
+              ) : (
+                location
+              )}
+            </div>
+          )}
+          <div className="section">{this.renderTime()}</div>
+          <ScrollRegion className="section invitees">
+            <div className="label">{localized(`Invitees`)}: </div>
+            <div className="invitees-list">
+              {sortAttendeesByStatus(attendees).map((a, idx) => {
+                const partstat = a.partstat || 'NEEDS-ACTION';
+                const questionMarkIcon = (
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                     <path
-                      d="M1.5 5.5L4 8l4.5-6"
+                      d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
                       stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                );
-                statusClass = 'accepted';
-              } else if (partstat === 'DECLINED') {
-                statusIcon = (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path
-                      d="M2 2l6 6M8 2l-6 6"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
+                      strokeWidth="1.2"
                       strokeLinecap="round"
                     />
+                    <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
                   </svg>
                 );
-                statusClass = 'declined';
-              } else if (partstat === 'TENTATIVE') {
-                statusIcon = questionMarkIcon;
-                statusClass = 'tentative';
-              } else {
-                statusIcon = questionMarkIcon;
-              }
-              return (
-                <div key={idx} className={`attendee-chip ${statusClass}`}>
-                  <span className="attendee-status">{statusIcon}</span>
-                  <span className="attendee-name">{a.name || a.email}</span>
-                </div>
-              );
-            })}
-          </div>
-        </ScrollRegion>
-        <ScrollRegion className="section description">
-          <div className="description">
-            <div className="label">{localized(`Notes`)}: </div>
-            <div ref={this.descriptionRef}>{notes}</div>
-          </div>
-        </ScrollRegion>
+                let statusIcon: React.ReactNode;
+                let statusClass = 'needs-action';
+                if (partstat === 'ACCEPTED') {
+                  statusIcon = (
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path
+                        d="M1.5 5.5L4 8l4.5-6"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  );
+                  statusClass = 'accepted';
+                } else if (partstat === 'DECLINED') {
+                  statusIcon = (
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path
+                        d="M2 2l6 6M8 2l-6 6"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  );
+                  statusClass = 'declined';
+                } else if (partstat === 'TENTATIVE') {
+                  statusIcon = questionMarkIcon;
+                  statusClass = 'tentative';
+                } else {
+                  statusIcon = questionMarkIcon;
+                }
+                return (
+                  <div key={idx} className={`attendee-chip ${statusClass}`}>
+                    <span className="attendee-status">{statusIcon}</span>
+                    <span className="attendee-name">{a.name || a.email}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollRegion>
+          <ScrollRegion className="section description">
+            <div className="description">
+              <div className="label">{localized(`Notes`)}: </div>
+              <div ref={this.descriptionRef}>{notes}</div>
+            </div>
+          </ScrollRegion>
+        </div>
       </div>
     );
   }
