@@ -544,6 +544,90 @@ describe('ICSEventHelpers.shiftInlineExceptions', function () {
     expect(result).toBe(masterIcsWithException);
   });
 
+  // An EXDATE left behind after the rule moves matches nothing, so the cancelled occurrence
+  // comes back.
+  it('shifts the master EXDATEs with the series', function () {
+    const withExclusion = ICSEventHelpers.addExclusionDate(DAILY_STANDUP_ICS, T_OCC2_START, false);
+    const exdateOf = (ics: string) => (/^EXDATE[^:]*:(.*)$/im.exec(ics) || [])[1];
+    const before = exdateOf(withExclusion);
+    expect(before).toBeDefined();
+
+    const HALF_HOUR = 30 * 60 * 1000;
+    const shifted = ICSEventHelpers.shiftInlineExceptions(withExclusion, HALF_HOUR);
+    const after = exdateOf(shifted);
+
+    expect(after).toBeDefined();
+    expect(after).not.toBe(before);
+    // The excluded instant moved by exactly the same delta as the series.
+    const toUnix = (v: string) =>
+      Date.parse(
+        v.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z?$/, '$1-$2-$3T$4:$5:$6Z')
+      );
+    expect(toUnix(after) - toUnix(before)).toBe(HALF_HOUR);
+  });
+
+  it('leaves an ICS with no EXDATE untouched apart from the exception', function () {
+    const shifted = ICSEventHelpers.shiftInlineExceptions(masterIcsWithException, 60 * 60 * 1000);
+    expect(/EXDATE/i.test(shifted)).toBe(false);
+  });
+
+  it('keeps zoned RECURRENCE-IDs and EXDATEs in their zone rather than writing UTC under a TZID', function () {
+    // Both properties carry TZID=Europe/Vienna, so a shifted value has to stay wall-clock in
+    // that zone rather than becoming UTC under the parameter.
+    const VIENNA = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VTIMEZONE',
+      'TZID:Europe/Vienna',
+      'BEGIN:DAYLIGHT',
+      'TZOFFSETFROM:+0100',
+      'TZOFFSETTO:+0200',
+      'TZNAME:CEST',
+      'DTSTART:19700329T020000',
+      'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+      'END:DAYLIGHT',
+      'BEGIN:STANDARD',
+      'TZOFFSETFROM:+0200',
+      'TZOFFSETTO:+0100',
+      'TZNAME:CET',
+      'DTSTART:19701025T030000',
+      'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+      'END:STANDARD',
+      'END:VTIMEZONE',
+      'BEGIN:VEVENT',
+      'UID:vienna-series@test',
+      'DTSTART;TZID=Europe/Vienna:20260903T170000',
+      'DTEND;TZID=Europe/Vienna:20260903T173000',
+      'RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=TH',
+      'EXDATE;TZID=Europe/Vienna:20261001T170000',
+      'EXDATE;TZID=Europe/Vienna:20261029T170000',
+      'SUMMARY:management sync',
+      'DTSTAMP:20260101T000000Z',
+      'SEQUENCE:2',
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:vienna-series@test',
+      'RECURRENCE-ID;TZID=Europe/Vienna:20260917T170000',
+      'DTSTART;TZID=Europe/Vienna:20260924T170000',
+      'DTEND;TZID=Europe/Vienna:20260924T173000',
+      'SUMMARY:management sync',
+      'DTSTAMP:20260101T000000Z',
+      'SEQUENCE:2',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const shifted = ICSEventHelpers.shiftInlineExceptions(VIENNA, 15 * 60 * 1000);
+
+    expect(shifted).toContain('RECURRENCE-ID;TZID=Europe/Vienna:20260917T171500');
+    // One exclusion in summer time and one after the clocks go back: both move by exactly a
+    // quarter of an hour on the wall clock, which is what "the same delta as the series" means.
+    expect(shifted).toContain('EXDATE;TZID=Europe/Vienna:20261001T171500');
+    expect(shifted).toContain('EXDATE;TZID=Europe/Vienna:20261029T171500');
+    expect(shifted).not.toMatch(/TZID=Europe\/Vienna:\d{8}T\d{6}Z/);
+  });
+
   describe('with a DATE-valued RECURRENCE-ID', function () {
     // A daily all-day series with one inline exception on the 15th
     const ALLDAY_WITH_EXCEPTION = [
