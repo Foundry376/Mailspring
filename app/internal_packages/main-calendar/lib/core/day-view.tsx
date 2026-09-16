@@ -263,12 +263,7 @@ export class DayView extends React.Component<
             onChangeView={this.props.onChangeView}
             disabledViewButton={CalendarView.DAY}
           >
-            <button
-              key="today"
-              className="btn"
-              onClick={this._onClickToday}
-              style={{ position: 'absolute', left: 10 }}
-            >
+            <button key="today" className="btn" onClick={this._onClickToday}>
               Today
             </button>
           </HeaderControls>
