@@ -1159,3 +1159,94 @@ describe('ICSEventHelpers.expansionIterationBudget', function () {
     expect(ICSEventHelpers.expansionIterationBudget(ics, START, NOW)).toBe(FLOOR);
   });
 });
+
+// ---------------------------------------------------------------------------
+// DTSTAMP
+// ---------------------------------------------------------------------------
+
+describe('every helper that writes DTSTAMP writes it in UTC', function () {
+  // RFC 5545 section 3.8.7.2: DTSTAMP MUST be specified in UTC. A floating value has no Z and
+  // no zone, so a receiving client cannot tell when the change was made.
+  const UTC_DATE_TIME = /^\d{8}T\d{6}Z$/;
+  const stamps = (ics: string) => (ics.match(/^DTSTAMP:(.*)$/gm) || []).map((l) => l.slice(8));
+
+  const exception = () =>
+    ICSEventHelpers.createRecurrenceException(
+      DAILY_STANDUP_ICS,
+      T_OCC2_START,
+      T_NEW_START,
+      T_NEW_END,
+      false
+    );
+
+  const cases: Array<[string, () => string]> = [
+    [
+      'createICSString',
+      () =>
+        ICSEventHelpers.createICSString({
+          uid: 'stamp@test',
+          summary: 'Stamp',
+          start: new Date('2026-08-17T15:00:00.000Z'),
+          end: new Date('2026-08-17T16:00:00.000Z'),
+          timezone: 'America/Chicago',
+        }),
+    ],
+    [
+      'updateEventTimes',
+      () =>
+        ICSEventHelpers.updateEventTimes(DAILY_STANDUP_ICS, {
+          start: T_MASTER_START + 3600,
+          end: T_MASTER_START + 7200,
+        }),
+    ],
+    ['createRecurrenceException', () => exception().masterIcs],
+    [
+      'applyEditsToException',
+      () => {
+        const { masterIcs, recurrenceId } = exception();
+        return ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, { summary: 'Moved' });
+      },
+    ],
+    [
+      'shiftInlineExceptions',
+      () => ICSEventHelpers.shiftInlineExceptions(exception().masterIcs, 900000),
+    ],
+    [
+      'updateRecurringEventTimes',
+      () =>
+        ICSEventHelpers.updateRecurringEventTimes(
+          DAILY_STANDUP_ICS,
+          T_OCC2_START,
+          T_OCC2_START + 900,
+          T_OCC2_START + 4500,
+          false
+        ),
+    ],
+    [
+      'addExclusionDate',
+      () => ICSEventHelpers.addExclusionDate(DAILY_STANDUP_ICS, T_OCC2_START, false),
+    ],
+    [
+      'updateRecurrenceRule',
+      () => ICSEventHelpers.updateRecurrenceRule(DAILY_STANDUP_ICS, 'FREQ=WEEKLY'),
+    ],
+    [
+      'updateAttendees',
+      () => ICSEventHelpers.updateAttendees(DAILY_STANDUP_ICS, [{ email: 'a@example.com' }]),
+    ],
+    [
+      'updateEventProperty',
+      () => ICSEventHelpers.updateEventProperty(DAILY_STANDUP_ICS, 'summary', 'Renamed'),
+    ],
+  ];
+
+  for (const [name, run] of cases) {
+    it(name, function () {
+      const found = stamps(run());
+      expect(found.length).toBeGreaterThan(0);
+      for (const value of found) {
+        expect(value).toMatch(UTC_DATE_TIME);
+      }
+    });
+  }
+});
