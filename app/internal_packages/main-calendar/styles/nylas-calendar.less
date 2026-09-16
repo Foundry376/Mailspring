@@ -294,6 +294,9 @@ body.platform-win32 {
       pointer-events: none;
       z-index: 1000;
 
+      // The time tooltip hangs above the chip, so the preview itself must not clip.
+      overflow: visible;
+
       .drag-preview-time-tooltip {
         position: absolute;
         bottom: 100%;
@@ -490,6 +493,11 @@ body.platform-win32 {
       box-shadow: 1px 0 0 rgba(177, 177, 177, 0.15);
       &.weekend {
         background: rgba(0, 0, 0, 0.02);
+      }
+
+      &:has(.drag-preview) {
+        overflow: visible; // the tooltip is twice a column wide, so the column must not clip it
+        z-index: 4; // or the columns beside it paint over the half that hangs outside
       }
     }
   }
@@ -699,6 +707,7 @@ body.platform-win32 {
         outline-offset: -2px;
         pointer-events: none;
         position: relative;
+        overflow: visible; // the time tooltip hangs above the chip, as in the week/day preview
 
         .drag-preview-time-tooltip {
           position: absolute;
