@@ -1005,6 +1005,75 @@ export function addExclusionDate(ics: string, occurrenceStart: number, isAllDay:
 }
 
 /**
+ * Cancels the occurrence an inline exception VEVENT overrides: removes the VEVENT and excludes
+ * its slot on the master, in one write. Removing the VEVENT alone hands the slot back to the
+ * RRULE; the EXDATE is what cancels it.
+ *
+ * This is the only way to remove such an occurrence. The master and every exception share one
+ * calendar resource and the sync engine deletes by resource, so DestroyEventTask on an
+ * exception row takes the whole series with it (Foundry376/Mailspring-Sync#125 makes the
+ * engine refuse that form).
+ *
+ * @param ics - The master event's ICS data, including its inline exception VEVENTs
+ * @param recurrenceId - The RECURRENCE-ID of the exception to cancel, as stored on the row
+ * @returns The modified ICS, or the input unchanged when no exception matches
+ */
+export function removeInlineException(ics: string, recurrenceId: string): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+
+  const vcalendar = root.name === 'vcalendar' ? root : null;
+  if (!vcalendar) return ics;
+
+  // Register VTIMEZONE components so a TZID-relative RECURRENCE-ID compares as the instant
+  // it names rather than as floating local time.
+  registerTimezones(vcalendar, ical);
+
+  // The row stores the RECURRENCE-ID as written ('20260302T060000Z', '20260302', or wall-clock
+  // text whose zone lives only on the property), so a zoned value is matched as text.
+  const wanted = recurrenceId.replace(/[-:]/g, '');
+  const utc = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(wanted);
+  const wantedMs = utc ? Date.UTC(+utc[1], +utc[2] - 1, +utc[3], +utc[4], +utc[5], +utc[6]) : null;
+
+  let master: ICALComponent | null = null;
+  let exception: ICALComponent | null = null;
+  let slot: ICALTime | null = null;
+  for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
+    const ridProp = vevent.getFirstProperty('recurrence-id');
+    if (!ridProp) {
+      if (!master) master = vevent;
+      continue;
+    }
+    const ridValue = ridProp.getFirstValue() as ICALTime | null;
+    if (!ridValue || typeof ridValue.toJSDate !== 'function') continue;
+    const sameText = ridValue.toICALString() === wanted;
+    const sameInstant = wantedMs !== null && ridValue.toJSDate().getTime() === wantedMs;
+    if (sameText || sameInstant) {
+      exception = vevent;
+      slot = ridValue;
+    }
+  }
+
+  if (!master || !exception || !slot) return ics;
+
+  vcalendar.removeSubcomponent(exception);
+
+  // The EXDATE is the RECURRENCE-ID itself: the same instant, in the same zone and form, so
+  // it names the slot exactly the way the exception did.
+  addExdateProperty(master, slot.clone(), ical, slot.zone);
+  master.updatePropertyWithValue('dtstamp', nowUTC(ical));
+
+  // Cancelling an occurrence is a change the guests need to see, so advance SEQUENCE the way
+  // addExclusionDate does for a plain occurrence.
+  const sequence = master.getFirstPropertyValue('sequence');
+  if (sequence !== null) {
+    master.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
+  }
+
+  return root.toString();
+}
+
+/**
  * Sets, updates, or removes the recurrence rule (RRULE) on an event's ICS data.
  *
  * @param ics - The original ICS string
