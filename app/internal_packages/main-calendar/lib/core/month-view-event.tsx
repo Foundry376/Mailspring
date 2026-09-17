@@ -39,16 +39,18 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   };
 
   componentDidMount() {
-    this._scrollFocusedEventIntoView();
+    this._revealOnFocusGained(false);
   }
 
-  componentDidUpdate() {
-    this._scrollFocusedEventIntoView();
+  componentDidUpdate(prevProps: MonthViewEventProps) {
+    this._revealOnFocusGained(prevProps.focused);
   }
 
-  _scrollFocusedEventIntoView() {
+  // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
+  // doing both on every update reopens the card and jumps the grid on any re-render.
+  _revealOnFocusGained(wasFocused: boolean) {
     const { focused, event, onFocused } = this.props;
-    if (!focused) {
+    if (!focused || wasFocused) {
       return;
     }
     const eventNode = ReactDOM.findDOMNode(this);

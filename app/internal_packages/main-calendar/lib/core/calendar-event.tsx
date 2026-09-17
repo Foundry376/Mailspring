@@ -72,23 +72,24 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   };
 
   componentDidMount() {
-    this._scrollFocusedEventIntoView();
+    this._revealOnFocusGained(false);
   }
 
-  componentDidUpdate() {
-    this._scrollFocusedEventIntoView();
+  componentDidUpdate(prevProps: CalendarEventProps) {
+    this._revealOnFocusGained(prevProps.focused);
   }
 
-  _scrollFocusedEventIntoView() {
-    const { focused } = this.props;
-    if (!focused) {
+  // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
+  // doing both on every update reopens the card and jumps the grid on any re-render.
+  _revealOnFocusGained(wasFocused: boolean) {
+    const { focused, event, onFocused } = this.props;
+    if (!focused || wasFocused) {
       return;
     }
     const eventNode = ReactDOM.findDOMNode(this);
     if (!eventNode) {
       return;
     }
-    const { event, onFocused } = this.props;
     (eventNode as any).scrollIntoViewIfNeeded(true);
     onFocused(event);
   }
