@@ -452,6 +452,21 @@ export class MailspringCalendar extends React.Component<
       // Check if this is a recurring event (and not already an exception)
       const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
 
+      if (event.isRecurrenceException()) {
+        // Deleting a moved occurrence means cancelling it on the master; see
+        // removeInlineException for why the row must never be destroyed on its own.
+        const master = await DatabaseStore.findBy<Event>(Event, {
+          accountId: event.accountId,
+          calendarId: event.calendarId,
+          icsuid: event.icsuid,
+          recurrenceId: '',
+        });
+        if (master) {
+          await this._cancelExceptionOccurrence(master, event);
+          return;
+        }
+      }
+
       if (isRecurring && !event.isRecurrenceException()) {
         // Show recurring event dialog
         const choice = await showRecurringEventDialog('delete', occurrence.title);
@@ -506,6 +521,40 @@ export class MailspringCalendar extends React.Component<
       description: localized('Delete occurrence'),
     });
     Actions.queueTask(task);
+  }
+
+  /** Cancels the occurrence an inline exception overrides, by editing the master. */
+  async _cancelExceptionOccurrence(masterEvent: Event, exceptionEvent: Event) {
+    const undoData = {
+      ics: masterEvent.ics,
+      recurrenceStart: masterEvent.recurrenceStart,
+      recurrenceEnd: masterEvent.recurrenceEnd,
+    };
+
+    const updated = ICSEventHelpers.removeInlineException(
+      masterEvent.ics,
+      exceptionEvent.recurrenceId
+    );
+    if (updated === masterEvent.ics) {
+      // The row and its master disagree about which occurrence this is. Both live in one
+      // resource, so a DELETE would take the series; refuse rather than guess.
+      AppEnv.showErrorDialog({
+        title: localized('Delete Failed'),
+        message: localized(
+          'This occurrence could not be found in its series. Refresh the calendar and try again.'
+        ),
+      });
+      return;
+    }
+
+    masterEvent.ics = updated;
+    Actions.queueTask(
+      SyncbackEventTask.forUpdating({
+        event: masterEvent,
+        undoData,
+        description: localized('Delete occurrence'),
+      })
+    );
   }
 
   /**
