@@ -108,6 +108,8 @@ interface CalendarEventPopoverState {
   // New fields for enhanced editing
   allDay: boolean;
   repeat: RepeatOption;
+  /** The repeat value the event arrived with, so a save can tell whether the user changed it. */
+  originalRepeat: RepeatOption;
   alert: AlertTiming;
   showAs: ShowAsOption;
   calendarColor: string;
@@ -144,6 +146,7 @@ export class CalendarEventPopover extends React.Component<
       // Initialize new fields with defaults
       allDay: isAllDay || false,
       repeat: 'none',
+      originalRepeat: 'none',
       alert: '10min',
       showAs: 'busy',
       calendarColor: '#419bf9',
@@ -201,7 +204,7 @@ export class CalendarEventPopover extends React.Component<
     } catch (e) {
       // Fall back to defaults if we can't read the event
     }
-    this.setState({ editing: true, repeat, timezone });
+    this.setState({ editing: true, repeat, timezone, originalRepeat: repeat });
   };
 
   getStartMoment = () => moment(this.state.start * 1000);
@@ -326,9 +329,11 @@ export class CalendarEventPopover extends React.Component<
       });
     }
 
-    // Update recurrence rule (only for master event edits)
-    const rrule = repeatOptionToRRule(this.state.repeat);
-    ics = ICSEventHelpers.updateRecurrenceRule(ics, rrule);
+    // The Repeat control can't express INTERVAL, BYDAY, COUNT, UNTIL or RDATE, so writing it back
+    // unchanged would flatten the rule and bump SEQUENCE for every guest.
+    if (this.state.repeat !== this.state.originalRepeat) {
+      ics = ICSEventHelpers.updateRecurrenceRule(ics, repeatOptionToRRule(this.state.repeat));
+    }
 
     event.ics = ics;
     // Re-derive the cached columns from the written ICS, not from state: for a recurring "all
