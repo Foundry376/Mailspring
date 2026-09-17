@@ -1,100 +1,135 @@
-import React from 'react';
-import { RetinaImg } from 'mailspring-component-kit';
-import { localized, isRTL } from 'mailspring-exports';
+import React, { useEffect, useState } from 'react';
+import classnames from 'classnames';
+import { localized } from 'mailspring-exports';
 import { LinkStatsEntry, SubjectStatsEntry } from './root';
 
-export class MetricContainer extends React.Component<{ name: string }> {
-  render() {
-    return (
-      <div className="metric-container">
-        {this.props.children}
-        <div className="footer">{this.props.name}</div>
-      </div>
-    );
-  }
+/**
+ * Reveal transitions live only on the `.visible` state, so dropping the flag
+ * while loading (under the cover) resets instantly. It is restored two frames
+ * after fresh data commits: passive effects run after paint, and the first
+ * frame can still precede the clipped state being painted.
+ */
+function useRevealed(loading: boolean) {
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    if (loading) {
+      setRevealed(false);
+      return;
+    }
+    let frame = window.requestAnimationFrame(() => {
+      frame = window.requestAnimationFrame(() => setRevealed(true));
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [loading]);
+
+  return revealed;
 }
 
-export class MetricStat extends React.Component<{
-  name: string;
-  units: string;
-  value: number;
-  loading: boolean;
-}> {
-  _el: HTMLDivElement;
-
-  render() {
-    const { value, units, name } = this.props;
-
-    return (
-      <div className={`metric-stat ${name}`} ref={(el) => (this._el = el)}>
-        <div
-          className="layer hidden-on-web"
-          style={{
-            zIndex: 1,
-            padding: `15px 5px`,
-            textAlign: isRTL ? 'left' : 'right',
-          }}
-        >
-          <RetinaImg name={`metric-background-${name}.png`} mode={RetinaImg.Mode.ContentIsMask} />
-        </div>
-        <div
-          className="layer text-overlay"
-          style={{
-            zIndex: 3,
-          }}
-        >
-          <div className="text">{`${(value / 1).toLocaleString()}${units}`}</div>
-        </div>
-      </div>
-    );
-  }
+/**
+ * The unit of the reports grid: a bordered surface with the title top-left, an
+ * optional headline value and detail line beneath it, and the chart or table
+ * below. `full` spans the entire grid row.
+ */
+export function MetricCard({
+  title,
+  value,
+  detail,
+  full,
+  children,
+}: {
+  title: string;
+  value?: string;
+  detail?: string;
+  full?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className={classnames('metric-card', { full })}>
+      <div className="metric-card-title">{title}</div>
+      {value !== undefined && <div className="metric-card-value">{value}</div>}
+      {detail && <div className="metric-card-detail">{detail}</div>}
+      {children && <div className="metric-card-body">{children}</div>}
+    </div>
+  );
 }
 
-export class MetricHistogram extends React.Component<{
+export function MetricEmptyNote({ children }: { children: React.ReactNode }) {
+  return <div className="metric-empty-note">{children}</div>;
+}
+
+function AxisLabels({ left, right }: { left: React.ReactNode; right: React.ReactNode }) {
+  return (
+    <div className="axis-labels">
+      <div>{left}</div>
+      <div>{right}</div>
+    </div>
+  );
+}
+
+type Point = [number, number];
+
+/** Splits a day series into runs of consecutive plotted points; null values are gaps. */
+function plotSegments(values: (number | null)[]): Point[][] {
+  // A single sample still reads as a flat line rather than a point.
+  const series = values.length === 1 ? [values[0], values[0]] : values;
+  const max = Math.max(0, ...series.map((v) => v || 0)) || 1;
+  const step = 100 / Math.max(1, series.length - 1);
+
+  const segments: Point[][] = [];
+  let current: Point[] = [];
+  series.forEach((v, idx) => {
+    if (v === null) {
+      if (current.length) segments.push(current);
+      current = [];
+      return;
+    }
+    current.push([idx * step, ((max - v) / max) * 100]);
+  });
+  if (current.length) segments.push(current);
+  return segments;
+}
+
+/** Line chart of one value per day across the timespan. */
+export function MetricGraph({
+  loading,
+  values,
+  left,
+  right,
+}: {
   loading: boolean;
-  values: number[];
-  left: React.ReactChild;
-  right: React.ReactChild;
-}> {
-  _el: HTMLDivElement;
+  values: (number | null)[];
+  left: React.ReactNode;
+  right: React.ReactNode;
+}) {
+  const revealed = useRevealed(loading);
+  const segments = plotSegments(values);
+  const toPath = (points: Point[]) => points.map(([x, y]) => `${x},${y}`).join(' L');
+  const last = segments.length ? segments[segments.length - 1] : [];
+  const [endX, endY] = last.length ? last[last.length - 1] : [100, 100];
 
-  componentDidMount() {
-    if (!this.props.loading) {
-      window.requestAnimationFrame(() => this._el && this._el.classList.add('visible'));
-    }
-  }
-
-  render() {
-    const { values, left, right } = this.props;
-    let max = 0;
-    for (const v of values) {
-      max = Math.max(v, max);
-    }
-
-    return (
-      <div className="metric-histogram" ref={(el) => (this._el = el)}>
-        <div className="legend">
-          <div>{left}</div>
-          <div style={{ flex: 1 }} />
-          <div>{right}</div>
-        </div>
-        <div className="layer" style={{ zIndex: 2, top: '20%' }}>
-          {values.map((value, idx) => (
-            <div
-              key={idx}
-              className="column"
-              style={{
-                transitionDelay: `${idx * Math.round(800 / values.length)}ms`,
-                left: `${((idx + 1) / values.length) * 100}%`,
-                height: `${(value / max) * 100}%`,
-                width: `${100 / values.length}%`,
-              }}
-            />
-          ))}
-        </div>
+  return (
+    <div className={classnames('metric-graph', { visible: revealed })}>
+      <div className="plot">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          {segments.map((points, idx) => {
+            const [firstX] = points[0];
+            const [lastX] = points[points.length - 1];
+            return (
+              <React.Fragment key={idx}>
+                <path className="area" d={`M${firstX},100 L${toPath(points)} L${lastX},100 Z`} />
+                <path className="line" d={`M${toPath(points)}`} />
+              </React.Fragment>
+            );
+          })}
+        </svg>
+        {last.length > 0 && (
+          <div className="marker" style={{ left: `${endX}%`, top: `${endY}%` }} />
+        )}
       </div>
-    );
-  }
+      <AxisLabels left={left} right={right} />
+    </div>
+  );
 }
 
 export interface MetricBucket {
@@ -104,204 +139,112 @@ export interface MetricBucket {
   detail?: string;
 }
 
-/** Labelled bar chart for a handful of buckets, e.g. delay ranges or weekdays. */
-export class MetricBuckets extends React.Component<{
+/** Bar chart for a handful of buckets, e.g. delay ranges, hours, or weekdays. */
+export function MetricBuckets({
+  loading,
+  buckets,
+  formatValue,
+}: {
   loading: boolean;
   buckets: MetricBucket[];
   /** Formats the value shown above each bar; omit to show nothing. */
   formatValue?: (value: number) => string;
-}> {
-  _el: HTMLDivElement;
+}) {
+  const revealed = useRevealed(loading);
+  const max = Math.max(0, ...buckets.map((b) => b.value)) || 1;
+  const delayStep = Math.round(600 / (buckets.length || 1));
 
-  componentDidMount() {
-    if (!this.props.loading) {
-      window.requestAnimationFrame(() => this._el && this._el.classList.add('visible'));
-    }
-  }
-
-  render() {
-    const { buckets, formatValue } = this.props;
-    const max = Math.max(0, ...buckets.map((b) => b.value)) || 1;
-
-    return (
-      <div className="metric-histogram metric-buckets" ref={(el) => (this._el = el)}>
-        {buckets.map((bucket, idx) => (
-          <div key={bucket.label} className="bucket" title={bucket.detail}>
-            <div className="value">
-              {formatValue && bucket.value > 0 ? formatValue(bucket.value) : ''}
-            </div>
-            <div className="bar-area">
-              <div
-                className={bucket.value > 0 ? 'column' : 'column empty'}
-                style={{
-                  transitionDelay: `${idx * Math.round(800 / buckets.length)}ms`,
-                  height: `${(bucket.value / max) * 100}%`,
-                }}
-              />
-            </div>
-            <div className="label">{bucket.label}</div>
+  return (
+    <div className={classnames('metric-buckets', { visible: revealed })}>
+      {buckets.map((bucket, idx) => (
+        // Labels are not unique: hourly charts leave most of them blank.
+        <div key={idx} className="bucket" title={bucket.detail}>
+          <div className="value">
+            {formatValue && bucket.value > 0 ? formatValue(bucket.value) : ''}
           </div>
-        ))}
-      </div>
-    );
-  }
-}
-
-export class MetricGraph extends React.Component<{ loading: boolean; values: number[] }> {
-  _el: HTMLDivElement;
-
-  componentDidMount() {
-    if (!this.props.loading) {
-      window.setTimeout(() => this._el && this._el.classList.add('visible'), 50);
-    }
-  }
-
-  render() {
-    const { values } = this.props;
-    const total = values.reduce((a, sum) => (sum += a), 0);
-    const maxValue = Math.max(...values) || 1;
-    const step = 100.0 / values.length;
-
-    const pointsForSvg = values
-      .reverse()
-      .map((v, idx) => [(values.length - idx) * step, ((maxValue - v) / maxValue) * 10]);
-
-    // make a little diamond at the end
-    if (pointsForSvg[0]) {
-      const [fx, fy] = pointsForSvg[0];
-      const diamondRadius = 0.45;
-      pointsForSvg.unshift([fx - diamondRadius, fy]);
-      pointsForSvg.unshift([fx, fy - diamondRadius]);
-      pointsForSvg.unshift([fx + diamondRadius, fy]);
-      pointsForSvg.unshift([fx, fy + diamondRadius]);
-      pointsForSvg.unshift([fx - diamondRadius, fy]);
-    } else {
-      // avoid rendering an invalid SVG by making a single point
-      pointsForSvg[0] = [0, 0];
-    }
-
-    return (
-      <div className="metric-graph" ref={(el) => (this._el = el)}>
-        <div className="layer" style={{ zIndex: 1 }}>
-          {values.map((_, idx) => (
+          <div className="bar-area">
             <div
-              key={idx}
-              className="gridline"
-              style={{ left: `${((idx + 1) / values.length) * 100}%` }}
+              className={classnames('column', { empty: bucket.value === 0 })}
+              style={{
+                transitionDelay: `${idx * delayStep}ms`,
+                height: `${(bucket.value / max) * 100}%`,
+              }}
             />
-          ))}
+          </div>
+          <div className="label">{bucket.label}</div>
         </div>
-        <svg
-          className="layer"
-          style={{ zIndex: 2, overflow: 'visible' }}
-          width="100%"
-          height="100%"
-          viewBox={`0 0 100 10`}
-          version="1.1"
-        >
-          <path d={`M${pointsForSvg.map(([x, y]) => `${x},${y}`).join(' L')}`} />
-        </svg>
-        <div
-          className="layer text-overlay"
-          style={{
-            zIndex: 3,
-          }}
-        >
-          <div className="text">{(total / 1).toLocaleString()}</div>
-        </div>
-      </div>
-    );
-  }
+      ))}
+    </div>
+  );
 }
 
-export class MetricsBySubjectTable extends React.Component<{ data: SubjectStatsEntry[] }> {
-  render() {
-    const { data } = this.props;
-
-    return (
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>{localized('Subject Line')}</th>
-              <th style={{ width: '11vw' }}>{localized('Messages Sent')}</th>
-              <th style={{ width: '9vw' }}>{localized('Open Rate')}</th>
-              <th style={{ width: '11vw' }}>{localized('Link Click Rate')}</th>
-              <th style={{ width: '9vw' }}>{localized('Reply Rate')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map(({ subject, count, opens, clicks, replies }) => (
-              <tr key={subject}>
-                <td className="ellipsis">
-                  <span title={subject}>{subject}</span>
-                </td>
-                <td>{count}</td>
-                <td>
-                  {opens ? (
-                    `${Math.ceil((opens / count) * 100)}% (${opens})`
-                  ) : (
-                    <span className="empty">—</span>
-                  )}
-                </td>
-                <td>
-                  {clicks ? (
-                    `${Math.ceil((clicks / count) * 100)}% (${clicks})`
-                  ) : (
-                    <span className="empty">—</span>
-                  )}
-                </td>
-                <td>
-                  {replies ? (
-                    `${Math.ceil((replies / count) * 100)}% (${replies})`
-                  ) : (
-                    <span className="empty">—</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
+function RateCell({ numerator, denominator }: { numerator: number; denominator: number }) {
+  if (!numerator) {
+    return <span className="empty">—</span>;
   }
+  return <>{`${Math.round((numerator / denominator) * 100)}% (${numerator})`}</>;
 }
 
-export class MetricsByLinkTable extends React.Component<{ data: LinkStatsEntry[] }> {
-  render() {
-    const { data } = this.props;
+export function MetricsBySubjectTable({ data }: { data: SubjectStatsEntry[] }) {
+  return (
+    <table className="metric-table">
+      <thead>
+        <tr>
+          <th>{localized('Subject Line')}</th>
+          <th className="numeric">{localized('Messages Sent')}</th>
+          <th className="numeric">{localized('Open Rate')}</th>
+          <th className="numeric">{localized('Link Click Rate')}</th>
+          <th className="numeric">{localized('Reply Rate')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map(({ subject, count, opens, clicks, replies }) => (
+          <tr key={subject}>
+            <td className="ellipsis">
+              <span title={subject}>{subject}</span>
+            </td>
+            <td className="numeric">{count}</td>
+            <td className="numeric">
+              <RateCell numerator={opens} denominator={count} />
+            </td>
+            <td className="numeric">
+              <RateCell numerator={clicks} denominator={count} />
+            </td>
+            <td className="numeric">
+              <RateCell numerator={replies} denominator={count} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
-    return (
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>{localized('Link')}</th>
-              <th style={{ width: '11vw' }}>{localized('Messages Sent')}</th>
-              <th style={{ width: '11vw' }}>{localized('Link Click Rate')}</th>
-              <th style={{ width: '9vw' }}>{localized('Total Clicks')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map(({ url, count, messagesClicked, clicks }) => (
-              <tr key={url}>
-                <td className="ellipsis">
-                  <span title={url}>{url}</span>
-                </td>
-                <td>{count}</td>
-                <td>
-                  {messagesClicked ? (
-                    `${Math.ceil((messagesClicked / count) * 100)}% (${messagesClicked})`
-                  ) : (
-                    <span className="empty">—</span>
-                  )}
-                </td>
-                <td>{clicks || <span className="empty">—</span>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
+export function MetricsByLinkTable({ data }: { data: LinkStatsEntry[] }) {
+  return (
+    <table className="metric-table">
+      <thead>
+        <tr>
+          <th>{localized('Link')}</th>
+          <th className="numeric">{localized('Messages Sent')}</th>
+          <th className="numeric">{localized('Link Click Rate')}</th>
+          <th className="numeric">{localized('Total Clicks')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map(({ url, count, messagesClicked, clicks }) => (
+          <tr key={url}>
+            <td className="ellipsis">
+              <span title={url}>{url}</span>
+            </td>
+            <td className="numeric">{count}</td>
+            <td className="numeric">
+              <RateCell numerator={messagesClicked} denominator={count} />
+            </td>
+            <td className="numeric">{clicks || <span className="empty">—</span>}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 }

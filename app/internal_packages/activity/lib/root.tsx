@@ -113,7 +113,7 @@ class Root extends React.Component<
         <div className="activity-tab-panel hidden-on-web" hidden={tab !== 'engagement'}>
           <EngagementBoard accountIds={accountIds} timespan={timespan} />
         </div>
-        <div className="activity-tab-panel" hidden={tab !== 'reports'}>
+        <div className="activity-tab-panel reports" hidden={tab !== 'reports'}>
           <ScrollRegion className="activity-reports-scroll">
             <ActivityReports accountIds={accountIds} timespan={timespan} />
           </ScrollRegion>
