@@ -1,14 +1,12 @@
-import fs from 'fs';
 import React from 'react';
+import moment from 'moment';
 import { shell } from 'electron';
-import { ScrollRegion, ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg } from 'mailspring-component-kit';
 import {
   localized,
   localizedReactFragment,
-  AccountStore,
   Message,
   DatabaseStore,
-  FocusedPerspectiveStore,
   Actions,
 } from 'mailspring-exports';
 
@@ -18,23 +16,79 @@ import {
   MetricGraph,
   MetricHistogram,
   MetricsBySubjectTable,
+  MetricsByLinkTable,
+  MetricBuckets,
+  MetricBucket,
 } from './metrics-components';
 
 import ShareButton from './share-button';
 import { LINK_TRACKING_ID, OPEN_TRACKING_ID } from '../plugin-helpers';
-import { DEFAULT_TIMESPAN_ID, getTimespanStartEnd } from './timespan';
-import TimespanSelector from './timespan-selector';
+import { exportCsv } from '../csv-export';
+import { forEachMessageIn } from '../message-scan';
 import LoadingCover from './loading-cover';
-import { Moment } from 'moment';
+import { Timespan } from '../timespan';
 
-const CHUNK_SIZE = 500;
 const MINIMUM_THINKING_TIME = 2000;
 
-export interface Timespan {
-  id: string;
-  startDate: Moment;
-  endDate: Moment;
-  days: number;
+const FIRST_OPEN_BUCKETS: { label: () => string; maxSeconds: number }[] = [
+  { label: () => localized('< 5m'), maxSeconds: 5 * 60 },
+  { label: () => localized('< 30m'), maxSeconds: 30 * 60 },
+  { label: () => localized('< 1h'), maxSeconds: 60 * 60 },
+  { label: () => localized('< 4h'), maxSeconds: 4 * 60 * 60 },
+  { label: () => localized('< 1d'), maxSeconds: 24 * 60 * 60 },
+  { label: () => localized('< 3d'), maxSeconds: 3 * 24 * 60 * 60 },
+  { label: () => localized('3d+'), maxSeconds: Infinity },
+];
+
+function firstOpenBucketIndex(delaySeconds: number) {
+  return FIRST_OPEN_BUCKETS.findIndex((b) => delaySeconds < b.maxSeconds);
+}
+
+/** Seconds from send to each recipient's earliest open. */
+function firstOpenDelays(message: Message, openData: { recipient: string; timestamp: number }[]) {
+  const sentUnix = message.date.getTime() / 1000;
+  const earliest = new Map<string, number>();
+  for (const open of openData) {
+    const key = open.recipient || '';
+    const prev = earliest.get(key);
+    if (prev === undefined || open.timestamp < prev) {
+      earliest.set(key, open.timestamp);
+    }
+  }
+  return Array.from(earliest.values()).map((t) => Math.max(0, t - sentUnix));
+}
+
+function rateBuckets(labels: string[], sent: number[], opened: number[]): MetricBucket[] {
+  return labels.map((label, i) => ({
+    label,
+    value: sent[i] ? opened[i] / sent[i] : 0,
+    detail: localized('%@ of %@ opened', opened[i], sent[i]),
+  }));
+}
+
+function weekdayLabels() {
+  const base = moment().startOf('week');
+  return Array.from({ length: 7 }, (_, i) => base.clone().add(i, 'days').format('dd'));
+}
+
+function hourLabels() {
+  return Array.from({ length: 24 }, (_, i) =>
+    i % 6 === 0 ? moment().startOf('day').add(i, 'hours').format('hA').replace('M', '') : ''
+  );
+}
+
+/** A message that links to the same URL twice still counts once toward that link's send total. */
+function dedupeLinksByUrl(links: { url: string; click_count: number }[]) {
+  const byUrl = new Map<string, { url: string; click_count: number }>();
+  for (const link of links) {
+    const existing = byUrl.get(link.url);
+    if (existing) {
+      existing.click_count += link.click_count || 0;
+    } else {
+      byUrl.set(link.url, { url: link.url, click_count: link.click_count || 0 });
+    }
+  }
+  return Array.from(byUrl.values());
 }
 
 export interface ThreadStatEntry {
@@ -54,10 +108,23 @@ export interface SubjectStatsEntry {
   replies: number;
 }
 
+export interface LinkStatsEntry {
+  url: string;
+  /** Sent messages containing the link. */
+  count: number;
+  /** Sent messages in which the link was clicked at least once. */
+  messagesClicked: number;
+  clicks: number;
+}
+
 interface RootState {
   loading: boolean;
   version: number;
   metricsBySubjectLine: SubjectStatsEntry[];
+  metricsByLink: LinkStatsEntry[];
+  firstOpenBuckets: MetricBucket[];
+  openRateByHour: MetricBucket[];
+  openRateByWeekday: MetricBucket[];
   metrics: {
     receivedByDay: number[];
     receivedTimeOfDay: number[];
@@ -69,14 +136,14 @@ interface RootState {
   };
 }
 
-class RootWithTimespan extends React.Component<
+export default class ActivityReports extends React.Component<
   {
     timespan: Timespan;
     accountIds: string[];
   },
   RootState
 > {
-  static displayName = 'ActivityDashboardRootWithTimespan';
+  static displayName = 'ActivityReports';
 
   _mounted = false;
 
@@ -108,6 +175,10 @@ class RootWithTimespan extends React.Component<
         percentReplied: 0,
       },
       metricsBySubjectLine: [],
+      metricsByLink: [],
+      firstOpenBuckets: [],
+      openRateByHour: [],
+      openRateByWeekday: [],
     };
   }
 
@@ -126,25 +197,7 @@ class RootWithTimespan extends React.Component<
     endUnix: number,
     callback: (message: Message, messageUnix: number) => void | Promise<void>
   ) {
-    let chunkStartUnix = startUnix;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const messages = await this._onFetchChunk(accountIds, chunkStartUnix, endUnix);
-      if (!this._mounted) {
-        return;
-      }
-      for (const message of messages) {
-        const messageUnix = message.date.getTime() / 1000;
-        chunkStartUnix = Math.max(chunkStartUnix, messageUnix);
-        if (message.draft) {
-          continue;
-        }
-        await callback(message, messageUnix);
-      }
-      if (messages.length < CHUNK_SIZE) {
-        break;
-      }
-    }
+    await forEachMessageIn(accountIds, startUnix, endUnix, callback, () => !this._mounted);
   }
 
   _onComputeMetrics = async () => {
@@ -167,6 +220,12 @@ class RootWithTimespan extends React.Component<
     let linkTrackingEnabled = 0;
     let linkTrackingTriggered = 0;
     const threadStats: { [threadId: string]: ThreadStatEntry } = {};
+    const byLink: { [url: string]: LinkStatsEntry } = {};
+    const firstOpenCounts = Array(FIRST_OPEN_BUCKETS.length).fill(0);
+    const trackedByHour = Array(24).fill(0);
+    const openedByHour = Array(24).fill(0);
+    const trackedByWeekday = Array(7).fill(0);
+    const openedByWeekday = Array(7).fill(0);
 
     await this._forEachMessageIn(accountIds, startUnix, endUnix, (message, messageUnix) => {
       const dayIdx = Math.floor((messageUnix - startUnix) / dayUnix);
@@ -209,9 +268,16 @@ class RootWithTimespan extends React.Component<
       if (openM) {
         threadStats[message.threadId].tracked = true;
         openTrackingEnabled += 1;
+        trackedByHour[hourIdx] += 1;
+        trackedByWeekday[message.date.getDay()] += 1;
         if (openM.open_count > 0) {
           threadStats[message.threadId].opened = true;
           openTrackingTriggered += 1;
+          openedByHour[hourIdx] += 1;
+          openedByWeekday[message.date.getDay()] += 1;
+          for (const delay of firstOpenDelays(message, openM.open_data || [])) {
+            firstOpenCounts[firstOpenBucketIndex(delay)] += 1;
+          }
         }
       }
       const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
@@ -221,6 +287,19 @@ class RootWithTimespan extends React.Component<
         if (linkM.links.some((l) => l.click_count > 0)) {
           threadStats[message.threadId].clicked = true;
           linkTrackingTriggered += 1;
+        }
+        for (const link of dedupeLinksByUrl(linkM.links)) {
+          byLink[link.url] = byLink[link.url] || {
+            url: link.url,
+            count: 0,
+            messagesClicked: 0,
+            clicks: 0,
+          };
+          byLink[link.url].count += 1;
+          byLink[link.url].clicks += link.click_count || 0;
+          if (link.click_count > 0) {
+            byLink[link.url].messagesClicked += 1;
+          }
         }
       }
       return;
@@ -267,6 +346,10 @@ class RootWithTimespan extends React.Component<
       .filter((a) => a.count > 1)
       .sort((a, b) => b.opens - a.opens);
 
+    const byLinkSorted = Object.values(byLink).sort(
+      (a, b) => b.messagesClicked / b.count - a.messagesClicked / a.count || b.clicks - a.clicks
+    );
+
     // Okay! Make sure we've taken at least 1500ms and then fade in the stats
     const animationDelay = Math.max(0, metricsComputeStarted + MINIMUM_THINKING_TIME - Date.now());
 
@@ -278,6 +361,14 @@ class RootWithTimespan extends React.Component<
         loading: false,
         version: this.state.version + 1,
         metricsBySubjectLine: bySubjectSorted,
+        metricsByLink: byLinkSorted,
+        firstOpenBuckets: FIRST_OPEN_BUCKETS.map((b, i) => ({
+          label: b.label(),
+          value: firstOpenCounts[i],
+          detail: localized('%@ first opens', firstOpenCounts[i]),
+        })),
+        openRateByHour: rateBuckets(hourLabels(), trackedByHour, openedByHour),
+        openRateByWeekday: rateBuckets(weekdayLabels(), trackedByWeekday, openedByWeekday),
         metrics: {
           receivedByDay,
           receivedTimeOfDay,
@@ -293,87 +384,53 @@ class RootWithTimespan extends React.Component<
     }, animationDelay);
   };
 
-  _onFetchChunk(accountIds: string[], startUnix: number, endUnix: number) {
-    return new Promise<Message[]>((resolve) => {
-      window.requestAnimationFrame(() => {
-        DatabaseStore.findAll<Message>(Message)
-          .background()
-          .where(Message.attributes.accountId.in(accountIds))
-          .where(Message.attributes.date.greaterThan(startUnix))
-          .where(Message.attributes.date.lessThan(endUnix))
-          .order(Message.attributes.date.ascending())
-          .limit(CHUNK_SIZE)
-          .then(resolve);
-      });
-    });
-  }
-
   _onShowTemplates = () => {
     Actions.showTemplates();
   };
 
   _onExport = () => {
-    AppEnv.showSaveDialog({ defaultPath: 'report.csv' }, async (filepath) => {
-      if (!filepath) {
-        return;
-      }
+    const {
+      timespan: { startDate, endDate },
+      accountIds,
+    } = this.props;
 
-      const {
-        timespan: { startDate, endDate },
-        accountIds,
-      } = this.props;
-      const esc = (cell) => '"' + `${cell}`.replace(/"/g, '""') + '"';
-      const ws = fs.createWriteStream(filepath);
+    exportCsv(
+      'report.csv',
+      ['Sent', 'From', 'To', 'Cc', 'Bcc', 'Date', 'Subject', 'Opens', 'Clicks'],
+      (write) =>
+        this._forEachMessageIn(accountIds, startDate.unix(), endDate.unix(), (message) => {
+          let sent = 'false';
+          let opens: string | number = '';
+          let clicks: string | number = '';
 
-      ws.on('error', (err) => {
-        AppEnv.showErrorDialog({
-          title: localized('Export Failed'),
-          message: localized(
-            `Mailspring was unable to write to the file location you specified (%@).` +
-              `Try choosing another location.\n\n%@`,
-            filepath,
-            err.toString()
-          ),
-        });
-        return;
-      });
+          if (message.isFromMe()) {
+            sent = 'true';
+            opens = 'off';
+            clicks = 'off';
+            const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
+            if (openM) {
+              opens = openM.open_count;
+            }
 
-      ws.write('Sent,From,To,Cc,Bcc,Date,Subject,Opens,Clicks\n');
-
-      await this._forEachMessageIn(accountIds, startDate.unix(), endDate.unix(), (message) => {
-        let sent = 'false';
-        let opens = '';
-        let clicks = '';
-
-        if (message.isFromMe()) {
-          sent = 'true';
-          opens = 'off';
-          clicks = 'off';
-          const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
-          if (openM) {
-            opens = openM.open_count;
+            const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
+            if (linkM && linkM.tracked && linkM.links instanceof Array) {
+              clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
+            }
           }
 
-          const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
-          if (linkM && linkM.tracked && linkM.links instanceof Array) {
-            clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
-          }
-        }
-
-        const line =
-          `${esc(sent)},` +
-          `${esc(message.from.join(', '))},` +
-          `${esc(message.to.join(', '))},` +
-          `${esc(message.cc.join(', '))},` +
-          `${esc(message.bcc.join(', '))},` +
-          `${esc(message.date)},` +
-          `${esc(message.subject)},` +
-          `${esc(opens)},${esc(clicks)}\n`;
-
-        return new Promise<void>((resolve) => ws.write(line, () => resolve()));
-      });
-      ws.close();
-    });
+          return write([
+            sent,
+            message.from.join(', '),
+            message.to.join(', '),
+            message.cc.join(', '),
+            message.bcc.join(', '),
+            message.date,
+            message.subject,
+            opens,
+            clicks,
+          ]);
+        })
+    );
   };
 
   _onLearnMore = () => {
@@ -381,7 +438,17 @@ class RootWithTimespan extends React.Component<
   };
 
   render() {
-    const { metrics, metricsBySubjectLine, version, loading } = this.state;
+    const {
+      metrics,
+      metricsBySubjectLine,
+      metricsByLink,
+      firstOpenBuckets,
+      openRateByHour,
+      openRateByWeekday,
+      version,
+      loading,
+    } = this.state;
+    const percent = (v: number) => `${Math.round(v * 100)}%`;
     const lowTrackingUsage = !loading && metrics.percentUsingTracking < 75;
     let lowTrackingPhrase = `only enabled on ${metrics.percentUsingTracking}%`;
     if (metrics.percentUsingTracking <= 1) {
@@ -463,6 +530,22 @@ class RootWithTimespan extends React.Component<
             />
           </MetricContainer>
         </div>
+        <div className="section" style={{ display: 'flex' }}>
+          <MetricContainer name={localized('Time to first open')}>
+            <MetricBuckets key={version} buckets={firstOpenBuckets} loading={loading} />
+          </MetricContainer>
+          <MetricContainer name={localized('Open rate by hour sent')}>
+            <MetricBuckets key={version} buckets={openRateByHour} loading={loading} />
+          </MetricContainer>
+          <MetricContainer name={localized('Open rate by day sent')}>
+            <MetricBuckets
+              key={version}
+              buckets={openRateByWeekday}
+              loading={loading}
+              formatValue={percent}
+            />
+          </MetricContainer>
+        </div>
 
         <div className="section-divider">
           <div>{localized('Best Templates and Subject Lines')}</div>
@@ -477,6 +560,21 @@ class RootWithTimespan extends React.Component<
             </div>
           ) : (
             <MetricsBySubjectTable data={metricsBySubjectLine} />
+          )}
+        </div>
+
+        <div className="section-divider">
+          <div>{localized('Best Links')}</div>
+        </div>
+        <div className="section" style={{ display: 'flex' }}>
+          {metricsByLink.length === 0 ? (
+            <div className="empty-note">
+              {localized(
+                'Send messages with link tracking enabled to see which links recipients click most.'
+              )}
+            </div>
+          ) : (
+            <MetricsByLinkTable data={metricsByLink} />
           )}
         </div>
         <div className="section hidden-on-web" style={{ display: 'flex', textAlign: 'center' }}>
@@ -498,60 +596,3 @@ class RootWithTimespan extends React.Component<
     );
   }
 }
-
-class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespan }> {
-  static displayName = 'ActivityDashboardRoot';
-
-  constructor(props) {
-    super(props);
-
-    this.state = this.getStateForTimespanId(DEFAULT_TIMESPAN_ID);
-  }
-
-  getStateForTimespanId(timespanId: string) {
-    const [startDate, endDate] = getTimespanStartEnd(timespanId);
-    // if the difference in days is 1, we need to display [0, 1] = 2 items
-    const days = endDate.diff(startDate, 'days') + 1;
-    return {
-      timespan: {
-        id: timespanId,
-        startDate,
-        endDate,
-        days,
-      },
-    };
-  }
-
-  _onChangeTimespan = (timespanId: string) => {
-    this.setState(this.getStateForTimespanId(timespanId));
-  };
-
-  render() {
-    const { accountIds } = this.props;
-    const account = AccountStore.accountForId(accountIds[0]);
-
-    return (
-      <ScrollRegion className="activity-dashboard">
-        <div className="header">
-          <div style={{ flex: 1 }}>
-            <h2>{localized('Activity')}</h2>
-            <div className="accounts">
-              {accountIds.length > 1 ? localized('All Accounts') : account && account.label}
-            </div>
-          </div>
-          <TimespanSelector timespan={this.state.timespan} onChange={this._onChangeTimespan} />
-        </div>
-        <RootWithTimespan accountIds={accountIds} timespan={this.state.timespan} />
-      </ScrollRegion>
-    );
-  }
-}
-export default ListensToFluxStore(Root, {
-  stores: [FocusedPerspectiveStore],
-  getStateFromStores: (props) => {
-    return {
-      ...props,
-      accountIds: FocusedPerspectiveStore.current().accountIds,
-    };
-  },
-});

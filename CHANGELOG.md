@@ -857,9 +857,12 @@ If you are upgrading from an old version of Mailspring, download and run 1.12.0 
 
 If you're using the snap version of Mailspring, you may find that Mailspring forgets your passwords when you upgrade. I'm very sorry for the hassle this causes - issues with snap containment in version 1.12.0 caused Mailspring to lose many user's passwords during the upgrade process. If this applies to you, you may see password errors and need to:
 
-    Visit Preferences > Subscription and click Setup Mailspring ID and sign back in to your Mailspring account. (You should see an alert at launch that will remind you which email address you'd used for your Mailspring ID)
+    Visit Preferences > Subscription and click Setup Mailspring ID and sign back in to your Mailspring
+    account. (You should see an alert at launch that will remind you which email address you'd used
+    for your Mailspring ID)
 
-    Visit Preferences > Accounts and re-authenticate any accounts shown in red that are having connection difficulty.
+    Visit Preferences > Accounts and re-authenticate any accounts shown in red that are having
+    connection difficulty.
 
 ## 1.12.0 (10/09/2023)
 

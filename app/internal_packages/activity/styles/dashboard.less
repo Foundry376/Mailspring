@@ -11,7 +11,25 @@
 
 .activity-dashboard {
   height: 100%;
+  display: flex;
+  flex-direction: column;
   color: @text-color;
+
+  // Both tabs stay mounted so Reports doesn't recompute on every switch; the
+  // inactive one is hidden. Each tab scrolls its own content.
+  .activity-tab-panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    &[hidden] {
+      display: none;
+    }
+  }
+  .activity-reports-scroll {
+    flex: 1;
+    min-height: 0;
+  }
 
   .header {
     margin: 20px;
@@ -162,12 +180,45 @@
       transform-origin: bottom;
       transform: scaleY(0.2);
       opacity: 0;
-      transition: opacity 1s ease-out, transform 1s ease-out;
+      transition:
+        opacity 1s ease-out,
+        transform 1s ease-out;
     }
     &.visible {
       .column {
         transform: scaleY(1);
         opacity: 1;
+      }
+    }
+  }
+
+  .metric-buckets {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    .bucket {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .value,
+    .label {
+      font-size: @font-size-smaller;
+      color: @text-color-very-subtle;
+      text-align: center;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+    .bar-area {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+    }
+    .column {
+      width: 100%;
+      &.empty {
+        border-top-color: transparent;
       }
     }
   }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized, isRTL } from 'mailspring-exports';
-import { SubjectStatsEntry } from './root';
+import { LinkStatsEntry, SubjectStatsEntry } from './root';
 
 export class MetricContainer extends React.Component<{ name: string }> {
   render() {
@@ -92,6 +92,56 @@ export class MetricHistogram extends React.Component<{
             />
           ))}
         </div>
+      </div>
+    );
+  }
+}
+
+export interface MetricBucket {
+  label: string;
+  value: number;
+  /** Tooltip; typically the raw counts behind a rate. */
+  detail?: string;
+}
+
+/** Labelled bar chart for a handful of buckets, e.g. delay ranges or weekdays. */
+export class MetricBuckets extends React.Component<{
+  loading: boolean;
+  buckets: MetricBucket[];
+  /** Formats the value shown above each bar; omit to show nothing. */
+  formatValue?: (value: number) => string;
+}> {
+  _el: HTMLDivElement;
+
+  componentDidMount() {
+    if (!this.props.loading) {
+      window.requestAnimationFrame(() => this._el && this._el.classList.add('visible'));
+    }
+  }
+
+  render() {
+    const { buckets, formatValue } = this.props;
+    const max = Math.max(0, ...buckets.map((b) => b.value)) || 1;
+
+    return (
+      <div className="metric-histogram metric-buckets" ref={(el) => (this._el = el)}>
+        {buckets.map((bucket, idx) => (
+          <div key={bucket.label} className="bucket" title={bucket.detail}>
+            <div className="value">
+              {formatValue && bucket.value > 0 ? formatValue(bucket.value) : ''}
+            </div>
+            <div className="bar-area">
+              <div
+                className={bucket.value > 0 ? 'column' : 'column empty'}
+                style={{
+                  transitionDelay: `${idx * Math.round(800 / buckets.length)}ms`,
+                  height: `${(bucket.value / max) * 100}%`,
+                }}
+              />
+            </div>
+            <div className="label">{bucket.label}</div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -208,6 +258,45 @@ export class MetricsBySubjectTable extends React.Component<{ data: SubjectStatsE
                     <span className="empty">—</span>
                   )}
                 </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+}
+
+export class MetricsByLinkTable extends React.Component<{ data: LinkStatsEntry[] }> {
+  render() {
+    const { data } = this.props;
+
+    return (
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>{localized('Link')}</th>
+              <th style={{ width: '11vw' }}>{localized('Messages Sent')}</th>
+              <th style={{ width: '11vw' }}>{localized('Link Click Rate')}</th>
+              <th style={{ width: '9vw' }}>{localized('Total Clicks')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map(({ url, count, messagesClicked, clicks }) => (
+              <tr key={url}>
+                <td className="ellipsis">
+                  <span title={url}>{url}</span>
+                </td>
+                <td>{count}</td>
+                <td>
+                  {messagesClicked ? (
+                    `${Math.ceil((messagesClicked / count) * 100)}% (${messagesClicked})`
+                  ) : (
+                    <span className="empty">—</span>
+                  )}
+                </td>
+                <td>{clicks || <span className="empty">—</span>}</td>
               </tr>
             ))}
           </tbody>

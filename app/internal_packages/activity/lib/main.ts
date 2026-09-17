@@ -10,7 +10,7 @@ import { HasTutorialTip } from 'mailspring-component-kit';
 import ActivityMailboxPerspective from './activity-mailbox-perspective';
 import ActivityEventStore from './activity-event-store';
 import ActivityListButton from './list/activity-list-button';
-import Root from './dashboard/root';
+import Root from './root';
 
 const ActivityListButtonWithTutorialTip = HasTutorialTip(ActivityListButton, {
   title: localized('Open and link tracking'),

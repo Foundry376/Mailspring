@@ -2,8 +2,7 @@ import moment from 'moment';
 import React from 'react';
 import { localized } from 'mailspring-exports';
 import { DropdownMenu, Menu } from 'mailspring-component-kit';
-import { getTimespanOptions } from './timespan';
-import { Timespan } from './root';
+import { getTimespanOptions, Timespan } from './timespan';
 
 export default class TimespanSelector extends React.Component<{
   timespan: Timespan;
