@@ -595,7 +595,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
   };
 
   _onLearnMore = () => {
-    shell.openExternal('http://support.getmailspring.com/hc/en-us/articles/115002507891');
+    shell.openExternal('https://getmailspring.com/docs/activity-reports');
   };
 
   render() {

@@ -47,7 +47,7 @@ class RefreshButton extends React.Component<Record<string, unknown>, { refreshin
 
 const ProTourFeatures = [
   {
-    link: 'https://community.getmailspring.com/t/add-reminders-to-sent-messages/157',
+    link: 'https://getmailspring.com/docs/add-reminders-to-sent-messages',
     icon: `icon-composer-reminders.png`,
     title: localized(`Follow-up reminders`),
     text: localized(
@@ -55,7 +55,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/view-contact-and-company-profiles/159',
+    link: 'https://getmailspring.com/docs/view-contact-and-company-profiles',
     icon: `toolbar-person-sidebar.png`,
     title: localized(`Rich contact profiles`),
     text: localized(
@@ -63,7 +63,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
+    link: 'https://getmailspring.com/docs/read-receipts-link-tracking-and-activity-reports',
     icon: `icon-composer-eye.png`,
     title: localized(`Read Receipts`),
     text: localized(
@@ -71,7 +71,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/reply-faster-with-email-templates/167',
+    link: 'https://getmailspring.com/docs/reply-faster-with-email-templates',
     icon: `toolbar-templates.png`,
     title: localized(`Mail Templates`),
     text: localized(
@@ -79,7 +79,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
+    link: 'https://getmailspring.com/docs/read-receipts-link-tracking-and-activity-reports',
     icon: `icon-composer-linktracking.png`,
     title: localized(`Link tracking`),
     text: localized(
@@ -87,7 +87,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/schedule-messages-to-send-later/158',
+    link: 'https://getmailspring.com/docs/schedule-messages-to-send-later',
     icon: `icon-composer-sendlater.png`,
     title: localized(`Send Later`),
     text: localized(
@@ -95,7 +95,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/view-contact-and-company-profiles/159',
+    link: 'https://getmailspring.com/docs/view-contact-and-company-profiles',
     icon: `icon-composer-reminders.png`,
     title: localized(`Company overviews`),
     text: localized(
@@ -103,7 +103,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/snooze-emails-to-handle-them-later/161',
+    link: 'https://getmailspring.com/docs/snooze-emails-to-handle-them-later',
     icon: `toolbar-snooze.png`,
     title: localized(`Snooze messages`),
     text: localized(
@@ -111,7 +111,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/read-receipts-link-tracking-and-activity-reports/162',
+    link: 'https://getmailspring.com/docs/read-receipts-link-tracking-and-activity-reports',
     icon: `icon-toolbar-activity.png`,
     title: localized(`Mailbox insights`),
     text: localized(
@@ -119,7 +119,7 @@ const ProTourFeatures = [
     ),
   },
   {
-    link: 'https://community.getmailspring.com/t/automatically-translate-incoming-email/166',
+    link: 'https://getmailspring.com/docs/automatically-translate-incoming-email',
     icon: `pro-feature-translation.png`,
     title: localized(`Automatic Translation`),
     text: localized(
@@ -254,7 +254,7 @@ class PreferencesIdentity extends React.Component<
             <strong
               style={{ textTransform: 'capitalize' }}
             >{`Mailspring ${planDisplayName}`}</strong>,
-            <a href="https://community.getmailspring.com/docs?topic=241">
+            <a href="https://getmailspring.com/docs/quick-start-guide">
               {localized(`Help Center`)}
             </a>
           )}

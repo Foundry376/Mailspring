@@ -31,7 +31,7 @@ export const LocalizedErrorStrings = {
   ),
   ErrorInvalidAccount: localized(
     'This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@',
-    'http://support.getmailspring.com/hc/en-us/articles/115001881912'
+    'https://getmailspring.com/docs/enable-all-mail-folder-for-gmail'
   ),
   ErrorTLSNotAvailable: localized('TLS Not Available'),
   ErrorParse: localized('Parsing Error'),
@@ -78,7 +78,7 @@ export const LocalizedErrorStrings = {
   ),
   ErrorIdentityMissingFields: localized(
     'Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@',
-    'http://support.getmailspring.com/hc/en-us/articles/115002012491'
+    'https://getmailspring.com/docs/your-mailspring-id-is-missing-required-fields'
   ),
 };
 

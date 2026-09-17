@@ -140,7 +140,7 @@ export default class PackageManager {
         localized(
           `This plugin or theme %@ does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@`,
           pkg.name,
-          `http://support.getmailspring.com/hc/en-us/articles/115001918391`
+          `https://getmailspring.com/docs/updating-an-n1-nylas-mail-theme-for-mailspring`
         )
       );
       return;
@@ -255,7 +255,7 @@ export default class PackageManager {
         new Error(
           localized(
             `The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include "mailspring".\n\nFor more information, see this migration guide: %@`,
-            `http://support.getmailspring.com/hc/en-us/articles/115001918391`
+            `https://getmailspring.com/docs/updating-an-n1-nylas-mail-theme-for-mailspring`
           )
         )
       );

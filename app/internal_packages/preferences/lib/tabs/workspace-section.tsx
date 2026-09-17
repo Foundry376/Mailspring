@@ -61,7 +61,7 @@ class DefaultMailClientItem extends React.Component<
                 helper.registerForURLScheme('mailto');
               } else {
                 shell.openExternal(
-                  'https://community.getmailspring.com/t/choose-mailspring-as-the-default-mail-client-on-linux/191'
+                  'https://getmailspring.com/docs/choose-mailspring-as-the-default-mail-client-on-linux'
                 );
               }
             }}

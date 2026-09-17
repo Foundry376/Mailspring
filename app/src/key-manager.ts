@@ -209,13 +209,13 @@ class KeyManager {
         err.message ||
         localized(
           `Mailspring could not store your password securely. For more information, visit %@`,
-          'https://community.getmailspring.com/t/password-management-error/199'
+          'https://getmailspring.com/docs/password-management-error'
         ),
     });
 
     if (clickedButton == 0) {
       const shell = require('electron').shell;
-      shell.openExternal('https://community.getmailspring.com/t/password-management-error/199');
+      shell.openExternal('https://getmailspring.com/docs/password-management-error');
     }
 
     // tell the app to exit and rethrow the error to ensure code relying

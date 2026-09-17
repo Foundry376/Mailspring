@@ -25,8 +25,8 @@
   <url type="homepage">https://getmailspring.com/</url>
   <url type="bugtracker">https://community.getmailspring.com/c/bugs</url>
   <url type="contact">https://community.getmailspring.com/c/help</url>
-  <url type="help">http://support.getmailspring.com/</url>
-  <url type="faq">https://foundry376.zendesk.com/hc/en-us/sections/115000521892-Frequently-Asked-Questions</url>
+  <url type="help">https://getmailspring.com/docs/</url>
+  <url type="faq">https://getmailspring.com/docs/faq</url>
   <url type="donation">https://www.getmailspring.com/pro</url>
   <url type="contribute">https://github.com/Foundry376/Mailspring/blob/master/CONTRIBUTING.md</url>
   <url type="vcs-browser">https://github.com/Foundry376/Mailspring</url>

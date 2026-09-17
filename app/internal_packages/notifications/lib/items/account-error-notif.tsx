@@ -34,16 +34,16 @@ export default class AccountErrorNotification extends React.Component<
   }
 
   _onContactSupport = (erroredAccount: Account) => {
-    let url = 'https://support.getmailspring.com/hc/en-us/requests/new';
+    // Pre-fill a new topic in the community forum's Sync Issues category.
+    let url = 'https://community.getmailspring.com/new-topic?category=sync';
     if (erroredAccount) {
-      url += `?email=${encodeURIComponent(erroredAccount.emailAddress)}`;
       const { syncError } = erroredAccount;
       if (syncError != null) {
-        url += `&subject=${encodeURIComponent('Sync Error')}`;
-        const description = encodeURIComponent(
+        url += `&title=${encodeURIComponent('Sync Error')}`;
+        const body = encodeURIComponent(
           `Sync Error:\n\`\`\`\n${JSON.stringify(syncError, null, 2)}\n\`\`\``
         );
-        url += `&description=${description}`;
+        url += `&body=${body}`;
       }
     }
     shell.openExternal(url);
