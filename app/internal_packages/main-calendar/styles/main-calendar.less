@@ -10,6 +10,20 @@
   font-size: @font-size-small;
   max-height: 95vh;
   width: 300px;
+  // The 95vh cap only holds if the box clips; .popover-body below is what scrolls.
+  overflow: hidden;
+
+  .popover-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .popover-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
 
   .location {
     color: @text-color-very-subtle;
