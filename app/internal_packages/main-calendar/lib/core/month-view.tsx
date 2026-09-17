@@ -197,12 +197,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
             onChangeView={this.props.onChangeView}
             disabledViewButton={CalendarView.MONTH}
           >
-            <button
-              key="today"
-              className="btn"
-              onClick={this._onClickToday}
-              style={{ position: 'absolute', left: 10 }}
-            >
+            <button key="today" className="btn" onClick={this._onClickToday}>
               Today
             </button>
           </HeaderControls>

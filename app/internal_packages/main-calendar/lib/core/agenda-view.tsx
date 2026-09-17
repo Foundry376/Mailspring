@@ -254,12 +254,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
           onChangeView={this.props.onChangeView}
           disabledViewButton={CalendarView.AGENDA}
         >
-          <button
-            key="today"
-            className="btn"
-            onClick={this._onClickToday}
-            style={{ position: 'absolute', left: 10 }}
-          >
+          <button key="today" className="btn" onClick={this._onClickToday}>
             {localized('Today')}
           </button>
         </HeaderControls>
