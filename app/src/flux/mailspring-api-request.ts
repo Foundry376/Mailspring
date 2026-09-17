@@ -40,6 +40,13 @@ export function rootURLForServer(server: 'identity') {
   }
 
   if (server === 'identity') {
+    // MAILSPRING_IDENTITY_SERVER points the app at a self-hosted identity server
+    // without a rebuild. mailsync-process passes the result to the sync engine as
+    // IDENTITY_SERVER, so this repoints the C++ engine at the same host.
+    const override = process.env.MAILSPRING_IDENTITY_SERVER;
+    if (override) {
+      return override.replace(/\/+$/, '');
+    }
     return {
       development: 'http://localhost:5101',
       staging: 'https://id-staging.getmailspring.com',
