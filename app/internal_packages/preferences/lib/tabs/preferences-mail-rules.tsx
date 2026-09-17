@@ -114,6 +114,15 @@ class PreferencesMailRules extends React.Component<
       );
       return;
     }
+
+    if (!this.state.rules.some((r) => !r.disabled)) {
+      AppEnv.showErrorDialog(
+        localized(
+          'All of the mail rules for this account are disabled. Re-enable at least one rule before processing your inbox.'
+        )
+      );
+      return;
+    }
     Actions.startReprocessingMailRules(this.state.currentAccount.id);
   };
 

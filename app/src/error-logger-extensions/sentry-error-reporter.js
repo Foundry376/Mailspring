@@ -84,10 +84,26 @@ function parseStack(stack) {
   return frames.reverse();
 }
 
-function buildEvent({ err, extra, deviceHash, release, tags }) {
+// V8 throws this when it fails to compile a module's source text (see
+// node:internal/vm makeContextifyScript). Every report we've seen
+// (MAILSPRING-CLIENT-9C) has its entire stack inside node/electron
+// internals and node_modules — e.g. loading react-dom's bundled CJS file
+// out of app.asar — with no application code involved. That points to the
+// installed files themselves being corrupted or altered on disk (AV
+// software rewriting files it scans, a bad disk sector, a partial
+// extraction/update) rather than a bug we can fix here, and repeated
+// occurrences per launch (one per window that requires the damaged file)
+// make it noisy. Only skip it when nothing in_app is on the stack, so a
+// genuine syntax error in our own code still gets reported.
+const CONTEXTIFY_SCRIPT_ERROR = /^Failed to construct 'ContextifyScript':/;
+
+function isUnactionableCorruptionError(err, frames) {
+  return CONTEXTIFY_SCRIPT_ERROR.test(err.message || '') && frames.every(f => !f.in_app);
+}
+
+function buildEvent({ err, frames, extra, deviceHash, release, tags }) {
   const message = err.message || 'Unknown error';
   const name = err.name || 'Error';
-  const frames = parseStack(err.stack);
   // Sentry's Relay rejects events whose stacktrace.frames is empty
   // (it's marked nonempty in the schema), so omit stacktrace entirely
   // when we couldn't parse any frames.
@@ -194,9 +210,16 @@ module.exports = class SentryErrorReporter {
       err = new Error(message);
     }
 
+    const frames = parseStack(err.stack);
+    if (isUnactionableCorruptionError(err, frames)) {
+      safeLog(`Sentry: skipped unactionable error: ${err.message}`);
+      return;
+    }
+
     const release = this.getRelease();
     const event = buildEvent({
       err,
+      frames,
       extra,
       deviceHash: this.deviceHash,
       release,

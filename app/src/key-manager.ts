@@ -19,7 +19,18 @@ export const secureStorage = {
   isAvailable: (): Promise<boolean> => safeStorage.isAsyncEncryptionAvailable(),
   encrypt: (plaintext: string): Promise<Buffer> => safeStorage.encryptStringAsync(plaintext),
   decrypt: (encrypted: Buffer): Promise<DecryptResult> => safeStorage.decryptStringAsync(encrypted),
+  // The synchronous API is kept only to read blobs written by 1.23 and earlier. On KWallet the
+  // two APIs key off different wallet entries (sync: "Chromium Keys", async: "Mailspring Keys"),
+  // so a 1.23 blob is unreadable through decryptStringAsync even though both are tagged "v11".
+  decryptLegacy: (encrypted: Buffer): string => safeStorage.decryptString(encrypted),
 };
+
+// On Linux, Chromium's async keyring always has a last-resort provider whose key is a hardcoded
+// constant ("peanuts"); its ciphertexts are tagged "v10" instead of a real keyring's "v11".
+// isAsyncEncryptionAvailable() resolves true even when only that provider initialized, so the
+// tag is the only signal that the desktop keyring is unusable.
+const usesPlaintextFallbackKey = (encrypted: Buffer) =>
+  process.platform === 'linux' && encrypted.subarray(0, 3).toString() === 'v10';
 
 /**
  * A basic wrap around electron's secure key management. Consolidates all of
@@ -111,19 +122,26 @@ class KeyManager {
       return {} as KeySet;
     }
 
+    const encrypted = Buffer.from(encryptedCredentials, 'utf-8');
     let decrypted: DecryptResult;
     try {
-      decrypted = await secureStorage.decrypt(Buffer.from(encryptedCredentials, 'utf-8'));
-    } catch (err) {
-      // Stored-but-unreadable is not the same as nothing stored. Resolving to an empty keyset
-      // would let the next read-modify-write mutator persist it, erasing every account's
-      // password over a locked keyring or a secret service that has not started yet.
-      this._reportFatalError(
-        new Error(
-          localized('Mailspring could not read your saved passwords and cannot continue.') +
-            this._encryptionUnavailableHint()
-        )
-      );
+      decrypted = await secureStorage.decrypt(encrypted);
+    } catch (asyncErr) {
+      try {
+        // A blob from 1.23 or earlier. Flag it so it is rewritten with the async key below.
+        decrypted = { result: secureStorage.decryptLegacy(encrypted), shouldReEncrypt: true };
+      } catch (syncErr) {
+        // Stored-but-unreadable is not the same as nothing stored. Resolving to an empty keyset
+        // would let the next read-modify-write mutator persist it, erasing every account's
+        // password over a locked keyring or a secret service that has not started yet.
+        console.error('Mailspring could not read saved passwords.', asyncErr, syncErr);
+        this._reportFatalError(
+          new Error(
+            localized('Mailspring could not read your saved passwords and cannot continue.') +
+              this._encryptionUnavailableHint()
+          )
+        );
+      }
     }
 
     let keys: KeySet;
@@ -134,9 +152,10 @@ class KeyManager {
       return {} as KeySet;
     }
 
-    // Chromium raises this when the provider that encrypts new data is not the one this blob
-    // was written with, as it migrates Linux users to org.freedesktop.portal.Secret. The old key
-    // still decrypts, so this is hygiene: rewrite once, and never let a failure become fatal.
+    // Set by Chromium when the provider that encrypts new data is not the one this blob was
+    // written with (e.g. Linux users moving to org.freedesktop.portal.Secret), and by the legacy
+    // path above. The old key still decrypts, so this is hygiene: rewrite once, and never let a
+    // failure become fatal.
     if (decrypted.shouldReEncrypt && !this._reEncryptAttempted) {
       this._reEncryptAttempted = true;
       try {
@@ -152,21 +171,26 @@ class KeyManager {
   _encryptionUnavailableHint() {
     return process.platform === 'linux'
       ? localized(
-          ' On Linux, Mailspring requires a secret service such as org.freedesktop.portal.Secret or org.freedesktop.Secret.Service. Please ensure a provider is installed and running, then restart Mailspring.'
+          ' On Linux, Mailspring stores passwords in your desktop keyring (KWallet, GNOME Keyring, or another Secret Service provider). Please make sure it is installed, running, and unlocked, then restart Mailspring.'
         )
       : '';
   }
 
   async _writeKeyHash(keys: KeySet) {
-    if (!(await secureStorage.isAvailable())) {
-      throw new Error(
+    const unavailable = () =>
+      new Error(
         localized(
           `Mailspring could not store your password securely because encryption is not available on this system.`
         ) + this._encryptionUnavailableHint()
       );
+    if (!(await secureStorage.isAvailable())) {
+      throw unavailable();
     }
-    const enrcyptedCredentials = await secureStorage.encrypt(JSON.stringify(keys));
-    AppEnv.config.set(configCredentialsKey, enrcyptedCredentials);
+    const encryptedCredentials = await secureStorage.encrypt(JSON.stringify(keys));
+    if (usesPlaintextFallbackKey(encryptedCredentials)) {
+      throw unavailable();
+    }
+    AppEnv.config.set(configCredentialsKey, encryptedCredentials);
   }
 
   _reportFatalError(err: Error): never {

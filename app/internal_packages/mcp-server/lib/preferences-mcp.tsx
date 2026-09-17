@@ -9,6 +9,7 @@ import { Switch, RetinaImg, CopyButton } from 'mailspring-component-kit';
 import McpServerManager from './mcp-server-manager';
 import PreferencesMcpAccounts from './preferences-mcp-accounts';
 import PreferencesMcpAudit from './preferences-mcp-audit';
+import { writeMailspringClaudeDesktopEntry } from './claude-desktop-config';
 
 const execFileAsync = promisify(execFile);
 const CLAUDE_CODE_MCP_NAME = 'mailspring-mcp';
@@ -131,39 +132,7 @@ export default class PreferencesMcp extends React.Component<Record<string, never
 
   _onAddToClaudeDesktop = () => {
     try {
-      const configDir =
-        process.platform === 'win32'
-          ? path.join(process.env.APPDATA || '', 'Claude')
-          : path.join(os.homedir(), 'Library', 'Application Support', 'Claude');
-      const configPath = path.join(configDir, 'claude_desktop_config.json');
-
-      let config: { mcpServers?: Record<string, unknown> } = {};
-      try {
-        config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      } catch {
-        // File doesn't exist or is invalid — start fresh
-      }
-
-      if (!config.mcpServers) config.mcpServers = {};
-      config.mcpServers.mailspring = {
-        command: 'npx',
-        env: { AUTH_HEADER: `Bearer ${this.state.token}` },
-        args: [
-          '--registry=https://registry.npmjs.org/',
-          '--yes',
-          'mcp-remote@latest',
-          `http://127.0.0.1:${this.state.port}/mcp`,
-          '--allow-http',
-          '--transport',
-          'http-only',
-          '--header',
-          'Authorization:${AUTH_HEADER}',
-        ],
-      };
-
-      fs.mkdirSync(configDir, { recursive: true });
-      fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
-
+      writeMailspringClaudeDesktopEntry();
       this.setState({ claudeStatus: localized('Added!'), tryItVisible: true });
       setTimeout(() => this.setState({ claudeStatus: null }), 3000);
     } catch (err) {

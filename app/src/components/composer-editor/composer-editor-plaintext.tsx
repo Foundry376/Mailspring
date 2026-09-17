@@ -1,6 +1,6 @@
 import React from 'react';
 import { wrapPlaintextWithSelection } from './plaintext';
-import { handleFilePasted } from './composer-editor';
+import { handleFilePasted, shouldAttachPastedFile } from './composer-editor';
 
 interface ComposerEditorPlaintextProps {
   value: string;
@@ -108,7 +108,11 @@ export class ComposerEditorPlaintext extends React.Component<ComposerEditorPlain
 
   onPaste = (event: React.ClipboardEvent<any>) => {
     const { onFileReceived } = this.props;
-    if (onFileReceived && handleFilePasted(event.nativeEvent, onFileReceived)) {
+    if (
+      onFileReceived &&
+      shouldAttachPastedFile(event.nativeEvent.clipboardData) &&
+      handleFilePasted(event.nativeEvent, onFileReceived)
+    ) {
       event.preventDefault();
     }
   };

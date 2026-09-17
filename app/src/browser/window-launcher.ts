@@ -43,7 +43,16 @@ export default class WindowLauncher {
   }) {
     this._defaultWindowOpts = {
       frame: process.platform !== 'darwin',
-      toolbar: process.platform !== 'linux',
+      // Popout windows (composer, thread) have nothing in the sheet toolbar except the
+      // window title and the menu button, so wherever the OS draws a native frame the
+      // toolbar is a second title bar. Windows that need a toolbar (main, contacts) set
+      // it explicitly.
+      toolbar: process.platform === 'darwin',
+      // On Windows the renderer hides the native menu bar (AppEnv calls
+      // setMenuBarVisibility(false)) in favor of the toolbar's menu button. Popout
+      // windows have no toolbar, so let a single Alt press reveal the menu bar. On
+      // Linux this follows core.workspace.menubarStyle below.
+      autoHideMenuBar: process.platform === 'win32',
       hidden: false,
       devMode,
       safeMode,

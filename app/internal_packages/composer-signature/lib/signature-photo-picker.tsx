@@ -1,6 +1,6 @@
 import React from 'react';
 import { webUtils } from 'electron';
-import { localized, MailspringAPIRequest, IdentityStore } from 'mailspring-exports';
+import { localized, MailspringAPIRequest, IdentityStore, Utils } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
@@ -117,7 +117,13 @@ export default class SignaturePhotoPicker extends React.Component<
     this.setState({ isUploading: true });
 
     const ext = { 'image/jpg': 'jpg', 'image/png': 'png' }[blob.type];
-    const filename = `sig-${this.props.id}.${ext}`;
+
+    // The server stores assets at `{identityId}/{filename}` and the public URL encodes
+    // that key, so re-using a filename overwrites the previous upload in place — which
+    // rewrites the image in every already-sent email and, for teams sharing one
+    // Mailspring ID, clobbers other people's uploads (every fresh install's default
+    // signature has the id `initial`). Each upload gets a unique name instead.
+    const filename = `sig-${this.props.id}-${Utils.generateTempId().replace('local-', '')}.${ext}`;
     let link = null;
 
     try {

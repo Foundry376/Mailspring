@@ -11,6 +11,7 @@ import {
 } from 'mailspring-exports';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
+import { backgroundColorBehind, prepareEmailColors } from './email-color-detection';
 
 interface EmailFrameProps {
   content: string;
@@ -110,6 +111,14 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       const htmlWrapper = doc.getElementById('inbox-html-wrapper');
       if (htmlWrapper) {
         htmlWrapper.setAttribute('role', 'document');
+        try {
+          // Note: In some cases, prepareEmailColors modifies the doc, replacing
+          // hardcoded black text with inherited colors for better theme support.
+          const hasBackground = prepareEmailColors(htmlWrapper, backgroundColorBehind(iframeEl));
+          htmlWrapper.classList.toggle('has-background', hasBackground);
+        } catch (e) {
+          AppEnv.reportError(e);
+        }
       }
     }
 

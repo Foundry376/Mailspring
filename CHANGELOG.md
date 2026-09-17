@@ -1,8 +1,45 @@
 # Mailspring Changelog
 
-## 1.24.0 (9/1/2026)
+## 1.24.1 (9/14/2026)
+
+Features:
+
+- Added "Mark All as Read" to the folder context menu, and an option to show unread counts for all folders. Thanks @AnsCodeLab!
+- New drafts in a unified inbox now default to the account of the focused thread. Thanks @AnsCodeLab!
+- Added a `MessageActionMenuItem` extension point so plugins can add items to the message "..." menu. Thanks @AnsCodeLab!
+
+Bug Fixes:
+
+- On Linux, fixed accounts being lost after upgrading when the KWallet secret name changed. Mailspring now falls back to the previous secret storage key and re-saves credentials. (#2864) Thanks @LinusDierheimer!
+- Fixed mail rules breaking when a folder's ID changed right after it was created. Rules now match folders by name when the match is unambiguous.
+- Fixed the sidebar not switching from "Drafts" to "Activity" and other perspectives with the same layout.
+- Fixed reminders created in the draft UI missing the last reply timestamp, so they never fired.
+- Uploading a new signature image no longer overwrites the previous image on Mailspring's servers. Previously, replacing a signature image changed the image in emails you had already sent, and teams sharing a Mailspring ID could overwrite each other's default signature images.
+- On Windows, composer and thread popout windows no longer show a second title bar beneath the native one; press Alt in those windows to show the menu bar. Thanks @ejbiker93ss!
+- On Windows, the system tray icon is no longer blurry at 125% / 150% and other fractional display scales. Tray icons now ship as multi-size .ico files so Windows can pick an exact-match frame instead of stretching the 16px image.
+- Fixed popout windows sometimes opening with the wrong toolbar when a hot window is assigned a window type. Thanks @ejbiker93ss!
+- Fixed link and open tracking being lost when moving a draft between accounts.
+- When attaching multiple files to a draft, the file order is now preserved.
+- Pasting from Excel or OpenOffice now prefers the HTML clipboard content, and pasting several files at once attaches all of them, not just the first.
+- Pasted JPEG, GIF, BMP, and WebP clipboard images are now recognized so they stay inline in the composer. Thanks @AnsCodeLab!
+- Fixed some hardcoded colors in package stylesheets that did not follow the active theme.
+
+Improvements:
+
+- Emails with an explicit black text color (common in iCloud and Apple Mail signatures) are now shown white on dark background in dark mode, instead of a bright white background. (#2850)
+- The folder context menu is now grouped with separators.
+- On Windows, keyboard shortcuts are now shown with Ctrl / Alt / Shift instead of `mod` in the preferences.
+
+Developer:
+
+- The Claude Desktop MCP integration now uses a stdio bridge built into Mailspring instead of relying on `npx`.
+- `--spec-directory` now resolves relative paths and fails fast when the directory does not exist.
+
+## 1.24.0 (9/12/2026)
 
 Note: The Flatpak version of Mailspring now uses Portal for secret storage, and you may be prompted to re-authenticate accounts after upgrading.
+
+Note: Mailspring now requires macOS 13 (Ventura) or later, because Chromium has dropped support for macOS 12. Windows and Linux system requirements are unchanged.
 
 Features:
 
@@ -10,6 +47,7 @@ Features:
 - Added subject line support to email templates. (#2794)
 - In the calendar, dragging an event now converts between all-day and timed. (#2819, #2812) Thanks @manilabui!
 - Added an MCP `get_attachment` tool so local agents can view mail attachments. (#2807) Thanks @ahmedwalid05!
+- On Windows, Mailspring now recovers from GPU-related renderer crashes that happen before the window loads by relaunching with hardware acceleration disabled. Thanks @ejbiker93ss!
 
 Bug Fixes:
 
@@ -33,6 +71,25 @@ Bug Fixes:
 - On Linux, EROFS, EIO, ENOSPC, and EBADF are now swallowed alongside EPIPE in the stdout/stderr error handler. (#2789)
 - Plain text messages are no longer inverted in dark mode, causing black-on-dark-gray text.
 - Messages with stylesheets in the HTML `<head>` region now render with the styles intact.
+- Fixed recurring meetings whose series started years ago not appearing in the calendar. (#2845) Thanks @brhellman!
+- Fixed timed calendar events at midnight and across DST day boundaries rendering in the wrong day column or not at all. (#2847) Thanks @manilabui!
+- Fixed timed calendar events sitting off their gridlines on DST days. (#2852) Thanks @manilabui!
+- Fixed a timed event losing its time of day when its edge was dragged in month view. (#2858) Thanks @brhellman!
+- Fixed the calendar view jumping when an event was selected for the first time. (#2854) Thanks @brhellman!
+- Fixed the day/week calendar grid not scrolling to the end of the day in short windows. (#2851) Thanks @manilabui!
+- Fixed every calendar invitee being underlined as a malformed address. (#2844) Thanks @brhellman!
+- Fixed "Refresh Calendars" not actually syncing calendars. (#2853) Thanks @manilabui!
+- Fixed a TypeError when creating or editing calendar events with an organizer or attendees. Thanks @ejbiker93ss!
+- The calendar now syncs immediately after you RSVP to an invitation. Thanks @ejbiker93ss!
+- Fixed the mini month view's today marker not advancing past midnight. Thanks @ejbiker93ss!
+- Fixed Outlook-style read/unread keyboard shortcuts on Windows. (#2849) Thanks @ejbiker93ss!
+- Fixed "Reset Theme" after a theme compile error not recovering when the failing theme was set as the light or dark theme. Thanks @ejbiker93ss!
+- Fixed contact email addresses with surrounding whitespace failing validation or being sent as malformed recipients. Thanks @ejbiker93ss!
+- Mailsync startup failures now report the actual reason instead of "an unknown error has occurred". (#2827) Thanks @brhellman!
+- On macOS, Quick Look thumbnail generation now times out so hung `qlmanage` processes can't accumulate. (#2862) Thanks @nitay!
+- Fixed an unhandled promise rejection when opening identity links while signed out. (#2861)
+- Fixed the system tray icon not appearing on Linux when Mailspring launched before the desktop's tray host was ready, and when running in the Snap or Flatpak sandbox. (#2863, #2825)
+- Files copied from Finder, Explorer, or a Linux file manager and pasted into the composer now attach under their original filename instead of "Pasted File".
 
 Improvements:
 
@@ -42,23 +99,30 @@ Improvements:
 - HTML signatures can now be pasted into the "Raw Signature" box.
 - On Linux, autostart now uses XDG Desktop Portals when running inside Flatpak. (#2838) Thanks @LinusDierheimer!
 - The key manager now uses the async `safeStorage` API. (#2823) Thanks @LinusDierheimer!
+- Removed the legacy dark-theme email inversion; the "Match app theme" email render mode is gone and email bodies now default to light mode. (#2850) Thanks @ejbiker93ss!
 
 Localization:
 
 - Added Swedish desktop and integration labels. (#2837) Thanks @yeager!
+- Updated the Czech translations. (#2855) Thanks @tomo90!
 - Completed the missing Traditional Chinese strings. (#2790) Thanks @nrps9909!
 - Updated the Hebrew translations and added Hebrew to the list of human-verified languages. (#2801) Thanks @omeritzics!
 - Updated translations of new strings and made minor corrections. (#2784) Thanks @Impostor0729!
 
 Developer:
 
-- Updated Electron from 41.7.2 to 43.4.1. (#2818) Thanks @wrench-exile-legacy!
+- Updated Electron from 41.7.2 to 44.3.0 (Chromium 152, Node.js 24.20). (#2818, #2825) Thanks @wrench-exile-legacy and @LinusDierheimer!
+- Migrated to Electron 44's promise-based `clipboard` API; the module is no longer available in renderer processes.
+- Added Playwright coverage for composer paste (text, HTML, images, and copied files) and clipboard writes; `window.eval` is enabled under the Playwright harness so `page.evaluate` works.
 - Upgraded `tar` to 7.5.19 to address CVE-2026-59873. (#2811) Thanks @anupamme!
 - Switched `app/package.json` from `resolutions` to `overrides`. (#2822) Thanks @LinusDierheimer!
 - Fixed the three type errors that were keeping CI red. (#2829) Thanks @brhellman!
 - `reportError()` now captures a real stack for stackless inputs. (#2828)
 - Errors thrown by community plugins are no longer reported to Sentry. (#2783)
 - Uncaught `shell.openExternal` rejections now capture the caller stack. (#2788)
+- `ContextifyScript` compile errors with no first-party frames are no longer reported to Sentry. (#2859)
+- On Linux, newer versions of sqlite3 are now built with clang-15.
+- Added a Claude Code hook that lints edited TypeScript files.
 
 ## 1.23.0 (7/19/2026)
 

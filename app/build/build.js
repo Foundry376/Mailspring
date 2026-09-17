@@ -228,10 +228,14 @@ function buildPackagerOptions() {
           '*.dll',
           '*.pdb',
           '*.node',
+          // Windows tray icons: Electron loads .ico via LoadImage, which needs a real
+          // file on disk rather than a copy extracted from the asar on every change.
+          '*.ico',
           '**/vendor/**',
           'examples/**',
           '**/src/tasks/**',
           '**/src/quickpreview/**',
+          '**/mcp-stdio-bridge.js',
           '**/static/all_licenses.html',
           '**/static/extensions/**',
           '**/node_modules/spellchecker/**',

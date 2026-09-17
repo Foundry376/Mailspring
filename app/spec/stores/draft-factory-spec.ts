@@ -10,8 +10,11 @@ import {
   AccountStore,
   DatabaseStore,
   AttachmentStore,
+  MailboxPerspective,
   SanitizeTransformer,
+  FocusedContentStore,
   InlineStyleTransformer,
+  FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
 import DraftFactory from '../../src/flux/stores/draft-factory';
@@ -145,6 +148,28 @@ describe('DraftFactory', function draftFactory() {
   });
 
   describe('creating drafts', () => {
+    describe('createDraftForSendAgain', () => {
+      it('creates a new editable message with the original contents and recipients', () => {
+        spyOn(Actions, 'fetchFile');
+
+        waitsForPromise(() =>
+          DraftFactory.createDraftForSendAgain(fakeMessageWithFiles).then((draft) => {
+            expect(draft.threadId).toBeFalsy();
+            expect(draft.replyToHeaderMessageId).toBeFalsy();
+            expect(draft.forwardedHeaderMessageId).toBeFalsy();
+            expect(draft.subject).toBe(fakeMessageWithFiles.subject);
+            expect(draft.body).toBe(fakeMessageWithFiles.body);
+            expect(draft.to).toEqual(fakeMessageWithFiles.to);
+            expect(draft.cc).toEqual(fakeMessageWithFiles.cc);
+            expect(draft.bcc).toEqual(fakeMessageWithFiles.bcc);
+            expect(draft.from).toEqual(fakeMessageWithFiles.from);
+            expect(draft.files).toEqual(fakeMessageWithFiles.files);
+            expect(Actions.fetchFile).toHaveBeenCalled();
+          })
+        );
+      });
+    });
+
     describe('createDraftForReply', () => {
       it('should include a quoted text block', () => {
         waitsForPromise(() => {
@@ -889,6 +914,95 @@ describe('DraftFactory', function draftFactory() {
           });
         });
       });
+    });
+  });
+
+  // `_current` is typed as EmptyMailboxPerspective from its initializer; `_setPerspective` is
+  // the untyped production path, so cast rather than widen to `any`.
+  function setFocusedPerspective(perspective: MailboxPerspective) {
+    const store = FocusedPerspectiveStore as unknown as { _current: MailboxPerspective };
+    store._current = perspective;
+  }
+
+  describe('_accountForNewDraft', () => {
+    let secondAccount = null;
+
+    beforeEach(() => {
+      secondAccount = AccountStore.accounts()[1];
+    });
+
+    afterEach(() => {
+      // master-before-each never resets FocusedContentStore; keep thread focus from leaking.
+      FocusedContentStore._focused = {};
+      FocusedContentStore._keyboardCursor = {};
+    });
+
+    it('uses the perspective account when the perspective is single-account, ignoring any focused thread from another account', async () => {
+      const otherAccountThread = new Thread({
+        id: 'other-account-thread-id',
+        accountId: secondAccount.id,
+        subject: 'Other Account Thread',
+      });
+      setFocusedPerspective(new MailboxPerspective([account.id]));
+      Actions.setFocus({ collection: 'thread', item: otherAccountThread });
+
+      const draft = await DraftFactory.createDraft();
+      expect(draft.accountId).toEqual(account.id);
+      expect(draft.from[0].email).toEqual(account.defaultMe().email);
+    });
+
+    it("falls back to the perspective's first account when the perspective is multi-account and no thread is focused", async () => {
+      setFocusedPerspective(new MailboxPerspective([account.id, secondAccount.id]));
+
+      const draft = await DraftFactory.createDraft();
+      expect(draft.accountId).toEqual(account.id);
+      expect(draft.from[0].email).toEqual(account.defaultMe().email);
+    });
+
+    it('prefers the focused thread account over the perspective order when the perspective is multi-account', async () => {
+      const secondAccountThread = new Thread({
+        id: 'second-account-thread-id',
+        accountId: secondAccount.id,
+        subject: 'Second Account Thread',
+      });
+      setFocusedPerspective(new MailboxPerspective([account.id, secondAccount.id]));
+      Actions.setFocus({ collection: 'thread', item: secondAccountThread });
+
+      const draft = await DraftFactory.createDraft();
+      expect(draft.accountId).toEqual(secondAccount.id);
+      expect(draft.from[0].email).toEqual(secondAccount.defaultMe().email);
+    });
+
+    it('prefers the focused thread account regardless of account ordering in the perspective (mirror case)', async () => {
+      setFocusedPerspective(new MailboxPerspective([secondAccount.id, account.id]));
+      Actions.setFocus({ collection: 'thread', item: fakeThread });
+
+      const draft = await DraftFactory.createDraft();
+      expect(draft.accountId).toEqual(account.id);
+      expect(draft.from[0].email).toEqual(account.defaultMe().email);
+    });
+
+    it("falls back to the perspective's first account, without throwing, when the focused thread's account is not in the perspective", async () => {
+      const staleThread = new Thread({
+        id: 'stale-cross-account-thread-id',
+        accountId: 'account-id-not-in-perspective',
+        subject: 'Stale Cross-Account Thread',
+      });
+      setFocusedPerspective(new MailboxPerspective([account.id, secondAccount.id]));
+      Actions.setFocus({ collection: 'thread', item: staleThread });
+
+      const draft = await DraftFactory.createDraft();
+      expect(draft.accountId).toEqual(account.id);
+      expect(draft.from[0].email).toEqual(account.defaultMe().email);
+    });
+
+    it('always uses the pinned core.sending.defaultAccountIdForSend account, regardless of perspective or focused thread', async () => {
+      AppEnv.config.set('core.sending.defaultAccountIdForSend', secondAccount.id);
+      setFocusedPerspective(new MailboxPerspective([account.id]));
+
+      const draft = await DraftFactory.createDraft();
+      expect(draft.accountId).toEqual(secondAccount.id);
+      expect(draft.from[0].email).toEqual(secondAccount.defaultMe().email);
     });
   });
 });

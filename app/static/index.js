@@ -1,6 +1,10 @@
-window.eval = global.eval = function() {
-  throw new Error('Sorry, Mailspring does not support window.eval() for security reasons.');
-};
+// Playwright's page.evaluate / locator.evaluate serialize functions and eval them
+// in the page, so the hardening is skipped under the e2e harness.
+if (!process.env.PLAYWRIGHT) {
+  window.eval = global.eval = function () {
+    throw new Error('Sorry, Mailspring does not support window.eval() for security reasons.');
+  };
+}
 
 var util = null;
 
@@ -52,7 +56,7 @@ function setupWindow(loadSettings) {
   require(loadSettings.bootstrapScript);
 }
 
-window.onload = function() {
+window.onload = function () {
   try {
     var startTime = Date.now();
 

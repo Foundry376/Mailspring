@@ -72,12 +72,6 @@ mailspring-workspace {
   flex-grow: 0;
   flex-shrink: 0;
 
-  &:hover {
-    button {
-      background-position: 0 -12px;
-    }
-  }
-
   button {
     -webkit-app-region: no-drag;
     padding: 0;
@@ -88,53 +82,11 @@ mailspring-workspace {
     background-color: transparent;
     background-repeat: no-repeat;
     background-position: 0 0;
-    background-size: 12px 48px;
     border: 0;
-    &:active {
-      background-position: 0 -24px;
-    }
-  }
-  .close {
-    background-image: url('images/application-frame/close@1x.png');
-  }
-  .minimize {
-    background-image: url('images/application-frame/minimize@1x.png');
-  }
-  .maximize {
-    background-image: url('images/application-frame/fullscreen@1x.png');
-  }
-  &.alt-true {
-    .maximize {
-      background-image: url('images/application-frame/maximize@1x.png');
-    }
-  }
-}
-
-@media (-webkit-min-device-pixel-ratio: 2) {
-  .toolbar-window-controls {
-    .close {
-      background-image: url('images/application-frame/close@2x.png');
-    }
-    .minimize {
-      background-image: url('images/application-frame/minimize@2x.png');
-    }
-    .maximize {
-      background-image: url('images/application-frame/fullscreen@2x.png');
-    }
-    &.alt-true {
-      .maximize {
-        background-image: url('images/application-frame/maximize@2x.png');
-      }
-    }
   }
 }
 
 body.is-blurred {
-  .toolbar-window-controls {
-    button {
-      background-position: 0 -36px;
-    }
-  }
   .sheet-toolbar-container {
     background-image: linear-gradient(
       to bottom,
@@ -375,6 +327,205 @@ body.is-blurred {
   }
 }
 
+// MACOS
+// Match the macOS 26+ unified toolbar: a taller bar with capsule-shaped,
+// translucent buttons. Grouped buttons share one capsule and are separated by
+// hairlines rather than rendered as adjoining rectangles.
+
+// Focused windows get the "glass" treatment: buttons sit slightly brighter than
+// the bar, with a light rim inset along the top and bottom edges and a barely
+// visible shadow. Blurred windows flatten to a translucent tint with a hairline edge.
+@toolbar-btn-fill-darwin: fade(@background-primary, 85%);
+@toolbar-btn-fill-hover-darwin: @background-primary;
+@toolbar-btn-fill-active-darwin: mix(@text-color, @background-primary, 10%);
+@toolbar-btn-edge-darwin: inset 0 1px 0 lighten(@background-primary, 10%),
+  inset 0 -1px 0 lighten(@background-primary, 10%), 0 0 0 0.5px fade(@black, 7%),
+  0 1px 4px fade(@black, 5%);
+@toolbar-btn-fill-blurred-darwin: fade(@text-color, 4%);
+@toolbar-btn-edge-blurred-darwin: inset 0 0 0 0.5px fade(@text-color, 12%);
+@toolbar-btn-radius-darwin: (@toolbar-btn-height-darwin / 2);
+
+// Traffic-light glyphs shown on hover, drawn as inline SVG so they scale with
+// the display and pick up no bitmap blur. Colors are baked in because the
+// glyph sits on a fixed-color gumdrop, not on the theme.
+@gumdrop-glyph-close: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.6 3.6l4.8 4.8M8.4 3.6l-4.8 4.8' stroke='rgba(0,0,0,0.55)' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+@gumdrop-glyph-minimize: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' stroke='rgba(0,0,0,0.55)' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+@gumdrop-glyph-fullscreen: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 3v4.8L7.8 3zM9 9V4.2L4.2 9z' fill='rgba(0,0,0,0.55)'/%3E%3C/svg%3E");
+@gumdrop-glyph-maximize: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M6 3v6M3 6h6' stroke='rgba(0,0,0,0.55)' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+
+// `:where()` adds no specificity, so these platform rules rank exactly like the
+// base rules they refine and win only by source order. Themes can then override
+// them with ordinary selectors, as they already do for the win32/linux rules.
+:where(body.platform-darwin) {
+  // macOS 26+ toolbars are a flat surface continuous with the sidebar, with a
+  // hairline separating them from content, rather than a gradient bar.
+  .sheet-toolbar-container {
+    background-image: none;
+    background: @panel-background-color;
+  }
+  .sheet-toolbar {
+    border-bottom: 1px solid fade(@text-color, 10%);
+  }
+
+  .toolbar-window-controls {
+    margin-top: ((@toolbar-height-darwin - 20px) / 2);
+
+    // macOS 26+ gumdrops: 14px circles on a 23px pitch.
+    button {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      margin: 3px 4.5px;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 0.5px fade(@black, 15%);
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-repeat: no-repeat;
+        background-size: 14px 14px;
+        opacity: 0;
+      }
+      &:active {
+        filter: brightness(0.8);
+      }
+    }
+    // Colors sit in :where() so a theme's plain `.close` rule outranks them
+    // while still ranking above the base `button` rule's transparent fill.
+    button:where(.close) {
+      background-color: #ff5f57;
+    }
+    button:where(.minimize) {
+      background-color: #febc2e;
+    }
+    button:where(.maximize) {
+      background-color: #28c840;
+    }
+    .close::after {
+      background-image: @gumdrop-glyph-close;
+    }
+    .minimize::after {
+      background-image: @gumdrop-glyph-minimize;
+    }
+    .maximize::after {
+      background-image: @gumdrop-glyph-fullscreen;
+    }
+    &.alt-true .maximize::after {
+      background-image: @gumdrop-glyph-maximize;
+    }
+    &:hover button::after {
+      opacity: 1;
+    }
+  }
+
+  &.is-blurred {
+    .sheet-toolbar-container {
+      background-image: none;
+      background: @panel-background-color;
+    }
+    .toolbar-window-controls button {
+      background-color: fade(@text-color, 15%);
+      box-shadow: inset 0 0 0 0.5px fade(@black, 8%);
+    }
+  }
+
+  .toolbar-activity {
+    padding-top: ((@toolbar-height-darwin - 36px) / 2);
+  }
+
+  .sheet-toolbar {
+    height: @toolbar-height-darwin;
+    min-height: @toolbar-height-darwin;
+    max-height: @toolbar-height-darwin;
+
+    .item-container .window-title {
+      line-height: @toolbar-height-darwin;
+    }
+
+    // Let column toolbars fill the bar so items without a fixed height can be
+    // centered with flexbox instead of a line-height tied to the bar height.
+    [role='toolbar'] {
+      height: 100%;
+    }
+    .item-back,
+    .message-toolbar-arrow {
+      display: flex;
+      align-items: center;
+      line-height: normal;
+    }
+
+    .btn-toolbar {
+      // Flex-center the icon: with line-height alone, `vertical-align: middle`
+      // lands the glyph about a pixel below the button's center.
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
+      height: @toolbar-btn-height-darwin;
+      line-height: @toolbar-btn-height-darwin;
+      padding: 0 13px;
+      border-radius: @toolbar-btn-radius-darwin;
+      background: @toolbar-btn-fill-darwin;
+      box-shadow: @toolbar-btn-edge-darwin;
+      transition: background 120ms ease-out;
+      &.narrow {
+        padding: 0 10px;
+      }
+      &:hover {
+        background: @toolbar-btn-fill-hover-darwin;
+      }
+      &:active {
+        background: @toolbar-btn-fill-active-darwin;
+      }
+      &.btn-disabled:hover {
+        background: @toolbar-btn-fill-darwin;
+      }
+    }
+
+    .button-group {
+      // Explicit height: as a flex item of a full-height toolbar column the
+      // group would otherwise stretch and its outline would hang below the buttons.
+      height: @toolbar-btn-height-darwin;
+      border-radius: @toolbar-btn-radius-darwin;
+      box-shadow: @toolbar-btn-edge-darwin;
+      margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
+      .btn.btn-toolbar {
+        margin-top: 0;
+        box-shadow: none;
+        &:not(:first-child) {
+          border-left: 1px solid fade(@text-color, 10%);
+        }
+        // Set both ends explicitly: a lone button is also :last-child, which
+        // the base rules use to square off the left corners.
+        &:first-child {
+          border-top-left-radius: @toolbar-btn-radius-darwin;
+          border-bottom-left-radius: @toolbar-btn-radius-darwin;
+        }
+        &:last-child {
+          border-top-right-radius: @toolbar-btn-radius-darwin;
+          border-bottom-right-radius: @toolbar-btn-radius-darwin;
+        }
+      }
+    }
+  }
+
+}
+
+// Kept at the specificity of the generic `body.is-blurred` rule above (which it
+// must outrank), so it deliberately does not use the zero-specificity :where().
+body:where(.platform-darwin).is-blurred .sheet-toolbar-container {
+  .btn.btn-toolbar {
+    background: @toolbar-btn-fill-blurred-darwin;
+    box-shadow: @toolbar-btn-edge-blurred-darwin;
+  }
+  .button-group {
+    box-shadow: @toolbar-btn-edge-blurred-darwin;
+    .btn.btn-toolbar {
+      box-shadow: none;
+    }
+  }
+}
+
 // WINDOWS / LINUX
 // Toolbar Window Control
 
@@ -408,20 +559,35 @@ body.platform-linux {
     }
   }
 
-  // make the toolbar white in the standard theme
+  // Flat headerbar in the libadwaita / Yaru style: the toolbar shares the
+  // window background, buttons are tinted rather than gradient-filled, and a
+  // hairline separates the bar from content.
   .sheet-toolbar-container {
     background-image: none;
     background: @background-primary;
+  }
+  .sheet-toolbar {
+    border-bottom: 1px solid fade(@text-color, 12%);
+
+    .btn-toolbar {
+      background: fade(@text-color, 8%);
+      box-shadow: none;
+      border-radius: 6px;
+      &:hover {
+        background: fade(@text-color, 12%);
+      }
+      &:active {
+        background: fade(@text-color, 18%);
+      }
+    }
+    .button-group .btn.btn-toolbar:not(:first-child) {
+      border-left: 1px solid fade(@text-color, 10%);
+    }
   }
 
   // linux gumdrops are bigger (15px) and hover states are per-button
   // instead of for the entire set.
   .toolbar-window-controls {
-    &:hover {
-      button {
-        background-position: 0 0;
-      }
-    }
     button {
       width: 15px;
       height: 15px;
@@ -461,6 +627,7 @@ body.platform-linux {
       background-image: none;
       background: @background-primary;
       .btn-toolbar {
+        background: fade(@text-color, 5%);
         box-shadow: none;
       }
     }

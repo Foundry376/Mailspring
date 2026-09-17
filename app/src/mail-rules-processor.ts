@@ -19,6 +19,28 @@ import { ChangeLabelsTask } from './flux/tasks/change-labels-task';
 import { Message } from 'mailspring-exports';
 let MailRulesStore: typeof import('./flux/stores/mail-rules-store').default = null;
 type MailRule = import('./flux/stores/mail-rules-store').MailRule;
+type MailRuleAction = MailRule['actions'][number];
+
+/**
+Folder and label ids are hashes of the IMAP path, so a rename or a namespace
+prefix applied by the server after the rule was created leaves `action.value`
+pointing at an id that no longer exists. Fall back to the display name captured
+when the rule was saved. `displayName` is the full path with the INBOX / [Gmail]
+prefix removed, which makes it stable across exactly the prefix changes that
+cause the id to move.
+*/
+function resolveCategory(accountId: string, action: MailRuleAction) {
+  const byId = CategoryStore.byId(accountId, action.value);
+  if (byId || !action.valueName) {
+    return byId;
+  }
+  // Two folders can share a displayName (`Foo` and `INBOX/Foo`). Moving mail to
+  // the wrong one is worse than a disabled rule, so only an unambiguous match counts.
+  const byName = CategoryStore.categories(accountId).filter(
+    (c) => c.displayName === action.valueName
+  );
+  return byName.length === 1 ? byName[0] : undefined;
+}
 
 /**
 Note: At first glance, it seems like these task factory methods should use the
@@ -29,7 +51,7 @@ const MailRulesActions: {
   [action: string]: (
     message: Message,
     thread: Thread,
-    value: string
+    action: MailRuleAction
   ) => undefined | Task | Promise<undefined> | Promise<Task>;
 } = {
   markAsImportant: async (message, thread) => {
@@ -79,20 +101,20 @@ const MailRulesActions: {
     });
   },
 
-  forward: (message, thread, value) => {
+  forward: (message, thread, action) => {
     Actions.composeAndSendForward({
       thread: thread,
       message: message,
-      to: [new Contact({ email: value })],
+      to: [new Contact({ email: action.value })],
     });
     return undefined;
   },
 
-  changeFolder: async (message, thread, value) => {
-    if (!value) {
+  changeFolder: async (message, thread, action) => {
+    if (!action.value) {
       throw new Error('A folder is required.');
     }
-    const folder = CategoryStore.byId(thread.accountId, value);
+    const folder = resolveCategory(thread.accountId, action);
     if (!folder || !(folder instanceof Folder)) {
       throw new Error('The folder could not be found.');
     }
@@ -103,11 +125,11 @@ const MailRulesActions: {
     });
   },
 
-  applyLabel: async (message, thread, value) => {
-    if (!value) {
+  applyLabel: async (message, thread, action) => {
+    if (!action.value) {
       throw new Error('A label is required.');
     }
-    const label = CategoryStore.byId(thread.accountId, value);
+    const label = resolveCategory(thread.accountId, action);
     if (!label || !(label instanceof Label)) {
       throw new Error('The label could not be found.');
     }
@@ -132,14 +154,14 @@ const MailRulesActions: {
     });
   },
 
-  moveToLabel: async (message, thread, roleOrId) => {
-    if (!roleOrId) {
+  moveToLabel: async (message, thread, action) => {
+    if (!action.value) {
       throw new Error('A label is required.');
     }
 
-    const label = CategoryStore.categories(thread.accountId).find(
-      (c) => c.id === roleOrId || c.role === roleOrId
-    );
+    const label =
+      CategoryStore.categories(thread.accountId).find((c) => c.role === action.value) ||
+      resolveCategory(thread.accountId, action);
 
     if (!label || !(label instanceof Label)) {
       throw new Error('The label could not be found.');
@@ -163,6 +185,9 @@ class MailRulesProcessor {
     }
 
     const enabledRules = MailRulesStore.rules().filter((r) => !r.disabled);
+    if (enabledRules.length === 0) {
+      return;
+    }
 
     // When messages arrive, we process all the messages in parallel, but one
     // rule at a time. This is important, because users can order rules which
@@ -238,7 +263,7 @@ class MailRulesProcessor {
         if (!actionFn) {
           throw new Error(`${action.templateKey} is not a supported action.`);
         }
-        return actionFn(message, thread, action.value);
+        return actionFn(message, thread, action);
       });
 
       const actionResults = await Promise.all<Task | undefined>(actionPromises);

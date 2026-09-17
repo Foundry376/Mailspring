@@ -2,7 +2,7 @@
   "name": "mailspring",
   "productName": "Mailspring",
   "desktopName": "Mailspring.desktop",
-  "version": "1.24.0",
+  "version": "1.24.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/foundry376/mailspring.git"
@@ -75,11 +75,16 @@
     "xml2js": "^0.6.2"
   },
   "overrides": {
-    "electron": "43.4.1",
+    "electron": "44.3.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0"
   },
   "optionalDependencies": {
     "windows-focus-assist": "^1.4.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "es5-ext@0.10.64": true,
+    "windows-focus-assist@1.4.0": true
   }
 }

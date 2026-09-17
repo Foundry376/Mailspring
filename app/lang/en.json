@@ -1,4 +1,7 @@
 {
+  " On Linux, Mailspring stores passwords in your desktop keyring (KWallet, GNOME Keyring, or another Secret Service provider). Please make sure it is installed, running, and unlocked, then restart Mailspring.": " On Linux, Mailspring stores passwords in your desktop keyring (KWallet, GNOME Keyring, or another Secret Service provider). Please make sure it is installed, running, and unlocked, then restart Mailspring.",
+  "Mailspring could not read your saved passwords and cannot continue.": "Mailspring could not read your saved passwords and cannot continue.",
+  "Mailspring could not store your password securely because encryption is not available on this system.": "Mailspring could not store your password securely because encryption is not available on this system.",
   "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.",
   "%1$@ has %2$@ this event": "%1$@ has %2$@ this event",
   "%1$@ of %2$@": "%1$@ of %2$@",

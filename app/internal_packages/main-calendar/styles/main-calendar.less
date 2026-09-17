@@ -650,3 +650,13 @@
     }
   }
 }
+
+// The macOS 26+ toolbar is taller and uses a capsule-shaped search field.
+:where(body.platform-darwin) .event-search-bar {
+  height: @toolbar-btn-height-darwin;
+  line-height: @toolbar-btn-height-darwin;
+  margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
+  padding-left: @padding-base-horizontal;
+  padding-right: @padding-base-horizontal;
+  border-radius: (@toolbar-btn-height-darwin / 2);
+}

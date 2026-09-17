@@ -1,3 +1,4 @@
+import ICAL from 'ical.js';
 import * as ICSEventHelpers from '../src/ics-event-helpers';
 
 // ---------------------------------------------------------------------------
@@ -90,6 +91,33 @@ function getPropertyValue(ics: string, propName: string): string | null {
   const match = new RegExp(`^${propName.toUpperCase()}[;:](.+)$`, 'im').exec(ics);
   return match ? match[1].trim() : null;
 }
+
+describe('ICSEventHelpers.createICSString invitations', function () {
+  it('creates valid organizer and attendee properties for a meeting invitation', function () {
+    const ics = ICSEventHelpers.createICSString({
+      uid: 'meeting-invite@test',
+      summary: 'Planning meeting',
+      start: new Date('2026-08-17T15:00:00.000Z'),
+      end: new Date('2026-08-17T16:00:00.000Z'),
+      timezone: 'America/Chicago',
+      organizer: { email: 'organizer@example.com', name: 'Organizer' },
+      attendees: [{ email: 'attendee@example.com', name: 'Attendee' }],
+    });
+
+    const root = new ICAL.Component(ICAL.parse(ics));
+    const event = root.getFirstSubcomponent('vevent');
+    const organizer = event.getFirstProperty('organizer');
+    const attendee = event.getFirstProperty('attendee');
+
+    expect(organizer.getFirstValue()).toBe('mailto:organizer@example.com');
+    expect(organizer.getParameter('cn')).toBe('Organizer');
+    expect(attendee.getFirstValue()).toBe('mailto:attendee@example.com');
+    expect(attendee.getParameter('cn')).toBe('Attendee');
+    expect(attendee.getParameter('partstat')).toBe('NEEDS-ACTION');
+    expect(attendee.getParameter('role')).toBe('REQ-PARTICIPANT');
+    expect(attendee.getParameter('rsvp')).toBe('TRUE');
+  });
+});
 
 // Recurring event whose existing exception uses RECURRENCE-ID in *TZID format*
 // (e.g., produced by a CalDAV server or an older code path).

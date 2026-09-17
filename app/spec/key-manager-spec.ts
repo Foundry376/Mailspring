@@ -20,6 +20,10 @@ describe('KeyManager', function () {
     spyOn(secureStorage, 'encrypt').andCallFake((plaintext: string) =>
       Promise.resolve(Buffer.from(plaintext))
     );
+    // The sync API only matters for pre-1.24 blobs; specs that exercise it override this.
+    spyOn(secureStorage, 'decryptLegacy').andCallFake(() => {
+      throw new Error('sync backend unavailable');
+    });
   });
 
   describe('_getKeyHash', function () {
@@ -87,6 +91,22 @@ describe('KeyManager', function () {
       expect(this.config[CREDENTIALS_KEY]).toBe(untouched);
     });
 
+    // 1.23 encrypted with the synchronous API, which on KWallet uses a different wallet entry
+    // than the async provider, so those blobs only open through decryptString.
+    it('falls back to the synchronous API for pre-1.24 blobs and re-encrypts them', async function () {
+      this.config[CREDENTIALS_KEY] = storedBlob();
+      spyOn(secureStorage, 'decrypt').andCallFake(() =>
+        Promise.reject(new Error('Error while decrypting the ciphertext'))
+      );
+      (secureStorage.decryptLegacy as jasmine.Spy).andCallFake(() => '{"a-imap":"secret"}');
+      spyOn(KeyManager, '_reportFatalError');
+
+      expect(await KeyManager._getKeyHash()).toEqual({ 'a-imap': 'secret' });
+      expect(KeyManager._reportFatalError).not.toHaveBeenCalled();
+      expect(secureStorage.encrypt).toHaveBeenCalledWith('{"a-imap":"secret"}');
+      expect(this.config[CREDENTIALS_KEY]).toEqual(Buffer.from('{"a-imap":"secret"}'));
+    });
+
     it('starts over when the decrypted value is not a keyset', async function () {
       this.config[CREDENTIALS_KEY] = storedBlob();
       spyOn(secureStorage, 'decrypt').andCallFake(() =>
@@ -144,6 +164,40 @@ describe('KeyManager', function () {
       }
       expect(raised).not.toBe(null);
       expect(secureStorage.encrypt).not.toHaveBeenCalled();
+    });
+
+    describe('on Linux', function () {
+      beforeEach(function () {
+        this.platform = Object.getOwnPropertyDescriptor(process, 'platform');
+        Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
+      });
+      afterEach(function () {
+        Object.defineProperty(process, 'platform', this.platform);
+      });
+
+      // isAsyncEncryptionAvailable() is true on Linux even when the keyring failed, because
+      // Chromium falls back to a hardcoded key whose ciphertexts are tagged "v10".
+      it('refuses to persist a blob encrypted with the hardcoded fallback key', async function () {
+        (secureStorage.encrypt as jasmine.Spy).andCallFake(() =>
+          Promise.resolve(Buffer.from('v10peanuts'))
+        );
+        let raised: Error = null;
+        try {
+          await KeyManager._writeKeyHash({ 'a-imap': 'secret' });
+        } catch (err) {
+          raised = err;
+        }
+        expect(raised).not.toBe(null);
+        expect(this.config[CREDENTIALS_KEY]).toBeUndefined();
+      });
+
+      it('persists a blob encrypted with the desktop keyring', async function () {
+        (secureStorage.encrypt as jasmine.Spy).andCallFake(() =>
+          Promise.resolve(Buffer.from('v11keyring'))
+        );
+        await KeyManager._writeKeyHash({ 'a-imap': 'secret' });
+        expect(this.config[CREDENTIALS_KEY]).toEqual(Buffer.from('v11keyring'));
+      });
     });
   });
 

@@ -1,5 +1,5 @@
 import { test, expect, ElectronApplication, Page } from '@playwright/test';
-import { launchApp, closeApp, executeInRenderer } from '../helpers';
+import { launchApp, closeApp } from '../helpers';
 import fs from 'fs';
 import path from 'path';
 
@@ -102,12 +102,9 @@ test('creating a template persists it as an HTML file and renaming updates the f
   // Rename the template via Actions.renameTemplate dispatched through the renderer.
   // Directly calling the action is more reliable than triggering onBlur, because
   // clicking elsewhere changes the selected template before blur fires.
-  await executeInRenderer(electronApp, `
-    (function() {
-      var Actions = require('mailspring-exports').Actions;
-      Actions.renameTemplate('Untitled', 'My Test Template');
-    })()
-  `);
+  await mainWindow.evaluate(() => {
+    (window as any).$m.Actions.renameTemplate('Untitled', 'My Test Template');
+  });
 
   // Wait for the async fs.rename + file watcher re-populate cycle (poll up to 5s)
   const renamedPath = path.join(templatesDir, 'My Test Template.html');
@@ -131,7 +128,11 @@ test("a template's subject line is saved into the template file", async () => {
   const templatesContainer = mainWindow.locator('.preferences-templates-container');
   await expect(templatesContainer).toBeVisible({ timeout: 3_000 });
 
-  // The template renamed above is still selected - give it a subject line.
+  // Creating a template does not select it, so select the renamed one to
+  // enable the editor, then give it a subject line.
+  await templatesContainer
+    .locator('.template-list .list-item:has-text("My Test Template")')
+    .click();
   const subjectInput = templatesContainer.locator('#template-subject');
   await expect(subjectInput).toBeVisible({ timeout: 3_000 });
   await subjectInput.fill('Following up on our call');
@@ -190,12 +191,10 @@ test('creating a mail rule persists it to localStorage', async () => {
   // Verify the rule was persisted to localStorage (debounced 1s save)
   await mainWindow.waitForTimeout(1_500);
 
-  const rules = await executeInRenderer(electronApp, `
-    (function() {
-      var raw = window.localStorage.getItem('MailRules-V2');
-      return raw ? JSON.parse(raw) : [];
-    })()
-  `);
+  const rules = await mainWindow.evaluate(() => {
+    const raw = window.localStorage.getItem('MailRules-V2');
+    return raw ? JSON.parse(raw) : [];
+  });
 
   expect(rules.length).toBeGreaterThan(0);
   const newRule = rules.find((r: any) => r.name === 'Untitled Rule');
