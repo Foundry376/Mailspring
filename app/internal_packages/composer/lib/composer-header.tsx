@@ -13,11 +13,10 @@ import Fields from './fields';
 
 const ScopedFromField = ListensToFluxStore(AccountContactField, {
   stores: [AccountStore],
-  getStateFromStores: (props) => {
-    const savedOrReplyToThread = !!props.draft.threadId;
-    if (savedOrReplyToThread) {
-      return { accounts: [AccountStore.accountForId(props.draft.accountId)] };
-    }
+  getStateFromStores: () => {
+    // Replies send via the receiving account (ensureCorrectAccount does not
+    // rehome). The picker still lists every identity so you can send-as the
+    // other account's address.
     return { accounts: AccountStore.accounts() };
   },
 });

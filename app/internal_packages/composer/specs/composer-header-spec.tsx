@@ -4,6 +4,7 @@ import ReactTestUtils from 'react-dom/test-utils';
 
 import { Contact, Message } from 'mailspring-exports';
 import { ComposerHeader } from '../lib/composer-header';
+import AccountContactField from '../lib/account-contact-field';
 import Fields from '../lib/fields';
 
 const DRAFT_HEADER_MSG_ID = 'DRAFT_HEADER_MSG_ID';
@@ -21,6 +22,26 @@ describe('ComposerHeader', function composerHeader() {
       );
     };
     advanceClock();
+  });
+
+  describe('from field accounts', () => {
+    it('passes every account to the From picker on a reply so other identities are selectable', () => {
+      const draft = new Message({
+        draft: true,
+        headerMessageId: DRAFT_HEADER_MSG_ID,
+        accountId: TEST_ACCOUNT_ID,
+        threadId: 'thread-1',
+        from: [new Contact({ email: TEST_ACCOUNT_EMAIL })],
+      });
+      this.createWithDraft(draft);
+      const fromField = ReactTestUtils.scryRenderedComponentsWithType(
+        this.component,
+        AccountContactField
+      )[0];
+      expect(fromField.props.accounts.map((a) => a.id).sort()).toEqual(
+        ['second-test-account-id', TEST_ACCOUNT_ID].sort()
+      );
+    });
   });
 
   describe('showAndFocusField', () => {
