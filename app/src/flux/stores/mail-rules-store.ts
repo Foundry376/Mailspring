@@ -46,7 +46,7 @@ class MailRulesStore extends MailspringStore {
   _reprocessing: {
     [accountId: string]: {
       count: number;
-      lastTimestamp: number;
+      lastTimestamp: Date | null;
       inboxCategoryId: string;
     };
   } = {};
