@@ -823,6 +823,12 @@ export function applyEditsToException(
  * series from 1AM to 3AM). Only RECURRENCE-ID shifts so ical-expander can still
  * substitute the exception for the correct (now-shifted) occurrence slot.
  *
+ * The master's EXDATEs shift too: they name instants the rule does not occur at, so left
+ * behind they would exclude nothing.
+ *
+ * The delta is a fixed number of milliseconds, so a move across a DST change leaves the
+ * values on the far side of it an hour off, RECURRENCE-IDs and EXDATEs alike.
+ *
  * @param ics - Master VCALENDAR ICS containing inline exception VEVENTs
  * @param deltaMs - Time delta in milliseconds (positive = forward, negative = backward)
  * @returns Updated ICS string with shifted RECURRENCE-IDs
@@ -839,28 +845,49 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
   // Register VTIMEZONE components so toJSDate() converts TZID-relative times correctly.
   registerTimezones(vcalendar, ical);
 
+  // Move an instant the way the master moves: whole days for a DATE value (a 23h or 25h DST
+  // delta must not truncate it into the previous day), a plain offset otherwise. A zoned value
+  // stays in its zone, because the property keeps its TZID parameter and a UTC value under a
+  // TZID is malformed (RFC 5545 section 3.3.5).
+  const shiftTime = (value: ICALTime) => {
+    const asDate = value.toJSDate();
+    if (value.isDate) {
+      return createAllDayTime(
+        new Date(
+          shiftedDayStartUnix(asDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
+        ),
+        ical
+      );
+    }
+    const shifted = ical.Time.fromJSDate(new Date(asDate.getTime() + deltaMs), true);
+    const zone = value.zone;
+    const zoned = zone && zone.tzid && zone.tzid !== 'UTC' && zone.tzid !== 'floating';
+    return zoned ? shifted.convertToZone(zone) : shifted;
+  };
+
   for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
     const ridProp = vevent.getFirstProperty('recurrence-id');
-    if (!ridProp) continue; // Skip the master VEVENT (no RECURRENCE-ID)
+    if (!ridProp) {
+      const exdateProps = vevent.getAllProperties('exdate');
+      if (exdateProps.length) {
+        for (const exProp of exdateProps) {
+          const values = exProp.getValues() as ICALTime[];
+          const shifted = values
+            .filter((v) => v && typeof v.toJSDate === 'function')
+            .map(shiftTime);
+          if (shifted.length === values.length && shifted.length) {
+            exProp.setValues(shifted);
+          }
+        }
+        vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+      }
+      continue;
+    }
 
-    const ridValue = ridProp.getFirstValue() as any;
+    const ridValue = ridProp.getFirstValue() as ICALTime | null;
     if (!ridValue || typeof ridValue.toJSDate !== 'function') continue;
 
-    const ridDate = ridValue.toJSDate();
-
-    // A DATE-valued RECURRENCE-ID has to move in whole days, matching how the master shifts.
-    // deltaMs is 23h or 25h across a DST transition, and adding that to a date lands inside
-    // the same day, so createAllDayTime would truncate it back and detach the exception.
-    // An all-day delta is always whole days give or take the transition hour, so round it.
-    const newRidTime = (ridValue.isDate as boolean)
-      ? createAllDayTime(
-          new Date(
-            shiftedDayStartUnix(ridDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
-          ),
-          ical
-        )
-      : // Keep as UTC (same format as createRecurrenceException)
-        ical.Time.fromJSDate(new Date(ridDate.getTime() + deltaMs), true);
+    const newRidTime = shiftTime(ridValue);
 
     vevent.updatePropertyWithValue('recurrence-id', newRidTime);
     vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
