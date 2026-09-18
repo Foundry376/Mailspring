@@ -90,7 +90,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     if (!eventNode) {
       return;
     }
-    (eventNode as any).scrollIntoViewIfNeeded(true);
+    // centerIfNeeded false: scroll the minimum distance to reveal it, not to the middle.
+    (eventNode as any).scrollIntoViewIfNeeded(false);
     onFocused(event);
   }
 
