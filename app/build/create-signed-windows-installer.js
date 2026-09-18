@@ -35,7 +35,7 @@ function createVendorDirectory() {
 
   const signToolDirectory = path.dirname(signToolPath);
   for (const entry of fs.readdirSync(signToolDirectory, { withFileTypes: true })) {
-    if (entry.isFile() && /\.dll$/i.test(entry.name)) {
+    if (entry.isFile() && /\.(dll|config|manifest)$/i.test(entry.name)) {
       fs.copyFileSync(
         path.join(signToolDirectory, entry.name),
         path.join(vendorDirectory, entry.name)
@@ -73,6 +73,13 @@ function verifySigningWorks(vendorDirectory) {
     console.error(`exit code: ${result.status}`);
     console.error(result.stdout || '');
     console.error(result.stderr || '');
+    // Everything needed to tell a bad signtool copy from a bad dlib or a bad
+    // credential, without waiting for another build.
+    console.error(`signtool: ${signToolPath}`);
+    console.error(`params: ${signWithParams}`);
+    for (const dir of [vendorDirectory, path.dirname(signToolPath)]) {
+      console.error(`${dir}: ${fs.readdirSync(dir).join(', ')}`);
+    }
     process.exit(1);
   }
 
