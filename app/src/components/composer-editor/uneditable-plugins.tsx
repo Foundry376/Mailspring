@@ -7,6 +7,28 @@ import { ComposerEditorPlugin } from './types';
 export const UNEDITABLE_TYPE = 'uneditable';
 export const UNEDITABLE_TAGS = ['table', 'img', 'center', 'signature'];
 
+// UneditableNode re-renders on every composer change, but SanitizeTransformer
+// has no internal cache and a block's HTML rarely changes, so sanitizing inline
+// would run DOMPurify on every keystroke. Memoize by the exact input string —
+// the sanitizer is a pure function of (input, static config) — and bound the
+// map so a long editing session with many distinct blocks can't grow it without
+// limit.
+const sanitizeCache = new Map<string, string>();
+const SANITIZE_CACHE_MAX = 100;
+
+function sanitizeUneditableHtml(raw: string): string {
+  if (!raw) return '';
+  const cached = sanitizeCache.get(raw);
+  if (cached !== undefined) return cached;
+  const clean = SanitizeTransformer.runSync(raw);
+  // Map iterates in insertion order, so deleting the first key is FIFO eviction.
+  if (sanitizeCache.size >= SANITIZE_CACHE_MAX) {
+    sanitizeCache.delete(sanitizeCache.keys().next().value);
+  }
+  sanitizeCache.set(raw, clean);
+  return clean;
+}
+
 function UneditableNode(props) {
   const { attributes, node, editor, targetIsHTML, isFocused, children } = props;
   // Sanitize at the rendering boundary rather than trusting data.html. The HTML
@@ -14,10 +36,10 @@ function UneditableNode(props) {
   // pre-decoded — e.g. a Slate fragment dragged in from untrusted email via
   // data-slate-fragment — which never passes through that deserializer. Because
   // this composer runs with nodeIntegration, an unsanitized <webview>/<img
-  // onerror> here would execute with Node access. runSync is idempotent, so this
-  // is a no-op for values that were already cleaned.
+  // onerror> here would execute with Node access. The result is memoized, so a
+  // value that was already cleaned costs a map lookup rather than a DOMPurify run.
   const rawHtml = node.data.get ? node.data.get('html') : node.data.html;
-  const __html = SanitizeTransformer.runSync(rawHtml || '');
+  const __html = sanitizeUneditableHtml(rawHtml);
 
   if (targetIsHTML) {
     return <div dangerouslySetInnerHTML={{ __html }} />;
