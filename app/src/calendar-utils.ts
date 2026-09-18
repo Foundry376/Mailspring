@@ -50,8 +50,82 @@ export function parseICSString(ics: string) {
   fixJCalDatesWithoutTimes(jcalData);
 
   const root = new ICAL.Component(jcalData);
+  // Before ICAL.Event: relating the exceptions reads each RECURRENCE-ID, and a value read once
+  // keeps the zone it was read with.
+  registerTimezones(root);
   const event = new ICAL.Event(root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent'));
   return { root, event };
+}
+
+/**
+ * Registers a VCALENDAR's VTIMEZONEs with the ICAL.js TimezoneService, so `toJSDate()` on a
+ * TZID-relative time gives the instant it names, and describes any zone a VEVENT refers to
+ * without one. RFC 7809 lets a server omit the VTIMEZONE for an IANA zone, and ical.js has no
+ * zone data of its own, so such a value would otherwise read as floating local time. The
+ * synthesised zone is the fixed offset in force at the property's own date, and the registry is
+ * process-wide: the first file to name a zone without its VTIMEZONE fixes that offset for every
+ * later file that also omits it, so a December Vienna file parsed after a July one reads 17:00 as
+ * 15:00Z instead of 16:00Z. A file that carries the VTIMEZONE replaces it. An identifier
+ * moment-timezone does not know is left alone.
+ */
+function registerTimezones(vcalendar: ICALComponent): void {
+  for (const vtz of vcalendar.getAllSubcomponents('vtimezone')) {
+    ICAL.TimezoneService.register(vtz);
+  }
+
+  const momentTz = require('moment-timezone');
+  for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
+    for (const prop of vevent.getAllProperties()) {
+      const tzid = prop.getParameter('tzid');
+      if (typeof tzid !== 'string' || ICAL.TimezoneService.has(tzid)) continue;
+      if (!momentTz.tz.zone(tzid)) continue;
+      // Read the date off the raw value: hydrating it here would cache it as floating.
+      const [, y, m, d] = /^(\d{4})(\d{2})(\d{2})/.exec(String(prop.toJSON()[3])) || [];
+      const at = y ? new Date(Date.UTC(+y, +m - 1, +d)) : new Date();
+      ICAL.TimezoneService.register(
+        new ICAL.Component(
+          ICAL.parse(
+            `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${createVTIMEZONEString(tzid, at)}\r\nEND:VCALENDAR`
+          )
+        ).getFirstSubcomponent('vtimezone')
+      );
+    }
+  }
+}
+
+/**
+ * Creates a minimal VTIMEZONE ICS string for the given IANA timezone.
+ *
+ * RFC 5545 requires a VTIMEZONE block whenever TZID is referenced. Most modern
+ * CalDAV servers use the TZID name to look up their own DST rules, so the content
+ * just needs to be present and well-formed. We derive the UTC offset from
+ * moment-timezone for the given reference date (so the abbreviation and sign are
+ * accurate for that point in time).
+ *
+ * @param tzId - IANA timezone identifier (e.g. 'America/Chicago')
+ * @param referenceDate - Date used to determine the current UTC offset / abbreviation
+ * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper)
+ */
+export function createVTIMEZONEString(tzId: string, referenceDate: Date): string {
+  const momentTz = require('moment-timezone');
+  const m = momentTz(referenceDate).tz(tzId);
+  const utcOffsetMin = m.utcOffset(); // e.g. -360 for CST (UTC-6)
+  const absMin = Math.abs(utcOffsetMin);
+  const sign = utcOffsetMin >= 0 ? '+' : '-';
+  const offsetStr = `${sign}${String(Math.floor(absMin / 60)).padStart(2, '0')}${String(
+    absMin % 60
+  ).padStart(2, '0')}`;
+  return [
+    'BEGIN:VTIMEZONE',
+    `TZID:${tzId}`,
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    `TZOFFSETFROM:${offsetStr}`,
+    `TZOFFSETTO:${offsetStr}`,
+    `TZNAME:${m.zoneAbbr()}`,
+    'END:STANDARD',
+    'END:VTIMEZONE',
+  ].join('\r\n');
 }
 
 export function emailFromParticipantURI(uri: string): string | null {
