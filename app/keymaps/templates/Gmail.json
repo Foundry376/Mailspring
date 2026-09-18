@@ -1,5 +1,6 @@
 {
   "navigation:go-to-inbox": "g i",
+  "navigation:go-to-unread": "g u",
   "navigation:go-to-starred": "g s",
   "navigation:go-to-sent": "g t",
   "navigation:go-to-drafts": "g d",
