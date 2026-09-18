@@ -1,4 +1,6 @@
-import { parseICSString } from './calendar-utils';
+import { parseICSString, createVTIMEZONEString } from './calendar-utils';
+
+export { createVTIMEZONEString };
 import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
 
 type ICAL = typeof import('ical.js').default;
@@ -274,21 +276,6 @@ function addExdateProperty(
 }
 
 /**
- * Registers all VTIMEZONE subcomponents from a VCALENDAR with the ICAL.js
- * TimezoneService so that subsequent `toJSDate()` calls on TZID-relative times
- * resolve correctly. Duplicate registrations are silently ignored.
- */
-function registerTimezones(vcalendar: ICALComponent, ical: ICAL): void {
-  for (const vtz of vcalendar.getAllSubcomponents('vtimezone')) {
-    try {
-      ical.TimezoneService.register(vtz);
-    } catch (_) {
-      // Ignore duplicate registrations (same TZID registered more than once)
-    }
-  }
-}
-
-/**
  * Removes an existing exception VEVENT from a VCALENDAR that matches the given
  * target time (in UTC milliseconds). Uses `toJSDate().getTime()` for comparison
  * after registering timezones, so TZID-formatted and UTC-formatted RECURRENCE-IDs
@@ -311,8 +298,6 @@ function removeExistingExceptionVevent(
   isAllDay: boolean,
   ical: ICAL
 ): void {
-  registerTimezones(vcalendar, ical);
-
   for (const existing of vcalendar.getAllSubcomponents('vevent')) {
     const ridValue = existing.getFirstPropertyValue('recurrence-id') as any;
     if (!ridValue) continue;
@@ -351,41 +336,6 @@ function validateTimestamps(start: number, end: number): void {
   if (end < start) {
     throw new Error('Invalid timestamps: end time must be after or equal to start time');
   }
-}
-
-/**
- * Creates a minimal VTIMEZONE ICS string for the given IANA timezone.
- *
- * RFC 5545 requires a VTIMEZONE block whenever TZID is referenced. Most modern
- * CalDAV servers use the TZID name to look up their own DST rules, so the content
- * just needs to be present and well-formed. We derive the UTC offset from
- * moment-timezone for the given reference date (so the abbreviation and sign are
- * accurate for that point in time).
- *
- * @param tzId - IANA timezone identifier (e.g. 'America/Chicago')
- * @param referenceDate - Date used to determine the current UTC offset / abbreviation
- * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper)
- */
-export function createVTIMEZONEString(tzId: string, referenceDate: Date): string {
-  const momentTz = require('moment-timezone');
-  const m = momentTz(referenceDate).tz(tzId);
-  const utcOffsetMin = m.utcOffset(); // e.g. -360 for CST (UTC-6)
-  const absMin = Math.abs(utcOffsetMin);
-  const sign = utcOffsetMin >= 0 ? '+' : '-';
-  const offsetStr = `${sign}${String(Math.floor(absMin / 60)).padStart(2, '0')}${String(
-    absMin % 60
-  ).padStart(2, '0')}`;
-  return [
-    'BEGIN:VTIMEZONE',
-    `TZID:${tzId}`,
-    'BEGIN:STANDARD',
-    'DTSTART:19700101T000000',
-    `TZOFFSETFROM:${offsetStr}`,
-    `TZOFFSETTO:${offsetStr}`,
-    `TZNAME:${m.zoneAbbr()}`,
-    'END:STANDARD',
-    'END:VTIMEZONE',
-  ].join('\r\n');
 }
 
 /**
@@ -842,9 +792,6 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
   const vcalendar = root.name === 'vcalendar' ? root : null;
   if (!vcalendar) return ics;
 
-  // Register VTIMEZONE components so toJSDate() converts TZID-relative times correctly.
-  registerTimezones(vcalendar, ical);
-
   // Move an instant the way the master moves: whole days for a DATE value (a 23h or 25h DST
   // delta must not truncate it into the previous day), a plain offset otherwise. A zoned value
   // stays in its zone, because the property keeps its TZID parameter and a UTC value under a
@@ -1051,10 +998,6 @@ export function removeInlineException(ics: string, recurrenceId: string): string
 
   const vcalendar = root.name === 'vcalendar' ? root : null;
   if (!vcalendar) return ics;
-
-  // Register VTIMEZONE components so a TZID-relative RECURRENCE-ID compares as the instant
-  // it names rather than as floating local time.
-  registerTimezones(vcalendar, ical);
 
   // The row stores the RECURRENCE-ID as written ('20260302T060000Z', '20260302', or wall-clock
   // text whose zone lives only on the property), so a zoned value is matched as text.

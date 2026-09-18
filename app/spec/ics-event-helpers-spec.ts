@@ -1470,3 +1470,82 @@ describe('every helper that writes DTSTAMP writes it in UTC', function () {
     });
   }
 });
+
+describe('a TZID whose VTIMEZONE the server omitted', function () {
+  // RFC 7809 lets a server leave the VTIMEZONE out for an IANA zone; every value below still
+  // carries TZID=Europe/Vienna. The runner is pinned to America/Chicago, where a floating 17:00
+  // is 22:00Z; Vienna's 17:00 on 17 September is 15:00Z.
+  const VIENNA_NO_VTIMEZONE = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VEVENT',
+    'UID:vienna-series@test',
+    'DTSTART;TZID=Europe/Vienna:20260903T170000',
+    'DTEND;TZID=Europe/Vienna:20260903T173000',
+    'RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=TH',
+    'EXDATE;TZID=Europe/Vienna:20261001T170000',
+    'SUMMARY:management sync',
+    'DTSTAMP:20260101T000000Z',
+    'SEQUENCE:2',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:vienna-series@test',
+    'RECURRENCE-ID;TZID=Europe/Vienna:20260917T170000',
+    'DTSTART;TZID=Europe/Vienna:20260924T170000',
+    'DTEND;TZID=Europe/Vienna:20260924T173000',
+    'SUMMARY:management sync',
+    'DTSTAMP:20260101T000000Z',
+    'SEQUENCE:2',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const QUARTER_HOUR = 15 * 60 * 1000;
+
+  beforeEach(function () {
+    // Registrations are process-wide, so a fixture in another spec must not stand in for this one.
+    ICAL.TimezoneService.remove('Europe/Vienna');
+    expect(ICAL.TimezoneService.has('Europe/Vienna')).toBe(false);
+  });
+
+  it('shifts a zoned RECURRENCE-ID and EXDATE on their own wall clock', function () {
+    const shifted = ICSEventHelpers.shiftInlineExceptions(VIENNA_NO_VTIMEZONE, QUARTER_HOUR);
+    expect(shifted).toContain('RECURRENCE-ID;TZID=Europe/Vienna:20260917T171500');
+    expect(shifted).toContain('EXDATE;TZID=Europe/Vienna:20261001T171500');
+    expect(shifted).not.toMatch(/TZID=Europe\/Vienna:\d{8}T\d{6}Z/);
+  });
+
+  it('reads a zoned RECURRENCE-ID as the instant it names', function () {
+    // The row stores the exception's RECURRENCE-ID in UTC, so this only matches when 17:00
+    // Vienna is read as 15:00Z rather than as 17:00 wherever the machine is.
+    const result = ICSEventHelpers.removeInlineException(VIENNA_NO_VTIMEZONE, '20260917T150000Z');
+    expect(result).not.toContain('RECURRENCE-ID');
+    expect(result).toContain('EXDATE;TZID=Europe/Vienna:20260917T170000');
+  });
+
+  it('follows the VTIMEZONE a file does carry rather than describing the zone itself', function () {
+    // A deliberately wrong zone in the file: Europe/Vienna at a fixed +05:00, so 17:00 is 12:00Z.
+    const WRONG_OFFSET = VIENNA_NO_VTIMEZONE.replace(
+      'BEGIN:VEVENT',
+      [
+        'BEGIN:VTIMEZONE',
+        'TZID:Europe/Vienna',
+        'BEGIN:STANDARD',
+        'DTSTART:19700101T000000',
+        'TZOFFSETFROM:+0500',
+        'TZOFFSETTO:+0500',
+        'END:STANDARD',
+        'END:VTIMEZONE',
+        'BEGIN:VEVENT',
+      ].join('\r\n')
+    );
+    const result = ICSEventHelpers.removeInlineException(WRONG_OFFSET, '20260917T120000Z');
+    expect(result).not.toContain('RECURRENCE-ID');
+  });
+
+  it('leaves a TZID moment-timezone does not know exactly as it arrived', function () {
+    const UNKNOWN = VIENNA_NO_VTIMEZONE.replace(/Europe\/Vienna/g, 'Mars/Olympus_Mons');
+    expect(() => ICSEventHelpers.shiftInlineExceptions(UNKNOWN, QUARTER_HOUR)).not.toThrow();
+    expect(ICAL.TimezoneService.has('Mars/Olympus_Mons')).toBe(false);
+  });
+});
