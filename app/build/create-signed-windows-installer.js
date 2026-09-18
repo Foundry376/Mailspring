@@ -1,14 +1,39 @@
 /* eslint import/no-dynamic-require:0 */
 /**
- * Code signing is handled separately by the Azure Trusted Signing action in
- * the GitHub workflow. This script creates an unsigned installer which is
- * then signed by the workflow after creation.
+ * Squirrel generates Update.exe, squirrel.exe and mailspring_ExecutionStub.exe
+ * while building the installer, after the workflow signs the app directory and
+ * before it signs the installer. Unsigned, the stub -- which Squirrel installs
+ * as %LocalAppData%\Mailspring\mailspring.exe -- trips Smart App Control, so
+ * pass --signWithParams and let Squirrel sign them itself.
  */
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { createWindowsInstaller } = require('electron-winstaller');
 
 const appDir = path.join(__dirname, '..');
 const { version } = require(path.join(appDir, 'package.json'));
+
+const signToolPath = process.env.WINDOWS_SIGNTOOL_PATH;
+const signWithParams = process.env.WINDOWS_SIGN_PARAMS;
+
+// Squirrel runs signtool.exe from whichever vendor directory it was launched
+// from, and the copy electron-winstaller bundles is the 2009 Windows 7 build.
+// Trusted Signing needs one from Windows SDK 10.0.22621.755 or newer, so the
+// workflow finds it on the runner and passes it in.
+function createVendorDirectory() {
+  const bundled = path.join(
+    path.dirname(require.resolve('electron-winstaller/package.json')),
+    'vendor'
+  );
+
+  const vendorDirectory = path.join(os.tmpdir(), 'mailspring-winstaller-vendor');
+  fs.rmSync(vendorDirectory, { recursive: true, force: true });
+  fs.cpSync(bundled, vendorDirectory, { recursive: true });
+  fs.copyFileSync(signToolPath, path.join(vendorDirectory, 'signtool.exe'));
+
+  return vendorDirectory;
+}
 
 const config = {
   usePackageJson: false,
@@ -26,6 +51,17 @@ const config = {
   name: 'Mailspring',
 };
 
+if (signWithParams) {
+  if (!signToolPath) {
+    console.error('WINDOWS_SIGN_PARAMS is set without WINDOWS_SIGNTOOL_PATH');
+    process.exit(1);
+  }
+  config.vendorDirectory = createVendorDirectory();
+  config.signWithParams = signWithParams;
+} else {
+  console.log('---> WINDOWS_SIGN_PARAMS is unset, building an unsigned installer');
+}
+
 console.log(config);
 console.log('---> Starting');
 
@@ -34,7 +70,7 @@ createWindowsInstaller(config)
     console.log('createWindowsInstaller succeeded.');
     process.exit(0);
   })
-  .catch(e => {
+  .catch((e) => {
     console.error(`createWindowsInstaller failed: ${e.message}`);
     process.exit(1);
   });
