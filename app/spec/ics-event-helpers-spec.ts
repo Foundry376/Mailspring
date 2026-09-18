@@ -1,5 +1,6 @@
 import ICAL from 'ical.js';
 import * as ICSEventHelpers from '../src/ics-event-helpers';
+import { parseICSString } from '../src/calendar-utils';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -1547,5 +1548,115 @@ describe('a TZID whose VTIMEZONE the server omitted', function () {
     const UNKNOWN = VIENNA_NO_VTIMEZONE.replace(/Europe\/Vienna/g, 'Mars/Olympus_Mons');
     expect(() => ICSEventHelpers.shiftInlineExceptions(UNKNOWN, QUARTER_HOUR)).not.toThrow();
     expect(ICAL.TimezoneService.has('Mars/Olympus_Mons')).toBe(false);
+  });
+});
+
+describe('ICSEventHelpers.createVTIMEZONEString', function () {
+  const lines = (tz: string, when: string) =>
+    ICSEventHelpers.createVTIMEZONEString(tz, new Date(when)).split('\r\n');
+  const rules = (l: string[]) => l.filter((x) => x.startsWith('RRULE:')).sort();
+
+  it('describes both halves of a zone that observes DST', function () {
+    const l = lines('America/Chicago', '2024-01-15T12:00:00Z');
+    expect(l).toContain('TZID:America/Chicago');
+    expect(l).toContain('BEGIN:STANDARD');
+    expect(l).toContain('BEGIN:DAYLIGHT');
+    expect(l).toContain('TZOFFSETTO:-0600');
+    expect(l).toContain('TZOFFSETTO:-0500');
+    expect(rules(l)).toEqual([
+      'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+      'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    ]);
+  });
+
+  it('gives the same rules whichever side of a transition it is asked about', function () {
+    const winter = lines('America/Chicago', '2024-01-15T12:00:00Z');
+    const summer = lines('America/Chicago', '2024-07-15T12:00:00Z');
+    expect(rules(winter)).toEqual(rules(summer));
+  });
+
+  it('states each transition at the wall clock it happens, in the offset being left', function () {
+    // Chicago changes at 02:00 both ways (RFC 5545 section 3.6.5: DTSTART is read in
+    // TZOFFSETFROM). Reading it in the new offset would put both changes an hour late.
+    const l = lines('America/Chicago', '2024-01-15T12:00:00Z');
+    const daylight = l.slice(l.indexOf('BEGIN:DAYLIGHT'), l.indexOf('END:DAYLIGHT'));
+    const standard = l.slice(l.indexOf('BEGIN:STANDARD'), l.indexOf('END:STANDARD'));
+    expect(daylight.find((x) => x.startsWith('DTSTART:'))).toMatch(/T020000$/);
+    expect(daylight).toContain('TZOFFSETFROM:-0600');
+    expect(standard.find((x) => x.startsWith('DTSTART:'))).toMatch(/T020000$/);
+    expect(standard).toContain('TZOFFSETFROM:-0500');
+  });
+
+  it("writes the EU's last-Sunday transitions as BYDAY=-1SU", function () {
+    // Berlin switches on the last Sunday of March and October, the fifth Sunday in some years
+    // and the fourth in others, so a positive ordinal would stop matching.
+    expect(rules(lines('Europe/Berlin', '2024-07-15T12:00:00Z'))).toEqual([
+      'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+      'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    ]);
+  });
+
+  it('writes a southern-hemisphere zone with DAYLIGHT later in the year', function () {
+    const l = lines('Australia/Sydney', '2024-07-15T12:00:00Z');
+    const daylight = l.slice(l.indexOf('BEGIN:DAYLIGHT'), l.indexOf('END:DAYLIGHT'));
+    expect(daylight).toContain('TZOFFSETTO:+1100');
+    expect(daylight).toContain('RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=1SU');
+    expect(l).toContain('TZOFFSETTO:+1000');
+  });
+
+  it('emits a single STANDARD for a zone with no DST', function () {
+    const l = lines('Asia/Kolkata', '2024-07-15T12:00:00Z');
+    expect(l.filter((x) => x === 'BEGIN:STANDARD').length).toBe(1);
+    expect(l).not.toContain('BEGIN:DAYLIGHT');
+    expect(l).toContain('TZOFFSETTO:+0530');
+    expect(rules(l)).toEqual([]);
+  });
+
+  describe('read back through the VTIMEZONE a created event carries', function () {
+    // ical.js resolves a TZID from the VTIMEZONE in the same object, so what createICSString
+    // writes is what every later read of the event computes from.
+    const occurrenceAt = (ics: string, y: number, m: number, d: number) => {
+      const { event } = parseICSString(ics);
+      const iterator = event.iterator();
+      let next: InstanceType<typeof ICAL.Time>;
+      while ((next = iterator.next())) {
+        if (next.year === y && next.month === m && next.day === d) {
+          return event.getOccurrenceDetails(next).startDate.toJSDate().toISOString();
+        }
+        if (next.year > y) break;
+      }
+      throw new Error(`no occurrence on ${y}-${m}-${d}`);
+    };
+
+    it('reads a summer occurrence of a series created in winter at the hour the zone means', function () {
+      ICAL.TimezoneService.remove('America/Chicago');
+      // 09:00 Chicago, weekly from mid-January.
+      const ics = ICSEventHelpers.createICSString({
+        summary: 'Standup',
+        start: new Date('2024-01-15T15:00:00Z'),
+        end: new Date('2024-01-15T16:00:00Z'),
+        timezone: 'America/Chicago',
+        recurrenceRule: 'FREQ=WEEKLY',
+      });
+      expect(ics).toContain('DTSTART;TZID=America/Chicago:20240115T090000');
+      // 09:00 CDT is 14:00Z; a body claiming January's fixed -0600 gives 15:00Z.
+      expect(occurrenceAt(ics, 2024, 7, 15)).toBe('2024-07-15T14:00:00.000Z');
+    });
+
+    it("ends a Berlin series' summer time on the last Sunday of October in a later year", function () {
+      ICAL.TimezoneService.remove('Europe/Berlin');
+      // 09:00 Berlin, weekly on Mondays from July 2023. That October's transition falls on the
+      // fifth Sunday; October 2024 has only four, so a rule written as the fifth Sunday never
+      // fires and the series stays on summer time.
+      const ics = ICSEventHelpers.createICSString({
+        summary: 'Standup',
+        start: new Date('2023-07-17T07:00:00Z'),
+        end: new Date('2023-07-17T08:00:00Z'),
+        timezone: 'Europe/Berlin',
+        recurrenceRule: 'FREQ=WEEKLY',
+      });
+      expect(occurrenceAt(ics, 2024, 10, 21)).toBe('2024-10-21T07:00:00.000Z');
+      expect(occurrenceAt(ics, 2024, 10, 28)).toBe('2024-10-28T08:00:00.000Z');
+    });
   });
 });
