@@ -351,7 +351,13 @@ class DatabaseStore extends MailspringStore {
     if (!this._agent && !this._agentSpawnFailed) {
       this._agentOpenQueries = {};
       try {
-        this._agent = childProcess.fork(AGENT_PATH, [], { silent: true });
+        // Pass a null-prototype copy of the environment so that a polluted
+        // Object.prototype (walked by Node's for..in when building the child
+        // env) cannot inject NODE_OPTIONS/etc. into this forked Node agent.
+        this._agent = childProcess.fork(AGENT_PATH, [], {
+          silent: true,
+          env: Object.assign(Object.create(null), process.env),
+        });
         if (this._agent.stdout)
           this._agent.stdout.on('data', (data) => console.log(data.toString()));
         if (this._agent.stderr)
