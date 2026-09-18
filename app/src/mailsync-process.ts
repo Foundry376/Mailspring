@@ -182,10 +182,10 @@ export class MailsyncProcess extends EventEmitter {
   }
 
   _spawnProcess(mode) {
-    // Build on a null-prototype object: Node walks the env with for..in when
-    // spawning, which would otherwise include any keys injected onto
-    // Object.prototype (e.g. LD_PRELOAD/DYLD_INSERT_LIBRARIES) by a
-    // prototype-pollution bug in this process.
+    // Build on a null-prototype object so the spawned engine inherits only
+    // genuine environment variables, not properties a prototype-pollution bug
+    // elsewhere in the process could have added to Object.prototype. See
+    // GHSA-gjr7-3mj2-cr54.
     const env = Object.assign(Object.create(null), process.env, {
       CONFIG_DIR_PATH: this.configDirPath,
       GMAIL_CLIENT_ID: GMAIL_CLIENT_ID,

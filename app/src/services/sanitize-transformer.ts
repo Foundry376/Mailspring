@@ -278,12 +278,11 @@ class SanitizeTransformer {
       ALLOWED_TAGS: AllowedTags,
       ALLOWED_ATTR: AllowedAttributes,
       // DOMPurify permits every data-* attribute by default, independently of
-      // ALLOWED_ATTR. That let untrusted email carry a `data-slate-fragment`
-      // (Slate's private clipboard format): dragging such an element into the
-      // reply editor made Slate decode the attribute as a trusted fragment and
-      // insert it without re-sanitizing, reaching a <webview>. Nothing in the
-      // email-display or composer paths reads data-* off sanitized mail, so drop
-      // them entirely rather than allowlisting individual reserved names.
+      // ALLOWED_ATTR. Some are reserved attributes that other parts of the app
+      // treat as trusted, so they must not survive from untrusted mail. Nothing
+      // in the email-display or composer paths reads data-* off sanitized mail,
+      // so drop the whole class rather than allowlisting individual names. See
+      // GHSA-2x8h-f5qm-f779.
       ALLOW_DATA_ATTR: false,
       // Explicit allowlist of safe URI schemes for email content.
       // file: is intentionally absent — legitimate attachment file:// paths are

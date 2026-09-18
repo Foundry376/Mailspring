@@ -145,13 +145,11 @@ export default class MailspringWindow extends EventEmitter {
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
 
-    // The main renderer runs with nodeIntegration:true and webviewTag:true, so any
-    // HTML-injection bug that plants a <webview> tag could otherwise request a
-    // Node-enabled guest and reach RCE. Force every attached guest to safe
-    // preferences regardless of the tag's attributes, and strip any preload it
-    // tries to specify. The only legitimate guest (the onboarding sign-in view in
+    // Constrain every <webview> guest to low-privilege preferences regardless of
+    // the attributes on the tag, and strip any preload it requests. The only
+    // legitimate guest (the onboarding sign-in view in
     // app/src/components/webview.tsx) displays remote web content and needs none
-    // of these privileges.
+    // of these privileges. Do not relax this. See GHSA-x8wg-258g-v28h.
     this.browserWindow.webContents.on('will-attach-webview', (_event, webPreferences, params) => {
       delete (webPreferences as any).preload;
       delete (params as any).preload;

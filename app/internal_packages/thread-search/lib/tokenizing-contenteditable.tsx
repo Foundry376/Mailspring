@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import { TokenAndTermRegexp } from './search-bar-util';
 
-// The search value can originate from untrusted email content (e.g. the
-// "Search for subject" context-menu action copies a message Subject verbatim).
-// It is written into the contentEditable via innerHTML to preserve spacing, so
-// it must be HTML-escaped first — otherwise a crafted Subject can inject markup,
-// including a <webview>, into the main renderer. Whitespace is converted to
-// &nbsp; after escaping so runs of spaces still render.
+// The search value can contain untrusted text (message content reaches this
+// field through some search actions). It is written to the contentEditable as
+// innerHTML to preserve spacing, so it must be HTML-escaped first; whitespace is
+// converted to &nbsp; after escaping so runs of spaces still render. Do not
+// write the raw value here. See GHSA-x8wg-258g-v28h.
 const escapeAndPreserveWhitespace = (value: string) =>
   value
     .replace(/&/g, '&amp;')

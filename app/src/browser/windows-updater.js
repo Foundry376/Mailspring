@@ -39,14 +39,10 @@ const updateDotExe = path.join(rootAppDataFolder, 'Update.exe');
 // "mailspring.exe"
 const exeName = path.basename(process.execPath);
 
-// Node builds a child process's environment by walking the env object with a
-// for..in loop, which includes enumerable properties inherited from
-// Object.prototype. If the main process's prototype is ever polluted (e.g. by a
-// malicious attachment parsed in-process), those keys — such as
-// ELECTRON_RUN_AS_NODE or NODE_OPTIONS — would otherwise be injected into every
-// spawned updater process and could turn a relaunch into code execution. Copy
-// the real environment onto a null-prototype object so only own variables are
-// passed through.
+// Copy the real environment onto a null-prototype object before spawning, so a
+// child inherits only genuine own variables. A plain object would additionally
+// expose anything present on Object.prototype, which a prototype-pollution bug
+// elsewhere in the process could abuse. See GHSA-gjr7-3mj2-cr54.
 function sanitizedEnv(base) {
   return Object.assign(Object.create(null), base || process.env);
 }

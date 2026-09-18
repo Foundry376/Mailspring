@@ -31,13 +31,11 @@ function sanitizeUneditableHtml(raw: string): string {
 
 function UneditableNode(props) {
   const { attributes, node, editor, targetIsHTML, isFocused, children } = props;
-  // Sanitize at the rendering boundary rather than trusting data.html. The HTML
-  // deserializer sanitizes before storing this value, but a node can also arrive
-  // pre-decoded — e.g. a Slate fragment dragged in from untrusted email via
-  // data-slate-fragment — which never passes through that deserializer. Because
-  // this composer runs with nodeIntegration, an unsanitized <webview>/<img
-  // onerror> here would execute with Node access. The result is memoized, so a
-  // value that was already cleaned costs a map lookup rather than a DOMPurify run.
+  // Sanitize at the rendering boundary rather than trusting data.html. Not every
+  // path that produces an uneditable block runs it through the HTML deserializer
+  // that would otherwise clean this value, so sanitize here before it reaches the
+  // DOM. The result is memoized, so an already-clean value costs a map lookup
+  // rather than a DOMPurify run. See GHSA-2x8h-f5qm-f779.
   const rawHtml = node.data.get ? node.data.get('html') : node.data.html;
   const __html = sanitizeUneditableHtml(rawHtml);
 
