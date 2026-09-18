@@ -1,6 +1,21 @@
 import React, { Component } from 'react';
 import { TokenAndTermRegexp } from './search-bar-util';
 
+// The search value can originate from untrusted email content (e.g. the
+// "Search for subject" context-menu action copies a message Subject verbatim).
+// It is written into the contentEditable via innerHTML to preserve spacing, so
+// it must be HTML-escaped first — otherwise a crafted Subject can inject markup,
+// including a <webview>, into the main renderer. Whitespace is converted to
+// &nbsp; after escaping so runs of spaces still render.
+const escapeAndPreserveWhitespace = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/\s/g, '&nbsp;');
+
 interface TokenizingContenteditableProps {
   value: string;
   onChange: (value: string) => void;
@@ -18,7 +33,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
 
   shouldComponentUpdate(nextProps: TokenizingContenteditableProps) {
     if (nextProps.value !== this._textEl.innerText.replace(/\s/g, ' ')) {
-      this._textEl.innerHTML = nextProps.value.replace(/\s/g, '&nbsp;');
+      this._textEl.innerHTML = escapeAndPreserveWhitespace(nextProps.value);
       this._tokensEl.innerHTML = this.valueToHTML(nextProps.value);
       if (document.activeElement === this._textEl) {
         this.focus();
@@ -130,7 +145,7 @@ export default class TokenizingContenteditable extends Component<TokenizingConte
           spellCheck={true}
           className="layer layer-text"
           ref={(el) => (this._textEl = el)}
-          dangerouslySetInnerHTML={{ __html: this.props.value.replace(/\s/g, '&nbsp;') }}
+          dangerouslySetInnerHTML={{ __html: escapeAndPreserveWhitespace(this.props.value) }}
           onKeyDown={this.props.onKeyDown}
           onPaste={this.onPaste}
           onFocus={this.props.onFocus}
