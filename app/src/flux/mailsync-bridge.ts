@@ -10,7 +10,8 @@ import { IdentityStore } from './stores/identity-store';
 
 import { Account } from './models/account';
 import { AccountStore } from './stores/account-store';
-import DatabaseStore from './stores/database-store';
+import DatabaseStore, { handleUnrecoverableDatabaseError } from './stores/database-store';
+import { isUnrecoverableDatabaseError } from '../database-corruption';
 import OnlineStatusStore from './stores/online-status-store';
 import { DatabaseChangeRecord } from './stores/database-change-record';
 import DatabaseObjectRegistry from '../registries/database-object-registry';
@@ -277,10 +278,18 @@ export default class MailsyncBridge {
         });
       }
     } catch (error) {
-      AppEnv.showErrorDialog({
-        title: localized(`Cleanup Error`),
-        message: localized(`Mailspring was unable to reset the local cache. %@`, error),
-      });
+      if (isUnrecoverableDatabaseError(error) && DatabaseStore.failsIntegrityCheck()) {
+        // `--mode reset` clears one account by running DELETEs and a VACUUM against
+        // the existing file, so it fails on exactly the damaged pages that made the
+        // user reach for this button. Deleting the whole database is the only repair,
+        // and it also fixes the other accounts sharing the corrupt file.
+        handleUnrecoverableDatabaseError(error);
+      } else {
+        AppEnv.showErrorDialog({
+          title: localized(`Cleanup Error`),
+          message: localized(`Mailspring was unable to reset the local cache. %@`, error),
+        });
+      }
     } finally {
       delete this._clients[account.id];
       process.nextTick(() => {
@@ -331,6 +340,18 @@ export default class MailsyncBridge {
       if (signal === 'SIGTERM') {
         return;
       }
+
+      // mailsync aborts when SQLite reports the database is corrupt, and it aborts
+      // again every time it is relaunched against the same file. Left to the crash
+      // tracker this ends as SYNC_STATE_ERROR with no way out, because the recovery
+      // the account UI offers ("Rebuild Cache") runs against the same corrupt file.
+      // Rebuild the whole database instead, the way a failed query in this process
+      // already does.
+      if (isUnrecoverableDatabaseError(error) && DatabaseStore.failsIntegrityCheck()) {
+        handleUnrecoverableDatabaseError(error);
+        return;
+      }
+
       this._crashTracker.recordClientCrash(fullAccountJSON, { code, error, signal });
 
       const isAuthFailure =

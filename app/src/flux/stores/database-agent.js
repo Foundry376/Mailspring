@@ -26,10 +26,18 @@ process.on('message', m => {
 
   getDatabase(dbpath).then(db => {
     clearTimeout(deathTimer);
-    const fn = query.startsWith('SELECT') ? 'all' : 'run';
-    const stmt = db.prepare(query);
-    const results = stmt[fn](values);
-    process.send({ type: 'results', results, id, agentTime: Date.now() - start });
+    try {
+      const fn = query.startsWith('SELECT') ? 'all' : 'run';
+      const stmt = db.prepare(query);
+      const results = stmt[fn](values);
+      process.send({ type: 'results', results, id, agentTime: Date.now() - start });
+    } catch (err) {
+      // Report the failure rather than letting it become an unhandled rejection.
+      // That kills this process, and the parent's pending promise for `id` would
+      // never settle - a corrupt database left the thread list waiting forever
+      // instead of triggering the "rebuild cache" recovery in DatabaseStore.
+      process.send({ type: 'error', id, error: err.toString() });
+    }
 
     clearTimeout(deathTimer);
     deathTimer = setTimeout(() => process.exit(0), deathDelay);

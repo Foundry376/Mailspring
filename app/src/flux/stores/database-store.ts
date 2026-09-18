@@ -6,6 +6,7 @@ import { LRUCache } from 'lru-cache';
 import Sqlite3 from 'better-sqlite3';
 
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
+import { isUnrecoverableDatabaseError } from '../../database-corruption';
 import { Model } from '../models/model';
 import MailspringStore from '../../global/mailspring-store';
 import * as Utils from '../models/utils';
@@ -21,6 +22,11 @@ const BASE_RETRY_LOCK_DELAY = 50;
 const MAX_RETRY_LOCK_DELAY = 500;
 
 type AgentResponse = { results: any[]; agentTime: number };
+type AgentOpenQuery = {
+  resolve: (args: AgentResponse) => void;
+  query: SQLString;
+  values: SQLValue[];
+};
 type SQLString = string;
 type SQLValue = boolean | string | number;
 
@@ -34,14 +40,24 @@ function trimTo(str: string, size?: number) {
   return trimed;
 }
 
-function handleUnrecoverableDatabaseError(
+// A corrupt database fails every query touching the damaged pages, and the sync
+// worker for each account crashes against it in a loop, so recovery can be
+// requested from many places at once. The main process ignores the repeats, but
+// reporting each one buries the first (most useful) stack in error tracking.
+let requestedDatabaseReset = false;
+
+export function handleUnrecoverableDatabaseError(
   err = new Error(`Manually called handleUnrecoverableDatabaseError`)
 ) {
+  if (requestedDatabaseReset) return;
+
   AppEnv.errorLogger.reportError(err);
   const app = require('@electron/remote').getGlobal('application');
   if (!app) {
     throw new Error('handleUnrecoverableDatabaseError: `app` is not ready!');
   }
+
+  requestedDatabaseReset = true;
   const ipc = require('electron').ipcRenderer;
   ipc.send('command', 'application:reset-database', {
     errorMessage: err.toString(),
@@ -153,6 +169,33 @@ class DatabaseStore extends MailspringStore {
     }
     this._waiting = [];
     this._emitter.emit('ready');
+  }
+
+  /*
+  Reads the database file itself to confirm it is damaged, so that the caller can
+  delete it. A query that fails in this process raises a SQLite error and needs no
+  confirmation, but a mailsync worker only leaves behind the text it logged before
+  aborting - and mailsync logs exception detail that can include remote content, so
+  the text alone is not enough to justify discarding the user's local mail.
+
+  `quick_check` stops at the first problem it finds: it returns immediately on a
+  damaged file, and costs a fraction of a second on a healthy one because it skips
+  the index-vs-table comparisons of a full `integrity_check`. Callers only reach it
+  after something has already failed, so that cost is never on a normal code path.
+  */
+  failsIntegrityCheck() {
+    if (!this._db) {
+      // The file could not be opened at all, which openDatabase already treats as
+      // unrecoverable. Nothing left to verify.
+      return true;
+    }
+    try {
+      const result = this._db.pragma(`quick_check(1)`, { simple: true });
+      return result !== 'ok';
+    } catch (err) {
+      // quick_check raising SQLITE_CORRUPT is itself the answer.
+      return isUnrecoverableDatabaseError(err);
+    }
   }
 
   _prettyConsoleLog(qa: string) {
@@ -322,7 +365,7 @@ class DatabaseStore extends MailspringStore {
         }
       } catch (err) {
         const errString = err.toString();
-        if (/database disk image is malformed/gi.test(errString)) {
+        if (isUnrecoverableDatabaseError(err)) {
           handleUnrecoverableDatabaseError(err);
           return results;
         }
@@ -345,7 +388,32 @@ class DatabaseStore extends MailspringStore {
 
   _agent?: ChildProcess;
   _agentSpawnFailed = false;
-  _agentOpenQueries: { [id: string]: (args: AgentResponse) => void };
+  _agentOpenQueries: { [id: string]: AgentOpenQuery };
+
+  // Re-runs a background query in-process. The agent is only a way to keep long
+  // queries off the UI thread, so any failure to get an answer from it - a query
+  // error it reported, or the process dying mid-query - can fall back to
+  // `_executeLocally`, which owns the lock retries and the corrupt-database
+  // handling. Without this, a query that kills the agent leaves its promise
+  // pending forever and the view waiting on it never renders.
+  _resolveOpenQueryLocally(id: string, reason: string) {
+    const pending = this._agentOpenQueries[id];
+    if (!pending) return;
+    delete this._agentOpenQueries[id];
+
+    console.warn(`Query Agent: ${reason}, retrying in-process: ${trimTo(pending.query)}`);
+    this._executeLocally(pending.query, pending.values).then(
+      (results) => pending.resolve({ results, agentTime: -1 }),
+      (err) => {
+        // Background queries have no rejection channel - `_query` runs its executor
+        // as an async function, so a rejection here would leave its promise pending
+        // instead of reaching the caller. Report the failure and answer with no rows,
+        // which the view can render, rather than never answering at all.
+        AppEnv.reportError(err);
+        pending.resolve({ results: [], agentTime: -1 });
+      }
+    );
+  }
 
   _executeInBackground(query: SQLString, values: SQLValue[]) {
     if (!this._agent && !this._agentSpawnFailed) {
@@ -359,6 +427,9 @@ class DatabaseStore extends MailspringStore {
         this._agent.on('close', (code) => {
           debug(`Query Agent: exited with code ${code}`);
           this._agent = null;
+          for (const id of Object.keys(this._agentOpenQueries)) {
+            this._resolveOpenQueryLocally(id, `agent exited with code ${code}`);
+          }
         });
         this._agent.on('error', (err) => {
           console.error(`Query Agent: failed to start or receive message: ${err.toString()}`);
@@ -366,10 +437,13 @@ class DatabaseStore extends MailspringStore {
           this._agent = null;
         });
         this._agent.on('message', (message: Record<string, any>) => {
-          const { type, id, results, agentTime } = message;
+          const { type, id, results, agentTime, error } = message;
           if (type === 'results' && this._agentOpenQueries[id]) {
-            this._agentOpenQueries[id]({ results, agentTime });
+            this._agentOpenQueries[id].resolve({ results, agentTime });
             delete this._agentOpenQueries[id];
+          }
+          if (type === 'error') {
+            this._resolveOpenQueryLocally(id, `query failed with ${error}`);
           }
         });
       } catch (err) {
@@ -396,7 +470,7 @@ class DatabaseStore extends MailspringStore {
         return;
       }
       const id = Utils.generateTempId();
-      this._agentOpenQueries[id] = resolve;
+      this._agentOpenQueries[id] = { resolve, query, values };
       this._agent.send({ query, values, id, dbpath: this._databasePath });
     });
   }
