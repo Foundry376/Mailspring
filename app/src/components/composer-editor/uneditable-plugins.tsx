@@ -9,7 +9,15 @@ export const UNEDITABLE_TAGS = ['table', 'img', 'center', 'signature'];
 
 function UneditableNode(props) {
   const { attributes, node, editor, targetIsHTML, isFocused, children } = props;
-  const __html = node.data.get ? node.data.get('html') : node.data.html;
+  // Sanitize at the rendering boundary rather than trusting data.html. The HTML
+  // deserializer sanitizes before storing this value, but a node can also arrive
+  // pre-decoded — e.g. a Slate fragment dragged in from untrusted email via
+  // data-slate-fragment — which never passes through that deserializer. Because
+  // this composer runs with nodeIntegration, an unsanitized <webview>/<img
+  // onerror> here would execute with Node access. runSync is idempotent, so this
+  // is a no-op for values that were already cleaned.
+  const rawHtml = node.data.get ? node.data.get('html') : node.data.html;
+  const __html = SanitizeTransformer.runSync(rawHtml || '');
 
   if (targetIsHTML) {
     return <div dangerouslySetInnerHTML={{ __html }} />;
