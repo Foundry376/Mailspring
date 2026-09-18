@@ -25,12 +25,27 @@ describe('ComposerHeader', function composerHeader() {
   });
 
   describe('from field accounts', () => {
-    it('passes every account to the From picker on a reply so other identities are selectable', () => {
+    it('passes only the receiving account to the From picker on a reply', () => {
       const draft = new Message({
         draft: true,
         headerMessageId: DRAFT_HEADER_MSG_ID,
         accountId: TEST_ACCOUNT_ID,
         threadId: 'thread-1',
+        from: [new Contact({ email: TEST_ACCOUNT_EMAIL })],
+      });
+      this.createWithDraft(draft);
+      const fromField = ReactTestUtils.scryRenderedComponentsWithType(
+        this.component,
+        AccountContactField
+      )[0];
+      expect(fromField.props.accounts.map((a) => a.id)).toEqual([TEST_ACCOUNT_ID]);
+    });
+
+    it('passes every account to the From picker on a new compose', () => {
+      const draft = new Message({
+        draft: true,
+        headerMessageId: DRAFT_HEADER_MSG_ID,
+        accountId: TEST_ACCOUNT_ID,
         from: [new Contact({ email: TEST_ACCOUNT_EMAIL })],
       });
       this.createWithDraft(draft);

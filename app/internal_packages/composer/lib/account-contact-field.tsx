@@ -20,19 +20,8 @@ interface AccountContactFieldProps {
 }
 
 export function fromIdentitiesForDraft(accounts: Account[], draft: Message) {
-  const items = AccountStore.aliasesFor(accounts);
-  if (!draft.threadId) {
-    return items;
-  }
-  const seen = new Set<string>();
-  return items.filter((contact) => {
-    const key = (contact.email || '').toLowerCase();
-    if (seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
+  const scoped = draft.threadId ? accounts.filter((a) => a.id === draft.accountId) : accounts;
+  return AccountStore.aliasesFor(scoped);
 }
 
 export default class AccountContactField extends React.Component<AccountContactFieldProps> {
