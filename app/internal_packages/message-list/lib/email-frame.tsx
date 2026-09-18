@@ -104,7 +104,8 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     } else {
       doc.write(
         `<!DOCTYPE html>` +
-          `<style>${themeStyles || ''}\n${renderModeStyles || ''}</style>` +
+          `<style>${themeStyles || ''}</style>` +
+          `<style data-email-render-mode>${renderModeStyles || ''}</style>` +
           `<div id='inbox-html-wrapper' class="${process.platform}">${content}</div>`
       );
       doc.close();

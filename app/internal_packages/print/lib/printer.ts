@@ -13,9 +13,13 @@ class Printer {
     // These iframes should correspond to the message iframes when a thread is
     // focused
     const iframes = document.getElementsByTagName('iframe');
-    // Grab the html inside the iframes
+    // Grab the html inside the iframes. The dark "email render mode" style inverts
+    // the iframe's <body>; inlined into the print document it would invert the
+    // whole page, so it is dropped here.
     const messagesHtml = [].slice.call(iframes).map((iframe) => {
-      return iframe.contentDocument.documentElement.innerHTML;
+      const root = iframe.contentDocument.documentElement.cloneNode(true) as HTMLElement;
+      root.querySelectorAll('style[data-email-render-mode]').forEach((el) => el.remove());
+      return root.innerHTML;
     });
 
     const win = new PrintWindow({
