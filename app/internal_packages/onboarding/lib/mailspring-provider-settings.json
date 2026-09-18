@@ -5026,6 +5026,9 @@
   "prokonto.pl": {
     "alias": "o2.pl"
   },
+  "proton.me": {
+    "alias": "protonmail"
+  },
   "protonmail": {
     "imap_host": "127.0.0.1",
     "imap_port": "1143",

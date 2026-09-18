@@ -80,6 +80,29 @@ function mxRecordsForDomain(domain) {
   });
 }
 
+// Matches the account type presets ("yahoo") and common domains against data derived
+// from Thunderbird's ISPDB.
+function mailspringTemplateFor(domain: string, provider: string) {
+  const match = MailspringProviderSettings[domain] || MailspringProviderSettings[provider];
+  if (!match) return null;
+  return match.alias ? MailspringProviderSettings[match.alias] : match;
+}
+
+// Proton does not support nested folders outside its Folders/ and Labels/ namespaces, so
+// Proton accounts pin container_folder to "Folders" via the provider table.
+// https://protonmail.com/support/knowledge-base/creating-folders/#comment-10460
+function applyContainerFolderDefault(populated: Account) {
+  const containerFolderDefault = AccountStore.containerFolderDefaultGetter();
+  if (
+    containerFolderDefault !== 'Mailspring' &&
+    (populated.settings.container_folder === '' ||
+      populated.settings.container_folder === undefined)
+  ) {
+    populated.settings.container_folder = containerFolderDefault;
+  }
+  return populated;
+}
+
 export async function expandAccountWithCommonSettings(account: Account) {
   const domain = account.emailAddress.split('@').pop().toLowerCase();
   const mxRecords = await mxRecordsForDomain(domain);
@@ -134,19 +157,15 @@ export async function expandAccountWithCommonSettings(account: Account) {
     return populated;
   }
 
-  if (await TryThunderbirdAutoconfig(populated, account)) {
-    return populated;
+  // Resolved before autoconfig is attempted: autoconfig describes IMAP/SMTP connectivity
+  // only, so any key the provider table owns has to come from the template either way.
+  let mstemplate = mailspringTemplateFor(domain, account.provider);
+
+  if (await TryThunderbirdAutoconfig(populated, account, mstemplate)) {
+    return applyContainerFolderDefault(populated);
   }
 
-  // find matching template by domain or provider in the old lookup tables
-  // this matches the acccount type presets ("yahoo") and common domains against
-  // data derived from Thunderbirds ISPDB.
-  let mstemplate =
-    MailspringProviderSettings[domain] || MailspringProviderSettings[account.provider];
   if (mstemplate) {
-    if (mstemplate.alias) {
-      mstemplate = MailspringProviderSettings[mstemplate.alias];
-    }
     console.log(`Using Mailspring Template: ${JSON.stringify(mstemplate, null, 2)}`);
   } else {
     console.log(`Using Fallback Template`);
@@ -198,18 +217,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
   };
   populated.settings = Object.assign(defaults, populated.settings);
 
-  // because protonmail do not support nested folders for now, returning escaped delimiters
-  // https://protonmail.com/support/knowledge-base/creating-folders/#comment-10460
-  // on protonmail by default Folders set as container folder
-  const containerFolderDefault = AccountStore.containerFolderDefaultGetter();
-  if (
-    containerFolderDefault !== 'Mailspring' &&
-    (populated.settings.container_folder === '' ||
-      populated.settings.container_folder === undefined)
-  ) {
-    populated.settings.container_folder = containerFolderDefault;
-  }
-  return populated;
+  return applyContainerFolderDefault(populated);
 }
 
 export async function buildGmailAccountFromAuthResponse(code: string) {
@@ -425,7 +433,11 @@ export async function finalizeAndValidateAccount(account: Account) {
   return account;
 }
 
-async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
+async function TryThunderbirdAutoconfig(
+  populated: Account,
+  account: Account,
+  mstemplate: { container_folder?: string } | null
+) {
   function extractServerDetails(
     server: { hostname: string; port: string; username: string; socketType: string },
     account: Account
@@ -526,7 +538,10 @@ async function TryThunderbirdAutoconfig(populated: Account, account: Account) {
       smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
       smtp_security: smtpDetails?.security,
       smtp_allow_insecure_ssl: false,
-      container_folder: '',
+      // Autoconfig describes servers only, so this non-connection setting stays the
+      // provider table's to supply: a Proton Bridge account needs "Folders" here whether
+      // or not its domain answers autoconfig.
+      container_folder: mstemplate?.container_folder || '',
     };
 
     populated.settings = Object.assign(settings, populated.settings);
