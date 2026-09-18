@@ -9,6 +9,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { createWindowsInstaller } = require('electron-winstaller');
 
 const appDir = path.join(__dirname, '..');
@@ -20,7 +21,8 @@ const signWithParams = process.env.WINDOWS_SIGN_PARAMS;
 // Squirrel runs signtool.exe from whichever vendor directory it was launched
 // from, and the copy electron-winstaller bundles is the 2009 Windows 7 build.
 // Trusted Signing needs one from Windows SDK 10.0.22621.755 or newer, so the
-// workflow finds it on the runner and passes it in.
+// workflow finds it on the runner and passes it in. Its sibling DLLs come too,
+// because signtool loads several of them from its own directory.
 function createVendorDirectory() {
   const bundled = path.join(
     path.dirname(require.resolve('electron-winstaller/package.json')),
@@ -30,9 +32,51 @@ function createVendorDirectory() {
   const vendorDirectory = path.join(os.tmpdir(), 'mailspring-winstaller-vendor');
   fs.rmSync(vendorDirectory, { recursive: true, force: true });
   fs.cpSync(bundled, vendorDirectory, { recursive: true });
+
+  const signToolDirectory = path.dirname(signToolPath);
+  for (const entry of fs.readdirSync(signToolDirectory, { withFileTypes: true })) {
+    if (entry.isFile() && /\.dll$/i.test(entry.name)) {
+      fs.copyFileSync(
+        path.join(signToolDirectory, entry.name),
+        path.join(vendorDirectory, entry.name)
+      );
+    }
+  }
   fs.copyFileSync(signToolPath, path.join(vendorDirectory, 'signtool.exe'));
 
   return vendorDirectory;
+}
+
+/**
+ * Squirrel logs signtool's output when signing succeeds and discards it when it
+ * fails, reporting only the command it ran. Sign a throwaway binary first so a
+ * broken signing setup fails here, with the reason, rather than fifty lines
+ * deep in a Squirrel stack trace.
+ */
+function verifySigningWorks(vendorDirectory) {
+  const subject = path.join(vendorDirectory, 'signtool-smoke-test.exe');
+  fs.copyFileSync(path.join(vendorDirectory, 'StubExecutable.exe'), subject);
+
+  const signTool = path.join(vendorDirectory, 'signtool.exe');
+  const result = spawnSync(`"${signTool}" sign ${signWithParams} "${subject}"`, {
+    shell: true,
+    encoding: 'utf8',
+  });
+  try {
+    fs.rmSync(subject, { force: true });
+  } catch (e) {
+    // Signtool can still hold the file briefly; leaving it behind is harmless.
+  }
+
+  if (result.status !== 0) {
+    console.error('---> signtool could not sign a test binary, so Squirrel cannot either');
+    console.error(`exit code: ${result.status}`);
+    console.error(result.stdout || '');
+    console.error(result.stderr || '');
+    process.exit(1);
+  }
+
+  console.log('---> signtool signed a test binary successfully');
 }
 
 const config = {
@@ -58,6 +102,7 @@ if (signWithParams) {
   }
   config.vendorDirectory = createVendorDirectory();
   config.signWithParams = signWithParams;
+  verifySigningWorks(config.vendorDirectory);
 } else {
   console.log('---> WINDOWS_SIGN_PARAMS is unset, building an unsigned installer');
 }
