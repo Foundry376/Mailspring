@@ -39,6 +39,14 @@ const updateDotExe = path.join(rootAppDataFolder, 'Update.exe');
 // "mailspring.exe"
 const exeName = path.basename(process.execPath);
 
+// Copy the real environment onto a null-prototype object before spawning, so a
+// child inherits only genuine own variables. A plain object would additionally
+// expose anything present on Object.prototype, which a prototype-pollution bug
+// elsewhere in the process could abuse. See GHSA-gjr7-3mj2-cr54.
+function sanitizedEnv(base) {
+  return Object.assign(Object.create(null), base || process.env);
+}
+
 // Spawn a command and invoke the callback when it completes with an error
 // and the output from standard out.
 function spawn(command, args, callback, options = {}) {
@@ -46,19 +54,22 @@ function spawn(command, args, callback, options = {}) {
   let spawnedProcess = null;
 
   try {
-    spawnedProcess = ChildProcess.spawn(command, args, options);
+    spawnedProcess = ChildProcess.spawn(command, args, {
+      ...options,
+      env: sanitizedEnv(options.env),
+    });
   } catch (error) {
     // Spawn can throw an error
     setTimeout(() => callback && callback(error, stdout), 0);
     return;
   }
 
-  spawnedProcess.stdout.on('data', data => {
+  spawnedProcess.stdout.on('data', (data) => {
     stdout += data;
   });
 
   let error = null;
-  spawnedProcess.on('error', processError => {
+  spawnedProcess.on('error', (processError) => {
     error = error || processError;
   });
 
@@ -85,6 +96,7 @@ function spawnDetached(command, args) {
     const child = ChildProcess.spawn(command, args, {
       detached: true,
       stdio: 'ignore',
+      env: sanitizedEnv(),
     });
     child.unref();
   } catch (error) {
@@ -99,7 +111,7 @@ function spawnUpdate(args, callback, options = {}) {
 }
 
 function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, callback) {
-  const escapeBackticks = str => str.replace(/\\/g, '\\\\');
+  const escapeBackticks = (str) => str.replace(/\\/g, '\\\\');
 
   const isWindows7 = os.release().startsWith('6.1');
   const requiresLocalMachine = isWindows7;
@@ -147,7 +159,7 @@ function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, c
 
       const importTempPath = path.join(os.tmpdir(), `mailspring-reg-${Date.now()}.reg`);
 
-      fs.writeFile(importTempPath, importContents, writeErr => {
+      fs.writeFile(importTempPath, importContents, (writeErr) => {
         if (writeErr) {
           callback(writeErr);
           return;
@@ -156,13 +168,13 @@ function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, c
         spawn(
           spawnPath,
           spawnArgs.concat(['import', escapeBackticks(importTempPath)]),
-          spawnErr => {
+          (spawnErr) => {
             if (isWindows7 && registerDefaultIfPossible) {
               const defaultReg = path.join(appFolder, 'resources', 'mailspring-mailto-default.reg');
               spawn(
                 spawnPath,
                 spawnArgs.concat(['import', escapeBackticks(defaultReg)]),
-                spawnDefaultErr => {
+                (spawnDefaultErr) => {
                   callback(spawnDefaultErr, true);
                 }
               );
@@ -201,7 +213,7 @@ function registerAppUserModelId(callback) {
   spawn(
     regPath,
     ['add', regKey, '/v', 'DisplayName', '/t', 'REG_SZ', '/d', displayName, '/f'],
-    err => {
+    (err) => {
       if (err) {
         console.warn('Failed to register AUMID DisplayName:', err);
       }
@@ -210,7 +222,7 @@ function registerAppUserModelId(callback) {
         spawn(
           regPath,
           ['add', regKey, '/v', 'IconUri', '/t', 'REG_SZ', '/d', iconPath, '/f'],
-          iconErr => {
+          (iconErr) => {
             if (iconErr) {
               console.warn('Failed to register AUMID IconUri:', iconErr);
             }
@@ -255,7 +267,7 @@ function copyVisualElements() {
 // launching the new one. Without the Wait variant, the new instance can start
 // before the old one exits, hit the single-instance lock, and immediately quit
 // — leaving no running instance. See: https://github.com/electron/electron/pull/6037
-exports.restartMailspring = app => {
+exports.restartMailspring = (app) => {
   app.once('will-quit', () => {
     spawnDetached(updateDotExe, ['--processStartAndWait', exeName]);
   });
@@ -267,7 +279,7 @@ exports.restartMailspring = app => {
 // processes in detached mode and exit immediately to avoid timeout.
 // See: https://github.com/Squirrel/Squirrel.Windows/issues/501
 // See: https://github.com/Squirrel/Squirrel.Windows/issues/1145
-exports.handleSquirrelInstall = app => {
+exports.handleSquirrelInstall = (app) => {
   // Spawn Update.exe to create shortcuts (detached - won't block exit)
   spawnDetached(updateDotExe, [
     '--createShortcut',
@@ -354,7 +366,7 @@ exports.handleSquirrelInstall = app => {
 // Squirrel runs the NEW app version with this flag after extracting an update.
 // We update shortcuts to point to the new version and exit immediately.
 // The actual app restart happens later when the user clicks "Install Update".
-exports.handleSquirrelUpdated = app => {
+exports.handleSquirrelUpdated = (app) => {
   // Update shortcuts to point to the new app version (detached - won't block exit)
   spawnDetached(updateDotExe, [
     '--createShortcut',
@@ -370,7 +382,7 @@ exports.handleSquirrelUpdated = app => {
 };
 
 // Handle --squirrel-uninstall event with fast exit.
-exports.handleSquirrelUninstall = app => {
+exports.handleSquirrelUninstall = (app) => {
   // Spawn Update.exe to remove shortcuts (detached - won't block exit)
   spawnDetached(updateDotExe, ['--removeShortcut', exeName]);
 

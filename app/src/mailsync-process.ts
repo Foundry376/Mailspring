@@ -182,13 +182,16 @@ export class MailsyncProcess extends EventEmitter {
   }
 
   _spawnProcess(mode) {
-    const env = {
-      ...process.env,
+    // Build on a null-prototype object so the spawned engine inherits only
+    // genuine environment variables, not properties a prototype-pollution bug
+    // elsewhere in the process could have added to Object.prototype. See
+    // GHSA-gjr7-3mj2-cr54.
+    const env = Object.assign(Object.create(null), process.env, {
       CONFIG_DIR_PATH: this.configDirPath,
       GMAIL_CLIENT_ID: GMAIL_CLIENT_ID,
       GMAIL_CLIENT_SECRET: GMAIL_CLIENT_SECRET,
       IDENTITY_SERVER: 'unknown',
-    };
+    });
     if (process.type === 'renderer') {
       const rootURLForServer = require('./flux/mailspring-api-request').rootURLForServer;
       env.IDENTITY_SERVER = rootURLForServer('identity');
