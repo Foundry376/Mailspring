@@ -10,6 +10,7 @@ import {
   ipcMain,
   dialog,
   nativeImage,
+  powerMonitor,
   shell,
 } from 'electron';
 
@@ -169,6 +170,7 @@ export default class Application extends EventEmitter {
     this.systemAccentWatcher.on('dark-mode-change', (darkMode: boolean) => {
       this.windowManager.sendToAllWindows('system-dark-mode-changed', {}, darkMode);
     });
+    powerMonitor.on('resume', () => this.sendSystemDidWake());
     if (process.platform === 'win32') {
       this.windowsTaskbarManager = new WindowsTaskbarManager(this);
     }
@@ -910,6 +912,15 @@ export default class Application extends EventEmitter {
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
     if (main) {
       main.sendMessage('run-calendar-sync', accountId);
+    }
+  }
+
+  // Only the main window owns the sync clients, so it is the one that needs to know
+  // the machine woke up and every sync worker's socket is stale. #468
+  sendSystemDidWake() {
+    const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+    if (main) {
+      main.sendMessage('system-did-wake');
     }
   }
 

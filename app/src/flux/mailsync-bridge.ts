@@ -97,6 +97,11 @@ export default class MailsyncBridge {
       this.sendSyncCalendarNow(accountId)
     );
 
+    // The machine just woke from sleep. Every sync worker is sitting on a socket the
+    // network stack tore down while we were asleep, so wake them to reconnect now
+    // rather than waiting out their retry timers.
+    ipcRenderer.on('system-did-wake', () => OnlineStatusStore.onMayBeOnline());
+
     Actions.queueTask.listen(this._onQueueTask, this);
     Actions.queueTasks.listen(this._onQueueTasks, this);
     Actions.cancelTask.listen(this._onCancelTask, this);
@@ -165,7 +170,8 @@ export default class MailsyncBridge {
     // Any clients left in the `clientsWithoutAccounts` after we looped
     // through and deleted one for each accountId are ones representing
     // deleted accounts.
-    for (const client of Object.values(clientsWithoutAccounts)) {
+    for (const [accountId, client] of Object.entries(clientsWithoutAccounts)) {
+      OnlineStatusStore.onSyncProcessStopped(accountId);
       client.kill();
     }
   }, 100);
@@ -323,6 +329,11 @@ export default class MailsyncBridge {
     client.sync();
     client.on('deltas', this._onIncomingMessages);
     client.on('close', ({ code, error, signal }: MailsyncProcessExit) => {
+      // Whatever this process last reported about its connection no longer holds -
+      // clear it before any early return below, including the cache-rebuild case
+      // where the account's client has already been swapped out from under us.
+      OnlineStatusStore.onSyncProcessStopped(account.id);
+
       if (this._clients[account.id] !== client) {
         return;
       }
