@@ -65,8 +65,50 @@ jobs:
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
 
+      - name: Set Up Trusted Signing for the Installer Build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'trusted-signing'
+
+          # Squirrel signs the binaries it generates itself, so it needs the dlib
+          # the azure/trusted-signing-action steps use internally.
+          Invoke-WebRequest -Uri 'https://www.nuget.org/api/v2/package/Microsoft.Trusted.Signing.Client' -OutFile "$dir.zip"
+          Expand-Archive -Path "$dir.zip" -DestinationPath $dir -Force
+          $dlib = Get-ChildItem -Path $dir -Filter 'Azure.CodeSigning.Dlib.dll' -Recurse |
+            Where-Object { $_.FullName -like '*\x64\*' } | Select-Object -First 1
+          if (-not $dlib) { throw 'Could not find Azure.CodeSigning.Dlib.dll' }
+
+          $metadata = Join-Path $dir 'metadata.json'
+          @{
+            Endpoint = '${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}'
+            CodeSigningAccountName = '${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}'
+            CertificateProfileName = '${{ vars.AZURE_TRUSTED_SIGNING_CERT_PROFILE_NAME }}'
+          } | ConvertTo-Json | Set-Content -Path $metadata -Encoding utf8
+
+          # The dlib needs SignTool from Windows SDK 10.0.22621.755 or newer:
+          # https://learn.microsoft.com/en-us/azure/trusted-signing/how-to-signing-integrations
+          # SDK directories are named for the base release (10.0.22621.0), not the
+          # servicing build, so compare against 10.0.22621 and take the newest.
+          $signtool = Get-ChildItem -Path 'C:\Program Files (x86)\Windows Kits\10\bin' -Filter 'signtool.exe' -Recurse |
+            Where-Object { $_.Directory.Name -eq 'x64' } |
+            ForEach-Object {
+              $sdk = $_.Directory.Parent.Name -as [version]
+              if ($sdk) { [pscustomobject]@{ Version = $sdk; Path = $_.FullName } }
+            } | Sort-Object Version | Select-Object -Last 1
+          if (-not $signtool -or $signtool.Version -lt [version]'10.0.22621') {
+            throw 'Trusted Signing needs SignTool from Windows SDK 10.0.22621.755 or newer'
+          }
+
+          "WINDOWS_SIGNTOOL_PATH=$($signtool.Path)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "WINDOWS_SIGN_PARAMS=/v /fd SHA256 /tr http://timestamp.acs.microsoft.com /td SHA256 /dlib `"$($dlib.FullName)`" /dmdf `"$metadata`"" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
       - name: Create Windows Installer
         run: node app/build/create-signed-windows-installer.js
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
 
       - name: Sign Windows Installer with Azure Trusted Signing
         uses: azure/trusted-signing-action@v0
@@ -83,6 +125,9 @@ jobs:
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
+
+      - name: Verify Every Shipped Binary Is Signed
+        run: node app/build/verify-windows-signatures.js
 
       - name: Sync Artifacts to S3
         shell: pwsh
